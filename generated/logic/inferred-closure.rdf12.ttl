@@ -12562,8 +12562,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-accessibility-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-accessibility-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-accounts-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-accounts-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-accounts-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-accounts-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12574,8 +12586,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-affect-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-affect-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12586,8 +12610,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-agentic-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-agentic-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-aggregation-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-aggregation-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-aggregation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-aggregation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12598,8 +12634,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-agreements-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-agreements-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-ai-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-ai-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-ai-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-ai-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12610,8 +12658,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-attestation-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-attestation-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-attestation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-attestation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12622,8 +12682,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-awareness-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-awareness-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-calendar-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-calendar-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-calendar-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-calendar-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12634,8 +12706,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-citations-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-citations-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-cognition-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-cognition-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-cognition-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-cognition-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12646,8 +12730,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-concepts-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-concepts-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-connectivity-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-connectivity-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-connectivity-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-connectivity-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12658,8 +12754,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-contacts-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-contacts-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-coreference-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-coreference-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-coreference-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-coreference-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12670,8 +12778,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-creative-works-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-creative-works-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-deception-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-deception-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-deception-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-deception-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12682,8 +12802,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-documents-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-documents-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-documents-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-documents-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12694,8 +12826,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-dreaming-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-dreaming-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-email-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-email-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-email-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-email-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12706,8 +12850,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-employment-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-employment-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-entities-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-entities-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-entities-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-entities-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12718,8 +12874,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-epistemics-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-epistemics-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-events-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-events-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-events-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-events-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12730,8 +12898,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-evidence-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-evidence-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-expertise-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-expertise-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-expertise-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-expertise-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12742,8 +12922,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-finance-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-finance-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-gender-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-gender-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-gender-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-gender-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12754,8 +12946,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-genealogy-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-genealogy-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-graphrag-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-graphrag-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-graphrag-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-graphrag-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12766,8 +12970,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-gts-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-gts-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-guides-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-guides-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-guides-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-guides-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12778,8 +12994,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-images-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-images-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-imagination-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-imagination-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-imagination-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-imagination-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12790,8 +13018,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-inference-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-inference-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12802,8 +13042,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-inquiry-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-inquiry-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-kernel-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-kernel-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-kernel-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-kernel-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12814,8 +13066,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-lang-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-lang-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-language-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-language-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-language-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-language-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12826,8 +13090,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-languages-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-languages-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-learning-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-learning-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-learning-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-learning-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12838,8 +13114,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-lexicon-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-lexicon-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12850,8 +13138,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-logic-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-math-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-math-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-math-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-math-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12862,8 +13162,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-mentation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-mentation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-metacognition-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-metacognition-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-metacognition-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-metacognition-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12874,8 +13186,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-model-serving-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-model-serving-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-music-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-music-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-music-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-music-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12886,8 +13210,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-names-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-names-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-narrative-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-narrative-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-narrative-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-narrative-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12898,8 +13234,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-norms-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-norms-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-notation-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-notation-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-notation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-notation-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12910,8 +13258,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-notes-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-notes-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-observations-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-observations-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-observations-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-observations-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12922,8 +13282,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-organization-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-organization-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-pipeline-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-pipeline-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-pipeline-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-pipeline-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12934,8 +13306,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-places-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-places-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-procedures-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-procedures-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-procedures-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-procedures-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12946,8 +13330,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-profiles-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-profiles-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-provenance-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-provenance-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-provenance-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-provenance-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12958,8 +13354,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-quality-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-quality-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-rights-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-rights-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-rights-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-rights-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12970,8 +13378,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-risk-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-risk-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-sensory-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-sensory-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-sensory-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-sensory-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12982,8 +13402,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-sexuality-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-sexuality-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-sexuality-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-sexuality-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -12994,8 +13426,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-software-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-software-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-software-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-software-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -13006,8 +13450,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-sources-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-sources-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-standpoint-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-standpoint-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-standpoint-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-standpoint-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -13018,8 +13474,20 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-tags-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-tags-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-teleology-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-teleology-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-teleology-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-teleology-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -13030,14 +13498,32 @@
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-temporal-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-temporal-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-trust-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-trust-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-trust-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-trust-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/gmeow/afc-versions-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-versions-axisGmn1Coverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
+   <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
+<https://blackcatinformatics.ca/gmeow/afc-versions-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/gmeow/afc-versions-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/3cf101ac7c35adad5f9930c94b087b945c8a7112> >> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;

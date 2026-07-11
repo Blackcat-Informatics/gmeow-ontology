@@ -352,86 +352,167 @@ enum AxisExemptionEnum {
 
 enum AxisFloorCommitmentEnum {
   afc_accessibility_axisGmn1Coverage
+  afc_accessibility_axisShapeMigration
   afc_accounts_axisGmn1Coverage
+  afc_accounts_axisShapeMigration
   afc_affect_axisGmn1Coverage
+  afc_affect_axisShapeMigration
   afc_agent_runtime_axisGmn1Coverage
+  afc_agent_runtime_axisShapeMigration
   afc_agentic_axisGmn1Coverage
+  afc_agentic_axisShapeMigration
   afc_aggregation_axisGmn1Coverage
+  afc_aggregation_axisShapeMigration
   afc_agreements_axisGmn1Coverage
+  afc_agreements_axisShapeMigration
   afc_ai_axisGmn1Coverage
+  afc_ai_axisShapeMigration
   afc_archaeological_evidence_axisGmn1Coverage
+  afc_archaeological_evidence_axisShapeMigration
   afc_attestation_axisGmn1Coverage
+  afc_attestation_axisShapeMigration
   afc_awareness_axisGmn1Coverage
+  afc_awareness_axisShapeMigration
   afc_calendar_axisGmn1Coverage
+  afc_calendar_axisShapeMigration
   afc_citations_axisGmn1Coverage
+  afc_citations_axisShapeMigration
   afc_cognition_axisGmn1Coverage
+  afc_cognition_axisShapeMigration
   afc_concepts_axisGmn1Coverage
+  afc_concepts_axisShapeMigration
   afc_connectivity_axisGmn1Coverage
+  afc_connectivity_axisShapeMigration
   afc_contacts_axisGmn1Coverage
+  afc_contacts_axisShapeMigration
   afc_coreference_axisGmn1Coverage
+  afc_coreference_axisShapeMigration
   afc_creative_works_axisGmn1Coverage
+  afc_creative_works_axisShapeMigration
   afc_deception_axisGmn1Coverage
+  afc_deception_axisShapeMigration
   afc_diagnostics_axisGmn1Coverage
+  afc_diagnostics_axisShapeMigration
   afc_documents_axisGmn1Coverage
+  afc_documents_axisShapeMigration
   afc_dreaming_axisGmn1Coverage
+  afc_dreaming_axisShapeMigration
   afc_email_axisGmn1Coverage
+  afc_email_axisShapeMigration
   afc_employment_axisGmn1Coverage
+  afc_employment_axisShapeMigration
   afc_entities_axisGmn1Coverage
+  afc_entities_axisShapeMigration
   afc_epistemics_axisGmn1Coverage
+  afc_epistemics_axisShapeMigration
   afc_events_axisGmn1Coverage
+  afc_events_axisShapeMigration
   afc_evidence_axisGmn1Coverage
+  afc_evidence_axisShapeMigration
   afc_expertise_axisGmn1Coverage
+  afc_expertise_axisShapeMigration
   afc_finance_axisGmn1Coverage
+  afc_finance_axisShapeMigration
   afc_gender_axisGmn1Coverage
+  afc_gender_axisShapeMigration
   afc_genealogy_axisGmn1Coverage
+  afc_genealogy_axisShapeMigration
   afc_graphrag_axisGmn1Coverage
+  afc_graphrag_axisShapeMigration
   afc_gts_axisGmn1Coverage
+  afc_gts_axisShapeMigration
   afc_guides_axisGmn1Coverage
+  afc_guides_axisShapeMigration
   afc_images_axisGmn1Coverage
+  afc_images_axisShapeMigration
   afc_imagination_axisGmn1Coverage
+  afc_imagination_axisShapeMigration
   afc_inference_axisGmn1Coverage
+  afc_inference_axisShapeMigration
   afc_inhabitation_axisGmn1Coverage
+  afc_inhabitation_axisShapeMigration
   afc_inquiry_axisGmn1Coverage
+  afc_inquiry_axisShapeMigration
   afc_kernel_axisGmn1Coverage
+  afc_kernel_axisShapeMigration
   afc_lang_axisGmn1Coverage
+  afc_lang_axisShapeMigration
   afc_language_axisGmn1Coverage
+  afc_language_axisShapeMigration
   afc_languages_axisGmn1Coverage
+  afc_languages_axisShapeMigration
   afc_learning_axisGmn1Coverage
+  afc_learning_axisShapeMigration
   afc_lexicon_axisGmn1Coverage
+  afc_lexicon_axisShapeMigration
   afc_lifecycle_axisGmn1Coverage
+  afc_lifecycle_axisShapeMigration
   afc_logic_axisGmn1Coverage
+  afc_logic_axisShapeMigration
   afc_math_axisGmn1Coverage
+  afc_math_axisShapeMigration
   afc_mentation_axisGmn1Coverage
+  afc_mentation_axisShapeMigration
   afc_metacognition_axisGmn1Coverage
+  afc_metacognition_axisShapeMigration
   afc_model_serving_axisGmn1Coverage
+  afc_model_serving_axisShapeMigration
   afc_music_axisGmn1Coverage
+  afc_music_axisShapeMigration
   afc_names_axisGmn1Coverage
+  afc_names_axisShapeMigration
   afc_narrative_axisGmn1Coverage
+  afc_narrative_axisShapeMigration
   afc_norms_axisGmn1Coverage
+  afc_norms_axisShapeMigration
   afc_notation_axisGmn1Coverage
+  afc_notation_axisShapeMigration
   afc_notes_axisGmn1Coverage
+  afc_notes_axisShapeMigration
   afc_observations_axisGmn1Coverage
+  afc_observations_axisShapeMigration
   afc_organization_axisGmn1Coverage
+  afc_organization_axisShapeMigration
   afc_pipeline_axisGmn1Coverage
+  afc_pipeline_axisShapeMigration
   afc_places_axisGmn1Coverage
+  afc_places_axisShapeMigration
   afc_procedures_axisGmn1Coverage
+  afc_procedures_axisShapeMigration
   afc_profiles_axisGmn1Coverage
+  afc_profiles_axisShapeMigration
   afc_provenance_axisGmn1Coverage
+  afc_provenance_axisShapeMigration
   afc_quality_axisGmn1Coverage
+  afc_quality_axisShapeMigration
   afc_rights_axisGmn1Coverage
+  afc_rights_axisShapeMigration
   afc_risk_axisGmn1Coverage
+  afc_risk_axisShapeMigration
   afc_sensory_axisGmn1Coverage
+  afc_sensory_axisShapeMigration
   afc_sensory_environment_axisGmn1Coverage
+  afc_sensory_environment_axisShapeMigration
   afc_sexuality_axisGmn1Coverage
+  afc_sexuality_axisShapeMigration
   afc_slice_quality_rubric_axisGmn1Coverage
+  afc_slice_quality_rubric_axisShapeMigration
   afc_software_axisGmn1Coverage
+  afc_software_axisShapeMigration
   afc_sources_axisGmn1Coverage
+  afc_sources_axisShapeMigration
   afc_standpoint_axisGmn1Coverage
+  afc_standpoint_axisShapeMigration
   afc_tags_axisGmn1Coverage
+  afc_tags_axisShapeMigration
   afc_teleology_axisGmn1Coverage
+  afc_teleology_axisShapeMigration
   afc_temporal_axisGmn1Coverage
+  afc_temporal_axisShapeMigration
   afc_trust_axisGmn1Coverage
+  afc_trust_axisShapeMigration
   afc_versions_axisGmn1Coverage
+  afc_versions_axisShapeMigration
 }
 
 enum AxisThresholdEnum {
