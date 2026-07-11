@@ -71,6 +71,8 @@ pub const IMPLEMENTED: &[&str] = &[
 
 /// The `logic:` foundation-stereotype types a grounded class may carry.
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+/// The one slice whose owned `logic:` classes constitute the foundation itself.
+const LOGIC_SLICE_IRI: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
 
 /// Fraction of class terms carrying a `logic:` foundation stereotype. A class with
 /// no stereotype is a bare domain term — the anti-pattern grounding measures.
@@ -96,9 +98,11 @@ fn grounding_axis(ctx: &ScoreContext) -> AxisScore {
     let mut findings = Vec::new();
     for class in &classes {
         let sid = id(ds, class).unwrap();
-        let has_stereotype = ds
-            .quads_for_pattern(Some(sid), Some(type_p), None, GraphMatch::Any)
-            .any(|q| matches!(ds.resolve(q.o), TermRef::Iri(t) if t.starts_with(LOGIC_NS)));
+        let is_logic_foundation = ctx.slice_iri == LOGIC_SLICE_IRI && class.starts_with(LOGIC_NS);
+        let has_stereotype = is_logic_foundation
+            || ds
+                .quads_for_pattern(Some(sid), Some(type_p), None, GraphMatch::Any)
+                .any(|q| matches!(ds.resolve(q.o), TermRef::Iri(t) if t.starts_with(LOGIC_NS)));
         if has_stereotype {
             grounded += 1;
         } else {
