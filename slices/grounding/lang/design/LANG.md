@@ -189,8 +189,8 @@ forms) are required to be analyzed.
 **It deepens `language`, `notation`, `names`, and `coreference` rather than forking them.** Before
 the graft the `language` slice held its own language classes and individuals (`gmeow:Language`,
 `gmeow:FormalLanguage`, `gmeow:ProgrammingLanguage`, `gmeow:WritingSystem`,
-`gmeow:TransliterationScheme`, the BCP-47 tag property); the `notation` slice holds notation systems
-with projection profiles and declared loss; `names` and `coreference` hold naming and
+`gmeow:TransliterationScheme`, the BCP-47 tag property); the `notation` slice held notation systems
+with projection profiles and declared loss; and `names` and `coreference` held naming and
 reference-resolution machinery. These are the domain surface of exactly the phenomena `lang:`
 grounds. The grounding layer supplies the substrate — `lang:SignSystem` beneath `gmeow:Language` and
 `gmeow:NotationSystem`, `lang:Rendering` beneath the notation projection profile, `lang:Denotation`
