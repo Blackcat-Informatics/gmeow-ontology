@@ -123,7 +123,32 @@ pub struct Exemption {
     pub producer: String,
 }
 
-/// The whole rubric loaded from the slice — axes, tiers, and exemptions.
+/// A committed per-slice, per-axis measured-score floor — a
+/// `gmeow:AxisFloorCommitment` individual. The gate enforces it as a raise-only
+/// ratchet: the slice's measured axis score may rise above `floor` but never fall
+/// below it. A missing slice, axis, or value is a hard fail, never a silent skip.
+#[derive(Debug, Clone, PartialEq)]
+pub struct AxisFloorCommitment {
+    /// The slice IRI the floor is committed against (`gmeow:floorSlice`).
+    pub slice: String,
+    /// The axis IRI whose measured score is floored (`gmeow:floorAxis`).
+    pub axis: String,
+    /// The committed minimum normalized score (0.0–1.0) at full f64 precision.
+    pub floor: f64,
+}
+
+/// A committed per-slice roll-up tier floor — a `gmeow:SliceTierFloor` individual.
+/// The gate enforces it as a raise-only ratchet over the lattice order: the slice's
+/// declared roll-up tier may never fall below `tier`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SliceTierFloorCommitment {
+    /// The slice IRI the floor is committed against (`gmeow:floorSlice`).
+    pub slice: String,
+    /// The tier IRI below which the slice's roll-up may not fall (`gmeow:floorTier`).
+    pub tier: String,
+}
+
+/// The whole rubric loaded from the slice — axes, tiers, exemptions, and floors.
 #[derive(Debug, Clone, Default)]
 pub struct Rubric {
     /// The tier ladder, sorted ascending by rank.
@@ -132,6 +157,10 @@ pub struct Rubric {
     pub axes: Vec<Axis>,
     /// The dated exemptions.
     pub exemptions: Vec<Exemption>,
+    /// The committed per-slice, per-axis measured-score floors, sorted by IRI.
+    pub commitments: Vec<AxisFloorCommitment>,
+    /// The committed per-slice roll-up tier floors, sorted by IRI.
+    pub tier_floors: Vec<SliceTierFloorCommitment>,
 }
 
 impl Rubric {

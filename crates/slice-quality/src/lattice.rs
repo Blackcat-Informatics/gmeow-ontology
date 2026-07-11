@@ -146,6 +146,8 @@ mod tests {
             tiers: ladder(),
             axes: vec![],
             exemptions: vec![],
+            commitments: vec![],
+            tier_floors: vec![],
         }
     }
 

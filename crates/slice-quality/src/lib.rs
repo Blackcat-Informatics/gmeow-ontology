@@ -31,7 +31,8 @@ use std::sync::Arc;
 use purrdf::RdfDataset;
 
 pub use model::{
-    Axis, AxisGrade, ContextScope, Exemption, Rubric, SliceAssessment, Threshold, Tier,
+    Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, Rubric, SliceAssessment,
+    SliceTierFloorCommitment, Threshold, Tier,
 };
 
 /// The repo-wide slice-quality sweep products, scored in one pass over the discovered

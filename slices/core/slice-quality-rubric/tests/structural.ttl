@@ -116,6 +116,36 @@ ASK {
 }""" ;
     gmeow:saRationale "An axis has exactly one ranking weight and one read scope, and a tier has exactly one rank, so these properties are functional — multiple values would make the advice ordering and the lattice order ill-defined." .
 
+# --- 8b. An AxisFloorCommitment carries exactly one slice, axis, and value (MUST)
+ex:saAxisFloorCommitmentWellFormed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:AxisFloorCommitment a owl:Class .
+    gmeow:floorSlice a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:Slice .
+    gmeow:floorAxis  a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:QualityAxis .
+    gmeow:floorValue a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:decimal .
+}""" ;
+    gmeow:saRationale "A per-axis floor commitment is a raise-only ratchet cell pairing one slice, one axis, and one measured-score floor, so gmeow:floorSlice, gmeow:floorAxis, and gmeow:floorValue are all functional with their committed ranges — a commitment with two slices, two axes, or two floors would make the regression bar ill-defined." .
+
+# --- 8c. A SliceTierFloor carries exactly one slice and one tier (MUST) ---------
+ex:saSliceTierFloorWellFormed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SliceTierFloor a owl:Class .
+    gmeow:floorSlice a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:Slice .
+    gmeow:floorTier  a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:QualityTier .
+}""" ;
+    gmeow:saRationale "A per-slice tier floor is a raise-only ratchet cell pairing one slice with one minimum roll-up tier, so gmeow:floorSlice and gmeow:floorTier are functional with their committed ranges — a floor naming two slices or two tiers would make the committed rung ill-defined over the lattice order." .
+
 # --- 8. The advice weight never enters the roll-up: it is not the meet (MUST-NOT)
 ex:saWeightNotTierRank a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

@@ -909,6 +909,8 @@ mod min_tier_tests {
             ],
             axes: vec![],
             exemptions: vec![],
+            commitments: vec![],
+            tier_floors: vec![],
         }
     }
 

@@ -101,6 +101,8 @@ fn binding_gate_reds_on_prefix_producer_against_real_source() {
         tiers: vec![],
         axes: vec![mk_axis("grounding_ax")],
         exemptions: vec![],
+        commitments: vec![],
+        tier_floors: vec![],
     };
     let errs = binding_gate(&rubric, |s| symbols.contains(s));
     assert!(
@@ -119,6 +121,8 @@ fn binding_gate_reds_on_producer_with_no_axes_item() {
         tiers: vec![],
         axes: vec![mk_axis("no_such_primitive_symbol")],
         exemptions: vec![],
+        commitments: vec![],
+        tier_floors: vec![],
     };
     let errs = binding_gate(&rubric, |s| symbols.contains(s));
     assert!(
