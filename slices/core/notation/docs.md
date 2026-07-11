@@ -93,7 +93,7 @@ featural scripts).
 ## Usage pattern: NotationSystemUsage
 
 The reified relator `NotationSystemUsage` binds an entity to a notation system
-with a role and interval, mirroring `WritingSystemUsage`:
+with a role and interval, mirroring names' `NameUsage`:
 
 ```turtle
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -239,7 +239,7 @@ uses, its inverse, and the bridge that views a `lang:Script` as a
 ### gmeow:NotationSystemUsage · gmeow:NotationUsageRole · gmeow:notationUsageTarget · gmeow:notationUsageNotationSystem · gmeow:notationUsageRole · gmeow:notationUsageInterval
 
 The reified relator binding an entity to a notation system with a role and an
-interval, mirroring `WritingSystemUsage`: `notationUsageTarget` the entity,
+interval, mirroring names' `NameUsage`: `notationUsageTarget` the entity,
 `notationUsageNotationSystem` the system, `notationUsageRole` a `NotationUsageRole`
 value (transcription, representation, …), and `notationUsageInterval` the span it
 held.
