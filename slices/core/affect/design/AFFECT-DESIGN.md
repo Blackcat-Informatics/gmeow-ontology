@@ -586,7 +586,7 @@ never define the canonical model.
 | Layer | What it captures | Example |
 | --- | --- | --- |
 | Canonical GMEOW affect model | emotion, affective experience, mood, appraisal, expression, evidence, scale/profile | `gmeow:Emotion`, `gmeow:Appraisal`, future `gmeow:AffectiveExperience` |
-| External ontology mappings | rich semantic bridges to ontology terms | MFOEM, EmotionML, Emotion Frame Ontology, OntoLex, PROV-O, Web Annotation |
+| External ontology mappings | rich semantic bridges to ontology terms | MFOEM, EmotionML, OntoLex-Lemon (Open English WordNet), PROV-O, Web Annotation |
 | External classifier label registries | exact lossless identity of model labels | `goemotions:gratitude`, `hf-cardiff:Positive`, `sst2:NEGATIVE` |
 | Inference-output observations | actual model runs as claims with provenance, scores, thresholds, evidence | "SamLowe GoEmotions emitted `joy=0.84` over chunk X" |
 
@@ -732,7 +732,7 @@ distinct until mapped) and the output is evidence, not a settled inner state.
 Maximal linking makes GMEOW the hub, with authority always flowing GMEOW-first:
 
 ```text
-EmotionML / MFOEM / EmotionFrame / OntoLex / PROV-O / Web Annotation
+EmotionML / MFOEM / OntoLex / PROV-O / Web Annotation
             ↕
          GMEOW affect
             ↕
