@@ -140,8 +140,13 @@ gmeow:Distribution
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Distribution"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A concrete distribution artifact of a software product — a tarball, wheel, binary, container image, or installer. The physical/bits facet of the release; identified by content digest."@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:contentDigest ;
+            owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ;
+        ] ;
+    skos:definition "A concrete distribution artifact of a software product — a tarball, wheel, binary, container image, or installer. The physical/bits facet of the release; identified by content digest (gmeow:contentDigest), so a distribution declares at least one content-digest fingerprint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ForgePlatform

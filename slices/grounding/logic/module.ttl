@@ -365,14 +365,6 @@ logic:DependencyModel
     rdfs:subClassOf logic:ProbabilityModel ;
     skos:definition "A probability model carrying an EXPLICIT joint distribution over a correlated set of logic:probability facts: where logic:FullIndependence factorizes as a product, a dependency model substitutes a declared joint table (logic:correlates names the correlated facts; logic:jointOutcome enumerates the joint outcomes with their logic:jointProbability). Facts outside the correlated set remain independent and factorize as usual. The declared joint outcomes must be exhaustive and sum to one. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:DependencyModel only under the stated identity and validation conditions."@x-gmeow-english .
 
-logic:GenericDependence
-    a owl:Class ;
-    rdfs:subClassOf logic:ProbabilityModel ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Generic Dependence"@x-gmeow-english ;
-    skos:definition "A probability model governing a GENERIC stochastic dependence — an unspecified but declared dependence between random quantities that is not resolved to an explicit joint table (logic:DependencyModel) nor to full independence (logic:FullIndependence). The lowering target of a stochastic transition such as a math:MarkovKernel, whose per-source-point transition measure realizes exactly this generic dependence: the target space's distribution depends on the source point through a declared kernel rather than a tabulated joint. Its exactness is conditional on the kernel's completeness gate (a declared domain and codomain, and kernel totality). It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:GenericDependence only under the stated identity and validation conditions."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
 logic:DerivationRule
     a owl:NamedIndividual ,
         logic:NodeKind ;
@@ -6897,15 +6889,8 @@ logic:wfWorldSeeded
     skos:definition "The situation gate the well-founded materializer's phase action schemas ground on: the per-world store is selected and its asserted EDB facts are reachable (the sorted worlds list of crates/logic/src/wellfounded.rs materialize()). The shared logic:precondition of the three intra-engine phase schemas — the elementary phase transition applies only once a world is in scope."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-logic:EngineCapability
-    a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Engine Capability"@x-gmeow-english ;
-    skos:definition "An executional capability an actor or native engine must hold to fire an action schema — the range a logic:capability points at, and the executional counterpart of a logic:Situation (which is a precondition on world state, not on the engine). The generic ability a schema demands of whoever runs it, matched at a gate against logic:capabilityAvailable. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:EngineCapability only under the stated identity and validation conditions."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
-
 logic:wfReductEngineCapability
-    a logic:EngineCapability ;
+    a logic:GenericDependence ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "well-founded reduct-engine capability"@x-gmeow-english ;
     skos:definition "The executional precondition on the actor the well-founded materializer's phase action schemas carry as their logic:capability: the least-model-of-reduct engine (crate::rule_ir::least_model_of_reduct) is available to evaluate a reduct against a reference fact set. The generic ability the native engine must hold to run any of the three phases — distinct from logic:wfWorldSeeded, which is a precondition on the world state, not on the engine."@x-gmeow-english ;

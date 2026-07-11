@@ -958,7 +958,7 @@ ASK {
         logic:DerivationRule logic:DesignateTrueAndBoth logic:DesignateTrueOnly logic:DesignatedValueSet logic:Determinacy logic:Dialect logic:DimensionThreshold
         logic:DischargeBoundedCorpus logic:DischargeCertifiedFragment logic:DischargeCondition logic:DischargeConservativeExtension logic:DischargeFiniteClosure logic:DischargeSyntacticReachability logic:DischargeVerdict
         logic:Discipline logic:Disjoint logic:Disjunctive logic:DisjunctiveGoal logic:DisjunctiveRequirednessConstraint logic:Disposition logic:DownwardConstraint
-        logic:ElementaryUpdate logic:EmergenceAssessment logic:EmergenceUnknown logic:EmergenceVerdict logic:Emergent logic:Endurant logic:EndurantType logic:EngineCapability
+        logic:ElementaryUpdate logic:EmergenceAssessment logic:EmergenceUnknown logic:EmergenceVerdict logic:Emergent logic:Endurant logic:EndurantType
         logic:EntrenchmentRevision logic:EpistemicFramework logic:EqualityPolicy logic:Equiv logic:EvaluationCompleted logic:EvaluationStatus logic:EvaluationUnsupported
         logic:Event logic:EvolutionMode logic:ExactPreservation logic:ExecutionMode logic:ExistentialRulesFragment logic:ExplicitEqualityPolicy logic:ExplicitNegation
         logic:ExpressivenessBoundary logic:ExternalSignal logic:FOLFragment logic:Fallback logic:FeasibilityStatus logic:FeasibilityUnknown logic:Feasible
@@ -966,7 +966,7 @@ ASK {
         logic:FindingPolicyWarning logic:FindingProjectionLoss logic:FindingTransientChatter logic:FindingUnsupportedSemanticFeature logic:FirstOrder logic:FixedCollection logic:FlagshipScenarioFailureClassConstraint
         logic:Fluent logic:ForbidGap logic:ForbidGapAndGlut logic:ForbidGlut logic:ForbiddenPatternConstraint logic:FormalizationCandidate logic:FormalizationCategory
         logic:Formula logic:FormulaFragment logic:FormulaShape logic:FreeRole logic:FreshnessGuard logic:FreshnessGuardWindowBoundsConstraint logic:FullIndependence
-        logic:FunctionalComplex logic:FuzzyMeasure logic:GateAdmitted logic:GateDenied logic:GateProbe logic:GateUndetermined logic:GenericDependence logic:GetPut
+        logic:FunctionalComplex logic:FuzzyMeasure logic:GateAdmitted logic:GateDenied logic:GateProbe logic:GateUndetermined logic:GetPut
         logic:GoalEvaluation logic:GoalEvaluationCompleted logic:GoalEvaluationStatus logic:GoalEvaluationUndetermined logic:GoalEvaluationUnsupported logic:GoalExpression logic:GoalExpressionKind
         logic:GovernanceRegime logic:GroundedArgumentation logic:GuardedImplicationConstraint logic:Holarchy logic:Holon logic:HolonIntegral logic:HolonicAgencyProfile
         logic:HolonicFramework logic:HolonicLevelIncoherence logic:HolonicPosition logic:HornFragment logic:HypotheticalExecution logic:Incomplete logic:IncompleteClosure
@@ -1135,7 +1135,7 @@ ASK {
         logic:DischargeVerdict, logic:Discipline, logic:Disjoint, logic:Disjunctive,
         logic:DisjunctiveGoal, logic:DisjunctiveRequirednessConstraint, logic:Disposition, logic:DownwardConstraint,
         logic:ElementaryUpdate, logic:EmergenceAssessment, logic:EmergenceUnknown, logic:EmergenceVerdict,
-        logic:Emergent, logic:Endurant, logic:EndurantType, logic:EngineCapability, logic:EntrenchmentRevision,
+        logic:Emergent, logic:Endurant, logic:EndurantType, logic:EntrenchmentRevision,
         logic:EpistemicFramework, logic:EqualityPolicy, logic:Equiv, logic:EvaluationCompleted,
         logic:EvaluationStatus, logic:EvaluationUnsupported, logic:Event, logic:EvolutionMode,
         logic:ExactPreservation, logic:ExecutionMode, logic:ExistentialRulesFragment, logic:ExplicitEqualityPolicy,
@@ -1149,7 +1149,7 @@ ASK {
         logic:FormalizationCategory, logic:Formula, logic:FormulaFragment, logic:FormulaShape,
         logic:FreeRole, logic:FreshnessGuard, logic:FreshnessGuardWindowBoundsConstraint, logic:FullIndependence,
         logic:FunctionalComplex, logic:FuzzyMeasure, logic:GateAdmitted, logic:GateDenied,
-        logic:GateProbe, logic:GateUndetermined, logic:GenericDependence, logic:GetPut, logic:GoalEvaluation,
+        logic:GateProbe, logic:GateUndetermined, logic:GetPut, logic:GoalEvaluation,
         logic:GoalEvaluationCompleted, logic:GoalEvaluationStatus, logic:GoalEvaluationUndetermined, logic:GoalEvaluationUnsupported,
         logic:GoalExpression, logic:GoalExpressionKind, logic:GovernanceRegime, logic:GroundedArgumentation,
         logic:GuardedImplicationConstraint, logic:Holarchy, logic:Holon, logic:HolonIntegral,
