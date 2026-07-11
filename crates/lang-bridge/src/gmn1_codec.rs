@@ -295,28 +295,124 @@ impl GmnDictionary {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UncoveredTerm(pub String);
 
-/// A GMN-1 write or read failure: either an uncovered construct or a malformed-text
-/// parse defect (the latter only ever raised by [`gmn1_read`] on hand-corrupted input —
-/// [`gmn1_write`] never produces malformed text).
+/// A GMN-1 write or read failure — a TOTAL typed algebra in which every failure resolves
+/// to EXACTLY ONE `lang:` validator-tier conformance class (no untyped residual). Each
+/// variant maps to one `lang:LangConformanceFailure` subclass through [`Self::failure_class`]
+/// ([`LANG-GMN.md`](../../../slices/grounding/lang/design/LANG-GMN.md) § "The four
+/// validator-tier failure classes"; the classes themselves live in
+/// `slices/grounding/lang/module.ttl`).
+///
+/// # Detection precedence (the linearization that makes "exactly one class" well-defined)
+///
+/// A single GMN-1 document can violate several rules at once; to keep the classification a
+/// FUNCTION (exactly one class per input, never a set), [`gmn1_read`] applies its checks in a
+/// fixed precedence — syntax before semantics — and returns the FIRST class the input trips:
+///
+/// 1. **lex/grammar** ([`NonDecodableGrammar`](Self::NonDecodableGrammar)) — the byte stream
+///    must be structurally decodable at all (balanced braces, a known sigil, known keys, no
+///    duplicate keys, a `@claims` schema its rows match). A grammar defect ANYWHERE dominates.
+/// 2. **number-form** ([`MalformedNumber`](Self::MalformedNumber)) — every number-SHAPED value
+///    token must be a canonical integer or exactly-two-digit decimal. Number well-formedness is
+///    a LEXICAL property, decidable without the dialect header, so it precedes header-presence.
+/// 3. **key-order** ([`NonCanonicalOrder`](Self::NonCanonicalOrder)) — a record's keys must be
+///    in the canonical `s p o v q st ev m ek bd it` order.
+/// 4. **header-presence** ([`UndeclaredDialectVersion`](Self::UndeclaredDialectVersion)) — the
+///    `@gmn{…}` header must pin the dialect/dictionary version before any record.
+/// 5. **dictionary-coverage** ([`Uncovered`](Self::Uncovered)) — every term must resolve
+///    against the pinned dictionary / prefix registry.
+///
+/// [`NonDecodableGrammar`](Self::NonDecodableGrammar) is the RESIDUAL bucket: genuinely
+/// unliftable grammar (and the codec's own internal round-trip-mismatch invariant), never a
+/// catch-all for one of the four rules above.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Gmn1Error {
-    /// [`UncoveredTerm`] — the construct is named so the failure is diagnosable.
+    /// `lang:GmnUncoveredTerm` — a grammar-valid term the pinned dictionary / prefix registry
+    /// does not cover (an IRI under no registered namespace, a dictionary alias `dict-v1` does
+    /// not mint, a quoted RDF 1.2 triple term, a named-graph quad). Named so it is diagnosable.
     Uncovered(UncoveredTerm),
-    /// A parse defect in GMN-1 text that is not an uncovered-term hard fail (a
-    /// structurally malformed record, e.g. an unterminated brace).
-    Malformed(String),
+    /// `lang:GmnNonCanonicalOrder` — a record's field keys are not in the canonical key order
+    /// (`s p o v q st ev m ek bd it`), forfeiting the byte-comparability the digest discipline
+    /// depends on.
+    NonCanonicalOrder { detail: String },
+    /// `lang:GmnMalformedNumber` — a number-shaped value token outside the grammar's number
+    /// production (scientific notation like `9.5e-1`, or a fraction whose digit count is not
+    /// exactly two like `0.951`). `token` is the offending lexeme.
+    MalformedNumber { token: String },
+    /// `lang:GmnUndeclaredDialectVersion` — the document reaches the reader without its dialect
+    /// coordinates: no `@gmn{…}` header pinning the schema/dictionary version before the first
+    /// record, or a header that fails to pin the expected version.
+    UndeclaredDialectVersion { detail: String },
+    /// `lang:GmnNonDecodableGrammar` — the residual for genuinely unliftable grammar: an
+    /// unbalanced brace, an unknown sigil, an unknown or duplicate record key, a malformed
+    /// field pair, a `@claims` schema its rows do not match, or the codec's own internal
+    /// round-trip-mismatch invariant.
+    NonDecodableGrammar { detail: String },
+}
+
+impl Gmn1Error {
+    /// The full `lang:` failure-class IRI (`https://blackcatinformatics.ca/lang/…`) — the
+    /// SAME IRIs `slices/grounding/lang/module.ttl` mints under `lang:LangConformanceFailure`,
+    /// the ONE canonical classifier the on-gate GMN gate, `run.rs`'s ledger split, and the
+    /// shipped-projection lint all consume (never a second, drift-prone classifier).
+    pub const CLASS_UNCOVERED_TERM: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnUncoveredTerm";
+    /// See [`Self::CLASS_UNCOVERED_TERM`].
+    pub const CLASS_NON_CANONICAL_ORDER: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnNonCanonicalOrder";
+    /// See [`Self::CLASS_UNCOVERED_TERM`].
+    pub const CLASS_MALFORMED_NUMBER: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnMalformedNumber";
+    /// See [`Self::CLASS_UNCOVERED_TERM`].
+    pub const CLASS_UNDECLARED_DIALECT_VERSION: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnUndeclaredDialectVersion";
+    /// See [`Self::CLASS_UNCOVERED_TERM`].
+    pub const CLASS_NON_DECODABLE_GRAMMAR: &'static str =
+        "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar";
+
+    /// The full `lang:` failure-class IRI this failure resolves to. This match is EXHAUSTIVE
+    /// with no wildcard arm — the compile-time totality witness (mirroring
+    /// [`Gmn1ConstructCategory::all_covered_by_match`]): a new [`Gmn1Error`] variant added
+    /// without an IRI mapping HERE fails to compile, so the typed algebra can never grow an
+    /// untyped residual.
+    #[must_use]
+    pub fn failure_class(&self) -> &'static str {
+        match self {
+            Self::Uncovered(_) => Self::CLASS_UNCOVERED_TERM,
+            Self::NonCanonicalOrder { .. } => Self::CLASS_NON_CANONICAL_ORDER,
+            Self::MalformedNumber { .. } => Self::CLASS_MALFORMED_NUMBER,
+            Self::UndeclaredDialectVersion { .. } => Self::CLASS_UNDECLARED_DIALECT_VERSION,
+            Self::NonDecodableGrammar { .. } => Self::CLASS_NON_DECODABLE_GRAMMAR,
+        }
+    }
 }
 
 impl std::fmt::Display for Gmn1Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Uncovered(u) => write!(f, "lang:GmnUncoveredTerm: {}", u.0),
-            Self::Malformed(m) => write!(f, "GMN-1 parse error: {m}"),
+            Self::NonCanonicalOrder { detail } => write!(f, "lang:GmnNonCanonicalOrder: {detail}"),
+            Self::MalformedNumber { token } => write!(
+                f,
+                "lang:GmnMalformedNumber: number-shaped token {token:?} is not a canonical \
+                 integer or exactly-two-digit decimal"
+            ),
+            Self::UndeclaredDialectVersion { detail } => {
+                write!(f, "lang:GmnUndeclaredDialectVersion: {detail}")
+            }
+            Self::NonDecodableGrammar { detail } => {
+                write!(f, "lang:GmnNonDecodableGrammar: {detail}")
+            }
         }
     }
 }
 
 impl std::error::Error for Gmn1Error {}
+
+/// The residual `lang:GmnNonDecodableGrammar` constructor — a one-line helper so the reader's
+/// many structural-defect sites all mint the SAME variant.
+fn non_decodable(detail: String) -> Gmn1Error {
+    Gmn1Error::NonDecodableGrammar { detail }
+}
 
 // ── Construct-category classification (the coverage-completeness audit's
 // vocabulary) ─────────────────────────────────────────────────────────────
@@ -607,6 +703,35 @@ fn is_decimal_token(s: &str) -> bool {
         && frac_part.bytes().all(|b| b.is_ascii_digit())
 }
 
+/// Whether `s` is NUMBER-SHAPED — a token that is unambiguously ATTEMPTING to be a numeric
+/// literal, so a malformed one is a `lang:GmnMalformedNumber` rather than a mis-typed
+/// identifier. A token is number-shaped iff it is NOT identifier-shaped AND (its first byte
+/// is an ASCII digit, OR a leading sign/`.` is immediately followed by a digit).
+///
+/// The `!is_identifier` guard is load-bearing: identifiers legitimately contain `e`/`E`
+/// (`open`, `state`, `sensorCrew`), so a naive "contains `e`" number test would misclassify
+/// them — an identifier-shaped token is NEVER number-shaped and falls through to dictionary
+/// coverage ([`Gmn1Error::Uncovered`]).
+fn is_number_shaped(s: &str) -> bool {
+    if is_identifier(s) {
+        return false;
+    }
+    let mut bytes = s.bytes();
+    match bytes.next() {
+        Some(b) if b.is_ascii_digit() => true,
+        Some(b'-' | b'+' | b'.') => bytes.next().is_some_and(|b| b.is_ascii_digit()),
+        _ => false,
+    }
+}
+
+/// Whether `s` is number-shaped but NOT a canonical GMN-1 number — the exact
+/// `lang:GmnMalformedNumber` predicate: a fraction whose digit count is not exactly two
+/// (`0.951`) or a scientific-notation lex (`9.5e-1`) is malformed, while `0.95`/`50`/`-1.00`
+/// pass, and identifier-shaped tokens (never number-shaped) are left to dictionary coverage.
+fn is_malformed_number(s: &str) -> bool {
+    is_number_shaped(s) && !is_integer_token(s) && !is_decimal_token(s)
+}
+
 /// Classify + encode a literal: inline as an identifier or canonical number when the
 /// datatype and shape allow it losslessly; otherwise mint a content-addressed `r_<hash>`
 /// reference and carry the full payload in `refs`. [`classify_value`] delegates to this
@@ -682,7 +807,7 @@ fn decode_reference(
 ) -> Result<RdfTerm, Gmn1Error> {
     if let Some(label) = token.strip_prefix(BLANK_PREFIX) {
         if !is_safe_token_body(label) {
-            return Err(Gmn1Error::Malformed(format!(
+            return Err(non_decodable(format!(
                 "malformed blank-node token: {token}"
             )));
         }
@@ -730,6 +855,15 @@ fn decode_value(token: &str, refs: &BTreeMap<String, RefPayload>) -> Result<RdfT
     }
     if is_identifier(token) {
         return Ok(RdfTerm::Literal(RdfLiteral::typed(token, XSD_STRING)));
+    }
+    // A number-SHAPED token that reached here is not a canonical integer/decimal — a
+    // `lang:GmnMalformedNumber` (scientific notation, a non-two-digit fraction), never a
+    // silently-dropped `Uncovered` (the reader's number-form pass classifies these first;
+    // this is the defensive belt so a value token is classified correctly in isolation too).
+    if is_number_shaped(token) {
+        return Err(Gmn1Error::MalformedNumber {
+            token: token.to_owned(),
+        });
     }
     Err(Gmn1Error::Uncovered(UncoveredTerm(format!(
         "value token is not identifier-shaped, not a canonical number, and not a \
@@ -920,14 +1054,14 @@ fn record_to_quads(
     let s_tok = record
         .fields
         .get("s")
-        .ok_or_else(|| Gmn1Error::Malformed("record is missing required key 's'".to_owned()))?;
+        .ok_or_else(|| non_decodable("record is missing required key 's'".to_owned()))?;
     let p_tok = record
         .fields
         .get("p")
-        .ok_or_else(|| Gmn1Error::Malformed("record is missing required key 'p'".to_owned()))?;
+        .ok_or_else(|| non_decodable("record is missing required key 'p'".to_owned()))?;
     let subject = decode_reference(s_tok, dict, prefix_to_ns)?;
     let RdfTerm::Iri(predicate) = decode_reference(p_tok, dict, prefix_to_ns)? else {
-        return Err(Gmn1Error::Malformed(format!(
+        return Err(non_decodable(format!(
             "'p' slot must decode to an IRI, got token {p_tok}"
         )));
     };
@@ -935,12 +1069,12 @@ fn record_to_quads(
         (Some(o_tok), None) => decode_reference(o_tok, dict, prefix_to_ns)?,
         (None, Some(v_tok)) => decode_value(v_tok, refs)?,
         (None, None) => {
-            return Err(Gmn1Error::Malformed(
+            return Err(non_decodable(
                 "record carries neither 'o' nor 'v'".to_owned(),
             ));
         }
         (Some(_), Some(_)) => {
-            return Err(Gmn1Error::Malformed(
+            return Err(non_decodable(
                 "record carries BOTH 'o' and 'v' — exactly one object slot is legal".to_owned(),
             ));
         }
@@ -1111,173 +1245,263 @@ pub fn gmn1_write_tabular(
 
 // ── The reader (a genuinely independent parser — see module docs) ──────────────────
 
-/// GMN-1 → GMN-0: the backward/get leg. A hand-written, table-driven line parser — see
-/// the module documentation for the concrete reader-independence argument. Hard-fails as
-/// [`Gmn1Error::Malformed`] on structurally invalid text and as [`Gmn1Error::Uncovered`]
-/// on a token this codec's covered fragment does not decode.
+/// A record lexed from GMN-1 text in READ order — the intermediate the detection-precedence
+/// passes ([`Gmn1Error`]'s precedence doc) consume, BEFORE number-form, key-order, header, or
+/// dictionary validation. Keeping the read-order `pairs` (not the canonicalizing
+/// [`Record`]'s `BTreeMap`) is what lets the key-order pass see the ACTUAL order the tokens
+/// appeared in.
+struct LexedRecord {
+    sigil: &'static str,
+    /// `(canonical-key, value)` pairs in the order read from the line.
+    pairs: Vec<(&'static str, String)>,
+    /// Sigil records enforce canonical key order (the writer emits it); a schema-driven
+    /// tabular row does not (its keys come from the once-declared `@claims` schema).
+    enforce_key_order: bool,
+}
+
+/// GMN-1 → GMN-0: the backward/get leg. A hand-written, table-driven parser applying the
+/// [`Gmn1Error`] DETECTION-PRECEDENCE passes in order (lex/grammar → number-form → key-order
+/// → header-presence → dictionary-coverage), so every failure resolves to EXACTLY ONE typed
+/// `lang:` conformance class — see the module documentation for the reader-independence
+/// argument and [`Gmn1Error`] for the precedence rationale.
 pub fn gmn1_read(doc: &Gmn1Document, dict: &GmnDictionary) -> Result<Gmn0Model, Gmn1Error> {
     let prefix_to_ns = prefix_to_ns_table();
-    let mut lines = doc.text.lines();
 
-    let header = lines
-        .next()
-        .ok_or_else(|| Gmn1Error::Malformed("empty GMN-1 document: no @gmn header".to_owned()))?;
-    parse_header(header)?;
+    // Non-empty, trimmed lines in order. A canonical document opens with the `@gmn{…}`
+    // header; whether it is present/valid is decided in the HEADER-PRESENCE pass, so here we
+    // only SEPARATE the (optional) header from the record lines. `@gmn{` uniquely marks the
+    // header: no value token can contain `{`.
+    let raw_lines: Vec<&str> = doc
+        .text
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .collect();
+    let (header_line, record_lines): (Option<&str>, &[&str]) = match raw_lines.split_first() {
+        Some((first, rest)) if first.starts_with("@gmn{") => (Some(*first), rest),
+        _ => (None, &raw_lines[..]),
+    };
 
-    let mut records: Vec<Record> = Vec::new();
-    let mut pending_columns: Option<Vec<String>> = None;
-    for line in lines {
-        let line = line.trim();
-        if line.is_empty() {
-            continue;
-        }
+    // ── Pass 1 — lex/grammar (`GmnNonDecodableGrammar`) ────────────────────────────────
+    let mut lexed: Vec<LexedRecord> = Vec::new();
+    let mut pending_columns: Option<Vec<&'static str>> = None;
+    for line in record_lines {
         if let Some(rest) = line.strip_prefix("@claims[") {
-            let cols = rest.strip_suffix(']').ok_or_else(|| {
-                Gmn1Error::Malformed(format!("unterminated @claims header: {line}"))
-            })?;
-            pending_columns = Some(
-                cols.split(' ')
-                    .filter(|s| !s.is_empty())
-                    .map(str::to_owned)
-                    .collect(),
-            );
+            let cols_str = rest
+                .strip_suffix(']')
+                .ok_or_else(|| non_decodable(format!("unterminated @claims header: {line}")))?;
+            pending_columns = Some(lex_columns(cols_str)?);
             continue;
         }
         if line.starts_with('@') && line.contains('{') {
             pending_columns = None;
-            records.push(parse_sigil_record(line)?);
+            lexed.push(lex_sigil_record(line)?);
             continue;
         }
         if let Some(cols) = &pending_columns {
-            records.push(parse_tabular_row(cols, line)?);
+            lexed.push(lex_tabular_row(cols, line)?);
             continue;
         }
-        return Err(Gmn1Error::Malformed(format!(
+        return Err(non_decodable(format!(
             "line matches neither a sigil record, a @claims header, nor a pending tabular row: {line}"
         )));
     }
 
+    // ── Pass 2 — number-form (`GmnMalformedNumber`) ────────────────────────────────────
+    // A number-SHAPED value token that is not a canonical integer / two-digit decimal is a
+    // malformed number, decided before header-presence because number well-formedness is a
+    // lexical property independent of the dialect version.
+    for record in &lexed {
+        for (_key, value) in &record.pairs {
+            if is_malformed_number(value) {
+                return Err(Gmn1Error::MalformedNumber {
+                    token: value.clone(),
+                });
+            }
+        }
+    }
+
+    // ── Pass 3 — key-order (`GmnNonCanonicalOrder`) ────────────────────────────────────
+    for record in &lexed {
+        if !record.enforce_key_order {
+            continue;
+        }
+        let mut last_rank: Option<usize> = None;
+        for (key, _value) in &record.pairs {
+            let rank = KEY_ORDER
+                .iter()
+                .position(|candidate| candidate == key)
+                .expect("the lexer resolved every key to a KEY_ORDER member");
+            if last_rank.is_some_and(|last| rank < last) {
+                return Err(Gmn1Error::NonCanonicalOrder {
+                    detail: format!(
+                        "record key '{key}' precedes an earlier key — records must follow the \
+                         canonical key order (s p o v q st ev m ek bd it)"
+                    ),
+                });
+            }
+            last_rank = Some(rank);
+        }
+    }
+
+    // ── Pass 4 — header-presence (`GmnUndeclaredDialectVersion`) ───────────────────────
+    match header_line {
+        Some(line) => parse_header(line)?,
+        None => {
+            return Err(Gmn1Error::UndeclaredDialectVersion {
+                detail: "GMN-1 text must open with an @gmn{...} header pinning the schema and \
+                         dictionary version before the first record"
+                    .to_owned(),
+            });
+        }
+    }
+
+    // ── Pass 5 — dictionary-coverage (`GmnUncoveredTerm`) + quad reconstruction ─────────
     let mut quads = Vec::new();
-    for record in &records {
-        quads.extend(record_to_quads(record, dict, &prefix_to_ns, &doc.refs)?);
+    for record in &lexed {
+        let assembled = Record {
+            sigil: record.sigil,
+            fields: record.pairs.iter().cloned().collect(),
+        };
+        quads.extend(record_to_quads(&assembled, dict, &prefix_to_ns, &doc.refs)?);
     }
     quads.sort_by_key(quad_sort_key);
     quads.dedup_by(|a, b| quad_sort_key(a) == quad_sort_key(b));
     Ok(Gmn0Model { quads })
 }
 
-/// Parse `@gmn{v: 1, aliases: dict-v1}` by explicit token scanning — never by
-/// re-deriving from what [`gmn1_write`] would emit.
+/// Validate `@gmn{v: 1, aliases: dict-v1}` by explicit token scanning — never by re-deriving
+/// from what [`gmn1_write`] would emit. A header that fails to open/close or fails to pin the
+/// expected version is `lang:GmnUndeclaredDialectVersion` (the dialect coordinates the reader
+/// refuses to guess).
 fn parse_header(line: &str) -> Result<(), Gmn1Error> {
     let line = line.trim();
     let body = line
         .strip_prefix("@gmn{")
         .and_then(|s| s.strip_suffix('}'))
-        .ok_or_else(|| {
-            Gmn1Error::Malformed(format!(
-                "GMN-1 text must open with an @gmn{{...}} header, got: {line}"
-            ))
+        .ok_or_else(|| Gmn1Error::UndeclaredDialectVersion {
+            detail: format!("GMN-1 text must open with an @gmn{{...}} header, got: {line}"),
         })?;
     let mut version_ok = false;
     let mut aliases_ok = false;
     for pair in body.split(',') {
         let (k, v) = pair
             .split_once(':')
-            .ok_or_else(|| Gmn1Error::Malformed(format!("malformed header pair: {pair}")))?;
+            .ok_or_else(|| Gmn1Error::UndeclaredDialectVersion {
+                detail: format!("malformed @gmn header pair: {pair}"),
+            })?;
         let (k, v) = (k.trim(), v.trim());
         match k {
             "v" => version_ok = v == DICT_VERSION,
             "aliases" => aliases_ok = v == DICT_ALIASES_ID,
             other => {
-                return Err(Gmn1Error::Malformed(format!(
-                    "unrecognized @gmn header key: {other}"
-                )));
+                return Err(Gmn1Error::UndeclaredDialectVersion {
+                    detail: format!("unrecognized @gmn header key: {other}"),
+                });
             }
         }
     }
     if !version_ok || !aliases_ok {
-        return Err(Gmn1Error::Malformed(format!(
-            "@gmn header does not pin the expected schema/dictionary version: {line}"
-        )));
+        return Err(Gmn1Error::UndeclaredDialectVersion {
+            detail: format!(
+                "@gmn header does not pin the expected schema/dictionary version: {line}"
+            ),
+        });
     }
     Ok(())
 }
 
-/// Parse one `@sigil{k: v, k: v, ...}` record line.
-fn parse_sigil_record(line: &str) -> Result<Record, Gmn1Error> {
+/// Lex one `@sigil{k: v, k: v, ...}` record line into read-order pairs — pass-1 grammar only:
+/// an unbalanced brace, an unknown sigil, an unknown key, a duplicate key, or a malformed
+/// field pair is `lang:GmnNonDecodableGrammar`. Number-form and key-order are LATER passes.
+fn lex_sigil_record(line: &str) -> Result<LexedRecord, Gmn1Error> {
     let brace = line
         .find('{')
-        .ok_or_else(|| Gmn1Error::Malformed(format!("record line has no '{{': {line}")))?;
+        .ok_or_else(|| non_decodable(format!("record line has no '{{': {line}")))?;
     let sigil_str = line[..brace].trim();
     let sigil = match sigil_str {
         "@c" => SIGIL_CLAIM,
         "@p" => SIGIL_PROCESS,
         other => {
-            return Err(Gmn1Error::Uncovered(UncoveredTerm(format!(
-                "sigil {other} is outside this codec's covered record model"
-            ))));
+            return Err(non_decodable(format!(
+                "sigil {other} is outside the GMN-1 record grammar"
+            )));
         }
     };
     let body = line
         .strip_suffix('}')
         .map(|s| &s[brace + 1..])
-        .ok_or_else(|| Gmn1Error::Malformed(format!("unterminated record body: {line}")))?;
+        .ok_or_else(|| non_decodable(format!("unterminated record body: {line}")))?;
 
-    let mut fields = BTreeMap::new();
-    let mut last_key_rank: Option<usize> = None;
+    let mut pairs: Vec<(&'static str, String)> = Vec::new();
     if !body.trim().is_empty() {
         for pair in body.split(',') {
             let (k, v) = pair
                 .split_once(':')
-                .ok_or_else(|| Gmn1Error::Malformed(format!("malformed field pair: {pair}")))?;
+                .ok_or_else(|| non_decodable(format!("malformed field pair: {pair}")))?;
             let (k, v) = (k.trim(), v.trim());
-            let rank = KEY_ORDER
+            let key = KEY_ORDER
                 .iter()
-                .position(|candidate| *candidate == k)
+                .copied()
+                .find(|candidate| *candidate == k)
                 .ok_or_else(|| {
-                    Gmn1Error::Uncovered(UncoveredTerm(format!(
-                        "record key '{k}' is outside the canonical key order"
-                    )))
+                    non_decodable(format!("record key '{k}' is outside the canonical key set"))
                 })?;
-            if let Some(last) = last_key_rank
-                && rank <= last
-            {
-                return Err(Gmn1Error::Malformed(format!(
-                    "record key '{k}' violates the canonical key order (s p o v q st ev m ek bd it): {line}"
+            if pairs.iter().any(|(existing, _)| *existing == key) {
+                return Err(non_decodable(format!(
+                    "record key '{key}' appears more than once in one record"
                 )));
             }
-            last_key_rank = Some(rank);
-            fields.insert(KEY_ORDER[rank], v.to_owned());
+            pairs.push((key, v.to_owned()));
         }
     }
-    Ok(Record { sigil, fields })
+    Ok(LexedRecord {
+        sigil,
+        pairs,
+        enforce_key_order: true,
+    })
 }
 
-/// Parse one bare tabular row against the pending `@claims[...]` column schema.
-fn parse_tabular_row(cols: &[String], line: &str) -> Result<Record, Gmn1Error> {
+/// Lex the `@claims[...]` column schema, resolving each column to its canonical key — an
+/// unknown column is `lang:GmnNonDecodableGrammar`.
+fn lex_columns(cols_str: &str) -> Result<Vec<&'static str>, Gmn1Error> {
+    cols_str
+        .split(' ')
+        .filter(|s| !s.is_empty())
+        .map(|col| {
+            KEY_ORDER
+                .iter()
+                .copied()
+                .find(|candidate| *candidate == col)
+                .ok_or_else(|| {
+                    non_decodable(format!(
+                        "tabular column '{col}' is outside the canonical key set"
+                    ))
+                })
+        })
+        .collect()
+}
+
+/// Lex one bare tabular row against the pending `@claims[...]` column schema — a value count
+/// that does not match the declared schema is `lang:GmnNonDecodableGrammar`.
+fn lex_tabular_row(cols: &[&'static str], line: &str) -> Result<LexedRecord, Gmn1Error> {
     let values: Vec<&str> = line.split_whitespace().collect();
     if values.len() != cols.len() {
-        return Err(Gmn1Error::Malformed(format!(
+        return Err(non_decodable(format!(
             "tabular row has {} value(s) but the declared schema has {} column(s): {line}",
             values.len(),
             cols.len()
         )));
     }
-    let mut fields = BTreeMap::new();
-    for (col, val) in cols.iter().zip(values) {
-        let key = KEY_ORDER
-            .iter()
-            .find(|candidate| **candidate == col.as_str())
-            .ok_or_else(|| {
-                Gmn1Error::Uncovered(UncoveredTerm(format!(
-                    "tabular column '{col}' is outside the canonical key order"
-                )))
-            })?;
-        fields.insert(*key, val.to_owned());
-    }
-    Ok(Record {
+    let pairs = cols
+        .iter()
+        .copied()
+        .zip(values.into_iter().map(str::to_owned))
+        .collect();
+    Ok(LexedRecord {
         sigil: SIGIL_CLAIM,
-        fields,
+        pairs,
+        enforce_key_order: false,
     })
 }
 
@@ -1475,7 +1699,7 @@ pub fn round_trip_check(model: &Gmn0Model, dict: &GmnDictionary) -> Result<(), G
     if gmn0_canonically_equal(model, &reconstructed) {
         Ok(())
     } else {
-        Err(Gmn1Error::Malformed(format!(
+        Err(non_decodable(format!(
             "round-trip canonical mismatch:\n--- original ---\n{}\n--- reconstructed ---\n{}",
             model.canonical_nquads(),
             reconstructed.canonical_nquads()
@@ -1675,10 +1899,11 @@ mod tests {
     }
 
     #[test]
-    fn gmn1_read_unknown_sigil_still_hard_fails_as_uncovered_after_trim() {
-        // Negative control: trimming whitespace must never broaden vocabulary
-        // coverage. A genuinely unknown sigil is still outside the codec's covered
-        // record model and must still raise Uncovered, not silently parse.
+    fn gmn1_read_unknown_sigil_hard_fails_as_non_decodable_grammar_after_trim() {
+        // Negative control: trimming whitespace must never broaden the grammar. An unknown
+        // sigil is not a dictionary-coverage gap (that is a grammar-VALID token the alias
+        // table does not mint) — it is a structural defect the parse table has no production
+        // for, so it is `lang:GmnNonDecodableGrammar`, never silently parsed.
         let dict = empty_dict();
         let text = "@gmn{v: 1, aliases: dict-v1}\n@x{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
         let doc = Gmn1Document {
@@ -1686,9 +1911,192 @@ mod tests {
             refs: BTreeMap::new(),
         };
         let err = gmn1_read(&doc, &dict).expect_err("an unknown sigil must still hard-fail");
-        match err {
-            Gmn1Error::Uncovered(_) => {}
-            other => panic!("expected Uncovered for an unknown sigil, got {other:?}"),
-        }
+        assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
+        assert!(matches!(err, Gmn1Error::NonDecodableGrammar { .. }));
+    }
+
+    #[test]
+    fn failure_class_returns_the_exact_lang_iri_for_every_variant() {
+        assert_eq!(
+            Gmn1Error::Uncovered(UncoveredTerm("x".to_owned())).failure_class(),
+            "https://blackcatinformatics.ca/lang/GmnUncoveredTerm"
+        );
+        assert_eq!(
+            Gmn1Error::NonCanonicalOrder {
+                detail: "x".to_owned()
+            }
+            .failure_class(),
+            "https://blackcatinformatics.ca/lang/GmnNonCanonicalOrder"
+        );
+        assert_eq!(
+            Gmn1Error::MalformedNumber {
+                token: "0.951".to_owned()
+            }
+            .failure_class(),
+            "https://blackcatinformatics.ca/lang/GmnMalformedNumber"
+        );
+        assert_eq!(
+            Gmn1Error::UndeclaredDialectVersion {
+                detail: "x".to_owned()
+            }
+            .failure_class(),
+            "https://blackcatinformatics.ca/lang/GmnUndeclaredDialectVersion"
+        );
+        assert_eq!(
+            Gmn1Error::NonDecodableGrammar {
+                detail: "x".to_owned()
+            }
+            .failure_class(),
+            "https://blackcatinformatics.ca/lang/GmnNonDecodableGrammar"
+        );
+    }
+
+    #[test]
+    fn number_shape_predicate_separates_numbers_from_identifiers() {
+        // Number-shaped tokens (a malformed one is GmnMalformedNumber):
+        assert!(is_number_shaped("9.5e-1"));
+        assert!(is_number_shaped("0.951"));
+        assert!(is_number_shaped("0.95"));
+        assert!(is_number_shaped("50"));
+        assert!(is_number_shaped("-1.00"));
+        assert!(is_number_shaped(".5"));
+        // Identifier-shaped tokens containing `e`/`E` must NOT be number-shaped (the naive
+        // "contains e" test is wrong) — they stay dictionary-coverage (Uncovered):
+        assert!(!is_number_shaped("open"));
+        assert!(!is_number_shaped("state"));
+        assert!(!is_number_shaped("sensorCrew"));
+        assert!(!is_number_shaped("gate1"));
+        assert!(!is_number_shaped("e12"));
+
+        // The malformed-number predicate: exactly the non-canonical number lexemes.
+        assert!(is_malformed_number("9.5e-1"));
+        assert!(is_malformed_number("0.951"));
+        assert!(!is_malformed_number("0.95"));
+        assert!(!is_malformed_number("50"));
+        assert!(!is_malformed_number("-1.00"));
+        assert!(!is_malformed_number("open"));
+    }
+
+    /// A value token drives the number-form classification end-to-end through the reader:
+    /// `9.5e-1` and `0.951` become `GmnMalformedNumber`, `0.95` decodes, and an identifier
+    /// not in the dictionary stays `GmnUncoveredTerm`.
+    #[test]
+    fn reader_classifies_malformed_numbers_and_keeps_identifiers_uncovered() {
+        let dict = empty_dict();
+        let read = |q: &str| {
+            let text = format!(
+                "@gmn{{v: 1, aliases: dict-v1}}\n@c{{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: {q}}}\n"
+            );
+            gmn1_read(
+                &Gmn1Document {
+                    text,
+                    refs: BTreeMap::new(),
+                },
+                &dict,
+            )
+        };
+        assert_eq!(
+            read("9.5e-1")
+                .expect_err("scientific notation")
+                .failure_class(),
+            Gmn1Error::CLASS_MALFORMED_NUMBER
+        );
+        assert_eq!(
+            read("0.951")
+                .expect_err("three-digit fraction")
+                .failure_class(),
+            Gmn1Error::CLASS_MALFORMED_NUMBER
+        );
+        read("0.95").expect("a canonical two-digit confidence decodes");
+        read("50").expect("a canonical integer decodes");
+
+        // A grammar-valid identifier in an object slot the empty dictionary does not cover
+        // stays Uncovered (dictionary-coverage), NOT MalformedNumber.
+        let text =
+            "@gmn{v: 1, aliases: dict-v1}\n@c{s: unregistered, p: unregistered, o: unregistered}\n";
+        let err = gmn1_read(
+            &Gmn1Document {
+                text: text.to_owned(),
+                refs: BTreeMap::new(),
+            },
+            &dict,
+        )
+        .expect_err("an uncovered identifier must still hard-fail as Uncovered");
+        assert_eq!(err.failure_class(), Gmn1Error::CLASS_UNCOVERED_TERM);
+    }
+
+    /// The detection-precedence linearization: an input that violates ≥2 classes resolves to
+    /// exactly the higher-precedence one. Here a document with NO `@gmn` header (header-
+    /// presence) AND a three-fractional-digit confidence (number-form) resolves to
+    /// `GmnMalformedNumber`, because number-form precedes header-presence — number
+    /// well-formedness is lexical, decidable without the dialect version.
+    #[test]
+    fn detection_precedence_number_form_wins_over_missing_header() {
+        let dict = empty_dict();
+        let text = concat!(
+            "@c{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: 9.5e-1}\n",
+            "@c{s: gmeow__gate2, p: gmeow__hasState, o: gmeow__doorGate2, q: 0.951}\n",
+        );
+        let err = gmn1_read(
+            &Gmn1Document {
+                text: text.to_owned(),
+                refs: BTreeMap::new(),
+            },
+            &dict,
+        )
+        .expect_err("both no-header and a malformed number are violated");
+        assert_eq!(
+            err.failure_class(),
+            Gmn1Error::CLASS_MALFORMED_NUMBER,
+            "number-form (pass 2) must win over header-presence (pass 4)"
+        );
+
+        // Control: the SAME headerless document with only canonical numbers resolves to the
+        // lower-precedence header-presence class, proving the precedence is real (not that
+        // MalformedNumber always wins).
+        let ok_numbers = "@c{s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1, q: 0.95}\n";
+        let err = gmn1_read(
+            &Gmn1Document {
+                text: ok_numbers.to_owned(),
+                refs: BTreeMap::new(),
+            },
+            &dict,
+        )
+        .expect_err("a headerless document still fails");
+        assert_eq!(
+            err.failure_class(),
+            Gmn1Error::CLASS_UNDECLARED_DIALECT_VERSION
+        );
+    }
+
+    /// Grammar (pass 1) dominates key-order (pass 3): a record with BOTH a non-canonical key
+    /// order AND a duplicate key resolves to `GmnNonDecodableGrammar`; a clean-grammar
+    /// misordered record resolves to `GmnNonCanonicalOrder`.
+    #[test]
+    fn detection_precedence_grammar_wins_over_key_order() {
+        let dict = empty_dict();
+        // Non-canonical order (q before s) is the sole defect → NonCanonicalOrder.
+        let misordered = "@gmn{v: 1, aliases: dict-v1}\n@c{q: 0.95, s: gmeow__gate1, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let err = gmn1_read(
+            &Gmn1Document {
+                text: misordered.to_owned(),
+                refs: BTreeMap::new(),
+            },
+            &dict,
+        )
+        .expect_err("q before s is non-canonical");
+        assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_CANONICAL_ORDER);
+
+        // A duplicate key is a grammar defect that dominates the misorder.
+        let duplicate = "@gmn{v: 1, aliases: dict-v1}\n@c{s: gmeow__gate1, s: gmeow__gate2, p: gmeow__hasState, o: gmeow__doorGate1}\n";
+        let err = gmn1_read(
+            &Gmn1Document {
+                text: duplicate.to_owned(),
+                refs: BTreeMap::new(),
+            },
+            &dict,
+        )
+        .expect_err("a duplicate key is non-decodable grammar");
+        assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
     }
 }
