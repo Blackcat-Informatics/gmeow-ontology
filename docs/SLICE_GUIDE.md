@@ -306,13 +306,39 @@ as two denotations.*
     node-level `sh:or`/`sh:and`, a bespoke cross-node `sh:sparql`) is *not* deleted: it carries
     a `logic:formalizes` back-reference naming its canonical `logic:` source, which is what the
     blanket projection-purity gate legalizes.
+  - **The Shape Migration ladder and its floor.** The axis scores the *fraction* of a slice's
+    authored `sh:NodeShape` / `sh:PropertyShape` blocks that carry `logic:formalizes`, and grades
+    four tiers by that fraction: Grounded `0.60`, Linked `0.75`, Exemplified `0.85`, Maximal
+    `0.95`. A slice with no `shapes.ttl` has nothing to migrate and scores a vacuous `1.0`. Its
+    committed floor lives, like every axis floor, as a `gmeow:AxisFloorCommitment` individual
+    (`gmeow:floorSlice` + `gmeow:floorAxis gmeow:axisShapeMigration` + `gmeow:floorValue`) authored
+    in the `slices/core/slice-quality-rubric/module.ttl` canon — the read-only
+    `generated/governance/slice-quality-axis-floors.tsv` is a generated projection of those
+    individuals, never hand-edited. To commit a fresh floor at the live measured score, run
+    `gmeow-dev slice-quality-seed-floors --axis axisShapeMigration` (or `--all-axes`); it emits the
+    `gmeow:AxisFloorCommitment` TTL to paste into `module.ttl`, refuses to lower an already-committed
+    floor, and is one-shot per axis. Raise a committed floor only by a deliberate hand-edit of the
+    individual, in the same slice-local PR as the uplift that earned it, raise-only (§10). The
+    **floor-coherence** invariant binds this axis to the slice's roll-up: its committed floor must
+    grade to a tier at or above the slice's committed `gmeow:SliceTierFloor` (backing), and on a
+    slice floored across every axis the tier floor equals the meet of the axis-implied tiers
+    (tightness) — the gate reds on either breach.
+  - **Why the shape-floor commitments span the whole corpus.** Of the 20 slices that ship a
+    hand-authored `shapes.ttl`, only `slices/core/diagnostics` is partially grounded (≈ 1/3 of its
+    blocks carry `logic:formalizes`); the other 19 score `0.0` (authored, wholly ungrounded), and the
+    remaining ~60 shapeless slices score the vacuous `1.0`. Because the floor is committed for every
+    slice — a `1.0` floor on a shapeless slice is a real, load-bearing ratchet that reds the moment
+    an ungrounded shape is added — the shape-floor commitments blanket the corpus, not just the 20
+    slices with migration debt today.
 - **Converging a slice's GMN-1 coverage.** `gmeow:gmnCorrNormalToGmn`'s `logic:mnemomorphic
   true` claim is declared over ALL of GMN-0: the grounding slices are total NOW (the executed
   GMN-1 codec + round-trip gate, `crates/lang-bridge/src/gmn1_codec.rs` +
   `crates/pipeline/src/stages/gmn1_gate.rs`), and every other slice's coverage is the measured
   **GMN-1 Coverage** slice-quality axis (`axisGmn1Coverage`), gated at a committed floor with
-  monotonic non-regression (never forced ascent) in `governance/slice-quality-axis-floors.tsv`
-  — grounding is additionally hard-gated at floor `1.0`. `gmeow-dev slice-quality
+  monotonic non-regression (never forced ascent) — the floor is a `gmeow:AxisFloorCommitment`
+  individual in the `slices/core/slice-quality-rubric/module.ttl` canon, of which
+  `generated/governance/slice-quality-axis-floors.tsv` is a read-only generated projection —
+  and grounding is additionally hard-gated at floor `1.0`. `gmeow-dev slice-quality
   slices/<g>/<s>` names every uncovered GMN-0 quad (`slice-quality.gmn1-coverage.uncovered`);
   extend the codec's covered fragment to raise the score, then raise the slice's committed
   floor in a separate, deliberate commit once the uplift has genuinely landed.
@@ -356,20 +382,27 @@ from §9's hard gates — it *measures and holds*, it never asserts a bit right 
   only *why* that order is forced.
 
 - **The floors are a raise-only ratchet — now a hard gate.** The committed floors are the
-  monotonicity certificate of the ascent, enforced not promised. Two governance artifacts
-  hold the ground: the per-slice tier ratchet
-  [`governance/slice-quality-floors.tsv`](../governance/slice-quality-floors.tsv) and the
-  per-axis score ratchet
-  [`governance/slice-quality-axis-floors.tsv`](../governance/slice-quality-axis-floors.tsv).
-  Both are **raise-only** — monotonic non-regression, never forced ascent: a committed floor
-  may be raised as a slice earns it and only ever raised, never lowered, never bumped ahead
-  of a real measured uplift. The gate (`crates/slice-quality/src/gate.rs`) reds with three
-  named verdicts — `MeasuredBelowDeclared` (the slice no longer holds the tier its manifest
-  declares), `DeclaredBelowFloor` (the declaration was lowered beneath the committed floor),
-  and `MeasuredBelowFloor` (a per-axis measured score fell below its committed floor) — and a
-  lowered or still-live-deleted floor line additionally reds the floor-monotonicity check.
-  Land the raised floor in the SAME PR as the uplift that earned it; grounding is
-  hard-gated at the `axisGmn1Coverage` floor of `1.0` (§9).
+  monotonicity certificate of the ascent, enforced not promised, and they are
+  **ontology-resident** in the slice-quality-rubric slice's `module.ttl`: the per-slice tier
+  ratchet is a `gmeow:SliceTierFloor` individual (`gmeow:floorSlice` + `gmeow:floorTier`) and each
+  per-axis score ratchet is a `gmeow:AxisFloorCommitment` individual (`gmeow:floorSlice` +
+  `gmeow:floorAxis` + `gmeow:floorValue`). Those individuals are the canonical source; the
+  read-only TSVs [`generated/governance/slice-quality-floors.tsv`](../generated/governance/slice-quality-floors.tsv)
+  and [`generated/governance/slice-quality-axis-floors.tsv`](../generated/governance/slice-quality-axis-floors.tsv)
+  are **generated lossy projections** of them (Principle 17), for viewing only — never
+  hand-edited. Both levels are **raise-only** — monotonic non-regression, never forced ascent: a
+  committed floor may be raised as a slice earns it (edit the individual, or seed a fresh one at
+  the live score with `gmeow-dev slice-quality-seed-floors`) and only ever raised, never lowered,
+  never bumped ahead of a real measured uplift. The gate (`crates/slice-quality/src/gate.rs`)
+  reads every committed floor from the ontology and reds with three named verdicts —
+  `MeasuredBelowDeclared` (the slice no longer holds the tier its manifest declares),
+  `DeclaredBelowFloor` (the declaration was lowered beneath the committed floor), and
+  `MeasuredBelowFloor` (a per-axis measured score fell below its committed floor, enforced for
+  **every** committed axis, not just GMN-1) — while a lowered or still-live-deleted floor
+  individual additionally reds the floor-monotonicity check, and an axis floor whose implied tier
+  falls below the slice's committed tier floor (or a loose tier floor on a fully-floored slice)
+  reds the floor-coherence check. Land the raised floor in the SAME PR as the uplift that earned
+  it; grounding is hard-gated at the `axisGmn1Coverage` floor of `1.0` (§9).
 
 - **The contention rule: yield to the issue lanes.** The lane is a background citizen. Two
   shards are machine-enforced, one is doctrine CI cannot see. *Enforced:* floor
@@ -467,5 +500,6 @@ Before opening the PR, every box:
 - [ ] No derived facts asserted; no hand-authored projection surfaces (P4/7/12/17)
 - [ ] `make regenerate` landed with the change; drifted goldens re-blessed deliberately;
       full `make check` green merged into current `main` (§11)
-- [ ] Capping axis uplifted where the lane names one; the raised `slice-quality-floors.tsv`
-      / axis floor landed in the same slice-local PR as the uplift, raise-only (§10)
+- [ ] Capping axis uplifted where the lane names one; the raised floor individual
+      (`gmeow:AxisFloorCommitment` / `gmeow:SliceTierFloor` in the rubric slice) landed in the
+      same slice-local PR as the uplift, raise-only (§10)
