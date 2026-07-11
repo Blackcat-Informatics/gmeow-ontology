@@ -29,8 +29,8 @@ the no-debug-symbol policy, and `nemo` build-memory caps intact.
 
 ## Regenerate & gates
 
-* Regenerate with `make regenerate` — never a bare `gmeow-dev regenerate` (it drops the diagnostics fold).
-* `generated/dist/gmeow.gts` is `merge=ours`: after integrating `main`, **regenerate it** — the drift gates do not catch a stale bundle.
+* Regenerate with `make regenerate`. Per the `regenerate:` Makefile target that is exactly `gmeow-dev regenerate -j <nproc>` — a **single, idempotent pass**; the `make` wrapper only adds parallelism, there is no separate "diagnostics fold," and a second run produces no changes. Run it once, never in a loop.
+* `generated/dist/gmeow.gts` is `merge=ours` (`.gitattributes`), so a `git merge` leaves it holding the branch's pre-merge bytes; `make regenerate` rewrites it from the merged sources, so run it once after integrating `main`. A stale bundle is **not** silently accepted — its drift is caught by the superset/fold gate (the `crates/pipeline` superset check + `tests/full_parity.rs`), which compares the bundle semantically because it is CBOR and cannot be byte-diffed by `check-generated`.
 * Verify with the full `make check` — `make validate` / `make reason` alone are not sufficient. CI builds the PR **merged into `main`**, so integrate current `main` before final verification.
 
 ## Canonical sources & forward direction
