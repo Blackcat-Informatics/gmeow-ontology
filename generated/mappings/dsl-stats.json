@@ -62,7 +62,6 @@
   "gmeow-oeis.sssom.tsv": 3,
   "gmeow-om2.sssom.tsv": 2,
   "gmeow-ontolex.sssom.tsv": 3,
-  "gmeow-ontouml.sssom.tsv": 9,
   "gmeow-openmath.sssom.tsv": 5,
   "gmeow-places.sssom.tsv": 221,
   "gmeow-privacy.sssom.tsv": 24,
@@ -85,8 +84,8 @@
   "gmeow-wikidata.sssom.tsv": 171,
   "gmeow-wordnet.sssom.tsv": 3
  },
- "equivalences": 1874,
+ "equivalences": 1865,
  "functions": 59,
  "mapping_sets": 80,
- "projections": 626
+ "projections": 635
 }

@@ -18,12 +18,17 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use purrdf::gts_compose::{BlobRow, SnapshotBuilder, emit_gts};
+#[cfg(test)]
+use purrdf::gts_compose::emit_gts;
+use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
 use purrdf::provenance::DatasetProvenance;
+#[cfg(test)]
+use purrdf::{RdfDatasetBuilder, RdfTriple};
 use purrdf::{
-    RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SerializeGraph,
-    flat_rdf_quads_from_dataset, parse_dataset, serialize_dataset,
+    RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, flat_rdf_quads_from_dataset, parse_dataset,
+    serialize_dataset,
 };
+#[cfg(test)]
 use rayon::prelude::*;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -70,6 +75,7 @@ pub(crate) const QUALITY_ASSESSMENT_PATH: &str = "generated/quality/gmeow.qualit
 /// terminal snapshot embed the report in the ontology-docs archive.
 pub(crate) const SLICE_QUALITY_REPORT_HTML_ARTIFACT: &str = "pipeline/slice-quality-report.html";
 /// Bundle-relative docs path exported by `gmeow export-docs`.
+#[cfg(test)]
 const SLICE_QUALITY_DOC_PATH: &str = "slice-quality/index.html";
 pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
@@ -87,11 +93,13 @@ pub(crate) use crate::bundle_blobs::REP_DIAG_NODES;
 /// blob (the `docs-book` archive). Re-exported from the reader-side definition in
 /// [`crate::bundle_blobs`] so the producer and reader share ONE constant — the label cannot
 /// drift (a drifted label would silently read back an empty archive).
+#[cfg(test)]
 pub(crate) use crate::bundle_blobs::REP_DOCS_BOOK;
 /// The archive `representation` under which the print documentation projection (the
 /// byte-reproducible `gmeow.pdf` + its deterministic `gmeow.typ` source) rides as a bundle
 /// blob (the `docs-print` archive). Re-exported from the reader-side definition in
 /// [`crate::bundle_blobs`] so the producer and reader share ONE constant.
+#[cfg(test)]
 pub(crate) use crate::bundle_blobs::REP_DOCS_PRINT;
 /// The by-reference blob `representation` under which `stage-source-load` carries its
 /// authored subject→source-position [`SpanIndex`](crate::ingest::SpanIndex) (raw JSON)
@@ -172,6 +180,8 @@ pub(crate) const GRAPH_LANG_DOCS_RENDERING_CORPUS: &str =
 /// as its own queryable named graph, excluded from the reasoned object-level EDB exactly like
 /// `graph/lang-docs-rendering-corpus` (it asserts a self-description corpus, not object-level
 /// axioms).
+#[cfg(test)]
+#[allow(dead_code)]
 pub(crate) const GRAPH_DOCS_FORMAT_RENDERING: &str =
     "https://blackcatinformatics.ca/gmeow/graph/docs-format-rendering";
 /// The correspondence-laws corpus: every authored `logic:Correspondence` re-projected with
@@ -248,54 +258,27 @@ pub(crate) fn serialize_carrier_snapshot(
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    // Discover the whole-repo docs model (with the native-reasoner verdict attached) and pass
-    // it to the injectable core. Threading the model as a parameter lets a unit test inject a
-    // fixture-scoped model (e.g. an empty `DocsModel`) to exercise the serialization/blob wiring
-    // without the whole-ontology docs corpus — the OKF-coverage gate is then scoped to the
-    // fixture's terms. Production is byte-unchanged: it always discovers the full model.
-    let reasoning_verdict = crate::stages::docs_render::reasoning_verdict_from_reason(upstream)?;
-    let mut docs_model = gmeow_docs::model::DocsModel::discover(root)
-        .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
-    docs_model.attach_reasoning(reasoning_verdict);
-    let known_term_iris: std::collections::BTreeSet<String> =
-        docs_model.terms.iter().map(|t| t.iri.clone()).collect();
-    let diagnostics_digest = crate::stages::docs_render::diagnostics_digest_from_upstream(
-        upstream,
-        &known_term_iris,
-        &docs_model.constraint_rules,
-    )?;
-    docs_model.attach_diagnostics(diagnostics_digest);
-    let term_loss_digest = crate::stages::docs_render::term_loss_digest_from_upstream(
-        upstream,
-        &docs_model.shapes,
-        &docs_model.terms,
-    )?;
-    docs_model.attach_term_loss(term_loss_digest);
-    // The per-term JSON Schema / OpenAPI fragment digest for the term-page
-    // "use this term without RDF" panel + OpenAPI tab, folded from THIS run's
-    // `stage-export-json-schema` product (the same bytes packed into the
-    // `schemas-archive` below) — an in-memory product read, never a `generated/`
-    // disk read. `stage-gts-sink` already consumes `stage-export-json-schema`, so
-    // no new dataflow edge is needed. Attached here (the site-render path) only;
-    // the schema fragment is a render-time `#[serde(skip)]` digest, not projected
-    // to the documentation RDF graph, so `render_docs_graph` does not attach it.
-    let schema_fragments =
-        crate::stages::docs_render::schema_fragments_from_upstream(upstream, &docs_model.terms)?;
-    docs_model.attach_schema_fragments(schema_fragments);
-    serialize_carrier_snapshot_with_docs_model(root, upstream, carrier, &docs_model)
+    serialize_carrier_snapshot_without_docs(root, upstream, carrier)
 }
 
-/// The docs-model-injectable core of [`serialize_carrier_snapshot`]: assembles the terminal
-/// gts blobs from THIS run's products + carrier, using the provided (already
-/// reasoning-attached) `docs_model` for the OKF-coverage gate, the executable-docs "try it"
-/// surfaces, and the rendered ontology-docs site. Production callers go through the wrapper
-/// (whole-repo model); the sink unit test injects a fixture-scoped model so the OKF-coverage
-/// assertion is scoped to the fixture rather than the full 2000+-term corpus.
+/// Assemble the terminal GTS from the logical carrier and non-document runtime
+/// lookasides. Documentation projections are deliberately external artifacts:
+/// ontology-docs, mdbook, print, OKF, JSON-LD, and YAML-LD are regenerated by
+/// `make docs` and never embedded in `gmeow.gts`.
+#[cfg(test)]
 pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     root: &Path,
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
-    docs_model: &gmeow_docs::model::DocsModel,
+    _docs_model: &gmeow_docs::model::DocsModel,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    serialize_carrier_snapshot_without_docs(root, upstream, carrier)
+}
+
+fn serialize_carrier_snapshot_without_docs(
+    root: &Path,
+    upstream: &BTreeMap<String, StageProduct>,
+    carrier: &purrdf::RdfDataset,
 ) -> Result<Vec<u8>, gmeow_errors::Diag> {
     // THIS run's freshly-emitted JSON Schema + OpenAPI bytes (from the in-memory
     // product, not the on-disk files which are not written until phase 1 returns).
@@ -363,7 +346,8 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
             constraint: &constraint_shapes_ttl,
         },
     )?;
-    blobs.extend(build_guide_blobs(root)?);
+    // Slice guides are documentation projections too. They remain canonical
+    // source inputs for `make docs`, but do not ride the logical bundle.
     // The document-scale surface blobs: every `@x-gmeow-english` source literal whose
     // byte-length crosses the document-scale threshold rides here by content-addressed
     // reference (the `lang:surfaceBlob "blake3:<hex>"` anchor the lang-form corpus emits),
@@ -379,52 +363,6 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
     blobs.extend(crate::stages::lang_form::build_surface_blobs(Some(
         &lang_form_catalog,
     ))?);
-    // The provided docs model (reasoning verdict already attached by the caller) drives the
-    // OKF-coverage gate, the build-time executable-docs data (the reasoned "try it" diffs and
-    // the offline SPARQL playground asset), and the rendered ontology-docs site. This is a
-    // DOCS-ONLY side computation: its outputs ride ONLY as site blobs in the ontology-docs
-    // archive and never fold into `graph/reasoning` or any graph `verify`/`reason` consume.
-    assert_okf_docs_cover_documented_terms(carrier, docs_model)?;
-    let docs_exec = build_executable_docs_data(upstream, carrier, docs_model)?;
-    let slice_quality_html = slice_quality_report_html(upstream)?;
-    // The three docs blobs are independent pure functions of the shared read-only model +
-    // executable data + products, so build them concurrently: the print-PDF compile (the new
-    // heavy cost) overlaps the per-language ontology-docs site renders rather than serializing
-    // after them on the DAG's critical path. `rayon::join` runs the two closures in parallel and
-    // returns both results; determinism is unaffected (each closure is a pure, order-independent
-    // producer, and the blobs vec ordering below is fixed).
-    let (docs_site_blob, docs_book_and_print) = rayon::join(
-        || build_docs_archive(root, docs_model, &docs_exec, slice_quality_html),
-        || -> Result<(BlobRow, (BlobRow, String)), gmeow_errors::Diag> {
-            let book = build_docs_book_archive(root, docs_model, &docs_exec)?;
-            let print = build_docs_print_blob(docs_model, upstream)?;
-            Ok((book, print))
-        },
-    );
-    blobs.push(docs_site_blob?);
-    let (docs_book_blob, (docs_print_blob, print_pdf_digest)) = docs_book_and_print?;
-    // Ground the four documentation output formats as lossy projections of one shared
-    // documentation body-set, content-addressing the packed docs-book / docs-print blobs
-    // by their blake3 digest (F4). This is the ONLY point the packed blobs' byte digests
-    // exist, so the docs-format grounding graph is assembled here; the blob-free capability
-    // loss ledger folds upstream in the mappings stage (where the single report loss store
-    // lives), exactly like the sibling lang: corpora.
-    let docs_format_graph = {
-        let book_digest = purrdf::gts::writer::digest_string(&docs_book_blob.data);
-        let print_digest = purrdf::gts::writer::digest_string(&docs_print_blob.data);
-        let corpus = crate::stages::docs_format_rendering::build_docs_format_corpus(
-            &book_digest,
-            &print_digest,
-            &print_pdf_digest,
-        );
-        parse_into_graph(
-            &corpus.ntriples,
-            "application/n-triples",
-            GRAPH_DOCS_FORMAT_RENDERING,
-        )?
-    };
-    blobs.push(docs_book_blob);
-    blobs.push(docs_print_blob);
     blobs.push(build_reasoning_blob(upstream)?);
     // The opaque-fanout archive: every non-RDF generated/ fanout output, recomputed
     // from THIS run's carrier (superset law — RDF rides as named graphs, not here).
@@ -458,7 +396,7 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
             rep: REP_SHACL_FINDINGS.to_string(),
         },
     ];
-    serialize_snapshot(carrier, &[docs_format_graph], blobs, report_blobs)
+    serialize_snapshot(carrier, &[], blobs, report_blobs)
 }
 
 /// Hard-fail if any documented class/property/individual term would link to an OKF
@@ -469,6 +407,7 @@ pub(crate) fn serialize_carrier_snapshot_with_docs_model(
 /// silent dangling reference. Reuses the renderer's own `okf_doc_reference` (the exact
 /// path the site links) and the OKF stage's `doc_relpath` (the exact path it emits), so
 /// the two can never diverge in scheme; this gate only checks existence.
+#[cfg(test)]
 fn assert_okf_docs_cover_documented_terms(
     carrier: &purrdf::RdfDataset,
     model: &gmeow_docs::model::DocsModel,
@@ -504,6 +443,7 @@ fn assert_okf_docs_cover_documented_terms(
 /// the indices of `links` whose target the OKF bundle does not emit. Kept as a standalone
 /// function so the hard-fail logic itself is directly unit-testable, independent of a
 /// live `DocsModel`/carrier fixture.
+#[cfg(test)]
 fn okf_link_targets_missing_from(
     emitted: &std::collections::BTreeSet<String>,
     links: &[Option<String>],
@@ -648,6 +588,8 @@ pub(crate) fn build_self_description_dataset_with_quality(
     Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&refs)))
 }
 
+#[cfg(test)]
+#[allow(dead_code)]
 fn slice_quality_report_html(
     upstream: &BTreeMap<String, StageProduct>,
 ) -> Result<&[u8], gmeow_errors::Diag> {
@@ -1076,30 +1018,8 @@ fn serialize_snapshot(
             .add_dataset(graph)
             .map_err(|e| stage_err(&format!("fold carrier-time named graph into snapshot: {e}")))?;
     }
-    // The JSON-LD-star + OKF archive blobs serialize the SAME native carrier dataset
-    // (the value just folded into the builder) — no gts round-trip.
-    let yaml_ld_blob = build_yaml_ld_blob_from_dataset(carrier)?;
-    let okf_blob = build_okf_blob_from_dataset(carrier)?;
-    let mut blobs = blobs;
-    blobs.push(yaml_ld_blob);
-    blobs.push(okf_blob);
-    emit_gts(
-        &builder,
-        "dist",
-        // zstd-rsyncable, not gzip: rsyncable keeps chunk boundaries stable across
-        // regenerations, so a small ontology change yields a small binary diff in the
-        // committed `gmeow.gts` instead of churning the whole file. (The absolute size
-        // is larger than gzip at the gts library's current fixed zstd level — a
-        // per-frame configurable level is tracked upstream in gmeow-gts.)
-        Some(vec!["zstd-rsyncable".to_string()]),
-        blobs,
-        report_blobs,
-        None,
-        None,
-        None,
-        purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
-    )
-    .map_err(|e| stage_err(&format!("emit_gts: {e}")))
+    crate::gts_profile::emit_gmeow_gts(&builder, blobs, report_blobs, None, None, None)
+        .map_err(|e| stage_err(&format!("emit_gts: {e}")))
 }
 
 /// Parse `bytes` natively and re-root every quad into `graph_iri` (see
@@ -1170,12 +1090,16 @@ const REP_TESTS: &str = "tests-archive";
 /// tar of the SHACL-derived JSON Schema + OpenAPI, member = bare filename.
 const REP_SCHEMAS: &str = "schemas-archive";
 /// tar of the JSON-LD-star + YAML-LD-star serializations.
+#[cfg(test)]
+#[allow(dead_code)]
 const REP_YAMLLD: &str = "yaml-ld-archive";
 /// tar of the Rust-rendered OKF bundle, member = `gmeow-okf/...`.
+#[cfg(test)]
 const REP_OKF: &str = "okf-export";
 /// The full rendered ontology-docs static site. The rep MUST equal the
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
 /// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow export-docs` finds it.
+#[cfg(test)]
 const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
 /// tar of the FULL SHACL shape surface, member = repo-relative path:
 /// every `shapes/*.ttl` (incl. the 4 DSL/manifest lints the consumer's DSL phases
@@ -1211,35 +1135,6 @@ const AXIOM_FILES: [&str; 5] = [
 /// The Python reader (`bundle.bundled_reasoning`) MUST use this exact rep string.
 const REP_REASONING: &str = "reasoning-archive";
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
-
-/// The per-slice guide content blobs (each slice's `docs.md`), backing the
-/// `gmeow:guideBlob "blake3:<hex>"` reference triples [`add_guide_blobs`] writes
-/// into the documentation graph. The cutover dropped these too — the
-/// references shipped dangling. The blob digest the gts writer assigns
-/// (`digest_string` = `blake3:<hex>`) equals the reference, so adding the SAME
-/// `guide.content` bytes resolves the reference. The `doc-guide` rep is read by
-/// digest (not by rep), so it just tags the channel.
-fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
-    let mut blobs: Vec<BlobRow> = Vec::new();
-    for record in catalog.records() {
-        if let Some(guide) = record.artifacts.iter().find(|a| {
-            a.role == purrdf::slice::ArtifactRole::Documentation && a.logical_path == "docs.md"
-        }) {
-            blobs.push(BlobRow {
-                data: guide.content.clone(),
-                media_type: "text/markdown".to_string(),
-                rep: "doc-guide".to_string(),
-            });
-        }
-    }
-    blobs.sort_by(|a, b| a.data.cmp(&b.data));
-    Ok(blobs)
-}
 
 /// THIS run's three generated SHACL shape surfaces, folded into REP_SHAPES from the
 /// producing export leaves' products (never a stale disk read). Grouped into named
@@ -1907,6 +1802,8 @@ fn build_reasoning_blob(
 
 /// Pack the JSON-LD-star + YAML-LD-star serializations into a deterministic tar
 /// archive blob. Member names mirror the `dist/` logical paths.
+#[cfg(test)]
+#[allow(dead_code)]
 fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, gmeow_errors::Diag> {
     let members = vec![
         ("gmeow.jsonld".to_string(), jsonld.to_vec()),
@@ -1917,6 +1814,8 @@ fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, gmeow_err
 
 /// Build the YAML-LD archive by serializing the carrier dataset in-memory — the
 /// SAME native carrier every fold-reading export leaf consumes (no gts round-trip).
+#[cfg(test)]
+#[allow(dead_code)]
 fn build_yaml_ld_blob_from_dataset(
     carrier: &purrdf::RdfDataset,
 ) -> Result<BlobRow, gmeow_errors::Diag> {
@@ -1933,6 +1832,7 @@ fn build_yaml_ld_blob_from_dataset(
 /// the bundle root (`gmeow-okf/classes/Foo.md`), while the export leaf product is a
 /// disk artifact under `dist/`. Strip only that leading `dist/` boundary and hard-fail
 /// if a renderer path escapes it.
+#[cfg(test)]
 fn build_okf_blob_from_dataset(
     carrier: &purrdf::RdfDataset,
 ) -> Result<BlobRow, gmeow_errors::Diag> {
@@ -1964,6 +1864,7 @@ fn build_okf_blob_from_dataset(
 // The docs model (with the reasoning verdict already attached by the caller) + the
 // executable-docs data are passed in — both are shared with `build_executable_docs_data`
 // so the model is discovered and the reasoner run once per snapshot.
+#[cfg(test)]
 fn build_docs_archive(
     root: &Path,
     model: &gmeow_docs::model::DocsModel,
@@ -2015,6 +1916,7 @@ fn build_docs_archive(
 /// prefix every member with English's INTERNAL tag (`x-gmeow-english/…`), taken from
 /// `Translations::internal_tag` exactly as [`build_docs_archive`] does, so the archive member
 /// scheme matches the ontology-docs archive and a docs consumer selects the same way.
+#[cfg(test)]
 fn build_docs_book_archive(
     root: &Path,
     model: &gmeow_docs::model::DocsModel,
@@ -2048,6 +1950,7 @@ fn build_docs_book_archive(
 /// database from the `stage-export-references` product. The loss appendix reads the shared
 /// per-format capability table. Both `gmeow.pdf` and `gmeow.typ` ride under English's internal
 /// tag (`x-gmeow-english/…`) so the member scheme matches the sibling docs archives.
+#[cfg(test)]
 fn build_docs_print_blob(
     model: &gmeow_docs::model::DocsModel,
     upstream: &BTreeMap<String, StageProduct>,
@@ -2108,6 +2011,7 @@ fn build_docs_print_blob(
 ///   examples can only propagate through the authored default-world axioms (the calculus
 ///   is same-world and imports ride named worlds), so the small seed is sufficient.
 /// - **Playground asset:** `documentation graph ∪ reasoned ontology closure`, TriG.
+#[cfg(test)]
 fn build_executable_docs_data(
     upstream: &BTreeMap<String, StageProduct>,
     carrier: &purrdf::RdfDataset,
@@ -2158,6 +2062,7 @@ fn build_executable_docs_data(
 /// One reasoner-derivation's raw shape, accumulated per blank-node subject while
 /// walking the explanations Turtle (see [`term_entailments_from_explanations`]).
 #[derive(Default)]
+#[cfg(test)]
 struct RawDerivation {
     /// Whether an `rdf:type gmeow:Derivation` triple was seen for this subject — a
     /// defensive check so a stray blank node in the explanations graph (there should
@@ -2174,6 +2079,7 @@ struct RawDerivation {
 /// Whether any documented term IRI appears in `triple`'s subject, predicate, or
 /// object position, added to `out` (a term appearing twice in one triple is recorded
 /// once — `out` is a set).
+#[cfg(test)]
 fn collect_term_matches(
     triple: &RdfTriple,
     term_iris: &std::collections::BTreeSet<String>,
@@ -2199,6 +2105,7 @@ fn collect_term_matches(
 /// `stage-reason` (or its explanations artifact) is absent — the pipeline path never
 /// falls back to an empty digest silently; only the model-only
 /// `ExecutableDocsData::default()` seam is allowed to be empty (F-2).
+#[cfg(test)]
 fn term_entailments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     term_iris: &std::collections::BTreeSet<String>,
@@ -2226,6 +2133,7 @@ fn term_entailments_from_upstream(
 /// conclusion + displays of its premises appended to its panel. Pure function of the
 /// bytes + the term-IRI set — independently testable without a pipeline product map
 /// (mirrors [`executable_docs_from_sources`]'s fixture-only core).
+#[cfg(test)]
 fn term_entailments_from_explanations(
     explanations_bytes: &[u8],
     term_iris: &std::collections::BTreeSet<String>,
@@ -2351,6 +2259,7 @@ fn term_entailments_from_explanations(
 /// the parse dispatch), and raw text. The reason-and-attribute core takes these instead of
 /// the whole discovered [`gmeow_docs::model::DocsModel`] so it is exercisable over a fixed
 /// fixture without a full pipeline product map.
+#[cfg(test)]
 pub(crate) struct ExampleSource {
     pub slice: String,
     pub logical_path: String,
@@ -2370,6 +2279,7 @@ pub(crate) struct ExampleSource {
 /// `reason_seed` is the authored default-world ontology (not the full object-level EDB):
 /// the examples can only propagate through the same-world authored axioms, so this small
 /// seed reproduces the full-EDB attribution exactly without re-deriving the base closure.
+#[cfg(test)]
 pub(crate) fn executable_docs_from_sources(
     reason_seed: &purrdf::RdfDataset,
     base_closure_bytes: &[u8],
@@ -2528,6 +2438,7 @@ pub(crate) fn executable_docs_from_sources(
 
 /// Parse one worked example into a dataset, dispatching on its file extension —
 /// examples are authored in Turtle, but also JSON-LD-star and YAML-LD-star.
+#[cfg(test)]
 fn parse_example(
     logical_path: &str,
     text: &str,
@@ -2565,6 +2476,7 @@ fn parse_example(
 
 /// Serialize `documentation graph ∪ reasoned closure` to TriG — the self-contained
 /// asset the offline SPARQL playground queries and the export `DESCRIBE` reads.
+#[cfg(test)]
 fn build_playground_trig(
     carrier: &purrdf::RdfDataset,
     base_closure: &purrdf::RdfDataset,
@@ -2594,6 +2506,7 @@ fn build_playground_trig(
 
 /// Format an owned quad's `(s, p, o)` as a compact, deterministic display line for the
 /// "try it" asserted-vs-inferred surfaces. The graph is dropped (these are triples).
+#[cfg(test)]
 fn format_triple(q: &RdfQuad) -> String {
     triple_display(&q.subject, &q.predicate, &q.object)
 }
@@ -2603,6 +2516,7 @@ fn format_triple(q: &RdfQuad) -> String {
 /// ([`term_entailments_from_explanations`]) — a `gmeow:Derivation`'s `gmeow:concludes`
 /// / `gmeow:hasPremise` quoted triple has the identical `(subject, predicate, object)`
 /// shape as an owned quad, so both render through this one function.
+#[cfg(test)]
 fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> String {
     format!(
         "{} {} {}",
@@ -2615,11 +2529,13 @@ fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> Strin
 // The canonical prefix registry (generated from the ontology's prefix config,
 // longest-namespace-first). Shared verbatim with the LPG/JSON-LD projections rather
 // than hand-maintaining a second, divergent table for the try-it display lines.
+#[cfg(test)]
 include!("lpg_prefixes.rs");
 
 /// A compact CURIE for a full IRI, or `<iri>` when no known prefix matches. Drawing
 /// from the full canonical registry means every external ontology GMEOW links to
 /// compacts on the try-it surface, not just the handful of core namespaces.
+#[cfg(test)]
 fn compact_iri(iri: &str) -> String {
     // `PREFIXES_BY_LEN` is longest-namespace-first, so the first namespace the IRI
     // starts with is the most specific prefix.
@@ -2636,6 +2552,7 @@ fn compact_iri(iri: &str) -> String {
 }
 
 /// A compact display form for a term (IRI as CURIE, literal with datatype/lang, blank).
+#[cfg(test)]
 fn term_display(term: &RdfTerm) -> String {
     match term {
         RdfTerm::Iri(iri) => compact_iri(iri),
@@ -2651,6 +2568,7 @@ fn term_display(term: &RdfTerm) -> String {
 }
 
 /// A Turtle-ish display form for a literal.
+#[cfg(test)]
 fn format_literal(lit: &RdfLiteral) -> String {
     let lex = lit.lexical_form.replace('"', "\\\"");
     if let Some(lang) = &lit.language {
@@ -2850,11 +2768,6 @@ impl SnapshotStage {
                 // object graphs. `rdf_fanout_members` reads them off these products.
                 "stage-export-evals".to_string(),
                 "stage-export-profiles".to_string(),
-                // The references export leaf: its in-memory product carries THIS run's
-                // generated `references.bib`, which `build_docs_print_blob` folds into the
-                // print PDF's bibliography (and its own Typst source). Consumed here so the
-                // print blob reads the fresh bibliography off the product, never a stale disk.
-                "stage-export-references".to_string(),
                 "stage-export-research-objects".to_string(),
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
@@ -2974,16 +2887,13 @@ impl Stage for SnapshotStage {
         // `expected_row_count` / structured `expected_rows` surface (T2) — a new
         // `Page::CompetencyIndex` page renders the full copy-paste-runnable SPARQL
         // question set, so the rendered site bytes change shape again.
-        "snapshot.v24-competency-question-query-text-and-expected-rows"
+        // v25 removes every derived documentation/presentation payload from the
+        // logical bundle: site, mdbook, print, slice guides, OKF, JSON-LD, and
+        // YAML-LD are regenerated externally by `make docs`.
+        "snapshot.v25-external-documentation-projections"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
-        // The embedded ontology-docs site (`build_docs_archive`) is rendered from
-        // the docs model's raw sources (slice modules / `docs.md` / examples /
-        // `docs/four-boxes.md` / per-slice `i18n/<lang>.po` translation catalogs),
-        // which the consumed upstream products do not fully reflect. Declare them so
-        // a doc-source edit busts this stage and re-renders the embedded site (cache
-        // soundness) — shared with `DocsRenderStage` via `docs_source_files`.
-        let mut files = crate::stages::docs_render::docs_source_files(root)?;
+        let mut files = Vec::new();
         // REP_SHAPES folds the AUTHORED shape surface (`shapes/*.ttl` +
         // `slices/<g>/<n>/shapes.ttl`) off disk in `build_archive_blobs` (authored
         // sources, allowed) — declare them so an authored-shape edit busts this stage and
@@ -3244,43 +3154,15 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let base = union_turtle_datasets(&sources)?;
 
     // The merged default graph as a flat native quad list (the union's standardized
-    // blank labels), onto which the multilingual translations and per-slice guideBlob
-    // anchors are folded natively — both add IRI-subject triples, so re-folding the
-    // augmented list through `dataset_from_quads` is loss-free.
+    // blank labels), onto which multilingual translations are folded natively.
+    // Documentation guide digests are external projection metadata and do not enter
+    // the logical bundle.
     let mut quads = flat_rdf_quads_from_dataset(&base);
     merge_translations(root, &mut quads)?;
-    add_guide_blobs(root, &mut quads)?;
 
     let dataset = purrdf::dataset_from_quads(&quads)
         .map_err(|e| stage_err(&format!("authored default graph freeze: {e}")))?;
     dataset_to_nquads(&dataset)
-}
-
-/// Add the per-slice `gmeow:guideBlob` triple `_doc_blobs` injects into the
-/// default graph: for every slice carrying a `docs.md`, link the slice IRI to the
-/// `blake3:<hex>` content digest of that guide. The guide itself rides the bundle
-/// as a content-addressed blob; this triple is its in-graph anchor.
-fn add_guide_blobs(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow_errors::Diag> {
-    let guide_blob = format!("{GMEOW_NS}guideBlob");
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
-    for record in catalog.records() {
-        let Some(guide) = record.artifacts.iter().find(|a| {
-            a.role == purrdf::slice::ArtifactRole::Documentation && a.logical_path == "docs.md"
-        }) else {
-            continue;
-        };
-        let digest = format!("blake3:{}", blake3::hash(&guide.content).to_hex());
-        quads.push(RdfQuad::new(
-            RdfTerm::iri(record.manifest.slice_iri.clone()),
-            guide_blob.clone(),
-            RdfTerm::literal(RdfLiteral::simple(digest)),
-        ));
-    }
-    Ok(())
 }
 
 /// Merge the slice `.po` translations into the default-graph quad list, mirroring
@@ -6074,8 +5956,8 @@ mod native_assembly_tests {
     }
 
     /// `load_authored_default` over the real repo tree produces a non-empty
-    /// multilingual default graph (the union path + native translation/guideBlob fold),
-    /// and the guideBlob anchors land on real slice IRIs.
+    /// multilingual default graph (the union path + native translation fold),
+    /// without external documentation payload references.
     #[test]
     fn authored_default_assembles_natively() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -6095,11 +5977,10 @@ mod native_assembly_tests {
             text.contains("<https://blackcatinformatics.ca/gmeow>"),
             "the authored default graph must carry the root ontology subject"
         );
-        // At least one guideBlob anchor (per-slice docs.md digest) must be folded.
+        let guide_predicate = " <https://blackcatinformatics.ca/gmeow/guideBlob> ";
         assert!(
-            text.contains("<https://blackcatinformatics.ca/gmeow/guideBlob>")
-                && text.contains("blake3:"),
-            "the native guideBlob fold must inject blake3 digest anchors"
+            !text.lines().any(|line| line.contains(guide_predicate)),
+            "external guideBlob references must not enter the logical bundle"
         );
         // Determinism: a second assembly is byte-identical.
         let again = load_authored_default(&root).expect("authored default graph (2)");

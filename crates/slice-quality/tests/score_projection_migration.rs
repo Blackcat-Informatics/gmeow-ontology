@@ -59,6 +59,8 @@ impl Fixture {
                 "{PREFIXES}\n\
                  gmeow:Widget a owl:Class .\n\
                  gmeow:Gadget a owl:Class .\n\
+                 gmeow:Widget rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture> .\n\
+                 gmeow:Gadget rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture> .\n\
                  gmeow:Widget owl:disjointWith gmeow:Gadget .\n\
                  {external}"
             ),

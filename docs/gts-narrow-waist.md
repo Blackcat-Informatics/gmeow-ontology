@@ -53,6 +53,15 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
    Git merge driver (`merge.ours.driver=true`); after a merge or rebase,
    regenerate/check the bundle from canonical sources rather than resolving the
    binary file by hand.
+6. **One mandatory frame profile.** Every payload-bearing frame authored by
+   GMEOW production code uses exactly one transform: `zstd-rsyncable`, at zstd
+   compression level **12**. This applies to small and large blob frames, the
+   snapshot frame, transformed consumer output, and signed release bundles; no
+   size threshold may fall back to plain `zstd`, `gzip`, or `identity`. The GTS
+   header is not a frame, and a signed bundle's transport-key metadata frame has
+   no payload bytes to compress. `gts_profile` centralizes production authorship,
+   compile-time asserts the upstream dist level remains 12, and the Rust gate
+   inspects every payload frame in the committed bundle for the exact codec chain.
 
 ## Box Roles In The Package
 

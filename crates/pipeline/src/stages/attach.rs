@@ -237,6 +237,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/projections/oai_dc.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/odrl.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/ontolex.edoal",
+            "https://blackcatinformatics.ca/gmeow/graph/projections/ontouml.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/org.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/owl-time.edoal",
             "https://blackcatinformatics.ca/gmeow/graph/projections/pon.edoal",

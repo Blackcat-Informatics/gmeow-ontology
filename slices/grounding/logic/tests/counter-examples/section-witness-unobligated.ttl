@@ -10,4 +10,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/logic/> .
 
-ex:sectionWitness a logic:SectionAcceptanceWitness .
+ex:sectionWitness a logic:SectionAcceptanceWitness ;
+    ex:executesNativeProducer "logic::correspondence_exec::leg_pair_verdict" ;
+    ex:observesRuntimeFailure logic:SectionObligationViolated .

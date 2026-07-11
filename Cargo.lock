@@ -2217,6 +2217,7 @@ dependencies = [
  "assert_cmd",
  "ciborium",
  "clap",
+ "docs-print",
  "gmeow-cli-core",
  "gmeow-docs",
  "gmeow-errors",

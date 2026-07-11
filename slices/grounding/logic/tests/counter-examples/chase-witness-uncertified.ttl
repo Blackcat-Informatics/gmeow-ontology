@@ -10,4 +10,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/logic/> .
 
-ex:chaseWitness a logic:ChaseAcceptanceWitness .
+ex:chaseWitness a logic:ChaseAcceptanceWitness ;
+    ex:executesNativeProducer "logic::materialize::materialize_routed" ;
+    ex:observesRuntimeFailure logic:UncertifiedChase .

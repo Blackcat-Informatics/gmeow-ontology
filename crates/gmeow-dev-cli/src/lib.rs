@@ -398,11 +398,10 @@ pub enum Commands {
         #[arg(long = "lang", short = 'l')]
         lang: Option<String>,
     },
-    /// Export documentation projections (site, mdbook, PDF, snippets) from a GTS
-    /// snapshot.
+    /// Export documentation projections (site, mdbook, PDF, snippets) from
+    /// canonical repository sources.
     #[command(name = "export-docs")]
     ExportDocs {
-        gts_file: Option<PathBuf>,
         #[arg(long, default_value = "all")]
         format: ExportFormat,
         #[arg(long = "directory", short = 'd')]
@@ -444,17 +443,6 @@ pub enum Commands {
         /// regenerate) instead of injecting grounding.
         #[arg(long = "prune")]
         prune: bool,
-    },
-    /// Print the documentation page for one GMEOW term from a GTS snapshot.
-    #[command(name = "docs-on")]
-    DocsOn {
-        term: String,
-        #[arg(long)]
-        card: bool,
-        #[arg(long = "gts")]
-        gts: Option<PathBuf>,
-        #[arg(long = "lang", short = 'l')]
-        lang: Option<String>,
     },
     /// Statically certify a logic program against its declared profile.
     Certify {
@@ -891,18 +879,11 @@ pub fn run() -> i32 {
             dev_project::describe(&term, gts.as_deref(), lang.as_deref())
         }
         Commands::ExportDocs {
-            gts_file,
             format,
             directory,
             force,
             lang,
-        } => dev_project::export_docs(
-            gts_file.as_deref(),
-            &format,
-            &directory,
-            force,
-            lang.as_deref(),
-        ),
+        } => dev_project::export_docs(&format, &directory, force, lang.as_deref()),
         Commands::ShapeEquivalence { path } => dev_shapes::shape_equivalence(path.as_deref()),
         Commands::ShapeLift { path } => dev_shapes::shape_lift(path.as_deref()),
         Commands::ShapeMigrate { path, apply, prune } => {
@@ -912,12 +893,6 @@ pub fn run() -> i32 {
                 dev_shapes::shape_migrate(path.as_deref(), apply)
             }
         }
-        Commands::DocsOn {
-            term,
-            card,
-            gts,
-            lang,
-        } => dev_project::docs_on(&term, card, gts.as_deref(), lang.as_deref()),
         Commands::Certify {
             input_path,
             profile,

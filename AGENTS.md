@@ -65,6 +65,13 @@ make clean           # Remove ephemeral build artifacts and native build stamps
 side during binary bundle merges/rebases, and the developer regenerates/checks
 the bundle from canonical sources afterward.
 
+Every payload-bearing frame in any production-authored GMEOW GTS bundle MUST use
+exactly `zstd-rsyncable` at compression level 12. This is a hard distribution
+contract: never substitute gzip, plain zstd, identity, or a size-dependent
+fallback. The pipeline's `gts_profile` wrapper and committed-bundle frame audit
+enforce the transform, while a compile-time assertion pins purrdf's dist level to
+12. Header and payload-free transport metadata are not compression frames.
+
 ### Validation & Compilation
 
 ```bash
@@ -136,7 +143,7 @@ make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 ### Release Outputs
 
 ```bash
-make docs            # Regenerate gmeow.gts docs and extract ontology-docs/
+make docs            # Regenerate external docs: site/book/print/snippets, OKF, YAML-LD
 make build           # Build serializations and JSON-LD context into dist/
 make project         # Project GMEOW data to external vocabulary profiles
 make release         # Regenerate, native-reason, build, report, and emit CrossRef deposit
@@ -146,6 +153,12 @@ make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts
 `make release-sign-gts` signs a freshly regenerated GTS snapshot for release
 packaging. The committed `generated/dist/gmeow.gts` remains unsigned unless a
 release workflow explicitly writes the signed copy there before packaging.
+
+Documentation projections are never embedded in `gmeow.gts`. The static site,
+mdbook sources, print PDF/Typst, prompt snippets, OKF Markdown, JSON-LD, and
+YAML-LD are derived artifacts regenerated with `make docs`; Pages CI must use
+the source-backed `gmeow-dev export-docs` command. This keeps the logical GTS
+carrier separate from large, easily-derived presentation payloads (Principle 4).
 
 ### Reasoning & Negative Tests
 
@@ -465,9 +478,20 @@ signature, reject an invalid one — stays on-gate via
 rather than replaying the shipped bundle, and `release.rs`'s own unit tests
 cover the fold/verify pair's logic against a tiny synthetic snapshot; the full
 committed-bundle round-trip stays on-gate on `maint-heavy`).
+Complete `fr-CA`/`zh-Hans` label-and-definition carriers for the logic slice grew
+the multilingual bundle/report/site enough to push two exhaustive whole-repo
+tests past budget even in an isolated `make rust-gate`:
+`gmeow-pipeline::stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows`
+(28.9 s) and
+`gmeow-pipeline::stages::lang_docs_rendering::tests::rollup_targets_are_real_translation_units`
+(26.2 s). Each walks the complete projection report or
+translated rollup set and is irreducibly O(bundle/report/site size). No coverage
+class leaves the gate: `make check-generated` byte-gates all mapping/product/docs
+artifacts, focused mapping-routing and language-rendering tests remain on-gate,
+and the two exhaustive sweeps run on `maint-heavy`.
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
-correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
+correspondence parity, most mapping parity, carrier/docs archive tests, scoreboards
 acceptance, JSON-LD round-trips, product routing, slice/slicetest parity, and
 docs live-render guards are in the default/ci profile.
 
@@ -568,7 +592,7 @@ If you are an agent trying to look up terms, resolve definitions, or discover vo
 
 **The one rule:** if a path is under `generated/`, a registered generator owns it and you never edit it; if it is under `dist/`, it is ephemeral and never committed; anything else is authored by a human.
 
-**Exception:** `ontology-docs/` at the repository root is a committed generated artifact owned by the `ontology-docs` registered generator. It lives outside `generated/` so it can be hosted directly (e.g. GitHub Pages). The same generator code rebuilds the site independently inside the `gts` generator and embeds it in `generated/dist/gmeow.gts`, so the offline snapshot does not depend on the committed `ontology-docs/` directory.
+**Exception:** `ontology-docs/` at the repository root is an ephemeral generated artifact owned by the `docs` registered generator. It lives outside `generated/` so GitHub Pages can publish it directly, but it is ignored and regenerated on demand with `make docs` or `gmeow-dev export-docs`. It is never embedded in `generated/dist/gmeow.gts`.
 
 ```text
 slices/<group>/<name>/   # THE unit of the ontology: a slice. The <group> segment

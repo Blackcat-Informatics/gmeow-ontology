@@ -11,4 +11,5 @@
 @prefix ex:    <http://example.org/logic/> .
 
 ex:chaseWitness a logic:ChaseAcceptanceWitness ;
-    logic:carriesTerminationCertificate "weakly acyclic: none in a cycle" .
+    logic:carriesTerminationCertificate "weakly acyclic: none in a cycle" ;
+    ex:executesNativeProducer "logic::materialize::materialize_routed" .

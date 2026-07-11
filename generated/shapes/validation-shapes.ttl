@@ -4556,12 +4556,18 @@
 
 <https://blackcatinformatics.ca/logic/ActionSchema-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/ActionSchema> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/effect> ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/invariant> ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/capability> ; sh:minCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/observation> ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/precondition> ; sh:minCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/actionResource> ; sh:maxCount 1 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/capability> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/precondition> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] .
+
+<https://blackcatinformatics.ca/logic/ChaseAcceptanceWitness-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/logic/UncertifiedChase> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/ChaseAcceptanceWitness> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/carriesTerminationCertificate> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] .
+
+<https://blackcatinformatics.ca/logic/ClosureAcceptanceWitness-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/logic/IncompleteClosure> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/ClosureAcceptanceWitness> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/closureEntailedAtom> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] .
 
 <https://blackcatinformatics.ca/logic/Collection-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/Collection> ;
@@ -4570,16 +4576,21 @@
 
 <https://blackcatinformatics.ca/logic/Conjecture-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/Conjecture> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureFormula> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/verdictProvenance> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/VerdictProvenanceKind> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/VerdictProvenanceKind> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureStandpoint> ; sh:minCount 1 ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureLifecycleState> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/ConjectureLifecycleState> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/ConjectureLifecycleState> ] ; sh:qualifiedMinCount 1 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureFormula> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/verdictProvenance> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/VerdictProvenanceKind> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureStandpoint> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureLifecycleState> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/ConjectureLifecycleState> ] .
 
 <https://blackcatinformatics.ca/logic/ContradictionWitness-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/ContradictionWitness> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/witnessWorld> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/witnessWorld> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/witnessPremise> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/witnessIndividual> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/witnessIndividual> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] .
+
+<https://blackcatinformatics.ca/logic/CounterfactualAcceptanceWitness-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/logic/UnentrenchedCounterfactual> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/CounterfactualAcceptanceWitness> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/selectedByEntrenchment> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
 <https://blackcatinformatics.ca/logic/Endurant-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/Endurant> ;
@@ -4591,23 +4602,22 @@
 
 <https://blackcatinformatics.ca/logic/FormalizationCandidate-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateScope> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateCategory> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/FormalizationCategory> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/FormalizationCategory> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateContract> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/ReasoningContract> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/ReasoningContract> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateLifecycle> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/CandidateLifecycleState> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/CandidateLifecycleState> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateFormalizes> ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSourceHash> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSourceField> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/ProseField> ] ; sh:qualifiedMaxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSemanticRisk> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/SemanticRiskClass> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/SemanticRiskClass> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/PreservationKind> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/PreservationKind> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateScope> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateCategory> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/FormalizationCategory> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateContract> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/ReasoningContract> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateLifecycle> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/CandidateLifecycleState> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSourceHash> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSourceField> ; sh:class <https://blackcatinformatics.ca/logic/ProseField> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSemanticRisk> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/SemanticRiskClass> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/PreservationKind> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] .
 
 <https://blackcatinformatics.ca/logic/FreshnessGuard-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/FreshnessGuard> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessHorizon> ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#duration> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessWindowEnd> ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#dateTime> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/guardsPrecondition> ; sh:minCount 1 ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessWindowStart> ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#dateTime> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessHorizon> ; sh:datatype <http://www.w3.org/2001/XMLSchema#duration> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessWindowEnd> ; sh:datatype <http://www.w3.org/2001/XMLSchema#dateTime> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/guardsPrecondition> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessWindowStart> ; sh:datatype <http://www.w3.org/2001/XMLSchema#dateTime> ] .
 
 <https://blackcatinformatics.ca/logic/FunctionalComplex-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/FunctionalComplex> ;
@@ -4615,34 +4625,264 @@
 
 <https://blackcatinformatics.ca/logic/GoalEvaluation-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/GoalEvaluation> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/utility> ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/evaluatesGoal> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/Goal> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/objectiveValue> ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/lifecycleStatus> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/LifecycleStatus> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/LifecycleStatus> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/feasibilityStatus> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/FeasibilityStatus> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/FeasibilityStatus> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/satisfactionDegree> ; sh:maxCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/satisfactionStatus> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/SatisfactionStatus> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/SatisfactionStatus> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/goalEvaluationStatus> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/GoalEvaluationStatus> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/GoalEvaluationStatus> ] ; sh:qualifiedMinCount 1 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/evaluatesGoal> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Goal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/lifecycleStatus> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/LifecycleStatus> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/feasibilityStatus> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/FeasibilityStatus> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/satisfactionStatus> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/SatisfactionStatus> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/goalEvaluationStatus> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/GoalEvaluationStatus> ] .
 
 <https://blackcatinformatics.ca/logic/McpActionSchema-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/McpActionSchema> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/capability> ; sh:minCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/compensation> ; sh:minCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/precondition> ; sh:minCount 1 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/capability> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/compensation> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/precondition> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
 <https://blackcatinformatics.ca/logic/NonEntailmentObligation-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/NonEntailmentObligation> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/obligationDischargeCondition> ; sh:class <https://blackcatinformatics.ca/logic/DischargeCondition> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#anyURI> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/obligationDischargeCondition> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/DischargeCondition> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#anyURI> ] .
 
 <https://blackcatinformatics.ca/logic/NotificationWaitSchema-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/NotificationWaitSchema> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/awaitsSignal> ; sh:minCount 1 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/awaitsSignal> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/ExternalSignal> ] .
 
 <https://blackcatinformatics.ca/logic/Plan-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/Plan> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/planGoal> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/Goal> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/Goal> ] ; sh:qualifiedMinCount 1 ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/logic/planSuccessMode> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/PlanSuccessMode> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/logic/PlanSuccessMode> ] ; sh:qualifiedMinCount 1 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/planGoal> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/gmeow/Goal> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/planSuccessMode> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/PlanSuccessMode> ] .
+
+<https://blackcatinformatics.ca/logic/RefutationAcceptanceWitness-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/logic/UnwitnessedRefutation> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/RefutationAcceptanceWitness> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/namesContradictionWitness> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/logic/ContradictionWitness> ] .
+
+<https://blackcatinformatics.ca/logic/SectionAcceptanceWitness-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/logic/SectionObligationViolated> ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/SectionAcceptanceWitness> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/dischargesSectionObligation> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] .
+
+<https://blackcatinformatics.ca/logic/actionResource-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/actionResource> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/actionResource> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateCategory-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateCategory> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateCategory> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateCategory-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/candidateCategory> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCategory> .
+
+<https://blackcatinformatics.ca/logic/candidateContract-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateContract> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateContract> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateContract-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/candidateContract> ;
+    sh:class <https://blackcatinformatics.ca/logic/ReasoningContract> .
+
+<https://blackcatinformatics.ca/logic/candidateExtractionProvenance-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateExtractionProvenance-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#string> .
+
+<https://blackcatinformatics.ca/logic/candidateFormalizes-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateFormalizes> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateFormalizes> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateLifecycle-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateLifecycle> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateLifecycle> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateLifecycle-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/candidateLifecycle> ;
+    sh:class <https://blackcatinformatics.ca/logic/CandidateLifecycleState> .
+
+<https://blackcatinformatics.ca/logic/candidateProjectionBehavior-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateProjectionBehavior-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> ;
+    sh:class <https://blackcatinformatics.ca/logic/PreservationKind> .
+
+<https://blackcatinformatics.ca/logic/candidateScope-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateScope> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateScope> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateScope-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/candidateScope> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#string> .
+
+<https://blackcatinformatics.ca/logic/candidateSemanticRisk-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateSemanticRisk> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSemanticRisk> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateSemanticRisk-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/candidateSemanticRisk> ;
+    sh:class <https://blackcatinformatics.ca/logic/SemanticRiskClass> .
+
+<https://blackcatinformatics.ca/logic/candidateSourceField-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateSourceField> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSourceField> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateSourceHash-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateSourceHash> ;
+    sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateSourceHash> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/candidateSourceHash-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/candidateSourceHash> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#string> .
+
+<https://blackcatinformatics.ca/logic/conjectureFormula-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/conjectureFormula> ;
+    sh:class <https://blackcatinformatics.ca/logic/Conjecture> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureFormula> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/conjectureFormula-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/conjectureFormula> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#string> .
+
+<https://blackcatinformatics.ca/logic/conjectureLifecycleState-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/conjectureLifecycleState> ;
+    sh:class <https://blackcatinformatics.ca/logic/Conjecture> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureLifecycleState> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/conjectureLifecycleState-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/conjectureLifecycleState> ;
+    sh:class <https://blackcatinformatics.ca/logic/ConjectureLifecycleState> .
+
+<https://blackcatinformatics.ca/logic/conjectureStandpoint-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/conjectureStandpoint> ;
+    sh:class <https://blackcatinformatics.ca/logic/Conjecture> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureStandpoint> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/effect-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/effect> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/effect> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/feasibilityStatus-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/feasibilityStatus> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/feasibilityStatus> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/freshnessHorizon-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/freshnessHorizon> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessHorizon> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/freshnessWindowEnd-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/freshnessWindowEnd> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessWindowEnd> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/freshnessWindowStart-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/freshnessWindowStart> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/freshnessWindowStart> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/goalEvaluationStatus-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/goalEvaluationStatus> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/goalEvaluationStatus> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/guardsPrecondition-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/guardsPrecondition> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/guardsPrecondition> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/invariant-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/invariant> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/invariant> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/lifecycleStatus-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/lifecycleStatus> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/lifecycleStatus> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/objectiveValue-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/objectiveValue> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/objectiveValue> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/obligationDischargeCondition-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/obligationDischargeCondition> ;
+    sh:class <https://blackcatinformatics.ca/logic/NonEntailmentObligation> .
+
+<https://blackcatinformatics.ca/logic/obligationDischargeCondition-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/obligationDischargeCondition> ;
+    sh:class <https://blackcatinformatics.ca/logic/DischargeCondition> .
+
+<https://blackcatinformatics.ca/logic/obligationForbiddenPredicate-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> ;
+    sh:class <https://blackcatinformatics.ca/logic/NonEntailmentObligation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/obligationForbiddenPredicate-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#anyURI> .
+
+<https://blackcatinformatics.ca/logic/observation-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/observation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/observation> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/planGoal-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/planGoal> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/planGoal> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/planSuccessMode-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/planSuccessMode> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/planSuccessMode> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/satisfactionDegree-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/satisfactionDegree> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/satisfactionDegree> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/satisfactionStatus-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/satisfactionStatus> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/satisfactionStatus> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/utility-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/utility> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/utility> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/verdictProvenance-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/verdictProvenance> ;
+    sh:class <https://blackcatinformatics.ca/logic/Conjecture> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/verdictProvenance> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/verdictProvenance-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/verdictProvenance> ;
+    sh:class <https://blackcatinformatics.ca/logic/VerdictProvenanceKind> .
+
+<https://blackcatinformatics.ca/logic/witnessIndividual-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/witnessIndividual> ;
+    sh:class <https://blackcatinformatics.ca/logic/ContradictionWitness> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/witnessIndividual> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/witnessIndividual-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/witnessIndividual> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#string> .
+
+<https://blackcatinformatics.ca/logic/witnessPremise-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/witnessPremise> ;
+    sh:class <https://blackcatinformatics.ca/logic/ContradictionWitness> .
+
+<https://blackcatinformatics.ca/logic/witnessPremise-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/witnessPremise> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#string> .
+
+<https://blackcatinformatics.ca/logic/witnessWorld-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/witnessWorld> ;
+    sh:class <https://blackcatinformatics.ca/logic/ContradictionWitness> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/witnessWorld> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/witnessWorld-range-shape> a sh:NodeShape ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/logic/witnessWorld> ;
+    sh:datatype <http://www.w3.org/2001/XMLSchema#string> .
 
 <https://blackcatinformatics.ca/math/AlgebraicStructure-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/AlgebraicStructure> ;

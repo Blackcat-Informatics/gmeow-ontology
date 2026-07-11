@@ -39,10 +39,9 @@ single source. The per-doc realized-state column that FULL requires is cross-ref
 
 The docs generator already discovers `slices/*/*/design/*.md` and renders those
 files as slice-local design pages. The generated Markdown and HTML site belongs
-under `dist/ontology-docs/`, not in the committed tree. The `gmeow.gts`
-bundle declares the docs source set, including `slices/*/*/design/*.md`, so
-slice-design changes invalidate the bundled offline docs snapshot without
-checking generated site files into git.
+under `dist/ontology-docs/`, not in the committed tree. Documentation payloads
+do not ride `gmeow.gts`; `make docs` discovers the canonical source set,
+including `slices/*/*/design/*.md`, and regenerates every external projection.
 
 ## Classification keys
 
@@ -138,7 +137,7 @@ extract concise, term-scoped prose into:
 
 1. **Generator readiness**
    - Keep generated Markdown and HTML under `dist/ontology-docs/`.
-   - Keep `gmeow.gts` embedding a docs bundle rendered from canonical docs sources.
+   - Keep documentation projections external to `gmeow.gts` and reproducible with `make docs`.
    - Add/adjust targeted docs tests as new design-doc patterns appear.
 
 2. **Low-risk deduplication**

@@ -61,9 +61,19 @@ pub fn module_file(slice_dir: &Path) -> PathBuf {
     slice_dir.join("module.ttl")
 }
 
-/// The slice's SHACL shapes (`<slice>/shapes.ttl`).
-pub fn shapes_file(slice_dir: &Path) -> PathBuf {
-    slice_dir.join("shapes.ttl")
+/// The SHACL surfaces enforcing one slice. During migration this is the local
+/// `<slice>/shapes.ttl`; after equivalence-proven deletion it is the canonical generated
+/// validation plus procedural projection.
+pub fn shapes_files(slice_dir: &Path) -> Vec<PathBuf> {
+    let local = slice_dir.join("shapes.ttl");
+    if local.is_file() {
+        vec![local]
+    } else {
+        vec![
+            repo_root().join("generated/shapes/validation-shapes.ttl"),
+            repo_root().join("generated/shapes/procedural-constraints.ttl"),
+        ]
+    }
 }
 
 /// The slice's `examples/` directory.
@@ -92,15 +102,18 @@ mod tests {
     }
 
     #[test]
-    fn module_and_shapes_resolve_inside_the_slice() {
+    fn module_and_migrated_shapes_resolve_to_their_authorities() {
         let slice = Path::new("/repo/slices/core/epistemics");
         assert_eq!(
             module_file(slice),
             Path::new("/repo/slices/core/epistemics/module.ttl")
         );
         assert_eq!(
-            shapes_file(slice),
-            Path::new("/repo/slices/core/epistemics/shapes.ttl")
+            shapes_files(slice),
+            vec![
+                repo_root().join("generated/shapes/validation-shapes.ttl"),
+                repo_root().join("generated/shapes/procedural-constraints.ttl"),
+            ]
         );
         assert_eq!(
             examples_dir(slice),

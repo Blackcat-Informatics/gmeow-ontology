@@ -495,6 +495,8 @@ pub(crate) fn term_loss_digest_from_upstream(
 /// never joined. Hard-fails when the declared `stage-export-json-schema` product /
 /// artifact is absent or its bytes fail to parse as JSON (never a silently empty
 /// digest).
+#[cfg(test)]
+#[allow(dead_code)]
 pub(crate) fn schema_fragments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     terms: &[gmeow_docs::model::DocTerm],

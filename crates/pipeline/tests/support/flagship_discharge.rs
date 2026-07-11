@@ -21,19 +21,39 @@
 //!    NO slice-namespace failure fires.
 //! 4. **Runs the producer** — invokes a per-slice `producer_assert` callback once per scenario,
 //!    so each slice keeps its own producer-output assertions while sharing the discharge spine.
+//! 5. **Checks counter-example depth** — parses the closed discharge marker and requires the
+//!    per-slice negative callback to return matching structural or native execution evidence;
+//!    native evidence is set-equal to the one declared failure class.
 //!
 //! The failure-class scanner and SHACL shape→class resolution are parameterized by the slice's
 //! base IRI and short prefix, so `lang:`, `math:`, and `logic:` all drive the SAME core.
 
 #![allow(dead_code)]
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet, hash_map::Entry};
 use std::path::{Path, PathBuf};
 
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 use gmeow_validate::store::{dataset_from_paths, parse_file_dataset, shacl_validate_dataset};
 use purrdf::shapes::engine::parse_shapes;
 use purrdf::{RdfDataset, RdfTerm};
+
+define_diag_kind! {
+    /// A flagship fixture or native negative execution failed before it could produce the
+    /// semantic failure-class evidence the acceptance harness requires.
+    pub struct FlagshipExecution { detail: String }
+    code = "pipeline.test.flagship-execution";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "flagship execution failed: {}", detail;
+}
+
+/// Lift test-harness input/infrastructure failures onto the repository-wide diagnostic substrate.
+pub fn flagship_error(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(FlagshipExecution {
+        detail: detail.into(),
+    })
+}
 
 /// The shared `gmeow:` namespace. The flagship-manifest PREDICATES (the acceptance-bar
 /// wiring) and the shape→failure-class annotation predicate live here; the failure-class
@@ -75,6 +95,69 @@ pub struct Flagship {
     pub failure_class: String,
     /// The `gmeow:demonstratedByProducer` identifier string.
     pub producer: String,
+    /// The declared depth at which the guarding counter-example is executed.
+    pub counter_example_discharge: CounterExampleDischarge,
+}
+
+/// The closed `gmeow:CounterExampleDischarge` marker set.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CounterExampleDischarge {
+    /// The malformed fixture is checked only through structural/SHACL projection surfaces.
+    Structural,
+    /// The malformed fixture is additionally run through the native reasoning producer.
+    ReasonerDriven,
+}
+
+/// What the per-slice counter-example callback actually executed.
+#[derive(Debug, PartialEq, Eq)]
+pub enum CounterExampleExecution {
+    /// No native negative execution; the structural/SHACL proxy is the whole guard.
+    StructuralProxy,
+    /// Native execution completed and observed these typed failure classes.
+    ReasonerDriven(BTreeSet<String>),
+}
+
+/// Enforce agreement between the ontology marker and the execution evidence. Reasoner-driven
+/// evidence is set-equal to the single declared failure class; structural and native results are
+/// never interchangeable.
+pub fn assert_counterexample_depth(flagship: &Flagship, execution: CounterExampleExecution) {
+    match (flagship.counter_example_discharge, execution) {
+        (CounterExampleDischarge::Structural, CounterExampleExecution::StructuralProxy) => {}
+        (
+            CounterExampleDischarge::ReasonerDriven,
+            CounterExampleExecution::ReasonerDriven(observed),
+        ) => {
+            let expected: BTreeSet<String> =
+                std::iter::once(flagship.failure_class.clone()).collect();
+            assert_eq!(
+                observed, expected,
+                "flagship {}: native counter-example execution must observe EXACTLY {{{}}}",
+                flagship.subject, flagship.failure_class
+            );
+        }
+        (declared, actual) => panic!(
+            "flagship {}: counter-example marker/execution mismatch: declared {declared:?}, \
+             executed {actual:?}",
+            flagship.subject
+        ),
+    }
+}
+
+/// Insert one manifest value without silently accepting duplicate predicates.
+fn insert_unique(
+    values: &mut HashMap<String, String>,
+    subject: &str,
+    predicate: &str,
+    value: String,
+) {
+    match values.entry(subject.to_owned()) {
+        Entry::Vacant(slot) => {
+            slot.insert(value);
+        }
+        Entry::Occupied(_) => {
+            panic!("flagship {subject} has duplicate gmeow:{predicate}")
+        }
+    }
 }
 
 /// The per-scenario execution context handed to a slice's `producer_assert` callback: the
@@ -134,7 +217,7 @@ pub fn local_name(iri: &str) -> String {
 
 /// Parse the acceptance manifest into the flagship bindings, resolving each relative fixture
 /// path against `spec.slice_root`, sorted deterministically by subject, asserting exactly
-/// `expected_count` producers are declared.
+/// `expected_count` scenarios are declared.
 pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> {
     let manifest = spec.slice_root.join(spec.manifest_rel);
     let ds = parse_file_dataset(&manifest).expect("manifest parses");
@@ -145,6 +228,8 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
     let mut counter: HashMap<String, String> = HashMap::new();
     let mut class: HashMap<String, String> = HashMap::new();
     let mut producer: HashMap<String, String> = HashMap::new();
+    let mut discharge: HashMap<String, String> = HashMap::new();
+    let mut scenarios = BTreeSet::new();
 
     // The manifest predicate IRIs, built ONCE. Hoisted to the shared gmeow: vocabulary; only
     // the enforcesFailureClass VALUE stays slice-namespaced.
@@ -152,6 +237,9 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
     let pred_counter = format!("{GMEOW_NS}guardedByCounterExample");
     let pred_class = format!("{GMEOW_NS}enforcesFailureClass");
     let pred_producer = format!("{GMEOW_NS}demonstratedByProducer");
+    let pred_discharge = format!("{GMEOW_NS}counterExampleDischarge");
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let flagship_class = format!("{GMEOW_NS}FlagshipScenario");
 
     for quad in ds.owned_quads() {
         let RdfTerm::Iri(subject) = &quad.subject else {
@@ -166,31 +254,48 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
             _ => None,
         };
         let pred = quad.predicate.as_str();
-        if pred == pred_example {
-            example.insert(
-                subject.clone(),
+        if pred == RDF_TYPE && obj_iri.as_deref() == Some(flagship_class.as_str()) {
+            scenarios.insert(subject.clone());
+        } else if pred == pred_example {
+            insert_unique(
+                &mut example,
+                subject,
+                "demonstratedByExample",
                 obj_literal.expect("example is a literal path"),
             );
         } else if pred == pred_counter {
-            counter.insert(
-                subject.clone(),
+            insert_unique(
+                &mut counter,
+                subject,
+                "guardedByCounterExample",
                 obj_literal.expect("counter-example is a literal path"),
             );
         } else if pred == pred_class {
-            class.insert(
-                subject.clone(),
+            insert_unique(
+                &mut class,
+                subject,
+                "enforcesFailureClass",
                 local_name(&obj_iri.expect("failure class is an IRI")),
             );
         } else if pred == pred_producer {
-            producer.insert(
-                subject.clone(),
+            insert_unique(
+                &mut producer,
+                subject,
+                "demonstratedByProducer",
                 obj_literal.expect("producer identifier is a literal"),
+            );
+        } else if pred == pred_discharge {
+            insert_unique(
+                &mut discharge,
+                subject,
+                "counterExampleDischarge",
+                obj_iri.expect("counter-example discharge marker is an IRI"),
             );
         }
     }
 
-    let mut flagships: Vec<Flagship> = producer
-        .keys()
+    let mut flagships: Vec<Flagship> = scenarios
+        .iter()
         .map(|subject| {
             let rel_example = example.get(subject).unwrap_or_else(|| {
                 panic!("flagship {subject} missing gmeow:demonstratedByExample")
@@ -209,6 +314,20 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
                     })
                     .clone(),
                 producer: producer[subject].clone(),
+                counter_example_discharge: match discharge.get(subject).map(String::as_str) {
+                    Some(marker) if marker == format!("{GMEOW_NS}structuralDischarge") => {
+                        CounterExampleDischarge::Structural
+                    }
+                    Some(marker) if marker == format!("{GMEOW_NS}reasonerDrivenDischarge") => {
+                        CounterExampleDischarge::ReasonerDriven
+                    }
+                    Some(marker) => panic!(
+                        "flagship {subject} has unknown gmeow:counterExampleDischarge marker <{marker}>"
+                    ),
+                    None => panic!(
+                        "flagship {subject} missing gmeow:counterExampleDischarge"
+                    ),
+                },
             }
         })
         .collect();
@@ -216,7 +335,7 @@ pub fn parse_manifest(spec: &SliceSpec, expected_count: usize) -> Vec<Flagship> 
     assert_eq!(
         flagships.len(),
         expected_count,
-        "the acceptance manifest declares exactly {expected_count} gmeow:FlagshipScenario producers"
+        "the acceptance manifest declares exactly {expected_count} gmeow:FlagshipScenario individuals"
     );
     flagships
 }
@@ -344,7 +463,8 @@ pub fn triggered_slice_failures(
 /// For each of the `expected_count` `gmeow:FlagshipScenario` individuals in the slice manifest,
 /// this asserts (1) the counter-example raises EXACTLY the declared slice failure class over the
 /// union of the native lint and native SHACL channels, (2) the worked example raises NONE, then
-/// (3) invokes `producer_assert` so the slice discharges its own producer-output claims.
+/// (3) invokes `producer_assert` so the slice discharges its own producer-output claims, and (4)
+/// requires the actual counter-example execution depth to agree with its closed marker.
 ///
 /// `producer_assert` receives the parsed [`Flagship`] and a shared [`FlagshipCtx`] (the real
 /// slice catalog and repo root, built once for the whole run).
@@ -353,16 +473,54 @@ pub fn run_flagship_discharge(
     expected_count: usize,
     producer_assert: &dyn Fn(&Flagship, &FlagshipCtx<'_>),
 ) {
+    run_flagship_discharge_with_counterexample(spec, expected_count, producer_assert, &|_, _| {
+        Ok(CounterExampleExecution::StructuralProxy)
+    });
+}
+
+/// Discharge a slice's flagship acceptance bar with an explicit counter-example execution
+/// callback. The callback returns an error for parse, capability, budget, or infrastructure
+/// failures; only a successful [`CounterExampleExecution::ReasonerDriven`] result can satisfy a
+/// `gmeow:reasonerDrivenDischarge` marker.
+pub fn run_flagship_discharge_with_counterexample(
+    spec: &SliceSpec,
+    expected_count: usize,
+    producer_assert: &dyn Fn(&Flagship, &FlagshipCtx<'_>),
+    counterexample_assert: &dyn Fn(
+        &Flagship,
+        &FlagshipCtx<'_>,
+    ) -> gmeow_errors::Result<CounterExampleExecution>,
+) {
     let flagships = parse_manifest(spec, expected_count);
 
-    // The slice SHACL shapes, parsed once for the SHACL channel.
-    let shapes_path = spec.slice_root.join("shapes.ttl");
-    let shapes_text = std::fs::read_to_string(&shapes_path).expect("read slice shapes.ttl");
+    // Parse the enforcing SHACL surface once. A slice still being migrated reads its local
+    // `shapes.ttl`; a fully migrated slice reads the canonical generated validation and
+    // procedural projections instead (Principle 17). Deleting a proven-redundant local file must
+    // not delete the negative-test channel that its projection now owns.
+    let legacy_shapes = spec.slice_root.join("shapes.ttl");
+    let shape_paths = if legacy_shapes.is_file() {
+        vec![legacy_shapes]
+    } else {
+        vec![
+            repo_root().join("generated/shapes/validation-shapes.ttl"),
+            repo_root().join("generated/shapes/procedural-constraints.ttl"),
+        ]
+    };
+    let shapes_text = shape_paths
+        .iter()
+        .map(|path| {
+            std::fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("read enforcing shapes {}: {e}", path.display()))
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     let shapes = parse_shapes(&shapes_text).expect("slice shapes parse");
 
     // The shape→failure-class map, resolved from the slice shapes AND the shared gmeow-shapes,
     // so both slice failures and the shared unwired class resolve through one map.
-    let shape_class = shape_class_map(&[shapes_path.clone(), shared_shapes_path()]);
+    let mut shape_class_paths = shape_paths;
+    shape_class_paths.push(shared_shapes_path());
+    let shape_class = shape_class_map(&shape_class_paths);
 
     // Producers ingest the real slice catalog and repo tree; discover them once.
     let catalog = repo_catalog();
@@ -398,5 +556,15 @@ pub fn run_flagship_discharge(
 
         // ---- (3) Executed producer: the slice asserts its own output structure. ----
         producer_assert(flagship, &ctx);
+
+        // ---- (4) Honest depth: marker and actual negative execution agree exactly. ----
+        let execution = counterexample_assert(flagship, &ctx).unwrap_or_else(|detail| {
+            panic!(
+                "flagship {}: native counter-example execution failed as infrastructure/input, \
+                 not as the declared failure class: {detail}",
+                flagship.subject
+            )
+        });
+        assert_counterexample_depth(flagship, execution);
     }
 }

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Repo-anchored projection / description commands: `describe`, `export-docs`,
-//! `docs-on`, `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
+//! `export-docs`, `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -37,32 +37,15 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     code
 }
 
-/// `gmeow-dev export-docs [GTS] --format F -d DIR [--force --lang]` — write one (or
-/// every) documentation projection from a GTS snapshot.
+/// `gmeow-dev export-docs --format F -d DIR [--force --lang]` — render from
+/// canonical repository sources.
 pub fn export_docs(
-    gts_file: Option<&Path>,
     format: &crate::ExportFormat,
     directory: &Path,
     force: bool,
     lang: Option<&str>,
 ) -> i32 {
     let root = project_root();
-    let bytes = match gts_file {
-        Some(path) => match std::fs::read(path) {
-            Ok(b) => b,
-            Err(e) => return fail(format!("cannot read {}: {e}", path.display())),
-        },
-        None => match snapshot_bytes(&root) {
-            Ok(b) => b,
-            Err(code) => return code,
-        },
-    };
-    let available = match gmeow_pipeline::cli_ops::confirmations::available_doc_languages(&bytes) {
-        Ok(langs) => langs,
-        Err(e) => return fail(format!("cannot read docs languages: {e}")),
-    };
-    let internal = pick_internal_lang(lang, &available);
-
     if !force
         && let Ok(mut entries) = std::fs::read_dir(directory)
         && entries.next().is_some()
@@ -73,23 +56,36 @@ pub fn export_docs(
         ));
     }
 
+    let model = match gmeow_docs::DocsModel::discover(&root) {
+        Ok(model) => model,
+        Err(e) => return fail(format!("cannot build documentation model: {e}")),
+    };
+    let source_lang = pick_source_lang(lang, &model.translations);
+
     use crate::ExportFormat;
-    use gmeow_pipeline::cli_ops::confirmations as conf;
     match format {
-        ExportFormat::Site => {
-            write_docs_projection(directory, conf::export_docs_site(&bytes, &internal))
-        }
-        ExportFormat::Mdbook => write_docs_projection(directory, conf::export_docs_book(&bytes)),
-        ExportFormat::Pdf => write_docs_projection(directory, conf::export_docs_print(&bytes)),
-        ExportFormat::Snippets => {
-            write_docs_projection(directory, conf::export_docs_snippets(&bytes, &internal))
-        }
+        ExportFormat::Site => write_docs_projection(
+            directory,
+            Ok(gmeow_docs::render_site_lang(&model, &source_lang).files),
+        ),
+        ExportFormat::Mdbook => write_docs_projection(directory, Ok(render_source_book(&model))),
+        ExportFormat::Pdf => write_docs_projection(directory, render_source_print(&root, &model)),
+        ExportFormat::Snippets => write_docs_projection(
+            directory,
+            source_snippets(gmeow_docs::render_site_lang(&model, &source_lang).files),
+        ),
         ExportFormat::All => {
             let plan = [
-                ("site", conf::export_docs_site(&bytes, &internal)),
-                ("mdbook", conf::export_docs_book(&bytes)),
-                ("pdf", conf::export_docs_print(&bytes)),
-                ("snippets", conf::export_docs_snippets(&bytes, &internal)),
+                (
+                    "site",
+                    Ok(gmeow_docs::render_site_lang(&model, &source_lang).files),
+                ),
+                ("mdbook", Ok(render_source_book(&model))),
+                ("pdf", render_source_print(&root, &model)),
+                (
+                    "snippets",
+                    source_snippets(gmeow_docs::render_site_lang(&model, &source_lang).files),
+                ),
             ];
             for (sub, tree) in plan {
                 let code = write_docs_projection(&directory.join(sub), tree);
@@ -102,91 +98,77 @@ pub fn export_docs(
     }
 }
 
-/// `gmeow-dev docs-on TERM [--card --gts --lang]` — print one term's documentation
-/// page (or its prompt-ready card) from a GTS snapshot's ontology-docs blob.
-pub fn docs_on(term: &str, card: bool, gts: Option<&Path>, lang: Option<&str>) -> i32 {
-    use gmeow_docs::describe::{DescribeGraph, resolve_term};
-
-    let root = project_root();
-    let bytes = match gts {
-        Some(path) => match std::fs::read(path) {
-            Ok(b) => b,
-            Err(e) => return fail(format!("cannot read {}: {e}", path.display())),
-        },
-        None => match snapshot_bytes(&root) {
-            Ok(b) => b,
-            Err(code) => return code,
-        },
-    };
-    let graph = match DescribeGraph::from_gts_bytes(&bytes) {
-        Ok(g) => g,
-        Err(e) => return fail(e),
-    };
-    let (resolved, candidates) = resolve_term(&graph, term);
-    let Some(iri) = resolved else {
-        if candidates.is_empty() {
-            return fail(format!("no GMEOW term matches '{term}'"));
-        }
-        let options = candidates
-            .iter()
-            .map(|c| format!("  gmeow:{c}"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        return fail(format!(
-            "ambiguous or unknown term '{term}' — candidates:\n{options}"
-        ));
-    };
-
-    let available = match gmeow_pipeline::cli_ops::confirmations::available_doc_languages(&bytes) {
-        Ok(langs) => langs,
-        Err(e) => return fail(format!("cannot read docs languages: {e}")),
-    };
-    let internal = pick_internal_lang(lang, &available);
-
-    let docs = match gmeow_pipeline::bundle_blobs::bundled_ontology_docs(&bytes) {
-        Ok(d) => d,
-        Err(e) => return fail(format!("snapshot carries no ontology-docs pages: {e}")),
-    };
-    // Resolve the injective doc-entry slug from the bundle's own emitted
-    // `gmeow:documents` inverse (the collision-free slug map the docs projection
-    // folds into graph/documentation), NOT a stateless recompute.
-    let Some(slug) = graph.documentation_term_slug(&iri) else {
-        return fail(format!(
-            "no documentation entry for '{term}' ({iri}) in the bundle"
-        ));
-    };
-    let leaf = if card { "card.md" } else { "index.md" };
-    let key = format!("{internal}/terms/{slug}/{leaf}");
-    match docs.get(&key) {
-        Some(data) => {
-            print!("{}", String::from_utf8_lossy(data));
-            0
-        }
-        None => fail(format!(
-            "snapshot has no {leaf} page for '{term}' (gmeow:{slug}) in {internal}"
-        )),
-    }
-}
-
-/// Choose the internal `x-gmeow-*` docs language: an exact requested internal tag,
-/// else English, else the first available.
-fn pick_internal_lang(lang: Option<&str>, available: &[String]) -> String {
-    let english = "x-gmeow-english".to_owned();
+fn pick_source_lang(lang: Option<&str>, translations: &gmeow_docs::Translations) -> String {
+    let available = gmeow_docs::available_languages(translations);
     let requested = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok());
-    if let Some(req) = requested {
-        for tag in req.split(',').map(str::trim) {
-            if let Some(hit) = available.iter().find(|a| a.as_str() == tag) {
-                return hit.clone();
+    if let Some(requested) = requested {
+        for tag in requested.split(',').map(str::trim) {
+            if let Some(found) = available.iter().find(|candidate| {
+                candidate.as_str() == tag || translations.internal_tag(candidate) == tag
+            }) {
+                return found.clone();
             }
         }
     }
-    if available.iter().any(|a| a == &english) {
-        english
-    } else {
-        available.first().cloned().unwrap_or(english)
+    gmeow_docs::i18n::ENGLISH.to_string()
+}
+
+fn render_source_book(model: &gmeow_docs::DocsModel) -> BTreeMap<String, Vec<u8>> {
+    gmeow_docs::mdbook::render_book(model, &gmeow_docs::ExecutableDocsData::default()).files
+}
+
+fn render_source_print(
+    root: &Path,
+    model: &gmeow_docs::DocsModel,
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    const AXIOMS: [&str; 5] = [
+        "generated/owl/gmeow-dl.ttl",
+        "generated/owl/gmeow-el.ttl",
+        "generated/logic/gmeow.logic.rdf12.ttl",
+        "generated/logic/gmeow.rls",
+        "generated/datalog/gmeow.dl",
+    ];
+    let mut axioms = BTreeMap::new();
+    for rel in AXIOMS {
+        axioms.insert(rel.to_string(), std::fs::read(root.join(rel))?);
     }
+    let bib = std::fs::read(root.join("generated/references/references.bib"))?;
+    let losses = [
+        gmeow_docs::formats::DocFormat::Site,
+        gmeow_docs::formats::DocFormat::Mdbook,
+        gmeow_docs::formats::DocFormat::Pdf,
+        gmeow_docs::formats::DocFormat::Snippets,
+    ]
+    .into_iter()
+    .map(gmeow_docs::formats::format_capabilities)
+    .collect::<Vec<_>>();
+    let typ = docs_print::render_typ(model, &axioms, &bib, &losses);
+    let pdf = docs_print::compile_pdf(&typ, &bib)?;
+    Ok(BTreeMap::from([
+        ("gmeow.pdf".to_string(), pdf),
+        ("gmeow.typ".to_string(), typ.into_bytes()),
+    ]))
+}
+
+fn source_snippets(
+    site: BTreeMap<String, Vec<u8>>,
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    let snippets = site
+        .into_iter()
+        .filter_map(|(path, bytes)| {
+            let rest = path.strip_prefix("terms/")?;
+            let slug = rest.strip_suffix("/card.md")?;
+            Some((format!("terms/{slug}.md"), bytes))
+        })
+        .collect::<BTreeMap<_, _>>();
+    if snippets.is_empty() {
+        return Err(error::source(
+            "source documentation render produced no term-card snippets",
+        ));
+    }
+    Ok(snippets)
 }
 
 /// `gmeow-dev temporal QUERY [--data --focus --window-* --valid-at --as-of]`.

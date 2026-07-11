@@ -172,7 +172,10 @@ fn procedural_preset_carries_procedural_execution_facet() {
     for line in text.lines() {
         if let Some(rest) = line.strip_prefix("logic:") {
             if let Some(subj) = current.take() {
-                carries.insert(subj, has_facet);
+                carries
+                    .entry(subj)
+                    .and_modify(|seen| *seen |= has_facet)
+                    .or_insert(has_facet);
             }
             current = Some(local_name(rest));
             has_facet = false;
@@ -184,7 +187,10 @@ fn procedural_preset_carries_procedural_execution_facet() {
         }
     }
     if let Some(subj) = current.take() {
-        carries.insert(subj, has_facet);
+        carries
+            .entry(subj)
+            .and_modify(|seen| *seen |= has_facet)
+            .or_insert(has_facet);
     }
 
     for id in [

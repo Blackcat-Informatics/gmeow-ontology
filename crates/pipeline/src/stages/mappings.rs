@@ -1332,12 +1332,12 @@ nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing
             failures.join("\n")
         );
         assert_eq!(
-            edoal, 46,
-            "expected 46 EDOAL files byte-matching, got {edoal}"
+            edoal, 47,
+            "expected 47 EDOAL files byte-matching, got {edoal}"
         );
         assert_eq!(
-            sparql, 46,
-            "expected 46 SPARQL files byte-matching, got {sparql}"
+            sparql, 47,
+            "expected 47 SPARQL files byte-matching, got {sparql}"
         );
         // The committed `.put.rq` set count == the emitter-derived oracle, and each
         // byte-matches (they all passed the `failures` gate above). Passes at 1 today

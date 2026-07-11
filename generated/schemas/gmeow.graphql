@@ -497,8 +497,19 @@ enum AxisFloorCommitmentEnum {
   afc_lifecycle_axisGmn1Coverage
   afc_lifecycle_axisShapeMigration
   afc_logic_axisDocMaturity
+  afc_logic_axisDocumentation
+  afc_logic_axisFlagshipCounterExampleDepth
   afc_logic_axisGmn1Coverage
+  afc_logic_axisMaximalGrounding
+  afc_logic_axisMaximalInformation
+  afc_logic_axisMaximalLinkage
+  afc_logic_axisMaximalProjection
+  afc_logic_axisOptimalTesting
+  afc_logic_axisProseQuality
+  afc_logic_axisProvenanceHonesty
+  afc_logic_axisReasonerDerived
   afc_logic_axisShapeMigration
+  afc_logic_axisTranslationCoverage
   afc_math_axisDocMaturity
   afc_math_axisGmn1Coverage
   afc_math_axisShapeMigration
