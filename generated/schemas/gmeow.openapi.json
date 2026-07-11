@@ -7720,75 +7720,6 @@
         },
         "type": "object"
       },
-      "Distribution": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "gmeow:contentDigest": {
-            "anyOf": [
-              {
-                "anyOf": [
-                  {
-                    "properties": {
-                      "@type": {
-                        "type": "string"
-                      },
-                      "@value": {}
-                    },
-                    "required": [
-                      "@value"
-                    ],
-                    "type": "object"
-                  },
-                  {
-                    "type": "string"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "properties": {
-                        "@type": {
-                          "type": "string"
-                        },
-                        "@value": {}
-                      },
-                      "required": [
-                        "@value"
-                      ],
-                      "type": "object"
-                    },
-                    {
-                      "type": "string"
-                    }
-                  ]
-                },
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "type": "object"
-      },
       "DocEvidence": {
         "properties": {
           "@annotation": {
@@ -20929,31 +20860,6 @@
                 "@type": {
                   "anyOf": [
                     {
-                      "const": "gmeow:Distribution"
-                    },
-                    {
-                      "contains": {
-                        "const": "gmeow:Distribution"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/Distribution"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
                       "const": "gmeow:DocEvidence"
                     },
                     {
@@ -28454,6 +28360,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:LogOddsValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:LogOddsValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:LogOddsValue"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Manifold"
                     },
                     {
@@ -28621,6 +28552,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:Number"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:OddsValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:OddsValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:OddsValue"
             }
           },
           {
@@ -45494,70 +45450,14 @@
           },
           "math:distributionFamily": {
             "anyOf": [
+              {},
               {
-                "anyOf": [
-                  {
-                    "$comment": "external class https://blackcatinformatics.ca/math/DistributionFamily",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$comment": "external class https://blackcatinformatics.ca/math/DistributionFamily",
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
-                "minItems": 1,
+                "items": {},
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "math:distributionFamily"
-        ],
         "type": "object"
       },
       "math:Embedding": {
@@ -46286,6 +46186,54 @@
         ],
         "type": "object"
       },
+      "math:LogOddsValue": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:ProbabilityValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ProbabilityValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "math:Manifold": {
         "properties": {
           "@annotation": {
@@ -46543,6 +46491,54 @@
               {},
               {
                 "items": {},
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "math:OddsValue": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:ProbabilityValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ProbabilityValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
                 "type": "array"
               }
             ]
@@ -46954,100 +46950,32 @@
           },
           "math:eventSigmaAlgebra": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "math:probabilityMeasure": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
+                "items": {},
                 "type": "array"
               }
             ]
           },
           "math:sampleSpace": {
             "anyOf": [
+              {},
               {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
+                "items": {},
                 "type": "array"
               }
             ]
           }
         },
-        "required": [
-          "math:eventSigmaAlgebra",
-          "math:probabilityMeasure",
-          "math:sampleSpace"
-        ],
         "type": "object"
       },
       "math:ProbabilityValue": {

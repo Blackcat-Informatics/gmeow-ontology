@@ -373,6 +373,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/tenureSubjectAgent> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/gmeow/Distribution> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/Distribution-shape> {
+  <https://blackcatinformatics.ca/gmeow/contentDigest> . + ;
+}
+
 # targetClass <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim-shape> {
   <https://blackcatinformatics.ca/gmeow/defeatedBy> IRI ;
