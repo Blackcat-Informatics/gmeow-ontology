@@ -420,6 +420,352 @@ gmeow:docProvenanceDepth
     gmeow:howToUse "Let the docs projection derive it as the length of the backward stage walk from stage-docs-render; render it beside the provenance chain."@x-gmeow-english ;
     gmeow:useWhen "Use to record how many build stages produced a documented term on its provenance evidence node."@x-gmeow-english .
 
+# ── First-class fixture bodies ───────────────────────────────────────────────
+# The conformance Do/Don't fixture bodies, promoted from the opaque
+# gmeow:docFixtureCount on the fixture gmeow:DocEvidence node to first-class,
+# SPARQL-queryable subjects carrying the full Turtle body, so an offline consumer
+# can serve the teaching artifact itself — not just a count — from the bundle.
+
+gmeow:DocFixture
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Doc Fixture"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The first-class documentation record of one conformance Do/Don't fixture: a well-formed instance or a deliberately malformed counter-example, carrying the FULL Turtle body (gmeow:docFixtureText), a gmeow:documents edge per referenced documented term, the well-formed/counter-example kind (gmeow:docFixtureKind), and — when the slice authors a binding — the expected outcome, violation code, and conformance rationale. Its IRI is the SAME identity the fixture gmeow:DocEvidence node grounds by, so the per-term count and the body join on one IRI. It is the fixture's documentation projection, not the fixture file itself."@x-gmeow-english ;
+    skos:example "ex:fixtureCatOk a gmeow:DocFixture ; gmeow:documents gmeow:Cat ; gmeow:docFixtureKind gmeow:docFixtureKindWellformed ; gmeow:docFixtureText \"@prefix gmeow: <...> .\" ; gmeow:docExpectedOutcome \"conforms\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand (it is a regenerated projection of the slice's tests/ fixtures) and avoid conflating it with the fixture gmeow:DocEvidence incidence node — the evidence node carries the count, this record carries the body."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per discovered conformance fixture; read gmeow:docFixtureText for the runnable body, gmeow:documents for the terms it exercises, and gmeow:docFixtureKind / gmeow:docExpectedOutcome for its Do/Don't classification."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the queryable body of a conformance fixture in the documentation graph, so an offline consumer can serve the teaching artifact directly."@x-gmeow-english .
+
+gmeow:DocFixtureKind
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Doc Fixture Kind"@x-gmeow-english ;
+    rdfs:subClassOf logic:QualityValue ;
+    skos:definition "The kind of a gmeow:DocFixture — a VALUE, never an Entity subclass: gmeow:docFixtureKindWellformed (a conforming instance) or gmeow:docFixtureKindCounterExample (a deliberately malformed counter-example). Referenced through gmeow:docFixtureKind so the classification is a first-class, join-able resource (mirrors gmeow:DocEvidenceKind)."@x-gmeow-english ;
+    skos:example "gmeow:docFixtureKindWellformed a gmeow:DocFixtureKind ; rdfs:label \"wellformed\"@x-gmeow-english ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a fixture directly with a kind class or pointing gmeow:docFixtureKind at a string literal; the kind is an enumerated individual value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded gmeow:docFixtureKindWellformed / gmeow:docFixtureKindCounterExample individuals from gmeow:docFixtureKind; group fixtures by kind."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the Do/Don't classification of a conformance fixture."@x-gmeow-english .
+
+gmeow:docFixtureKindWellformed
+    a gmeow:DocFixtureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "wellformed"@x-gmeow-english ;
+    skos:definition "The well-formed fixture kind — a conforming instance the ontology validates cleanly (a Do example)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docFixtureKindCounterExample
+    a gmeow:DocFixtureKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    rdfs:label "counter-example"@x-gmeow-english ;
+    skos:definition "The counter-example fixture kind — a deliberately malformed instance the ontology must reject (a Don't example), typically bound to an expected violation code."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:docFixtureKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DocFixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc fixture kind"@x-gmeow-english ;
+    rdfs:range gmeow:DocFixtureKind ;
+    skos:definition "Classifies a gmeow:DocFixture by exactly one gmeow:DocFixtureKind value — well-formed or counter-example. An instance-level owl:ObjectProperty from the fixture record to an enumerated kind individual."@x-gmeow-english ;
+    skos:example "ex:fixtureCatOk gmeow:docFixtureKind gmeow:docFixtureKindWellformed ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a string literal (the kind is a first-class individual) and avoid asserting more than one kind per fixture."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:docFixtureKind on each gmeow:DocFixture; group fixtures into Do/Don't panels by it."@x-gmeow-english ;
+    gmeow:useWhen "Use to record whether a documentation fixture is a well-formed instance or a counter-example."@x-gmeow-english .
+
+gmeow:docFixtureText
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocFixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc fixture text"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The full Turtle body of a conformance fixture, carried verbatim on its gmeow:DocFixture record — the runnable teaching artifact itself, not a digest. Small by construction (fixtures are pure ABox payloads)."@x-gmeow-english ;
+    skos:example "ex:fixtureCatOk gmeow:docFixtureText \"ex:c a gmeow:Cat .\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing a digest or a truncated excerpt here (the point is the full runnable body) and avoid embedding a large blob — fixtures are small by design."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the fixture's Turtle source verbatim; render or replay it directly from the graph."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the full Turtle body of a conformance fixture so an offline consumer can read or run it from the documentation graph."@x-gmeow-english .
+
+gmeow:docExpectedOutcome
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocFixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc expected outcome"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The authored expected outcome of a conformance fixture — \"conforms\" or \"violates\" — from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record. Absent when the fixture carries no authored binding (an honest absence)."@x-gmeow-english ;
+    skos:example "ex:fixtureCatOk gmeow:docExpectedOutcome \"conforms\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating it for an unbound fixture (leave it absent) and avoid values outside the \"conforms\"/\"violates\" pair."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry it from the fixture's conformance binding; branch the Do/Don't rendering on it."@x-gmeow-english ;
+    gmeow:useWhen "Use to record whether a bound conformance fixture is expected to conform or violate."@x-gmeow-english .
+
+gmeow:docViolationCode
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocFixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc violation code"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The authored expected violation code of a counter-example fixture (e.g. \"shacl.MinCountConstraintComponent\"), carried on its gmeow:DocFixture record. Absent for a well-formed fixture or an unbound counter-example."@x-gmeow-english ;
+    skos:example "ex:fixtureCatBad gmeow:docViolationCode \"shacl.MinCountConstraintComponent\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on a well-formed fixture, and avoid inventing a code for an unbound counter-example (leave it absent)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry it from the fixture's conformance binding; show it as the expected failure on the Don't panel."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the constraint a counter-example fixture is expected to violate."@x-gmeow-english .
+
+gmeow:conformanceRationale
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocFixture ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "conformance rationale"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The human-readable \"why\" a conformance fixture conforms or violates, from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record. Absent when the fixture carries no authored binding."@x-gmeow-english ;
+    skos:example "ex:fixtureCatBad gmeow:conformanceRationale \"A cat must declare an owner.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a rationale for an unbound fixture (leave it absent) and avoid overloading it with the violation code — that is gmeow:docViolationCode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry it from the fixture's conformance binding; render it as the fixture panel's explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the human explanation of why a conformance fixture conforms or violates."@x-gmeow-english .
+
+# ── First-class competency questions ─────────────────────────────────────────
+# Each competency question promoted from an opaque blake3 query digest on the
+# competency gmeow:DocEvidence node to a first-class record carrying the runnable
+# query text and the enumerated expected result rows, so an offline consumer can
+# serve the whole standalone question — query plus expected answer — from the
+# bundle.
+
+gmeow:DocumentedCompetency
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Documented Competency"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The first-class documentation record of one competency question: grounded by the real competency-question IRI it projects, it carries the runnable gmeow:cqQueryText, the expected-answer contract (gmeow:cqExpectRowCount / gmeow:cqExactRows / one gmeow:CompetencyExpectedRow per enumerated row), the gmeow:cqRationale, and a gmeow:documents edge per exercised term. It is the competency question's documentation projection — distinct from the competency IRI it grounds by."@x-gmeow-english ;
+    skos:example "ex:cqCatsRecord a gmeow:DocumentedCompetency ; gmeow:docGroundedBy ex:cqCatsAreAnimals ; gmeow:documents gmeow:Cat ; gmeow:cqQueryText \"SELECT ?c WHERE { ?c a gmeow:Cat }\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand (it is a regenerated projection of the slice's tests/competency.ttl) and avoid conflating it with the competency gmeow:DocEvidence node — the evidence node carries the count and digest, this record carries the query and expected rows."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per discovered competency question; read gmeow:cqQueryText for the runnable query, gmeow:cqExpectRowCount / gmeow:CompetencyExpectedRow for the expected answer, and gmeow:documents for the terms it exercises."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the queryable, standalone body of a competency question in the documentation graph, so an offline consumer can serve query plus expected answer directly."@x-gmeow-english .
+
+gmeow:CompetencyExpectedRow
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Competency Expected Row"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "One enumerated expected result row of a competency question, linked from its gmeow:DocumentedCompetency by gmeow:cqExpectedRow: a set of per-variable cell bindings (gmeow:cqCellVar with gmeow:cqCellValueIri or gmeow:cqCellValueLiteral). Makes the expected result SET queryable content, not just a count."@x-gmeow-english ;
+    skos:example "ex:cqCatsRow0 a gmeow:CompetencyExpectedRow ; gmeow:cqCellVar \"c\" ; gmeow:cqCellValueIri gmeow:Cat ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand and avoid using it where only a cardinality matters — that is gmeow:cqExpectRowCount; this reifies an actual enumerated row."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per enumerated expected row; read its gmeow:cqCell* bindings to reconstruct the expected result set."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry one enumerated expected result row of a competency question as queryable RDF."@x-gmeow-english .
+
+gmeow:cqQueryText
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedCompetency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "cq query text"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The full runnable SPARQL body of a competency question, carried verbatim on its gmeow:DocumentedCompetency record — the runnable query itself, not a digest."@x-gmeow-english ;
+    skos:example "ex:cqCatsRecord gmeow:cqQueryText \"SELECT ?c WHERE { ?c a gmeow:Cat }\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing a digest here (that is the competency evidence node's gmeow:docCompetencyQueryDigest) and avoid a truncated excerpt — carry the full query."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the resolved competency query verbatim; run it directly from the graph."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the runnable SPARQL body of a competency question so an offline consumer can execute it from the documentation graph."@x-gmeow-english .
+
+gmeow:cqExpectRowCount
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedCompetency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "cq expect row count"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The declared expected row COUNT of a competency question (e.g. 0 for a must-be-empty QC query), carried on its gmeow:DocumentedCompetency record when the question pins cardinality instead of enumerating rows. Absent for a question that enumerates its expected rows."@x-gmeow-english ;
+    skos:example "ex:cqNoOrphans gmeow:cqExpectRowCount 0 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it alongside a fully enumerated expected-row set (the two are alternative modes) and avoid a count that disagrees with the query's real cardinality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry it from the competency question's declared cardinality; assert the result-set size equals it."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the expected cardinality of a competency question that pins a row count rather than enumerating rows."@x-gmeow-english .
+
+gmeow:cqExactRows
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedCompetency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "cq exact rows"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "Whether a competency question's enumerated expected rows are the CLOSED result set (true) or a floor/subset the result must contain (false), carried on its gmeow:DocumentedCompetency record. Absent when the question declares neither."@x-gmeow-english ;
+    skos:example "ex:cqCatsRecord gmeow:cqExactRows true ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading its absence as false (absent means the question declared neither) and avoid asserting it without any enumerated expected rows to qualify."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry it from the competency question; branch closed-set vs contains-check assertion on it."@x-gmeow-english ;
+    gmeow:useWhen "Use to record whether a competency question's enumerated rows are the exact result set or a required subset."@x-gmeow-english .
+
+gmeow:cqRationale
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedCompetency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "cq rationale"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The human-readable \"why the ontology must answer this\" of a competency question, carried on its gmeow:DocumentedCompetency record. Absent when the question authors none."@x-gmeow-english ;
+    skos:example "ex:cqCatsRecord gmeow:cqRationale \"Every cat must classify as an animal.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a rationale where the question authors none (leave it absent) and avoid overloading it with the query text — that is gmeow:cqQueryText."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry it from the competency question; render it as the question's motivating prose."@x-gmeow-english ;
+    gmeow:useWhen "Use to record why the ontology must answer a competency question."@x-gmeow-english .
+
+gmeow:cqExpectedRow
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:DocumentedCompetency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "cq expected row"@x-gmeow-english ;
+    rdfs:range gmeow:CompetencyExpectedRow ;
+    skos:definition "Links a gmeow:DocumentedCompetency to one of its enumerated expected result rows (a gmeow:CompetencyExpectedRow). One edge per expected row, in the question's deterministic row order."@x-gmeow-english ;
+    skos:example "ex:cqCatsRecord gmeow:cqExpectedRow ex:cqCatsRow0 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at anything but a gmeow:CompetencyExpectedRow node, and avoid using it where only a cardinality is known — that is gmeow:cqExpectRowCount."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection emit one gmeow:cqExpectedRow per enumerated expected row; walk it to reconstruct the expected result set."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach an enumerated expected result row to a documented competency question."@x-gmeow-english .
+
+gmeow:cqCellVar
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompetencyExpectedRow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "cq cell var"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The SPARQL projection variable an expected-row cell binds (the bare variable name, without the leading \"?\"), carried on the gmeow:CompetencyExpectedRow node beside its bound value."@x-gmeow-english ;
+    skos:example "ex:cqCatsRow0 gmeow:cqCellVar \"c\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid including the leading \"?\" (carry the bare name) and avoid asserting a var without a paired gmeow:cqCellValueIri or gmeow:cqCellValueLiteral."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the cell's projection variable; pair it with the cell's bound value to rebuild the row."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which SPARQL variable an expected-row cell binds."@x-gmeow-english .
+
+gmeow:cqCellValueIri
+    a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "cq cell value iri"@x-gmeow-english ;
+    skos:definition "The expected IRI binding of an expected-row cell, carried on the gmeow:CompetencyExpectedRow node when the variable binds a resource. An owl:AnnotationProperty (Principle 3) because its object is frequently a TBox class or property, which a logical object property would pun as an individual."@x-gmeow-english ;
+    skos:example "ex:cqCatsRow0 gmeow:cqCellValueIri gmeow:Cat ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it alongside gmeow:cqCellValueLiteral on the same cell (a cell binds either a resource or a literal) and avoid using it as a logical object property."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the cell's IRI binding; follow it to the bound resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the expected IRI an expected-row cell binds."@x-gmeow-english .
+
+gmeow:cqCellValueLiteral
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CompetencyExpectedRow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "cq cell value literal"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The expected literal lexical form of an expected-row cell, carried on the gmeow:CompetencyExpectedRow node when the variable binds a literal."@x-gmeow-english ;
+    skos:example "ex:cqCountRow0 gmeow:cqCellValueLiteral \"3\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it alongside gmeow:cqCellValueIri on the same cell (a cell binds either a resource or a literal)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the cell's literal binding; compare it against the query result's lexical value."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the expected literal an expected-row cell binds."@x-gmeow-english .
+
+# ── First-class per-term entailment DAG ──────────────────────────────────────
+# The per-term reasoner derivations, parsed from stage-reason's already-
+# materialized reasoning-explanations (reason-once) and projected as first-class
+# nodes, so the derivation DAG — rule, conclusion, and every premise — is
+# queryable RDF folded into the bundle beside the terms it explains.
+
+gmeow:Entailment
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "Entailment"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The documentation record of one reasoner derivation about a documented term: the firing rule (gmeow:entailmentRule), the concluded triple (gmeow:entailmentConclusion), and every premise (gmeow:entailmentPremise) — the derivation DAG, not a flattened single hop. Grounded by the term IRI it explains and gmeow:documents it. Read back (reason-once) from stage-reason's materialized reasoning-explanations, never re-derived here."@x-gmeow-english ;
+    skos:example "ex:entCat0 a gmeow:Entailment ; gmeow:documents gmeow:Cat ; gmeow:entailmentRule \"rdfs:subClassOf-transitive\" ; gmeow:entailmentConclusion \"gmeow:Cat rdfs:subClassOf gmeow:Animal\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring it by hand or re-running the reasoner to build it (it is a read-back of the materialized explanations) and avoid dropping any premise — the whole derivation DAG is the point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let the docs projection mint one per derivation from the materialized explanations; read gmeow:entailmentConclusion for the derived fact and gmeow:entailmentPremise for its supports."@x-gmeow-english ;
+    gmeow:useWhen "Use to name one reasoner derivation about a documented term as queryable RDF in the documentation graph."@x-gmeow-english .
+
+gmeow:entailmentRule
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Entailment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "entailment rule"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The firing rule of a gmeow:Entailment derivation, as a compact display form (a CURIE where the canonical prefix registry knows one, else the bare IRI) — the rule the reasoner applied, never a fabricated human label."@x-gmeow-english ;
+    skos:example "ex:entCat0 gmeow:entailmentRule \"rdfs:subClassOf-transitive\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a prose rule name (carry the rule's compact IRI/CURIE display) and avoid leaving it empty when the derivation names a rule."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the derivation's firing rule display; group derivations by rule."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which rule fired to produce a documented-term entailment."@x-gmeow-english .
+
+gmeow:entailmentConclusion
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Entailment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "entailment conclusion"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The concluded triple of a gmeow:Entailment derivation, as a compact deterministic \"s p o\" display (CURIE-compacted) — the fact the reasoner derived about the documented term."@x-gmeow-english ;
+    skos:example "ex:entCat0 gmeow:entailmentConclusion \"gmeow:Cat rdfs:subClassOf gmeow:Animal\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid packing more than one triple into it (one conclusion per derivation) and avoid a lossy paraphrase — carry the compact s p o display."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the derivation's concluded triple display; render it as the entailment's headline."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the triple a documented-term entailment derives."@x-gmeow-english .
+
+gmeow:entailmentPremise
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Entailment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "entailment premise"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "One premise of a gmeow:Entailment derivation, as a compact deterministic \"s p o\" display (CURIE-compacted). A derivation carries ONE gmeow:entailmentPremise per premise — the full support set of the derivation DAG, never a flattened single hop."@x-gmeow-english ;
+    skos:example "ex:entCat0 gmeow:entailmentPremise \"gmeow:Cat rdfs:subClassOf gmeow:Feline\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing multiple premises into one string or dropping any premise — emit one gmeow:entailmentPremise per premise so the derivation DAG is complete."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection emit one gmeow:entailmentPremise per premise; collect them to reconstruct the derivation's supports."@x-gmeow-english ;
+    gmeow:useWhen "Use to record one premise of a documented-term entailment derivation."@x-gmeow-english .
+
 # ── Coverage-dimension value vocabulary ──────────────────────────────────────
 # The attributes of the Formal-Concept-Analysis incidence "a documented term or
 # slice COVERS this dimension". Each dimension is a first-class join-able value

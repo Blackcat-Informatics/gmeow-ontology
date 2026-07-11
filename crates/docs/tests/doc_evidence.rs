@@ -165,7 +165,7 @@ fn evidence_rich_model() -> DocsModel {
 /// refactor that drops a grounding edge reds this test.
 #[test]
 fn every_doc_evidence_node_is_grounded() {
-    let nq = to_gmeow_rdf(&evidence_rich_model());
+    let nq = to_gmeow_rdf(&evidence_rich_model(), &std::collections::BTreeMap::new());
     let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .expect("to_gmeow_rdf must emit valid, round-trippable N-Quads");
 
@@ -294,7 +294,7 @@ fn grounding_tally(nq: &str) -> (usize, usize) {
 #[test]
 fn live_doc_evidence_projection_is_fully_grounded() {
     let model = common::cached_model();
-    let nq = to_gmeow_rdf(&model);
+    let nq = to_gmeow_rdf(&model, &std::collections::BTreeMap::new());
     let (total, ungrounded) = grounding_tally(&nq);
 
     // Non-vacuity: the live catalog MUST project real evidence, else the

@@ -19,14 +19,14 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 #[cfg(test)]
+use purrdf::RdfDatasetBuilder;
+#[cfg(test)]
 use purrdf::gts_compose::emit_gts;
 use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
 use purrdf::provenance::DatasetProvenance;
-#[cfg(test)]
-use purrdf::{RdfDatasetBuilder, RdfTriple};
 use purrdf::{
-    RdfLiteral, RdfQuad, RdfTerm, SerializeGraph, flat_rdf_quads_from_dataset, parse_dataset,
-    serialize_dataset,
+    RdfLiteral, RdfQuad, RdfTerm, RdfTriple, SerializeGraph, flat_rdf_quads_from_dataset,
+    parse_dataset, serialize_dataset,
 };
 #[cfg(test)]
 use rayon::prelude::*;
@@ -2062,7 +2062,6 @@ fn build_executable_docs_data(
 /// One reasoner-derivation's raw shape, accumulated per blank-node subject while
 /// walking the explanations Turtle (see [`term_entailments_from_explanations`]).
 #[derive(Default)]
-#[cfg(test)]
 struct RawDerivation {
     /// Whether an `rdf:type gmeow:Derivation` triple was seen for this subject — a
     /// defensive check so a stray blank node in the explanations graph (there should
@@ -2079,7 +2078,6 @@ struct RawDerivation {
 /// Whether any documented term IRI appears in `triple`'s subject, predicate, or
 /// object position, added to `out` (a term appearing twice in one triple is recorded
 /// once — `out` is a set).
-#[cfg(test)]
 fn collect_term_matches(
     triple: &RdfTriple,
     term_iris: &std::collections::BTreeSet<String>,
@@ -2105,8 +2103,7 @@ fn collect_term_matches(
 /// `stage-reason` (or its explanations artifact) is absent — the pipeline path never
 /// falls back to an empty digest silently; only the model-only
 /// `ExecutableDocsData::default()` seam is allowed to be empty (F-2).
-#[cfg(test)]
-fn term_entailments_from_upstream(
+pub(crate) fn term_entailments_from_upstream(
     upstream: &BTreeMap<String, StageProduct>,
     term_iris: &std::collections::BTreeSet<String>,
 ) -> Result<BTreeMap<String, Vec<gmeow_docs::Entailment>>, gmeow_errors::Diag> {
@@ -2133,7 +2130,6 @@ fn term_entailments_from_upstream(
 /// conclusion + displays of its premises appended to its panel. Pure function of the
 /// bytes + the term-IRI set — independently testable without a pipeline product map
 /// (mirrors [`executable_docs_from_sources`]'s fixture-only core).
-#[cfg(test)]
 fn term_entailments_from_explanations(
     explanations_bytes: &[u8],
     term_iris: &std::collections::BTreeSet<String>,
@@ -2516,7 +2512,6 @@ fn format_triple(q: &RdfQuad) -> String {
 /// ([`term_entailments_from_explanations`]) — a `gmeow:Derivation`'s `gmeow:concludes`
 /// / `gmeow:hasPremise` quoted triple has the identical `(subject, predicate, object)`
 /// shape as an owned quad, so both render through this one function.
-#[cfg(test)]
 fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> String {
     format!(
         "{} {} {}",
@@ -2529,13 +2524,11 @@ fn triple_display(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> Strin
 // The canonical prefix registry (generated from the ontology's prefix config,
 // longest-namespace-first). Shared verbatim with the LPG/JSON-LD projections rather
 // than hand-maintaining a second, divergent table for the try-it display lines.
-#[cfg(test)]
 include!("lpg_prefixes.rs");
 
 /// A compact CURIE for a full IRI, or `<iri>` when no known prefix matches. Drawing
 /// from the full canonical registry means every external ontology GMEOW links to
 /// compacts on the try-it surface, not just the handful of core namespaces.
-#[cfg(test)]
 fn compact_iri(iri: &str) -> String {
     // `PREFIXES_BY_LEN` is longest-namespace-first, so the first namespace the IRI
     // starts with is the most specific prefix.
@@ -2552,7 +2545,6 @@ fn compact_iri(iri: &str) -> String {
 }
 
 /// A compact display form for a term (IRI as CURIE, literal with datatype/lang, blank).
-#[cfg(test)]
 fn term_display(term: &RdfTerm) -> String {
     match term {
         RdfTerm::Iri(iri) => compact_iri(iri),
@@ -2568,7 +2560,6 @@ fn term_display(term: &RdfTerm) -> String {
 }
 
 /// A Turtle-ish display form for a literal.
-#[cfg(test)]
 fn format_literal(lit: &RdfLiteral) -> String {
     let lex = lit.lexical_form.replace('"', "\\\"");
     if let Some(lang) = &lit.language {
