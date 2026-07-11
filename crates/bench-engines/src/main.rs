@@ -178,6 +178,7 @@ fn main() -> gmeow_errors::Result<()> {
     let mut corpus_dir: Option<PathBuf> = None;
     let mut emit_cost: Option<PathBuf> = None;
     let mut check_cost: Option<PathBuf> = None;
+    let mut compare_baseline: Option<String> = None;
     let mut check_golden = false;
     let mut soak: Option<usize> = None;
 
@@ -223,12 +224,28 @@ fn main() -> gmeow_errors::Result<()> {
                     })
                 })?));
             }
+            "--compare-baseline" => {
+                compare_baseline = Some(args.next().ok_or_else(|| {
+                    Diag::of_kind(Cli {
+                        detail: "--compare-baseline requires a git ref value (e.g. origin/main)"
+                            .to_string(),
+                    })
+                })?);
+            }
             other => {
                 return Err(Diag::of_kind(Cli {
                     detail: format!("unknown argument: {other}"),
                 }));
             }
         }
+    }
+
+    // `--compare-baseline <ref>` is a PURE artifact diff (no engine run, no corpus load):
+    // it proves the shared-arrangement store's deterministic cost WIN by comparing the
+    // REGENERATED working-tree `bench/cost-baseline.json` against a prior committed one at
+    // `<ref>`. Returns before any corpus load / engine run.
+    if let Some(git_ref) = &compare_baseline {
+        return run_compare_baseline(git_ref);
     }
 
     // Default is the committed mini corpus; `--corpus-dir` is the seam a later fetch
@@ -1178,6 +1195,241 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
     }))
 }
 
+// ── The committed cost-WIN gate: `--compare-baseline <ref>` ──────────────────────
+//
+// `--check-cost` gates by EXACT drift-match against a committed baseline, so it proves
+// REPRODUCIBILITY, never IMPROVEMENT. This verb proves the DIRECTION of the change: it
+// diffs the regenerated working-tree `bench/cost-baseline.json` against a prior committed
+// one at a git ref, and hard-fails unless the shared-arrangement store's deterministic
+// cost win holds. The case manifests below are COMMITTED constants, so the acceptance is
+// a permanent, re-runnable gate — never a one-shot script fitted to results.
+
+/// The `relational-core-mini` forward-recursive cases whose churn-shedding `alloc_bytes`
+/// win the shared-arrangement store MUST show against the prior baseline — the
+/// deterministic-cost analogues of the `el_closure` / `materialize_core` benches. The win
+/// registers deterministically in `alloc_bytes` (the per-round arena / bitset / posting
+/// churn the store no longer allocates); `peak_live_bytes` at this mini corpus scale is
+/// dominated by fixed non-store overhead, so it is gated as NON-REGRESSION, not a drop.
+const COST_WIN_CASES: &[(&str, &str)] = &[
+    ("relational-core-mini", "transitive-closure"),
+    ("relational-core-mini", "non-linear-transitive-closure"),
+    ("relational-core-mini", "points-to"),
+    ("relational-core-mini", "reachability"),
+    ("relational-core-mini", "same-generation"),
+    ("relational-core-mini", "scc"),
+    ("relational-core-mini", "mutual-recursion"),
+];
+
+/// The small / tail-only cases that must NOT regress `peak_live_bytes` — the
+/// allocation-light regime the shared-arrangement store must never tax (the
+/// deterministic analogues of the `foundation_evaluate` small-relation guard).
+const COST_NOREG_CASES: &[(&str, &str)] = &[
+    ("chasebench-mini", "deep-linear"),
+    ("chasebench-mini", "doctors-like"),
+    ("chasebench-mini", "lubm-like"),
+    ("nemo-kr2024-mini", "ancestor-query"),
+    ("nemo-kr2024-mini", "reachability-query"),
+];
+
+/// Index a cost-baseline JSON document's cases by `(corpus, case)` → its `native` object.
+fn index_native_cases(doc: &Value) -> BTreeMap<(String, String), &Value> {
+    let mut out: BTreeMap<(String, String), &Value> = BTreeMap::new();
+    if let Some(cases) = doc.get("cases").and_then(Value::as_array) {
+        for c in cases {
+            let corpus = c.get("corpus").and_then(Value::as_str).unwrap_or_default();
+            let case = c.get("case").and_then(Value::as_str).unwrap_or_default();
+            if let Some(native) = c.get("native") {
+                out.insert((corpus.to_owned(), case.to_owned()), native);
+            }
+        }
+    }
+    out
+}
+
+/// Compare a REGENERATED cost baseline (`new`) against a prior committed one (`old`),
+/// returning `(report_lines, violations)`.  The win/no-regression contract:
+///   * the `win` corpus's AGGREGATE `alloc_bytes` is STRICTLY lower — the churn-shedding
+///     cost win.  It is gated in aggregate (not per-case) because per-case `alloc_bytes`
+///     carries a sub-ε quantized run-to-run jitter (~±14 allocations), so a per-case
+///     strict-drop would FLAKE; the aggregate drop across the corpus dwarfs the jitter
+///     and is a deterministic verdict.  This mirrors the doctrine's own choice to gate
+///     the non-reproducible alloc totals through a band rather than exact match.
+///   * every `win` case's `alloc_bytes` additionally stays within the prior value's +1%
+///     band (`fresh ≤ old·1.01`) — no single case grossly regresses under the aggregate.
+///   * every case present in BOTH baselines: `peak_live_bytes` NON-INCREASED (exact, no
+///     flake) and `consumed_steps` / `derived_count` / `cost_vector` UNCHANGED (exact
+///     byte-identical evaluation — any change means the logic moved, a hard fail).
+///
+/// Pure over the two JSON docs (the manifests are parameters), so the gate is
+/// unit-testable and re-runnable — never a throwaway script.  A non-empty `violations`
+/// vector is a HARD FAIL.
+fn compare_baselines(
+    old: &Value,
+    new: &Value,
+    win: &[(&str, &str)],
+    noreg: &[(&str, &str)],
+) -> (Vec<String>, Vec<String>) {
+    let (o, n) = (index_native_cases(old), index_native_cases(new));
+    let u = |v: &Value, k: &str| v.get(k).and_then(Value::as_u64);
+    let mut report: Vec<String> = Vec::new();
+    let mut viol: Vec<String> = Vec::new();
+
+    // Determinism + peak-live non-regression over every case present in BOTH baselines.
+    for (key, ov) in &o {
+        let Some(nv) = n.get(key) else {
+            viol.push(format!(
+                "{}/{}: dropped from the regenerated baseline",
+                key.0, key.1
+            ));
+            continue;
+        };
+        for field in ["consumed_steps", "derived_count", "cost_vector"] {
+            if ov.get(field) != nv.get(field) {
+                viol.push(format!(
+                    "{}/{}: {field} changed (evaluation moved — not byte-identical)",
+                    key.0, key.1
+                ));
+            }
+        }
+        if let (Some(op), Some(np)) = (u(ov, "peak_live_bytes"), u(nv, "peak_live_bytes"))
+            && np > op
+        {
+            viol.push(format!(
+                "{}/{}: peak_live_bytes REGRESSED {op} -> {np}",
+                key.0, key.1
+            ));
+        }
+    }
+
+    // WIN cases: aggregate `alloc_bytes` strictly lower; each case within the +1% band.
+    let (mut win_old_sum, mut win_new_sum) = (0u128, 0u128);
+    for &(corpus, case) in win {
+        let k = (corpus.to_owned(), case.to_owned());
+        let (Some(ov), Some(nv)) = (o.get(&k), n.get(&k)) else {
+            viol.push(format!(
+                "WIN {corpus}/{case}: absent from a baseline (cannot prove the win)"
+            ));
+            continue;
+        };
+        let (Some(oa), Some(na)) = (u(ov, "alloc_bytes"), u(nv, "alloc_bytes")) else {
+            viol.push(format!("WIN {corpus}/{case}: missing alloc_bytes field"));
+            continue;
+        };
+        win_old_sum += u128::from(oa);
+        win_new_sum += u128::from(na);
+        // Per-case band guard: fresh ≤ old·1.01 — no single case grossly regresses.
+        if u128::from(na) * 100 > u128::from(oa) * 101 {
+            viol.push(format!(
+                "WIN {corpus}/{case}: alloc_bytes regressed beyond the +1% band {oa} -> {na}"
+            ));
+        }
+        let peak = match (u(ov, "peak_live_bytes"), u(nv, "peak_live_bytes")) {
+            (Some(op), Some(np)) => format!("peak {op}->{np}"),
+            _ => "peak ?".to_string(),
+        };
+        report.push(format!(
+            "WIN   {corpus}/{case:<30} alloc {oa}->{na} ({:+})  {peak}",
+            na as i64 - oa as i64
+        ));
+    }
+    if !win.is_empty() && win_new_sum >= win_old_sum {
+        viol.push(format!(
+            "WIN aggregate: total alloc_bytes across the {} WIN cases is not lower \
+             {win_old_sum} -> {win_new_sum}",
+            win.len()
+        ));
+    }
+    if !win.is_empty() {
+        report.push(format!(
+            "WIN   aggregate alloc {win_old_sum}->{win_new_sum} ({:+})",
+            win_new_sum as i128 - win_old_sum as i128
+        ));
+    }
+
+    // NOREG cases: named explicitly so the small-relation guard is a documented part of
+    // the manifest (peak non-regression is enforced by the global loop above).
+    for &(corpus, case) in noreg {
+        let k = (corpus.to_owned(), case.to_owned());
+        if let (Some(ov), Some(nv)) = (o.get(&k), n.get(&k)) {
+            if let (Some(op), Some(np)) = (u(ov, "peak_live_bytes"), u(nv, "peak_live_bytes")) {
+                report.push(format!(
+                    "NOREG {corpus}/{case:<30} peak {op}->{np} ({:+})",
+                    np as i64 - op as i64
+                ));
+            }
+        } else {
+            viol.push(format!(
+                "NOREG {corpus}/{case}: absent from a baseline (cannot prove non-regression)"
+            ));
+        }
+    }
+
+    (report, viol)
+}
+
+/// Run the `--compare-baseline <ref>` gate: read the prior committed baseline from the git
+/// ref (a local object read, never a network fetch), the regenerated one from the working
+/// tree, compare, print the before→after table, and HARD-FAIL on any violation.
+fn run_compare_baseline(git_ref: &str) -> gmeow_errors::Result<()> {
+    let spec = format!("{git_ref}:bench/cost-baseline.json");
+    let out = std::process::Command::new("git")
+        .args(["show", &spec])
+        .output()
+        .map_err(|e| {
+            Diag::of_kind(Io {
+                detail: format!("running `git show {spec}`: {e}"),
+            })
+        })?;
+    if !out.status.success() {
+        return Err(Diag::of_kind(RunFailed {
+            detail: format!(
+                "`git show {spec}` failed: {}",
+                String::from_utf8_lossy(&out.stderr).trim()
+            ),
+        }));
+    }
+    let old: Value = serde_json::from_slice(&out.stdout).map_err(|e| {
+        Diag::of_kind(Serialize {
+            detail: format!("parsing prior baseline at {spec}: {e}"),
+        })
+    })?;
+    let new_bytes = std::fs::read("bench/cost-baseline.json").map_err(|e| {
+        Diag::of_kind(Io {
+            detail: format!("reading working-tree bench/cost-baseline.json: {e}"),
+        })
+    })?;
+    let new: Value = serde_json::from_slice(&new_bytes).map_err(|e| {
+        Diag::of_kind(Serialize {
+            detail: format!("parsing working-tree bench/cost-baseline.json: {e}"),
+        })
+    })?;
+
+    let (report, violations) = compare_baselines(&old, &new, COST_WIN_CASES, COST_NOREG_CASES);
+    for line in &report {
+        println!("{line}");
+    }
+    if violations.is_empty() {
+        println!(
+            "compare-baseline vs {git_ref}: PASS — aggregate alloc_bytes across the {} WIN \
+             cases strictly lower (each within the +1% band), peak_live_bytes non-increased \
+             on every case, evaluation byte-identical.",
+            COST_WIN_CASES.len()
+        );
+        Ok(())
+    } else {
+        for v in &violations {
+            eprintln!("VIOLATION: {v}");
+        }
+        Err(Diag::of_kind(RunFailed {
+            detail: format!(
+                "compare-baseline vs {git_ref}: {} violation(s) — the cost win / no-regression \
+                 contract failed against the prior committed baseline",
+                violations.len()
+            ),
+        }))
+    }
+}
+
 /// Drive one case through the NATIVE engine ONLY and return `(world, native_count,
 /// golden_rows)` — the native derived-fact / answer COUNT and the committed golden's
 /// count for its sole world. This is the exact native invocation each `run_*` fragment
@@ -1635,6 +1887,65 @@ fn print_advisory_table(rows: &[AdvisoryRow]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A two-case cost baseline for the `--compare-baseline` comparator: one WIN case
+    /// (`c/win`) and one small NOREG case (`c/small`), each with the fields the gate reads.
+    fn compare_doc(win_alloc: u64, win_peak: u64, small_peak: u64, steps: u64) -> Value {
+        json!({
+            "cases": [
+                {"corpus": "c", "case": "win", "native": {
+                    "alloc_bytes": win_alloc, "peak_live_bytes": win_peak,
+                    "consumed_steps": steps, "derived_count": 3, "cost_vector": []}},
+                {"corpus": "c", "case": "small", "native": {
+                    "alloc_bytes": 100, "peak_live_bytes": small_peak,
+                    "consumed_steps": 1, "derived_count": 1, "cost_vector": []}},
+            ]
+        })
+    }
+
+    /// The `--compare-baseline` comparator is FALSIFIABLE: it PASSES a genuine win
+    /// (aggregate alloc lower, peaks non-increased, evaluation byte-identical) and FAILS
+    /// each distinct violation — a flat aggregate alloc, a per-case alloc balloon past the
+    /// band, a peak regression, and a determinism drift.
+    #[test]
+    fn compare_baselines_gates_win_and_regressions() {
+        let win: &[(&str, &str)] = &[("c", "win")];
+        let noreg: &[(&str, &str)] = &[("c", "small")];
+        // `win` alloc 100_000; a +1% band admits up to 101_000.
+        let old = compare_doc(100_000, 500, 300, 3);
+
+        // PASS: win alloc drops 100_000->98_000, both peaks non-increased, determinism same.
+        let (_r, v) = compare_baselines(&old, &compare_doc(98_000, 480, 300, 3), win, noreg);
+        assert!(v.is_empty(), "a clean win must pass, got: {v:?}");
+
+        // FAIL: aggregate alloc_bytes did NOT drop (flat).
+        let (_r, v) = compare_baselines(&old, &compare_doc(100_000, 480, 300, 3), win, noreg);
+        assert!(
+            v.iter().any(|s| s.contains("aggregate")),
+            "a flat aggregate alloc must fail, got: {v:?}"
+        );
+
+        // FAIL: a single WIN case balloons past the +1% band (102_000 > 101_000).
+        let (_r, v) = compare_baselines(&old, &compare_doc(102_000, 480, 300, 3), win, noreg);
+        assert!(
+            v.iter().any(|s| s.contains("+1% band")),
+            "a per-case alloc balloon past the band must fail, got: {v:?}"
+        );
+
+        // FAIL: peak_live_bytes regressed on the small case.
+        let (_r, v) = compare_baselines(&old, &compare_doc(98_000, 480, 999, 3), win, noreg);
+        assert!(
+            v.iter().any(|s| s.contains("REGRESSED")),
+            "a peak-live regression must fail, got: {v:?}"
+        );
+
+        // FAIL: the evaluation moved (consumed_steps changed) — not byte-identical.
+        let (_r, v) = compare_baselines(&old, &compare_doc(98_000, 480, 300, 7), win, noreg);
+        assert!(
+            v.iter().any(|s| s.contains("consumed_steps changed")),
+            "a determinism drift must fail, got: {v:?}"
+        );
+    }
 
     /// A minimal per-case deterministic record with the fields the cost-regression
     /// check compares, carrying fixed allocation scalars.
