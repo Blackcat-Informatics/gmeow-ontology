@@ -76,10 +76,9 @@ fn flatten_to_default_graph(dataset: &RdfDataset) -> Arc<RdfDataset> {
 
 /// Recursively collect every file literally named `module.ttl` under `dir`.
 fn collect_module_ttls(dir: &Path, paths: &mut Vec<PathBuf>) {
-    let Ok(read) = std::fs::read_dir(dir) else {
-        return;
-    };
-    for entry in read.filter_map(Result::ok) {
+    let read = std::fs::read_dir(dir).unwrap_or_else(|e| panic!("read dir {}: {e}", dir.display()));
+    for entry in read {
+        let entry = entry.unwrap_or_else(|e| panic!("read dir entry under {}: {e}", dir.display()));
         let path = entry.path();
         if path.is_dir() && !path.is_symlink() {
             let candidate = path.join("module.ttl");
@@ -107,9 +106,9 @@ pub fn build_merged_ontology() -> Arc<RdfDataset> {
     for path in &module_paths {
         let ttl = std::fs::read_to_string(path)
             .unwrap_or_else(|e| panic!("failed to read {}: {e}", path.display()));
-        if let Ok(ds) = parse_dataset(ttl.as_bytes(), "text/turtle", None) {
-            builder.push_dataset(&ds);
-        }
+        let ds = parse_dataset(ttl.as_bytes(), "text/turtle", None)
+            .unwrap_or_else(|e| panic!("parse {}: {e:?}", path.display()));
+        builder.push_dataset(&ds);
     }
     let merged = builder
         .freeze()
