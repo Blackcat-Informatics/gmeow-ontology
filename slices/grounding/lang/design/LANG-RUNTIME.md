@@ -119,8 +119,16 @@ demo:
 1. **Total lift of the repository's prose.** Every `@x-gmeow-english` literal in the bundle is
    reachable as a `lang:SurfaceForm` (unanalyzed at minimum) with a stable content key, and the
    prose-hash discipline resolves through it. (Flagship 2, minimal form.)
-2. **CoNLL-U round-trip.** UD treebank sentences (license-reviewed) lift and re-emit to
-   byte-equivalent CoNLL-U modulo declared column normalizations, per reading.
+2. **CoNLL-U round-trip.** A real, ring-fenced + fully-attributed vendored UD treebank fragment
+   (CC BY-SA 4.0, cleared for vendoring by the native license CATEGORY keyed off its descriptor,
+   not a path) lifts and re-emits byte-identically through the production `ConlluBridge` ON-GATE —
+   the same round-trip surface the per-reading projection stage enforces on every shipped
+   `.conllu`. The retraction law `serialize∘parse = id` is grounded as the carried
+   `logic:Correspondence`/`SectionLaw` and property-tested over a deterministic grammar-edge
+   mutation generator (permuted FEATS order, injected/removed `SpaceAfter=No`, a multiword-token
+   range, an empty node, and a populated enhanced `DEPS`): every well-formed mutant round-trips
+   byte-exact, every ill-formed mutant hard-fails. A CoNLL-U file that violates the UD spec is
+   rejected, not repaired.
 3. **Grammar round-trip.** The Turtle and GTS grammars lift from EBNF, re-emit, and re-lift to
    isomorphic grammar objects — `ExactPreservation` demonstrated, not asserted. (Flagship 4,
    minimal form.)
