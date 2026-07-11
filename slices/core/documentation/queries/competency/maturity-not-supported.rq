@@ -1,0 +1,24 @@
+# Competency question (HEADLINE GATE): which slices assert a documentation-maturity
+# tier their coverage does NOT support? The asserted ⊄ earned containment, expressed
+# by INTENT INCLUSION — no rank predicate needed: a slice violates iff some dimension
+# its CLAIMED anchor (gmeow:sliceDocMaturity) requires (gmeow:maturityRequiresDimension)
+# is NOT among the dimensions the slice's documentation record COVERS
+# (gmeow:docCoversDimension). Because the anchor intents nest (Minimal ⊆ Basic ⊆ Full
+# ⊆ Maximal), "some required dimension is uncovered" is exactly "asserted's intent ⊄
+# covered", which is exactly "earned's rank < asserted's rank". The claim is asserted
+# on the real slice IRI (its manifest); the covered incidence is on the
+# gmeow:DocumentedSlice record, so the query bridges the two via gmeow:documents —
+# faithful to how crates/docs projects graph/documentation over the real slice graph.
+# MUST return empty over the projected graph: no slice may claim beyond its coverage.
+# Asserted lane; the anchor intents live in the module base graph.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?slice WHERE {
+    ?record a gmeow:DocumentedSlice ;
+        gmeow:documents ?slice .
+    ?slice gmeow:sliceDocMaturity ?anchor .
+    ?anchor gmeow:maturityRequiresDimension ?dim .
+    FILTER NOT EXISTS { ?record gmeow:docCoversDimension ?dim }
+}
+ORDER BY ?slice

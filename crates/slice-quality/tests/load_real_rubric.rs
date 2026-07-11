@@ -34,8 +34,8 @@ fn loads_the_real_rubric_structure() {
         "Registered is the floor"
     );
 
-    // Thirteen quality axes, each with a producer, a dimension, a scope, and floors.
-    assert_eq!(rubric.axes.len(), 13, "thirteen quality axes");
+    // Fourteen quality axes, each with a producer, a dimension, a scope, and floors.
+    assert_eq!(rubric.axes.len(), 14, "fourteen quality axes");
     for axis in &rubric.axes {
         assert!(!axis.producer.is_empty(), "{} binds a producer", axis.iri);
         assert!(
@@ -67,8 +67,47 @@ fn loads_the_real_rubric_structure() {
     ));
     assert_eq!(prov.producer, "provenance_honesty");
 
-    // Three dated, self-cleaning exemptions, each naming a producer symbol.
-    assert_eq!(rubric.exemptions.len(), 3, "three dated exemptions");
+    // The DocMaturity axis is present with its pinned producer/dimension identity —
+    // pinning the exact IRIs so a substitution of the wrong axis/producer fails here
+    // rather than only tripping an aggregate count.
+    let doc_maturity = rubric
+        .axes
+        .iter()
+        .find(|a| a.iri.ends_with("axisDocMaturity"))
+        .expect("DocMaturity axis present");
+    assert_eq!(
+        doc_maturity.iri, "https://blackcatinformatics.ca/gmeow/axisDocMaturity",
+        "DocMaturity axis IRI"
+    );
+    assert_eq!(
+        doc_maturity.producer, "DocMaturity",
+        "DocMaturity axis producer"
+    );
+    assert_eq!(
+        doc_maturity.dimension_iri,
+        "https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation",
+        "DocMaturity axis dimension"
+    );
+
+    // Two dated, self-cleaning exemptions, each naming a producer symbol. Pin the
+    // EXACT remaining set — a substitution of the wrong exemption would still pass
+    // an aggregate-count-only check — and assert the retired DocMaturity exemption
+    // (retired when the axisDocMaturity axis landed) is ABSENT.
+    assert_eq!(rubric.exemptions.len(), 2, "two dated exemptions");
+    let mut exemption_iris: Vec<&str> = rubric.exemptions.iter().map(|e| e.iri.as_str()).collect();
+    exemption_iris.sort_unstable();
+    assert_eq!(
+        exemption_iris,
+        vec![
+            "https://blackcatinformatics.ca/gmeow/exemptionDocsPanels",
+            "https://blackcatinformatics.ca/gmeow/exemptionGmnProjection",
+        ],
+        "the exact remaining exemption set"
+    );
+    assert!(
+        !exemption_iris.contains(&"https://blackcatinformatics.ca/gmeow/exemptionDocMaturity"),
+        "the retired exemptionDocMaturity IRI must be absent — retired when axisDocMaturity landed"
+    );
     for ex in &rubric.exemptions {
         assert!(
             !ex.producer.is_empty(),

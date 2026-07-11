@@ -27,6 +27,7 @@ gmeow-logic = { path = "../logic" }
 gmeow-logic-compile = { path = "../logic-compile" }
 gmeow-validate = { path = "../validate" }
 gmeow-docs = { path = "../docs" }
+docs-print = { path = "../docs-print" }
 gmeow-slice-quality = { path = "../slice-quality" }
 gmeow-music = { path = "../music" }
 gmeow-foundation-corpus = { path = "../foundation-corpus" }

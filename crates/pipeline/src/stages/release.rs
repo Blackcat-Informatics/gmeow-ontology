@@ -38,7 +38,9 @@ use purrdf::gts::dataset_from_gts_graph;
 use purrdf::gts::model::Graph;
 use purrdf::gts::reader::read;
 use purrdf::gts::writer::digest_string;
-use purrdf::gts_compose::{BlobRow, DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
+#[cfg(test)]
+use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, emit_gts};
 use purrdf::{NativeRdfFormat, PROJECTION_CODECS, pair_loss_ledger, parse_dataset};
 
 use crate::error::Release;
@@ -161,16 +163,13 @@ pub fn fold_release_bundle(
         .collect();
 
     // 4. Emit the signed bundle (emit_gts hard-fails any partial signer config).
-    emit_gts(
+    crate::gts_profile::emit_gmeow_gts(
         &builder,
-        "dist",
-        None,
         doc_blobs,
         report_blobs,
         Some(signer_secret),
         Some(signer_kid.to_string()),
         Some(public_key_armor.to_string()),
-        DEFAULT_RSYNCABLE_THRESHOLD,
     )
     .map_err(|e| {
         Diag::of_kind(Release {

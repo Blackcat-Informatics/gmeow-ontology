@@ -4,6 +4,13 @@
     {
       "severity": "warning",
       "code": "slice-quality.axis-advice",
+      "message": "axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit once the measured coverage has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.axis-advice",
       "message": "axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine).",
       "tool": "slice-quality",
       "standpoint": "advisory"
@@ -33,6 +40,13 @@
       "severity": "warning",
       "code": "slice-quality.axis-advice",
       "message": "axisTranslationCoverage: Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "warning",
+      "code": "slice-quality.doc-maturity.model-unavailable",
+      "message": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -75,6 +89,13 @@
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
       "message": "zh covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.",
+      "tool": "slice-quality",
+      "standpoint": "advisory"
+    },
+    {
+      "severity": "info",
+      "code": "slice-quality.grade",
+      "message": "axisDocMaturity: Maximal (score 1.00)",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -181,6 +202,11 @@
     {
       "id": "slice-quality.axis-advice",
       "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-axis-advice",
+      "default_severity": "warning"
+    },
+    {
+      "id": "slice-quality.doc-maturity.model-unavailable",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-doc-maturity-model-unavailable",
       "default_severity": "warning"
     },
     {

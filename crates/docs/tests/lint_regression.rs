@@ -118,11 +118,17 @@ fn model_with_terms(terms: Vec<DocTerm>) -> DocsModel {
 
 #[test]
 fn site_triggering_all_codes_emits_each_and_is_deterministic() {
-    // A bare term with no linkage trips every coverage warning (missing
-    // definition, label, usage-advice, example, scope-note, alignment); the
-    // hand-built site adds a dangling internal link (→ docs/dangling-link) and a
-    // broken in-page anchor (→ docs/broken-anchor). Together: all eight codes.
-    let model = model_with_terms(vec![term("Bare", None, None)]);
+    // A bare term that DECLARES an external correspondence (`gmeow:adoptionTarget`)
+    // but carries no mapping trips every coverage warning (missing definition,
+    // label, usage-advice, example, scope-note, and — because it is now applicable
+    // for the external-correspondence dimension — alignment); the hand-built site
+    // adds a dangling internal link (→ docs/dangling-link) and a broken in-page
+    // anchor (→ docs/broken-anchor). Together: all eight codes.
+    let bare = DocTerm {
+        adoption_targets: vec!["schema".to_string()],
+        ..term("Bare", None, None)
+    };
+    let model = model_with_terms(vec![bare]);
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     files.insert(
         "index.html".to_string(),

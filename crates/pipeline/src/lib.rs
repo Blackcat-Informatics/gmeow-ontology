@@ -45,6 +45,7 @@ pub(crate) mod gmeow_ns;
 #[doc(hidden)]
 pub use gmeow_ns::gmeow_slice_vocab;
 pub mod graph;
+pub(crate) mod gts_profile;
 pub mod ingest;
 pub mod loader;
 pub mod mapping_purity;

@@ -1,7 +1,7 @@
 name: Pages
 
 # Publish the ontology documentation site to GitHub Pages. The site is the
-# self-contained static HTML tree rendered by the Rust `extract-docs` renderer
+# self-contained static HTML tree rendered by the Rust `export-docs` renderer
 # directly from the committed, drift-gated `generated/dist/gmeow.gts` bundle —
 # so the published site is always a faithful projection of the shipped bundle,
 # never a separately-maintained copy. `ontology-docs/` is gitignored on purpose
@@ -47,13 +47,11 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      # Render the static site from the committed bundle. `extract-docs` reads
-      # `generated/dist/gmeow.gts` and writes the self-contained tree (index.html,
-      # assets/, search-index.json, offline SPARQL playground) into ontology-docs/.
-      # No full `make regenerate` is needed: the bundle is the drift-gated source
-      # of truth, so the site is byte-faithful to what CI already validated.
+      # Render the static site from canonical repository sources. Documentation is
+      # intentionally external to gmeow.gts; `export-docs` remains the stable CI
+      # surface and writes the self-contained Pages tree into ontology-docs/.
       - name: Render ontology docs
-        run: cargo run -q -p gmeow-dev-cli -- extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
+        run: cargo run -q -p gmeow-dev-cli -- export-docs --format site --directory ontology-docs --force
 
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5

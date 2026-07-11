@@ -61,7 +61,7 @@ pub const GENERATORS: &[GeneratorInfo] = &[
         name: "docs",
         sources: &["slices/", "docs/"],
         outputs: &["ontology-docs/"],
-        dependencies: &["gts"],
+        dependencies: &[],
     },
     GeneratorInfo {
         name: "evals",
