@@ -5685,7 +5685,7 @@ fn rel(from: &str, to: &str) -> String {
 // ── Display helpers ───────────────────────────────────────────────────────────
 
 /// The display name for a slice: its title, then label, then IRI local name.
-fn slice_display(slice: &DocSlice) -> String {
+pub(crate) fn slice_display(slice: &DocSlice) -> String {
     slice
         .title
         .clone()
@@ -5694,7 +5694,7 @@ fn slice_display(slice: &DocSlice) -> String {
 }
 
 /// The display name for a concern: its label, else its IRI local name.
-fn concern_display(concern: &DocConcern) -> String {
+pub(crate) fn concern_display(concern: &DocConcern) -> String {
     concern
         .label
         .clone()
@@ -5951,7 +5951,7 @@ fn md_escape(text: &str) -> String {
 /// The flattened advice facet for a term — its English advisory carriers in a
 /// stable field order (scope, use-when, avoid-when, how-to-use). Empty when the
 /// term carries no advice. Lets search match on advisory prose, not just label.
-fn term_advice_facet(term: &DocTerm) -> Vec<String> {
+pub(crate) fn term_advice_facet(term: &DocTerm) -> Vec<String> {
     term.scope_notes
         .iter()
         .chain(term.use_when.iter())
@@ -5963,12 +5963,12 @@ fn term_advice_facet(term: &DocTerm) -> Vec<String> {
 
 /// Maps each subject IRI to its sorted+deduped `tag:object` alignment tokens.
 /// Borrows the subject IRIs from the model, so it is lifetime-bound to it.
-type AlignmentFacets<'a> = std::collections::HashMap<&'a str, Vec<String>>;
+pub(crate) type AlignmentFacets<'a> = std::collections::HashMap<&'a str, Vec<String>>;
 
 /// Precompute alignment facets for all terms in one pass: maps each subject IRI
 /// to a sorted+deduped `tag:object` token list. Avoids the O(N×M) per-term
 /// linear scan of `model.linkages` when rendering the search and llms surfaces.
-fn precompute_alignment_facets(model: &DocsModel) -> AlignmentFacets<'_> {
+pub(crate) fn precompute_alignment_facets(model: &DocsModel) -> AlignmentFacets<'_> {
     let mut map: std::collections::HashMap<&str, Vec<String>> = std::collections::HashMap::new();
     for l in &model.linkages {
         map.entry(l.subject.as_str()).or_default().push(format!(

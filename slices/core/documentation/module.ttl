@@ -1107,6 +1107,72 @@ gmeow:docMissesDimension
     gmeow:howToUse "Let the docs projection emit one per (record, dimension) whose detector did not fire; collect a record's objects as its missing-dimension set for the burn-down toward the next anchor."@x-gmeow-english ;
     gmeow:useWhen "Use to record that a documented term or slice misses a coverage dimension — the negative edge that drives the gap-to-next-tier readout on the documentation-health surface."@x-gmeow-english .
 
+# ── Search facets (offline docs_search over the documentation graph) ─────────
+# The searchable content facets a documentation-entry record carries so an offline
+# consumer's docs_search MCP tool can query gmeow:graph/documentation directly (the
+# lean gmeow.gts bundle carries no packed search-index.json archive member). They
+# carry the REAL display content — not the meta rdfs:label — and are the SAME fields
+# the site search-index.json indexes, so the offline and online search surfaces can
+# never diverge.
+
+gmeow:docSearchLabel
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc search label"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The REAL display label of a documentation-entry record (a gmeow:DocumentedTerm's own label or CURIE, a gmeow:DocumentedSlice / gmeow:DocumentedConcern display name), carried as the primary searchable field so an offline docs_search matches it directly from gmeow:graph/documentation. Distinct from the record's structural rdfs:label (which is the generated 'Documentation entry: …' annotation): this facet carries the term's own human name, the same value the site search-index.json indexes. Carried by every documentation-entry record; its domain is left open (the term/slice/concern record classes all carry it)."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docSearchLabel \"Cat\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing it with the record's structural rdfs:label (that is the generated documentation-entry annotation, not the term's own name) and avoid emitting it empty — a labelless term falls back to its CURIE, never a vacuous facet."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the record's own display label (term label-or-CURIE, slice/concern display name); match a docs_search query against it case-insensitively."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the real display label of a documentation record as the primary field an offline docs_search matches over the documentation graph."@x-gmeow-english .
+
+gmeow:docSearchDefinition
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc search definition"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The REAL definition / comment prose of a documentation-entry record (a gmeow:DocumentedTerm's or gmeow:DocumentedConcern's own definition), carried as a searchable field so an offline docs_search matches on the definition text, not just the label. Absent when the record carries no definition (an honest absence, never a fabricated one). The same definition value the site search-index.json indexes."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docSearchDefinition \"A small domesticated felid.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid emitting it for a record with no authored definition (leave it absent) and avoid using the generated documentation-entry skos:definition here — this facet carries the term's own definition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection carry the record's own definition when present; match a docs_search query against it as a secondary field below the label."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the real definition prose of a documentation record so an offline docs_search can match on the definition text."@x-gmeow-english .
+
+gmeow:docSearchAdvice
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedTerm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc search advice"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "One advisory-prose carrier of a gmeow:DocumentedTerm (a scope note, use-when, avoid-when, or how-to-use string), carried repeatably as a searchable field so an offline docs_search matches on advisory prose, not just the label and definition. The SAME flattened advice facet the site search-index.json indexes (crates/docs render term_advice_facet). Emitted once per advice string, in the stable scope→use-when→avoid-when→how-to-use field order; absent for a term carrying no advice."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docSearchAdvice \"Use for a domesticated cat; avoid for a wildcat.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing the advisory carriers into one blob (each is one repeatable value) and avoid emitting it for a term with no advice (leave it absent)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection emit one per advisory carrier from term_advice_facet; match a docs_search query against the union of a term's advice strings."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a term's advisory prose as a repeatable searchable field so an offline docs_search can match on usage guidance."@x-gmeow-english .
+
+gmeow:docSearchAlignment
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DocumentedTerm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:addedInVersion "0.1.0" ;
+    gmeow:termStability gmeow:stabilityExperimental ;
+    rdfs:label "doc search alignment"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "One crosswalk alignment token of a gmeow:DocumentedTerm — a `tag:object` string (the alignment predicate's short tag plus the aligned resource's local name), carried repeatably as a searchable facet so an offline docs_search matches on external-vocabulary correspondences. The SAME sorted, deduped alignment facet the site search-index.json indexes (crates/docs render precompute_alignment_facets). Emitted once per token in sorted order; absent for a term with no linkages."@x-gmeow-english ;
+    skos:example "ex:entryCat gmeow:docSearchAlignment \"exact:Q146\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid re-deriving the tokens differently from precompute_alignment_facets (the offline and online alignment facets must be identical) and avoid emitting it for a term with no linkages (leave it absent)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Let the docs projection emit one per precomputed `tag:object` alignment token; match a docs_search query against the union of a term's alignment tokens."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a term's external crosswalk alignments as repeatable searchable tokens so an offline docs_search can match on external-vocabulary correspondences."@x-gmeow-english .
+
 <https://blackcatinformatics.ca/gmeow/slices/documentation>
     a owl:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;

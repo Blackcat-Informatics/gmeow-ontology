@@ -18,7 +18,10 @@ use crate::maturity::{
     Dimension, MaturityAnchor, anchor_table, coverage_fraction, earned_maturity,
 };
 use crate::model::DocsModel;
-use crate::render::{concern_slug, provenance_chain, slice_slug, term_slug};
+use crate::render::{
+    concern_display, concern_slug, precompute_alignment_facets, provenance_chain, slice_display,
+    slice_slug, term_advice_facet, term_slug,
+};
 
 /// The GMEOW namespace IRI prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -153,6 +156,13 @@ pub fn to_gmeow_rdf(
     // reasoner: the FCA earned-maturity closure is plain deterministic computation.
     let cov_ctx = CoverageContext::new(model);
 
+    // The per-term crosswalk facets, computed ONCE in a single pass over the
+    // linkages — the SAME producer the site `search-index.json` uses
+    // ([`crate::render::precompute_alignment_facets`]), so the RDF search facets and
+    // the site facets are byte-identical (single source of truth). Keyed by the real
+    // term IRI; a term with no linkages is simply absent (honest, no empty facet).
+    let alignment_facets = precompute_alignment_facets(model);
+
     let provenance: Option<(String, String)> = model.pipeline.as_ref().and_then(|pipeline| {
         let stage = pipeline
             .stages
@@ -236,6 +246,48 @@ pub fn to_gmeow_rdf(
             ),
             &mut lines,
         );
+
+        // Searchable content facets — the REAL display label, definition, advisory
+        // prose, and crosswalk tokens (NOT the meta `annotate` label), so an offline
+        // consumer's `docs_search` matches on the same fields the site
+        // `search-index.json` indexes. Reuses the SAME facet builders
+        // (`term_advice_facet` / `precompute_alignment_facets`) so the two surfaces
+        // can never derive advice/alignments differently. Emitted in a fixed order,
+        // and never as an empty predicate (an absent definition/advice/alignment is an
+        // honest absence, never a vacuous triple). The MISSING-coverage facet is
+        // already carried by `gmeow:docMissesDimension` below — not duplicated here.
+        triple(
+            &subject,
+            &format!("{GMEOW}docSearchLabel"),
+            &literal(term.label.as_deref().unwrap_or(&term.curie)),
+            &mut lines,
+        );
+        if let Some(definition) = &term.definition {
+            triple(
+                &subject,
+                &format!("{GMEOW}docSearchDefinition"),
+                &literal(definition),
+                &mut lines,
+            );
+        }
+        for advice in term_advice_facet(term) {
+            triple(
+                &subject,
+                &format!("{GMEOW}docSearchAdvice"),
+                &literal(&advice),
+                &mut lines,
+            );
+        }
+        if let Some(tokens) = alignment_facets.get(term.iri.as_str()) {
+            for token in tokens {
+                triple(
+                    &subject,
+                    &format!("{GMEOW}docSearchAlignment"),
+                    &literal(token),
+                    &mut lines,
+                );
+            }
+        }
 
         // Per-term content-address provenance, projected on the REAL term IRI (not
         // the documentation-entry subject): the content digest, first-seen version,
@@ -440,6 +492,16 @@ pub fn to_gmeow_rdf(
             &format!("Documentation projection for slice {}.", slice.iri),
             &mut lines,
         );
+        // The slice's REAL display name as a searchable facet (the site
+        // `search-index.json` indexes the same `slice_display`), so `docs_search`
+        // can surface a slice record by its title/label. A slice carries no
+        // definition or advisory prose, so only the label facet is emitted.
+        triple(
+            &subject,
+            &format!("{GMEOW}docSearchLabel"),
+            &literal(&slice_display(slice)),
+            &mut lines,
+        );
 
         // Per-slice documentation-coverage incidence + FCA-derived maturity. The
         // slice's covered-dimension set is its concept intent over ALL nineteen
@@ -518,6 +580,23 @@ pub fn to_gmeow_rdf(
             &format!("Documentation projection for concern {}.", concern.iri),
             &mut lines,
         );
+        // The concern's REAL display name (and definition, when authored) as
+        // searchable facets — the same fields the site `search-index.json` indexes
+        // for a concern record.
+        triple(
+            &subject,
+            &format!("{GMEOW}docSearchLabel"),
+            &literal(&concern_display(concern)),
+            &mut lines,
+        );
+        if let Some(definition) = &concern.definition {
+            triple(
+                &subject,
+                &format!("{GMEOW}docSearchDefinition"),
+                &literal(definition),
+                &mut lines,
+            );
+        }
     }
 
     // Mapping sets (model.mapping_sets is IRI-sorted). All link to the single
@@ -1523,5 +1602,54 @@ mod tests {
         // Empty map ⇒ no entailment nodes (honest absence).
         let bare = to_gmeow_rdf(&model, &BTreeMap::new());
         assert!(!bare.contains(&format!("<{GMEOW}Entailment>")));
+    }
+
+    #[test]
+    fn search_facets_carry_real_content_and_honest_absence() {
+        use crate::model::DocLinkage;
+        let mut model = tiny_model();
+        // Cat gains advisory prose + a crosswalk linkage, so its documentation-entry
+        // record projects the full search-facet set.
+        model.terms[0].scope_notes = vec!["Prefer for a domestic cat.".to_string()];
+        model.linkages = vec![DocLinkage {
+            mapping_set: None,
+            subject: format!("{GMEOW}Cat"),
+            subject_curie: "gmeow:Cat".to_string(),
+            predicate: "http://www.w3.org/2004/02/skos/core#exactMatch".to_string(),
+            object: "http://www.wikidata.org/entity/Q146".to_string(),
+            justification: None,
+            confidence: None,
+            owner_slice: format!("{GMEOW}slice/zoo"),
+        }];
+        let nq = to_gmeow_rdf(&model, &BTreeMap::new());
+
+        // Cat: the REAL label / definition, the advice string, and the alignment token
+        // — NOT the meta annotate() label.
+        assert!(nq.contains(&format!("{GMEOW}docSearchLabel> \"Cat\"")));
+        assert!(nq.contains(&format!("{GMEOW}docSearchDefinition> \"A cat.\"")));
+        assert!(nq.contains(&format!(
+            "{GMEOW}docSearchAdvice> \"Prefer for a domestic cat.\""
+        )));
+        assert!(nq.contains(&format!("{GMEOW}docSearchAlignment> \"exactMatch:Q146\"")));
+
+        // hasOwner has no label/definition/advice/linkage: docSearchLabel falls back to
+        // the CURIE, and NO definition/advice/alignment facet is fabricated.
+        assert!(nq.contains(&format!("{GMEOW}docSearchLabel> \"gmeow:hasOwner\"")));
+        // The definition-less property emits no docSearchDefinition line for itself.
+        let has_owner_subject = format!("<{GMEOW}documentation/term/hasowner>");
+        for line in nq.lines().filter(|l| l.starts_with(&has_owner_subject)) {
+            assert!(
+                !line.contains("docSearchDefinition"),
+                "definition-less property must not emit docSearchDefinition: {line}"
+            );
+            assert!(
+                !line.contains("docSearchAdvice"),
+                "advice-less property must not emit docSearchAdvice: {line}"
+            );
+            assert!(
+                !line.contains("docSearchAlignment"),
+                "linkage-less property must not emit docSearchAlignment: {line}"
+            );
+        }
     }
 }
