@@ -186,18 +186,18 @@ analyzed form, or it is explicitly *unanalyzed prose* — a recorded status, not
 and only forms that carry inferential weight (denoting forms, grammar-governed forms, translated
 forms) are required to be analyzed.
 
-**It deepens `language`, `notation`, `names`, and `coreference` rather than forking them.** The
-existing `language` slice holds language individuals (`gmeow:Language`, `gmeow:FormalLanguage`,
-`gmeow:ProgrammingLanguage`, `gmeow:WritingSystem`, `gmeow:TransliterationScheme`, the BCP-47 tag
-property); the `notation` slice holds notation systems with projection profiles and declared loss;
-`names` and `coreference` hold naming and reference-resolution machinery. These are the domain
-surface of exactly the phenomena `lang:` grounds. The grounding layer supplies the substrate —
-`lang:SignSystem` beneath `gmeow:Language` and `gmeow:NotationSystem`, `lang:Rendering` beneath the
-notation projection profile, `lang:Denotation` beneath naming and coreference — and the domain
-slices graft onto it in a queued migration, exactly as `math:` reuses and deepens `notation` rather
-than creating a mathematical-notation twin. Under the greenfield principle, where a grounding-layer
-term strictly supersedes a domain term, the inferior term is removed in the migration, not kept as
-a shim.
+**It deepens `language`, `notation`, `names`, and `coreference` rather than forking them.** Before
+the graft the `language` slice held its own language classes and individuals (`gmeow:Language`,
+`gmeow:FormalLanguage`, `gmeow:ProgrammingLanguage`, `gmeow:WritingSystem`,
+`gmeow:TransliterationScheme`, the BCP-47 tag property); the `notation` slice holds notation systems
+with projection profiles and declared loss; `names` and `coreference` hold naming and
+reference-resolution machinery. These are the domain surface of exactly the phenomena `lang:`
+grounds. The grounding layer supplies the substrate — `lang:SignSystem` beneath `gmeow:Language` and
+`gmeow:NotationSystem`, `lang:Rendering` beneath the notation projection profile, `lang:Denotation`
+beneath naming and coreference — and the domain slices are grafted onto it, exactly as `math:`
+reuses and deepens `notation` rather than creating a mathematical-notation twin.
+Under the greenfield principle, where a grounding-layer term strictly supersedes a domain term, the
+inferior term was removed in the graft, not kept as a shim.
 
 ## Slice placement, tier, and manifest
 
