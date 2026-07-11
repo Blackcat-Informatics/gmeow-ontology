@@ -2267,6 +2267,22 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/findingSeverity> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/findingSeverity> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/floorAxis-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/floorAxis> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/floorAxis> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/floorSlice-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/floorSlice> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/floorSlice> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/floorTier-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/floorTier> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/floorTier> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/gmeow/floorValue-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/floorValue> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/floorValue> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/formRepresentation-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/formRepresentation> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/formRepresentation> ; sh:maxCount 1 ] .

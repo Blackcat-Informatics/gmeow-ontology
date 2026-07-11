@@ -350,6 +350,90 @@ export enum AxisExemptionEnum {
     exemptionGmnProjection = "exemptionGmnProjection",
 }
 
+export enum AxisFloorCommitmentEnum {
+    afc_accessibility_axisGmn1Coverage = "afc-accessibility-axisGmn1Coverage",
+    afc_accounts_axisGmn1Coverage = "afc-accounts-axisGmn1Coverage",
+    afc_affect_axisGmn1Coverage = "afc-affect-axisGmn1Coverage",
+    afc_agent_runtime_axisGmn1Coverage = "afc-agent-runtime-axisGmn1Coverage",
+    afc_agentic_axisGmn1Coverage = "afc-agentic-axisGmn1Coverage",
+    afc_aggregation_axisGmn1Coverage = "afc-aggregation-axisGmn1Coverage",
+    afc_agreements_axisGmn1Coverage = "afc-agreements-axisGmn1Coverage",
+    afc_ai_axisGmn1Coverage = "afc-ai-axisGmn1Coverage",
+    afc_archaeological_evidence_axisGmn1Coverage = "afc-archaeological-evidence-axisGmn1Coverage",
+    afc_attestation_axisGmn1Coverage = "afc-attestation-axisGmn1Coverage",
+    afc_awareness_axisGmn1Coverage = "afc-awareness-axisGmn1Coverage",
+    afc_calendar_axisGmn1Coverage = "afc-calendar-axisGmn1Coverage",
+    afc_citations_axisGmn1Coverage = "afc-citations-axisGmn1Coverage",
+    afc_cognition_axisGmn1Coverage = "afc-cognition-axisGmn1Coverage",
+    afc_concepts_axisGmn1Coverage = "afc-concepts-axisGmn1Coverage",
+    afc_connectivity_axisGmn1Coverage = "afc-connectivity-axisGmn1Coverage",
+    afc_contacts_axisGmn1Coverage = "afc-contacts-axisGmn1Coverage",
+    afc_coreference_axisGmn1Coverage = "afc-coreference-axisGmn1Coverage",
+    afc_creative_works_axisGmn1Coverage = "afc-creative-works-axisGmn1Coverage",
+    afc_deception_axisGmn1Coverage = "afc-deception-axisGmn1Coverage",
+    afc_diagnostics_axisGmn1Coverage = "afc-diagnostics-axisGmn1Coverage",
+    afc_documents_axisGmn1Coverage = "afc-documents-axisGmn1Coverage",
+    afc_dreaming_axisGmn1Coverage = "afc-dreaming-axisGmn1Coverage",
+    afc_email_axisGmn1Coverage = "afc-email-axisGmn1Coverage",
+    afc_employment_axisGmn1Coverage = "afc-employment-axisGmn1Coverage",
+    afc_entities_axisGmn1Coverage = "afc-entities-axisGmn1Coverage",
+    afc_epistemics_axisGmn1Coverage = "afc-epistemics-axisGmn1Coverage",
+    afc_events_axisGmn1Coverage = "afc-events-axisGmn1Coverage",
+    afc_evidence_axisGmn1Coverage = "afc-evidence-axisGmn1Coverage",
+    afc_expertise_axisGmn1Coverage = "afc-expertise-axisGmn1Coverage",
+    afc_finance_axisGmn1Coverage = "afc-finance-axisGmn1Coverage",
+    afc_gender_axisGmn1Coverage = "afc-gender-axisGmn1Coverage",
+    afc_genealogy_axisGmn1Coverage = "afc-genealogy-axisGmn1Coverage",
+    afc_graphrag_axisGmn1Coverage = "afc-graphrag-axisGmn1Coverage",
+    afc_gts_axisGmn1Coverage = "afc-gts-axisGmn1Coverage",
+    afc_guides_axisGmn1Coverage = "afc-guides-axisGmn1Coverage",
+    afc_images_axisGmn1Coverage = "afc-images-axisGmn1Coverage",
+    afc_imagination_axisGmn1Coverage = "afc-imagination-axisGmn1Coverage",
+    afc_inference_axisGmn1Coverage = "afc-inference-axisGmn1Coverage",
+    afc_inhabitation_axisGmn1Coverage = "afc-inhabitation-axisGmn1Coverage",
+    afc_inquiry_axisGmn1Coverage = "afc-inquiry-axisGmn1Coverage",
+    afc_kernel_axisGmn1Coverage = "afc-kernel-axisGmn1Coverage",
+    afc_lang_axisGmn1Coverage = "afc-lang-axisGmn1Coverage",
+    afc_language_axisGmn1Coverage = "afc-language-axisGmn1Coverage",
+    afc_languages_axisGmn1Coverage = "afc-languages-axisGmn1Coverage",
+    afc_learning_axisGmn1Coverage = "afc-learning-axisGmn1Coverage",
+    afc_lexicon_axisGmn1Coverage = "afc-lexicon-axisGmn1Coverage",
+    afc_lifecycle_axisGmn1Coverage = "afc-lifecycle-axisGmn1Coverage",
+    afc_logic_axisGmn1Coverage = "afc-logic-axisGmn1Coverage",
+    afc_math_axisGmn1Coverage = "afc-math-axisGmn1Coverage",
+    afc_mentation_axisGmn1Coverage = "afc-mentation-axisGmn1Coverage",
+    afc_metacognition_axisGmn1Coverage = "afc-metacognition-axisGmn1Coverage",
+    afc_model_serving_axisGmn1Coverage = "afc-model-serving-axisGmn1Coverage",
+    afc_music_axisGmn1Coverage = "afc-music-axisGmn1Coverage",
+    afc_names_axisGmn1Coverage = "afc-names-axisGmn1Coverage",
+    afc_narrative_axisGmn1Coverage = "afc-narrative-axisGmn1Coverage",
+    afc_norms_axisGmn1Coverage = "afc-norms-axisGmn1Coverage",
+    afc_notation_axisGmn1Coverage = "afc-notation-axisGmn1Coverage",
+    afc_notes_axisGmn1Coverage = "afc-notes-axisGmn1Coverage",
+    afc_observations_axisGmn1Coverage = "afc-observations-axisGmn1Coverage",
+    afc_organization_axisGmn1Coverage = "afc-organization-axisGmn1Coverage",
+    afc_pipeline_axisGmn1Coverage = "afc-pipeline-axisGmn1Coverage",
+    afc_places_axisGmn1Coverage = "afc-places-axisGmn1Coverage",
+    afc_procedures_axisGmn1Coverage = "afc-procedures-axisGmn1Coverage",
+    afc_profiles_axisGmn1Coverage = "afc-profiles-axisGmn1Coverage",
+    afc_provenance_axisGmn1Coverage = "afc-provenance-axisGmn1Coverage",
+    afc_quality_axisGmn1Coverage = "afc-quality-axisGmn1Coverage",
+    afc_rights_axisGmn1Coverage = "afc-rights-axisGmn1Coverage",
+    afc_risk_axisGmn1Coverage = "afc-risk-axisGmn1Coverage",
+    afc_sensory_axisGmn1Coverage = "afc-sensory-axisGmn1Coverage",
+    afc_sensory_environment_axisGmn1Coverage = "afc-sensory-environment-axisGmn1Coverage",
+    afc_sexuality_axisGmn1Coverage = "afc-sexuality-axisGmn1Coverage",
+    afc_slice_quality_rubric_axisGmn1Coverage = "afc-slice-quality-rubric-axisGmn1Coverage",
+    afc_software_axisGmn1Coverage = "afc-software-axisGmn1Coverage",
+    afc_sources_axisGmn1Coverage = "afc-sources-axisGmn1Coverage",
+    afc_standpoint_axisGmn1Coverage = "afc-standpoint-axisGmn1Coverage",
+    afc_tags_axisGmn1Coverage = "afc-tags-axisGmn1Coverage",
+    afc_teleology_axisGmn1Coverage = "afc-teleology-axisGmn1Coverage",
+    afc_temporal_axisGmn1Coverage = "afc-temporal-axisGmn1Coverage",
+    afc_trust_axisGmn1Coverage = "afc-trust-axisGmn1Coverage",
+    afc_versions_axisGmn1Coverage = "afc-versions-axisGmn1Coverage",
+}
+
 export enum AxisThresholdEnum {
     thrDocumentationExemplified = "thrDocumentationExemplified",
     thrDocumentationGrounded = "thrDocumentationGrounded",
@@ -2309,6 +2393,7 @@ export enum PipelineStageEnum {
     stage_export_evals = "stage-export-evals",
     stage_export_export = "stage-export-export",
     stage_export_frame_shapes = "stage-export-frame-shapes",
+    stage_export_governance_floors = "stage-export-governance-floors",
     stage_export_json_schema = "stage-export-json-schema",
     stage_export_lpg = "stage-export-lpg",
     stage_export_matrix = "stage-export-matrix",
@@ -3105,6 +3190,14 @@ export enum SiteTypeEnum {
     siteTypeRegistered = "siteTypeRegistered",
 }
 
+export enum SliceTierFloorEnum {
+    stf_lang = "stf-lang",
+    stf_logic = "stf-logic",
+    stf_math = "stf-math",
+    stf_slice_quality_rubric = "stf-slice-quality-rubric",
+    stf_tags = "stf-tags",
+}
+
 export enum SourceIndependenceEnum {
     sourceIndependenceIndependent = "sourceIndependenceIndependent",
     sourceIndependenceSelfOrIssuerOriginated = "sourceIndependenceSelfOrIssuerOriginated",
@@ -3854,6 +3947,11 @@ export interface AxisExemption {
     exemptionProducer?: string,
     exemptionReason?: string,
     exemptsAxis?: QualityAxis[],
+}
+
+export interface AxisFloorCommitment {
+    floorAxis?: QualityAxis,
+    floorValue?: number,
 }
 
 export interface AxisThreshold {
@@ -6850,6 +6948,10 @@ export interface SkillProficiency {
     skillProficiencyLevel?: ProficiencyLevel,
     skillProficiencyOf?: Skill,
     skillProficiencyScale?: ProficiencyScale,
+}
+
+export interface SliceTierFloor {
+    floorTier?: QualityTier,
 }
 
 export interface SmartContract extends Entity {

@@ -467,6 +467,12 @@ classes:
     - exemptionProducer
     - exemptionReason
     - exemptsAxis
+  AxisFloorCommitment:
+    class_uri: https://blackcatinformatics.ca/gmeow/AxisFloorCommitment
+    title: Axis Floor Commitment
+    slots:
+    - floorAxis
+    - floorValue
   AxisThreshold:
     class_uri: https://blackcatinformatics.ca/gmeow/AxisThreshold
     title: Axis Threshold
@@ -4100,6 +4106,11 @@ classes:
     - skillProficiencyLevel
     - skillProficiencyOf
     - skillProficiencyScale
+  SliceTierFloor:
+    class_uri: https://blackcatinformatics.ca/gmeow/SliceTierFloor
+    title: Slice Tier Floor
+    slots:
+    - floorTier
   SmartContract:
     class_uri: https://blackcatinformatics.ca/gmeow/SmartContract
     title: Smart Contract
@@ -8070,6 +8081,29 @@ slots:
     range: Event
     domain: Event
     multivalued: true
+  floorAxis:
+    slot_uri: https://blackcatinformatics.ca/gmeow/floorAxis
+    title: floor axis
+    range: QualityAxis
+    domain: AxisFloorCommitment
+    multivalued: false
+  floorSlice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/floorSlice
+    title: floor slice
+    range: uriorcurie
+    multivalued: false
+  floorTier:
+    slot_uri: https://blackcatinformatics.ca/gmeow/floorTier
+    title: floor tier
+    range: QualityTier
+    domain: SliceTierFloor
+    multivalued: false
+  floorValue:
+    slot_uri: https://blackcatinformatics.ca/gmeow/floorValue
+    title: floor value
+    range: decimal
+    domain: AxisFloorCommitment
+    multivalued: false
   flowEntity:
     slot_uri: https://blackcatinformatics.ca/gmeow/flowEntity
     title: flow entity
@@ -15877,6 +15911,171 @@ enums:
       exemptionGmnProjection:
         meaning: https://blackcatinformatics.ca/gmeow/exemptionGmnProjection
         title: GMN-projection exemption
+  AxisFloorCommitmentEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/AxisFloorCommitment
+    permissible_values:
+      afc-accessibility-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-accessibility-axisGmn1Coverage
+      afc-accounts-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-accounts-axisGmn1Coverage
+      afc-affect-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-affect-axisGmn1Coverage
+      afc-agent-runtime-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisGmn1Coverage
+      afc-agentic-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agentic-axisGmn1Coverage
+      afc-aggregation-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-aggregation-axisGmn1Coverage
+      afc-agreements-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agreements-axisGmn1Coverage
+      afc-ai-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-ai-axisGmn1Coverage
+      afc-archaeological-evidence-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisGmn1Coverage
+      afc-attestation-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-attestation-axisGmn1Coverage
+      afc-awareness-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-awareness-axisGmn1Coverage
+      afc-calendar-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-calendar-axisGmn1Coverage
+      afc-citations-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-citations-axisGmn1Coverage
+      afc-cognition-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-cognition-axisGmn1Coverage
+      afc-concepts-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-concepts-axisGmn1Coverage
+      afc-connectivity-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-connectivity-axisGmn1Coverage
+      afc-contacts-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-contacts-axisGmn1Coverage
+      afc-coreference-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-coreference-axisGmn1Coverage
+      afc-creative-works-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-creative-works-axisGmn1Coverage
+      afc-deception-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-deception-axisGmn1Coverage
+      afc-diagnostics-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisGmn1Coverage
+      afc-documents-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-documents-axisGmn1Coverage
+      afc-dreaming-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-dreaming-axisGmn1Coverage
+      afc-email-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-email-axisGmn1Coverage
+      afc-employment-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-employment-axisGmn1Coverage
+      afc-entities-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-entities-axisGmn1Coverage
+      afc-epistemics-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-epistemics-axisGmn1Coverage
+      afc-events-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-events-axisGmn1Coverage
+      afc-evidence-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-evidence-axisGmn1Coverage
+      afc-expertise-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-expertise-axisGmn1Coverage
+      afc-finance-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-finance-axisGmn1Coverage
+      afc-gender-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-gender-axisGmn1Coverage
+      afc-genealogy-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-genealogy-axisGmn1Coverage
+      afc-graphrag-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-graphrag-axisGmn1Coverage
+      afc-gts-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-gts-axisGmn1Coverage
+      afc-guides-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-guides-axisGmn1Coverage
+      afc-images-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-images-axisGmn1Coverage
+      afc-imagination-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-imagination-axisGmn1Coverage
+      afc-inference-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inference-axisGmn1Coverage
+      afc-inhabitation-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisGmn1Coverage
+      afc-inquiry-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inquiry-axisGmn1Coverage
+      afc-kernel-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-kernel-axisGmn1Coverage
+      afc-lang-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisGmn1Coverage
+      afc-language-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-language-axisGmn1Coverage
+      afc-languages-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-languages-axisGmn1Coverage
+      afc-learning-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-learning-axisGmn1Coverage
+      afc-lexicon-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lexicon-axisGmn1Coverage
+      afc-lifecycle-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisGmn1Coverage
+      afc-logic-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisGmn1Coverage
+      afc-math-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisGmn1Coverage
+      afc-mentation-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-mentation-axisGmn1Coverage
+      afc-metacognition-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-metacognition-axisGmn1Coverage
+      afc-model-serving-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-model-serving-axisGmn1Coverage
+      afc-music-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-music-axisGmn1Coverage
+      afc-names-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-names-axisGmn1Coverage
+      afc-narrative-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-narrative-axisGmn1Coverage
+      afc-norms-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-norms-axisGmn1Coverage
+      afc-notation-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-notation-axisGmn1Coverage
+      afc-notes-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-notes-axisGmn1Coverage
+      afc-observations-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-observations-axisGmn1Coverage
+      afc-organization-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-organization-axisGmn1Coverage
+      afc-pipeline-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-pipeline-axisGmn1Coverage
+      afc-places-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-places-axisGmn1Coverage
+      afc-procedures-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-procedures-axisGmn1Coverage
+      afc-profiles-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-profiles-axisGmn1Coverage
+      afc-provenance-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-provenance-axisGmn1Coverage
+      afc-quality-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-quality-axisGmn1Coverage
+      afc-rights-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-rights-axisGmn1Coverage
+      afc-risk-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-risk-axisGmn1Coverage
+      afc-sensory-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-axisGmn1Coverage
+      afc-sensory-environment-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisGmn1Coverage
+      afc-sexuality-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sexuality-axisGmn1Coverage
+      afc-slice-quality-rubric-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisGmn1Coverage
+      afc-software-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-software-axisGmn1Coverage
+      afc-sources-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sources-axisGmn1Coverage
+      afc-standpoint-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-standpoint-axisGmn1Coverage
+      afc-tags-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-tags-axisGmn1Coverage
+      afc-teleology-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-teleology-axisGmn1Coverage
+      afc-temporal-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-temporal-axisGmn1Coverage
+      afc-trust-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-trust-axisGmn1Coverage
+      afc-versions-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-versions-axisGmn1Coverage
   AxisThresholdEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AxisThreshold
     permissible_values:
@@ -20620,6 +20819,9 @@ enums:
       stage-export-frame-shapes:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-frame-shapes
         title: 'export: frame shapes'
+      stage-export-governance-floors:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-governance-floors
+        title: 'export: governance floors'
       stage-export-json-schema:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-json-schema
         title: 'export: json schema'
@@ -22624,6 +22826,19 @@ enums:
       siteTypeRegistered:
         meaning: https://blackcatinformatics.ca/gmeow/siteTypeRegistered
         title: registered
+  SliceTierFloorEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SliceTierFloor
+    permissible_values:
+      stf-lang:
+        meaning: https://blackcatinformatics.ca/gmeow/stf-lang
+      stf-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/stf-logic
+      stf-math:
+        meaning: https://blackcatinformatics.ca/gmeow/stf-math
+      stf-slice-quality-rubric:
+        meaning: https://blackcatinformatics.ca/gmeow/stf-slice-quality-rubric
+      stf-tags:
+        meaning: https://blackcatinformatics.ca/gmeow/stf-tags
   SourceIndependenceEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SourceIndependence
     permissible_values:

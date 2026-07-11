@@ -2548,6 +2548,26 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/findingSeverity> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/floorAxis> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/floorAxis-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/floorAxis> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/floorSlice> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/floorSlice-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/floorSlice> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/floorTier> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/floorTier-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/floorTier> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/floorValue> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/floorValue-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/floorValue> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/formRepresentation> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/formRepresentation-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/formRepresentation> . {0,1} ;

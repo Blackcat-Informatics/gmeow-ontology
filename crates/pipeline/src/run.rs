@@ -281,6 +281,9 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-profiles", "profiles"),
         ("stage-export-frame-shapes", "frame_shapes"),
         ("stage-export-constraint-shapes", "constraint_shapes"),
+        // The two slice-quality floor TSVs projected from the ontology-resident
+        // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals (P4/P17).
+        ("stage-export-governance-floors", "governance_floors"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-json-schema", "json_schema"),
         ("stage-export-matrix", "matrix"),
@@ -340,6 +343,10 @@ pub fn full_spec() -> PipelineSpec {
             // these edges a competency/frame-shape edit could never reach the bundle,
             // and the fanout would rewrite the stale committed bytes forever.
             "stage-export-frame-shapes",
+            // The two slice-quality floor TSVs (P17 projection of the ontology floor
+            // commitments) ride in as opaque REP_GENERATED fanout members, read off this
+            // leaf's product (sorted position: frame-shapes < governance-floors < json-schema).
+            "stage-export-governance-floors",
             "stage-export-json-schema",
             "stage-export-matrix",
             "stage-export-metadata",

@@ -350,6 +350,90 @@ enum AxisExemptionEnum {
   exemptionGmnProjection
 }
 
+enum AxisFloorCommitmentEnum {
+  afc_accessibility_axisGmn1Coverage
+  afc_accounts_axisGmn1Coverage
+  afc_affect_axisGmn1Coverage
+  afc_agent_runtime_axisGmn1Coverage
+  afc_agentic_axisGmn1Coverage
+  afc_aggregation_axisGmn1Coverage
+  afc_agreements_axisGmn1Coverage
+  afc_ai_axisGmn1Coverage
+  afc_archaeological_evidence_axisGmn1Coverage
+  afc_attestation_axisGmn1Coverage
+  afc_awareness_axisGmn1Coverage
+  afc_calendar_axisGmn1Coverage
+  afc_citations_axisGmn1Coverage
+  afc_cognition_axisGmn1Coverage
+  afc_concepts_axisGmn1Coverage
+  afc_connectivity_axisGmn1Coverage
+  afc_contacts_axisGmn1Coverage
+  afc_coreference_axisGmn1Coverage
+  afc_creative_works_axisGmn1Coverage
+  afc_deception_axisGmn1Coverage
+  afc_diagnostics_axisGmn1Coverage
+  afc_documents_axisGmn1Coverage
+  afc_dreaming_axisGmn1Coverage
+  afc_email_axisGmn1Coverage
+  afc_employment_axisGmn1Coverage
+  afc_entities_axisGmn1Coverage
+  afc_epistemics_axisGmn1Coverage
+  afc_events_axisGmn1Coverage
+  afc_evidence_axisGmn1Coverage
+  afc_expertise_axisGmn1Coverage
+  afc_finance_axisGmn1Coverage
+  afc_gender_axisGmn1Coverage
+  afc_genealogy_axisGmn1Coverage
+  afc_graphrag_axisGmn1Coverage
+  afc_gts_axisGmn1Coverage
+  afc_guides_axisGmn1Coverage
+  afc_images_axisGmn1Coverage
+  afc_imagination_axisGmn1Coverage
+  afc_inference_axisGmn1Coverage
+  afc_inhabitation_axisGmn1Coverage
+  afc_inquiry_axisGmn1Coverage
+  afc_kernel_axisGmn1Coverage
+  afc_lang_axisGmn1Coverage
+  afc_language_axisGmn1Coverage
+  afc_languages_axisGmn1Coverage
+  afc_learning_axisGmn1Coverage
+  afc_lexicon_axisGmn1Coverage
+  afc_lifecycle_axisGmn1Coverage
+  afc_logic_axisGmn1Coverage
+  afc_math_axisGmn1Coverage
+  afc_mentation_axisGmn1Coverage
+  afc_metacognition_axisGmn1Coverage
+  afc_model_serving_axisGmn1Coverage
+  afc_music_axisGmn1Coverage
+  afc_names_axisGmn1Coverage
+  afc_narrative_axisGmn1Coverage
+  afc_norms_axisGmn1Coverage
+  afc_notation_axisGmn1Coverage
+  afc_notes_axisGmn1Coverage
+  afc_observations_axisGmn1Coverage
+  afc_organization_axisGmn1Coverage
+  afc_pipeline_axisGmn1Coverage
+  afc_places_axisGmn1Coverage
+  afc_procedures_axisGmn1Coverage
+  afc_profiles_axisGmn1Coverage
+  afc_provenance_axisGmn1Coverage
+  afc_quality_axisGmn1Coverage
+  afc_rights_axisGmn1Coverage
+  afc_risk_axisGmn1Coverage
+  afc_sensory_axisGmn1Coverage
+  afc_sensory_environment_axisGmn1Coverage
+  afc_sexuality_axisGmn1Coverage
+  afc_slice_quality_rubric_axisGmn1Coverage
+  afc_software_axisGmn1Coverage
+  afc_sources_axisGmn1Coverage
+  afc_standpoint_axisGmn1Coverage
+  afc_tags_axisGmn1Coverage
+  afc_teleology_axisGmn1Coverage
+  afc_temporal_axisGmn1Coverage
+  afc_trust_axisGmn1Coverage
+  afc_versions_axisGmn1Coverage
+}
+
 enum AxisThresholdEnum {
   thrDocumentationExemplified
   thrDocumentationGrounded
@@ -2309,6 +2393,7 @@ enum PipelineStageEnum {
   stage_export_evals
   stage_export_export
   stage_export_frame_shapes
+  stage_export_governance_floors
   stage_export_json_schema
   stage_export_lpg
   stage_export_matrix
@@ -3103,6 +3188,14 @@ enum SiteTypeEnum {
   siteTypeBranch
   siteTypeHeadquarters
   siteTypeRegistered
+}
+
+enum SliceTierFloorEnum {
+  stf_lang
+  stf_logic
+  stf_math
+  stf_slice_quality_rubric
+  stf_tags
 }
 
 enum SourceIndependenceEnum {
@@ -3994,6 +4087,13 @@ type AxisExemption {
   exemptionProducer: String
   exemptionReason: String
   exemptsAxis: [QualityAxis!]
+}
+
+type AxisFloorCommitment {
+  id: String
+  iri: String
+  floorAxis: QualityAxis
+  floorValue: Float
 }
 
 type AxisThreshold {
@@ -8150,6 +8250,12 @@ type SkillProficiency {
   skillProficiencyLevel: ProficiencyLevel
   skillProficiencyOf: Skill
   skillProficiencyScale: ProficiencyScale
+}
+
+type SliceTierFloor {
+  id: String
+  iri: String
+  floorTier: QualityTier
 }
 
 type SmartContract {
