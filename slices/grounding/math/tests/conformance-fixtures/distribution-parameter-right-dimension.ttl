@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:DistributionParameterConstraint gate
+# (dimension arm): a variance-role math:DistributionParameter whose role requires the
+# SQUARED (area = length²) dimension and whose math:parameterQuantity correctly carries
+# that same area dimension. The exact ℚ⁷ arithmetic agrees, so it MUST raise NO
+# probability failure class. Positive counterpart of
+# counter-examples/distribution-parameter-wrong-dimension.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:areaDimension a math:DerivedDimension ;
+    math:baseDimensionExponent ex:areaLengthSquared .
+
+ex:areaLengthSquared a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 2 ;
+    math:exponentDenominator 1 .
+
+ex:varianceRole a math:DistributionParameterRole ;
+    math:quantityDimension ex:areaDimension .
+
+ex:areaQuantity a gmeow:Quantity ;
+    math:hasDimension ex:areaDimension .
+
+ex:welldimensionedParameter a math:DistributionParameter ;
+    math:parameterRole ex:varianceRole ;
+    math:parameterQuantity ex:areaQuantity .

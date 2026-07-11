@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:ExactPreservationViolated gate: a
+# math:JointProbabilityTable whose two logic:jointOutcome rows carry logic:jointProbability
+# values (0.5 and 0.5) that sum to exactly 1. It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/exact-preservation-violated.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:normalizedTable a math:JointProbabilityTable ;
+    logic:jointOutcome ex:outcomeA , ex:outcomeB .
+
+ex:outcomeA logic:jointProbability 0.5 .
+ex:outcomeB logic:jointProbability 0.5 .

@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:IncompleteDependencyModel gate: a
+# math:MarkovKernel declares its math:kernelDomain but is missing its
+# math:kernelCodomain, so it cannot fix a stochastic transition. The native gate MUST
+# emit math:IncompleteDependencyModel (and no other probability failure class).
+# Back-reference: math:MarkovKernel / math:IncompleteDependencyModel (slices/grounding/math/module.ttl).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:incompleteKernel a math:MarkovKernel ;
+    math:kernelDomain ex:sourceSpace .
+
+ex:sourceSpace a math:MeasurableSpace .

@@ -5689,8 +5689,29 @@ math:quantityDimension
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "quantity dimension"@x-gmeow-english ;
-    skos:definition "Names the dimension the quantity of a parameter filling a role must carry — the same dimension as the random variable for a location role, the squared dimension for a variance role, math:dimensionless for a correlation role. Domain math:DistributionParameterRole, range math:Dimension (stated in prose; a dimension may be given by reference to the random variable's dimension). It carries the parameter's dimensional constraint so a mis-dimensioned parameter is caught (math:DistributionParameterConstraint), not silently accepted."@x-gmeow-english ;
+    skos:definition "Names the dimension the quantity of a parameter filling a role must carry — the same dimension as the random variable for a location role, the squared dimension for a variance role, math:dimensionless for a correlation role. Domain math:DistributionParameterRole, range math:Dimension or a math:RoleDimensionRelation (stated in prose; a dimension may be given absolutely, or by reference to the random variable's dimension). It carries the parameter's dimensional constraint so a mis-dimensioned parameter is caught (math:DistributionParameterConstraint), not silently accepted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+math:RoleDimensionRelation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Role Dimension Relation"@x-gmeow-english ;
+    skos:definition "A relational specification of a parameter role's required dimension, stated RELATIVE to the random variable's dimension rather than as an absolute math:Dimension. The canonical relations are math:sameAsRandomVariableDimension (a location parameter shares the random variable's dimension), math:squareOfRandomVariableDimension (a variance parameter carries the squared dimension), and — for a dimensionless parameter such as a correlation — the absolute math:dimensionless. The native math:DistributionParameterConstraint validator resolves a role's math:quantityDimension against the actual random-variable dimension by exact ℚ⁷ arithmetic (dimEqual for same, dimProduct of the vector with itself for square), so a variance parameter given linear units is a caught error."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:sameAsRandomVariableDimension
+    a owl:NamedIndividual , math:RoleDimensionRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "same as random-variable dimension"@x-gmeow-english ;
+    skos:definition "The role-dimension relation for a location-like parameter whose quantity must carry the SAME dimension as the random variable it parameterizes (dimEqual): a location parameter of a distribution over height carries height units. Resolved by the native math:DistributionParameterConstraint validator against the random variable's math:hasDimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:squareOfRandomVariableDimension
+    a owl:NamedIndividual , math:RoleDimensionRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "square of random-variable dimension"@x-gmeow-english ;
+    skos:definition "The role-dimension relation for a variance-like parameter whose quantity must carry the SQUARED dimension of the random variable (the exact-rational sum of the random variable's exponent vector with itself, dimProduct): a variance parameter of a distribution over height carries height² units. Resolved by the native math:DistributionParameterConstraint validator; a variance parameter given the linear (un-squared) dimension is a caught error."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Conditioning and three-state independence ------------------------------ #
 
@@ -5908,6 +5929,20 @@ math:dependencyGraph
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "dependency graph"@x-gmeow-english ;
     skos:definition "Relates a dependency model to the graph structure carrying its dependencies — the DAG of a math:BayesianNetwork, the bipartite graph of a math:FactorGraph. Domain a dependency model (math:BayesianNetwork, math:FactorGraph, and kin), range its graph structure (stated in prose). Structural completeness of this graph (a DAG, finite factors) is part of the model's completeness gate; an incomplete one is ill-formed (math:IncompleteDependencyModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:kernelDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "kernel domain"@x-gmeow-english ;
+    skos:definition "Names the source (domain) measurable space of a math:MarkovKernel — the space whose points the kernel assigns a transition measure to. Domain math:MarkovKernel, range a measurable space (stated in prose). A Markov kernel declares both a math:kernelDomain and a math:kernelCodomain; one missing either is structurally incomplete (math:IncompleteDependencyModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:kernelCodomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "kernel codomain"@x-gmeow-english ;
+    skos:definition "Names the target (codomain) measurable space of a math:MarkovKernel — the space on which each source point's transition probability measure lives. Domain math:MarkovKernel, range a measurable space (stated in prose). A Markov kernel declares both a math:kernelCodomain and a math:kernelDomain; one missing either is structurally incomplete (math:IncompleteDependencyModel)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:probabilityModelLowering
