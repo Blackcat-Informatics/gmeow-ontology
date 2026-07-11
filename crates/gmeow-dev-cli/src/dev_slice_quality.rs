@@ -489,13 +489,15 @@ pub fn slice_quality_gate() -> i32 {
         let grounding = is_grounding_slice(dir);
         for grade in &report.assessment.grades {
             let axis_local = axis_local_name(&grade.axis_iri);
-            let Some(floor) = axis_floor_for(
+            let floor = match axis_floor_for(
                 &axis_floors,
                 &report.assessment.slice,
                 axis_local,
                 grounding,
-            ) else {
-                continue; // no committed floor and not the grounding default → unfloored, advisory only
+            ) {
+                Ok(Some(f)) => f,
+                Ok(None) => continue, // no committed floor and not the grounding default → unfloored, advisory only
+                Err(e) => return fail(format!("slice-quality-gate: {e}")),
             };
             axis_checked += 1;
             use gmeow_slice_quality::gate::AxisRatchetVerdict;
@@ -757,59 +759,87 @@ fn axis_local_name(iri: &str) -> &str {
 
 /// Project the ontology-resident `gmeow:AxisFloorCommitment` set into the
 /// `(slice IRI, axis local name) → floor` map the per-axis floor pass and the
-/// axis-floor monotonicity check consume. The rubric loader already hard-failed any
-/// commitment missing a slice/axis/value or carrying a non-finite floor, so this is
-/// otherwise a pure projection — the same map shape the removed governance-TSV parser
-/// produced.
+/// axis-floor monotonicity check consume. This first enforces that every rubric
+/// axis's local name (the tail after the last `/` or `#`) is GLOBALLY UNIQUE across
+/// `rubric.axes` — the floor gate keys every lookup by local name (`axis_floor_for`
+/// via `axis_local_name`), so two distinct axis IRIs sharing a local name would let a
+/// commitment against one axis silently apply to the other's grade. With that
+/// global uniqueness established, the rubric loader's existing hard-fail on
+/// duplicate `(slice, full-axis-IRI)` commitments guarantees the projection below
+/// (keyed on `(slice, axis local name)`) can never collide, so it is a plain
+/// projection — the same map shape the removed governance-TSV parser produced.
 ///
 /// # Errors
-/// A HARD FAIL (.goals no-optionality) when two commitments for the SAME slice narrow
-/// to the SAME axis local name but carry DISTINCT full axis IRIs (e.g. two
-/// differently-namespaced axes both named `axisFoo`). The rubric loader dedups
-/// commitments on the full `(slice, axis-IRI)` pair, so such a pair would otherwise
-/// silently collapse last-writer-wins under the local-name key here — this guard
-/// converts that silent narrowing into a hard fail instead.
+/// A HARD FAIL (.goals no-optionality) when two DISTINCT rubric axis IRIs share the
+/// same local name (e.g. `ns1#axisFoo` and `ns2#axisFoo`).
 fn axis_floors_from_rubric(
     rubric: &Rubric,
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), f64>> {
-    let mut out = std::collections::BTreeMap::new();
-    let mut claimed_by: std::collections::BTreeMap<(String, String), String> =
+    let mut axes_by_local: std::collections::BTreeMap<String, String> =
         std::collections::BTreeMap::new();
-    for c in &rubric.commitments {
-        let key = (c.slice.clone(), axis_local_name(&c.axis).to_owned());
-        match claimed_by.get(&key) {
-            Some(prior_axis) if *prior_axis != c.axis => {
-                return Err(sqe(format!(
-                    "axis floor commitments for slice {} collide on axis local name {:?} \
-                     from distinct axis IRIs {prior_axis} and {} — a projection to \
-                     (slice, axis local name) would silently narrow one away",
-                    c.slice, key.1, c.axis
-                )));
-            }
-            _ => {
-                claimed_by.insert(key.clone(), c.axis.clone());
-                out.insert(key, c.floor);
-            }
+    for axis in &rubric.axes {
+        let local = axis_local_name(&axis.iri).to_owned();
+        if let Some(prior) = axes_by_local.insert(local.clone(), axis.iri.clone()) {
+            return Err(sqe(format!(
+                "rubric axes {prior} and {} collide on axis local name {local:?} — the floor \
+                 gate keys lookups by local name, so a committed floor could be applied to the \
+                 wrong axis",
+                axis.iri
+            )));
         }
+    }
+
+    let mut out = std::collections::BTreeMap::new();
+    for c in &rubric.commitments {
+        out.insert(
+            (c.slice.clone(), axis_local_name(&c.axis).to_owned()),
+            c.floor,
+        );
     }
     Ok(out)
 }
+
+/// The tolerance an explicit `axisGmn1Coverage` grounding-floor commitment is
+/// checked against the definitional `1.0` floor under. All grounding GMN1
+/// commitments are exactly `1.0` today, so this guard is a no-op on the current
+/// corpus — kept tight rather than a large tolerance so a genuine sub-1.0
+/// contradiction is never masked.
+const GROUNDING_FLOOR_EPS: f64 = 1e-9;
 
 /// Resolve the committed floor for one `(slice, axis)` grade: the explicit
 /// `gmeow:AxisFloorCommitment` floor if one is recorded, else — ONLY for
 /// `axisGmn1Coverage` on a grounding slice — the total-coverage `1.0` default, else
 /// `None` (unfloored → advisory). This is the SOLE site the grounding `1.0` default
 /// is applied; no other axis carries an implicit floor.
+///
+/// # Errors
+/// A HARD FAIL (.goals no-optionality) when a grounding slice carries an
+/// explicit `axisGmn1Coverage` commitment BELOW `1.0`. A grounding slice's GMN1
+/// coverage floor is definitionally `1.0` (total coverage is what makes it a
+/// grounding slice); an explicit commitment may only restate that `1.0`, never
+/// undercut it. Silently clamping to `1.0` (a `max()`) would itself be a
+/// papering-over optionality violation, so a contradictory sub-1.0 commitment
+/// is surfaced as an error instead of silently overridden.
 fn axis_floor_for(
     axis_floors: &std::collections::BTreeMap<(String, String), f64>,
     slice: &str,
     axis_local: &str,
     is_grounding: bool,
-) -> Option<f64> {
-    axis_floors
-        .get(&(slice.to_owned(), axis_local.to_owned()))
-        .copied()
-        .or_else(|| (axis_local == AXIS_GMN1_COVERAGE && is_grounding).then_some(1.0))
+) -> gmeow_errors::Result<Option<f64>> {
+    let key = (slice.to_owned(), axis_local.to_owned());
+    if is_grounding && axis_local == AXIS_GMN1_COVERAGE {
+        if let Some(explicit) = axis_floors.get(&key)
+            && *explicit < 1.0 - GROUNDING_FLOOR_EPS
+        {
+            return Err(sqe(format!(
+                "grounding slice {slice} commits an axisGmn1Coverage floor {explicit:.6} < 1.0 \
+                 — a grounding slice's GMN1 coverage floor is definitionally 1.0; this undercuts \
+                 the total-coverage gate"
+            )));
+        }
+        return Ok(Some(1.0));
+    }
+    Ok(axis_floors.get(&key).copied())
 }
 
 /// Project the ontology-resident `gmeow:SliceTierFloor` set into the
@@ -1222,15 +1252,24 @@ gmeow:thrGmn a gmeow:AxisThreshold ;
     }
 
     #[test]
-    fn axis_floors_from_rubric_hard_fails_on_local_name_collision_across_namespaces() {
-        // The rubric loader dedups commitments on the FULL (slice, axis-IRI) pair, so
-        // two commitments for the SAME slice against two DIFFERENTLY-NAMESPACED axes
-        // that merely SHARE a local name (`axisFoo`) both survive the loader cleanly.
-        // Positive control first: two DISTINCT local names for the same slice map to
-        // two entries with no collision at all.
+    fn axis_floors_from_rubric_hard_fails_on_global_axis_local_name_collision() {
+        // `axis_floors_from_rubric` first enforces that every rubric axis's local name
+        // is GLOBALLY UNIQUE across `rubric.axes` — the floor gate keys every lookup
+        // by local name, so two DISTINCT axis IRIs sharing a local name would let a
+        // commitment against one axis silently apply to the other's grade. Positive
+        // control first: two DISTINCT local names for the same slice map to two
+        // entries with no collision at all.
         let clean = load_rubric_from_ttl(
             &mini_rubric(
-                r#"gmeow:afc1 a gmeow:AxisFloorCommitment ;
+                r#"<https://a.example/ns#axisFoo> a gmeow:QualityAxis ;
+    gmeow:axisProducer "syn_foo_a" ; gmeow:axisDimension gmeow:dimSyn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thrSynFooA .
+gmeow:thrSynFooA a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+<https://a.example/ns#axisBar> a gmeow:QualityAxis ;
+    gmeow:axisProducer "syn_bar_a" ; gmeow:axisDimension gmeow:dimSyn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thrSynBarA .
+gmeow:thrSynBarA a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+gmeow:afc1 a gmeow:AxisFloorCommitment ;
     gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://a.example/ns#axisFoo> ;
     gmeow:floorValue 0.9 .
 gmeow:afc2 a gmeow:AxisFloorCommitment ;
@@ -1254,13 +1293,22 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
             Some(0.5)
         );
 
-        // Now the collision: two commitments for the SAME slice, DIFFERENT full axis
-        // IRIs, but the SAME local name `axisFoo` — the projection to (slice, axis
-        // local name) would otherwise silently narrow one away (last-writer-wins).
-        // This must hard-fail rather than pick a winner.
+        // Now the collision: two DISTINCT rubric AXES (not merely commitments) share
+        // the SAME local name `axisFoo` across two different namespaces. This must
+        // hard-fail at the axis level, independent of any commitment against either
+        // axis, because the floor gate would otherwise key lookups on the shared
+        // local name and could apply a commitment to the wrong axis's grade.
         let colliding = load_rubric_from_ttl(
             &mini_rubric(
-                r#"gmeow:afc1 a gmeow:AxisFloorCommitment ;
+                r#"<https://a.example/ns#axisFoo> a gmeow:QualityAxis ;
+    gmeow:axisProducer "syn_foo_a" ; gmeow:axisDimension gmeow:dimSyn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thrSynFooA .
+gmeow:thrSynFooA a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+<https://b.example/other#axisFoo> a gmeow:QualityAxis ;
+    gmeow:axisProducer "syn_foo_b" ; gmeow:axisDimension gmeow:dimSyn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thrSynFooB .
+gmeow:thrSynFooB a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+gmeow:afc1 a gmeow:AxisFloorCommitment ;
     gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://a.example/ns#axisFoo> ;
     gmeow:floorValue 0.9 .
 gmeow:afc2 a gmeow:AxisFloorCommitment ;
@@ -1277,8 +1325,8 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
             "names both colliding full axis IRIs: {err}"
         );
         assert!(
-            err.message().contains(&format!("{NS}sliceX")),
-            "names the colliding slice: {err}"
+            err.message().contains("axisFoo"),
+            "names the shared local name: {err}"
         );
     }
 
@@ -1300,14 +1348,28 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
     #[test]
     fn tier_floor_naming_unknown_tier_hard_fails() {
         // A gmeow:floorTier that resolves to no ladder rung is a hard fail — the gate
-        // never silently drops a floor it cannot rank.
-        let rubric = load_rubric_from_ttl(
-            &mini_rubric(
-                r#"gmeow:stf a gmeow:SliceTierFloor ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorTier gmeow:tierBogus ."#,
-            ),
-            "test",
-        )
-        .unwrap();
+        // never silently drops a floor it cannot rank. Since Gap 4 the rubric LOADER
+        // already rejects an unknown gmeow:floorTier at load time, so this case can no
+        // longer be reached through `load_rubric_from_ttl`. The `tier_floors_from_rubric`
+        // guard is now defense-in-depth behind that load-time validation, so this test
+        // builds a `Rubric` struct literal directly (bypassing the loader) to still
+        // exercise the guard itself.
+        use gmeow_slice_quality::model::SliceTierFloorCommitment;
+
+        let rubric = Rubric {
+            tiers: vec![Tier {
+                iri: format!("{NS}tierRegistered"),
+                label: "Registered".to_owned(),
+                rank: 0,
+            }],
+            axes: Vec::new(),
+            exemptions: Vec::new(),
+            commitments: Vec::new(),
+            tier_floors: vec![SliceTierFloorCommitment {
+                slice: format!("{NS}sliceX"),
+                tier: format!("{NS}tierBogus"),
+            }],
+        };
         let err = tier_floors_from_rubric(&rubric).unwrap_err();
         assert!(err.message().contains("tierBogus"), "names the tier: {err}");
         assert!(
@@ -1327,7 +1389,7 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
             0.80_f64,
         );
         assert_eq!(
-            axis_floor_for(&map, "ex:slice", "axisProseQuality", false),
+            axis_floor_for(&map, "ex:slice", "axisProseQuality", false).unwrap(),
             Some(0.80),
             "an explicit non-GMN1 floor is resolved even off a grounding slice"
         );
@@ -1345,19 +1407,57 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
         // default is applied to NO other axis, even on a grounding slice.
         let empty = std::collections::BTreeMap::new();
         assert_eq!(
-            axis_floor_for(&empty, "ex:slice", AXIS_GMN1_COVERAGE, true),
+            axis_floor_for(&empty, "ex:slice", AXIS_GMN1_COVERAGE, true).unwrap(),
             Some(1.0),
             "grounding GMN1 defaults to 1.0"
         );
         assert_eq!(
-            axis_floor_for(&empty, "ex:slice", AXIS_GMN1_COVERAGE, false),
+            axis_floor_for(&empty, "ex:slice", AXIS_GMN1_COVERAGE, false).unwrap(),
             None,
             "non-grounding GMN1 with no commitment is unfloored"
         );
         assert_eq!(
-            axis_floor_for(&empty, "ex:slice", "axisProseQuality", true),
+            axis_floor_for(&empty, "ex:slice", "axisProseQuality", true).unwrap(),
             None,
             "the 1.0 default is GMN1-only, never any other axis"
+        );
+    }
+
+    #[test]
+    fn grounding_gmn1_sub_one_floor_hard_fails() {
+        // A grounding slice's axisGmn1Coverage floor is definitionally 1.0; an
+        // explicit commitment BELOW 1.0 contradicts that definition and must
+        // hard-fail (.goals no-optionality), never be silently clamped up.
+        let mut map = std::collections::BTreeMap::new();
+        map.insert(
+            ("ex:slice".to_owned(), AXIS_GMN1_COVERAGE.to_owned()),
+            0.9_f64,
+        );
+        let err = axis_floor_for(&map, "ex:slice", AXIS_GMN1_COVERAGE, true).unwrap_err();
+        assert!(
+            err.message().contains("grounding") && err.message().contains("1.0"),
+            "names the grounding contradiction and the definitional 1.0: {err}"
+        );
+
+        // Positive control: an explicit commitment that RESTATES 1.0 is accepted,
+        // not treated as a contradiction.
+        let mut map_one = std::collections::BTreeMap::new();
+        map_one.insert(
+            ("ex:slice".to_owned(), AXIS_GMN1_COVERAGE.to_owned()),
+            1.0_f64,
+        );
+        assert_eq!(
+            axis_floor_for(&map_one, "ex:slice", AXIS_GMN1_COVERAGE, true).unwrap(),
+            Some(1.0),
+            "an explicit 1.0 grounding commitment restates, not undercuts, the default"
+        );
+
+        // The guard is grounding-only: the SAME sub-1.0 commitment on a
+        // non-grounding slice loads fine — no hard fail.
+        assert_eq!(
+            axis_floor_for(&map, "ex:slice", AXIS_GMN1_COVERAGE, false).unwrap(),
+            Some(0.9),
+            "a sub-1.0 GMN1 floor on a non-grounding slice is not a contradiction"
         );
     }
 
@@ -1370,11 +1470,11 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
         map.insert((s.clone(), "axisProseQuality".to_owned()), 0.80_f64);
         map.insert((s.clone(), "axisLinkageCalculus".to_owned()), 0.60_f64);
         assert_eq!(
-            axis_floor_for(&map, &s, "axisProseQuality", false),
+            axis_floor_for(&map, &s, "axisProseQuality", false).unwrap(),
             Some(0.80)
         );
         assert_eq!(
-            axis_floor_for(&map, &s, "axisLinkageCalculus", false),
+            axis_floor_for(&map, &s, "axisLinkageCalculus", false).unwrap(),
             Some(0.60)
         );
         // Independent verdicts: prose below its floor fails, linkage above its passes.
