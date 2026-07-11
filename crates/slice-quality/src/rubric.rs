@@ -241,6 +241,15 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
         let axis = floor_axis_p
             .and_then(|p| one_iri(ds, sid, p))
             .ok_or_else(|| rubric_err(format!("floor commitment {iri} has no gmeow:floorAxis")))?;
+        // Every floor commitment must name a REAL loaded axis — an unknown
+        // gmeow:floorAxis (e.g. a typo) would otherwise load cleanly and then
+        // silently never gate anything, leaving the ratchet dead
+        // (.goals no-optionality; mirrors the exemptsAxis check above).
+        if !axes.iter().any(|a| a.iri == axis) {
+            return Err(rubric_err(format!(
+                "floor commitment {iri} floors unknown axis {axis} (no such gmeow:QualityAxis in the rubric)"
+            )));
+        }
         if !seen_floor_keys.insert((slice.clone(), axis.clone())) {
             return Err(rubric_err(format!(
                 "duplicate gmeow:AxisFloorCommitment for slice {slice} axis {axis} ({iri}) — \
@@ -292,6 +301,15 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
         let tier = floor_tier_p
             .and_then(|p| one_iri(ds, sid, p))
             .ok_or_else(|| rubric_err(format!("tier floor {iri} has no gmeow:floorTier")))?;
+        // Every tier floor must name a REAL loaded tier — an unknown
+        // gmeow:floorTier would otherwise load cleanly and then silently never
+        // gate anything, leaving the ratchet dead (.goals no-optionality;
+        // mirrors the axis-threshold tier check above).
+        if !tiers.iter().any(|t| t.iri == tier) {
+            return Err(rubric_err(format!(
+                "tier floor {iri} names unknown tier {tier} (no such gmeow:QualityTier in the rubric ladder)"
+            )));
+        }
         tier_floors.push((iri, SliceTierFloorCommitment { slice, tier }));
     }
     tier_floors.sort_by(|a, b| a.0.cmp(&b.0));
@@ -536,6 +554,43 @@ gmeow:thrFoo a gmeow:AxisThreshold ;
         ))
         .unwrap_err();
         assert!(err.message().contains("no gmeow:floorAxis"), "{err}");
+    }
+
+    #[test]
+    fn axis_floor_commitment_unknown_axis_hard_fails() {
+        // A floor commitment naming an axis the rubric never loaded (a typo'd
+        // gmeow:floorAxis) must hard-fail — otherwise it loads cleanly and then
+        // silently never gates anything, leaving the ratchet dead.
+        let err = load(&rubric_with(
+            r#"gmeow:floorFooGrounding a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisNope ;
+    gmeow:floorValue 0.5 ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("unknown axis"), "{err}");
+        assert!(
+            err.message().contains("axisNope"),
+            "names the offending axis: {err}"
+        );
+    }
+
+    #[test]
+    fn slice_tier_floor_unknown_tier_hard_fails() {
+        // A tier floor naming a tier the rubric ladder never loaded (a typo'd
+        // gmeow:floorTier) must hard-fail — otherwise it loads cleanly and then
+        // silently never gates anything, leaving the ratchet dead.
+        let err = load(&rubric_with(
+            r#"gmeow:tierFloorFoo a gmeow:SliceTierFloor ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorTier gmeow:tierNope ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("unknown tier"), "{err}");
+        assert!(
+            err.message().contains("tierNope"),
+            "names the offending tier: {err}"
+        );
     }
 
     #[test]
