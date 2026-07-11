@@ -500,6 +500,25 @@ pub enum Commands {
     /// Enforce the opt-in slice-quality tier ratchet (a `make check` gate).
     #[command(name = "slice-quality-gate")]
     SliceQualityGate,
+    /// Emit `gmeow:AxisFloorCommitment` TTL for the live measured scores, so a human
+    /// can seed a NEW axis's floors at the actual measurement and paste them into
+    /// `slices/core/slice-quality-rubric/module.ttl`. ONE-SHOT per axis: this seeds a
+    /// new axis's floors ONCE — re-running to "refresh" an already-floored axis is
+    /// forbidden (a dropped score would red monotonicity; a risen score would silently
+    /// ratchet the floor up = banned auto-calibration). Raise a floor later only by a
+    /// deliberate hand-edit of the individual, never a seeder re-run. Emit-only: the
+    /// TTL goes to stdout for the human to commit.
+    #[command(name = "slice-quality-seed-floors")]
+    SliceQualitySeedFloors {
+        /// Seed exactly one named rubric axis (its IRI local name, e.g.
+        /// axisShapeMigration). Exactly one of --axis / --all-axes is required.
+        #[arg(long = "axis")]
+        axis: Option<String>,
+        /// Seed every rubric axis that lacks a committed floor for a given slice.
+        /// Exactly one of --axis / --all-axes is required.
+        #[arg(long = "all-axes")]
+        all_axes: bool,
+    },
     /// Propose manifest dependency edits as a reviewable unified diff.
     #[command(name = "slice-fix-deps")]
     SliceFixDeps {
@@ -925,6 +944,9 @@ pub fn run() -> i32 {
             diagnostics_category.as_deref(),
         ),
         Commands::SliceQualityGate => dev_slice_quality::slice_quality_gate(),
+        Commands::SliceQualitySeedFloors { axis, all_axes } => {
+            dev_slice_quality::slice_quality_seed_floors(axis.as_deref(), all_axes)
+        }
         Commands::SliceFixDeps { apply, slices_dir } => {
             dev_feedback::slice_fix_deps(apply, slices_dir.as_deref())
         }
