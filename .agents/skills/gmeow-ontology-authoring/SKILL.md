@@ -45,7 +45,7 @@ resources in the current slices-first, Rust-native repository.
      unless the user explicitly scopes work to the legacy migration path.
    - A slice still shipping a hand-authored `shapes.ttl` (or contributing to a
      root `shapes/*.ttl`) carries per-slice migration debt, surfaced by the
-     `slice-quality.projection.hand-authored-shapes` advisory. Discharge it by
+     `slice-quality.projection.ungrounded-shape` advisory. Discharge it by
      re-expressing each shape as a `logic:Constraint` / OWL axiom in `module.ttl`
      that PROJECTS to `generated/shapes/*`, proving parity, then retiring the
      hand-authored file — the exact procedure in
@@ -164,6 +164,25 @@ resources in the current slices-first, Rust-native repository.
   naming its canonical `logic:` source — the form the blanket projection-purity gate
   legalizes. `docs/SLICE_GUIDE.md` §9 is the reference.
 
+  The axis (`axisShapeMigration`) climbs the ladder Grounded `0.60` / Linked `0.75` /
+  Exemplified `0.85` / Maximal `0.95`, and each slice is floor-gated at its own committed
+  score with **monotonic non-regression** — the gate forbids the measured score falling below
+  the committed floor, it does not force ascent. The floor is **ontology-resident**: a
+  `gmeow:AxisFloorCommitment` individual (`gmeow:floorSlice` / `gmeow:floorAxis` /
+  `gmeow:floorValue`) authored in `slices/core/slice-quality-rubric/module.ttl`, projected
+  **read-only** to `generated/governance/slice-quality-axis-floors.tsv` (never hand-edit the
+  TSV — it is a generated projection). Raising a committed floor is a deliberate hand-edit of
+  that individual (raise-only, hard-fail-enforced), made once the measured score has genuinely
+  risen — never bump it ahead of a real uplift. To seed a not-yet-floored axis, emit its
+  commitment at the live measured score and paste it into the rubric `module.ttl`:
+
+  ```bash
+  gmeow-dev slice-quality-seed-floors --axis axisShapeMigration   # or --all-axes
+  ```
+
+  The seeder is emit-only and one-shot per axis: it refuses to lower an already-committed
+  floor, so re-running it never regresses a guarantee.
+
 - **Raise the slice's GMN-1 coverage (touch this whenever you extend a slice's vocabulary)**:
   The **GMN-1 Coverage** slice-quality axis (`axisGmn1Coverage`) reports the fraction of a
   slice's own GMN-0 normal-form vocabulary (`module.ttl` + `examples/*.ttl`) the GMN-1 codec
@@ -171,9 +190,11 @@ resources in the current slices-first, Rust-native repository.
   (`slice-quality.gmn1-coverage.uncovered`). It realizes `gmeow:gmnCorrNormalToGmn`'s
   `logic:mnemomorphic true` claim, whose declared domain is ALL of GMN-0: the grounding
   slices (`slices/grounding/{logic,lang,math}`) are hard-gated at a committed floor of `1.0`;
-  every other slice is floor-gated at its own committed score in
-  `governance/slice-quality-axis-floors.tsv`, with **monotonic non-regression** — the gate
-  forbids falling below the committed floor, it does not force ascent toward `1.0`.
+  every other slice is floor-gated at its own committed score — an **ontology-resident**
+  `gmeow:AxisFloorCommitment` individual authored in
+  `slices/core/slice-quality-rubric/module.ttl` (projected read-only to
+  `generated/governance/slice-quality-axis-floors.tsv`), with **monotonic non-regression** —
+  the gate forbids falling below the committed floor, it does not force ascent toward `1.0`.
 
   ```bash
   gmeow-dev slice-quality slices/<g>/<s>      # names every uncovered GMN-0 quad
@@ -182,9 +203,11 @@ resources in the current slices-first, Rust-native repository.
 
   Round-trip each named construct by extending the codec's covered fragment, or file a
   named codec-coverage gap against `LANG-GMN.md` if it is genuinely out of scope. Raising this
-  slice's committed floor in `governance/slice-quality-axis-floors.tsv` is a separate,
-  deliberate commit made once the measured score has genuinely risen — never bump the floor
-  ahead of a real uplift.
+  slice's committed floor — the `gmeow:AxisFloorCommitment` individual in the rubric slice's
+  `module.ttl` (projected read-only to `generated/governance/slice-quality-axis-floors.tsv`),
+  seedable at the live score with `gmeow-dev slice-quality-seed-floors --axis axisGmn1Coverage`
+  — is a separate, deliberate hand-edit made once the measured score has genuinely risen —
+  never bump the floor ahead of a real uplift.
 
 - **Run ontology reasoning and verification**:
 

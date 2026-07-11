@@ -134,16 +134,28 @@ authority for why the top row is the right next move.
 ## 5. Ratchet the floor
 
 When a slice GENUINELY reaches a higher tier (measured, not hoped-for), pin the new
-guarantee in the SAME PR:
+guarantee in the SAME PR. Both floor levels are now **ontology-resident individuals**
+authored in the rubric slice's `module.ttl`
+(`slices/core/slice-quality-rubric/module.ttl`) and projected **read-only** to the
+`generated/governance/…` TSVs — you edit the ontology individual, never the generated TSV:
 
-- Add an **additive** line to
-  [`governance/slice-quality-floors.tsv`](../../../governance/slice-quality-floors.tsv)
-  (format `<slice-iri>\t<tier-local-name>`). An addition is always allowed and
-  touches its own line only, so merge contention is near-zero.
-- Also mind the per-axis ratchet file
-  [`governance/slice-quality-axis-floors.tsv`](../../../governance/slice-quality-axis-floors.tsv)
-  (format `<slice-iri>\t<axis-local-name>\t<floor:f64>`), e.g. when you raise a
-  slice's measured `axisGmn1Coverage`.
+- Mint (or raise) the per-slice roll-up **tier** floor as a `gmeow:SliceTierFloor`
+  individual (`gmeow:floorSlice` + `gmeow:floorTier`), projected read-only to
+  `generated/governance/slice-quality-floors.tsv`. Adding a new commitment touches its own
+  individual only, so merge contention is near-zero.
+- Mind the per-axis **score** floor: a `gmeow:AxisFloorCommitment` individual
+  (`gmeow:floorSlice` + `gmeow:floorAxis` + `gmeow:floorValue`), projected read-only to
+  `generated/governance/slice-quality-axis-floors.tsv` — raised whenever any axis's measured
+  score genuinely rises (e.g. `axisGmn1Coverage`, or the shape-grounding axis
+  `axisShapeMigration`). The floor mechanics are axis-general — the same individual shape
+  guards every axis. To seed a not-yet-floored axis at its live measured score, emit its
+  commitment and paste it into the rubric `module.ttl` (emit-only, one-shot per axis, refuses
+  to lower an already-committed floor):
+
+  ```bash
+  gmeow-dev slice-quality-seed-floors --axis axisShapeMigration   # any axis-local; or --all-axes
+  ```
+
 - **Raise-only, never ahead of a real uplift.** This is now hard-fail-enforced, not a
   reviewer promise, by two distinct gate layers — keep them straight
   (mirrored from `crates/slice-quality/src/gate.rs`):
