@@ -538,6 +538,154 @@ fn mapping_dsl_shacl_runs_in_orchestration() {
     );
 }
 
+/// Build a single minimal-but-otherwise-complete `gmeow:DeclinedCorrespondence` Turtle
+/// record, varying the two fields whose guards this test isolates: the
+/// `gmeow:declinedTarget` label and whether `gmeow:probeVerdict` is present.
+///
+/// Every other field required by `gmeow:DeclinedCorrespondenceShape`
+/// (`shapes/mapping-dsl-shapes.ttl`) is populated so a violation can be attributed
+/// unambiguously to the field under test.
+fn declined_correspondence_fixture(target: &str, include_probe_verdict: bool) -> String {
+    let probe_verdict_triple = if include_probe_verdict {
+        "gmeow:probeVerdict \"2026-01-01: fixture probe finding.\" ;\n"
+    } else {
+        ""
+    };
+    format!(
+        "@prefix gmeow: <{NS}> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .\n\
+         @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         gmeow:testDeclinedFixture a gmeow:DeclinedCorrespondence ;\n\
+           rdfs:label \"test decline fixture\" ;\n\
+           gmeow:declinedTarget \"{target}\" ;\n\
+           gmeow:intendedRelation skos:closeMatch ;\n\
+           gmeow:declineRationale \"Fixture rationale for the SHACL teeth test.\" ;\n\
+           gmeow:candidateNamespace \"https://example.org/fixture-probe\" ;\n\
+           {probe_verdict_triple}\
+           gmeow:revisitCondition \"Bridge iff a fixture condition holds.\" ;\n\
+           gmeow:contentCarriedBy gmeow:AffectVectorObservation ;\n\
+           logic:preservationKind logic:Unsupported .\n"
+    )
+}
+
+/// Extract the verbatim `gmeow:DeclinedCorrespondenceShape` node-shape block out of the
+/// full `shapes/mapping-dsl-shapes.ttl` text, prefixed with the file's own `@prefix`
+/// header.
+///
+/// The full file also carries `gmeow:MappingDslVocabularyTermShape`, whose
+/// `sh:target`/`sh:select` `SPARQLTarget` matches *any* `owl:Ontology`/`owl:Class`/etc.
+/// subject in the gmeow namespace (by `STRSTARTS(STR(?this), ".../gmeow/")`) — including
+/// the affect slice's OWN ontology header in `declined-bridges.ttl` — and demands an
+/// `rdfs:isDefinedBy <.../mapping-dsl>` that only real `dsl/mappings/vocabulary.ttl`
+/// terms carry. That is a pre-existing scoping property of a DIFFERENT, unrelated shape
+/// (it only causes no harm in production because the real mapping-DSL SHACL phase only
+/// ever loads `dsl/mappings/**/*.ttl`, never slice-local mapping files together with it).
+/// Extracting just the shape under test keeps this test exercising the REAL, unmodified
+/// `gmeow:DeclinedCorrespondenceShape` text without also tripping that unrelated shape.
+fn extract_declined_correspondence_shape_ttl(shapes_ttl: &str) -> String {
+    let prefixes: String = shapes_ttl
+        .lines()
+        .take_while(|line| line.starts_with("@prefix") || line.trim().is_empty())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let start = shapes_ttl.find("gmeow:DeclinedCorrespondenceShape").expect(
+        "gmeow:DeclinedCorrespondenceShape must be present in shapes/mapping-dsl-shapes.ttl",
+    );
+    let rest = &shapes_ttl[start..];
+    let end = rest.find("gmeow:ProjectionMappingShape").expect(
+        "gmeow:ProjectionMappingShape must still follow DeclinedCorrespondenceShape in \
+         shapes/mapping-dsl-shapes.ttl — update this extraction if the shapes file is \
+         reordered",
+    );
+    let shape_block = rest[..end].trim_end();
+
+    format!("{prefixes}\n\n{shape_block}\n")
+}
+
+/// Exercises the REAL `gmeow:DeclinedCorrespondenceShape` (`shapes/mapping-dsl-shapes.ttl`)
+/// directly through the native SHACL engine — not the `ex:MappingShape` placeholder that
+/// `mapping_dsl_shacl_runs_in_orchestration` uses.
+///
+/// POSITIVE: the real `slices/core/affect/mappings/declined-bridges.ttl` ledger must
+/// conform. NEGATIVE: a bare-acronym `"EFO"` target, a URI-shaped target, and a record
+/// missing `gmeow:probeVerdict` must each trip a violation — proving the shape's guards
+/// have teeth on data, independent of whether any production gate wires the shape in.
+#[test]
+fn declined_correspondence_shape_has_teeth() {
+    use gmeow_validate::store::{parse_file_dataset, shacl_validate_dataset};
+
+    let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("crates/validate/../.. must resolve to the repo root");
+
+    let shapes_path = repo_root.join("shapes/mapping-dsl-shapes.ttl");
+    let full_shapes_ttl = std::fs::read_to_string(&shapes_path)
+        .expect("shapes/mapping-dsl-shapes.ttl must be readable");
+    let shapes_ttl = extract_declined_correspondence_shape_ttl(&full_shapes_ttl);
+    // `parse_shapes` (not `shapes::from_dataset`) recovers the document's `@prefix` map,
+    // the same entrypoint `crates/validate/src/dsl_shacl.rs::validate_dsl` uses for the
+    // mapping-DSL SHACL phase (phase 11) in the real orchestration.
+    let shapes = purrdf::shapes::engine::parse_shapes(&shapes_ttl)
+        .expect("the extracted DeclinedCorrespondenceShape text must parse as SHACL shapes");
+
+    // POSITIVE: the real declined-bridge ledger conforms to the real shape.
+    let ledger_path = repo_root.join("slices/core/affect/mappings/declined-bridges.ttl");
+    let ledger_dataset = parse_file_dataset(&ledger_path).expect("declined-bridges.ttl must parse");
+    let ledger_report = shacl_validate_dataset(&ledger_dataset, &shapes);
+    assert!(
+        ledger_report.conforms,
+        "the real declined-bridges.ttl ledger must conform to the real \
+         DeclinedCorrespondenceShape: {:?}",
+        ledger_report
+            .results
+            .iter()
+            .map(|r| r.message.clone())
+            .collect::<Vec<_>>()
+    );
+
+    // NEGATIVE (a): bare acronym "EFO" — must collide with the \bEFO\b guard.
+    let efo_ttl = declined_correspondence_fixture("EFO", true);
+    let efo_path = write_tmp("gmeow_validate_declined_efo.ttl", &efo_ttl);
+    let efo_dataset = parse_file_dataset(&efo_path).expect("EFO fixture must parse");
+    let efo_report = shacl_validate_dataset(&efo_dataset, &shapes);
+    std::fs::remove_file(&efo_path).ok();
+    assert!(
+        !efo_report.conforms,
+        "a declinedTarget of bare \"EFO\" must violate DeclinedCorrespondenceShape"
+    );
+
+    // NEGATIVE (b): a URI-shaped target — must collide with the ^https?:// guard.
+    let uri_ttl = declined_correspondence_fixture("http://dead.example/term", true);
+    let uri_path = write_tmp("gmeow_validate_declined_uri.ttl", &uri_ttl);
+    let uri_dataset = parse_file_dataset(&uri_path).expect("URI fixture must parse");
+    let uri_report = shacl_validate_dataset(&uri_dataset, &shapes);
+    std::fs::remove_file(&uri_path).ok();
+    assert!(
+        !uri_report.conforms,
+        "a declinedTarget shaped as a URI must violate DeclinedCorrespondenceShape"
+    );
+
+    // NEGATIVE (c): omit gmeow:probeVerdict — must collide with the minCount 1 guard.
+    let missing_probe_ttl =
+        declined_correspondence_fixture("Otherwise Complete Fixture Target", false);
+    let missing_probe_path = write_tmp(
+        "gmeow_validate_declined_missing_probe.ttl",
+        &missing_probe_ttl,
+    );
+    let missing_probe_dataset =
+        parse_file_dataset(&missing_probe_path).expect("missing-probeVerdict fixture must parse");
+    let missing_probe_report = shacl_validate_dataset(&missing_probe_dataset, &shapes);
+    std::fs::remove_file(&missing_probe_path).ok();
+    assert!(
+        !missing_probe_report.conforms,
+        "a DeclinedCorrespondence missing gmeow:probeVerdict must violate \
+         DeclinedCorrespondenceShape"
+    );
+}
+
 #[test]
 fn statement_dsl_shacl_runs_in_orchestration() {
     let ttl = format!(

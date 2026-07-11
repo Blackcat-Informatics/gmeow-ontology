@@ -158,3 +158,13 @@ ex:cqDeclinedCoverageWitness a gmeow:CompetencyQuestion ;
     gmeow:cqDataFile "mappings/declined-bridges.ttl" ;
     gmeow:cqRationale "A decline is only safe if the external vocabulary's distinctions are carried in-slice; gmeow:contentCarriedBy names that positive witness. The ASK holds iff every witness resolves to an in-slice term (is the subject of some triple in the merged graph), so the coverage claim cannot rot into a dangling reference." ;
     gmeow:cqExpectAsk true .
+
+# The decline record's own structural contract must hold, on the production gate.
+# shapes/mapping-dsl-shapes.ttl's gmeow:DeclinedCorrespondenceShape guards this same
+# contract, but that SHACL shape runs on no production validation gate; this ASK moves
+# it onto the on-gate competency surface.
+ex:cqDeclinedIntegrity a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/declined-integrity.rq" ;
+    gmeow:cqDataFile "mappings/declined-bridges.ttl" ;
+    gmeow:cqRationale "Moves the DeclinedCorrespondence structural contract — every required field present, target never a URI or the bare acronym EFO — onto the on-gate production surface, so a decline that drops probeVerdict/candidateNamespace/revisitCondition/intendedRelation/contentCarriedBy/rationale or regresses its target reds make check." ;
+    gmeow:cqExpectAsk true .
