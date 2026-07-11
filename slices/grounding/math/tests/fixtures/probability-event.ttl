@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the probability-layer competency question "event a probability is
+# about". A framed probability value assigned to a math:ProbabilityEvent (a measurable
+# SET OF OUTCOMES) through math:probabilityOfEvent, the event situated in its space.
+# Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:rainProb a math:ProbabilityValue .
+ex:rainEvent a math:ProbabilityEvent ;
+    math:probabilityOfEvent ex:rainProb ;
+    math:eventInSpace ex:forecastSpace .
+ex:forecastSpace a math:ProbabilitySpace ;
+    math:sampleSpace ex:weatherOutcomes ;
+    math:eventSigmaAlgebra ex:weatherAlg ;
+    math:probabilityMeasure ex:forecastMeasure .
+ex:weatherOutcomes a math:SampleSpace .
+ex:weatherAlg a math:PowerSetSigmaAlgebra .
+ex:forecastMeasure a math:ProbabilityMeasure .

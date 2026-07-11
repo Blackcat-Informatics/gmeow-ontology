@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the probability-layer competency question "random variable +
+# distribution + dimensional consistency". A height random variable carrying its
+# math:hasDimension (length), following a normal math:Distribution whose location
+# (mean) parameter's quantity carries the SAME dimension — so the dimensional-
+# consistency flag the query computes is "true". Unioned onto the merged ontology by
+# gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:heightRV a math:RandomVariable ;
+    math:randomVariableDomain ex:popSpace ;
+    math:randomVariableCodomain ex:realCodomain ;
+    math:hasDistribution ex:heightDist ;
+    math:hasDimension ex:lengthDim .
+ex:popSpace a math:ProbabilitySpace ;
+    math:sampleSpace ex:popOutcomes ;
+    math:eventSigmaAlgebra ex:popAlg ;
+    math:probabilityMeasure ex:popMeasure .
+ex:popOutcomes a math:SampleSpace .
+ex:popAlg a math:BorelSigmaAlgebra .
+ex:popMeasure a math:ProbabilityMeasure .
+ex:realCodomain a math:MeasurableSpace .
+
+ex:heightDist a math:Distribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParam ;
+    math:hasDistributionParameter ex:muParam .
+ex:normalFamily a math:DistributionFamily .
+ex:meanStddevParam a math:DistributionParameterization .
+ex:muParam a math:DistributionParameter ;
+    math:parameterRole ex:meanRole ;
+    math:parameterQuantity ex:muQty .
+ex:meanRole a math:DistributionParameterRole ;
+    math:roleWithinParameterization ex:meanStddevParam ;
+    math:quantityDimension math:sameAsRandomVariableDimension .
+# The location parameter's quantity carries the SAME dimension as the random variable.
+ex:muQty a gmeow:Quantity ;
+    math:hasDimension ex:lengthDim .
+ex:lengthDim a math:Dimension .

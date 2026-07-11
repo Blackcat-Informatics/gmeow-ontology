@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the probability-layer competency question "probability model for a
+# reasoning request + its logic: lowering + preservation". It carries a REAL A-box
+# triple ?request logic:probabilityModel ?model, where ?model is a math: dependency
+# model (a math:BayesianNetwork). The math:BayesianNetwork class declares its logic:
+# lowering (math:probabilityModelLowering → logic:DependencyModel) and its preservation
+# polarity (logic:preservationKind logic:ExactPreservation) in the merged ontology, so
+# the seam is live end-to-end via the logic:probabilityModel predicate. Unioned onto
+# the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The reasoning request (a world) declares the probability model governing its inference.
+ex:bnQuery a logic:World ;
+    logic:probabilityModel ex:sprinklerNet .
+
+# The declared model is a math: dependency model that lowers into logic:.
+ex:sprinklerNet a math:BayesianNetwork ;
+    math:dependencyGraph ex:sprinklerDag .
+ex:sprinklerDag a math:MathematicalObject .
