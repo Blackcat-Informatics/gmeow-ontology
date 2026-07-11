@@ -42,17 +42,17 @@ status. Competing analyses of one surface are held co-resident and non-collapsin
 
 ## The design set
 
-| Charter | Contents |
-|---|---|
-| [`LANG.md`](design/LANG.md) | manifesto — the third grounding layer, doctrine, and lineage |
-| [`LANG-FORMS.md`](design/LANG-FORMS.md) | **this slice** — the sign-system reference layer and the typed form AST |
-| [`LANG-MEANING.md`](design/LANG-MEANING.md) | sense, reference, the denotation bridge into `logic:` |
-| [`LANG-TRANSLATION.md`](design/LANG-TRANSLATION.md) | rendering, translation, and paraphrase |
-| [`LANG-GMN.md`](design/LANG-GMN.md) | GMN — the token-compact model-notation dialect ladder and its contracts |
-| [`LANG-PROJECTIONS.md`](design/LANG-PROJECTIONS.md) | the generated lossy lowerings + loss ledger |
-| [`LANG-RUNTIME.md`](design/LANG-RUNTIME.md) | ingestion, content-addressed interning, engine handoff |
-| [`LANG-CONFORMANCE.md`](design/LANG-CONFORMANCE.md) | the gate matrix and failure classes |
-| [`LANG-REFERENCES.md`](design/LANG-REFERENCES.md) | the classified external survey |
+| Document | Genre | Realized state | Contents |
+|---|---|---|---|
+| [`LANG.md`](design/LANG.md) | manifesto | realized | the third grounding layer, doctrine, and lineage |
+| [`LANG-FORMS.md`](design/LANG-FORMS.md) | charter | realized (**this slice** — module.ttl + shapes.ttl) | the sign-system reference layer and the typed form AST |
+| [`LANG-MEANING.md`](design/LANG-MEANING.md) | charter | realized | sense, reference, the denotation bridge into `logic:` |
+| [`LANG-TRANSLATION.md`](design/LANG-TRANSLATION.md) | charter | realized (`lang:Rendering`, `lang:RenderingRecordShape`) | rendering, translation, and paraphrase |
+| [`LANG-GMN.md`](design/LANG-GMN.md) | charter | partial — the qualifier vocabulary, cost razor, and GMN-1 codec (`crates/lang-bridge/src/gmn1_codec.rs`) are realized; the doc's own note that no marker yet qualifies under the ambiguity-elimination razor half stands | GMN — the token-compact model-notation dialect ladder and its contracts |
+| [`LANG-PROJECTIONS.md`](design/LANG-PROJECTIONS.md) | contract | realized (`crates/lang-bridge/src/{ontolex,nif,conllu}.rs`, loss-ledger counter-examples) | the generated lossy lowerings + loss ledger |
+| [`LANG-RUNTIME.md`](design/LANG-RUNTIME.md) | runtime | realized (`crates/lang-form/src/intern.rs`, `crates/lang-bridge/src/{conllu,plain_text,engine}.rs`) | ingestion, content-addressed interning, engine handoff |
+| [`LANG-CONFORMANCE.md`](design/LANG-CONFORMANCE.md) | contract | realized (41 conformance fixtures, 56 counter-examples) | the gate matrix and failure classes |
+| [`LANG-REFERENCES.md`](design/LANG-REFERENCES.md) | appendix | realized (`mappings/equivalences.ttl`) | the classified external survey |
 
 ## Hard rules → gates → failure classes
 

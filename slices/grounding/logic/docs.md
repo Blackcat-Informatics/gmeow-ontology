@@ -32,21 +32,21 @@ is a generated lossy projection of `logic:`, not its ground.
 The design is split by genre into documents under [`design/`](./design/), so it can be
 implemented against rather than only read:
 
-| Document | Genre | Contents |
-| --- | --- | --- |
-| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | vision, doctrine, lineage |
-| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
-| [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
-| [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
-| [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
-| [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
-| [`design/LOGIC-TELEOLOGY.md`](./design/LOGIC-TELEOLOGY.md) | goal/action layer | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
-| [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
-| [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts |
-| [`design/LOGIC-CONFORMANCE.md`](./design/LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
-| [`design/LOGIC-SHACL-AF.md`](./design/LOGIC-SHACL-AF.md) | computation surface | derivation/aggregation (map/reduce) authored as canonical `logic:` rules and projected to a SHACL-AF `sh:SPARQLRule` surface — computation added to the canon and emitted, never bolted onto SHACL; the projectable fragment, the declared exit loss, and the placement/purity rule |
-| [`design/LOGIC-RDFQUERY.md`](./design/LOGIC-RDFQUERY.md) | query surface | RDFQuery framed as a front-end that parses into `logic:` (which already projects out to SPARQL/SHACL/N3/OWL), not a stack bolted onto SPARQL; P15-gated, language not committed, with the named first consumer |
-| [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
+| Document | Genre | Realized state | Contents |
+| --- | --- | --- | --- |
+| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | realized | vision, doctrine, lineage |
+| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | realized (a few named engine-selection strategies not yet engine-backed) | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
+| [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | realized | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
+| [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | realized (`crates/logic-compile`) | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
+| [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | realized | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
+| [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md) | state change | realized (incl. `logic:SerializationAnomaly` non-serializable-schedule findings) | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
+| [`design/LOGIC-TELEOLOGY.md`](./design/LOGIC-TELEOLOGY.md) | goal/action layer | realized (`crates/logic/src/teleology`) | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
+| [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | realized | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
+| [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | realized | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts |
+| [`design/LOGIC-CONFORMANCE.md`](./design/LOGIC-CONFORMANCE.md) | contract | realized (`conformance/logic/cases/*`, `generated/logic/projection-report.ttl`) | the conformance corpus and the loss-ledger preservation contract |
+| [`design/LOGIC-SHACL-AF.md`](./design/LOGIC-SHACL-AF.md) | computation surface | realized (`crates/logic-compile/src/projections/shacl_af.rs`) | derivation/aggregation (map/reduce) authored as canonical `logic:` rules and projected to a SHACL-AF `sh:SPARQLRule` surface — computation added to the canon and emitted, never bolted onto SHACL; the projectable fragment, the declared exit loss, and the placement/purity rule |
+| [`design/LOGIC-RDFQUERY.md`](./design/LOGIC-RDFQUERY.md) | query surface | **design-only** — self-declared "design, P15-gated, language not committed"; no parser or grammar is authored yet | RDFQuery framed as a front-end that parses into `logic:` (which already projects out to SPARQL/SHACL/N3/OWL), not a stack bolted onto SPARQL; P15-gated, language not committed, with the named first consumer |
+| [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | realized (`metadata/references.ttl`) | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
 ## What it commits to
 
