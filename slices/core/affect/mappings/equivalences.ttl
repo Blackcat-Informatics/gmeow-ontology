@@ -11,12 +11,16 @@
 # items are XML `name` attributes with no per-term IRI, so nothing finer is honest).
 # EmotionML is ALSO emitted as a lossy XML projection of the affect category and
 # dimension vocabularies (recorded in the projection loss ledger, many-to-one).
-# WordNet-Affect, the Emotion Frame Ontology, and Ithkuil carry NO resolvable
-# per-term RDF surface — the Princeton WordNet-Affect RDF export is defunct, the
-# Emotion Frame Ontology's term IRIs do not dereference, and Ithkuil is a reference
-# inventory, not a namespace authority — so a correspondence against them would
-# fabricate a link to a dead IRI; they are bridged only if a verifiable namespace
-# ever exists (their axis/category content is already carried, modeled up, in-slice).
+# The WordNet lexical layer IS bridged, by reference to Open English WordNet — its
+# per-synset IRIs content-negotiate to OntoLex-Lemon RDF, so each canonical emotion type
+# closeMatches its noun.feeling synset (below). That is the live successor to the defunct
+# Princeton WordNet-Affect *affective-label* export, whose categorical content is carried,
+# modeled up, in-slice. The Emotion Frame Ontology and Ithkuil carry NO resolvable per-term
+# RDF surface — the Emotion Frame Ontology's term IRIs do not dereference and Ithkuil is a
+# reference inventory, not a namespace authority — so a correspondence against them would
+# fabricate a link to a dead IRI. Rather than leave that as an implicit comment, each is a
+# reviewable gmeow:DeclinedCorrespondence in mappings/declined-bridges.ttl, carrying its
+# rationale, a revisit condition, and logic:preservationKind logic:Unsupported.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix gmeow-goemotions: <https://blackcatinformatics.ca/gmeow-registry/goemotions/> .
@@ -28,6 +32,7 @@
 @prefix bfo: <http://purl.obolibrary.org/obo/> .
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix emo: <https://www.w3.org/TR/emotion-voc/#> .
+@prefix oewn: <https://en-word.net/id/oewn-> .
 
 # ── Classifier registries → canonical GMEOW (closeMatch, never == ) ────────────
 # GoEmotions labels are annotation categories over Reddit comments, not guaranteed
@@ -196,3 +201,35 @@ gmeow:eqAffect036 a gmeow:TermEquivalence ;
 gmeow:eqAffect037 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:AppraisalDimension ; gmeow:alignPredicate skos:relatedMatch ; gmeow:alignObject emo:scherer-appraisals ;
     gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.6 ; gmeow:comment "the gmeow cognitive appraisal axes (novelty, goal-relevance, coping, norm-compatibility, …) relate to EmotionML's Scherer appraisal set — set-level, the appraisal-family analogue" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+# ── Open English WordNet — OntoLex-Lemon lexical bridge (closeMatch to the emotion synset) ──
+# The affect lexical surface. Open English WordNet publishes per-synset IRIs that
+# content-negotiate to lemon RDF (…/id/oewn-<offset>-n), so each canonical emotion type
+# closeMatches the WordNet "feeling" synset (noun.feeling) that denotes it — a concept-level
+# link by reference (Principle 5), the OntoLex lexical-sense bridge the affect layer targets.
+# closeMatch, never == : a WordNet synset is a lexical-semantic concept, close to but not the
+# same carrier as GMEOW's emotion mode. This is the live successor to the defunct Princeton
+# WordNet-Affect export — WordNet's lexical layer, not its retired affective-label extension.
+gmeow:eqAffect038 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionAnger ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject oewn:07531593-n ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "OEWN noun.feeling synset 'a strong emotion; a feeling oriented toward some real or supposed grievance'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect039 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionFear ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject oewn:07534492-n ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "OEWN noun.feeling synset 'an emotion experienced in anticipation of some specific pain or danger'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect040 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionJoy ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject oewn:07542591-n ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "OEWN noun.feeling synset 'the emotion of great happiness'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect041 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionSadness ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject oewn:07547828-n ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "OEWN noun.feeling synset 'emotions experienced when not in a state of well-being'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect042 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionDisgust ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject oewn:07518499-n ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "OEWN noun.feeling synset 'strong feelings of dislike'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
+
+gmeow:eqAffect043 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:emotionSurprise ; gmeow:alignPredicate skos:closeMatch ; gmeow:alignObject oewn:07525587-n ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:confidence 0.85 ; gmeow:comment "OEWN noun.feeling synset 'the astonishment you feel when something totally unexpected happens to you'" ; gmeow:sssomFile "gmeow-affect.sssom.tsv" .
