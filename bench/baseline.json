@@ -63,14 +63,6 @@
     "mean_ns": 269748325,
     "median_ns": 266038974
   },
-  "shacl_validate/corpus_all": {
-    "mean_ns": 3601707,
-    "median_ns": 3615465
-  },
-  "shacl_validate/large_hierarchy": {
-    "mean_ns": 30523870,
-    "median_ns": 29670731
-  },
   "tarjan_scc/synthetic_10000nodes": {
     "mean_ns": 2068847,
     "median_ns": 2047924

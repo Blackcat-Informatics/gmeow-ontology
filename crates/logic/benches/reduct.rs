@@ -88,6 +88,8 @@ fn bench_reduct(c: &mut Criterion) {
 
     let edge_count = CHAIN_LEN;
     let mut group = c.benchmark_group("reduct_wf_ancestor");
+    // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
+    // `make check`, so the reduced sample_size is a runtime economy, not a gate risk.
     group.sample_size(10);
     group.bench_function(format!("chain_{edge_count}edges_ancestor_closure"), |b| {
         b.iter(|| {

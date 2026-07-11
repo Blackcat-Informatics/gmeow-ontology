@@ -636,6 +636,100 @@ pub(crate) fn is_stratifiable(rules: &str) -> gmeow_errors::Result<bool> {
     Ok(is_stratified(&graph))
 }
 
+/// The stratum index of every predicate in `rules`, keyed by its bare predicate
+/// IRI — the stratification the certifier already computes, projected into the
+/// `(rule, predicate, stratum)` coordinate the deterministic cost vector
+/// ([`crate::cost::CostVector`]) buckets committed derivations by.
+///
+/// Reuses the existing SCC/stratification machinery verbatim: [`parse_rule_views`]
+/// → [`DepGraph`] → [`DepGraph::sccs`] (the same Tarjan condensation the
+/// stratifiability check runs). A predicate's stratum is the length of the longest
+/// chain of cross-SCC dependency edges (head → body) from it down to a predicate it
+/// no longer depends on — so a base/EDB predicate (a body that heads nothing) is
+/// stratum `0`, a predicate deriving only from EDB is stratum `1`, and so on.
+/// Mutually-recursive predicates (one SCC) share a stratum. The condensation is a
+/// DAG, so the longest-chain depth is well-defined and terminating even for a
+/// non-stratifiable program (a negative cycle collapses into one SCC).
+///
+/// **rdf:type fold collapse.** [`predicate_key`] folds a ground `rdf:type` object
+/// into the SCC node key (`"{rdf:type} {class}"`) for finer recursion analysis; the
+/// cost vector keys on the BARE predicate of a materialized row, so several
+/// class-folded keys collapse onto the bare `rdf:type` predicate here, taking the
+/// MAX (deepest) stratum among them. For every non-`rdf:type` predicate the key IS
+/// the bare IRI, so the projection is exact.
+///
+/// Deterministic: `parse_rule_views`, `DepGraph` (`BTreeSet`/`BTreeMap`), and
+/// `sccs()` are all order-stable, and the result is a sorted [`BTreeMap`].
+///
+/// # Errors
+///
+/// Returns the Nemo parse-error string if `rules` does not parse as `.rls`.
+pub(crate) fn predicate_strata(rules: &str) -> gmeow_errors::Result<BTreeMap<String, u32>> {
+    let views = parse_rule_views(rules)?;
+    let graph = DepGraph::from_views(&views);
+    let sccs = graph.sccs();
+
+    // Every graph node's SCC index (each node lands in exactly one component).
+    let mut scc_of: HashMap<String, usize> = HashMap::new();
+    for (idx, comp) in sccs.iter().enumerate() {
+        for node in comp {
+            scc_of.insert(node.clone(), idx);
+        }
+    }
+
+    // Dependency adjacency `head -> [body, …]` (a predicate depends on its bodies).
+    let adj = graph.successors();
+
+    // Longest cross-SCC dependency chain per SCC, memoized over the condensation DAG.
+    let mut depth_cache: HashMap<usize, u32> = HashMap::new();
+    for idx in 0..sccs.len() {
+        scc_depth(idx, &sccs, &scc_of, &adj, &mut depth_cache);
+    }
+
+    // Project each node's SCC depth onto its bare predicate IRI, keeping the max.
+    let mut out: BTreeMap<String, u32> = BTreeMap::new();
+    for node in &graph.nodes {
+        let depth = depth_cache[&scc_of[node]];
+        // The `rdf:type` fold is `"{predicate} {class}"`; the bare predicate is the
+        // token before the first space (IRIs never contain a space).
+        let bare = node.split(' ').next().unwrap_or(node).to_owned();
+        let slot = out.entry(bare).or_insert(0);
+        *slot = (*slot).max(depth);
+    }
+    Ok(out)
+}
+
+/// The longest chain of cross-SCC dependency edges from `scc_idx` down to a sink SCC
+/// (memoized). The condensation is acyclic, so this recursion always terminates.
+fn scc_depth(
+    scc_idx: usize,
+    sccs: &[BTreeSet<String>],
+    scc_of: &HashMap<String, usize>,
+    adj: &BTreeMap<String, Vec<String>>,
+    cache: &mut HashMap<usize, u32>,
+) -> u32 {
+    if let Some(&d) = cache.get(&scc_idx) {
+        return d;
+    }
+    // Seed the cache before recursing so a (structurally impossible) cross-SCC cycle
+    // could not spin forever; the final write overwrites this seed.
+    cache.insert(scc_idx, 0);
+    let mut depth = 0u32;
+    for node in &sccs[scc_idx] {
+        if let Some(bodies) = adj.get(node) {
+            for body in bodies {
+                let body_scc = scc_of[body];
+                if body_scc != scc_idx {
+                    let below = scc_depth(body_scc, sccs, scc_of, adj, cache);
+                    depth = depth.max(below + 1);
+                }
+            }
+        }
+    }
+    cache.insert(scc_idx, depth);
+    depth
+}
+
 // ── Profile-family checks (each → Vec<String>) ───────────────────────────────
 
 /// PositiveHorn forbids negation-as-failure. Mirrors `certify_positive_horn`.

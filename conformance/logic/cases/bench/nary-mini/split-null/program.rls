@@ -1,0 +1,2 @@
+#[name("https://blackcatinformatics.ca/gmeow/bench/nary/rules/split")]
+link(?a, !e, ?c), part(!e, ?d) :- edge(?a, ?b, ?c, ?d) .

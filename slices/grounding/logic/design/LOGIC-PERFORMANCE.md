@@ -263,18 +263,111 @@ std Rust" is not a neutral default on a hot path, it is a measured cost.
 
 ## Measurement doctrine
 
-Performance claims are made against external ground truth or not at all.
+Performance claims are made against external ground truth or not at all, and a performance
+*gate* is a **deterministic count**, never a wall-clock timing. Wall-clock on a shared,
+contended host is not measurement — a zero-change re-run of a low-sample group swings tens of
+percentage points from scheduling noise alone, so a timing threshold gate is a nicer lie, not a
+truth. The gate is grounded instead in quantities that are pure functions of `(engine version,
+corpus)`: bit-for-bit reproducible, immune to the scheduler.
 
-- The bench surface carries **engine-vs-engine lanes on external corpora**: the standard chase
-  benchmark scenarios and the subsumed forward engine's own published evaluation sets for the
-  existential and materialization fragments, and the transitive-closure/points-to program
-  families the Datalog-systems literature compares on for the relational core. Internal goldens
-  prove correctness; external corpora prove speed.
-- The criterion lanes, the committed baseline, the self-timed perf ledger, and the leaderboard
-  remain the reporting spine; regressions are surfaced by comparison against the committed
-  baseline, and duration budgets stay on-gate.
-- **Numbers are measured, never invented.** A claim of the form "faster than the subsumed
-  engine" is admissible only as a leaderboard row produced by a committed lane over a named
-  corpus, pinned to versions on both sides.
+- **Three measurement tiers, each with a fixed gate status.**
+  - *Correctness (golden)* — a native verdict compared against the **published golden verdicts**
+    of an external corpus is a deterministic set comparison and gates **on-gate**, with no oracle
+    process required.
+  - *Cost* — the engine's own operational counters are the gating cost signal: the per-round
+    committed-derivation count, **peak simultaneously-live bytes**, and the **total allocation
+    bytes / allocation count**. The count and peak-live are byte-reproducible and gate **on-gate**
+    by exact drift-match; externally-instrumented retired-instruction counts corroborate them in a
+    maintainer lane. The two total-allocation scalars are NOT byte-reproducible — the native core
+    emits a small quantized run-to-run allocation transient (measured at ~0.06% on the most-recursive
+    corpus case, and empirically irreducible: it survives a process-global total, an inline
+    single-thread parallel pool, and a fully serial engine, so it is genuine per-run engine jitter,
+    not a threading artifact). Rather than leave them advisory, they gate through a **one-sided
+    tolerance band** `fresh ≤ baseline·(1+ε)` with **ε = 1%** (set ~17× above the measured 0.06%
+    jitter floor), folded through the SAME divergence ledger as the exact signals: a within-band run
+    is a non-blocking `Agree`, a breach a blocking `CorpusOnly` cost-regression finding. The band is a
+    deterministic verdict (a pure function of `(fresh, baseline, ε)`) that never flakes yet still bites
+    the gross allocation regression the doctrine targets — a "fewer clones / fewer owned-key
+    allocations" backslide re-adds allocations far above ε; a sub-ε change is below the engine's own
+    allocation-noise floor and is not gate-detectable, the honest limit of a global-allocator counter.
+  - *Speed* — wall-clock and peak-RSS are **advisory evidence only, never a gate**: engine-vs-engine
+    leaderboard rows over a named, version-pinned corpus.
+- **Cost is an algebra, not a scalar.** Cost is a tropical / counting semiring over the
+  evaluation — `cost(fact) = ⊕ over derivations of (rule-cost ⊗ ⊗ᵢ cost(antecedentᵢ))`, the same
+  algebraic shape as the minimal-proof-height annotation of the provenance doctrine above. It is
+  carried as a **decomposable cost vector keyed by (rule, predicate, stratum)**, reusing the
+  stratification the certifier already computes; the committed-derivation count, allocation
+  bytes/count, and peak-live bytes are its scalar projections. A regression therefore attributes
+  to a rule family, not merely to a benchmark group — which is exactly what a fragment-by-fragment
+  performance-lever program needs to state "this change reduced the cost of *this* fragment".
+- **The engine-vs-engine lanes on external corpora remain** — the standard chase benchmark
+  scenarios, the subsumed forward engine's own published evaluation sets for the existential and
+  materialization fragments, and the transitive-closure/points-to program families the
+  Datalog-systems literature compares on for the relational core. Internal goldens prove
+  correctness; external corpora prove speed; the deterministic cost vector is what makes "not
+  regressed" a byte-checkable proposition rather than a noisy sample.
+- **The reporting spine stays, but its gate is deterministic.** The committed baseline, the
+  leaderboard, and the drift gate remain; the committed baseline is now the **integer-valued
+  deterministic cost vector**, and the drift gate is a **content-addressed cost-regression finding
+  in the divergence ledger** — an equal cost descriptor folds through as a non-blocking `Agree`
+  corroboration, a divergent one as a **blocking `CorpusOnly` regression finding** carrying
+  content-addressed identity, and the committed cost-ledger projection is additionally enforced by
+  the `check-generated` drift check; a cost regression is thus a ledger refutation / drift failure.
+  **The wall-clock duration budget is retired as a gate** — timings fold into the advisory
+  leaderboard only. Retired-instruction counts gate only through their own deterministic column;
+  estimated cycles and cache figures are microarchitecture-dependent and stay advisory.
+- **Numbers are measured, never invented.** A claim of the form "faster than the subsumed engine"
+  is admissible only as a leaderboard row produced by a committed lane over a named corpus, pinned
+  to versions on both sides.
+- **A benchmark group whose sample count sits below the criterion default is a red flag** — either
+  raise it or mark the group advisory-only; a low-sample wall-clock number never gates.
 - Every deliberately non-incremental, refused, or demoted fragment is a **ledger entry** — the
   perf ledger is the honesty surface that keeps "not yet fast" from silently reading as "fast".
+- **Gap-zero is a soak-window claim, not a one-shot tally.** The `bench-soak` gate re-runs the
+  deterministic native-vs-published agreement check over the committed mini corpora N times
+  (window ≥ 2) and hard-fails unless EVERY run is gap-zero (`corpus_only == 0 && dl_gap == 0`) AND
+  its divergence-ledger finding-graph blake3 is byte-identical across the whole window — a drifting
+  fingerprint over a fixed corpus is itself a divergence finding. The committed
+  `generated/bench/soak.md` record projects the invariant per-corpus finding-graph digest and is
+  drift-gated by `check-generated`, so "ledger gap-zero over a soak window" is a checkable claim
+  rather than a single sample.
+
+Consistency with the release-as-evidence principle: perf **timings** remain carried as data and
+never as a gate — they are advisory here. What gates is a deterministic **count**, a different
+kind of observation entirely: reproducible bit-for-bit, independent of the machine and the
+scheduler, and therefore admissible as a checkable claim rather than a leaderboard verdict.
+
+## Perf ledger — recorded fragments
+
+Every deliberately non-incremental, refused, or demoted fragment is recorded here as a ledger
+entry, each carrying a named forward path. A named forward path is not a deferral — it is what
+keeps "not yet fast" or "not yet reachable" honest instead of silently reading as "fast" or
+"done".
+
+- **Native full-scale EL/Galen non-completion.** The native n-ary reified chase is *correct* —
+  native↔Nemo parity is proven on small recursive CURIE programs and an EL-shaped multi-arity
+  recursion, and native actively derives on the real EL/Galen corpus — but the naive,
+  non-incremental restricted chase (`crates/logic/src/physical/chase.rs` re-derives against the
+  full store every round) does not reach the ~2,025,426-tuple EL/Galen fixpoint within a
+  practical time/memory window. The engine-vs-engine CORRECTNESS is demonstrated; the at-scale
+  PERFORMANCE is not yet there. Forward path: incremental / semi-naive maintenance (the
+  perf-lever program), orthogonal to the n-ary correctness work.
+- **ChaseBench upstream is unlicensed.** dbunibas/chasebench carries no license, so its fetch
+  lane (`maint-chasebench-corpus`) fetches then HARD-FAILS on the missing license (honest
+  no-optionality). The same ChaseBench-family scenarios run under the Apache-2.0
+  knowsys/nemo-examples packaging via `maint-nemo-kr2024-corpus`.
+- **Published-scenario native-fragment gap.** The native fixed-arity positive-existential
+  fragment refuses negation-as-failure, arithmetic/comparison builtins, aggregates, and
+  Skolem-FUNCTION existentials — so the published ChaseBench deep/doctors/lubm/ontology-256
+  scenarios and most nemo-examples programs cannot run natively engine-vs-engine on-gate.
+  Committed on-gate coverage therefore uses license-clean, native-completing scenarios that
+  mirror those families' shapes; the one clean + native-completing published set (the EL-Galen
+  owl-el example, ~45k-row EDB) is too large for an on-gate committed corpus and stays the
+  off-gate `maint-nemo-kr2024-corpus` lane.
+- **Allocation gate is a tolerance band, not exact match.** The native forward core exhibits a
+  genuine residual ~0.059% per-run allocation jitter (a single quantized ±14-alloc event deep in
+  the forward core; the engine already fixed-seeds its hashers) that neither process-global
+  counting nor fully-serial execution eliminates. `alloc_bytes`/`alloc_count` therefore gate
+  through a one-sided band (`fresh ≤ baseline·(1+ε)`, ε = 1%, ~17× the measured floor);
+  `peak_live_bytes` gates by exact drift-match. Forward path: de-randomize the residual
+  allocating structure in the forward core to restore exact-match allocation gating.

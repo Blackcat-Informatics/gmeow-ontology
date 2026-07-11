@@ -37,3 +37,46 @@ The off-gate `suite-quality` CI lane runs `make bench-compare`, which prints a
 `live run vs baseline` scoreboard (`ok | watch | regressed`) to the job summary.
 It is advisory: runner jitter is expected and it **never** fails a PR
 (Principle 18 — the authoritative gate stays native-first and Docker-free).
+
+# `cost-baseline.json` — the committed deterministic engine-cost reference run
+
+`cost-baseline.json` is the **committed deterministic cost/agreement baseline**:
+the `gmeow-bench-engines --emit-cost` artifact over the committed mini corpora
+(`conformance/logic/cases/bench/`). Unlike `baseline.json` (criterion timings),
+every value here is an **integer count or a fingerprint or a boolean verdict** —
+per `(corpus, case, engine)` the sorted cost-vector tuples, `consumed_steps`, the
+derived / answer counts, the deterministic `peak_live_bytes` allocation scalar,
+the verdict-agreement tokens, and the per-corpus divergence-ledger tally. It
+carries **NO** wall-clock, **NO** peak-RSS, and **NO** total-allocation scalars
+(those are report-only in the harness), so the bytes are a pure function of
+`(engine version, corpus)` — byte-identical across runs.
+
+It is the single source of truth for the committed cost ledger
+(`generated/bench/cost-ledger.md`, the `stage-export-cost-ledger` generator), a
+drift-gated projection reproduced byte-for-byte from this file without ever
+running a benchmark. The `check-generated` gate only *reads* this file.
+
+## Refreshing the cost baseline (maintainer only)
+
+There is **one** producer — the Rust `gmeow-bench-engines --emit-cost` path:
+
+```sh
+make maint-bench-cost-baseline   # emits bench/cost-baseline.json (offline; twice-diffed for byte-stability)
+make regenerate                  # re-projects generated/bench/cost-ledger.md
+git add bench/cost-baseline.json generated/bench/cost-ledger.md
+```
+
+Refreshing is a deliberate, hand-committed act — never auto-drift. The counts are
+attributable to the pinned engine revisions recorded in the artifact's
+`engine_pins`; do not hand-edit them.
+
+## Cost-regression finding (richer honesty surface)
+
+`gmeow-bench-engines --check-cost bench/cost-baseline.json` compares a FRESH cost
+run against the committed baseline and, on **any** deterministic-count divergence
+(a changed count/fingerprint/verdict, a dropped case, or a case absent from the
+baseline), emits a `reason.divergence.corpus-only` `gmeow:Finding` routed through
+the shared divergence ledger (`divergence_diag_ledger` — content-addressed
+`finding_iri` + anchor + antecedents) and hard-fails. The primary on-gate gate is
+the `check-generated` drift on `cost-ledger.md`; this mode is the richer finding
+surface behind it.
