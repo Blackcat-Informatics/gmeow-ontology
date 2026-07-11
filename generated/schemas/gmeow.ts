@@ -345,12 +345,16 @@ export enum AxisEnum {
 }
 
 export enum AxisExemptionEnum {
-    exemptionDocMaturity = "exemptionDocMaturity",
     exemptionDocsPanels = "exemptionDocsPanels",
     exemptionGmnProjection = "exemptionGmnProjection",
 }
 
 export enum AxisThresholdEnum {
+    thrDocMaturityExemplified = "thrDocMaturityExemplified",
+    thrDocMaturityGrounded = "thrDocMaturityGrounded",
+    thrDocMaturityLinked = "thrDocMaturityLinked",
+    thrDocMaturityMaximal = "thrDocMaturityMaximal",
+    thrDocMaturityRegistered = "thrDocMaturityRegistered",
     thrDocumentationExemplified = "thrDocumentationExemplified",
     thrDocumentationGrounded = "thrDocumentationGrounded",
     thrDocumentationLinked = "thrDocumentationLinked",
@@ -892,6 +896,43 @@ export enum DistanceMetricEnum {
     distanceMetricEuclidean = "distanceMetricEuclidean",
 }
 
+export enum DocCoverageDimensionEnum {
+    dimAlignment = "dimAlignment",
+    dimAnnotationCoat = "dimAnnotationCoat",
+    dimCompetencyRationale = "dimCompetencyRationale",
+    dimDefinition = "dimDefinition",
+    dimExample = "dimExample",
+    dimFixturePair = "dimFixturePair",
+    dimLabel = "dimLabel",
+    dimLinkageCoverage = "dimLinkageCoverage",
+    dimLossJudgmentSound = "dimLossJudgmentSound",
+    dimLossLedgerRow = "dimLossLedgerRow",
+    dimProseQuality = "dimProseQuality",
+    dimProvenanceHonesty = "dimProvenanceHonesty",
+    dimRealizedState = "dimRealizedState",
+    dimScopeNote = "dimScopeNote",
+    dimTestReach = "dimTestReach",
+    dimThesisSentence = "dimThesisSentence",
+    dimTranslationCoverage = "dimTranslationCoverage",
+    dimUsageAdvice = "dimUsageAdvice",
+    dimWorkedInstance = "dimWorkedInstance",
+}
+
+export enum DocEvidenceKindEnum {
+    docEvidenceKindCompetency = "docEvidenceKindCompetency",
+    docEvidenceKindDiagnostics = "docEvidenceKindDiagnostics",
+    docEvidenceKindFixture = "docEvidenceKindFixture",
+    docEvidenceKindLoss = "docEvidenceKindLoss",
+    docEvidenceKindProvenance = "docEvidenceKindProvenance",
+}
+
+export enum DocMaturityEnum {
+    docMaturityBasic = "docMaturityBasic",
+    docMaturityFull = "docMaturityFull",
+    docMaturityMaximal = "docMaturityMaximal",
+    docMaturityMinimal = "docMaturityMinimal",
+}
+
 export enum DocumentationConcernEnum {
     concernDisclosure = "concernDisclosure",
     concernFrames = "concernFrames",
@@ -1114,6 +1155,26 @@ export enum ExpressionLanguageEnum {
     exprLangShacl = "exprLangShacl",
     exprLangSparqlAsk = "exprLangSparqlAsk",
     exprLangXacml = "exprLangXacml",
+}
+
+export enum FanoutExtractionEnum {
+    fanout_catalog_constraint_catalog = "fanout-catalog-constraint-catalog",
+    fanout_catalog_term_content_manifest = "fanout-catalog-term-content-manifest",
+    fanout_diagnostics_logic_compile = "fanout-diagnostics-logic-compile",
+    fanout_diagnostics_shacl = "fanout-diagnostics-shacl",
+    fanout_edoal_projections = "fanout-edoal-projections",
+    fanout_evals_scores = "fanout-evals-scores",
+    fanout_foundation_gufo = "fanout-foundation-gufo",
+    fanout_logic_correspondence = "fanout-logic-correspondence",
+    fanout_logic_correspondence_laws = "fanout-logic-correspondence-laws",
+    fanout_logic_projection_report = "fanout-logic-projection-report",
+    fanout_logic_relational_core = "fanout-logic-relational-core",
+    fanout_profiles = "fanout-profiles",
+    fanout_projections_core_prefixes = "fanout-projections-core-prefixes",
+    fanout_projections_functions_fno = "fanout-projections-functions-fno",
+    fanout_projections_list_functions_fno = "fanout-projections-list-functions-fno",
+    fanout_quality_assessment = "fanout-quality-assessment",
+    fanout_research_objects = "fanout-research-objects",
 }
 
 export enum FeedPostingKindEnum {
@@ -2648,6 +2709,7 @@ export enum PronounSetEnum {
 }
 
 export enum QualityAxisEnum {
+    axisDocMaturity = "axisDocMaturity",
     axisDocumentation = "axisDocumentation",
     axisFlagshipCounterExampleDepth = "axisFlagshipCounterExampleDepth",
     axisGmn1Coverage = "axisGmn1Coverage",
@@ -4503,10 +4565,48 @@ export interface Distribution extends InformationObject {
     distributionFormat?: string[],
 }
 
+export interface DocCoverageDimension {
+}
+
+export interface DocEvidence extends InformationObject {
+    docClaim?: string[],
+    docCompetencyCount?: number[],
+    docCompetencyQueryDigest?: string[],
+    docEvidenceKind?: DocEvidenceKind[],
+    docFindingCount?: number[],
+    docFixtureCount?: number[],
+    docJudgment?: string[],
+    docLossRowCount?: number[],
+    docProducedByChain?: string[],
+    docProvenanceDepth?: number[],
+}
+
+export interface DocEvidenceKind {
+}
+
+export interface DocMaturity {
+    maturityRequiresDimension?: DocCoverageDimension[],
+}
+
 export interface Document extends Work {
 }
 
 export interface DocumentationConcern {
+}
+
+export interface DocumentedConcern extends InformationObject {
+}
+
+export interface DocumentedMappingSet extends InformationObject {
+}
+
+export interface DocumentedSlice extends InformationObject {
+}
+
+export interface DocumentedTerm extends InformationObject {
+    docCategory?: string[],
+    docHasDefinition?: boolean[],
+    docReasoningStatus?: string[],
 }
 
 export interface DoxasticStandpointClaim extends StandpointClaim {
@@ -4847,6 +4947,14 @@ export interface ExtractedRelationship extends InformationObject {
 }
 
 export interface Family extends Group {
+}
+
+export interface FanoutExtraction extends SocialObject {
+    extractsForm?: string[],
+    extractsGraphFamily?: string[],
+    extractsMatch?: string[],
+    extractsPath?: string[],
+    extractsSuffix?: string[],
 }
 
 export interface FeedPosting extends Work {
@@ -6195,10 +6303,13 @@ export interface PhysicalObject extends Entity {
 }
 
 export interface Pipeline extends SocialObject {
+    fanoutExtracts?: FanoutExtraction[],
     hasStage?: PipelineStage[],
 }
 
 export interface PipelineStage extends SocialObject {
+    attachesBlobRep?: string[],
+    attachesGraph?: string[],
     dataflowConsumes?: PipelineStage[],
     dataflowProduces?: PipelineStage[],
     hasCapability?: StageCapability[],

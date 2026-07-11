@@ -13,8 +13,9 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     axisShapeMigration: Maximal (1.00)
     axisProseQuality: Maximal (1.00)
     axisProvenanceHonesty: Maximal (1.00)
+    axisDocMaturity: Maximal (1.00)
     axisFlagshipCounterExampleDepth: Maximal (1.00)
-  ranked uplift advice (11):
+  ranked uplift advice (13):
     1. [slice-quality.axis-advice] axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping "=" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17).
     2. [slice-quality.linkage.no-calculus-eligible-correspondence] the slice authors no identity-strength correspondence (none, or only lossy closeMatch-class alignments the lens calculus cannot carry) — the correspondence-calculus adoption axis is not applicable (vacuous 1.0), not a full-adoption pass.
     3. [slice-quality.axis-advice] axisOptimalTesting: Add at least one test cell or competency query naming each currently-unreached term so every term in the slice is exercised (SLICE_GUIDE §9; SLICE_QA).
@@ -24,5 +25,7 @@ slice-quality: https://blackcatinformatics.ca/gmeow/slices/sample-slice
     7. [slice-quality.axis-advice] axisTranslationCoverage: Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs.
     8. [slice-quality.translation.incomplete] fr covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.
     9. [slice-quality.translation.incomplete] zh covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.
-    10. [slice-quality.axis-advice] axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine).
-    11. [slice-quality.documentation.no-docs] the slice ships no docs.md.
+    10. [slice-quality.axis-advice] axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit once the measured coverage has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent.
+    11. [slice-quality.doc-maturity.model-unavailable] the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).
+    12. [slice-quality.axis-advice] axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine).
+    13. [slice-quality.documentation.no-docs] the slice ships no docs.md.

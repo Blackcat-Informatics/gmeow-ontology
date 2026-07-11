@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Closed-world data shapes for the documentation projection vocabulary. Authored
+# declaratively so they fold into gmeow.gts and are enforced by `make validate`
+# over the authored source graph (dogfooding). NOTE: the LIVE gmeow:graph/documentation
+# projection is produced downstream by stage-docs-render (strictly after
+# stage-validate), so `make validate` never sees the live projection — these shapes
+# bite on authored documentation instances (e.g. this slice's examples/). The live
+# grounding invariant is additionally enforced in Rust over the real model
+# (crates/docs/tests/doc_evidence.rs), the architecturally-correct enforcement point.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# =========================================================================== #
+# A documented term names its owning slice and its category.
+# =========================================================================== #
+gmeow:DocumentedTermShape
+    a sh:NodeShape ;
+    rdfs:label "documented-term shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:DocumentedTerm must name exactly one owning slice (gmeow:docOwnerSlice) and carry its display category (gmeow:docCategory)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    sh:targetClass gmeow:DocumentedTerm ;
+    sh:property [
+        sh:path gmeow:docOwnerSlice ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:DocumentedTerm must name exactly one gmeow:docOwnerSlice (the slice whose module defines the term)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:docCategory ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:DocumentedTerm must carry a gmeow:docCategory display token (Class/Property/Individual/Datatype/Other)." ;
+    ] .
+
+# =========================================================================== #
+# The fail-fast grounding invariant, as a data shape: every gmeow:DocEvidence
+# node must be a claim WITH its grounds — at least one gmeow:docGroundedBy
+# truthmaker. An ungrounded evidence node is the doc-layer analogue of a DARK
+# finding. This SHACL shape and the live Rust invariant in
+# crates/docs/tests/doc_evidence.rs are the enforcement points — the obligation is
+# NOT a TBox owl:minCardinality restriction, because gmeow:docGroundedBy carries
+# mixed IRI/literal objects and so is an owl:AnnotationProperty.
+# =========================================================================== #
+gmeow:DocEvidenceGroundingShape
+    a sh:NodeShape ;
+    rdfs:label "doc-evidence grounding shape"@x-gmeow-english ;
+    skos:definition "Every gmeow:DocEvidence node must carry at least one gmeow:docGroundedBy carrier truthmaker and exactly one gmeow:docEvidenceKind — a claim without its grounds is a DARK finding."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    sh:targetClass gmeow:DocEvidence ;
+    sh:property [
+        sh:path gmeow:docGroundedBy ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:DocEvidence node must carry at least one gmeow:docGroundedBy truthmaker — an ungrounded evidence node is the doc-layer analogue of a DARK finding." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:docEvidenceKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:DocEvidenceKind ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:DocEvidence node must carry exactly one gmeow:docEvidenceKind, a declared gmeow:DocEvidenceKind individual." ;
+    ] .

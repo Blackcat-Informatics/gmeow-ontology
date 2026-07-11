@@ -282,6 +282,30 @@ pub trait Stage: Send + Sync {
     fn consumes_span_table(&self) -> bool {
         false
     }
+    /// The named-graph IRIs this stage ATTACHES to the carrier — the graphs
+    /// present in its output product bundle but NOT in its assembled input (its
+    /// attach DELTA), sorted and deduplicated. Mirrors the RDF `gmeow:attachesGraph`
+    /// declarations on the stage individual; the loader HARD-fails if the two
+    /// disagree (Rust/RDF agreement) and the scheduler HARD-fails
+    /// ([`crate::error::AttachDrift`]) if the stage's actual attach delta at run
+    /// time diverges from this set (in either direction). The default is empty — a
+    /// stage that attaches no NEW named graph (e.g. a leaf that only rides the
+    /// byte-artifact lane, or a projection whose graphs already ride an upstream).
+    fn attaches_graphs(&self) -> &[String] {
+        &[]
+    }
+    /// The blob-representation lane labels this stage ATTACHES to the carrier — the
+    /// `representation`-keyed blob records (e.g.
+    /// [`crate::stages::carrier::REP_AXIOMS`],
+    /// [`crate::stages::carrier::REP_DIAG_NODES`]) present in its output product but
+    /// NOT in its assembled input (its attach DELTA), sorted and deduplicated. Mirrors
+    /// the RDF `gmeow:attachesBlobRep` declarations; verified against the RDF at load
+    /// (Rust/RDF agreement) and against the actual run-time delta by the scheduler
+    /// ([`crate::error::AttachDrift`]). NOT the byte-artifact lane (logical paths) — only
+    /// the representation-keyed by-reference blob lane. The default is empty.
+    fn attaches_blob_reps(&self) -> &[String] {
+        &[]
+    }
     /// A version string folded into the cache key; bump to invalidate this
     /// stage's cached products when its logic changes.
     fn impl_version(&self) -> &str;
