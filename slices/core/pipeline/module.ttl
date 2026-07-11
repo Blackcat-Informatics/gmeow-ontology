@@ -461,6 +461,7 @@ gmeow:pipeline-build
         gmeow:stage-export-apache ,
         gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-governance-floors ,
         gmeow:stage-export-result-shapes ,
         gmeow:stage-validate-result-shape-composition ,
         gmeow:stage-export-json-schema ,
@@ -766,6 +767,17 @@ gmeow:stage-export-constraint-shapes
     gmeow:stageImpl "constraint_shapes" ;
     gmeow:producesFormat "shacl" .
 
+gmeow:stage-export-governance-floors
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: governance floors"@x-gmeow-english ;
+    skos:definition "Project the ontology-resident slice-quality floor commitments (gmeow:AxisFloorCommitment per (slice, axis) measured-score floor, gmeow:SliceTierFloor per per-slice roll-up tier floor) to their two lossy governance TSVs under generated/governance/ — the P4/P17 projection of the floors otherwise hand-authored as governance/*.tsv. The ontology is canonical; a human raises a floor by editing the commitment individual, never the generated TSV."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "governance_floors" ;
+    gmeow:producesFormat "governance-floors-tsv" .
+
 gmeow:stage-export-result-shapes
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -931,6 +943,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-research-objects ,
         gmeow:stage-export-result-shapes ,
         gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-governance-floors ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,

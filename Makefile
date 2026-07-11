@@ -301,6 +301,9 @@ slice-quality: ## Score one slice against the slice-quality rubric (advisory). U
 slice-quality-gate: ## Enforce the opt-in slice-quality tier ratchet.
 	$(GMEOW_DEV) slice-quality-gate
 
+slice-quality-seed-floors: ## Emit gmeow:AxisFloorCommitment TTL for live scores to seed a NEW axis's floors (one-shot). Usage: make slice-quality-seed-floors AXIS=axisShapeMigration (or ALL_AXES=1)
+	$(GMEOW_DEV) slice-quality-seed-floors $(if $(strip $(AXIS)),--axis $(AXIS),)$(if $(strip $(ALL_AXES)),--all-axes,)
+
 acceptance: ## Gate full transpile recall against external RDF snapshots.
 	$(GMEOW_DEV) acceptance $(if $(strip $(ACCEPTANCE_MIN_RECALL)),--min-recall $(ACCEPTANCE_MIN_RECALL),)
 
