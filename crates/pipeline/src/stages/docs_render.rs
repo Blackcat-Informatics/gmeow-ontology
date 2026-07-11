@@ -762,6 +762,17 @@ impl Stage for DocsRenderStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    /// The named graphs this stage attaches to the carrier (its delta), from the
+    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
+    /// declarations and verified against the run-time delta by the scheduler.
+    fn attaches_graphs(&self) -> &[String] {
+        crate::stages::attach::graphs(self.id())
+    }
+    /// The blob-representation lanes this stage attaches (its delta), from the single
+    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
+    fn attaches_blob_reps(&self) -> &[String] {
+        crate::stages::attach::blob_reps(self.id())
+    }
     fn impl_version(&self) -> &str {
         // v7: the diagnostics→term digest now joins on each finding's purpose-built
         // `documented_terms` attribution (a SHACL violation's constrained `sh:path`

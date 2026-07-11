@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/mdbook_render.rs
+assertion_line: 72
 expression: head
 ---
 # Summary
@@ -32,6 +33,7 @@ expression: head
   - [GMEOW Creative Works Module](slices/creative-works/index.md)
   - [GMEOW Deception Module](slices/deception/index.md)
   - [GMEOW Diagnostics Module](slices/diagnostics/index.md)
+  - [GMEOW Documentation Module](slices/documentation/index.md)
   - [GMEOW Documents Module](slices/documents/index.md)
   - [GMEOW Dreaming Module](slices/dreaming/index.md)
   - [GMEOW Email Module](slices/email/index.md)
@@ -41,4 +43,3 @@ expression: head
   - [GMEOW Events Module](slices/events/index.md)
   - [GMEOW Evidence Module](slices/evidence/index.md)
   - [GMEOW Expertise Module](slices/expertise/index.md)
-  - [GMEOW Finance Module](slices/finance/index.md)

@@ -21,7 +21,7 @@
 //! page references and the set [`site_badge_assets`] emits are both derived from
 //! [`term_badges`], so the two never disagree (no dangling image path).
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::BTreeMap;
 
 use crate::coverage::{TermCoverage, term_coverage};
 use crate::model::{DocTerm, DocTermCategory, DocTermStability, DocsModel, ReasoningVerdict};
@@ -278,10 +278,10 @@ fn framework_label(framework: &str) -> String {
 /// unevaluated model never fabricates a satisfiability claim.
 pub fn term_badges(
     term: &DocTerm,
-    aligned: &HashSet<&str>,
+    ctx: &crate::coverage::CoverageContext,
     reasoning: Option<&ReasoningVerdict>,
 ) -> Vec<Badge> {
-    let cov: TermCoverage = term_coverage(term, aligned);
+    let cov: TermCoverage = term_coverage(term, ctx);
     let mut badges = vec![completeness_badge(cov.present_count(), TermCoverage::TOTAL)];
     if let Some(verdict) = reasoning {
         badges.push(reasoning_badge(term, verdict));
@@ -364,10 +364,10 @@ pub fn badge_svg(badge: &Badge) -> String {
 /// Walks every term's [`term_badges`] and dedups by path, so the emitted set is
 /// exactly the set the term pages reference — the no-dangling-image guarantee.
 pub fn site_badge_assets(model: &DocsModel) -> BTreeMap<String, String> {
-    let aligned = crate::coverage::alignment_subjects(model);
+    let ctx = crate::coverage::CoverageContext::new(model);
     let mut assets = BTreeMap::new();
     for term in &model.terms {
-        for badge in term_badges(term, &aligned, model.reasoning.as_ref()) {
+        for badge in term_badges(term, &ctx, model.reasoning.as_ref()) {
             assets
                 .entry(badge_path(&badge))
                 .or_insert_with(|| badge_svg(&badge));
@@ -422,8 +422,9 @@ mod tests {
             ..Default::default()
         };
         term.frameworks = vec!["logic:HolonicFramework".to_string()];
-        let aligned = HashSet::new();
-        let badges = term_badges(&term, &aligned, None);
+        let model = crate::model::DocsModel::default();
+        let ctx = crate::coverage::CoverageContext::new(&model);
+        let badges = term_badges(&term, &ctx, None);
         assert_eq!(badges[0].family, "completeness");
         // No reasoning verdict attached → no reasoning badge (never fabricated).
         assert!(!badges.iter().any(|b| b.family == "reasoning"));
@@ -463,14 +464,15 @@ mod tests {
         assert_eq!(reasoning_badge(&property, &good).value, "not-evaluated");
 
         // The badge only appears when a verdict is attached.
-        let aligned = HashSet::new();
+        let model = crate::model::DocsModel::default();
+        let ctx = crate::coverage::CoverageContext::new(&model);
         assert!(
-            term_badges(&class, &aligned, None)
+            term_badges(&class, &ctx, None)
                 .iter()
                 .all(|b| b.family != "reasoning")
         );
         assert_eq!(
-            term_badges(&class, &aligned, Some(&good))
+            term_badges(&class, &ctx, Some(&good))
                 .iter()
                 .filter(|b| b.family == "reasoning")
                 .count(),

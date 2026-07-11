@@ -17,4 +17,5 @@
     gmeow:sliceCoFoundationalWith <https://blackcatinformatics.ca/gmeow/slices/lang> ,
         <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:sliceConsumer "The reasoning layer and every projection consumer: the native `logic:` solver is the production reasoning authority, and OWL/Datalog/SHACL/Prolog/N3 reasoners consume generated views of it (Principle 17). Foundational by Principle 15: it serves every consumer by construction, and it anchors the co-foundational grounding kernel (docs/GROUNDING.md) as the semantic target of the `lang:` denotation seam and the `math:` compilation seam."@x-gmeow-english ;
-    gmeow:sliceQualityTier gmeow:tierRegistered .
+    gmeow:sliceQualityTier gmeow:tierRegistered ;
+    gmeow:sliceDocMaturity gmeow:docMaturityMinimal .
