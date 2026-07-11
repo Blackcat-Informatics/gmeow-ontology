@@ -19,7 +19,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use gmeow_errors::Finding;
-use gmeow_logic::reason::{dl_consistency, reason_all};
+use gmeow_logic::reason::{InferredAxiom, dl_consistency, reason_all, reason_closure_axioms};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfTerm, TermRef};
 
 use crate::graph::id;
@@ -46,9 +46,9 @@ fn surface_iri(object: &str) -> Option<&str> {
 }
 
 /// The closure's IRI-object triples, keyed the same way.
-fn closure_iri_keys(result: &gmeow_logic::result::ReasoningResult) -> BTreeSet<String> {
+fn closure_iri_keys(inferred: &[InferredAxiom]) -> BTreeSet<String> {
     let mut out = BTreeSet::new();
-    for ax in result.inferred() {
+    for ax in inferred {
         if let Some(o) = surface_iri(&ax.object) {
             out.insert(key(&ax.subject, &ax.predicate, o));
         }
@@ -204,7 +204,11 @@ pub fn reasoner_axis(ctx: &ScoreContext) -> AxisScore {
     let mut redundant = 0usize;
     for (s, p, o) in axioms.iter().take(cap) {
         let reduced = edb_without_triple(ds, s, p, o);
-        if let Ok(r2) = reason_all(&reduced)
+        // The probe reads only the closure's IRI-object triples, never the DL
+        // verdict, so it takes the verdict-free closure entry point (skipping the
+        // discarded per-reduction consistency/coverage scan) — see
+        // `reason_closure_axioms`.
+        if let Ok(r2) = reason_closure_axioms(&reduced)
             && closure_iri_keys(&r2).contains(&key(s, p, o))
         {
             redundant += 1;
@@ -461,7 +465,7 @@ pub fn closure_redundant_subclasses(
     let mut out = Vec::new();
     for (s, o) in named_subclass_triples(ds) {
         let reduced = edb_without_triple(ds, &s, SUBCLASS, &o);
-        let r = reason_all(&reduced)?;
+        let r = reason_closure_axioms(&reduced)?;
         if closure_iri_keys(&r).contains(&key(&s, SUBCLASS, &o)) {
             out.push((s, o));
         }

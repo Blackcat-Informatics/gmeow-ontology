@@ -1,0 +1,4 @@
+#[name("https://example.org/bench/rules/reach-base")]
+<https://example.org/bench/reach>(<https://example.org/bench/s>, ?o, ?w) :- <https://example.org/bench/edge>(<https://example.org/bench/s>, ?o, ?w) .
+#[name("https://example.org/bench/rules/reach-step")]
+<https://example.org/bench/reach>(<https://example.org/bench/s>, ?o, ?w) :- <https://example.org/bench/reach>(<https://example.org/bench/s>, ?m, ?w), <https://example.org/bench/edge>(?m, ?o, ?w) .

@@ -1,0 +1,4 @@
+<https://example.org/bench/a> <https://example.org/bench/parent> <https://example.org/bench/r> <https://example.org/bench/world> .
+<https://example.org/bench/b> <https://example.org/bench/parent> <https://example.org/bench/r> <https://example.org/bench/world> .
+<https://example.org/bench/l1> <https://example.org/bench/parent> <https://example.org/bench/a> <https://example.org/bench/world> .
+<https://example.org/bench/l2> <https://example.org/bench/parent> <https://example.org/bench/b> <https://example.org/bench/world> .

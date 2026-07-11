@@ -58,6 +58,7 @@ impl GtsSinkStage {
                 "stage-export-agreement".to_string(),
                 "stage-export-apache".to_string(),
                 "stage-export-bench".to_string(),
+                "stage-export-cost-ledger".to_string(),
                 "stage-export-evals".to_string(),
                 "stage-export-matrix".to_string(),
                 "stage-export-metadata".to_string(),
@@ -332,6 +333,7 @@ mod tests {
         let export_leaves: Vec<StageProduct> = [
             "stage-export-agreement",
             "stage-export-bench",
+            "stage-export-cost-ledger",
             "stage-export-apache",
             "stage-export-matrix",
             "stage-export-evals",

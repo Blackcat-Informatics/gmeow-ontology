@@ -14,3 +14,55 @@ affect-ingest/fixtures/ekman7-sample.json:generic-api-key:10
 crates/affect-ingest/fixtures/ekman7-sample.json:generic-api-key:10
 affect-ingest/fixtures/zeroshot-sample.json:generic-api-key:10
 crates/affect-ingest/fixtures/zeroshot-sample.json:generic-api-key:10
+# Deterministic engine-vs-oracle cost baseline. The flagged high-entropy values
+# are content-addressed reasoning-result fingerprints (SHA-256 oracle/rows
+# tokens), not secrets. See bench/README.md. Both path forms are listed because
+# gitleaks reports the scanned path with and without the crate/dir prefix.
+cost-baseline.json:generic-api-key:92
+cost-baseline.json:generic-api-key:95
+cost-baseline.json:generic-api-key:122
+cost-baseline.json:generic-api-key:125
+cost-baseline.json:generic-api-key:182
+cost-baseline.json:generic-api-key:185
+cost-baseline.json:generic-api-key:212
+cost-baseline.json:generic-api-key:215
+cost-baseline.json:generic-api-key:242
+cost-baseline.json:generic-api-key:245
+cost-baseline.json:generic-api-key:285
+cost-baseline.json:generic-api-key:288
+cost-baseline.json:generic-api-key:334
+cost-baseline.json:generic-api-key:337
+cost-baseline.json:generic-api-key:377
+cost-baseline.json:generic-api-key:380
+cost-baseline.json:generic-api-key:420
+cost-baseline.json:generic-api-key:423
+cost-baseline.json:generic-api-key:463
+cost-baseline.json:generic-api-key:466
+cost-baseline.json:generic-api-key:506
+cost-baseline.json:generic-api-key:509
+cost-baseline.json:generic-api-key:555
+cost-baseline.json:generic-api-key:558
+bench/cost-baseline.json:generic-api-key:92
+bench/cost-baseline.json:generic-api-key:95
+bench/cost-baseline.json:generic-api-key:122
+bench/cost-baseline.json:generic-api-key:125
+bench/cost-baseline.json:generic-api-key:182
+bench/cost-baseline.json:generic-api-key:185
+bench/cost-baseline.json:generic-api-key:212
+bench/cost-baseline.json:generic-api-key:215
+bench/cost-baseline.json:generic-api-key:242
+bench/cost-baseline.json:generic-api-key:245
+bench/cost-baseline.json:generic-api-key:285
+bench/cost-baseline.json:generic-api-key:288
+bench/cost-baseline.json:generic-api-key:334
+bench/cost-baseline.json:generic-api-key:337
+bench/cost-baseline.json:generic-api-key:377
+bench/cost-baseline.json:generic-api-key:380
+bench/cost-baseline.json:generic-api-key:420
+bench/cost-baseline.json:generic-api-key:423
+bench/cost-baseline.json:generic-api-key:463
+bench/cost-baseline.json:generic-api-key:466
+bench/cost-baseline.json:generic-api-key:506
+bench/cost-baseline.json:generic-api-key:509
+bench/cost-baseline.json:generic-api-key:555
+bench/cost-baseline.json:generic-api-key:558

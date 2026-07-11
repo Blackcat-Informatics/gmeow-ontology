@@ -61,6 +61,8 @@ fn bench_evaluate(c: &mut Criterion) {
     let store = WorldStore::new();
 
     let mut group = c.benchmark_group("probabilistic_evaluate");
+    // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
+    // `make check`, so the reduced sample_size is a runtime economy, not a gate risk.
     group.sample_size(10);
     group.bench_function(format!("noisy_or_{n}_indep_facts"), |b| {
         b.iter(|| {
