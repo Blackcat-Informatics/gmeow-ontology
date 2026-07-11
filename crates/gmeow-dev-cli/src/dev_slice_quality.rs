@@ -759,40 +759,42 @@ fn axis_local_name(iri: &str) -> &str {
 
 /// Project the ontology-resident `gmeow:AxisFloorCommitment` set into the
 /// `(slice IRI, axis local name) → floor` map the per-axis floor pass and the
-/// axis-floor monotonicity check consume. The rubric loader already hard-failed any
-/// commitment missing a slice/axis/value or carrying a non-finite floor, so this is
-/// otherwise a pure projection — the same map shape the removed governance-TSV parser
-/// produced.
+/// axis-floor monotonicity check consume. This first enforces that every rubric
+/// axis's local name (the tail after the last `/` or `#`) is GLOBALLY UNIQUE across
+/// `rubric.axes` — the floor gate keys every lookup by local name (`axis_floor_for`
+/// via `axis_local_name`), so two distinct axis IRIs sharing a local name would let a
+/// commitment against one axis silently apply to the other's grade. With that
+/// global uniqueness established, the rubric loader's existing hard-fail on
+/// duplicate `(slice, full-axis-IRI)` commitments guarantees the projection below
+/// (keyed on `(slice, axis local name)`) can never collide, so it is a plain
+/// projection — the same map shape the removed governance-TSV parser produced.
 ///
 /// # Errors
-/// A HARD FAIL (.goals no-optionality) when two commitments for the SAME slice narrow
-/// to the SAME axis local name but carry DISTINCT full axis IRIs (e.g. two
-/// differently-namespaced axes both named `axisFoo`). The rubric loader dedups
-/// commitments on the full `(slice, axis-IRI)` pair, so such a pair would otherwise
-/// silently collapse last-writer-wins under the local-name key here — this guard
-/// converts that silent narrowing into a hard fail instead.
+/// A HARD FAIL (.goals no-optionality) when two DISTINCT rubric axis IRIs share the
+/// same local name (e.g. `ns1#axisFoo` and `ns2#axisFoo`).
 fn axis_floors_from_rubric(
     rubric: &Rubric,
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), f64>> {
-    let mut out = std::collections::BTreeMap::new();
-    let mut claimed_by: std::collections::BTreeMap<(String, String), String> =
+    let mut axes_by_local: std::collections::BTreeMap<String, String> =
         std::collections::BTreeMap::new();
-    for c in &rubric.commitments {
-        let key = (c.slice.clone(), axis_local_name(&c.axis).to_owned());
-        match claimed_by.get(&key) {
-            Some(prior_axis) if *prior_axis != c.axis => {
-                return Err(sqe(format!(
-                    "axis floor commitments for slice {} collide on axis local name {:?} \
-                     from distinct axis IRIs {prior_axis} and {} — a projection to \
-                     (slice, axis local name) would silently narrow one away",
-                    c.slice, key.1, c.axis
-                )));
-            }
-            _ => {
-                claimed_by.insert(key.clone(), c.axis.clone());
-                out.insert(key, c.floor);
-            }
+    for axis in &rubric.axes {
+        let local = axis_local_name(&axis.iri).to_owned();
+        if let Some(prior) = axes_by_local.insert(local.clone(), axis.iri.clone()) {
+            return Err(sqe(format!(
+                "rubric axes {prior} and {} collide on axis local name {local:?} — the floor \
+                 gate keys lookups by local name, so a committed floor could be applied to the \
+                 wrong axis",
+                axis.iri
+            )));
         }
+    }
+
+    let mut out = std::collections::BTreeMap::new();
+    for c in &rubric.commitments {
+        out.insert(
+            (c.slice.clone(), axis_local_name(&c.axis).to_owned()),
+            c.floor,
+        );
     }
     Ok(out)
 }
@@ -1250,12 +1252,13 @@ gmeow:thrGmn a gmeow:AxisThreshold ;
     }
 
     #[test]
-    fn axis_floors_from_rubric_hard_fails_on_local_name_collision_across_namespaces() {
-        // The rubric loader dedups commitments on the FULL (slice, axis-IRI) pair, so
-        // two commitments for the SAME slice against two DIFFERENTLY-NAMESPACED axes
-        // that merely SHARE a local name (`axisFoo`) both survive the loader cleanly.
-        // Positive control first: two DISTINCT local names for the same slice map to
-        // two entries with no collision at all.
+    fn axis_floors_from_rubric_hard_fails_on_global_axis_local_name_collision() {
+        // `axis_floors_from_rubric` first enforces that every rubric axis's local name
+        // is GLOBALLY UNIQUE across `rubric.axes` — the floor gate keys every lookup
+        // by local name, so two DISTINCT axis IRIs sharing a local name would let a
+        // commitment against one axis silently apply to the other's grade. Positive
+        // control first: two DISTINCT local names for the same slice map to two
+        // entries with no collision at all.
         let clean = load_rubric_from_ttl(
             &mini_rubric(
                 r#"<https://a.example/ns#axisFoo> a gmeow:QualityAxis ;
@@ -1290,10 +1293,11 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
             Some(0.5)
         );
 
-        // Now the collision: two commitments for the SAME slice, DIFFERENT full axis
-        // IRIs, but the SAME local name `axisFoo` — the projection to (slice, axis
-        // local name) would otherwise silently narrow one away (last-writer-wins).
-        // This must hard-fail rather than pick a winner.
+        // Now the collision: two DISTINCT rubric AXES (not merely commitments) share
+        // the SAME local name `axisFoo` across two different namespaces. This must
+        // hard-fail at the axis level, independent of any commitment against either
+        // axis, because the floor gate would otherwise key lookups on the shared
+        // local name and could apply a commitment to the wrong axis's grade.
         let colliding = load_rubric_from_ttl(
             &mini_rubric(
                 r#"<https://a.example/ns#axisFoo> a gmeow:QualityAxis ;
@@ -1321,8 +1325,8 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
             "names both colliding full axis IRIs: {err}"
         );
         assert!(
-            err.message().contains(&format!("{NS}sliceX")),
-            "names the colliding slice: {err}"
+            err.message().contains("axisFoo"),
+            "names the shared local name: {err}"
         );
     }
 
