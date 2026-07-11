@@ -1615,16 +1615,16 @@ math:FlagshipScenarioShape
 math:ProbabilityValueRangeShape
     a sh:NodeShape ;
     rdfs:label "Probability-value range shape"@x-gmeow-english ;
-    skos:definition "SHACL constraint for math:ProbabilityValue: any concrete math:quantityValue it carries lies in the closed unit interval [0, 1]. A probability is ALWAYS in [0, 1]; a magnitude outside it is either ill-formed or a mis-typed odds/log-odds. Where a probability is exact it is carried as a math:RationalValue (num/den) and carries no math:quantityValue at all, so this range check is unguarded by cardinality — it bounds the literal when present, and the exact-rational numeric check is the separate native gate that pairs with it."@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ProbabilityValue: any concrete gmeow:quantityValue it carries lies in the closed unit interval [0, 1]. A math:ProbabilityValue is a gmeow:Quantity (the core observations quantity, whose magnitude lives in gmeow:quantityValue — the property the charter's worked probability value uses), so the range is bounded on gmeow:quantityValue, not the separate math:quantityValue of a math:Quantity. A probability is ALWAYS in [0, 1]; a magnitude outside it is either ill-formed or a mis-typed odds/log-odds. Where a probability is exact it is carried as a math:RationalValue (num/den) and carries no decimal at all, so this range check is unguarded by cardinality — it bounds the literal when present, and the exact-rational numeric check is the separate native gate that pairs with it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:enforcesFailureClass math:ProbabilityOutOfBounds ;
     sh:targetClass math:ProbabilityValue ;
     sh:property [
-        sh:path math:quantityValue ;
+        sh:path gmeow:quantityValue ;
         sh:minInclusive 0 ;
         sh:maxInclusive 1 ;
         sh:severity sh:Violation ;
-        sh:message "A math:ProbabilityValue's math:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." ;
+        sh:message "A math:ProbabilityValue's gmeow:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." ;
     ] .
 
 # Rule P2 — a probability value is never also an odds or log-odds value.
@@ -1712,20 +1712,33 @@ math:RandomVariableScopedShape
     sh:severity sh:Violation ;
     sh:message "A math:RandomVariable must carry a probability context — a math:hasDistribution, or a math:randomVariableDomain that is itself a math:ProbabilitySpace; a variable with neither is unscoped (math:UnscopedRandomVariable)." .
 
-# Rule P6 — a distribution names its family, and a parameter-supplying distribution names its parameterization.
-math:DistributionParameterizedShape
+# Rule P6a — a distribution names its family (pure sh:property, so the closed-world
+# JSON-Schema projection builds a $defs/Distribution node; a shape carrying sh:sparql
+# is skipped by that projection, so the family gate is kept in its own property shape).
+math:DistributionFamilyShape
     a sh:NodeShape ;
-    rdfs:label "Distribution parameterization shape"@x-gmeow-english ;
-    skos:definition "SHACL constraints for math:Distribution: it names its family (math:distributionFamily — the paired SHACL twin of the OWL family restriction), and any distribution that SUPPLIES parameters (math:hasDistributionParameter) also names its math:distributionParameterization. There is no math:ParametricDistribution marker in the vocabulary, so parametricity is detected by the presence of supplied parameters rather than by a class or boolean: a distribution that supplies parameters is parametric and must declare which conventional form of its family those parameters fill, whereas a non-parametric distribution (no supplied parameters) is NOT rejected. This SHACL-SPARQL form is chosen precisely so the gate never misfires on a non-parametric distribution. A bare family label with parameters but no parameterization is ill-formed (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    rdfs:label "Distribution family shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Distribution: it names its math:distributionFamily — the parametric family (a math:DistributionFamily) it belongs to — the paired SHACL twin of the OWL family restriction. Authored as a pure sh:property shape (no sh:sparql) so the closed-world JSON-Schema projection builds a $defs/Distribution node from it; the parametric-parameterization check, which needs a query, is the separate math:DistributionParameterizationShape. A bare distribution with no family is underspecified (math:MissingDistributionParameterization)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:enforcesFailureClass math:MissingDistributionParameterization ;
     sh:targetClass math:Distribution ;
     sh:property [
         sh:path math:distributionFamily ;
         sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:class math:DistributionFamily ;
         sh:severity sh:Violation ;
-        sh:message "A math:Distribution must name its math:distributionFamily — the parametric family it belongs to; a distribution missing its family is underspecified (math:MissingDistributionParameterization)." ;
-    ] ;
+        sh:message "A math:Distribution must name its math:distributionFamily — the parametric family (a math:DistributionFamily) it belongs to; a distribution missing its family is underspecified (math:MissingDistributionParameterization)." ;
+    ] .
+
+# Rule P6b — a parameter-supplying distribution names its parameterization (SHACL-SPARQL).
+math:DistributionParameterizationShape
+    a sh:NodeShape ;
+    rdfs:label "Distribution parameterization shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:Distribution: any distribution that SUPPLIES parameters (math:hasDistributionParameter) also names its math:distributionParameterization. There is no math:ParametricDistribution marker in the vocabulary, so parametricity is detected by the presence of supplied parameters rather than by a class or boolean: a distribution that supplies parameters is parametric and must declare which conventional form of its family those parameters fill, whereas a non-parametric distribution (no supplied parameters) is NOT rejected. This SHACL-SPARQL form is chosen precisely so the gate never misfires on a non-parametric distribution. A bare family label with parameters but no parameterization is ill-formed (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:MissingDistributionParameterization ;
+    sh:targetClass math:Distribution ;
     sh:sparql [
         sh:severity sh:Violation ;
         sh:message "A math:Distribution that supplies a math:hasDistributionParameter must name its math:distributionParameterization — the explicit convention fixing which parametric form of its family is meant; a supplied parameter with a silent default parameterization is ill-formed (math:MissingDistributionParameterization)." ;

@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:MissingProbabilityModelLowering gate: a
+# world references a probability model through logic:probabilityModel, and that model
+# declares its logic: lowering directly through math:probabilityModelLowering. It MUST
+# raise NO probability failure class. Positive counterpart of
+# counter-examples/missing-probability-model-lowering.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:world logic:probabilityModel ex:loweredModel .
+
+ex:loweredModel a math:FullIndependenceModel ;
+    math:probabilityModelLowering logic:FullIndependence ;
+    logic:preservationKind logic:ExactPreservation .
