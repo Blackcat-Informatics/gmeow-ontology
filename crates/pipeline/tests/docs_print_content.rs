@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Content acceptance over the committed print-documentation Typst source.
+//! Content acceptance over the source-rendered print-documentation Typst source.
 //!
 //! The print PDF is compiled from a deterministic `gmeow.typ` that carries the
 //! academic sections behind stable `// <<section:NAME>>` markers. These tests
-//! fold the SHIPPED `generated/dist/gmeow.gts`, pull the plain-text `.typ` out of
-//! the `docs-print` archive (NO PDF parser — the `.typ` is the auditable source),
+//! render the plain-text `.typ` directly from the canonical documentation model
+//! (NO GTS round-trip and no PDF parser — the `.typ` is the auditable source),
 //! and assert two things:
 //!
 //! * **F1** — every academic section marker is present, the metrics section names
@@ -18,34 +18,36 @@
 //!   same table that feeds the `graph/docs-format-rendering` graph and the
 //!   LossLedger. The appendix cannot drift from the graph because both read it.
 
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
 use docs_print::FAIR_GATE;
 use gmeow_docs::formats::{DocFormat, format_capabilities};
-use gmeow_pipeline::bundle_blobs::Bundle;
-
-/// The committed bundle path, resolved off the crate manifest.
-fn committed_gts_path() -> PathBuf {
+/// The repository root, resolved off the crate manifest.
+fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("..")
-        .join("generated/dist/gmeow.gts")
 }
 
-/// Fold the committed bundle once.
-fn committed_bundle() -> Bundle {
-    let bytes = std::fs::read(committed_gts_path()).expect("read committed gmeow.gts");
-    Bundle::from_snapshot(&bytes).expect("fold committed gmeow.gts")
-}
-
-/// The plain-text `x-gmeow-english/gmeow.typ` from the `docs-print` archive.
-fn print_typ_source(bundle: &Bundle) -> String {
-    let archive = bundle.docs_print().expect("resolve docs-print archive");
-    let bytes = archive
-        .get("x-gmeow-english/gmeow.typ")
-        .expect("docs-print carries x-gmeow-english/gmeow.typ");
-    String::from_utf8(bytes.clone()).expect("gmeow.typ is UTF-8")
+/// Render once from canonical sources. The second tuple member is the live model term count.
+fn print_projection() -> &'static (String, usize) {
+    static PROJECTION: OnceLock<(String, usize)> = OnceLock::new();
+    PROJECTION.get_or_init(|| {
+        let model = gmeow_docs::DocsModel::discover(&repo_root()).expect("discover docs model");
+        let losses = [
+            DocFormat::Site,
+            DocFormat::Mdbook,
+            DocFormat::Pdf,
+            DocFormat::Snippets,
+        ]
+        .into_iter()
+        .map(format_capabilities)
+        .collect::<Vec<_>>();
+        let typ = docs_print::render_typ(&model, &BTreeMap::new(), &[], &losses);
+        (typ, model.terms.len())
+    })
 }
 
 /// The section marker line for `name`.
@@ -70,8 +72,7 @@ fn section_text<'a>(typ: &'a str, name: &str) -> &'a str {
 
 #[test]
 fn print_typ_carries_every_section_marker() {
-    let bundle = committed_bundle();
-    let typ = print_typ_source(&bundle);
+    let typ = &print_projection().0;
     for name in [
         "metrics",
         "methodology",
@@ -92,9 +93,8 @@ fn print_typ_carries_every_section_marker() {
 
 #[test]
 fn metrics_section_names_a_live_term_count() {
-    let bundle = committed_bundle();
-    let typ = print_typ_source(&bundle);
-    let metrics = section_text(&typ, "metrics");
+    let (typ, term_count) = print_projection();
+    let metrics = section_text(typ, "metrics");
 
     // The metrics section is a `#table(...)` block.
     assert!(
@@ -102,33 +102,10 @@ fn metrics_section_names_a_live_term_count() {
         "metrics section must render a #table block, got:\n{metrics}"
     );
 
-    // Live datum: the bundle's own per-term corpus. Each documented term emits a
-    // `x-gmeow-english/terms/<slug>/card.md`; distinct `<slug>` values are a lower
-    // bound on the model's term count (several IRIs can share one page slug, so
-    // the printed count is ≥ the distinct-slug count, never below it). Deriving the
-    // floor from the bundle proves the metric is real live data, not a placeholder.
-    let docs = bundle
-        .ontology_docs()
-        .expect("resolve ontology-docs archive");
-    let card_slugs: BTreeSet<&str> = docs
-        .keys()
-        .filter_map(|k| k.strip_prefix("x-gmeow-english/terms/"))
-        .filter_map(|rest| rest.strip_suffix("/card.md"))
-        .collect();
-    let term_floor = card_slugs.len();
-    assert!(
-        term_floor > 0,
-        "the committed ontology-docs must carry per-term cards"
-    );
-
-    // Pull the printed `"Terms", "<N>"` metric row and assert N is a positive
-    // integer at least the live floor.
+    // Pull the printed `"Terms", "<N>"` metric row and assert it equals the
+    // canonical documentation model's live term count.
     let printed = printed_terms_metric(metrics);
-    assert!(
-        printed >= term_floor,
-        "metrics section term count {printed} is below the live per-term-card floor \
-         {term_floor} — the printed metric is not backed by the bundle's own corpus"
-    );
+    assert_eq!(printed, *term_count);
 }
 
 /// Parse the `"Terms", "<N>",` metric row's integer out of the metrics section.
@@ -153,10 +130,9 @@ fn printed_terms_metric(metrics: &str) -> usize {
 
 #[test]
 fn each_framework_comparison_has_at_least_one_row() {
-    let bundle = committed_bundle();
-    let typ = print_typ_source(&bundle);
+    let typ = &print_projection().0;
     for name in ["comparison-gufo", "comparison-bfo", "comparison-dolce"] {
-        let section = section_text(&typ, name);
+        let section = section_text(typ, name);
         assert!(
             section.contains("#table("),
             "{name} must render a #table block"
@@ -180,9 +156,8 @@ fn each_framework_comparison_has_at_least_one_row() {
 
 #[test]
 fn fair_section_cites_the_exact_fair_gate() {
-    let bundle = committed_bundle();
-    let typ = print_typ_source(&bundle);
-    let fair = section_text(&typ, "fair");
+    let typ = &print_projection().0;
+    let fair = section_text(typ, "fair");
     assert!(
         fair.contains(FAIR_GATE),
         "FAIR section must cite the exact FAIR-metadata gate literal {FAIR_GATE:?}, section:\n{fair}"
@@ -191,9 +166,8 @@ fn fair_section_cites_the_exact_fair_gate() {
 
 #[test]
 fn loss_appendix_matches_the_shared_pdf_loss_source() {
-    let bundle = committed_bundle();
-    let typ = print_typ_source(&bundle);
-    let appendix = section_text(&typ, "loss-appendix");
+    let typ = &print_projection().0;
+    let appendix = section_text(typ, "loss-appendix");
 
     // The single source of truth for the PDF's declared losses — the same table
     // that grounds `graph/docs-format-rendering` and the LossLedger.

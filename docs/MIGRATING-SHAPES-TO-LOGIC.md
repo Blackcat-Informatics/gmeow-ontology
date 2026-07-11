@@ -44,17 +44,20 @@ A hand-authored shape is one of two fragments:
 Author the backing axiom in the **owning slice's `module.ttl`**; `derive_validation_shapes`
 (`crates/logic-compile/src/frontend.rs`) reproduces it into `validation-shapes.ttl`.
 
-- Range / class obligation → `rdfs:range` / `owl:someValuesFrom` (+ `ClosedWorldClosure`
-  opt-in where a `sh:class` range shape must derive; `OpenWorldClosure` to opt a term out).
+- Range / class obligation → `rdfs:range` / `owl:allValuesFrom`; existence → an
+  `owl:allValuesFrom` restriction plus a class-scoped `ClosedWorldClosure` entry carrying both
+  `logic:onClass` and `logic:closureKey`. The closure entry projects `sh:minCount 1` without
+  adding an OWL existential that would mint a reasoner witness.
 - Datatype / nodekind / value-set → `rdfs:range` / `owl:DatatypeProperty` / `owl:oneOf`.
 
 **Reasoner-safety (mandatory).** Cardinality restrictions must stay inside the EL fragment
 or `make reason-verify` **hard-fails**:
 
 - NEVER `owl:cardinality` / `owl:minCardinality` / `owl:maxCardinality` (out of EL).
-- Existence (`sh:minCount 1`) → `owl:someValuesFrom` (skolem-free, no `minCount` needed).
+- Existence (`sh:minCount 1`) → `owl:allValuesFrom` plus an explicit class-scoped
+  `logic:ClosedWorldClosure` entry for the constrained class/property pair.
 - Bounded count → `owl:maxQualifiedCardinality` + `owl:onClass`/`owl:onDataRange`
-  (skolem-free); restore a lost `sh:minCount` with a sibling `owl:minQualifiedCardinality`.
+  only where the reasoner profile permits it; prefer `owl:FunctionalProperty` for at-most-one.
 - Avoid exact/single-node `owl:qualifiedCardinality` (skolem explosion).
 
 ## Procedural migration

@@ -23,7 +23,7 @@ pub struct ScoreContext<'a> {
     pub slice_dir: PathBuf,
     /// The dataset to read, already assembled at the axis's licensed scope.
     pub graph: &'a RdfDataset,
-    /// The slice's own authored `gmeow:` term IRIs (subjects `rdfs:isDefinedBy`
+    /// The slice's own authored term IRIs (typed subjects `rdfs:isDefinedBy`
     /// the slice), sorted — the population most per-term axes score over.
     pub terms: Vec<String>,
 }
@@ -43,25 +43,34 @@ impl<'a> ScoreContext<'a> {
     }
 }
 
-/// The slice's own authored terms: `gmeow:`-namespaced subjects that declare
-/// `rdfs:isDefinedBy <slice_iri>`. Falls back to every typed `gmeow:` subject
-/// when no term declares `isDefinedBy` (e.g. a graph assembled without it).
+/// The slice's own authored terms: typed IRI subjects that declare
+/// `rdfs:isDefinedBy <slice_iri>`.
+///
+/// Namespace is deliberately irrelevant: grounding slices own `logic:`, `lang:`,
+/// and `math:` terms alongside occasional `gmeow:` terms. A graph without explicit
+/// ownership yields an empty population instead of silently scoring unrelated terms.
 #[must_use]
 pub fn slice_terms(ds: &RdfDataset, slice_iri: &str) -> Vec<String> {
-    let isdefinedby = graph::id(ds, "http://www.w3.org/2000/01/rdf-schema#isDefinedBy");
-    let slice_id = graph::id(ds, slice_iri);
-    if let (Some(p), Some(o)) = (isdefinedby, slice_id) {
-        let mut out: Vec<String> = graph::gmeow_terms(ds)
-            .into_iter()
-            .filter(|iri| graph::id(ds, iri).is_some_and(|s| graph::has(ds, s, p, o)))
-            .collect();
-        out.sort_unstable();
-        out.dedup();
-        if !out.is_empty() {
-            return out;
-        }
-    }
-    graph::gmeow_terms(ds)
+    use purrdf::{DatasetView, GraphMatch, TermRef};
+
+    let (Some(type_p), Some(defined_by_p), Some(slice_id)) = (
+        graph::id(ds, graph::RDF_TYPE),
+        graph::id(ds, "http://www.w3.org/2000/01/rdf-schema#isDefinedBy"),
+        graph::id(ds, slice_iri),
+    ) else {
+        return Vec::new();
+    };
+
+    let mut out: Vec<String> = ds
+        .quads_for_pattern(None, Some(defined_by_p), Some(slice_id), GraphMatch::Any)
+        .filter_map(|q| match ds.resolve(q.s) {
+            TermRef::Iri(iri) if graph::has_any(ds, q.s, type_p) => Some(iri.to_owned()),
+            _ => None,
+        })
+        .collect();
+    out.sort_unstable();
+    out.dedup();
+    out
 }
 
 /// The raw result of one axis primitive: a normalized score and its advisories.

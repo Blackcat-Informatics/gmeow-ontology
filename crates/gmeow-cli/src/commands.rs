@@ -9,7 +9,7 @@ use std::borrow::Cow;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
-use gmeow_cli_core::{Reporter, report_diag, write_docs_projection};
+use gmeow_cli_core::{Reporter, report_diag};
 use gmeow_errors::grade::{Belnap, BoundedLattice};
 use gmeow_errors::model::Finding;
 use gmeow_errors::{
@@ -19,7 +19,7 @@ use gmeow_pipeline::diagnostics_reader::{
     FindingIndex, explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
 };
 
-use crate::{BUNDLE_GTS, ExportFormat, NAMESPACE};
+use crate::{BUNDLE_GTS, NAMESPACE};
 
 /// Build an Error-grade CLI diagnostic carrying a per-site stable code — the
 /// pre-carrier graded witness a handled `gmeow` failure lowers to (never a bare
@@ -1445,207 +1445,6 @@ pub fn convert(
         }
     }
     0
-}
-
-// ── export-docs ──────────────────────────────────────────────────────────────
-
-/// `gmeow export-docs` — write one or every documentation projection (site, mdbook,
-/// PDF, snippets) of the bundled docs from a GTS snapshot.
-///
-/// A single format writes its tree directly into `directory`; `all` writes each
-/// projection into its own subdirectory (`site/`, `mdbook/`, `pdf/`, `snippets/`).
-/// The mdbook and PDF projections are English-only (they ignore `--lang`).
-pub fn export_docs(
-    reporter: &dyn Reporter,
-    format: &ExportFormat,
-    directory: &Path,
-    file: Option<&Path>,
-    force: bool,
-    lang: Option<&str>,
-) -> i32 {
-    let bytes = match gts_bytes(reporter, file) {
-        Ok(b) => b,
-        Err(code) => return code,
-    };
-    // Resolve `--lang` to a public BCP-47 tag, then map back to the internal
-    // `x-gmeow-*` doc-tree language the site/snippet blobs are keyed by.
-    let selector = match resolve_selector(reporter, lang, &bytes) {
-        Ok(s) => s,
-        Err(code) => return code,
-    };
-    let available = match gmeow_pipeline::cli_ops::confirmations::available_doc_languages(&bytes) {
-        Ok(langs) => langs,
-        Err(e) => {
-            return fail(
-                reporter,
-                "gmeow-cli.export-docs.languages",
-                format!("cannot read docs languages: {e}"),
-            );
-        }
-    };
-    let internal = pick_internal_lang(&selector, &available);
-
-    // Guard against clobbering a non-empty directory unless --force is given.
-    if !force
-        && let Ok(mut entries) = std::fs::read_dir(directory)
-        && entries.next().is_some()
-    {
-        return fail(
-            reporter,
-            "gmeow-cli.export-docs.not-empty",
-            format!(
-                "{} is not empty; pass --force to write into it",
-                directory.display()
-            ),
-        );
-    }
-
-    use gmeow_pipeline::cli_ops::confirmations as conf;
-    match format {
-        ExportFormat::Site => {
-            write_docs_projection(directory, conf::export_docs_site(&bytes, &internal))
-        }
-        ExportFormat::Mdbook => write_docs_projection(directory, conf::export_docs_book(&bytes)),
-        ExportFormat::Pdf => write_docs_projection(directory, conf::export_docs_print(&bytes)),
-        ExportFormat::Snippets => {
-            write_docs_projection(directory, conf::export_docs_snippets(&bytes, &internal))
-        }
-        ExportFormat::All => {
-            let plan = [
-                ("site", conf::export_docs_site(&bytes, &internal)),
-                ("mdbook", conf::export_docs_book(&bytes)),
-                ("pdf", conf::export_docs_print(&bytes)),
-                ("snippets", conf::export_docs_snippets(&bytes, &internal)),
-            ];
-            for (sub, tree) in plan {
-                let code = write_docs_projection(&directory.join(sub), tree);
-                if code != 0 {
-                    return code;
-                }
-            }
-            0
-        }
-    }
-}
-
-// ── docs-on ──────────────────────────────────────────────────────────────────
-
-/// `gmeow docs-on` — print the documentation page (or `--card`) for one GMEOW term
-/// from a GTS snapshot's ontology-docs blob.
-pub fn docs_on(
-    reporter: &dyn Reporter,
-    term: &str,
-    card: bool,
-    gts: Option<&Path>,
-    lang: Option<&str>,
-) -> i32 {
-    use gmeow_docs::describe::{DescribeGraph, resolve_term};
-
-    let bytes = match gts_bytes(reporter, gts) {
-        Ok(b) => b,
-        Err(code) => return code,
-    };
-    let graph = match DescribeGraph::from_gts_bytes(&bytes) {
-        Ok(g) => g,
-        Err(e) => return fail(reporter, "gmeow-cli.docs-on.graph", e.to_string()),
-    };
-    let (resolved, candidates) = resolve_term(&graph, term);
-    let Some(iri) = resolved else {
-        // Mirror `describe`'s ambiguity/no-match handling: list candidates (if any)
-        // to stderr and exit non-zero.
-        if candidates.is_empty() {
-            return fail(
-                reporter,
-                "gmeow-cli.docs-on.no-match",
-                format!("no GMEOW term matches '{term}'"),
-            );
-        }
-        let options = candidates
-            .iter()
-            .map(|c| format!("  gmeow:{c}"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        return fail(
-            reporter,
-            "gmeow-cli.docs-on.ambiguous",
-            format!("ambiguous or unknown term '{term}' — candidates:\n{options}"),
-        );
-    };
-
-    // Map `--lang` to the internal `x-gmeow-*` doc-tree language the page is keyed by.
-    let selector = match resolve_selector(reporter, lang, &bytes) {
-        Ok(s) => s,
-        Err(code) => return code,
-    };
-    let available = match gmeow_pipeline::cli_ops::confirmations::available_doc_languages(&bytes) {
-        Ok(langs) => langs,
-        Err(e) => {
-            return fail(
-                reporter,
-                "gmeow-cli.docs-on.languages",
-                format!("cannot read docs languages: {e}"),
-            );
-        }
-    };
-    let internal = pick_internal_lang(&selector, &available);
-
-    let docs = match gmeow_pipeline::bundle_blobs::bundled_ontology_docs(&bytes) {
-        Ok(d) => d,
-        Err(e) => {
-            return fail(
-                reporter,
-                "gmeow-cli.docs-on.no-docs",
-                format!("snapshot carries no ontology-docs pages: {e}"),
-            );
-        }
-    };
-    // Resolve the injective doc-entry slug from the bundle's own emitted
-    // `gmeow:documents` inverse (the collision-free slug map the docs projection
-    // folds into graph/documentation), NOT a stateless recompute that would miss a
-    // disambiguated slug.
-    let Some(slug) = graph.documentation_term_slug(&iri) else {
-        return fail(
-            reporter,
-            "gmeow-cli.docs-on.missing-page",
-            format!("no documentation entry for {iri} in the folded bundle"),
-        );
-    };
-    let leaf = if card { "card.md" } else { "index.md" };
-    let key = format!("{internal}/terms/{slug}/{leaf}");
-    match docs.get(&key) {
-        Some(data) => {
-            print!("{}", String::from_utf8_lossy(data));
-            0
-        }
-        None => fail(
-            reporter,
-            "gmeow-cli.docs-on.missing-page",
-            format!("no documentation page for {iri} (expected {key} in the ontology-docs blob)"),
-        ),
-    }
-}
-
-/// Choose the internal `x-gmeow-*` doc language for the requested selector: the
-/// first requested tag with a matching `x-gmeow-<...>` subtree, else English.
-fn pick_internal_lang(
-    selector: &gmeow_validate::language_tags::LangSelector,
-    available: &[String],
-) -> String {
-    let english = "x-gmeow-english".to_owned();
-    for req in &selector.requested {
-        // The internal tags carry the language name (`x-gmeow-french`); a BCP-47
-        // request like `fr` won't substring-match, so English is the safe default
-        // when no exact internal tag is requested. An internal tag passed through
-        // `--lang` maps to itself.
-        if let Some(hit) = available.iter().find(|a| a.as_str() == req) {
-            return hit.clone();
-        }
-    }
-    if available.iter().any(|a| a == &english) {
-        english
-    } else {
-        available.first().cloned().unwrap_or(english)
-    }
 }
 
 // ── crossref ─────────────────────────────────────────────────────────────────

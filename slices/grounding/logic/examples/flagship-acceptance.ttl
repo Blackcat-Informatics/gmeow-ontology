@@ -44,7 +44,7 @@ exa:elRlDlClosure a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "logic::reason::reason_all" ;
     gmeow:guardedByCounterExample "tests/counter-examples/closure-witness-empty.ttl" ;
     gmeow:enforcesFailureClass logic:IncompleteClosure ;
-    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+    gmeow:counterExampleDischarge gmeow:reasonerDrivenDischarge .
 
 # --- Flagship 2 — the correspondence section-law discharge ----------------- #
 exa:correspondenceSection a gmeow:FlagshipScenario ;
@@ -52,10 +52,10 @@ exa:correspondenceSection a gmeow:FlagshipScenario ;
     skos:definition "A correspondence get/put leg pair discharges its section law (put ∘ get = identity), executed by gmeow_logic::correspondence_exec::leg_pair_verdict: a genuine inverse yields DischargeVerdict::ObligationDischarged, and a broken section does not. The section obligation the round-trip discharges is the correspondence's teeth."@x-gmeow-english ;
     gmeow:demonstratedByExample "tests/conformance-fixtures/section-witness-complete.ttl" ;
     gmeow:demonstratedByCompetency cq:cqLogicSection ;
-    gmeow:demonstratedByProducer "logic::correspondence_exec::logic_program_verdicts" ;
+    gmeow:demonstratedByProducer "logic::correspondence_exec::leg_pair_verdict" ;
     gmeow:guardedByCounterExample "tests/counter-examples/section-witness-unobligated.ttl" ;
     gmeow:enforcesFailureClass logic:SectionObligationViolated ;
-    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+    gmeow:counterExampleDischarge gmeow:reasonerDrivenDischarge .
 
 # --- Flagship 3 — the Stratum-C counterfactual with entrenchment ----------- #
 exa:counterfactualStratumC a gmeow:FlagshipScenario ;
@@ -66,7 +66,7 @@ exa:counterfactualStratumC a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "logic::counterfactual::construct_and_resolve" ;
     gmeow:guardedByCounterExample "tests/counter-examples/counterfactual-witness-unentrenched.ttl" ;
     gmeow:enforcesFailureClass logic:UnentrenchedCounterfactual ;
-    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+    gmeow:counterExampleDischarge gmeow:reasonerDrivenDischarge .
 
 # --- Flagship 4 — the symmetric φ/¬φ conjecture test ----------------------- #
 exa:symmetricConjecture a gmeow:FlagshipScenario ;
@@ -77,7 +77,7 @@ exa:symmetricConjecture a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "logic::conjecture::conjecture_test" ;
     gmeow:guardedByCounterExample "tests/counter-examples/refutation-witness-unwitnessed.ttl" ;
     gmeow:enforcesFailureClass logic:UnwitnessedRefutation ;
-    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+    gmeow:counterExampleDischarge gmeow:reasonerDrivenDischarge .
 
 # --- Flagship 5 — the chase termination certificate ------------------------ #
 exa:chaseTerminationCertificate a gmeow:FlagshipScenario ;
@@ -88,4 +88,4 @@ exa:chaseTerminationCertificate a gmeow:FlagshipScenario ;
     gmeow:demonstratedByProducer "logic::materialize::materialize_routed" ;
     gmeow:guardedByCounterExample "tests/counter-examples/chase-witness-uncertified.ttl" ;
     gmeow:enforcesFailureClass logic:UncertifiedChase ;
-    gmeow:counterExampleDischarge gmeow:structuralDischarge .
+    gmeow:counterExampleDischarge gmeow:reasonerDrivenDischarge .

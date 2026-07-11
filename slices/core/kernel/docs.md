@@ -152,7 +152,9 @@ classes by IRI; only the class home moved.
 Docs ship *with* the ontology in three tiers (Principle 4): term docs are canonical in
 the graph; narrative guides are canonical markdown whose `### gmeow:Term` anchors resolve
 against the graph or the build fails, riding the GTS package as content-addressed blobs
-linked by `guideBlob` (trustworthy from the hash chain alone — Principle 7). `pairsWith`
+linked by `guideBlob` in an external documentation projection (trustworthy from that
+projection's hash chain — Principle 7); the logical GTS bundle excludes both guide
+payloads and their references. `pairsWith`
 makes the flat-first/reify-on-demand pairing machine-usable: flat shortcut → reified
 relator (`gmeow:hasTag` ↔ `gmeow:Tagging`), rendered by `gmeow describe` from structure,
 never a logical bridge (Principle 12). Documentation literals are CommonMark typed

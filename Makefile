@@ -69,14 +69,14 @@ MUTANTS_ARGS ?=
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
 RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
 
-CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
+CHECK_TARGETS := lint rust-gate gts-frame-profile-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
 	mappings lint-alignment doc-lint coherence-gate-teeth slice-quality-gate \
 	bench-golden-gate bench-soak
 
 .PHONY: help \
 	install fmt lint lint-issue-refs \
-	validate validate-gts reason verify reason-verify reason-crosscheck rust-build rust-test rust-docs check \
+	validate validate-gts gts-frame-profile-gate reason verify reason-verify reason-crosscheck rust-build rust-test rust-docs check \
 	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
@@ -139,6 +139,9 @@ rust-test: rust-build ## Run the Rust workspace tests and doctests.
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
+gts-frame-profile-gate: rust-build ## Enforce zstd-rsyncable level 12 on every committed GTS payload frame.
+	cargo nextest run -p gmeow-pipeline -E 'test(/gts_profile/)' --no-tests fail
+
 rust-docs: ## Build Rust API docs and fail on broken or redundant public rustdoc links.
 	RUSTDOCFLAGS="-D rustdoc::broken_intra_doc_links -D rustdoc::redundant_explicit_links -A rustdoc::private_intra_doc_links" cargo doc --workspace --no-deps
 
@@ -198,8 +201,9 @@ commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and c
 	fi
 	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them separately if needed."
 
-docs: regenerate ## Regenerate gmeow.gts docs and export ontology-docs/.
-	$(GMEOW_DEV) export-docs --format site --directory ontology-docs --force generated/dist/gmeow.gts
+docs: regenerate ## Regenerate all external documentation projections (site, book, print, snippets, OKF, YAML-LD).
+	$(GMEOW_DEV) export-docs --format all --directory dist/gmeow-docs --force
+	$(GMEOW_DEV) export-docs --format site --directory ontology-docs --force
 
 normalize: ## Rewrite authored ontology sources into canonical serialization.
 	$(GMEOW_DEV) normalize

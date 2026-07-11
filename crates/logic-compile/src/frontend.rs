@@ -1182,6 +1182,28 @@ fn closure_validation_closed_optins(store: &RdfDataset) -> std::collections::BTr
     closure_keys_with_value(store, "ClosedWorldClosure")
 }
 
+/// Class/property pairs whose closure entry explicitly turns an `owl:allValuesFrom` restriction
+/// into a required closed-world path. The pair is class-scoped: closing a predicate globally does
+/// not imply that every class must carry it. This avoids an OWL existential in the reasoned core
+/// while giving the validation projection an explicit, canonical `sh:minCount 1` authority.
+fn closure_validation_closed_requirements(
+    store: &RdfDataset,
+) -> std::collections::BTreeSet<(String, String)> {
+    let closed = Node::iri(logic_iri("ClosedWorldClosure"));
+    let key_pred = nn(&logic_iri("closureKey"));
+    let class_pred = nn(&logic_iri("onClass"));
+    let mut set = std::collections::BTreeSet::new();
+    for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &closed) {
+        if let (Some(key), Some(Node::Iri(class))) = (
+            value(store, &entry, &key_pred),
+            value(store, &entry, &class_pred),
+        ) {
+            set.insert((class, term_str(&key)));
+        }
+    }
+    set
+}
+
 /// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, collecting its IRI members in
 /// order. Blank / literal members are skipped (a non-resource list element has no IRI form),
 /// and the walk terminates on `rdf:nil`, a cell missing `rdf:rest`, a non-resource cell, or a
@@ -1352,6 +1374,7 @@ pub fn derive_validation_shapes(
     // open-world by default (they are inference axioms), so a domain/range shape is derived only
     // for a property a `ClosedWorldClosure` closure entry explicitly closes. See FAMILY 3.
     let closed_optins = closure_validation_closed_optins(store);
+    let closed_requirements = closure_validation_closed_requirements(store);
     let owl = "http://www.w3.org/2002/07/owl#";
     let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     let xsd = "http://www.w3.org/2001/XMLSchema#";
@@ -1639,18 +1662,12 @@ pub fn derive_validation_shapes(
                 continue;
             }
 
-            // owl:someValuesFrom is EXISTENTIAL ("K ⊑ ∃P.C"). Its FAITHFUL closed-world reading
-            // (`sh:qualifiedValueShape [ <inner> ] ; sh:qualifiedMinCount 1`) would demand the
-            // value EXIST — but a validation shape is a `logic:ValidationOnly` under-approximation
-            // that must never over-claim (LOGIC-VALIDATION.md, "Where the loss is"), and an
-            // existential over-claims: it false-positives on the ontology's own open-world
-            // value-vocabulary individuals / fixtures, which are instances of a restricted class
-            // yet legitimately do not populate the mediated relation. So the shape projects the
-            // class-membership under-approximation ("any value present on P must be a C" — vacuously
-            // true when absent, identical to the `allValuesFrom` projection); the existential
-            // EXISTENCE obligation is carried in the canonical logic: layer, not the shape. A blank
-            // filler is an anonymous class expression (union/intersection), carried in the canon,
-            // never a bare blank shape — skip it.
+            // owl:someValuesFrom is an OPEN-WORLD existential and therefore never becomes a
+            // closed-world minimum by itself. Its validation projection is the conservative
+            // value-typing under-approximation. Required paths are authored separately as a
+            // class-scoped `ClosedWorldClosure` entry paired with `owl:allValuesFrom`; this keeps
+            // the SHACL minimum explicit without causing the native reasoner to mint existential
+            // witnesses into the shipped closure.
             match value(store, &restr_subj, &p_some) {
                 Some(Node::Iri(cv)) => {
                     if let Some(cc) = classify(&cv) {
@@ -1689,7 +1706,16 @@ pub fn derive_validation_shapes(
             match value(store, &restr_subj, &p_all) {
                 Some(Node::Iri(cv)) => {
                     if let Some(cc) = classify(&cv) {
-                        let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
+                        let min = closed_requirements
+                            .contains(&(class_iri.clone(), on.clone()))
+                            .then_some(1);
+                        let pc = PropertyConstraintIr::new(
+                            &on,
+                            min,
+                            None,
+                            min.map(|_| ConstraintProvenance::OwlRestriction),
+                            vec![cc],
+                        )?;
                         entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                             .2
                             .push(pc);
@@ -1699,12 +1725,30 @@ pub fn derive_validation_shapes(
                     if let Some(fs) = term_as_subject(&filler) {
                         let facets = datatype_facets(&fs);
                         if !facets.is_empty() {
-                            let pc = PropertyConstraintIr::new(&on, None, None, None, facets)?;
+                            let min = closed_requirements
+                                .contains(&(class_iri.clone(), on.clone()))
+                                .then_some(1);
+                            let pc = PropertyConstraintIr::new(
+                                &on,
+                                min,
+                                None,
+                                min.map(|_| ConstraintProvenance::OwlRestriction),
+                                facets,
+                            )?;
                             entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                                 .2
                                 .push(pc);
                         } else if let Some(cc) = classify_filler(&fs) {
-                            let pc = PropertyConstraintIr::new(&on, None, None, None, vec![cc])?;
+                            let min = closed_requirements
+                                .contains(&(class_iri.clone(), on.clone()))
+                                .then_some(1);
+                            let pc = PropertyConstraintIr::new(
+                                &on,
+                                min,
+                                None,
+                                min.map(|_| ConstraintProvenance::OwlRestriction),
+                                vec![cc],
+                            )?;
                             entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                                 .2
                                 .push(pc);
@@ -2242,8 +2286,27 @@ pub fn derive_validation_shapes(
         if node_components.is_empty() && properties.is_empty() {
             continue;
         }
-        let shape = ValidationShapeIr::new(iri, target, properties, None)?
+        let mut shape = ValidationShapeIr::new(iri, target.clone(), properties, None)?
             .with_node_components(node_components)?;
+        // Failure metadata belongs to the canonical target term, never to a hand-authored SHACL
+        // node. Preserve exactly one value into the projected shape and hard-fail duplicates.
+        if let ShapeTarget::Class(class) = &target {
+            let failure_classes = objects(
+                store,
+                &Subject::Iri(class.clone()),
+                &nn("https://blackcatinformatics.ca/gmeow/enforcesFailureClass"),
+            );
+            if failure_classes.len() > 1 {
+                return Err(Diag::of_kind(crate::error::Frontend {
+                    detail: format!(
+                        "class {class} has duplicate gmeow:enforcesFailureClass values"
+                    ),
+                }));
+            }
+            if let Some(failure_class) = failure_classes.first() {
+                shape = shape.with_failure_class(term_str(failure_class))?;
+            }
+        }
         shapes.push(shape);
     }
     Ok(shapes)
@@ -2694,9 +2757,22 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
         None => ShaclSeverity::Violation,
     };
     let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
-    let mut constraint = ConstraintIr::new(iri, integrity, severity, message)?;
+    let mut constraint = ConstraintIr::new(&iri, integrity, severity, message)?;
     if let Some(formalizes) = value(store, node, &nn(&logic_iri("formalizes"))) {
         constraint = constraint.with_formalizes(term_str(&formalizes))?;
+    }
+    let failure_classes = objects(
+        store,
+        node,
+        &nn("https://blackcatinformatics.ca/gmeow/enforcesFailureClass"),
+    );
+    if failure_classes.len() > 1 {
+        return Err(sugar_err(format!(
+            "logic:Constraint {iri} has duplicate gmeow:enforcesFailureClass values"
+        )));
+    }
+    if let Some(failure_class) = failure_classes.first() {
+        constraint = constraint.with_failure_class(term_str(failure_class))?;
     }
     Ok(constraint)
 }
@@ -2803,7 +2879,23 @@ fn finalize_sugar(
                 "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)",
             )
         })?;
-    ConstraintIr::new(subject_str(node), integrity, severity, message)?.with_formalizes(formalizes)
+    let mut constraint = ConstraintIr::new(subject_str(node), integrity, severity, message)?
+        .with_formalizes(formalizes)?;
+    let failure_classes = objects(
+        store,
+        node,
+        &nn("https://blackcatinformatics.ca/gmeow/enforcesFailureClass"),
+    );
+    if failure_classes.len() > 1 {
+        return Err(sugar_err(format!(
+            "constraint-sugar record {} has duplicate gmeow:enforcesFailureClass values",
+            subject_str(node)
+        )));
+    }
+    if let Some(failure_class) = failure_classes.first() {
+        constraint = constraint.with_failure_class(term_str(failure_class))?;
+    }
+    Ok(constraint)
 }
 
 /// P1 — choice-group cardinality: a target class + a set of predicates + a mode

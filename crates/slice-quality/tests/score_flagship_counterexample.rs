@@ -36,9 +36,9 @@ fn score(slice: &str, iri: &str) -> gmeow_slice_quality::score::AxisScore {
 }
 
 #[test]
-fn structural_counterexamples_score_zero_and_advise() {
-    // The three grounding slices each carry five flagship scenarios, all discharged
-    // by a structural/SHACL proxy today → score 0.0 with five advisories each.
+fn flagship_counterexample_depth_tracks_each_grounding_slice() {
+    // Logic has uplifted all five flagships to native reasoner discharge. Lang and math retain
+    // their structural/SHACL proxies until their own slice-local uplift lands.
     for (slice, iri) in [
         (
             "slices/grounding/logic",
@@ -58,14 +58,19 @@ fn structural_counterexamples_score_zero_and_advise() {
             continue; // slice not present in this checkout — skip.
         }
         let result = score(slice, iri);
+        let (expected_score, expected_findings) = if slice.ends_with("/logic") {
+            (1.0, 0)
+        } else {
+            (0.0, 5)
+        };
         assert_eq!(
-            result.score, 0.0,
-            "{slice}: every flagship counter-example is structural today → 0.0",
+            result.score, expected_score,
+            "{slice}: reasoner-depth score"
         );
         assert_eq!(
             result.findings.len(),
-            5,
-            "{slice}: one structural-only advisory per flagship scenario",
+            expected_findings,
+            "{slice}: structural-only advisory count",
         );
         for f in &result.findings {
             assert_eq!(

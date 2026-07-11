@@ -22,7 +22,7 @@ use crate::ir::{
     MorphismKind,
 };
 
-/// The 46 projection profiles. The single authority shared by BOTH the EDOAL and the
+/// The 47 projection profiles. The single authority shared by BOTH the EDOAL and the
 /// SPARQL-CONSTRUCT lowerings — keeping one copy makes "no spec drift between the two
 /// dialects" structurally true.
 pub const PROFILES: &[&str] = &[
@@ -64,6 +64,7 @@ pub const PROFILES: &[&str] = &[
     "org",
     "bibo",
     "bibframe",
+    "ontouml",
     "gedcom",
     "sioc",
     "prov",

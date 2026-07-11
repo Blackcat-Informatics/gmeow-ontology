@@ -9,4 +9,6 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/logic/> .
 
-ex:closureWitness a logic:ClosureAcceptanceWitness .
+ex:closureWitness a logic:ClosureAcceptanceWitness ;
+    ex:executesNativeProducer "logic::reason::reason_all" ;
+    ex:observesRuntimeFailure logic:IncompleteClosure .

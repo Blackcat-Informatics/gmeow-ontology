@@ -608,7 +608,7 @@ gmeow:guideBlob
     a owl:AnnotationProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "guide blob"@x-gmeow-english ;
-    skos:definition "Links a slice to the content-addressed digest of its Tier-2 narrative guide as embedded in a GTS package: the guide rides the same file as the ontology, sub-profiled per slice, and a consumer resolves guide ↔ slice from the graph itself. The value is the blob digest string; the docs-in-sync invariant (every guide anchor resolves to a live term) is enforced by the package build, so the linkage is trustworthy from the hash chain alone (Principle 7)."@x-gmeow-english ;
+    skos:definition "Links a slice to the content-addressed digest of its Tier-2 narrative guide in an external documentation projection. The value is the blob digest string; documentation payloads and these references are excluded from the logical GTS bundle, while an external projection may preserve the linkage under its own hash chain (Principle 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxRBox .
 

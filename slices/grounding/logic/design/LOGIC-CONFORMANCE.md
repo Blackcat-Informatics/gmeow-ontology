@@ -368,7 +368,7 @@ declares a discharge condition the engine does not wire — is a hard error, exa
 competency question. The reviewer gate (an accepted `logic:FormalizationCandidate` with no recorded
 reviewer decision) and the per-category candidate-coverage report run in the same pass.
 
-Three kinds of slice-resident conformance data are defined:
+Four kinds of slice-resident conformance data are defined:
 
 **Declarative competency questions.** A competency question is a query that the slice's vocabulary
 should be able to answer. Each is represented as a `logic:` goal — a formal query whose answer
@@ -391,26 +391,22 @@ where the competency question tests open-world entailment, the validation case t
 constraint detection. A slice that ships a shape without both witnesses is incomplete; the
 conformance runner reports the gap.
 
-**Counter-example depth — the reasoner-driven target.** A flagship acceptance scenario pairs its
-worked example with a *guarding counter-example*: the minimal malformed input that must raise the
-scenario's named conformance-failure class. Today that guard-bites leg is discharged by a
-**structural / SHACL well-formedness proxy** — the counter-example trips a shape (a `sh:minCount`, a
-`sh:sparql`) that stands in for the failure, so a closure-acceptance witness naming zero entailed
-atoms fails a `minCount` shape and is read as `logic:IncompleteClosure`, without the reasoner ever
-being run over the malformed ontology to observe the missing entailment. The structural proxy is the
-floor, not the ceiling. The **depth target** is a *reasoner-driven* counter-example: the native
-solver (Principle 18) is run over the malformed input and the failure is observed as a *missing or
-failed entailment at reasoning-runtime* — the closure genuinely fails to derive the atom the scenario
-demands — rather than a shape standing in for that absence. Because the canonical judgment lives in
-`logic:` and the SHACL negative space is only its lossy projection (Principle 17), a counter-example
-that bites only at the projection surface leaves the negative space unproven in the core. Raising each
-flagship counter-example from a structural proxy to a reasoner-driven one is the standing improvement
-expectation for slice-quality work on this and every grounding slice — a depth bar to climb, not a
-defect log; the slice-quality rubric carries an advisory axis measuring the fraction already
-reasoner-driven, and each flagship scenario records its counter-example's discharge honestly, so the
-remaining gap is surfaced rather than hidden.
+**Counter-example depth — native authority with a projection floor.** A flagship acceptance
+scenario pairs its worked example with a *guarding counter-example*: the minimal malformed input
+that must raise the scenario's named conformance-failure class. The structural / SHACL check remains
+the projection floor, but a `gmeow:reasonerDrivenDischarge` marker is licensed only when the same
+native producer used by the worked example also executes the malformed case and observes exactly the
+declared failure class. The logic flagships therefore exercise five distinct negative judgments: a
+completed closure missing its demanded entailment, an executed get/put pair violating its section
+law, an incomparable counterfactual tie selecting no outcome, a claimed refutation carrying no
+concrete clash witness, and a cyclic existential chase receiving an uncertified admission. The
+shared runner treats the marker set as closed and hard-fails missing, duplicate, unknown, or
+marker/execution-mismatched declarations. Parse failures, unsupported constructs, infrastructure
+errors, and exhausted budgets are harness failures, never aliases for an expected semantic failure.
+This preserves the SHACL negative witness while proving the negative space in the canonical core:
+the judgment lives in `logic:` (Principle 17), and the native solver is its authority (Principle 18).
 
-Together these three kinds of slice-resident data mean that a slice is **self-contained with respect
+Together these four kinds of slice-resident data mean that a slice is **self-contained with respect
 to its own correctness claims**. Importing a slice and passing its structural assertions, competency
 questions, and validation cases is the definition of "this slice works in your implementation."
 Failures are local to the slice that declared them, and the slice author is responsible for keeping

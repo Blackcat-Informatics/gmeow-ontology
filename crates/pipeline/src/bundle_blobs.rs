@@ -803,56 +803,31 @@ mod tests {
     // cannot drift structurally — a runtime assert_eq of a const against itself guards
     // nothing.)
 
-    /// The two documentation-projection blobs (`docs-book`, `docs-print`) resolve
-    /// NON-EMPTY off the committed bundle and carry their signature members. This
-    /// pins Rust↔producer rep-string agreement for the print/book surfaces: a
-    /// drifted `REP_DOCS_BOOK` / `REP_DOCS_PRINT` label would silently resolve to
-    /// `{}` and ship the bundle without the print PDF or the mdbook source tree.
+    /// Presentation projections are a hard negative contract for the committed
+    /// logical bundle: they are regenerated externally by `make docs`.
     #[test]
-    fn docs_book_and_docs_print_resolve_non_empty() {
+    fn documentation_projections_are_absent() {
         let snapshot = committed_snapshot();
         let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
-
-        let book = bundle.docs_book().unwrap();
-        assert!(!book.is_empty(), "docs-book blob missing from gmeow.gts");
         assert!(
-            book.contains_key("x-gmeow-english/book.toml"),
-            "docs-book carries the mdbook manifest (x-gmeow-english/book.toml)"
+            bundle.ontology_docs().unwrap().is_empty(),
+            "ontology-docs must be absent"
         );
         assert!(
-            book.contains_key("x-gmeow-english/src/SUMMARY.md"),
-            "docs-book carries the mdbook table of contents (x-gmeow-english/src/SUMMARY.md)"
-        );
-
-        let print = bundle.docs_print().unwrap();
-        assert!(!print.is_empty(), "docs-print blob missing from gmeow.gts");
-        let pdf = print
-            .get("x-gmeow-english/gmeow.pdf")
-            .expect("docs-print carries the print PDF (x-gmeow-english/gmeow.pdf)");
-        assert!(
-            pdf.starts_with(b"%PDF"),
-            "docs-print gmeow.pdf begins with the %PDF magic (got {:?})",
-            &pdf[..pdf.len().min(8)]
+            bundle.docs_book().unwrap().is_empty(),
+            "docs-book must be absent"
         );
         assert!(
-            print.contains_key("x-gmeow-english/gmeow.typ"),
-            "docs-print carries the deterministic Typst source (x-gmeow-english/gmeow.typ)"
-        );
-    }
-
-    #[test]
-    fn ontology_docs_and_schemas_resolve_non_empty() {
-        let snapshot = committed_snapshot();
-        let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
-
-        let docs = bundle.ontology_docs().unwrap();
-        assert!(
-            !docs.is_empty(),
-            "ontology-docs blob missing from gmeow.gts"
+            bundle.docs_print().unwrap().is_empty(),
+            "docs-print must be absent"
         );
         assert!(
-            docs.keys().any(|k| k.contains("x-gmeow-")),
-            "ontology-docs members are language-tagged"
+            bundle.okf().unwrap().is_empty(),
+            "okf-export must be absent"
+        );
+        assert!(
+            bundle.yaml_ld().unwrap().is_empty(),
+            "yaml-ld-archive must be absent"
         );
 
         let schemas = bundle.schemas().unwrap();
@@ -863,10 +838,6 @@ mod tests {
         assert!(
             bundle.schema().unwrap().is_some(),
             "schema() resolves the JSON Schema payload"
-        );
-        assert!(
-            bundle.jsonld_star().unwrap().is_some(),
-            "yaml-ld-archive carries the JSON-LD-star serialization"
         );
     }
 

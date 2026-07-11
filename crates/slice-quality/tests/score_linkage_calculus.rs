@@ -39,12 +39,14 @@ impl Fixture {
             std::process::id()
         ));
         std::fs::create_dir_all(dir.join("mappings")).unwrap();
-        // A minimal module: one typed gmeow: term so ScoreContext::new has a term set.
+        // A minimal explicitly-owned term so ScoreContext::new has a term set.
         std::fs::write(
             dir.join("module.ttl"),
             "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
              @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
-             gmeow:Thing a owl:Class .\n",
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             gmeow:Thing a owl:Class ;\n\
+                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture> .\n",
         )
         .unwrap();
         std::fs::write(dir.join("mappings/equivalences.ttl"), mappings).unwrap();

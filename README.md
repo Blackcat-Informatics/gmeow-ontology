@@ -54,7 +54,7 @@ disagreement as coexisting standpoints instead of overwriting the loser.
 
 | Product | What it is | Status |
 |---|---|---|
-| **`gmeow` (native Rust CLI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, export docs, and run the MCP server. Built from source (`make cli-build` → `dist/bin/gmeow`) or obtained as a GitHub release binary | shipped |
+| **`gmeow` (native Rust CLI)** | The five-minute client and repo-free consumer CLI: inspect the bundled ontology, describe terms, verify bundles, transpile RDF, project profiles, and run the MCP server. Built from source (`make cli-build` → `dist/bin/gmeow`) or obtained as a GitHub release binary | shipped |
 | **Grounded-memory MCP server** | `store_claim` / `recall` / `revise_belief` tool-calls for agents, backed by the claim, standpoint, evidence, and suppression model | shipped |
 | **GTS `ai-package`** | A content-addressed, append-only, signable **single-file agent memory** — belief revision as suppression frames; portable across sessions, models, and vendors ([spec](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md)) | shipped with Python, Rust, Go, and TypeScript engines plus signing/verification |
 
@@ -189,13 +189,14 @@ make cli-build       # produces dist/bin/gmeow
 dist/bin/gmeow info
 dist/bin/gmeow describe gmeow:StandpointClaim
 dist/bin/gmeow transpile source.ttl --profiles all -o out/
-dist/bin/gmeow docs --directory docs-tree
 dist/bin/gmeow mcp
 ```
 
 The public `gmeow` CLI is a native Rust binary backed by the bundled
-`generated/dist/gmeow.gts` snapshot, so description, verification, docs, transpile,
+`generated/dist/gmeow.gts` snapshot, so description, verification, transpile,
 projection, export, CrossRef metadata, and GTS conversion run from the binary alone.
+Documentation projections are regenerated from canonical sources with `make docs`;
+they are intentionally not embedded in the logical bundle.
 Repository maintenance stays on `gmeow-dev`:
 if a command needs `dsl/`, `slices/`, `generated/`, Docker, or dev fixtures, it is a
 developer command.
@@ -286,7 +287,7 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make wikidata` / `make maint-wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
 | `make crossref` | Generate the CrossRef DOI deposit XML (deposit schema 5.4.0) |
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
-| `make docs` | Regenerate `gmeow.gts` docs and extract the committed `ontology-docs/` tree |
+| `make docs` | Regenerate all external documentation projections, including site, book, print, snippets, OKF, and YAML-LD |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
 | `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |
@@ -746,9 +747,9 @@ The issue backlog is represented here as current capability:
 - **Compliance-by-construction.** The generator registry, single `generated/` root, slice
   manifests, constitution-as-code, annotation-driven co-equal/suppression/frame guards,
   `owl:sameAs` hard gates, and RDF compliance report make constitutional drift a build failure.
-- **Docs-with-the-ontology.** Every slice has a full guide; `gmeow describe` and `gmeow docs`
-  work from the bundled GTS snapshot; `make docs` builds the native static site under
-  `dist/ontology-docs`; the citation ledger lives in `metadata/references.ttl` and exports to
+- **Docs-from-the-ontology.** Every slice has a full guide; `gmeow describe` works from the
+  bundled logical graph, while `make docs` source-renders every external documentation
+  projection; the citation ledger lives in `metadata/references.ttl` and exports to
   CSL, BibTeX, Markdown, and generated docs.
 - **Transpile and projection.** `gmeow transpile` lifts consumer RDF to a pure-GMEOW draft,
   then emits the MAXIMAL multi-vocabulary family with honest gap reports, real-data acceptance

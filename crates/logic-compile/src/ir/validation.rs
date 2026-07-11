@@ -776,6 +776,9 @@ pub struct ValidationShapeIr {
     /// The `rdfs:label` of the shape (`None` ⇒ none). Carried for byte-parity with the bespoke
     /// frame renderer and for human-readable shapes. Empty/`None` by default.
     pub label: Option<String>,
+    /// Typed conformance failure raised by this validation shape. Annotation-level metadata:
+    /// projected to `gmeow:enforcesFailureClass`, but excluded from semantic identity.
+    pub failure_class: Option<String>,
 }
 
 impl ValidationShapeIr {
@@ -856,6 +859,7 @@ impl ValidationShapeIr {
             standpoint,
             node_components: Vec::new(),
             label: None,
+            failure_class: None,
         })
     }
 
@@ -887,6 +891,31 @@ impl ValidationShapeIr {
             }));
         }
         self.label = Some(label);
+        Ok(self)
+    }
+
+    /// Attach the unique typed conformance-failure class projected with this shape.
+    pub fn with_failure_class(
+        mut self,
+        failure_class: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let failure_class = failure_class.into();
+        if failure_class.trim().is_empty() {
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail:
+                    "ValidationShapeIr.with_failure_class: failure class must be a non-empty IRI"
+                        .to_owned(),
+            }));
+        }
+        if self.failure_class.is_some() {
+            return Err(Diag::of_kind(crate::error::Validation {
+                detail: format!(
+                    "ValidationShapeIr {} has duplicate gmeow:enforcesFailureClass metadata",
+                    self.iri
+                ),
+            }));
+        }
+        self.failure_class = Some(failure_class);
         Ok(self)
     }
 
@@ -945,6 +974,26 @@ impl ValidationShapeIr {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn failure_class_is_unique_annotation_metadata() {
+        let bare = ValidationShapeIr::new(
+            "https://ex/Shape",
+            ShapeTarget::Class("https://ex/C".into()),
+            vec![],
+            None,
+        )
+        .unwrap();
+        let keyed = bare
+            .clone()
+            .with_failure_class("https://ex/Failure")
+            .unwrap();
+        assert_eq!(bare.content_key(), keyed.content_key());
+        let err = keyed
+            .with_failure_class("https://ex/OtherFailure")
+            .unwrap_err();
+        assert!(err.message().contains("duplicate"));
+    }
 
     #[test]
     fn value_set_members_are_order_independent() {
