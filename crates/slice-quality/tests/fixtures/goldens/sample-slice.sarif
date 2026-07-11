@@ -20,10 +20,10 @@
             }
           ],
           "message": {
-            "text": "axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit once the measured coverage has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent."
+            "text": "axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor — by editing the ontology-resident gmeow:AxisFloorCommitment individual for that (slice, axis) in this slice-quality-rubric slice (generated/governance/slice-quality-axis-floors.tsv is a read-only projection of those individuals, never edited by hand) — is a separate, deliberate uplift commit once the measured coverage has genuinely risen; the gate enforces non-regression at the committed floor, never automatic ascent."
           },
           "partialFingerprints": {
-            "gmeowFindingHash/v2": "2ffcdf59b3cbe328"
+            "gmeowFindingHash/v2": "26d932a1f13516f7"
           },
           "ruleId": "slice-quality.axis-advice"
         },
