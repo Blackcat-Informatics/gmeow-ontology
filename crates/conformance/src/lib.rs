@@ -33,6 +33,10 @@
 //! * [`compare`] — the three comparison modes and the per-case diff.
 //! * [`paths`] — `CARGO_MANIFEST_DIR`-anchored path resolution.
 
+/// Loader for the committed engine-benchmark corpus (`conformance/logic/cases/bench/`):
+/// license-audited `corpus.json` metadata plus each case's `program.rules` / `input.nq`
+/// / `expected/result.json` / `profile.json` as a typed [`bench_corpus::BenchCase`].
+pub mod bench_corpus;
 pub mod bless;
 pub mod compare;
 pub mod discover;

@@ -16098,9 +16098,6 @@ enums:
   AxisExemptionEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AxisExemption
     permissible_values:
-      exemptionDocMaturity:
-        meaning: https://blackcatinformatics.ca/gmeow/exemptionDocMaturity
-        title: Documentation-Maturity exemption
       exemptionDocsPanels:
         meaning: https://blackcatinformatics.ca/gmeow/exemptionDocsPanels
         title: Docs-panels exemption
@@ -16110,6 +16107,21 @@ enums:
   AxisThresholdEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AxisThreshold
     permissible_values:
+      thrDocMaturityExemplified:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocMaturityExemplified
+        title: doc-maturity floor — Exemplified
+      thrDocMaturityGrounded:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocMaturityGrounded
+        title: doc-maturity floor — Grounded
+      thrDocMaturityLinked:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocMaturityLinked
+        title: doc-maturity floor — Linked
+      thrDocMaturityMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocMaturityMaximal
+        title: doc-maturity floor — Maximal
+      thrDocMaturityRegistered:
+        meaning: https://blackcatinformatics.ca/gmeow/thrDocMaturityRegistered
+        title: doc-maturity floor — Registered
       thrDocumentationExemplified:
         meaning: https://blackcatinformatics.ca/gmeow/thrDocumentationExemplified
         title: documentation floor — Exemplified
@@ -20968,6 +20980,9 @@ enums:
       stage-export-constraint-shapes:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-constraint-shapes
         title: 'export: constraint shapes'
+      stage-export-cost-ledger:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-cost-ledger
+        title: 'export: cost ledger'
       stage-export-evals:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-evals
         title: 'export: evals'
@@ -21832,6 +21847,9 @@ enums:
   QualityAxisEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/QualityAxis
     permissible_values:
+      axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/axisDocMaturity
+        title: Documentation Maturity
       axisDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/axisDocumentation
         title: Documentation

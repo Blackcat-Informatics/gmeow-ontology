@@ -89,6 +89,8 @@ fn bench_closure(c: &mut Criterion) {
     let world = "https://example.org/world/base";
 
     let mut group = c.benchmark_group("entrenchment_closure");
+    // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
+    // `make check`, so the reduced sample_size is a runtime economy, not a gate risk.
     group.sample_size(20);
     group.bench_function(format!("overrides_dag_{edge_count}edges"), |b| {
         b.iter(|| {

@@ -320,6 +320,38 @@ pub fn mint_nary_reifier(relation: &str, args: &[TermValue]) -> gmeow_errors::Re
     Ok(format!("{}{}", NARY_REIFIER_PREFIX, digest))
 }
 
+// ── reified n-ary vocabulary ────────────────────────────────────────────────────
+
+/// The `logic:instanceOf` predicate IRI — the reified-n-ary *typing* atom
+/// `logic:instanceOf(R, Rel)` that types a reifier node `R` with its relation `Rel`.
+///
+/// This is the SINGLE source of the reified-n-ary vocabulary IRIs, shared by the native
+/// restricted chase (`crate::physical::chase`) and the n-ary ingestion/lowering
+/// (`crate::nary`), so the pre-reified EDB path and the chase-derived path agree on the
+/// exact predicate surfaces (the encoding is doctrinal — `LOGIC-IR.md` §RelationalCore).
+#[must_use]
+pub fn instance_of_iri() -> String {
+    format!("{LOGIC_NAMESPACE}instanceOf")
+}
+
+/// The `logic:naryArg{index}` positional-argument predicate IRI — the reified-n-ary atom
+/// `logic:naryArg{i}(R, aᵢ)` binding the `i`-th argument `aᵢ` of the tuple reified onto `R`.
+#[must_use]
+pub fn nary_arg_predicate(index: usize) -> String {
+    format!("{LOGIC_NAMESPACE}naryArg{index}")
+}
+
+/// Parse a `logic:naryArg{index}` predicate IRI back to its positional `index`, or `None`
+/// if `predicate` is not a positional n-ary-argument predicate. The exact inverse of
+/// [`nary_arg_predicate`].
+#[must_use]
+pub fn nary_arg_index(predicate: &str) -> Option<usize> {
+    predicate
+        .strip_prefix(&format!("{LOGIC_NAMESPACE}naryArg"))?
+        .parse()
+        .ok()
+}
+
 // ── mint_derivation_id ───────────────────────────────────────────────────────
 
 /// Compute the derivation IRI for a rule firing.

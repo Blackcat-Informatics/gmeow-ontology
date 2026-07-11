@@ -345,12 +345,16 @@ export enum AxisEnum {
 }
 
 export enum AxisExemptionEnum {
-    exemptionDocMaturity = "exemptionDocMaturity",
     exemptionDocsPanels = "exemptionDocsPanels",
     exemptionGmnProjection = "exemptionGmnProjection",
 }
 
 export enum AxisThresholdEnum {
+    thrDocMaturityExemplified = "thrDocMaturityExemplified",
+    thrDocMaturityGrounded = "thrDocMaturityGrounded",
+    thrDocMaturityLinked = "thrDocMaturityLinked",
+    thrDocMaturityMaximal = "thrDocMaturityMaximal",
+    thrDocMaturityRegistered = "thrDocMaturityRegistered",
     thrDocumentationExemplified = "thrDocumentationExemplified",
     thrDocumentationGrounded = "thrDocumentationGrounded",
     thrDocumentationLinked = "thrDocumentationLinked",
@@ -2362,6 +2366,7 @@ export enum PipelineStageEnum {
     stage_export_bench = "stage-export-bench",
     stage_export_catalog = "stage-export-catalog",
     stage_export_constraint_shapes = "stage-export-constraint-shapes",
+    stage_export_cost_ledger = "stage-export-cost-ledger",
     stage_export_evals = "stage-export-evals",
     stage_export_export = "stage-export-export",
     stage_export_frame_shapes = "stage-export-frame-shapes",
@@ -2704,6 +2709,7 @@ export enum PronounSetEnum {
 }
 
 export enum QualityAxisEnum {
+    axisDocMaturity = "axisDocMaturity",
     axisDocumentation = "axisDocumentation",
     axisFlagshipCounterExampleDepth = "axisFlagshipCounterExampleDepth",
     axisGmn1Coverage = "axisGmn1Coverage",

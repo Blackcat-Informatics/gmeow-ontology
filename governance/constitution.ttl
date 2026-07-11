@@ -362,6 +362,36 @@ meta:gate-release-evidence a meta:Gate ;
     meta:makeTarget "full-release", "verify-release" ;
     meta:cliCommand "release-bundle", "verify-release-bundle" .
 
+# The deterministic engine-cost measurement gate. The native reasoning engine's
+# operational cost — decomposable cost vectors (rule × predicate × stratum),
+# consumed steps, deterministic peak-live bytes, and the native↔golden / native↔
+# oracle verdict-agreement — is committed as a byte-stable baseline
+# (bench/cost-baseline.json) and drift-gated as a gmeow.gts projection
+# (generated/bench/cost-ledger.md, the stage-export-cost-ledger leaf). Integer
+# counts and boolean verdicts only (no wall-clock, no peak-RSS, no total-allocation
+# scalars — those are report-only), so the ledger is reproduced byte-for-byte from
+# the committed baseline without ever running a benchmark; check-generated reddens
+# on any count divergence. The richer honesty surface — a fresh run vs the committed
+# baseline — is a cost-regression gmeow:Finding routed through the shared divergence
+# ledger (content-addressed identity).
+meta:gate-cost-ledger a meta:Gate ;
+    rdfs:label "deterministic engine-cost ledger — cost-baseline.json → cost-ledger.md drift-gated projection (integer counts, no timings)"@x-gmeow-english ;
+    meta:artifact "crates/pipeline/src/stages/bench.rs",
+        "generated/bench/cost-ledger.md",
+        "bench/cost-baseline.json" ;
+    meta:symbol "CostLedgerStage" ;
+    meta:makeTarget "check-generated", "regenerate" .
+
+# The instruction-count corroboration lane (off-gate). iai-callgrind measures
+# RETIRED INSTRUCTIONS under Valgrind Callgrind — a machine-independent, run-to-run
+# stable metric that corroborates the on-gate deterministic cost gate. Off-gate
+# because it needs Valgrind and the out-of-tree runner; per the measurement
+# doctrine, instruction-count is CORROBORATION, not the gate.
+meta:gate-bench-instructions a meta:Gate ;
+    rdfs:label "iai-callgrind retired-instruction corroboration — machine-independent engine instruction counts (off-gate maint lane)"@x-gmeow-english ;
+    meta:artifact "crates/logic/benches/engines_iai.rs" ;
+    meta:makeTarget "maint-bench-instructions" .
+
 # --------------------------------------------------------------------------- #
 # The principles
 # --------------------------------------------------------------------------- #
@@ -542,7 +572,8 @@ meta:Principle18 a meta:Principle ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
         meta:gate-classic-cross-check, meta:gate-native-oracle-superset,
-        meta:tests-lane-purity, meta:gate-release-evidence ;
+        meta:tests-lane-purity, meta:gate-release-evidence,
+        meta:gate-cost-ledger, meta:gate-bench-instructions ;
     meta:extends meta:Principle17, meta:Principle13 .
 
 # The grounding-layer triad, now fully gate-enforced. logic: carries the

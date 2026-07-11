@@ -345,12 +345,16 @@ enum AxisEnum {
 }
 
 enum AxisExemptionEnum {
-  exemptionDocMaturity
   exemptionDocsPanels
   exemptionGmnProjection
 }
 
 enum AxisThresholdEnum {
+  thrDocMaturityExemplified
+  thrDocMaturityGrounded
+  thrDocMaturityLinked
+  thrDocMaturityMaximal
+  thrDocMaturityRegistered
   thrDocumentationExemplified
   thrDocumentationGrounded
   thrDocumentationLinked
@@ -2362,6 +2366,7 @@ enum PipelineStageEnum {
   stage_export_bench
   stage_export_catalog
   stage_export_constraint_shapes
+  stage_export_cost_ledger
   stage_export_evals
   stage_export_export
   stage_export_frame_shapes
@@ -2704,6 +2709,7 @@ enum PronounSetEnum {
 }
 
 enum QualityAxisEnum {
+  axisDocMaturity
   axisDocumentation
   axisFlagshipCounterExampleDepth
   axisGmn1Coverage

@@ -1,0 +1,4 @@
+#[name("https://example.org/bench/rules/doc-r1")]
+<https://example.org/bench/hasDoctor>(?p, !d, ?w) :- <https://example.org/bench/patient>(?p, ?o, ?w) .
+#[name("https://example.org/bench/rules/doc-r2")]
+<https://example.org/bench/treatedAt>(?d, !h, ?w) :- <https://example.org/bench/hasDoctor>(?p, ?d, ?w) .

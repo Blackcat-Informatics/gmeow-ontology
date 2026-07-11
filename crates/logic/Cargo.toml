@@ -36,6 +36,13 @@ gmeow-errors = { path = "../errors" }
 gmeow-logic-compile = { path = "../logic-compile" }
 serde_json = "1"
 blake3 = "1"
+# Delimited-data reader for the n-ary EDB loader (nary_rls): proper quoting/escaping
+# and STRICT uniform-arity parsing of ChaseBench-family CSV/TSV corpora. Already in the
+# workspace lock (a transitive dep), so this direct edge adds no new resolution.
+csv = "1"
+# gzip decoder for the n-ary EDB loader: ChaseBench-family corpora ship `.csv.gz`.
+# Already in the workspace lock (transitive), so no new resolution — the existing dep.
+flate2 = "1"
 # foldhash: a fast, FIXED-seed hasher (`foldhash::fast::FixedState`) for the
 # engine's lookup-only maps — replacing std's SipHash on the hot join/dedup plane
 # (no std SipHash on hot paths). A required, always-on dependency (NOT optionality): determinism
@@ -111,6 +118,18 @@ insta = { version = "1.48", features = ["json"] }
 # plotters/rayon defaults are off so `make bench` builds fast; the cargo-bench
 # stdout summary is all the baseline needs.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+# iai-callgrind: the DETERMINISTIC instruction-count backend for the engine bench
+# (benches/engines_iai.rs). It counts retired instructions under Valgrind Callgrind
+# — a machine-independent, run-to-run stable metric — as external corroboration for
+# the on-gate steps+alloc+peak-live cost gate. MAINT-ONLY: it needs the `valgrind`
+# binary and the out-of-tree `iai-callgrind-runner` (installed via
+# `cargo install iai-callgrind-runner --version 0.16.1`, which MUST match this pin),
+# so it is wired only into `make maint-bench-instructions`, never `make check`.
+# Default features only (the `#[library_benchmark]` / `main!` surface, which the
+# crate gates behind its `default` feature): the heavier `client_requests` /
+# `cachegrind` sets stay off, so the dev-dep surface (and its build RAM) is minimal
+# — same build-RAM rationale as the criterion pin above.
+iai-callgrind = "0.16.1"
 
 [[bench]]
 name = "foundation"
@@ -130,4 +149,8 @@ harness = false
 
 [[bench]]
 name = "reason"
+harness = false
+
+[[bench]]
+name = "engines_iai"
 harness = false

@@ -19,6 +19,11 @@ pub mod conjecture;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
 pub mod correspondence_exec;
+/// Deterministic engine-benchmark seams ([`cost::run_native_forward`] /
+/// [`cost::run_nemo_forward`]) and the decomposable [`cost::CostVector`] — the
+/// scalar-projection carrier of the cost semiring (`LOGIC-PERFORMANCE.md
+/// §Measurement doctrine`) keyed by `(rule, predicate, stratum)`.
+pub mod cost;
 pub mod counterfactual;
 /// The DAG-workflow profile certifier (`logic:DagWorkflowResource`): the single
 /// shared acyclicity check the canonical process model and the build pipeline run.
@@ -52,6 +57,12 @@ pub mod logic_diagnostics;
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
+// Fixed-arity n-ary predication → reified-binary lowering + the native n-ary
+// forward-chase ingestion entry. The reified encoding (`logic:instanceOf` /
+// `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,
+// per LOGIC-IR.md §RelationalCore.
+pub mod nary;
+pub mod nary_rls;
 pub mod obligations;
 // Path-projection runtime tests: they run the projected Datalog through
 // crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
@@ -80,6 +91,11 @@ pub mod seam;
 pub mod slme;
 pub mod stablemodel;
 pub mod store;
+/// Synthetic relational-core Datalog generators (transitive closure, SCC, same
+/// generation, reachability) for the engine benchmark harness: each returns
+/// `(rules, edb, expected_rows)` with an analytically-known golden. Shared by the
+/// in-crate benches and the `gmeow-conformance` bench-corpus loader.
+pub mod synth_corpus;
 pub mod teleology;
 pub mod transaction;
 pub mod transition;

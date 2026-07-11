@@ -470,6 +470,7 @@ gmeow:pipeline-build
         gmeow:stage-export-references ,
         gmeow:stage-export-evals ,
         gmeow:stage-export-bench ,
+        gmeow:stage-export-cost-ledger ,
         gmeow:stage-export-agreement ,
         gmeow:stage-export-lpg ,
         gmeow:stage-export-yaml-ld ,
@@ -854,6 +855,17 @@ gmeow:stage-export-bench
     gmeow:stageImpl "bench" ;
     gmeow:producesFormat "markdown" .
 
+gmeow:stage-export-cost-ledger
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: cost ledger"@x-gmeow-english ;
+    skos:definition "Emit the committed deterministic engine-cost ledger: a drift-gated Markdown projection of the committed cost/agreement baseline (bench/cost-baseline.json) — per-case consumed_steps, derived counts, peak-live bytes, decomposable cost vectors, and verdict-agreement, plus the per-corpus divergence-ledger tally. Integer counts and boolean verdicts only (no wall-clock, no peak-RSS, no total-allocation scalars); reproduced byte-for-byte from the committed baseline without running any benchmark."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "cost-ledger" ;
+    gmeow:producesFormat "markdown" .
+
 gmeow:stage-export-agreement
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -909,6 +921,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-agreement ,
         gmeow:stage-export-apache ,
         gmeow:stage-export-bench ,
+        gmeow:stage-export-cost-ledger ,
         gmeow:stage-export-evals ,
         gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-json-schema ,

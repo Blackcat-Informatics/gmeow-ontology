@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-cost-measure"
+description = "Harness-scoped deterministic allocation-measurement allocator + measure() helper — bench/maint-harness ONLY, NEVER linked into the shipped gmeow CLI"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["allocator", "benchmark", "determinism", "measurement", "gmeow"]
+
+[lib]
+# Pure, dependency-free std-only rlib. Provides the allocator TYPE + measure()
+# helper; the `#[global_allocator]` install is done by each consuming BINARY, so
+# merely depending on this crate installs NOTHING. Never a dependency of gmeow-cli.
+crate-type = ["rlib"]
+path = "src/lib.rs"

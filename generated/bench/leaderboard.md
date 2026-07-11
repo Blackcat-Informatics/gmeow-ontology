@@ -25,11 +25,9 @@ baseline (report-only — never gates a PR).
 | reason_all/hierarchy_30classes_15inst | 135388962 | 134589654 |
 | reason_all/hierarchy_8classes_4inst | 13907214 | 13846697 |
 | reduct_wf_ancestor/chain_30edges_ancestor_closure | 269748325 | 266038974 |
-| shacl_validate/corpus_all | 3601707 | 3615465 |
-| shacl_validate/large_hierarchy | 30523870 | 29670731 |
 | tarjan_scc/synthetic_10000nodes | 2068847 | 2047924 |
 | validate_all/run_per_file_8x50 | 2157650 | 2138129 |
 | validate_lint/collect_typed_terms_2k | 2108567 | 2106361 |
 | validate_lint/structural_lint_2k | 7690863 | 7622792 |
 
-22 benchmark(s) in the committed reference run.
+20 benchmark(s) in the committed reference run.

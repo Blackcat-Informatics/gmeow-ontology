@@ -20,6 +20,144 @@
             }
           ],
           "message": {
+            "text": "axisDocMaturity: Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit once the measured coverage has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "2ffcdf59b3cbe328"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisDocumentation: Write a narrative docs.md thesis — substantive prose beyond the headings, not a term listing — for the slice (SLICE_GUIDE documentation doctrine)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "75dcacc993c95a98"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisGmn1Coverage: Round-trip each uncovered GMN-0 construct the advisor names: extend the GMN-1 codec's covered fragment (crates/lang-bridge/src/gmn1_codec.rs) so gmn1_write/gmn1_read carry it losslessly, or — if the construct is genuinely out of the codec's current design scope — file it as a named codec-coverage gap against LANG-GMN.md rather than leaving it silently unmeasured. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit made once the measured score has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "400085c801d12548"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisMaximalLinkage: Route each hand-authored identity-strength alignment record through the correspondence calculus: lift a gmeow:TermEquivalence to a mnemomorphic gmeow:ProjectionMapping \"=\" cell, and derive each dc: alignment through the dcterms:→dc: dumb-down rather than authoring the dc: alignment by hand (Principle 17)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "c2db47ec61187a9f"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisOptimalTesting: Add at least one test cell or competency query naming each currently-unreached term so every term in the slice is exercised (SLICE_GUIDE §9; SLICE_QA)."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "3a479365776d3857"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
+            "text": "axisTranslationCoverage: Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs."
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "7addb3555dbbafb8"
+          },
+          "ruleId": "slice-quality.axis-advice"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+              }
+            }
+          ],
+          "message": {
             "text": "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0)."
           },
           "partialFingerprints": {
@@ -516,6 +654,13 @@
           "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
           "name": "slice-quality",
           "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#slice-quality-axis-advice",
+              "id": "slice-quality.axis-advice"
+            },
             {
               "defaultConfiguration": {
                 "level": "warning"
