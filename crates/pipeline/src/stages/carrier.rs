@@ -1136,37 +1136,6 @@ const AXIOM_FILES: [&str; 5] = [
 const REP_REASONING: &str = "reasoning-archive";
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 
-/// The per-slice guide content blobs (each slice's `docs.md`), backing the
-/// `gmeow:guideBlob "blake3:<hex>"` reference triples [`add_guide_blobs`] writes
-/// into the documentation graph. The cutover dropped these too — the
-/// references shipped dangling. The blob digest the gts writer assigns
-/// (`digest_string` = `blake3:<hex>`) equals the reference, so adding the SAME
-/// `guide.content` bytes resolves the reference. The `doc-guide` rep is read by
-/// digest (not by rep), so it just tags the channel.
-#[cfg(test)]
-#[allow(dead_code)]
-fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
-    let mut blobs: Vec<BlobRow> = Vec::new();
-    for record in catalog.records() {
-        if let Some(guide) = record.artifacts.iter().find(|a| {
-            a.role == purrdf::slice::ArtifactRole::Documentation && a.logical_path == "docs.md"
-        }) {
-            blobs.push(BlobRow {
-                data: guide.content.clone(),
-                media_type: "text/markdown".to_string(),
-                rep: "doc-guide".to_string(),
-            });
-        }
-    }
-    blobs.sort_by(|a, b| a.data.cmp(&b.data));
-    Ok(blobs)
-}
-
 /// THIS run's three generated SHACL shape surfaces, folded into REP_SHAPES from the
 /// producing export leaves' products (never a stale disk read). Grouped into named
 /// fields so the three same-typed `&[u8]` cannot be transposed at the call site.
@@ -3185,43 +3154,15 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let base = union_turtle_datasets(&sources)?;
 
     // The merged default graph as a flat native quad list (the union's standardized
-    // blank labels), onto which the multilingual translations and per-slice guideBlob
-    // anchors are folded natively — both add IRI-subject triples, so re-folding the
-    // augmented list through `dataset_from_quads` is loss-free.
+    // blank labels), onto which multilingual translations are folded natively.
+    // Documentation guide digests are external projection metadata and do not enter
+    // the logical bundle.
     let mut quads = flat_rdf_quads_from_dataset(&base);
     merge_translations(root, &mut quads)?;
-    add_guide_blobs(root, &mut quads)?;
 
     let dataset = purrdf::dataset_from_quads(&quads)
         .map_err(|e| stage_err(&format!("authored default graph freeze: {e}")))?;
     dataset_to_nquads(&dataset)
-}
-
-/// Add the per-slice `gmeow:guideBlob` triple `_doc_blobs` injects into the
-/// default graph: for every slice carrying a `docs.md`, link the slice IRI to the
-/// `blake3:<hex>` content digest of that guide. The guide itself rides the bundle
-/// as a content-addressed blob; this triple is its in-graph anchor.
-fn add_guide_blobs(root: &Path, quads: &mut Vec<RdfQuad>) -> Result<(), gmeow_errors::Diag> {
-    let guide_blob = format!("{GMEOW_NS}guideBlob");
-    let catalog = purrdf::slice::SliceCatalog::discover(
-        &root.join("slices"),
-        crate::gmeow_ns::gmeow_slice_vocab(),
-    )
-    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
-    for record in catalog.records() {
-        let Some(guide) = record.artifacts.iter().find(|a| {
-            a.role == purrdf::slice::ArtifactRole::Documentation && a.logical_path == "docs.md"
-        }) else {
-            continue;
-        };
-        let digest = format!("blake3:{}", blake3::hash(&guide.content).to_hex());
-        quads.push(RdfQuad::new(
-            RdfTerm::iri(record.manifest.slice_iri.clone()),
-            guide_blob.clone(),
-            RdfTerm::literal(RdfLiteral::simple(digest)),
-        ));
-    }
-    Ok(())
 }
 
 /// Merge the slice `.po` translations into the default-graph quad list, mirroring
@@ -6015,8 +5956,8 @@ mod native_assembly_tests {
     }
 
     /// `load_authored_default` over the real repo tree produces a non-empty
-    /// multilingual default graph (the union path + native translation/guideBlob fold),
-    /// and the guideBlob anchors land on real slice IRIs.
+    /// multilingual default graph (the union path + native translation fold),
+    /// without external documentation payload references.
     #[test]
     fn authored_default_assembles_natively() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -6036,11 +5977,10 @@ mod native_assembly_tests {
             text.contains("<https://blackcatinformatics.ca/gmeow>"),
             "the authored default graph must carry the root ontology subject"
         );
-        // At least one guideBlob anchor (per-slice docs.md digest) must be folded.
+        let guide_predicate = " <https://blackcatinformatics.ca/gmeow/guideBlob> ";
         assert!(
-            text.contains("<https://blackcatinformatics.ca/gmeow/guideBlob>")
-                && text.contains("blake3:"),
-            "the native guideBlob fold must inject blake3 digest anchors"
+            !text.lines().any(|line| line.contains(guide_predicate)),
+            "external guideBlob references must not enter the logical bundle"
         );
         // Determinism: a second assembly is byte-identical.
         let again = load_authored_default(&root).expect("authored default graph (2)");

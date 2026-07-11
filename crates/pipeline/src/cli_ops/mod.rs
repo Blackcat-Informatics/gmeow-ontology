@@ -24,7 +24,6 @@
 //!    duplicate the native logic:
 //!    * up-projection gate audit ← [`crate::up_projection_gates::gate_derived_audit`]
 //!    * mappings compile ← [`crate::stages::mappings::compile_mappings`]
-//!    * docs-site extraction ← [`crate::bundle_blobs::bundled_ontology_docs`]
 //!    * Turtle normalization ← `purrdf::turtle_normalize::canonical_turtle`
 
 pub mod confirmations;

@@ -3017,7 +3017,8 @@
 <https://blackcatinformatics.ca/gmeow/gtsTermId> <https://blackcatinformatics.ca/gmeow/addedInVersion> "0.1.0" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
 <https://blackcatinformatics.ca/gmeow/gtsTermId> <https://blackcatinformatics.ca/gmeow/definitionDigest> "blake3:4f8ad8e5d3704d34e614f44f17ccc7d2dcc8b4a8ae761a7ca88953d69d2649e4" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
 <https://blackcatinformatics.ca/gmeow/guideBlob> <https://blackcatinformatics.ca/gmeow/addedInVersion> "0.1.0" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
-<https://blackcatinformatics.ca/gmeow/guideBlob> <https://blackcatinformatics.ca/gmeow/definitionDigest> "blake3:f90943463f7a36da1ab220c0e663a80960babd82e78b715e61a683aabd05089e" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
+<https://blackcatinformatics.ca/gmeow/guideBlob> <https://blackcatinformatics.ca/gmeow/definitionDigest> "blake3:4feab350caf79e4aef289b5f2c1173dd06a02eebd922e258d6c3b6638b894a63" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
+<https://blackcatinformatics.ca/gmeow/guideBlob> <https://blackcatinformatics.ca/gmeow/hasChangelogEntry> _:c14n0 <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
 <https://blackcatinformatics.ca/gmeow/guideGoal> <https://blackcatinformatics.ca/gmeow/addedInVersion> "0.1.0" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
 <https://blackcatinformatics.ca/gmeow/guideGoal> <https://blackcatinformatics.ca/gmeow/definitionDigest> "blake3:7ad59fff1daf55037846a26e847de2260dafd72c0d553b7fe453c65f940b37b1" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
 <https://blackcatinformatics.ca/gmeow/guideSlug> <https://blackcatinformatics.ca/gmeow/addedInVersion> "0.1.0" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
@@ -7228,3 +7229,6 @@
 <https://blackcatinformatics.ca/logic/witnessRequiredViolation> <https://blackcatinformatics.ca/gmeow/definitionDigest> "blake3:6cb6e83943d0622770a2a84f5e33b6aaf535f62578186f9dcbc633e12ab41ddc" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
 <https://blackcatinformatics.ca/logic/witnessWorld> <https://blackcatinformatics.ca/gmeow/addedInVersion> "0.1.0" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
 <https://blackcatinformatics.ca/logic/witnessWorld> <https://blackcatinformatics.ca/gmeow/definitionDigest> "blake3:d6e4f351e5c52c598af5f2039dfd351b58456551fcb87659e694e94f934f5317" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/ChangelogEntry> <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
+_:c14n0 <https://blackcatinformatics.ca/gmeow/entryNote> "Definition changed" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .
+_:c14n0 <https://blackcatinformatics.ca/gmeow/entryVersion> "0.1.0" <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> .

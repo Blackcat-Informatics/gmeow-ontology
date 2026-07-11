@@ -110,3 +110,61 @@ ex:cqVectorIntensityShape a logic:ResultShape ;
 
 ex:cqVIRowDominant a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimension" ; gmeow:cellValueIri gmeow:dimensionValence ] .
+
+# Scope hygiene: "Which external affect vocabularies were deliberately NOT bridged,
+# and is each a reviewable won't-do carrying a preservation judgment?" The declined-
+# bridge ledger (overlay: mappings/declined-bridges.ttl) records every deliberately-
+# absent bridge as a gmeow:DeclinedCorrespondence. RowsExact pins the EXACT set of
+# declined targets (no stray/duplicate/un-removed decline — a landed bridge that left
+# its decline behind would fail) with the EXACT spelled-out target literal (a regression
+# to bare "EFO" or a URI-shaped dead IRI changes the literal and fails the gate) and the
+# EXACT preservation polarity logic:Unsupported. This is the on-gate production-surface
+# proof that the descope decision is recorded and reviewable, not re-interpretable prose.
+ex:cqDeclinedBridges a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/declined-external-bridges.rq" ;
+    gmeow:cqDataFile "mappings/declined-bridges.ttl" ;
+    gmeow:cqRationale "The three external affect vocabularies whose surfaces carry no resolvable per-term RDF (WordNet-Affect affective labels + NRC lexicons, the Emotion Frame Ontology, and Ithkuil affect roots) must each be a machine-reviewable gmeow:DeclinedCorrespondence with a spelled-out target and logic:preservationKind logic:Unsupported — not an implicit prose comment. RowsExact fixes the exact declined set and each exact target literal, so the acceptance criterion 'recorded, reviewable descope' is a gated executable check on the production surface." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDeclinedBridgesShape ;
+    gmeow:cqExpectRow
+        ex:cqDBRowWordNetAffect ,
+        ex:cqDBRowEmotionFrameOntology ,
+        ex:cqDBRowIthkuil .
+
+ex:cqDeclinedBridgesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:cqDBRowWordNetAffect a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "Princeton WordNet-Affect affective labels and the NRC emotion lexicons" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:Unsupported ] .
+
+ex:cqDBRowEmotionFrameOntology a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "Emotion Frame Ontology" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:Unsupported ] .
+
+ex:cqDBRowIthkuil a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "Ithkuil affect roots" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:Unsupported ] .
+
+# The declines' positive coverage witness must resolve. Each gmeow:DeclinedCorrespondence
+# names the in-slice terms that already carry the external vocabulary's distinctions
+# (gmeow:contentCarriedBy). This ASK is true iff no decline points at a dangling witness,
+# so the "content already carried in-slice" claim stays checkable, never a broken reference.
+ex:cqDeclinedCoverageWitness a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/declined-coverage-witness.rq" ;
+    gmeow:cqDataFile "mappings/declined-bridges.ttl" ;
+    gmeow:cqRationale "A decline is only safe if the external vocabulary's distinctions are carried in-slice; gmeow:contentCarriedBy names that positive witness. The ASK holds iff every witness resolves to an in-slice term (is the subject of some triple in the merged graph), so the coverage claim cannot rot into a dangling reference." ;
+    gmeow:cqExpectAsk true .
+
+# The decline record's own structural contract must hold, on the production gate.
+# shapes/mapping-dsl-shapes.ttl's gmeow:DeclinedCorrespondenceShape guards this same
+# contract, but that SHACL shape runs on no production validation gate; this ASK moves
+# it onto the on-gate competency surface.
+ex:cqDeclinedIntegrity a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/affect/queries/competency/declined-integrity.rq" ;
+    gmeow:cqDataFile "mappings/declined-bridges.ttl" ;
+    gmeow:cqRationale "Moves the DeclinedCorrespondence structural contract — every required field present, target never a URI or the bare acronym EFO — onto the on-gate production surface, so a decline that drops probeVerdict/candidateNamespace/revisitCondition/intendedRelation/contentCarriedBy/rationale or regresses its target reds make check." ;
+    gmeow:cqExpectAsk true .

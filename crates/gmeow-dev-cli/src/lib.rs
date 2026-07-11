@@ -444,17 +444,6 @@ pub enum Commands {
         #[arg(long = "prune")]
         prune: bool,
     },
-    /// Print the documentation page for one GMEOW term from a GTS snapshot.
-    #[command(name = "docs-on")]
-    DocsOn {
-        term: String,
-        #[arg(long)]
-        card: bool,
-        #[arg(long = "gts")]
-        gts: Option<PathBuf>,
-        #[arg(long = "lang", short = 'l')]
-        lang: Option<String>,
-    },
     /// Statically certify a logic program against its declared profile.
     Certify {
         input_path: PathBuf,
@@ -904,12 +893,6 @@ pub fn run() -> i32 {
                 dev_shapes::shape_migrate(path.as_deref(), apply)
             }
         }
-        Commands::DocsOn {
-            term,
-            card,
-            gts,
-            lang,
-        } => dev_project::docs_on(&term, card, gts.as_deref(), lang.as_deref()),
         Commands::Certify {
             input_path,
             profile,

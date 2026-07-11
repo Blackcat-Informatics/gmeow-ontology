@@ -8,6 +8,7 @@
 #   gmeow-goemotions: https://blackcatinformatics.ca/gmeow-registry/goemotions/
 #   gmeow-hf: https://blackcatinformatics.ca/gmeow-registry/hf/
 #   oa: http://www.w3.org/ns/oa#
+#   oewn: https://en-word.net/id/oewn-
 #   prov: http://www.w3.org/ns/prov#
 #   semapv: https://w3id.org/semapv/vocab/
 #   skos: http://www.w3.org/2004/02/skos/core#
@@ -41,12 +42,18 @@ gmeow:EmotionType	skos:relatedMatch	emo:everyday-categories	semapv:ManualMapping
 gmeow:ModelInferenceRun	skos:closeMatch	prov:Activity	semapv:ManualMappingCuration	0.9	a model run is a prov:Activity; closeMatch, since GMEOW pins richer model provenance than PROV requires
 gmeow:classifiedTarget	skos:relatedMatch	oa:hasTarget	semapv:ManualMappingCuration	0.7	
 gmeow:emotionAnger	skos:closeMatch	bfo:MFOEM_000009	semapv:ManualMappingCuration	0.9	
+gmeow:emotionAnger	skos:closeMatch	oewn:07531593-n	semapv:ManualMappingCuration	0.85	OEWN noun.feeling synset 'a strong emotion; a feeling oriented toward some real or supposed grievance'
 gmeow:emotionAnger	skos:closeMatch	wd:Q260704	semapv:ManualMappingCuration	0.85	wd:Q260704 'anger'
 gmeow:emotionDisgust	skos:closeMatch	bfo:MFOEM_000019	semapv:ManualMappingCuration	0.9	
+gmeow:emotionDisgust	skos:closeMatch	oewn:07518499-n	semapv:ManualMappingCuration	0.85	OEWN noun.feeling synset 'strong feelings of dislike'
 gmeow:emotionDisgust	skos:closeMatch	wd:Q208351	semapv:ManualMappingCuration	0.85	wd:Q208351 'disgust'
 gmeow:emotionFear	skos:closeMatch	bfo:MFOEM_000026	semapv:ManualMappingCuration	0.9	
+gmeow:emotionFear	skos:closeMatch	oewn:07534492-n	semapv:ManualMappingCuration	0.85	OEWN noun.feeling synset 'an emotion experienced in anticipation of some specific pain or danger'
 gmeow:emotionJoy	skos:closeMatch	bfo:MFOEM_000034	semapv:ManualMappingCuration	0.9	
+gmeow:emotionJoy	skos:closeMatch	oewn:07542591-n	semapv:ManualMappingCuration	0.85	OEWN noun.feeling synset 'the emotion of great happiness'
 gmeow:emotionSadness	skos:closeMatch	bfo:MFOEM_000056	semapv:ManualMappingCuration	0.9	
+gmeow:emotionSadness	skos:closeMatch	oewn:07547828-n	semapv:ManualMappingCuration	0.85	OEWN noun.feeling synset 'emotions experienced when not in a state of well-being'
 gmeow:emotionSurprise	skos:closeMatch	bfo:MFOEM_000032	semapv:ManualMappingCuration	0.9	
+gmeow:emotionSurprise	skos:closeMatch	oewn:07525587-n	semapv:ManualMappingCuration	0.85	OEWN noun.feeling synset 'the astonishment you feel when something totally unexpected happens to you'
 gmeow:producedBy	skos:closeMatch	prov:wasGeneratedBy	semapv:ManualMappingCuration	0.9	
 gmeow:usedInput	skos:closeMatch	prov:used	semapv:ManualMappingCuration	0.9	

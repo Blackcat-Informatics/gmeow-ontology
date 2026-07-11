@@ -45,7 +45,7 @@ fn every_pre_migration_axis_floor_is_reproduced_bit_exactly() {
     let rubric = gmeow_slice_quality::load_repo_rubric(&repo_root())
         .expect("the committed rubric slice must load");
     let rows = golden_rows("migrated-axis-floors.golden.tsv");
-    assert_eq!(rows.len(), 81, "the frozen axis-floor golden has 81 rows");
+    assert_eq!(rows.len(), 164, "the frozen axis-floor golden has 164 rows");
 
     for row in &rows {
         let cols: Vec<&str> = row.split('\t').collect();

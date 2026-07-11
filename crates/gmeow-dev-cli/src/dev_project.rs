@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! Repo-anchored projection / description commands: `describe`, `export-docs`,
-//! `docs-on`, `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
+//! `export-docs`, `temporal`, `import-foundation`, `crossref`, and `compliance-report`.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -169,93 +169,6 @@ fn source_snippets(
         ));
     }
     Ok(snippets)
-}
-
-/// `gmeow-dev docs-on TERM [--card --gts --lang]` — print one term's documentation
-/// page (or its prompt-ready card) from a GTS snapshot's ontology-docs blob.
-pub fn docs_on(term: &str, card: bool, gts: Option<&Path>, lang: Option<&str>) -> i32 {
-    use gmeow_docs::describe::{DescribeGraph, resolve_term};
-
-    let root = project_root();
-    let bytes = match gts {
-        Some(path) => match std::fs::read(path) {
-            Ok(b) => b,
-            Err(e) => return fail(format!("cannot read {}: {e}", path.display())),
-        },
-        None => match snapshot_bytes(&root) {
-            Ok(b) => b,
-            Err(code) => return code,
-        },
-    };
-    let graph = match DescribeGraph::from_gts_bytes(&bytes) {
-        Ok(g) => g,
-        Err(e) => return fail(e),
-    };
-    let (resolved, candidates) = resolve_term(&graph, term);
-    let Some(iri) = resolved else {
-        if candidates.is_empty() {
-            return fail(format!("no GMEOW term matches '{term}'"));
-        }
-        let options = candidates
-            .iter()
-            .map(|c| format!("  gmeow:{c}"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        return fail(format!(
-            "ambiguous or unknown term '{term}' — candidates:\n{options}"
-        ));
-    };
-
-    let available = match gmeow_pipeline::cli_ops::confirmations::available_doc_languages(&bytes) {
-        Ok(langs) => langs,
-        Err(e) => return fail(format!("cannot read docs languages: {e}")),
-    };
-    let internal = pick_internal_lang(lang, &available);
-
-    let docs = match gmeow_pipeline::bundle_blobs::bundled_ontology_docs(&bytes) {
-        Ok(d) => d,
-        Err(e) => return fail(format!("snapshot carries no ontology-docs pages: {e}")),
-    };
-    // Resolve the injective doc-entry slug from the bundle's own emitted
-    // `gmeow:documents` inverse (the collision-free slug map the docs projection
-    // folds into graph/documentation), NOT a stateless recompute.
-    let Some(slug) = graph.documentation_term_slug(&iri) else {
-        return fail(format!(
-            "no documentation entry for '{term}' ({iri}) in the bundle"
-        ));
-    };
-    let leaf = if card { "card.md" } else { "index.md" };
-    let key = format!("{internal}/terms/{slug}/{leaf}");
-    match docs.get(&key) {
-        Some(data) => {
-            print!("{}", String::from_utf8_lossy(data));
-            0
-        }
-        None => fail(format!(
-            "snapshot has no {leaf} page for '{term}' (gmeow:{slug}) in {internal}"
-        )),
-    }
-}
-
-/// Choose the internal `x-gmeow-*` docs language: an exact requested internal tag,
-/// else English, else the first available.
-fn pick_internal_lang(lang: Option<&str>, available: &[String]) -> String {
-    let english = "x-gmeow-english".to_owned();
-    let requested = lang
-        .map(str::to_owned)
-        .or_else(|| std::env::var("GMEOW_LANG").ok());
-    if let Some(req) = requested {
-        for tag in req.split(',').map(str::trim) {
-            if let Some(hit) = available.iter().find(|a| a.as_str() == tag) {
-                return hit.clone();
-            }
-        }
-    }
-    if available.iter().any(|a| a == &english) {
-        english
-    } else {
-        available.first().cloned().unwrap_or(english)
-    }
 }
 
 /// `gmeow-dev temporal QUERY [--data --focus --window-* --valid-at --as-of]`.

@@ -1,33 +1,30 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 261
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
-# Adequacy Assessment
+# Changelog Entry
 
-`gmeow:AdequacyAssessment` · Class
+`gmeow:ChangelogEntry` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AdequacyAssessment` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AdequacyAssessment` |
+| CURIE | `gmeow:ChangelogEntry` |
+| IRI | `https://blackcatinformatics.ca/gmeow/ChangelogEntry` |
 | Category | Class |
-| Slice | [GMEOW Epistemics Module](../../slices/epistemics/index.md) |
+| Slice | [GMEOW Versions Module](../../slices/versions/index.md) |
 
-![completeness: Docs 9/17](../../badges/completeness/9.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: experimental](../../badges/stability/experimental.svg) ![category: Class](../../badges/category/class.svg) ![box: TBox](../../badges/box/boxtbox.svg) ![stereotype: Kind](../../badges/stereotype/kind.svg)
 
 ## Definition
 
-A reified, solver\-set judgement that a justification's support MEETS \(or fails\) the threshold of a named epistemic standard — carrying the standard \(gmeow:adequacyUnderStandard \-\> gmeow:EpistemicStandard\) and the verdict \(gmeow:meetsThreshold \-\> gmeow:AdequacyVerdict\)\. Adequacy is the fourth of the five factored justification components \(available\-evidence, basing, support\-under\-a\-standard, adequacy, defeat\): whether the support meets the standard's bar\. COMPUTED, never asserted \(Principle 12\); the same basis may be adequate under one standard and inadequate under a stricter one, so several assessments coexist \(Principle 9\)\.
+A reified record of one change to a vocabulary term in a given release — a first\-class information object carrying a version \(gmeow:entryVersion\) and optional prose \(gmeow:entryNote\)\. Attached to a term through the gmeow:hasChangelogEntry annotation, so a term accrues an ordered per\-release history without any per\-instance lifecycle modelling\.
 
 ## For developers
 
 ## Quickstart
 
 ```turtle
-<subject> a gmeow:AdequacyAssessment ;
-    gmeow:adequacyUnderStandard <...> ;  # gmeow:EpistemicStandard
-    gmeow:meetsThreshold <...> .  # gmeow:AdequacyVerdict
+<subject> a gmeow:ChangelogEntry .
 ```
 
 ## Example in multiple syntaxes
@@ -35,9 +32,7 @@ A reified, solver\-set judgement that a justification's support MEETS \(or fails
 **Turtle**
 
 ```turtle
-<subject> a gmeow:AdequacyAssessment ;
-    gmeow:adequacyUnderStandard <...> ;  # gmeow:EpistemicStandard
-    gmeow:meetsThreshold <...> .  # gmeow:AdequacyVerdict
+<subject> a gmeow:ChangelogEntry .
 ```
 
 **JSON\-LD**
@@ -219,15 +214,9 @@ A reified, solver\-set judgement that a justification's support MEETS \(or fails
       "@id": "https://blackcatinformatics.ca/gmeow/example/subject",
       "@type": [
         {
-          "@id": "https://blackcatinformatics.ca/gmeow/AdequacyAssessment"
+          "@id": "https://blackcatinformatics.ca/gmeow/ChangelogEntry"
         }
-      ],
-      "https://blackcatinformatics.ca/gmeow/adequacyUnderStandard": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      },
-      "https://blackcatinformatics.ca/gmeow/meetsThreshold": {
-        "@id": "https://blackcatinformatics.ca/gmeow/example/..."
-      }
+      ]
     }
   ]
 }
@@ -235,35 +224,29 @@ A reified, solver\-set judgement that a justification's support MEETS \(or fails
 
 ## Neighborhood
 
-![Term neighborhood](../../diagrams/terms/adequacyassessment.svg)
+![Term neighborhood](../../diagrams/terms/changelogentry.svg)
 
 ## Super\-classes
 
-- [`logic:Relator`](../relator/index.md)
-
-## Constraints
-
-- An AdequacyAssessment must carry exactly one gmeow:AdequacyVerdict \(gmeow:meetsThreshold\)\.
-- An AdequacyAssessment must name exactly one gmeow:EpistemicStandard \(gmeow:adequacyUnderStandard\)\.
+- [`gmeow:InformationObject`](../informationobject/index.md)
 
 ## Usage Advice
 
-- **Scope:** Reached from a gmeow:JustificationSubject via gmeow:adequateUnder\. Formalises the 'adequacy — meets the standard's threshold' component of design/LOGIC\-FOUNDATION\.md \(Argumentation and epistemic standards\), by prose reference \(Principle 5\)\.
-
-## Examples using this term
-
-- [Ada](../../slices/epistemics/index.md) — `examples/justification-and-defeat.ttl`
+- **Example:** \[ a gmeow:ChangelogEntry ; gmeow:entryVersion "1\.0\.2" ; gmeow:entryNote "Range tightened to gmeow:Entity\."@x\-gmeow\-english \]
+- **Use when:** Use to narrate a single per\-release change to a term — what changed and in which version — building the term's changelog block in the docs\.
+- **Avoid when:** Avoid for a concrete artifact's release record \(that is a gmeow:VersionMembership\) and avoid overwriting an entry to revise history; add a new entry per release \(Principle 10\)\.
+- **How to use:** Mint one entry per \(term, release\) change, fill gmeow:entryVersion and optionally gmeow:entryNote, and attach it with gmeow:hasChangelogEntry\.
 
 ## Profiles
 
-- `claims` · `full` · `memory`
+- `full` · `music`
 
 ## Formal & academic
 
 ## Description\-Logic axioms
 
 ```text
-gmeow:AdequacyAssessment ⊑ logic:Relator
+gmeow:ChangelogEntry ⊑ gmeow:InformationObject
 ```
 
 ## Logic stereotypes
@@ -276,22 +259,22 @@ gmeow:AdequacyAssessment ⊑ logic:Relator
 
 ## Documentation coverage
 
-- **9 of 17 dimensions present.** ✓ Definition · ✓ Label · ✗ Usage advice · ✗ Example · ✓ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✓ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✗ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
 
-- **Status:** stable
+- **Status:** experimental
 
 ## Changelog
 
 - **Added in:** 0\.1\.0
-- **0\.1\.0** — Definition changed
+- **1\.0\.2** — Introduced the reified per\-term changelog record; entries are seeded editorially pending release\-as\-evidence automation \(CONSTITUTION §18\)\.
 
 ## Citation
 
-- **Permalink:** <https://blackcatinformatics.ca/gmeow/AdequacyAssessment>
-- **Content address:** `https://blackcatinformatics.ca/gmeow/AdequacyAssessment@blake3:f544b8a34dab2e807f9f6670c934399ee3fcc33504cef5b16482f8a81d23a5cf`
+- **Permalink:** <https://blackcatinformatics.ca/gmeow/ChangelogEntry>
+- **Content address:** `https://blackcatinformatics.ca/gmeow/ChangelogEntry@blake3:1a98ebc3a48740eee6fe588273fe0b476654ef7a794325be9a4ea7a2b23e6361`
 - **Cite the ontology:** [10\.67342/26w4o](https://doi.org/10.67342/26w4o)
 
 ---

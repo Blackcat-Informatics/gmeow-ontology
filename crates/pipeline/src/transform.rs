@@ -770,7 +770,6 @@ fn gts_from_maximal(
             .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))?;
     }
     crate::gts_profile::emit_gmeow_gts(&builder, Vec::new(), Vec::new(), None, None, None)
-        .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
 }
 
 fn statement_layer_nt(derived: &BTreeMap<TripleKey, DerivedTriple>) -> String {

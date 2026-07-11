@@ -16141,294 +16141,447 @@ enums:
   AxisFloorCommitmentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/AxisFloorCommitment
     permissible_values:
+      afc-accessibility-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-accessibility-axisDocMaturity
+        title: axis-floor commitment — accessibility / axisDocMaturity
       afc-accessibility-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-accessibility-axisGmn1Coverage
         title: axis-floor commitment — accessibility / axisGmn1Coverage
       afc-accessibility-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-accessibility-axisShapeMigration
         title: axis-floor commitment — accessibility / axisShapeMigration
+      afc-accounts-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-accounts-axisDocMaturity
+        title: axis-floor commitment — accounts / axisDocMaturity
       afc-accounts-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-accounts-axisGmn1Coverage
         title: axis-floor commitment — accounts / axisGmn1Coverage
       afc-accounts-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-accounts-axisShapeMigration
         title: axis-floor commitment — accounts / axisShapeMigration
+      afc-affect-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-affect-axisDocMaturity
+        title: axis-floor commitment — affect / axisDocMaturity
       afc-affect-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-affect-axisGmn1Coverage
         title: axis-floor commitment — affect / axisGmn1Coverage
       afc-affect-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-affect-axisShapeMigration
         title: axis-floor commitment — affect / axisShapeMigration
+      afc-agent-runtime-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisDocMaturity
+        title: axis-floor commitment — agent-runtime / axisDocMaturity
       afc-agent-runtime-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisGmn1Coverage
         title: axis-floor commitment — agent-runtime / axisGmn1Coverage
       afc-agent-runtime-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agent-runtime-axisShapeMigration
         title: axis-floor commitment — agent-runtime / axisShapeMigration
+      afc-agentic-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agentic-axisDocMaturity
+        title: axis-floor commitment — agentic / axisDocMaturity
       afc-agentic-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agentic-axisGmn1Coverage
         title: axis-floor commitment — agentic / axisGmn1Coverage
       afc-agentic-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agentic-axisShapeMigration
         title: axis-floor commitment — agentic / axisShapeMigration
+      afc-aggregation-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-aggregation-axisDocMaturity
+        title: axis-floor commitment — aggregation / axisDocMaturity
       afc-aggregation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-aggregation-axisGmn1Coverage
         title: axis-floor commitment — aggregation / axisGmn1Coverage
       afc-aggregation-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-aggregation-axisShapeMigration
         title: axis-floor commitment — aggregation / axisShapeMigration
+      afc-agreements-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-agreements-axisDocMaturity
+        title: axis-floor commitment — agreements / axisDocMaturity
       afc-agreements-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agreements-axisGmn1Coverage
         title: axis-floor commitment — agreements / axisGmn1Coverage
       afc-agreements-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-agreements-axisShapeMigration
         title: axis-floor commitment — agreements / axisShapeMigration
+      afc-ai-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-ai-axisDocMaturity
+        title: axis-floor commitment — ai / axisDocMaturity
       afc-ai-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-ai-axisGmn1Coverage
         title: axis-floor commitment — ai / axisGmn1Coverage
       afc-ai-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-ai-axisShapeMigration
         title: axis-floor commitment — ai / axisShapeMigration
+      afc-archaeological-evidence-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisDocMaturity
+        title: axis-floor commitment — archaeological-evidence / axisDocMaturity
       afc-archaeological-evidence-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisGmn1Coverage
         title: axis-floor commitment — archaeological-evidence / axisGmn1Coverage
       afc-archaeological-evidence-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-archaeological-evidence-axisShapeMigration
         title: axis-floor commitment — archaeological-evidence / axisShapeMigration
+      afc-attestation-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-attestation-axisDocMaturity
+        title: axis-floor commitment — attestation / axisDocMaturity
       afc-attestation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-attestation-axisGmn1Coverage
         title: axis-floor commitment — attestation / axisGmn1Coverage
       afc-attestation-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-attestation-axisShapeMigration
         title: axis-floor commitment — attestation / axisShapeMigration
+      afc-awareness-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-awareness-axisDocMaturity
+        title: axis-floor commitment — awareness / axisDocMaturity
       afc-awareness-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-awareness-axisGmn1Coverage
         title: axis-floor commitment — awareness / axisGmn1Coverage
       afc-awareness-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-awareness-axisShapeMigration
         title: axis-floor commitment — awareness / axisShapeMigration
+      afc-calendar-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-calendar-axisDocMaturity
+        title: axis-floor commitment — calendar / axisDocMaturity
       afc-calendar-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-calendar-axisGmn1Coverage
         title: axis-floor commitment — calendar / axisGmn1Coverage
       afc-calendar-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-calendar-axisShapeMigration
         title: axis-floor commitment — calendar / axisShapeMigration
+      afc-citations-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-citations-axisDocMaturity
+        title: axis-floor commitment — citations / axisDocMaturity
       afc-citations-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-citations-axisGmn1Coverage
         title: axis-floor commitment — citations / axisGmn1Coverage
       afc-citations-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-citations-axisShapeMigration
         title: axis-floor commitment — citations / axisShapeMigration
+      afc-cognition-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-cognition-axisDocMaturity
+        title: axis-floor commitment — cognition / axisDocMaturity
       afc-cognition-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-cognition-axisGmn1Coverage
         title: axis-floor commitment — cognition / axisGmn1Coverage
       afc-cognition-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-cognition-axisShapeMigration
         title: axis-floor commitment — cognition / axisShapeMigration
+      afc-concepts-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-concepts-axisDocMaturity
+        title: axis-floor commitment — concepts / axisDocMaturity
       afc-concepts-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-concepts-axisGmn1Coverage
         title: axis-floor commitment — concepts / axisGmn1Coverage
       afc-concepts-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-concepts-axisShapeMigration
         title: axis-floor commitment — concepts / axisShapeMigration
+      afc-connectivity-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-connectivity-axisDocMaturity
+        title: axis-floor commitment — connectivity / axisDocMaturity
       afc-connectivity-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-connectivity-axisGmn1Coverage
         title: axis-floor commitment — connectivity / axisGmn1Coverage
       afc-connectivity-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-connectivity-axisShapeMigration
         title: axis-floor commitment — connectivity / axisShapeMigration
+      afc-contacts-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-contacts-axisDocMaturity
+        title: axis-floor commitment — contacts / axisDocMaturity
       afc-contacts-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-contacts-axisGmn1Coverage
         title: axis-floor commitment — contacts / axisGmn1Coverage
       afc-contacts-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-contacts-axisShapeMigration
         title: axis-floor commitment — contacts / axisShapeMigration
+      afc-coreference-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-coreference-axisDocMaturity
+        title: axis-floor commitment — coreference / axisDocMaturity
       afc-coreference-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-coreference-axisGmn1Coverage
         title: axis-floor commitment — coreference / axisGmn1Coverage
       afc-coreference-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-coreference-axisShapeMigration
         title: axis-floor commitment — coreference / axisShapeMigration
+      afc-creative-works-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-creative-works-axisDocMaturity
+        title: axis-floor commitment — creative-works / axisDocMaturity
       afc-creative-works-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-creative-works-axisGmn1Coverage
         title: axis-floor commitment — creative-works / axisGmn1Coverage
       afc-creative-works-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-creative-works-axisShapeMigration
         title: axis-floor commitment — creative-works / axisShapeMigration
+      afc-deception-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-deception-axisDocMaturity
+        title: axis-floor commitment — deception / axisDocMaturity
       afc-deception-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-deception-axisGmn1Coverage
         title: axis-floor commitment — deception / axisGmn1Coverage
       afc-deception-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-deception-axisShapeMigration
         title: axis-floor commitment — deception / axisShapeMigration
+      afc-diagnostics-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisDocMaturity
+        title: axis-floor commitment — diagnostics / axisDocMaturity
       afc-diagnostics-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisGmn1Coverage
         title: axis-floor commitment — diagnostics / axisGmn1Coverage
       afc-diagnostics-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-diagnostics-axisShapeMigration
         title: axis-floor commitment — diagnostics / axisShapeMigration
+      afc-documentation-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-documentation-axisDocMaturity
+        title: axis-floor commitment — documentation / axisDocMaturity
+      afc-documentation-axisGmn1Coverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-documentation-axisGmn1Coverage
+        title: axis-floor commitment — documentation / axisGmn1Coverage
+      afc-documents-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-documents-axisDocMaturity
+        title: axis-floor commitment — documents / axisDocMaturity
       afc-documents-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-documents-axisGmn1Coverage
         title: axis-floor commitment — documents / axisGmn1Coverage
       afc-documents-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-documents-axisShapeMigration
         title: axis-floor commitment — documents / axisShapeMigration
+      afc-dreaming-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-dreaming-axisDocMaturity
+        title: axis-floor commitment — dreaming / axisDocMaturity
       afc-dreaming-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-dreaming-axisGmn1Coverage
         title: axis-floor commitment — dreaming / axisGmn1Coverage
       afc-dreaming-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-dreaming-axisShapeMigration
         title: axis-floor commitment — dreaming / axisShapeMigration
+      afc-email-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-email-axisDocMaturity
+        title: axis-floor commitment — email / axisDocMaturity
       afc-email-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-email-axisGmn1Coverage
         title: axis-floor commitment — email / axisGmn1Coverage
       afc-email-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-email-axisShapeMigration
         title: axis-floor commitment — email / axisShapeMigration
+      afc-employment-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-employment-axisDocMaturity
+        title: axis-floor commitment — employment / axisDocMaturity
       afc-employment-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-employment-axisGmn1Coverage
         title: axis-floor commitment — employment / axisGmn1Coverage
       afc-employment-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-employment-axisShapeMigration
         title: axis-floor commitment — employment / axisShapeMigration
+      afc-entities-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-entities-axisDocMaturity
+        title: axis-floor commitment — entities / axisDocMaturity
       afc-entities-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-entities-axisGmn1Coverage
         title: axis-floor commitment — entities / axisGmn1Coverage
       afc-entities-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-entities-axisShapeMigration
         title: axis-floor commitment — entities / axisShapeMigration
+      afc-epistemics-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-epistemics-axisDocMaturity
+        title: axis-floor commitment — epistemics / axisDocMaturity
       afc-epistemics-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-epistemics-axisGmn1Coverage
         title: axis-floor commitment — epistemics / axisGmn1Coverage
       afc-epistemics-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-epistemics-axisShapeMigration
         title: axis-floor commitment — epistemics / axisShapeMigration
+      afc-events-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-events-axisDocMaturity
+        title: axis-floor commitment — events / axisDocMaturity
       afc-events-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-events-axisGmn1Coverage
         title: axis-floor commitment — events / axisGmn1Coverage
       afc-events-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-events-axisShapeMigration
         title: axis-floor commitment — events / axisShapeMigration
+      afc-evidence-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-evidence-axisDocMaturity
+        title: axis-floor commitment — evidence / axisDocMaturity
       afc-evidence-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-evidence-axisGmn1Coverage
         title: axis-floor commitment — evidence / axisGmn1Coverage
       afc-evidence-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-evidence-axisShapeMigration
         title: axis-floor commitment — evidence / axisShapeMigration
+      afc-expertise-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-expertise-axisDocMaturity
+        title: axis-floor commitment — expertise / axisDocMaturity
       afc-expertise-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-expertise-axisGmn1Coverage
         title: axis-floor commitment — expertise / axisGmn1Coverage
       afc-expertise-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-expertise-axisShapeMigration
         title: axis-floor commitment — expertise / axisShapeMigration
+      afc-finance-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-finance-axisDocMaturity
+        title: axis-floor commitment — finance / axisDocMaturity
       afc-finance-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-finance-axisGmn1Coverage
         title: axis-floor commitment — finance / axisGmn1Coverage
       afc-finance-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-finance-axisShapeMigration
         title: axis-floor commitment — finance / axisShapeMigration
+      afc-gender-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-gender-axisDocMaturity
+        title: axis-floor commitment — gender / axisDocMaturity
       afc-gender-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-gender-axisGmn1Coverage
         title: axis-floor commitment — gender / axisGmn1Coverage
       afc-gender-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-gender-axisShapeMigration
         title: axis-floor commitment — gender / axisShapeMigration
+      afc-genealogy-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-genealogy-axisDocMaturity
+        title: axis-floor commitment — genealogy / axisDocMaturity
       afc-genealogy-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-genealogy-axisGmn1Coverage
         title: axis-floor commitment — genealogy / axisGmn1Coverage
       afc-genealogy-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-genealogy-axisShapeMigration
         title: axis-floor commitment — genealogy / axisShapeMigration
+      afc-graphrag-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-graphrag-axisDocMaturity
+        title: axis-floor commitment — graphrag / axisDocMaturity
       afc-graphrag-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-graphrag-axisGmn1Coverage
         title: axis-floor commitment — graphrag / axisGmn1Coverage
       afc-graphrag-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-graphrag-axisShapeMigration
         title: axis-floor commitment — graphrag / axisShapeMigration
+      afc-gts-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-gts-axisDocMaturity
+        title: axis-floor commitment — gts / axisDocMaturity
       afc-gts-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-gts-axisGmn1Coverage
         title: axis-floor commitment — gts / axisGmn1Coverage
       afc-gts-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-gts-axisShapeMigration
         title: axis-floor commitment — gts / axisShapeMigration
+      afc-guides-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-guides-axisDocMaturity
+        title: axis-floor commitment — guides / axisDocMaturity
       afc-guides-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-guides-axisGmn1Coverage
         title: axis-floor commitment — guides / axisGmn1Coverage
       afc-guides-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-guides-axisShapeMigration
         title: axis-floor commitment — guides / axisShapeMigration
+      afc-images-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-images-axisDocMaturity
+        title: axis-floor commitment — images / axisDocMaturity
       afc-images-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-images-axisGmn1Coverage
         title: axis-floor commitment — images / axisGmn1Coverage
       afc-images-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-images-axisShapeMigration
         title: axis-floor commitment — images / axisShapeMigration
+      afc-imagination-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-imagination-axisDocMaturity
+        title: axis-floor commitment — imagination / axisDocMaturity
       afc-imagination-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-imagination-axisGmn1Coverage
         title: axis-floor commitment — imagination / axisGmn1Coverage
       afc-imagination-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-imagination-axisShapeMigration
         title: axis-floor commitment — imagination / axisShapeMigration
+      afc-inference-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inference-axisDocMaturity
+        title: axis-floor commitment — inference / axisDocMaturity
       afc-inference-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inference-axisGmn1Coverage
         title: axis-floor commitment — inference / axisGmn1Coverage
       afc-inference-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inference-axisShapeMigration
         title: axis-floor commitment — inference / axisShapeMigration
+      afc-inhabitation-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisDocMaturity
+        title: axis-floor commitment — inhabitation / axisDocMaturity
       afc-inhabitation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisGmn1Coverage
         title: axis-floor commitment — inhabitation / axisGmn1Coverage
       afc-inhabitation-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inhabitation-axisShapeMigration
         title: axis-floor commitment — inhabitation / axisShapeMigration
+      afc-inquiry-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-inquiry-axisDocMaturity
+        title: axis-floor commitment — inquiry / axisDocMaturity
       afc-inquiry-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inquiry-axisGmn1Coverage
         title: axis-floor commitment — inquiry / axisGmn1Coverage
       afc-inquiry-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-inquiry-axisShapeMigration
         title: axis-floor commitment — inquiry / axisShapeMigration
+      afc-kernel-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-kernel-axisDocMaturity
+        title: axis-floor commitment — kernel / axisDocMaturity
       afc-kernel-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-kernel-axisGmn1Coverage
         title: axis-floor commitment — kernel / axisGmn1Coverage
       afc-kernel-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-kernel-axisShapeMigration
         title: axis-floor commitment — kernel / axisShapeMigration
+      afc-lang-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisDocMaturity
+        title: axis-floor commitment — lang / axisDocMaturity
       afc-lang-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisGmn1Coverage
         title: axis-floor commitment — lang / axisGmn1Coverage
       afc-lang-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lang-axisShapeMigration
         title: axis-floor commitment — lang / axisShapeMigration
+      afc-language-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-language-axisDocMaturity
+        title: axis-floor commitment — language / axisDocMaturity
       afc-language-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-language-axisGmn1Coverage
         title: axis-floor commitment — language / axisGmn1Coverage
       afc-language-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-language-axisShapeMigration
         title: axis-floor commitment — language / axisShapeMigration
+      afc-languages-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-languages-axisDocMaturity
+        title: axis-floor commitment — languages / axisDocMaturity
       afc-languages-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-languages-axisGmn1Coverage
         title: axis-floor commitment — languages / axisGmn1Coverage
       afc-languages-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-languages-axisShapeMigration
         title: axis-floor commitment — languages / axisShapeMigration
+      afc-learning-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-learning-axisDocMaturity
+        title: axis-floor commitment — learning / axisDocMaturity
       afc-learning-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-learning-axisGmn1Coverage
         title: axis-floor commitment — learning / axisGmn1Coverage
       afc-learning-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-learning-axisShapeMigration
         title: axis-floor commitment — learning / axisShapeMigration
+      afc-lexicon-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lexicon-axisDocMaturity
+        title: axis-floor commitment — lexicon / axisDocMaturity
       afc-lexicon-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lexicon-axisGmn1Coverage
         title: axis-floor commitment — lexicon / axisGmn1Coverage
       afc-lexicon-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lexicon-axisShapeMigration
         title: axis-floor commitment — lexicon / axisShapeMigration
+      afc-lifecycle-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisDocMaturity
+        title: axis-floor commitment — lifecycle / axisDocMaturity
       afc-lifecycle-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisGmn1Coverage
         title: axis-floor commitment — lifecycle / axisGmn1Coverage
       afc-lifecycle-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisShapeMigration
         title: axis-floor commitment — lifecycle / axisShapeMigration
+      afc-logic-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisDocMaturity
+        title: axis-floor commitment — logic / axisDocMaturity
       afc-logic-axisDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisDocumentation
         title: axis-floor commitment — logic / axisDocumentation
@@ -16468,192 +16621,288 @@ enums:
       afc-logic-axisTranslationCoverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisTranslationCoverage
         title: axis-floor commitment — logic / axisTranslationCoverage
+      afc-math-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisDocMaturity
+        title: axis-floor commitment — math / axisDocMaturity
       afc-math-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisGmn1Coverage
         title: axis-floor commitment — math / axisGmn1Coverage
       afc-math-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisShapeMigration
         title: axis-floor commitment — math / axisShapeMigration
+      afc-mentation-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-mentation-axisDocMaturity
+        title: axis-floor commitment — mentation / axisDocMaturity
       afc-mentation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-mentation-axisGmn1Coverage
         title: axis-floor commitment — mentation / axisGmn1Coverage
       afc-mentation-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-mentation-axisShapeMigration
         title: axis-floor commitment — mentation / axisShapeMigration
+      afc-metacognition-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-metacognition-axisDocMaturity
+        title: axis-floor commitment — metacognition / axisDocMaturity
       afc-metacognition-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-metacognition-axisGmn1Coverage
         title: axis-floor commitment — metacognition / axisGmn1Coverage
       afc-metacognition-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-metacognition-axisShapeMigration
         title: axis-floor commitment — metacognition / axisShapeMigration
+      afc-model-serving-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-model-serving-axisDocMaturity
+        title: axis-floor commitment — model-serving / axisDocMaturity
       afc-model-serving-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-model-serving-axisGmn1Coverage
         title: axis-floor commitment — model-serving / axisGmn1Coverage
       afc-model-serving-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-model-serving-axisShapeMigration
         title: axis-floor commitment — model-serving / axisShapeMigration
+      afc-music-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-music-axisDocMaturity
+        title: axis-floor commitment — music / axisDocMaturity
       afc-music-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-music-axisGmn1Coverage
         title: axis-floor commitment — music / axisGmn1Coverage
       afc-music-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-music-axisShapeMigration
         title: axis-floor commitment — music / axisShapeMigration
+      afc-names-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-names-axisDocMaturity
+        title: axis-floor commitment — names / axisDocMaturity
       afc-names-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-names-axisGmn1Coverage
         title: axis-floor commitment — names / axisGmn1Coverage
       afc-names-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-names-axisShapeMigration
         title: axis-floor commitment — names / axisShapeMigration
+      afc-narrative-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-narrative-axisDocMaturity
+        title: axis-floor commitment — narrative / axisDocMaturity
       afc-narrative-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-narrative-axisGmn1Coverage
         title: axis-floor commitment — narrative / axisGmn1Coverage
       afc-narrative-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-narrative-axisShapeMigration
         title: axis-floor commitment — narrative / axisShapeMigration
+      afc-norms-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-norms-axisDocMaturity
+        title: axis-floor commitment — norms / axisDocMaturity
       afc-norms-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-norms-axisGmn1Coverage
         title: axis-floor commitment — norms / axisGmn1Coverage
       afc-norms-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-norms-axisShapeMigration
         title: axis-floor commitment — norms / axisShapeMigration
+      afc-notation-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-notation-axisDocMaturity
+        title: axis-floor commitment — notation / axisDocMaturity
       afc-notation-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-notation-axisGmn1Coverage
         title: axis-floor commitment — notation / axisGmn1Coverage
       afc-notation-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-notation-axisShapeMigration
         title: axis-floor commitment — notation / axisShapeMigration
+      afc-notes-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-notes-axisDocMaturity
+        title: axis-floor commitment — notes / axisDocMaturity
       afc-notes-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-notes-axisGmn1Coverage
         title: axis-floor commitment — notes / axisGmn1Coverage
       afc-notes-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-notes-axisShapeMigration
         title: axis-floor commitment — notes / axisShapeMigration
+      afc-observations-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-observations-axisDocMaturity
+        title: axis-floor commitment — observations / axisDocMaturity
       afc-observations-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-observations-axisGmn1Coverage
         title: axis-floor commitment — observations / axisGmn1Coverage
       afc-observations-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-observations-axisShapeMigration
         title: axis-floor commitment — observations / axisShapeMigration
+      afc-organization-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-organization-axisDocMaturity
+        title: axis-floor commitment — organization / axisDocMaturity
       afc-organization-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-organization-axisGmn1Coverage
         title: axis-floor commitment — organization / axisGmn1Coverage
       afc-organization-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-organization-axisShapeMigration
         title: axis-floor commitment — organization / axisShapeMigration
+      afc-pipeline-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-pipeline-axisDocMaturity
+        title: axis-floor commitment — pipeline / axisDocMaturity
       afc-pipeline-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-pipeline-axisGmn1Coverage
         title: axis-floor commitment — pipeline / axisGmn1Coverage
       afc-pipeline-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-pipeline-axisShapeMigration
         title: axis-floor commitment — pipeline / axisShapeMigration
+      afc-places-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-places-axisDocMaturity
+        title: axis-floor commitment — places / axisDocMaturity
       afc-places-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-places-axisGmn1Coverage
         title: axis-floor commitment — places / axisGmn1Coverage
       afc-places-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-places-axisShapeMigration
         title: axis-floor commitment — places / axisShapeMigration
+      afc-procedures-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-procedures-axisDocMaturity
+        title: axis-floor commitment — procedures / axisDocMaturity
       afc-procedures-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-procedures-axisGmn1Coverage
         title: axis-floor commitment — procedures / axisGmn1Coverage
       afc-procedures-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-procedures-axisShapeMigration
         title: axis-floor commitment — procedures / axisShapeMigration
+      afc-profiles-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-profiles-axisDocMaturity
+        title: axis-floor commitment — profiles / axisDocMaturity
       afc-profiles-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-profiles-axisGmn1Coverage
         title: axis-floor commitment — profiles / axisGmn1Coverage
       afc-profiles-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-profiles-axisShapeMigration
         title: axis-floor commitment — profiles / axisShapeMigration
+      afc-provenance-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-provenance-axisDocMaturity
+        title: axis-floor commitment — provenance / axisDocMaturity
       afc-provenance-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-provenance-axisGmn1Coverage
         title: axis-floor commitment — provenance / axisGmn1Coverage
       afc-provenance-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-provenance-axisShapeMigration
         title: axis-floor commitment — provenance / axisShapeMigration
+      afc-quality-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-quality-axisDocMaturity
+        title: axis-floor commitment — quality / axisDocMaturity
       afc-quality-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-quality-axisGmn1Coverage
         title: axis-floor commitment — quality / axisGmn1Coverage
       afc-quality-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-quality-axisShapeMigration
         title: axis-floor commitment — quality / axisShapeMigration
+      afc-rights-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-rights-axisDocMaturity
+        title: axis-floor commitment — rights / axisDocMaturity
       afc-rights-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-rights-axisGmn1Coverage
         title: axis-floor commitment — rights / axisGmn1Coverage
       afc-rights-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-rights-axisShapeMigration
         title: axis-floor commitment — rights / axisShapeMigration
+      afc-risk-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-risk-axisDocMaturity
+        title: axis-floor commitment — risk / axisDocMaturity
       afc-risk-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-risk-axisGmn1Coverage
         title: axis-floor commitment — risk / axisGmn1Coverage
       afc-risk-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-risk-axisShapeMigration
         title: axis-floor commitment — risk / axisShapeMigration
+      afc-sensory-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-axisDocMaturity
+        title: axis-floor commitment — sensory / axisDocMaturity
       afc-sensory-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-axisGmn1Coverage
         title: axis-floor commitment — sensory / axisGmn1Coverage
       afc-sensory-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-axisShapeMigration
         title: axis-floor commitment — sensory / axisShapeMigration
+      afc-sensory-environment-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisDocMaturity
+        title: axis-floor commitment — sensory-environment / axisDocMaturity
       afc-sensory-environment-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisGmn1Coverage
         title: axis-floor commitment — sensory-environment / axisGmn1Coverage
       afc-sensory-environment-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sensory-environment-axisShapeMigration
         title: axis-floor commitment — sensory-environment / axisShapeMigration
+      afc-sexuality-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sexuality-axisDocMaturity
+        title: axis-floor commitment — sexuality / axisDocMaturity
       afc-sexuality-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sexuality-axisGmn1Coverage
         title: axis-floor commitment — sexuality / axisGmn1Coverage
       afc-sexuality-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sexuality-axisShapeMigration
         title: axis-floor commitment — sexuality / axisShapeMigration
+      afc-slice-quality-rubric-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisDocMaturity
+        title: axis-floor commitment — slice-quality-rubric / axisDocMaturity
       afc-slice-quality-rubric-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisGmn1Coverage
         title: axis-floor commitment — slice-quality-rubric / axisGmn1Coverage
       afc-slice-quality-rubric-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-slice-quality-rubric-axisShapeMigration
         title: axis-floor commitment — slice-quality-rubric / axisShapeMigration
+      afc-software-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-software-axisDocMaturity
+        title: axis-floor commitment — software / axisDocMaturity
       afc-software-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-software-axisGmn1Coverage
         title: axis-floor commitment — software / axisGmn1Coverage
       afc-software-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-software-axisShapeMigration
         title: axis-floor commitment — software / axisShapeMigration
+      afc-sources-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-sources-axisDocMaturity
+        title: axis-floor commitment — sources / axisDocMaturity
       afc-sources-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sources-axisGmn1Coverage
         title: axis-floor commitment — sources / axisGmn1Coverage
       afc-sources-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-sources-axisShapeMigration
         title: axis-floor commitment — sources / axisShapeMigration
+      afc-standpoint-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-standpoint-axisDocMaturity
+        title: axis-floor commitment — standpoint / axisDocMaturity
       afc-standpoint-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-standpoint-axisGmn1Coverage
         title: axis-floor commitment — standpoint / axisGmn1Coverage
       afc-standpoint-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-standpoint-axisShapeMigration
         title: axis-floor commitment — standpoint / axisShapeMigration
+      afc-tags-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-tags-axisDocMaturity
+        title: axis-floor commitment — tags / axisDocMaturity
       afc-tags-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-tags-axisGmn1Coverage
         title: axis-floor commitment — tags / axisGmn1Coverage
       afc-tags-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-tags-axisShapeMigration
         title: axis-floor commitment — tags / axisShapeMigration
+      afc-teleology-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-teleology-axisDocMaturity
+        title: axis-floor commitment — teleology / axisDocMaturity
       afc-teleology-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-teleology-axisGmn1Coverage
         title: axis-floor commitment — teleology / axisGmn1Coverage
       afc-teleology-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-teleology-axisShapeMigration
         title: axis-floor commitment — teleology / axisShapeMigration
+      afc-temporal-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-temporal-axisDocMaturity
+        title: axis-floor commitment — temporal / axisDocMaturity
       afc-temporal-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-temporal-axisGmn1Coverage
         title: axis-floor commitment — temporal / axisGmn1Coverage
       afc-temporal-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-temporal-axisShapeMigration
         title: axis-floor commitment — temporal / axisShapeMigration
+      afc-trust-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-trust-axisDocMaturity
+        title: axis-floor commitment — trust / axisDocMaturity
       afc-trust-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-trust-axisGmn1Coverage
         title: axis-floor commitment — trust / axisGmn1Coverage
       afc-trust-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-trust-axisShapeMigration
         title: axis-floor commitment — trust / axisShapeMigration
+      afc-versions-axisDocMaturity:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-versions-axisDocMaturity
+        title: axis-floor commitment — versions / axisDocMaturity
       afc-versions-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-versions-axisGmn1Coverage
         title: axis-floor commitment — versions / axisGmn1Coverage

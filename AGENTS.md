@@ -340,6 +340,17 @@ no coverage leaves the per-commit gate because the five producers are still RUN 
 their pinned values asserted on-gate by `crates/pipeline/tests/math_flagship_discharge.rs`,
 this binary being the extra cross-crate proof that the producer output validates
 SHACL-clean);
+the `gmeow-validate` `conformance_affect_producer_union` binary (the 8
+whole-ontology-union affect twins — four `Case::with_ontology()` exclusivity/label
+twins + four `.shape_union()` projected-cardinality twins — split out of the mixed
+`conformance_affect_producer` binary so its ~10 cheap fixture-only + pure-Rust
+producer tests stay on-gate; the same whole-ontology-union H8 `sh:sparql` cost as
+the domain conformance binaries above, and a deterministic cost-partition bench
+(`make maint-bench-instructions`) measured a single twin's whole-graph scan at
+~34.8 GB / 54.2M allocations of churn — ~63× the one-time corpus setup and ~25,000×
+the fixture-only path — so the per-twin scan is irreducible: no setup cache
+amortizes it and folding raises the per-test maximum to setup + 8× the scan, so it
+joins the same off-gate group);
 `gmeow-pipeline::stages::carrier::quality_assessment_tests::quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`
 (86.2 s; it builds the full self-description carrier, scoring every one of the ~81
 slices to attach the `graph/quality-assessment` named graph that folds into
