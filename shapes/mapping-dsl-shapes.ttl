@@ -1,5 +1,6 @@
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl:   <http://www.w3.org/2002/07/owl#> .
@@ -64,6 +65,77 @@ gmeow:TermEquivalenceShape
         sh:nodeKind sh:IRI ;
         sh:severity sh:Violation ;
         sh:message "justification must be a single IRI"
+    ] .
+
+# --------------------------------------------------------------------------- #
+# DeclinedCorrespondence — the machine-reviewable "won't-bridge" record
+# --------------------------------------------------------------------------- #
+
+gmeow:DeclinedCorrespondenceShape
+    a sh:NodeShape ;
+    rdfs:label "DeclinedCorrespondence shape"@en ;
+    sh:targetClass gmeow:DeclinedCorrespondence ;
+    sh:property [
+        sh:path gmeow:declinedTarget ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 4 ;
+        sh:not [ sh:pattern "\\bEFO\\b" ; sh:flags "i" ] ;
+        sh:not [ sh:pattern "^https?://" ] ;
+        sh:severity sh:Violation ;
+        sh:message "declinedTarget must be a single spelled-out label (never the bare acronym EFO, which collides with the Experimental Factor Ontology; never a URI, which would smuggle a dead IRI past Principle 5)"
+    ] ;
+    sh:property [
+        sh:path gmeow:intendedRelation ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "DeclinedCorrespondence must have exactly one gmeow:intendedRelation (the SKOS relation a bridge would have used)"
+    ] ;
+    sh:property [
+        sh:path gmeow:declineRationale ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:severity sh:Violation ;
+        sh:message "DeclinedCorrespondence must have exactly one non-empty gmeow:declineRationale"
+    ] ;
+    sh:property [
+        sh:path gmeow:candidateNamespace ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "DeclinedCorrespondence must carry at least one gmeow:candidateNamespace (a probed base string, for a reproducible re-probe)"
+    ] ;
+    sh:property [
+        sh:path gmeow:probeVerdict ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:severity sh:Violation ;
+        sh:message "DeclinedCorrespondence must have exactly one gmeow:probeVerdict (the dated liveness finding)"
+    ] ;
+    sh:property [
+        sh:path gmeow:revisitCondition ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:minLength 1 ;
+        sh:severity sh:Violation ;
+        sh:message "DeclinedCorrespondence must have exactly one gmeow:revisitCondition"
+    ] ;
+    sh:property [
+        sh:path gmeow:contentCarriedBy ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "DeclinedCorrespondence must name at least one in-slice gmeow:contentCarriedBy witness term (the positive coverage that makes the decline safe)"
+    ] ;
+    sh:property [
+        sh:path logic:preservationKind ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:hasValue logic:Unsupported ;
+        sh:severity sh:Violation ;
+        sh:message "DeclinedCorrespondence must carry logic:preservationKind logic:Unsupported (the honest 'cannot be expressed in the target' polarity)"
     ] .
 
 # --------------------------------------------------------------------------- #

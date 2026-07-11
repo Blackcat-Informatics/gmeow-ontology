@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "Is every gmeow:DeclinedCorrespondence structurally well-formed?"
+# The shapes/mapping-dsl-shapes.ttl gmeow:DeclinedCorrespondenceShape guards the FULL
+# structural contract of a decline — every required field present, and a declinedTarget
+# that is never a bare acronym collision, never a URI-shaped dead IRI, and never a
+# too-short stub label — but that SHACL shape runs on NO production gate (the mapping-DSL
+# validator is wired with an empty dir in production `gmeow-dev validate`). This ASK moves
+# the SAME guards onto the on-gate production surface: it is true iff NO
+# gmeow:DeclinedCorrespondence is missing gmeow:intendedRelation, gmeow:candidateNamespace,
+# gmeow:probeVerdict, gmeow:revisitCondition, gmeow:contentCarriedBy, or
+# gmeow:declineRationale, and iff NO gmeow:declinedTarget is a URI, the bare acronym "EFO"
+# (case-insensitive, word-bounded — colliding with the Experimental Factor Ontology), or
+# shorter than 4 characters. A decline that regresses any of these guards reds `make check`.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+ASK {
+    FILTER NOT EXISTS {
+        ?d a gmeow:DeclinedCorrespondence ;
+            gmeow:declinedTarget ?tgt .
+        FILTER(
+            REGEX(?tgt, "^https?://") ||
+            REGEX(?tgt, "\\bEFO\\b", "i") ||
+            STRLEN(?tgt) < 4 ||
+            NOT EXISTS { ?d gmeow:intendedRelation ?ir } ||
+            NOT EXISTS { ?d gmeow:candidateNamespace ?cn } ||
+            NOT EXISTS { ?d gmeow:probeVerdict ?pv } ||
+            NOT EXISTS { ?d gmeow:revisitCondition ?rc } ||
+            NOT EXISTS { ?d gmeow:contentCarriedBy ?cc } ||
+            NOT EXISTS { ?d gmeow:declineRationale ?dr }
+        )
+    }
+}

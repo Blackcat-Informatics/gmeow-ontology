@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Affect declined-bridge ledger — the machine-reviewable "won't-bridge" record for the
+# external affect vocabularies whose surfaces carry no resolvable per-term RDF. Each is a
+# gmeow:DeclinedCorrespondence (a config-box record, not a reasoned correspondence): a
+# deliberately-not-authored bridge, recorded with its rationale, the probed candidate
+# namespace(s), a dated probe verdict, a revisit condition, and a positive coverage witness
+# (gmeow:contentCarriedBy) naming the in-slice terms that already carry the vocabulary's
+# distinctions. Each carries logic:preservationKind logic:Unsupported — the honest
+# "cannot be expressed in the target at all" polarity: the absent bridge is carried and
+# flagged here, never silently dropped. Authoring a live correspondence against any of these
+# surfaces would fabricate a link to a dead IRI (Principle 5), so the bridge is declined
+# until a verifiable namespace appears. This upgrades what was an implicit prose comment in
+# the equivalences header into reviewable, queryable data — the sibling of the supersession
+# ledger, for negative rather than superseding knowledge.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/affect/declined-bridges>
+    a owl:Ontology ;
+    rdfs:label "affect declined-bridge ledger"@x-gmeow-english ;
+    skos:definition "The declined-bridge ledger of the affect slice: every external affect vocabulary whose surface carries no resolvable per-term RDF, recorded as a gmeow:DeclinedCorrespondence with its rationale, probed candidate namespace(s), dated probe verdict, revisit condition, and in-slice coverage witness, each carrying logic:preservationKind logic:Unsupported. Queryable per declined target (see queries/competency/declined-external-bridges.rq), so the descope decision is reviewable data, not a prose comment."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect/declined-bridges> ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
+
+# --- WordNet-Affect affective labels + NRC emotion lexicons -------------------- #
+# The general WordNet lexical layer IS bridged, by reference to Open English WordNet
+# (mappings/equivalences.ttl); only the affective-label / word-emotion-association content
+# lacks a live surface. Its content is carried, modeled up, in-slice as the vector model.
+gmeow:declinedWordNetAffect a gmeow:DeclinedCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect/declined-bridges> ;
+    rdfs:label "declined: WordNet-Affect affective labels + NRC lexicons"@x-gmeow-english ;
+    gmeow:declinedTarget "Princeton WordNet-Affect affective labels and the NRC emotion lexicons" ;
+    gmeow:intendedRelation skos:closeMatch ;
+    gmeow:declineRationale "The Princeton WordNet-Affect affective-label RDF export is defunct and the NRC emotion lexicons are distributed as tab-separated data with no dereferenceable RDF namespace, so neither exposes a per-term IRI to align by reference. The general WordNet lexical layer IS bridged, by reference to Open English WordNet; only the affective-label / word-emotion-association content lacks a live surface, and that content is carried, modeled up, in-slice as the emotion vector and category model." ;
+    gmeow:candidateNamespace "https://wndomains.fbk.eu/wnaffect.html" , "http://saifmohammad.com/WebPages/NRC-Emotion-Lexicon.htm" ;
+    gmeow:probeVerdict "2026-07-11: both candidate bases return text/html landing pages, not per-term RDF; no dereferenceable affective-label or word-emotion-association IRI." ;
+    gmeow:revisitCondition "Bridge iff the WordNet-Affect affective-label extension or the NRC lexicon gains a verifiable, dereferenceable per-term RDF namespace." ;
+    gmeow:contentCarriedBy gmeow:AffectVectorObservation , gmeow:EmotionType , gmeow:vectorProfile ;
+    logic:preservationKind logic:Unsupported ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
+
+# --- Emotion Frame Ontology (spelled out — never the bare acronym) ------------- #
+gmeow:declinedEmotionFrameOntology a gmeow:DeclinedCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect/declined-bridges> ;
+    rdfs:label "declined: Emotion Frame Ontology"@x-gmeow-english ;
+    gmeow:declinedTarget "Emotion Frame Ontology" ;
+    gmeow:intendedRelation skos:relatedMatch ;
+    gmeow:declineRationale "The Emotion Frame Ontology's term IRIs do not dereference to RDF and no canonical namespace is published, so a DOLCE-aligned frame-role correspondence would fabricate a link to a dead IRI. Its frame-role and appraisal-situation structure is carried, modeled up, in-slice by the appraisal-dimension and affective-participant model." ;
+    gmeow:candidateNamespace "https://w3id.org/emotion" , "http://emotionframe.org/" ;
+    gmeow:probeVerdict "2026-07-11: https://w3id.org/emotion returns HTTP 404; emotionframe.org does not resolve (no DNS); no dereferenceable per-term surface." ;
+    gmeow:revisitCondition "Bridge iff a verifiable, dereferenceable per-term namespace for the Emotion Frame Ontology appears." ;
+    gmeow:contentCarriedBy gmeow:AppraisalDimension , gmeow:affectiveElicitor , gmeow:affectiveTarget ;
+    logic:preservationKind logic:Unsupported ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .
+
+# --- Ithkuil affect roots (constructed language, lower standing) --------------- #
+gmeow:declinedIthkuilAffectRoots a gmeow:DeclinedCorrespondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/affect/declined-bridges> ;
+    rdfs:label "declined: Ithkuil affect roots"@x-gmeow-english ;
+    gmeow:declinedTarget "Ithkuil affect roots" ;
+    gmeow:intendedRelation skos:closeMatch ;
+    gmeow:declineRationale "Ithkuil is a constructed language and a reference inventory of affective distinctions, not a namespace authority: it publishes no RDF surface and no per-root IRI, so a correspondence would fabricate a dead link. It stands at LOWER STANDING than the empirical / standards references (MFOEM, EmotionML) — a reference of distinctions, not an empirical or standards authority — useful mainly as a composition stress-test that the axis-vector model can express every root. Its fine-grained, composition-aware distinctions are carried, modeled up, in-slice by the affect vector and composition model." ;
+    gmeow:candidateNamespace "https://ithkuil.net/" ;
+    gmeow:probeVerdict "2026-07-11: https://ithkuil.net/ returns a text/html reference site; no RDF namespace authority and no per-root IRI." ;
+    gmeow:revisitCondition "Bridge iff Ithkuil affect roots gain a verifiable, dereferenceable per-root RDF namespace (and even then only at lower standing than MFOEM / EmotionML)." ;
+    gmeow:contentCarriedBy gmeow:AffectVectorObservation , gmeow:vectorComponent , gmeow:vectorProfile ;
+    logic:preservationKind logic:Unsupported ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .

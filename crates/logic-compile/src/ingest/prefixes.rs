@@ -65,6 +65,12 @@ pub const PREFIX_REGISTRY: &[(&str, &str)] = &[
     // projection (set-level relatedMatch cells; the per-item categories are XML `name`
     // attributes with no per-term IRI, so only the vocabulary-set anchors are bridged).
     ("emo", "https://www.w3.org/TR/emotion-voc/#"),
+    // Open English WordNet — the live, dereferenceable OntoLex-Lemon surface for the
+    // affect lexical bridge. Its per-synset IRIs (…/id/oewn-<offset>-<pos>) content-
+    // negotiate to lemon RDF, so emotion terms bridge to WordNet "feeling" synsets by
+    // reference. The tight base yields clean CURIEs (oewn:07531593-n), matching the
+    // obi:/iao: convention. (Distinct from the defunct Princeton WordNet-Affect export.)
+    ("oewn", "https://en-word.net/id/oewn-"),
     ("gufo", "http://purl.org/nemo/gufo#"),
     ("ontouml", "https://w3id.org/ontouml#"),
     ("umbel", "http://umbel.org/umbel#"),
