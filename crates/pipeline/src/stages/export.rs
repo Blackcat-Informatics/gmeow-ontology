@@ -1753,6 +1753,7 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
 
 pub(crate) use consumer::{
     consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope, okf_index_envelope,
+    resolve_term_iri,
 };
 
 mod consumer {
@@ -1794,6 +1795,14 @@ mod consumer {
         } else {
             None
         }
+    }
+
+    /// Resolve a CURIE / local name / IRI / label (or unambiguous prefix) to its
+    /// canonical term IRI, via the SAME [`resolve_term`] path `lookup_term` and
+    /// `doc_card` use. `None` when the query does not resolve to exactly one term —
+    /// the caller HARD-FAILS an unknown term rather than fabricating an empty result.
+    pub(crate) fn resolve_term_iri(terms: &[Term], query: &str) -> Option<String> {
+        resolve_term(terms, query).map(|term| term.iri.clone())
     }
 
     /// `lookup_term`: resolve a query to its `as_record()` JSON with

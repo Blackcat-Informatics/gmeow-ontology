@@ -50,6 +50,9 @@ const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/lang/LanguageVariet
 const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
 const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The `gmeow:` vocabulary namespace — the base of the documentation-graph
+/// predicate and enumeration IRIs (`gmeow:docFixtureKind…`, etc.).
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// The distinct external-provenance named graph the read-only local overlay is
 /// re-homed into (the origin marker). Overlay triples are visible to reads
@@ -118,6 +121,109 @@ SELECT ?e ?term ?rule ?conclusion ?premise WHERE {
   OPTIONAL { ?e gm:entailmentPremise ?premise }
 }";
 
+/// SELECT the conformance fixtures documenting one specific term (both kinds), for
+/// the `counter_examples` tool: the fixture IRI, its enumerated
+/// `gmeow:docFixtureKind`, the full Turtle body, its label, and the authored
+/// advisory fields. `term_iri` is a canonical term IRI already resolved from the
+/// bundle's own term set, so embedding it as an IRI ref is not a caller-injected
+/// value.
+fn fixtures_by_term_query(term_iri: &str) -> String {
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?f ?kind ?text ?label ?outcome ?code ?rationale WHERE {{
+  ?f a gm:DocFixture ;
+     gm:documents <{term_iri}> ;
+     gm:docFixtureKind ?kind ;
+     gm:docFixtureText ?text .
+  OPTIONAL {{ ?f rdfs:label ?label }}
+  OPTIONAL {{ ?f gm:docExpectedOutcome ?outcome }}
+  OPTIONAL {{ ?f gm:docViolationCode ?code }}
+  OPTIONAL {{ ?f gm:conformanceRationale ?rationale }}
+}}"
+    )
+}
+
+/// SELECT the entailment records documenting one specific term, for the
+/// `entailments` tool: the entailment IRI, its rule, its conclusion, and each
+/// premise (repeatable). See [`fixtures_by_term_query`] on the embedded IRI.
+fn entailments_by_term_query(term_iri: &str) -> String {
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+SELECT ?e ?rule ?conclusion ?premise WHERE {{
+  ?e a gm:Entailment ;
+     gm:documents <{term_iri}> ;
+     gm:entailmentRule ?rule ;
+     gm:entailmentConclusion ?conclusion .
+  OPTIONAL {{ ?e gm:entailmentPremise ?premise }}
+}}"
+    )
+}
+
+/// SELECT the documented competency questions for the `competency_questions` tool:
+/// every `gmeow:DocumentedCompetency` carrying a runnable `gmeow:cqQueryText`, or —
+/// when `term_iri` is `Some` — only those documenting that term. `cqQueryText` is a
+/// required pattern (not OPTIONAL), so every returned record is a runnable question.
+fn competency_query(term_iri: Option<&str>) -> String {
+    let documents = term_iri
+        .map(|iri| format!("     gm:documents <{iri}> ;\n"))
+        .unwrap_or_default();
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+SELECT ?c ?q ?rationale ?count ?exact WHERE {{
+  ?c a gm:DocumentedCompetency ;
+{documents}     gm:cqQueryText ?q .
+  OPTIONAL {{ ?c gm:cqRationale ?rationale }}
+  OPTIONAL {{ ?c gm:cqExpectRowCount ?count }}
+  OPTIONAL {{ ?c gm:cqExactRows ?exact }}
+}}"
+    )
+}
+
+/// Render one fixture record as the tool's JSON object. The advisory fields are
+/// emitted as `null` when the slice authored none (a stable shape callers can read
+/// without probing for key presence).
+fn fixture_json(view: &FixtureView) -> Value {
+    json!({
+        "title": view.title,
+        "text": view.text,
+        "expected_outcome": view.expected_outcome,
+        "violation_code": view.violation_code,
+        "rationale": view.rationale,
+    })
+}
+
+/// Render one competency-question record as the tool's JSON object. The optional
+/// expectations are included only when authored; the row-count and exact-flag are
+/// typed back to a JSON number / boolean from their `xsd:integer` / `xsd:boolean`
+/// lexical forms (the raw lexeme is kept only if it is somehow not well-typed).
+fn competency_json(query_text: &str, row: &BTreeMap<String, String>) -> Value {
+    let mut obj = serde_json::Map::new();
+    obj.insert("query_text".to_string(), json!(query_text));
+    if let Some(rationale) = row.get("rationale") {
+        obj.insert("rationale".to_string(), json!(rationale));
+    }
+    if let Some(count) = row.get("count") {
+        let value = count
+            .parse::<i64>()
+            .map(|n| json!(n))
+            .unwrap_or_else(|_| json!(count));
+        obj.insert("expected_row_count".to_string(), value);
+    }
+    if let Some(exact) = row.get("exact") {
+        let value = match exact.as_str() {
+            "true" | "1" => json!(true),
+            "false" | "0" => json!(false),
+            other => json!(other),
+        };
+        obj.insert("exact_rows".to_string(), value);
+    }
+    Value::Object(obj)
+}
+
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
 pub struct McpView {
     /// THIS server's view of the bundled snapshot as the native carrier dataset:
@@ -179,6 +285,120 @@ impl McpView {
     /// metadata record (JSON envelope with `"ok"`), or a not-found envelope.
     fn lookup_term_json(&self, term: &str, requested: Vec<String>) -> String {
         self.with_terms(requested, |terms| export::lookup_envelope(terms, term))
+    }
+
+    /// Resolve a CURIE / local name / IRI / label (or unambiguous prefix) to its
+    /// canonical term IRI, via the SAME resolution path `lookup_term` / `doc_card`
+    /// use. `None` when the query does not resolve to exactly one term — the caller
+    /// HARD-FAILS an unknown term rather than returning a fabricated empty result.
+    fn resolve_term_iri(&self, term: &str, requested: Vec<String>) -> Option<String> {
+        self.with_terms(requested, |terms| export::resolve_term_iri(terms, term))
+    }
+
+    /// The counter-example / well-formed conformance fixtures documenting `term_iri`,
+    /// read from the `gmeow:graph/documentation` projection and split by
+    /// `gmeow:docFixtureKind`. Each fixture is one record carrying its title, full
+    /// Turtle body, and the authored advisory fields (expected outcome, violation
+    /// code, conformance rationale) — `null` when the slice authored none. Both lists
+    /// are ordered by fixture IRI, so the surface is deterministic. A term that
+    /// documents no fixtures yields two empty lists (honest empty-but-ok).
+    fn term_fixtures(&self, term_iri: &str) -> gmeow_errors::Result<(Vec<Value>, Vec<Value>)> {
+        let query = fixtures_by_term_query(term_iri);
+        // One record per fixture IRI: the fixture-scoped columns are single-valued,
+        // so first-row-wins is the whole record. BTreeMap → fixture-IRI order.
+        let mut by_fixture: BTreeMap<String, (String, FixtureView)> = BTreeMap::new();
+        for row in self.docs_select_rows(&query)? {
+            let (Some(fixture), Some(kind), Some(text)) =
+                (row.get("f"), row.get("kind"), row.get("text"))
+            else {
+                continue;
+            };
+            by_fixture.entry(fixture.clone()).or_insert_with(|| {
+                (
+                    kind.clone(),
+                    FixtureView {
+                        title: row.get("label").cloned().unwrap_or_else(|| fixture.clone()),
+                        text: text.clone(),
+                        expected_outcome: row.get("outcome").cloned(),
+                        violation_code: row.get("code").cloned(),
+                        rationale: row.get("rationale").cloned(),
+                    },
+                )
+            });
+        }
+
+        let wellformed_kind = format!("{GMEOW_NS}docFixtureKindWellformed");
+        let counter_kind = format!("{GMEOW_NS}docFixtureKindCounterExample");
+        let mut wellformed = Vec::new();
+        let mut counter_examples = Vec::new();
+        for (kind, view) in by_fixture.into_values() {
+            let record = fixture_json(&view);
+            if kind == counter_kind {
+                counter_examples.push(record);
+            } else if kind == wellformed_kind {
+                wellformed.push(record);
+            }
+        }
+        Ok((wellformed, counter_examples))
+    }
+
+    /// The reasoner entailments documenting `term_iri`, read from the
+    /// `gmeow:graph/documentation` projection. Each `gmeow:Entailment` node is one
+    /// record — its rule, its conclusion, and ALL its premises (every
+    /// `gmeow:entailmentPremise`, sorted). Records are ordered by entailment IRI, so
+    /// the surface is deterministic. A term with no entailments yields an empty list.
+    fn term_entailments(&self, term_iri: &str) -> gmeow_errors::Result<Vec<Value>> {
+        let query = entailments_by_term_query(term_iri);
+        // Aggregate the (repeatable-premise) rows back per entailment IRI.
+        let mut by_entailment: BTreeMap<String, (String, String, BTreeSet<String>)> =
+            BTreeMap::new();
+        for row in self.docs_select_rows(&query)? {
+            let (Some(entailment), Some(rule), Some(conclusion)) =
+                (row.get("e"), row.get("rule"), row.get("conclusion"))
+            else {
+                continue;
+            };
+            let entry = by_entailment
+                .entry(entailment.clone())
+                .or_insert_with(|| (rule.clone(), conclusion.clone(), BTreeSet::new()));
+            if let Some(premise) = row.get("premise") {
+                entry.2.insert(premise.clone());
+            }
+        }
+        let out = by_entailment
+            .into_values()
+            .map(|(rule, conclusion, premises)| {
+                json!({
+                    "rule": rule,
+                    "conclusion": conclusion,
+                    "premises": premises.into_iter().collect::<Vec<_>>(),
+                })
+            })
+            .collect();
+        Ok(out)
+    }
+
+    /// The runnable competency questions from the `gmeow:graph/documentation`
+    /// projection: every `gmeow:DocumentedCompetency` carrying a `gmeow:cqQueryText`,
+    /// or — when `term_iri` is `Some` — only those documenting that term. Each record
+    /// carries the runnable query text and the authored expectations
+    /// (`gmeow:cqRationale`, `gmeow:cqExpectRowCount`, `gmeow:cqExactRows`) when
+    /// present. Records are ordered by competency IRI, so the surface is
+    /// deterministic.
+    fn competency_questions(&self, term_iri: Option<&str>) -> gmeow_errors::Result<Vec<Value>> {
+        let query = competency_query(term_iri);
+        // One record per competency IRI (all columns single-valued). BTreeMap →
+        // competency-IRI order.
+        let mut by_competency: BTreeMap<String, Value> = BTreeMap::new();
+        for row in self.docs_select_rows(&query)? {
+            let (Some(competency), Some(query_text)) = (row.get("c"), row.get("q")) else {
+                continue;
+            };
+            by_competency
+                .entry(competency.clone())
+                .or_insert_with(|| competency_json(query_text, &row));
+        }
+        Ok(by_competency.into_values().collect())
     }
 
     /// The standard llmstxt.org vocabulary index (`llms.txt`) for `requested`,
@@ -870,6 +1090,30 @@ impl McpServer {
                     ("dry_run", "boolean"),
                 ],
             ),
+            tool(
+                "counter_examples",
+                "Return the conformance fixtures documenting a bundled term, split into \
+                 well-formed exemplars and counter-examples, each with its full Turtle body and \
+                 the authored expected outcome / violation code / conformance rationale (read from \
+                 gmeow:graph/documentation). A term with no fixtures returns empty lists; an \
+                 unknown term is a hard error.",
+                &[("term", "string")],
+            ),
+            tool(
+                "entailments",
+                "Return the reasoner entailments documenting a bundled term — each derivation's \
+                 rule, conclusion, and every premise (read from gmeow:graph/documentation). A term \
+                 with no entailments returns an empty list; an unknown term is a hard error.",
+                &[("term", "string")],
+            ),
+            tool(
+                "competency_questions",
+                "Return the runnable competency questions from gmeow:graph/documentation, each with \
+                 its SPARQL query text and the authored rationale / expected row count / exact-rows \
+                 flag. With the OPTIONAL `term`, only that term's questions (an unknown term is a \
+                 hard error); without `term`, the whole index.",
+                &[("term", "string")],
+            ),
         ];
         if self.mode.includes_dev_tools() {
             tools.extend([
@@ -949,6 +1193,9 @@ impl McpServer {
             "conjecture_test" => self.tool_conjecture_test(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
+            "counter_examples" => self.tool_counter_examples(args),
+            "entailments" => self.tool_entailments(args),
+            "competency_questions" => self.tool_competency_questions(args),
             "validate" if self.mode.includes_dev_tools() => self.tool_validate(),
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
             "regenerate" if self.mode.includes_dev_tools() => self.tool_regenerate(),
@@ -1072,6 +1319,69 @@ impl McpServer {
     fn tool_okf_index(&self, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
         Ok(self.view.okf_index_json(requested))
+    }
+
+    /// `counter_examples`: the conformance fixtures documenting a term, split into
+    /// the well-formed exemplars and the counter-examples. An UNKNOWN term is a HARD
+    /// FAIL (`Err` → error envelope); a KNOWN term that simply documents no fixtures
+    /// is an honest empty-but-ok result (both lists empty).
+    fn tool_counter_examples(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let term = required_str(args, "term")?;
+        let iri = self.resolve_term_or_err(term, args)?;
+        let (wellformed, counter_examples) = self.view.term_fixtures(&iri)?;
+        Ok(json!({
+            "ok": true,
+            "term": term,
+            "wellformed": wellformed,
+            "counter_examples": counter_examples,
+        })
+        .to_string())
+    }
+
+    /// `entailments`: the reasoner derivations documenting a term, each with its
+    /// rule, conclusion, and every premise. Unknown term → hard error; a known term
+    /// with no derivations → empty-but-ok.
+    fn tool_entailments(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let term = required_str(args, "term")?;
+        let iri = self.resolve_term_or_err(term, args)?;
+        let entailments = self.view.term_entailments(&iri)?;
+        Ok(json!({
+            "ok": true,
+            "term": term,
+            "entailments": entailments,
+        })
+        .to_string())
+    }
+
+    /// `competency_questions`: the runnable competency questions. With a `term`, only
+    /// that term's questions (unknown term → hard error); without a `term`, the whole
+    /// index of documented competency questions.
+    fn tool_competency_questions(&self, args: &Value) -> gmeow_errors::Result<String> {
+        match optional_str(args, "term") {
+            Some(term) => {
+                let iri = self.resolve_term_or_err(term, args)?;
+                let questions = self.view.competency_questions(Some(&iri))?;
+                Ok(json!({"ok": true, "term": term, "questions": questions}).to_string())
+            }
+            None => {
+                let questions = self.view.competency_questions(None)?;
+                Ok(json!({"ok": true, "questions": questions}).to_string())
+            }
+        }
+    }
+
+    /// Resolve a term string to its canonical IRI, HARD-FAILING (`Err`) on an unknown
+    /// term — the shared unknown-term guard for the documentation-surface tools.
+    fn resolve_term_or_err(&self, term: &str, args: &Value) -> gmeow_errors::Result<String> {
+        let requested = self.requested_from_args(args)?;
+        self.view.resolve_term_iri(term, requested).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "unknown term `{term}`: does not resolve to a bundled GMEOW term \
+                     (expected a CURIE, local name, IRI, or label)"
+                ),
+            })
+        })
     }
 
     fn tool_query_docs(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -1954,12 +2264,17 @@ impl ExpandHome for PathBuf {
 fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
-        .filter_map(|(name, _)| {
-            matches!(
-                *name,
+        .filter_map(|(prop, _)| {
+            let required_by_name = matches!(
+                *prop,
                 "term" | "text" | "claim_id" | "path" | "target_iri" | "data" | "format"
-            )
-            .then_some(*name)
+            );
+            // Carve-out: `competency_questions` accepts an OPTIONAL `term` (the
+            // whole-index form omits it), so `term` is not required THERE despite the
+            // shared arg name being required everywhere else. This keeps the advertised
+            // schema honest rather than marking an optional arg required.
+            let optional_here = name == "competency_questions" && *prop == "term";
+            (required_by_name && !optional_here).then_some(*prop)
         })
         .collect();
     let props = properties
@@ -3535,6 +3850,12 @@ mod tests {
             "revise_belief",
             json!({"claim_id": "urn:gmeow:assertion:none", "dry_run": true}),
         );
+        // Documentation-surface tools: real terms that carry live data in the shipped
+        // bundle (gmeow:Activity documents fixtures, gmeow:Entity grounds
+        // entailments); competency_questions dispatches in its whole-index form.
+        call_args.insert("counter_examples", json!({"term": "gmeow:Activity"}));
+        call_args.insert("entailments", json!({"term": "gmeow:Entity"}));
+        call_args.insert("competency_questions", json!({}));
         for name in &tool_names {
             let args = call_args
                 .get(name.as_str())
@@ -4564,6 +4885,226 @@ mod tests {
         assert!(
             witness_premises(&dataset).len() >= 2,
             "each refutation persists recoverable witness premises"
+        );
+    }
+
+    /// `counter_examples` over the live bundle: a term documenting fixtures yields
+    /// the real, split fixture bodies; a resolvable term documenting none yields the
+    /// honest empty-but-ok shape; an unknown term is a hard error envelope.
+    ///
+    /// `gmeow:Activity` documents BOTH a well-formed exemplar and a counter-example
+    /// in the shipped `gmeow:graph/documentation` graph (verified by the projection
+    /// query in Task 1); `gmeow:AboutnessMode` is a documented term that authors no
+    /// fixtures.
+    #[test]
+    fn tool_counter_examples_surface() {
+        let server = consumer_server();
+
+        // A term with fixtures → real, non-empty split bodies.
+        let hit = text_payload(
+            server.call_tool_result("counter_examples", &json!({"term": "gmeow:Activity"})),
+        );
+        assert_eq!(hit["ok"], true);
+        assert_eq!(hit["term"], "gmeow:Activity");
+        let counter = hit["counter_examples"]
+            .as_array()
+            .expect("counter_examples is an array");
+        let wellformed = hit["wellformed"]
+            .as_array()
+            .expect("wellformed is an array");
+        assert!(
+            !counter.is_empty(),
+            "gmeow:Activity documents at least one counter-example: {hit}"
+        );
+        assert!(
+            !wellformed.is_empty(),
+            "gmeow:Activity documents at least one well-formed exemplar: {hit}"
+        );
+        // The counter-example carries a real Turtle body AND a violation code.
+        let ce = &counter[0];
+        assert!(
+            ce["text"].as_str().is_some_and(|t| t.contains(':')),
+            "counter-example carries a real Turtle body: {ce}"
+        );
+        assert!(
+            ce["violation_code"].as_str().is_some_and(|c| !c.is_empty()),
+            "counter-example carries an authored violation code: {ce}"
+        );
+        // The well-formed exemplar has a real body and NO violation code.
+        let wf = &wellformed[0];
+        assert!(
+            wf["text"].as_str().is_some_and(|t| t.contains(':')),
+            "well-formed exemplar carries a real Turtle body: {wf}"
+        );
+        assert!(
+            wf["violation_code"].is_null(),
+            "well-formed exemplar has no violation code: {wf}"
+        );
+        // Deterministic: a second call is byte-identical.
+        let again = text_payload(
+            server.call_tool_result("counter_examples", &json!({"term": "gmeow:Activity"})),
+        );
+        assert_eq!(hit, again, "counter_examples output is deterministic");
+
+        // A resolvable term with NO fixtures → empty-but-ok (NOT an error).
+        let empty = text_payload(
+            server.call_tool_result("counter_examples", &json!({"term": "gmeow:AboutnessMode"})),
+        );
+        assert_eq!(
+            empty["ok"], true,
+            "no-fixture term is empty-but-ok: {empty}"
+        );
+        assert_eq!(empty["wellformed"], json!([]));
+        assert_eq!(empty["counter_examples"], json!([]));
+
+        // An unknown term → hard error envelope.
+        let unknown = text_payload(server.call_tool_result(
+            "counter_examples",
+            &json!({"term": "gmeow:DefinitelyNotARealTerm42"}),
+        ));
+        assert_eq!(
+            unknown["ok"], false,
+            "unknown term is a hard error: {unknown}"
+        );
+        assert!(
+            unknown["error"]
+                .as_str()
+                .is_some_and(|e| e.contains("unknown term")),
+            "unknown-term error names the failure: {unknown}"
+        );
+    }
+
+    /// `entailments` over the live bundle: a term with derivations yields every
+    /// entailment's rule/conclusion with its premises preserved; an unknown term is a
+    /// hard error. `gmeow:Entity` grounds >1000 entailment records in the shipped
+    /// documentation graph.
+    #[test]
+    fn tool_entailments_surface() {
+        let server = consumer_server();
+
+        let hit =
+            text_payload(server.call_tool_result("entailments", &json!({"term": "gmeow:Entity"})));
+        assert_eq!(hit["ok"], true);
+        assert_eq!(hit["term"], "gmeow:Entity");
+        let entailments = hit["entailments"]
+            .as_array()
+            .expect("entailments is an array");
+        assert!(
+            !entailments.is_empty(),
+            "gmeow:Entity grounds at least one entailment: {}",
+            &hit.to_string()[..hit.to_string().len().min(400)]
+        );
+        // Every record carries a non-empty rule and conclusion.
+        for e in entailments {
+            assert!(
+                e["rule"].as_str().is_some_and(|r| !r.is_empty()),
+                "entailment carries a rule: {e}"
+            );
+            assert!(
+                e["conclusion"].as_str().is_some_and(|c| !c.is_empty()),
+                "entailment carries a conclusion: {e}"
+            );
+            assert!(e["premises"].is_array(), "premises is an array: {e}");
+        }
+        // Premises are preserved: at least one derivation carries premises.
+        let total_premises: usize = entailments
+            .iter()
+            .map(|e| e["premises"].as_array().map_or(0, Vec::len))
+            .sum();
+        assert!(
+            total_premises > 0,
+            "at least one gmeow:Entity entailment preserves its premises"
+        );
+
+        // Unknown term → hard error envelope.
+        let unknown = text_payload(server.call_tool_result(
+            "entailments",
+            &json!({"term": "gmeow:DefinitelyNotARealTerm42"}),
+        ));
+        assert_eq!(
+            unknown["ok"], false,
+            "unknown term is a hard error: {unknown}"
+        );
+    }
+
+    /// `competency_questions` over the live bundle: the index form (no `term`) returns
+    /// every runnable question, each carrying a `query_text` that PARSES as a valid
+    /// SPARQL SELECT; the per-term form returns that term's subset. `gmeow:Agent`
+    /// documents competency questions in the shipped documentation graph.
+    #[test]
+    fn tool_competency_questions_surface() {
+        let server = consumer_server();
+
+        // Index form: no `term`.
+        let index = text_payload(server.call_tool_result("competency_questions", &json!({})));
+        assert_eq!(index["ok"], true);
+        assert!(
+            index.get("term").is_none(),
+            "index form carries no term key: {}",
+            &index.to_string()[..index.to_string().len().min(200)]
+        );
+        let questions = index["questions"]
+            .as_array()
+            .expect("questions is an array");
+        assert!(!questions.is_empty(), "the competency index is non-empty");
+        for q in questions {
+            assert!(
+                q["query_text"].as_str().is_some_and(|t| !t.is_empty()),
+                "every competency question carries a runnable query_text: {q}"
+            );
+        }
+
+        // The first question's query_text round-trips through the native SPARQL
+        // parser as an executable SELECT (over an empty dataset — parse+plan only).
+        let first_query = questions[0]["query_text"].as_str().expect("query_text");
+        let empty = std::sync::Arc::new(
+            purrdf::RdfDatasetBuilder::new()
+                .freeze()
+                .expect("empty dataset"),
+        );
+        let parsed = crate::stages::native_query::query(&empty, first_query)
+            .expect("competency query_text is a valid SPARQL query");
+        assert!(
+            matches!(parsed, purrdf::SparqlResult::Solutions { .. }),
+            "competency query_text is a SPARQL SELECT: {first_query}"
+        );
+
+        // Deterministic index.
+        let index_again = text_payload(server.call_tool_result("competency_questions", &json!({})));
+        assert_eq!(index, index_again, "competency index is deterministic");
+
+        // Per-term form: gmeow:Agent's subset — non-empty, each with a query_text.
+        let per_term = text_payload(
+            server.call_tool_result("competency_questions", &json!({"term": "gmeow:Agent"})),
+        );
+        assert_eq!(per_term["ok"], true);
+        assert_eq!(per_term["term"], "gmeow:Agent");
+        let agent_questions = per_term["questions"]
+            .as_array()
+            .expect("questions is an array");
+        assert!(
+            !agent_questions.is_empty(),
+            "gmeow:Agent documents at least one competency question: {per_term}"
+        );
+        for q in agent_questions {
+            assert!(
+                q["query_text"].as_str().is_some_and(|t| !t.is_empty()),
+                "per-term competency question carries a query_text: {q}"
+            );
+        }
+        assert!(
+            agent_questions.len() <= questions.len(),
+            "a term's competency subset is no larger than the whole index"
+        );
+
+        // Unknown term (per-term form) → hard error envelope.
+        let unknown = text_payload(server.call_tool_result(
+            "competency_questions",
+            &json!({"term": "gmeow:DefinitelyNotARealTerm42"}),
+        ));
+        assert_eq!(
+            unknown["ok"], false,
+            "unknown term is a hard error: {unknown}"
         );
     }
 }
