@@ -575,6 +575,28 @@ pub const DIMENSIONS: [CoverageDimension; TermCoverage::TOTAL] = [
     },
 ];
 
+/// The DEMONSTRATION dimensions — the slice-level testing / documentation PRACTICES
+/// a slice covers by DEMONSTRATING them on AT LEAST ONE applicable term (∃), not the
+/// per-term qualities every term must individually carry (∀).
+///
+/// A fixture pair ("a rule with no negative fixture is not enforced"), a competency
+/// question with a rationale, and a worked-instance scene each document the SLICE's
+/// vocabulary and testing discipline — the slice demonstrates the practice when one
+/// applicable term exhibits it; it is not evidence that *every* term must ship its
+/// own fixture / CQ / worked scene. So for these three the per-SLICE aggregation is
+/// existential (`slice covers ⟺ ∃ applicable term present`, vacuously covered when
+/// no term is applicable), while every other per-term dimension stays universal
+/// (`∀ applicable terms present`). The per-TERM incidence
+/// (`gmeow:docCoversDimension` / `gmeow:docMissesDimension`) is UNCHANGED — it still
+/// records each term's individual status as the diagnostic; only the slice roll-up
+/// of these three flips from ∀ to ∃. The [`Dimension`] / [`DIMENSIONS`] vocabulary
+/// and the [`crate::maturity`] anchor intents are untouched.
+pub const DEMONSTRATION_DIMENSIONS: [Dimension; 3] = [
+    Dimension::FixturePair,
+    Dimension::CompetencyRationale,
+    Dimension::WorkedInstance,
+];
+
 /// The SLICE-SCOPED coverage dimensions — computed directly on a slice's `docs.md`
 /// facts, not per term. Kept in [`Dimension`] order (thesis sentence sits before
 /// realized state's rank only incidentally; both are Maximal-tier for thesis and
@@ -768,29 +790,60 @@ pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
 /// nineteen dimensions, from which the FCA earned maturity and coverage fraction
 /// are derived.
 ///
-/// A slice COVERS a per-term dimension iff EVERY documented term it owns COVERS it —
-/// where per-term coverage is [`TermCoverage::flags`] (`!applicable ∨ present`).
-/// For the fifteen unconditional dimensions that is "every term present"; for the
-/// four applicability-conditioned dimensions ([`Dimension::Alignment`],
-/// [`Dimension::LinkageCoverage`], [`Dimension::LossLedgerRow`],
-/// [`Dimension::LossJudgmentSound`]) a term to which the dimension does NOT apply
-/// covers it vacuously, so the slice covers it iff every term for which it IS
-/// applicable has it present — and a slice of all-superset-native terms (zero
-/// applicable) covers it vacuously, never penalized for having no external
-/// correspondence. A slice with no documented terms vacuously covers every per-term
-/// dimension (the empty universal). The two slice-scoped dimensions (thesis
+/// Two aggregation modes, keyed on [`DEMONSTRATION_DIMENSIONS`]:
+///
+/// - **Per-term quality (∀ — the default).** A slice COVERS the dimension iff EVERY
+///   documented term it owns COVERS it — where per-term coverage is
+///   [`TermCoverage::flags`] (`!applicable ∨ present`). For the unconditional
+///   dimensions that is "every term present"; for the four applicability-conditioned
+///   dimensions ([`Dimension::Alignment`], [`Dimension::LinkageCoverage`],
+///   [`Dimension::LossLedgerRow`], [`Dimension::LossJudgmentSound`]) a term to which
+///   the dimension does NOT apply covers it vacuously, so the slice covers it iff
+///   every term for which it IS applicable has it present — and a slice of all
+///   non-applicable terms covers it vacuously, never penalized.
+///
+/// - **Slice demonstration (∃ — [`DEMONSTRATION_DIMENSIONS`]: fixture pair,
+///   competency rationale, worked instance).** These are slice-level PRACTICES; the
+///   slice covers one iff AT LEAST ONE applicable term demonstrates it
+///   (`∃ applicable term present`), and it is covered vacuously when no term is
+///   applicable. A slice does not have to make *every* term carry its own fixture /
+///   CQ / worked scene to demonstrate the discipline. The per-TERM incidence is
+///   unchanged (still missing-per-term as the diagnostic); only this roll-up flips.
+///
+/// A slice with no documented terms vacuously covers every per-term dimension (the
+/// empty universal, in both modes). The two slice-scoped dimensions (thesis
 /// sentence, realized state) are read directly from the slice's `docs.md` facts.
 pub fn slice_covered_dims(slice_iri: &str, model: &DocsModel, ctx: &CoverageContext) -> DimSet {
-    let flags: Vec<[bool; TermCoverage::TOTAL]> = model
+    let covs: Vec<TermCoverage> = model
         .terms
         .iter()
         .filter(|t| t.owner_slice == slice_iri)
-        .map(|t| term_coverage(t, ctx).flags())
+        .map(|t| term_coverage(t, ctx))
         .collect();
 
     let mut covered = DimSet::new();
     for (i, dim) in DIMENSIONS.iter().enumerate() {
-        if flags.iter().all(|f| f[i]) {
+        let dim_covered = if DEMONSTRATION_DIMENSIONS.contains(&dim.dimension) {
+            // ∃: covered iff no applicable term (vacuous) or ≥1 applicable term
+            // demonstrates the practice. `present ∧ applicable`, never the covered
+            // flag — a not-applicable term must not vacuously "demonstrate".
+            let mut any_applicable = false;
+            let mut demonstrated = false;
+            for cov in &covs {
+                if cov.applicable_flags()[i] {
+                    any_applicable = true;
+                    if cov.present_flags()[i] {
+                        demonstrated = true;
+                        break;
+                    }
+                }
+            }
+            !any_applicable || demonstrated
+        } else {
+            // ∀: covered iff every term covers it (`!applicable ∨ present`).
+            covs.iter().all(|cov| cov.flags()[i])
+        };
+        if dim_covered {
             covered.insert(dim.dimension);
         }
     }
@@ -808,7 +861,10 @@ pub fn slice_covered_dims(slice_iri: &str, model: &DocsModel, ctx: &CoverageCont
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{DocLinkage, DocLossTarget, DocTermCategory};
+    use crate::model::{
+        DocCompetency, DocExample, DocFixture, DocFixtureKind, DocLinkage, DocLossTarget,
+        DocTermCategory,
+    };
 
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
@@ -1042,6 +1098,107 @@ mod tests {
             "unsound judgment → MISSING"
         );
         assert!(cov.missing_keys().contains(&"loss_judgment_sound"));
+    }
+
+    #[test]
+    fn demonstration_dims_are_existential_per_term_dims_universal() {
+        // The DEMONSTRATION vs PER-TERM split. A slice with three terms where only
+        // ONE (`gmeow:One`) demonstrates the slice-level practices — a fixture pair,
+        // a competency question with a rationale, and a worked instance — yet a
+        // per-term quality (`scope_note`) is absent on one of the three.
+        let slice = format!("{GMEOW}slice/zoo");
+        let one_iri = format!("{GMEOW}One");
+        let terms = vec![
+            DocTerm {
+                scope_notes: vec!["a boundary note".to_string()],
+                ..bare("One")
+            },
+            DocTerm {
+                scope_notes: vec!["another boundary note".to_string()],
+                ..bare("Two")
+            },
+            // The third term is missing its scope note → the ∀ dimension fails.
+            bare("Three"),
+        ];
+        let model = DocsModel {
+            terms,
+            fixtures: vec![
+                DocFixture {
+                    slice: slice.clone(),
+                    logical_path: "tests/conformance-fixtures/one-ok.ttl".to_string(),
+                    title: "one ok".to_string(),
+                    text: String::new(),
+                    kind: DocFixtureKind::Wellformed,
+                    terms_referenced: vec!["gmeow:One".to_string()],
+                    expected_outcome: None,
+                    violation_code: None,
+                    rationale: None,
+                    catalog_slug: None,
+                },
+                DocFixture {
+                    slice: slice.clone(),
+                    logical_path: "tests/counter-examples/one-bad.ttl".to_string(),
+                    title: "one bad".to_string(),
+                    text: String::new(),
+                    kind: DocFixtureKind::CounterExample,
+                    terms_referenced: vec!["gmeow:One".to_string()],
+                    expected_outcome: None,
+                    violation_code: None,
+                    rationale: None,
+                    catalog_slug: None,
+                },
+            ],
+            competencies: vec![DocCompetency {
+                iri: format!("{GMEOW}cq/one"),
+                rationale: Some("why the ontology must answer this".to_string()),
+                exercises: vec![one_iri.clone()],
+                owner_slice: slice.clone(),
+                ..Default::default()
+            }],
+            examples: vec![DocExample {
+                slice: slice.clone(),
+                logical_path: "examples/one-scene.ttl".to_string(),
+                title: "one scene".to_string(),
+                text: String::new(),
+                terms_referenced: vec!["gmeow:One".to_string()],
+            }],
+            ..Default::default()
+        };
+        let ctx = CoverageContext::new(&model);
+
+        // Only `gmeow:One` carries the three demonstration facts per-term …
+        let one = term_coverage(&model.terms[0], &ctx);
+        let three = term_coverage(&model.terms[2], &ctx);
+        assert!(one.has_fixture_pair && one.has_competency_rationale && one.has_worked_instance);
+        assert!(
+            !three.has_fixture_pair
+                && !three.has_competency_rationale
+                && !three.has_worked_instance,
+            "the per-term diagnostic still records each term's individual gaps"
+        );
+
+        let covered = slice_covered_dims(&slice, &model, &ctx);
+        // ∃: one demonstrating term is enough for the SLICE to cover all three.
+        assert!(covered.contains(&Dimension::FixturePair), "∃ fixture pair");
+        assert!(
+            covered.contains(&Dimension::CompetencyRationale),
+            "∃ competency rationale"
+        );
+        assert!(
+            covered.contains(&Dimension::WorkedInstance),
+            "∃ worked instance"
+        );
+        // ∀: one term missing its scope note → the SLICE does NOT cover it.
+        assert!(
+            !covered.contains(&Dimension::ScopeNote),
+            "∀ scope note fails when one term lacks it"
+        );
+        // A per-term dim every term covers (translation, vacuous with no non-English
+        // languages configured) is still slice-covered under ∀.
+        assert!(
+            covered.contains(&Dimension::TranslationCoverage),
+            "∀ translation coverage holds vacuously for every term"
+        );
     }
 
     #[test]

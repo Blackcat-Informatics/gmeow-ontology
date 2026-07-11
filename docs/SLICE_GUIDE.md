@@ -308,6 +308,30 @@ is weaker than sound, is `applicable ∧ ¬present` → still MISSING, a real de
 catching. (This changes only *when* the four dimensions count, never the FULL / MAXIMAL
 intents below — they still list all four.)
 
+**Per-term quality (∀) vs slice demonstration (∃).** When the coverage projection rolls a
+per-term dimension up to the SLICE, it uses one of two quantifiers. Most dimensions are
+**per-term qualities** every documented term must individually carry, so the slice covers
+them **universally** (∀): it covers the dimension iff *every* applicable term covers it
+(`definition`, `label`, `usageAdvice`, `example`, `scopeNote`, `alignment`,
+`linkageCoverage`, `annotationCoat`, `translationCoverage`, `testReach`,
+`provenanceHonesty`, `proseQuality`, `lossLedgerRow`, `lossJudgmentSound`). Three are
+**slice-demonstration** dimensions — testing / documentation *practices* the slice
+demonstrates, not per-term obligations — so the slice covers them **existentially** (∃):
+it covers the dimension iff *at least one* applicable term demonstrates it (vacuously
+covered when no term is applicable):
+
+- **`dimFixturePair`** — "a rule with no negative fixture is not enforced" is about the
+  slice demonstrating fixture discipline, not every term shipping its own pair.
+- **`dimCompetencyRationale`** — a competency question documents the slice's vocabulary,
+  not one term, so one rationale-carrying CQ demonstrates the practice for the slice.
+- **`dimWorkedInstance`** — a worked scene under `examples/` documents the slice's
+  vocabulary; the slice demonstrates it when one applicable term appears in a scene.
+
+The per-TERM `gmeow:docCoversDimension` / `gmeow:docMissesDimension` incidence is
+**unchanged** by this split — it still records every term's individual status as the
+diagnostic; only the per-slice roll-up of these three flips from ∀ to ∃. The
+`gmeow:DocCoverageDimension` vocabulary and the two doctrine blocks above are untouched.
+
 > **Doctrine == vocabulary (binding contract).** The two `<!-- doctrine-intent:… -->`
 > blocks above are the single prose definition of FULL and MAXIMAL, and they are pinned to
 > the minted vocabulary by `crates/docs/tests/doctrine_matches_vocabulary.rs`. That test
