@@ -88,11 +88,32 @@ pub fn native_contract_hash() -> String {
 pub(crate) fn reason_closure(
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<(Vec<InferredAxiom>, dl::DlVerdict)> {
+    let inferred = reason_closure_axioms(edb)?;
+    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
+    Ok((inferred, verdict))
+}
+
+/// The native reasoning closure ONLY — the sorted asserted+derived axiom set — with
+/// the DL consistency *verdict* left uncomputed.
+///
+/// This is the shared `run_reasoning → augment_inferred_with_dl → sort` half of
+/// [`reason_closure`], so the returned closure is byte-identical to
+/// `reason_all(edb)?.inferred()`. It exists for callers that need only the closure
+/// and would otherwise pay for — and discard — [`dl::verdict_from_inferred`]'s
+/// O(EDB) consistency/coverage scan. The reasoner-derived slice-quality axis is the
+/// motivating caller: its leave-one-out redundancy probe re-reasons the EDB dozens of
+/// times but reads only the closure's IRI-object triples, never the verdict.
+///
+/// # Errors
+///
+/// Returns `Err` if the source store cannot be loaded or the Nemo chase fails to
+/// parse/validate/evaluate/decode — the same closure-side failures [`reason_closure`]
+/// surfaces (it omits only the verdict-scan error path).
+pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<InferredAxiom>> {
     let mut inferred = run_reasoning(edb, &dl::dl_rules())?;
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
     inferred.sort();
-    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
-    Ok((inferred, verdict))
+    Ok(inferred)
 }
 
 /// Run native predicate-as-DATA entailment + DL consistency, returning the typed
