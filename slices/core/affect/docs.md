@@ -133,12 +133,19 @@ after review (the overclaim gate reds an unearned equivalence). Authored in
   Set-level only, because EmotionML category items are XML `name` attributes with no
   per-term IRI.
 
-WordNet-Affect, the Emotion Frame Ontology, and Ithkuil carry **no resolvable per-term
-RDF surface** (the Princeton WordNet-Affect RDF export is defunct, the Emotion Frame
-Ontology's term IRIs do not dereference, and Ithkuil is a reference inventory, not a
-namespace authority). Authoring a correspondence against them would fabricate a link to
-a dead IRI, so they are not bridged — their axis/category content is already carried,
-modeled up, in-slice, and a bridge is authored only if a verifiable namespace appears.
+The WordNet lexical layer **is** bridged, by reference to **Open English WordNet** —
+its per-synset IRIs content-negotiate to OntoLex-Lemon RDF, so each canonical emotion
+type `closeMatch`es its noun.feeling synset. That is the live successor to the defunct
+Princeton WordNet-Affect *affective-label* export. The WordNet-Affect affective labels
+and NRC lexicons, the Emotion Frame Ontology, and Ithkuil carry **no resolvable per-term
+RDF surface** (the affective-label / NRC data ship without an RDF namespace, the Emotion
+Frame Ontology's term IRIs do not dereference, and Ithkuil is a reference inventory, not
+a namespace authority). Authoring a correspondence against them would fabricate a link to
+a dead IRI, so rather than an implicit comment each is a machine-reviewable
+`gmeow:DeclinedCorrespondence` in `mappings/declined-bridges.ttl`, carrying its rationale,
+a revisit condition, and `logic:preservationKind logic:Unsupported` — their axis/category
+content already carried, modeled up, in-slice, and a bridge authored only if a verifiable
+namespace appears.
 
 ## Terms
 

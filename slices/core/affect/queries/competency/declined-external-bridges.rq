@@ -1,0 +1,18 @@
+# Competency question: "Which external affect vocabularies were deliberately NOT
+# bridged, and is each recorded as a reviewable won't-do carrying a preservation
+# judgment?" Every gmeow:DeclinedCorrespondence in the affect declined-bridge ledger
+# projects its spelled-out target label and its logic:preservationKind — so the
+# descope decision is answerable from data, not prose. RowsExact pins the exact set
+# (no stray, duplicate, or un-removed decline) and the exact target literals (a
+# regression to the bare acronym "EFO" or a URI-shaped dead IRI changes the literal
+# and fails the gate) and the exact preservation polarity (logic:Unsupported).
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?target ?preservation WHERE {
+    ?decline a gmeow:DeclinedCorrespondence ;
+        gmeow:declinedTarget ?target ;
+        logic:preservationKind ?preservation .
+}
+ORDER BY ?target

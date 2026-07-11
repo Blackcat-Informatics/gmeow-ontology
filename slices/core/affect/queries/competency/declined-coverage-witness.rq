@@ -1,0 +1,16 @@
+# Competency question: "Does every declined external bridge name a positive coverage
+# witness that actually resolves to an in-slice term?" A gmeow:DeclinedCorrespondence
+# is only safe if the external vocabulary's distinctions are carried, modeled up,
+# in-slice — recorded as gmeow:contentCarriedBy. This ASK is true iff NO decline points
+# at a dangling witness (an IRI that is the subject of no triple in the merged graph),
+# so the positive-coverage claim cannot rot into a broken reference.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+ASK {
+    FILTER NOT EXISTS {
+        ?decline a gmeow:DeclinedCorrespondence ;
+            gmeow:contentCarriedBy ?witness .
+        FILTER NOT EXISTS { ?witness ?p ?o }
+    }
+}
