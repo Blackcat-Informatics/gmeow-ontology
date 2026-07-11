@@ -201,43 +201,129 @@ impl FanoutRule {
     }
 }
 
+/// Collect every `(literal-lexical-form, non-literal-count)` reading of one row's
+/// predicate: the objects of `row gmeow:{local}` in the grouped dataset, split into
+/// literal lexical forms and a count of non-literal (IRI/blank-node/triple-term)
+/// objects. The cardinality/type enforcement lives in [`mandatory_literal`] and
+/// [`optional_literal`], which both call this so the scan logic exists once.
+fn collect_field(
+    by_subject: &BTreeMap<String, Vec<purrdf::RdfQuad>>,
+    row: &str,
+    pred: &str,
+) -> (Vec<String>, usize) {
+    let mut literals = Vec::new();
+    let mut non_literal = 0usize;
+    if let Some(quads) = by_subject.get(row) {
+        for quad in quads {
+            if quad.predicate != pred {
+                continue;
+            }
+            match &quad.object {
+                purrdf::RdfTerm::Literal(lit) => literals.push(lit.lexical_form.clone()),
+                _ => non_literal += 1,
+            }
+        }
+    }
+    (literals, non_literal)
+}
+
+/// A MANDATORY field: `row gmeow:{local}` must have EXACTLY ONE object, and it MUST be
+/// a literal. Zero objects, more than one object (duplicate literals, or any mix with
+/// non-literals), or a single non-literal object are all a HARD FAIL — no-optionality,
+/// never silently the first match.
+fn mandatory_literal(
+    by_subject: &BTreeMap<String, Vec<purrdf::RdfQuad>>,
+    row: &str,
+    local: &str,
+    gmeow_ns: &str,
+) -> Result<String, gmeow_errors::Diag> {
+    let pred = format!("{gmeow_ns}{local}");
+    let (literals, non_literal) = collect_field(by_subject, row, &pred);
+    let total = literals.len() + non_literal;
+    if total == 0 {
+        return Err(stage_err(&format!("fanout row {row} has no gmeow:{local}")));
+    }
+    if total > 1 {
+        return Err(stage_err(&format!(
+            "fanout row {row} has {total} values for gmeow:{local} (want exactly 1)"
+        )));
+    }
+    if non_literal == 1 {
+        return Err(stage_err(&format!(
+            "fanout row {row} has a non-literal object for gmeow:{local} (want exactly 1 literal)"
+        )));
+    }
+    Ok(literals
+        .into_iter()
+        .next()
+        .expect("total == 1 and non_literal == 0 implies exactly one literal"))
+}
+
+/// An OPTIONAL field: `row gmeow:{local}` may have ZERO or ONE object, and any object
+/// present MUST be a literal. More than one object, or a single non-literal object, is
+/// still a HARD FAIL (no silent tolerance) — only absence is legitimately optional.
+fn optional_literal(
+    by_subject: &BTreeMap<String, Vec<purrdf::RdfQuad>>,
+    row: &str,
+    local: &str,
+    gmeow_ns: &str,
+) -> Result<Option<String>, gmeow_errors::Diag> {
+    let pred = format!("{gmeow_ns}{local}");
+    let (literals, non_literal) = collect_field(by_subject, row, &pred);
+    let total = literals.len() + non_literal;
+    if total == 0 {
+        return Ok(None);
+    }
+    if total > 1 {
+        return Err(stage_err(&format!(
+            "fanout row {row} has {total} values for gmeow:{local} (want at most 1)"
+        )));
+    }
+    if non_literal == 1 {
+        return Err(stage_err(&format!(
+            "fanout row {row} has a non-literal object for gmeow:{local} (want a literal)"
+        )));
+    }
+    Ok(literals.into_iter().next())
+}
+
 /// Read the `gmeow:fanoutExtracts` rows from the bundle dataset — the path↔representative
 /// map, promoted from hard-coded Rust branches to authored data (the pipeline slice). Each
 /// row carries `gmeow:extractsPath` + `gmeow:extractsMatch` (+ optional
 /// `gmeow:extractsSuffix`), `gmeow:extractsGraphFamily`, and `gmeow:extractsForm`. A
-/// malformed row (missing required field, unknown match/family/form) is a HARD FAIL —
-/// never silently skipped (no-optionality).
+/// malformed row — a missing mandatory field, a duplicate value for ANY field (mandatory
+/// or optional), a non-literal (IRI/blank-node/triple-term) object on ANY field, or an
+/// unknown match/family/form value — is a HARD FAIL, never silently tolerated
+/// (no-optionality): see [`mandatory_literal`] / [`optional_literal`].
+///
+/// A single pass over `dataset.owned_quads()` groups every subject-IRI quad into a
+/// `BTreeMap` keyed by subject, so each field read below is a map lookup rather than a
+/// fresh scan of the whole dataset (O(R) total instead of O(R·M) over R rows and M
+/// fields). `BTreeMap` (not `HashMap`) keeps subject — and hence row — order
+/// deterministic.
 fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_errors::Diag> {
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
-    let one = |subj: &str, pred: &str| -> Option<String> {
-        for quad in dataset.owned_quads() {
-            let s_iri = matches!(&quad.subject, purrdf::RdfTerm::Iri(i) if i == subj);
-            if s_iri
-                && quad.predicate == pred
-                && let purrdf::RdfTerm::Literal(lit) = &quad.object
-            {
-                return Some(lit.lexical_form.clone());
-            }
-        }
-        None
-    };
-    // Every subject carrying gmeow:extractsPath is a fanout row.
-    let path_pred = format!("{GMEOW}extractsPath");
-    let mut rows: BTreeSet<String> = BTreeSet::new();
+
+    let mut by_subject: BTreeMap<String, Vec<purrdf::RdfQuad>> = BTreeMap::new();
     for quad in dataset.owned_quads() {
-        if quad.predicate == path_pred
-            && let purrdf::RdfTerm::Iri(subj) = &quad.subject
-        {
-            rows.insert(subj.clone());
+        if let purrdf::RdfTerm::Iri(subj) = &quad.subject {
+            by_subject.entry(subj.clone()).or_default().push(quad);
         }
     }
+
+    // Every subject carrying gmeow:extractsPath is a fanout row (cardinality/type of
+    // that predicate is enforced below by `mandatory_literal`, not here).
+    let path_pred = format!("{GMEOW}extractsPath");
+    let rows: BTreeSet<String> = by_subject
+        .iter()
+        .filter(|(_, quads)| quads.iter().any(|quad| quad.predicate == path_pred))
+        .map(|(subj, _)| subj.clone())
+        .collect();
+
     let mut rules = Vec::new();
     for row in &rows {
-        let field = |local: &str| one(row, &format!("{GMEOW}{local}"));
-        let path = field("extractsPath")
-            .ok_or_else(|| stage_err(&format!("fanout row {row} has no gmeow:extractsPath")))?;
-        let match_kind = field("extractsMatch")
-            .ok_or_else(|| stage_err(&format!("fanout row {row} has no gmeow:extractsMatch")))?;
+        let path = mandatory_literal(&by_subject, row, "extractsPath", GMEOW)?;
+        let match_kind = mandatory_literal(&by_subject, row, "extractsMatch", GMEOW)?;
         let match_prefix = match match_kind.as_str() {
             "prefix" => true,
             "exact" => false,
@@ -247,27 +333,18 @@ fn read_fanout_rules(dataset: &RdfDataset) -> Result<Vec<FanoutRule>, gmeow_erro
                 )));
             }
         };
-        let suffix = field("extractsSuffix");
-        let family = match field("extractsGraphFamily")
-            .ok_or_else(|| {
-                stage_err(&format!(
-                    "fanout row {row} has no gmeow:extractsGraphFamily"
-                ))
-            })?
-            .as_str()
-        {
-            "rdf-fanout" => FanoutFamily::RdfFanout,
-            "edoal" => FanoutFamily::Edoal,
-            other => {
-                return Err(stage_err(&format!(
-                    "fanout row {row} has unknown gmeow:extractsGraphFamily {other:?}"
-                )));
-            }
-        };
-        let form = match field("extractsForm")
-            .ok_or_else(|| stage_err(&format!("fanout row {row} has no gmeow:extractsForm")))?
-            .as_str()
-        {
+        let suffix = optional_literal(&by_subject, row, "extractsSuffix", GMEOW)?;
+        let family =
+            match mandatory_literal(&by_subject, row, "extractsGraphFamily", GMEOW)?.as_str() {
+                "rdf-fanout" => FanoutFamily::RdfFanout,
+                "edoal" => FanoutFamily::Edoal,
+                other => {
+                    return Err(stage_err(&format!(
+                        "fanout row {row} has unknown gmeow:extractsGraphFamily {other:?}"
+                    )));
+                }
+            };
+        let form = match mandatory_literal(&by_subject, row, "extractsForm", GMEOW)?.as_str() {
             "turtle" => GraphForm::Turtle,
             "ntriples" => GraphForm::NTriples,
             "nquads-self" => GraphForm::NQuadsSelf,
