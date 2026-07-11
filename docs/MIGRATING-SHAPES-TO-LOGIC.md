@@ -9,9 +9,20 @@ ephemeral pipeline derivations of authored `logic:` nodes — a hand-authored
 unreasoned, ungoverned by the loss ledger, and free to drift. Every such shape must
 become a projection of an authored `logic:` node.
 
-The `slice-quality` **projection axis** flags each slice still shipping a hand-authored
-`shapes.ttl` with `slice-quality.projection.hand-authored-shapes` (advisory). This
-document is how you discharge that debt for one slice.
+The **Shape Migration** slice-quality axis (`gmeow:axisShapeMigration`, producer
+`shape_migration_axis`) measures the fraction of a slice's authored `sh:NodeShape` /
+`sh:PropertyShape` blocks that carry a `logic:formalizes` back-reference, and flags each
+un-backed block with `slice-quality.projection.ungrounded-shape` (advisory). (This is a
+different axis from `axisMaximalProjection`, whose `slice-quality.projection.hand-authored-shapes`
+advisory fires merely because a `shapes.ttl` exists at all — grounding is about whether the
+shapes it holds are backed, not whether the file is present.) This document is how you discharge
+that debt for one slice.
+
+The axis's committed floor is not a hand-authored TSV: it is a `gmeow:AxisFloorCommitment`
+ontology individual (`gmeow:floorSlice` + `gmeow:floorAxis gmeow:axisShapeMigration` +
+`gmeow:floorValue`) authored in `slices/core/slice-quality-rubric/module.ttl`, of which
+`generated/governance/slice-quality-axis-floors.tsv` is a read-only generated projection
+(Principle 17). Raise it only after a real measured uplift — see SLICE_GUIDE §9.
 
 > **Equivalence before deletion.** A shape is deleted **only** after its check is
 > provably reproduced by the projected union. Migrate → prove parity → *then* retire the
@@ -104,5 +115,6 @@ Idiom cheatsheet:
    a ≥1-pass / ≥1-fail witness pair).
 3. Only then delete the migrated shape (or its block); the shape-purity intent is that the
    authored tree holds `logic:` only.
-4. Re-run `make check` — the `slice-quality.projection.hand-authored-shapes` advisory for
-   the slice clears once its `shapes.ttl` is gone.
+4. Re-run `make check` — the `slice-quality.projection.ungrounded-shape` advisory clears for
+   each block once it carries `logic:formalizes` (or is retired), and the Shape Migration axis
+   score rises toward the vacuous `1.0` it reaches once the slice's `shapes.ttl` is gone.
