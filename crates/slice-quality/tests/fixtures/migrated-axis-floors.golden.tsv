@@ -1,22 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# The committed PER-AXIS slice-quality floor: the minimum score
-# each named axis must MEASURE for each named slice, gated additionally to (never
-# instead of) the roll-up-tier ratchet in slice-quality-floors.tsv. A slice's
-# measured score for the named axis may RISE above its floor freely; falling below
-# the floor recorded here fails `make slice-quality-gate`. Raising a floor is a
-# deliberate, reviewed commit that pins a new, higher guarantee — the gate enforces
-# MONOTONIC NON-REGRESSION at the committed floor, never forced ascent.
-#
-# Every slice under slices/grounding/ (logic, lang, math) is HARD-gated at floor
-# 1.0 for axisGmn1Coverage regardless of what this file says (the loader also
-# defaults an absent grounding row to 1.0) — grounding coverage is total
-# and non-negotiable, never silently unfloored. Every other slice is
-# seeded here at its actual measured score, so
-# the ratchet starts live, not vacuous.
-#
-# Format: <slice-iri>\t<axis-local-name>\t<floor:f64>
+# FROZEN pre-migration per-axis floor values. These are the historically
+# committed <slice-iri>\t<axis-local-name>\t<floor:f64> rows exactly as they
+# stood before the floors moved into the ontology-resident
+# gmeow:AxisFloorCommitment individuals. This golden is permanent and
+# self-contained: the value-preservation test asserts every row here is
+# reproduced bit-exactly by a loaded AxisFloorCommitment, so it guards the
+# migration independently of the (soon-to-be-generated) governance TSV.
 https://blackcatinformatics.ca/gmeow/slices/accessibility	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/accounts	axisGmn1Coverage	0.9954337899543378
 https://blackcatinformatics.ca/gmeow/slices/affect	axisGmn1Coverage	1.0
@@ -38,7 +29,6 @@ https://blackcatinformatics.ca/gmeow/slices/coreference	axisGmn1Coverage	0.98260
 https://blackcatinformatics.ca/gmeow/slices/creative-works	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/deception	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/diagnostics	axisGmn1Coverage	1.0
-https://blackcatinformatics.ca/gmeow/slices/documentation	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/documents	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/dreaming	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/email	axisGmn1Coverage	1.0
@@ -99,18 +89,11 @@ https://blackcatinformatics.ca/gmeow/slices/teleology	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/temporal	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/trust	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/versions	axisGmn1Coverage	1.0
-
-# axisDocMaturity — per-slice documentation-maturity coverage fraction (owned by
-# slices/core/documentation, consumed as-is by the DocMaturity axis). Seeded at each
-# slice's CURRENT measured coverage fraction, so the ratchet starts LIVE (monotonic
-# non-regression at today's honest level): a slice's coverage may RISE above its floor
-# freely; falling below it fails make slice-quality-gate. NOTHING here forces FULL now —
-# raising a floor is a separate, deliberate uplift commit once the coverage has risen.
 https://blackcatinformatics.ca/gmeow/slices/accessibility	axisDocMaturity	0.500000
 https://blackcatinformatics.ca/gmeow/slices/accounts	axisDocMaturity	0.666700
 https://blackcatinformatics.ca/gmeow/slices/affect	axisDocMaturity	0.583300
-https://blackcatinformatics.ca/gmeow/slices/agent-runtime	axisDocMaturity	0.916700
 https://blackcatinformatics.ca/gmeow/slices/agentic	axisDocMaturity	0.500000
+https://blackcatinformatics.ca/gmeow/slices/agent-runtime	axisDocMaturity	0.916700
 https://blackcatinformatics.ca/gmeow/slices/aggregation	axisDocMaturity	0.500000
 https://blackcatinformatics.ca/gmeow/slices/agreements	axisDocMaturity	0.666700
 https://blackcatinformatics.ca/gmeow/slices/ai	axisDocMaturity	0.666700
@@ -128,6 +111,7 @@ https://blackcatinformatics.ca/gmeow/slices/creative-works	axisDocMaturity	0.750
 https://blackcatinformatics.ca/gmeow/slices/deception	axisDocMaturity	0.666700
 https://blackcatinformatics.ca/gmeow/slices/diagnostics	axisDocMaturity	0.666700
 https://blackcatinformatics.ca/gmeow/slices/documentation	axisDocMaturity	0.750000
+https://blackcatinformatics.ca/gmeow/slices/documentation	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/documents	axisDocMaturity	0.833300
 https://blackcatinformatics.ca/gmeow/slices/dreaming	axisDocMaturity	0.500000
 https://blackcatinformatics.ca/gmeow/slices/email	axisDocMaturity	0.583300

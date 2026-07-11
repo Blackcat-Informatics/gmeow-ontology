@@ -325,21 +325,24 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     0
 }
 
-/// The committed ratchet-floor artifact: `<slice-iri>\t<tier-local>` per line.
-/// Absent slices have no floor (their first declaration sets it in review).
-const FLOOR_FILE: &str = "governance/slice-quality-floors.tsv";
+/// The canonical, ontology-resident home of the committed floors: the rubric slice
+/// module the gate reads BOTH the per-axis measured-score floors
+/// (`gmeow:AxisFloorCommitment`) and the per-slice roll-up tier floors
+/// (`gmeow:SliceTierFloor`) out of, and the file the floor-monotonicity check diffs
+/// against its merge-base version. The governance TSVs are no longer read.
+const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
 
-/// The committed PER-AXIS floor artifact: `<slice-iri>\t
-/// <axis-local-name>\t<floor:f64>` per line — a NEW file, distinct in shape from
-/// [`FLOOR_FILE`]'s per-slice tier ratchet (never overloaded onto it).
-const AXIS_FLOOR_FILE: &str = "governance/slice-quality-axis-floors.tsv";
+/// The generated per-axis floor projection path named in a per-axis floor failure
+/// message — the lossy TSV view of the ontology-resident commitments, kept only as
+/// a human pointer in the diagnostic (the canonical source is [`RUBRIC_MODULE`]).
+const AXIS_FLOOR_PROJECTION: &str = "generated/governance/slice-quality-axis-floors.tsv";
 
-/// The `gmeow:axisGmn1Coverage` local name — the axis carrying a hard grounding
-/// DEFAULT floor. The per-axis floor pass enforces every committed
-/// `(slice, axis-local)` row in [`AXIS_FLOOR_FILE`] generically; on TOP of that, a
-/// grounding slice (directory under `slices/grounding/`) is hard-gated at floor `1.0`
-/// on this axis even when its row is absent — grounding coverage is total NOW and
-/// never silently unfloored.
+/// The `gmeow:axisGmn1Coverage` local name — used SOLELY for the grounding-slice
+/// `1.0` default: a grounding slice (directory under `slices/grounding/`) is
+/// hard-gated at floor `1.0` on this axis even with no explicit
+/// `gmeow:AxisFloorCommitment`. Every OTHER (slice, axis) floor is enforced only
+/// when an explicit commitment records it — grounding coverage is total and never
+/// silently unfloored.
 const AXIS_GMN1_COVERAGE: &str = "axisGmn1Coverage";
 
 /// Whether `slice_dir` is a grounding slice — the `slices/grounding/` PATH prefix
@@ -393,28 +396,43 @@ pub fn slice_quality_gate() -> i32 {
         ));
     }
 
-    // Floor ranks by slice IRI, resolved against the ladder. The gate cannot
-    // enforce a ratchet it cannot read: a missing or malformed floors file is a
-    // HARD FAIL here (.goals no-optionality), never a silently-disabled floor.
-    let floors = match load_floors(&root, &rubric) {
+    // Roll-up tier floor ranks by slice IRI, projected from the ontology-resident
+    // gmeow:SliceTierFloor commitments and resolved against the ladder. An unknown
+    // floorTier is a HARD FAIL here (.goals no-optionality), never a silently-
+    // disabled floor.
+    let floors = match tier_floors_from_rubric(&rubric) {
         Ok(f) => f,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
+    // Per-axis measured-score floors, projected from the ontology-resident
+    // gmeow:AxisFloorCommitment commitments, keyed by (slice IRI, axis local name).
+    let axis_floors = match axis_floors_from_rubric(&rubric) {
+        Ok(m) => m,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
     };
 
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
+    // Score every discovered slice EXACTLY ONCE, in deterministic dir order, and feed
+    // BOTH the roll-up-tier ratchet pass and the per-axis floor pass from these shared
+    // reports — a slice is never scored twice.
+    let mut scored: Vec<(&Path, SliceReport)> = Vec::with_capacity(dirs.len());
+    for dir in &dirs {
+        let report = match score_slice_with_rubric(dir, rubric.clone()) {
+            Ok(r) => r,
+            Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
+        };
+        scored.push((dir.as_path(), report));
+    }
+
     let mut failures = 0usize;
     let mut checked = 0usize;
-    for dir in &dirs {
+    for (dir, report) in &scored {
         let declared = match gmeow_slice_quality::gate::declared_tier(dir, &rubric) {
             Ok(d) => d,
             Err(e) => return fail(format!("slice-quality-gate: {e}")),
         };
         let Some(declared) = declared else { continue }; // undeclared → advisory
         checked += 1;
-        let report = match score_slice_with_rubric(dir, rubric.clone()) {
-            Ok(r) => r,
-            Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
-        };
         let measured_rank = report.assessment.rollup.rank;
         let floor_rank = floors.get(&report.assessment.slice).map(|f| f.rank);
         let verdict = gmeow_slice_quality::gate::evaluate_ratchet(
@@ -453,41 +471,33 @@ pub fn slice_quality_gate() -> i32 {
         }
     }
 
-    // SECOND pass: the per-axis committed floor — additive to,
-    // never replacing, the roll-up-tier ratchet above. Runs over EVERY discovered
-    // slice, opted-in or not, and over EVERY axis carrying a committed floor row: a
-    // grounding slice can never clear the gate on axisGmn1Coverage < 1.0 regardless of
-    // its roll-up tier or opt-in status, and a slice can never regress below any other
-    // committed per-axis floor (e.g. axisDocMaturity) either. `axisGmn1Coverage`
-    // additionally carries a hard 1.0 grounding default even when its row is absent.
-    let axis_floors = match load_axis_floors(&root) {
-        Ok(f) => f,
-        Err(e) => return fail(format!("slice-quality-gate: {e}")),
-    };
+    // SECOND pass: the per-axis committed floor — additive to, never replacing, the
+    // roll-up-tier ratchet above. Runs over EVERY discovered slice and EVERY axis it
+    // grades: a floor binds an axis when an explicit gmeow:AxisFloorCommitment records
+    // (slice, axis), OR — only for axisGmn1Coverage on a grounding slice — the
+    // total-coverage 1.0 default. So a grounding slice can never clear the gate on
+    // axisGmn1Coverage < 1.0 regardless of its roll-up tier or opt-in status, and
+    // every other committed per-axis floor is enforced independently on its own axis.
     let mut axis_checked = 0usize;
     let mut axis_failures = 0usize;
     // Every discovered slice's IRI — the "still live" set the floor-monotonicity
     // check consults to tell a permitted greenfield floor removal (slice gone) from
     // a forbidden deletion of a still-live floor line.
     let mut live_slices: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    for dir in &dirs {
-        let report = match score_slice_with_rubric(dir, rubric.clone()) {
-            Ok(r) => r,
-            Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
-        };
+    for (dir, report) in &scored {
         live_slices.insert(report.assessment.slice.clone());
+        let grounding = is_grounding_slice(dir);
         for grade in &report.assessment.grades {
             let axis_local = axis_local_name(&grade.axis_iri);
-            // The floor is the committed row for this (slice, axis) if present; failing
-            // that, the grounding hard default applies only to axisGmn1Coverage.
-            let floor = axis_floors
-                .get(&(report.assessment.slice.clone(), axis_local.to_owned()))
-                .copied()
-                .or_else(|| {
-                    (axis_local == AXIS_GMN1_COVERAGE && is_grounding_slice(dir)).then_some(1.0)
-                });
-            let Some(floor) = floor else {
-                continue; // no committed floor and no grounding default → unfloored, advisory only
+            let floor = match axis_floor_for(
+                &axis_floors,
+                &report.assessment.slice,
+                axis_local,
+                grounding,
+            ) {
+                Ok(Some(f)) => f,
+                Ok(None) => continue, // no committed floor and not the grounding default → unfloored, advisory only
+                Err(e) => return fail(format!("slice-quality-gate: {e}")),
             };
             axis_checked += 1;
             use gmeow_slice_quality::gate::AxisRatchetVerdict;
@@ -497,7 +507,7 @@ pub fn slice_quality_gate() -> i32 {
                     emit_error(
                         "gmeow-dev.slice-quality.gate",
                         format!(
-                            "FAIL {} measures {axis_local} {:.6} — below its committed per-axis floor {floor:.6} ({AXIS_FLOOR_FILE})",
+                            "FAIL {} measures {axis_local} {:.6} — below its committed per-axis floor {floor:.6} ({AXIS_FLOOR_PROJECTION})",
                             report.assessment.slice, grade.score
                         ),
                     );
@@ -508,11 +518,15 @@ pub fn slice_quality_gate() -> i32 {
     }
 
     // THIRD check: committed-floor MONOTONICITY. The two passes above only compare
-    // measured/declared value against the CURRENT committed floor — neither notices
-    // a PR that silently LOWERS a floor line. Enforce each file's own "may only be
-    // raised" ratchet promise by diffing the working-tree floor files against their
-    // merge-base versions. Reds on any lowered floor or the deletion of a still-live
-    // floor; additions and greenfield removals (slice/axis gone) are allowed.
+    // measured/declared value against the CURRENT committed floor — neither notices a
+    // PR that silently LOWERS a floor. Both floor levels now live in the rubric
+    // module, so enforce their shared "may only be raised" ratchet promise by diffing
+    // the working-tree module.ttl commitments against the merge-base module.ttl's,
+    // parsed through the SAME rubric loader. Reds on any lowered floor or the deletion
+    // of a still-live floor; additions and greenfield removals (slice/axis gone) are
+    // allowed. NOTE: at a merge base predating the migration the module.ttl carries no
+    // floor commitments, so every working floor reads as an addition (allowed) — the
+    // value-preservation golden test guards the migrated values instead.
     let live_axes: std::collections::BTreeSet<String> = rubric
         .axes
         .iter()
@@ -535,46 +549,40 @@ pub fn slice_quality_gate() -> i32 {
         }
         BaseRef::Resolved(base) => {
             let mut mono: Vec<String> = Vec::new();
-            // Tier floor file.
-            match git_show_base(&root, &base, FLOOR_FILE) {
+            // Both floor levels are diffed against the ONE rubric module at the base.
+            match git_show_base(&root, &base, RUBRIC_MODULE) {
                 BaseFile::Absent => note(
                     "gmeow-dev.slice-quality.gate",
                     format!(
-                        "slice-quality-gate: floor-monotonicity check SKIPPED for {FLOOR_FILE} — the file is absent at base {base} (brand-new file, nothing to regress against)"
+                        "slice-quality-gate: floor-monotonicity check SKIPPED for {RUBRIC_MODULE} — the file is absent at base {base} (brand-new file, nothing to regress against)"
                     ),
                 ),
                 BaseFile::Error(e) => return fail(format!("slice-quality-gate: {e}")),
                 BaseFile::Contents(text) => {
-                    let base_floors =
-                        match parse_tier_floors(&text, &format!("{base}:{FLOOR_FILE}"), &rubric) {
-                            Ok(m) => m,
+                    let base_rubric =
+                        match load_rubric_from_ttl(&text, &format!("{base}:{RUBRIC_MODULE}")) {
+                            Ok(r) => r,
                             Err(e) => return fail(format!("slice-quality-gate: {e}")),
                         };
+                    // Tier floors: project the base commitments through the SAME
+                    // ladder-resolving projection the working set used.
+                    let base_floors = match tier_floors_from_rubric(&base_rubric) {
+                        Ok(m) => m,
+                        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+                    };
                     mono.extend(gmeow_slice_quality::gate::tier_floor_monotonicity(
-                        FLOOR_FILE,
+                        RUBRIC_MODULE,
                         &base_floors,
                         &floors,
                         |slice| live_slices.contains(slice),
                     ));
-                }
-            }
-            // Per-axis floor file.
-            match git_show_base(&root, &base, AXIS_FLOOR_FILE) {
-                BaseFile::Absent => note(
-                    "gmeow-dev.slice-quality.gate",
-                    format!(
-                        "slice-quality-gate: floor-monotonicity check SKIPPED for {AXIS_FLOOR_FILE} — the file is absent at base {base} (brand-new file, nothing to regress against)"
-                    ),
-                ),
-                BaseFile::Error(e) => return fail(format!("slice-quality-gate: {e}")),
-                BaseFile::Contents(text) => {
-                    let base_axis =
-                        match parse_axis_floors(&text, &format!("{base}:{AXIS_FLOOR_FILE}")) {
-                            Ok(m) => m,
-                            Err(e) => return fail(format!("slice-quality-gate: {e}")),
-                        };
+                    // Per-axis floors: same projection, keyed by (slice, axis local).
+                    let base_axis = match axis_floors_from_rubric(&base_rubric) {
+                        Ok(m) => m,
+                        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+                    };
                     mono.extend(gmeow_slice_quality::gate::axis_floor_monotonicity(
-                        AXIS_FLOOR_FILE,
+                        RUBRIC_MODULE,
                         &base_axis,
                         &axis_floors,
                         |slice, axis| live_slices.contains(slice) && live_axes.contains(axis),
@@ -588,13 +596,41 @@ pub fn slice_quality_gate() -> i32 {
         }
     };
 
-    if failures > 0 || axis_failures > 0 || mono_failures > 0 {
+    // FOURTH check: FLOOR COHERENCE — the lattice morphism tying the two committed
+    // floor levels together. Pure over the COMMITTED floors, reading BOTH levels
+    // straight from the already-loaded rubric — it needs NO scoring at all (it never
+    // touches a measured score), so it adds no scoring sweep. For any slice carrying
+    // BOTH a gmeow:SliceTierFloor (rank T) and ≥1 gmeow:AxisFloorCommitment: every
+    // axis floor must grade (through that axis's rubric thresholds) to a tier ≥ T
+    // (the roll-up is a meet, so a tier floor demands every axis floor back it); and
+    // when a slice is floored on EVERY rubric axis, T must EQUAL the meet of the
+    // implied tiers (a tier floor below the achievable meet is a dead guarantee).
+    // Today's corpus is all-tierRegistered(0) floors, so the backing invariant is
+    // trivially satisfied and no slice is floored on all axes → this holds dormant.
+    let coherence = gmeow_slice_quality::gate::evaluate_coherence(&rubric);
+    let coherence_failures = coherence.len();
+    for v in &coherence {
+        emit_error(
+            "gmeow-dev.slice-quality.gate",
+            format!("FAIL {}", v.message),
+        );
+    }
+    // The tier-floored slices that ALSO carry ≥1 axis floor — the pairings the
+    // coherence morphism actually examines (reported so the guard's reach is visible
+    // even when it holds silently).
+    let coherence_checked = rubric
+        .tier_floors
+        .iter()
+        .filter(|tf| rubric.commitments.iter().any(|c| c.slice == tf.slice))
+        .count();
+
+    if failures > 0 || axis_failures > 0 || mono_failures > 0 || coherence_failures > 0 {
         return fail(format!(
-            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor; {mono_failures} committed-floor monotonicity violation(s)"
+            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor; {mono_failures} committed-floor monotonicity violation(s); {coherence_failures} floor-coherence violation(s)"
         ));
     }
     println!(
-        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors; committed floors are monotonic vs the merge base"
+        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors; committed floors are monotonic vs the merge base; {coherence_checked} tier-floored slice(s) cohere with their axis floors (0 floor-coherence violation(s))"
     );
     0
 }
@@ -716,136 +752,145 @@ fn git_show_base(root: &Path, base: &str, rel: &str) -> BaseFile {
 }
 
 /// The local name of an IRI (the tail after the last `/` or `#`) — used to match a
-/// rubric axis IRI against the bare local name [`AXIS_FLOOR_FILE`] rows carry.
+/// rubric axis or tier IRI against the bare local name the gate reasons over.
 fn axis_local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
 }
 
-/// Load the committed PER-AXIS floors, keyed by `(slice IRI,
-/// axis local name)`.
+/// Project the ontology-resident `gmeow:AxisFloorCommitment` set into the
+/// `(slice IRI, axis local name) → floor` map the per-axis floor pass and the
+/// axis-floor monotonicity check consume. This first enforces that every rubric
+/// axis's local name (the tail after the last `/` or `#`) is GLOBALLY UNIQUE across
+/// `rubric.axes` — the floor gate keys every lookup by local name (`axis_floor_for`
+/// via `axis_local_name`), so two distinct axis IRIs sharing a local name would let a
+/// commitment against one axis silently apply to the other's grade. With that
+/// global uniqueness established, the rubric loader's existing hard-fail on
+/// duplicate `(slice, full-axis-IRI)` commitments guarantees the projection below
+/// (keyed on `(slice, axis local name)`) can never collide, so it is a plain
+/// projection — the same map shape the removed governance-TSV parser produced.
 ///
 /// # Errors
-/// A HARD FAIL (.goals no-optionality) when the gate cannot read the floor it must
-/// enforce: the file is missing/unreadable, a non-comment line is not a
-/// `<slice-iri>\t<axis-local-name>\t<floor:f64>` triple, or the floor is not a
-/// valid `f64`. Never a silently-disabled floor or a silently-skipped line.
-fn load_axis_floors(
-    root: &Path,
+/// A HARD FAIL (.goals no-optionality) when two DISTINCT rubric axis IRIs share the
+/// same local name (e.g. `ns1#axisFoo` and `ns2#axisFoo`).
+fn axis_floors_from_rubric(
+    rubric: &Rubric,
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), f64>> {
-    let path = root.join(AXIS_FLOOR_FILE);
-    let text = std::fs::read_to_string(&path).map_err(|e| {
-        sqe(format!(
-            "cannot read per-axis ratchet floor file {} (the gate cannot enforce a floor it cannot read): {e}",
-            path.display()
-        ))
-    })?;
-    parse_axis_floors(&text, &path.display().to_string())
-}
-
-/// Parse per-axis floor file CONTENTS into `(slice IRI, axis local name) → floor`.
-/// The single parser shared by [`load_axis_floors`] (working-tree, reading from
-/// disk) and the floor-monotonicity check (base version, reading from `git show`)
-/// so both handle the format identically — `source_label` names the origin (a path
-/// or a `<base>:<file>` git spec) in any error. Same hard-fail semantics as before:
-/// a non-comment line that is not a `<slice-iri>\t<axis-local-name>\t<floor:f64>`
-/// triple, or a floor that is not a valid `f64`, is a HARD FAIL, never a skip.
-fn parse_axis_floors(
-    text: &str,
-    source_label: &str,
-) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), f64>> {
-    let mut out = std::collections::BTreeMap::new();
-    for (idx, raw) in text.lines().enumerate() {
-        let line = raw.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
+    let mut axes_by_local: std::collections::BTreeMap<String, String> =
+        std::collections::BTreeMap::new();
+    for axis in &rubric.axes {
+        let local = axis_local_name(&axis.iri).to_owned();
+        if let Some(prior) = axes_by_local.insert(local.clone(), axis.iri.clone()) {
+            return Err(sqe(format!(
+                "rubric axes {prior} and {} collide on axis local name {local:?} — the floor \
+                 gate keys lookups by local name, so a committed floor could be applied to the \
+                 wrong axis",
+                axis.iri
+            )));
         }
-        let lineno = idx + 1;
-        let Some((iri, rest)) = line.split_once('\t') else {
-            return Err(sqe(format!(
-                "{source_label}:{lineno}: malformed axis-floor line (want <slice-iri>\\t<axis-local-name>\\t<floor:f64>): {raw:?}"
-            )));
-        };
-        let Some((axis_local, floor_str)) = rest.split_once('\t') else {
-            return Err(sqe(format!(
-                "{source_label}:{lineno}: malformed axis-floor line (want <slice-iri>\\t<axis-local-name>\\t<floor:f64>): {raw:?}"
-            )));
-        };
-        let floor: f64 = floor_str.trim().parse().map_err(|_| {
-            sqe(format!(
-                "{source_label}:{lineno}: floor {:?} is not a valid f64",
-                floor_str.trim()
-            ))
-        })?;
-        out.insert((iri.trim().to_owned(), axis_local.trim().to_owned()), floor);
+    }
+
+    let mut out = std::collections::BTreeMap::new();
+    for c in &rubric.commitments {
+        out.insert(
+            (c.slice.clone(), axis_local_name(&c.axis).to_owned()),
+            c.floor,
+        );
     }
     Ok(out)
 }
 
-/// Load the committed floor ranks keyed by slice IRI.
+/// The tolerance an explicit `axisGmn1Coverage` grounding-floor commitment is
+/// checked against the definitional `1.0` floor under. All grounding GMN1
+/// commitments are exactly `1.0` today, so this guard is a no-op on the current
+/// corpus — kept tight rather than a large tolerance so a genuine sub-1.0
+/// contradiction is never masked.
+const GROUNDING_FLOOR_EPS: f64 = 1e-9;
+
+/// Resolve the committed floor for one `(slice, axis)` grade: the explicit
+/// `gmeow:AxisFloorCommitment` floor if one is recorded, else — ONLY for
+/// `axisGmn1Coverage` on a grounding slice — the total-coverage `1.0` default, else
+/// `None` (unfloored → advisory). This is the SOLE site the grounding `1.0` default
+/// is applied; no other axis carries an implicit floor.
 ///
 /// # Errors
-/// A HARD FAIL (.goals no-optionality) when the gate cannot read the ratchet it
-/// must enforce: the floors file is missing/unreadable, a non-comment line is not
-/// a `<slice-iri>\t<tier-local-name>` pair, or a tier label names no
-/// `gmeow:QualityTier` in the loaded ladder. Never a silently-disabled floor or a
-/// silently-skipped line — the error names the file, the 1-based line, and the
-/// offending label.
-fn load_floors(
-    root: &Path,
-    rubric: &gmeow_slice_quality::Rubric,
-) -> gmeow_errors::Result<std::collections::BTreeMap<String, gmeow_slice_quality::gate::TierFloor>>
-{
-    let path = root.join(FLOOR_FILE);
-    let text = std::fs::read_to_string(&path).map_err(|e| {
-        sqe(format!(
-            "cannot read ratchet floor file {} (the gate cannot enforce a floor it cannot read): {e}",
-            path.display()
-        ))
-    })?;
-    parse_tier_floors(&text, &path.display().to_string(), rubric)
+/// A HARD FAIL (.goals no-optionality) when a grounding slice carries an
+/// explicit `axisGmn1Coverage` commitment BELOW `1.0`. A grounding slice's GMN1
+/// coverage floor is definitionally `1.0` (total coverage is what makes it a
+/// grounding slice); an explicit commitment may only restate that `1.0`, never
+/// undercut it. Silently clamping to `1.0` (a `max()`) would itself be a
+/// papering-over optionality violation, so a contradictory sub-1.0 commitment
+/// is surfaced as an error instead of silently overridden.
+fn axis_floor_for(
+    axis_floors: &std::collections::BTreeMap<(String, String), f64>,
+    slice: &str,
+    axis_local: &str,
+    is_grounding: bool,
+) -> gmeow_errors::Result<Option<f64>> {
+    let key = (slice.to_owned(), axis_local.to_owned());
+    if is_grounding && axis_local == AXIS_GMN1_COVERAGE {
+        if let Some(explicit) = axis_floors.get(&key)
+            && *explicit < 1.0 - GROUNDING_FLOOR_EPS
+        {
+            return Err(sqe(format!(
+                "grounding slice {slice} commits an axisGmn1Coverage floor {explicit:.6} < 1.0 \
+                 — a grounding slice's GMN1 coverage floor is definitionally 1.0; this undercuts \
+                 the total-coverage gate"
+            )));
+        }
+        return Ok(Some(1.0));
+    }
+    Ok(axis_floors.get(&key).copied())
 }
 
-/// Parse tier-floor file CONTENTS into `slice IRI → TierFloor`. The single parser
-/// shared by [`load_floors`] (working-tree, from disk) and the floor-monotonicity
-/// check (base version, from `git show`) so both resolve tier local names against
-/// the SAME ladder identically — `source_label` names the origin (a path or a
-/// `<base>:<file>` git spec) in any error. Same hard-fail semantics as before: a
-/// non-comment line that is not a `<slice-iri>\t<tier-local-name>` pair, or a tier
-/// label that names no `gmeow:QualityTier` in the ladder, is a HARD FAIL.
-fn parse_tier_floors(
-    text: &str,
-    source_label: &str,
-    rubric: &gmeow_slice_quality::Rubric,
+/// Project the ontology-resident `gmeow:SliceTierFloor` set into the
+/// `slice IRI → TierFloor` map the roll-up-tier ratchet and the tier-floor
+/// monotonicity check consume, resolving each `gmeow:floorTier` against the rubric
+/// ladder for its rank.
+///
+/// # Errors
+/// A HARD FAIL (.goals no-optionality) when a tier floor names a `gmeow:floorTier`
+/// that resolves to no `gmeow:QualityTier` in the loaded ladder — the gate never
+/// silently drops a floor it cannot rank.
+fn tier_floors_from_rubric(
+    rubric: &Rubric,
 ) -> gmeow_errors::Result<std::collections::BTreeMap<String, gmeow_slice_quality::gate::TierFloor>>
 {
     let mut out = std::collections::BTreeMap::new();
-    for (idx, raw) in text.lines().enumerate() {
-        let line = raw.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        let lineno = idx + 1;
-        let Some((iri, tier_local)) = line.split_once('\t') else {
+    for tf in &rubric.tier_floors {
+        let Some(tier) = rubric.tier(&tf.tier) else {
             return Err(sqe(format!(
-                "{source_label}:{lineno}: malformed floor line (want <slice-iri>\\t<tier-local-name>): {raw:?}"
-            )));
-        };
-        let tier_local = tier_local.trim();
-        let tier_iri = format!("{}{}", gmeow_slice_quality::model::GMEOW, tier_local);
-        let Some(tier) = rubric.tier(&tier_iri) else {
-            return Err(sqe(format!(
-                "{source_label}:{lineno}: unknown tier label {tier_local:?} (names no gmeow:QualityTier in the rubric ladder)"
+                "tier floor for slice {} names tier {} that resolves to no gmeow:QualityTier in the rubric ladder",
+                tf.slice, tf.tier
             )));
         };
         out.insert(
-            iri.trim().to_owned(),
+            tf.slice.clone(),
             gmeow_slice_quality::gate::TierFloor {
                 rank: tier.rank,
-                local: tier_local.to_owned(),
+                local: axis_local_name(&tf.tier).to_owned(),
             },
         );
     }
     Ok(out)
+}
+
+/// Parse rubric-module Turtle TEXT (a `git show <base>:module.ttl` blob) through the
+/// SAME rubric loader the working tree uses, so the base and working floor sets are
+/// projected identically for the monotonicity diff. `source_label` names the origin
+/// (a `<base>:<file>` git spec) in any parse/freeze error.
+///
+/// # Errors
+/// A HARD FAIL when the base module text cannot be parsed/frozen or is not a
+/// structurally-complete rubric — the gate never compares against an unreadable base.
+fn load_rubric_from_ttl(text: &str, source_label: &str) -> gmeow_errors::Result<Rubric> {
+    let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None)
+        .map_err(|e| sqe(format!("{source_label}: parse failed: {e}")))?;
+    let mut b = purrdf::RdfDatasetBuilder::new();
+    b.push_dataset(&ds);
+    let frozen = b
+        .freeze()
+        .map_err(|e| sqe(format!("{source_label}: dataset freeze failed: {e}")))?;
+    gmeow_slice_quality::rubric::load_rubric(&frozen)
 }
 
 /// The set of every Rust *item* name defined anywhere under `crates/` — built by a
@@ -888,6 +933,189 @@ fn scan_rs(dir: &Path, f: &mut impl FnMut(&str)) {
     }
 }
 
+/// Which axes the seeder targets: exactly one named rubric axis, or every rubric
+/// axis a slice grades. EXACTLY ONE of `--axis`/`--all-axes` selects this — neither
+/// nor both is a hard error, never a silent default.
+#[derive(Clone, Copy)]
+enum SeedSelector<'a> {
+    /// `--axis <axis-local>`: seed only the one named rubric axis.
+    One(&'a str),
+    /// `--all-axes`: seed every rubric axis a slice grades that lacks a floor.
+    All,
+}
+
+/// Render a measured `AxisGrade.score` as an `xsd:decimal` lexical the rubric loader
+/// accepts, at FULL f64 precision via Rust's `{}` Display (the shortest
+/// round-tripping decimal). Display prints an integer-valued float as `1` / `0`, so
+/// a fractionless render gets a `.0` appended — this both parses as a decimal and
+/// matches the on-disk convention (`gmeow:floorValue 1.0`). `parse::<f64>()` of the
+/// result equals `score` exactly, so the seeded value satisfies the gate's
+/// `measured + f64::EPSILON >= floor` at the same live measurement.
+fn format_floor_value(score: f64) -> String {
+    let s = format!("{score}");
+    if s.contains('.') { s } else { format!("{s}.0") }
+}
+
+/// Render one `gmeow:AxisFloorCommitment` TTL line in the exact on-disk format the
+/// gate reads and the human pastes into `module.ttl`: subject `gmeow:afc-<sliceLocal>-
+/// <axisLocal>` (where `<sliceLocal>` is the last path segment of the slice IRI), the
+/// full slice IRI in angle brackets, the `gmeow:`-prefixed axis local, and the
+/// measured score at full precision.
+fn format_floor_line(slice_iri: &str, axis_local: &str, score: f64) -> String {
+    let slice_local = axis_local_name(slice_iri);
+    format!(
+        "gmeow:afc-{slice_local}-{axis_local} a gmeow:AxisFloorCommitment ; rdfs:label \"axis-floor commitment — {slice_local} / {axis_local}\"@x-gmeow-english ; skos:definition \"The committed raise-only measured-score floor for the {axis_local} quality axis on the {slice_local} slice; the gate reds if the slice's measured score falls below it.\"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <{slice_iri}> ; gmeow:floorAxis gmeow:{axis_local} ; gmeow:floorValue {} .",
+        format_floor_value(score)
+    )
+}
+
+/// The pure seeding pass: over every scored slice assessment, emit one floor line per
+/// selected `(slice, axis)` whose axis is NOT already committed for that slice, at the
+/// live measured score. Deterministically ordered by (slice IRI, axis local).
+///
+/// REFUSE TO LOWER: a selected `(slice, axis)` that ALREADY has a committed floor is
+/// never re-emitted (no overwrite); but if its live measured score is BELOW the
+/// committed floor, that is a real regression the gate already reds — a HARD FAIL
+/// here, so the seeder never masks it. (Normally `--axis`/`--all-axes` target only
+/// UNfloored pairs; this guards a re-run against an already-floored axis.)
+///
+/// # Errors
+/// The `Err` is a hard-fail message naming the regressing `(slice, axis)` and its
+/// measured/floor pair — the seeder emits nothing when any target regresses.
+fn collect_seed_lines(
+    assessments: &[&SliceAssessment],
+    committed: &std::collections::BTreeMap<(String, String), f64>,
+    selector: SeedSelector<'_>,
+) -> gmeow_errors::Result<Vec<String>> {
+    use gmeow_slice_quality::gate::{AxisRatchetVerdict, evaluate_axis_floor};
+    // (slice IRI, axis local) → line, so the output is deterministically ordered by
+    // that key regardless of assessment/grade iteration order.
+    let mut out: std::collections::BTreeMap<(String, String), String> =
+        std::collections::BTreeMap::new();
+    for a in assessments {
+        for grade in &a.grades {
+            let axis_local = axis_local_name(&grade.axis_iri);
+            let wanted = match selector {
+                SeedSelector::One(name) => axis_local == name,
+                SeedSelector::All => true,
+            };
+            if !wanted {
+                continue;
+            }
+            let key = (a.slice.clone(), axis_local.to_owned());
+            if let Some(&floor) = committed.get(&key) {
+                // Already floored: never overwrite. A live score below the committed
+                // floor is a regression the gate reds — hard-fail, do not emit.
+                if matches!(
+                    evaluate_axis_floor(grade.score, floor),
+                    AxisRatchetVerdict::MeasuredBelowFloor
+                ) {
+                    return Err(sqe(format!(
+                        "slice-quality-seed-floors: {} measures {axis_local} {} — BELOW its already-committed floor {floor}; this is a regression the gate reds. Refusing to emit (a floored axis is never re-seeded; raise a floor only by a deliberate hand-edit of the individual, never a seeder re-run).",
+                        a.slice, grade.score
+                    )));
+                }
+                continue; // already floored → nothing to seed for this pair
+            }
+            out.insert(key, format_floor_line(&a.slice, axis_local, grade.score));
+        }
+    }
+    Ok(out.into_values().collect())
+}
+
+/// `gmeow-dev slice-quality-seed-floors` — emit `gmeow:AxisFloorCommitment` TTL for
+/// the live measured scores, so a human can seed a NEW axis's floors at the actual
+/// live measurement and paste them into
+/// `slices/core/slice-quality-rubric/module.ttl`.
+///
+/// EXACTLY ONE of `--axis <axis-local>` (seed the one named rubric axis) or
+/// `--all-axes` (seed every rubric axis a slice grades that lacks a floor) must be
+/// given — neither nor both is a hard error, never a silent default. The score used
+/// is the SAME single-score pass the gate reads (`score_slice_with_rubric` over every
+/// discovered slice), so what is seeded is exactly what the gate enforces.
+///
+/// ONE-SHOT per axis: this seeds a NEW axis's floors ONCE. Re-running to "refresh" an
+/// already-floored axis is forbidden — a dropped score would red monotonicity and a
+/// risen score would silently ratchet the floor up (banned auto-calibration). Raising
+/// a floor later is a deliberate hand-edit of the individual, never a seeder re-run.
+/// The command is emit-only: it writes TTL to stdout; the human commits it.
+pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
+    // EXACTLY ONE selector — neither nor both is a hard error (no silent default).
+    let selector = match (axis, all_axes) {
+        (Some(a), false) => SeedSelector::One(a),
+        (None, true) => SeedSelector::All,
+        (None, false) => {
+            return fail(
+                "slice-quality-seed-floors: exactly one of --axis <axis-local> or --all-axes is required (got neither)",
+            );
+        }
+        (Some(_), true) => {
+            return fail(
+                "slice-quality-seed-floors: --axis and --all-axes are mutually exclusive — pass exactly one",
+            );
+        }
+    };
+
+    let root = project_root();
+    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
+    };
+
+    // A `--axis` that names no rubric axis is a HARD FAIL, never silent empty output.
+    if let SeedSelector::One(name) = selector {
+        let known: Vec<String> = rubric
+            .axes
+            .iter()
+            .map(|a| axis_local_name(&a.iri).to_owned())
+            .collect();
+        if !known.iter().any(|k| k == name) {
+            let mut rungs = known;
+            rungs.sort();
+            return fail(format!(
+                "slice-quality-seed-floors: unknown --axis {name:?} (want one of: {})",
+                rungs.join(", ")
+            ));
+        }
+    }
+
+    // The SAME single-score pass the gate reads: score every discovered slice once,
+    // in deterministic dir order, through the shared rubric.
+    let committed = match axis_floors_from_rubric(&rubric) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
+    };
+    let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
+    let mut assessments: Vec<SliceAssessment> = Vec::with_capacity(dirs.len());
+    for dir in &dirs {
+        match score_slice_with_rubric(dir, rubric.clone()) {
+            Ok(report) => assessments.push(report.assessment),
+            // A slice that cannot be scored is a hard fail — never a silent skip that
+            // would seed an incomplete floor set.
+            Err(e) => return fail(format!("slice-quality-seed-floors: {}: {e}", dir.display())),
+        }
+    }
+    let refs: Vec<&SliceAssessment> = assessments.iter().collect();
+
+    let lines = match collect_seed_lines(&refs, &committed, selector) {
+        Ok(l) => l,
+        Err(e) => return fail(e),
+    };
+
+    // A short comment header (no issue/PR numbers) — then only the TTL lines.
+    let scope = match selector {
+        SeedSelector::One(name) => name.to_owned(),
+        SeedSelector::All => "all unfloored axes".to_owned(),
+    };
+    println!(
+        "# seeded gmeow:AxisFloorCommitment individuals for axis {scope} — paste into {RUBRIC_MODULE}"
+    );
+    for line in &lines {
+        println!("{line}");
+    }
+    0
+}
+
 #[cfg(test)]
 mod min_tier_tests {
     use super::*;
@@ -909,6 +1137,8 @@ mod min_tier_tests {
             ],
             axes: vec![],
             exemptions: vec![],
+            commitments: vec![],
+            tier_floors: vec![],
         }
     }
 
@@ -973,99 +1203,519 @@ mod min_tier_tests {
 }
 
 #[cfg(test)]
-mod load_floors_tests {
+mod floor_projection_tests {
     use super::*;
+    use gmeow_slice_quality::gate::{
+        AxisRatchetVerdict, axis_floor_monotonicity, evaluate_axis_floor, tier_floor_monotonicity,
+    };
 
-    /// A minimal one-rung ladder so `load_floors` can resolve `tierRegistered`.
-    fn registered_rubric() -> gmeow_slice_quality::Rubric {
-        let mut r = gmeow_slice_quality::Rubric::default();
-        r.tiers.push(gmeow_slice_quality::Tier {
-            iri: format!("{}tierRegistered", gmeow_slice_quality::model::GMEOW),
+    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+    /// A structurally-complete minimal rubric TTL (one two-rung ladder, one axis with
+    /// a threshold) with `body` appended — the same scaffolding the rubric loader
+    /// needs, used to exercise the floor projections through `load_rubric_from_ttl`
+    /// exactly as the base-`module.ttl` monotonicity path does.
+    fn mini_rubric(body: &str) -> String {
+        format!(
+            r#"@prefix gmeow: <{NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:tierGrounded a gmeow:QualityTier ; gmeow:tierRank 1 .
+gmeow:axisGmn1Coverage a gmeow:QualityAxis ;
+    gmeow:axisProducer "gmn1_coverage_axis" ;
+    gmeow:axisDimension gmeow:dimGmn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrGmn .
+gmeow:thrGmn a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+{body}
+"#
+        )
+    }
+
+    #[test]
+    fn axis_floors_project_from_commitments() {
+        // The (slice, axis-local) → floor projection carries the committed value.
+        let rubric = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"gmeow:afc a gmeow:AxisFloorCommitment ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 0.9954337899543378 ."#,
+            ),
+            "test",
+        )
+        .unwrap();
+        let map = axis_floors_from_rubric(&rubric).unwrap();
+        assert_eq!(
+            map.get(&(format!("{NS}sliceX"), "axisGmn1Coverage".to_owned()))
+                .copied(),
+            Some(0.9954337899543378)
+        );
+    }
+
+    #[test]
+    fn axis_floors_from_rubric_hard_fails_on_global_axis_local_name_collision() {
+        // `axis_floors_from_rubric` first enforces that every rubric axis's local name
+        // is GLOBALLY UNIQUE across `rubric.axes` — the floor gate keys every lookup
+        // by local name, so two DISTINCT axis IRIs sharing a local name would let a
+        // commitment against one axis silently apply to the other's grade. Positive
+        // control first: two DISTINCT local names for the same slice map to two
+        // entries with no collision at all.
+        let clean = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"<https://a.example/ns#axisFoo> a gmeow:QualityAxis ;
+    gmeow:axisProducer "syn_foo_a" ; gmeow:axisDimension gmeow:dimSyn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thrSynFooA .
+gmeow:thrSynFooA a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+<https://a.example/ns#axisBar> a gmeow:QualityAxis ;
+    gmeow:axisProducer "syn_bar_a" ; gmeow:axisDimension gmeow:dimSyn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thrSynBarA .
+gmeow:thrSynBarA a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+gmeow:afc1 a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://a.example/ns#axisFoo> ;
+    gmeow:floorValue 0.9 .
+gmeow:afc2 a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://a.example/ns#axisBar> ;
+    gmeow:floorValue 0.5 ."#,
+            ),
+            "test",
+        )
+        .unwrap();
+        let clean_map = axis_floors_from_rubric(&clean).unwrap();
+        assert_eq!(
+            clean_map
+                .get(&(format!("{NS}sliceX"), "axisFoo".to_owned()))
+                .copied(),
+            Some(0.9)
+        );
+        assert_eq!(
+            clean_map
+                .get(&(format!("{NS}sliceX"), "axisBar".to_owned()))
+                .copied(),
+            Some(0.5)
+        );
+
+        // Now the collision: two DISTINCT rubric AXES (not merely commitments) share
+        // the SAME local name `axisFoo` across two different namespaces. This must
+        // hard-fail at the axis level, independent of any commitment against either
+        // axis, because the floor gate would otherwise key lookups on the shared
+        // local name and could apply a commitment to the wrong axis's grade.
+        let colliding = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"<https://a.example/ns#axisFoo> a gmeow:QualityAxis ;
+    gmeow:axisProducer "syn_foo_a" ; gmeow:axisDimension gmeow:dimSyn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thrSynFooA .
+gmeow:thrSynFooA a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+<https://b.example/other#axisFoo> a gmeow:QualityAxis ;
+    gmeow:axisProducer "syn_foo_b" ; gmeow:axisDimension gmeow:dimSyn ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ; gmeow:axisThreshold gmeow:thrSynFooB .
+gmeow:thrSynFooB a gmeow:AxisThreshold ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+gmeow:afc1 a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://a.example/ns#axisFoo> ;
+    gmeow:floorValue 0.9 .
+gmeow:afc2 a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://b.example/other#axisFoo> ;
+    gmeow:floorValue 0.5 ."#,
+            ),
+            "test",
+        )
+        .unwrap();
+        let err = axis_floors_from_rubric(&colliding).unwrap_err();
+        assert!(
+            err.message().contains("https://a.example/ns#axisFoo")
+                && err.message().contains("https://b.example/other#axisFoo"),
+            "names both colliding full axis IRIs: {err}"
+        );
+        assert!(
+            err.message().contains("axisFoo"),
+            "names the shared local name: {err}"
+        );
+    }
+
+    #[test]
+    fn tier_floors_project_and_resolve_rank() {
+        let rubric = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"gmeow:stf a gmeow:SliceTierFloor ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorTier gmeow:tierGrounded ."#,
+            ),
+            "test",
+        )
+        .unwrap();
+        let map = tier_floors_from_rubric(&rubric).unwrap();
+        let f = map.get(&format!("{NS}sliceX")).unwrap();
+        assert_eq!(f.rank, 1, "tierGrounded resolves to rank 1");
+        assert_eq!(f.local, "tierGrounded");
+    }
+
+    #[test]
+    fn tier_floor_naming_unknown_tier_hard_fails() {
+        // A gmeow:floorTier that resolves to no ladder rung is a hard fail — the gate
+        // never silently drops a floor it cannot rank. Since Gap 4 the rubric LOADER
+        // already rejects an unknown gmeow:floorTier at load time, so this case can no
+        // longer be reached through `load_rubric_from_ttl`. The `tier_floors_from_rubric`
+        // guard is now defense-in-depth behind that load-time validation, so this test
+        // builds a `Rubric` struct literal directly (bypassing the loader) to still
+        // exercise the guard itself.
+        use gmeow_slice_quality::model::SliceTierFloorCommitment;
+
+        let rubric = Rubric {
+            tiers: vec![Tier {
+                iri: format!("{NS}tierRegistered"),
+                label: "Registered".to_owned(),
+                rank: 0,
+            }],
+            axes: Vec::new(),
+            exemptions: Vec::new(),
+            commitments: Vec::new(),
+            tier_floors: vec![SliceTierFloorCommitment {
+                slice: format!("{NS}sliceX"),
+                tier: format!("{NS}tierBogus"),
+            }],
+        };
+        let err = tier_floors_from_rubric(&rubric).unwrap_err();
+        assert!(err.message().contains("tierBogus"), "names the tier: {err}");
+        assert!(
+            err.message().contains("resolves to no gmeow:QualityTier"),
+            "{err}"
+        );
+    }
+
+    #[test]
+    fn non_gmn1_axis_floor_is_enforced() {
+        // (a) A committed floor on an axis OTHER than axisGmn1Coverage is resolved
+        // and enforced: an explicit floor is found regardless of grounding, and a
+        // measured score below it fails.
+        let mut map = std::collections::BTreeMap::new();
+        map.insert(
+            ("ex:slice".to_owned(), "axisProseQuality".to_owned()),
+            0.80_f64,
+        );
+        assert_eq!(
+            axis_floor_for(&map, "ex:slice", "axisProseQuality", false).unwrap(),
+            Some(0.80),
+            "an explicit non-GMN1 floor is resolved even off a grounding slice"
+        );
+        assert_eq!(
+            evaluate_axis_floor(0.50, 0.80),
+            AxisRatchetVerdict::MeasuredBelowFloor,
+            "measured below the non-GMN1 floor fails"
+        );
+    }
+
+    #[test]
+    fn gmn1_grounding_default_holds() {
+        // (b) With no explicit commitment, axisGmn1Coverage on a grounding slice is
+        // floored at 1.0; on a non-grounding slice it is unfloored; and the 1.0
+        // default is applied to NO other axis, even on a grounding slice.
+        let empty = std::collections::BTreeMap::new();
+        assert_eq!(
+            axis_floor_for(&empty, "ex:slice", AXIS_GMN1_COVERAGE, true).unwrap(),
+            Some(1.0),
+            "grounding GMN1 defaults to 1.0"
+        );
+        assert_eq!(
+            axis_floor_for(&empty, "ex:slice", AXIS_GMN1_COVERAGE, false).unwrap(),
+            None,
+            "non-grounding GMN1 with no commitment is unfloored"
+        );
+        assert_eq!(
+            axis_floor_for(&empty, "ex:slice", "axisProseQuality", true).unwrap(),
+            None,
+            "the 1.0 default is GMN1-only, never any other axis"
+        );
+    }
+
+    #[test]
+    fn grounding_gmn1_sub_one_floor_hard_fails() {
+        // A grounding slice's axisGmn1Coverage floor is definitionally 1.0; an
+        // explicit commitment BELOW 1.0 contradicts that definition and must
+        // hard-fail (.goals no-optionality), never be silently clamped up.
+        let mut map = std::collections::BTreeMap::new();
+        map.insert(
+            ("ex:slice".to_owned(), AXIS_GMN1_COVERAGE.to_owned()),
+            0.9_f64,
+        );
+        let err = axis_floor_for(&map, "ex:slice", AXIS_GMN1_COVERAGE, true).unwrap_err();
+        assert!(
+            err.message().contains("grounding") && err.message().contains("1.0"),
+            "names the grounding contradiction and the definitional 1.0: {err}"
+        );
+
+        // Positive control: an explicit commitment that RESTATES 1.0 is accepted,
+        // not treated as a contradiction.
+        let mut map_one = std::collections::BTreeMap::new();
+        map_one.insert(
+            ("ex:slice".to_owned(), AXIS_GMN1_COVERAGE.to_owned()),
+            1.0_f64,
+        );
+        assert_eq!(
+            axis_floor_for(&map_one, "ex:slice", AXIS_GMN1_COVERAGE, true).unwrap(),
+            Some(1.0),
+            "an explicit 1.0 grounding commitment restates, not undercuts, the default"
+        );
+
+        // The guard is grounding-only: the SAME sub-1.0 commitment on a
+        // non-grounding slice loads fine — no hard fail.
+        assert_eq!(
+            axis_floor_for(&map, "ex:slice", AXIS_GMN1_COVERAGE, false).unwrap(),
+            Some(0.9),
+            "a sub-1.0 GMN1 floor on a non-grounding slice is not a contradiction"
+        );
+    }
+
+    #[test]
+    fn multiple_axes_are_floored_independently_on_one_slice() {
+        // (c) Two committed axis floors on the SAME slice are each resolved and
+        // evaluated independently — one can fail while the other passes.
+        let s = "ex:slice".to_owned();
+        let mut map = std::collections::BTreeMap::new();
+        map.insert((s.clone(), "axisProseQuality".to_owned()), 0.80_f64);
+        map.insert((s.clone(), "axisLinkageCalculus".to_owned()), 0.60_f64);
+        assert_eq!(
+            axis_floor_for(&map, &s, "axisProseQuality", false).unwrap(),
+            Some(0.80)
+        );
+        assert_eq!(
+            axis_floor_for(&map, &s, "axisLinkageCalculus", false).unwrap(),
+            Some(0.60)
+        );
+        // Independent verdicts: prose below its floor fails, linkage above its passes.
+        assert!(evaluate_axis_floor(0.70, 0.80).is_failure());
+        assert!(!evaluate_axis_floor(0.70, 0.60).is_failure());
+    }
+
+    #[test]
+    fn axis_floor_monotonicity_reds_on_lowered_commitment_vs_base_ttl() {
+        // (d) A working-tree module.ttl that LOWERS a committed per-axis floor below
+        // its base-TTL value reds the monotonicity check — parsed and projected
+        // through the SAME loader path the gate uses.
+        let base = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"gmeow:afc a gmeow:AxisFloorCommitment ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 0.98 ."#,
+            ),
+            "base",
+        )
+        .unwrap();
+        let work = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"gmeow:afc a gmeow:AxisFloorCommitment ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis gmeow:axisGmn1Coverage ; gmeow:floorValue 0.90 ."#,
+            ),
+            "work",
+        )
+        .unwrap();
+        let base_map = axis_floors_from_rubric(&base).unwrap();
+        let work_map = axis_floors_from_rubric(&work).unwrap();
+        let errs = axis_floor_monotonicity(RUBRIC_MODULE, &base_map, &work_map, |_, _| true);
+        assert_eq!(errs.len(), 1, "the lowered axis floor reds: {errs:#?}");
+        assert!(
+            errs[0].contains("axisGmn1Coverage") && errs[0].contains("LOWERED"),
+            "names the axis and the lowering: {errs:#?}"
+        );
+        // The reverse direction (a raise) is clean.
+        assert!(
+            axis_floor_monotonicity(RUBRIC_MODULE, &base_map, &base_map, |_, _| true).is_empty()
+        );
+    }
+
+    #[test]
+    fn tier_floor_monotonicity_reds_on_lowered_tier_vs_base_ttl() {
+        // (e) A working-tree module.ttl that LOWERS a committed roll-up tier floor
+        // (tierGrounded → tierRegistered) reds the monotonicity check.
+        let base = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"gmeow:stf a gmeow:SliceTierFloor ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorTier gmeow:tierGrounded ."#,
+            ),
+            "base",
+        )
+        .unwrap();
+        let work = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"gmeow:stf a gmeow:SliceTierFloor ; gmeow:floorSlice gmeow:sliceX ; gmeow:floorTier gmeow:tierRegistered ."#,
+            ),
+            "work",
+        )
+        .unwrap();
+        let base_map = tier_floors_from_rubric(&base).unwrap();
+        let work_map = tier_floors_from_rubric(&work).unwrap();
+        let errs = tier_floor_monotonicity(RUBRIC_MODULE, &base_map, &work_map, |_| true);
+        assert_eq!(errs.len(), 1, "the lowered tier floor reds: {errs:#?}");
+        assert!(
+            errs[0].contains("LOWERED")
+                && errs[0].contains("tierGrounded")
+                && errs[0].contains("tierRegistered"),
+            "names the lowering old → new: {errs:#?}"
+        );
+    }
+}
+
+#[cfg(test)]
+mod seed_floors_tests {
+    use super::*;
+    use gmeow_slice_quality::model::{AxisGrade, GMEOW};
+    use std::collections::BTreeMap;
+
+    /// A throwaway bottom tier for the grade/roll-up fields the seeder never reads.
+    fn tier0() -> Tier {
+        Tier {
+            iri: format!("{GMEOW}tierRegistered"),
             label: "Registered".to_owned(),
             rank: 0,
-        });
-        r
+        }
     }
 
-    /// A throwaway repo root with an empty `governance/` directory.
-    fn temp_root(name: &str) -> std::path::PathBuf {
-        let nanos = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
+    fn grade(axis_local: &str, score: f64) -> AxisGrade {
+        AxisGrade {
+            axis_iri: format!("{GMEOW}{axis_local}"),
+            score,
+            tier: tier0(),
+        }
+    }
+
+    /// A slice assessment keyed by the on-disk slice IRI shape
+    /// (`…/gmeow/slices/<local>`), so the emitted subject/`floorSlice` match module.ttl.
+    fn assessment(slice_local: &str, grades: Vec<AxisGrade>) -> SliceAssessment {
+        SliceAssessment {
+            slice: format!("{GMEOW}slices/{slice_local}"),
+            grades,
+            rollup: tier0(),
+        }
+    }
+
+    /// Extract the `gmeow:floorValue` decimal lexical from an emitted floor line.
+    fn floor_value_of(line: &str) -> &str {
+        line.rsplit("gmeow:floorValue ")
+            .next()
             .unwrap()
-            .as_nanos();
-        let mut p = std::env::temp_dir();
-        p.push(format!(
-            "gmeow-floors-{name}-{}-{nanos}",
-            std::process::id()
-        ));
-        std::fs::create_dir_all(p.join("governance")).unwrap();
-        p
-    }
-
-    fn write_floors(root: &Path, body: &str) {
-        std::fs::write(root.join(FLOOR_FILE), body).unwrap();
+            .trim_end_matches(" .")
     }
 
     #[test]
-    fn missing_floors_file_hard_fails() {
-        // (c) The gate cannot enforce a ratchet it cannot read.
-        let root = temp_root("missing");
-        let err = load_floors(&root, &registered_rubric()).unwrap_err();
+    fn emitted_floor_value_equals_live_measured_score() {
+        // (a) The seeded floorValue is EXACTLY the live measured AxisGrade.score —
+        // what the seeder emits is what the gate reads.
+        let score = 0.571_428_571_428_571_4;
+        let a = assessment("diagnostics", vec![grade("axisShapeMigration", score)]);
+        let committed = BTreeMap::new();
+        let lines =
+            collect_seed_lines(&[&a], &committed, SeedSelector::One("axisShapeMigration")).unwrap();
+        assert_eq!(lines.len(), 1, "one target → one line");
+        let line = &lines[0];
         assert!(
-            err.message().contains("cannot read ratchet floor file"),
-            "missing floors file must hard-fail: {err}"
+            line.starts_with(
+                "gmeow:afc-diagnostics-axisShapeMigration a gmeow:AxisFloorCommitment"
+            ),
+            "subject/type: {line}"
         );
-        std::fs::remove_dir_all(&root).ok();
+        assert!(
+            line.contains(
+                "gmeow:floorSlice <https://blackcatinformatics.ca/gmeow/slices/diagnostics>"
+            ),
+            "full slice IRI: {line}"
+        );
+        assert!(
+            line.contains("gmeow:floorAxis gmeow:axisShapeMigration"),
+            "prefixed axis local: {line}"
+        );
+        let parsed: f64 = floor_value_of(line).parse().unwrap();
+        assert_eq!(parsed, score, "emitted value == live measured score");
     }
 
     #[test]
-    fn malformed_line_hard_fails_naming_the_line() {
-        // (a) A non-comment line without a tab is a format error, not a skip.
-        let root = temp_root("malformed");
-        write_floors(
-            &root,
-            "# header\nhttps://x/slices/logic\ttierRegistered\nno-tab-on-this-line\n",
-        );
-        let err = load_floors(&root, &registered_rubric()).unwrap_err();
-        assert!(err.message().contains("malformed floor line"), "{err}");
-        assert!(
-            err.message().contains(":3:"),
-            "names the 1-based line: {err}"
-        );
-        assert!(
-            err.message().contains("no-tab-on-this-line"),
-            "quotes the line: {err}"
-        );
-        std::fs::remove_dir_all(&root).ok();
+    fn seeded_value_round_trips_and_satisfies_the_gate() {
+        // (b) parse(Display(score)) == score for every score shape, so the seeded
+        // floor satisfies the gate's `measured + f64::EPSILON >= floor` at the same
+        // live measurement (floor == parsed == score).
+        for &score in &[
+            0.0_f64,
+            1.0,
+            0.571_428_571_428_571_4,
+            0.995_433_789_954_337_8,
+            0.123_456_789,
+            1e-9,
+        ] {
+            let rendered = format_floor_value(score);
+            let parsed: f64 = rendered.parse().unwrap();
+            assert_eq!(parsed, score, "round trip for {score} rendered {rendered}");
+            assert!(
+                score + f64::EPSILON >= parsed,
+                "gate holds at the seeded floor for {score}"
+            );
+        }
+        // Integer-valued floats gain a `.0` so they parse as xsd:decimal and match the
+        // on-disk `1.0`/`0.0` convention (Display would print `1`/`0`).
+        assert_eq!(format_floor_value(1.0), "1.0");
+        assert_eq!(format_floor_value(0.0), "0.0");
+        // A fractional value is rendered at full precision, untouched.
+        assert_eq!(format_floor_value(0.5), "0.5");
     }
 
     #[test]
-    fn unknown_tier_label_hard_fails_naming_the_label() {
-        // (b) A tier label that names no gmeow:QualityTier is a format error.
-        let root = temp_root("unknown-tier");
-        write_floors(&root, "https://x/slices/logic\ttierBogus\n");
-        let err = load_floors(&root, &registered_rubric()).unwrap_err();
-        assert!(err.message().contains("unknown tier label"), "{err}");
-        assert!(
-            err.message().contains("tierBogus"),
-            "names the label: {err}"
-        );
-        std::fs::remove_dir_all(&root).ok();
-    }
-
-    #[test]
-    fn well_formed_floors_load() {
-        // A comment, blank line, and a real rung resolve to the tier's rank.
-        let root = temp_root("ok");
-        write_floors(
-            &root,
-            "# committed floors\n\nhttps://x/slices/logic\ttierRegistered\n",
-        );
-        let floors = load_floors(&root, &registered_rubric()).unwrap();
+    fn output_is_deterministically_ordered_by_slice_then_axis() {
+        // (c) Assessments and grades fed OUT of order still emit sorted by
+        // (slice IRI, axis local).
+        let a1 = assessment("zebra", vec![grade("axisB", 0.2), grade("axisA", 0.3)]);
+        let a2 = assessment("alpha", vec![grade("axisA", 0.4)]);
+        let committed = BTreeMap::new();
+        let lines = collect_seed_lines(&[&a1, &a2], &committed, SeedSelector::All).unwrap();
+        let subjects: Vec<&str> = lines.iter().map(|l| l.split(' ').next().unwrap()).collect();
         assert_eq!(
-            floors.get("https://x/slices/logic").map(|f| f.rank),
-            Some(0)
+            subjects,
+            vec![
+                "gmeow:afc-alpha-axisA",
+                "gmeow:afc-zebra-axisA",
+                "gmeow:afc-zebra-axisB",
+            ]
         );
-        std::fs::remove_dir_all(&root).ok();
+    }
+
+    #[test]
+    fn already_floored_pair_at_or_above_is_not_re_emitted() {
+        // A committed floor the live score still holds is never re-emitted (no
+        // overwrite, no silent ratchet) — the seeder is emit-only for UNfloored pairs.
+        let a = assessment("diagnostics", vec![grade("axisShapeMigration", 0.90)]);
+        let mut committed = BTreeMap::new();
+        committed.insert((a.slice.clone(), "axisShapeMigration".to_owned()), 0.80);
+        let lines =
+            collect_seed_lines(&[&a], &committed, SeedSelector::One("axisShapeMigration")).unwrap();
+        assert!(
+            lines.is_empty(),
+            "already-floored pair is skipped: {lines:?}"
+        );
+    }
+
+    #[test]
+    fn seeding_below_an_already_committed_floor_hard_fails() {
+        // (d) A live score BELOW an already-committed floor is a regression the gate
+        // reds — the seeder hard-fails and emits nothing, never lowering the floor.
+        let a = assessment("diagnostics", vec![grade("axisShapeMigration", 0.40)]);
+        let mut committed = BTreeMap::new();
+        committed.insert((a.slice.clone(), "axisShapeMigration".to_owned()), 0.80);
+        let err = collect_seed_lines(&[&a], &committed, SeedSelector::One("axisShapeMigration"))
+            .unwrap_err()
+            .to_string();
+        assert!(err.contains("regression"), "names the regression: {err}");
+        assert!(err.contains("axisShapeMigration"), "names the axis: {err}");
+        assert!(err.contains("0.8"), "names the committed floor: {err}");
+    }
+
+    #[test]
+    fn unknown_axis_name_hard_fails() {
+        // (e) `--axis` naming no rubric axis is a hard fail (nonzero exit), never a
+        // silent empty emission. The unknown-axis guard fires right after the rubric
+        // load, before any slice is scored.
+        assert_ne!(
+            slice_quality_seed_floors(Some("axisDefinitelyNotAReal_Axis"), false),
+            0
+        );
+    }
+
+    #[test]
+    fn neither_selector_hard_fails() {
+        // (f) Neither --axis nor --all-axes → hard fail, no silent default.
+        assert_ne!(slice_quality_seed_floors(None, false), 0);
+    }
+
+    #[test]
+    fn both_selectors_hard_fail() {
+        // (f) Both --axis and --all-axes → hard fail (mutually exclusive).
+        assert_ne!(slice_quality_seed_floors(Some("axisGmn1Coverage"), true), 0);
     }
 }

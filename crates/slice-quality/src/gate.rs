@@ -18,7 +18,7 @@ use std::path::Path;
 
 use crate::axes;
 use crate::graph::{self, id, instances_of, one_iri};
-use crate::model::{Rubric, Tier};
+use crate::model::{Axis, AxisFloorCommitment, Rubric, Tier};
 
 /// The pipeline projection surfaces the rubric must account for — each must be
 /// covered by a landed quality axis OR by a dated `gmeow:AxisExemption`. Adding a
@@ -353,6 +353,150 @@ pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> gmeow_errors::Result<
     }
 }
 
+/// The local name of an IRI (the tail after the last `/` or `#`) — used to name a
+/// slice or axis compactly in a coherence-violation message.
+fn local_name(iri: &str) -> &str {
+    iri.rsplit(['/', '#']).next().unwrap_or(iri)
+}
+
+/// The tier a committed axis *floor* value implies: grade the floor decimal through
+/// THAT axis's rubric thresholds exactly as a measured score would be graded (the
+/// strongest tier whose floor the value meets, else the ladder bottom). This is the
+/// lattice morphism that carries a per-axis floor up into the tier ladder, so the
+/// per-axis floor level and the roll-up tier-floor level can be compared. Pure: it
+/// reuses [`crate::lattice::grade_axis`] and adds no new grading path.
+#[must_use]
+pub fn axis_floor_implied_tier(axis: &Axis, floor: f64, rubric: &Rubric) -> Tier {
+    crate::lattice::grade_axis(axis, floor, rubric).tier
+}
+
+/// Which of the two coherence sub-checks a [`CoherenceViolation`] records.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CoherenceKind {
+    /// A committed axis floor grades to a tier strictly BELOW the slice's committed
+    /// tier floor — an internal contradiction between two commitments (the roll-up
+    /// is a meet, so a tier floor `T` demands every axis floor to imply `≥ T`).
+    BackingInvariant,
+    /// A slice floored on EVERY rubric axis whose committed tier floor does not
+    /// EQUAL the meet of its axis floors' implied tiers — a tier floor below the
+    /// achievable meet is a dead guarantee (it should be raised to the meet).
+    Tightness,
+}
+
+/// One floor-coherence violation: the slice, which sub-check failed, and a message
+/// naming every relevant tier/axis/floor so the failure is self-explanatory.
+#[derive(Debug, Clone)]
+pub struct CoherenceViolation {
+    /// The slice IRI the contradiction is committed against.
+    pub slice: String,
+    /// Which sub-check the violation belongs to.
+    pub kind: CoherenceKind,
+    /// The human-facing failure message.
+    pub message: String,
+}
+
+/// FLOOR COHERENCE — a pure consistency assertion tying the two committed floor
+/// levels together (a lattice morphism), reading BOTH levels straight from the
+/// rubric. It is NO-CALIBRATION-safe: it compares COMMITTED floors against each
+/// other, never a measured score, so it needs no scoring sweep at all.
+///
+/// For every slice carrying a `gmeow:SliceTierFloor` of tier rank `T` AND at least
+/// one `gmeow:AxisFloorCommitment`:
+///
+/// 1. **Backing invariant** (always applicable): grade EACH committed axis floor
+///    through its axis's rubric thresholds ([`axis_floor_implied_tier`]) to an
+///    implied tier rank `A`; assert `A >= T`. The roll-up is a meet (min tier over
+///    every axis), so a tier floor `T` requires every axis to be `≥ T`; an axis
+///    floor implying a tier below `T` is a contradiction between two commitments.
+/// 2. **Tightness** (coverage-gated): additionally, when the slice is floored on
+///    EVERY rubric axis, assert `T == meet(implied tiers)`. A tier floor strictly
+///    below the achievable meet is a dead guarantee; strictly above is impossible
+///    once the backing invariant holds.
+///
+/// Slices with a tier floor but no axis floor, or axis floors but no tier floor, are
+/// skipped (no contradiction to check). Deterministic: violations follow the
+/// rubric's tier-floor then commitment iteration order.
+#[must_use]
+pub fn evaluate_coherence(rubric: &Rubric) -> Vec<CoherenceViolation> {
+    let mut out = Vec::new();
+    for tf in &rubric.tier_floors {
+        // The tier floor's ladder tier. An unresolvable floorTier is a HARD FAIL the
+        // caller's `tier_floors_from_rubric` raises before this runs; here it is a
+        // skip so this pure fn never panics on a rubric the caller already rejected.
+        let Some(t_tier) = rubric.tier(&tf.tier) else {
+            continue;
+        };
+        // This slice's committed axis floors, in rubric-commitment order.
+        let slice_floors: Vec<&AxisFloorCommitment> = rubric
+            .commitments
+            .iter()
+            .filter(|c| c.slice == tf.slice)
+            .collect();
+        if slice_floors.is_empty() {
+            continue; // no axis floor → both sub-checks require ≥ 1
+        }
+        // Grade each axis floor to its implied tier, checking the backing invariant.
+        let mut implied: Vec<Tier> = Vec::with_capacity(slice_floors.len());
+        for c in &slice_floors {
+            let Some(axis) = rubric.axes.iter().find(|a| a.iri == c.axis) else {
+                continue; // an axis floor naming no rubric axis cannot be graded
+            };
+            let a_tier = axis_floor_implied_tier(axis, c.floor, rubric);
+            if a_tier.rank < t_tier.rank {
+                out.push(CoherenceViolation {
+                    slice: tf.slice.clone(),
+                    kind: CoherenceKind::BackingInvariant,
+                    message: format!(
+                        "slice {} axis {} committed floor {:.6} grades to tier {} (rank {}) — below the slice's committed tier floor {} (rank {}); the roll-up is a meet, so a tier floor requires every axis floor to back it",
+                        tf.slice,
+                        local_name(&c.axis),
+                        c.floor,
+                        t_tier_label(&a_tier),
+                        a_tier.rank,
+                        t_tier_label(t_tier),
+                        t_tier.rank
+                    ),
+                });
+            }
+            implied.push(a_tier);
+        }
+        // TIGHTNESS — only when the slice is floored on EVERY rubric axis.
+        let floored_all_axes = !rubric.axes.is_empty()
+            && rubric
+                .axes
+                .iter()
+                .all(|a| slice_floors.iter().any(|c| c.axis == a.iri));
+        if floored_all_axes
+            && let Some(meet) = implied.iter().min()
+            && meet.rank != t_tier.rank
+        {
+            out.push(CoherenceViolation {
+                slice: tf.slice.clone(),
+                kind: CoherenceKind::Tightness,
+                message: format!(
+                    "slice {} is floored on every rubric axis: the meet of its axis floors' implied tiers is {} (rank {}) but its committed tier floor is {} (rank {}) — a tier floor below the achievable meet is a dead guarantee (raise it to the meet)",
+                    tf.slice,
+                    t_tier_label(meet),
+                    meet.rank,
+                    t_tier_label(t_tier),
+                    t_tier.rank
+                ),
+            });
+        }
+    }
+    out
+}
+
+/// A tier's most readable name for a message: its `rdfs:label` if present, else the
+/// IRI local name (a synthetic test tier may carry an empty label).
+fn t_tier_label(tier: &Tier) -> &str {
+    if tier.label.is_empty() {
+        local_name(&tier.iri)
+    } else {
+        tier.label.as_str()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -403,6 +547,8 @@ mod tests {
             tiers: vec![],
             axes,
             exemptions: vec![],
+            commitments: vec![],
+            tier_floors: vec![],
         };
         // Every producer resolves → green (bijection holds and all resolve).
         assert!(
@@ -436,6 +582,8 @@ mod tests {
             tiers: vec![],
             axes: vec![mk_axis("grounding_ax")],
             exemptions: vec![],
+            commitments: vec![],
+            tier_floors: vec![],
         };
         let errs = binding_gate(&rubric, |s| real.contains(s));
         assert!(
@@ -459,6 +607,8 @@ mod tests {
                 date: "2026-07-07".to_owned(),
                 producer: "DocMaturity".to_owned(),
             }],
+            commitments: vec![],
+            tier_floors: vec![],
         };
         // Producer not in-repo → not stale.
         assert!(stale_exemptions(&rubric, |_| false).is_empty());
@@ -499,6 +649,8 @@ mod tests {
                 date: "2026-07-08".to_owned(),
                 producer: "DocMaturity".to_owned(),
             }],
+            commitments: vec![],
+            tier_floors: vec![],
         };
         let errs = completeness_gate(&rubric);
         assert!(
@@ -639,5 +791,170 @@ mod tests {
         // Declaring at or above the floor is allowed (measured then decides).
         assert_eq!(evaluate_ratchet(Some(2), 2, Some(2)), RatchetVerdict::Pass);
         assert_eq!(evaluate_ratchet(Some(3), 3, Some(2)), RatchetVerdict::Pass);
+    }
+
+    // --- Floor-coherence fixtures ---------------------------------------------
+    // Small synthetic rubrics: a Registered(0)/Grounded(1)/Linked(2) ladder and
+    // axes whose thresholds put the Grounded floor at 0.60 and the Linked floor at
+    // 0.75, so a floor of 0.10 grades to Registered, 0.65 to Grounded, 0.80 to
+    // Linked. Coherence reads BOTH floor levels straight off the rubric.
+
+    fn co_tier(local: &str, rank: i64) -> Tier {
+        Tier {
+            iri: format!("ex:{local}"),
+            label: local.to_owned(),
+            rank,
+        }
+    }
+
+    fn co_ladder() -> Vec<Tier> {
+        vec![
+            co_tier("tierRegistered", 0),
+            co_tier("tierGrounded", 1),
+            co_tier("tierLinked", 2),
+        ]
+    }
+
+    fn co_axis(iri: &str) -> Axis {
+        use crate::model::{ContextScope, Threshold};
+        Axis {
+            iri: iri.to_owned(),
+            label: iri.to_owned(),
+            producer: "test".to_owned(),
+            dimension_iri: "ex:d".to_owned(),
+            thresholds: vec![
+                Threshold {
+                    tier_iri: "ex:tierGrounded".to_owned(),
+                    floor: 0.60,
+                },
+                Threshold {
+                    tier_iri: "ex:tierLinked".to_owned(),
+                    floor: 0.75,
+                },
+            ],
+            weight: 1.0,
+            scope: ContextScope::SliceLocal,
+            advice: String::new(),
+        }
+    }
+
+    fn afc(slice: &str, axis: &str, floor: f64) -> AxisFloorCommitment {
+        AxisFloorCommitment {
+            slice: slice.to_owned(),
+            axis: axis.to_owned(),
+            floor,
+        }
+    }
+
+    fn stf(slice: &str, tier: &str) -> crate::model::SliceTierFloorCommitment {
+        crate::model::SliceTierFloorCommitment {
+            slice: slice.to_owned(),
+            tier: tier.to_owned(),
+        }
+    }
+
+    fn co_rubric(
+        axes: Vec<Axis>,
+        commitments: Vec<AxisFloorCommitment>,
+        tier_floors: Vec<crate::model::SliceTierFloorCommitment>,
+    ) -> Rubric {
+        Rubric {
+            tiers: co_ladder(),
+            axes,
+            exemptions: vec![],
+            commitments,
+            tier_floors,
+        }
+    }
+
+    #[test]
+    fn coherence_backing_and_tightness_hold_on_a_coherent_fixture() {
+        // (a) A slice with a tier floor Grounded(1) and an axis floor on EVERY axis,
+        // each grading to Grounded(1) — the backing invariant holds (1 >= 1) and the
+        // tightness check holds (meet == 1 == floor). No violation.
+        let rubric = co_rubric(
+            vec![co_axis("ex:axisA"), co_axis("ex:axisB")],
+            vec![
+                afc("ex:s", "ex:axisA", 0.65), // → Grounded(1)
+                afc("ex:s", "ex:axisB", 0.70), // → Grounded(1)
+            ],
+            vec![stf("ex:s", "ex:tierGrounded")],
+        );
+        assert!(
+            evaluate_coherence(&rubric).is_empty(),
+            "a coherent floored slice passes: {:#?}",
+            evaluate_coherence(&rubric)
+        );
+    }
+
+    #[test]
+    fn coherence_reds_when_an_axis_floor_implies_below_the_tier_floor() {
+        // (b) Tier floor Linked(2); axisA floor 0.80 → Linked(2) (backs it) but
+        // axisB floor 0.10 → Registered(0), below the tier floor. Only 2 of 3 axes
+        // are floored, so tightness is skipped and exactly the backing invariant reds.
+        let rubric = co_rubric(
+            vec![
+                co_axis("ex:axisA"),
+                co_axis("ex:axisB"),
+                co_axis("ex:axisC"),
+            ],
+            vec![
+                afc("ex:s", "ex:axisA", 0.80), // → Linked(2)
+                afc("ex:s", "ex:axisB", 0.10), // → Registered(0) — below Linked(2)
+            ],
+            vec![stf("ex:s", "ex:tierLinked")],
+        );
+        let v = evaluate_coherence(&rubric);
+        assert_eq!(v.len(), 1, "exactly the backing invariant reds: {v:#?}");
+        assert_eq!(v[0].kind, CoherenceKind::BackingInvariant);
+        assert!(
+            v[0].message.contains("ex:s")
+                && v[0].message.contains("axisB")
+                && v[0].message.contains("tierRegistered")
+                && v[0].message.contains("tierLinked"),
+            "names slice, axis, implied tier, and tier floor: {}",
+            v[0].message
+        );
+    }
+
+    #[test]
+    fn coherence_reds_on_a_loose_tier_floor_when_floored_on_every_axis() {
+        // (c) Floored on EVERY axis (both grade to Grounded(1), so meet == 1) but the
+        // committed tier floor is Registered(0) — below the achievable meet. The
+        // backing invariant holds (1 >= 0); exactly the tightness check reds.
+        let rubric = co_rubric(
+            vec![co_axis("ex:axisA"), co_axis("ex:axisB")],
+            vec![
+                afc("ex:s", "ex:axisA", 0.65), // → Grounded(1)
+                afc("ex:s", "ex:axisB", 0.70), // → Grounded(1)
+            ],
+            vec![stf("ex:s", "ex:tierRegistered")],
+        );
+        let v = evaluate_coherence(&rubric);
+        assert_eq!(v.len(), 1, "exactly the tightness check reds: {v:#?}");
+        assert_eq!(v[0].kind, CoherenceKind::Tightness);
+        assert!(
+            v[0].message.contains("ex:s")
+                && v[0].message.contains("tierGrounded") // the meet
+                && v[0].message.contains("tierRegistered"), // the loose floor
+            "names slice, meet tier, and tier floor: {}",
+            v[0].message
+        );
+    }
+
+    #[test]
+    fn coherence_skips_slices_missing_either_floor_level() {
+        // (d) sliceA has a tier floor but NO axis floor; sliceB has axis floors but
+        // NO tier floor. Neither pairing exists, so both are skipped — no violation.
+        let rubric = co_rubric(
+            vec![co_axis("ex:axisA")],
+            vec![afc("ex:sB", "ex:axisA", 0.10)], // sliceB axis floor, no tier floor
+            vec![stf("ex:sA", "ex:tierLinked")],  // sliceA tier floor, no axis floor
+        );
+        assert!(
+            evaluate_coherence(&rubric).is_empty(),
+            "a tier-floor-only slice and an axis-floor-only slice are both skipped: {:#?}",
+            evaluate_coherence(&rubric)
+        );
     }
 }
