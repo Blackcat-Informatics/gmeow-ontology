@@ -821,6 +821,24 @@ pub fn slice_covered_dims(slice_iri: &str, model: &DocsModel, ctx: &CoverageCont
         .map(|t| term_coverage(t, ctx))
         .collect();
 
+    // Hoist each term's flag arrays OUT of the per-dimension loop below: computed
+    // ONCE per term here (`applicable_flags()`/`present_flags()`/`flags()` each
+    // reconstruct a size-TOTAL array), then indexed by dimension inside the loop —
+    // O(N × TOTAL) instead of O(N × TOTAL²), with identical values in the same order.
+    type FlagArray = [bool; TermCoverage::TOTAL];
+    let per_term: Vec<(FlagArray, FlagArray, FlagArray)> = covs
+        .iter()
+        .map(|cov| {
+            let applicable = cov.applicable_flags();
+            let present = cov.present_flags();
+            // `covered = !applicable ∨ present`, matching `TermCoverage::flags`
+            // exactly — computed here from the already-hoisted arrays rather than
+            // calling `flags()` again, which would redundantly recompute both.
+            let flags = std::array::from_fn(|i| !applicable[i] || present[i]);
+            (applicable, present, flags)
+        })
+        .collect();
+
     let mut covered = DimSet::new();
     for (i, dim) in DIMENSIONS.iter().enumerate() {
         let dim_covered = if DEMONSTRATION_DIMENSIONS.contains(&dim.dimension) {
@@ -829,10 +847,10 @@ pub fn slice_covered_dims(slice_iri: &str, model: &DocsModel, ctx: &CoverageCont
             // flag — a not-applicable term must not vacuously "demonstrate".
             let mut any_applicable = false;
             let mut demonstrated = false;
-            for cov in &covs {
-                if cov.applicable_flags()[i] {
+            for (applicable, present, _) in &per_term {
+                if applicable[i] {
                     any_applicable = true;
-                    if cov.present_flags()[i] {
+                    if present[i] {
                         demonstrated = true;
                         break;
                     }
@@ -841,7 +859,7 @@ pub fn slice_covered_dims(slice_iri: &str, model: &DocsModel, ctx: &CoverageCont
             !any_applicable || demonstrated
         } else {
             // ∀: covered iff every term covers it (`!applicable ∨ present`).
-            covs.iter().all(|cov| cov.flags()[i])
+            per_term.iter().all(|(_, _, flags)| flags[i])
         };
         if dim_covered {
             covered.insert(dim.dimension);
