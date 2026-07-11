@@ -906,7 +906,7 @@ fn format_floor_value(score: f64) -> String {
 fn format_floor_line(slice_iri: &str, axis_local: &str, score: f64) -> String {
     let slice_local = axis_local_name(slice_iri);
     format!(
-        "gmeow:afc-{slice_local}-{axis_local} a gmeow:AxisFloorCommitment ; gmeow:floorSlice <{slice_iri}> ; gmeow:floorAxis gmeow:{axis_local} ; gmeow:floorValue {} .",
+        "gmeow:afc-{slice_local}-{axis_local} a gmeow:AxisFloorCommitment ; rdfs:label \"axis-floor commitment — {slice_local} / {axis_local}\"@x-gmeow-english ; skos:definition \"The committed raise-only measured-score floor for the {axis_local} quality axis on the {slice_local} slice; the gate reds if the slice's measured score falls below it.\"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:floorSlice <{slice_iri}> ; gmeow:floorAxis gmeow:{axis_local} ; gmeow:floorValue {} .",
         format_floor_value(score)
     )
 }
@@ -928,7 +928,7 @@ fn collect_seed_lines(
     assessments: &[&SliceAssessment],
     committed: &std::collections::BTreeMap<(String, String), f64>,
     selector: SeedSelector<'_>,
-) -> Result<Vec<String>, String> {
+) -> gmeow_errors::Result<Vec<String>> {
     use gmeow_slice_quality::gate::{AxisRatchetVerdict, evaluate_axis_floor};
     // (slice IRI, axis local) → line, so the output is deterministically ordered by
     // that key regardless of assessment/grade iteration order.
@@ -952,10 +952,10 @@ fn collect_seed_lines(
                     evaluate_axis_floor(grade.score, floor),
                     AxisRatchetVerdict::MeasuredBelowFloor
                 ) {
-                    return Err(format!(
+                    return Err(sqe(format!(
                         "slice-quality-seed-floors: {} measures {axis_local} {} — BELOW its already-committed floor {floor}; this is a regression the gate reds. Refusing to emit (a floored axis is never re-seeded; raise a floor only by a deliberate hand-edit of the individual, never a seeder re-run).",
                         a.slice, grade.score
-                    ));
+                    )));
                 }
                 continue; // already floored → nothing to seed for this pair
             }
@@ -1497,7 +1497,8 @@ mod seed_floors_tests {
         let mut committed = BTreeMap::new();
         committed.insert((a.slice.clone(), "axisShapeMigration".to_owned()), 0.80);
         let err = collect_seed_lines(&[&a], &committed, SeedSelector::One("axisShapeMigration"))
-            .unwrap_err();
+            .unwrap_err()
+            .to_string();
         assert!(err.contains("regression"), "names the regression: {err}");
         assert!(err.contains("axisShapeMigration"), "names the axis: {err}");
         assert!(err.contains("0.8"), "names the committed floor: {err}");
