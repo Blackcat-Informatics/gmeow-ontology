@@ -10,7 +10,7 @@ expression: coverage
   "docs/missing-fixture-pair": 4323,
   "docs/missing-label": 1,
   "docs/missing-prose-quality": 4483,
-  "docs/missing-realized-state": 80,
+  "docs/missing-realized-state": 78,
   "docs/missing-scope-note": 4428,
   "docs/missing-test-reach": 4094,
   "docs/missing-translation-coverage": 4508,
