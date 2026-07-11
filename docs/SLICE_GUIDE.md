@@ -291,6 +291,23 @@ drops below its asserted tier, and the gate bites. The marker is a gated complet
 not authorial vigilance — see § 6.7's design-set table and
 [`GROUNDING.md`](GROUNDING.md) § coverage duty.
 
+**Alignment, linkage, and loss are required WHERE APPLICABLE.** Four dimensions —
+`dimAlignment`, `dimLinkageCoverage`, `dimLossLedgerRow`, and `dimLossJudgmentSound` — are
+**applicability-conditioned**, because GMEOW is a *superset* ontology that guarantees novel
+terms with no external equivalent and native terms that are lossy projections of nothing.
+A term COVERS such a dimension when `!applicable ∨ present`: the external-correspondence pair
+(`dimAlignment` / `dimLinkageCoverage`) applies only to a term that **declares** an external
+correspondence — a non-empty `gmeow:adoptionTarget`, or a term already carrying an alignment
+/ mapping-set linkage — and the loss pair (`dimLossLedgerRow` / `dimLossJudgmentSound`)
+applies only to a term that **is** a lossy-projection source (it appears in the projection-loss
+ledger). A superset-native term with **no** external correspondence, or a native, non-projected
+term, satisfies these by non-applicability and is **never** penalized — external linkage is an
+*encouraged bonus* (more is better), never a per-term obligation. A term that DECLARES an
+external correspondence but ships no documented mapping, or a lossy projection whose judgment
+is weaker than sound, is `applicable ∧ ¬present` → still MISSING, a real defect the gate keeps
+catching. (This changes only *when* the four dimensions count, never the FULL / MAXIMAL
+intents below — they still list all four.)
+
 > **Doctrine == vocabulary (binding contract).** The two `<!-- doctrine-intent:… -->`
 > blocks above are the single prose definition of FULL and MAXIMAL, and they are pinned to
 > the minted vocabulary by `crates/docs/tests/doctrine_matches_vocabulary.rs`. That test

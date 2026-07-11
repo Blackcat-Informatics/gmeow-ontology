@@ -375,8 +375,28 @@ impl<'a> CoverageContext<'a> {
 /// Which documentation-coverage dimensions a single term carries. One boolean per
 /// PER-TERM [`crate::maturity::Dimension`], in [`DIMENSIONS`] order (the two
 /// slice-scoped dimensions — thesis sentence, realized state — are computed on the
-/// slice, not here). A dimension is "present" exactly when the corresponding
-/// `docs/missing-*` lint would NOT fire.
+/// slice, not here).
+///
+/// # Present vs applicable vs covered
+///
+/// Each `has_*` field is a raw PRESENT fact (the detector fired). Fifteen of the
+/// seventeen dimensions are UNCONDITIONALLY applicable — they hold against every
+/// term — so for them a term is COVERED exactly when it is present. The four
+/// external-correspondence / lossy-projection dimensions ([`Dimension::Alignment`],
+/// [`Dimension::LinkageCoverage`], [`Dimension::LossLedgerRow`],
+/// [`Dimension::LossJudgmentSound`]) are APPLICABILITY-CONDITIONED: GMEOW is a
+/// SUPERSET ontology, so a term that maps to nothing external (a novel term) or is
+/// a lossy projection of nothing is NOT required to carry an alignment, a linkage,
+/// or a loss-ledger row. For those dimensions coverage is
+/// `covered = !applicable ∨ present`: a not-applicable dimension is COVERED (never a
+/// coverage defect), while a term that DECLARES an external correspondence or IS a
+/// lossy-projection source but has no documented mapping / row is applicable ∧
+/// ¬present → genuinely MISSING (a real defect still worth catching).
+///
+/// [`Self::flags`] returns the COVERED array (`!applicable ∨ present`), so the lint
+/// gate, the emitted incidence, and the rendered page all read one covered/missing
+/// truth; [`Self::present_count`] / [`Self::missing_keys`] follow the same
+/// semantics (missing = applicable ∧ ¬present).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TermCoverage {
     /// `skos:definition`/`rdfs:comment` is non-empty.
@@ -414,6 +434,19 @@ pub struct TermCoverage {
     /// Every projection-loss judgment is sound-or-stronger (the MAXIMAL-only
     /// Principle-17 refinement; vacuously true with no loss rows).
     pub has_loss_judgment_sound: bool,
+    /// APPLICABILITY of the external-correspondence dimensions
+    /// ([`Dimension::Alignment`], [`Dimension::LinkageCoverage`]): the term declares
+    /// an external-correspondence intent — a non-empty `gmeow:adoptionTarget`, OR it
+    /// is already the subject of an alignment / mapping-set-backed linkage. `false`
+    /// for a superset-native term that maps to nothing external (then both
+    /// dimensions are covered by non-applicability, never penalized).
+    pub applicable_external: bool,
+    /// APPLICABILITY of the lossy-projection dimensions ([`Dimension::LossLedgerRow`],
+    /// [`Dimension::LossJudgmentSound`]): the term is a lossy-projection source — it
+    /// appears in the projection-loss ledger (a dynamic loss row or an authored
+    /// static loss target). `false` for a native, non-projected term (then both
+    /// dimensions are covered by non-applicability, never penalized).
+    pub applicable_lossy: bool,
 }
 
 /// One documentation-coverage dimension: the canonical [`Dimension`] key (the join
@@ -565,8 +598,11 @@ impl TermCoverage {
     /// The number of PER-TERM coverage dimensions.
     pub const TOTAL: usize = 17;
 
-    /// The presence flag for each per-term dimension, in [`DIMENSIONS`] order.
-    pub fn flags(&self) -> [bool; Self::TOTAL] {
+    /// The RAW present fact for each per-term dimension, in [`DIMENSIONS`] order —
+    /// the detector output BEFORE the applicability layer. Internal: coverage is
+    /// read through [`Self::flags`] (the covered array); this is only zipped with
+    /// [`Self::applicable_flags`] to derive it.
+    fn present_flags(&self) -> [bool; Self::TOTAL] {
         [
             self.has_definition,
             self.has_label,
@@ -588,29 +624,74 @@ impl TermCoverage {
         ]
     }
 
-    /// How many of the [`TOTAL`](Self::TOTAL) per-term dimensions the term carries.
-    pub fn present_count(&self) -> usize {
-        self.flags().iter().filter(|present| **present).count()
+    /// The APPLICABILITY of each per-term dimension, in [`DIMENSIONS`] order. Fifteen
+    /// dimensions are unconditionally applicable (`true`); the four
+    /// external-correspondence / lossy-projection dimensions are gated on
+    /// [`Self::applicable_external`] / [`Self::applicable_lossy`]. Order matches
+    /// [`DIMENSIONS`]: index 5 = alignment, 9 = loss ledger row, 10 = linkage
+    /// coverage, 16 = loss judgment sound.
+    fn applicable_flags(&self) -> [bool; Self::TOTAL] {
+        let ext = self.applicable_external;
+        let lossy = self.applicable_lossy;
+        [
+            true,  // definition
+            true,  // label
+            true,  // usage_advice
+            true,  // example
+            true,  // scope_note
+            ext,   // alignment
+            true,  // fixture_pair
+            true,  // competency_rationale
+            true,  // worked_instance
+            lossy, // loss_ledger_row
+            ext,   // linkage_coverage
+            true,  // annotation_coat
+            true,  // translation_coverage
+            true,  // test_reach
+            true,  // provenance_honesty
+            true,  // prose_quality
+            lossy, // loss_judgment_sound
+        ]
     }
 
-    /// The machine keys of the per-term dimensions the term is MISSING, in display
-    /// order — the search-index facet for filtering under-documented terms.
+    /// The COVERED flag for each per-term dimension, in [`DIMENSIONS`] order —
+    /// `covered = !applicable ∨ present`. A not-applicable dimension reports as
+    /// COVERED (a superset-native term is never penalized for having no external
+    /// correspondence or no lossy projection); every unconditional dimension reports
+    /// its raw presence. This is THE coverage truth the lint gate, the emitted
+    /// incidence, and the rendered page all read.
+    pub fn flags(&self) -> [bool; Self::TOTAL] {
+        let present = self.present_flags();
+        let applicable = self.applicable_flags();
+        std::array::from_fn(|i| !applicable[i] || present[i])
+    }
+
+    /// How many of the [`TOTAL`](Self::TOTAL) per-term dimensions the term COVERS
+    /// (present, or not applicable). The renderer's "N of TOTAL dimensions" headline.
+    pub fn present_count(&self) -> usize {
+        self.flags().iter().filter(|covered| **covered).count()
+    }
+
+    /// The machine keys of the per-term dimensions the term is MISSING (applicable ∧
+    /// ¬present), in display order — the search-index facet for filtering
+    /// under-documented terms. A not-applicable dimension is NEVER listed missing.
     pub fn missing_keys(&self) -> Vec<&'static str> {
         DIMENSIONS
             .iter()
             .zip(self.flags())
-            .filter(|(_, present)| !*present)
+            .filter(|(_, covered)| !*covered)
             .map(|(dim, _)| dim.key)
             .collect()
     }
 
-    /// The set of PER-TERM [`Dimension`]s the term covers — its concept intent
-    /// over the per-term attributes, fed into the FCA maturity closure.
+    /// The set of PER-TERM [`Dimension`]s the term covers (present, or not
+    /// applicable) — its concept intent over the per-term attributes, fed into the
+    /// FCA maturity closure.
     pub fn covered_dims(&self) -> DimSet {
         DIMENSIONS
             .iter()
             .zip(self.flags())
-            .filter(|(_, present)| *present)
+            .filter(|(_, covered)| *covered)
             .map(|(dim, _)| dim.dimension)
             .collect()
     }
@@ -642,6 +723,21 @@ pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
         && usage_distinct
         && rationale_distinct;
 
+    // Applicability of the external-correspondence dimensions: the term declares an
+    // external-correspondence intent (a non-empty `gmeow:adoptionTarget`) OR is
+    // already the subject of an alignment / mapping-set-backed linkage. A
+    // superset-native term with none is NOT applicable — its `dimAlignment` /
+    // `dimLinkageCoverage` are covered by non-applicability, never a coverage defect.
+    let applicable_external = !term.adoption_targets.is_empty()
+        || ctx.aligned.contains(term.iri.as_str())
+        || ctx.linkage_covered.contains(term.iri.as_str());
+    // Applicability of the lossy-projection dimensions: the term is a lossy-projection
+    // source — it carries a dynamic projection-loss ledger row or an authored static
+    // loss target. A native, non-projected term is NOT applicable — its
+    // `dimLossLedgerRow` / `dimLossJudgmentSound` are covered by non-applicability.
+    let applicable_lossy = ctx.loss_iris.contains(term.iri.as_str())
+        || ctx.loss_target_locals.contains(local_name(&term.iri));
+
     TermCoverage {
         has_definition: !definition.trim().is_empty(),
         has_label: !term.label.as_deref().unwrap_or("").trim().is_empty(),
@@ -663,6 +759,8 @@ pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
         has_provenance_honesty: provenance_honesty,
         has_prose_quality: prose_quality,
         has_loss_judgment_sound: ctx.loss_judgment_sound(term),
+        applicable_external,
+        applicable_lossy,
     }
 }
 
@@ -670,11 +768,18 @@ pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
 /// nineteen dimensions, from which the FCA earned maturity and coverage fraction
 /// are derived.
 ///
-/// A slice COVERS a per-term dimension iff EVERY documented term it owns covers it
-/// (the definitional `1.0 = all-present`, never a threshold; a slice with no
-/// documented terms vacuously covers every per-term dimension — the empty
-/// universal). The two slice-scoped dimensions (thesis sentence, realized state)
-/// are read directly from the slice's `docs.md` facts.
+/// A slice COVERS a per-term dimension iff EVERY documented term it owns COVERS it —
+/// where per-term coverage is [`TermCoverage::flags`] (`!applicable ∨ present`).
+/// For the fifteen unconditional dimensions that is "every term present"; for the
+/// four applicability-conditioned dimensions ([`Dimension::Alignment`],
+/// [`Dimension::LinkageCoverage`], [`Dimension::LossLedgerRow`],
+/// [`Dimension::LossJudgmentSound`]) a term to which the dimension does NOT apply
+/// covers it vacuously, so the slice covers it iff every term for which it IS
+/// applicable has it present — and a slice of all-superset-native terms (zero
+/// applicable) covers it vacuously, never penalized for having no external
+/// correspondence. A slice with no documented terms vacuously covers every per-term
+/// dimension (the empty universal). The two slice-scoped dimensions (thesis
+/// sentence, realized state) are read directly from the slice's `docs.md` facts.
 pub fn slice_covered_dims(slice_iri: &str, model: &DocsModel, ctx: &CoverageContext) -> DimSet {
     let flags: Vec<[bool; TermCoverage::TOTAL]> = model
         .terms
@@ -703,9 +808,16 @@ pub fn slice_covered_dims(slice_iri: &str, model: &DocsModel, ctx: &CoverageCont
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::DocTermCategory;
+    use crate::model::{DocLinkage, DocLossTarget, DocTermCategory};
 
     const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+
+    /// The [`DIMENSIONS`] indices of the four applicability-conditioned dimensions,
+    /// pinned so the tests below fail loudly if the stable order ever shifts.
+    const IDX_ALIGNMENT: usize = 5;
+    const IDX_LOSS_LEDGER_ROW: usize = 9;
+    const IDX_LINKAGE_COVERAGE: usize = 10;
+    const IDX_LOSS_JUDGMENT_SOUND: usize = 16;
 
     fn bare(local: &str) -> DocTerm {
         DocTerm {
@@ -715,6 +827,13 @@ mod tests {
             owner_slice: format!("{GMEOW}slice/zoo"),
             ..Default::default()
         }
+    }
+
+    fn dim_index(dim: Dimension) -> usize {
+        DIMENSIONS
+            .iter()
+            .position(|d| d.dimension == dim)
+            .expect("per-term dimension is in DIMENSIONS")
     }
 
     #[test]
@@ -759,6 +878,170 @@ mod tests {
         let model = DocsModel::default();
         let ctx = CoverageContext::new(&model);
         assert_eq!(term_coverage(&term, &ctx).flags().len(), DIMENSIONS.len());
+    }
+
+    #[test]
+    fn dimension_index_constants_pin_the_stable_order() {
+        // If DIMENSIONS is reordered, these constants (used by the applicability
+        // tests) must move with it — pin them to the canonical positions.
+        assert_eq!(dim_index(Dimension::Alignment), IDX_ALIGNMENT);
+        assert_eq!(dim_index(Dimension::LossLedgerRow), IDX_LOSS_LEDGER_ROW);
+        assert_eq!(dim_index(Dimension::LinkageCoverage), IDX_LINKAGE_COVERAGE);
+        assert_eq!(
+            dim_index(Dimension::LossJudgmentSound),
+            IDX_LOSS_JUDGMENT_SOUND
+        );
+    }
+
+    #[test]
+    fn superset_native_term_is_covered_for_the_conditional_dimensions() {
+        // The CORE FIX: a novel, superset-native term — no `gmeow:adoptionTarget`,
+        // not the subject of any alignment / linkage, and not a lossy-projection
+        // source — is COVERED (never counted MISSING) for all four
+        // applicability-conditioned dimensions. GMEOW guarantees such terms, so
+        // penalizing them for having no external equivalent is exactly the flaw.
+        let model = DocsModel::default();
+        let ctx = CoverageContext::new(&model);
+        let term = bare("NovelNative");
+        let cov = term_coverage(&term, &ctx);
+
+        assert!(
+            !cov.applicable_external,
+            "no external-correspondence intent"
+        );
+        assert!(!cov.applicable_lossy, "not a lossy-projection source");
+        // Raw present detectors correctly report ABSENCE …
+        assert!(!cov.has_alignment);
+        assert!(!cov.has_linkage_coverage);
+        assert!(!cov.has_loss_ledger_row);
+        // … yet coverage (flags = !applicable ∨ present) reports COVERED.
+        let flags = cov.flags();
+        assert!(
+            flags[IDX_ALIGNMENT],
+            "novel term covers alignment vacuously"
+        );
+        assert!(flags[IDX_LINKAGE_COVERAGE], "…and linkage coverage");
+        assert!(flags[IDX_LOSS_LEDGER_ROW], "…and loss ledger row");
+        assert!(flags[IDX_LOSS_JUDGMENT_SOUND], "…and loss judgment sound");
+        // None of the four appear in the MISSING facet.
+        let missing = cov.missing_keys();
+        for key in [
+            "alignment",
+            "linkage_coverage",
+            "loss_ledger_row",
+            "loss_judgment_sound",
+        ] {
+            assert!(!missing.contains(&key), "novel term must not miss `{key}`");
+        }
+    }
+
+    #[test]
+    fn declared_adoption_without_a_mapping_is_still_missing_alignment() {
+        // The DEFECT-STILL-CAUGHT guard: a term that DECLARES an external
+        // correspondence (`gmeow:adoptionTarget`) but has no documented alignment /
+        // linkage is applicable ∧ ¬present → genuinely MISSING both dimensions.
+        let model = DocsModel::default();
+        let ctx = CoverageContext::new(&model);
+        let term = DocTerm {
+            adoption_targets: vec!["schema".to_string(), "foaf".to_string()],
+            ..bare("DeclaresButUnmapped")
+        };
+        let cov = term_coverage(&term, &ctx);
+
+        assert!(
+            cov.applicable_external,
+            "declaring adoptionTarget is an intent"
+        );
+        assert!(!cov.has_alignment);
+        assert!(!cov.has_linkage_coverage);
+        let flags = cov.flags();
+        assert!(
+            !flags[IDX_ALIGNMENT],
+            "declared-but-unmapped misses alignment"
+        );
+        assert!(!flags[IDX_LINKAGE_COVERAGE], "…and linkage coverage");
+        let missing = cov.missing_keys();
+        assert!(missing.contains(&"alignment"));
+        assert!(missing.contains(&"linkage_coverage"));
+    }
+
+    #[test]
+    fn a_mapping_subject_is_applicable_and_present() {
+        // A term that already participates in an alignment + mapping-set linkage is
+        // applicable AND present → covered (unchanged from before the fix).
+        let iri = format!("{GMEOW}Mapped");
+        let model = DocsModel {
+            linkages: vec![DocLinkage {
+                mapping_set: Some(format!("{GMEOW}mappingSet/1")),
+                subject: iri.clone(),
+                subject_curie: "gmeow:Mapped".to_string(),
+                predicate: "skos:closeMatch".to_string(),
+                object: "http://example.org/Mapped".to_string(),
+                justification: None,
+                confidence: None,
+                owner_slice: format!("{GMEOW}slice/zoo"),
+            }],
+            ..Default::default()
+        };
+        let ctx = CoverageContext::new(&model);
+        let cov = term_coverage(&bare("Mapped"), &ctx);
+        assert!(cov.applicable_external);
+        assert!(cov.has_alignment);
+        assert!(cov.has_linkage_coverage);
+        assert!(cov.flags()[IDX_ALIGNMENT]);
+        assert!(cov.flags()[IDX_LINKAGE_COVERAGE]);
+    }
+
+    #[test]
+    fn a_lossy_projection_source_is_applicable_for_the_loss_dimensions() {
+        // A term with an authored static loss target is a lossy-projection source →
+        // applicable for both loss dimensions. A SOUND judgment is present (covered);
+        // an UNSOUND judgment is applicable ∧ ¬present → MISSING (defect caught).
+        let sound_model = DocsModel {
+            loss_targets: vec![DocLossTarget {
+                target: "SoundProj".to_string(),
+                label: None,
+                preservation_kind: "SoundUnderApproximation".to_string(),
+                complexity_class: "PTIME".to_string(),
+                slice: format!("{GMEOW}slice/zoo"),
+            }],
+            ..Default::default()
+        };
+        let ctx = CoverageContext::new(&sound_model);
+        let cov = term_coverage(&bare("SoundProj"), &ctx);
+        assert!(cov.applicable_lossy, "carries a static loss target");
+        assert!(cov.has_loss_ledger_row);
+        assert!(
+            cov.has_loss_judgment_sound,
+            "SoundUnder is sound-or-stronger"
+        );
+        assert!(cov.flags()[IDX_LOSS_LEDGER_ROW]);
+        assert!(cov.flags()[IDX_LOSS_JUDGMENT_SOUND]);
+
+        let unsound_model = DocsModel {
+            loss_targets: vec![DocLossTarget {
+                target: "UnsoundProj".to_string(),
+                label: None,
+                preservation_kind: "ValidationOnly".to_string(),
+                complexity_class: "PTIME".to_string(),
+                slice: format!("{GMEOW}slice/zoo"),
+            }],
+            ..Default::default()
+        };
+        let ctx = CoverageContext::new(&unsound_model);
+        let cov = term_coverage(&bare("UnsoundProj"), &ctx);
+        assert!(cov.applicable_lossy);
+        assert!(cov.has_loss_ledger_row, "present: it is a lossy source");
+        assert!(
+            !cov.has_loss_judgment_sound,
+            "ValidationOnly is weaker than sound"
+        );
+        assert!(cov.flags()[IDX_LOSS_LEDGER_ROW], "row present → covered");
+        assert!(
+            !cov.flags()[IDX_LOSS_JUDGMENT_SOUND],
+            "unsound judgment → MISSING"
+        );
+        assert!(cov.missing_keys().contains(&"loss_judgment_sound"));
     }
 
     #[test]

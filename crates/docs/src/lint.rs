@@ -30,11 +30,17 @@
 //!   worked-usage prose.
 //! - **WARNING `docs/missing-scope-note`** — a vocabulary term with no
 //!   `skos:scopeNote` usage-advice prose.
-//! - **WARNING `docs/missing-alignment`** — a vocabulary term whose IRI is not the
-//!   subject of any term equivalence (no external crosswalk; a super-ontology
-//!   coverage opportunity). All four richness findings are report-only warnings
-//!   (the gate stays green) — a ratchet whose baseline burns down as source prose
-//!   and alignments land.
+//! - **WARNING `docs/missing-alignment`** — a vocabulary term that DECLARES an
+//!   external correspondence (a non-empty `gmeow:adoptionTarget`, or it already
+//!   participates in an alignment / mapping-set linkage) yet carries no term
+//!   equivalence. GMEOW is a SUPERSET ontology, so this dimension (like
+//!   `docs/missing-linkage-coverage`, `docs/missing-loss-ledger-row`, and
+//!   `docs/missing-loss-judgment-sound`) is APPLICABILITY-CONDITIONED: a
+//!   superset-native term that maps to nothing external is NOT applicable and does
+//!   NOT warn — external linkage is an encouraged bonus, never a per-term
+//!   obligation. All richness findings are report-only warnings (the gate stays
+//!   green) — a ratchet whose baseline burns down as source prose and alignments
+//!   land.
 
 use std::collections::BTreeSet;
 
@@ -122,8 +128,8 @@ fn lint_coverage(model: &DocsModel, report: &mut Report) {
             None,
             Some(term.curie.clone()),
         );
-        for (dim, present) in DIMENSIONS.iter().zip(flags) {
-            if !present {
+        for (dim, covered) in DIMENSIONS.iter().zip(flags) {
+            if !covered {
                 let mut finding = Finding::new(
                     Severity::Warning,
                     dim.lint_code,
@@ -420,10 +426,12 @@ mod tests {
 
     #[test]
     fn coverage_gaps_are_warnings() {
-        // A bare term trips a `docs/missing-*` WARNING for every per-term dimension
-        // EXCEPT the two that are vacuously covered on a bare unit-test model:
-        // translation (no non-English languages configured) and provenance honesty
-        // (no rationale that could name a test artifact). No errors.
+        // A bare, superset-NATIVE term (no external-correspondence intent, not a
+        // lossy-projection source) trips a `docs/missing-*` WARNING for every
+        // UNCONDITIONAL per-term dimension it lacks, but NONE of the four
+        // applicability-conditioned dimensions (alignment, linkage coverage, loss
+        // ledger row, loss judgment sound) — those apply only where a term declares
+        // an external correspondence or is a lossy projection. No errors.
         let model = populated(vec![term("Bare", None, None)]);
         let site = render_site(&model);
         let report = lint(&model, &site);
@@ -435,23 +443,31 @@ mod tests {
             "docs/missing-usage-advice",
             "docs/missing-example",
             "docs/missing-scope-note",
-            "docs/missing-alignment",
             "docs/missing-fixture-pair",
             "docs/missing-competency-rationale",
             "docs/missing-worked-instance",
-            "docs/missing-loss-ledger-row",
-            "docs/missing-linkage-coverage",
             "docs/missing-annotation-coat",
             "docs/missing-test-reach",
             "docs/missing-prose-quality",
         ] {
             assert!(codes.contains(code), "expected `{code}`; got {codes:?}");
         }
-        // The vacuously-covered dimensions never fire on this model (no non-English
-        // langs, no rationale, no loss rows).
+        // The novel `Bare` term is NOT applicable for the external-correspondence /
+        // lossy dimensions, so it contributes no such miss. `missing-alignment`,
+        // `missing-loss-ledger-row`, and `missing-loss-judgment-sound` are absent from
+        // the whole report (the aligned seed terms cover alignment; nothing is a lossy
+        // source). The vacuously-covered dimensions (no non-English langs, no
+        // rationale) are also absent.
+        assert!(!codes.contains("docs/missing-alignment"));
+        assert!(!codes.contains("docs/missing-loss-ledger-row"));
+        assert!(!codes.contains("docs/missing-loss-judgment-sound"));
         assert!(!codes.contains("docs/missing-translation-coverage"));
         assert!(!codes.contains("docs/missing-provenance-honesty"));
-        assert!(!codes.contains("docs/missing-loss-judgment-sound"));
+        // `missing-linkage-coverage` DOES fire — but only for the seed terms, which
+        // DECLARE an external correspondence (they are alignment subjects) yet carry
+        // no mapping-set-backed linkage: applicable ∧ ¬present, a real defect the
+        // applicability layer still catches.
+        assert!(codes.contains("docs/missing-linkage-coverage"));
     }
 
     /// A term wired to cover ALL sixteen per-term dimensions: full annotation coat,

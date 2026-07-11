@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 294
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # assessed entity
@@ -14,7 +13,7 @@ expression: "to_markdown(&model, &Page::Term(slug))"
 | Category | Property |
 | Slice | [GMEOW Data Quality Module](../../slices/quality/index.md) |
 
-![completeness: Docs 9/17](../../badges/completeness/9.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Property](../../badges/category/property.svg) ![box: RBox](../../badges/box/boxrbox.svg)
+![completeness: Docs 10/17](../../badges/completeness/10.svg) ![stability: stable](../../badges/stability/stable.svg) ![category: Property](../../badges/category/property.svg) ![box: RBox](../../badges/box/boxrbox.svg)
 
 ## Definition
 
@@ -277,7 +276,7 @@ gmeow:assessedEntity ⊑ gmeow:observedFeature
 
 ## Documentation coverage
 
-- **9 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✗ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
+- **10 of 17 dimensions present.** ✓ Definition · ✓ Label · ✓ Usage advice · ✓ Example · ✗ Scope note · ✓ Alignment · ✗ Fixture pair · ✗ Competency rationale · ✗ Worked instance · ✓ Loss ledger row · ✓ Linkage coverage · ✓ Annotation coat · ✗ Translation coverage · ✗ Test reach · ✓ Provenance honesty · ✗ Prose quality · ✓ Loss judgment sound
 - See [Documentation health](../../health/index.md) for coverage across the whole vocabulary.
 
 ## Stability
