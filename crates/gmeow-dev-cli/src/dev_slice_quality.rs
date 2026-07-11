@@ -406,7 +406,10 @@ pub fn slice_quality_gate() -> i32 {
     };
     // Per-axis measured-score floors, projected from the ontology-resident
     // gmeow:AxisFloorCommitment commitments, keyed by (slice IRI, axis local name).
-    let axis_floors = axis_floors_from_rubric(&rubric);
+    let axis_floors = match axis_floors_from_rubric(&rubric) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+    };
 
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     // Score every discovered slice EXACTLY ONCE, in deterministic dir order, and feed
@@ -572,7 +575,10 @@ pub fn slice_quality_gate() -> i32 {
                         |slice| live_slices.contains(slice),
                     ));
                     // Per-axis floors: same projection, keyed by (slice, axis local).
-                    let base_axis = axis_floors_from_rubric(&base_rubric);
+                    let base_axis = match axis_floors_from_rubric(&base_rubric) {
+                        Ok(m) => m,
+                        Err(e) => return fail(format!("slice-quality-gate: {e}")),
+                    };
                     mono.extend(gmeow_slice_quality::gate::axis_floor_monotonicity(
                         RUBRIC_MODULE,
                         &base_axis,
@@ -753,18 +759,40 @@ fn axis_local_name(iri: &str) -> &str {
 /// `(slice IRI, axis local name) → floor` map the per-axis floor pass and the
 /// axis-floor monotonicity check consume. The rubric loader already hard-failed any
 /// commitment missing a slice/axis/value or carrying a non-finite floor, so this is
-/// a pure projection — the same map shape the removed governance-TSV parser produced.
-fn axis_floors_from_rubric(rubric: &Rubric) -> std::collections::BTreeMap<(String, String), f64> {
-    rubric
-        .commitments
-        .iter()
-        .map(|c| {
-            (
-                (c.slice.clone(), axis_local_name(&c.axis).to_owned()),
-                c.floor,
-            )
-        })
-        .collect()
+/// otherwise a pure projection — the same map shape the removed governance-TSV parser
+/// produced.
+///
+/// # Errors
+/// A HARD FAIL (.goals no-optionality) when two commitments for the SAME slice narrow
+/// to the SAME axis local name but carry DISTINCT full axis IRIs (e.g. two
+/// differently-namespaced axes both named `axisFoo`). The rubric loader dedups
+/// commitments on the full `(slice, axis-IRI)` pair, so such a pair would otherwise
+/// silently collapse last-writer-wins under the local-name key here — this guard
+/// converts that silent narrowing into a hard fail instead.
+fn axis_floors_from_rubric(
+    rubric: &Rubric,
+) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), f64>> {
+    let mut out = std::collections::BTreeMap::new();
+    let mut claimed_by: std::collections::BTreeMap<(String, String), String> =
+        std::collections::BTreeMap::new();
+    for c in &rubric.commitments {
+        let key = (c.slice.clone(), axis_local_name(&c.axis).to_owned());
+        match claimed_by.get(&key) {
+            Some(prior_axis) if *prior_axis != c.axis => {
+                return Err(sqe(format!(
+                    "axis floor commitments for slice {} collide on axis local name {:?} \
+                     from distinct axis IRIs {prior_axis} and {} — a projection to \
+                     (slice, axis local name) would silently narrow one away",
+                    c.slice, key.1, c.axis
+                )));
+            }
+            _ => {
+                claimed_by.insert(key.clone(), c.axis.clone());
+                out.insert(key, c.floor);
+            }
+        }
+    }
+    Ok(out)
 }
 
 /// Resolve the committed floor for one `(slice, axis)` grade: the explicit
@@ -1023,7 +1051,10 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
 
     // The SAME single-score pass the gate reads: score every discovered slice once,
     // in deterministic dir order, through the shared rubric.
-    let committed = axis_floors_from_rubric(&rubric);
+    let committed = match axis_floors_from_rubric(&rubric) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
+    };
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
     let mut assessments: Vec<SliceAssessment> = Vec::with_capacity(dirs.len());
     for dir in &dirs {
@@ -1182,11 +1213,72 @@ gmeow:thrGmn a gmeow:AxisThreshold ;
             "test",
         )
         .unwrap();
-        let map = axis_floors_from_rubric(&rubric);
+        let map = axis_floors_from_rubric(&rubric).unwrap();
         assert_eq!(
             map.get(&(format!("{NS}sliceX"), "axisGmn1Coverage".to_owned()))
                 .copied(),
             Some(0.9954337899543378)
+        );
+    }
+
+    #[test]
+    fn axis_floors_from_rubric_hard_fails_on_local_name_collision_across_namespaces() {
+        // The rubric loader dedups commitments on the FULL (slice, axis-IRI) pair, so
+        // two commitments for the SAME slice against two DIFFERENTLY-NAMESPACED axes
+        // that merely SHARE a local name (`axisFoo`) both survive the loader cleanly.
+        // Positive control first: two DISTINCT local names for the same slice map to
+        // two entries with no collision at all.
+        let clean = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"gmeow:afc1 a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://a.example/ns#axisFoo> ;
+    gmeow:floorValue 0.9 .
+gmeow:afc2 a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://a.example/ns#axisBar> ;
+    gmeow:floorValue 0.5 ."#,
+            ),
+            "test",
+        )
+        .unwrap();
+        let clean_map = axis_floors_from_rubric(&clean).unwrap();
+        assert_eq!(
+            clean_map
+                .get(&(format!("{NS}sliceX"), "axisFoo".to_owned()))
+                .copied(),
+            Some(0.9)
+        );
+        assert_eq!(
+            clean_map
+                .get(&(format!("{NS}sliceX"), "axisBar".to_owned()))
+                .copied(),
+            Some(0.5)
+        );
+
+        // Now the collision: two commitments for the SAME slice, DIFFERENT full axis
+        // IRIs, but the SAME local name `axisFoo` — the projection to (slice, axis
+        // local name) would otherwise silently narrow one away (last-writer-wins).
+        // This must hard-fail rather than pick a winner.
+        let colliding = load_rubric_from_ttl(
+            &mini_rubric(
+                r#"gmeow:afc1 a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://a.example/ns#axisFoo> ;
+    gmeow:floorValue 0.9 .
+gmeow:afc2 a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceX ; gmeow:floorAxis <https://b.example/other#axisFoo> ;
+    gmeow:floorValue 0.5 ."#,
+            ),
+            "test",
+        )
+        .unwrap();
+        let err = axis_floors_from_rubric(&colliding).unwrap_err();
+        assert!(
+            err.message().contains("https://a.example/ns#axisFoo")
+                && err.message().contains("https://b.example/other#axisFoo"),
+            "names both colliding full axis IRIs: {err}"
+        );
+        assert!(
+            err.message().contains(&format!("{NS}sliceX")),
+            "names the colliding slice: {err}"
         );
     }
 
@@ -1309,8 +1401,8 @@ gmeow:thrGmn a gmeow:AxisThreshold ;
             "work",
         )
         .unwrap();
-        let base_map = axis_floors_from_rubric(&base);
-        let work_map = axis_floors_from_rubric(&work);
+        let base_map = axis_floors_from_rubric(&base).unwrap();
+        let work_map = axis_floors_from_rubric(&work).unwrap();
         let errs = axis_floor_monotonicity(RUBRIC_MODULE, &base_map, &work_map, |_, _| true);
         assert_eq!(errs.len(), 1, "the lowered axis floor reds: {errs:#?}");
         assert!(
