@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ProbabilityEventOccurrentDisjointShape (Rule P11): a node typed
+# BOTH math:ProbabilityEvent (a measurable set of outcomes) AND logic:Event (an occurrent
+# that happens in time). The two are held owl:disjointWith, so the sh:not [ sh:class
+# logic:Event ] fires — shacl.NotConstraintComponent (math:ProbabilityEventOccurrentConflation).
+# Single violation: the node carries neither math:hasElement nor math:memberCondition, so the
+# inherited math:Set extent SPARQL gate stays SILENT — EXACTLY ONE finding, no sibling fires.
+# Back-reference: math:ProbabilityEvent owl:disjointWith logic:Event / math:ProbabilityEventOccurrentConflation (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecProbabilityEventOccurrentConflationBad).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:conflatedRain a math:ProbabilityEvent , logic:Event .

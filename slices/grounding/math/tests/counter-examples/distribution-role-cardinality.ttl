@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ParameterRoleCardinalityConstraint (Rule P7): a math:Distribution
+# whose math:distributionParameterization math:requiresParameterRole a single rate role,
+# but which supplies that role TWICE (two math:DistributionParameter nodes both carrying
+# math:parameterRole ex:rateRole). The aggregate SHACL-SPARQL count-per-required-role is 2
+# (!= 1), so the constraint fires — shacl.SPARQLConstraintComponent
+# (math:DistributionParameterRoleCardinality).
+# Single violation: it names its math:distributionFamily so math:DistributionFamilyShape
+# (P6a) stays SATISFIED, and it names its math:distributionParameterization so the
+# parameterization gate math:DistributionParameterizationShape (P6b) stays SATISFIED —
+# EXACTLY ONE finding, isolating the role-cardinality SPARQL gate.
+# Back-reference: math:Distribution / math:DistributionParameterRoleCardinality (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecDistributionRoleCardinalityBad).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:overSuppliedDistribution a math:Distribution ;
+    math:distributionFamily ex:poissonFamily ;
+    math:distributionParameterization ex:rateParameterization ;
+    math:hasDistributionParameter ex:rateParamA , ex:rateParamB .
+
+ex:poissonFamily a math:DistributionFamily .
+
+ex:rateParameterization a math:DistributionParameterization ;
+    math:requiresParameterRole ex:rateRole .
+
+ex:rateRole a math:DistributionParameterRole .
+
+ex:rateParamA a math:DistributionParameter ;
+    math:parameterRole ex:rateRole .
+
+ex:rateParamB a math:DistributionParameter ;
+    math:parameterRole ex:rateRole .

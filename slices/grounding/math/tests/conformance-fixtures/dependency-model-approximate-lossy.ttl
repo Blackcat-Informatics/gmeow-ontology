@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture dogfooding the NON-EXACT polarity of the probability-model
+# lowering seam: a reasoning-facing math:FactorGraph whose math:probabilityModelLowering
+# into logic:DependencyModel carries a NON-exact logic:preservationKind
+# (logic:SoundUnderApproximation) WITH its dropped constructs enumerated in the loss ledger
+# through logic:unsupportedConstruct (the string-valued loss-ledger property). The factor
+# product is unnormalized, so its intractable partition function (normalizer Z) and its
+# continuous factors cannot be carried through the discrete weighted-model-counting target
+# — those drops are DISCLOSED, never silent (Principle 17). The lowering gates
+# (math:MissingProbabilityModelLowering, math:ExactPreservationViolated) are native join
+# checks and carry no SHACL target shape; math:FactorGraph (a math:MathematicalObject) has
+# no SHACL target shape either. It MUST raise NO probability failure class.
+# Bound by tests/example-conformance.ttl (ex:ecDependencyModelApproximateLossy).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:unnormalizedFactorGraph a math:FactorGraph ;
+    math:dependencyGraph ex:factorGraphStructure ;
+    # A DECLARED lowering into the logic: dependency-model target, whose preservation
+    # polarity is honestly SOUND-UNDER-APPROXIMATION (not exact): the discrete weighted
+    # factor product over-/under-approximates the unnormalized continuous model.
+    math:probabilityModelLowering logic:DependencyModel ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    # The constructs the lowering cannot carry, enumerated as recorded loss (multi-valued,
+    # string-typed loss-ledger property), never dropped silently.
+    logic:unsupportedConstruct
+        "partition-function normalizer Z (intractable, so the product is left unnormalized)" ,
+        "continuous factors (approximated by discrete weighted-model-counting factors)" .
+
+ex:factorGraphStructure a math:MathematicalObject .

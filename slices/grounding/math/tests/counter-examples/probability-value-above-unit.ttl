@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ProbabilityValueRangeShape (Rule P1): a math:ProbabilityValue
+# whose gmeow:quantityValue magnitude (1.5) lies ABOVE the closed unit interval [0, 1].
+# Single violation: the range gate on gmeow:quantityValue fires — shacl.MaxInclusiveConstraintComponent
+# (math:ProbabilityOutOfBounds). It carries a gmeow:hasReferenceFrame so the framing gate
+# math:ProbabilityValueFramedShape (P3) stays SATISFIED, it is not typed math:OddsValue /
+# math:LogOddsValue so math:ProbabilityScaleDisjointShape (P2) stays satisfied, and it
+# carries no logic:confidence so math:ConfidenceAsProbabilityConstraint (P10) stays silent —
+# so EXACTLY ONE finding is raised and NO sibling probability shape also fires.
+# Back-reference: math:ProbabilityValue / math:ProbabilityOutOfBounds (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecProbabilityValueAboveUnitBad).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:aboveUnitProbability a math:ProbabilityValue ;
+    gmeow:quantityValue "1.5"^^xsd:decimal ;
+    gmeow:hasReferenceFrame ex:forecastFrame .
+
+ex:forecastFrame a gmeow:ReferenceFrame .

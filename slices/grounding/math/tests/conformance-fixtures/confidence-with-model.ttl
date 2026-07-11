@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:ConfidenceAsProbabilityConstraint (Rule P10): a
+# math:ProbabilityValue that carries a logic:confidence AND declares the logic:probabilityModel
+# that licenses reading that confidence as a probability, so the confidence→probability
+# SHACL-SPARQL gate stays silent. The declared model also satisfies the framing gate
+# math:ProbabilityValueFramedShape (P3, via the probabilityModel arm of its sh:or). It is
+# not typed math:OddsValue / math:LogOddsValue (P2). It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/confidence-as-probability.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecConfidenceWithModel).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:calibratedProbability a math:ProbabilityValue ;
+    logic:confidence "0.8"^^xsd:decimal ;
+    logic:probabilityModel ex:logisticCalibrationModel .
+
+ex:logisticCalibrationModel a math:MathematicalObject .
