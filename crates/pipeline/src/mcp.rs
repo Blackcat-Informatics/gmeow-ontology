@@ -183,6 +183,241 @@ SELECT ?c ?q ?rationale ?count ?exact WHERE {{
     )
 }
 
+/// SELECT the searchable documentation-entry records from the documentation graph:
+/// each entry subject, its `rdf:type`, the REAL display label, the optional
+/// definition, the site URL, the documented real IRI, and the repeatable advisory /
+/// alignment / missing-coverage facets. The `docSearchLabel` pattern is required (not
+/// OPTIONAL), so only genuine documentation-entry records (gmeow:DocumentedTerm /
+/// DocumentedSlice / DocumentedConcern) match — never a bare evidence node.
+const DOC_SEARCH_QUERY: &str = "\
+PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?s ?type ?label ?definition ?url ?documents ?advice ?alignment ?missing WHERE {
+  ?s rdf:type ?type ;
+     gm:docSearchLabel ?label .
+  OPTIONAL { ?s gm:docSearchDefinition ?definition }
+  OPTIONAL { ?s gm:docUrl ?url }
+  OPTIONAL { ?s gm:documents ?documents }
+  OPTIONAL { ?s gm:docSearchAdvice ?advice }
+  OPTIONAL { ?s gm:docSearchAlignment ?alignment }
+  OPTIONAL { ?s gm:docMissesDimension ?missing }
+}";
+
+/// One ranked documentation search hit the `docs_search` tool returns. Carries the
+/// same facet shape the site `search-index.json` record does (`kind`, `id`, `label`,
+/// `definition`, `url`, `advice`, `alignments`, `missing_coverage`) plus a private
+/// match `rank` used only for the deterministic ordering.
+#[derive(Debug)]
+struct SearchHit {
+    /// The record kind (`term`, `slice`, `concern`) from its `rdf:type` local name.
+    kind: String,
+    /// The documented real IRI (`gmeow:documents`) — a value a caller can pass back to
+    /// `lookup_term` / `doc_card`.
+    id: String,
+    /// The REAL display label (`gmeow:docSearchLabel`).
+    label: String,
+    /// The definition prose (`gmeow:docSearchDefinition`), absent when the record
+    /// carries none.
+    definition: Option<String>,
+    /// The site-relative page URL (`gmeow:docUrl`), absent when the record carries none.
+    url: Option<String>,
+    /// The advisory-prose facet (`gmeow:docSearchAdvice`), sorted+deduped; empty when
+    /// none.
+    advice: Vec<String>,
+    /// The crosswalk alignment facet (`gmeow:docSearchAlignment`), sorted+deduped;
+    /// empty when none.
+    alignments: Vec<String>,
+    /// The missing-dimension facet — the local names of `gmeow:docMissesDimension`,
+    /// sorted+deduped; empty when the record misses no dimension.
+    missing_coverage: Vec<String>,
+    /// The match rank (lower is better): 0 label, 1 definition, 2 advice. Not
+    /// serialized — the tie-break beside the id gives a stable, reproducible order.
+    rank: u8,
+}
+
+impl SearchHit {
+    fn to_json(&self) -> Value {
+        json!({
+            "kind": self.kind,
+            "id": self.id,
+            "label": self.label,
+            "definition": self.definition,
+            "url": self.url,
+            "advice": self.advice,
+            "alignments": self.alignments,
+            "missing_coverage": self.missing_coverage,
+        })
+    }
+}
+
+/// Whether a lowercased searchable field matches the query: a substring hit on the
+/// whole lowercased query, OR (token mode) every whitespace-split query token appears
+/// somewhere in the field. Case-insensitive by construction (both sides lowercased).
+fn field_matches(field_lc: &str, query_lc: &str, tokens: &[&str]) -> bool {
+    field_lc.contains(query_lc)
+        || (!tokens.is_empty() && tokens.iter().all(|t| field_lc.contains(t)))
+}
+
+/// The local name of an IRI: the tail after the last `/` or `#` (the whole string when
+/// neither is present).
+fn iri_local_name(iri: &str) -> &str {
+    match iri.rfind(['/', '#']) {
+        Some(i) => &iri[i + 1..],
+        None => iri,
+    }
+}
+
+/// Search the bundle's `gmeow:graph/documentation` projection for documentation-entry
+/// records whose label / definition / advisory prose match `query`, returning up to
+/// `limit` ranked [`SearchHit`]s.
+///
+/// The tool queries the documentation NAMED GRAPH — always present in every bundle —
+/// NOT any packed `search-index.json` archive member (the lean `gmeow.gts` carries
+/// none). An ABSENT/EMPTY documentation graph is therefore a HARD FAIL (a real defect,
+/// never a silent empty result); a query that legitimately matches nothing returns an
+/// empty vector (empty-but-ok is the caller's `{"ok":true,"results":[]}`).
+///
+/// Ranking is deterministic: records are ordered by match quality (a label match
+/// outranks a definition match, which outranks an advice-only match) then by `id`
+/// (the documented IRI), so the same query twice yields the same order.
+fn search_documentation(
+    dataset: &purrdf::RdfDataset,
+    query: &str,
+    limit: usize,
+) -> gmeow_errors::Result<Vec<SearchHit>> {
+    let docs = Arc::new(dataset.project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION));
+    // HARD FAIL: the documentation graph is absent/empty in this bundle. docs_search
+    // serves the documentation graph, so a missing graph is a genuine defect.
+    if docs.quad_count() == 0 {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: "docs_search: the gmeow:graph/documentation named graph is absent or empty \
+                      in this bundle — the searchable documentation projection is missing"
+                .to_string(),
+        }));
+    }
+    let value =
+        sparql_result_to_json(crate::stages::native_query::query(&docs, DOC_SEARCH_QUERY)?)?;
+
+    // Aggregate the (repeatable advice/alignment/missing) rows back per entry subject.
+    #[derive(Default)]
+    struct Acc {
+        kind: String,
+        id: String,
+        label: String,
+        definition: Option<String>,
+        url: Option<String>,
+        advice: BTreeSet<String>,
+        alignments: BTreeSet<String>,
+        missing: BTreeSet<String>,
+    }
+    let mut by_subject: BTreeMap<String, Acc> = BTreeMap::new();
+    for row in select_rows(&value) {
+        let (Some(subject), Some(ty), Some(label)) =
+            (row.get("s"), row.get("type"), row.get("label"))
+        else {
+            continue;
+        };
+        let kind = match iri_local_name(ty) {
+            "DocumentedTerm" => "term",
+            "DocumentedSlice" => "slice",
+            "DocumentedConcern" => "concern",
+            // Any other typed subject is not a searchable documentation-entry record.
+            _ => continue,
+        };
+        let acc = by_subject.entry(subject.clone()).or_default();
+        acc.kind = kind.to_string();
+        acc.label = label.clone();
+        acc.id = row
+            .get("documents")
+            .cloned()
+            .unwrap_or_else(|| subject.clone());
+        if let Some(def) = row.get("definition") {
+            acc.definition = Some(def.clone());
+        }
+        if let Some(url) = row.get("url") {
+            acc.url = Some(url.clone());
+        }
+        if let Some(advice) = row.get("advice") {
+            acc.advice.insert(advice.clone());
+        }
+        if let Some(alignment) = row.get("alignment") {
+            acc.alignments.insert(alignment.clone());
+        }
+        if let Some(missing) = row.get("missing") {
+            acc.missing.insert(iri_local_name(missing).to_string());
+        }
+    }
+
+    let query_lc = query.to_lowercase();
+    let tokens: Vec<&str> = query_lc.split_whitespace().collect();
+
+    let mut hits: Vec<SearchHit> = Vec::new();
+    for acc in by_subject.into_values() {
+        let label_lc = acc.label.to_lowercase();
+        let def_lc = acc.definition.as_deref().unwrap_or("").to_lowercase();
+        let advice_lc = acc
+            .advice
+            .iter()
+            .map(|a| a.to_lowercase())
+            .collect::<Vec<_>>()
+            .join("\n");
+        // Rank by the strongest matching field (label > definition > advice); a record
+        // matching none is not a hit.
+        let rank = if field_matches(&label_lc, &query_lc, &tokens) {
+            0
+        } else if field_matches(&def_lc, &query_lc, &tokens) {
+            1
+        } else if field_matches(&advice_lc, &query_lc, &tokens) {
+            2
+        } else {
+            continue;
+        };
+        hits.push(SearchHit {
+            kind: acc.kind,
+            id: acc.id,
+            label: acc.label,
+            definition: acc.definition,
+            url: acc.url,
+            advice: acc.advice.into_iter().collect(),
+            alignments: acc.alignments.into_iter().collect(),
+            missing_coverage: acc.missing.into_iter().collect(),
+            rank,
+        });
+    }
+    // Deterministic order: best match first, then by documented IRI as a stable
+    // tie-break.
+    hits.sort_by(|a, b| a.rank.cmp(&b.rank).then_with(|| a.id.cmp(&b.id)));
+    hits.truncate(limit);
+    Ok(hits)
+}
+
+/// Extract the `results.bindings` of a SPARQL-1.1 JSON envelope into flat
+/// `var → lexical-value` rows (each binding's `"value"`). Shared by
+/// [`McpView::docs_select_rows`] and [`search_documentation`].
+fn select_rows(value: &Value) -> Vec<BTreeMap<String, String>> {
+    value
+        .get("results")
+        .and_then(|r| r.get("bindings"))
+        .and_then(Value::as_array)
+        .map(|bindings| {
+            bindings
+                .iter()
+                .filter_map(Value::as_object)
+                .map(|binding| {
+                    binding
+                        .iter()
+                        .filter_map(|(var, cell)| {
+                            cell.get("value")
+                                .and_then(Value::as_str)
+                                .map(|v| (var.clone(), v.to_owned()))
+                        })
+                        .collect::<BTreeMap<String, String>>()
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// Render one fixture record as the tool's JSON object. The advisory fields are
 /// emitted as `null` when the slice authored none (a stable shape callers can read
 /// without probing for key presence).
@@ -461,27 +696,7 @@ impl McpView {
         sparql: &str,
     ) -> gmeow_errors::Result<Vec<BTreeMap<String, String>>> {
         let value = self.run_docs_query(sparql)?;
-        let bindings = value
-            .get("results")
-            .and_then(|r| r.get("bindings"))
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default();
-        let rows = bindings
-            .iter()
-            .filter_map(Value::as_object)
-            .map(|binding| {
-                binding
-                    .iter()
-                    .filter_map(|(var, cell)| {
-                        cell.get("value")
-                            .and_then(Value::as_str)
-                            .map(|v| (var.clone(), v.to_owned()))
-                    })
-                    .collect::<BTreeMap<String, String>>()
-            })
-            .collect();
-        Ok(rows)
+        Ok(select_rows(&value))
     }
 
     /// Build the two fixture correspondence maps from the `gmeow:graph/documentation`
@@ -996,6 +1211,18 @@ impl McpServer {
                 &[("query", "string")],
             ),
             tool(
+                "docs_search",
+                "Full-text search the bundled documentation graph (gmeow:graph/documentation) \
+                 for terms, slices, and concerns whose label, definition, or advisory prose \
+                 match `query` (case-insensitive substring / token match). Returns ranked \
+                 records — a label match outranks a definition match outranks an advice match, \
+                 tie-broken by IRI — each with its kind, documented IRI (id), label, definition, \
+                 site URL, and the same advice / alignments / missing_coverage facets the site \
+                 search index carries. Pass an optional `limit` (default 20). A query that \
+                 matches nothing returns an empty result list.",
+                &[("query", "string"), ("limit", "integer")],
+            ),
+            tool(
                 "query_local",
                 "Run a SELECT or ASK SPARQL query over the bundle UNIONED with a READ-ONLY \
                  local overlay graph file (path). The overlay is loaded as an EXTERNAL, \
@@ -1186,6 +1413,7 @@ impl McpServer {
             "doc_card" => self.tool_doc_card(args),
             "okf_index" => self.tool_okf_index(args),
             "query_docs" => self.tool_query_docs(args),
+            "docs_search" => self.tool_docs_search(args),
             "query_local" => self.tool_query_local(args),
             "validate_local" => self.tool_validate_local(args),
             "explain_finding" => self.tool_explain_finding(args),
@@ -1387,6 +1615,18 @@ impl McpServer {
     fn tool_query_docs(&self, args: &Value) -> gmeow_errors::Result<String> {
         let query = required_str(args, "query")?;
         Ok(self.view.query_docs_json(query))
+    }
+
+    /// `docs_search`: rank the documented terms / slices / concerns whose searchable
+    /// facets match `query` over the `gmeow:graph/documentation` projection. An
+    /// absent/empty documentation graph is a HARD FAIL; a query matching nothing is an
+    /// honest empty-but-ok result.
+    fn tool_docs_search(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let query = required_str(args, "query")?;
+        let limit = optional_limit(args, "limit")?.unwrap_or(20);
+        let hits = search_documentation(self.view.dataset.as_ref(), query, limit)?;
+        let results: Vec<Value> = hits.iter().map(SearchHit::to_json).collect();
+        Ok(json!({"ok": true, "query": query, "results": results}).to_string())
     }
 
     fn tool_query_local(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -2267,13 +2507,15 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
         .filter_map(|(prop, _)| {
             let required_by_name = matches!(
                 *prop,
-                "term" | "text" | "claim_id" | "path" | "target_iri" | "data" | "format"
+                "term" | "text" | "claim_id" | "path" | "target_iri" | "data" | "format" | "query"
             );
-            // Carve-out: `competency_questions` accepts an OPTIONAL `term` (the
-            // whole-index form omits it), so `term` is not required THERE despite the
-            // shared arg name being required everywhere else. This keeps the advertised
-            // schema honest rather than marking an optional arg required.
-            let optional_here = name == "competency_questions" && *prop == "term";
+            // Carve-outs: an arg whose shared name is required everywhere else is
+            // OPTIONAL for a specific tool, so marking it required THERE would advertise
+            // a dishonest schema. `competency_questions` accepts an optional `term` (the
+            // whole-index form omits it); `recall` accepts an optional `query` (an empty
+            // query recalls everything).
+            let optional_here = (name == "competency_questions" && *prop == "term")
+                || (name == "recall" && *prop == "query");
             (required_by_name && !optional_here).then_some(*prop)
         })
         .collect();
@@ -3824,6 +4066,7 @@ mod tests {
         call_args.insert("lookup_term", json!({"term": "gmeow:Entity"}));
         call_args.insert("doc_card", json!({"term": "gmeow:Entity"}));
         call_args.insert("query_docs", json!({"query": "ASK { ?s ?p ?o }"}));
+        call_args.insert("docs_search", json!({"query": "entity"}));
         call_args.insert(
             "query_local",
             json!({"path": overlay_path.to_str().unwrap(), "query": "ASK { ?s ?p ?o }"}),
@@ -5106,5 +5349,163 @@ mod tests {
             unknown["ok"], false,
             "unknown term is a hard error: {unknown}"
         );
+    }
+
+    /// A tiny synthetic documentation dataset for the `search_documentation` unit
+    /// tests: two class terms whose `to_gmeow_rdf` projection carries the new
+    /// `docSearch*` facets, parsed back into an [`purrdf::RdfDataset`] exactly the way
+    /// the production carrier holds the bundle's documentation graph. This does NOT
+    /// depend on the committed bundle (which only gains the facets after regenerate) —
+    /// it exercises the projection + search end to end from the model.
+    fn synthetic_docs_dataset() -> Arc<purrdf::RdfDataset> {
+        use gmeow_docs::{DocLinkage, DocTerm, DocTermCategory};
+        let ns = "https://blackcatinformatics.ca/gmeow/";
+        let model = gmeow_docs::DocsModel {
+            terms: vec![
+                DocTerm {
+                    iri: format!("{ns}Cat"),
+                    curie: "gmeow:Cat".to_string(),
+                    label: Some("Cat".to_string()),
+                    definition: Some("A small domesticated feline.".to_string()),
+                    category: DocTermCategory::Class,
+                    owner_slice: format!("{ns}slice/zoo"),
+                    scope_notes: vec![
+                        "Prefer for a domestic cat; avoid for a wildcat.".to_string(),
+                    ],
+                    ..Default::default()
+                },
+                DocTerm {
+                    iri: format!("{ns}Feline"),
+                    curie: "gmeow:Feline".to_string(),
+                    label: Some("Feline".to_string()),
+                    definition: Some("The cat family of mammals.".to_string()),
+                    category: DocTermCategory::Class,
+                    owner_slice: format!("{ns}slice/zoo"),
+                    ..Default::default()
+                },
+            ],
+            // A crosswalk linkage on Cat → the alignment facet token `exactMatch:Q146`.
+            linkages: vec![DocLinkage {
+                mapping_set: None,
+                subject: format!("{ns}Cat"),
+                subject_curie: "gmeow:Cat".to_string(),
+                predicate: "http://www.w3.org/2004/02/skos/core#exactMatch".to_string(),
+                object: "http://www.wikidata.org/entity/Q146".to_string(),
+                justification: None,
+                confidence: None,
+                owner_slice: format!("{ns}slice/zoo"),
+            }],
+            ..Default::default()
+        };
+        let nquads = gmeow_docs::to_gmeow_rdf(&model, &BTreeMap::new());
+        purrdf::parse_dataset(nquads.as_bytes(), "application/n-quads", None)
+            .expect("to_gmeow_rdf emits valid N-Quads")
+    }
+
+    /// `search_documentation` over the synthetic dataset: matches on label /
+    /// definition / advice, attaches the advice + alignment + missing-coverage facets,
+    /// ranks a label match above a definition match, returns empty for a non-match, and
+    /// is deterministic.
+    #[test]
+    fn search_documentation_matches_facets_ranks_and_is_deterministic() {
+        let dataset_arc = synthetic_docs_dataset();
+        let dataset = dataset_arc.as_ref();
+        let cat_iri = "https://blackcatinformatics.ca/gmeow/Cat";
+        let feline_iri = "https://blackcatinformatics.ca/gmeow/Feline";
+
+        // "cat": Cat matches by LABEL (rank 0); Feline matches by DEFINITION ("the cat
+        // family …", rank 1) — so Cat sorts first.
+        let hits = search_documentation(dataset, "cat", 20).expect("search ok");
+        let ids: Vec<&str> = hits.iter().map(|h| h.id.as_str()).collect();
+        assert_eq!(
+            ids,
+            vec![cat_iri, feline_iri],
+            "label match outranks definition match"
+        );
+        let cat = &hits[0];
+        assert_eq!(cat.kind, "term");
+        assert_eq!(cat.label, "Cat");
+        assert_eq!(
+            cat.definition.as_deref(),
+            Some("A small domesticated feline.")
+        );
+        assert_eq!(
+            cat.advice,
+            vec!["Prefer for a domestic cat; avoid for a wildcat.".to_string()],
+            "the advice facet is attached"
+        );
+        assert_eq!(
+            cat.alignments,
+            vec!["exactMatch:Q146".to_string()],
+            "the alignment facet is attached"
+        );
+        assert!(
+            !cat.missing_coverage.is_empty(),
+            "an under-documented term carries missing-coverage dimensions: {:?}",
+            cat.missing_coverage
+        );
+
+        // An advice-only match: "wildcat" appears only in Cat's advice prose.
+        let advice_hits = search_documentation(dataset, "wildcat", 20).expect("search ok");
+        let advice_ids: Vec<&str> = advice_hits.iter().map(|h| h.id.as_str()).collect();
+        assert_eq!(advice_ids, vec![cat_iri], "advice prose is searchable");
+
+        // A definition-only match: "mammals" appears only in Feline's definition.
+        let def_hits = search_documentation(dataset, "mammals", 20).expect("search ok");
+        let def_ids: Vec<&str> = def_hits.iter().map(|h| h.id.as_str()).collect();
+        assert_eq!(def_ids, vec![feline_iri], "definition prose is searchable");
+
+        // A non-matching query is empty-but-ok (never a hard fail on a populated graph).
+        let none = search_documentation(dataset, "xylophone", 20).expect("search ok");
+        assert!(none.is_empty(), "a non-matching query returns no hits");
+
+        // Determinism: the same query twice yields the same order.
+        let a = search_documentation(dataset, "cat", 20).expect("search ok");
+        let b = search_documentation(dataset, "cat", 20).expect("search ok");
+        assert_eq!(
+            a.iter().map(|h| &h.id).collect::<Vec<_>>(),
+            b.iter().map(|h| &h.id).collect::<Vec<_>>(),
+            "search order is reproducible"
+        );
+
+        // The limit is honored.
+        let limited = search_documentation(dataset, "cat", 1).expect("search ok");
+        assert_eq!(limited.len(), 1, "limit caps the result count");
+    }
+
+    /// `search_documentation` HARD-FAILS when the documentation graph is absent/empty
+    /// — docs_search serves the documentation graph, so a missing graph is a defect,
+    /// never a silent empty result.
+    #[test]
+    fn search_documentation_hard_fails_on_absent_documentation_graph() {
+        let empty = purrdf::RdfDatasetBuilder::new()
+            .freeze()
+            .expect("empty dataset");
+        let err = search_documentation(&empty, "cat", 20)
+            .expect_err("an absent documentation graph is a hard fail");
+        assert!(
+            err.to_string().contains("graph/documentation"),
+            "the hard-fail error names the missing documentation graph: {err}"
+        );
+    }
+
+    /// `docs_search` dispatches over the shipped bundle and returns an OK envelope with
+    /// a `results` array. (The committed bundle carries the documentation graph but not
+    /// yet the `docSearch*` facets — those land after regenerate — so the live match
+    /// set is validated by the synthetic unit test above; here we prove the tool wires
+    /// through, never hard-fails on the populated graph, and is deterministic.)
+    #[test]
+    fn docs_search_tool_dispatches_over_the_bundle() {
+        let server = consumer_server();
+        let hit = text_payload(server.call_tool_result("docs_search", &json!({"query": "entity"})));
+        assert_eq!(
+            hit["ok"], true,
+            "docs_search returns ok over the bundle: {hit}"
+        );
+        assert_eq!(hit["query"], "entity");
+        assert!(hit["results"].is_array(), "results is an array: {hit}");
+        let again =
+            text_payload(server.call_tool_result("docs_search", &json!({"query": "entity"})));
+        assert_eq!(hit, again, "docs_search output is deterministic");
     }
 }
