@@ -45,6 +45,7 @@ pub fn resolve(producer: &str) -> Option<Primitive> {
         "reasoner_axis" => Some(crate::reasoner::reasoner_axis),
         "flagship_counterexample_depth_axis" => Some(flagship_counterexample_depth_axis),
         "gmn1_coverage_axis" => Some(gmn1_coverage_axis),
+        "DocMaturity" => Some(crate::doc_maturity::DocMaturity::axis),
         _ => None,
     }
 }
@@ -65,6 +66,7 @@ pub const IMPLEMENTED: &[&str] = &[
     "reasoner_axis",
     "flagship_counterexample_depth_axis",
     "gmn1_coverage_axis",
+    "DocMaturity",
 ];
 
 // ── Axis 1: Maximal grounding ─────────────────────────────────────────────
@@ -1117,7 +1119,7 @@ fn flagship_counterexample_depth_axis(ctx: &ScoreContext) -> AxisScore {
 /// grounding/` is organizational path-only per `slices/vocabulary.ttl`), applied here
 /// to locate the shared `slices/grounding/lang/module.ttl` dictionary from any slice's
 /// own directory.
-fn repo_root_of(slice_dir: &Path) -> Option<std::path::PathBuf> {
+pub(crate) fn repo_root_of(slice_dir: &Path) -> Option<std::path::PathBuf> {
     let mut root = std::path::PathBuf::new();
     for comp in slice_dir.components() {
         if comp.as_os_str() == "slices" {

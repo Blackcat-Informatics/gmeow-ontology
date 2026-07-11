@@ -224,6 +224,124 @@ memorable thesis sentence beats a section of restatement. *Exhibit:
 `slices/core/tags/docs.md` — "tagging systems rot when three different things get smeared
 into one."*
 
+### 6.8 The maturity ladder — FULL and MAXIMAL are exactly the rendered surfaces
+
+The richness bar is not a mood; it is a **lattice of structural coverage dimensions** that
+the docs generator detects, the coverage projection folds into the
+`gmeow:graph/documentation` named graph, and the maturity gate scores. A slice claims a tier
+with `gmeow:sliceDocMaturity`; the projection computes the tier its coverage actually
+**earns** (`gmeow:docEarnedMaturity`, the largest anchor whose required dimensions are all
+covered); the headline gate reds the build when a slice claims more than it earns
+(`asserted ⊄ earned`). The vocabulary is `slices/core/documentation/module.ttl` — the
+`gmeow:DocMaturity` anchors and the `gmeow:DocCoverageDimension` individuals — and its Rust
+twin is `crates/docs/src/maturity.rs`.
+
+Four anchors, nested by intent (`Minimal ⊆ Basic ⊆ Full ⊆ Maximal`):
+
+- **Minimal** — the term is named and defined (`dimDefinition`, `dimLabel`).
+- **Basic** — the six-dimension core coat: Minimal plus `dimUsageAdvice`, `dimExample`,
+  `dimScopeNote`, `dimAlignment`. This is the § 6.2 annotation-completeness bar.
+- **Full** — the core coat plus proof-carrying evidence and honest realized state.
+- **Maximal** — Full plus every remaining structural dimension, including the Principle-17
+  judgment-valued loss refinement.
+
+Every dimension is a **deterministic structural predicate** — a present/absent fact of the
+model, never a corpus-tuned threshold or a subjective grade — so the maturity axes stay
+objective. The two tiers a re-authored slice aims for are defined here as **exactly** the
+surfaces an author must provide. The first whitespace-delimited token on each line of the
+blocks below is the canonical `gmeow:DocCoverageDimension` local name; the rest of the line
+is the surface that satisfies it.
+
+**FULL** requires all twelve of these:
+
+<!-- doctrine-intent:full -->
+
+```text
+dimDefinition          a non-empty skos:definition stating the term AND its boundaries (what it is not)
+dimLabel               a non-empty rdfs:label
+dimUsageAdvice         at least one of gmeow:useWhen / gmeow:avoidWhen / gmeow:howToUse
+dimExample             at least one skos:example — a one-line worked triple
+dimScopeNote           at least one skos:scopeNote — an explicit boundary note
+dimAlignment           the term is the subject of at least one external correspondence in mappings/
+dimFixturePair         a conformance fixture AND a counter-example referencing the term (a rule with no negative fixture is not enforced)
+dimCompetencyRationale a competency question exercising the term, carrying a non-blank rationale
+dimWorkedInstance      a worked instance under examples/ demonstrating the term in a scene
+dimLossLedgerRow       a projection-loss ledger row recorded for the term (its lossy projections)
+dimLinkageCoverage     the term is a member of at least one compiled mapping set's coverage
+dimRealizedState       every artifact in the slice's docs.md design-set table carries a design-only / partial / built marker
+```
+
+**MAXIMAL** requires everything in FULL, plus all seven of these:
+
+<!-- doctrine-intent:maximal -->
+
+```text
+dimAnnotationCoat      the full advice coat present together: useWhen AND avoidWhen AND howToUse AND graphBoxRole
+dimThesisSentence      the owning slice's docs.md opens with a non-empty thesis sentence
+dimTranslationCoverage the term's carrier strings are present in every supported language (en / fr / cmn)
+dimTestReach           the term is reached by at least one structural assertion or competency question
+dimProvenanceHonesty   the rationale names no test artifact (a name-membership check, so a rationale is not silently a test reference)
+dimProseQuality        the structural conjunction: a three-NOTs boundary AND a worked-triple example AND a usage coat distinct from the definition AND a rationale distinct from the label
+dimLossJudgmentSound   every preservation judgment on the term's loss rows is sound-or-stronger in the logic:PreservationKind ordering
+```
+
+`dimRealizedState` sits at the FULL floor deliberately: a `≥ FULL` slice whose `docs.md`
+design-set table lists an artifact with **no** realized-state marker misses the dimension,
+drops below its asserted tier, and the gate bites. The marker is a gated completeness fact,
+not authorial vigilance — see § 6.7's design-set table and
+[`GROUNDING.md`](GROUNDING.md) § coverage duty.
+
+**Alignment, linkage, and loss are required WHERE APPLICABLE.** Four dimensions —
+`dimAlignment`, `dimLinkageCoverage`, `dimLossLedgerRow`, and `dimLossJudgmentSound` — are
+**applicability-conditioned**, because GMEOW is a *superset* ontology that guarantees novel
+terms with no external equivalent and native terms that are lossy projections of nothing.
+A term COVERS such a dimension when `!applicable ∨ present`: the external-correspondence pair
+(`dimAlignment` / `dimLinkageCoverage`) applies only to a term that **declares** an external
+correspondence — a non-empty `gmeow:adoptionTarget`, or a term already carrying an alignment
+/ mapping-set linkage — and the loss pair (`dimLossLedgerRow` / `dimLossJudgmentSound`)
+applies only to a term that **is** a lossy-projection source (it appears in the projection-loss
+ledger). A superset-native term with **no** external correspondence, or a native, non-projected
+term, satisfies these by non-applicability and is **never** penalized — external linkage is an
+*encouraged bonus* (more is better), never a per-term obligation. A term that DECLARES an
+external correspondence but ships no documented mapping, or a lossy projection whose judgment
+is weaker than sound, is `applicable ∧ ¬present` → still MISSING, a real defect the gate keeps
+catching. (This changes only *when* the four dimensions count, never the FULL / MAXIMAL
+intents below — they still list all four.)
+
+**Per-term quality (∀) vs slice demonstration (∃).** When the coverage projection rolls a
+per-term dimension up to the SLICE, it uses one of two quantifiers. Most dimensions are
+**per-term qualities** every documented term must individually carry, so the slice covers
+them **universally** (∀): it covers the dimension iff *every* applicable term covers it
+(`definition`, `label`, `usageAdvice`, `example`, `scopeNote`, `alignment`,
+`linkageCoverage`, `annotationCoat`, `translationCoverage`, `testReach`,
+`provenanceHonesty`, `proseQuality`, `lossLedgerRow`, `lossJudgmentSound`). Three are
+**slice-demonstration** dimensions — testing / documentation *practices* the slice
+demonstrates, not per-term obligations — so the slice covers them **existentially** (∃):
+it covers the dimension iff *at least one* applicable term demonstrates it (vacuously
+covered when no term is applicable):
+
+- **`dimFixturePair`** — "a rule with no negative fixture is not enforced" is about the
+  slice demonstrating fixture discipline, not every term shipping its own pair.
+- **`dimCompetencyRationale`** — a competency question documents the slice's vocabulary,
+  not one term, so one rationale-carrying CQ demonstrates the practice for the slice.
+- **`dimWorkedInstance`** — a worked scene under `examples/` documents the slice's
+  vocabulary; the slice demonstrates it when one applicable term appears in a scene.
+
+The per-TERM `gmeow:docCoversDimension` / `gmeow:docMissesDimension` incidence is
+**unchanged** by this split — it still records every term's individual status as the
+diagnostic; only the per-slice roll-up of these three flips from ∀ to ∃. The
+`gmeow:DocCoverageDimension` vocabulary and the two doctrine blocks above are untouched.
+
+> **Doctrine == vocabulary (binding contract).** The two `<!-- doctrine-intent:… -->`
+> blocks above are the single prose definition of FULL and MAXIMAL, and they are pinned to
+> the minted vocabulary by `crates/docs/tests/doctrine_matches_vocabulary.rs`. That test
+> parses the first token of each fenced line here and asserts the FULL set and the
+> FULL-plus-MAXIMAL set equal the `gmeow:maturityRequiresDimension` intents of
+> `gmeow:docMaturityFull` / `gmeow:docMaturityMaximal` (via the `maturity::anchor_table()`
+> twin). Editing either block without the matching change to
+> `slices/core/documentation/module.ttl` (and its Rust twin) reds the build — the doctrine
+> can never silently diverge from the ontology.
+
 ## 7. Alignment — correspondences at the honest rung
 
 Alignment is authored **once, in the slice, as ergonomic frontend records** in
@@ -498,6 +616,9 @@ Before opening the PR, every box:
 - [ ] Competency questions authored as queries and pinned as cells; structural cells carry
       rationales (§3, §6.6)
 - [ ] No derived facts asserted; no hand-authored projection surfaces (P4/7/12/17)
+- [ ] The tier claimed in `gmeow:sliceDocMaturity` is one the coverage genuinely earns —
+      every dimension in its intent covered, realized-state markers present, the
+      `asserted ⊄ earned` gate empty (§6.8)
 - [ ] `make regenerate` landed with the change; drifted goldens re-blessed deliberately;
       full `make check` green merged into current `main` (§11)
 - [ ] Capping axis uplifted where the lane names one; the raised floor individual

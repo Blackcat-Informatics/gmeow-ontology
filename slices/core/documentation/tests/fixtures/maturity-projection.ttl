@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked projection scene for the two documentation-maturity GATE queries. It
+# mirrors the shape crates/docs projects into the graph/documentation named graph:
+# a gmeow:DocumentedSlice record gmeow:documents the real slice IRI and carries the
+# per-slice gmeow:docCoversDimension incidence, while the CLAIMED tier
+# (gmeow:sliceDocMaturity) is asserted on the real slice IRI (its manifest), so the
+# gate query bridges record → slice via gmeow:documents exactly as it must over the
+# regenerated bundle. Lives under tests/ (NOT examples/) on purpose: it is gate
+# test-data only and must NOT enter the docs projection universe.
+#
+# Two records are demonstrated:
+#   1. A SUPPORTED slice — asserts gmeow:docMaturityMinimal and covers that anchor's
+#      whole intent (gmeow:dimDefinition, gmeow:dimLabel), so maturity-not-supported.rq
+#      returns EMPTY (the headline gate holds).
+#   2. An UNDER-DOCUMENTED grounding-slice term — owned by the logic grounding slice
+#      and MISSING the three grounding-tier dimensions, so grounding-gaps.rq returns
+#      it (the burn-down that drives the grounding lift).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/documentation/tests/> .
+
+# --- 1. A slice that CLAIMS a tier and EARNS it (gate holds → empty). ------------
+# The documentation record carries the covered-dimension incidence; the claim is
+# asserted on the real slice IRI, bridged by gmeow:documents.
+ex:recordSliceSupported a gmeow:DocumentedSlice ;
+    rdfs:label            "Documentation entry: slice supported"@x-gmeow-english ;
+    gmeow:documents       ex:sliceSupported ;
+    gmeow:docCoversDimension gmeow:dimDefinition , gmeow:dimLabel ;
+    gmeow:docEarnedMaturity  gmeow:docMaturityMinimal ;
+    gmeow:coverageFraction   "1.0"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+
+ex:sliceSupported
+    rdfs:label            "A slice claiming the minimal maturity it earns"@x-gmeow-english ;
+    gmeow:sliceDocMaturity gmeow:docMaturityMinimal .
+
+# --- 2. A grounding-slice term missing its grounding-tier dimensions. ------------
+# Owned by the logic grounding slice and missing the fixture pair, worked instance,
+# and competency rationale — the exact gaps the grounding lift closes.
+ex:recordGroundingGap a gmeow:DocumentedTerm ;
+    rdfs:label            "Documentation entry: an under-documented logic term"@x-gmeow-english ;
+    gmeow:documents       ex:logicTermUnderDocumented ;
+    gmeow:docOwnerSlice   <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:docMissesDimension
+        gmeow:dimFixturePair ,
+        gmeow:dimWorkedInstance ,
+        gmeow:dimCompetencyRationale .

@@ -1,0 +1,30 @@
+# Competency question (BURN-DOWN, drives the grounding lift): which grounding-slice
+# terms (math / logic / lang) lack a counter-example fixture pair, a worked instance,
+# or a competency question WITH a rationale? Each such gap is a
+# gmeow:docMissesDimension edge from the term's gmeow:DocumentedTerm record to one of
+# the three grounding-tier dimensions. The result is the per-term, per-dimension
+# to-do list the grounding lift closes; it NEED NOT be empty (unlike the headline
+# gate) — a non-empty result is the work queue. The record bridges to the real term
+# via gmeow:documents and names its owning slice via gmeow:docOwnerSlice; the three
+# grounding slices are enumerated (they are the named grounding layer, not an open
+# universe). Asserted lane.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?term ?dim WHERE {
+    VALUES ?slice {
+        <https://blackcatinformatics.ca/gmeow/slices/math>
+        <https://blackcatinformatics.ca/gmeow/slices/logic>
+        <https://blackcatinformatics.ca/gmeow/slices/lang>
+    }
+    VALUES ?dim {
+        gmeow:dimFixturePair
+        gmeow:dimWorkedInstance
+        gmeow:dimCompetencyRationale
+    }
+    ?record a gmeow:DocumentedTerm ;
+        gmeow:documents ?term ;
+        gmeow:docOwnerSlice ?slice ;
+        gmeow:docMissesDimension ?dim .
+}
+ORDER BY ?term ?dim

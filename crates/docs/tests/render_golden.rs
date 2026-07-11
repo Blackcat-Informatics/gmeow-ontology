@@ -423,42 +423,34 @@ fn search_index_json_golden() {
     insta::assert_json_snapshot!(summary);
 }
 
-/// The documentation-health page renders the shared coverage source, not a
-/// re-derivation: every per-dimension "Covered" count equals the number of terms
-/// the coverage source marks as carrying that dimension, and the completeness
-/// distribution partitions every term exactly once. A byte golden would drift with
-/// slice content (like the coverage-ratchet baseline); this invariant does not, and
-/// it guards that the dashboard can never silently disagree with the lint gate.
+/// The documentation-health completeness distribution + enhanced sections are a
+/// PURE PROJECTION of the emitted graph: the distribution partitions every
+/// documented-term RECORD in `graph/documentation` exactly once (counted from the
+/// read-back the page consumes, NOT a `coverage.rs` recompute), and the dashboard's
+/// enhanced surfaces are present. A byte golden would drift with slice content
+/// (like the coverage-ratchet baseline); this invariant does not.
 #[test]
-fn documentation_health_counts_match_the_coverage_source() {
-    use gmeow_docs::coverage::{DIMENSIONS, TermCoverage, alignment_subjects, term_coverage};
+fn documentation_health_distribution_partitions_the_graph_records() {
+    use gmeow_docs::coverage::{DIMENSIONS, TermCoverage};
+    use gmeow_docs::rdf::documentation_graph;
 
     let model = common::cached_model();
     let page = to_markdown(&model, &Page::Health);
 
-    let aligned = alignment_subjects(&model);
-    let coverages: Vec<TermCoverage> = model
-        .terms
-        .iter()
-        .map(|t| term_coverage(t, &aligned))
-        .collect();
-    let total = coverages.len();
+    let graph = documentation_graph(&model);
+    let total = graph.terms.len();
+    // Per-term present-count = the per-term DIMENSIONS a record covers.
+    let present = |term: &gmeow_docs::rdf::DocTermFacts| {
+        DIMENSIONS
+            .iter()
+            .filter(|d| term.covers.contains(d.dimension.local_name()))
+            .count()
+    };
 
-    // Per-dimension covered counts (the row continues with a `%` column, so the
-    // `| label | covered | total |` prefix is a substring match).
-    for (i, dim) in DIMENSIONS.iter().enumerate() {
-        let covered = coverages.iter().filter(|c| c.flags()[i]).count();
-        let row = format!("| {} | {covered} | {total} |", dim.label);
-        assert!(
-            page.contains(&row),
-            "health page missing dimension row `{row}`"
-        );
-    }
-
-    // The completeness distribution partitions every term exactly once.
+    // The completeness distribution partitions every documented-term RECORD once.
     let mut distributed = 0usize;
     for k in 0..=TermCoverage::TOTAL {
-        let count = coverages.iter().filter(|c| c.present_count() == k).count();
+        let count = graph.terms.iter().filter(|t| present(t) == k).count();
         let row = format!("| {k} / {} | {count} |", TermCoverage::TOTAL);
         assert!(
             page.contains(&row),
@@ -468,12 +460,13 @@ fn documentation_health_counts_match_the_coverage_source() {
     }
     assert_eq!(
         distributed, total,
-        "distribution must cover every term once"
+        "distribution must cover every documented-term record once"
     );
 
     // The enhanced dashboard surfaces (the cached model carries no reasoning
     // verdict, so the Reasoning section is correctly absent here).
     for section in [
+        "## Maturity by slice",
         "## Coverage by slice",
         "diagrams/coverage-heatmap.svg",
         "## Linkage",
@@ -496,6 +489,145 @@ fn documentation_health_counts_match_the_coverage_source() {
     assert!(
         !page.contains("## Reasoning"),
         "no reasoning section without an attached verdict"
+    );
+}
+
+/// The documentation-health page is a PURE PROJECTION of the emitted
+/// `graph/documentation` incidence — not a re-derivation from `crate::coverage`.
+/// This is proven END-TO-END: an INDEPENDENT raw scan of `to_gmeow_rdf`'s N-Quads
+/// counts the per-term `gmeow:docCoversDimension` triples, and every per-dimension
+/// "Covered" count the page prints EQUALS that triple count. The per-slice covered
+/// totals the read-back the page consumes (`documentation_graph`) reports also equal
+/// the raw triple counts grouped by `gmeow:docOwnerSlice`. If `md_health` ever went
+/// back to side-computing coverage, these equalities would break.
+#[test]
+fn health_page_numbers_are_derivable_from_the_documentation_graph() {
+    use gmeow_docs::coverage::DIMENSIONS;
+    use gmeow_docs::rdf::documentation_graph;
+    use gmeow_docs::to_gmeow_rdf;
+    use std::collections::BTreeMap;
+
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+
+    // Extract the three IRI tokens of a `<s> <p> <o> <graph> .` line, else None.
+    fn take_iri(s: &str) -> Option<(&str, &str)> {
+        let s = s.strip_prefix('<')?;
+        let end = s.find('>')?;
+        Some((&s[..end], s[end + 1..].trim_start()))
+    }
+    fn iri_triple(line: &str) -> Option<(&str, &str, &str)> {
+        let (s, rest) = take_iri(line.trim())?;
+        let (p, rest) = take_iri(rest)?;
+        let (o, _) = take_iri(rest)?;
+        Some((s, p, o))
+    }
+    let local = |iri: &str| iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned();
+
+    let model = common::cached_model();
+    let nquads = to_gmeow_rdf(&model);
+
+    // INDEPENDENT raw scan: per documented-term subject, its covered dimension
+    // local names (SET semantics — the RDF graph is a set of quads, so a subject
+    // that distinct term slugs collide onto carries each incidence once) and its
+    // owner slice.
+    use std::collections::BTreeSet;
+    let term_prefix = format!("{GMEOW}documentation/term/");
+    let covers_p = format!("{GMEOW}docCoversDimension");
+    let owner_p = format!("{GMEOW}docOwnerSlice");
+    let mut term_covers: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut term_owner: BTreeMap<String, String> = BTreeMap::new();
+    for line in nquads.lines() {
+        let Some((s, p, o)) = iri_triple(line) else {
+            continue;
+        };
+        if !s.starts_with(&term_prefix) {
+            continue;
+        }
+        if p == covers_p {
+            term_covers
+                .entry(s.to_owned())
+                .or_default()
+                .insert(local(o));
+        } else if p == owner_p {
+            term_owner.insert(s.to_owned(), o.to_owned());
+        }
+    }
+    let total = term_owner.len();
+    assert!(total > 0, "the model must project documented terms");
+
+    let page = to_markdown(&model, &Page::Health);
+
+    // Every per-dimension "Covered" count on the page equals the raw triple count.
+    for dim in DIMENSIONS.iter() {
+        let want = dim.dimension.local_name();
+        let covered = term_covers
+            .values()
+            .filter(|dims| dims.iter().any(|d| d == want))
+            .count();
+        let row = format!("| {} | {covered} | {total} |", dim.label);
+        assert!(
+            page.contains(&row),
+            "health page dimension row `{row}` is not derivable from the graph triples"
+        );
+    }
+
+    // The read-back the page + heatmap consume reproduces the raw per-slice covered
+    // totals (grouped by owner slice) exactly — the projection cannot diverge from
+    // the emitted triples.
+    let mut raw_by_slice: BTreeMap<String, usize> = BTreeMap::new();
+    for (subject, dims) in &term_covers {
+        if let Some(owner) = term_owner.get(subject) {
+            *raw_by_slice.entry(owner.clone()).or_default() += dims.len();
+        }
+    }
+    let graph = documentation_graph(&model);
+    let mut readback_by_slice: BTreeMap<String, usize> = BTreeMap::new();
+    for term in &graph.terms {
+        *readback_by_slice
+            .entry(term.owner_slice.clone())
+            .or_default() += term.covers.len();
+    }
+    assert_eq!(
+        readback_by_slice, raw_by_slice,
+        "the documentation_graph read-back must reproduce the emitted per-slice \
+         docCoversDimension triple counts"
+    );
+}
+
+/// Doc-entry term slugs are INJECTIVE over the real model: no two distinct term
+/// IRIs map to the same `documentation/term/{slug}` subject. Before the resolved
+/// slug map this FAILED — the lossy `slugify` case/punctuation fold merged 163
+/// distinct terms (e.g. class `AcceptanceStatus` and property `acceptanceStatus`)
+/// onto shared subjects, conflating their coverage incidence in the projected
+/// graph. Also confirms only a MINORITY of slugs changed (the colliders), so the
+/// ~2.4k non-colliders keep their historical URLs.
+#[test]
+fn doc_entry_term_slugs_are_injective_over_the_model() {
+    use gmeow_docs::render::term_slug;
+
+    let model = common::cached_model();
+    let distinct_iris: BTreeSet<&str> = model.terms.iter().map(|t| t.iri.as_str()).collect();
+    let distinct_slugs: BTreeSet<String> = model.terms.iter().map(term_slug).collect();
+
+    assert_eq!(
+        distinct_slugs.len(),
+        distinct_iris.len(),
+        "doc-entry slugs must be injective: {} distinct term IRIs but only {} distinct \
+         slugs — distinct terms are conflated onto shared documentation/term/ subjects",
+        distinct_iris.len(),
+        distinct_slugs.len(),
+    );
+
+    // Only the colliding minority carries a disambiguated (resolved != empty) slug;
+    // the resolved slug field is empty exactly when the base was already unique
+    // (term_slug then falls back to base), so a non-empty resolved slug marks a
+    // participant of a contended base group.
+    let disambiguated = model.terms.iter().filter(|t| !t.slug.is_empty()).count();
+    assert!(
+        disambiguated > 0 && disambiguated < model.terms.len() / 4,
+        "expected only the colliding minority to carry a resolved slug, got {disambiguated} \
+         of {}",
+        model.terms.len(),
     );
 }
 

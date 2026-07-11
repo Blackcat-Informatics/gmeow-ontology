@@ -368,6 +368,30 @@ pub fn full_spec() -> PipelineSpec {
     //    — reads `stage-snapshot`'s bundle directly, never the gts bytes. ──
     stages.push(st(SCHEMAS_STAGE, "schemas", &["stage-snapshot"]));
 
+    // Fill each stage's attach declaration (gmeow:attachesGraph / gmeow:attachesBlobRep)
+    // from the bound Rust impl — the single Rust-side authority. The scheduler verifies
+    // the ACTUAL run-time delta against this same set (error::AttachDrift), and the
+    // dogfooding parity gate (tests/dag_dogfood.rs) proves the slice module.ttl mirror
+    // matches this Rust spec, so the RDF declaration is verified against code without
+    // re-authoring the set in a third literal here.
+    let registry = default_registry();
+    for s in &mut stages {
+        if let Some(stage) = registry.get(&s.impl_key) {
+            s.attaches_graphs = {
+                let mut g = stage.attaches_graphs().to_vec();
+                g.sort();
+                g.dedup();
+                g
+            };
+            s.attaches_blob_reps = {
+                let mut b = stage.attaches_blob_reps().to_vec();
+                b.sort();
+                b.dedup();
+                b
+            };
+        }
+    }
+
     PipelineSpec {
         id: "pipeline-build".to_string(),
         stages,
@@ -386,6 +410,11 @@ fn st(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
         resources: Vec::new(),
         dataflow_entities: Vec::new(),
         formats: Vec::new(),
+        // Filled by full_spec()'s registry-derivation pass from the bound Rust impl's
+        // attaches_graphs() / attaches_blob_reps() (the Rust side of the attach
+        // declaration; the slice module.ttl mirrors it and dag_dogfood proves parity).
+        attaches_graphs: Vec::new(),
+        attaches_blob_reps: Vec::new(),
     }
 }
 
