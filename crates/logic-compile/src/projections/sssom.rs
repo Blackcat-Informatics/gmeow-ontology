@@ -103,6 +103,17 @@ struct MappingSet {
     trailer: String,
 }
 
+/// Curated SSSOM-facing metadata carried by a `gmeow:ProjectionMapping` itself.
+/// Keeping this beside the parsed get-leg model lets a correspondence replace a legacy
+/// `TermEquivalence` without discarding its evidence, labels, or explanatory note.
+#[derive(Debug, Clone, Default)]
+struct ProjectionSssomMetadata {
+    justification: Option<String>,
+    comment: String,
+    subject_label: String,
+    object_label: String,
+}
+
 type RowsByFile = BTreeMap<String, Vec<Row>>;
 type PreservationLedger = Vec<ProjectionResult>;
 
@@ -111,6 +122,7 @@ type PreservationLedger = Vec<ProjectionResult>;
 struct SssomSources {
     equivalences: Vec<EquivalenceCell>,
     projections: Vec<ProjectionCell>,
+    projection_metadata: BTreeMap<String, ProjectionSssomMetadata>,
     mapping_sets: BTreeMap<String, MappingSet>,
 }
 
@@ -268,6 +280,10 @@ fn build_rows_and_ledger(
     }
 
     for cell in &sources.projections {
+        let metadata = sources
+            .projection_metadata
+            .get(&cell.iri)
+            .expect("every parsed projection has extracted SSSOM metadata");
         for binding in &cell.bindings {
             if !binding.emit_sssom {
                 continue;
@@ -303,13 +319,19 @@ fn build_rows_and_ledger(
             for (subject, obj) in pairs {
                 by_file.entry(file.to_owned()).or_default().push(Row {
                     subject_id: sssom_id(&subject, table),
-                    subject_label: String::new(),
+                    subject_label: metadata.subject_label.clone(),
                     predicate_id: sssom_id(predicate, table),
                     object_id: sssom_id(&obj, table),
-                    object_label: String::new(),
-                    mapping_justification: sssom_id(DEFAULT_JUSTIFICATION, table),
+                    object_label: metadata.object_label.clone(),
+                    mapping_justification: sssom_id(
+                        metadata
+                            .justification
+                            .as_deref()
+                            .unwrap_or(DEFAULT_JUSTIFICATION),
+                        table,
+                    ),
                     confidence: conf(binding.confidence),
-                    comment: String::new(),
+                    comment: metadata.comment.clone(),
                 });
             }
 
@@ -379,9 +401,31 @@ fn collect_sources(view: &DslView) -> gmeow_errors::Result<SssomSources> {
     let mut mapping_sets = BTreeMap::new();
     extract_equivalences(view, &mut equivalences);
     extract_mapping_sets(view, &mut mapping_sets);
+    let projections = projections(view)?;
+    let projection_metadata = projections
+        .iter()
+        .map(|cell| {
+            (
+                cell.iri.clone(),
+                ProjectionSssomMetadata {
+                    justification: view.object_iri(&cell.iri, GM_JUSTIFICATION),
+                    comment: view
+                        .object_literal(&cell.iri, GM_COMMENT)
+                        .unwrap_or_default(),
+                    subject_label: view
+                        .object_literal(&cell.iri, GM_SUBJECT_LABEL)
+                        .unwrap_or_default(),
+                    object_label: view
+                        .object_literal(&cell.iri, GM_OBJECT_LABEL)
+                        .unwrap_or_default(),
+                },
+            )
+        })
+        .collect();
     Ok(SssomSources {
         equivalences,
-        projections: projections(view)?,
+        projections,
+        projection_metadata,
         mapping_sets,
     })
 }
@@ -985,6 +1029,10 @@ gmeow:set1 a gmeow:MappingSet ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" .
 
 gmeow:mapName a gmeow:ProjectionMapping ;
+    gmeow:subjectLabel "GMEOW name" ;
+    gmeow:objectLabel "schema.org name" ;
+    gmeow:justification <https://w3id.org/semapv/vocab/ManualMappingCuration> ;
+    gmeow:comment "Curated exact property correspondence." ;
     gmeow:hasMappingPattern [
         gmeow:anchor "s" ; gmeow:value "name" ;
         gmeow:atom ( [ gmeow:subjectVar "s" ; gmeow:predicate gmeow:name ; gmeow:objectVar "name" ] ) ;
@@ -1022,10 +1070,13 @@ gmeow:mapActionReproduce a gmeow:ProjectionMapping ;
         let out = lower_sssom(&view, "0.1.0", "2026-06-03", &lookup).expect("lower sssom");
         let tsv = out.sets.get("demo.sssom.tsv").expect("one set emitted");
         assert!(tsv.contains(
-            "gmeow:actionReproduce\tskos:exactMatch\todrl:reproduce\tsemapv:ManualMappingCuration\t0.85\t"
+            "subject_id\tsubject_label\tpredicate_id\tobject_id\tobject_label\tmapping_justification\tconfidence\tcomment"
         ));
         assert!(tsv.contains(
-            "gmeow:name\tskos:exactMatch\tschema:name\tsemapv:ManualMappingCuration\t0.9\t"
+            "gmeow:name\tGMEOW name\tskos:exactMatch\tschema:name\tschema.org name\tsemapv:ManualMappingCuration\t0.9\tCurated exact property correspondence."
+        ));
+        assert!(tsv.contains(
+            "gmeow:actionReproduce\t\tskos:exactMatch\todrl:reproduce\t\tsemapv:ManualMappingCuration\t0.85\t"
         ));
         assert_eq!(out.ledger.len(), 2);
         assert_eq!(

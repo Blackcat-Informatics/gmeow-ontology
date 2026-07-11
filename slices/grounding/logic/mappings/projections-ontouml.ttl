@@ -1,0 +1,75 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ontouml: <https://w3id.org/ontouml#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+
+# The logic stereotype meta-classes and their OntoUML stereotype counterparts form
+# invertible class-renaming correspondences. The OntoUML vocabulary is referenced,
+# never vendored; the native correspondence frontend derives the law and preservation
+# claims, while the same authored cells lower to SSSOM exact-match rows.
+
+gmeow:eqOntoUml001 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:Kind = ontouml:kind"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "kind" ;
+    gmeow:comment "The OntoUML «kind» stereotype: a rigid, identity-providing sortal — the counterpart of logic:Kind." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Kind ] ) ; gmeow:edoalSource logic:Kind ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:kind ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
+
+gmeow:eqOntoUml002 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:SubKind = ontouml:subkind"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "subkind" ;
+    gmeow:comment "The OntoUML «subkind» stereotype: a rigid sortal specializing a kind — the counterpart of logic:SubKind." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:SubKind ] ) ; gmeow:edoalSource logic:SubKind ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:subkind ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
+
+gmeow:eqOntoUml003 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:Role = ontouml:role"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "role" ;
+    gmeow:comment "The OntoUML «role» stereotype: an anti-rigid, relationally-dependent sortal — the counterpart of logic:Role." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Role ] ) ; gmeow:edoalSource logic:Role ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:role ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
+
+gmeow:eqOntoUml004 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:Phase = ontouml:phase"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "phase" ;
+    gmeow:comment "The OntoUML «phase» stereotype: an anti-rigid, intrinsically-founded sortal — the counterpart of logic:Phase." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Phase ] ) ; gmeow:edoalSource logic:Phase ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:phase ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
+
+gmeow:eqOntoUml005 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:Category = ontouml:category"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "category" ;
+    gmeow:comment "The OntoUML «category» stereotype: a rigid non-sortal aggregating essential properties across kinds — the counterpart of logic:Category." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Category ] ) ; gmeow:edoalSource logic:Category ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:category ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
+
+gmeow:eqOntoUml006 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:Mixin = ontouml:mixin"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "mixin" ;
+    gmeow:comment "The OntoUML «mixin» stereotype: a semi-rigid non-sortal — the counterpart of logic:Mixin." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Mixin ] ) ; gmeow:edoalSource logic:Mixin ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:mixin ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
+
+gmeow:eqOntoUml007 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:RoleMixin = ontouml:roleMixin"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "roleMixin" ;
+    gmeow:comment "The OntoUML «roleMixin» stereotype: an anti-rigid non-sortal role dispersed across kinds — the counterpart of logic:RoleMixin." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:RoleMixin ] ) ; gmeow:edoalSource logic:RoleMixin ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:roleMixin ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
+
+gmeow:eqOntoUml008 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:PhaseMixin = ontouml:phaseMixin"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "phaseMixin" ;
+    gmeow:comment "The OntoUML «phaseMixin» stereotype: an anti-rigid non-sortal phase dispersed across kinds — the counterpart of logic:PhaseMixin." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:PhaseMixin ] ) ; gmeow:edoalSource logic:PhaseMixin ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:phaseMixin ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
+
+gmeow:eqOntoUml009 a gmeow:ProjectionMapping ;
+    rdfs:label "logic:Relator = ontouml:relator"@x-gmeow-english ;
+    gmeow:justification semapv:ManualMappingCuration ; gmeow:objectLabel "relator" ;
+    gmeow:comment "The OntoUML «relator» stereotype: a mediating truth-maker of a material relation — the counterpart of logic:Relator." ;
+    gmeow:hasMappingPattern [ gmeow:anchor "x" ; gmeow:atom ( [ gmeow:subjectVar "x" ; gmeow:predicate rdf:type ; gmeow:objectValue logic:Relator ] ) ; gmeow:edoalSource logic:Relator ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [ gmeow:profile "ontouml" ; gmeow:toClass ontouml:relator ; gmeow:relation "=" ; gmeow:confidence 1.0 ; gmeow:mnemomorphic true ; gmeow:emitSssom true ; gmeow:sssomPredicate skos:exactMatch ; gmeow:sssomFile "gmeow-ontouml.sssom.tsv" ] .
