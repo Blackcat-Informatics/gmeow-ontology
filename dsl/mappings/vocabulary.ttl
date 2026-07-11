@@ -984,6 +984,7 @@ gmeow:whenValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-d
 # --------------------------------------------------------------------------- #
 
 gmeow:AltPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:DeclinedCorrespondence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ExpressionOperator gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:InversePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:MappingPattern gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
@@ -1007,8 +1008,12 @@ gmeow:atom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bind gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bindExpr gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bindVar gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:candidateNamespace gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:comment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:contentCarriedBy gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:declineRationale gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:declinedTarget gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:edoalPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:edoalSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:edoalSourceKind gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .
@@ -1064,6 +1069,7 @@ gmeow:fnTaggingToAnnotation gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox
 gmeow:fnWebPageToUrl gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
 gmeow:hasBinding gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:hasMappingPattern gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:intendedRelation gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:justification gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:license gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:lossyDrop gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
@@ -1120,9 +1126,11 @@ gmeow:pathStep gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:pathSteps gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:predicate gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:predicateVar gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:probeVerdict gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:profile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:projectWhen gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:relation gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:revisitCondition gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:setComment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:setId gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:setTrailer gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
