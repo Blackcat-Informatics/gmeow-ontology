@@ -71,7 +71,8 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
-	mappings lint-alignment doc-lint coherence-gate-teeth slice-quality-gate
+	mappings lint-alignment doc-lint coherence-gate-teeth slice-quality-gate \
+	bench-golden-gate bench-soak
 
 .PHONY: help \
 	install fmt lint lint-issue-refs \
@@ -81,13 +82,15 @@ CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
-	fuzz-smoke bench bench-compare rust-coverage mutants compliance-report perf-gate \
+	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
 	maint-crosscheck maint-nemo-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
 	maint-quality maint-evals-score \
-	maint-compliance-report-full maint-bench-baseline maint-rust-heavy \
-	maint-external-corpora maint-tptp-corpus maint-lang-selfhost
+	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
+	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
+	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
+	maint-nemo-kr2024-corpus maint-chasebench-corpus
 
 ##@ Core Workflows
 
@@ -446,6 +449,12 @@ bench: ## Run criterion benchmarks with host-tuned codegen.
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
 
+bench-golden-gate: ## On-gate native-vs-golden agreement gate: run the NATIVE engine over the committed mini corpora and hard-fail on any golden divergence (no Nemo/Scryer — cheap).
+	cargo run -q -p gmeow-bench-engines -- --check-golden
+
+bench-soak: ## On-gate divergence-ledger soak window: run the DETERMINISTIC native-vs-golden check 3× over the committed mini corpora and hard-fail unless every run is gap-zero with a byte-identical finding-graph digest (no Nemo/Scryer — cheap; the checkable form of the gap-zero-over-a-soak-window claim in generated/bench/soak.md).
+	cargo run -q -p gmeow-bench-engines -- --soak 3
+
 perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.
 	mkdir -p $(PERF_DIR)
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
@@ -500,6 +509,92 @@ maint-bench-baseline: ## (maintainer) Refresh bench/baseline.json from a fresh c
 	$(MAKE) bench
 	cargo run -q -p gmeow-pipeline --bin bench-compare -- --emit-baseline > bench/baseline.json
 	@echo "wrote bench/baseline.json ($$(wc -c < bench/baseline.json) bytes) — regenerate + commit"
+
+maint-bench-instructions: ## (maintainer) Deterministic retired-instruction counts for the engines via iai-callgrind under Valgrind (off-gate corroboration; NOT wired into `make check`).
+	@# iai-callgrind measures RETIRED INSTRUCTIONS under Valgrind Callgrind — a
+	@# machine-independent, run-to-run stable metric that corroborates the on-gate
+	@# steps+alloc+peak-live cost gate. It is off-gate because it needs Valgrind and
+	@# the out-of-tree runner; per the measurement doctrine, instruction-count is
+	@# CORROBORATION, not the gate. HARD FAIL (no silent skip) if either tool is
+	@# absent — the version below MUST match the iai-callgrind dev-dep in
+	@# crates/logic/Cargo.toml.
+	@command -v valgrind >/dev/null 2>&1 || { \
+	  echo "ERROR: valgrind not found — it is REQUIRED for maint-bench-instructions (iai-callgrind drives Valgrind Callgrind)."; \
+	  echo "  Install it, e.g.: Arch: 'sudo pacman -S valgrind'; Debian/Ubuntu: 'sudo apt-get install valgrind'; Fedora: 'sudo dnf install valgrind'."; \
+	  exit 1; }
+	@command -v iai-callgrind-runner >/dev/null 2>&1 || { \
+	  echo "ERROR: iai-callgrind-runner not found — it is REQUIRED for maint-bench-instructions and must match the pinned iai-callgrind dev-dep."; \
+	  echo "  Install it with: cargo install iai-callgrind-runner --version 0.16.1"; \
+	  exit 1; }
+	@# Give Valgrind line tables to symbolize WITHOUT touching the committed
+	@# no-debug-symbol profiles: override strip/debug for THIS invocation only via
+	@# env, so DWARF is not persisted into the checked-in bench profile.
+	CARGO_PROFILE_BENCH_STRIP=none CARGO_PROFILE_BENCH_DEBUG=line-tables-only \
+	  cargo bench -p gmeow-logic --bench engines_iai
+
+maint-bench-engines: ## (maintainer) Engine-vs-engine benchmark over the committed mini corpora: emit the DETERMINISTIC cost/agreement artifact + the REPORT-ONLY wall/RSS advisory table (offline; NOT wired into `make check`).
+	@# The `bench-engines` harness drives every committed mini bench case through the
+	@# native engine and the applicable oracle (Nemo forward/existential, Scryer
+	@# backward), IN-PROCESS with a fresh EDB per case. This is sound because each
+	@# oracle rebuilds a FRESH engine per call (Nemo `load_string` under CHASE_LOCK,
+	@# Scryer a fresh Machine under SCRYER_LOCK), exactly as the production
+	@# native↔Nemo crosscheck already dual-runs many cases in one process. Offline:
+	@# no network, no Valgrind.
+	@#
+	@# It produces TWO strictly-separated outputs: (2a) a DETERMINISTIC, gate-eligible
+	@# cost/agreement artifact (integer cost vectors, consumed_steps, derived_count,
+	@# the deterministic peak-live bytes, and verdict-agreement tokens; NO wall-clock,
+	@# NO peak-RSS, NO total-allocation scalars), and (2b) a REPORT-ONLY advisory table
+	@# on stderr carrying the non-deterministic wall/RSS AND the total-allocation
+	@# bytes/count. The committed baseline + drift gate over (2a) is a downstream task;
+	@# this lane only PRODUCES the artifact and prints the advisory table.
+	@#
+	@# R1 pool-quiesce: `main` pins the process-GLOBAL Rayon pool to a single thread
+	@# (`ThreadPoolBuilder::new().num_threads(1).build_global()`) before any engine
+	@# call — good hygiene that makes peak-live-bytes rock-solid. The TOTAL allocation
+	@# bytes/count still carry a small irreducible transient (rayon/allocator scratch,
+	@# ~0.008% on the most-recursive case, proven by differing back-to-back in-process
+	@# measures), so they are advisory-only; peak simultaneously-live bytes nets that
+	@# scratch to zero and is the deterministic, gate-eligible allocation metric in (2a).
+	@#
+	@# Determinism assertion: emit the artifact TWICE and diff — a byte difference
+	@# FAILS the lane (the artifact must be a pure function of engine version + corpus).
+	@set -e; \
+	  tmpdir="$$(mktemp -d)"; \
+	  trap 'rm -rf "$$tmpdir"' EXIT; \
+	  echo "→ bench-engines run 1 (artifact + advisory table on stderr)"; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-1.json"; \
+	  echo "→ bench-engines run 2 (determinism replay)"; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-2.json" 2>/dev/null; \
+	  if ! diff -u "$$tmpdir/cost-1.json" "$$tmpdir/cost-2.json"; then \
+	    echo "ERROR: the deterministic cost/agreement artifact DIFFERED across two runs — it must be byte-identical."; \
+	    exit 1; \
+	  fi; \
+	  echo "✓ deterministic cost/agreement artifact is byte-identical across two runs ($$(wc -c < "$$tmpdir/cost-1.json") bytes)"
+
+maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh engine-vs-engine run (offline; the drift-gated cost-ledger source).
+	@# The SINGLE producer of the committed deterministic cost/agreement baseline:
+	@# `gmeow-bench-engines --emit-cost` over the committed mini corpora (offline; no
+	@# `--corpus-dir`, so the Nemo-fetch full corpora are NOT included). Mirrors
+	@# `maint-bench-baseline`: a deliberate, hand-committed refresh — never auto-drift.
+	@# The deterministic part of the artifact (integer cost vectors, consumed_steps,
+	@# derived counts, peak-live bytes, verdict-agreement tokens, the per-corpus
+	@# divergence-ledger tally) is a pure function of engine version + corpus. The two
+	@# TOTAL-allocation scalars (alloc_bytes / alloc_count) are NOT byte-reproducible (a
+	@# ~0.06% quantized per-run engine transient), so instead of a raw two-run byte-diff
+	@# the fresh baseline is re-verified with the harness's OWN band-aware `--check-cost`:
+	@# it hard-fails on ANY exact-descriptor divergence AND on an alloc total outside the
+	@# one-sided tolerance band, so a passing self-check proves the deterministic part is
+	@# byte-identical and the alloc totals are within band. `generated/bench/cost-ledger.md`
+	@# is the drift-gated projection (the `stage-export-cost-ledger` leaf), regenerated +
+	@# committed alongside.
+	@set -e; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost bench/cost-baseline.json; \
+	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost bench/cost-baseline.json >/dev/null 2>&1; then \
+	    echo "ERROR: a fresh run diverged from the just-written bench/cost-baseline.json (exact descriptor drift, or an alloc total outside the tolerance band)."; \
+	    exit 1; \
+	  fi; \
+	  echo "wrote bench/cost-baseline.json ($$(wc -c < bench/cost-baseline.json) bytes; deterministic part byte-identical + alloc totals within band on the self-check) — regenerate + commit generated/bench/cost-ledger.md"
 
 # The bounded ORE subset cap: the ORE 2015 sample corpus is ~725 MB / 1920
 # ontologies. Grading all of them is intractable for a maint lane, so we cap to
@@ -617,6 +712,107 @@ maint-ontouml-corpus: ## Grade the native foundation disciplines against a live/
 	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-ontouml "$$dir" ontouml-live generated/conformance/divergence-ontouml.nq; \
 	'
 	@echo "OntoUML Lane-B grading complete; divergences in generated/conformance/divergence-ontouml.nq"
+
+# ── Nemo-examples KR2024 (ChaseBench-family) n-ary engine-vs-engine corpus ────────
+# knowsys/nemo-examples is Apache-2.0 (verified: LICENSE.txt) and packages the
+# ChaseBench-family scenarios (deep / doctors / LUBM / Ontology-256) plus an EL/Galen
+# classification scenario as Nemo `.rls` programs. This lane FETCHES it at a pinned
+# commit, verifies the Apache-2.0 license, converts a bounded set of scenarios into the
+# bench-corpus `nary-existential` layout (the `bench-ingest` bin: `@import <rel>` →
+# `data/<rel>.csv[.gz]`, `@import`/`@output` stripped, a synthesized profile.json, and a
+# Nemo-reference `expected/result.json` golden), and runs the native-vs-Nemo
+# engine-vs-engine harness over the converted corpus. Everything lands in gitignored
+# `.tmp/`; nothing is vendored/committed. NOT wired into `make check`.
+#
+# Which scenarios RUN vs. refuse (honest, no-optionality):
+#   * The default `examples/owl-el/from-preprocessed-csv` (EL/Galen classification) is
+#     self-contained under the Apache-2.0 packaging and RUNS native-vs-Nemo to a folded
+#     agreement/divergence verdict.
+#   * The ChaseBench `deep` / `doctors` rule sets carry multi-head existential TGDs whose
+#     single-head-atom value nulls are Skolem-FUNCTION obligations the native fixed-arity
+#     fragment REFUSES with a named diagnostic (set NEMO_KR2024_SCENARIOS=chasebench/deep
+#     to see the refusal). Their EDB for most sizes is NOT committed here — it must be
+#     staged from the unlicensed dbunibas/chasebench (see `make maint-chasebench-corpus`).
+NEMO_KR2024_REF ?= 82e4076945439b4a772a0f25a6803219d73ae4df
+NEMO_KR2024_URL ?= https://github.com/knowsys/nemo-examples/archive/$(NEMO_KR2024_REF).tar.gz
+NEMO_KR2024_CAP ?= 1
+NEMO_KR2024_SCENARIOS ?= examples/owl-el/from-preprocessed-csv
+
+maint-nemo-kr2024-corpus: ## (maintainer) Fetch knowsys/nemo-examples (Apache-2.0, pinned), convert ChaseBench-family n-ary scenarios to the bench-corpus layout, and run native-vs-Nemo over them (offline after fetch; NOT in `make check`).
+	mkdir -p .tmp/nemo-kr2024
+	bash -euo pipefail -c '\
+	  url="$(NEMO_KR2024_URL)"; ref="$(NEMO_KR2024_REF)"; tgz=.tmp/nemo-kr2024/src.tar.gz; \
+	  echo "-> fetching nemo-examples @ $$ref"; \
+	  curl -fsSL "$$url" -o "$$tgz" || { \
+	    echo "FETCH FAILED: could not download $$url (network unreachable or ref moved)."; \
+	    echo "remediation: set NEMO_KR2024_URL=<archive-tarball-url> and NEMO_KR2024_REF=<commit>,"; \
+	    echo "or unpack a local nemo-examples checkout under .tmp/nemo-kr2024/ and re-run."; \
+	    exit 1; }; \
+	  rm -rf .tmp/nemo-kr2024/nemo-examples-*; \
+	  tar -xzf "$$tgz" -C .tmp/nemo-kr2024/; \
+	  root=$$(find .tmp/nemo-kr2024 -maxdepth 1 -type d -name "nemo-examples-*" | head -1); \
+	  test -n "$$root" || { echo "FETCH PRODUCED NOTHING: no nemo-examples-* root extracted"; exit 1; }; \
+	  lic="$$root/LICENSE.txt"; \
+	  { test -f "$$lic" && grep -q "Apache License" "$$lic" && grep -q "Version 2.0" "$$lic"; } || { \
+	    echo "LICENSE CHECK FAILED: $$lic is not an Apache-2.0 license — refusing to convert."; \
+	    exit 1; }; \
+	  echo "-> license OK (Apache-2.0); converting $(NEMO_KR2024_SCENARIOS) (cap $(NEMO_KR2024_CAP))"; \
+	  rm -rf .tmp/nemo-kr2024/bench; \
+	  cargo run -q -p gmeow-conformance --bin bench-ingest -- \
+	    --input "$$root/$(NEMO_KR2024_SCENARIOS)" \
+	    --out .tmp/nemo-kr2024/bench \
+	    --corpus-name nemo-kr2024 \
+	    --cap $(NEMO_KR2024_CAP) \
+	    --source-url "$$url" \
+	    --commit "$$ref" \
+	    --refresh "make maint-nemo-kr2024-corpus" \
+	    --license Apache-2.0; \
+	  test -f .tmp/nemo-kr2024/bench/nemo-kr2024/corpus.json || { \
+	    echo "CONVERT PRODUCED NOTHING under .tmp/nemo-kr2024/bench."; \
+	    echo "remediation: point NEMO_KR2024_SCENARIOS at a self-contained *.rls + data directory;"; \
+	    echo "the kr2024/programs/* scenarios need dbunibas/chasebench data staged into ../data/."; \
+	    exit 1; }; \
+	  echo "-> running native-vs-Nemo engine-vs-engine harness over the converted corpus"; \
+	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --corpus-dir .tmp/nemo-kr2024/bench; \
+	'
+	@echo "nemo-kr2024 engine-vs-engine run complete (converted corpus in .tmp/nemo-kr2024/bench)"
+
+# ── dbunibas/chasebench (NO LICENSE -> ReferenceOnly -> refused) ──────────────────
+# The upstream ChaseBench distribution ships NO license file (verified: GitHub reports
+# no license), so gmeow_license::policy_for_license classifies it ReferenceOnly: it may
+# be REFERENCED but never vendored or converted. This lane FETCHES it, CHECKS the
+# license, and HARD-FAILS with a remediation pointing at maint-nemo-kr2024-corpus, which
+# runs the same ChaseBench-family scenarios under the Apache-2.0 Nemo-examples packaging.
+# This is the honest no-optionality behavior: the lane exists, fetches, checks, refuses.
+CHASEBENCH_URL ?= https://github.com/dbunibas/chasebench/archive/refs/heads/master.tar.gz
+
+maint-chasebench-corpus: ## (maintainer) Fetch dbunibas/chasebench, check its license, and HARD-FAIL (no license -> ReferenceOnly); use maint-nemo-kr2024-corpus instead (offline; NEVER in `make check`).
+	mkdir -p .tmp/chasebench
+	bash -euo pipefail -c '\
+	  url="$(CHASEBENCH_URL)"; tgz=.tmp/chasebench/src.tar.gz; \
+	  echo "-> fetching dbunibas/chasebench from $$url"; \
+	  if curl -fsSL "$$url" -o "$$tgz"; then \
+	    rm -rf .tmp/chasebench/chasebench-*; \
+	    tar -xzf "$$tgz" -C .tmp/chasebench/ || true; \
+	    root=$$(find .tmp/chasebench -maxdepth 1 -type d -name "chasebench-*" | head -1); \
+	    if [ -n "$$root" ] && find "$$root" -maxdepth 1 \( -iname "license*" -o -iname "copying*" \) | grep -q .; then \
+	      echo "UNEXPECTED: dbunibas/chasebench now ships a license file — re-audit it through"; \
+	      echo "gmeow_license::policy_for_license before enabling conversion."; \
+	      exit 1; \
+	    fi; \
+	    echo "-> fetched; confirmed NO license file is present in the upstream tree."; \
+	  else \
+	    echo "-> fetch failed (network unreachable or ref moved); the license status is unchanged."; \
+	  fi; \
+	  echo ""; \
+	  echo "HARD FAIL: dbunibas/chasebench ships NO license. Under gmeow_license::policy_for_license"; \
+	  echo "  an unlicensed corpus is ReferenceOnly — it CANNOT be vendored or converted into a"; \
+	  echo "  runnable bench corpus."; \
+	  echo "remediation: run  make maint-nemo-kr2024-corpus  — it runs the SAME ChaseBench-family"; \
+	  echo "  scenarios (deep / doctors / LUBM / Ontology-256 / EL) packaged under the Apache-2.0"; \
+	  echo "  knowsys/nemo-examples distribution, which IS license-clear to fetch and convert."; \
+	  exit 1; \
+	'
 
 $(RUST_READY_STAMP): $(RUST_INPUTS)
 	@mkdir -p $(dir $@)

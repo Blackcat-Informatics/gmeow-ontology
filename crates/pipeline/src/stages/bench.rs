@@ -37,6 +37,22 @@ pub const BASELINE_PATH: &str = "bench/baseline.json";
 /// Committed, drift-gated leaderboard artifact.
 pub const BENCH_LEADERBOARD_PATH: &str = "generated/bench/leaderboard.md";
 
+/// Committed deterministic engine-cost/agreement baseline (the single source of
+/// truth for the cost ledger). Produced by `gmeow-bench-engines --emit-cost`,
+/// refreshed via `make maint-bench-cost-baseline`.
+pub const COST_BASELINE_PATH: &str = "bench/cost-baseline.json";
+/// Committed, drift-gated cost-ledger artifact.
+pub const COST_LEDGER_PATH: &str = "generated/bench/cost-ledger.md";
+/// Committed, drift-gated soak-window record (the longitudinal gap-zero claim).
+pub const SOAK_RECORD_PATH: &str = "generated/bench/soak.md";
+
+/// The soak window the committed record documents and the on-gate `make bench-soak`
+/// lane enforces (`gmeow-bench-engines --soak N`). A single-run tally is not soak
+/// evidence; the window is the number of deterministic native-vs-published agreement
+/// runs whose finding-graph fingerprint must stay byte-identical. Kept in lock-step
+/// with the `bench-soak` Make target and the `--soak` default.
+pub const SOAK_WINDOW: u64 = 3;
+
 /// Advisory tolerance: a median slowdown over this (but under [`REGRESS_PCT`])
 /// is flagged `watch`. Runner jitter on shared CI is expected — these bands are
 /// evidence, never a gate.
@@ -379,6 +395,364 @@ impl Stage for BenchLeaderboardStage {
     }
 }
 
+// ── Committed deterministic cost ledger (drift-gated export leaf) ────────────────
+
+/// The pinned engine revisions the cost baseline is attributable to.
+#[derive(Deserialize)]
+struct EnginePins {
+    native: String,
+    nemo_rev: String,
+    scryer_branch: String,
+}
+
+/// The native engine's deterministic cost record for one bench case. `answer_count`
+/// is the backward fragment's count; `derived_count` every other fragment's — exactly
+/// one is present, so [`CaseRecord::count`] hard-fails if neither is.
+#[derive(Deserialize)]
+struct NativeCost {
+    consumed_steps: u64,
+    #[serde(default)]
+    derived_count: Option<u64>,
+    #[serde(default)]
+    answer_count: Option<u64>,
+    /// Total bytes allocated during the run — gated through the one-sided tolerance band
+    /// (`fresh ≤ baseline·(1+ε)`) in the harness `--check-cost` lane; rendered here as a
+    /// committed, drift-gated integer column (this projection reproduces the committed
+    /// baseline byte-for-byte, so it is stable even though the live measure jitters).
+    alloc_bytes: u64,
+    /// Total allocation count during the run — gated through the same tolerance band.
+    alloc_count: u64,
+    peak_live_bytes: u64,
+    /// Sorted `[rule, predicate, stratum, derivations]` tuples (may be empty at seams
+    /// that expose no decomposable vector — never fabricated).
+    cost_vector: Vec<(String, String, u32, u64)>,
+}
+
+/// The deterministic verdict-agreement booleans for one bench case.
+#[derive(Deserialize)]
+struct Agreement {
+    native_vs_golden: bool,
+    native_vs_oracle: bool,
+}
+
+/// One `(corpus, case)` deterministic cost + agreement record.
+#[derive(Deserialize)]
+struct CaseRecord {
+    corpus: String,
+    case: String,
+    fragment: String,
+    native: NativeCost,
+    agreement: Agreement,
+}
+
+impl CaseRecord {
+    /// The native derived / answer count (whichever the fragment carries). Hard-fails
+    /// if the artifact carries neither — an absent measure is never rendered as `0`.
+    fn count(&self) -> Result<u64, gmeow_errors::Diag> {
+        self.native
+            .derived_count
+            .or(self.native.answer_count)
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!(
+                        "cost baseline case {}/{} carries neither derived_count nor answer_count",
+                        self.corpus, self.case
+                    ),
+                })
+            })
+    }
+}
+
+/// One corpus's divergence-ledger tally (the content-addressed agreement fold).
+#[derive(Deserialize)]
+struct LedgerTally {
+    cases: u64,
+    agree: u64,
+    corpus_only: u64,
+    dl_gap: u64,
+    finding_count: u64,
+    finding_graph_blake3: String,
+}
+
+/// The committed deterministic cost/agreement artifact (`bench/cost-baseline.json`).
+#[derive(Deserialize)]
+struct CostArtifact {
+    engine_pins: EnginePins,
+    cases: Vec<CaseRecord>,
+    ledgers: BTreeMap<String, LedgerTally>,
+}
+
+/// Render the committed deterministic engine-cost ledger from the committed cost
+/// baseline. PURELY deterministic — integer counts, the three allocation scalars, and
+/// boolean verdicts rendered in sorted `(corpus, case)` order, no wall-clock / peak-RSS
+/// (those are report-only in the harness) — so it survives the `check-generated` byte
+/// gate without ever running a benchmark. The `alloc_bytes` / `alloc_count` columns are a
+/// projection of the COMMITTED baseline (byte-stable here even though the live measure
+/// jitters; the jitter is absorbed by the harness tolerance-band gate). Hard-fails if
+/// `bench/cost-baseline.json` is missing or malformed (no degraded fallback).
+pub(crate) fn render_cost_ledger(
+    root: &Path,
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    let bytes = std::fs::read(root.join(COST_BASELINE_PATH))?;
+    let artifact: CostArtifact = serde_json::from_slice(&bytes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("cost baseline parse: {e}"),
+        })
+    })?;
+
+    // Sort by (corpus, case) so the render is independent of the artifact's array order.
+    let mut cases: Vec<&CaseRecord> = artifact.cases.iter().collect();
+    cases.sort_by(|a, b| (&a.corpus, &a.case).cmp(&(&b.corpus, &b.case)));
+
+    let mut lines: Vec<String> = vec![
+        "<!-- GENERATED by `gmeow regenerate` (cost-ledger) — DO NOT EDIT. -->".to_string(),
+        String::new(),
+        "# gmeow deterministic engine-cost ledger".to_string(),
+        String::new(),
+        "Committed engine-vs-engine cost/agreement baseline (`bench/cost-baseline.json`),"
+            .to_string(),
+        "refreshed via `make maint-bench-cost-baseline`. Every value is an integer count".to_string(),
+        "or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the".to_string(),
+        "harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,".to_string(),
+        "and `alloc_bytes`/`alloc_count` (the total-allocation scalars, which jitter ~0.06%".to_string(),
+        "run-to-run) through a one-sided tolerance band `fresh ≤ baseline·(1+ε)`, ε = 1%. This".to_string(),
+        "is a drift-gated projection of the deterministic cost artifact; `check-generated`".to_string(),
+        "reproduces it byte-for-byte from the committed baseline without running a benchmark.".to_string(),
+        String::new(),
+        format!(
+            "Engine pins: native `{}`, nemo `{}`, scryer `{}`.",
+            artifact.engine_pins.native,
+            artifact.engine_pins.nemo_rev,
+            artifact.engine_pins.scryer_branch
+        ),
+        String::new(),
+        "## Per-case deterministic cost + verdict-agreement".to_string(),
+        String::new(),
+        "| corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden | native_vs_oracle |"
+            .to_string(),
+        "|---|---|---|---|---|---|---|---|---|---|".to_string(),
+    ];
+    for case in &cases {
+        lines.push(format!(
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+            case.corpus,
+            case.case,
+            case.fragment,
+            case.native.consumed_steps,
+            case.count()?,
+            case.native.alloc_bytes,
+            case.native.alloc_count,
+            case.native.peak_live_bytes,
+            case.agreement.native_vs_golden,
+            case.agreement.native_vs_oracle,
+        ));
+    }
+
+    // Decomposable cost vectors, in the same sorted (corpus, case) case order and the
+    // artifact's already-sorted CostKey tuple order.
+    lines.push(String::new());
+    lines.push("## Decomposable cost vectors (rule × predicate × stratum)".to_string());
+    lines.push(String::new());
+    lines.push("| corpus | case | rule | predicate | stratum | derivations |".to_string());
+    lines.push("|---|---|---|---|---|---|".to_string());
+    let mut vector_rows = 0usize;
+    for case in &cases {
+        for (rule, predicate, stratum, derivations) in &case.native.cost_vector {
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} |",
+                case.corpus, case.case, rule, predicate, stratum, derivations
+            ));
+            vector_rows += 1;
+        }
+    }
+    if vector_rows == 0 {
+        lines.push("| — | — | — | — | — | — |".to_string());
+    }
+
+    // Per-corpus divergence-ledger tally (the content-addressed agreement fold): the
+    // finding graph blake3 is a pure function of the comparisons, so it is a stable
+    // drift signal.
+    lines.push(String::new());
+    lines.push("## Per-corpus divergence-ledger tally".to_string());
+    lines.push(String::new());
+    lines.push(
+        "| corpus | cases | agree | corpus_only | dl_gap | findings | finding_graph_blake3 |"
+            .to_string(),
+    );
+    lines.push("|---|---|---|---|---|---|---|".to_string());
+    for (corpus, tally) in &artifact.ledgers {
+        lines.push(format!(
+            "| {} | {} | {} | {} | {} | {} | {} |",
+            corpus,
+            tally.cases,
+            tally.agree,
+            tally.corpus_only,
+            tally.dl_gap,
+            tally.finding_count,
+            tally.finding_graph_blake3,
+        ));
+    }
+
+    lines.push(String::new());
+    lines.push(format!(
+        "{} case(s) across {} corpora in the committed cost baseline.",
+        cases.len(),
+        artifact.ledgers.len()
+    ));
+    let md = lines.join("\n") + "\n";
+
+    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    out.insert(COST_LEDGER_PATH.to_string(), md.into_bytes());
+    Ok(out)
+}
+
+/// Render the committed soak-window record from the committed cost baseline. This is
+/// the LONGITUDINAL twin of [`render_cost_ledger`]: where the cost ledger reports one
+/// run's per-corpus tally, the soak record projects the ledger's INVARIANT finding-graph
+/// digest and asserts gap-zero (`corpus_only == 0 && dl_gap == 0`) per corpus — the
+/// checkable claim behind "ledger gap-zero over a soak window". Because the finding-graph
+/// blake3 is a pure function of the committed comparisons, this record is byte-stable and
+/// `check-generated` reproduces it without running a benchmark; the live N-run
+/// reproducibility+gap-zero assertion is enforced on-gate by
+/// `gmeow-bench-engines --soak <N>` (the `make bench-soak` lane).
+///
+/// Hard-fails if the baseline is missing/malformed, OR if ANY corpus is NOT gap-zero:
+/// committing a soak record over a corpus with a live divergence would be a false
+/// gap-zero claim, so a non-zero `corpus_only`/`dl_gap` is a hard error here, never a
+/// silently-rendered "held" (no-optionality).
+pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    let bytes = std::fs::read(root.join(COST_BASELINE_PATH))?;
+    let artifact: CostArtifact = serde_json::from_slice(&bytes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("cost baseline parse: {e}"),
+        })
+    })?;
+
+    // Assert gap-zero per corpus BEFORE rendering, and fold the invariant per-corpus
+    // finding-graph digests into a single combined soak digest (blake3 over the sorted
+    // `corpus\x1f<per-corpus finding_graph_blake3>` lines — a pure function of the
+    // committed ledgers, so the record is byte-stable). `artifact.ledgers` is a BTreeMap,
+    // so the iteration order is already sorted by corpus.
+    let mut combined = blake3::Hasher::new();
+    for (corpus, tally) in &artifact.ledgers {
+        if tally.corpus_only != 0 || tally.dl_gap != 0 {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!(
+                    "soak record refuses to render a gap-zero claim: corpus `{corpus}` has \
+                     corpus_only={} + dl_gap={} in the committed cost baseline — a soak record \
+                     over a diverging corpus would be a false claim; regenerate the baseline \
+                     via `make maint-bench-cost-baseline` and resolve the divergence first",
+                    tally.corpus_only, tally.dl_gap
+                ),
+            }));
+        }
+        combined.update(corpus.as_bytes());
+        combined.update(b"\x1f");
+        combined.update(tally.finding_graph_blake3.as_bytes());
+        combined.update(b"\n");
+    }
+    let combined_digest = combined.finalize().to_hex().to_string();
+
+    let mut lines: Vec<String> = vec![
+        "<!-- GENERATED by `gmeow regenerate` (soak) — DO NOT EDIT. -->".to_string(),
+        String::new(),
+        "# gmeow divergence-ledger soak-window record".to_string(),
+        String::new(),
+        "The checkable form of \"ledger gap-zero over a soak window\": a single-run tally is"
+            .to_string(),
+        "not soak evidence. This record projects the committed cost/agreement baseline".to_string(),
+        "(`bench/cost-baseline.json`) and states, per corpus, that the divergence ledger is"
+            .to_string(),
+        "GAP-ZERO (`corpus_only == 0 && dl_gap == 0`) together with the INVARIANT finding-graph"
+            .to_string(),
+        "blake3 digest — a pure function of the committed comparisons, so this record is"
+            .to_string(),
+        "byte-stable and `check-generated` reproduces it without running a benchmark.".to_string(),
+        String::new(),
+        format!(
+            "The live invariant is enforced on-gate by `gmeow-bench-engines --soak {SOAK_WINDOW}` \
+             (the `make bench-soak` lane): it re-runs the DETERMINISTIC native-vs-published \
+             agreement check {SOAK_WINDOW} times over the committed mini corpora and hard-fails \
+             unless EVERY run is gap-zero AND its finding-graph fingerprint is byte-identical \
+             across all {SOAK_WINDOW} runs (a drifting fingerprint is itself a divergence finding \
+             — reproducibility is the soak invariant)."
+        ),
+        String::new(),
+        format!("Soak window: {SOAK_WINDOW} runs."),
+        String::new(),
+        "## Per-corpus gap-zero + invariant finding-graph digest".to_string(),
+        String::new(),
+        "| corpus | cases | agree | corpus_only | dl_gap | gap_zero | finding_graph_blake3 |"
+            .to_string(),
+        "|---|---|---|---|---|---|---|".to_string(),
+    ];
+    for (corpus, tally) in &artifact.ledgers {
+        lines.push(format!(
+            "| {} | {} | {} | {} | {} | {} | {} |",
+            corpus,
+            tally.cases,
+            tally.agree,
+            tally.corpus_only,
+            tally.dl_gap,
+            true,
+            tally.finding_graph_blake3,
+        ));
+    }
+
+    lines.push(String::new());
+    lines.push(format!(
+        "Combined soak digest (blake3 over the sorted per-corpus finding-graph digests): `{combined_digest}`."
+    ));
+    lines.push(String::new());
+    lines.push(format!(
+        "Gap-zero HELD across {} corpora at soak window {SOAK_WINDOW}; engine pins native `{}`, \
+         nemo `{}`, scryer `{}`.",
+        artifact.ledgers.len(),
+        artifact.engine_pins.native,
+        artifact.engine_pins.nemo_rev,
+        artifact.engine_pins.scryer_branch,
+    ));
+    let md = lines.join("\n") + "\n";
+
+    let mut out: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    out.insert(SOAK_RECORD_PATH.to_string(), md.into_bytes());
+    Ok(out)
+}
+
+/// The `stage-export-cost-ledger` export-leaf: the committed deterministic cost ledger
+/// AND its longitudinal soak-window record (both pure projections of the same committed
+/// cost baseline, so the single leaf renders both).
+pub struct CostLedgerStage;
+
+impl Stage for CostLedgerStage {
+    fn id(&self) -> &str {
+        "stage-export-cost-ledger"
+    }
+    fn consumes(&self) -> &[String] {
+        &[]
+    }
+    fn impl_version(&self) -> &str {
+        // v2: the leaf now also renders the soak-window record (`generated/bench/soak.md`).
+        "cost-ledger.v2"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
+        // The committed cost/agreement baseline is the only input; a baseline refresh
+        // busts the cache. No benchmark is run here — purely deterministic.
+        Ok(vec![root.join(COST_BASELINE_PATH)])
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        // Both the cost ledger and the soak record are projections of the same committed
+        // baseline; render both in the one leaf so the soak record needs no new stage
+        // (and thus no new consume-edge across carrier.rs / run.rs / module.ttl).
+        let mut artifacts = render_cost_ledger(input.root)?;
+        artifacts.extend(render_soak(input.root)?);
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -412,6 +786,51 @@ mod tests {
             built.len(),
             committed.len()
         );
+    }
+
+    #[test]
+    fn cost_ledger_is_byte_identical_to_committed() {
+        // The committed generated/bench/cost-ledger.md must be reproduced
+        // byte-for-byte from the committed bench/cost-baseline.json (the drift gate).
+        let root = repo_root();
+        let arts = render_cost_ledger(&root).expect("render cost ledger");
+        let built = arts.get(COST_LEDGER_PATH).expect("cost ledger produced");
+        let committed = std::fs::read(root.join(COST_LEDGER_PATH))
+            .expect("committed generated/bench/cost-ledger.md exists");
+        assert_eq!(
+            built,
+            &committed,
+            "generated/bench/cost-ledger.md drifted from committed (len built {} vs committed {})",
+            built.len(),
+            committed.len()
+        );
+    }
+
+    #[test]
+    fn soak_record_is_byte_identical_to_committed() {
+        // The committed generated/bench/soak.md must be reproduced byte-for-byte from
+        // the committed bench/cost-baseline.json (the soak drift gate).
+        let root = repo_root();
+        let arts = render_soak(&root).expect("render soak record");
+        let built = arts.get(SOAK_RECORD_PATH).expect("soak record produced");
+        let committed = std::fs::read(root.join(SOAK_RECORD_PATH))
+            .expect("committed generated/bench/soak.md exists");
+        assert_eq!(
+            built,
+            &committed,
+            "generated/bench/soak.md drifted from committed (len built {} vs committed {})",
+            built.len(),
+            committed.len()
+        );
+    }
+
+    #[test]
+    fn soak_render_is_deterministic() {
+        // Emit twice → byte-identical (the record must be byte-reproducible).
+        let root = repo_root();
+        let a = render_soak(&root).expect("render soak record (1)");
+        let b = render_soak(&root).expect("render soak record (2)");
+        assert_eq!(a, b, "the soak record must be byte-reproducible");
     }
 
     /// Write a minimal criterion `new/estimates.json` for `<group>/<bench>`.

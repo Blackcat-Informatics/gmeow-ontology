@@ -765,14 +765,15 @@ pub fn okf_doc_reference(term: &DocTerm) -> Option<String> {
         DocTermCategory::Datatype | DocTermCategory::Other => return None,
     };
     // The OKF projection is derived from the COMPOSED ontology (the carrier term surface),
-    // so it covers only core vocabulary with a compact `prefix:local` CURIE. A term whose
-    // curie is a full IRI — a docs-site-only term with no compact form, e.g. a nested
-    // example-namespace `logic:PathShape` individual under `.../gmeow/examples/…` — is NOT in
-    // the OKF export universe, so it emits no OKF link (and the OKF-coverage gate, which pairs
-    // this reference against the emitted OKF docs, correctly skips it rather than flagging a
+    // whose term collector covers only the `gmeow:` core vocabulary (see
+    // `crate::stages::export::collect_terms` — namespace-gated). A term in another
+    // namespace — a grounding-language term (`lang:`/`logic:`/`math:`), an external IRI, or
+    // a docs-site-only nested-example term whose curie is a full IRI — is NOT in the OKF
+    // export universe, so it emits no OKF link (and the OKF-coverage gate, which pairs this
+    // reference against the emitted OKF docs, correctly skips it rather than flagging a
     // dangling link the OKF bundle never promised to render).
-    let (_, local) = term.curie.split_once(':')?;
-    if local.contains(['/', '#']) {
+    let (prefix, local) = term.curie.split_once(':')?;
+    if prefix != "gmeow" || local.contains(['/', '#']) {
         return None;
     }
     Some(format!("gmeow-okf/{dir}/{local}.md"))

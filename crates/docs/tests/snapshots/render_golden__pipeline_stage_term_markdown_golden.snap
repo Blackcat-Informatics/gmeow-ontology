@@ -66,6 +66,7 @@ This term is a stage of the [build pipeline](../../pipeline/index.md) — a type
 - [`gmeow:stage-export-apache`](../stage-export-apache/index.md)
 - [`gmeow:stage-export-bench`](../stage-export-bench/index.md)
 - [`gmeow:stage-export-constraint-shapes`](../stage-export-constraint-shapes/index.md)
+- [`gmeow:stage-export-cost-ledger`](../stage-export-cost-ledger/index.md)
 - [`gmeow:stage-export-evals`](../stage-export-evals/index.md)
 - [`gmeow:stage-export-frame-shapes`](../stage-export-frame-shapes/index.md)
 - [`gmeow:stage-export-json-schema`](../stage-export-json-schema/index.md)

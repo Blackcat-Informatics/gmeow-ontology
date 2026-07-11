@@ -1,0 +1,4 @@
+#[name("https://example.org/bench/rules/sg-base")]
+<https://example.org/bench/same_gen>(?x, ?y, ?w) :- <https://example.org/bench/parent>(?x, ?p, ?w), <https://example.org/bench/parent>(?y, ?p, ?w) .
+#[name("https://example.org/bench/rules/sg-step")]
+<https://example.org/bench/same_gen>(?x, ?y, ?w) :- <https://example.org/bench/parent>(?x, ?a, ?w), <https://example.org/bench/same_gen>(?a, ?b, ?w), <https://example.org/bench/parent>(?y, ?b, ?w) .

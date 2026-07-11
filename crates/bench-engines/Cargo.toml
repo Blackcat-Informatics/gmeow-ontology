@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-bench-engines"
+description = "Engine-vs-engine benchmark harness: drives every committed mini bench case through the native engine and the applicable oracle (Nemo forward/existential, Scryer backward), IN-PROCESS with a fresh EDB per case. Emits (a) a DETERMINISTIC, drift-gate-eligible cost/agreement artifact (integer cost vectors + deterministic peak-live bytes + verdict-agreement tokens — NO wall-clock, NO peak-RSS) and (b) a REPORT-ONLY wall/RSS/alloc-total advisory table. This crate is a DEDICATED LEAF: it is the ONLY consumer that installs the counting #[global_allocator] from gmeow-cost-measure, and NOTHING depends on it, so gmeow-cost-measure stays out of the shipped gmeow CLI's dependency graph (the pipeline→conformance→cli edge does not reach it). Driven by `make maint-bench-engines`."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# The engine-vs-engine benchmark harness binary. `src/main.rs` installs the
+# counting `#[global_allocator]`; that process-global install is confined to THIS
+# leaf binary and reaches NO other crate (verified by `cargo tree -p gmeow-cli -i
+# gmeow-cost-measure` returning nothing).
+[[bin]]
+name = "bench-engines"
+path = "src/main.rs"
+
+[dependencies]
+# The committed bench-corpus loader (bench_corpus::load_bench_corpora{,_from}),
+# the shared divergence-ledger emitters (divergence::{emit_divergence_nq,
+# agreement_tally}), and the typed error kinds the harness surfaces. Reused rather
+# than re-implemented — the SAME emitters the conformance pipeline stage drives.
+# NOTE: gmeow-conformance itself does NOT depend on gmeow-cost-measure, so pulling
+# it in here does not create a conformance→cost-measure edge; the CLI's transitive
+# path (cli→pipeline→conformance) therefore never reaches the counting allocator.
+gmeow-conformance = { path = "../conformance" }
+# The native logic engine seams the harness drives each engine through:
+# cost::{run_native_forward, run_nemo_forward, run_nemo_forward_facts_only},
+# materialize::materialize_routed, dispatch::{dispatch_query, cyclic_predicates},
+# scryer_engine::run_scryer, plus the query IR / store / seam / provenance / result
+# / reason (divergence-ledger) surfaces.
+gmeow-logic = { path = "../logic" }
+# The typed diagnostic substrate the harness raises hard-fail conditions on (a
+# missing/undrivable engine is an error, never a silent skip).
+gmeow-errors = { path = "../errors" }
+# Harness-scoped deterministic allocation measurement (bytes / count / peak-live).
+# THIS binary is the ONLY installer of its counting `#[global_allocator]` (a single
+# `static` in `src/main.rs`); as a dedicated leaf crate nothing depends on it, so
+# the allocator type never reaches the shipped `gmeow` CLI, directly or transitively.
+gmeow-cost-measure = { path = "../cost-measure" }
+# Native RDF text codecs: parse the world-scoped EDB N-Quads into the frozen
+# `RdfDataset` IR (`purrdf::parse_dataset`) the forward/existential seams consume.
+purrdf = "0.4"
+# Canonical JSON (sorted BTreeMap keys — NO `preserve_order`) for the deterministic
+# cost/agreement artifact: identical inputs ⇒ identical bytes, the drift-gate form.
+serde_json = "1"
+# blake3 fingerprints of canonically-sorted engine result rows / answer bindings,
+# the stable verdict-agreement tokens the divergence ledger folds.
+blake3 = "1"
+# The R1 pool-quiesce discipline: the MEASURED native run is `install`ed on a
+# single-thread Rayon pool so the engine's parallel work executes on the measuring
+# thread. That makes the thread-local allocation counters (bytes / count / peak-live)
+# CAPTURE every engine allocation and be byte-deterministic — no stolen-closure
+# pollution. The determinism doctrine guarantees the 1-thread pool changes no emitted
+# byte or count (commit order is sorted), only the completeness of the MEASUREMENT.
+rayon = "1"

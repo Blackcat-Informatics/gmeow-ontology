@@ -139,6 +139,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("export", Arc::new(export::ExportStage::new()));
     registry.register("yaml_ld", Arc::new(yaml_ld::YamlLdStage::new()));
     registry.register("bench", Arc::new(bench::BenchLeaderboardStage));
+    registry.register("cost-ledger", Arc::new(bench::CostLedgerStage));
     registry.register(
         "agreement",
         Arc::new(agreement::AgreementMatrixStage::new()),

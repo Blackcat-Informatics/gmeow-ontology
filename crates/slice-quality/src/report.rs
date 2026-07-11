@@ -11,8 +11,19 @@ use gmeow_validate::rule_catalog::help_uri_for;
 
 use crate::graph::{self, instances_of};
 use crate::model::{Axis, AxisGrade, Rubric, SliceAssessment};
-use crate::score::ScoreContext;
+use crate::score::{ScoreContext, advisory};
 use crate::{axes, lattice};
+
+/// Advice-ranking KIND: an axis-level advice template (the rubric's
+/// `gmeow:axisAdviceTemplate`, surfaced once per deficient axis) ranks strictly
+/// AHEAD of that same axis's per-term instantiated findings. This is an EXPLICIT
+/// ordering key — the order must never ride on code-string spelling (a `.template`
+/// code sorts AFTER a `.no-stereotype` code because 'n' < 't', which would land the
+/// template BELOW its per-term findings and violate "ahead of").
+const ADVICE_KIND_TEMPLATE: u8 = 0;
+/// The per-term instantiated advisory a primitive surfaced (ranks after its axis's
+/// template item — see [`ADVICE_KIND_TEMPLATE`]).
+const ADVICE_KIND_INSTANCE: u8 = 1;
 
 /// Every diagnostic code a slice-quality report can emit — the two structural
 /// codes minted by [`SliceReport::to_report`] (`grade`/`rollup`) plus every axis
@@ -55,6 +66,12 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.doc-maturity.missing-dimension",
     "slice-quality.doc-maturity.model-unavailable",
     "slice-quality.doc-maturity.slice-untracked",
+    // Axis-level advice-template item (report.rs) — the rubric's
+    // `gmeow:axisAdviceTemplate` surfaced once per DEFICIENT axis, ranked ahead of
+    // that axis's per-term findings, plus the latent-data-gap code minted when a
+    // deficient axis carries no template (a rubric authoring gap, never swallowed).
+    "slice-quality.axis-advice",
+    "slice-quality.axis-advice.missing-template",
 ];
 
 /// Seed every slice-quality finding code into the process-wide code registry
@@ -147,7 +164,9 @@ pub fn score_slice_with_rubric(
     let ctx = ScoreContext::new(slice_iri.clone(), slice_dir.to_path_buf(), &ds);
 
     let mut scores: Vec<(&Axis, f64)> = Vec::with_capacity(rubric.axes.len());
-    let mut advisories: Vec<(String, f64, Finding)> = Vec::new();
+    // Each entry is (axis_iri, axis_weight, advice_kind, finding). `advice_kind`
+    // ranks an axis-level template item ahead of that axis's per-term findings.
+    let mut advisories: Vec<(String, f64, u8, Finding)> = Vec::new();
     let mut axis_weight = std::collections::HashMap::new();
     for axis in &rubric.axes {
         axis_weight.insert(axis.iri.clone(), axis.weight);
@@ -161,22 +180,66 @@ pub fn score_slice_with_rubric(
         })?;
         let result = primitive(&ctx);
         for f in result.findings {
-            advisories.push((axis.iri.clone(), axis.weight, f));
+            advisories.push((axis.iri.clone(), axis.weight, ADVICE_KIND_INSTANCE, f));
         }
         scores.push((axis, result.score.clamp(0.0, 1.0)));
     }
 
+    // Surface the rubric's per-axis uplift advice (`gmeow:axisAdviceTemplate`) as an
+    // axis-level advice item for every DEFICIENT axis. "Deficient" = an axis that
+    // surfaced >= 1 per-term advisory (NOT "below target tier":
+    // axisFlagshipCounterExampleDepth sits at Maximal with all-0.0 floors yet still
+    // advises). The template item is ranked strictly ahead of that axis's per-term
+    // findings via `ADVICE_KIND_TEMPLATE`; the loader already read the template into
+    // `Axis.advice`, but until now nothing emitted it (dead rubric information).
+    let deficient: std::collections::BTreeSet<&str> = advisories
+        .iter()
+        .map(|(axis_iri, _, _, _)| axis_iri.as_str())
+        .collect();
+    let mut templates: Vec<(String, f64, u8, Finding)> = Vec::new();
+    for axis in &rubric.axes {
+        if !deficient.contains(axis.iri.as_str()) {
+            continue;
+        }
+        let local = axis.iri.rsplit(['/', '#']).next().unwrap_or(&axis.iri);
+        let finding = if axis.advice.trim().is_empty() {
+            // A deficient axis with an empty template is a latent rubric data gap.
+            // Do not silently swallow it (hard-fail discipline): surface it as its
+            // own visible advisory so the missing remediation text is caught and
+            // authored, rather than emitting a blank advice line.
+            advisory(
+                "slice-quality.axis-advice.missing-template",
+                format!(
+                    "{local}: axis is deficient but carries no gmeow:axisAdviceTemplate — a latent rubric data gap; author its uplift advice."
+                ),
+            )
+        } else {
+            advisory(
+                "slice-quality.axis-advice",
+                format!("{local}: {}", axis.advice),
+            )
+        };
+        templates.push((axis.iri.clone(), axis.weight, ADVICE_KIND_TEMPLATE, finding));
+    }
+    advisories.extend(templates);
+
     let assessment = lattice::assess(&slice_iri, &scores, &rubric);
 
-    // Rank advice: heaviest axis first, then finding code, then message — a
-    // deterministic total order (no derived Ord over the float; explicit key).
+    // Rank advice: heaviest axis first, then group all advisories for the same axis
+    // together (axis IRI tiebreak — otherwise two same-weight axes interleave and a
+    // template can land ahead of a *different* axis's per-term findings), then within
+    // an axis the axis-level template item ahead of that axis's per-term findings
+    // (`advice_kind`), then finding code, then message — a deterministic total order
+    // (no derived Ord over the float; explicit key).
     advisories.sort_by(|a, b| {
         b.1.partial_cmp(&a.1)
             .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| a.2.code.cmp(&b.2.code))
-            .then_with(|| a.2.message.cmp(&b.2.message))
+            .then_with(|| a.0.cmp(&b.0))
+            .then_with(|| a.2.cmp(&b.2))
+            .then_with(|| a.3.code.cmp(&b.3.code))
+            .then_with(|| a.3.message.cmp(&b.3.message))
     });
-    let advisories: Vec<Finding> = advisories.into_iter().map(|(_, _, f)| f).collect();
+    let advisories: Vec<Finding> = advisories.into_iter().map(|(_, _, _, f)| f).collect();
 
     Ok(SliceReport {
         rubric,

@@ -2137,6 +2137,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-bench-engines"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+ "gmeow-conformance",
+ "gmeow-cost-measure",
+ "gmeow-errors",
+ "gmeow-logic",
+ "purrdf",
+ "rayon",
+ "serde_json",
+]
+
+[[package]]
 name = "gmeow-cli"
 version = "0.1.0"
 dependencies = [
@@ -2182,6 +2196,7 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "datatest-stable",
+ "flate2",
  "gmeow-cli-core",
  "gmeow-errors",
  "gmeow-license",
@@ -2190,6 +2205,10 @@ dependencies = [
  "purrdf",
  "serde_json",
 ]
+
+[[package]]
+name = "gmeow-cost-measure"
+version = "0.1.0"
 
 [[package]]
 name = "gmeow-dev-cli"
@@ -2294,10 +2313,13 @@ dependencies = [
  "blake3",
  "chrono",
  "criterion",
+ "csv",
+ "flate2",
  "foldhash 0.1.5",
  "gmeow-errors",
  "gmeow-logic-compile",
  "hashbrown 0.15.5",
+ "iai-callgrind",
  "insta",
  "nemo",
  "petgraph",
@@ -2733,6 +2755,42 @@ name = "hypher"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef68590049bab63a464eee1a1158ac04c6f6613a546d8d90f78636b8b94f171"
+
+[[package]]
+name = "iai-callgrind"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b1e4910d3a9137442723dfb772c32dc10674c4181ca078d2fd227cd5dce9db0"
+dependencies = [
+ "bincode",
+ "derive_more",
+ "iai-callgrind-macros",
+ "iai-callgrind-runner",
+]
+
+[[package]]
+name = "iai-callgrind-macros"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d03775318d3f9f01b39ac6612b01464006dc397a654a89dd57df2fd34fb68c3"
+dependencies = [
+ "derive_more",
+ "proc-macro-error2",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn",
+]
+
+[[package]]
+name = "iai-callgrind-runner"
+version = "0.16.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b74c9743c00c3bca4aaffc69c87cae56837796cd362438daf354a3f785788c68"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "iana-time-zone"
@@ -4640,6 +4698,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e67ba7e9b2b56446f1d419b1d807906278ffa1a658a8a5d8a39dcb1f5a78614f"
 dependencies = [
  "toml_edit 0.25.12+spec-1.1.0",
+]
+
+[[package]]
+name = "proc-macro-error-attr2"
+version = "2.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96de42df36bb9bba5542fe9f1a054b8cc87e172759a1868aa05c1f3acc89dfc5"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
+name = "proc-macro-error2"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11ec05c52be0a07b08061f7dd003e7d7092e0472bc731b4af7bb1ef876109802"
+dependencies = [
+ "proc-macro-error-attr2",
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]

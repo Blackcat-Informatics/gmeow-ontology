@@ -1,0 +1,4 @@
+#[name("https://example.org/bench/rules/pt-base")]
+<https://example.org/bench/pointsTo>(?p, ?o, ?w) :- <https://example.org/bench/addressOf>(?p, ?o, ?w) .
+#[name("https://example.org/bench/rules/pt-copy")]
+<https://example.org/bench/pointsTo>(?p, ?b, ?w) :- <https://example.org/bench/assign>(?p, ?q, ?w), <https://example.org/bench/pointsTo>(?q, ?b, ?w) .

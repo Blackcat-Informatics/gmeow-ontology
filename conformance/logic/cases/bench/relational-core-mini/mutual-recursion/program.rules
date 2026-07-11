@@ -1,0 +1,6 @@
+#[name("https://example.org/bench/rules/mr-odd-base")]
+<https://example.org/bench/odd>(?s, ?o, ?w) :- <https://example.org/bench/edge>(?s, ?o, ?w) .
+#[name("https://example.org/bench/rules/mr-even-step")]
+<https://example.org/bench/even>(?s, ?o, ?w) :- <https://example.org/bench/odd>(?s, ?m, ?w), <https://example.org/bench/edge>(?m, ?o, ?w) .
+#[name("https://example.org/bench/rules/mr-odd-step")]
+<https://example.org/bench/odd>(?s, ?o, ?w) :- <https://example.org/bench/even>(?s, ?m, ?w), <https://example.org/bench/edge>(?m, ?o, ?w) .

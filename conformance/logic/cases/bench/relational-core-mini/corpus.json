@@ -1,0 +1,8 @@
+{
+  "name": "relational-core-mini",
+  "spdx_license": "CC-BY-4.0",
+  "source_url": "https://www.semwebcentral.org/projects/openrulebench/",
+  "version_or_commit": "gmeow-self-authored-1",
+  "refresh_command": "make maint-openrulebench-corpus",
+  "lane": "a"
+}
