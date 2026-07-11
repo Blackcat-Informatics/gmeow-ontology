@@ -412,17 +412,18 @@ test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The affect-producer twin conformance tests (gmeow-validate conformance_affect_producer,
-# the twin_* cases) each drive the SMT-backed affect twin decision procedure — single-threaded
-# solver work that is ~20 s standalone (measured 19-21 s running the binary alone) but rode the
-# 25 s per-test budget cliff (25.1-32 s) under full-parallelism CI contention — the flake was
-# present on the pre-existing PR head and on a fresh run. They are NOT irreducible (a roughly
-# fixed ~20 s solver cost, fixture-independent), so the bias is fix-not-off-gate, the same pattern
-# as `fanout_parity` / the logic-slice scorer above. Serialize them under the `engine` group so
-# concurrent solver/chase work cannot starve them of cores; the tests stay on-gate with full
-# coverage on every `make check`, only their concurrency is capped. The fast conformance_support
-# unit tests in the same binary are not matched and stay fully parallel.
-filter = 'package(gmeow-validate) & binary(conformance_affect_producer) & test(/twin_/)'
+# The affect-producer whole-ontology-union twin conformance tests (gmeow-validate
+# conformance_affect_producer_union, the twin_* cases) each drive the SMT-backed affect twin
+# decision procedure over the whole-ontology shape union — single-threaded solver work ~20 s
+# standalone (measured 19-21 s running the binary alone) that rode the 25 s per-test budget cliff
+# (25.1-32 s) under full-parallelism contention. The union binary is off-gated via `default-filter`
+# (it runs only on maint-heavy; the cheap fixture-only + pure-Rust producer coverage stays on the
+# per-commit gate in conformance_affect_producer), but this override still applies there
+# (maint-heavy inherits the default overrides): serialize the twins under the `engine` memory group
+# so concurrent solver/chase work cannot starve them of cores, and keep the longer terminate cliff
+# so a contended maint-heavy run is not killed prematurely. On the default gate the filter matches
+# nothing that runs (the binary is filtered out), so this is a no-op there.
+filter = 'package(gmeow-validate) & binary(conformance_affect_producer_union) & test(/twin_/)'
 test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
