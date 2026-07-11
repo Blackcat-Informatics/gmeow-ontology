@@ -1103,102 +1103,136 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-edoal-projections .
 
 gmeow:fanout-catalog-constraint-catalog a gmeow:FanoutExtraction ;
+    rdfs:label "fanout catalog constraint catalog"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/catalog/constraint-catalog.nq is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as self-graph N-Quads. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/catalog/constraint-catalog.nq" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-self" .
 
 gmeow:fanout-catalog-term-content-manifest a gmeow:FanoutExtraction ;
+    rdfs:label "fanout catalog term content manifest"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/catalog/term-content-manifest.nq is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as self-graph N-Quads. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/catalog/term-content-manifest.nq" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-self" .
 
 gmeow:fanout-diagnostics-logic-compile a gmeow:FanoutExtraction ;
+    rdfs:label "fanout diagnostics logic compile"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/diagnostics/logic-compile.nq is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as diagnostics N-Quads. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/diagnostics/logic-compile.nq" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-diagnostics" .
 
 gmeow:fanout-diagnostics-shacl a gmeow:FanoutExtraction ;
+    rdfs:label "fanout diagnostics shacl"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/diagnostics/shacl.nq is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as diagnostics N-Quads. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/diagnostics/shacl.nq" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-diagnostics" .
 
 gmeow:fanout-evals-scores a gmeow:FanoutExtraction ;
+    rdfs:label "fanout evals scores"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/evals/scores.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/evals/scores.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-foundation-gufo a gmeow:FanoutExtraction ;
+    rdfs:label "fanout foundation gufo"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/foundation/gufo.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/foundation/gufo.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-logic-correspondence-laws a gmeow:FanoutExtraction ;
+    rdfs:label "fanout logic correspondence laws"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/logic/gmeow.correspondence-laws.nt is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as N-Triples. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/logic/gmeow.correspondence-laws.nt" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
 
 gmeow:fanout-logic-correspondence a gmeow:FanoutExtraction ;
+    rdfs:label "fanout logic correspondence"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/logic/gmeow.correspondence.nt is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as N-Triples. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/logic/gmeow.correspondence.nt" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
 
 gmeow:fanout-logic-relational-core a gmeow:FanoutExtraction ;
+    rdfs:label "fanout logic relational core"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/logic/gmeow.relational-core.nt is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as N-Triples. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/logic/gmeow.relational-core.nt" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
 
 gmeow:fanout-logic-projection-report a gmeow:FanoutExtraction ;
+    rdfs:label "fanout logic projection report"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/logic/projection-report.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/logic/projection-report.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-projections-core-prefixes a gmeow:FanoutExtraction ;
+    rdfs:label "fanout projections core prefixes"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/projections/core-prefixes.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/projections/core-prefixes.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-projections-functions-fno a gmeow:FanoutExtraction ;
+    rdfs:label "fanout projections functions fno"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/projections/functions.fno.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/projections/functions.fno.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-projections-list-functions-fno a gmeow:FanoutExtraction ;
+    rdfs:label "fanout projections list functions fno"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/projections/list-functions.fno.ttl is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/projections/list-functions.fno.ttl" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-quality-assessment a gmeow:FanoutExtraction ;
+    rdfs:label "fanout quality assessment"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/quality/gmeow.quality-assessment.nt is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as N-Triples. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/quality/gmeow.quality-assessment.nt" ; gmeow:extractsMatch "exact" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
 
 gmeow:fanout-profiles a gmeow:FanoutExtraction ;
+    rdfs:label "fanout profiles"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path family generated/profiles/ is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/profiles/" ; gmeow:extractsMatch "prefix" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-research-objects a gmeow:FanoutExtraction ;
+    rdfs:label "fanout research objects"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path family generated/research-objects/ is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/research-objects/" ; gmeow:extractsMatch "prefix" ;
     gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
 
 gmeow:fanout-edoal-projections a gmeow:FanoutExtraction ;
+    rdfs:label "fanout edoal projections"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path family generated/projections/ is rebuilt from the shipped gmeow.gts as a EDOAL projection named-graph fold serialized as Turtle. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "prefix" ;

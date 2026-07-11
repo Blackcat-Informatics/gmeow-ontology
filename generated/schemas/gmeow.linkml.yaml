@@ -18101,38 +18101,55 @@ enums:
     permissible_values:
       fanout-catalog-constraint-catalog:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-catalog-constraint-catalog
+        title: fanout catalog constraint catalog
       fanout-catalog-term-content-manifest:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-catalog-term-content-manifest
+        title: fanout catalog term content manifest
       fanout-diagnostics-logic-compile:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-diagnostics-logic-compile
+        title: fanout diagnostics logic compile
       fanout-diagnostics-shacl:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-diagnostics-shacl
+        title: fanout diagnostics shacl
       fanout-edoal-projections:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-edoal-projections
+        title: fanout edoal projections
       fanout-evals-scores:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-evals-scores
+        title: fanout evals scores
       fanout-foundation-gufo:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-foundation-gufo
+        title: fanout foundation gufo
       fanout-logic-correspondence:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-correspondence
+        title: fanout logic correspondence
       fanout-logic-correspondence-laws:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-correspondence-laws
+        title: fanout logic correspondence laws
       fanout-logic-projection-report:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-projection-report
+        title: fanout logic projection report
       fanout-logic-relational-core:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-relational-core
+        title: fanout logic relational core
       fanout-profiles:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-profiles
+        title: fanout profiles
       fanout-projections-core-prefixes:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-projections-core-prefixes
+        title: fanout projections core prefixes
       fanout-projections-functions-fno:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-projections-functions-fno
+        title: fanout projections functions fno
       fanout-projections-list-functions-fno:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-projections-list-functions-fno
+        title: fanout projections list functions fno
       fanout-quality-assessment:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-quality-assessment
+        title: fanout quality assessment
       fanout-research-objects:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-research-objects
+        title: fanout research objects
   FeedPostingKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/FeedPostingKind
     permissible_values:
