@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [profile.default]
-# Always-on per-test budget (#1045): every test on this profile must complete under
+# Always-on per-test budget: every test on this profile must complete under
 # 25 s real wall time, enforced AFTER the run by the JUnit duration gate
 # (`cargo run -p gmeow-test-budget`, wired into `make rust-test`/`rust-gate`). Tests
 # that are still over budget are carved out of this profile via `default-filter`
@@ -18,7 +18,7 @@
 # in AGENTS.md's test-budget section (the off-gate allowlist). The post-run JUnit
 # budget gate verifies nothing >25 s slipped THROUGH this filter onto the gate.
 #
-# Off-gate groups (reevaluated 2026-06-29 via `make maint-rust-heavy`; #1045).
+# Off-gate groups (reevaluated 2026-06-29 via `make maint-rust-heavy`).
 # Most former exclusions now pass well under the 25 s policy and are back on the
 # default/ci profile. The remaining exclusions are still over budget:
 #   - gmeow-validate deep_surfaces_entailed_inconsistency..._heavy_offgate:
@@ -69,6 +69,20 @@
 #     crates/pipeline/tests/math_flagship_discharge.rs (which executes each producer),
 #     and this binary is the extra cross-crate proof that the producer output also
 #     validates SHACL-clean — reevaluated on maint-heavy.
+#   - gmeow-validate conformance_affect_producer_union: the 8 whole-ontology-union
+#     affect twins (four Case::with_ontology() exclusivity/label-rule twins + four
+#     .shape_union() projected-cardinality twins), split out of the mixed
+#     conformance_affect_producer binary so its ~10 cheap fixture-only + pure-Rust
+#     producer tests stay on-gate. Same whole-ontology-union H8 sh:sparql cost as the
+#     domain conformance binaries above. A DETERMINISTIC cost-partition bench
+#     (gmeow-cost-measure allocation accounting, run via make maint-bench-instructions)
+#     measured a single twin's whole-graph scan at ~34.8 GB / 54.2M allocations of
+#     churn — ~63x the one-time corpus setup (~0.55 GB) and ~25,000x the fixture-only
+#     path (~1.4 MB) — so the per-twin scan is IRREDUCIBLE: a setup cache can amortize
+#     only the ~2% setup (never the scan) and folding the twins into one test raises
+#     the per-test maximum to setup + 8x the scan. It rides the same 25 s cliff as its
+#     siblings, so it joins this off-gate group; the cheap producer coverage stays
+#     on the per-commit gate.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
 #     ~570 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
 #     the native Nemo chase over it twice (once benign, once with an injected
@@ -241,7 +255,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & binary(fanout_parity))
     | (package(gmeow-pipeline) & test(/stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean/))
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
-    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers)))
+    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers) | binary(conformance_affect_producer_union)))
     | (package(gmeow-dev-cli) & binary(cli_parity) & (test(build_writes_serializations) | test(project_view_over_the_snapshot)))
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
