@@ -1,0 +1,18 @@
+# Competency question: is EVERY gmeow:DocEvidence node a claim held together WITH
+# its grounds? Every evidence node must carry at least one gmeow:docGroundedBy
+# carrier truthmaker — an ungrounded node would be the doc-layer analogue of a DARK
+# finding. The ASK is true IFF (a) at least one gmeow:DocEvidence node exists in the
+# scene AND (b) no gmeow:DocEvidence node lacks a gmeow:docGroundedBy truthmaker —
+# a bare existential match would pass even when an ungrounded node coexists with a
+# grounded one, so the universal is enforced via double negation. Asserted lane;
+# the gmeow:cqDataFile overlay supplies the self-describing scene.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+ASK {
+    ?evidence a gmeow:DocEvidence .
+    FILTER NOT EXISTS {
+        ?ungrounded a gmeow:DocEvidence .
+        FILTER NOT EXISTS { ?ungrounded gmeow:docGroundedBy ?truthmaker . }
+    }
+}

@@ -148,6 +148,17 @@ impl Stage for ValidateStage {
     fn consumes_span_table(&self) -> bool {
         true
     }
+    /// The named graphs this stage attaches to the carrier (its delta), from the
+    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
+    /// declarations and verified against the run-time delta by the scheduler.
+    fn attaches_graphs(&self) -> &[String] {
+        crate::stages::attach::graphs(self.id())
+    }
+    /// The blob-representation lanes this stage attaches (its delta), from the single
+    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
+    fn attaches_blob_reps(&self) -> &[String] {
+        crate::stages::attach::blob_reps(self.id())
+    }
     fn impl_version(&self) -> &str {
         // v3: attribute each SHACL finding to its DOCUMENTED constrained property (the
         // `sh:path`) via the finding's `documented_terms` carrier, so the docs

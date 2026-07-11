@@ -46,6 +46,11 @@ fn slice_dag_binds_and_matches_full_spec() {
     // for it. The slice is the sole formats source; comparing it would compare a
     // populated slice value against an intentionally-empty Rust one. Format
     // coverage is asserted independently against the slice in the loader tests.
+    // `attaches_graphs` (`gmeow:attachesGraph`) and `attaches_blob_reps`
+    // (`gmeow:attachesBlobRep`) are loaded from the slice too — the run-verified
+    // stage-contribution declarations — so a drift between the slice and the Rust spec
+    // must surface here (Rust/RDF attach agreement). `bind` above ALSO proves the Rust
+    // impl's attaches_graphs()/attaches_blob_reps() equal the parsed slice values.
     type StageTuple = (
         String,
         String,
@@ -53,6 +58,8 @@ fn slice_dag_binds_and_matches_full_spec() {
         Vec<String>,
         Vec<String>,
         Vec<(String, Vec<String>)>,
+        Vec<String>,
+        Vec<String>,
     );
     let project = |s: &gmeow_pipeline::StageSpec| -> StageTuple {
         (
@@ -62,6 +69,8 @@ fn slice_dag_binds_and_matches_full_spec() {
             s.capabilities.clone(),
             s.resources.clone(),
             s.dataflow_entities.clone(),
+            s.attaches_graphs.clone(),
+            s.attaches_blob_reps.clone(),
         )
     };
     let full = full_spec();
@@ -72,6 +81,7 @@ fn slice_dag_binds_and_matches_full_spec() {
     assert_eq!(
         slice, rust,
         "the dogfooded slice DAG and the Rust full_spec must be identical \
-         (id, impl_key, consumes, capabilities, resources, dataflow_entities)"
+         (id, impl_key, consumes, capabilities, resources, dataflow_entities, \
+          attaches_graphs, attaches_blob_reps)"
     );
 }

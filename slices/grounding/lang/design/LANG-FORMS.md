@@ -202,16 +202,16 @@ worked example of [`LANG-MEANING.md`](LANG-MEANING.md).
 
 ## Grafting the existing slices
 
-The reference layer is the substrate the existing domain slices migrate onto, per the manifesto's
-grafting posture and the greenfield principle:
+The reference layer is the substrate the existing domain slices were migrated onto, per the
+manifesto's grafting posture and the greenfield principle:
 
 | Existing term | Relation to the grounding layer |
 |---|---|
-| `gmeow:Language`, `gmeow:FormalLanguage`, `gmeow:ProgrammingLanguage` | become individuals/kinds under `lang:SignSystem`; the class ladder collapses into `lang:signSystemKind` individuals |
-| `gmeow:WritingSystem` | grafts to `lang:Script` + `lang:Orthography` (the conflation of repertoire and convention is the removed inferiority) |
-| `gmeow:TransliterationScheme` | becomes a rendering-layer map between orthographies ([`LANG-TRANSLATION.md`](LANG-TRANSLATION.md)) |
+| `gmeow:Language`, `gmeow:FormalLanguage`, `gmeow:ProgrammingLanguage` | became individuals/kinds under `lang:SignSystem`; the class ladder collapsed into `lang:signSystemKind` individuals |
+| `gmeow:WritingSystem` | grafted to `lang:Script` + `lang:Orthography` (the conflation of repertoire and convention is the removed inferiority) |
+| `gmeow:TransliterationScheme` | became a rendering-layer map between orthographies ([`LANG-TRANSLATION.md`](LANG-TRANSLATION.md)) |
 | `gmeow:bcp47Tag`, `gmeow:languageCode` | retained as projection/alignment surfaces of sign-system individuals |
-| `gmeow:NotationSystem`, `gmeow:SymbolicSystem` (notation slice) | notational sign systems; their projection-profile machinery grafts under the rendering layer |
+| `gmeow:NotationSystem`, `gmeow:SymbolicSystem` (notation slice) | notational sign systems; their projection-profile machinery grafted under the rendering layer |
 
-The migration is queued work, executed with the slice implementation — each grafted term passing
-the affected slices' tests and the regenerated bundle, never a big-bang rename.
+The migration is **executed** — with each grafted term passing the affected slices'
+tests and the regenerated bundle, never a big-bang rename.

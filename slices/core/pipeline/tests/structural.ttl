@@ -98,3 +98,35 @@ ASK {
     { ?s gmeow:hasCapability gmeow:sourceOrigin . FILTER(?s != gmeow:stage-source-load) }
 }""" ;
     gmeow:saRationale "Exclusivity of the dogfooded build pipeline's capability holders: no stage other than gmeow:stage-gts-sink may hold gmeow:sinkCapability (the single serialization exit) and no stage other than gmeow:stage-source-load may hold gmeow:sourceOrigin (the sole authored-source loader). A spurious holder of either would corrupt the narrow-waist or provenance-origin contract the executor relies on." .
+
+# --- 6. Stage-contribution + fanout vocabulary is declared (MUST hold) --------
+# The run-verified contribution predicates (gmeow:attachesGraph / gmeow:attachesBlobRep,
+# PIPELINE_SPINE §3.3) and the promoted fanout path↔representative map
+# (gmeow:fanoutExtracts over gmeow:FanoutExtraction) MUST carry their TBox spine so the
+# loader's Rust/RDF attach agreement and the superset gate's data-driven reconstruction
+# read a declared vocabulary, not undeclared symbols.
+ex:saAttachAndFanoutVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:attachesGraph    a owl:ObjectProperty ;   rdfs:domain gmeow:PipelineStage .
+    gmeow:attachesBlobRep  a owl:DatatypeProperty ; rdfs:domain gmeow:PipelineStage .
+    gmeow:FanoutExtraction a owl:Class .
+    gmeow:fanoutExtracts   a owl:ObjectProperty ;   rdfs:domain gmeow:Pipeline ; rdfs:range gmeow:FanoutExtraction .
+    gmeow:extractsPath     a owl:DatatypeProperty ; rdfs:domain gmeow:FanoutExtraction .
+    gmeow:extractsForm     a owl:DatatypeProperty ; rdfs:domain gmeow:FanoutExtraction .
+}""" ;
+    gmeow:saRationale "The stage-contribution predicates (gmeow:attachesGraph → each named graph a stage attaches to the carrier as its delta; gmeow:attachesBlobRep → each blob-representation lane) and the promoted fanout map (gmeow:fanoutExtracts gathering gmeow:FanoutExtraction rows of gmeow:extractsPath / gmeow:extractsForm) MUST be TBox-declared with their domains: the scheduler HARD-fails on attach-declaration drift and the superset gate reconstructs generated/ paths from these rows, so both must read a declared vocabulary." .
+
+# --- 7. Every declared stage attach is a carrier graph/blob, not a stage (MUST NOT) ---
+# gmeow:attachesGraph names named-graph IRIs (graph/...), never a gmeow:PipelineStage.
+# A stage mistakenly named as an attached graph would corrupt the run-time delta compare.
+ex:saAttachesGraphIsNotAStage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { ?stage gmeow:attachesGraph ?g . ?g a gmeow:PipelineStage . }""" ;
+    gmeow:saRationale "gmeow:attachesGraph relates a stage to a carrier NAMED-GRAPH IRI (its attach delta), never to another pipeline stage; a stage object here would mean the run-time delta compare is checking against a stage, not a graph." .

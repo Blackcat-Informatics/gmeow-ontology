@@ -73,7 +73,7 @@ target-by-target summary with spec links is in the
 | | `hasWebPage` → `schema:url` / `foaf:homepage` / `vcard:hasURL` | `fnWebPageToUrl` |
 | | `subOrganizationOf` → `schema:department` | `fnSubOrgToDepartment` |
 | **domain conversion** (catalog) | transliteration / transcription / translation as `fno:Function`s | `transforms.fno.ttl` |
-| **lossy drop** | `StorageLocation`, fine place types, `authorityLink`, pronouns, `NameUsage`, `WritingSystemUsage`, version lineage, proficiency level | — |
+| **lossy drop** | `StorageLocation`, fine place types, `authorityLink`, pronouns, `NameUsage`, version lineage, proficiency level | — |
 
 The **structured→flat field** transforms are the contact-card downcasts: GMEOW has
 **no** flat `nickname` / `birthDate` / `jobTitle` properties — a nickname is a
@@ -90,7 +90,7 @@ different use of FnO: it declares Hepburn / Pinyin / ISO 233 / IPA / translate a
 
 ## Profile lossiness
 
-- **schema.org** — richest fit: place value→class, decomposed addresses, GeoCoordinates, co-equal `schema:name`s, honorifics, `schema:Language`/`ComputerLanguage` with composed BCP-47 tags and flattened `schema:knowsLanguage`. Drops StorageLocation, fine place types, NameUsage/register/script, WritingSystemUsage, proficiency level, version lineage.
+- **schema.org** — richest fit: place value→class, decomposed addresses, GeoCoordinates, co-equal `schema:name`s, honorifics, `schema:Language`/`ComputerLanguage` with composed BCP-47 tags and flattened `schema:knowsLanguage`. Drops StorageLocation, fine place types, NameUsage/register/script, proficiency level, version lineage.
 - **GeoSPARQL** — geometry only: `geo:Feature` + WKT (retagged), lat/long→POINT, `geo:sfWithin`. Drops names, addresses, types.
 - **vCard** — contact-card fit: `vcard:fn`, `vcard:given-name`/`family-name`, `vcard:nickname`, `vcard:bday`, `vcard:title`, `vcard:Address` components, `vcard:hasURL`, `vcard:hasGeo`, and free-text `vcardx:pronouns` (the RFC 9554 extension — no core vCard-RDF predicate exists). Drops the nested place hierarchy + QIDs, geometry.
 - **FOAF** — lowest common denominator: place+coords → `wgs84:SpatialThing`, `foaf:name`, `foaf:based_near`. Drops nearly all structure.

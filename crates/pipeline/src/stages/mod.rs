@@ -20,6 +20,7 @@ use crate::registry::StageRegistry;
 
 pub mod agreement;
 pub mod apache;
+pub(crate) mod attach;
 pub mod bench;
 pub mod catalog;
 pub mod compile_logic;
