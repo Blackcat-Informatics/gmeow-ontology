@@ -536,8 +536,21 @@ maint-bench-instructions: ## (maintainer) Deterministic retired-instruction coun
 	@# Give Valgrind line tables to symbolize WITHOUT touching the committed
 	@# no-debug-symbol profiles: override strip/debug for THIS invocation only via
 	@# env, so DWARF is not persisted into the checked-in bench profile.
+	@# Build PORTABLY via the .cargo/bench-portable.toml fragment (x86-64-v3 Rust
+	@# target-cpu + C/C++ flags), overriding the committed host-tuned
+	@# -Ctarget-cpu=native / -march=native for THESE invocations only:
+	@# retired-instruction counts must be MACHINE-INDEPENDENT (a host-tuned build
+	@# defeats the whole point), and a host AVX-512 build makes Valgrind SIGILL on
+	@# newer CPUs. Same portable floor the CI/release workflows use.
 	CARGO_PROFILE_BENCH_STRIP=none CARGO_PROFILE_BENCH_DEBUG=line-tables-only \
-	  cargo bench -p gmeow-logic --bench engines_iai
+	  cargo --config .cargo/bench-portable.toml bench -p gmeow-logic --bench engines_iai
+	@# The whole-ontology-union conformance cost-partition: setup S vs per-twin scan
+	@# V, in retired instructions. Grounds the off-gate decision deterministically.
+	CARGO_PROFILE_BENCH_STRIP=none CARGO_PROFILE_BENCH_DEBUG=line-tables-only \
+	  cargo --config .cargo/bench-portable.toml bench -p gmeow-validate --bench conformance_union_cost_iai
+	@# The allocation half of the same partition (bytes / alloc count / peak-live).
+	@# Needs NO Valgrind — the counts are host-independent — so it always runs.
+	cargo bench -p gmeow-validate --bench conformance_union_cost_alloc
 
 maint-bench-engines: ## (maintainer) Engine-vs-engine benchmark over the committed mini corpora: emit the DETERMINISTIC cost/agreement artifact + the REPORT-ONLY wall/RSS advisory table (offline; NOT wired into `make check`).
 	@# The `bench-engines` harness drives every committed mini bench case through the

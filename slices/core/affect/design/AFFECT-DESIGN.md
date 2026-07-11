@@ -178,9 +178,12 @@ kind), and every external surface is a **lowering** in the *same*
 `projection-report.ttl` loss ledger that governs OWL/gUFO — the affect slice adds no
 parallel bridging machinery:
 
-- **Classifier registries, MFOEM, EmotionML, WordNet-Affect, Ithkuil** are
+- **Classifier registries, MFOEM, EmotionML, Open English WordNet** are live
   correspondence *sources*; **EmotionML / SSSOM / sentiment-label** emission are
-  *lowerings* with declared preservation.
+  *lowerings* with declared preservation. Where a source carries no resolvable
+  per-term RDF surface (the WordNet-Affect affective labels, the Emotion Frame
+  Ontology, Ithkuil), it is a recorded `gmeow:DeclinedCorrespondence` rather than
+  a live source — carried and flagged, never fabricated against a dead IRI.
 - **`closeMatch`-by-default, `exactMatch`-only-after-review** *is* the relation
   lattice (`overlaps` / `relatedMatch` vs `equiv`) plus the `Determinacy` axis, and
   the **overclaim gate** enforces it: emitting `exactMatch` for a caveated label, or
@@ -583,7 +586,7 @@ never define the canonical model.
 | Layer | What it captures | Example |
 | --- | --- | --- |
 | Canonical GMEOW affect model | emotion, affective experience, mood, appraisal, expression, evidence, scale/profile | `gmeow:Emotion`, `gmeow:Appraisal`, future `gmeow:AffectiveExperience` |
-| External ontology mappings | rich semantic bridges to ontology terms | MFOEM, EmotionML, Emotion Frame Ontology, OntoLex, PROV-O, Web Annotation |
+| External ontology mappings | rich semantic bridges to ontology terms | MFOEM, EmotionML, OntoLex-Lemon (Open English WordNet), PROV-O, Web Annotation |
 | External classifier label registries | exact lossless identity of model labels | `goemotions:gratitude`, `hf-cardiff:Positive`, `sst2:NEGATIVE` |
 | Inference-output observations | actual model runs as claims with provenance, scores, thresholds, evidence | "SamLowe GoEmotions emitted `joy=0.84` over chunk X" |
 
@@ -729,7 +732,7 @@ distinct until mapped) and the output is evidence, not a settled inner state.
 Maximal linking makes GMEOW the hub, with authority always flowing GMEOW-first:
 
 ```text
-EmotionML / MFOEM / EmotionFrame / OntoLex / PROV-O / Web Annotation
+EmotionML / MFOEM / OntoLex / PROV-O / Web Annotation
             ↕
          GMEOW affect
             ↕
@@ -767,10 +770,10 @@ from the classifier label registries):
 | EmotionML | projection profile + SSSOM category/dimension mappings | EmotionML has vocabulary mechanisms for category, dimension, appraisal, and action-tendency sets |
 | PROV-O | map runs/outputs to `prov:Activity`, `prov:Entity`, `prov:Agent`, `prov:wasGeneratedBy`, `prov:wasDerivedFrom` | W3C provenance ontology for the inference-output layer's activity/entity/agent chains |
 | Web Annotation | align evidence spans and media segments | annotations over arbitrary resources/segments, incl. text and timed multimedia |
-| OntoLex-Lemon / WordNet-Affect / NRC lexicons | lexical-entry and lexical-sense bridges | OntoLex models lexical entries, senses, and references to ontology entities — fits affect lexicons and emotion-word resources |
-| Emotion Frame Ontology (local prefix TBD — avoid the bare acronym "EFO", which collides with the Experimental Factor Ontology) | `skos:relatedMatch` / `broadMatch` to frame roles | models emotions as DOLCE-aligned semantic frames with roles, for role-based emotion situations |
+| OntoLex-Lemon / WordNet-Affect / NRC lexicons | lexical-entry and lexical-sense bridges | **Landed** as a `skos:closeMatch` OntoLex-Lemon lexical bridge to Open English WordNet's dereferenceable per-synset "feeling" IRIs (the live successor to the defunct Princeton WordNet-Affect export). The WordNet-Affect affective-label layer and the NRC lexicons carry no resolvable RDF surface and are **recorded declines** (`mappings/declined-bridges.ttl`); their content is carried in-slice |
+| Emotion Frame Ontology (a local prefix, never the bare acronym "EFO", which collides with the Experimental Factor Ontology) | `skos:relatedMatch` / `broadMatch` to frame roles | models emotions as DOLCE-aligned semantic frames with roles — but its term IRIs do not dereference and no canonical namespace is published, so it is a **recorded decline** (`gmeow:DeclinedCorrespondence`, `logic:Unsupported`), not a landed bridge; its frame-role structure is carried in-slice by the appraisal-dimension and affective-participant model |
 | Croissant / ML metadata | dataset/model metadata projection | ML-ready dataset and model-card metadata for Hugging Face ingest packaging |
-| Ithkuil affect roots | reference inventory — `skos:closeMatch` from GMEOW terms to root glosses, with composition notes | a maximally fine-grained, composition-aware set of affective *distinctions* and gradation bands (Stems). A **constructed** language: a reference of distinctions, **not** an empirical or standards authority — lower standing than MFOEM / EmotionML, and useful mainly as a stress-test that the vector + composition model can express every root |
+| Ithkuil affect roots | reference inventory — `skos:closeMatch` from GMEOW terms to root glosses, with composition notes | a maximally fine-grained, composition-aware set of affective *distinctions* and gradation bands (Stems). A **constructed** language: a reference of distinctions, **not** an empirical or standards authority — lower standing than MFOEM / EmotionML, and useful mainly as a stress-test that the vector + composition model can express every root. It publishes no RDF namespace and no per-root IRI, so it is a **recorded decline** (`gmeow:DeclinedCorrespondence`, `logic:Unsupported`, at lower standing), its distinctions carried in-slice by the vector + composition model |
 
 **EmotionML projection is many-to-one.** `Emotion`, `AffectiveExperience`,
 `Appraisal`, and `AffectClassifierOutput` may all project into a single EmotionML
@@ -993,9 +996,16 @@ Affect work should land in small, reasoned, slice-first increments:
 6. **A5 — bridges:** emit SSSOM/projection artifacts — classifier registries
    first (GoEmotions, then SST-2 / TweetEval / CardiffNLP / BERTweet /
    j-hartmann, zero-shot / LLM judges), then the ontology bridges (MFOEM,
-   EmotionML, PROV-O, Web Annotation, OntoLex / WordNet-Affect, the Emotion Frame
-   Ontology, Wikidata), each carrying a declared preservation judgment in the loss
-   ledger.
+   EmotionML, PROV-O, Web Annotation, Wikidata) and the OntoLex-Lemon lexical
+   bridge (by reference to Open English WordNet's dereferenceable per-synset
+   IRIs), each carrying a declared preservation judgment in the loss ledger.
+   Where a named target carries no resolvable per-term RDF surface — the
+   WordNet-Affect affective labels and NRC lexicons, the Emotion Frame Ontology,
+   and Ithkuil affect roots — it is NOT bridged (a correspondence would fabricate
+   a link to a dead IRI); each is instead a machine-reviewable
+   `gmeow:DeclinedCorrespondence` in `mappings/declined-bridges.ttl` carrying its
+   rationale, revisit condition, and `logic:preservationKind logic:Unsupported`,
+   with its content carried, modeled up, in-slice.
 7. **A6 — developer surface:** make `gmeow.gts` and the generated Python surface
    answer the competency questions without RDF knowledge.
 

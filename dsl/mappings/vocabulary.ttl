@@ -107,6 +107,50 @@ gmeow:sssomPredicate a owl:ObjectProperty ;
     skos:definition "For a projection binding flagged emitSssom, the SSSOM mapping predicate of its one-to-one term row (distinct from the EDOAL gmeow:relation axis)."@x-gmeow-english .
 
 # --------------------------------------------------------------------------- #
+# Declined correspondence — a machine-reviewable "won't-bridge" record
+# --------------------------------------------------------------------------- #
+
+gmeow:DeclinedCorrespondence a owl:Class ;
+    rdfs:label "declined correspondence"@x-gmeow-english ;
+    skos:definition "A deliberately-not-authored cross-ontology bridge to an external vocabulary that carries no resolvable per-term RDF surface — recorded with its rationale, the probed candidate namespace(s), a dated probe verdict, and a revisit condition, so the decision is reviewable data rather than a prose comment. Authoring a live correspondence against such a surface would fabricate a link to a dead IRI (Principle 5), so the bridge is declined until a verifiable namespace appears. It is the bottom of the same preservation lattice the supersession ledger populates — nothing is aligned and nothing is recovered — and carries logic:preservationKind logic:Unsupported, the honest 'cannot be expressed in the target at all' polarity, so the absent bridge is carried and flagged, never silently dropped. Distinct from gmeow:TermEquivalence (a live, resolvable link): a decline has no gmeow:alignObject, precisely because no resolvable object exists."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:declinedTarget a owl:DatatypeProperty ;
+    rdfs:label "declined target vocabulary"@x-gmeow-english ;
+    skos:definition "The external vocabulary a correspondence was declined against, named by its spelled-out label or prefix as a string — NEVER a per-term IRI, because dereferencing one would fabricate the dead link the decline exists to avoid. A collision-prone bare acronym (e.g. the three letters that also name the Experimental Factor Ontology) is forbidden; use the full name."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:intendedRelation a owl:ObjectProperty ;
+    rdfs:label "intended bridge relation"@x-gmeow-english ;
+    skos:definition "The SKOS mapping relation (skos:closeMatch / skos:relatedMatch / skos:broadMatch) that a bridge to the declined target WOULD have used had a resolvable surface existed — recording the design intent so a future revisit can author the bridge directly."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:declineRationale a owl:DatatypeProperty ;
+    rdfs:label "decline rationale"@x-gmeow-english ;
+    skos:definition "Why the bridge was declined — the reviewable justification (e.g. the target's per-term RDF export is defunct, its term IRIs do not dereference, or it is a reference inventory with no namespace authority)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:revisitCondition a owl:DatatypeProperty ;
+    rdfs:label "revisit condition"@x-gmeow-english ;
+    skos:definition "The condition under which a decline is reopened and the bridge authored — typically that a verifiable, dereferenceable per-term namespace for the target appears."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:candidateNamespace a owl:DatatypeProperty ;
+    rdfs:label "candidate namespace"@x-gmeow-english ;
+    skos:definition "A probed candidate base for the declined target, carried as a string (never a dereferenced IRI) so a future re-probe has a concrete, reproducible target. Multi-valued: a single declined target may bundle several candidate surfaces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:probeVerdict a owl:DatatypeProperty ;
+    rdfs:label "probe verdict"@x-gmeow-english ;
+    skos:definition "The dated liveness finding from probing the candidate namespace(s) — the reproducible evidence backing the decline (e.g. an HTTP 404 or an absent per-term RDF surface)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+gmeow:contentCarriedBy a owl:ObjectProperty ;
+    rdfs:label "content carried by"@x-gmeow-english ;
+    skos:definition "Links a declined correspondence to the in-slice GMEOW terms that already carry the external vocabulary's distinctions — the positive witness that the declined content is not lost but modelled up, in-slice, making the safety of the decline checkable rather than asserted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
+
+# --------------------------------------------------------------------------- #
 # Pattern fields
 # --------------------------------------------------------------------------- #
 
@@ -940,6 +984,7 @@ gmeow:whenValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-d
 # --------------------------------------------------------------------------- #
 
 gmeow:AltPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:DeclinedCorrespondence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:ExpressionOperator gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:InversePath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
 gmeow:MappingPattern gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
@@ -963,8 +1008,12 @@ gmeow:atom gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bind gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bindExpr gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:bindVar gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:candidateNamespace gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:comment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:contentCarriedBy gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:declineRationale gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:declinedTarget gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:edoalPath gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:edoalSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:edoalSourceKind gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxRBox .
@@ -1020,6 +1069,7 @@ gmeow:fnTaggingToAnnotation gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox
 gmeow:fnWebPageToUrl gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
 gmeow:hasBinding gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:hasMappingPattern gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:intendedRelation gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:justification gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:license gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:lossyDrop gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
@@ -1076,9 +1126,11 @@ gmeow:pathStep gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:pathSteps gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:predicate gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:predicateVar gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:probeVerdict gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:profile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:projectWhen gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:relation gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:revisitCondition gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:setComment gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:setId gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:setTrailer gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .

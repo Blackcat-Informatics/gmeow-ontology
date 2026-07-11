@@ -3,10 +3,8 @@
 
 //! Blob-integrity conformance over the committed `generated/dist/gmeow.gts`.
 //!
-//! Recreates natively the invariants the retired
-//! `tests/test_bundle_blob_integrity.py` pinned — the consumer archives are
-//! present, and every `gmeow:guideBlob` content-addressed reference resolves —
-//! then generalizes them into the whole-bundle law: no dangling reference, no
+//! Recreates natively the consumer-archive invariants and generalizes them into
+//! the whole-bundle law: no dangling reference, no
 //! orphan blob, no hash-integrity mismatch, across EVERY reference predicate and
 //! EVERY stored blob (see [`gmeow_pipeline::bundle_blobs::Bundle::integrity_report`]).
 //!
@@ -70,12 +68,10 @@ fn consumer_archives_present_and_non_empty() {
     );
 }
 
-/// Mirrors `tests/test_no_dangling_guide_blob_references`: the
-/// `gmeow:guideBlob` content-addressed references are non-empty (a docs
-/// regression would empty the set) and every one of them resolves to a blob
-/// actually carried by the bundle.
+/// Documentation guides are external projections, so neither their bytes nor
+/// content-addressed references belong in the logical bundle.
 #[test]
-fn guide_blob_references_exist_and_are_all_backed() {
+fn guide_blob_references_are_absent() {
     let snapshot = committed_snapshot();
     let bundle = Bundle::from_snapshot(&snapshot).expect("fold committed gmeow.gts");
     let report = bundle
@@ -83,25 +79,9 @@ fn guide_blob_references_exist_and_are_all_backed() {
         .expect("compute blob-integrity report over committed gmeow.gts");
 
     let guide_predicate = "https://blackcatinformatics.ca/gmeow/guideBlob";
-    let guide_refs = report
-        .referenced
-        .get(guide_predicate)
-        .unwrap_or_else(|| panic!("no guideBlob references found at all:\n{report}"));
     assert!(
-        !guide_refs.is_empty(),
-        "gmeow:guideBlob reference set is empty — a docs regression dropped every \
-         per-slice guide-content reference"
-    );
-
-    let guide_dangling = report
-        .dangling
-        .get(guide_predicate)
-        .cloned()
-        .unwrap_or_default();
-    assert!(
-        guide_dangling.is_empty(),
-        "gmeow:guideBlob has dangling references (referenced digest with no backing \
-         blob in the bundle): {guide_dangling:?}"
+        !report.referenced.contains_key(guide_predicate),
+        "gmeow:guideBlob references must be absent from the logical bundle: {report}"
     );
 }
 

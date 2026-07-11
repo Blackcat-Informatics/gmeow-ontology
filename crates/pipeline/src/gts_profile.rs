@@ -30,7 +30,7 @@ pub(crate) fn emit_gmeow_gts(
     signer_secret: Option<[u8; 32]>,
     signer_kid: Option<String>,
     public_key_armor: Option<String>,
-) -> Result<Vec<u8>, String> {
+) -> gmeow_errors::Result<Vec<u8>> {
     purrdf::gts_compose::emit_gts(
         builder,
         "dist",
@@ -42,6 +42,7 @@ pub(crate) fn emit_gmeow_gts(
         public_key_armor,
         purrdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
     )
+    .map_err(|message| gmeow_errors::Diag::of_kind(crate::error::Transform { message }))
 }
 
 #[cfg(test)]
