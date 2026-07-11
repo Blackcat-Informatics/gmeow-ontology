@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 423
 expression: summary
 ---
 {
@@ -11,28 +12,23 @@ expression: summary
     "url": "concerns/concerndisclosure/index.html"
   },
   "last": {
-    "advice": [
-      "Use for rotation about the vertical axis in the Euler-angle orientation facet.",
-      "Avoid stating Euler angles without gmeow:eulerOrder (the rotation order disambiguates them).",
-      "Set gmeow:yaw with gmeow:pitch, gmeow:roll, and gmeow:eulerOrder on the Orientation."
-    ],
-    "alignments": [
-      "closeMatch:Q465493"
-    ],
-    "definition": "Rotation about the vertical (typically z) axis, in degrees or radians as indicated by the reference frame.",
-    "id": "gmeow:yaw",
+    "definition": "The failure raised when a math:RationalValue declares a math:denominator of 0. Zero is not a valid denominator — p/0 is not a rational value — so the exact carrier is ill-formed. The object-layer analogue of the dimension-exponent zero-denominator rule.",
+    "id": "math:ZeroDenominator",
     "kind": "term",
-    "label": "yaw",
+    "label": "Zero Denominator",
     "missing_coverage": [
+      "usage_advice",
+      "example",
       "scope_note",
       "fixture_pair",
       "competency_rationale",
       "worked_instance",
+      "annotation_coat",
       "translation_coverage",
       "test_reach",
       "prose_quality"
     ],
-    "url": "terms/yaw/index.html"
+    "url": "terms/zerodenominator/index.html"
   },
-  "record_count": 2805
+  "record_count": 4686
 }

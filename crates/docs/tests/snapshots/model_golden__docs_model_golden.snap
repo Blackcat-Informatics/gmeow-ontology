@@ -1,18 +1,19 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 187
 expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 82,
-  "term_count": 2635,
+  "term_count": 4516,
   "dependency_edge_count": 1038,
   "term_count_by_category": {
-    "Class": 762,
+    "Class": 1351,
     "Datatype": 1,
-    "Individual": 94,
-    "Property": 1778
+    "Individual": 683,
+    "Property": 2481
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -308,7 +309,7 @@ expression: summary
   "linkage_count": 1868,
   "example_count": 145,
   "concern_count": 7,
-  "external_term_count": 1613,
+  "external_term_count": 1576,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -341,10 +342,7 @@ expression: summary
       "gmeow:facetStepFree",
       "gmeow:facetVisual",
       "gmeow:facetWheelchair",
-      "gmeow:polarityFeature",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/assertion",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/dana",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/library"
+      "gmeow:polarityFeature"
     ]
   },
   "sample_concern": {

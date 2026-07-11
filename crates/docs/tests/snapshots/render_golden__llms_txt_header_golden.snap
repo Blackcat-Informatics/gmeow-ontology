@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 641
 expression: head
 ---
 # GMEOW Ontology Documentation
@@ -10,9 +11,9 @@ Vocabulary 16. Namespace: https://blackcatinformatics.ca/gmeow/. The OWL source 
 
 ## Vocabulary
 
-- [Classes](classes/index.html): 762 terms
-- [Properties](properties/index.html): 1778 terms
-- [Individuals](individuals/index.html): 94 terms
+- [Classes](classes/index.html): 1351 terms
+- [Properties](properties/index.html): 2481 terms
+- [Individuals](individuals/index.html): 683 terms
 - [Datatypes](datatypes/index.html): 1 terms
 
 ## Terms

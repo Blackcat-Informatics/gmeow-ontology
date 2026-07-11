@@ -107,6 +107,11 @@ const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/pres
 /// authored-example loss row declares alongside its `logic:preservationKind`.
 const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
 
+/// The language-grounding vocabulary namespace (`slices/grounding/lang`). Its
+/// slice owns first-class documented vocabulary in this namespace, exactly like
+/// `logic:` / `math:`.
+const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+
 // ── Math grounding: worked ℚ⁷ SI-dimension instances ─────────────────────────
 /// The math-grounding vocabulary namespace (`slices/grounding/math`).
 const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
@@ -2371,16 +2376,49 @@ pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
 }
 
 /// Extract documented terms (GMEOW-namespaced typed subjects) from a module store.
+/// The grounding vocabulary namespace a slice OWNS, if it is one of the three
+/// grounding slices (`slices/grounding/{math,logic,lang}`, whose slice IRIs end
+/// `/slices/{math,logic,lang}`). A grounding slice declares its vocabulary in
+/// its OWN namespace (`math:` / `logic:` / `lang:`), not `gmeow:`, so its
+/// own-namespace TBox classes / properties / named vocabulary individuals become
+/// documented terms in addition to any `gmeow:` ones. A non-grounding slice
+/// returns `None` — its documented-term set is unchanged (`gmeow:` only).
+fn grounding_namespace(owner_slice: &str) -> Option<&'static str> {
+    if owner_slice.ends_with("/slices/math") {
+        Some(MATH_NS)
+    } else if owner_slice.ends_with("/slices/logic") {
+        Some(LOGIC_NS)
+    } else if owner_slice.ends_with("/slices/lang") {
+        Some(LANG_NS)
+    } else {
+        None
+    }
+}
+
+/// Whether a module subject is a documentable-term subject for a slice: any
+/// `gmeow:` subject, plus — for a grounding slice — any subject in that slice's
+/// OWN grounding namespace. The worked-instance / stereotype ABox nodes a
+/// grounding module also carries (subjects typed only by a domain class, e.g.
+/// `logic:Formula` / `math:Axiom` / `lang:Denotation`) are NOT admitted here as
+/// terms: [`category_for_type`] returns `None` for those types, so they surface
+/// only as worked-instances / examples on the vocabulary terms' pages, never as
+/// standalone term pages.
+fn is_documented_subject(subject: &str, grounding_ns: Option<&str>) -> bool {
+    subject.starts_with(GMEOW_NS) || grounding_ns.is_some_and(|ns| subject.starts_with(ns))
+}
+
 fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> Vec<DocTerm> {
-    // First pass: collect every GMEOW subject with a recognized vocabulary type,
-    // keyed by IRI, recording the strongest category seen.
+    // First pass: collect every documentable subject with a recognized vocabulary
+    // type, keyed by IRI, recording the strongest category seen. A grounding slice
+    // also admits its own-namespace vocabulary (`math:` / `logic:` / `lang:`).
+    let grounding_ns = grounding_namespace(owner_slice);
     let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
 
     for (subject, object) in store.pattern_subjects_objects(RDF_TYPE) {
         let Some(subject) = subject.as_named() else {
             continue;
         };
-        if !subject.starts_with(GMEOW_NS) {
+        if !is_documented_subject(subject, grounding_ns) {
             continue;
         }
         let Object::Named(type_node) = &object else {
@@ -2910,20 +2948,23 @@ fn extract_example_from(
         })
         .unwrap_or_else(|| filename_title(&logical_path));
 
-    // Terms referenced: every gmeow: CURIE appearing as a NamedNode anywhere.
+    // Terms referenced: every GMEOW-family CURIE (`gmeow:` + the three grounding
+    // vocabularies `logic:` / `math:` / `lang:`) appearing as a NamedNode
+    // anywhere. Collecting the grounding namespaces — not just `gmeow:` — is what
+    // lets a grounding slice's conformance fixtures and worked examples light up
+    // `dimFixturePair` / `dimWorkedInstance` / `dimTestReach` for the grounding
+    // vocabulary terms keyed to those `math:` / `logic:` / `lang:` CURIEs.
     let mut terms_referenced: Vec<String> = parsed
         .map(|store| {
             let mut set: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
             store.for_each_quad(|s, _p, o| {
-                if let Some(iri) = s.as_named()
-                    && iri.starts_with(GMEOW_NS)
-                {
-                    set.insert(to_curie(iri));
+                if let Some(curie) = s.as_named().and_then(family_curie) {
+                    set.insert(curie);
                 }
                 if let Object::Named(iri) = o
-                    && iri.starts_with(GMEOW_NS)
+                    && let Some(curie) = family_curie(iri)
                 {
-                    set.insert(to_curie(iri));
+                    set.insert(curie);
                 }
             });
             set.into_iter().collect()
@@ -3603,9 +3644,14 @@ fn extract_pipeline(catalog: &SliceCatalog) -> Option<DocPipeline> {
     })
 }
 
-/// Derive the external-term overview: every non-GMEOW IRI referenced by a
-/// linkage object or by a term's parents / domain / range, grouped by namespace.
+/// Derive the external-term overview: every GENUINELY-external IRI referenced by
+/// a linkage object or by a term's parents / domain / range, grouped by
+/// namespace. An IRI that is itself a documented term (a `gmeow:` term, or a
+/// grounding-vocabulary `math:` / `logic:` / `lang:` term this projection now
+/// documents) is NOT external — it resolves to its own page — so it is excluded.
 fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<DocExternalTerm> {
+    let documented: std::collections::HashSet<&str> =
+        terms.iter().map(|t| t.iri.as_str()).collect();
     // external IRI → (referencing gmeow curies, predicates)
     let mut by_iri: BTreeMap<
         String,
@@ -3616,7 +3662,7 @@ fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<Doc
     > = BTreeMap::new();
 
     let mut record = |iri: &str, by: &str, via: &str| {
-        if iri.starts_with(GMEOW_NS) || !is_external_iri(iri) {
+        if iri.starts_with(GMEOW_NS) || !is_external_iri(iri) || documented.contains(iri) {
             return;
         }
         let entry = by_iri.entry(iri.to_string()).or_default();
@@ -3888,19 +3934,37 @@ fn named_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
     store.named_objects(subject, predicate)
 }
 
-/// Compute the compact CURIE for an IRI: `gmeow:Local` for GMEOW-namespaced
-/// IRIs, otherwise the IRI unchanged. A GMEOW-nested example namespace (e.g.
-/// `https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs`) has a local
-/// part carrying `/` — an invalid Turtle PN_LOCAL — so it falls through to the
-/// full IRI rather than minting a broken `gmeow:examples/logic/nearbyOrgs` CURIE
-/// (the same invariant [`turtle_iri`] already enforces).
+/// The GMEOW-family namespaces that abbreviate to a CURIE prefix: `gmeow:` plus
+/// the three grounding vocabularies (`logic:` / `math:` / `lang:`) whose slices
+/// own first-class documented terms. The namespaces are pairwise
+/// non-overlapping (no one is a prefix of another), so ordering is immaterial.
+const CURIE_NAMESPACES: &[(&str, &str)] = &[
+    (GMEOW_NS, "gmeow"),
+    (LOGIC_NS, "logic"),
+    (MATH_NS, "math"),
+    (LANG_NS, "lang"),
+];
+
+/// The compact CURIE for an IRI under a GMEOW-family namespace
+/// ([`CURIE_NAMESPACES`]), or `None` for any other IRI. A family-nested example
+/// namespace (e.g. `https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs`)
+/// has a local part carrying `/` — an invalid Turtle PN_LOCAL — so it yields
+/// `None` rather than a broken `gmeow:examples/logic/nearbyOrgs` CURIE (the same
+/// invariant [`turtle_iri`] enforces). Shared by [`to_curie`] (which falls back
+/// to the full IRI) and the corpora term-reference scan (which keeps ONLY
+/// family CURIEs).
+fn family_curie(iri: &str) -> Option<String> {
+    CURIE_NAMESPACES.iter().find_map(|(ns, prefix)| {
+        iri.strip_prefix(ns)
+            .filter(|local| !local.is_empty() && !local.contains(['/', '#']))
+            .map(|local| format!("{prefix}:{local}"))
+    })
+}
+
+/// Compute the compact CURIE for an IRI: a `gmeow:` / `logic:` / `math:` /
+/// `lang:` CURIE for a GMEOW-family-namespaced IRI, otherwise the IRI unchanged.
 fn to_curie(iri: &str) -> String {
-    match iri.strip_prefix(GMEOW_NS) {
-        Some(local) if !local.is_empty() && !local.contains(['/', '#']) => {
-            format!("gmeow:{local}")
-        }
-        _ => iri.to_string(),
-    }
+    family_curie(iri).unwrap_or_else(|| iri.to_string())
 }
 
 #[cfg(test)]

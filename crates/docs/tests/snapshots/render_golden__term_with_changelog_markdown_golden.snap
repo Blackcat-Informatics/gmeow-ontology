@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/render_golden.rs
+assertion_line: 261
 expression: "to_markdown(&model, &Page::Term(slug))"
 ---
 # Adequacy Assessment
@@ -238,7 +239,7 @@ A reified, solver\-set judgement that a justification's support MEETS \(or fails
 
 ## Super\-classes
 
-- [https://blackcatinformatics\.ca/logic/Relator](https://blackcatinformatics\.ca/logic/Relator)
+- [`logic:Relator`](../relator/index.md)
 
 ## Constraints
 
