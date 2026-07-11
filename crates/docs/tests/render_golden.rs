@@ -524,7 +524,7 @@ fn health_page_numbers_are_derivable_from_the_documentation_graph() {
     let local = |iri: &str| iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned();
 
     let model = common::cached_model();
-    let nquads = to_gmeow_rdf(&model);
+    let nquads = to_gmeow_rdf(&model, &BTreeMap::new());
 
     // INDEPENDENT raw scan: per documented-term subject, its covered dimension
     // local names (SET semantics — the RDF graph is a set of quads, so a subject
