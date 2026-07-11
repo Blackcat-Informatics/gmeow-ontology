@@ -5986,6 +5986,14 @@ math:ProbabilityScaleConflation
     skos:definition "The failure raised when an odds or log-odds value is modeled as a math:ProbabilityValue rather than as its own scale kind (math:OddsValue / math:LogOddsValue). Odds and log-odds are probability-scale transforms, not probabilities, and are held disjoint from math:ProbabilityValue by an OWL axiom; typing one as a probability conflates a lawful scale with the closed unit interval."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:ProbabilityEventOccurrentConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability-Event Occurrent Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProbabilityEvent (a measurable set of outcomes, the measure-theoretic sense) is also typed as a logic:Event (an occurrent — something that happens in time). The two are held disjoint by an OWL axiom, so a rain occurrence and the rain event-set in a forecast space are never conflated; a node carrying both types conflates the set-of-outcomes with the occurrence. Enforced by the OWL disjointness axiom and its paired SHACL shape (math:ProbabilityEventOccurrentDisjointShape) so the conflation is a queryable typed failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 math:UnframedProbabilityValue
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;

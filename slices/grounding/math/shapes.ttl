@@ -1605,3 +1605,220 @@ math:FlagshipScenarioShape
             }
         """ ;
     ] .
+
+# =========================================================================== #
+# Probability-layer gates (realizes design/MATHEMATICS-PROBABILITY.md and the   #
+# Probability rules of design/MATHEMATICS-CONFORMANCE.md).                       #
+# =========================================================================== #
+
+# Rule P1 — a probability value's magnitude lies in the closed unit interval [0, 1].
+math:ProbabilityValueRangeShape
+    a sh:NodeShape ;
+    rdfs:label "Probability-value range shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ProbabilityValue: any concrete math:quantityValue it carries lies in the closed unit interval [0, 1]. A probability is ALWAYS in [0, 1]; a magnitude outside it is either ill-formed or a mis-typed odds/log-odds. Where a probability is exact it is carried as a math:RationalValue (num/den) and carries no math:quantityValue at all, so this range check is unguarded by cardinality — it bounds the literal when present, and the exact-rational numeric check is the separate native gate that pairs with it."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:ProbabilityOutOfBounds ;
+    sh:targetClass math:ProbabilityValue ;
+    sh:property [
+        sh:path math:quantityValue ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilityValue's math:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." ;
+    ] .
+
+# Rule P2 — a probability value is never also an odds or log-odds value.
+math:ProbabilityScaleDisjointShape
+    a sh:NodeShape ;
+    rdfs:label "Probability-scale disjointness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ProbabilityValue: it is NOT also typed math:OddsValue or math:LogOddsValue. Odds and log-odds are probability-scale transforms, not probabilities, held owl:disjointWith math:ProbabilityValue by an OWL axiom; this paired SHACL surfaces the same conflation as a finding so a node typed both a probability and a lawful scale trips shacl.NotConstraintComponent instead of resting only on the DL gate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:ProbabilityScaleConflation ;
+    sh:targetClass math:ProbabilityValue ;
+    sh:not [ sh:class math:OddsValue ] ;
+    sh:not [ sh:class math:LogOddsValue ] ;
+    sh:severity sh:Violation ;
+    sh:message "A math:ProbabilityValue must not also be a math:OddsValue or math:LogOddsValue — odds and log-odds are probability-scale transforms held disjoint from the closed unit interval; typing one as a probability conflates a lawful scale with a probability (math:ProbabilityScaleConflation)." .
+
+# Rule P3 — a probability value names its reference frame or its probability model.
+math:ProbabilityValueFramedShape
+    a sh:NodeShape ;
+    rdfs:label "Probability-value framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ProbabilityValue: it names its probability frame OR its probability model — at least one of gmeow:hasReferenceFrame (the reference frame the value is expressed in) or logic:probabilityModel (the model it is a probability under). A probability value is a framed quantity object, never a bare literal; a value contextualized only by its probability model still passes. The model-context path reuses the logic: vocabulary (logic:probabilityModel, the same edge the lang: sibling uses) verbatim rather than minting a math: near-synonym (Principle 17). Neither present trips shacl.OrConstraintComponent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnframedProbabilityValue ;
+    sh:targetClass math:ProbabilityValue ;
+    sh:or (
+        [ sh:path gmeow:hasReferenceFrame ; sh:minCount 1 ]
+        [ sh:path logic:probabilityModel ; sh:minCount 1 ]
+    ) ;
+    sh:severity sh:Violation ;
+    sh:message "A math:ProbabilityValue must name its probability frame (gmeow:hasReferenceFrame) or its probability model (logic:probabilityModel); a probability that names neither is an unframed bare literal (math:UnframedProbabilityValue)." .
+
+# Rule P4 — a probability space names all three components of the Kolmogorov triple.
+math:ProbabilitySpaceCompleteShape
+    a sh:NodeShape ;
+    rdfs:label "Probability-space completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ProbabilitySpace: it names each of the three components of the Kolmogorov triple (Ω, ℱ, P) — its sample space (math:sampleSpace), its event σ-algebra (math:eventSigmaAlgebra), and its probability measure (math:probabilityMeasure). Each component may be symbolic or generative, so the gate requires PRESENCE only (a named IRI, min one each) and does not over-constrain the class of the component; the OWL restriction carries the class obligation. A space missing any of the three is ill-formed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IncompleteProbabilitySpace ;
+    sh:targetClass math:ProbabilitySpace ;
+    sh:property [
+        sh:path math:sampleSpace ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilitySpace must name its sample space Ω through math:sampleSpace (possibly symbolic or generative); a space missing it is ill-formed (math:IncompleteProbabilitySpace)." ;
+    ] ;
+    sh:property [
+        sh:path math:eventSigmaAlgebra ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilitySpace must name its event σ-algebra ℱ through math:eventSigmaAlgebra (possibly symbolic, e.g. a math:BorelSigmaAlgebra); a space missing it is ill-formed (math:IncompleteProbabilitySpace)." ;
+    ] ;
+    sh:property [
+        sh:path math:probabilityMeasure ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilitySpace must name its probability measure P through math:probabilityMeasure (possibly given by a math:MeasureDefinitionExpression); a space missing it is ill-formed (math:IncompleteProbabilitySpace)." ;
+    ] .
+
+# Rule P5 — a random variable declares its domain, codomain, and a space-or-distribution context.
+math:RandomVariableScopedShape
+    a sh:NodeShape ;
+    rdfs:label "Random-variable scope shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:RandomVariable: it declares its domain (math:randomVariableDomain) and codomain (math:randomVariableCodomain), and carries a probability context — either a distribution (math:hasDistribution) or a domain that is itself a math:ProbabilitySpace. A random variable is a scoped measurable map; one missing its frame or its context is unscoped. The context arm is an sh:or so a variable whose domain IS a probability space needs no separate distribution, and vice versa."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnscopedRandomVariable ;
+    sh:targetClass math:RandomVariable ;
+    sh:property [
+        sh:path math:randomVariableDomain ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RandomVariable must declare its domain through math:randomVariableDomain — the measurable space it is defined on; a variable missing it is unscoped (math:UnscopedRandomVariable)." ;
+    ] ;
+    sh:property [
+        sh:path math:randomVariableCodomain ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RandomVariable must declare its codomain through math:randomVariableCodomain — the measurable space it maps into; a variable missing it is unscoped (math:UnscopedRandomVariable)." ;
+    ] ;
+    sh:or (
+        [ sh:path math:hasDistribution ; sh:minCount 1 ]
+        [ sh:path math:randomVariableDomain ; sh:qualifiedValueShape [ sh:class math:ProbabilitySpace ] ; sh:qualifiedMinCount 1 ]
+    ) ;
+    sh:severity sh:Violation ;
+    sh:message "A math:RandomVariable must carry a probability context — a math:hasDistribution, or a math:randomVariableDomain that is itself a math:ProbabilitySpace; a variable with neither is unscoped (math:UnscopedRandomVariable)." .
+
+# Rule P6 — a distribution names its family, and a parameter-supplying distribution names its parameterization.
+math:DistributionParameterizedShape
+    a sh:NodeShape ;
+    rdfs:label "Distribution parameterization shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for math:Distribution: it names its family (math:distributionFamily — the paired SHACL twin of the OWL family restriction), and any distribution that SUPPLIES parameters (math:hasDistributionParameter) also names its math:distributionParameterization. There is no math:ParametricDistribution marker in the vocabulary, so parametricity is detected by the presence of supplied parameters rather than by a class or boolean: a distribution that supplies parameters is parametric and must declare which conventional form of its family those parameters fill, whereas a non-parametric distribution (no supplied parameters) is NOT rejected. This SHACL-SPARQL form is chosen precisely so the gate never misfires on a non-parametric distribution. A bare family label with parameters but no parameterization is ill-formed (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:MissingDistributionParameterization ;
+    sh:targetClass math:Distribution ;
+    sh:property [
+        sh:path math:distributionFamily ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Distribution must name its math:distributionFamily — the parametric family it belongs to; a distribution missing its family is underspecified (math:MissingDistributionParameterization)." ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:Distribution that supplies a math:hasDistributionParameter must name its math:distributionParameterization — the explicit convention fixing which parametric form of its family is meant; a supplied parameter with a silent default parameterization is ill-formed (math:MissingDistributionParameterization)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/hasDistributionParameter> ?param .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/distributionParameterization> ?parameterization . }
+            }
+        """ ;
+    ] .
+
+# Rule P7 — each role a parameterization requires is supplied exactly once.
+math:ParameterRoleCardinalityConstraint
+    a sh:NodeShape ;
+    rdfs:label "Distribution parameter-role cardinality shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:Distribution: each math:DistributionParameterRole that the distribution's math:distributionParameterization requires (math:requiresParameterRole) is supplied EXACTLY ONCE by the distribution's parameters (math:hasDistributionParameter → math:parameterRole). The aggregate query groups the supplied parameters per required role and fires when the count is zero (a role left unfilled) or two-or-more (a role filled twice), so any cardinality other than one trips shacl.SPARQLConstraintComponent."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:DistributionParameterRoleCardinality ;
+    sh:targetClass math:Distribution ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:Distribution must supply each math:DistributionParameterRole its math:distributionParameterization requires EXACTLY ONCE through math:hasDistributionParameter → math:parameterRole; a required role supplied zero times or more than once is ill-formed (math:DistributionParameterRoleCardinality)." ;
+        sh:select """
+            SELECT $this ?role (COUNT(DISTINCT ?param) AS ?supplied) WHERE {
+                $this <https://blackcatinformatics.ca/math/distributionParameterization> ?parameterization .
+                ?parameterization <https://blackcatinformatics.ca/math/requiresParameterRole> ?role .
+                OPTIONAL {
+                    $this <https://blackcatinformatics.ca/math/hasDistributionParameter> ?param .
+                    ?param <https://blackcatinformatics.ca/math/parameterRole> ?role .
+                }
+            }
+            GROUP BY $this ?role
+            HAVING (COUNT(DISTINCT ?param) != 1)
+        """ ;
+    ] .
+
+# Rule P8 — a conditional probability names the context it is conditioned on.
+math:ConditionedAssertionShape
+    a sh:NodeShape ;
+    rdfs:label "Conditional-probability conditioning shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ConditionalProbability: it names its conditioning event or context through math:conditionalOn — the B in P(A | B). A conditional probability whose conditioning context is left implicit is ill-formed; the conditioning context is never assumed."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnconditionedAssertion ;
+    sh:targetClass math:ConditionalProbability ;
+    sh:property [
+        sh:path math:conditionalOn ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ConditionalProbability must name its conditioning event or context through math:conditionalOn — the B in P(A | B); a conditional with an unnamed conditioning context is ill-formed (math:UnconditionedAssertion)." ;
+    ] .
+
+# Rule P9 — a conditional-independence assertion names its conditioning set.
+math:ConditionalIndependenceGivenShape
+    a sh:NodeShape ;
+    rdfs:label "Conditional-independence conditioning shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ConditionalIndependenceAssertion: it names its conditioning set through math:independentGiven — the C in A ⫫ B | C. A conditional-independence assertion that fails to name its conditioning set is ill-formed. Authored as a sibling of math:ConditionedAssertionShape (a distinct target class needing a distinct property path) so the two conditioning obligations do not collide on one node shape; both raise the same math:UnconditionedAssertion failure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnconditionedAssertion ;
+    sh:targetClass math:ConditionalIndependenceAssertion ;
+    sh:property [
+        sh:path math:independentGiven ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ConditionalIndependenceAssertion must name its conditioning set through math:independentGiven — the C in A ⫫ B | C; an assertion that leaves its conditioning set implicit is ill-formed (math:UnconditionedAssertion)." ;
+    ] .
+
+# Rule P10 — a probability value derived from a confidence declares its mapping.
+math:ConfidenceAsProbabilityConstraint
+    a sh:NodeShape ;
+    rdfs:label "Confidence-as-probability shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:ProbabilityValue: a probability value that carries a logic:confidence (a confidence score read as its magnitude) must declare a probability model through logic:probabilityModel — the declared mapping that turns a confidence into a probability. The logic: probability/confidence boundary is enforced, not eroded: a confidence annotation is never silently read as a probability, so a math:ProbabilityValue carrying logic:confidence with no declared logic:probabilityModel fires. This mirrors the lang: sibling (lang:ConfidenceNotProbabilityShape) verbatim, reusing the logic: vocabulary rather than minting a math: near-synonym. Absent both a confidence source and a model the shape is silent; it fires only on the conflation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:ConfidenceAsProbability ;
+    sh:targetClass math:ProbabilityValue ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:ProbabilityValue that carries a logic:confidence must declare a logic:probabilityModel — the mapping from confidence to probability; a probability derived from a confidence score with no declared mapping erodes the probability/confidence boundary and is ill-formed (math:ConfidenceAsProbability)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/logic/confidence> ?confidence .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/probabilityModel> ?model . }
+            }
+        """ ;
+    ] .
+
+# Rule P11 — a probability event (set of outcomes) is not an occurrent (logic:Event).
+math:ProbabilityEventOccurrentDisjointShape
+    a sh:NodeShape ;
+    rdfs:label "Probability-event occurrent-disjointness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ProbabilityEvent: it is NOT also typed logic:Event. A math:ProbabilityEvent is the measure-theoretic sense (a measurable set of outcomes); a logic:Event is an occurrent (something that happens in time). The two are held owl:disjointWith by an OWL axiom so a rain occurrence and the rain event-set are never conflated; this paired SHACL surfaces the same conflation as a finding so a node typed both trips shacl.NotConstraintComponent instead of resting only on the DL gate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:ProbabilityEventOccurrentConflation ;
+    sh:targetClass math:ProbabilityEvent ;
+    sh:not [ sh:class logic:Event ] ;
+    sh:severity sh:Violation ;
+    sh:message "A math:ProbabilityEvent (a measurable set of outcomes) must not also be a logic:Event (an occurrent); typing one node as both conflates the event-set with the occurrence (math:ProbabilityEventOccurrentConflation)." .
