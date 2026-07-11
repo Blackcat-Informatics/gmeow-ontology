@@ -9,38 +9,53 @@
 //! bucketed by predicate only.  The native execution core joins over
 //! *binary* relations — one relation per predicate IRI — and needs to select rows by
 //! a bound **subject** OR a bound **object**, not just by predicate.  This module is
-//! the column-oriented analogue: per predicate it keeps `(subject, object)` tuples in
-//! insertion order, with O(1) dedup on the interned tuple key and TWO secondary
-//! indexes (`by_subject`, `by_object`) maintained in lockstep, exactly mirroring
-//! `FactStore`'s `predicate_index` discipline.
+//! the column-oriented analogue: per predicate a [`Relation`] holds `(subject, object)`
+//! tuples as a **shared arrangement** — a log of sorted immutable batches plus a small
+//! mutable tail (the McSherry-et-al. / Nemo-Ivliev columnar discipline).
+//!
+//! # The arrangement shape
+//!
+//! - A [`Batch`] is flat dense-ID columns (`subj`, `obj`, `row_id`) in canonical
+//!   `(subject_id, object_id)` order, so a subject-bound probe GALLOPS the sorted
+//!   `subj` column to the term's contiguous run — no eager `by_subject` map, subject
+//!   grouping falls out of the sort.  The `(object, subject)` access path is a
+//!   lazily-built permutation ([`ObjectIndex`]), materialized only on the first
+//!   object-bound probe (never eagerly, never for a subject-only relation).
+//! - The mutable **tail** absorbs the current epoch's inserts unsorted; it is sealed
+//!   into a sorted batch geometrically (LSM size-tiered), and adjacent batches
+//!   consolidate by a streaming merge.  A tiny relation never seals — it stays a single
+//!   small tail `Vec`, allocation-light.
+//! - Dedup on insert uses GALLOPING search over the sorted batches plus a linear scan
+//!   of the small tail — **no per-row hashing, no postings-list maintenance** (the two
+//!   eager `HashMap` indexes and the dedup `HashSet` are deleted, greenfield).
+//! - The single sorted representation is generic over an abelian [`Weight`] monoid
+//!   instantiated `W = ()` in production; the same consolidation merge compiles for
+//!   `W = i64` (Z-set signed multiplicities), so signed-weight consolidation falls out
+//!   of one representation as a compiled fact.
 //!
 //! # Determinism (non-negotiable)
 //!
-//! - Tuples are stored in insertion order; both indexes append row indices in
-//!   lockstep so every bucket's order equals insertion order.
-//! - Keys and index buckets are [`TermId`]s minted by the store's single
-//!   [`TermInterner`], which is keyed on the [`crate::provenance::term_display`]
-//!   surface — so two
-//!   terms share an id exactly when their display surfaces are byte-equal,
-//!   preserving the string-keyed dedup semantics byte-exactly.  `TermId`s are
-//!   per-store handles: they are assigned in insertion order, NEVER sorted by
-//!   (their derived order is mint order, not lexical order), and never
-//!   serialized or hashed — canonical sorts stay on the string surfaces.
+//! - Term ids are minted by the store's single [`TermInterner`], keyed on the
+//!   [`crate::provenance::term_display`] surface, so two terms share an id exactly when
+//!   their display surfaces are byte-equal.  A batch's internal `(subject_id,
+//!   object_id)` sort is by mint order — an INTERNAL storage order, never an emission
+//!   order: the semi-naive winner selection is a total order over provenance (see
+//!   [`crate::rule_ir::RuleRoundCandidate::tiebreak_key`]), so the order in which a
+//!   cursor enumerates rows never reaches output.
 //! - A join probe translates a ground surface to an id via
 //!   [`RelationStore::term_id`] (non-inserting): a miss means the term has never
 //!   entered the store, so the selection is empty — the single place that
 //!   semantics lives.
-//! - Any "all predicates" / "all tuples" iteration is sorted (BTreeSet/BTreeMap),
-//!   never raw `HashMap` iteration order, so the engine's output is byte-stable.
+//! - Any "all predicates" iteration is sorted (BTreeSet), never raw map order.
 //!
 //! # The single oxigraph → columnar bridge
 //!
 //! [`extract_edb`] is the SOLE place the forward and backward engine paths cross from
 //! the oxigraph blackboard ([`crate::seam::ScryerForeign`]) into the columnar form.
 
-use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
+use std::sync::OnceLock;
 
-use foldhash::fast::FixedState;
 use purrdf::TermValue;
 
 use crate::facts::{PredId, PredInterner, TermId, TermInterner, skolem_iri};
@@ -238,57 +253,246 @@ pub(crate) enum Bound {
     Both(TermId, TermId),
 }
 
-/// A single binary relation: `(subject, object)` tuples for ONE predicate IRI.
+// ── The weight monoid: the Z-set seam ───────────────────────────────────────────
+//
+// A [`Batch`] is generic over an abelian weight `W`.  Production set semantics
+// instantiate `W = ()` — the unit monoid, a zero-sized type, so `Vec<()>` allocates
+// nothing and the weight column costs zero live bytes.  The SAME consolidation merge
+// compiles for `W = i64` (a Z-set with signed multiplicities): `combine` sums weights
+// and an annihilated (zero) row drops.  So "the representation admits signed weights"
+// is a COMPILED fact — the merge already monomorphizes for both — not a promise; the
+// incremental/retraction lever changes one type parameter, never the representation.
+
+/// An abelian weight monoid over relation rows (the Z-set seam).
+pub(crate) trait Weight: Copy {
+    /// The multiplicity of a freshly inserted row.
+    const UNIT: Self;
+    /// The abelian combine applied when two runs carry the SAME `(subject, object)` key
+    /// during consolidation (associative + commutative).
+    fn combine(self, rhs: Self) -> Self;
+    /// Whether a combined weight annihilates the row, so consolidation drops it.
+    fn is_annihilated(self) -> bool;
+}
+
+impl Weight for () {
+    const UNIT: Self = ();
+    #[inline]
+    fn combine(self, _rhs: Self) -> Self {}
+    #[inline]
+    fn is_annihilated(self) -> bool {
+        // Set semantics: every live row has unit weight and never consolidates away.
+        false
+    }
+}
+
+impl Weight for i64 {
+    const UNIT: Self = 1;
+    #[inline]
+    fn combine(self, rhs: Self) -> Self {
+        self.saturating_add(rhs)
+    }
+    #[inline]
+    fn is_annihilated(self) -> bool {
+        self == 0
+    }
+}
+
+/// The first position `>= from` in the strictly-ascending run `xs` whose value is
+/// `>= key`, found by GALLOPING (exponential probe to bracket, then binary search) —
+/// never a linear scan and never a hash probe.  This is the sorted-run lower-bound the
+/// whole arrangement leans on (subject-run location, object-run location, dedup), and
+/// the exact primitive a future multiway-leapfrog triejoin composes.
+fn gallop_lower_bound(xs: &[TermId], from: usize, key: TermId) -> usize {
+    let len = xs.len();
+    if from >= len {
+        return len;
+    }
+    if xs[from] >= key {
+        return from;
+    }
+    // Exponential probe: keep `xs[lo] < key`, doubling the stride until `hi` brackets a
+    // value `>= key` (or runs off the end).
+    let mut lo = from;
+    let mut step = 1usize;
+    let hi = loop {
+        let probe = lo.saturating_add(step);
+        if probe >= len {
+            break len;
+        }
+        if xs[probe] >= key {
+            break probe;
+        }
+        lo = probe;
+        step = step.saturating_mul(2);
+    };
+    // The first position `>= key` lies in `(lo, hi]`; binary-search it.
+    let (mut left, mut right) = (lo + 1, hi);
+    while left < right {
+        let mid = left + (right - left) / 2;
+        if xs[mid] >= key {
+            right = mid;
+        } else {
+            left = mid + 1;
+        }
+    }
+    left
+}
+
+/// The lazily-built secondary access path for one [`Batch`]: the batch's row positions
+/// in `(object_id, subject_id)` order, so an object-bound probe gallops to its run.
 ///
-/// Insertion-ordered, O(1)-deduped on the interned tuple key, with subject/object
-/// indexes maintained in lockstep — the column-oriented sibling of `FactStore`'s
-/// predicate bucket.  Term interning lives at the [`RelationStore`] level (one
-/// dictionary shared by every relation), so `insert` borrows the store's interner.
+/// Built ON FIRST object-bound demand (never eagerly, never for a subject-only
+/// relation) and memoized in a [`OnceLock`] — write-once and `Sync`, so a future
+/// parallel delta-partition firing that shares `&Batch` across threads initializes it
+/// cleanly.  A permutation of `u32` positions — never a hash map, never a per-key
+/// `Vec`: 4 bytes per row, materialized only when an object bound is actually probed.
+#[derive(Debug, Clone, Default)]
+struct ObjectIndex {
+    /// Row positions of the batch, sorted by `(object_id, subject_id)`.
+    perm: Box<[u32]>,
+}
+
+/// One immutable sorted batch: a relation's `(subject, object)` rows in canonical
+/// `(subject_id, object_id)` order, stored as flat dense-ID columns.
+///
+/// The primary sort is subject-major, so a subject-bound probe gallops the `subj`
+/// column to the term's contiguous run with NO secondary structure (the eager
+/// `by_subject` map is deleted — subject grouping falls out of the sort).  The
+/// `(object, subject)` access path is the lazily-built [`ObjectIndex`].  Generic over
+/// the weight monoid `W` (the Z-set seam); the production instantiation is `W = ()`.
+///
+/// `pub(crate)` (fields stay private) so the lending [`RowCursor`] can borrow a slice of
+/// batches and drive their galloping runs; it is the SOLE row-materialization path.
+#[derive(Debug, Clone)]
+pub(crate) struct Batch<W: Weight = ()> {
+    /// Subject column, ascending (subject-major within the `(subject, object)` sort).
+    subj: Vec<TermId>,
+    /// Object column, ascending within each subject run.
+    obj: Vec<TermId>,
+    /// Store-global dense [`RowId`] per row, parallel to the columns.
+    row_id: Vec<RowId>,
+    /// Multiplicity per row; `Vec<()>` is zero-sized under set semantics.
+    weight: Vec<W>,
+    /// The lazily-built `(object, subject)` access path (built on first object probe).
+    object_index: OnceLock<ObjectIndex>,
+}
+
+impl<W: Weight> Batch<W> {
+    /// Build a batch from rows ALREADY sorted ascending by `(subject_id, object_id)`
+    /// and free of duplicate keys.  Weights default to [`Weight::UNIT`].
+    fn from_sorted(rows: &[(TermId, TermId, RowId)]) -> Self {
+        let mut subj = Vec::with_capacity(rows.len());
+        let mut obj = Vec::with_capacity(rows.len());
+        let mut row_id = Vec::with_capacity(rows.len());
+        let mut weight = Vec::with_capacity(rows.len());
+        for &(s, o, r) in rows {
+            subj.push(s);
+            obj.push(o);
+            row_id.push(r);
+            weight.push(W::UNIT);
+        }
+        Self {
+            subj,
+            obj,
+            row_id,
+            weight,
+            object_index: OnceLock::new(),
+        }
+    }
+
+    /// The number of rows in the batch.
+    #[inline]
+    pub(crate) fn len(&self) -> usize {
+        self.row_id.len()
+    }
+
+    /// The `(subject_id, object_id, row_id)` id row at column position `p`.
+    #[inline]
+    pub(crate) fn row_at(&self, p: usize) -> (TermId, TermId, RowId) {
+        (self.subj[p], self.obj[p], self.row_id[p])
+    }
+
+    /// The `[lo, hi)` column-position run whose subject is `s`, located by galloping the
+    /// sorted `subj` column (subject grouping is contiguous in the primary sort).
+    pub(crate) fn subject_run(&self, s: TermId) -> (usize, usize) {
+        let lo = gallop_lower_bound(&self.subj, 0, s);
+        // `hi` is the first position past `s`'s contiguous run — a binary search of the
+        // sorted suffix, so a `Both` probe stays O(log) rather than O(run length).
+        let hi = lo + self.subj[lo..].partition_point(|&x| x <= s);
+        (lo, hi)
+    }
+
+    /// The single column position of the unique `(s, o)` row, if present: gallop the
+    /// subject run, then binary-search its ascending `obj` sub-column for `o`.
+    pub(crate) fn both_pos(&self, s: TermId, o: TermId) -> Option<usize> {
+        let (lo, hi) = self.subject_run(s);
+        let run = &self.obj[lo..hi];
+        run.binary_search(&o).ok().map(|off| lo + off)
+    }
+
+    /// Whether the unique `(s, o)` key is present in this batch.
+    fn contains(&self, s: TermId, o: TermId) -> bool {
+        self.both_pos(s, o).is_some()
+    }
+
+    /// The batch positions whose object is `o`, via the lazily-built [`ObjectIndex`]
+    /// (built on first demand).  A subslice of the `(object, subject)`-sorted permutation.
+    pub(crate) fn object_positions(&self, o: TermId) -> &[u32] {
+        let idx = self.object_index.get_or_init(|| {
+            let mut perm: Vec<u32> = (0..self.len() as u32).collect();
+            // Sort positions by (object_id, subject_id) — the secondary access order.
+            perm.sort_by(|&a, &b| {
+                let (a, b) = (a as usize, b as usize);
+                (self.obj[a], self.subj[a]).cmp(&(self.obj[b], self.subj[b]))
+            });
+            ObjectIndex {
+                perm: perm.into_boxed_slice(),
+            }
+        });
+        let perm = &idx.perm;
+        let lo = perm.partition_point(|&p| self.obj[p as usize] < o);
+        let hi = perm.partition_point(|&p| self.obj[p as usize] <= o);
+        &perm[lo..hi]
+    }
+}
+
+/// The size a mutable tail may reach before it is sealed into a sorted batch.  A tiny
+/// relation never reaches it — it stays a single small tail `Vec`, allocation-light
+/// (the `foundation`/small-relation guarantee).  Chosen small so a tail scan (dedup on
+/// insert, and the cursor's tail leg) stays cheap between seals.
+const TAIL_SEAL_THRESHOLD: usize = 64;
+
+/// A single binary relation: the `(subject, object)` rows of ONE predicate IRI, held as
+/// a **shared arrangement** — a log of sorted immutable [`Batch`]es plus a mutable tail.
+///
+/// Term interning lives at the [`RelationStore`] level (one dictionary shared by every
+/// relation), so `insert` borrows the store's interner.  Production set semantics fix
+/// the weight monoid at `W = ()`.
 ///
 /// `pub(crate)` (its fields stay private) so the arrangement's native lending cursor
-/// [`crate::physical::cursor::RowCursor`] can borrow it and resolve rows via
-/// [`row_at`](Self::row_at); the cursor is the SOLE row-materialization path.
+/// [`crate::physical::cursor::RowCursor`] can borrow it; the cursor is the SOLE
+/// row-materialization path.
 #[derive(Debug, Clone, Default)]
 pub(crate) struct Relation {
-    /// `(subject_id, object_id)` tuples in insertion order.
-    ///
-    /// Rows hold interned [`TermId`]s ONLY — never cloned [`TermValue`]s (greenfield:
-    /// the owned-term row path is deleted).  A `TermId` is a `Copy` niche integer, so a
-    /// row is 8 bytes and `select` copies (never clones/allocates) the matching rows; a
-    /// caller that needs a surface resolves it lazily via the store's
-    /// [`TermInterner`](RelationStore::interner) at the point it actually stringifies
-    /// (head grounding / provenance), which is exactly where a surface is already required.
-    rows: Vec<(TermId, TermId)>,
-    /// The store-global dense [`RowId`] of each row, parallel to [`rows`](Self::rows).
-    ///
-    /// A [`RowId`] is assigned once by [`RelationStore::insert`] in store-wide insertion
-    /// order (spanning every relation), so it is a stable, cross-relation row identity —
-    /// the index space the semi-naive delta bitset
-    /// ([`crate::physical::bitset::DenseBitset`]) is keyed on.  Held here so
-    /// [`select`](Self::select) can hand each selected row its id for a one-word delta
-    /// probe, with no re-hashing of the tuple surface.
-    row_ids: Vec<RowId>,
-    /// Dedup keys `(subject_id, object_id)` for O(1) membership.
-    ///
-    /// Fixed-seed hashed (`FixedState`) — off std's SipHash; the id keys are `Copy`
-    /// so a probe never clones. Determinism never comes from this set's order.
-    keys: HashSet<(TermId, TermId), FixedState>,
-    /// Subject term id → row indices into `rows`, in insertion order.
-    by_subject: HashMap<TermId, Vec<usize>, FixedState>,
-    /// Object term id → row indices into `rows`, in insertion order.
-    by_object: HashMap<TermId, Vec<usize>, FixedState>,
+    /// Immutable sorted batches (each `(subject_id, object_id)`-ordered, key-disjoint),
+    /// newest last.  Empty for a tail-only (never-sealed) relation.
+    batches: Vec<Batch>,
+    /// The mutable tail: `(subject_id, object_id, row_id)` rows of the current epoch, in
+    /// insertion order, sealed into a batch once it reaches [`TAIL_SEAL_THRESHOLD`].
+    tail: Vec<(TermId, TermId, RowId)>,
+    /// The number of rows across batches + tail (the dense per-relation row count).
+    len: usize,
 }
 
 impl Relation {
-    /// Insert `(subject, object)` if its interned key is new, stamping it with the
-    /// store-assigned `row_id`; return `Some((subject_id, object_id))` with the terms'
-    /// interned ids if the row was newly inserted, or `None` if the key was already
-    /// present (dedup miss).
+    /// Insert `(subject, object)` if its `(subject_id, object_id)` key is not already
+    /// present, stamping it with the store-assigned `row_id`; return `Some((subject_id,
+    /// object_id))` if newly inserted, or `None` on a duplicate.
     ///
-    /// On a successful insert the new row index is appended to BOTH indexes in
-    /// lockstep with `rows` (so each bucket's order equals insertion order), and the
-    /// store-global [`RowId`] is recorded parallel to the row.  Returning the interned
-    /// ids lets the caller thread them onward without a second interner lookup.
+    /// Dedup is a GALLOPING probe of every sorted batch plus a linear scan of the small
+    /// tail — no per-row hashing, no postings maintenance.  A new row is appended to the
+    /// unsorted tail; when the tail reaches [`TAIL_SEAL_THRESHOLD`] it is sealed into a
+    /// sorted batch and the batch log consolidates.
     fn insert(
         &mut self,
         interner: &mut TermInterner,
@@ -298,78 +502,161 @@ impl Relation {
     ) -> Option<(TermId, TermId)> {
         let s_id = interner.intern(subject);
         let o_id = interner.intern(object);
-        if !self.keys.insert((s_id, o_id)) {
+        if self.contains(s_id, o_id) {
             return None;
         }
-        let idx = self.rows.len();
-        self.rows.push((s_id, o_id));
-        self.row_ids.push(row_id);
-        self.by_subject.entry(s_id).or_default().push(idx);
-        self.by_object.entry(o_id).or_default().push(idx);
+        self.tail.push((s_id, o_id, row_id));
+        self.len += 1;
+        if self.tail.len() >= TAIL_SEAL_THRESHOLD {
+            self.seal();
+        }
         Some((s_id, o_id))
     }
 
-    /// Whether a tuple with these interned terms is present.
+    /// Whether a tuple with these interned terms is present — a galloping probe of each
+    /// sorted batch plus a linear scan of the tail (no hashing).
     fn contains(&self, subject: TermId, object: TermId) -> bool {
-        self.keys.contains(&(subject, object))
+        self.batches.iter().any(|b| b.contains(subject, object))
+            || self
+                .tail
+                .iter()
+                .any(|&(s, o, _)| s == subject && o == object)
     }
 
-    /// Rows whose subject is the interned term `s`, in insertion order.
-    fn rows_for_subject(&self, s: TermId) -> &[usize] {
-        self.by_subject.get(&s).map_or(&[][..], Vec::as_slice)
+    /// Seal the mutable tail into a new sorted immutable batch, then consolidate.
+    ///
+    /// Sorting the tail by `(subject_id, object_id)` establishes the canonical batch
+    /// order; the tail is dedup-free by construction (insert rejects duplicate keys), so
+    /// the sort is a plain columnar build with no combine.  Consolidation then merges
+    /// the batch log geometrically.  RowIds are already stamped, so sealing is a pure
+    /// storage reorganization — it never changes the row set, the row ids, or the count.
+    fn seal(&mut self) {
+        if self.tail.is_empty() {
+            return;
+        }
+        let mut rows = std::mem::take(&mut self.tail);
+        rows.sort_unstable_by_key(|&(s, o, _)| (s, o));
+        self.batches.push(Batch::from_sorted(&rows));
+        self.consolidate();
     }
 
-    /// Rows whose object is the interned term `o`, in insertion order.
-    fn rows_for_object(&self, o: TermId) -> &[usize] {
-        self.by_object.get(&o).map_or(&[][..], Vec::as_slice)
+    /// Geometric (size-tiered) consolidation: while the newest two batches are within a
+    /// factor of two in size, merge them into one sorted batch.  This bounds the live
+    /// batch count logarithmically so a probe gallops O(log n) runs.
+    fn consolidate(&mut self) {
+        while self.batches.len() >= 2 {
+            let n = self.batches.len();
+            let (a, b) = (self.batches[n - 2].len(), self.batches[n - 1].len());
+            if b * 2 < a {
+                break;
+            }
+            let right = self.batches.pop().expect("len >= 2");
+            let left = self.batches.pop().expect("len >= 2");
+            self.batches.push(merge_batches(&left, &right));
+        }
     }
 
-    /// The number of rows in this relation — the length of the [`Bound::Any`] full
-    /// scan's implicit `0..row_count` posting run.
+    /// The number of rows in this relation (batches + tail).
     #[inline]
     pub(crate) fn row_count(&self) -> usize {
-        self.rows.len()
+        self.len
     }
 
-    /// Resolve a relation-local row index to its `(subject_id, object_id, row_id)` id
-    /// row.
+    /// A lending [`RowCursor`] over the `(subject_id, object_id, row_id)` id rows
+    /// selected by `bound`, borrowing this relation's columns — no per-stage `Vec` is
+    /// materialized.
     ///
-    /// The single row-materialization point [`RowCursor`] yields through: all `Copy`
-    /// ids, so this copies — never clones a `TermValue`.
-    #[inline]
-    pub(crate) fn row_at(&self, i: usize) -> (TermId, TermId, RowId) {
-        let (s, o) = self.rows[i];
-        (s, o, self.row_ids[i])
-    }
-
-    /// A galloping lending [`RowCursor`] over the `(subject_id, object_id, row_id)` id
-    /// rows selected by `bound`, in **row-id (insertion) order**.
-    ///
-    /// The cursor yields interned [`TermId`] rows plus each row's store-global
-    /// [`RowId`] one at a time, borrowing this relation's columns — NO per-stage `Vec`
-    /// is materialized (the eager-`Vec` `select_*` kernels are
-    /// deleted, greenfield).  A caller resolves term surfaces lazily via the store's
-    /// interner only where it stringifies, and tests delta membership on the `RowId`
-    /// with a single word probe.
-    ///
-    /// # Adornment dispatched ONCE per call, never per row
-    ///
-    /// The [`Bound`] shape (the query-plan *adornment*) is resolved by a SINGLE `match`
-    /// here — once per `select` invocation — into the specialized cursor constructor
-    /// ([`RowCursor::any`] / [`subject`](RowCursor::subject) /
-    /// [`object`](RowCursor::object) / [`select_both`](RowCursor::select_both)).  The
-    /// shape IS the cursor, so no residual adornment branch survives on the per-row
-    /// path.  Dispatch is a plain enum `match`, never a trait object.  `Both` drives a
-    /// leapfrog intersection of the two buckets inside the cursor.
+    /// The cursor concatenates each batch's bound-run (galloped over the sorted columns)
+    /// with a linear scan of the tail.  Enumeration order is batch-then-tail, NOT a
+    /// global merge sort — sound because winner selection is a total order over
+    /// provenance ([`crate::rule_ir::RuleRoundCandidate::tiebreak_key`]), so cursor
+    /// order never reaches output.  The `(s, o)` key is unique, so a `Both` bound yields
+    /// at most one row across the whole relation.
     fn select(&self, bound: Bound) -> RowCursor<'_> {
-        match bound {
-            Bound::Any => RowCursor::any(self),
-            Bound::Subject(s) => RowCursor::subject(self, self.rows_for_subject(s)),
-            Bound::Object(o) => RowCursor::object(self, self.rows_for_object(o)),
-            Bound::Both(s, o) => {
-                RowCursor::select_both(self, self.rows_for_subject(s), self.rows_for_object(o))
+        RowCursor::new(self, bound)
+    }
+
+    /// The batches of this relation, newest last — the cursor's per-batch sub-runs.
+    #[inline]
+    pub(crate) fn batches(&self) -> &[Batch] {
+        &self.batches
+    }
+
+    /// The unsorted tail rows — the cursor's final (linear-scanned) leg.
+    #[inline]
+    pub(crate) fn tail(&self) -> &[(TermId, TermId, RowId)] {
+        &self.tail
+    }
+}
+
+/// Merge two sorted, key-disjoint-or-weighted batches into one sorted batch.
+///
+/// A streaming two-way merge over the `(subject_id, object_id)` key: O(1) scratch beyond
+/// the output, never a whole-relation re-sort, so no transient allocation spike.  On a
+/// key COLLISION (only reachable for a signed weight monoid — set-semantics inserts keep
+/// batches key-disjoint) the weights [`combine`](Weight::combine) and the surviving row
+/// keeps the LOWER [`RowId`] (deterministic, run-order independent); an annihilated
+/// weight drops the row.  For `W = ()` the collision arm is dead and this is a plain
+/// interleave.
+fn merge_batches<W: Weight>(left: &Batch<W>, right: &Batch<W>) -> Batch<W> {
+    let cap = left.len() + right.len();
+    let mut subj = Vec::with_capacity(cap);
+    let mut obj = Vec::with_capacity(cap);
+    let mut row_id = Vec::with_capacity(cap);
+    let mut weight = Vec::with_capacity(cap);
+    let (mut i, mut j) = (0usize, 0usize);
+    let push = |subj: &mut Vec<TermId>,
+                obj: &mut Vec<TermId>,
+                row_id: &mut Vec<RowId>,
+                weight: &mut Vec<W>,
+                b: &Batch<W>,
+                p: usize| {
+        subj.push(b.subj[p]);
+        obj.push(b.obj[p]);
+        row_id.push(b.row_id[p]);
+        weight.push(b.weight[p]);
+    };
+    while i < left.len() && j < right.len() {
+        let lk = (left.subj[i], left.obj[i]);
+        let rk = (right.subj[j], right.obj[j]);
+        match lk.cmp(&rk) {
+            std::cmp::Ordering::Less => {
+                push(&mut subj, &mut obj, &mut row_id, &mut weight, left, i);
+                i += 1;
+            }
+            std::cmp::Ordering::Greater => {
+                push(&mut subj, &mut obj, &mut row_id, &mut weight, right, j);
+                j += 1;
+            }
+            std::cmp::Ordering::Equal => {
+                // Key collision (signed-weight only): combine, keep the lower RowId, drop
+                // if annihilated.  Never reached under set-semantics `W = ()`.
+                let w = left.weight[i].combine(right.weight[j]);
+                if !w.is_annihilated() {
+                    subj.push(left.subj[i]);
+                    obj.push(left.obj[i]);
+                    row_id.push(left.row_id[i].min(right.row_id[j]));
+                    weight.push(w);
+                }
+                i += 1;
+                j += 1;
             }
         }
+    }
+    while i < left.len() {
+        push(&mut subj, &mut obj, &mut row_id, &mut weight, left, i);
+        i += 1;
+    }
+    while j < right.len() {
+        push(&mut subj, &mut obj, &mut row_id, &mut weight, right, j);
+        j += 1;
+    }
+    Batch {
+        subj,
+        obj,
+        row_id,
+        weight,
+        object_index: OnceLock::new(),
     }
 }
 
@@ -511,7 +798,7 @@ impl RelationStore {
 
     /// The number of distinct tuples stored under `predicate` (0 if unknown).
     pub(crate) fn len_for(&self, predicate: &str) -> usize {
-        self.relation(predicate).map_or(0, |r| r.rows.len())
+        self.relation(predicate).map_or(0, Relation::row_count)
     }
 
     /// The relation for `predicate`, if interned (resolves `PredId` → slot).
@@ -629,17 +916,37 @@ mod tests {
         s
     }
 
+    /// Resolve selected id rows to an ORDER-INDEPENDENT `(subject, object)` surface set.
+    ///
+    /// The arrangement enumerates batch-then-tail (an internal storage order), NOT a
+    /// stable emission order — winner selection, a total order over provenance, fixes
+    /// output — so a store test asserts the row SET, never a sequence.
+    fn resolved_set(
+        s: &RelationStore,
+        rows: &[(TermId, TermId, RowId)],
+    ) -> BTreeSet<(String, String)> {
+        resolved(s, rows)
+            .into_iter()
+            .map(|(a, b)| (format!("{a:?}"), format!("{b:?}")))
+            .collect()
+    }
+
+    fn pair(a: &str, b: &str) -> (String, String) {
+        (format!("{:?}", term(a)), format!("{:?}", term(b)))
+    }
+
     #[test]
     fn physical_select_subject_bound() {
         let s = sample_store();
         let a = id_of(&s, "<http://ex/a>");
         let got = select_rows(&s, "http://ex/knows", Bound::Subject(a));
         assert_eq!(
-            resolved(&s, &got),
-            vec![
-                (term("http://ex/a"), term("http://ex/b")),
-                (term("http://ex/a"), term("http://ex/c")),
-            ],
+            resolved_set(&s, &got),
+            [
+                pair("http://ex/a", "http://ex/b"),
+                pair("http://ex/a", "http://ex/c"),
+            ]
+            .into()
         );
     }
 
@@ -649,11 +956,12 @@ mod tests {
         let c = id_of(&s, "<http://ex/c>");
         let got = select_rows(&s, "http://ex/knows", Bound::Object(c));
         assert_eq!(
-            resolved(&s, &got),
-            vec![
-                (term("http://ex/a"), term("http://ex/c")),
-                (term("http://ex/b"), term("http://ex/c")),
-            ],
+            resolved_set(&s, &got),
+            [
+                pair("http://ex/a", "http://ex/c"),
+                pair("http://ex/b", "http://ex/c"),
+            ]
+            .into()
         );
     }
 
@@ -665,8 +973,8 @@ mod tests {
         let c = id_of(&s, "<http://ex/c>");
         let got = select_rows(&s, "http://ex/knows", Bound::Both(a, c));
         assert_eq!(
-            resolved(&s, &got),
-            vec![(term("http://ex/a"), term("http://ex/c"))]
+            resolved_set(&s, &got),
+            [pair("http://ex/a", "http://ex/c")].into()
         );
 
         // A both-bound miss (b is interned but (b,b) is not a tuple) yields nothing.
@@ -675,16 +983,17 @@ mod tests {
     }
 
     #[test]
-    fn physical_select_any_is_insertion_order() {
+    fn physical_select_any_yields_every_row() {
         let s = sample_store();
         let got = select_rows(&s, "http://ex/knows", Bound::Any);
         assert_eq!(
-            resolved(&s, &got),
-            vec![
-                (term("http://ex/a"), term("http://ex/b")),
-                (term("http://ex/a"), term("http://ex/c")),
-                (term("http://ex/b"), term("http://ex/c")),
-            ],
+            resolved_set(&s, &got),
+            [
+                pair("http://ex/a", "http://ex/b"),
+                pair("http://ex/a", "http://ex/c"),
+                pair("http://ex/b", "http://ex/c"),
+            ]
+            .into()
         );
     }
 
@@ -703,15 +1012,17 @@ mod tests {
         );
         assert_eq!(s.len_for("http://ex/knows"), 1);
         assert_eq!(
-            resolved(&s, &select_rows(&s, "http://ex/knows", Bound::Any)),
-            vec![(term("http://ex/a"), term("http://ex/b"))],
+            resolved_set(&s, &select_rows(&s, "http://ex/knows", Bound::Any)),
+            [pair("http://ex/a", "http://ex/b")].into(),
         );
     }
 
     /// `insert` stamps each newly-inserted row with a dense [`RowId`] in store-wide
     /// insertion order — `0, 1, 2, …` ACROSS relations, not per-relation — and `select`
     /// hands each selected row that same id.  A dedup returns `None` (no id consumed), so
-    /// the id space stays gap-free and `row_count` counts exactly the live rows.
+    /// the id space stays gap-free and `row_count` counts exactly the live rows.  The row
+    /// ids are asserted as SETS (the arrangement stores rows value-sorted, so a selection
+    /// enumerates them in storage order, not insertion order).
     #[test]
     fn physical_insert_assigns_dense_cross_relation_row_ids() {
         let knows = "http://ex/knows";
@@ -740,73 +1051,69 @@ mod tests {
             None
         );
         assert_eq!(s.row_count(), 3, "three distinct rows ⇒ RowIds 0..3");
-        // `select` returns each row with its store-global RowId: knows row 0 is id 0,
-        // knows row 1 is id 2 (the interleaved likes insert took id 1).
-        let knows_rows = select_rows(&s, knows, Bound::Any);
+        // `select` hands each row its store-global RowId (never a per-relation index):
+        // knows carries ids {0, 2}, likes carries {1} — the interleaved likes took id 1.
+        let knows_ids: BTreeSet<RowId> = select_rows(&s, knows, Bound::Any)
+            .iter()
+            .map(|&(_, _, r)| r)
+            .collect();
         assert_eq!(
-            knows_rows.iter().map(|&(_, _, r)| r).collect::<Vec<_>>(),
-            vec![RowId::from_index(0), RowId::from_index(2)],
+            knows_ids,
+            [RowId::from_index(0), RowId::from_index(2)].into(),
             "selected rows carry their store-global RowId, not a per-relation index",
         );
-        let likes_rows = select_rows(&s, likes, Bound::Any);
-        assert_eq!(
-            likes_rows.iter().map(|&(_, _, r)| r).collect::<Vec<_>>(),
-            vec![RowId::from_index(1)],
-        );
+        let likes_ids: BTreeSet<RowId> = select_rows(&s, likes, Bound::Any)
+            .iter()
+            .map(|&(_, _, r)| r)
+            .collect();
+        assert_eq!(likes_ids, [RowId::from_index(1)].into());
     }
 
-    /// THE BYTE-IDENTITY INVARIANT: within ONE relation,
-    /// row-INDEX order and store-global [`RowId`] order COINCIDE.
-    ///
-    /// `row_ids[idx]` is assigned once per successful store-wide `insert` (a strictly
-    /// increasing global counter), and a single relation only ever grows by appending,
-    /// so its `row_ids` are strictly increasing in `idx`.  This is the load-bearing
-    /// fact that makes the galloping cursor's "row-id-ordered value runs" claim hold:
-    /// galloping over ascending row-INDEX positions (the `by_subject`/`by_object`
-    /// buckets, and the full scan's `0..len`) IS galloping in RowId order, so the
-    /// leading full scan iterates row-id order with NO key-sorted reordering.  We build
-    /// a heavily-interleaved store (so RowIds are NOT `0,1,2,…` within a relation) and
-    /// assert every relation's `row_ids` still ascend in lockstep with `idx`.
+    /// The arrangement seals its tail into sorted batches past the threshold and still
+    /// returns the exact row SET (with the exact store-global RowIds) — the galloping
+    /// batch path, not just the tail leg.  A heavily-interleaved build (RowIds NOT
+    /// contiguous within a relation) confirms every selected row carries its dense global
+    /// id and `row_count` stays exact across relations.
     #[test]
-    fn physical_row_index_order_coincides_with_row_id_order() {
+    fn physical_sealed_batches_preserve_row_set_and_dense_ids() {
         let (p, q) = ("http://ex/p", "http://ex/q");
         let mut s = RelationStore::new();
-        // Interleave p and q so neither relation's RowIds are the contiguous 0,1,2,….
-        for i in 0..6 {
+        // Interleave p and q for > 2*threshold rows so BOTH relations seal batches and
+        // neither relation's RowIds are the contiguous 0,1,2,….
+        let n = super::TAIL_SEAL_THRESHOLD * 3;
+        for i in 0..n {
             let pred = if i % 2 == 0 { p } else { q };
             assert!(
                 s.insert(
                     pred,
                     &term("http://ex/s"),
-                    &term(&format!("http://ex/o{i}"))
+                    &term(&format!("http://ex/o{i:04}"))
                 )
                 .is_some()
             );
         }
-        // Every relation's parallel `row_ids` is strictly increasing in the row index —
-        // the direct empirical statement of the invariant.
-        for rel in &s.relations {
-            for w in rel.row_ids.windows(2) {
-                assert!(
-                    w[0] < w[1],
-                    "row_ids must strictly increase in row-index order within a relation"
-                );
-            }
-        }
-        // And a full scan (`Bound::Any`, the leading-atom scan) therefore yields RowIds
-        // in ascending (= row-index = insertion) order — never a key-sorted order.
-        for pred in [p, q] {
-            let ids: Vec<RowId> = select_rows(&s, pred, Bound::Any)
-                .iter()
-                .map(|&(_, _, r)| r)
-                .collect();
-            let mut ascending = ids.clone();
-            ascending.sort();
-            assert_eq!(
-                ids, ascending,
-                "the full scan emits rows in ascending RowId (row-index) order"
-            );
-        }
+        assert_eq!(s.row_count(), n, "every distinct row is counted, gap-free");
+        // Each relation returns exactly its half of the rows, each with the global RowId
+        // it was stamped with at insert (the even indices went to p, odd to q).
+        let p_ids: BTreeSet<RowId> = select_rows(&s, p, Bound::Any)
+            .iter()
+            .map(|&(_, _, r)| r)
+            .collect();
+        let expect_p: BTreeSet<RowId> = (0..n).step_by(2).map(RowId::from_index).collect();
+        assert_eq!(p_ids, expect_p, "p carries exactly the even-index RowIds");
+        // A subject-bound gallop over the sealed batches finds every one of s's edges.
+        let subj = id_of(&s, "<http://ex/s>");
+        assert_eq!(
+            select_rows(&s, p, Bound::Subject(subj)).len(),
+            n / 2,
+            "subject gallop over sealed batches finds all rows"
+        );
+        // Dedup still holds across sealed batches: re-inserting a sealed row is a no-op.
+        assert!(
+            s.insert(p, &term("http://ex/s"), &term("http://ex/o0000"))
+                .is_none(),
+            "a row already sealed into a batch is deduped by the galloping probe"
+        );
     }
 
     #[test]
@@ -836,17 +1143,16 @@ mod tests {
         let s = sample_store();
         let a = id_of(&s, "<http://ex/a>");
         assert_eq!(
-            resolved(&s, &select_rows(&s, "http://ex/likes", Bound::Subject(a))),
-            vec![(term("http://ex/a"), term("http://ex/c"))],
+            resolved_set(&s, &select_rows(&s, "http://ex/likes", Bound::Subject(a))),
+            [pair("http://ex/a", "http://ex/c")].into(),
         );
     }
 
-    /// Emission-order guard: the `relations` table is now a
-    /// FIXED-seed `FastMap`, so its raw iteration order is unspecified.  The ONLY
-    /// consumer-facing enumeration — [`RelationStore::predicates`] — MUST still be
-    /// lexical, sorted through the `BTreeSet` sweep, NEVER leaking the map's hash
-    /// order.  Insert predicates in deliberately anti-lexical order and assert the
-    /// output is lexical regardless.
+    /// Emission-order guard: the `relations` table is a `PredId`-indexed `Vec`, so its
+    /// slot order is mint order.  The ONLY consumer-facing enumeration —
+    /// [`RelationStore::predicates`] — MUST still be lexical, sorted through the
+    /// `BTreeSet` sweep, NEVER leaking mint order.  Insert predicates in deliberately
+    /// anti-lexical order and assert the output is lexical regardless.
     #[test]
     fn physical_predicates_never_leak_hasher_order() {
         let mut s = RelationStore::new();
@@ -861,7 +1167,7 @@ mod tests {
         assert_eq!(
             preds,
             vec!["http://ex/alpha", "http://ex/mu", "http://ex/zeta"],
-            "predicates() must be lexical — the FixedState map order must never leak"
+            "predicates() must be lexical — the PredId mint order must never leak"
         );
     }
 
@@ -972,11 +1278,12 @@ mod tests {
         assert_eq!(edb.len_for("http://ex/knows"), 2);
         assert_eq!(edb.len_for("http://ex/likes"), 1);
         assert_eq!(
-            resolved(&edb, &select_rows(&edb, "http://ex/knows", Bound::Any)),
-            vec![
-                (term("http://ex/a"), term("http://ex/b")),
-                (term("http://ex/a"), term("http://ex/c")),
-            ],
+            resolved_set(&edb, &select_rows(&edb, "http://ex/knows", Bound::Any)),
+            [
+                pair("http://ex/a", "http://ex/b"),
+                pair("http://ex/a", "http://ex/c"),
+            ]
+            .into()
         );
         assert!(edb.contains("http://ex/likes", "<http://ex/a>", "<http://ex/c>"));
     }
