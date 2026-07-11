@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 423
 expression: summary
 ---
 {
@@ -36,5 +35,5 @@ expression: summary
     ],
     "url": "terms/yaw/index.html"
   },
-  "record_count": 2796
+  "record_count": 2805
 }

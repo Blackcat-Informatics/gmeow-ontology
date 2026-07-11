@@ -2885,6 +2885,17 @@ impl Stage for SnapshotStage {
     fn consumes(&self) -> &[String] {
         &self.consumes
     }
+    /// The named graphs this stage attaches to the carrier (its delta), from the
+    /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph
+    /// declarations and verified against the run-time delta by the scheduler.
+    fn attaches_graphs(&self) -> &[String] {
+        crate::stages::attach::graphs(self.id())
+    }
+    /// The blob-representation lanes this stage attaches (its delta), from the single
+    /// Rust-side attach table; mirrored by gmeow:attachesBlobRep and run-time-verified.
+    fn attaches_blob_reps(&self) -> &[String] {
+        crate::stages::attach::blob_reps(self.id())
+    }
     fn impl_version(&self) -> &str {
         // v5: fold the `schemas-archive` from the in-memory
         // `stage-export-json-schema` product (THIS run's fresh bytes) instead of
@@ -3384,7 +3395,20 @@ fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, gmeo
 
     let version = ontology_version(authored_nq)?;
     let toolchain = ToolchainContext::new(&version, "dist");
-    let authored_text = String::from_utf8_lossy(authored_nq).into_owned();
+    // The self-attestation guard rejects the analysis graph being fed as its own INPUT
+    // (a mention of graph/slice-analysis as CONTENT). The pipeline slice's
+    // gmeow:attachesGraph declarations name every carrier graph a stage attaches —
+    // including graph/slice-analysis — as a benign object of a declaration triple, not as
+    // analysis-graph content. Strip those declaration lines from the guard text so a
+    // legitimate attach declaration does not false-trigger the blunt substring guard; the
+    // guard's real purpose (catching the analysis graph re-consumed as input) is intact,
+    // and the analysis itself reads `report.edges` + digests, never this text.
+    let attaches_graph_pred = format!("{GMEOW_NS}attachesGraph>");
+    let authored_text: String = String::from_utf8_lossy(authored_nq)
+        .lines()
+        .filter(|line| !line.contains(&attaches_graph_pred))
+        .collect::<Vec<_>>()
+        .join("\n");
     let graph = emit_analysis_graph(
         &crate::gmeow_ns::gmeow_slice_vocab(),
         &report.edges,

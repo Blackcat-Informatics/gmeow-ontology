@@ -237,6 +237,11 @@ const GMEOW_DATAFLOW_CONSUMES: &str = "https://blackcatinformatics.ca/gmeow/data
 const GMEOW_BUILD_FLOW_FROM: &str = "https://blackcatinformatics.ca/gmeow/buildFlowFrom";
 const GMEOW_BUILD_FLOW_TO: &str = "https://blackcatinformatics.ca/gmeow/buildFlowTo";
 const GMEOW_FLOW_ENTITY: &str = "https://blackcatinformatics.ca/gmeow/flowEntity";
+/// `gmeow:attachesGraph` — a named-graph IRI a `gmeow:PipelineStage` attaches to the
+/// carrier as its delta (the stage's declared, run-verified contribution).
+const GMEOW_ATTACHES_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/attachesGraph";
+/// `gmeow:attachesBlobRep` — a blob-representation lane label a stage attaches.
+const GMEOW_ATTACHES_BLOB_REP: &str = "https://blackcatinformatics.ca/gmeow/attachesBlobRep";
 /// `logic:planGoal` — the `gmeow:Goal` the `gmeow:Pipeline` (a `logic:Plan`) is
 /// arranged to reach (the shippable bundle).
 const LOGIC_PLAN_GOAL: &str = "https://blackcatinformatics.ca/logic/planGoal";
@@ -1116,6 +1121,13 @@ pub struct DocStage {
     /// `gmeow:dataflowConsumes` — the producer stage IRIs this stage reads,
     /// sorted/deduped.
     pub consumes: Vec<String>,
+    /// `gmeow:attachesGraph` — the named-graph IRIs this stage attaches to the carrier
+    /// as its delta (its declared, run-verified contribution), sorted/deduped. The
+    /// self-explaining surface: `gmeow docs-on <stage>` shows what the stage produced.
+    pub attaches_graphs: Vec<String>,
+    /// `gmeow:attachesBlobRep` — the blob-representation lane labels this stage attaches,
+    /// sorted/deduped.
+    pub attaches_blob_reps: Vec<String>,
 }
 
 /// One dataflow edge of the build DAG: the union of a bare
@@ -1559,7 +1571,12 @@ impl DocsModel {
     /// doc-entry slug, resolved once from the whole term set so no two distinct
     /// term IRIs collide onto one doc-entry subject (which previously conflated
     /// their coverage incidence).
-    pub const VERSION: &'static str = "15";
+    ///
+    /// v16: each [`DocStage`] grows `attaches_graphs` / `attaches_blob_reps`
+    /// (`gmeow:attachesGraph` / `gmeow:attachesBlobRep`) — the stage's declared,
+    /// run-verified carrier contribution, so a stage term page self-explains what it
+    /// produced.
+    pub const VERSION: &'static str = "16";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -3488,6 +3505,12 @@ fn extract_pipeline(catalog: &SliceCatalog) -> Option<DocPipeline> {
                 let mut consumes = named_objects(&store, &iri, GMEOW_DATAFLOW_CONSUMES);
                 consumes.sort();
                 consumes.dedup();
+                let mut attaches_graphs = named_objects(&store, &iri, GMEOW_ATTACHES_GRAPH);
+                attaches_graphs.sort();
+                attaches_graphs.dedup();
+                let mut attaches_blob_reps = literals(&store, &iri, GMEOW_ATTACHES_BLOB_REP);
+                attaches_blob_reps.sort();
+                attaches_blob_reps.dedup();
                 let capabilities = curie_objects(&store, &iri, GMEOW_HAS_CAPABILITY);
                 let resources = curie_objects(&store, &iri, GMEOW_REQUIRES_RESOURCE);
                 // The lowest-sorted box-role CURIE (mirrors the per-term surface).
@@ -3505,6 +3528,8 @@ fn extract_pipeline(catalog: &SliceCatalog) -> Option<DocPipeline> {
                     resources,
                     box_role,
                     consumes,
+                    attaches_graphs,
+                    attaches_blob_reps,
                     iri,
                 });
             }

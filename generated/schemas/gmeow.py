@@ -916,6 +916,43 @@ class DistanceMetricEnum(str, Enum):
     distanceMetricEuclidean = "distanceMetricEuclidean"
 
 
+class DocCoverageDimensionEnum(str, Enum):
+    dimAlignment = "dimAlignment"
+    dimAnnotationCoat = "dimAnnotationCoat"
+    dimCompetencyRationale = "dimCompetencyRationale"
+    dimDefinition = "dimDefinition"
+    dimExample = "dimExample"
+    dimFixturePair = "dimFixturePair"
+    dimLabel = "dimLabel"
+    dimLinkageCoverage = "dimLinkageCoverage"
+    dimLossJudgmentSound = "dimLossJudgmentSound"
+    dimLossLedgerRow = "dimLossLedgerRow"
+    dimProseQuality = "dimProseQuality"
+    dimProvenanceHonesty = "dimProvenanceHonesty"
+    dimRealizedState = "dimRealizedState"
+    dimScopeNote = "dimScopeNote"
+    dimTestReach = "dimTestReach"
+    dimThesisSentence = "dimThesisSentence"
+    dimTranslationCoverage = "dimTranslationCoverage"
+    dimUsageAdvice = "dimUsageAdvice"
+    dimWorkedInstance = "dimWorkedInstance"
+
+
+class DocEvidenceKindEnum(str, Enum):
+    docEvidenceKindCompetency = "docEvidenceKindCompetency"
+    docEvidenceKindDiagnostics = "docEvidenceKindDiagnostics"
+    docEvidenceKindFixture = "docEvidenceKindFixture"
+    docEvidenceKindLoss = "docEvidenceKindLoss"
+    docEvidenceKindProvenance = "docEvidenceKindProvenance"
+
+
+class DocMaturityEnum(str, Enum):
+    docMaturityBasic = "docMaturityBasic"
+    docMaturityFull = "docMaturityFull"
+    docMaturityMaximal = "docMaturityMaximal"
+    docMaturityMinimal = "docMaturityMinimal"
+
+
 class DocumentationConcernEnum(str, Enum):
     concernDisclosure = "concernDisclosure"
     concernFrames = "concernFrames"
@@ -1138,6 +1175,26 @@ class ExpressionLanguageEnum(str, Enum):
     exprLangShacl = "exprLangShacl"
     exprLangSparqlAsk = "exprLangSparqlAsk"
     exprLangXacml = "exprLangXacml"
+
+
+class FanoutExtractionEnum(str, Enum):
+    fanout_catalog_constraint_catalog = "fanout-catalog-constraint-catalog"
+    fanout_catalog_term_content_manifest = "fanout-catalog-term-content-manifest"
+    fanout_diagnostics_logic_compile = "fanout-diagnostics-logic-compile"
+    fanout_diagnostics_shacl = "fanout-diagnostics-shacl"
+    fanout_edoal_projections = "fanout-edoal-projections"
+    fanout_evals_scores = "fanout-evals-scores"
+    fanout_foundation_gufo = "fanout-foundation-gufo"
+    fanout_logic_correspondence = "fanout-logic-correspondence"
+    fanout_logic_correspondence_laws = "fanout-logic-correspondence-laws"
+    fanout_logic_projection_report = "fanout-logic-projection-report"
+    fanout_logic_relational_core = "fanout-logic-relational-core"
+    fanout_profiles = "fanout-profiles"
+    fanout_projections_core_prefixes = "fanout-projections-core-prefixes"
+    fanout_projections_functions_fno = "fanout-projections-functions-fno"
+    fanout_projections_list_functions_fno = "fanout-projections-list-functions-fno"
+    fanout_quality_assessment = "fanout-quality-assessment"
+    fanout_research_objects = "fanout-research-objects"
 
 
 class FeedPostingKindEnum(str, Enum):
@@ -5340,6 +5397,36 @@ class Distribution(InformationObject):
     distributionFormat: list[str] | None = Field(default=None)
 
 
+class DocCoverageDimension(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocCoverageDimension"
+    pass
+
+
+class DocEvidence(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocEvidence"
+    is_a: ClassVar[str] = "InformationObject"
+    docClaim: list[str] | None = Field(default=None)
+    docCompetencyCount: list[int] | None = Field(default=None)
+    docCompetencyQueryDigest: list[str] | None = Field(default=None)
+    docEvidenceKind: list[DocEvidenceKind] | None = Field(default=None)
+    docFindingCount: list[int] | None = Field(default=None)
+    docFixtureCount: list[int] | None = Field(default=None)
+    docJudgment: list[str] | None = Field(default=None)
+    docLossRowCount: list[int] | None = Field(default=None)
+    docProducedByChain: list[str] | None = Field(default=None)
+    docProvenanceDepth: list[int] | None = Field(default=None)
+
+
+class DocEvidenceKind(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocEvidenceKind"
+    pass
+
+
+class DocMaturity(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocMaturity"
+    maturityRequiresDimension: list[DocCoverageDimension] | None = Field(default=None)
+
+
 class Document(Work):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Document"
     is_a: ClassVar[str] = "Work"
@@ -5349,6 +5436,32 @@ class Document(Work):
 class DocumentationConcern(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocumentationConcern"
     pass
+
+
+class DocumentedConcern(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocumentedConcern"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
+class DocumentedMappingSet(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocumentedMappingSet"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
+class DocumentedSlice(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocumentedSlice"
+    is_a: ClassVar[str] = "InformationObject"
+    pass
+
+
+class DocumentedTerm(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocumentedTerm"
+    is_a: ClassVar[str] = "InformationObject"
+    docCategory: list[str] | None = Field(default=None)
+    docHasDefinition: list[bool] | None = Field(default=None)
+    docReasoningStatus: list[str] | None = Field(default=None)
 
 
 class DoxasticStandpointClaim(StandpointClaim):
@@ -5700,6 +5813,16 @@ class Family(Group):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Family"
     is_a: ClassVar[str] = "Group"
     pass
+
+
+class FanoutExtraction(SocialObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/FanoutExtraction"
+    is_a: ClassVar[str] = "SocialObject"
+    extractsForm: list[str] | None = Field(default=None)
+    extractsGraphFamily: list[str] | None = Field(default=None)
+    extractsMatch: list[str] | None = Field(default=None)
+    extractsPath: list[str] | None = Field(default=None)
+    extractsSuffix: list[str] | None = Field(default=None)
 
 
 class FeedPosting(Work):
@@ -7387,12 +7510,15 @@ class PhysicalObject(Entity):
 class Pipeline(SocialObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Pipeline"
     is_a: ClassVar[str] = "SocialObject"
+    fanoutExtracts: list[FanoutExtraction] | None = Field(default=None)
     hasStage: list[PipelineStage] | None = Field(default=None)
 
 
 class PipelineStage(SocialObject):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/PipelineStage"
     is_a: ClassVar[str] = "SocialObject"
+    attachesBlobRep: list[str] | None = Field(default=None)
+    attachesGraph: list[str] | None = Field(default=None)
     dataflowConsumes: list[PipelineStage] | None = Field(default=None)
     dataflowProduces: list[PipelineStage] | None = Field(default=None)
     hasCapability: list[StageCapability] | None = Field(default=None)

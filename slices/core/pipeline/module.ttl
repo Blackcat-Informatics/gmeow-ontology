@@ -225,6 +225,108 @@ gmeow:flowEntity
     skos:example "gmeow:pipeline-dataflow-reason-compile-logic gmeow:flowEntity <https://blackcatinformatics.ca/gmeow/graph/logic> ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Stage attach declarations (contribution-declaration; PIPELINE_SPINE §3.3) ---
+
+gmeow:attachesGraph
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "attaches graph"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:PipelineStage to a named-graph IRI it ATTACHES to the in-memory carrier — a graph present in its output product bundle but NOT in its assembled input (its attach DELTA, PIPELINE_SPINE §3 rule 3). Multi-valued: a stage may attach several graphs (e.g. gmeow:stage-source-load attaches the seven self-description graphs; gmeow:stage-snapshot attaches the per-file fanout / EDOAL reconstruction graphs). The range is the IRI of a carrier named graph, not a stage. The Rust Stage's attaches_graphs() must agree with this declaration exactly (Rust/RDF agreement, proved at load), and the scheduler HARD-fails if the stage's actual run-time delta diverges from it in either direction (gmeow:attachesGraph is the run-verified contract, not documentation)."@x-gmeow-english ;
+    skos:example "gmeow:stage-reason gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/reasoning> ."@x-gmeow-english ;
+    gmeow:useWhen "Declare a named graph a build stage contributes to the carrier, so the dependency order is derivable and the superset gate can map every output to its producer — and so the scheduler can verify at run time that the stage attaches exactly what it declares (no undeclared or unfulfilled attachment)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT list a graph the stage merely carries forward from an upstream product (that is the upstream's attach, not this stage's — the delta subtracts the assembled input). Do NOT use it for the byte-artifact lane (logical paths) or blob-representation lanes; those are gmeow:attachesBlobRep."@x-gmeow-english ;
+    gmeow:howToUse "Assert one gmeow:attachesGraph per named-graph IRI the stage's run adds beyond its inputs, matching the Rust impl's attaches_graphs(). Capture the set empirically from a full run's attach delta; a mismatch HARD-fails at load (AttachDeclMismatch) or at run time (AttachDrift)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:attachesBlobRep
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "attaches blob rep"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range xsd:string ;
+    skos:definition "A blob-representation lane label a gmeow:PipelineStage ATTACHES to the carrier — a representation-keyed by-reference blob record (e.g. \"diagnostics:nodes\", \"spans:source-table\") present in its output product but NOT in its assembled input (its blob-rep attach DELTA). NOT the byte-artifact lane (logical paths) — only the representation-keyed blob lane the consumers read back by rep. Multi-valued. Stable identifier strings, not localizable prose. The Rust Stage's attaches_blob_reps() must agree exactly (Rust/RDF agreement) and the scheduler verifies the run-time delta (AttachDrift)."@x-gmeow-english ;
+    skos:example "gmeow:stage-source-load gmeow:attachesBlobRep \"spans:source-table\" ."@x-gmeow-english ;
+    gmeow:useWhen "Declare a representation-keyed blob a stage folds onto its product's by-reference lane (the diagnostics-nodes run-ledger contribution, the source-span table), so the run-time verification covers it."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT use it for named graphs (gmeow:attachesGraph) or for the byte-artifact lane; do NOT list a rep the stage carries forward from an upstream (the delta subtracts it)."@x-gmeow-english ;
+    gmeow:howToUse "Assert one gmeow:attachesBlobRep per representation label the stage adds beyond its inputs, matching attaches_blob_reps(); captured empirically from a full run's blob-rep delta."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Fanout extraction map (path ↔ carrier representative, promoted to data) ----
+
+gmeow:FanoutExtraction
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Fanout Extraction"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "A reified row of the fanout generated-path ↔ carrier-representative map: how one committed generated/ path (or path family) is reconstructed from gmeow.gts as the fold of one named graph (PIPELINE_SPINE §6/§7). It carries the committed path matcher (gmeow:extractsPath + gmeow:extractsMatch, optionally gmeow:extractsSuffix), the reconstruction graph family (gmeow:extractsGraphFamily — how the per-file named-graph IRI derives from the path), and the serialization form whose fold equals the committed bytes (gmeow:extractsForm). Promoted from hard-coded Rust branches so the superset gate reads the map as data; the gate HARD-fails unless every reconstructed path resolves to exactly one row and every row is claimed (a bijection — no path silently dropped from fanout)."@x-gmeow-english ;
+    skos:example "gmeow:fanout-evals-scores a gmeow:FanoutExtraction ; gmeow:extractsPath \"generated/evals/scores.ttl\" ; gmeow:extractsMatch \"exact\" ; gmeow:extractsGraphFamily \"rdf-fanout\" ; gmeow:extractsForm \"turtle\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:fanoutExtracts
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "fanout extracts"@x-gmeow-english ;
+    rdfs:domain gmeow:Pipeline ;
+    rdfs:range gmeow:FanoutExtraction ;
+    skos:definition "Gathers the gmeow:FanoutExtraction rows of a gmeow:Pipeline — the complete path ↔ representative map the post-pipeline fanout phase and the superset gate read to reconstruct every committed generated/ RDF file from the bundle. Multi-valued; the whole set must be a bijection against the bundle's reconstruction graphs (the gate HARD-fails otherwise)."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-build gmeow:fanoutExtracts gmeow:fanout-evals-scores ."@x-gmeow-english ;
+    gmeow:useWhen "Declare, as data, the reconstruction rule for a committed generated/ RDF path so the superset gate resolves it without a Rust branch."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT add a row for an opaque / byte-decorated output carried as an inline archive blob member (those reconstruct from the blob lane, not a named-graph fold)."@x-gmeow-english ;
+    gmeow:howToUse "Add one gmeow:FanoutExtraction per named-graph-carried committed path (exact) or path family (prefix); the gate proves the rows are a bijection over the bundle's fanout/EDOAL reconstruction graphs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:extractsPath
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "extracts path"@x-gmeow-english ;
+    rdfs:domain gmeow:FanoutExtraction ;
+    rdfs:range xsd:string ;
+    skos:definition "The committed repo-relative generated/ path (when gmeow:extractsMatch is \"exact\") or the directory-prefix (when \"prefix\") a fanout row reconstructs. A stable path string, not localizable prose."@x-gmeow-english ;
+    skos:example "gmeow:fanout-evals-scores gmeow:extractsPath \"generated/evals/scores.ttl\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:extractsMatch
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "extracts match"@x-gmeow-english ;
+    rdfs:domain gmeow:FanoutExtraction ;
+    rdfs:range xsd:string ;
+    skos:definition "How gmeow:extractsPath matches a committed path: \"exact\" (the path equals gmeow:extractsPath) or \"prefix\" (the path starts with gmeow:extractsPath, optionally further constrained by gmeow:extractsSuffix). Exactly one per row."@x-gmeow-english ;
+    skos:example "gmeow:fanout-profiles gmeow:extractsMatch \"prefix\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:extractsSuffix
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "extracts suffix"@x-gmeow-english ;
+    rdfs:domain gmeow:FanoutExtraction ;
+    rdfs:range xsd:string ;
+    skos:definition "An optional suffix filter refining a \"prefix\" match: the path must also end with this string. Used to distinguish the EDOAL projection family (generated/projections/*.edoal.ttl) from the plain RDF projections under the same directory. At most one per row."@x-gmeow-english ;
+    skos:example "gmeow:fanout-edoal-projections gmeow:extractsSuffix \".edoal.ttl\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:extractsGraphFamily
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "extracts graph family"@x-gmeow-english ;
+    rdfs:domain gmeow:FanoutExtraction ;
+    rdfs:range xsd:string ;
+    skos:definition "The reconstruction-graph namespace family that fixes how the per-file named-graph IRI derives from the committed path: \"rdf-fanout\" (graph/fanout/<path-without-generated/>) or \"edoal\" (graph/projections/<stem>.edoal for generated/projections/<stem>.edoal.ttl). The gate folds the named graph at that IRI to the committed bytes."@x-gmeow-english ;
+    skos:example "gmeow:fanout-evals-scores gmeow:extractsGraphFamily \"rdf-fanout\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:extractsForm
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "extracts form"@x-gmeow-english ;
+    rdfs:domain gmeow:FanoutExtraction ;
+    rdfs:range xsd:string ;
+    skos:definition "The serialization form whose fold of the reconstruction named graph equals the committed bytes: \"turtle\" (canonical Turtle, no graph label), \"ntriples\" (RDFC-canonical N-Triples), \"nquads-self\" (RDFC N-Quads re-rooted into the file's OWN fanout graph IRI), or \"nquads-diagnostics\" (RDFC N-Quads re-rooted into the shared graph/diagnostics label). Fixed by the producing stage's emission; a wrong form yields a byte mismatch the gate catches."@x-gmeow-english ;
+    skos:example "gmeow:fanout-shacl-diagnostics gmeow:extractsForm \"nquads-diagnostics\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # =========================================================================== #
 # StageCapability value vocabulary (individuals).                             #
 # =========================================================================== #
@@ -821,6 +923,274 @@ gmeow:stage-gts-sink
         gmeow:stage-reason ,
         gmeow:stage-statements ,
         gmeow:stage-validate .
+
+# =========================================================================== #
+# Stage attach declarations (gmeow:attachesGraph / gmeow:attachesBlobRep) —    #
+# the named graphs / blob-rep lanes each stage contributes to the carrier as   #
+# its delta. The Rust twin (stages/attach.rs) is the single Rust-side source;  #
+# these triples mirror it and the dogfooding gate (tests/dag_dogfood.rs, via   #
+# bind) HARD-fails on any divergence. Captured empirically from a full run's   #
+# attach delta so the scheduler's global bidirectional AttachDrift check has    #
+# zero false positives.                                                        #
+# =========================================================================== #
+
+gmeow:stage-source-load
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/authored-default> ,
+        <https://blackcatinformatics.ca/gmeow/graph/imports> ,
+        <https://blackcatinformatics.ca/gmeow/graph/metadata> ,
+        <https://blackcatinformatics.ca/gmeow/graph/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/graph/quality-assessment> ,
+        <https://blackcatinformatics.ca/gmeow/graph/slice-analysis> ,
+        <https://blackcatinformatics.ca/gmeow/graph/verify> ;
+    gmeow:attachesBlobRep "spans:source-table" .
+
+gmeow:stage-compile-logic
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/correspondence> ,
+        <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ,
+        <https://blackcatinformatics.ca/gmeow/graph/logic> ,
+        <https://blackcatinformatics.ca/gmeow/graph/relational-core> ;
+    gmeow:attachesBlobRep "diagnostics:nodes" .
+
+gmeow:stage-math-producers
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> .
+
+gmeow:stage-mappings
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/alignments> ,
+        <https://blackcatinformatics.ca/gmeow/graph/correspondence-laws> ,
+        <https://blackcatinformatics.ca/gmeow/graph/lang-docs-rendering-corpus> ,
+        <https://blackcatinformatics.ca/gmeow/graph/lang-form-corpus> ,
+        <https://blackcatinformatics.ca/gmeow/graph/lang-lowering-corpus> ,
+        <https://blackcatinformatics.ca/gmeow/graph/lang-projection-corpus> ,
+        <https://blackcatinformatics.ca/gmeow/graph/lang-translation-corpus> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
+
+gmeow:stage-reason
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+
+gmeow:stage-validate
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;
+    gmeow:attachesBlobRep "diagnostics:nodes" .
+
+gmeow:stage-conformance
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/conformance> .
+
+gmeow:stage-docs-render
+    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+
+gmeow:stage-snapshot
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/diagnostics/logic-compile.nq> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/diagnostics/shacl.nq> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/evals/scores.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/foundation/gufo.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.correspondence-laws.nt> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.correspondence.nt> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/gmeow.relational-core.nt> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/logic/projection-report.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/agent-runtime.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/claims.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/dreaming.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/full.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/memory.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/music.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/profiles/narrative.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/core-prefixes.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/functions.fno.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/projections/list-functions.fno.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/quality/gmeow.quality-assessment.nt> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/lillith.dcat.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/corpus.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/grounded-claim.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/lillith-dataset.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/lillith-pipeline.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/rubric.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/research-objects/lillith/ro-crate/scores.ttl> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/activitystreams.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/bibframe.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/bibo.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/bot.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/cc.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/codemeta.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/crmarchaeo.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/dcat.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/dcterms.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/doap.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/exif.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/foaf.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/gedcom.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/geosparql.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/ical.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/iiif.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/intoto.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/iptc.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/ivoa.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/jams.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/jcal.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/loinc.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/lrmoo.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/mailmap.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/markdown.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/ml-schema.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/mo.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/oai_dc.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/odrl.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/ontolex.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/org.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/owl-time.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/pon.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/prov.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/qb.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/resume.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/schema-org-schedule.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/schema-org.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/sigstore.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/sioc.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/skos.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/slsa.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/sosa.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/spdx.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/vcard.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/projections/web-annotation.edoal> ,
+        <https://blackcatinformatics.ca/gmeow/graph/statements> .
+
+# =========================================================================== #
+# Fanout extraction rows (gmeow:fanoutExtracts) — the generated-path ↔          #
+# carrier-representative map the superset gate reads as DATA (promoted from     #
+# the former hard-coded superset.rs branches). The gate HARD-fails unless the  #
+# rows are a bijection over the bundle's fanout / EDOAL reconstruction graphs. #
+# =========================================================================== #
+
+gmeow:pipeline-build gmeow:fanoutExtracts
+    gmeow:fanout-catalog-constraint-catalog ,
+    gmeow:fanout-catalog-term-content-manifest ,
+    gmeow:fanout-diagnostics-logic-compile ,
+    gmeow:fanout-diagnostics-shacl ,
+    gmeow:fanout-evals-scores ,
+    gmeow:fanout-foundation-gufo ,
+    gmeow:fanout-logic-correspondence-laws ,
+    gmeow:fanout-logic-correspondence ,
+    gmeow:fanout-logic-relational-core ,
+    gmeow:fanout-logic-projection-report ,
+    gmeow:fanout-projections-core-prefixes ,
+    gmeow:fanout-projections-functions-fno ,
+    gmeow:fanout-projections-list-functions-fno ,
+    gmeow:fanout-quality-assessment ,
+    gmeow:fanout-profiles ,
+    gmeow:fanout-research-objects ,
+    gmeow:fanout-edoal-projections .
+
+gmeow:fanout-catalog-constraint-catalog a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/catalog/constraint-catalog.nq" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-self" .
+
+gmeow:fanout-catalog-term-content-manifest a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/catalog/term-content-manifest.nq" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-self" .
+
+gmeow:fanout-diagnostics-logic-compile a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/diagnostics/logic-compile.nq" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-diagnostics" .
+
+gmeow:fanout-diagnostics-shacl a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/diagnostics/shacl.nq" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "nquads-diagnostics" .
+
+gmeow:fanout-evals-scores a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/evals/scores.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-foundation-gufo a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/foundation/gufo.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-logic-correspondence-laws a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/logic/gmeow.correspondence-laws.nt" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
+
+gmeow:fanout-logic-correspondence a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/logic/gmeow.correspondence.nt" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
+
+gmeow:fanout-logic-relational-core a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/logic/gmeow.relational-core.nt" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
+
+gmeow:fanout-logic-projection-report a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/logic/projection-report.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-projections-core-prefixes a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/core-prefixes.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-projections-functions-fno a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/functions.fno.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-projections-list-functions-fno a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/list-functions.fno.ttl" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-quality-assessment a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/quality/gmeow.quality-assessment.nt" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
+
+gmeow:fanout-profiles a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/profiles/" ; gmeow:extractsMatch "prefix" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-research-objects a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/research-objects/" ; gmeow:extractsMatch "prefix" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "turtle" .
+
+gmeow:fanout-edoal-projections a gmeow:FanoutExtraction ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/projections/" ; gmeow:extractsMatch "prefix" ;
+    gmeow:extractsSuffix ".edoal.ttl" ;
+    gmeow:extractsGraphFamily "edoal" ; gmeow:extractsForm "turtle" .
 
 # =========================================================================== #
 # Declarative constraint axioms (core slices) — the closed-world

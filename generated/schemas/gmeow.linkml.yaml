@@ -1255,6 +1255,32 @@ classes:
     is_a: InformationObject
     slots:
     - distributionFormat
+  DocCoverageDimension:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocCoverageDimension
+    title: Doc Coverage Dimension
+  DocEvidence:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocEvidence
+    title: Doc Evidence
+    is_a: InformationObject
+    slots:
+    - docClaim
+    - docCompetencyCount
+    - docCompetencyQueryDigest
+    - docEvidenceKind
+    - docFindingCount
+    - docFixtureCount
+    - docJudgment
+    - docLossRowCount
+    - docProducedByChain
+    - docProvenanceDepth
+  DocEvidenceKind:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocEvidenceKind
+    title: Doc Evidence Kind
+  DocMaturity:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocMaturity
+    title: Doc Maturity
+    slots:
+    - maturityRequiresDimension
   Document:
     class_uri: https://blackcatinformatics.ca/gmeow/Document
     title: Document
@@ -1262,6 +1288,26 @@ classes:
   DocumentationConcern:
     class_uri: https://blackcatinformatics.ca/gmeow/DocumentationConcern
     title: Documentation Concern
+  DocumentedConcern:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocumentedConcern
+    title: Documented Concern
+    is_a: InformationObject
+  DocumentedMappingSet:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocumentedMappingSet
+    title: Documented Mapping Set
+    is_a: InformationObject
+  DocumentedSlice:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocumentedSlice
+    title: Documented Slice
+    is_a: InformationObject
+  DocumentedTerm:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocumentedTerm
+    title: Documented Term
+    is_a: InformationObject
+    slots:
+    - docCategory
+    - docHasDefinition
+    - docReasoningStatus
   DoxasticStandpointClaim:
     class_uri: https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim
     title: doxastic standpoint claim
@@ -1658,6 +1704,16 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Family
     title: Family
     is_a: Group
+  FanoutExtraction:
+    class_uri: https://blackcatinformatics.ca/gmeow/FanoutExtraction
+    title: Fanout Extraction
+    is_a: SocialObject
+    slots:
+    - extractsForm
+    - extractsGraphFamily
+    - extractsMatch
+    - extractsPath
+    - extractsSuffix
   FeedPosting:
     class_uri: https://blackcatinformatics.ca/gmeow/FeedPosting
     title: Feed Posting
@@ -3300,12 +3356,15 @@ classes:
     title: Pipeline
     is_a: SocialObject
     slots:
+    - fanoutExtracts
     - hasStage
   PipelineStage:
     class_uri: https://blackcatinformatics.ca/gmeow/PipelineStage
     title: Pipeline Stage
     is_a: SocialObject
     slots:
+    - attachesBlobRep
+    - attachesGraph
     - dataflowConsumes
     - dataflowProduces
     - hasCapability
@@ -5325,6 +5384,18 @@ slots:
     title: at time
     range: datetime
     multivalued: true
+  attachesBlobRep:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attachesBlobRep
+    title: attaches blob rep
+    range: string
+    domain: PipelineStage
+    multivalued: true
+  attachesGraph:
+    slot_uri: https://blackcatinformatics.ca/gmeow/attachesGraph
+    title: attaches graph
+    range: uriorcurie
+    domain: PipelineStage
+    multivalued: true
   attackKind:
     slot_uri: https://blackcatinformatics.ca/gmeow/attackKind
     title: attack kind
@@ -6725,6 +6796,10 @@ slots:
     range: CoverageDepth
     domain: CitationAct
     multivalued: true
+  coverageFraction:
+    slot_uri: https://blackcatinformatics.ca/gmeow/coverageFraction
+    title: coverage fraction
+    range: decimal
   credence:
     slot_uri: https://blackcatinformatics.ca/gmeow/credence
     title: credence
@@ -7256,9 +7331,118 @@ slots:
     domain: TuningSystem
     minimum_value: 0
     multivalued: false
+  docCategory:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docCategory
+    title: doc category
+    range: string
+    domain: DocumentedTerm
+    multivalued: true
+  docClaim:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docClaim
+    title: doc claim
+    range: string
+    domain: DocEvidence
+    multivalued: true
+  docCompetencyCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docCompetencyCount
+    title: doc competency count
+    range: integer
+    domain: DocEvidence
+    multivalued: true
+  docCompetencyQueryDigest:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docCompetencyQueryDigest
+    title: doc competency query digest
+    range: string
+    domain: DocEvidence
+    multivalued: true
+  docCoversDimension:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docCoversDimension
+    title: doc covers dimension
+    range: DocCoverageDimension
+    multivalued: true
+  docEarnedMaturity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docEarnedMaturity
+    title: doc earned maturity
+    range: DocMaturity
+  docEvidenceKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docEvidenceKind
+    title: doc evidence kind
+    range: DocEvidenceKind
+    domain: DocEvidence
+    multivalued: true
+  docFindingCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docFindingCount
+    title: doc finding count
+    range: integer
+    domain: DocEvidence
+    multivalued: true
+  docFixtureCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docFixtureCount
+    title: doc fixture count
+    range: integer
+    domain: DocEvidence
+    multivalued: true
+  docGroundedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docGroundedBy
+    title: doc grounded by
+    range: string
+  docHasDefinition:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docHasDefinition
+    title: doc has definition
+    range: boolean
+    domain: DocumentedTerm
+    multivalued: true
+  docJudgment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docJudgment
+    title: doc judgment
+    range: string
+    domain: DocEvidence
+    multivalued: true
+  docLossRowCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docLossRowCount
+    title: doc loss row count
+    range: integer
+    domain: DocEvidence
+    multivalued: true
+  docMissesDimension:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docMissesDimension
+    title: doc misses dimension
+    range: DocCoverageDimension
+    multivalued: true
+  docOwnerSlice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docOwnerSlice
+    title: doc owner slice
+    range: string
+  docProducedByChain:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docProducedByChain
+    title: doc produced by chain
+    range: string
+    domain: DocEvidence
+    multivalued: true
+  docProvenanceDepth:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docProvenanceDepth
+    title: doc provenance depth
+    range: integer
+    domain: DocEvidence
+    multivalued: true
+  docReasoningStatus:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docReasoningStatus
+    title: doc reasoning status
+    range: string
+    domain: DocumentedTerm
+    multivalued: true
+  docUrl:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docUrl
+    title: doc url
+    range: string
+    multivalued: true
   docsConcern:
     slot_uri: https://blackcatinformatics.ca/gmeow/docsConcern
     title: documentation concern link
+    range: string
+  documents:
+    slot_uri: https://blackcatinformatics.ca/gmeow/documents
+    title: documents
     range: string
   dofConstraintFunction:
     slot_uri: https://blackcatinformatics.ca/gmeow/dofConstraintFunction
@@ -7873,6 +8057,36 @@ slots:
     range: string
     domain: CreativeWork
     multivalued: true
+  extractsForm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/extractsForm
+    title: extracts form
+    range: string
+    domain: FanoutExtraction
+    multivalued: true
+  extractsGraphFamily:
+    slot_uri: https://blackcatinformatics.ca/gmeow/extractsGraphFamily
+    title: extracts graph family
+    range: string
+    domain: FanoutExtraction
+    multivalued: true
+  extractsMatch:
+    slot_uri: https://blackcatinformatics.ca/gmeow/extractsMatch
+    title: extracts match
+    range: string
+    domain: FanoutExtraction
+    multivalued: true
+  extractsPath:
+    slot_uri: https://blackcatinformatics.ca/gmeow/extractsPath
+    title: extracts path
+    range: string
+    domain: FanoutExtraction
+    multivalued: true
+  extractsSuffix:
+    slot_uri: https://blackcatinformatics.ca/gmeow/extractsSuffix
+    title: extracts suffix
+    range: string
+    domain: FanoutExtraction
+    multivalued: true
   facetSubject:
     slot_uri: https://blackcatinformatics.ca/gmeow/facetSubject
     title: facet subject
@@ -7884,6 +8098,12 @@ slots:
     title: facet vantage
     range: Agent
     domain: Observation
+    multivalued: true
+  fanoutExtracts:
+    slot_uri: https://blackcatinformatics.ca/gmeow/fanoutExtracts
+    title: fanout extracts
+    range: FanoutExtraction
+    domain: Pipeline
     multivalued: true
   feedPostingKind:
     slot_uri: https://blackcatinformatics.ca/gmeow/feedPostingKind
@@ -10762,6 +10982,12 @@ slots:
     range: string
     domain: CoordinateMatrix
     multivalued: false
+  maturityRequiresDimension:
+    slot_uri: https://blackcatinformatics.ca/gmeow/maturityRequiresDimension
+    title: maturity requires dimension
+    range: DocCoverageDimension
+    domain: DocMaturity
+    multivalued: true
   maximViolationType:
     slot_uri: https://blackcatinformatics.ca/gmeow/maximViolationType
     title: maxim violation type
@@ -13438,6 +13664,10 @@ slots:
     range: ProficiencyScale
     domain: SkillProficiency
     multivalued: false
+  sliceDocMaturity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/sliceDocMaturity
+    title: slice doc maturity
+    range: DocMaturity
   sliceQualityTier:
     slot_uri: https://blackcatinformatics.ca/gmeow/sliceQualityTier
     title: slice quality tier
@@ -17179,6 +17409,99 @@ enums:
       distanceMetricEuclidean:
         meaning: https://blackcatinformatics.ca/gmeow/distanceMetricEuclidean
         title: euclidean
+  DocCoverageDimensionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DocCoverageDimension
+    permissible_values:
+      dimAlignment:
+        meaning: https://blackcatinformatics.ca/gmeow/dimAlignment
+        title: alignment
+      dimAnnotationCoat:
+        meaning: https://blackcatinformatics.ca/gmeow/dimAnnotationCoat
+        title: annotation coat
+      dimCompetencyRationale:
+        meaning: https://blackcatinformatics.ca/gmeow/dimCompetencyRationale
+        title: competency rationale
+      dimDefinition:
+        meaning: https://blackcatinformatics.ca/gmeow/dimDefinition
+        title: definition
+      dimExample:
+        meaning: https://blackcatinformatics.ca/gmeow/dimExample
+        title: example
+      dimFixturePair:
+        meaning: https://blackcatinformatics.ca/gmeow/dimFixturePair
+        title: fixture pair
+      dimLabel:
+        meaning: https://blackcatinformatics.ca/gmeow/dimLabel
+        title: label
+      dimLinkageCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/dimLinkageCoverage
+        title: linkage coverage
+      dimLossJudgmentSound:
+        meaning: https://blackcatinformatics.ca/gmeow/dimLossJudgmentSound
+        title: loss judgment sound
+      dimLossLedgerRow:
+        meaning: https://blackcatinformatics.ca/gmeow/dimLossLedgerRow
+        title: loss ledger row
+      dimProseQuality:
+        meaning: https://blackcatinformatics.ca/gmeow/dimProseQuality
+        title: prose quality
+      dimProvenanceHonesty:
+        meaning: https://blackcatinformatics.ca/gmeow/dimProvenanceHonesty
+        title: provenance honesty
+      dimRealizedState:
+        meaning: https://blackcatinformatics.ca/gmeow/dimRealizedState
+        title: realized state
+      dimScopeNote:
+        meaning: https://blackcatinformatics.ca/gmeow/dimScopeNote
+        title: scope note
+      dimTestReach:
+        meaning: https://blackcatinformatics.ca/gmeow/dimTestReach
+        title: test reach
+      dimThesisSentence:
+        meaning: https://blackcatinformatics.ca/gmeow/dimThesisSentence
+        title: thesis sentence
+      dimTranslationCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/dimTranslationCoverage
+        title: translation coverage
+      dimUsageAdvice:
+        meaning: https://blackcatinformatics.ca/gmeow/dimUsageAdvice
+        title: usage advice
+      dimWorkedInstance:
+        meaning: https://blackcatinformatics.ca/gmeow/dimWorkedInstance
+        title: worked instance
+  DocEvidenceKindEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DocEvidenceKind
+    permissible_values:
+      docEvidenceKindCompetency:
+        meaning: https://blackcatinformatics.ca/gmeow/docEvidenceKindCompetency
+        title: competency
+      docEvidenceKindDiagnostics:
+        meaning: https://blackcatinformatics.ca/gmeow/docEvidenceKindDiagnostics
+        title: diagnostics
+      docEvidenceKindFixture:
+        meaning: https://blackcatinformatics.ca/gmeow/docEvidenceKindFixture
+        title: fixture
+      docEvidenceKindLoss:
+        meaning: https://blackcatinformatics.ca/gmeow/docEvidenceKindLoss
+        title: loss
+      docEvidenceKindProvenance:
+        meaning: https://blackcatinformatics.ca/gmeow/docEvidenceKindProvenance
+        title: provenance
+  DocMaturityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DocMaturity
+    permissible_values:
+      docMaturityBasic:
+        meaning: https://blackcatinformatics.ca/gmeow/docMaturityBasic
+        title: basic
+      docMaturityFull:
+        meaning: https://blackcatinformatics.ca/gmeow/docMaturityFull
+        title: full
+      docMaturityMaximal:
+        meaning: https://blackcatinformatics.ca/gmeow/docMaturityMaximal
+        title: maximal
+      docMaturityMinimal:
+        meaning: https://blackcatinformatics.ca/gmeow/docMaturityMinimal
+        title: minimal
   DocumentationConcernEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DocumentationConcern
     permissible_values:
@@ -17761,6 +18084,43 @@ enums:
       exprLangXacml:
         meaning: https://blackcatinformatics.ca/gmeow/exprLangXacml
         title: XACML
+  FanoutExtractionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/FanoutExtraction
+    permissible_values:
+      fanout-catalog-constraint-catalog:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-catalog-constraint-catalog
+      fanout-catalog-term-content-manifest:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-catalog-term-content-manifest
+      fanout-diagnostics-logic-compile:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-diagnostics-logic-compile
+      fanout-diagnostics-shacl:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-diagnostics-shacl
+      fanout-edoal-projections:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-edoal-projections
+      fanout-evals-scores:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-evals-scores
+      fanout-foundation-gufo:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-foundation-gufo
+      fanout-logic-correspondence:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-correspondence
+      fanout-logic-correspondence-laws:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-correspondence-laws
+      fanout-logic-projection-report:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-projection-report
+      fanout-logic-relational-core:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-relational-core
+      fanout-profiles:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-profiles
+      fanout-projections-core-prefixes:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-projections-core-prefixes
+      fanout-projections-functions-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-projections-functions-fno
+      fanout-projections-list-functions-fno:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-projections-list-functions-fno
+      fanout-quality-assessment:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-quality-assessment
+      fanout-research-objects:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-research-objects
   FeedPostingKindEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/FeedPostingKind
     permissible_values:
