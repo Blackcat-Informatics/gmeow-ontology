@@ -353,6 +353,91 @@ gmeow:exemptionProducer
     gmeow:useWhen "Use on an exemption to name the producer whose landing must retire it."@x-gmeow-english .
 
 #################################################################
+# Slice-quality floor commitments — the raise-only ratchet cells
+#################################################################
+
+gmeow:AxisFloorCommitment
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Axis Floor Commitment"@x-gmeow-english ;
+    skos:definition "A reified per-slice, per-axis committed score floor — the minimum measured decimal a named axis must hold for a named slice, enforced by the make-check gate as a raise-only monotonic ratchet (the value may rise but never fall). It pairs one gmeow:floorSlice, one gmeow:floorAxis, and one gmeow:floorValue into a single ratchet cell. It is NOT the per-tier gmeow:AxisThreshold (that gates the tier ladder for every slice), NOT the declared gmeow:sliceQualityTier (that is the slice's opted-in roll-up tier), and NOT a measured score (that is computed by the axis producer): it is the committed floor a slice's measured axis score may never regress below."@x-gmeow-english ;
+    skos:example "gmeow:floorSliceQualityRubricGrounding a gmeow:AxisFloorCommitment ; gmeow:floorSlice gmeow:sliceQualityRubric ; gmeow:floorAxis gmeow:axisMaximalGrounding ; gmeow:floorValue 0.9954337899543378 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pairing one commitment with several slices or axes (each names exactly one slice, one axis, and one floor), avoid lowering a committed floor (the ratchet is raise-only), and avoid conflating it with a gmeow:AxisThreshold — a threshold gates the tier ladder, a floor commitment pins a per-slice axis regression bar."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:AxisFloorCommitment per (slice, axis) the ratchet guards, giving it a gmeow:floorSlice, a gmeow:floorAxis, and a gmeow:floorValue; the gate then fails if the slice's measured axis score falls below the committed floor and refuses any edit that lowers the floor."@x-gmeow-english ;
+    gmeow:useWhen "Use to record, as data, the committed minimum measured score a named axis must hold for a named slice — the raise-only per-axis regression floor the gate enforces."@x-gmeow-english .
+
+gmeow:SliceTierFloor
+    a logic:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Slice Tier Floor"@x-gmeow-english ;
+    skos:definition "A reified per-slice committed roll-up tier floor — the minimum gmeow:QualityTier a named slice may declare, enforced by the make-check gate as a raise-only monotonic ratchet on the lattice order. It pairs one gmeow:floorSlice with one gmeow:floorTier. It is NOT the per-axis gmeow:AxisFloorCommitment (that floors a measured axis score, not a tier), NOT the slice's own gmeow:sliceQualityTier declaration (that is the tier the slice opts in to, which this floor bounds from below), and NOT gmeow:sliceTier (architectural placement): it is the committed rung below which the slice's declared roll-up tier may never fall."@x-gmeow-english ;
+    skos:example "gmeow:tierFloorSliceQualityRubric a gmeow:SliceTierFloor ; gmeow:floorSlice gmeow:sliceQualityRubric ; gmeow:floorTier gmeow:tierMaximal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pairing one floor with several slices or tiers (each names exactly one slice and one tier), avoid lowering a committed tier floor (the ratchet is raise-only over the lattice order), and avoid conflating it with the per-axis gmeow:AxisFloorCommitment or with gmeow:sliceTier architectural placement."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one gmeow:SliceTierFloor per slice the roll-up ratchet guards, giving it a gmeow:floorSlice and a gmeow:floorTier; the gate then refuses a gmeow:sliceQualityTier declaration below the committed tier floor and refuses any edit that lowers the floor."@x-gmeow-english ;
+    gmeow:useWhen "Use to record, as data, the committed minimum roll-up tier a named slice may declare — the raise-only per-slice tier regression floor the gate enforces."@x-gmeow-english .
+
+gmeow:floorSlice
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain [ a owl:Class ;
+        owl:unionOf ( gmeow:AxisFloorCommitment gmeow:SliceTierFloor ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "floor slice"@x-gmeow-english ;
+    rdfs:range gmeow:Slice ;
+    skos:definition "The slice a floor commitment or tier floor is committed against — the named slice whose measured axis score or declared roll-up tier the floor guards. It is NOT the axis (that is gmeow:floorAxis) and NOT the floor value or tier (those are gmeow:floorValue / gmeow:floorTier): it is the subject slice the ratchet cell pins."@x-gmeow-english ;
+    skos:example "gmeow:floorSliceQualityRubricGrounding gmeow:floorSlice gmeow:sliceQualityRubric ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one slice per floor cell (it is functional) and avoid pointing it at anything but the gmeow:Slice the floor guards."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:floorSlice from the gmeow:AxisFloorCommitment or gmeow:SliceTierFloor to the gmeow:Slice it is committed against."@x-gmeow-english ;
+    gmeow:useWhen "Use on a floor commitment or tier floor to name the slice its ratchet guards."@x-gmeow-english .
+
+gmeow:floorAxis
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AxisFloorCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "floor axis"@x-gmeow-english ;
+    rdfs:range gmeow:QualityAxis ;
+    skos:definition "The quality axis a per-axis floor commitment guards — the named gmeow:QualityAxis whose measured score for the committed slice must hold at or above gmeow:floorValue. It is NOT the slice (that is gmeow:floorSlice) and NOT the floor decimal (that is gmeow:floorValue): it names which measured dimension the regression floor applies to."@x-gmeow-english ;
+    skos:example "gmeow:floorSliceQualityRubricGrounding gmeow:floorAxis gmeow:axisMaximalGrounding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one axis per commitment (it is functional) and avoid naming an axis the rubric never loaded — an unknown axis is a hard fail, not a silent skip."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:floorAxis from the gmeow:AxisFloorCommitment to the gmeow:QualityAxis its floor pins."@x-gmeow-english ;
+    gmeow:useWhen "Use on a per-axis floor commitment to name the axis whose measured score it floors."@x-gmeow-english .
+
+gmeow:floorValue
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AxisFloorCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "floor value"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "The committed minimum measured score (a decimal in 0.0–1.0, carried at full f64 precision) a per-axis floor commitment pins — the value the slice's measured axis score may rise above but never fall below. It is NOT a per-tier gmeow:thresholdFloor (that gates the tier ladder for every slice) and NOT a percentage-with-units: it is the normalized, raise-only regression floor for one slice's one axis."@x-gmeow-english ;
+    skos:example "gmeow:floorSliceQualityRubricGrounding gmeow:floorValue 0.9954337899543378 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid values outside 0.0–1.0, avoid lowering a committed value (the ratchet is raise-only), and avoid truncating the measured precision — the floor mirrors the measured f64."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:floorValue per gmeow:AxisFloorCommitment; the gate fails if the slice's measured axis score falls below it and refuses any edit lowering it."@x-gmeow-english ;
+    gmeow:useWhen "Use on a per-axis floor commitment to set the normalized minimum measured score its axis must hold for its slice."@x-gmeow-english .
+
+gmeow:floorTier
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:SliceTierFloor ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "floor tier"@x-gmeow-english ;
+    rdfs:range gmeow:QualityTier ;
+    skos:definition "The committed minimum roll-up tier a per-slice tier floor pins — the least gmeow:QualityTier the named slice may declare, over the lattice order carried by gmeow:tierRank. It is NOT a per-axis floor value (that is gmeow:floorValue, a measured decimal) and NOT the slice's opted-in gmeow:sliceQualityTier (which this floor bounds from below): it names the rung the slice's declared roll-up may never fall beneath."@x-gmeow-english ;
+    skos:example "gmeow:tierFloorSliceQualityRubric gmeow:floorTier gmeow:tierMaximal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one tier per floor (it is functional) and avoid lowering a committed tier (the ratchet is raise-only over the lattice order)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert one gmeow:floorTier from the gmeow:SliceTierFloor to the gmeow:QualityTier below which the slice's declared roll-up may not fall."@x-gmeow-english ;
+    gmeow:useWhen "Use on a per-slice tier floor to name the minimum roll-up tier the slice may declare."@x-gmeow-english .
+
+#################################################################
 # Minted quality dimensions (extend the ISO 19157 open vocab)
 #################################################################
 

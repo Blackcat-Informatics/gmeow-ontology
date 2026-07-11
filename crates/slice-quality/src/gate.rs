@@ -403,6 +403,8 @@ mod tests {
             tiers: vec![],
             axes,
             exemptions: vec![],
+            commitments: vec![],
+            tier_floors: vec![],
         };
         // Every producer resolves → green (bijection holds and all resolve).
         assert!(
@@ -436,6 +438,8 @@ mod tests {
             tiers: vec![],
             axes: vec![mk_axis("grounding_ax")],
             exemptions: vec![],
+            commitments: vec![],
+            tier_floors: vec![],
         };
         let errs = binding_gate(&rubric, |s| real.contains(s));
         assert!(
@@ -459,6 +463,8 @@ mod tests {
                 date: "2026-07-07".to_owned(),
                 producer: "DocMaturity".to_owned(),
             }],
+            commitments: vec![],
+            tier_floors: vec![],
         };
         // Producer not in-repo → not stale.
         assert!(stale_exemptions(&rubric, |_| false).is_empty());
@@ -499,6 +505,8 @@ mod tests {
                 date: "2026-07-08".to_owned(),
                 producer: "DocMaturity".to_owned(),
             }],
+            commitments: vec![],
+            tier_floors: vec![],
         };
         let errs = completeness_gate(&rubric);
         assert!(
