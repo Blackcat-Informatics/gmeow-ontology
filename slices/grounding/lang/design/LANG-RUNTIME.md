@@ -138,5 +138,15 @@ demo:
 5. **Ambiguity survives the pipeline.** A fixture with co-resident readings enters, folds,
    projects, and returns with both readings and their vantages intact — no stage collapses it.
    (Flagship 5, minimal form.)
-6. **Determinism.** Two runs over the same input produce byte-identical generated artifacts —
-   the project-wide determinism bar, inherited without exception.
+6. **Determinism.** The three `lang:` corpus producers — the compositional-lowering corpus, the
+   prose-lift corpus, and the projection corpus (its graph AND every per-reading `.conllu` and
+   sibling external artifact) — produce byte-identical output across repeated regeneration, the
+   project-wide determinism bar inherited without exception, discharged ON-GATE by execution rather
+   than fixture existence. Two legs prove it: an in-process two-run byte replay asserts each
+   producer emits identical bytes across two runs, and the drift lane (`run_full(RunMode::Check)`,
+   the `check-generated` host) re-derives every committed artifact fresh-process — the per-reading
+   `.conllu` files by exact bytes, the corpus graphs through the bundle superset/fold gate. The
+   same-process leg is no false green: every corpus payload is asserted to be in the SORTED, DEDUPED
+   canonical order the shared N-Triples emitter produces, a property that is a pure function of the
+   line set and independent of any hash-map iteration seed — so byte identity in one process holds
+   across fresh processes, which the drift lane then confirms.
