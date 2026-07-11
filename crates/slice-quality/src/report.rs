@@ -51,6 +51,10 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.gmn1-coverage.no-repo-root",
     "slice-quality.gmn1-coverage.no-dictionary",
     "slice-quality.gmn1-coverage.uncovered",
+    // Documentation-maturity axis codes (doc_maturity.rs).
+    "slice-quality.doc-maturity.missing-dimension",
+    "slice-quality.doc-maturity.model-unavailable",
+    "slice-quality.doc-maturity.slice-untracked",
 ];
 
 /// Seed every slice-quality finding code into the process-wide code registry
