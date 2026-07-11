@@ -111,6 +111,15 @@ insta = { version = "1.48", features = ["json"] }
 # Parameterized #[case] rows for the conformance_*.rs SHACL twins (#1051). rstest
 # subsumes test-case; test-case is deliberately NOT a dependency.
 rstest = "0.26"
+# Deterministic retired-instruction backend for the whole-ontology-union conformance
+# cost-partition bench. Pin MUST equal crates/logic/Cargo.toml (the out-of-tree
+# iai-callgrind-runner is version-locked to it). MAINT-ONLY: needs valgrind + the
+# runner, invoked via `make maint-bench-instructions`, never `make check`.
+iai-callgrind = "0.16.1"
+# Deterministic allocation accounting (bytes / count / peak-live) for the same
+# cost-partition bench — the always-available half that needs no valgrind. Leaf
+# bench dep only; the CountingAllocator never reaches the shipped gmeow CLI.
+gmeow-cost-measure = { path = "../cost-measure" }
 
 [[bench]]
 name = "lint"
@@ -118,4 +127,15 @@ harness = false
 
 [[bench]]
 name = "validate_all"
+harness = false
+
+# Whole-ontology-union conformance cost-partition (setup S vs per-twin scan V),
+# grounding the off-gate decision in deterministic instructions + allocations rather
+# than flaky wall time. Both MAINT-ONLY (`make maint-bench-instructions`).
+[[bench]]
+name = "conformance_union_cost_iai"
+harness = false
+
+[[bench]]
+name = "conformance_union_cost_alloc"
 harness = false
