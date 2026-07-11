@@ -588,13 +588,41 @@ pub fn slice_quality_gate() -> i32 {
         }
     };
 
-    if failures > 0 || axis_failures > 0 || mono_failures > 0 {
+    // FOURTH check: FLOOR COHERENCE — the lattice morphism tying the two committed
+    // floor levels together. Pure over the COMMITTED floors, reading BOTH levels
+    // straight from the already-loaded rubric — it needs NO scoring at all (it never
+    // touches a measured score), so it adds no scoring sweep. For any slice carrying
+    // BOTH a gmeow:SliceTierFloor (rank T) and ≥1 gmeow:AxisFloorCommitment: every
+    // axis floor must grade (through that axis's rubric thresholds) to a tier ≥ T
+    // (the roll-up is a meet, so a tier floor demands every axis floor back it); and
+    // when a slice is floored on EVERY rubric axis, T must EQUAL the meet of the
+    // implied tiers (a tier floor below the achievable meet is a dead guarantee).
+    // Today's corpus is all-tierRegistered(0) floors, so the backing invariant is
+    // trivially satisfied and no slice is floored on all axes → this holds dormant.
+    let coherence = gmeow_slice_quality::gate::evaluate_coherence(&rubric);
+    let coherence_failures = coherence.len();
+    for v in &coherence {
+        emit_error(
+            "gmeow-dev.slice-quality.gate",
+            format!("FAIL {}", v.message),
+        );
+    }
+    // The tier-floored slices that ALSO carry ≥1 axis floor — the pairings the
+    // coherence morphism actually examines (reported so the guard's reach is visible
+    // even when it holds silently).
+    let coherence_checked = rubric
+        .tier_floors
+        .iter()
+        .filter(|tf| rubric.commitments.iter().any(|c| c.slice == tf.slice))
+        .count();
+
+    if failures > 0 || axis_failures > 0 || mono_failures > 0 || coherence_failures > 0 {
         return fail(format!(
-            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor; {mono_failures} committed-floor monotonicity violation(s)"
+            "slice-quality-gate: {failures} of {checked} opted-in slice(s) below their declared tier; {axis_failures} of {axis_checked} slice(s) below a committed per-axis floor; {mono_failures} committed-floor monotonicity violation(s); {coherence_failures} floor-coherence violation(s)"
         ));
     }
     println!(
-        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors; committed floors are monotonic vs the merge base"
+        "slice-quality-gate: {checked} opted-in slice(s) hold their declared tier; {axis_checked} slice(s) hold their committed per-axis floors; committed floors are monotonic vs the merge base; {coherence_checked} tier-floored slice(s) cohere with their axis floors (0 floor-coherence violation(s))"
     );
     0
 }
