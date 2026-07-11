@@ -731,13 +731,13 @@ gmeow:axisTranslationCoverage
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Translation Coverage"@x-gmeow-english ;
-    skos:definition "The axis for translation coverage: per-language coverage of the slice's rdfs:label and skos:definition literals, audited via the i18n/<lang>.po catalogs, averaged across English (authored, always full), French, and Mandarin. It does NOT yet cover examples, usage coats, rationales, or docs prose — only labels and definitions. It is NOT a single ratio: coverage is computed per language and then averaged."@x-gmeow-english ;
+    skos:definition "The axis for translation coverage: per-language coverage of EVERY localizable literal the slice authors — each (term, predicate) that carries a literal for one of the localizable predicates (rdfs:label/comment, skos:definition/scopeNote/example/prefLabel/altLabel/note, dcterms:title/description, gmeow:name/title/description/fullName) — audited via the i18n/<stem>.po catalogs and averaged across English (authored, always full), French (fr), and Mandarin (cmn). A literal counts as covered for a language only when its catalog entry carries a real (non-empty) msgstr. It is NOT restricted to labels and definitions (it covers the whole localizable coat) and it is NOT a single ratio: coverage is computed per language and then averaged, reaching 1.0 iff every localizable literal is fully translated into both French and Mandarin."@x-gmeow-english ;
     skos:example "gmeow:axisTranslationCoverage gmeow:axisProducer \"translation_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading the averaged score as any single language's coverage (it averages English, French, and Mandarin) and avoid treating a label or definition with no .po catalog entry as covered."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the averaged score as any single language's coverage (it averages English, French, and Mandarin), avoid treating a localizable literal with no .po catalog entry (or an empty msgstr) as covered, and avoid assuming only labels and definitions count — the denominator is every localizable literal the slice authors."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor reports per-language coverage of the slice's label and definition literals against the i18n/fr.po and i18n/zh.po catalogs and names each language short of full coverage; the top tier requires 100% English, French, and Mandarin."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure how completely a slice's label and definition literals are translated into French and Mandarin, audited via .po catalogs."@x-gmeow-english ;
+    gmeow:howToUse "The advisor counts every localizable literal the slice authors as the denominator, then for French and Mandarin counts those with a real (non-empty) translation in the i18n/fr.po and i18n/zh.po catalogs (Mandarin's cmn tag is authored under the zh.po stem), names each language short of full coverage, and averages English/French/Mandarin; the top tier requires 100% English, French, and Mandarin on every localizable literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how completely a slice's whole localizable coat — every label, definition, example, note, and title literal — is translated into French and Mandarin, audited via .po catalogs."@x-gmeow-english ;
     gmeow:axisProducer "translation_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionTranslationCoverage ;
     gmeow:axisContextScope gmeow:scopeSliceLocal ;
@@ -746,7 +746,7 @@ gmeow:axisTranslationCoverage
         gmeow:thrTranslationLinked ,
         gmeow:thrTranslationExemplified ,
         gmeow:thrTranslationMaximal ;
-    gmeow:axisAdviceTemplate "Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Add audited French and Mandarin translations for every localizable literal the slice authors — labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names — recorded (non-empty msgstr) in the slice's i18n/fr.po and i18n/zh.po catalogs."@x-gmeow-english .
 
 gmeow:axisFlagshipCounterExampleDepth
     a gmeow:QualityAxis ;
