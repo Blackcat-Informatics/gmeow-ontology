@@ -11,4 +11,5 @@
 @prefix ex:    <http://example.org/logic/> .
 
 ex:closureWitness a logic:ClosureAcceptanceWitness ;
-    logic:closureEntailedAtom "A subClassOf C" .
+    logic:closureEntailedAtom "A subClassOf C" ;
+    ex:executesNativeProducer "logic::reason::reason_all" .

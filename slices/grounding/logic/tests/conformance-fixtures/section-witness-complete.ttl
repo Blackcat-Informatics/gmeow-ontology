@@ -11,4 +11,5 @@
 @prefix ex:    <http://example.org/logic/> .
 
 ex:sectionWitness a logic:SectionAcceptanceWitness ;
-    logic:dischargesSectionObligation ex:sectionObligationRoundTrip .
+    logic:dischargesSectionObligation ex:sectionObligationRoundTrip ;
+    ex:executesNativeProducer "logic::correspondence_exec::leg_pair_verdict" .
