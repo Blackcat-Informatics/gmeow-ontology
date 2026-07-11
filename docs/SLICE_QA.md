@@ -133,22 +133,27 @@ quality *score* as a competency cell, and do not expect a cell to move a tier.
   `generated/governance/slice-quality-axis-floors.tsv` are **generated lossy
   projections** of them (Principle 17), carrying a loss-ledger preservation judgment —
   view them, never hand-edit them. A human raises a floor by editing the individual in
-  the rubric slice (raise-only, monotonic, hard-fail enforced).
+  the rubric slice (raise-only in the normal case). A floor may also be **re-anchored**
+  downward — a permitted, logged lowering — when the axis's underlying *measure
+  definition* changes and the old floor value denotes a different quantity; only the
+  outright deletion of a still-live floor is hard-failed.
 
 This is the sibling of the four blocking *validation* gates in
 [`docs/validation-thresholds.md`](./validation-thresholds.md): same ratchet
 temperament, different family. Those four are hard validation gates over the whole
 ontology; this one measures per-slice quality. Do not conflate the two floor sets.
 
-**The floor-ratchet policy (raise-only, hard-fail enforced).** Both floor levels are
-monotonic non-regression contracts, read straight from the ontology individuals in the
-rubric slice: a committed floor may be **RAISED** freely as a slice earns it (edit the
-`gmeow:AxisFloorCommitment` / `gmeow:SliceTierFloor` individual), and only ever raised —
-never lowered, never forced upward ahead of a real measured uplift (scores stay
-objective, uncalibrated intrinsic measures; you do not tune a floor to a target). The
-gate reads **every** committed axis floor from the ontology (not just GMN-1) and enforces
-each in addition to the roll-up-tier ratchet. The gate verdicts, verbatim from
-`crates/slice-quality/src/gate.rs`, are:
+**The floor-ratchet policy (raise-only, with audited re-anchoring).** Both floor levels
+are non-regression contracts, read straight from the ontology individuals in the rubric
+slice: a committed floor may be **RAISED** freely as a slice earns it (edit the
+`gmeow:AxisFloorCommitment` / `gmeow:SliceTierFloor` individual), and is never forced
+upward ahead of a real measured uplift (scores stay objective, uncalibrated intrinsic
+measures; you do not tune a floor to a target). A floor may also be **RE-ANCHORED**
+downward when the axis's *measure definition* changes — the old value denoted a different
+quantity, so re-baselining to the honest measured value is a permitted, **logged**
+relaxation, not a silent regression. The gate reads **every** committed axis floor from
+the ontology (not just GMN-1) and enforces each in addition to the roll-up-tier ratchet.
+The gate verdicts, verbatim from `crates/slice-quality/src/gate.rs`, are:
 
 - `MeasuredBelowDeclared` — the slice's measured roll-up tier fell below the tier
   its manifest declares.
@@ -158,10 +163,11 @@ each in addition to the roll-up-tier ratchet. The gate verdicts, verbatim from
   floor (gated in addition to, never instead of, the roll-up-tier ratchet).
 
 Separately, a **floor-monotonicity** check diffs the committed floor individuals against
-the merge base: a lowered `gmeow:floorValue`/`gmeow:floorTier`, or a deleted floor
-individual for a still-live slice/axis, is a HARD FAIL that reds
-`make slice-quality-gate`. Additions and raises are clean; greenfield deletion is
-allowed only once the slice or axis is genuinely gone.
+the merge base. A lowered `gmeow:floorValue`/`gmeow:floorTier` is a permitted
+**re-anchor**: it is surfaced as a `note` (logged for visibility) but does **not** red the
+gate — a measure change may legitimately re-baseline a floor. Only the deletion of a floor
+individual for a still-live slice/axis is a HARD FAIL. Additions and raises are clean;
+greenfield deletion is allowed only once the slice or axis is genuinely gone.
 
 And a **floor-coherence** check ties the two committed levels together as a pure
 consistency assertion (it compares committed floors against each other, never a measured

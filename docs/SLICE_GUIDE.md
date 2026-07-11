@@ -508,24 +508,26 @@ from §9's hard gates — it *measures and holds*, it never asserts a bit right 
   read-only TSVs [`generated/governance/slice-quality-floors.tsv`](../generated/governance/slice-quality-floors.tsv)
   and [`generated/governance/slice-quality-axis-floors.tsv`](../generated/governance/slice-quality-axis-floors.tsv)
   are **generated lossy projections** of them (Principle 17), for viewing only — never
-  hand-edited. Both levels are **raise-only** — monotonic non-regression, never forced ascent: a
-  committed floor may be raised as a slice earns it (edit the individual, or seed a fresh one at
-  the live score with `gmeow-dev slice-quality-seed-floors`) and only ever raised, never lowered,
-  never bumped ahead of a real measured uplift. The gate (`crates/slice-quality/src/gate.rs`)
-  reads every committed floor from the ontology and reds with three named verdicts —
-  `MeasuredBelowDeclared` (the slice no longer holds the tier its manifest declares),
-  `DeclaredBelowFloor` (the declaration was lowered beneath the committed floor), and
+  hand-edited. Both levels are **raise-only in the normal case** — monotonic non-regression,
+  never forced ascent: a committed floor may be raised as a slice earns it (edit the individual,
+  or seed a fresh one at the live score with `gmeow-dev slice-quality-seed-floors`) and is never
+  bumped ahead of a real measured uplift. A floor may also be **re-anchored** downward when the
+  axis's *measure definition* changes and the old value denotes a different quantity — a permitted,
+  **logged** relaxation (surfaced as a `note`), not a silent regression. The gate
+  (`crates/slice-quality/src/gate.rs`) reads every committed floor from the ontology and reds with
+  three named verdicts — `MeasuredBelowDeclared` (the slice no longer holds the tier its manifest
+  declares), `DeclaredBelowFloor` (the declaration was lowered beneath the committed floor), and
   `MeasuredBelowFloor` (a per-axis measured score fell below its committed floor, enforced for
-  **every** committed axis, not just GMN-1) — while a lowered or still-live-deleted floor
-  individual additionally reds the floor-monotonicity check, and an axis floor whose implied tier
-  falls below the slice's committed tier floor (or a loose tier floor on a fully-floored slice)
-  reds the floor-coherence check. Land the raised floor in the SAME PR as the uplift that earned
-  it; grounding is hard-gated at the `axisGmn1Coverage` floor of `1.0` (§9).
+  **every** committed axis, not just GMN-1) — while the floor-monotonicity check reds only on the
+  deletion of a still-live floor individual (a lowering is a logged re-anchor, not a red), and an
+  axis floor whose implied tier falls below the slice's committed tier floor (or a loose tier floor
+  on a fully-floored slice) reds the floor-coherence check. Land the raised floor in the SAME PR as
+  the uplift that earned it; grounding is hard-gated at the `axisGmn1Coverage` floor of `1.0` (§9).
 
 - **The contention rule: yield to the issue lanes.** The lane is a background citizen. Two
   shards are machine-enforced, one is doctrine CI cannot see. *Enforced:* floor
-  monotonicity — a lowered or still-live-deleted floor line reds `make slice-quality-gate`,
-  and thus `make check`. *Doctrine (unenforced):* never touch a slice an in-flight branch or
+  monotonicity — the deletion of a still-live floor line reds `make slice-quality-gate`, and thus
+  `make check` (a lowering is a logged, permitted re-anchor, not a red). *Doctrine (unenforced):* never touch a slice an in-flight branch or
   an active issue lane owns; keep every PR **slice-local**; land bundle-touching
   regenerations of `generated/dist/gmeow.gts` (`merge=ours`) one at a time — nothing in the
   gate knows which branch claimed which slice.
@@ -543,8 +545,14 @@ from §9's hard gates — it *measures and holds*, it never asserts a bit right 
   never calibrated toward a target (the quality-metrics doctrine). Use bounded fractions
   only: an unbounded ratio (a raw density or count) is BANNED from a tier ladder, because a
   ladder rung must be a bounded `[0,1]` fraction for the meet lattice to be well-defined.
-  Tiers rise **only by genuine uplift**; the raise-only floors above exist precisely so a
-  score cannot quietly slide back after a ladder claims it.
+  For example, `axisTranslationCoverage` measures the fraction of **every localizable literal**
+  the slice authors — each `(term, predicate)` over the localizable predicates (labels,
+  comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions,
+  names) — that carries a real (non-empty) translation, averaged over English (authored),
+  French, and Mandarin (`cmn`), reaching `1.0` iff every localizable literal is fully
+  translated in both fr and cmn. Tiers rise **only by genuine uplift**; the floors above exist
+  precisely so a score cannot quietly slide back after a ladder claims it (and are re-anchored,
+  with a logged note, only when an axis's measure definition itself changes).
 
 ## 11. Gates, drift, and landing
 
@@ -623,4 +631,5 @@ Before opening the PR, every box:
       full `make check` green merged into current `main` (§11)
 - [ ] Capping axis uplifted where the lane names one; the raised floor individual
       (`gmeow:AxisFloorCommitment` / `gmeow:SliceTierFloor` in the rubric slice) landed in the
-      same slice-local PR as the uplift, raise-only (§10)
+      same slice-local PR as the uplift, raise-only — except an audited, logged re-anchor
+      when the axis's measure definition changes (§10)
