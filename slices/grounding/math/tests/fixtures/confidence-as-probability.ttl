@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the probability-layer competency question "confidence-as-probability
+# claims". Two claims typed math:ProbabilityValue, each carrying a logic:confidence
+# score: one un-mapped (declaring NO logic:probabilityModel — the confidence-as-
+# probability claim the query is meant to surface) and one control that DOES declare a
+# logic:probabilityModel (and so is correctly excluded). Unioned onto the merged
+# ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The un-mapped confidence-as-probability claim: confidence, typed a probability, but
+# NO declared probability model licensing the reading.
+ex:unmappedClaim a math:ProbabilityValue ;
+    logic:confidence 0.9 .
+
+# The control: a probability claim that DOES declare its governing probability model.
+ex:mappedClaim a math:ProbabilityValue ;
+    logic:confidence 0.8 ;
+    logic:probabilityModel ex:mappedModel .
+ex:mappedModel a math:JointProbabilityTable .

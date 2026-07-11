@@ -1,0 +1,21 @@
+# Competency question: "For this probability value, what probability space frames it,
+# and is that space's event σ-algebra extensional or symbolic?" Exercises the
+# Kolmogorov spine: a math:ProbabilityValue is the framed probability of a
+# math:ProbabilityEvent (math:probabilityOfEvent) situated in a math:ProbabilitySpace
+# (math:eventInSpace), whose math:eventSigmaAlgebra is either symbolic (a
+# math:BorelSigmaAlgebra given by its generator) or extensional (a
+# math:PowerSetSigmaAlgebra of all subsets). Scoped to the fixture namespace so the
+# answer is exactly {contProb → contSpace, symbolic; diceProb → diceSpace, extensional}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?value ?space ?kind WHERE {
+    ?event a math:ProbabilityEvent ;
+           math:probabilityOfEvent ?value ;
+           math:eventInSpace ?space .
+    ?value a math:ProbabilityValue .
+    ?space math:eventSigmaAlgebra ?algebra .
+    FILTER(STRSTARTS(STR(?value), "http://example.org/math/"))
+    OPTIONAL { ?algebra a math:BorelSigmaAlgebra . BIND("symbolic" AS ?symbolicKind) }
+    BIND(COALESCE(?symbolicKind, "extensional") AS ?kind)
+}
+ORDER BY ?value

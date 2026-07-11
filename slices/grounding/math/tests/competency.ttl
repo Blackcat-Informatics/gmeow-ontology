@@ -943,3 +943,191 @@ ex:rowProjectionConfidenceLoss a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:confidenceProjection ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "OWL annotation (probability literal)" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "issue" ; gmeow:cellValueLiteral "confidence-as-probability" ] .
+
+# =========================================================================== #
+# PROBABILITY LAYER — the seven probability-charter competency questions.      #
+# Each runs over the merged ontology unioned with its own fixture; expected    #
+# rows are pinned exactly (logic:RowsExact).                                   #
+# =========================================================================== #
+
+# === PQ1 — space + σ-algebra kind of a probability value =================== #
+
+ex:cqProbabilitySpaceSigmaKind a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/probability-space-and-sigma-algebra-kind.rq" ;
+    gmeow:cqDataFile "tests/fixtures/probability-space-sigma-algebra.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:ProbabilityValue reports the math:ProbabilitySpace framing it (through its event's math:eventInSpace) and whether that space's math:eventSigmaAlgebra is extensional or symbolic; over the fixture the answer is exactly {contProb → contSpace, symbolic (a math:BorelSigmaAlgebra); diceProb → diceSpace, extensional (a math:PowerSetSigmaAlgebra)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqProbabilitySpaceSigmaShape ;
+    gmeow:cqExpectRow ex:rowContProb , ex:rowDiceProb .
+
+ex:cqProbabilitySpaceSigmaShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "space" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowContProb a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri exf:contProb ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "space" ; gmeow:cellValueIri exf:contSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueLiteral "symbolic" ] .
+
+ex:rowDiceProb a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri exf:diceProb ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "space" ; gmeow:cellValueIri exf:diceSpace ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueLiteral "extensional" ] .
+
+# === PQ2 — the event a probability is about ================================ #
+
+ex:cqProbabilityEventConcerned a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/probability-event-concerned.rq" ;
+    gmeow:cqDataFile "tests/fixtures/probability-event.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A framed probability value reports the math:ProbabilityEvent (a measurable set of outcomes) it is the probability of, through math:probabilityOfEvent; over the fixture the answer is exactly {rainProb → rainEvent}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqProbabilityEventShape ;
+    gmeow:cqExpectRow ex:rowRainEvent .
+
+ex:cqProbabilityEventShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "event" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRainEvent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri exf:rainProb ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "event" ; gmeow:cellValueIri exf:rainEvent ] .
+
+# === PQ3 — random variable + distribution + dimensional consistency ======= #
+
+ex:cqRandomVariableDistribution a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/random-variable-distribution-dimensional-consistency.rq" ;
+    gmeow:cqDataFile "tests/fixtures/random-variable-distribution.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:RandomVariable reports its math:hasDistribution and a computed dimensional-consistency flag comparing its math:hasDimension with its distribution's location parameter's quantity dimension; over the fixture the random variable and its location parameter share the length dimension, so the answer is exactly {heightRV → heightDist, consistent 'true'}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqRandomVariableShape ;
+    gmeow:cqExpectRow ex:rowHeightRV .
+
+ex:cqRandomVariableShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "randomVariable" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "distribution" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dimConsistent" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHeightRV a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "randomVariable" ; gmeow:cellValueIri exf:heightRV ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "distribution" ; gmeow:cellValueIri exf:heightDist ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dimConsistent" ; gmeow:cellValueLiteral "true" ] .
+
+# === PQ4 — parameterization + role per parameter =========================== #
+
+ex:cqDistributionParameterRoles a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/distribution-parameter-roles.rq" ;
+    gmeow:cqDataFile "tests/fixtures/distribution-parameterization.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Distribution reports each supplied math:DistributionParameter and the scoped math:DistributionParameterRole it fills; over the fixture's normal mean/stddev parameterization the answer is exactly {muParam → meanRole, sigmaParam → stddevRole}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqDistributionParameterShape ;
+    gmeow:cqExpectRow ex:rowMuParam , ex:rowSigmaParam .
+
+ex:cqDistributionParameterShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "parameter" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "role" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowMuParam a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parameter" ; gmeow:cellValueIri exf:muParam ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri exf:meanRole ] .
+
+ex:rowSigmaParam a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parameter" ; gmeow:cellValueIri exf:sigmaParam ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "role" ; gmeow:cellValueIri exf:stddevRole ] .
+
+# === PQ5 — three-state independence (marginal / conditional / not-modeled) = #
+
+ex:cqThreeStateIndependence a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/three-state-independence.rq" ;
+    gmeow:cqDataFile "tests/fixtures/independence-three-state.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each candidate pair of facts reports its independence classification — marginal (a math:IndependenceAssertion), conditional-given (a math:ConditionalIndependenceAssertion), or the distinct third state 'not-modeled' (no assertion, surfaced by an OPTIONAL/COALESCE absence pattern) — together with the vantage holding it (gmeow:vantage) and the model it holds in (math:independenceHoldsInModel). Over the fixture the answer is exactly {(A,B) marginal, modeler, indepModel; (A,C) conditional-given, modeler, indepModel; (B,C) not-modeled (vantage/model unbound)}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqThreeStateIndependenceShape ;
+    gmeow:cqExpectRow ex:rowIndepMarginal , ex:rowIndepConditional , ex:rowIndepNotModeled .
+
+ex:cqThreeStateIndependenceShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "other" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "classification" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "vantage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ,
+        [ logic:columnVariable "model" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowIndepMarginal a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:eventA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "other" ; gmeow:cellValueIri exf:eventB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "classification" ; gmeow:cellValueLiteral "marginal" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:modeler ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:indepModel ] .
+
+ex:rowIndepConditional a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:eventA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "other" ; gmeow:cellValueIri exf:eventC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "classification" ; gmeow:cellValueLiteral "conditional-given" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:modeler ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:indepModel ] .
+
+ex:rowIndepNotModeled a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:eventB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "other" ; gmeow:cellValueIri exf:eventC ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "classification" ; gmeow:cellValueLiteral "not-modeled" ] .
+
+# === PQ6 — probability model for a reasoning request + logic: lowering ===== #
+
+ex:cqProbabilityModelLowering a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/probability-model-lowering-and-preservation.rq" ;
+    gmeow:cqDataFile "tests/fixtures/probability-model-lowering.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A reasoning request declares its probability model through the LIVE A-box predicate logic:probabilityModel; the model (a math:BayesianNetwork) declares its formal logic: lowering (math:probabilityModelLowering) and preservation polarity (logic:preservationKind). Over the fixture the answer is exactly {bnQuery → sprinklerNet → logic:DependencyModel, logic:ExactPreservation}, proving the seam is live end-to-end via logic:probabilityModel." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqProbabilityModelLoweringShape ;
+    gmeow:cqExpectRow ex:rowProbabilityModelLowering .
+
+ex:cqProbabilityModelLoweringShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "request" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "model" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "logicTarget" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "preservationKind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowProbabilityModelLowering a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "request" ; gmeow:cellValueIri exf:bnQuery ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:sprinklerNet ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "logicTarget" ; gmeow:cellValueIri logic:DependencyModel ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservationKind" ; gmeow:cellValueIri logic:ExactPreservation ] .
+
+# === PQ7 — confidence-as-probability claims (un-mapped) ==================== #
+
+ex:cqConfidenceAsProbability a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/confidence-as-probability-claims.rq" ;
+    gmeow:cqDataFile "tests/fixtures/confidence-as-probability.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A claim typed math:ProbabilityValue that carries a logic:confidence but declares NO logic:probabilityModel is an un-mapped confidence-as-probability claim (math:ConfidenceAsProbability); the control claim declaring a probability model is excluded. Over the fixture the answer is exactly {unmappedClaim, confidence 0.9}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqConfidenceAsProbabilityShape ;
+    gmeow:cqExpectRow ex:rowUnmappedClaim .
+
+ex:cqConfidenceAsProbabilityShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "claim" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "confidence" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowUnmappedClaim a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:unmappedClaim ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "confidence" ; gmeow:cellValueLiteral "0.9" ] .
