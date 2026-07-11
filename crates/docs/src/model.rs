@@ -621,6 +621,15 @@ pub struct DocTerm {
     pub use_for_consumer: Vec<String>,
     /// `gmeow:avoidForConsumer` — consumer profiles to steer away (CURIEs, sorted).
     pub avoid_for_consumer: Vec<String>,
+    /// `gmeow:adoptionTarget` — external-vocabulary prefix strings the term
+    /// DECLARES a correspondence intent toward (sorted, deduped). A non-empty set
+    /// is the term's own claim that it should carry an external crosswalk, and is
+    /// one of the signals that makes the `dimAlignment` / `dimLinkageCoverage`
+    /// coverage dimensions APPLICABLE to it (see [`crate::coverage`]). Empty on a
+    /// superset-native term that maps to nothing external — an honest absence, not
+    /// a coverage defect.
+    #[serde(default)]
+    pub adoption_targets: Vec<String>,
     /// Logic stereotypes co-asserted as `rdf:type` values in the `logic:`
     /// namespace (`logic:Kind`, `logic:SubKind`, `logic:Relator`, …), rendered
     /// as `logic:`-prefixed CURIEs, sorted/deduped. The lowered OntoUML/UFO
@@ -2466,6 +2475,9 @@ fn build_doc_terms(
         let how_to_use = literals(store, &iri, GMEOW_HOW_TO_USE);
         let use_for_consumer = curie_objects(store, &iri, GMEOW_USE_FOR_CONSUMER);
         let avoid_for_consumer = curie_objects(store, &iri, GMEOW_AVOID_FOR_CONSUMER);
+        // External-correspondence intent the term declares for itself (sorted,
+        // deduped by `sorted_literals`). Drives alignment/linkage APPLICABILITY.
+        let adoption_targets = sorted_literals(store, &iri, GMEOW_ADOPTION_TARGET);
 
         // Logic stereotypes: co-asserted `rdf:type` values under the logic NS.
         let logic_stereotypes = logic_stereotypes(store, &iri);
@@ -2526,6 +2538,7 @@ fn build_doc_terms(
             how_to_use,
             use_for_consumer,
             avoid_for_consumer,
+            adoption_targets,
             logic_stereotypes,
             frameworks,
             related_terms,

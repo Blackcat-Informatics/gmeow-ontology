@@ -28,7 +28,6 @@ expression: summary
       "fixture_pair",
       "competency_rationale",
       "worked_instance",
-      "loss_ledger_row",
       "translation_coverage",
       "test_reach",
       "prose_quality"

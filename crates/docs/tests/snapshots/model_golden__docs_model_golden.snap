@@ -191,6 +191,7 @@ expression: summary
       ],
       "use_for_consumer": [],
       "avoid_for_consumer": [],
+      "adoption_targets": [],
       "logic_stereotypes": [
         "logic:AbstractIndividualType"
       ],
@@ -244,6 +245,7 @@ expression: summary
       ],
       "use_for_consumer": [],
       "avoid_for_consumer": [],
+      "adoption_targets": [],
       "logic_stereotypes": [],
       "frameworks": [],
       "related_terms": [],
@@ -283,6 +285,7 @@ expression: summary
       "how_to_use": [],
       "use_for_consumer": [],
       "avoid_for_consumer": [],
+      "adoption_targets": [],
       "logic_stereotypes": [],
       "frameworks": [],
       "related_terms": [],

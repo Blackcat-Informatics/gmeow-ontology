@@ -355,16 +355,20 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             );
         }
 
-        // Per-term documentation-coverage incidence: for each of the sixteen
-        // per-term dimensions, one `gmeow:docCoversDimension` (detector fired) or
-        // `gmeow:docMissesDimension` (did not) edge into the dimension value
-        // vocabulary — the incidence the FCA maturity closure runs over. Emitted in
+        // Per-term documentation-coverage incidence: for each of the seventeen
+        // per-term dimensions, one `gmeow:docCoversDimension` (COVERED) or
+        // `gmeow:docMissesDimension` (applicable ∧ ¬present) edge into the dimension
+        // value vocabulary — the incidence the FCA maturity closure runs over.
+        // `flags()` already folds the applicability layer (`covered = !applicable ∨
+        // present`), so a superset-native term for which a dimension does NOT apply
+        // emits `docCoversDimension` for it (never a spurious miss); only an
+        // applicable-but-absent dimension emits `docMissesDimension`. Emitted in
         // stable [`DIMENSIONS`] order (a fixed subset of `gmeow:dim*`), so the
         // projection stays deterministic; the two slice-scoped dimensions are
         // emitted on the slice record below, not here.
         let flags = term_coverage(term, &cov_ctx).flags();
-        for (dim, present) in DIMENSIONS.iter().zip(flags) {
-            let predicate = if present {
+        for (dim, covered) in DIMENSIONS.iter().zip(flags) {
+            let predicate = if covered {
                 "docCoversDimension"
             } else {
                 "docMissesDimension"
@@ -408,10 +412,12 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
         );
 
         // Per-slice documentation-coverage incidence + FCA-derived maturity. The
-        // slice's covered-dimension set is its concept intent over ALL eighteen
+        // slice's covered-dimension set is its concept intent over ALL nineteen
         // dimensions (a per-term dimension is covered iff EVERY documented term the
-        // slice owns covers it; the two slice-scoped dimensions read the slice's
-        // docs.md facts) — computed by the single coverage producer, no reasoner.
+        // slice owns COVERS it under `!applicable ∨ present`, so an all-superset-native
+        // slice is not penalized for the four applicability-conditioned dimensions;
+        // the two slice-scoped dimensions read the slice's docs.md facts) — computed
+        // by the single coverage producer, no reasoner.
         let covered = slice_covered_dims(&slice.iri, model, &cov_ctx);
         for dim in Dimension::ALL {
             let predicate = if covered.contains(&dim) {
@@ -428,8 +434,11 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
         }
         // The bounded coverage fraction against the FULL anchor's intent — the
         // reference floor (`asserted-or-Full`; no per-slice asserted maturity is
-        // carried in the model yet, so FULL is the reference). A value in [0,1],
-        // never an unbounded ratio, so it can never be tuned to a target.
+        // carried in the model yet, so FULL is the reference). Computed over the
+        // applicability-aware `covered` set, so a dimension that does not apply to the
+        // slice's terms counts as covered (never dragging the fraction down for a
+        // superset-native slice). A value in [0,1], never an unbounded ratio, so it
+        // can never be tuned to a target.
         let fraction = coverage_fraction(&covered, &MaturityAnchor::Full.intent());
         triple(
             &subject,
