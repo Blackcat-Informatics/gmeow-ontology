@@ -83,7 +83,7 @@ impl Verdict {
         match self {
             Verdict::Equiv => "EQUIV".to_owned(),
             Verdict::EquivGroundedResidue => {
-                "EQUIV-GROUNDED-RESIDUE(sh:sparql→constraint)".to_owned()
+                "EQUIV-GROUNDED-RESIDUE(logic:formalizes→constraint)".to_owned()
             }
             Verdict::EquivResidue(residue) => format!("EQUIV-RESIDUE({})", residue.join(", ")),
             Verdict::NotEquiv(reason) => format!("NOT-EQUIV({reason})"),
@@ -342,6 +342,12 @@ impl OracleCtx {
                 .get(iri)
                 .is_some_and(|actual| actual.len() == 1 && actual.contains(expected)),
         };
+        // An exact `logic:formalizes <legacy-shape>` replacement is a first-class projected peer,
+        // including for covered node-kind / subjects-of shapes rather than only `sh:sparql`
+        // residue. Typed diagnostics remain part of the proof: the replacement must carry exactly
+        // the legacy failure class before it may substitute for missing/different class metadata.
+        let exact_constraint_replacement =
+            || self.formalized_shapes.contains(iri) && formalized_failure_matches();
         // A legacy class shape whose every constraint is a functional max-count (+ credited
         // existence min) has NO projected `targetClass` peer, because `owl:FunctionalProperty`
         // rides a `sh:targetSubjectsOf(P)` shape instead. Synthesize the projected enforcement
@@ -385,27 +391,34 @@ impl OracleCtx {
                         Verdict::NoProjectedPeer
                     }
                 }
-                None if sparql_only_residue_grounded(&read.unsupported)
-                    && formalized_failure_matches() =>
-                {
+                None if exact_constraint_replacement() => {
                     // Pure procedural constraints intentionally have no declarative class-shape
-                    // peer. An exact logic:formalizes link proves that the canonical constraint
-                    // projects the legacy shape's only enforcement residue.
+                    // peer. The exact formalizes link plus exact typed failure proves the
+                    // canonical constraint owns this legacy obligation.
                     Verdict::EquivGroundedResidue
                 }
                 None => Verdict::NoProjectedPeer,
             },
             Some((_, proj)) => {
-                if read.ir.failure_class != proj.ir.failure_class {
+                if read.ir.failure_class != proj.ir.failure_class && !exact_constraint_replacement()
+                {
                     return Verdict::NotEquiv(format!(
                         "typed failure class differs: legacy={:?}, projected={:?}",
                         read.ir.failure_class, proj.ir.failure_class
                     ));
                 }
+                if exact_constraint_replacement() {
+                    // The declarative class peer and the exact procedural replacement compose the
+                    // projection of one legacy block: OWL carries the covered fragment while the
+                    // exact `logic:formalizes` constraint carries its ValidationOnly residue and
+                    // singleton typed failure.
+                    return Verdict::EquivGroundedResidue;
+                }
                 // Fold only functional-property maxima. A legacy minimum is never invented here:
                 // it must already be present in the projected IR. This prevents a hand-authored
                 // `sh:minCount` from receiving credit merely because the legacy shape asserted it.
                 let mut proj_ir = proj.ir.clone();
+                fold_universally_qualified_counts(&mut proj_ir);
                 for pc in proj_ir.properties.iter_mut() {
                     if pc.max_count.is_none()
                         && let Some(&m) = self.functional_max.get(&pc.path)
@@ -682,9 +695,19 @@ fn class_owner_modules(root: &Path) -> BTreeMap<String, PathBuf> {
 
 const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
 const RDFS_LITERAL: &str = "http://www.w3.org/2000/01/rdf-schema#Literal";
-/// The GMEOW authoring namespace the derive dogfoods (mirrors `frontend.rs` `GMEOW_NS`): only a
-/// class in this namespace owns a projected validation shape.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The four co-foundational authoring namespaces the validation projector dogfoods. Keep this
+/// identical to the frontend's namespace guard: a migrator that rejects `math:`, `logic:`, or
+/// `lang:` classes would propose inert work for the very grounding layers it is meant to lift.
+const DOGFOODED_NAMESPACES: &[&str] = &[
+    "https://blackcatinformatics.ca/gmeow/",
+    "https://blackcatinformatics.ca/math/",
+    "https://blackcatinformatics.ca/logic/",
+    "https://blackcatinformatics.ca/lang/",
+];
+
+fn is_dogfooded_class(iri: &str) -> bool {
+    DOGFOODED_NAMESPACES.iter().any(|ns| iri.starts_with(ns))
+}
 
 /// The reasoner-safe OWL a shape lowers to: class-level `rdfs:subClassOf` restriction / node axioms
 /// (routed to the target class's owner module) and per-property `owl:FunctionalProperty` declarations
@@ -1128,6 +1151,41 @@ fn strip_redundant_iri_nodekind(
     stripped
 }
 
+/// Normalize a qualified count whose inner shape is already imposed universally on the same
+/// property. If every value must satisfy `shape`, then "at least/at most N values satisfying
+/// shape" is exactly the unqualified `minCount`/`maxCount`; retaining both syntactic components
+/// makes the oracle miss a real equivalence produced by `owl:allValuesFrom` plus
+/// `owl:qualifiedCardinality`.
+fn fold_universally_qualified_counts(ir: &mut ValidationShapeIr) {
+    for property in &mut ir.properties {
+        let universal: Vec<ConstraintComponent> = property
+            .components
+            .iter()
+            .filter(|c| !matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
+            .cloned()
+            .collect();
+        let mut keep = Vec::new();
+        for component in std::mem::take(&mut property.components) {
+            match component {
+                ConstraintComponent::QualifiedValueShape { shape, min, max }
+                    if shape.iter().all(|inner| universal.contains(inner)) =>
+                {
+                    if let Some(min) = min {
+                        property.min_count = Some(property.min_count.unwrap_or(0).max(min));
+                    }
+                    if let Some(max) = max {
+                        property.max_count =
+                            Some(property.max_count.map_or(max, |old| old.min(max)));
+                    }
+                    property.cardinality_provenance = Some(ConstraintProvenance::OwlRestriction);
+                }
+                other => keep.push(other),
+            }
+        }
+        property.components = keep;
+    }
+}
+
 /// The set of property IRIs ALREADY declared `owl:FunctionalProperty` anywhere in the authored tree
 /// (so the migrator never re-emits an existing declaration).
 fn already_functional(root: &Path) -> std::collections::BTreeSet<String> {
@@ -1321,7 +1379,7 @@ pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
             // (frontend.rs `GMEOW_NS` dogfooding guard). A shape targeting a math:/lang:/logic:
             // class can never be reproduced by the projector, so injecting OWL for it is inert —
             // skip it (it needs a derive dogfooding extension or a logic: backing instead).
-            if !k.starts_with(GMEOW_NS) {
+            if !is_dogfooded_class(k) {
                 println!(
                     "  [SKIP non-dogfooded-namespace] {} ({})",
                     short_iri(iri),
@@ -1598,5 +1656,51 @@ mod tests {
         );
         assert_eq!(shapes[0].0, "https://example.test/First");
         assert_eq!(shapes[1].0, "https://example.test/Second");
+    }
+
+    #[test]
+    fn every_cofoundational_namespace_is_migratable() {
+        for namespace in DOGFOODED_NAMESPACES {
+            assert!(is_dogfooded_class(&format!("{namespace}Example")));
+        }
+        assert!(!is_dogfooded_class("https://example.test/Foreign"));
+    }
+
+    #[test]
+    fn universally_qualified_cardinality_folds_to_plain_cardinality() {
+        let class = ConstraintComponent::Class("https://example.test/Value".into());
+        let property = PropertyConstraintIr::new(
+            "https://example.test/value",
+            None,
+            None,
+            None,
+            vec![
+                class.clone(),
+                ConstraintComponent::QualifiedValueShape {
+                    shape: vec![class.clone()],
+                    min: Some(1),
+                    max: None,
+                },
+                ConstraintComponent::QualifiedValueShape {
+                    shape: vec![class.clone()],
+                    min: None,
+                    max: Some(1),
+                },
+            ],
+        )
+        .unwrap();
+        let mut shape = ValidationShapeIr::new(
+            "https://example.test/Shape",
+            ShapeTarget::Class("https://example.test/Focus".into()),
+            vec![property],
+            None,
+        )
+        .unwrap();
+
+        fold_universally_qualified_counts(&mut shape);
+
+        assert_eq!(shape.properties[0].min_count, Some(1));
+        assert_eq!(shape.properties[0].max_count, Some(1));
+        assert_eq!(shape.properties[0].components, vec![class]);
     }
 }

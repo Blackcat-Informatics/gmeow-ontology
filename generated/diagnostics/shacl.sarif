@@ -12,12 +12,260 @@
           "location": {
             "uri": "slices/extensions/music/module.ttl"
           }
+        },
+        {
+          "location": {
+            "uri": "slices/grounding/math/module.ttl"
+          }
         }
       ],
       "automationDetails": {
         "id": "shacl"
       },
       "results": [
+        {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-NodeKindConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/math/pi"
+                },
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/math/isExact"
+                },
+                {
+                  "fullyQualifiedName": "value \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/math/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 156
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "SHACL constraint violated"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "033ef57493328251"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/math/MathematicalConstant-shape",
+            "gmeow.category": "data-shape-violation"
+          },
+          "relatedLocations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/math/isExact"
+                }
+              ],
+              "message": {
+                "text": "path"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              }
+            },
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "value \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>"
+                }
+              ],
+              "message": {
+                "text": "value"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              }
+            }
+          ],
+          "ruleId": "shacl.NodeKindConstraintComponent"
+        },
+        {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-NodeKindConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/math/eulerNumber"
+                },
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/math/isExact"
+                },
+                {
+                  "fullyQualifiedName": "value \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/math/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 164
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "SHACL constraint violated"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "a53b990a30f76521"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/math/MathematicalConstant-shape",
+            "gmeow.category": "data-shape-violation"
+          },
+          "relatedLocations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/math/isExact"
+                }
+              ],
+              "message": {
+                "text": "path"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              }
+            },
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "value \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>"
+                }
+              ],
+              "message": {
+                "text": "value"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              }
+            }
+          ],
+          "ruleId": "shacl.NodeKindConstraintComponent"
+        },
+        {
+          "fixes": [
+            {
+              "description": {
+                "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value."
+              },
+              "properties": {
+                "gmeow.helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-NodeKindConstraintComponent",
+                "gmeow.standpoint": "binding"
+              }
+            }
+          ],
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/math/eulerMascheroni"
+                },
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/math/isExact"
+                },
+                {
+                  "fullyQualifiedName": "value \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/grounding/math/module.ttl"
+                },
+                "region": {
+                  "startColumn": 1,
+                  "startLine": 172
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "SHACL constraint violated"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d3a18ef11a71f448"
+          },
+          "properties": {
+            "detail": "source shape: https://blackcatinformatics.ca/math/MathematicalConstant-shape",
+            "gmeow.category": "data-shape-violation"
+          },
+          "relatedLocations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/math/isExact"
+                }
+              ],
+              "message": {
+                "text": "path"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              }
+            },
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "value \"true\"^^<http://www.w3.org/2001/XMLSchema#boolean>"
+                }
+              ],
+              "message": {
+                "text": "value"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              }
+            }
+          ],
+          "ruleId": "shacl.NodeKindConstraintComponent"
+        },
         {
           "fixes": [
             {
@@ -659,6 +907,12 @@
                 "level": "warning"
               },
               "id": "shacl.MinCountConstraintComponent"
+            },
+            {
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "id": "shacl.NodeKindConstraintComponent"
             },
             {
               "defaultConfiguration": {
