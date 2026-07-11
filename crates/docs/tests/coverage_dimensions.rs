@@ -86,11 +86,24 @@ fn projection_emits_the_coverage_incidence_on_the_production_surface() {
         )),
         "per-slice docCoversDimension not emitted"
     );
+    let fraction_line = nq
+        .lines()
+        .find(|l| {
+            l.starts_with(&format!(
+                "<{GMEOW}documentation/slice/zoo> <{GMEOW}coverageFraction>"
+            ))
+        })
+        .expect("per-slice coverageFraction not emitted");
+    let fraction_lexical = fraction_line
+        .split('"')
+        .nth(1)
+        .expect("coverageFraction literal carries a quoted lexical form");
+    let fraction: f64 = fraction_lexical.parse().unwrap_or_else(|e| {
+        panic!("coverageFraction lexical form `{fraction_lexical}` is not a valid float: {e}")
+    });
     assert!(
-        nq.contains(&format!(
-            "<{GMEOW}documentation/slice/zoo> <{GMEOW}coverageFraction> \""
-        )),
-        "per-slice coverageFraction not emitted"
+        (0.0..=1.0).contains(&fraction),
+        "coverageFraction {fraction} is outside the closed unit range [0.0, 1.0]"
     );
     // The bare-term slice earns at least Minimal (definition + label present on the
     // sole term), so docEarnedMaturity is emitted.
@@ -187,23 +200,20 @@ fn coverage_projection_is_reasoner_independent_and_deterministic() {
         "projection must be deterministic"
     );
 
-    // The coverage incidence lines are byte-identical whether or not a reasoner
-    // verdict is present — coverage does not read the reasoner.
-    let coverage_lines = |nq: &str| -> Vec<String> {
+    // The WHOLE projection is byte-identical whether or not a reasoner verdict is
+    // present, apart from the `docReasoningStatus` triple the verdict adds — not
+    // just the coverage-related lines, so an unrelated projection regression
+    // (anywhere else in the emitted N-Quads) fails this test too.
+    let strip_reasoning_status = |nq: &str| -> String {
         nq.lines()
-            .filter(|l| {
-                l.contains("docCoversDimension")
-                    || l.contains("docMissesDimension")
-                    || l.contains("coverageFraction")
-                    || l.contains("docEarnedMaturity")
-            })
-            .map(str::to_string)
-            .collect()
+            .filter(|l| !l.contains("docReasoningStatus"))
+            .collect::<Vec<_>>()
+            .join("\n")
     };
     assert_eq!(
-        coverage_lines(&a),
-        coverage_lines(&b),
-        "coverage incidence must not depend on the reasoner verdict"
+        strip_reasoning_status(&a),
+        strip_reasoning_status(&b),
+        "the projection must be identical apart from the docReasoningStatus triple the verdict adds"
     );
     // The only difference is the reasoning-status triple the verdict adds.
     assert!(

@@ -195,7 +195,8 @@ impl DescribeGraph {
         let (Some(p), Some(o)) = (self.iri_id(&documents), self.iri_id(term_iri)) else {
             return None;
         };
-        self.ds
+        let candidates: Vec<String> = self
+            .ds
             .quads_for_pattern(None, Some(p), Some(o), GraphMatch::Any)
             .filter_map(|q| match self.ds.resolve(q.s) {
                 TermRef::Iri(iri) if iri.starts_with(&term_prefix) => {
@@ -203,9 +204,16 @@ impl DescribeGraph {
                 }
                 _ => None,
             })
-            // Exactly one doc-entry record documents a given term; a BTree-min keeps
-            // the read deterministic even if that invariant ever weakened.
-            .min()
+            .collect();
+        debug_assert!(
+            candidates.len() <= 1,
+            "term `{term_iri}` is documented by {} distinct documentation/term/ subjects \
+             ({candidates:?}) — the injective-slug invariant requires at most one",
+            candidates.len()
+        );
+        // Exactly one doc-entry record documents a given term; a BTree-min keeps
+        // the read deterministic even if that invariant ever weakened.
+        candidates.into_iter().min()
     }
 
     /// Resolve an object term id into an owned object value.
