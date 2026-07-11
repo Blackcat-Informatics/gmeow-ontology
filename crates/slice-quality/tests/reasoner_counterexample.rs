@@ -68,6 +68,8 @@ impl Fixture {
                 "{PREFIXES}\n\
                  gmeow:InterpretationAct a owl:Class .\n\
                  gmeow:Observation a owl:Class .\n\
+                 gmeow:InterpretationAct rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture> .\n\
+                 gmeow:Observation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture> .\n\
                  {disjoint}"
             ),
         )
@@ -216,7 +218,9 @@ fn structural_only_counterexample_is_not_a_logical_obligation() {
     // No shapes.ttl at all → no declared class-disjointness.
     std::fs::write(
         dir.join("module.ttl"),
-        format!("{PREFIXES}\ngmeow:Widget a owl:Class .\n"),
+        format!(
+            "{PREFIXES}\ngmeow:Widget a owl:Class ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture> .\n"
+        ),
     )
     .unwrap();
     let fixture = dir.join("tests/counter-examples/missing-field.ttl");
