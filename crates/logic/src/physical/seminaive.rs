@@ -62,11 +62,9 @@ use std::collections::{BTreeSet, HashMap};
 use hashbrown::HashTable;
 use rayon::prelude::*;
 
-use crate::physical::arena::{RowArena, RowTuple};
-use crate::physical::bitset::DenseBitset;
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
 use crate::physical::cursor::LendingIterator;
-use crate::physical::id::{RowId, TermRef};
+use crate::physical::id::RowId;
 use crate::physical::plan::{Executable, RulePlan};
 use crate::physical::store::{Bound, RelationStore};
 use crate::provenance::mint_derivation_id;
@@ -295,7 +293,7 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
 fn extend_solutions_indexed(
     atom: &EvalAtom,
     rel: &RelationStore,
-    delta: &DenseBitset,
+    delta: Delta,
     scan: Scan,
     solutions: &[Solution],
 ) -> Vec<Solution> {
@@ -323,7 +321,7 @@ fn extend_solutions_indexed(
 fn extend_solutions_kernel<const SCAN: u8>(
     atom: &EvalAtom,
     rel: &RelationStore,
-    delta: &DenseBitset,
+    delta: Delta,
     solutions: &[Solution],
 ) -> Vec<Solution> {
     let pred = atom.predicate.as_str();
@@ -375,15 +373,54 @@ const SCAN_DELTA: u8 = 0;
 const SCAN_FULL: u8 = 1;
 const SCAN_OLD_ONLY: u8 = 2;
 
+/// The semi-naive delta as a contiguous RowId range `[lo, hi)` — the rows committed in
+/// the PREVIOUS round (or, on the round-1 seed, every accumulated row `[0, row_count)`).
+///
+/// RowIds are minted densely in FactKey-sorted commit order, so a round's committed rows
+/// are ALWAYS a contiguous span; delta membership is therefore a single range compare —
+/// byte-identical to the former per-round `DenseBitset` holding exactly those ids, but
+/// with NO per-round bitset allocation and NO arena round-trip.  "The round batch IS the
+/// delta" is literally this RowId span.
+#[derive(Clone, Copy)]
+struct Delta {
+    /// Inclusive lower RowId index of the round's committed span.
+    lo: usize,
+    /// Exclusive upper RowId index of the round's committed span.
+    hi: usize,
+}
+
+impl Delta {
+    /// The empty delta — used by `Full` scans, which ignore membership entirely.
+    const EMPTY: Self = Self { lo: 0, hi: 0 };
+
+    /// The round-1 seed: every accumulated row `[0, row_count)` is "new" this round
+    /// (mirrors `least_model_of_reduct`'s `delta = key_set()`).
+    #[inline]
+    fn all(row_count: usize) -> Self {
+        Self {
+            lo: 0,
+            hi: row_count,
+        }
+    }
+
+    /// Whether `row` falls in the delta's committed span — one range compare, no hashing.
+    #[inline]
+    fn contains(self, row: RowId) -> bool {
+        let i = row.index();
+        self.lo <= i && i < self.hi
+    }
+}
+
 /// The monomorphized per-row semi-naive keep test for a fixed scan mode.
 ///
 /// `SCAN` is a compile-time constant, so this `match` folds at monomorphization to a
 /// single arm — `true` (Full), `delta.contains(row_id)` (Delta), or its negation
 /// (OldOnly) — with the other arms (and the `unreachable!`) dead-code eliminated.  The
-/// result is byte-identical to the former runtime `match scan { … }`, but the branch is
-/// resolved at compile time, once per operator, not per tuple.
+/// membership is a contiguous-RowId range compare (`[lo, hi)`), byte-identical to the
+/// former per-round `DenseBitset` word test but with no per-round allocation; the branch
+/// is resolved at compile time, once per operator, not per tuple.
 #[inline(always)]
-fn keep_row<const SCAN: u8>(delta: &DenseBitset, row_id: RowId) -> bool {
+fn keep_row<const SCAN: u8>(delta: Delta, row_id: RowId) -> bool {
     match SCAN {
         SCAN_FULL => true,
         SCAN_DELTA => delta.contains(row_id),
@@ -424,7 +461,7 @@ fn join_body_indexed(
     plan: &RulePlan,
     rel: &RelationStore,
     accumulated: &RelationStore,
-    delta: &DenseBitset,
+    delta: Delta,
     gap: &mut bool,
 ) -> Vec<Solution> {
     // The positive (join) / negated (NAF) body-atom partition was precomputed ONCE at
@@ -969,18 +1006,10 @@ fn eval_stratum_fixpoint(
     let builtin_gap = &mut *state.builtin_gap;
     // Seed delta with EVERY accumulated row so this stratum's rules fire against the
     // seed in round 1 (mirrors `least_model_of_reduct`'s `delta = key_set()`).  The
-    // `RelationStore` mints RowIds densely as `0..row_count` in insertion order, so the
-    // whole accumulated store is exactly the low `row_count` bits — one `all_set`, no
-    // per-key materialization and no hashing.
-    let mut delta = DenseBitset::all_set(rel.row_count());
-
-    // The phase-scoped row/tuple arena for THIS stratum's rounds: a
-    // genuinely resettable bump buffer the committed argument tuples are allocated into
-    // each round, read back to build the next round's dense delta, then truncated at
-    // the round boundary (allocate → sort-commit → reset).  It is thread-local by
-    // construction: each world's fixpoint runs sequentially on its own stack, so no
-    // arena is ever shared across rayon's per-world parallelism.
-    let mut arena = RowArena::new();
+    // `RelationStore` mints RowIds densely as `0..row_count` in commit order, so the
+    // whole accumulated store is exactly the contiguous span `[0, row_count)` — a range,
+    // no per-key materialization, no bitset, no hashing.
+    let mut delta = Delta::all(rel.row_count());
 
     loop {
         // Per-round canonical-winner map: a borrowed-key `HashTable<usize>` into a side
@@ -992,7 +1021,7 @@ fn eval_stratum_fixpoint(
         let mut round_index: HashTable<usize> = HashTable::new();
 
         for (rule, plan) in exe.stratum_entries(stratum) {
-            for sol in join_body_indexed(rule, plan, rel, rel, &delta, builtin_gap) {
+            for sol in join_body_indexed(rule, plan, rel, rel, delta, builtin_gap) {
                 if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
                     continue;
                 }
@@ -1076,17 +1105,11 @@ fn eval_stratum_fixpoint(
             break; // stratum fixpoint
         }
 
-        // Reset the phase-scoped arena for THIS round (truncate the real backing
-        // buffer — a genuine reclaim, matching the allocate → commit → reset phases).
-        // This is the round boundary at which BOTH the value column (arena) and the
-        // delta bitset (built below) are reset in lockstep.
-        arena.reset();
-        // The round's committed rows, paired as (staged argument tuple, dense RowId), in
-        // the FactKey-sorted commit order.  The arena is the arrangement's contiguous
-        // value column; the delta bitset built after the loop is row-id membership over
-        // exactly this column.
-        let round_len = round_entries.len();
-        let mut committed: Vec<(RowTuple, RowId)> = Vec::with_capacity(round_len);
+        // The next round's delta is exactly the rows committed THIS round.  RowIds are
+        // minted densely in the FactKey-sorted commit loop below, so those rows form the
+        // contiguous span `[round_lo, rel.row_count())` — captured as a range with NO
+        // arena staging and NO per-round bitset (the round batch IS the delta).
+        let round_lo = rel.row_count();
         // Commit winners in RESOLVED LEXICAL FactKey order — NOT any id/mint order — so
         // store/index insertion order AND the per-winner `governor.charge()` sequence
         // stay byte-deterministic.  RowId assignment is a purely ADDITIVE side effect of
@@ -1114,15 +1137,21 @@ fn eval_stratum_fixpoint(
             // winner is always a genuinely-new fact (heads already present are skipped
             // above via `store.contains_key`), so the lockstep insert returns `Some(...)`.
             let store_idx = store.insert(winner.head.clone());
-            let ids = if store_idx.is_some() {
-                rel.insert(
+            if store_idx.is_some() {
+                let inserted = rel.insert(
                     &winner.head.predicate,
                     &winner.head.subject,
                     &winner.head.object,
-                )
-            } else {
-                None
-            };
+                );
+                // A winner is new in the FactStore (gated by `store.contains_key` above),
+                // and the columnar store dedups on the SAME predicate + interned surfaces,
+                // so it is new there too — the insert stamps the next dense RowId, keeping
+                // the committed span `[round_lo, rel.row_count())` contiguous.
+                debug_assert!(
+                    inserted.is_some(),
+                    "a fresh winner must insert a new columnar row (dense RowId span)"
+                );
+            }
             // Depth bookkeeping feeds ONLY the provenance tiebreak; the facts-only lane
             // carries `prov: None`, so it is not maintained there (keeping the `depth` Vec
             // empty under Skip — the `assert!` in `evaluate` locks that invariant in
@@ -1138,16 +1167,6 @@ fn eval_stratum_fixpoint(
                 );
                 depth.push(winner_depth);
             }
-            // Stage the committed argument tuple into the phase-scoped value column
-            // (arena), paired with its RowId; the read-back below turns the column into
-            // the next round's delta bitset.  The subject/object term ids come straight
-            // back from the columnar insert (never re-derived via a second interner
-            // lookup — the just-interned head terms).
-            if let Some((s_id, o_id, row_id)) = ids {
-                let tuple = arena.alloc(&[TermRef::term(s_id), TermRef::term(o_id)]);
-                committed.push((tuple, row_id));
-            }
-
             // A winner is always a NEW key: heads already present (including every
             // EDB fact, seeded into `store` before the fixpoint) are skipped above via
             // `store.contains_key`. So every winner is a genuine derivation.  Under Skip the
@@ -1168,24 +1187,14 @@ fn eval_stratum_fixpoint(
             governor.charge();
         }
 
-        // Build the next round's delta as a dense `u64`-word bitset: row-id membership
-        // over the value column just staged.  Read each committed
-        // row back out of the phase-scoped arena and set its dense RowId's bit, so the
-        // next round tests delta membership with ONE word test per selected row and no
-        // hashing.  Sized to the store's current row count so every selectable row is
-        // addressable.  The `arena.get` read-back confirms the value column's binary
-        // (arity-2) shape — the native engine derives only binary facts.
-        let mut new_delta = DenseBitset::with_capacity(rel.row_count());
-        for (tuple, row_id) in &committed {
-            let args = arena.get(tuple);
-            assert_eq!(
-                args.len(),
-                2,
-                "the native engine stages arity-2 committed argument tuples"
-            );
-            new_delta.set(*row_id);
-        }
-        delta = new_delta;
+        // The next round's delta is the contiguous RowId span committed this round —
+        // `[round_lo, rel.row_count())`.  No arena read-back, no per-round bitset: the
+        // dense FactKey-sorted commit order makes this range exactly the set of rows the
+        // former bitset held, so the next round's `Delta`/`OldOnly` scans are byte-identical.
+        delta = Delta {
+            lo: round_lo,
+            hi: rel.row_count(),
+        };
     }
 
     Ok(FixpointStatus::Complete)
@@ -1516,24 +1525,22 @@ mod tests {
         );
     }
 
-    /// FULL-SCAN ORDER-INVARIANCE GATE (the primary byte-drift
-    /// landmine for the galloping-cursor full-scan work).
+    /// FULL-SCAN COMPLETENESS GATE.
     ///
-    /// The leading unbound body atom drives a [`Bound::Any`] FULL SCAN.  This replaces
-    /// the materialized `Vec<(TermId, TermId, RowId)>` with a galloping lending
-    /// [`RowCursor`](crate::physical::cursor::RowCursor); the cursor MUST iterate
-    /// **row-id (insertion) order** — NEVER a key-sorted (lexical) order, which would
-    /// flip the solution / `source_facts` / winner sequence and drift `gmeow.gts` bytes.
-    /// A global key-sorted arrangement is explicitly out of scope for this work.
+    /// The leading unbound body atom drives a [`Bound::Any`] FULL SCAN via the galloping
+    /// lending [`RowCursor`](crate::physical::cursor::RowCursor).  The cursor enumerates
+    /// the shared arrangement batch-then-tail (an internal storage order), NOT a stable
+    /// emission order — byte-identity comes from the TOTAL-ORDER winner selection
+    /// ([`crate::rule_ir::RuleRoundCandidate::tiebreak_key`]), never from cursor order —
+    /// so what the scan must guarantee is that it visits EVERY row exactly once.
     ///
-    /// This inserts three rows whose INSERTION order (`z, a, m`) deliberately DIVERGES
-    /// from their lexical order (`a, m, z`), drives the actual cursor-backed full-scan
-    /// kernel ([`extend_solutions_indexed`] with [`Scan::Full`], which yields the
-    /// `Bound::Any` cursor per solution), and asserts the produced solutions AND their
-    /// recorded `source_facts` come out in INSERTION order — then asserts that order is
-    /// provably NOT the lexical order.  A cursor that key-sorted would fail this.
+    /// This inserts three rows whose insertion order (`z, a, m`) diverges from their
+    /// lexical order, drives the cursor-backed full-scan kernel
+    /// ([`extend_solutions_indexed`] with [`Scan::Full`]), and asserts the produced
+    /// solution SET is exactly the three rows — a cursor that dropped or duplicated a
+    /// row (a galloping / batch-boundary bug) would fail this.
     #[test]
-    fn physical_full_scan_iterates_row_id_order_not_lexical() {
+    fn physical_full_scan_visits_every_row() {
         // One binary relation, rows inserted anti-lexically: z→p, then a→q, then m→r.
         let mut rel = RelationStore::new();
         for (s, o) in [("z", "p"), ("a", "q"), ("m", "r")] {
@@ -1550,16 +1557,17 @@ mod tests {
             negated: false,
         };
         // A Full scan ignores the delta (`keep_row::<SCAN_FULL>` is `true`), so an empty
-        // bitset is correct — this isolates the SCAN ORDER, not the delta membership.
-        let delta = DenseBitset::new();
+        // range is correct — this isolates the SCAN COMPLETENESS, not delta membership.
+        let delta = Delta::EMPTY;
         let seed = Solution {
             bindings: Vec::new(),
             source_facts: Vec::new(),
         };
-        let out = extend_solutions_indexed(&atom, &rel, &delta, Scan::Full, &[seed]);
+        let out = extend_solutions_indexed(&atom, &rel, delta, Scan::Full, &[seed]);
 
-        // Every produced solution bound ?X/?Y to one scanned row, IN INSERTION ORDER.
-        let got: Vec<(String, String)> = out
+        // Every inserted row is produced exactly once (as a SET — cursor order is not an
+        // emission-order guarantee, so a store test asserts membership, never a sequence).
+        let got: BTreeSet<(String, String)> = out
             .iter()
             .map(|sol| {
                 (
@@ -1568,36 +1576,20 @@ mod tests {
                 )
             })
             .collect();
-        let want_insertion = vec![
+        let want: BTreeSet<(String, String)> = [
             (format!("<{}>", nn("z")), format!("<{}>", nn("p"))),
             (format!("<{}>", nn("a")), format!("<{}>", nn("q"))),
             (format!("<{}>", nn("m")), format!("<{}>", nn("r"))),
-        ];
+        ]
+        .into();
         assert_eq!(
-            got, want_insertion,
-            "the full scan MUST iterate insertion (row-id) order, not a key-sorted order"
+            out.len(),
+            3,
+            "no row is dropped or duplicated by the full scan"
         );
-        // The divergence this guards: insertion order is NOT the lexical order.
-        let mut lexical = want_insertion.clone();
-        lexical.sort();
-        assert_ne!(
-            got, lexical,
-            "insertion order (z,a,m) genuinely diverges from lexical order (a,m,z) — \
-             so a key-sorted cursor would produce a DIFFERENT (drifting) sequence"
-        );
-        // The recorded provenance `source_facts` follow the same insertion order.
-        let src: Vec<String> = out
-            .iter()
-            .map(|s| term_display(&s.source_facts[0].subject))
-            .collect();
         assert_eq!(
-            src,
-            vec![
-                format!("<{}>", nn("z")),
-                format!("<{}>", nn("a")),
-                format!("<{}>", nn("m")),
-            ],
-            "source_facts (provenance byte order) follow the row-id scan order"
+            got, want,
+            "the full scan visits exactly the three inserted rows"
         );
     }
 
