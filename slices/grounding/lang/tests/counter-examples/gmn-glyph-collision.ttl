@@ -5,10 +5,14 @@
 # unscoped collision the sigil discipline forbids (fires lang:GmnGlyphCollision via the
 # sh:sparql of lang:GmnGlyphCollisionShape). Both graphemes are otherwise well-formed:
 # grounded in the repertoire, canonical codepoints (so the codepoint shapes stay quiet),
-# and no gmeow:gmnConfusableWith edge (so lang:GmnConfusableGlyphShape stays quiet).
+# no gmeow:gmnConfusableWith edge (so lang:GmnConfusableGlyphShape stays quiet), and each
+# carries its measured gmeow:gmnGlyphTokenCost feed (so lang:GmnScriptGlyphCoverageShape's
+# total glyph-cost coverage stays satisfied and lang:GmnUncostedScriptGlyph stays quiet) —
+# exactly the one unscoped-collision finding fires.
 
 @prefix lang:  <https://blackcatinformatics.ca/lang/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <http://example.org/lang/> .
 
@@ -16,8 +20,14 @@ gmeow:gmnScript lang:hasGrapheme ex:gMuOne , ex:gMuTwo .
 
 ex:gMuOne a lang:Grapheme ;
     lang:inScript gmeow:gmnScript ;
-    gmeow:gmnCodepoints "U+03BC" .
+    gmeow:gmnCodepoints "U+03BC" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
 
 ex:gMuTwo a lang:Grapheme ;
     lang:inScript gmeow:gmnScript ;
-    gmeow:gmnCodepoints "U+03BC" .
+    gmeow:gmnCodepoints "U+03BC" ;
+    gmeow:gmnGlyphTokenCost ex:qCostOne .
+
+ex:qCostOne a math:Quantity ;
+    math:hasDimension math:dimensionless ;
+    math:quantityValue 1 .
