@@ -107,6 +107,11 @@ const LOGIC_PRESERVATION_KIND: &str = "https://blackcatinformatics.ca/logic/pres
 /// authored-example loss row declares alongside its `logic:preservationKind`.
 const LOGIC_COMPLEXITY_CLASS: &str = "https://blackcatinformatics.ca/logic/complexityClass";
 
+/// The language-grounding vocabulary namespace (`slices/grounding/lang`). Its
+/// slice owns first-class documented vocabulary in this namespace, exactly like
+/// `logic:` / `math:`.
+const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+
 // ── Math grounding: worked ℚ⁷ SI-dimension instances ─────────────────────────
 /// The math-grounding vocabulary namespace (`slices/grounding/math`).
 const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
@@ -237,6 +242,11 @@ const GMEOW_DATAFLOW_CONSUMES: &str = "https://blackcatinformatics.ca/gmeow/data
 const GMEOW_BUILD_FLOW_FROM: &str = "https://blackcatinformatics.ca/gmeow/buildFlowFrom";
 const GMEOW_BUILD_FLOW_TO: &str = "https://blackcatinformatics.ca/gmeow/buildFlowTo";
 const GMEOW_FLOW_ENTITY: &str = "https://blackcatinformatics.ca/gmeow/flowEntity";
+/// `gmeow:attachesGraph` — a named-graph IRI a `gmeow:PipelineStage` attaches to the
+/// carrier as its delta (the stage's declared, run-verified contribution).
+const GMEOW_ATTACHES_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/attachesGraph";
+/// `gmeow:attachesBlobRep` — a blob-representation lane label a stage attaches.
+const GMEOW_ATTACHES_BLOB_REP: &str = "https://blackcatinformatics.ca/gmeow/attachesBlobRep";
 /// `logic:planGoal` — the `gmeow:Goal` the `gmeow:Pipeline` (a `logic:Plan`) is
 /// arranged to reach (the shippable bundle).
 const LOGIC_PLAN_GOAL: &str = "https://blackcatinformatics.ca/logic/planGoal";
@@ -368,6 +378,104 @@ pub struct DocSlice {
     pub depends_on: Vec<String>,
     /// All artifacts in the slice (sorted by logical path).
     pub artifacts: Vec<DocArtifact>,
+    /// Deterministic `docs.md` fact: the slice's `docs.md` opens with a thesis
+    /// sentence (a prose sentence, not a heading/table/list). Drives the
+    /// slice-scoped `gmeow:dimThesisSentence` coverage dimension. Computed in
+    /// [`DocSlice::from_record`] from the `docs.md` artifact so the coverage
+    /// producer stays a pure function of the model.
+    #[serde(default)]
+    pub has_thesis_sentence: bool,
+    /// Deterministic `docs.md` fact: every documented artifact in the slice's
+    /// `docs.md` design-set table (a table with a "realized state" column) carries
+    /// a realized-state marker (design-only / partial / built). Drives the
+    /// slice-scoped `gmeow:dimRealizedState` coverage dimension. `false` when the
+    /// slice ships no such table (a gated omission, not authorial vigilance).
+    #[serde(default)]
+    pub realized_state_complete: bool,
+}
+
+/// Deterministic detection of a `docs.md` opening thesis sentence: at least one
+/// prose line — trimmed non-empty, beginning with an alphabetic character (so
+/// headings `#`, tables `|`, block-quotes `>`, list markers `-`/`*`/`+`, and code
+/// fences ` ``` ` are excluded) — that carries a sentence-ending period. A
+/// present/absent structural fact over the narrative, never a tuned length.
+fn detect_thesis_sentence(md: &str) -> bool {
+    md.lines().any(|line| {
+        let t = line.trim();
+        t.chars().next().is_some_and(|c| c.is_ascii_alphabetic()) && t.contains('.')
+    })
+}
+
+/// The interior cells of a markdown table row, preserving empty interior cells.
+fn md_row_cells(line: &str) -> Vec<String> {
+    let trimmed = line.trim();
+    if !trimmed.starts_with('|') {
+        return Vec::new();
+    }
+    let inner = trimmed
+        .strip_prefix('|')
+        .and_then(|s| s.strip_suffix('|'))
+        .unwrap_or(trimmed);
+    inner.split('|').map(|c| c.trim().to_string()).collect()
+}
+
+/// True if a markdown table row is the `|---|:--:|` separator (only dashes,
+/// colons, spaces between the pipes).
+fn is_table_separator(line: &str) -> bool {
+    let cells = md_row_cells(line);
+    !cells.is_empty()
+        && cells
+            .iter()
+            .all(|c| !c.is_empty() && c.chars().all(|ch| ch == '-' || ch == ':' || ch == ' '))
+}
+
+/// Deterministic detection of a complete realized-state design-set table: the
+/// `docs.md` carries a markdown table with a "realized state" header column, and
+/// EVERY data row's cell in that column carries a realized-state marker
+/// (design / partial / built). Returns `false` when no such table exists — a
+/// silent omission is a gated miss, not authorial vigilance.
+fn detect_realized_state_complete(md: &str) -> bool {
+    let lines: Vec<&str> = md.lines().collect();
+    let mut i = 0;
+    while i < lines.len() {
+        let header = md_row_cells(lines[i]);
+        let realized_col = header
+            .iter()
+            .position(|c| c.to_lowercase().contains("realized"));
+        // A header row with a "realized" column, followed by a separator row.
+        if let Some(col) = realized_col
+            && i + 1 < lines.len()
+            && is_table_separator(lines[i + 1])
+        {
+            let mut all_marked = true;
+            let mut j = i + 2;
+            while j < lines.len() && lines[j].trim().starts_with('|') {
+                if is_table_separator(lines[j]) {
+                    j += 1;
+                    continue;
+                }
+                let cells = md_row_cells(lines[j]);
+                let marked = cells.get(col).is_some_and(|cell| {
+                    let c = cell.to_lowercase();
+                    // The realized-state markers: `realized` / `built` (fully
+                    // realized), `partial`, and `design-only` / `design` (not yet
+                    // built). A row whose realized-state cell names none of these
+                    // carries no honest marker and misses the dimension.
+                    c.contains("realized")
+                        || c.contains("built")
+                        || c.contains("partial")
+                        || c.contains("design")
+                });
+                if !marked {
+                    all_marked = false;
+                }
+                j += 1;
+            }
+            return all_marked;
+        }
+        i += 1;
+    }
+    false
 }
 
 impl DocSlice {
@@ -391,6 +499,25 @@ impl DocSlice {
             .collect();
         artifacts.sort_by(|a, b| a.logical_path.cmp(&b.logical_path));
 
+        // Deterministic docs.md facts — read the slice's `docs.md` (an
+        // ArtifactRole::Documentation artifact carrying its bytes) once so the
+        // coverage producer stays a pure function of the model. Absent docs.md ⇒
+        // both facts false (a gated miss, honest absence).
+        let docs_md: Option<String> = record
+            .artifacts
+            .iter()
+            .find(|a| {
+                a.role == ArtifactRole::Documentation
+                    && Path::new(&a.logical_path)
+                        .file_name()
+                        .is_some_and(|n| n == "docs.md")
+            })
+            .map(|a| String::from_utf8_lossy(&a.content).into_owned());
+        let has_thesis_sentence = docs_md.as_deref().is_some_and(detect_thesis_sentence);
+        let realized_state_complete = docs_md
+            .as_deref()
+            .is_some_and(detect_realized_state_complete);
+
         let mut creators = creators.clone();
         creators.sort();
         let mut consumers = consumers.clone();
@@ -412,6 +539,8 @@ impl DocSlice {
             profiles,
             depends_on,
             artifacts,
+            has_thesis_sentence,
+            realized_state_complete,
         }
     }
 }
@@ -458,6 +587,15 @@ pub struct DocChangelogEntry {
 pub struct DocTerm {
     /// The full term IRI.
     pub iri: String,
+    /// The INJECTIVE documentation-entry slug — the collision-free `{slug}` in this
+    /// term's `documentation/term/{slug}` doc-entry IRI, page URL, and cross-page
+    /// links. Resolved ONCE from the whole term set at model build (see
+    /// [`crate::render::resolve_term_slugs`]) so no two distinct term IRIs share a
+    /// doc-entry subject (which would conflate their coverage incidence). Empty only
+    /// on a hand-built term that never went through model resolution;
+    /// [`crate::render::term_slug`] then falls back to the base slug.
+    #[serde(default)]
+    pub slug: String,
     /// The compact CURIE (`gmeow:Foo` for GMEOW-namespaced terms, else the IRI).
     pub curie: String,
     /// `rdfs:label`.
@@ -488,6 +626,15 @@ pub struct DocTerm {
     pub use_for_consumer: Vec<String>,
     /// `gmeow:avoidForConsumer` — consumer profiles to steer away (CURIEs, sorted).
     pub avoid_for_consumer: Vec<String>,
+    /// `gmeow:adoptionTarget` — external-vocabulary prefix strings the term
+    /// DECLARES a correspondence intent toward (sorted, deduped). A non-empty set
+    /// is the term's own claim that it should carry an external crosswalk, and is
+    /// one of the signals that makes the `dimAlignment` / `dimLinkageCoverage`
+    /// coverage dimensions APPLICABLE to it (see [`crate::coverage`]). Empty on a
+    /// superset-native term that maps to nothing external — an honest absence, not
+    /// a coverage defect.
+    #[serde(default)]
+    pub adoption_targets: Vec<String>,
     /// Logic stereotypes co-asserted as `rdf:type` values in the `logic:`
     /// namespace (`logic:Kind`, `logic:SubKind`, `logic:Relator`, …), rendered
     /// as `logic:`-prefixed CURIEs, sorted/deduped. The lowered OntoUML/UFO
@@ -988,6 +1135,13 @@ pub struct DocStage {
     /// `gmeow:dataflowConsumes` — the producer stage IRIs this stage reads,
     /// sorted/deduped.
     pub consumes: Vec<String>,
+    /// `gmeow:attachesGraph` — the named-graph IRIs this stage attaches to the carrier
+    /// as its delta (its declared, run-verified contribution), sorted/deduped. The
+    /// self-explaining surface: `gmeow docs-on <stage>` shows what the stage produced.
+    pub attaches_graphs: Vec<String>,
+    /// `gmeow:attachesBlobRep` — the blob-representation lane labels this stage attaches,
+    /// sorted/deduped.
+    pub attaches_blob_reps: Vec<String>,
 }
 
 /// One dataflow edge of the build DAG: the union of a bare
@@ -1426,7 +1580,17 @@ impl DocsModel {
     /// v14: lifts every `gmeow:PipelineStage` individual into a documented term,
     /// so each stage's term page renders the enriched build-pipeline section
     /// (`stageImpl` link, consumes / consumed-by tables, flowing graphs).
-    pub const VERSION: &'static str = "14";
+    ///
+    /// v15: adds [`DocTerm::slug`] — the INJECTIVE `documentation/term/{slug}`
+    /// doc-entry slug, resolved once from the whole term set so no two distinct
+    /// term IRIs collide onto one doc-entry subject (which previously conflated
+    /// their coverage incidence).
+    ///
+    /// v16: each [`DocStage`] grows `attaches_graphs` / `attaches_blob_reps`
+    /// (`gmeow:attachesGraph` / `gmeow:attachesBlobRep`) — the stage's declared,
+    /// run-verified carrier contribution, so a stage term page self-explains what it
+    /// produced.
+    pub const VERSION: &'static str = "16";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -1580,6 +1744,21 @@ impl DocsModel {
                 profiles.sort();
                 profiles.dedup();
                 t.profiles = profiles;
+            }
+        }
+
+        // ── Injective doc-entry slugs ────────────────────────────────────────
+        // Resolve a globally-unique `documentation/term/{slug}` slug for every
+        // term, so no two distinct term IRIs collide onto one doc-entry subject
+        // (which would conflate their projected coverage incidence and earned
+        // maturity). A deterministic pure function of the IRI-sorted term set;
+        // see `crate::render::resolve_term_slugs`.
+        {
+            let slugs = crate::render::resolve_term_slugs(&terms);
+            for t in &mut terms {
+                if let Some(slug) = slugs.get(&t.iri) {
+                    t.slug = slug.clone();
+                }
             }
         }
 
@@ -2197,16 +2376,49 @@ pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
 }
 
 /// Extract documented terms (GMEOW-namespaced typed subjects) from a module store.
+/// The grounding vocabulary namespace a slice OWNS, if it is one of the three
+/// grounding slices (`slices/grounding/{math,logic,lang}`, whose slice IRIs end
+/// `/slices/{math,logic,lang}`). A grounding slice declares its vocabulary in
+/// its OWN namespace (`math:` / `logic:` / `lang:`), not `gmeow:`, so its
+/// own-namespace TBox classes / properties / named vocabulary individuals become
+/// documented terms in addition to any `gmeow:` ones. A non-grounding slice
+/// returns `None` — its documented-term set is unchanged (`gmeow:` only).
+fn grounding_namespace(owner_slice: &str) -> Option<&'static str> {
+    if owner_slice.ends_with("/slices/math") {
+        Some(MATH_NS)
+    } else if owner_slice.ends_with("/slices/logic") {
+        Some(LOGIC_NS)
+    } else if owner_slice.ends_with("/slices/lang") {
+        Some(LANG_NS)
+    } else {
+        None
+    }
+}
+
+/// Whether a module subject is a documentable-term subject for a slice: any
+/// `gmeow:` subject, plus — for a grounding slice — any subject in that slice's
+/// OWN grounding namespace. The worked-instance / stereotype ABox nodes a
+/// grounding module also carries (subjects typed only by a domain class, e.g.
+/// `logic:Formula` / `math:Axiom` / `lang:Denotation`) are NOT admitted here as
+/// terms: [`category_for_type`] returns `None` for those types, so they surface
+/// only as worked-instances / examples on the vocabulary terms' pages, never as
+/// standalone term pages.
+fn is_documented_subject(subject: &str, grounding_ns: Option<&str>) -> bool {
+    subject.starts_with(GMEOW_NS) || grounding_ns.is_some_and(|ns| subject.starts_with(ns))
+}
+
 fn extract_terms(store: &Store, owner_slice: &str, tier: Option<&SliceTier>) -> Vec<DocTerm> {
-    // First pass: collect every GMEOW subject with a recognized vocabulary type,
-    // keyed by IRI, recording the strongest category seen.
+    // First pass: collect every documentable subject with a recognized vocabulary
+    // type, keyed by IRI, recording the strongest category seen. A grounding slice
+    // also admits its own-namespace vocabulary (`math:` / `logic:` / `lang:`).
+    let grounding_ns = grounding_namespace(owner_slice);
     let mut categories: BTreeMap<String, DocTermCategory> = BTreeMap::new();
 
     for (subject, object) in store.pattern_subjects_objects(RDF_TYPE) {
         let Some(subject) = subject.as_named() else {
             continue;
         };
-        if !subject.starts_with(GMEOW_NS) {
+        if !is_documented_subject(subject, grounding_ns) {
             continue;
         }
         let Object::Named(type_node) = &object else {
@@ -2301,6 +2513,9 @@ fn build_doc_terms(
         let how_to_use = literals(store, &iri, GMEOW_HOW_TO_USE);
         let use_for_consumer = curie_objects(store, &iri, GMEOW_USE_FOR_CONSUMER);
         let avoid_for_consumer = curie_objects(store, &iri, GMEOW_AVOID_FOR_CONSUMER);
+        // External-correspondence intent the term declares for itself (sorted,
+        // deduped by `sorted_literals`). Drives alignment/linkage APPLICABILITY.
+        let adoption_targets = sorted_literals(store, &iri, GMEOW_ADOPTION_TARGET);
 
         // Logic stereotypes: co-asserted `rdf:type` values under the logic NS.
         let logic_stereotypes = logic_stereotypes(store, &iri);
@@ -2343,6 +2558,9 @@ fn build_doc_terms(
         let curie = to_curie(&iri);
         terms.push(DocTerm {
             iri,
+            // Resolved after the whole term set is assembled (build() calls
+            // render::resolve_term_slugs); empty here is a placeholder.
+            slug: String::new(),
             curie,
             label,
             definition,
@@ -2358,6 +2576,7 @@ fn build_doc_terms(
             how_to_use,
             use_for_consumer,
             avoid_for_consumer,
+            adoption_targets,
             logic_stereotypes,
             frameworks,
             related_terms,
@@ -2729,20 +2948,23 @@ fn extract_example_from(
         })
         .unwrap_or_else(|| filename_title(&logical_path));
 
-    // Terms referenced: every gmeow: CURIE appearing as a NamedNode anywhere.
+    // Terms referenced: every GMEOW-family CURIE (`gmeow:` + the three grounding
+    // vocabularies `logic:` / `math:` / `lang:`) appearing as a NamedNode
+    // anywhere. Collecting the grounding namespaces — not just `gmeow:` — is what
+    // lets a grounding slice's conformance fixtures and worked examples light up
+    // `dimFixturePair` / `dimWorkedInstance` / `dimTestReach` for the grounding
+    // vocabulary terms keyed to those `math:` / `logic:` / `lang:` CURIEs.
     let mut terms_referenced: Vec<String> = parsed
         .map(|store| {
             let mut set: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
             store.for_each_quad(|s, _p, o| {
-                if let Some(iri) = s.as_named()
-                    && iri.starts_with(GMEOW_NS)
-                {
-                    set.insert(to_curie(iri));
+                if let Some(curie) = s.as_named().and_then(family_curie) {
+                    set.insert(curie);
                 }
                 if let Object::Named(iri) = o
-                    && iri.starts_with(GMEOW_NS)
+                    && let Some(curie) = family_curie(iri)
                 {
-                    set.insert(to_curie(iri));
+                    set.insert(curie);
                 }
             });
             set.into_iter().collect()
@@ -3337,6 +3559,12 @@ fn extract_pipeline(catalog: &SliceCatalog) -> Option<DocPipeline> {
                 let mut consumes = named_objects(&store, &iri, GMEOW_DATAFLOW_CONSUMES);
                 consumes.sort();
                 consumes.dedup();
+                let mut attaches_graphs = named_objects(&store, &iri, GMEOW_ATTACHES_GRAPH);
+                attaches_graphs.sort();
+                attaches_graphs.dedup();
+                let mut attaches_blob_reps = literals(&store, &iri, GMEOW_ATTACHES_BLOB_REP);
+                attaches_blob_reps.sort();
+                attaches_blob_reps.dedup();
                 let capabilities = curie_objects(&store, &iri, GMEOW_HAS_CAPABILITY);
                 let resources = curie_objects(&store, &iri, GMEOW_REQUIRES_RESOURCE);
                 // The lowest-sorted box-role CURIE (mirrors the per-term surface).
@@ -3354,6 +3582,8 @@ fn extract_pipeline(catalog: &SliceCatalog) -> Option<DocPipeline> {
                     resources,
                     box_role,
                     consumes,
+                    attaches_graphs,
+                    attaches_blob_reps,
                     iri,
                 });
             }
@@ -3414,9 +3644,14 @@ fn extract_pipeline(catalog: &SliceCatalog) -> Option<DocPipeline> {
     })
 }
 
-/// Derive the external-term overview: every non-GMEOW IRI referenced by a
-/// linkage object or by a term's parents / domain / range, grouped by namespace.
+/// Derive the external-term overview: every GENUINELY-external IRI referenced by
+/// a linkage object or by a term's parents / domain / range, grouped by
+/// namespace. An IRI that is itself a documented term (a `gmeow:` term, or a
+/// grounding-vocabulary `math:` / `logic:` / `lang:` term this projection now
+/// documents) is NOT external — it resolves to its own page — so it is excluded.
 fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<DocExternalTerm> {
+    let documented: std::collections::HashSet<&str> =
+        terms.iter().map(|t| t.iri.as_str()).collect();
     // external IRI → (referencing gmeow curies, predicates)
     let mut by_iri: BTreeMap<
         String,
@@ -3427,7 +3662,7 @@ fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<Doc
     > = BTreeMap::new();
 
     let mut record = |iri: &str, by: &str, via: &str| {
-        if iri.starts_with(GMEOW_NS) || !is_external_iri(iri) {
+        if iri.starts_with(GMEOW_NS) || !is_external_iri(iri) || documented.contains(iri) {
             return;
         }
         let entry = by_iri.entry(iri.to_string()).or_default();
@@ -3699,19 +3934,37 @@ fn named_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
     store.named_objects(subject, predicate)
 }
 
-/// Compute the compact CURIE for an IRI: `gmeow:Local` for GMEOW-namespaced
-/// IRIs, otherwise the IRI unchanged. A GMEOW-nested example namespace (e.g.
-/// `https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs`) has a local
-/// part carrying `/` — an invalid Turtle PN_LOCAL — so it falls through to the
-/// full IRI rather than minting a broken `gmeow:examples/logic/nearbyOrgs` CURIE
-/// (the same invariant [`turtle_iri`] already enforces).
+/// The GMEOW-family namespaces that abbreviate to a CURIE prefix: `gmeow:` plus
+/// the three grounding vocabularies (`logic:` / `math:` / `lang:`) whose slices
+/// own first-class documented terms. The namespaces are pairwise
+/// non-overlapping (no one is a prefix of another), so ordering is immaterial.
+const CURIE_NAMESPACES: &[(&str, &str)] = &[
+    (GMEOW_NS, "gmeow"),
+    (LOGIC_NS, "logic"),
+    (MATH_NS, "math"),
+    (LANG_NS, "lang"),
+];
+
+/// The compact CURIE for an IRI under a GMEOW-family namespace
+/// ([`CURIE_NAMESPACES`]), or `None` for any other IRI. A family-nested example
+/// namespace (e.g. `https://blackcatinformatics.ca/gmeow/examples/logic/nearbyOrgs`)
+/// has a local part carrying `/` — an invalid Turtle PN_LOCAL — so it yields
+/// `None` rather than a broken `gmeow:examples/logic/nearbyOrgs` CURIE (the same
+/// invariant [`turtle_iri`] enforces). Shared by [`to_curie`] (which falls back
+/// to the full IRI) and the corpora term-reference scan (which keeps ONLY
+/// family CURIEs).
+fn family_curie(iri: &str) -> Option<String> {
+    CURIE_NAMESPACES.iter().find_map(|(ns, prefix)| {
+        iri.strip_prefix(ns)
+            .filter(|local| !local.is_empty() && !local.contains(['/', '#']))
+            .map(|local| format!("{prefix}:{local}"))
+    })
+}
+
+/// Compute the compact CURIE for an IRI: a `gmeow:` / `logic:` / `math:` /
+/// `lang:` CURIE for a GMEOW-family-namespaced IRI, otherwise the IRI unchanged.
 fn to_curie(iri: &str) -> String {
-    match iri.strip_prefix(GMEOW_NS) {
-        Some(local) if !local.is_empty() && !local.contains(['/', '#']) => {
-            format!("gmeow:{local}")
-        }
-        _ => iri.to_string(),
-    }
+    family_curie(iri).unwrap_or_else(|| iri.to_string())
 }
 
 #[cfg(test)]
@@ -3720,6 +3973,47 @@ mod tests {
 
     fn store_from(ttl: &str) -> Store {
         parse_turtle_lenient(ttl.as_bytes()).expect("parse")
+    }
+
+    #[test]
+    fn thesis_sentence_detection_is_structural() {
+        assert!(detect_thesis_sentence(
+            "# Heading\n\nThis slice grounds the documentation standard in RDF."
+        ));
+        // Only headings / tables / lists — no prose sentence.
+        assert!(!detect_thesis_sentence(
+            "# Heading\n\n| a | b |\n| - | - |\n"
+        ));
+        assert!(!detect_thesis_sentence("- a bullet\n- another"));
+        assert!(!detect_thesis_sentence(""));
+    }
+
+    #[test]
+    fn realized_state_table_detection_requires_every_row_marked() {
+        // A table with a "Realized state" column where every row carries a marker
+        // (realized / design-only / partial / built) is complete.
+        let complete = "\
+| Document | Genre | Realized state | Contents |
+| --- | --- | --- | --- |
+| a.md | charter | realized | x |
+| b.md | charter | **design-only** — nothing yet | y |
+| c.md | charter | partial | z |
+";
+        assert!(detect_realized_state_complete(complete));
+
+        // One row with an empty realized-state cell → incomplete.
+        let holey = "\
+| Document | Genre | Realized state | Contents |
+| --- | --- | --- | --- |
+| a.md | charter | realized | x |
+| b.md | charter |  | y |
+";
+        assert!(!detect_realized_state_complete(holey));
+
+        // No realized-state table at all → not complete (a gated miss).
+        assert!(!detect_realized_state_complete(
+            "| Rule | Shape |\n| - | - |\n| r | s |\n"
+        ));
     }
 
     #[test]

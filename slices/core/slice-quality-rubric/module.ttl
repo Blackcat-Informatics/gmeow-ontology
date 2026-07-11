@@ -293,7 +293,7 @@ gmeow:AxisExemption
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Axis Exemption"@x-gmeow-english ;
     skos:definition "A dated record that an axis or sub-metric is not yet measurable because its owning producer is genuinely unlanded — a first-class, gate-checked, self-cleaning artifact, NOT a silent descope. Every exemption carries the reason, the date it was minted, and the Rust symbol whose appearance in the repo makes it STALE; the completeness gate requires an axis or an exemption for every projection target, and the staleness gate reds the moment the exempted producer resolves."@x-gmeow-english ;
-    skos:example "gmeow:exemptionDocMaturity a gmeow:AxisExemption ; gmeow:exemptsAxis gmeow:axisDocumentation ; gmeow:exemptionDate \"2026-07-07\"^^xsd:date ."@x-gmeow-english ;
+    skos:example "gmeow:exemptionDocsPanels a gmeow:AxisExemption ; gmeow:exemptsAxis gmeow:axisDocumentation ; gmeow:exemptionDate \"2026-07-07\"^^xsd:date ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an undated exemption (permanent optionality is forbidden), avoid one whose producer already resolves in-repo (that is stale — remove it and build the axis), and avoid using an exemption to escape a landed producer."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint a gmeow:AxisExemption naming the exempted axis, a reason, a gmeow:exemptionDate, and the gmeow:exemptionProducer symbol; the completeness gate accepts it in lieu of a measured axis and the staleness gate removes the escape once the symbol lands."@x-gmeow-english ;
@@ -333,7 +333,7 @@ gmeow:exemptionDate
     rdfs:label "exemption date"@x-gmeow-english ;
     rdfs:range xsd:date ;
     skos:definition "The date the exemption was minted — making every exemption dated so a stale escape is visible and auditable. It is NOT an expiry (the staleness gate, not a calendar, retires the exemption when the producer lands)."@x-gmeow-english ;
-    skos:example "gmeow:exemptionDocMaturity gmeow:exemptionDate \"2026-07-07\"^^xsd:date ."@x-gmeow-english ;
+    skos:example "gmeow:exemptionDocsPanels gmeow:exemptionDate \"2026-07-07\"^^xsd:date ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an undated exemption and avoid treating the date as an automatic expiry — resolution of the producer is what retires it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert one gmeow:exemptionDate per exemption; audits list exemptions by age so long-standing gaps are visible."@x-gmeow-english ;
@@ -346,7 +346,7 @@ gmeow:exemptionProducer
     rdfs:label "exemption producer"@x-gmeow-english ;
     rdfs:range xsd:string ;
     skos:definition "The Rust symbol whose appearance in the repo makes this exemption STALE — the trigger the staleness gate watches. Once the symbol resolves, the exemption must be removed and the axis built, so an exemption can never become permanent optionality."@x-gmeow-english ;
-    skos:example "gmeow:exemptionDocMaturity gmeow:exemptionProducer \"DocMaturity\" ."@x-gmeow-english ;
+    skos:example "gmeow:exemptionDocsPanels gmeow:exemptionProducer \"DocMaturityPanels\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid naming a symbol that already resolves (the exemption would be born stale) and avoid a vague name the staleness gate cannot check."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:exemptionProducer with the symbol the staleness gate resolves against; when it is defined in-repo the gate reds until the exemption is retired."@x-gmeow-english ;
@@ -583,7 +583,7 @@ gmeow:axisDocumentation
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Documentation"@x-gmeow-english ;
-    skos:definition "The axis for documentation completeness: whether the slice ships a docs.md carrying a narrative thesis — substantive prose beyond its headings, not just a term listing. It is NOT prose quality (how well strings read) — this measures whether the documentation thesis exists. The docs-pipeline coverage dimensions, the documentation-maturity tier, and multi-format panels remain exempt until their producers land."@x-gmeow-english ;
+    skos:definition "The axis for documentation completeness: whether the slice ships a docs.md carrying a narrative thesis — substantive prose beyond its headings, not just a term listing. It is NOT prose quality (how well strings read) — this measures whether the documentation thesis exists, and it is NOT the documentation-maturity coverage fraction (that is the separate gmeow:axisDocMaturity axis, now landed). Multi-format max-info docs panels remain exempt until their producer lands."@x-gmeow-english ;
     skos:example "gmeow:axisDocumentation gmeow:axisProducer \"documentation_axis\" ; gmeow:axisContextScope gmeow:scopeSliceLocal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid redefining the documentation-maturity standard here (it is consumed as-is) and avoid conflating a present docs thesis with a well-written one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
@@ -706,6 +706,28 @@ gmeow:axisGmn1Coverage
         gmeow:thrGmn1CoverageMaximal ;
     gmeow:axisAdviceTemplate "Round-trip each uncovered GMN-0 construct the advisor names: extend the GMN-1 codec's covered fragment (crates/lang-bridge/src/gmn1_codec.rs) so gmn1_write/gmn1_read carry it losslessly, or — if the construct is genuinely out of the codec's current design scope — file it as a named codec-coverage gap against LANG-GMN.md rather than leaving it silently unmeasured. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit made once the measured score has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent."@x-gmeow-english .
 
+gmeow:axisDocMaturity
+    a gmeow:QualityAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Documentation Maturity"@x-gmeow-english ;
+    skos:definition "The axis for per-slice documentation-maturity coverage: the slice's bounded gmeow:coverageFraction — the fraction of the FULL documentation-maturity anchor's dimensions the slice covers, computed by the documentation standard (slices/core/documentation) and CONSUMED here as-is. It is NOT a redefinition of the maturity dimensions or the coverage fraction (those are owned by the documentation doctrine, Principle 17) and it is NOT the documentation-thesis axis (that is gmeow:axisDocumentation, a present/absent docs.md thesis) — this measures how much of the whole documentation coat the slice carries. Its tier floors are all 0.0: it is advisory tier-wise (never caps the roll-up meet), driven instead as a monotonic-non-regression per-axis ratchet floored at each slice's committed score in governance/slice-quality-axis-floors.tsv."@x-gmeow-english ;
+    skos:example "gmeow:axisDocMaturity gmeow:axisProducer \"DocMaturity\" ; gmeow:axisContextScope gmeow:scopeMergedClosure ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid redefining the documentation-maturity dimensions or the coverage fraction here (they are owned by slices/core/documentation and consumed as-is), avoid reading its 0.0 tier floors as score calibration (the floors are a not-yet-tier-gated policy; the ratchet lives in the per-axis floor file), and avoid conflating it with the docs-thesis axis (that is present/absent, this is the coverage fraction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
+    gmeow:howToUse "The advisor builds the documentation model once, reads each slice's projected gmeow:coverageFraction from the graph/documentation incidence, scores it as the axis value, and names each FULL-anchor coverage dimension the slice does not yet cover as an incremental uplift target."@x-gmeow-english ;
+    gmeow:useWhen "Use to measure how much of the FULL documentation-maturity coat a slice carries and to ratchet that coverage upward without regression."@x-gmeow-english ;
+    gmeow:axisProducer "DocMaturity" ;
+    gmeow:axisDimension gmeow:qualityDimensionDocumentation ;
+    gmeow:axisContextScope gmeow:scopeMergedClosure ;
+    gmeow:axisWeight 0.6 ;
+    gmeow:axisThreshold gmeow:thrDocMaturityRegistered ,
+        gmeow:thrDocMaturityGrounded ,
+        gmeow:thrDocMaturityLinked ,
+        gmeow:thrDocMaturityExemplified ,
+        gmeow:thrDocMaturityMaximal ;
+    gmeow:axisAdviceTemplate "Cover the documentation-maturity dimensions the advisor names (the FULL-anchor coat the slice is short) to raise its gmeow:coverageFraction; the maturity standard is owned by slices/core/documentation and consumed as-is. Raising this slice's committed floor in governance/slice-quality-axis-floors.tsv is a separate, deliberate uplift commit once the measured coverage has genuinely risen — the gate enforces non-regression at the committed floor, never automatic ascent."@x-gmeow-english .
+
 #################################################################
 # The rubric Profile — one closed descriptor schema over Slice
 #################################################################
@@ -733,17 +755,6 @@ gmeow:sliceQualityRubric
 #################################################################
 # Dated axis exemptions (self-cleaning, gate-checked)
 #################################################################
-
-gmeow:exemptionDocMaturity
-    a gmeow:AxisExemption ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
-    rdfs:label "Documentation-Maturity exemption"@x-gmeow-english ;
-    skos:definition "Exempts the documentation-maturity sub-metric of the documentation axis: the per-slice documentation-maturity tier is owned by the documentation standard and consumed as-is here, never redefined, and its producer is not yet in-repo."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:exemptsAxis gmeow:axisDocumentation ;
-    gmeow:exemptionReason "The per-slice documentation-maturity tier standard is owned by the documentation doctrine and consumed as-is, never redefined here; its producer is not yet in-repo. The documentation axis still measures the docs thesis and the landed coverage dimensions."@x-gmeow-english ;
-    gmeow:exemptionDate "2026-07-07"^^xsd:date ;
-    gmeow:exemptionProducer "DocMaturity" .
 
 gmeow:exemptionGmnProjection
     a gmeow:AxisExemption ;
@@ -843,6 +854,18 @@ gmeow:thrFlagshipDepthGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https:/
 gmeow:thrFlagshipDepthLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Linked"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Linked tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.0 .
 gmeow:thrFlagshipDepthExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Exemplified"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Exemplified tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.0 .
 gmeow:thrFlagshipDepthMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "flagship-depth floor — Maximal"@x-gmeow-english ; skos:definition "The flagship-counter-example-depth-axis score floor to earn the Maximal tier — 0.0, the advisory-only not-yet-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.0 .
+
+# The documentation-maturity floors are ALL 0.0 — an advisory, not-yet-tier-gated
+# axis: it scores and advises but every tier is reachable at any score, so it never
+# caps the roll-up meet and cannot drop a slice's ratchet tier. The 0.0 floors are a
+# not-yet-tier-gated POLICY, NOT score calibration (the score is the objective bounded
+# coverage fraction owned by slices/core/documentation); the burn-down ratchet lives
+# in governance/slice-quality-axis-floors.tsv, floored at each slice's committed score.
+gmeow:thrDocMaturityRegistered a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "doc-maturity floor — Registered"@x-gmeow-english ; skos:definition "The documentation-maturity-axis score floor to earn the Registered tier — 0.0, the advisory-only not-yet-tier-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierRegistered ; gmeow:thresholdFloor 0.0 .
+gmeow:thrDocMaturityGrounded a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "doc-maturity floor — Grounded"@x-gmeow-english ; skos:definition "The documentation-maturity-axis score floor to earn the Grounded tier — 0.0, the advisory-only not-yet-tier-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierGrounded ; gmeow:thresholdFloor 0.0 .
+gmeow:thrDocMaturityLinked a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "doc-maturity floor — Linked"@x-gmeow-english ; skos:definition "The documentation-maturity-axis score floor to earn the Linked tier — 0.0, the advisory-only not-yet-tier-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierLinked ; gmeow:thresholdFloor 0.0 .
+gmeow:thrDocMaturityExemplified a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "doc-maturity floor — Exemplified"@x-gmeow-english ; skos:definition "The documentation-maturity-axis score floor to earn the Exemplified tier — 0.0, the advisory-only not-yet-tier-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierExemplified ; gmeow:thresholdFloor 0.0 .
+gmeow:thrDocMaturityMaximal a gmeow:AxisThreshold ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; rdfs:label "doc-maturity floor — Maximal"@x-gmeow-english ; skos:definition "The documentation-maturity-axis score floor to earn the Maximal tier — 0.0, the advisory-only not-yet-tier-gated policy."@x-gmeow-english ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:thresholdTier gmeow:tierMaximal ; gmeow:thresholdFloor 0.0 .
 
 #################################################################
 # Ontology node

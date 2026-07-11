@@ -106,6 +106,52 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// The registry stage's `attaches_graphs()` / `attaches_blob_reps()` disagrees
+    /// with the RDF `gmeow:attachesGraph` / `gmeow:attachesBlobRep` declaration
+    /// (Rust/RDF attach-declaration agreement, proved at load time).
+    pub struct AttachDeclMismatch {
+        stage: String,
+        lane: String,
+        rdf: Vec<String>,
+        rust: Vec<String>,
+    }
+    code = "pipeline.contract.attach-decl-mismatch";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "stage {}: RDF {} {:?} disagrees with the Rust impl declaration {:?}", stage, lane, rdf, rust;
+}
+
+define_diag_kind! {
+    /// A stage's ACTUAL run-time attach delta (the named graphs / blob-rep lanes its
+    /// output product carries beyond its assembled input) diverges from its DECLARED
+    /// attach set — either an undeclared attachment (attached but not declared) or an
+    /// unfulfilled declaration (declared but not attached). Fires on BOTH the
+    /// cache-hit and cache-miss paths (a stale cached product with drifted declarations
+    /// must not sail through). A HARD FAIL — no optionality, no fallback.
+    pub struct AttachDrift {
+        stage: String,
+        lane: String,
+        attached_undeclared: Vec<String>,
+        declared_unattached: Vec<String>,
+    }
+    code = "pipeline.contract.attach-drift";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "stage {}: {} attach drift — attached-but-undeclared {:?}, declared-but-not-attached {:?}", stage, lane, attached_undeclared, declared_unattached;
+}
+
+define_diag_kind! {
+    /// The `gmeow:fanoutExtracts` map read from the pipeline graph is not a bijection
+    /// against the generated paths the superset gate reconstructs: a generated path with
+    /// no `fanoutExtracts` row (an unmapped path — silently dropped from fanout), or a
+    /// row whose path no reconstruction claims. A HARD FAIL (completeness), so promoting
+    /// the path↔representative branches to data never trades a total match for a lossy
+    /// lookup.
+    pub struct FanoutBijection { message: String }
+    code = "pipeline.contract.fanout-bijection";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "gmeow:fanoutExtracts is not a bijection over the reconstructed paths: {}", message;
+}
+
+define_diag_kind! {
     /// A cached `StageProduct` failed its self-verifying digest recheck. The
     /// cache is never silently repaired (no-optionality).
     pub struct CacheMismatch { expected: String, actual: String }
@@ -260,6 +306,9 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     DataFlowMismatch::CODE,
     ConsumesMismatch::CODE,
     CapabilityMismatch::CODE,
+    AttachDeclMismatch::CODE,
+    AttachDrift::CODE,
+    FanoutBijection::CODE,
     CacheMismatch::CODE,
     StageFailed::CODE,
     Transform::CODE,
@@ -302,6 +351,9 @@ pub fn register_all() -> Vec<Code> {
         DataFlowMismatch::register(),
         ConsumesMismatch::register(),
         CapabilityMismatch::register(),
+        AttachDeclMismatch::register(),
+        AttachDrift::register(),
+        FanoutBijection::register(),
         CacheMismatch::register(),
         StageFailed::register(),
         Transform::register(),

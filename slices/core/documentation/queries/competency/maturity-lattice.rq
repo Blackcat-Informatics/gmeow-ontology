@@ -1,0 +1,14 @@
+# Competency question: is gmeow:docMaturityFull's intent a PROPER subset of
+# gmeow:docMaturityMaximal's? Return the dimensions in the maximal anchor's intent
+# that the full anchor does NOT require — the "extra" attributes that make MAXIMAL a
+# strictly richer concept than FULL. A non-empty result confirms Full ⊂ Maximal
+# (proper containment) in the derived maturity lattice. Asserted lane; the anchors
+# and their gmeow:maturityRequiresDimension intents live in the module base graph.
+
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?dim WHERE {
+    gmeow:docMaturityMaximal gmeow:maturityRequiresDimension ?dim .
+    FILTER NOT EXISTS { gmeow:docMaturityFull gmeow:maturityRequiresDimension ?dim }
+}
+ORDER BY ?dim

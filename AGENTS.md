@@ -364,6 +364,17 @@ on-disk bytes equal the in-memory Site — irreducibly O(site size), and the ren
 itself is primed so the cost is the per-file disk round-trip over the grown tree,
 not fixture cost; the docs write contract stays drift-gated on every `make check`
 via `make check-generated` and the test stays on-gate on `maint-heavy`).
+Bringing the grounding-language vocabulary (`math:`/`logic:`/`lang:`, ~1.9k terms)
+into the documented-term set grew the rendered site ~40 % and nudged four more
+whole-site render tests past budget —
+`gmeow-docs::render_golden::render_site_is_byte_stable` (33.1 s),
+`gmeow-docs::mdbook_render::book_bodies_are_rewrite_of_single_authority` (34.5 s),
+`gmeow-docs::extract_roundtrip::english_carrier_tree_matches_render_site` (32.6 s),
+and `gmeow-pipeline::stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site`
+(32.9 s); each renders / re-renders / re-packs / round-trips the WHOLE site, so all
+four are irreducibly O(site size) on page-count alone, not fixture cost; byte-stable
+rendering and the docs archive stay drift-gated on every `make check` via
+`make check-generated`, and all four stay on-gate on `maint-heavy`.
 The `lang:` GMN dialect graft grew the bundle again and nudged the two
 whole-bundle inverse-ingest acceptance tests past budget —
 `gmeow-pipeline::projections::tests::up_project_recovers_message_superclass_via_prp_dom`

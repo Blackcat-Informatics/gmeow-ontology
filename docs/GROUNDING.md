@@ -136,6 +136,16 @@ Coverage is audited in both directions:
   "deferred" marker for work that has landed is a defect of the same weight
   as an unrealized promise.
 
+The design-promise direction is now **gated, not audited by vigilance.** The per-doc
+realized-state column of a slice's `docs.md` design-set table (every artifact marked
+design-only / partial / built) is scored by the `gmeow:dimRealizedState` coverage dimension
+(`slices/core/documentation/module.ttl`; the standard is [`SLICE_GUIDE.md`](SLICE_GUIDE.md)
+§ 6.8). A design-set-table entry with **no** realized-state marker misses the dimension, so
+the silent omission this duty warns against is a scored, gating defect — the missing marker
+drops the slice below the tier it claims and the `asserted ⊄ earned` maturity gate reds the
+build. Because `gmeow:dimRealizedState` sits at the FULL floor, a grounding slice asserting
+`≥ FULL` cannot quietly drop a status-table marker; the gate bites before review does.
+
 Downstream, MAXIMAL GROUNDING (`.goals`) is a duty owed *to* the kernel:
 every slice grounds in `logic:`; every slice with a textual, nominal, or
 notational surface grounds it in `lang:`; every slice with quantities,

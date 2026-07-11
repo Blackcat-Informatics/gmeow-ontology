@@ -1,0 +1,247 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The `DocMaturity` axis — documentation-maturity coverage, CONSUMED from the
+//! `gmeow-docs` computation, never recomputed here.
+//!
+//! The documentation-maturity standard (the Formal-Concept coverage lattice and the
+//! bounded per-slice `gmeow:coverageFraction ∈ [0,1]`) is owned end-to-end by
+//! [`gmeow_docs`]: [`DocsModel::discover`] builds the typed model and
+//! [`documentation_graph`] projects the per-slice covered-dimension incidence and its
+//! bounded coverage fraction. This axis reads that projection AS-IS — the axis score
+//! IS the slice's `coverage_fraction` and the advisories name the FULL-anchor
+//! dimensions the slice does not yet cover. It defines no dimension, no intent, and no
+//! fraction of its own (Principle 17: `crates/docs` is the single owner; this is a
+//! consumer).
+//!
+//! # Cost & caching
+//!
+//! [`DocsModel::discover`] is a repo-wide sweep, so it is built ONCE per repo root and
+//! memoized: every slice the quality sweep scores reads the same in-memory
+//! documentation model. The cost is the model the regenerate pipeline builds anyway,
+//! paid once behind a `make check` gate.
+
+use std::collections::{BTreeSet, HashMap};
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, LazyLock, Mutex};
+
+use gmeow_docs::maturity::{Dimension, MaturityAnchor};
+use gmeow_docs::model::DocsModel;
+use gmeow_docs::rdf::{DocSliceFacts, documentation_graph};
+
+use crate::axes::repo_root_of;
+use crate::score::{AxisScore, ScoreContext, advisory};
+
+/// The documentation-maturity axis producer. A struct (not a free `fn`) so the
+/// producer symbol the rubric names — `"DocMaturity"` — resolves to a real Rust
+/// *item* under the constitution-gate AST resolver, satisfying both the
+/// axis↔producer binding gate and the exemption-staleness trigger.
+pub struct DocMaturity;
+
+impl DocMaturity {
+    /// Score the slice's documentation maturity: the axis score is the slice's
+    /// bounded `gmeow:coverageFraction` (already `[0,1]`), consumed verbatim from the
+    /// documentation model; the advisories name the FULL-anchor coverage dimensions
+    /// the slice does not yet cover, in stable dimension order (the incremental uplift
+    /// targets the ratchet drives). A slice with no resolvable repo root, an
+    /// un-buildable documentation model, or no record in the model is scored the
+    /// crate's neutral vacuous `1.0` WITH an advisory naming the reason — never a
+    /// silent false-positive "fully documented".
+    #[must_use]
+    pub fn axis(ctx: &ScoreContext) -> AxisScore {
+        let Some(root) = repo_root_of(&ctx.slice_dir) else {
+            return AxisScore {
+                score: 1.0,
+                findings: vec![advisory(
+                    "slice-quality.doc-maturity.model-unavailable",
+                    "the slice directory carries no resolvable slices/ path prefix — documentation maturity cannot be measured (vacuous 1.0).".to_owned(),
+                )],
+            };
+        };
+        let facts = repo_facts(&root);
+        match &*facts {
+            RepoFacts::Failed(err) => AxisScore {
+                score: 1.0,
+                findings: vec![advisory(
+                    "slice-quality.doc-maturity.model-unavailable",
+                    format!(
+                        "the documentation model could not be built ({err}) — documentation maturity cannot be measured (vacuous 1.0)."
+                    ),
+                )],
+            },
+            RepoFacts::Ready(by_slice) => match by_slice.get(&ctx.slice_iri) {
+                Some(fact) => score_and_advice(fact),
+                None => AxisScore {
+                    score: 1.0,
+                    findings: vec![advisory(
+                        "slice-quality.doc-maturity.slice-untracked",
+                        format!(
+                            "{} carries no record in the documentation model (no documented terms) — documentation maturity is vacuously 1.0.",
+                            ctx.slice_iri
+                        ),
+                    )],
+                },
+            },
+        }
+    }
+}
+
+/// Turn one slice's documentation facts into the axis score + uplift advisories.
+///
+/// The score IS the slice's bounded `gmeow:coverageFraction` (measured against the
+/// FULL anchor's intent by `crates/docs`), consumed verbatim. The advisories are the
+/// FULL-anchor dimensions the slice does not `gmeow:docCoversDimension`, in stable
+/// [`Dimension::ALL`] order — the top missing uplift targets, deterministic.
+fn score_and_advice(fact: &DocSliceFacts) -> AxisScore {
+    let covered: BTreeSet<&str> = fact.covers.iter().map(String::as_str).collect();
+    let full_intent = MaturityAnchor::Full.intent();
+    let mut findings = Vec::new();
+    for dim in Dimension::ALL {
+        if !full_intent.contains(&dim) {
+            continue; // measure against the FULL floor the fraction is taken over
+        }
+        if !covered.contains(dim.local_name()) {
+            findings.push(advisory(
+                "slice-quality.doc-maturity.missing-dimension",
+                format!(
+                    "{} does not yet cover documentation-maturity dimension gmeow:{} — cover it to raise the slice's documentation-maturity coverage (the standard is owned by slices/core/documentation; DocMaturity consumes it as-is).",
+                    fact.documents,
+                    dim.local_name()
+                ),
+            ));
+        }
+    }
+    AxisScore {
+        score: fact.coverage_fraction,
+        findings,
+    }
+}
+
+/// The memoized per-repo documentation facts: either the per-slice-IRI map read from
+/// the `graph/documentation` projection, or the error string from a failed model
+/// build (surfaced as an advisory, never a silent skip).
+enum RepoFacts {
+    /// Slice IRI (`DocSliceFacts::documents`) → its documentation facts.
+    Ready(HashMap<String, DocSliceFacts>),
+    /// The documentation model could not be built; the message is surfaced.
+    Failed(String),
+}
+
+/// The process-wide cache keyed by repo root, so [`DocsModel::discover`] — a repo-wide
+/// sweep — runs at most ONCE per root across the whole quality assessment even though
+/// every scored slice invokes the axis.
+static REPO_FACTS: LazyLock<Mutex<HashMap<PathBuf, Arc<RepoFacts>>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
+
+/// Resolve (building on first use) the documentation facts for `root`. The lock is
+/// held across the build so the expensive model is constructed exactly once; a second
+/// caller blocks on the mutex and then reads the shared result.
+fn repo_facts(root: &Path) -> Arc<RepoFacts> {
+    let mut guard = REPO_FACTS
+        .lock()
+        .expect("doc-maturity repo-facts cache mutex is not poisoned");
+    let key = root.to_path_buf();
+    if let Some(existing) = guard.get(&key) {
+        return existing.clone();
+    }
+    let built = Arc::new(build_repo_facts(root));
+    guard.insert(key, built.clone());
+    built
+}
+
+/// Build the per-slice documentation facts from a fresh [`DocsModel`]. The per-slice
+/// coverage fraction + covered-dimension incidence are read back from the SAME
+/// `graph/documentation` N-Quads the docs projection emits (via [`documentation_graph`]),
+/// so this axis and the published documentation health surface can never disagree.
+fn build_repo_facts(root: &Path) -> RepoFacts {
+    match DocsModel::discover(root) {
+        Ok(model) => {
+            let graph = documentation_graph(&model);
+            let by_slice = graph
+                .slices
+                .into_iter()
+                .map(|s| (s.documents.clone(), s))
+                .collect();
+            RepoFacts::Ready(by_slice)
+        }
+        Err(e) => RepoFacts::Failed(e.to_string()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A synthetic per-slice fact: covers the given dimension local names, with the
+    /// given bounded coverage fraction.
+    fn fact(fraction: f64, covers: &[&str]) -> DocSliceFacts {
+        DocSliceFacts {
+            subject: "https://blackcatinformatics.ca/gmeow/documentation/slice/zoo".to_owned(),
+            documents: "https://blackcatinformatics.ca/gmeow/slices/zoo".to_owned(),
+            covers: covers.iter().map(|s| (*s).to_owned()).collect(),
+            coverage_fraction: fraction,
+            earned: None,
+            asserted: None,
+        }
+    }
+
+    #[test]
+    fn score_is_the_consumed_coverage_fraction() {
+        // The axis score is the slice's bounded coverage fraction verbatim — the
+        // producer consumes the docs computation, never recomputes a dimension.
+        let f = fact(0.5833, &["dimDefinition", "dimLabel"]);
+        let scored = score_and_advice(&f);
+        assert!(
+            (scored.score - 0.5833).abs() < 1e-12,
+            "score is the fraction"
+        );
+    }
+
+    #[test]
+    fn advisories_name_the_uncovered_full_dimensions() {
+        // A slice covering only the two Minimal dimensions is short every other
+        // FULL-anchor dimension; each missing one is a ranked uplift advisory, and a
+        // covered one is not advised.
+        let f = fact(0.1667, &["dimDefinition", "dimLabel"]);
+        let scored = score_and_advice(&f);
+        let full_extra = MaturityAnchor::Full.intent().len() - 2; // minus Definition+Label
+        assert_eq!(
+            scored.findings.len(),
+            full_extra,
+            "one advisory per uncovered FULL dimension"
+        );
+        // The covered dimensions are never advised.
+        assert!(
+            !scored
+                .findings
+                .iter()
+                .any(|f| f.message.contains("dimDefinition") || f.message.contains("dimLabel")),
+            "a covered dimension is not an uplift target"
+        );
+        // A genuinely-missing FULL dimension is advised, naming the slice.
+        assert!(
+            scored
+                .findings
+                .iter()
+                .any(|f| f.message.contains("dimExample") && f.message.contains("slices/zoo")),
+            "an uncovered FULL dimension is named for the slice"
+        );
+    }
+
+    #[test]
+    fn a_fully_covered_full_intent_has_no_advice() {
+        // Covering exactly the FULL intent → fraction 1.0, no uplift advice at this
+        // axis's own (FULL) measure.
+        let covers: Vec<String> = MaturityAnchor::Full
+            .intent()
+            .iter()
+            .map(|d| d.local_name().to_owned())
+            .collect();
+        let refs: Vec<&str> = covers.iter().map(String::as_str).collect();
+        let scored = score_and_advice(&fact(1.0, &refs));
+        assert!(
+            scored.findings.is_empty(),
+            "a FULL-covered slice has no missing-dimension advice"
+        );
+    }
+}

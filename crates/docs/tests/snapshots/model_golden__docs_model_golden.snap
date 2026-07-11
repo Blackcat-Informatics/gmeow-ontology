@@ -4,15 +4,15 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "14",
-  "slice_count": 81,
-  "term_count": 2596,
-  "dependency_edge_count": 1031,
+  "version": "16",
+  "slice_count": 82,
+  "term_count": 4517,
+  "dependency_edge_count": 1038,
   "term_count_by_category": {
-    "Class": 753,
+    "Class": 1351,
     "Datatype": 1,
-    "Individual": 95,
-    "Property": 1747
+    "Individual": 684,
+    "Property": 2481
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -36,6 +36,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/creative-works",
     "https://blackcatinformatics.ca/gmeow/slices/deception",
     "https://blackcatinformatics.ca/gmeow/slices/diagnostics",
+    "https://blackcatinformatics.ca/gmeow/slices/documentation",
     "https://blackcatinformatics.ca/gmeow/slices/documents",
     "https://blackcatinformatics.ca/gmeow/slices/dreaming",
     "https://blackcatinformatics.ca/gmeow/slices/email",
@@ -157,11 +158,14 @@ expression: summary
         "raw_digest": "6b4491bb3bb19bd71b398d870bc523defccf0f988e8f61b93dcbc97a6c14d83b",
         "semantic_digest": "35af3d2678d7c140f60873a03fc610f7d4e875f9ea8239f4a85c8710ef69fcf1"
       }
-    ]
+    ],
+    "has_thesis_sentence": true,
+    "realized_state_complete": false
   },
   "sample_terms": [
     {
       "iri": "https://blackcatinformatics.ca/gmeow/AboutnessMode",
+      "slug": "",
       "curie": "gmeow:AboutnessMode",
       "label": "Aboutness Mode",
       "definition": "The rhetorical relation between an information carrier and its subject matter — whether the carrier describes the subject (mention: reporting, quoting, depicting, analyzing) or enacts it (use: performing, demanding, exemplifying, embodying). A value vocabulary of individuals (never subclasses). Orthogonal to granularity, determinacy, sensitivity, confidence, and standpoint modality (Principle 9): a carrier may describe one subject while enacting another, and distinct vantages may classify the same carrier differently through the statement layer. The distinction every rubric, citation, and evidence assessment eventually needs: text ABOUT deception is not text THAT deceives.",
@@ -187,6 +191,7 @@ expression: summary
       ],
       "use_for_consumer": [],
       "avoid_for_consumer": [],
+      "adoption_targets": [],
       "logic_stereotypes": [
         "logic:AbstractIndividualType"
       ],
@@ -212,6 +217,7 @@ expression: summary
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/abstract",
+      "slug": "",
       "curie": "gmeow:abstract",
       "label": "abstract",
       "definition": "A summary of the content of a creative work.",
@@ -239,6 +245,7 @@ expression: summary
       ],
       "use_for_consumer": [],
       "avoid_for_consumer": [],
+      "adoption_targets": [],
       "logic_stereotypes": [],
       "frameworks": [],
       "related_terms": [],
@@ -262,6 +269,7 @@ expression: summary
     },
     {
       "iri": "https://blackcatinformatics.ca/gmeow/VerdictEquivalent",
+      "slug": "",
       "curie": "gmeow:VerdictEquivalent",
       "label": "Verdict Equivalent",
       "definition": "The gmeow:VerdictLatticeRelation for a native verdict that coincides with the published one: native ≡ published in the logic:ConformanceVerdict lattice. The reified image of the Agree DivergenceKind — the qualitative outcome a corroborating conformance comparison carries, folded as a non-blocking logic:FindingCorroboration rather than dropped.",
@@ -277,6 +285,7 @@ expression: summary
       "how_to_use": [],
       "use_for_consumer": [],
       "avoid_for_consumer": [],
+      "adoption_targets": [],
       "logic_stereotypes": [],
       "frameworks": [],
       "related_terms": [],
@@ -297,9 +306,9 @@ expression: summary
   ],
   "mapping_set_count": 81,
   "linkage_count": 1868,
-  "example_count": 144,
+  "example_count": 145,
   "concern_count": 7,
-  "external_term_count": 1613,
+  "external_term_count": 1576,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -332,10 +341,7 @@ expression: summary
       "gmeow:facetStepFree",
       "gmeow:facetVisual",
       "gmeow:facetWheelchair",
-      "gmeow:polarityFeature",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/assertion",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/dana",
-      "https://blackcatinformatics.ca/gmeow/examples/accessibility/library"
+      "gmeow:polarityFeature"
     ]
   },
   "sample_concern": {
@@ -417,8 +423,8 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 324,
-  "competency_count": 140,
+  "shape_count": 326,
+  "competency_count": 145,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",
     "target_term": "https://blackcatinformatics.ca/gmeow/AccessibilityAssertion",
