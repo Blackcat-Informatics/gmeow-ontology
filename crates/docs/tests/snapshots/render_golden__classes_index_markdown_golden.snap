@@ -1,11 +1,10 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 287
 expression: header
 ---
 # Classes
 
-1351 term(s).
+1353 term(s).
 
 | Term | Definition |
 | --- | --- |

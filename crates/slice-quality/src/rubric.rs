@@ -12,7 +12,10 @@
 use purrdf::RdfDataset;
 
 use crate::graph::{all_iris, g, id, instances_of, label_of, one_iri, one_lit};
-use crate::model::{Axis, ContextScope, Exemption, Rubric, Threshold, Tier};
+use crate::model::{
+    Axis, AxisFloorCommitment, ContextScope, Exemption, Rubric, SliceTierFloorCommitment,
+    Threshold, Tier,
+};
 
 /// Wrap a structural-rubric-defect message as a typed diagnostic on the substrate,
 /// preserving the authored text verbatim.
@@ -214,10 +217,111 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
     }
     exemptions.sort_by(|a, b| a.iri.cmp(&b.iri));
 
+    // --- Axis floor commitments --------------------------------------------
+    // A per-slice, per-axis raise-only measured-score floor. Each of the three
+    // required bindings (floorSlice, floorAxis, floorValue) is a hard fail when
+    // missing — a floor with no slice, no axis, or no value cannot pin a
+    // regression bar, so we never silently default it (.goals no-optionality).
+    let floor_slice_p = id(ds, &g("floorSlice"));
+    let floor_axis_p = id(ds, &g("floorAxis"));
+    let floor_value_p = id(ds, &g("floorValue"));
+    let floor_tier_p = id(ds, &g("floorTier"));
+    let mut commitments: Vec<(String, AxisFloorCommitment)> = Vec::new();
+    // Two AxisFloorCommitment individuals for the same (slice, axis) pair
+    // collapse silently in the downstream BTreeMap keyed on that pair
+    // (last-writer-wins) — a hard fail here, never a silent skip.
+    let mut seen_floor_keys: std::collections::BTreeSet<(String, String)> =
+        std::collections::BTreeSet::new();
+    for iri in instances_of(ds, &g("AxisFloorCommitment")) {
+        let sid = id(ds, &iri)
+            .ok_or_else(|| rubric_err(format!("floor commitment {iri} not resolvable")))?;
+        let slice = floor_slice_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| rubric_err(format!("floor commitment {iri} has no gmeow:floorSlice")))?;
+        let axis = floor_axis_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| rubric_err(format!("floor commitment {iri} has no gmeow:floorAxis")))?;
+        // Every floor commitment must name a REAL loaded axis — an unknown
+        // gmeow:floorAxis (e.g. a typo) would otherwise load cleanly and then
+        // silently never gate anything, leaving the ratchet dead
+        // (.goals no-optionality; mirrors the exemptsAxis check above).
+        if !axes.iter().any(|a| a.iri == axis) {
+            return Err(rubric_err(format!(
+                "floor commitment {iri} floors unknown axis {axis} (no such gmeow:QualityAxis in the rubric)"
+            )));
+        }
+        if !seen_floor_keys.insert((slice.clone(), axis.clone())) {
+            return Err(rubric_err(format!(
+                "duplicate gmeow:AxisFloorCommitment for slice {slice} axis {axis} ({iri}) — \
+                 two commitments for the same (slice, axis) pair collapse silently downstream"
+            )));
+        }
+        let floor = floor_value_p
+            .and_then(|p| one_lit(ds, sid, p))
+            .and_then(|s| s.parse::<f64>().ok())
+            .ok_or_else(|| {
+                rubric_err(format!(
+                    "floor commitment {iri} has no decimal gmeow:floorValue"
+                ))
+            })?;
+        // A NaN/±inf floor silently defeats the raise-only ratchet comparison
+        // (every `>=` against it is vacuous), so hard-fail rather than admit a
+        // malformed literal — mirroring the gmeow:thresholdFloor discipline above.
+        if !floor.is_finite() {
+            return Err(rubric_err(format!(
+                "floor commitment {iri} has a non-finite gmeow:floorValue {floor}"
+            )));
+        }
+        commitments.push((iri, AxisFloorCommitment { slice, axis, floor }));
+    }
+    commitments.sort_by(|a, b| a.0.cmp(&b.0));
+    let commitments: Vec<AxisFloorCommitment> = commitments.into_iter().map(|(_, c)| c).collect();
+
+    // --- Slice tier floors -------------------------------------------------
+    // A per-slice raise-only roll-up tier floor. Both required bindings
+    // (floorSlice, floorTier) hard-fail when missing, same no-optionality rule.
+    let mut tier_floors: Vec<(String, SliceTierFloorCommitment)> = Vec::new();
+    // Two SliceTierFloor individuals for the same slice collapse silently in
+    // the downstream BTreeMap keyed on slice (last-writer-wins) — a hard fail
+    // here, never a silent skip.
+    let mut seen_tier_floor_slices: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
+    for iri in instances_of(ds, &g("SliceTierFloor")) {
+        let sid =
+            id(ds, &iri).ok_or_else(|| rubric_err(format!("tier floor {iri} not resolvable")))?;
+        let slice = floor_slice_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| rubric_err(format!("tier floor {iri} has no gmeow:floorSlice")))?;
+        if !seen_tier_floor_slices.insert(slice.clone()) {
+            return Err(rubric_err(format!(
+                "duplicate gmeow:SliceTierFloor for slice {slice} ({iri}) — two tier floors for \
+                 the same slice collapse silently downstream"
+            )));
+        }
+        let tier = floor_tier_p
+            .and_then(|p| one_iri(ds, sid, p))
+            .ok_or_else(|| rubric_err(format!("tier floor {iri} has no gmeow:floorTier")))?;
+        // Every tier floor must name a REAL loaded tier — an unknown
+        // gmeow:floorTier would otherwise load cleanly and then silently never
+        // gate anything, leaving the ratchet dead (.goals no-optionality;
+        // mirrors the axis-threshold tier check above).
+        if !tiers.iter().any(|t| t.iri == tier) {
+            return Err(rubric_err(format!(
+                "tier floor {iri} names unknown tier {tier} (no such gmeow:QualityTier in the rubric ladder)"
+            )));
+        }
+        tier_floors.push((iri, SliceTierFloorCommitment { slice, tier }));
+    }
+    tier_floors.sort_by(|a, b| a.0.cmp(&b.0));
+    let tier_floors: Vec<SliceTierFloorCommitment> =
+        tier_floors.into_iter().map(|(_, c)| c).collect();
+
     Ok(Rubric {
         tiers,
         axes,
         exemptions,
+        commitments,
+        tier_floors,
     })
 }
 
@@ -364,6 +468,214 @@ gmeow:thrFoo a gmeow:AxisThreshold ;
         assert!(
             err.message().contains("thrFoo"),
             "names the offending threshold: {err}"
+        );
+    }
+
+    /// A structurally complete rubric (one tier, one axis, one threshold) with an
+    /// extra `body` block appended — used to exercise the floor-commitment loaders
+    /// without duplicating the required ladder/axis scaffolding.
+    fn rubric_with(body: &str) -> String {
+        format!(
+            r#"@prefix gmeow: <{GMEOW_NS}> .
+gmeow:tierRegistered a gmeow:QualityTier ; gmeow:tierRank 0 .
+gmeow:axisFoo a gmeow:QualityAxis ;
+    gmeow:axisProducer "foo" ;
+    gmeow:axisDimension gmeow:dimFoo ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrFoo .
+gmeow:thrFoo a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+{body}
+"#
+        )
+    }
+
+    #[test]
+    fn axis_floor_commitment_loads_with_full_precision() {
+        // (a) A well-formed gmeow:AxisFloorCommitment resolves to (slice, axis,
+        // floor) carrying the full f64 precision the measured score commits.
+        let rubric = load(&rubric_with(
+            r#"gmeow:floorFooGrounding a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisFoo ;
+    gmeow:floorValue 0.9954337899543378 ."#,
+        ))
+        .expect("valid floor commitment loads");
+        assert_eq!(rubric.commitments.len(), 1);
+        let c = &rubric.commitments[0];
+        assert_eq!(c.slice, format!("{GMEOW_NS}sliceFoo"));
+        assert_eq!(c.axis, format!("{GMEOW_NS}axisFoo"));
+        assert!((c.floor - 0.995_433_789_954_337_8).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn slice_tier_floor_loads() {
+        // (b) A well-formed gmeow:SliceTierFloor resolves to (slice, tier).
+        let rubric = load(&rubric_with(
+            r#"gmeow:tierFloorFoo a gmeow:SliceTierFloor ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorTier gmeow:tierRegistered ."#,
+        ))
+        .expect("valid tier floor loads");
+        assert_eq!(rubric.tier_floors.len(), 1);
+        let f = &rubric.tier_floors[0];
+        assert_eq!(f.slice, format!("{GMEOW_NS}sliceFoo"));
+        assert_eq!(f.tier, format!("{GMEOW_NS}tierRegistered"));
+    }
+
+    #[test]
+    fn axis_floor_commitment_missing_value_hard_fails() {
+        // (c) A commitment missing gmeow:floorValue is a hard fail — a floor with
+        // no value cannot pin a regression bar, so we never silently skip it.
+        let err = load(&rubric_with(
+            r#"gmeow:floorFooGrounding a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisFoo ."#,
+        ))
+        .unwrap_err();
+        assert!(
+            err.message().contains("no decimal gmeow:floorValue"),
+            "{err}"
+        );
+        assert!(
+            err.message().contains("floorFooGrounding"),
+            "names the offending commitment: {err}"
+        );
+    }
+
+    #[test]
+    fn axis_floor_commitment_missing_axis_hard_fails() {
+        // (c) A commitment missing gmeow:floorAxis is likewise a hard fail.
+        let err = load(&rubric_with(
+            r#"gmeow:floorFooGrounding a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorValue 0.5 ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("no gmeow:floorAxis"), "{err}");
+    }
+
+    #[test]
+    fn axis_floor_commitment_unknown_axis_hard_fails() {
+        // A floor commitment naming an axis the rubric never loaded (a typo'd
+        // gmeow:floorAxis) must hard-fail — otherwise it loads cleanly and then
+        // silently never gates anything, leaving the ratchet dead.
+        let err = load(&rubric_with(
+            r#"gmeow:floorFooGrounding a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisNope ;
+    gmeow:floorValue 0.5 ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("unknown axis"), "{err}");
+        assert!(
+            err.message().contains("axisNope"),
+            "names the offending axis: {err}"
+        );
+    }
+
+    #[test]
+    fn slice_tier_floor_unknown_tier_hard_fails() {
+        // A tier floor naming a tier the rubric ladder never loaded (a typo'd
+        // gmeow:floorTier) must hard-fail — otherwise it loads cleanly and then
+        // silently never gates anything, leaving the ratchet dead.
+        let err = load(&rubric_with(
+            r#"gmeow:tierFloorFoo a gmeow:SliceTierFloor ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorTier gmeow:tierNope ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("unknown tier"), "{err}");
+        assert!(
+            err.message().contains("tierNope"),
+            "names the offending tier: {err}"
+        );
+    }
+
+    #[test]
+    fn slice_tier_floor_missing_tier_hard_fails() {
+        // A tier floor missing gmeow:floorTier is a hard fail: it names no rung.
+        let err = load(&rubric_with(
+            r#"gmeow:tierFloorFoo a gmeow:SliceTierFloor ;
+    gmeow:floorSlice gmeow:sliceFoo ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("no gmeow:floorTier"), "{err}");
+    }
+
+    #[test]
+    fn duplicate_axis_floor_commitment_hard_fails() {
+        // Two AxisFloorCommitment individuals naming the SAME (slice, axis) pair
+        // collapse silently in the downstream BTreeMap (last-writer-wins) — the
+        // loader must hard-fail rather than let one commitment shadow the other.
+        let err = load(&rubric_with(
+            r#"gmeow:floorFooA a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisFoo ;
+    gmeow:floorValue 0.5 .
+gmeow:floorFooB a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisFoo ;
+    gmeow:floorValue 0.9 ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("duplicate"), "{err}");
+        assert!(
+            err.message().contains("axisFoo"),
+            "names the offending axis: {err}"
+        );
+        assert!(
+            err.message().contains("sliceFoo"),
+            "names the offending slice: {err}"
+        );
+    }
+
+    #[test]
+    fn distinct_axis_floor_commitments_for_same_slice_load_cleanly() {
+        // Positive control: two commitments for the SAME slice but DIFFERENT axes
+        // are not duplicates — proves the guard keys on the (slice, axis) pair,
+        // not the slice alone.
+        let rubric = load(&rubric_with(
+            r#"gmeow:axisBar a gmeow:QualityAxis ;
+    gmeow:axisProducer "bar" ;
+    gmeow:axisDimension gmeow:dimBar ;
+    gmeow:axisContextScope gmeow:scopeSliceLocal ;
+    gmeow:axisThreshold gmeow:thrBar .
+gmeow:thrBar a gmeow:AxisThreshold ;
+    gmeow:thresholdTier gmeow:tierRegistered ;
+    gmeow:thresholdFloor 0.0 .
+gmeow:floorFooA a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisFoo ;
+    gmeow:floorValue 0.5 .
+gmeow:floorFooB a gmeow:AxisFloorCommitment ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorAxis gmeow:axisBar ;
+    gmeow:floorValue 0.9 ."#,
+        ))
+        .expect("distinct (slice, axis) commitments load cleanly");
+        assert_eq!(rubric.commitments.len(), 2);
+    }
+
+    #[test]
+    fn duplicate_slice_tier_floor_hard_fails() {
+        // Two SliceTierFloor individuals naming the SAME slice collapse silently
+        // in the downstream BTreeMap (last-writer-wins) — the loader must
+        // hard-fail rather than let one tier floor shadow the other.
+        let err = load(&rubric_with(
+            r#"gmeow:tierFloorFooA a gmeow:SliceTierFloor ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorTier gmeow:tierRegistered .
+gmeow:tierFloorFooB a gmeow:SliceTierFloor ;
+    gmeow:floorSlice gmeow:sliceFoo ;
+    gmeow:floorTier gmeow:tierRegistered ."#,
+        ))
+        .unwrap_err();
+        assert!(err.message().contains("duplicate"), "{err}");
+        assert!(
+            err.message().contains("sliceFoo"),
+            "names the offending slice: {err}"
         );
     }
 

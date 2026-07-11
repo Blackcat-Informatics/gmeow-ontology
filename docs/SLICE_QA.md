@@ -123,21 +123,31 @@ quality *score* as a competency cell, and do not expect a cell to move a tier.
   slice's roll-up tier plus its capping axis (the weakest axis dragging the meet
   down). This is advisory only — an undeclared slice is scored but **never** gates.
 - **Ratchet gate** — `make slice-quality-gate` (now part of `make check`) enforces
-  the opt-in ratchet for slices that declare `gmeow:sliceQualityTier`. Two
-  committed governance floors back it: the per-slice tier ratchet in
-  `governance/slice-quality-floors.tsv` and the per-axis score ratchet in
-  `governance/slice-quality-axis-floors.tsv`.
+  the opt-in ratchet for slices that declare `gmeow:sliceQualityTier`. Its committed
+  floors are **ontology-resident** in the slice-quality-rubric slice's `module.ttl`:
+  the per-slice roll-up tier floor is a `gmeow:SliceTierFloor` individual
+  (`gmeow:floorSlice` + `gmeow:floorTier`) and each per-axis score floor is a
+  `gmeow:AxisFloorCommitment` individual (`gmeow:floorSlice` + `gmeow:floorAxis` +
+  `gmeow:floorValue`). Those individuals are the canonical source; the read-only TSVs
+  `generated/governance/slice-quality-floors.tsv` and
+  `generated/governance/slice-quality-axis-floors.tsv` are **generated lossy
+  projections** of them (Principle 17), carrying a loss-ledger preservation judgment —
+  view them, never hand-edit them. A human raises a floor by editing the individual in
+  the rubric slice (raise-only, monotonic, hard-fail enforced).
 
 This is the sibling of the four blocking *validation* gates in
 [`docs/validation-thresholds.md`](./validation-thresholds.md): same ratchet
 temperament, different family. Those four are hard validation gates over the whole
 ontology; this one measures per-slice quality. Do not conflate the two floor sets.
 
-**The floor-ratchet policy (raise-only, hard-fail enforced).** Both TSVs are
-monotonic non-regression contracts: a committed floor may be **RAISED** freely as
-a slice earns it, and only ever raised — never lowered, never forced upward ahead
-of a real measured uplift (scores stay objective, uncalibrated intrinsic measures;
-you do not tune a floor to a target). The gate verdicts, verbatim from
+**The floor-ratchet policy (raise-only, hard-fail enforced).** Both floor levels are
+monotonic non-regression contracts, read straight from the ontology individuals in the
+rubric slice: a committed floor may be **RAISED** freely as a slice earns it (edit the
+`gmeow:AxisFloorCommitment` / `gmeow:SliceTierFloor` individual), and only ever raised —
+never lowered, never forced upward ahead of a real measured uplift (scores stay
+objective, uncalibrated intrinsic measures; you do not tune a floor to a target). The
+gate reads **every** committed axis floor from the ontology (not just GMN-1) and enforces
+each in addition to the roll-up-tier ratchet. The gate verdicts, verbatim from
 `crates/slice-quality/src/gate.rs`, are:
 
 - `MeasuredBelowDeclared` — the slice's measured roll-up tier fell below the tier
@@ -147,10 +157,20 @@ you do not tune a floor to a target). The gate verdicts, verbatim from
 - `MeasuredBelowFloor` — a per-axis measured score fell below that axis's committed
   floor (gated in addition to, never instead of, the roll-up-tier ratchet).
 
-Separately, a **floor-monotonicity** check diffs each floor file against the merge
-base: a lowered floor line, or a deleted floor for a still-live slice/axis, is a
-HARD FAIL that reds `make slice-quality-gate`. Additions and raises are clean;
-greenfield deletion is allowed only once the slice or axis is genuinely gone.
+Separately, a **floor-monotonicity** check diffs the committed floor individuals against
+the merge base: a lowered `gmeow:floorValue`/`gmeow:floorTier`, or a deleted floor
+individual for a still-live slice/axis, is a HARD FAIL that reds
+`make slice-quality-gate`. Additions and raises are clean; greenfield deletion is
+allowed only once the slice or axis is genuinely gone.
+
+And a **floor-coherence** check ties the two committed levels together as a pure
+consistency assertion (it compares committed floors against each other, never a measured
+score). For a tier-floored slice, every committed axis floor must grade — through that
+axis's rubric thresholds — to a tier `≥` the committed tier floor (the *backing
+invariant*: the roll-up is a lattice meet, so a tier floor requires every axis floor to
+back it); and when a slice is floored on *every* rubric axis, its tier floor must equal
+the meet of its axis-floor-implied tiers (*tightness*: a lower tier floor is a dead
+guarantee). Either failure reds `make slice-quality-gate`.
 
 **Sweep work is never an issue.** Cross-cutting quality work — "every slice needs
 X" — is not filed as an issue and never lands as a mega-PR. Re-scope the sweep into
@@ -234,15 +254,32 @@ after its test is gone is itself a lint failure waiting to happen.
 
 The slice-local `shapes.ttl` in the anatomy above is **transitional**. Under
 Principle 17 the only authored validation form is `logic:`; SHACL is a generated
-projection. A slice still shipping a hand-authored `shapes.ttl` (or contributing to
-a root `shapes/*.ttl`) carries per-slice migration debt, surfaced by the
-`slice-quality` projection axis as `slice-quality.projection.hand-authored-shapes`.
+projection. A slice still shipping a hand-authored `shapes.ttl` whose `sh:NodeShape` /
+`sh:PropertyShape` blocks lack a `logic:formalizes` back-reference carries per-slice
+migration debt, measured by the **Shape Migration** axis (`gmeow:axisShapeMigration`,
+producer `shape_migration_axis`): the fraction of its authored shape blocks that *are*
+grounded (carry `logic:formalizes`). Its per-shape finding is
+`slice-quality.projection.ungrounded-shape`, naming each un-backed block. (Do not
+confuse it with `slice-quality.projection.hand-authored-shapes`, the *presence* advisory
+of the different `axisMaximalProjection` axis, which fires merely because a `shapes.ttl`
+exists at all.) A slice with **no** `shapes.ttl` has nothing to migrate and scores a
+vacuous `1.0`. The axis gates four tiers by measured fraction: Grounded `0.60`, Linked
+`0.75`, Exemplified `0.85`, Maximal `0.95`.
 
-Discharge it one slice at a time, under equivalence-before-deletion: re-express each
+Its floor is committed like every other axis floor: as a `gmeow:AxisFloorCommitment`
+individual (`gmeow:floorSlice` + `gmeow:floorAxis gmeow:axisShapeMigration` +
+`gmeow:floorValue`) authored in the slice-quality-rubric slice's `module.ttl` — the
+canonical source, of which `generated/governance/slice-quality-axis-floors.tsv` is the
+read-only generated projection. The floor-coherence check keeps this axis honest with the
+slice's tier floor: its committed floor must grade to a tier at or above the committed
+`gmeow:SliceTierFloor`, and on a fully-floored slice the tier floor is exactly the meet of
+the axis-implied tiers.
+
+Discharge the debt one slice at a time, under equivalence-before-deletion: re-express each
 shape as a `logic:Constraint` (procedural) or an OWL/RDFS axiom (declarative) in
 `module.ttl` so it PROJECTS to `generated/shapes/*`, prove the slice's
 counter-examples still fail identically against the projected union, **then** retire
-the hand-authored shape. Never delete a shape whose check the projection does not yet
-reproduce — that drops live enforcement. Full procedure, idioms, and the
-reasoner-safety rules for cardinality:
+the hand-authored shape (or back a genuine ValidationOnly residue with `logic:formalizes`).
+Never delete a shape whose check the projection does not yet reproduce — that drops live
+enforcement. Full procedure, idioms, and the reasoner-safety rules for cardinality:
 [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](./MIGRATING-SHAPES-TO-LOGIC.md).
