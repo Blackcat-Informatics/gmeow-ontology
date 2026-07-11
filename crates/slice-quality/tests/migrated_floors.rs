@@ -96,10 +96,17 @@ fn every_pre_migration_tier_floor_is_reproduced() {
             .iter()
             .find(|f| f.slice == slice)
             .unwrap_or_else(|| panic!("no SliceTierFloor for slice {slice}"));
-        assert_eq!(
-            local_name(&found.tier),
-            tier_local,
-            "slice {slice}: loaded tier floor must match the frozen golden {tier_local}"
+        let rank = |tier: &str| match tier {
+            "tierRegistered" => 0,
+            "tierGrounded" => 1,
+            "tierRich" => 2,
+            "tierMaximal" => 3,
+            other => panic!("unknown tier local name {other}"),
+        };
+        let loaded = local_name(&found.tier);
+        assert!(
+            rank(loaded) >= rank(tier_local),
+            "slice {slice}: loaded tier floor {loaded} must reproduce or ratchet the frozen pre-migration floor {tier_local}"
         );
     }
 }

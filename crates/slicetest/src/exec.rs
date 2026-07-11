@@ -605,12 +605,18 @@ fn run_conformance_cell(ec: &ExampleConformance, slice_dir: &Path) -> Result<()>
             detail: format!("building module dataset: {e}"),
         })
     })?;
-    let shapes_path = paths::shapes_file(slice_dir);
-    let shapes_ttl = std::fs::read_to_string(&shapes_path).map_err(|e| {
-        Diag::of_kind(DatasetRead {
-            detail: format!("cannot read {}: {e}", shapes_path.display()),
+    let shape_paths = paths::shapes_files(slice_dir);
+    let shapes_ttl = shape_paths
+        .iter()
+        .map(|path| {
+            std::fs::read_to_string(path).map_err(|e| {
+                Diag::of_kind(DatasetRead {
+                    detail: format!("cannot read {}: {e}", path.display()),
+                })
+            })
         })
-    })?;
+        .collect::<Result<Vec<_>>>()?
+        .join("\n");
     let shapes = parse_shapes(&shapes_ttl).map_err(|e| {
         Diag::of_kind(ShapeValidation {
             detail: format!("parsing slice shapes: {e}"),

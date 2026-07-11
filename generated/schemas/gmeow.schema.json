@@ -42130,25 +42130,61 @@
             }
           ]
         },
-        "logic:actionResource": {},
         "logic:capability": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
               "minItems": 1,
               "type": "array"
             }
           ]
         },
-        "logic:effect": {},
-        "logic:invariant": {},
-        "logic:observation": {},
         "logic:precondition": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
               "minItems": 1,
               "type": "array"
             }
@@ -42401,37 +42437,139 @@
         "logic:conjectureFormula": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "minItems": 1,
+              "type": "array"
             }
           ]
         },
         "logic:conjectureLifecycleState": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/ConjectureLifecycleState",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ConjectureLifecycleState",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
-        "logic:conjectureStandpoint": {},
+        "logic:conjectureStandpoint": {
+          "anyOf": [
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
         "logic:verdictProvenance": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/VerdictProvenanceKind",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/VerdictProvenanceKind",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
@@ -42439,7 +42577,9 @@
       },
       "required": [
         "logic:conjectureFormula",
-        "logic:conjectureStandpoint"
+        "logic:conjectureLifecycleState",
+        "logic:conjectureStandpoint",
+        "logic:verdictProvenance"
       ],
       "type": "object"
     },
@@ -42467,19 +42607,46 @@
         "logic:witnessIndividual": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "minItems": 1,
+              "type": "array"
             }
           ]
         },
@@ -42532,19 +42699,46 @@
         "logic:witnessWorld": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "minItems": 1,
+              "type": "array"
             }
           ]
         }
@@ -42732,18 +42926,64 @@
         },
         "logic:candidateCategory": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/FormalizationCategory",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/FormalizationCategory",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
         "logic:candidateContract": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/ReasoningContract",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ReasoningContract",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
@@ -42751,37 +42991,109 @@
         "logic:candidateExtractionProvenance": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "minItems": 1,
+              "type": "array"
             }
           ]
         },
-        "logic:candidateFormalizes": {},
         "logic:candidateLifecycle": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/CandidateLifecycleState",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/CandidateLifecycleState",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
         "logic:candidateProjectionBehavior": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/PreservationKind",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/PreservationKind",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
@@ -42789,36 +43101,108 @@
         "logic:candidateScope": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "minItems": 1,
+              "type": "array"
             }
           ]
         },
         "logic:candidateSemanticRisk": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/SemanticRiskClass",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
         "logic:candidateSourceField": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/ProseField",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ProseField",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
               "type": "array"
             }
           ]
@@ -42826,26 +43210,58 @@
         "logic:candidateSourceHash": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "minItems": 1,
+              "type": "array"
             }
           ]
         }
       },
       "required": [
+        "logic:candidateCategory",
+        "logic:candidateContract",
         "logic:candidateExtractionProvenance",
+        "logic:candidateLifecycle",
+        "logic:candidateProjectionBehavior",
         "logic:candidateScope",
+        "logic:candidateSemanticRisk",
         "logic:candidateSourceHash"
       ],
       "type": "object"
@@ -42874,63 +43290,172 @@
         "logic:freshnessHorizon": {
           "anyOf": [
             {
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "type": "array"
             }
           ]
         },
         "logic:freshnessWindowEnd": {
           "anyOf": [
             {
-              "format": "date-time",
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
+                  "format": "date-time",
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "type": "array"
             }
           ]
         },
         "logic:freshnessWindowStart": {
           "anyOf": [
             {
-              "format": "date-time",
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
+                  "format": "date-time",
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "type": "array"
             }
           ]
         },
-        "logic:guardsPrecondition": {}
+        "logic:guardsPrecondition": {
+          "anyOf": [
+            {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
       },
       "required": [
         "logic:guardsPrecondition"
@@ -43008,53 +43533,184 @@
         },
         "logic:evaluatesGoal": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Goal"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Goal"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
         "logic:feasibilityStatus": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/FeasibilityStatus",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
         "logic:goalEvaluationStatus": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/GoalEvaluationStatus",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
         "logic:lifecycleStatus": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/LifecycleStatus",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
-        "logic:objectiveValue": {},
-        "logic:satisfactionDegree": {},
         "logic:satisfactionStatus": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/SatisfactionStatus",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
-        },
-        "logic:utility": {}
+        }
       },
+      "required": [
+        "logic:evaluatesGoal",
+        "logic:feasibilityStatus",
+        "logic:goalEvaluationStatus",
+        "logic:lifecycleStatus",
+        "logic:satisfactionStatus"
+      ],
       "type": "object"
     },
     "logic:McpActionSchema": {
@@ -43080,9 +43736,29 @@
         },
         "logic:capability": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
               "minItems": 1,
               "type": "array"
             }
@@ -43090,9 +43766,29 @@
         },
         "logic:compensation": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
               "minItems": 1,
               "type": "array"
             }
@@ -43100,9 +43796,29 @@
         },
         "logic:precondition": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
               "minItems": 1,
               "type": "array"
             }
@@ -43164,6 +43880,7 @@
                 ],
                 "type": "object"
               },
+              "minItems": 1,
               "type": "array"
             }
           ]
@@ -43171,25 +43888,54 @@
         "logic:obligationForbiddenPredicate": {
           "anyOf": [
             {
-              "format": "uri",
-              "type": "string"
-            },
-            {
-              "properties": {
-                "@type": {
+              "anyOf": [
+                {
+                  "format": "uri",
                   "type": "string"
                 },
-                "@value": {}
+                {
+                  "properties": {
+                    "@type": {
+                      "type": "string"
+                    },
+                    "@value": {}
+                  },
+                  "required": [
+                    "@value"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
-              "required": [
-                "@value"
-              ],
-              "type": "object"
+              "minItems": 1,
+              "type": "array"
             }
           ]
         }
       },
       "required": [
+        "logic:obligationDischargeCondition",
         "logic:obligationForbiddenPredicate"
       ],
       "type": "object"
@@ -43217,9 +43963,31 @@
         },
         "logic:awaitsSignal": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/ExternalSignal",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ExternalSignal",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
               "minItems": 1,
               "type": "array"
             }
@@ -43254,23 +44022,85 @@
         },
         "logic:planGoal": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Goal"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                }
+              ]
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Goal"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         },
         "logic:planSuccessMode": {
           "anyOf": [
-            {},
             {
-              "items": {},
+              "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            {
+              "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/PlanSuccessMode",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              "minItems": 1,
               "type": "array"
             }
           ]
         }
       },
+      "required": [
+        "logic:planGoal",
+        "logic:planSuccessMode"
+      ],
       "type": "object"
     },
     "logic:RefutationAcceptanceWitness": {
@@ -43297,6 +44127,7 @@
         "logic:namesContradictionWitness": {
           "anyOf": [
             {
+              "$comment": "external class https://blackcatinformatics.ca/logic/ContradictionWitness",
               "properties": {
                 "@id": {
                   "type": "string"
@@ -43309,6 +44140,7 @@
             },
             {
               "items": {
+                "$comment": "external class https://blackcatinformatics.ca/logic/ContradictionWitness",
                 "properties": {
                   "@id": {
                     "type": "string"

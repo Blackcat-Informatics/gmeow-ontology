@@ -16202,12 +16202,45 @@ enums:
       afc-lifecycle-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-lifecycle-axisShapeMigration
         title: axis-floor commitment — lifecycle / axisShapeMigration
+      afc-logic-axisDocumentation:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisDocumentation
+        title: axis-floor commitment — logic / axisDocumentation
+      afc-logic-axisFlagshipCounterExampleDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisFlagshipCounterExampleDepth
+        title: axis-floor commitment — logic / axisFlagshipCounterExampleDepth
       afc-logic-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisGmn1Coverage
         title: axis-floor commitment — logic / axisGmn1Coverage
+      afc-logic-axisMaximalGrounding:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalGrounding
+        title: axis-floor commitment — logic / axisMaximalGrounding
+      afc-logic-axisMaximalInformation:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalInformation
+        title: axis-floor commitment — logic / axisMaximalInformation
+      afc-logic-axisMaximalLinkage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalLinkage
+        title: axis-floor commitment — logic / axisMaximalLinkage
+      afc-logic-axisMaximalProjection:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalProjection
+        title: axis-floor commitment — logic / axisMaximalProjection
+      afc-logic-axisOptimalTesting:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisOptimalTesting
+        title: axis-floor commitment — logic / axisOptimalTesting
+      afc-logic-axisProseQuality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisProseQuality
+        title: axis-floor commitment — logic / axisProseQuality
+      afc-logic-axisProvenanceHonesty:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisProvenanceHonesty
+        title: axis-floor commitment — logic / axisProvenanceHonesty
+      afc-logic-axisReasonerDerived:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisReasonerDerived
+        title: axis-floor commitment — logic / axisReasonerDerived
       afc-logic-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisShapeMigration
         title: axis-floor commitment — logic / axisShapeMigration
+      afc-logic-axisTranslationCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisTranslationCoverage
+        title: axis-floor commitment — logic / axisTranslationCoverage
       afc-math-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisGmn1Coverage
         title: axis-floor commitment — math / axisGmn1Coverage

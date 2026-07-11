@@ -2203,20 +2203,9 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/lang/translationTarget> ?t . ?t a <https://blackcatinformatics.ca/lang/SurfaceForm> . FILTER NOT EXISTS { ?t <https://blackcatinformatics.ca/lang/realizes> ?rf . } FILTER NOT EXISTS { ?t a <https://blackcatinformatics.ca/lang/UnanalyzedProse> . } }""" ;
     ] .
 
-<https://blackcatinformatics.ca/logic/ConjectureFormulaCardinalityConstraintProceduralConstraintShape>
-    a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/logic/Conjecture> ;
-    sh:targetClass <https://blackcatinformatics.ca/logic/Conjecture> ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "A Conjecture must have exactly one logic:conjectureFormula (the alpha-normalized xsd:string content_key identity of the conjectured formula)." ;
-        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/conjectureFormula> ?x . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/conjectureFormula> ?y . FILTER ( ?y != ?x ) } } }""" ;
-    ] .
-
 <https://blackcatinformatics.ca/logic/ConjectureRefutationWitnessConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/logic/Conjecture> ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/ConjectureShape> ;
     sh:targetClass <https://blackcatinformatics.ca/logic/Conjecture> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2236,20 +2225,21 @@
         sh:select """SELECT $this WHERE { ?segment <https://blackcatinformatics.ca/gmeow/gtsSegmentOf> $this . ?segment <https://blackcatinformatics.ca/gmeow/gtsProfile> <https://blackcatinformatics.ca/gmeow/gtsProfileEvidence> . $this <https://blackcatinformatics.ca/gmeow/wasGeneratedBy> ?activity . ?activity a <https://blackcatinformatics.ca/gmeow/GTSCompaction> . }""" ;
     ] .
 
-<https://blackcatinformatics.ca/logic/FreshnessGuardPreconditionCardinalityConstraintProceduralConstraintShape>
+<https://blackcatinformatics.ca/logic/FlagshipScenarioFailureClassConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/logic/FreshnessGuard> ;
-    sh:targetClass <https://blackcatinformatics.ca/logic/FreshnessGuard> ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/FlagshipScenarioShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/logic/UnwiredFlagshipScenario> ;
+    sh:targetClass <https://blackcatinformatics.ca/gmeow/FlagshipScenario> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;
-        sh:message "A FreshnessGuard must guard exactly one logic:precondition (via logic:guardsPrecondition)." ;
-        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/guardsPrecondition> ?x . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/guardsPrecondition> ?y . FILTER ( ?y != ?x ) } } }""" ;
+        sh:message "A flagship scenario's enforcing failure class must be a logic:LogicConformanceFailure subclass." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ?failure . FILTER NOT EXISTS { ?failure <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/LogicConformanceFailure> . } }""" ;
     ] .
 
 <https://blackcatinformatics.ca/logic/FreshnessGuardWindowBoundsConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/logic/FreshnessGuard> ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/FreshnessGuardShape> ;
     sh:targetClass <https://blackcatinformatics.ca/logic/FreshnessGuard> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2271,7 +2261,7 @@
 
 <https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/gmeow/Goal> ;
+    logic:formalizes <https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationShape> ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/Goal> ;
     sh:sparql [
         a sh:SPARQLConstraint ;

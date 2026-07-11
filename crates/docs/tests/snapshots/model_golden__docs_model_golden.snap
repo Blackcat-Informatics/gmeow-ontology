@@ -7,7 +7,7 @@ expression: summary
   "version": "14",
   "slice_count": 81,
   "term_count": 2603,
-  "dependency_edge_count": 1105,
+  "dependency_edge_count": 1104,
   "term_count_by_category": {
     "Class": 755,
     "Datatype": 1,
@@ -296,10 +296,10 @@ expression: summary
     }
   ],
   "mapping_set_count": 81,
-  "linkage_count": 1868,
+  "linkage_count": 1859,
   "example_count": 144,
   "concern_count": 7,
-  "external_term_count": 1613,
+  "external_term_count": 1604,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -417,7 +417,7 @@ expression: summary
       "schema"
     ]
   },
-  "shape_count": 324,
+  "shape_count": 322,
   "competency_count": 140,
   "sample_shape": {
     "shape_iri": "https://blackcatinformatics.ca/gmeow/RetractedAccessibilityAssertionShape",

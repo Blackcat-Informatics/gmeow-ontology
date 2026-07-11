@@ -1174,6 +1174,31 @@ fn derive_some_values_from_uses_class_membership_under_approximation() {
 }
 
 #[test]
+fn derive_class_scoped_closed_all_values_from_requires_the_path() {
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:allValuesFrom g:Doc ] . \
+         [] a logic:ClosureEntry ; logic:onClass g:Article ; logic:closureKey g:cites ; \
+            logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let cites = shapes
+        .iter()
+        .flat_map(|shape| &shape.properties)
+        .find(|property| property.path.ends_with("cites"))
+        .expect("class-scoped closed universal projects a cites property shape");
+    assert_eq!(cites.min_count, Some(1));
+    assert!(
+        cites.components.iter().any(
+            |component| matches!(component, ConstraintComponent::Class(iri) if iri.ends_with("Doc"))
+        ),
+        "class-scoped closed universal retains its value class: {:?}",
+        cites.components
+    );
+}
+
+#[test]
 fn derive_all_values_from_emits_bare_class_not_wrapped() {
     // owl:allValuesFrom is UNIVERSAL: every value is a g:Doc → a bare sh:class on the path,
     // never wrapped in a qualified value shape.

@@ -455,6 +455,15 @@ fn write_shape_fixture(root: &std::path::Path, legacy_property: &str) {
              sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/bar> ; sh:minCount 1 ; sh:maxCount 1 ] .\n",
     )
     .expect("write projected shapes");
+    // The production union always has all three generated members. Keep the hermetic fixture
+    // structurally faithful even when this case exercises only the declarative projection.
+    for member in ["constraint-shapes.ttl", "procedural-constraints.ttl"] {
+        std::fs::write(
+            shapes_dir.join(member),
+            "@prefix sh: <http://www.w3.org/ns/shacl#> .\n",
+        )
+        .expect("write empty projected shape-union member");
+    }
     let slice_dir = root.join("slices").join("demo");
     std::fs::create_dir_all(&slice_dir).expect("mk slices/demo");
     std::fs::write(

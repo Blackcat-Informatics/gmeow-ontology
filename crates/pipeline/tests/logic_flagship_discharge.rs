@@ -46,7 +46,7 @@ use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 mod support;
 use support::flagship_discharge::{
     CounterExampleExecution, Flagship, FlagshipCtx, SliceSpec, assert_counterexample_depth,
-    parse_manifest, repo_root, run_flagship_discharge_with_counterexample,
+    flagship_error, parse_manifest, repo_root, run_flagship_discharge_with_counterexample,
 };
 
 /// The `logic:` grounding namespace — used for the SCANNED failure classes (`logic:<Class>`),
@@ -156,7 +156,7 @@ fn reasoner_execution_with_wrong_failure_set_hard_fails() {
 fn run_counterexample(
     flagship: &Flagship,
     _ctx: &FlagshipCtx<'_>,
-) -> Result<CounterExampleExecution, String> {
+) -> gmeow_errors::Result<CounterExampleExecution> {
     assert_fixture_producer(&flagship.example, &flagship.producer)?;
     assert_fixture_producer(&flagship.counter_example, &flagship.producer)?;
     assert_fixture_failure(&flagship.counter_example, &flagship.failure_class)?;
@@ -167,9 +167,9 @@ fn run_counterexample(
         "logic::conjecture::conjecture_test" => run_unwitnessed_refutation()?,
         "logic::materialize::materialize_routed" => run_uncertified_chase()?,
         other => {
-            return Err(format!(
+            return Err(flagship_error(format!(
                 "unknown logic flagship producer identifier: {other}"
-            ));
+            )));
         }
     };
     Ok(CounterExampleExecution::ReasonerDriven(
@@ -206,9 +206,9 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
 /// Read one IRI or literal value for a fixture predicate, rejecting missing and duplicate
 /// contract fields. The fixture declarations are the ontology-data tie between the manifest and
 /// the exact native producer run by this harness.
-fn fixture_value(path: &std::path::Path, predicate: &str) -> Result<String, String> {
-    let ds =
-        parse_file_dataset(path).map_err(|e| format!("fixture {} parses: {e}", path.display()))?;
+fn fixture_value(path: &std::path::Path, predicate: &str) -> gmeow_errors::Result<String> {
+    let ds = parse_file_dataset(path)
+        .map_err(|e| flagship_error(format!("fixture {} parses: {e}", path.display())))?;
     let mut values = Vec::new();
     for quad in ds.owned_quads() {
         if quad.predicate != predicate {
@@ -218,48 +218,51 @@ fn fixture_value(path: &std::path::Path, predicate: &str) -> Result<String, Stri
             RdfTerm::Iri(iri) => values.push(iri.clone()),
             RdfTerm::Literal(lit) => values.push(lit.lexical_form.clone()),
             other => {
-                return Err(format!(
+                return Err(flagship_error(format!(
                     "fixture {} predicate <{predicate}> has non-IRI/non-literal value {other:?}",
                     path.display()
-                ));
+                )));
             }
         }
     }
     match values.as_slice() {
         [value] => Ok(value.clone()),
-        [] => Err(format!(
+        [] => Err(flagship_error(format!(
             "fixture {} is missing <{predicate}>",
             path.display()
-        )),
-        _ => Err(format!(
+        ))),
+        _ => Err(flagship_error(format!(
             "fixture {} has duplicate <{predicate}> values {values:?}",
             path.display()
-        )),
+        ))),
     }
 }
 
-fn assert_fixture_producer(path: &std::path::Path, expected: &str) -> Result<(), String> {
+fn assert_fixture_producer(path: &std::path::Path, expected: &str) -> gmeow_errors::Result<()> {
     let actual = fixture_value(path, &format!("{FIXTURE_NS}executesNativeProducer"))?;
     if actual == expected {
         Ok(())
     } else {
-        Err(format!(
+        Err(flagship_error(format!(
             "fixture {} names native producer {actual:?}, manifest names {expected:?}",
             path.display()
-        ))
+        )))
     }
 }
 
-fn assert_fixture_failure(path: &std::path::Path, expected_local: &str) -> Result<(), String> {
+fn assert_fixture_failure(
+    path: &std::path::Path,
+    expected_local: &str,
+) -> gmeow_errors::Result<()> {
     let actual = fixture_value(path, &format!("{FIXTURE_NS}observesRuntimeFailure"))?;
     let expected = format!("{LOGIC_NS}{expected_local}");
     if actual == expected {
         Ok(())
     } else {
-        Err(format!(
+        Err(flagship_error(format!(
             "fixture {} names runtime failure <{actual}>, manifest names <{expected}>",
             path.display()
-        ))
+        )))
     }
 }
 
@@ -301,22 +304,22 @@ fn run_closure() {
 /// FS1 negative — the closure completes normally but the demanded transitive atom is absent
 /// because one premise is missing. A reasoner error is infrastructure; only the decided absence
 /// is `logic:IncompleteClosure`.
-fn run_incomplete_closure() -> Result<&'static str, String> {
+fn run_incomplete_closure() -> gmeow_errors::Result<&'static str> {
     const W: &str = "https://ex/world";
     const A: &str = "https://ex/A";
     const B: &str = "https://ex/B";
     const C: &str = "https://ex/C";
     let store = edb(W, &[(A, SUBCLASS, B)]);
-    let result = reason_all(store.as_ref()).map_err(|e| e.to_string())?;
+    let result = reason_all(store.as_ref()).map_err(|e| flagship_error(e.to_string()))?;
     let object_c = format!("<{C}>");
     if result
         .inferred()
         .iter()
         .any(|ax| ax.predicate == SUBCLASS && ax.subject == A && ax.object == object_c)
     {
-        return Err(
-            "malformed closure unexpectedly entailed the demanded A subClassOf C atom".into(),
-        );
+        return Err(flagship_error(
+            "malformed closure unexpectedly entailed the demanded A subClassOf C atom",
+        ));
     }
     Ok("IncompleteClosure")
 }
@@ -342,14 +345,14 @@ fn run_section() {
 }
 
 /// FS2 negative — execute the same native section-law evaluator over a broken put leg.
-fn run_broken_section() -> Result<&'static str, String> {
+fn run_broken_section() -> gmeow_errors::Result<&'static str> {
     let get = LegPath::Step("https://ex/a".to_owned());
     let wrong_put = LegPath::Step("https://ex/WRONG".to_owned());
     match leg_pair_verdict(&get, &wrong_put) {
         DischargeVerdict::ObligationViolated => Ok("SectionObligationViolated"),
-        other => Err(format!(
+        other => Err(flagship_error(format!(
             "broken get/put section returned {other:?}, expected ObligationViolated"
-        )),
+        ))),
     }
 }
 
@@ -396,7 +399,7 @@ fn run_counterfactual() {
 /// FS3 negative — two incomparable antecedent values are a genuine unentrenched tie. The native
 /// counterfactual engine must decide `unknown` with no selected binding; `incomplete` is a budget
 /// failure and is deliberately rejected rather than translated to the expected failure class.
-fn run_unentrenched_counterfactual() -> Result<&'static str, String> {
+fn run_unentrenched_counterfactual() -> gmeow_errors::Result<&'static str> {
     const HORN: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
     let store = WorldStore::new();
     store.insert_quad(
@@ -412,16 +415,16 @@ fn run_unentrenched_counterfactual() -> Result<&'static str, String> {
          :- assume(ex:flag(ex:x, ex:green)).\n\
          ?- ex:flag(ex:x, Z).\n",
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| flagship_error(e.to_string()))?;
     let answer = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, None)
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| flagship_error(e.to_string()))?;
     match answer.status_str() {
         "unknown" if answer.bindings.is_empty() => Ok("UnentrenchedCounterfactual"),
-        "incomplete" => Err("counterfactual negative exhausted a budget".into()),
-        status => Err(format!(
+        "incomplete" => Err(flagship_error("counterfactual negative exhausted a budget")),
+        status => Err(flagship_error(format!(
             "unentrenched counterfactual returned status {status:?} and bindings {:?}",
             answer.bindings
-        )),
+        ))),
     }
 }
 
@@ -487,20 +490,20 @@ fn run_conjecture() {
 
 /// FS4 negative — execute a claimed refutation against a consistent KB that provides no clash.
 /// The native conjecture engine completes in the open state with no contradiction witness.
-fn run_unwitnessed_refutation() -> Result<&'static str, String> {
+fn run_unwitnessed_refutation() -> gmeow_errors::Result<&'static str> {
     const SCN: &str = "http://world/scenario";
     const STANDPOINT: &str = "http://world/standpoint/alice";
     const IND_A: &str = "http://ex/a";
     const A_CLS: &str = "http://ex/A";
     const B_CLS: &str = "http://ex/B";
     let candidate = Formula::atom(
-        Term::iri(TYPE.to_owned()).map_err(|e| e.to_string())?,
+        Term::iri(TYPE.to_owned()).map_err(|e| flagship_error(e.to_string()))?,
         vec![
-            Term::iri(IND_A.to_owned()).map_err(|e| e.to_string())?,
-            Term::iri(B_CLS.to_owned()).map_err(|e| e.to_string())?,
+            Term::iri(IND_A.to_owned()).map_err(|e| flagship_error(e.to_string()))?,
+            Term::iri(B_CLS.to_owned()).map_err(|e| flagship_error(e.to_string()))?,
         ],
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| flagship_error(e.to_string()))?;
     let kb = edb(SCN, &[(IND_A, TYPE, A_CLS)]);
     let answer = conjecture_test(
         kb.as_ref(),
@@ -510,14 +513,14 @@ fn run_unwitnessed_refutation() -> Result<&'static str, String> {
         &[],
         &Budget::default(),
     )
-    .map_err(|e| e.to_string())?;
+    .map_err(|e| flagship_error(e.to_string()))?;
     if answer.lifecycle == ConjectureLifecycleState::Open && answer.witness.is_none() {
         Ok("UnwitnessedRefutation")
     } else {
-        Err(format!(
+        Err(flagship_error(format!(
             "witness-free refutation negative returned lifecycle {:?} and witness {:?}",
             answer.lifecycle, answer.witness
-        ))
+        )))
     }
 }
 
@@ -588,7 +591,7 @@ fn run_chase() {
 /// FS5 negative — the existential position graph contains a cycle. The same routed materializer
 /// returns the native `Uncertified` admission (while its terminating facts-only oracle leg keeps
 /// the fixture executable); a parse failure, unsupported input, or missing admission is an error.
-fn run_uncertified_chase() -> Result<&'static str, String> {
+fn run_uncertified_chase() -> gmeow_errors::Result<&'static str> {
     let rules = "<http://ex/p>(?x, !y, ?w) :- \
                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?x, <http://ex/C>, ?w) .\n\
                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?z, <http://ex/C>, ?w) :- \
@@ -597,15 +600,17 @@ fn run_uncertified_chase() -> Result<&'static str, String> {
                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
                  <http://ex/C> <http://world/W> .\n";
     let result = materialize_routed(rules, input, None, None, None, Some("PositiveHornProfile"))
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| flagship_error(e.to_string()))?;
     match result.chase_admission.as_ref() {
         Some(ChaseAdmission::Uncertified { violations }) if !violations.is_empty() => {
             Ok("UncertifiedChase")
         }
-        Some(other) => Err(format!(
+        Some(other) => Err(flagship_error(format!(
             "cyclic existential chase returned the wrong admission: {other:?}"
+        ))),
+        None => Err(flagship_error(
+            "cyclic existential chase returned no admission certificate",
         )),
-        None => Err("cyclic existential chase returned no admission certificate".into()),
     }
 }
 

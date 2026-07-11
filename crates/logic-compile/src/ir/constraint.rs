@@ -246,6 +246,9 @@ pub struct ConstraintIr {
     /// annotation property, which carries no DL/EL profile weight), so excluded from the
     /// content key.
     pub formalizes: Option<String>,
+    /// Typed conformance failure raised by the projected constraint shape. Annotation-level and
+    /// deliberately excluded from the formula's semantic identity.
+    pub failure_class: Option<String>,
     /// The aggregate-comparison satellite (`None` ⇒ an ordinary formula constraint). The realized
     /// FOL [`Formula`] core has no aggregate node, so an aggregate integrity is carried here as a
     /// structured [`AggregateComparison`] and lowered to a `GROUP BY`/`HAVING`
@@ -288,6 +291,7 @@ impl ConstraintIr {
             severity,
             message,
             formalizes: None,
+            failure_class: None,
             aggregate: None,
         })
     }
@@ -313,6 +317,27 @@ impl ConstraintIr {
             ));
         }
         self.formalizes = Some(formalizes);
+        Ok(self)
+    }
+
+    /// Attach the unique typed conformance-failure class projected with this constraint.
+    pub fn with_failure_class(
+        mut self,
+        failure_class: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let failure_class = failure_class.into();
+        if failure_class.trim().is_empty() {
+            return Err(ir_err(
+                "ConstraintIr.with_failure_class: failure class must be a non-empty IRI",
+            ));
+        }
+        if self.failure_class.is_some() {
+            return Err(ir_err(format!(
+                "ConstraintIr {} has duplicate gmeow:enforcesFailureClass metadata",
+                self.iri
+            )));
+        }
+        self.failure_class = Some(failure_class);
         Ok(self)
     }
 
@@ -756,6 +781,12 @@ ex:c7_atom a logic:Formula ;
         // Formalizes is likewise annotation-level and excluded.
         let c = a.clone().with_formalizes("https://ex/gmeow/Term").unwrap();
         assert_eq!(a.content_key(), c.content_key());
+        let typed = a.clone().with_failure_class("https://ex/Failure").unwrap();
+        assert_eq!(a.content_key(), typed.content_key());
+        let err = typed
+            .with_failure_class("https://ex/OtherFailure")
+            .unwrap_err();
+        assert!(err.message().contains("duplicate"));
     }
 
     #[test]

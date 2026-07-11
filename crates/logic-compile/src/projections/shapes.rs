@@ -376,6 +376,12 @@ fn property_shape_block(p: &PropertyConstraintIr) -> String {
 /// stays valid without an `rdfs:` prefix declaration in the default (prefix-free) header.
 pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
     let mut pos: Vec<String> = vec!["a sh:NodeShape".to_owned()];
+    if let Some(failure_class) = &shape.failure_class {
+        pos.push(format!(
+            "<https://blackcatinformatics.ca/gmeow/enforcesFailureClass> {}",
+            iri_term(failure_class)
+        ));
+    }
     if let Some(label) = &shape.label {
         pos.push(format!(
             "<http://www.w3.org/2000/01/rdf-schema#label> \"{}\"",
@@ -1517,8 +1523,11 @@ fn try_project_block(c: &ConstraintIr) -> gmeow_errors::Result<String> {
         Some(m) => format!("        sh:message \"{}\" ;\n", esc_str(m)),
         None => String::new(),
     };
+    let failure_line = c.failure_class.as_ref().map_or_else(String::new, |fc| {
+        format!("    gmeow:enforcesFailureClass <{fc}> ;\n")
+    });
     Ok(format!(
-        "<{shape}>\n    a sh:NodeShape ;\n    logic:formalizes <{formalizes}> ;\n    {target} ;\n    \
+        "<{shape}>\n    a sh:NodeShape ;\n    logic:formalizes <{formalizes}> ;\n{failure_line}    {target} ;\n    \
          sh:sparql [\n        a sh:SPARQLConstraint ;\n        sh:severity sh:{sev} ;\n{message_line}        \
          sh:select \"\"\"{select}\"\"\" ;\n    ] .\n"
     ))
@@ -1619,6 +1628,15 @@ mod tests {
 
     fn shape(iri: &str, class: &str, props: Vec<PropertyConstraintIr>) -> ValidationShapeIr {
         ValidationShapeIr::new(iri, ShapeTarget::Class(class.to_owned()), props, None).unwrap()
+    }
+
+    #[test]
+    fn validation_shape_projects_failure_class_metadata() {
+        let s = shape("https://ex/Shape", "https://ex/C", vec![])
+            .with_failure_class("https://ex/Failure")
+            .unwrap();
+        let ttl = project_validation_shape_shacl(&s);
+        assert!(ttl.contains("gmeow/enforcesFailureClass> <https://ex/Failure>"));
     }
 
     #[test]
@@ -2540,6 +2558,21 @@ mod procedural_tests {
         .unwrap();
         assert!(
             block(&c).contains("logic:formalizes <https://ex/gmeow/SomeAxiom>"),
+            "{}",
+            block(&c)
+        );
+    }
+
+    #[test]
+    fn procedural_constraint_projects_failure_class_metadata() {
+        let c = guarded(
+            "https://ex/cFailure",
+            exists("c", atom("https://ex/companion", tvar("this"), tvar("c"))),
+        )
+        .with_failure_class("https://ex/Failure")
+        .unwrap();
+        assert!(
+            block(&c).contains("gmeow:enforcesFailureClass <https://ex/Failure>"),
             "{}",
             block(&c)
         );
