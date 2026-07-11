@@ -1288,6 +1288,64 @@ mod tests {
         assert!(edb.contains("http://ex/likes", "<http://ex/a>", "<http://ex/c>"));
     }
 
+    // ── The Z-set seam: signed-weight consolidation (compiled + exercised) ───────
+
+    /// Build a single-row `Batch<i64>` with an explicit signed weight — the seam a
+    /// signed delta rides.  (Set-semantics `insert` never mints a non-unit weight, so
+    /// the seam is exercised here by constructing weighted batches directly.)
+    fn weighted_row(s: TermId, o: TermId, r: RowId, w: i64) -> Batch<i64> {
+        Batch {
+            subj: vec![s],
+            obj: vec![o],
+            row_id: vec![r],
+            weight: vec![w],
+            object_index: OnceLock::new(),
+        }
+    }
+
+    /// The consolidation merge is generic over the [`Weight`] monoid and compiles for
+    /// `W = i64` (a Z-set): a `+1` and a `-1` on the SAME key combine to `0`, which
+    /// annihilates and DROPS the row — retraction falls out of the same merge, no
+    /// special deletion pass.  This proves "the representation admits signed weights" is
+    /// a compiled, exercised fact, not a promise; production stays at the ZST `W = ()`.
+    #[test]
+    fn batch_merge_is_a_z_set_over_signed_weights() {
+        let s = TermId::from_index(0);
+        let o = TermId::from_index(1);
+
+        // (+1) + (-1) = 0 ⇒ the row annihilates and is dropped (retraction).
+        let plus = weighted_row(s, o, RowId::from_index(5), 1);
+        let minus = weighted_row(s, o, RowId::from_index(2), -1);
+        let retracted = merge_batches(&plus, &minus);
+        assert_eq!(
+            retracted.len(),
+            0,
+            "(+1)+(-1)=0 annihilates the shared-key row"
+        );
+
+        // (+1) + (+2) = 3 ⇒ one surviving row, weights summed, LOWER RowId kept (R4).
+        let two = weighted_row(s, o, RowId::from_index(2), 2);
+        let summed = merge_batches(&plus, &two);
+        assert_eq!(summed.len(), 1, "a non-annihilating combine keeps one row");
+        assert_eq!(summed.weight[0], 3, "weights sum: 1 + 2 = 3");
+        assert_eq!(
+            summed.row_id[0],
+            RowId::from_index(2),
+            "the lower RowId deterministically survives a key collision"
+        );
+
+        // Disjoint keys interleave with NO combine — the set-semantics `W = ()` shape.
+        let o2 = TermId::from_index(2);
+        let a = weighted_row(s, o, RowId::from_index(0), 1);
+        let b = weighted_row(s, o2, RowId::from_index(1), 1);
+        let disjoint = merge_batches(&a, &b);
+        assert_eq!(
+            disjoint.len(),
+            2,
+            "disjoint keys interleave, no combine fires"
+        );
+    }
+
     // ── Chase-invented Skolem-term nulls ─────────────────────────────────────────
 
     fn witness(ordinal: usize, frontier: Vec<TermValue>) -> SkolemTerm {
