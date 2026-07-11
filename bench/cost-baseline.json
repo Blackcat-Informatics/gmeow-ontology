@@ -15,8 +15,8 @@
       "fragment": "existential",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 4752910,
-        "alloc_count": 40138,
+        "alloc_bytes": 4750814,
+        "alloc_count": 40114,
         "consumed_steps": 3,
         "cost_vector": [],
         "derived_count": 3,
@@ -43,8 +43,8 @@
       "fragment": "existential",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3279782,
-        "alloc_count": 27824,
+        "alloc_bytes": 3277906,
+        "alloc_count": 27800,
         "consumed_steps": 4,
         "cost_vector": [],
         "derived_count": 4,
@@ -71,8 +71,8 @@
       "fragment": "existential",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 4744473,
-        "alloc_count": 40063,
+        "alloc_bytes": 4742377,
+        "alloc_count": 40039,
         "consumed_steps": 3,
         "cost_vector": [],
         "derived_count": 3,
@@ -99,14 +99,14 @@
       "fragment": "nary-existential",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 571879,
-        "alloc_count": 5768,
+        "alloc_bytes": 564567,
+        "alloc_count": 5680,
         "closure_fingerprint": "6bca53ca2d002eb66547f256edda3da1a1cddaf6",
         "consumed_steps": 16,
         "cost_vector": [],
         "derived_count": 6,
         "engine": "gmeow-logic/0.1.0+nemo+scryer",
-        "peak_live_bytes": 102307
+        "peak_live_bytes": 96687
       },
       "oracle": {
         "closure_count": 6,
@@ -129,14 +129,14 @@
       "fragment": "nary-existential",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 464762,
-        "alloc_count": 4760,
+        "alloc_bytes": 458334,
+        "alloc_count": 4686,
         "closure_fingerprint": "587f5ae95392df97b9693fe3ec70e200daad86c8",
         "consumed_steps": 14,
         "cost_vector": [],
         "derived_count": 6,
         "engine": "gmeow-logic/0.1.0+nemo+scryer",
-        "peak_live_bytes": 88846
+        "peak_live_bytes": 83962
       },
       "oracle": {
         "closure_count": 6,
@@ -159,14 +159,14 @@
       "fragment": "nary-existential",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 773065,
-        "alloc_count": 7969,
+        "alloc_bytes": 765537,
+        "alloc_count": 7881,
         "closure_fingerprint": "87b46808860fb0c1eb6079fc7367358183837876",
         "consumed_steps": 24,
         "cost_vector": [],
         "derived_count": 10,
         "engine": "gmeow-logic/0.1.0+nemo+scryer",
-        "peak_live_bytes": 94509
+        "peak_live_bytes": 89129
       },
       "oracle": {
         "closure_count": 10,
@@ -189,14 +189,14 @@
       "fragment": "backward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 280728,
-        "alloc_count": 3588,
+        "alloc_bytes": 275612,
+        "alloc_count": 3510,
         "answer_count": 3,
         "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
         "consumed_steps": 9,
         "cost_vector": [],
         "engine": "gmeow-logic/0.1.0+nemo+scryer",
-        "peak_live_bytes": 31689
+        "peak_live_bytes": 27813
       },
       "oracle": {
         "answer_count": 3,
@@ -219,14 +219,14 @@
       "fragment": "backward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 164797,
-        "alloc_count": 2086,
+        "alloc_bytes": 161265,
+        "alloc_count": 2039,
         "answer_count": 2,
         "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
         "consumed_steps": 5,
         "cost_vector": [],
         "engine": "gmeow-logic/0.1.0+nemo+scryer",
-        "peak_live_bytes": 25492
+        "peak_live_bytes": 22336
       },
       "oracle": {
         "answer_count": 2,
@@ -249,8 +249,8 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3911672,
-        "alloc_count": 33198,
+        "alloc_bytes": 3910104,
+        "alloc_count": 33177,
         "consumed_steps": 3,
         "cost_vector": [
           [
@@ -292,8 +292,8 @@
       "fragment": "forward",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 6247705,
-        "alloc_count": 54311,
+        "alloc_bytes": 6244073,
+        "alloc_count": 54274,
         "consumed_steps": 10,
         "cost_vector": [
           [
@@ -341,8 +341,8 @@
       "fragment": "forward",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 3990910,
-        "alloc_count": 34450,
+        "alloc_bytes": 3988998,
+        "alloc_count": 34421,
         "consumed_steps": 6,
         "cost_vector": [
           [
@@ -384,8 +384,8 @@
       "fragment": "forward",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3953008,
-        "alloc_count": 33961,
+        "alloc_bytes": 3950056,
+        "alloc_count": 33912,
         "consumed_steps": 4,
         "cost_vector": [
           [
@@ -427,8 +427,8 @@
       "fragment": "forward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 3711272,
-        "alloc_count": 31284,
+        "alloc_bytes": 3709776,
+        "alloc_count": 31264,
         "consumed_steps": 2,
         "cost_vector": [
           [
@@ -470,8 +470,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5459473,
-        "alloc_count": 47641,
+        "alloc_bytes": 5456305,
+        "alloc_count": 47606,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -489,7 +489,7 @@
         ],
         "derived_count": 8,
         "engine": "gmeow-logic/0.1.0+nemo+scryer",
-        "peak_live_bytes": 54978,
+        "peak_live_bytes": 53474,
         "rows_fingerprint": "1fbc5a74847284527461ac58d15ba951d3c4c41330019eef0441a08465d5d308"
       },
       "oracle": {
@@ -513,8 +513,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 6169418,
-        "alloc_count": 52906,
+        "alloc_bytes": 6166990,
+        "alloc_count": 52873,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -562,8 +562,8 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3911843,
-        "alloc_count": 33222,
+        "alloc_bytes": 3910275,
+        "alloc_count": 33201,
         "consumed_steps": 3,
         "cost_vector": [
           [

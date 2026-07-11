@@ -17,22 +17,22 @@ Engine pins: native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b
 
 | corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden | native_vs_oracle |
 |---|---|---|---|---|---|---|---|---|---|
-| chasebench-mini | deep-linear | existential | 3 | 3 | 4752910 | 40138 | 34937 | true | true |
-| chasebench-mini | doctors-like | existential | 4 | 4 | 3279782 | 27824 | 29729 | true | true |
-| chasebench-mini | lubm-like | existential | 3 | 3 | 4744473 | 40063 | 34989 | true | true |
-| nary-mini | co-witness | nary-existential | 16 | 6 | 571879 | 5768 | 102307 | true | true |
-| nary-mini | split-null | nary-existential | 14 | 6 | 464762 | 4760 | 88846 | true | true |
-| nary-mini | stb-like | nary-existential | 24 | 10 | 773065 | 7969 | 94509 | true | true |
-| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 280728 | 3588 | 31689 | true | true |
-| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 164797 | 2086 | 25492 | true | true |
-| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3911672 | 33198 | 37822 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6247705 | 54311 | 58473 | true | true |
-| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3990910 | 34450 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3953008 | 33961 | 42113 | true | true |
-| relational-core-mini | reachability | forward | 2 | 2 | 3711272 | 31284 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5459473 | 47641 | 54978 | true | true |
-| relational-core-mini | scc | forward | 8 | 8 | 6169418 | 52906 | 53796 | true | true |
-| relational-core-mini | transitive-closure | forward | 3 | 3 | 3911843 | 33222 | 37785 | true | true |
+| chasebench-mini | deep-linear | existential | 3 | 3 | 4750814 | 40114 | 34937 | true | true |
+| chasebench-mini | doctors-like | existential | 4 | 4 | 3277906 | 27800 | 29729 | true | true |
+| chasebench-mini | lubm-like | existential | 3 | 3 | 4742377 | 40039 | 34989 | true | true |
+| nary-mini | co-witness | nary-existential | 16 | 6 | 564567 | 5680 | 96687 | true | true |
+| nary-mini | split-null | nary-existential | 14 | 6 | 458334 | 4686 | 83962 | true | true |
+| nary-mini | stb-like | nary-existential | 24 | 10 | 765537 | 7881 | 89129 | true | true |
+| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 275612 | 3510 | 27813 | true | true |
+| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 161265 | 2039 | 22336 | true | true |
+| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3910104 | 33177 | 37822 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6244073 | 54274 | 58473 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3988998 | 34421 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3950056 | 33912 | 42113 | true | true |
+| relational-core-mini | reachability | forward | 2 | 2 | 3709776 | 31264 | 36685 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5456305 | 47606 | 53474 | true | true |
+| relational-core-mini | scc | forward | 8 | 8 | 6166990 | 52873 | 53796 | true | true |
+| relational-core-mini | transitive-closure | forward | 3 | 3 | 3910275 | 33201 | 37785 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
