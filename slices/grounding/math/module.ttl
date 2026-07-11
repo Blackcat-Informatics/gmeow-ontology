@@ -6133,6 +6133,50 @@ math:ProjectionDroppedParameterization
     skos:definition "The failure raised when a projection silently drops a math:Distribution's parameterization — emitting a bare family label without its math:DistributionParameterization and roles, so which conventional form was meant is lost. A projection must declare such a drop as recorded loss rather than perform it silently; a silent drop is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+# --- Projection loss carrier ------------------------------------------------ #
+# The bundle-data carrier for a math: projection's lowering into an external target,
+# reusing the logic: loss-ledger vocabulary VERBATIM (logic:preservationKind,
+# logic:unsupportedConstruct — Principle 17, no math: near-synonym). The two
+# projection-side failure classes above are join-requiring NATIVE gates over these
+# records; the carrier deliberately takes no sh:targetClass shape and is referenced by
+# no sh:class, exactly like the four lang: native projection gates.
+
+math:ProjectionRecord
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Projection Record"@x-gmeow-english ;
+    skos:definition "A record of a math: projection's lowering into an external target — the bundle-data carrier of its honest per-projection preservation judgment. It names the math: object it projects through math:projectionSource, the external target it lowers to through math:projectionTargetName, its logic:preservationKind, and — where lossy — the constructs it cannot carry through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary VERBATIM (Principle 17, no math: near-synonym). A projection that converts a source confidence into a math:ProbabilityValue declares that conversion through math:projectsConfidenceAsProbability and licenses it with a math:declaredConfidenceMapping; a lossy projection that drops a math:Distribution's parameterization enumerates it as recorded loss rather than performing the drop silently. The projection-side gates (math:ProjectionConfidenceAsProbability, math:ProjectionDroppedParameterization) are join-requiring native checks over these records, carrying no SHACL target shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:projectionSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "projection source"@x-gmeow-english ;
+    skos:definition "Relates a math:ProjectionRecord to the math: object it projects into an external target — a math:Distribution, a math:ProbabilityValue, or another math: object. Domain math:ProjectionRecord, range a math: object (stated in prose). The projection's honesty is judged against what this source carries: a parameterization on a source math:Distribution that the target cannot hold must be enumerated as dropped through logic:unsupportedConstruct."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:projectionTargetName
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "projection target name"@x-gmeow-english ;
+    skos:definition "Names the external target a math:ProjectionRecord lowers to — the OWL annotation surface, the SciPy/Stan parameter form, and the like. Domain math:ProjectionRecord, range xsd:string (stated in prose). The target is the addressee of the loss judgment: what preservation kind and unsupported constructs mean is fixed relative to it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:projectsConfidenceAsProbability
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "projects confidence as probability"@x-gmeow-english ;
+    skos:definition "Declares that a math:ProjectionRecord converts a source confidence score (logic:confidence) into a math:ProbabilityValue in its target. Domain math:ProjectionRecord, range xsd:boolean (stated in prose). A projection declaring this conversion must license it with an explicit math:declaredConfidenceMapping; converting confidence to probability without one erodes the logic: probability/confidence boundary at the projection seam (math:ProjectionConfidenceAsProbability), the projection-side counterpart of math:ConfidenceAsProbability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:declaredConfidenceMapping
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "declared confidence mapping"@x-gmeow-english ;
+    skos:definition "Relates a math:ProjectionRecord to the explicit declared mapping that licenses its confidence→probability conversion. Domain math:ProjectionRecord, range the declared mapping object (stated in prose). A projection converting a confidence into a math:ProbabilityValue names one; a confidence-to-probability conversion with no declared mapping is ill-formed (math:ProjectionConfidenceAsProbability)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # =========================================================================== #
 # Procedural constraints — projected to sh:SPARQLConstraint (the validation    #
 # twin of the derivation surface). Each is a compact logic: constraint-sugar   #

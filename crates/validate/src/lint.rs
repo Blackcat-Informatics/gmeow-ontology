@@ -150,6 +150,10 @@ mod codes {
         "validate.lint.math.probability-incomplete-dependency-model";
     pub const MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED: &str =
         "validate.lint.math.probability-exact-preservation-violated";
+    pub const MATH_PROJECTION_CONFIDENCE_AS_PROBABILITY: &str =
+        "validate.lint.math.projection-confidence-as-probability";
+    pub const MATH_PROJECTION_DROPPED_PARAMETERIZATION: &str =
+        "validate.lint.math.projection-dropped-parameterization";
     pub const NAMING_SELECTOR_TOKEN: &str = "validate.lint.naming.selector-token";
 }
 
@@ -824,6 +828,14 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // overclaim on a joint probability table. Each is computed from the exact-rational
     // carrier, not asserted data, and holds bundle-wide (`GraphMatch::Any`).
     check_math_probability_invariants(ds, &mut report);
+
+    // math: projection-side reasoned gate — the two join-requiring native checks over
+    // math:ProjectionRecord loss-ledger carriers: a projection converting a source
+    // confidence into a math:ProbabilityValue without a declared mapping, and a lossy
+    // projection dropping a source math:Distribution's parameterization without
+    // enumerating it in logic:unsupportedConstruct. Purely native (no SHACL target
+    // shape), exactly like the four lang: native projection gates.
+    check_math_projection_invariants(ds, &mut report);
 
     report
 }
@@ -2241,6 +2253,103 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
     }
 }
 
+/// The `math:` projection-side invariants: the two join-requiring native gates over
+/// `math:ProjectionRecord` loss-ledger carriers. Kept purely native (no SHACL target
+/// shape) exactly like the four `lang:` projection gates, because each requires a join
+/// the closed-world shape language cannot express. Runs bundle-wide (`GraphMatch::Any`).
+fn check_math_projection_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    check_math_projection_confidence_as_probability(ds, report);
+    check_math_projection_dropped_parameterization(ds, report);
+}
+
+/// `math:ProjectionConfidenceAsProbability` — a `math:ProjectionRecord` that declares it
+/// converts a source confidence into a `math:ProbabilityValue`
+/// (`math:projectsConfidenceAsProbability` true) MUST license that conversion with an
+/// explicit `math:declaredConfidenceMapping`. A conversion with none erodes the `logic:`
+/// probability/confidence boundary at the projection seam — the projection-side
+/// counterpart of `math:ConfidenceAsProbability`.
+fn check_math_projection_confidence_as_probability(ds: &RdfDataset, report: &mut LintReport) {
+    let projects_confidence = math_iri("projectsConfidenceAsProbability");
+    let declared_mapping = math_iri("declaredConfidenceMapping");
+    for r in ds_subjects_of_type(ds, &math_iri("ProjectionRecord")) {
+        let converts = ds_object_literals(ds, &r, &projects_confidence)
+            .iter()
+            .any(|v| v.trim() == "true");
+        if converts && !ds_has_predicate(ds, &r, &declared_mapping) {
+            report.push_error(
+                codes::MATH_PROJECTION_CONFIDENCE_AS_PROBABILITY,
+                r.clone(),
+                format!(
+                    "math:ProjectionConfidenceAsProbability: projection {r} converts a confidence into \
+                     a math:ProbabilityValue without a declared mapping (math:declaredConfidenceMapping)"
+                ),
+            );
+        }
+    }
+}
+
+/// `math:ProjectionDroppedParameterization` — a LOSSY `math:ProjectionRecord` (a declared
+/// `logic:preservationKind` that is not `logic:ExactPreservation`) whose first
+/// `math:projectionSource` is a `math:Distribution` carrying a
+/// `math:distributionParameterization` MUST enumerate that parameterization among its
+/// `logic:unsupportedConstruct` drops — as the parameterization IRI, or a string literal
+/// naming it. A lossy projection that drops the parameterization without recording it has
+/// performed the drop silently.
+fn check_math_projection_dropped_parameterization(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    let exact = logic_iri("ExactPreservation");
+    let projection_source = math_iri("projectionSource");
+    let parameterization = math_iri("distributionParameterization");
+    let unsupported = logic_iri("unsupportedConstruct");
+    for r in ds_subjects_of_type(ds, &math_iri("ProjectionRecord")) {
+        // Only a lossy projection can drop anything: it declares at least one preservation
+        // kind and NONE of them is `logic:ExactPreservation`. An undeclared preservation
+        // kind is out of scope here, never treated as lossy (no false positive).
+        let kinds = ds_object_iris(ds, &r, &preservation_kind);
+        if kinds.is_empty() || kinds.contains(&exact) {
+            continue;
+        }
+        let Some(src) = ds_object_iris_sorted(ds, &r, &projection_source)
+            .into_iter()
+            .next()
+        else {
+            continue;
+        };
+        if !ds_has_type(ds, &src, &math_iri("Distribution")) {
+            continue;
+        }
+        // The drop list: `logic:unsupportedConstruct` values, whether IRIs or string
+        // literals (the property is a DatatypeProperty, but a drop may be recorded either
+        // way, so the gate accepts both — the parameterization IRI, or a literal whose
+        // lowercased text contains the parameterization's local name).
+        let drop_iris = ds_object_iris(ds, &r, &unsupported);
+        let drop_literals: Vec<String> = ds_object_literals(ds, &r, &unsupported)
+            .into_iter()
+            .map(|d| d.to_lowercase())
+            .collect();
+        for param in ds_object_iris_sorted(ds, &src, &parameterization) {
+            let local = param
+                .rsplit(['/', '#'])
+                .next()
+                .unwrap_or(param.as_str())
+                .to_lowercase();
+            let recorded = drop_iris.contains(&param)
+                || (!local.is_empty() && drop_literals.iter().any(|d| d.contains(&local)));
+            if !recorded {
+                report.push_error(
+                    codes::MATH_PROJECTION_DROPPED_PARAMETERIZATION,
+                    format!("{r}\t{param}"),
+                    format!(
+                        "math:ProjectionDroppedParameterization: lossy projection {r} drops the \
+                         distribution parameterization of {src} without enumerating it in \
+                         logic:unsupportedConstruct"
+                    ),
+                );
+            }
+        }
+    }
+}
+
 /// Native twin of [`check_annotation_literal`].
 fn ds_check_annotation_literal(
     subject: &str,
@@ -3621,6 +3730,74 @@ mod tests {
         for ttl in clean {
             let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
             for class in MATH_PROBABILITY_CLASSES {
+                assert!(
+                    !report.errors().iter().any(|e| e.contains(class)),
+                    "clean fixture must not fire {class}: {:?}",
+                    report.errors()
+                );
+            }
+        }
+    }
+
+    /// The two native projection-side failure classes the isolation test polices.
+    const MATH_PROJECTION_CLASSES: [&str; 2] = [
+        "math:ProjectionConfidenceAsProbability",
+        "math:ProjectionDroppedParameterization",
+    ];
+
+    #[test]
+    fn math_projection_counter_examples_fire_exactly_their_class() {
+        // Each projection-side counter-example fires EXACTLY its named failure class (and
+        // not the other projection class), so each (fixture, class) pair is load-bearing.
+        let cases: [(&str, &str); 2] = [
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/projection-confidence-as-probability.ttl"
+                ),
+                "math:ProjectionConfidenceAsProbability",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/projection-dropped-parameterization.ttl"
+                ),
+                "math:ProjectionDroppedParameterization",
+            ),
+        ];
+        for (ttl, expected) in cases {
+            let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            assert!(
+                report.errors().iter().any(|e| e.contains(expected)),
+                "fixture must fire {expected}: {:?}",
+                report.errors()
+            );
+            for other in MATH_PROJECTION_CLASSES {
+                if other == expected {
+                    continue;
+                }
+                assert!(
+                    !report.errors().iter().any(|e| e.contains(other)),
+                    "fixture for {expected} must not also fire {other}: {:?}",
+                    report.errors()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn math_projection_clean_fixtures_fire_no_projection_class() {
+        // Each clean conformance fixture is the positive counterpart of one projection
+        // counter-example and MUST raise neither projection failure class.
+        let clean: [&str; 2] = [
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/projection-confidence-mapping-declared.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/projection-parameterization-recorded.ttl"
+            ),
+        ];
+        for ttl in clean {
+            let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            for class in MATH_PROJECTION_CLASSES {
                 assert!(
                     !report.errors().iter().any(|e| e.contains(class)),
                     "clean fixture must not fire {class}: {:?}",

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fixture for the projection-loss competency question: one flagged, structurally-visible
+# math:ProjectionRecord that converts a source confidence into a math:ProbabilityValue
+# (math:projectsConfidenceAsProbability true) WITHOUT a math:declaredConfidenceMapping —
+# the projection-side confidence/probability erosion the CQ surfaces from the loss ledger.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:confidenceProjection a math:ProjectionRecord ;
+    math:projectionSource ex:extractionScore ;
+    math:projectionTargetName "OWL annotation (probability literal)" ;
+    math:projectsConfidenceAsProbability true .
