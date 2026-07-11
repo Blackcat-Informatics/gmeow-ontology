@@ -257,74 +257,85 @@ pub struct TierFloor {
     pub local: String,
 }
 
+/// The outcome of a floor-monotonicity diff: hard `violations` that red the gate,
+/// and permitted `relaxations` that are surfaced as notes but do NOT red.
+///
+/// A committed floor may be RE-ANCHORED downward when the axis's underlying measure
+/// changes (the old floor value denoted a different quantity), so a lowering is a
+/// permitted, logged relaxation — not a violation. Silently dropping a still-live
+/// floor entirely IS a violation: it removes all protection with no record.
+#[derive(Debug, Default)]
+pub struct FloorMonotonicity {
+    /// Hard violations (a still-live floor DELETED). Non-empty ⇒ the gate reds.
+    pub violations: Vec<String>,
+    /// Permitted, logged lowerings (a committed floor re-anchored down).
+    pub relaxations: Vec<String>,
+}
+
 /// Floor-monotonicity check for the per-slice TIER floor file: diff the committed
-/// floor at the merge base (`base`) against the working tree (`working`) and red on
-/// any *lowering* of a floor line, or on the *deletion* of a floor for a slice that
-/// is still live (`live_slice` returns `true`). This is the enforcement of the
-/// file's own "may only be raised" ratchet promise — the existing
-/// [`evaluate_ratchet`] only checks the declared tier against the CURRENT floor and
-/// so cannot notice a PR that silently lowers the floor line itself.
+/// floor at the merge base (`base`) against the working tree (`working`). A lowering
+/// is a permitted, logged relaxation (a measure change may re-anchor a floor); the
+/// only hard violation is the *deletion* of a floor for a slice that is still live
+/// (`live_slice` returns `true`).
 ///
 /// Rules (all pure, order-deterministic via the `BTreeMap` iteration):
-/// - a `(slice)` present in BOTH maps must satisfy `rank_now >= rank_before`;
+/// - a `(slice)` present in BOTH maps: a raise/hold is silent; a lowering is a
+///   logged relaxation;
 /// - an **addition** (`working` only) is always allowed;
 /// - a **deletion** (`base` only) is allowed ONLY when the slice is no longer live
-///   (greenfield removal); deleting a still-live floor reds.
-///
-/// Returns one message per violation, empty when monotonic.
+///   (greenfield removal); deleting a still-live floor is a violation.
 #[must_use]
 pub fn tier_floor_monotonicity(
     file_label: &str,
     base: &BTreeMap<String, TierFloor>,
     working: &BTreeMap<String, TierFloor>,
     live_slice: impl Fn(&str) -> bool,
-) -> Vec<String> {
-    let mut errs = Vec::new();
+) -> FloorMonotonicity {
+    let mut out = FloorMonotonicity::default();
     for (slice, before) in base {
         match working.get(slice) {
-            Some(now) if now.rank < before.rank => errs.push(format!(
-                "{file_label}: slice {slice} tier floor LOWERED {} → {} — a committed floor may only be raised, never lowered",
+            Some(now) if now.rank < before.rank => out.relaxations.push(format!(
+                "{file_label}: slice {slice} tier floor re-anchored {} → {} (permitted lowering — logged)",
                 before.local, now.local
             )),
             Some(_) => {}
-            None if live_slice(slice) => errs.push(format!(
+            None if live_slice(slice) => out.violations.push(format!(
                 "{file_label}: slice {slice} tier floor {} DELETED while the slice is still live — a live floor may not be removed",
                 before.local
             )),
             None => {}
         }
     }
-    errs
+    out
 }
 
 /// Floor-monotonicity check for the PER-AXIS floor file — the axis-level analogue
-/// of [`tier_floor_monotonicity`]. A `(slice, axis)` present in both maps must
-/// satisfy `floor_now >= floor_before` under the SAME `f64::EPSILON` tolerance
-/// [`evaluate_axis_floor`] uses; additions are allowed; a deletion is allowed only
-/// when the `(slice, axis)` is no longer live (`live` returns `true` iff the slice
-/// still exists AND the axis is still a rubric axis). Reds on a lowering or on the
-/// deletion of a still-live floor. Pure; the caller feeds both parsed maps.
+/// of [`tier_floor_monotonicity`]. A `(slice, axis)` lowering (under the SAME
+/// `f64::EPSILON` tolerance [`evaluate_axis_floor`] uses) is a permitted, logged
+/// relaxation; additions are allowed; a deletion is a violation only when the
+/// `(slice, axis)` is still live (`live` returns `true` iff the slice still exists
+/// AND the axis is still a rubric axis). Pure; the caller feeds both parsed maps.
 #[must_use]
 pub fn axis_floor_monotonicity(
     file_label: &str,
     base: &BTreeMap<(String, String), f64>,
     working: &BTreeMap<(String, String), f64>,
     live: impl Fn(&str, &str) -> bool,
-) -> Vec<String> {
-    let mut errs = Vec::new();
+) -> FloorMonotonicity {
+    let mut out = FloorMonotonicity::default();
     for ((slice, axis), before) in base {
         match working.get(&(slice.clone(), axis.clone())) {
-            Some(now) if *now + f64::EPSILON < *before => errs.push(format!(
-                "{file_label}: slice {slice} axis {axis} floor LOWERED {before:.6} → {now:.6} — a committed floor may only be raised, never lowered"
+            Some(now) if *now + f64::EPSILON < *before => out.relaxations.push(format!(
+                "{file_label}: slice {slice} axis {axis} floor re-anchored {before:.6} → {now:.6} (permitted lowering — logged)"
             )),
             Some(_) => {}
-            None if live(slice, axis) => errs.push(format!(
+            None if live(slice, axis) => out.violations.push(format!(
                 "{file_label}: slice {slice} axis {axis} floor {before:.6} DELETED while still live — a live floor may not be removed"
             )),
             None => {}
         }
     }
-    errs
+    out
 }
 
 /// The `gmeow:sliceQualityTier` a slice's `manifest.ttl` declares, resolved against
@@ -682,29 +693,34 @@ mod tests {
     }
 
     #[test]
-    fn tier_floor_monotonicity_reds_on_lowering_and_live_deletion() {
+    fn tier_floor_lowering_is_a_permitted_logged_relaxation() {
         let mut base = BTreeMap::new();
         base.insert("ex:logic".to_owned(), tf(2, "tierLinked"));
         base.insert("ex:math".to_owned(), tf(1, "tierGrounded"));
         base.insert("ex:gone".to_owned(), tf(1, "tierGrounded"));
 
-        // A lowered floor (logic 2→1), a raised floor (math 1→3, allowed), an added
-        // slice (tags, allowed), a live deletion (math? no — `gone` deleted). `gone`
-        // is no longer live → its deletion is allowed; `logic` lowering reds.
+        // A lowered floor (logic 2→1, permitted re-anchor), a raised floor
+        // (math 1→3), an added slice (tags), and a deletion of a no-longer-live slice
+        // (`gone`). None of these red; the lowering is logged as a relaxation.
         let mut working = BTreeMap::new();
         working.insert("ex:logic".to_owned(), tf(1, "tierGrounded"));
         working.insert("ex:math".to_owned(), tf(3, "tierExemplified"));
         working.insert("ex:tags".to_owned(), tf(0, "tierRegistered"));
 
         let live = |s: &str| s != "ex:gone"; // every base slice but `gone` still exists
-        let errs = tier_floor_monotonicity("floors.tsv", &base, &working, live);
-        assert_eq!(errs.len(), 1, "only the lowering reds: {errs:#?}");
+        let out = tier_floor_monotonicity("floors.tsv", &base, &working, live);
+        assert!(out.violations.is_empty(), "no hard violations: {out:#?}");
+        assert_eq!(
+            out.relaxations.len(),
+            1,
+            "only the lowering is logged: {out:#?}"
+        );
         assert!(
-            errs[0].contains("ex:logic")
-                && errs[0].contains("LOWERED")
-                && errs[0].contains("tierLinked")
-                && errs[0].contains("tierGrounded"),
-            "the red names the slice and old → new: {errs:#?}"
+            out.relaxations[0].contains("ex:logic")
+                && out.relaxations[0].contains("re-anchored")
+                && out.relaxations[0].contains("tierLinked")
+                && out.relaxations[0].contains("tierGrounded"),
+            "the relaxation names the slice and old → new: {out:#?}"
         );
     }
 
@@ -716,11 +732,19 @@ mod tests {
         base.insert("ex:logic".to_owned(), tf(2, "tierLinked"));
         let working = BTreeMap::new();
         // Slice still live → deletion reds.
-        let errs = tier_floor_monotonicity("floors.tsv", &base, &working, |_| true);
-        assert_eq!(errs.len(), 1, "still-live deletion reds: {errs:#?}");
-        assert!(errs[0].contains("DELETED") && errs[0].contains("ex:logic"));
+        let out = tier_floor_monotonicity("floors.tsv", &base, &working, |_| true);
+        assert_eq!(
+            out.violations.len(),
+            1,
+            "still-live deletion reds: {out:#?}"
+        );
+        assert!(out.violations[0].contains("DELETED") && out.violations[0].contains("ex:logic"));
         // Slice no longer exists → deletion allowed (greenfield removal).
-        assert!(tier_floor_monotonicity("floors.tsv", &base, &working, |_| false).is_empty());
+        assert!(
+            tier_floor_monotonicity("floors.tsv", &base, &working, |_| false)
+                .violations
+                .is_empty()
+        );
     }
 
     #[test]
@@ -730,40 +754,45 @@ mod tests {
         let mut working = BTreeMap::new();
         working.insert("ex:logic".to_owned(), tf(2, "tierLinked")); // raise — allowed
         working.insert("ex:new".to_owned(), tf(0, "tierRegistered")); // addition — allowed
+        let out = tier_floor_monotonicity("floors.tsv", &base, &working, |_| true);
         assert!(
-            tier_floor_monotonicity("floors.tsv", &base, &working, |_| true).is_empty(),
-            "a raise plus an addition is clean"
+            out.violations.is_empty() && out.relaxations.is_empty(),
+            "a raise plus an addition is clean: {out:#?}"
         );
         // Holding exactly at the same rank is also clean.
         let mut same = BTreeMap::new();
         same.insert("ex:logic".to_owned(), tf(1, "tierGrounded"));
-        assert!(tier_floor_monotonicity("floors.tsv", &base, &same, |_| true).is_empty());
+        let held = tier_floor_monotonicity("floors.tsv", &base, &same, |_| true);
+        assert!(held.violations.is_empty() && held.relaxations.is_empty());
     }
 
     #[test]
-    fn axis_floor_monotonicity_reds_on_lowering_passes_on_raise() {
+    fn axis_floor_lowering_is_a_permitted_logged_relaxation() {
         let key = |s: &str| ("ex:logic".to_owned(), s.to_owned());
         let mut base = BTreeMap::new();
         base.insert(key("axisGmn1Coverage"), 0.98_f64);
         let mut working = BTreeMap::new();
-        // Lowered below tolerance → reds.
+        // Lowered below tolerance → logged relaxation, not a red.
         working.insert(key("axisGmn1Coverage"), 0.90_f64);
-        let errs = axis_floor_monotonicity("axis.tsv", &base, &working, |_, _| true);
-        assert_eq!(errs.len(), 1, "an axis-floor lowering reds: {errs:#?}");
+        let out = axis_floor_monotonicity("axis.tsv", &base, &working, |_, _| true);
+        assert!(out.violations.is_empty(), "no hard violations: {out:#?}");
+        assert_eq!(out.relaxations.len(), 1, "the lowering is logged: {out:#?}");
         assert!(
-            errs[0].contains("ex:logic")
-                && errs[0].contains("axisGmn1Coverage")
-                && errs[0].contains("LOWERED"),
-            "names the slice, axis, and lowering: {errs:#?}"
+            out.relaxations[0].contains("ex:logic")
+                && out.relaxations[0].contains("axisGmn1Coverage")
+                && out.relaxations[0].contains("re-anchored"),
+            "names the slice, axis, and re-anchor: {out:#?}"
         );
-        // A raise passes.
+        // A raise passes silently.
         let mut raised = BTreeMap::new();
         raised.insert(key("axisGmn1Coverage"), 1.0_f64);
-        assert!(axis_floor_monotonicity("axis.tsv", &base, &raised, |_, _| true).is_empty());
-        // Holding exactly at the floor passes (within EPSILON).
+        let up = axis_floor_monotonicity("axis.tsv", &base, &raised, |_, _| true);
+        assert!(up.violations.is_empty() && up.relaxations.is_empty());
+        // Holding exactly at the floor passes silently (within EPSILON).
         let mut same = BTreeMap::new();
         same.insert(key("axisGmn1Coverage"), 0.98_f64);
-        assert!(axis_floor_monotonicity("axis.tsv", &base, &same, |_, _| true).is_empty());
+        let held = axis_floor_monotonicity("axis.tsv", &base, &same, |_, _| true);
+        assert!(held.violations.is_empty() && held.relaxations.is_empty());
     }
 
     #[test]
@@ -773,11 +802,19 @@ mod tests {
         base.insert(key, 1.0_f64);
         let working = BTreeMap::new();
         // Slice + axis still live → deletion reds.
-        let errs = axis_floor_monotonicity("axis.tsv", &base, &working, |_, _| true);
-        assert_eq!(errs.len(), 1, "still-live axis deletion reds: {errs:#?}");
-        assert!(errs[0].contains("DELETED"));
+        let out = axis_floor_monotonicity("axis.tsv", &base, &working, |_, _| true);
+        assert_eq!(
+            out.violations.len(),
+            1,
+            "still-live axis deletion reds: {out:#?}"
+        );
+        assert!(out.violations[0].contains("DELETED"));
         // Axis (or slice) no longer live → deletion allowed.
-        assert!(axis_floor_monotonicity("axis.tsv", &base, &working, |_, _| false).is_empty());
+        assert!(
+            axis_floor_monotonicity("axis.tsv", &base, &working, |_, _| false)
+                .violations
+                .is_empty()
+        );
     }
 
     #[test]
