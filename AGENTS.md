@@ -338,6 +338,12 @@ the domain conformance binaries above, and a deterministic cost-partition bench
 the fixture-only path — so the per-twin scan is irreducible: no setup cache
 amortizes it and folding raises the per-test maximum to setup + 8× the scan, so it
 joins the same off-gate group);
+the `gmeow-validate` `consumer_advisory_shape` binary (all three tests use
+`Case::with_ontology()`/`.shape_union()` — the same whole-ontology-union
+H8 `sh:sparql` scan as the conformance binaries above, ~28–29 s per test under the
+on-gate parallel run, straddling the 25 s cliff; a PURE whole-ontology-union binary
+with no cheap tests to keep on-gate, so the whole binary joins the off-gate group
+and the advisory-shape behaviour stays covered on `maint-heavy`);
 `gmeow-pipeline::stages::carrier::quality_assessment_tests::quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate`
 (86.2 s; it builds the full self-description carrier, scoring every one of the ~81
 slices to attach the `graph/quality-assessment` named graph that folds into

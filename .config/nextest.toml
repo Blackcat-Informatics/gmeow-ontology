@@ -83,6 +83,15 @@
 #     the per-test maximum to setup + 8x the scan. It rides the same 25 s cliff as its
 #     siblings, so it joins this off-gate group; the cheap producer coverage stays
 #     on the per-commit gate.
+#   - gmeow-validate consumer_advisory_shape: ~28-29 s per test under the on-gate
+#     parallel run. All three tests (use_for_/avoid_for_consumer_pointing_at_non_
+#     projection_context_is_flagged, ontology_advisory_annotations_do_not_over_flag)
+#     use Case::with_ontology()/.shape_union() — the SAME whole-ontology-union
+#     H8 sh:sparql scan measured above, so the binary is squarely in this cost class
+#     and was straddling the 25 s cliff on-gate (the exact flake this group exists to
+#     retire). It is a PURE whole-ontology-union binary (no cheap tests to keep
+#     on-gate), so the whole binary joins the off-gate group; the advisory-shape
+#     behaviour stays covered on maint-heavy.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
 #     ~570 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
 #     the native Nemo chase over it twice (once benign, once with an injected
@@ -255,7 +264,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & binary(fanout_parity))
     | (package(gmeow-pipeline) & test(/stages::superset::tests::project_bundle_reconstructs_the_committed_tree_and_gate_is_clean/))
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
-    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers) | binary(conformance_affect_producer_union)))
+    | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers) | binary(conformance_affect_producer_union) | binary(consumer_advisory_shape)))
     | (package(gmeow-dev-cli) & binary(cli_parity) & (test(build_writes_serializations) | test(project_view_over_the_snapshot)))
     | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
