@@ -381,14 +381,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage|skos:defin
 msgid "The axis for translation coverage measured per-language by per-literal-class over every localizable literal — labels, definitions, examples, usage coats, rationales, and docs prose — with full coverage requiring English, French, and Mandarin routed through the audited-translation machinery. It is NOT a single ratio: a bare parallel literal with no translation record grades below an audited one."
 msgstr "L'axe pour la couverture de traduction mesurée par langue et par classe de littéral sur chaque littéral localisable — étiquettes, définitions, exemples, habits d'usage, justifications et prose documentaire — la couverture complète exigeant l'anglais, le français et le mandarin acheminés par la machinerie de traduction auditée. Ce n'est PAS un simple ratio : un littéral parallèle brut sans enregistrement de traduction est noté en dessous d'un littéral audité."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDocMaturity|rdfs:label"
-msgid "Documentation-Maturity exemption"
-msgstr "Exemption de maturité documentaire"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/exemptionDocMaturity|skos:definition"
-msgid "Exempts the documentation-maturity sub-metric of the documentation axis: the per-slice documentation-maturity tier is owned by the documentation standard and consumed as-is here, never redefined, and its producer is not yet in-repo."
-msgstr "Exempte la sous-métrique de maturité documentaire de l'axe de documentation : le palier de maturité documentaire par slice appartient au standard de documentation et est consommé tel quel ici, jamais redéfini, et son producteur n'est pas encore dans le dépôt."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/exemptionGmnProjection|rdfs:label"
 msgid "GMN-projection exemption"
 msgstr "Exemption de projection GMN"
