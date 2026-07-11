@@ -1,23 +1,24 @@
 ---
 source: crates/docs/tests/mdbook_render.rs
+assertion_line: 244
 expression: head
 ---
-# Acquaintance Relationship
+# Aboutness Mode
 
-`gmeow:AcquaintanceRelationship` · Class
+`gmeow:AboutnessMode` · Class
 
 | Field | Value |
 | --- | --- |
-| CURIE | `gmeow:AcquaintanceRelationship` |
-| IRI | `https://blackcatinformatics.ca/gmeow/AcquaintanceRelationship` |
+| CURIE | `gmeow:AboutnessMode` |
+| IRI | `https://blackcatinformatics.ca/gmeow/AboutnessMode` |
 | Category | Class |
-| Slice | [GMEOW Contacts Module](../../slices/contacts/index.md) |
+| Slice | [GMEOW Core Module](../../slices/kernel/index.md) |
 
-![completeness: Docs 12/17](https://blackcatinformatics.ca/gmeow/docs/badges/completeness/12.svg) ![stability: stable](https://blackcatinformatics.ca/gmeow/docs/badges/stability/stable.svg) ![category: Class](https://blackcatinformatics.ca/gmeow/docs/badges/category/class.svg) ![box: TBox](https://blackcatinformatics.ca/gmeow/docs/badges/box/boxtbox.svg) ![stereotype: SubKind](https://blackcatinformatics.ca/gmeow/docs/badges/stereotype/subkind.svg)
+![completeness: Docs 10/17](https://blackcatinformatics.ca/gmeow/docs/badges/completeness/10.svg) ![stability: stable](https://blackcatinformatics.ca/gmeow/docs/badges/stability/stable.svg) ![category: Class](https://blackcatinformatics.ca/gmeow/docs/badges/category/class.svg) ![box: TBox](https://blackcatinformatics.ca/gmeow/docs/badges/box/boxtbox.svg) ![stereotype: AbstractIndividualType](https://blackcatinformatics.ca/gmeow/docs/badges/stereotype/abstractindividualtype.svg)
 
 ## Definition
 
-An interpersonal relationship of social acquaintance — agents who have met and know one another \(the reified form of hasMet\)\.
+The rhetorical relation between an information carrier and its subject matter — whether the carrier describes the subject \(mention: reporting, quoting, depicting, analyzing\) or enacts it \(use: performing, demanding, exemplifying, embodying\)\. A value vocabulary of individuals \(never subclasses\)\. Orthogonal to granularity, determinacy, sensitivity, confidence, and standpoint modality \(Principle 9\): a carrier may describe one subject while enacting another, and distinct vantages may classify the same carrier differently through the statement layer\. The distinction every rubric, citation, and evidence assessment eventually needs: text ABOUT deception is not text THAT deceives\.
 
 ## For developers
 

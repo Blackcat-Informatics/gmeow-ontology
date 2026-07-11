@@ -5595,19 +5595,23 @@ fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
 
 /// A link from a term CURIE to its term page, or a plain `code` CURIE when the
 /// term is not documented.
-/// The compact CURIE for an IRI: `gmeow:Local` / `logic:Local` for the two
-/// GMEOW-family namespaces, otherwise the IRI unchanged. Used by the constraint
-/// catalog to abbreviate a rule's applies-to terms and formalized axiom.
+/// The compact CURIE for an IRI: a `gmeow:` / `logic:` / `math:` / `lang:` CURIE
+/// for the GMEOW-family namespaces, otherwise the IRI unchanged. Used by the
+/// constraint catalog to abbreviate a rule's applies-to terms and formalized
+/// axiom.
 fn to_curie(iri: &str) -> String {
-    const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
-    if let Some(local) = iri.strip_prefix(GMEOW_NS) {
-        format!("gmeow:{local}")
-    } else if let Some(local) = iri.strip_prefix(LOGIC_NS) {
-        format!("logic:{local}")
-    } else {
-        iri.to_string()
+    const FAMILY: &[(&str, &str)] = &[
+        ("https://blackcatinformatics.ca/gmeow/", "gmeow"),
+        ("https://blackcatinformatics.ca/logic/", "logic"),
+        ("https://blackcatinformatics.ca/math/", "math"),
+        ("https://blackcatinformatics.ca/lang/", "lang"),
+    ];
+    for (ns, prefix) in FAMILY {
+        if let Some(local) = iri.strip_prefix(ns) {
+            return format!("{prefix}:{local}");
+        }
     }
+    iri.to_string()
 }
 
 fn curie_link(model: &DocsModel, from: &str, curie: &str) -> String {
