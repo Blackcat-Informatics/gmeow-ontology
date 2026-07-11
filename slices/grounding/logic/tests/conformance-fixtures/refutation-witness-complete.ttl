@@ -12,3 +12,8 @@
 ex:refutationWitness a logic:RefutationAcceptanceWitness ;
     logic:namesContradictionWitness ex:contradictionWitnessAB ;
     ex:executesNativeProducer "logic::conjecture::conjecture_test" .
+
+ex:contradictionWitnessAB a logic:ContradictionWitness ;
+    logic:witnessWorld "http://world/scenario" ;
+    logic:witnessIndividual "http://ex/a" ;
+    logic:witnessPremise "A(a) and not-A(a)" .

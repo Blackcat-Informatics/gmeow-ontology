@@ -33,10 +33,27 @@
 use std::collections::{BTreeSet, HashMap, HashSet, hash_map::Entry};
 use std::path::{Path, PathBuf};
 
+use gmeow_errors::{Diag, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 use gmeow_validate::lint::{LintConfig, structural_lint_dataset};
 use gmeow_validate::store::{dataset_from_paths, parse_file_dataset, shacl_validate_dataset};
 use purrdf::shapes::engine::parse_shapes;
 use purrdf::{RdfDataset, RdfTerm};
+
+define_diag_kind! {
+    /// A flagship fixture or native negative execution failed before it could produce the
+    /// semantic failure-class evidence the acceptance harness requires.
+    pub struct FlagshipExecution { detail: String }
+    code = "pipeline.test.flagship-execution";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "flagship execution failed: {}", detail;
+}
+
+/// Lift test-harness input/infrastructure failures onto the repository-wide diagnostic substrate.
+pub fn flagship_error(detail: impl Into<String>) -> Diag {
+    Diag::of_kind(FlagshipExecution {
+        detail: detail.into(),
+    })
+}
 
 /// The shared `gmeow:` namespace. The flagship-manifest PREDICATES (the acceptance-bar
 /// wiring) and the shape→failure-class annotation predicate live here; the failure-class
@@ -472,18 +489,38 @@ pub fn run_flagship_discharge_with_counterexample(
     counterexample_assert: &dyn Fn(
         &Flagship,
         &FlagshipCtx<'_>,
-    ) -> Result<CounterExampleExecution, String>,
+    ) -> gmeow_errors::Result<CounterExampleExecution>,
 ) {
     let flagships = parse_manifest(spec, expected_count);
 
-    // The slice SHACL shapes, parsed once for the SHACL channel.
-    let shapes_path = spec.slice_root.join("shapes.ttl");
-    let shapes_text = std::fs::read_to_string(&shapes_path).expect("read slice shapes.ttl");
+    // Parse the enforcing SHACL surface once. A slice still being migrated reads its local
+    // `shapes.ttl`; a fully migrated slice reads the canonical generated validation and
+    // procedural projections instead (Principle 17). Deleting a proven-redundant local file must
+    // not delete the negative-test channel that its projection now owns.
+    let legacy_shapes = spec.slice_root.join("shapes.ttl");
+    let shape_paths = if legacy_shapes.is_file() {
+        vec![legacy_shapes]
+    } else {
+        vec![
+            repo_root().join("generated/shapes/validation-shapes.ttl"),
+            repo_root().join("generated/shapes/procedural-constraints.ttl"),
+        ]
+    };
+    let shapes_text = shape_paths
+        .iter()
+        .map(|path| {
+            std::fs::read_to_string(path)
+                .unwrap_or_else(|e| panic!("read enforcing shapes {}: {e}", path.display()))
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
     let shapes = parse_shapes(&shapes_text).expect("slice shapes parse");
 
     // The shape→failure-class map, resolved from the slice shapes AND the shared gmeow-shapes,
     // so both slice failures and the shared unwired class resolve through one map.
-    let shape_class = shape_class_map(&[shapes_path.clone(), shared_shapes_path()]);
+    let mut shape_class_paths = shape_paths;
+    shape_class_paths.push(shared_shapes_path());
+    let shape_class = shape_class_map(&shape_class_paths);
 
     // Producers ingest the real slice catalog and repo tree; discover them once.
     let catalog = repo_catalog();

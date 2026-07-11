@@ -72,6 +72,11 @@ const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_ISDEFINEDBY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 /// `rdfs:comment` — a documentation annotation the reader absorbs.
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+/// Typed conformance-failure metadata. It does not alter the accepted graph, but the reader
+/// preserves it so migration tooling can verify that a projected replacement raises the same
+/// failure class and can reject ambiguous duplicate declarations.
+const GMEOW_ENFORCES_FAILURE_CLASS: &str =
+    "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
 /// The SKOS namespace — every `skos:*` annotation is skipped silently.
 const SKOS: &str = "http://www.w3.org/2004/02/skos/core#";
 /// `xsd:string` / `xsd:integer` / `xsd:dateTime` — the datatype IRIs the reader keys on.
@@ -945,6 +950,7 @@ pub fn read_shacl_shape(
     let mut properties: Vec<PropertyConstraintIr> = Vec::new();
     let mut node_acc = CompAcc::new();
     let mut unsupported: Vec<String> = Vec::new();
+    let mut failure_class: Option<String> = None;
 
     let set_target = |t: ShapeTarget, cur: &mut Option<ShapeTarget>| -> gmeow_errors::Result<()> {
         if cur.is_some() {
@@ -966,6 +972,15 @@ pub fn read_shacl_shape(
             {
                 is_node_shape = true;
             }
+            continue;
+        }
+        if pred == GMEOW_ENFORCES_FAILURE_CLASS {
+            if failure_class.is_some() {
+                return Err(parse_err(format!(
+                    "read_shacl_shape: <{node_shape_iri}> carries duplicate gmeow:enforcesFailureClass metadata"
+                )));
+            }
+            failure_class = Some(obj_iri(graph, obj, node_shape_iri)?);
             continue;
         }
         match shacl_local(&pred) {
@@ -1023,8 +1038,11 @@ pub fn read_shacl_shape(
         })?,
     };
     let node_components = node_acc.finish(node_shape_iri)?;
-    let ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)?
+    let mut ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)?
         .with_node_components(node_components)?;
+    if let Some(failure_class) = failure_class {
+        ir = ir.with_failure_class(failure_class)?;
+    }
 
     unsupported.sort();
     unsupported.dedup();
@@ -1519,6 +1537,36 @@ mod tests {
             shape.iri,
             shape,
             parsed
+        );
+    }
+
+    #[test]
+    fn round_trips_typed_failure_metadata_without_residue() {
+        let shape = ValidationShapeIr::new(
+            "https://ex/Shape",
+            ShapeTarget::Class("https://ex/C".into()),
+            vec![],
+            None,
+        )
+        .unwrap()
+        .with_failure_class("https://ex/Failure")
+        .unwrap();
+        let parsed = read_back(&shape);
+        assert_eq!(parsed.failure_class.as_deref(), Some("https://ex/Failure"));
+    }
+
+    #[test]
+    fn duplicate_typed_failure_metadata_is_malformed() {
+        let ttl = format!(
+            "{HEADER}<https://ex/Shape> a sh:NodeShape ;\n\
+             sh:targetClass <https://ex/C> ;\n\
+             <{GMEOW_ENFORCES_FAILURE_CLASS}> <https://ex/FailureA>, <https://ex/FailureB> .\n"
+        );
+        let ds = parse_ttl(&ttl);
+        let err = read_shacl_shape(&ds, "https://ex/Shape").unwrap_err();
+        assert!(
+            err.message()
+                .contains("duplicate gmeow:enforcesFailureClass")
         );
     }
 

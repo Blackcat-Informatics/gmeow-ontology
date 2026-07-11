@@ -40,7 +40,6 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_data
 use crate::dev_common::{fail, project_root};
 
 const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
-const SH_TARGETCLASS: &str = "http://www.w3.org/ns/shacl#targetClass";
 const SH_SPARQL: &str = "http://www.w3.org/ns/shacl#sparql";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The projected validation-shape surface, relative to the repo root.
@@ -49,6 +48,12 @@ const PROJECTED_REL: &str = "generated/shapes/validation-shapes.ttl";
 /// disjointness), relative to the repo root — where a legacy shape's cross-node `sh:sparql` residue
 /// is grounded once it is authored as a canonical `logic:` constraint.
 const CONSTRAINT_REL: &str = "generated/shapes/constraint-shapes.ttl";
+/// Canonical procedural-constraint projection. Residue is grounded only through an exact
+/// `logic:formalizes <legacy-shape-IRI>` link in this or the constraint surface.
+const PROCEDURAL_REL: &str = "generated/shapes/procedural-constraints.ttl";
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+const GMEOW_ENFORCES_FAILURE_CLASS: &str =
+    "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
 
 /// The verdict for one legacy shape.
 enum Verdict {
@@ -145,14 +150,42 @@ fn shapes_by_target(
 /// distinctness / acyclicity / disjointness) in `constraint-shapes.ttl`. A legacy shape whose only
 /// residue is a cross-node `sh:sparql` on a class in this set has that residue grounded by a
 /// canonical `logic:` constraint.
-fn constraint_target_classes(ds: &RdfDataset) -> std::collections::BTreeSet<String> {
+fn formalized_shape_iris(ds: &RdfDataset) -> std::collections::BTreeSet<String> {
     let mut out = std::collections::BTreeSet::new();
-    let Some(tc) = ds.term_id_by_value(&TermValue::iri(SH_TARGETCLASS)) else {
+    let Some(formalizes) = ds.term_id_by_value(&TermValue::iri(LOGIC_FORMALIZES)) else {
         return out;
     };
-    for q in ds.quads_for_pattern(None, Some(tc), None, GraphMatch::Any) {
-        if let TermRef::Iri(c) = ds.resolve(q.o) {
-            out.insert(c.to_owned());
+    for q in ds.quads_for_pattern(None, Some(formalizes), None, GraphMatch::Any) {
+        if let TermRef::Iri(iri) = ds.resolve(q.o) {
+            out.insert(iri.to_owned());
+        }
+    }
+    out
+}
+
+/// Failure classes carried by each exact `logic:formalizes` replacement. This keeps typed
+/// conformance diagnostics part of the migration proof even though they do not alter which data
+/// graph conforms.
+fn collect_formalized_failure_classes(
+    ds: &RdfDataset,
+) -> BTreeMap<String, std::collections::BTreeSet<String>> {
+    let mut out: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+    let (Some(formalizes), Some(enforces)) = (
+        ds.term_id_by_value(&TermValue::iri(LOGIC_FORMALIZES)),
+        ds.term_id_by_value(&TermValue::iri(GMEOW_ENFORCES_FAILURE_CLASS)),
+    ) else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(None, Some(formalizes), None, GraphMatch::Any) {
+        let TermRef::Iri(legacy) = ds.resolve(q.o) else {
+            continue;
+        };
+        for fc in ds.quads_for_pattern(Some(q.s), Some(enforces), None, GraphMatch::Any) {
+            if let TermRef::Iri(failure) = ds.resolve(fc.o) {
+                out.entry(legacy.to_owned())
+                    .or_default()
+                    .insert(failure.to_owned());
+            }
         }
     }
     out
@@ -212,7 +245,8 @@ fn target_label(target: &ShapeTarget) -> String {
 struct OracleCtx {
     projected: BTreeMap<ShapeTarget, (String, ShapeRead)>,
     functional_max: BTreeMap<String, u32>,
-    constraint_classes: std::collections::BTreeSet<String>,
+    formalized_shapes: std::collections::BTreeSet<String>,
+    formalized_failure_classes: BTreeMap<String, std::collections::BTreeSet<String>>,
     object_properties: std::collections::BTreeSet<String>,
 }
 
@@ -250,15 +284,25 @@ impl OracleCtx {
         // The projected FOL-constraint surface: which target classes have a `logic:`-backed
         // constraint shape (so a legacy shape's `sh:sparql` cross-node residue on that class is
         // grounded).
-        let constraint_classes = match parse_ttl_file(&root.join(CONSTRAINT_REL)) {
-            Ok(ds) => constraint_target_classes(&ds),
-            Err(_) => std::collections::BTreeSet::new(),
-        };
+        let mut formalized_shapes = std::collections::BTreeSet::new();
+        let mut formalized_failure_classes: BTreeMap<String, std::collections::BTreeSet<String>> =
+            BTreeMap::new();
+        for rel in [CONSTRAINT_REL, PROCEDURAL_REL] {
+            let ds = parse_ttl_file(&root.join(rel))?;
+            formalized_shapes.extend(formalized_shape_iris(&ds));
+            for (legacy, failures) in collect_formalized_failure_classes(&ds) {
+                formalized_failure_classes
+                    .entry(legacy)
+                    .or_default()
+                    .extend(failures);
+            }
+        }
 
         Ok(Self {
             projected,
             functional_max,
-            constraint_classes,
+            formalized_shapes,
+            formalized_failure_classes,
             object_properties: object_property_iris(root),
         })
     }
@@ -277,10 +321,17 @@ impl OracleCtx {
         let read = &stripped;
         // A residue that is ONLY `sh:sparql` is grounded when the shape's target class carries a
         // projected `logic:` constraint shape.
-        let sparql_only_residue_grounded = |unsupported: &[String], target: &ShapeTarget| {
+        let sparql_only_residue_grounded = |unsupported: &[String]| {
             !unsupported.is_empty()
                 && unsupported.iter().all(|p| p == SH_SPARQL)
-                && matches!(target, ShapeTarget::Class(c) if self.constraint_classes.contains(c))
+                && self.formalized_shapes.contains(iri)
+        };
+        let formalized_failure_matches = || match &read.ir.failure_class {
+            None => true,
+            Some(expected) => self
+                .formalized_failure_classes
+                .get(iri)
+                .is_some_and(|actual| actual.len() == 1 && actual.contains(expected)),
         };
         // A legacy class shape whose every constraint is a functional max-count (+ credited
         // existence min) has NO projected `targetClass` peer, because `owl:FunctionalProperty`
@@ -293,11 +344,11 @@ impl OracleCtx {
                 .iter()
                 .filter_map(|lp| {
                     let max = self.functional_max.get(&lp.path).copied();
-                    (max.is_some() || lp.min_count.is_some())
+                    max.is_some()
                         .then(|| {
                             PropertyConstraintIr::new(
                                 lp.path.clone(),
-                                lp.min_count,
+                                None,
                                 max,
                                 Some(ConstraintProvenance::OwlRestriction),
                                 vec![],
@@ -325,32 +376,32 @@ impl OracleCtx {
                         Verdict::NoProjectedPeer
                     }
                 }
+                None if sparql_only_residue_grounded(&read.unsupported)
+                    && formalized_failure_matches() =>
+                {
+                    // Pure procedural constraints intentionally have no declarative class-shape
+                    // peer. An exact logic:formalizes link proves that the canonical constraint
+                    // projects the legacy shape's only enforcement residue.
+                    Verdict::EquivGroundedResidue
+                }
                 None => Verdict::NoProjectedPeer,
             },
             Some((_, proj)) => {
-                // Fold functional-property max-counts (carried on `sh:targetSubjectsOf P` shapes)
-                // onto the class shape's matching paths, so a legacy per-path max reproduced by a
-                // functional characteristic reads as equivalent. Also credit the legacy per-path
-                // MIN (an existence obligation): the canon authors existence as `owl:someValuesFrom`,
-                // which projects to a bare `sh:class` obligation with NO `sh:minCount` — the
-                // deliberate `ValidationOnly` under-approximation.
-                let legacy_min: BTreeMap<String, u32> = read
-                    .ir
-                    .properties
-                    .iter()
-                    .filter_map(|pc| pc.min_count.map(|m| (pc.path.clone(), m)))
-                    .collect();
+                if read.ir.failure_class != proj.ir.failure_class {
+                    return Verdict::NotEquiv(format!(
+                        "typed failure class differs: legacy={:?}, projected={:?}",
+                        read.ir.failure_class, proj.ir.failure_class
+                    ));
+                }
+                // Fold only functional-property maxima. A legacy minimum is never invented here:
+                // it must already be present in the projected IR. This prevents a hand-authored
+                // `sh:minCount` from receiving credit merely because the legacy shape asserted it.
                 let mut proj_ir = proj.ir.clone();
                 for pc in proj_ir.properties.iter_mut() {
                     if pc.max_count.is_none()
                         && let Some(&m) = self.functional_max.get(&pc.path)
                     {
                         pc.max_count = Some(m);
-                    }
-                    if pc.min_count.is_none()
-                        && let Some(&m) = legacy_min.get(&pc.path)
-                    {
-                        pc.min_count = Some(m);
                     }
                     // Credit a legacy `sh:nodeKind` implied by a co-present projected component:
                     // a class-typed value is an IRI, a datatype-typed value is a literal.
@@ -383,10 +434,10 @@ impl OracleCtx {
                 for lp in &read.ir.properties {
                     if proj_ir.properties.iter().all(|pc| pc.path != lp.path) {
                         let max = self.functional_max.get(&lp.path).copied();
-                        if (max.is_some() || lp.min_count.is_some())
+                        if max.is_some()
                             && let Ok(p) = PropertyConstraintIr::new(
                                 lp.path.clone(),
-                                lp.min_count,
+                                None,
                                 max,
                                 Some(ConstraintProvenance::OwlRestriction),
                                 vec![],
@@ -405,7 +456,7 @@ impl OracleCtx {
                 let grounded = grounds(read, &proj_ir, &v);
                 if grounded && !v.residue_bearing {
                     Verdict::Equiv
-                } else if grounded && sparql_only_residue_grounded(&v.unsupported, target) {
+                } else if grounded && sparql_only_residue_grounded(&v.unsupported) {
                     Verdict::EquivGroundedResidue
                 } else if grounded {
                     Verdict::EquivResidue(v.unsupported.clone())
@@ -654,8 +705,17 @@ fn restriction(k: &str, p: &str, pred: &str, filler: &str) -> String {
     )
 }
 
+/// Explicit class-scoped closed-world authority for projecting a required path without adding
+/// an OWL existential (and therefore without minting reasoner witnesses into the closure).
+fn required_path_closure(k: &str, p: &str) -> String {
+    format!(
+        "[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <{k}> ; <https://blackcatinformatics.ca/logic/closureKey> \"{p}\" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] ."
+    )
+}
+
 /// Lower a `Class`-target shape IR to reasoner-safe OWL (`design/LOGIC-VALIDATION.md` grounding
-/// style: existence → `owl:someValuesFrom`, universal type / range → `owl:allValuesFrom` (+ a faceted
+/// style: existence → class-scoped closed-world authority, universal type / range →
+/// `owl:allValuesFrom` (+ a faceted
 /// datatype for a numeric bound), at-most-one → `owl:FunctionalProperty` (never the cardinality
 /// family, which is conditionally out of the reasoner's EL/DL fragment). Anything with no
 /// reasoner-safe antecedent — a pattern, a non-class `sh:not`, a value-keyed / cross-node condition,
@@ -702,11 +762,9 @@ fn reasoner_safe_emit(
             _ => None,
         });
         let min_present = pc.min_count.is_some_and(|m| m >= 1);
-        let some_or_all = if min_present {
-            "someValuesFrom"
-        } else {
-            "allValuesFrom"
-        };
+        if min_present {
+            class_stmts.push(required_path_closure(k, p));
+        }
 
         // The type/range filler + its restriction predicate. A datatype grounds to a BARE
         // `owl:allValuesFrom <D>` — the facet vocabulary (numeric/length range) is out of the
@@ -715,7 +773,7 @@ fn reasoner_safe_emit(
             // Data-soundness gate: a class obligation the real data violates would red `make validate`
             // once projected + enforced (the hand-authored shape was never enforced). Skip it.
             if data.class_obligation_conforms(k, p, c) {
-                class_stmts.push(restriction(k, p, some_or_all, &format!("<{c}>")));
+                class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{c}>")));
             } else {
                 residue.push(format!("{p}: sh:class {c} — example data has a non-conforming value (would red make validate); left ungrounded"));
             }
@@ -727,18 +785,18 @@ fn reasoner_safe_emit(
             let recognized =
                 dt.starts_with("http://www.w3.org/2001/XMLSchema#") || dt == RDFS_LITERAL;
             if recognized || data.class_obligation_conforms(k, p, dt) {
-                class_stmts.push(restriction(k, p, some_or_all, &format!("<{dt}>")));
+                class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{dt}>")));
             } else {
                 residue.push(format!("{p}: datatype {dt} derives to sh:class (unrecognised by the projector) and the data has a literal value; left ungrounded"));
             }
         } else if let Some(nk) = &nodekind_filler {
-            class_stmts.push(restriction(k, p, some_or_all, &format!("<{nk}>")));
+            class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{nk}>")));
         } else if min_present {
             // Bare existence with no class/datatype/node-kind filler.
             class_stmts.push(restriction(
                 k,
                 p,
-                "someValuesFrom",
+                "allValuesFrom",
                 &format!("<{OWL_THING}>"),
             ));
         }
@@ -1055,9 +1113,9 @@ fn strip_redundant_iri_nodekind(
             props.push(pc.clone());
         }
     }
-    ValidationShapeIr::new(ir.iri.clone(), ir.target.clone(), props, None)
-        .and_then(|s| s.with_node_components(ir.node_components.clone()))
-        .unwrap_or_else(|_| ir.clone())
+    let mut stripped = ir.clone();
+    stripped.properties = props;
+    stripped
 }
 
 /// The set of property IRIs ALREADY declared `owl:FunctionalProperty` anywhere in the authored tree

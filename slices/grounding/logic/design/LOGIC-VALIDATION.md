@@ -185,20 +185,19 @@ polarity of the opt-out, using the same closure vocabulary. Genuinely closed-wor
 obligations, not inference axioms, and stay derive-all: a node carrying two disjoint types or a
 second value on a functional property is a genuine violation, not an un-asserted entailment.
 
-**The existential under-approximation (`owl:someValuesFrom`).** A `someValuesFrom` restriction
-`K ⊑ ∃P.C` is existential — it demands that *some* `P`-value be a `C`. Its faithful closed-world
-reading would be a qualified value shape (`sh:qualifiedValueShape [ … ] ; sh:qualifiedMinCount
-1`), which **over-claims**: it false-positives on the ontology's own open-world value-vocabulary
-individuals, which are instances of a restricted class yet legitimately do not populate the
-mediated relation. Because a validation shape carries `logic:ValidationOnly` polarity and must
-never over-claim, `someValuesFrom` projects instead to the same bare `sh:class` obligation as
-`allValuesFrom` ("any `P`-value present must be a `C`" — vacuously satisfied when absent). The
-consequence is deliberate and declared: the existential-versus-universal distinction is **not
-visible on the shape surface**. The existence obligation is not lost — the original
-`owl:someValuesFrom` axiom is untouched in the canonical layer (reachable for checking through the
-relational-core lowering), and the shape carries the `logic:ValidationOnly` polarity that says,
-in machine-readable form, "this surface validates an under-approximation; it does not entail the
-axiom." A reader must not read the emitted `sh:class` as capturing the existential.
+**Required-path projection without OWL existentials.** An `owl:someValuesFrom` restriction
+`K ⊑ ∃P.C` remains an open-world existential in the logical core. Its validation projection is
+therefore only the conservative value-typing under-approximation: a bare `sh:class` obligation,
+vacuously satisfied when the path is absent. It never projects `sh:minCount` by itself.
+
+A genuinely closed-world required path is authored as an `owl:allValuesFrom` value constraint plus
+an explicit `logic:ClosureEntry` carrying `logic:onClass K`, `logic:closureKey P`, and
+`logic:closureValue logic:ClosedWorldClosure`. That class/property pair is the canonical authority
+for adding `sh:minCount 1`. Keeping requiredness out of `owl:someValuesFrom` prevents the native
+reasoner from minting existential witnesses into the shipped closure while preserving the exact
+closed-world validation obligation. A closure entry without `logic:onClass` may still opt a
+property's `rdfs:domain`/`rdfs:range` projection in globally, but it cannot make a path required for
+every class that uses the property.
 
 **The statement-layer reifier obligation (`sh:reifierShape` / `sh:reificationRequired`).** One
 closed-world condition has **no ordinary-OWL antecedent**: "every `K`→`P`→value assertion must be
