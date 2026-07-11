@@ -27,7 +27,7 @@ asserted pairwise disjoint — and only those whose disjointness is *true*.
 An individual human being, living or deceased. A `gufo:Kind` — the identity-supplying
 sortal that the names slice's `PersonName`, the identity facets, and the relationship
 relators all anchor to. Disjoint with Organization, SoftwareAgent, Location, ContactPoint,
-CryptographicKey, Appellation, Language, and WritingSystem.
+CryptographicKey, Appellation, and Language.
 
 ### gmeow:Organization
 
@@ -75,7 +75,7 @@ literal: the bridge into the document layer is the point.
 ## The disjointness doctrine (relator-mediation doctrine)
 
 The `owl:AllDisjointClasses` axiom covers Person, Organization, SoftwareAgent, Location,
-ContactPoint, CryptographicKey, Appellation, Language, and WritingSystem — cross-module
+ContactPoint, CryptographicKey, Appellation, and Language — cross-module
 IRIs that resolve after merge. Deliberately excluded: `Group` (above) and the
 `InformationObject` document / message / source family, where a Source may legitimately
 also be a Document or CreativeWork. The rule is constitutional: add only disjointness
