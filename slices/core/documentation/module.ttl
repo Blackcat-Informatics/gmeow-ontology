@@ -492,21 +492,21 @@ gmeow:dimFixturePair
     a gmeow:DocCoverageDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     rdfs:label "fixture pair"@x-gmeow-english ;
-    skos:definition "The fixture-pair coverage dimension — the documented term is exercised by BOTH a well-formed conformance fixture and a counter-example (a rule with no negative fixture is not enforced). Detection rule: the term is referenced by at least one well-formed and at least one counter-example fixture (a deterministic presence test over the fixture set)."@x-gmeow-english ;
+    skos:definition "The fixture-pair coverage dimension — the documented term is exercised by BOTH a well-formed conformance fixture and a counter-example (a rule with no negative fixture is not enforced). Detection rule: the term is referenced by at least one well-formed and at least one counter-example fixture (a deterministic presence test over the fixture set). SLICE-DEMONSTRATION dimension: the SLICE covers this dimension by DEMONSTRATING the fixture-pair discipline on at least one applicable term (existential ∃), not by every term carrying its own fixture pair — fixture discipline is a slice-level testing practice. The per-TERM gmeow:docCoversDimension / gmeow:docMissesDimension incidence still records each term's individual status as the diagnostic."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:dimCompetencyRationale
     a gmeow:DocCoverageDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     rdfs:label "competency rationale"@x-gmeow-english ;
-    skos:definition "The competency-rationale coverage dimension — the documented term is exercised by a competency question that carries a rationale. Detection rule: the term is exercised by at least one competency question whose rationale is present and non-blank (a deterministic presence test)."@x-gmeow-english ;
+    skos:definition "The competency-rationale coverage dimension — the documented term is exercised by a competency question that carries a rationale. Detection rule: the term is exercised by at least one competency question whose rationale is present and non-blank (a deterministic presence test). SLICE-DEMONSTRATION dimension: the SLICE covers this dimension by DEMONSTRATING a rationale-carrying competency question on at least one applicable term (existential ∃), not by every term having its own CQ — a competency question documents the slice's vocabulary, not one term. The per-TERM gmeow:docCoversDimension / gmeow:docMissesDimension incidence still records each term's individual status as the diagnostic."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:dimWorkedInstance
     a gmeow:DocCoverageDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
     rdfs:label "worked instance"@x-gmeow-english ;
-    skos:definition "The worked-instance coverage dimension — the documented term is demonstrated by a worked instance under examples/. Detection rule: the term is referenced by at least one worked-instance example (a deterministic presence test over the example set)."@x-gmeow-english ;
+    skos:definition "The worked-instance coverage dimension — the documented term is demonstrated by a worked instance under examples/. Detection rule: the term is referenced by at least one worked-instance example (a deterministic presence test over the example set). SLICE-DEMONSTRATION dimension: the SLICE covers this dimension by DEMONSTRATING a worked-instance scene on at least one applicable term (existential ∃), not by every term having its own scene — a worked scene documents the slice's vocabulary, not one term. The per-TERM gmeow:docCoversDimension / gmeow:docMissesDimension incidence still records each term's individual status as the diagnostic."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:dimLossLedgerRow
