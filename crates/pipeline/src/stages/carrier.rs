@@ -561,7 +561,7 @@ pub(crate) fn self_description_source_files(
     // examples / tests). `gmeow_slice_quality::scored_source_files` is the single authority
     // for what the scorer reads — sharing it keeps the cache key and the score set from
     // drifting (a stale scored input would ship a stale assessment in gmeow.gts).
-    files.extend(gmeow_slice_quality::scored_source_files(root));
+    files.extend(gmeow_slice_quality::scored_source_files(root)?);
     files.sort();
     files.dedup();
     Ok(files)
@@ -3405,14 +3405,18 @@ fn build_slice_analysis(root: &Path, authored_nq: &[u8]) -> Result<Vec<u8>, gmeo
     // (a mention of graph/slice-analysis as CONTENT). The pipeline slice's
     // gmeow:attachesGraph declarations name every carrier graph a stage attaches —
     // including graph/slice-analysis — as a benign object of a declaration triple, not as
-    // analysis-graph content. Strip those declaration lines from the guard text so a
-    // legitimate attach declaration does not false-trigger the blunt substring guard; the
-    // guard's real purpose (catching the analysis graph re-consumed as input) is intact,
-    // and the analysis itself reads `report.edges` + digests, never this text.
-    let attaches_graph_pred = format!("{GMEOW_NS}attachesGraph>");
-    let authored_text: String = String::from_utf8_lossy(authored_nq)
-        .lines()
-        .filter(|line| !line.contains(&attaches_graph_pred))
+    // analysis-graph content. Drop exactly those declaration QUADS (matched on the parsed
+    // PREDICATE term, not a text substring) from the guard text so a legitimate attach
+    // declaration does not false-trigger the guard while a real content mention of the
+    // string elsewhere (a literal, a comment, a non-predicate position) is preserved
+    // faithfully; the guard's real purpose (catching the analysis graph re-consumed as
+    // input) is intact, and the analysis itself reads `report.edges` + digests, never
+    // this text.
+    let attaches_graph_pred = format!("{GMEOW_NS}attachesGraph");
+    let authored_text: String = parse_nq(authored_nq)?
+        .iter()
+        .filter(|quad| quad.predicate != attaches_graph_pred)
+        .map(|quad| format!("{} <{}> {} .", quad.subject, quad.predicate, quad.object))
         .collect::<Vec<_>>()
         .join("\n");
     let graph = emit_analysis_graph(
