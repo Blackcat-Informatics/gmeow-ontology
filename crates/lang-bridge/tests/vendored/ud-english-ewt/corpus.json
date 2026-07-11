@@ -1,0 +1,15 @@
+{
+  "name": "ud-english-ewt",
+  "treebank": "UD_English-EWT",
+  "spdx_license": "CC-BY-SA-4.0",
+  "source_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_English-EWT/master/en_ewt-ud-dev.conllu",
+  "version_or_commit": "master",
+  "fetch_date": "2026-07-11",
+  "attribution": "Universal Dependencies English EWT treebank — the Universal Dependencies project and the EWT treebank authors",
+  "ring_fenced": true,
+  "sent_ids": [
+    "weblog-blogspot.com_marketview_20040611132900_ENG_20040611_132900-0002",
+    "weblog-blogspot.com_marketview_20040611132900_ENG_20040611_132900-0003",
+    "reviews-389136-0003"
+  ]
+}
