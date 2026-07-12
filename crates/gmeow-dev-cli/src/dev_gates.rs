@@ -148,6 +148,13 @@ pub fn crate_check() -> i32 {
             .with_tool("docs-loss-lattice"),
         );
     }
+    // Vendored-corpus license guard: every `crates/*/tests/vendored/*/corpus.json` descriptor
+    // must classify IMPORT_OK under `gmeow_license::policy_for_vendored_corpus`, so an
+    // unattributed/unfenced (or otherwise restrictive) vendored corpus hard-fails on-gate
+    // rather than only in the unit tests that exercise the classifier itself.
+    for f in vendored_corpus_license_findings(&root) {
+        report.add_finding(f);
+    }
     emit_report(&report);
     if report.ok() {
         println!("crate/static guards OK");
@@ -158,6 +165,139 @@ pub fn crate_check() -> i32 {
             report.error_count()
         ))
     }
+}
+
+/// The four `corpus.json` fields [`gmeow_license::VendoredCorpus`] needs, plus the descriptor
+/// path, for a single readable error message when a field is missing or the wrong shape.
+struct VendoredCorpusDescriptor {
+    spdx_license: String,
+    source_url: String,
+    attribution: String,
+    ring_fenced: bool,
+}
+
+/// Enumerate every `crates/*/tests/vendored/*/corpus.json` descriptor and classify it under
+/// [`gmeow_license::policy_for_vendored_corpus`], the production license-reuse policy for a
+/// vendored third-party corpus.
+///
+/// No optionality: a present-but-unparseable descriptor, or one missing a required field, is
+/// itself a HARD FAIL (an `Error` finding), never a silent skip. A descriptor that parses but
+/// classifies as anything other than [`gmeow_license::LicensePolicy::ImportOk`] is likewise an
+/// `Error` finding — the corpus was vendored without clearing the license-reuse policy the
+/// `gmeow-license` crate defines. An empty return means every vendored corpus in the tree
+/// clears vendoring.
+fn vendored_corpus_license_findings(root: &Path) -> Vec<Finding> {
+    let mut findings = Vec::new();
+    let crates_dir = root.join("crates");
+    let Ok(crate_entries) = std::fs::read_dir(&crates_dir) else {
+        return findings;
+    };
+    for crate_entry in crate_entries.flatten() {
+        let crate_path = crate_entry.path();
+        if !crate_path.is_dir() {
+            continue;
+        }
+        let vendored_dir = crate_path.join("tests").join("vendored");
+        if !vendored_dir.is_dir() {
+            continue;
+        }
+        let Ok(corpus_entries) = std::fs::read_dir(&vendored_dir) else {
+            continue;
+        };
+        for corpus_entry in corpus_entries.flatten() {
+            let corpus_dir = corpus_entry.path();
+            if !corpus_dir.is_dir() {
+                continue;
+            }
+            let descriptor_path = corpus_dir.join("corpus.json");
+            if !descriptor_path.is_file() {
+                continue;
+            }
+            match load_vendored_corpus_descriptor(&descriptor_path) {
+                Ok(descriptor) => {
+                    let corpus = gmeow_license::VendoredCorpus {
+                        spdx_license: &descriptor.spdx_license,
+                        source_url: &descriptor.source_url,
+                        attribution: &descriptor.attribution,
+                        ring_fenced: descriptor.ring_fenced,
+                    };
+                    if gmeow_license::policy_for_vendored_corpus(&corpus)
+                        != gmeow_license::LicensePolicy::ImportOk
+                    {
+                        findings.push(
+                            Finding::new(
+                                Severity::Error,
+                                "vendored-corpus-license-violation",
+                                format!(
+                                    "{}: spdx_license {:?} does not clear vendoring (ring_fenced={}, attribution={:?}, source_url={:?}) — refuse to vendor or fix the descriptor",
+                                    descriptor_path.display(),
+                                    descriptor.spdx_license,
+                                    descriptor.ring_fenced,
+                                    descriptor.attribution,
+                                    descriptor.source_url,
+                                ),
+                            )
+                            .with_tool("vendored-corpus-license"),
+                        );
+                    }
+                }
+                Err(diag) => {
+                    findings.push(
+                        Finding::new(
+                            Severity::Error,
+                            "vendored-corpus-license-invalid",
+                            diag.to_string(),
+                        )
+                        .with_tool("vendored-corpus-license"),
+                    );
+                }
+            }
+        }
+    }
+    findings
+}
+
+/// Read + parse one `corpus.json` descriptor into the fields the license policy needs.
+/// `Err` carries a human-readable reason: unreadable file, invalid JSON, or a missing/
+/// wrong-shaped required field — every case a HARD FAIL, never a silent default.
+fn load_vendored_corpus_descriptor(
+    path: &Path,
+) -> Result<VendoredCorpusDescriptor, gmeow_errors::Diag> {
+    let text = std::fs::read_to_string(path).map_err(|e| {
+        error::vendored_corpus(format!("{}: cannot read corpus.json: {e}", path.display()))
+    })?;
+    let value: serde_json::Value = serde_json::from_str(&text)
+        .map_err(|e| error::vendored_corpus(format!("{}: invalid JSON: {e}", path.display())))?;
+    let field_str = |key: &str| -> Result<String, gmeow_errors::Diag> {
+        value
+            .get(key)
+            .and_then(serde_json::Value::as_str)
+            .map(str::to_owned)
+            .ok_or_else(|| {
+                error::vendored_corpus(format!(
+                    "{}: missing required field {key:?}",
+                    path.display()
+                ))
+            })
+    };
+    let spdx_license = field_str("spdx_license")?;
+    let source_url = field_str("source_url")?;
+    let attribution = field_str("attribution")?;
+    let ring_fenced = value
+        .get("ring_fenced")
+        .and_then(serde_json::Value::as_bool)
+        .ok_or_else(|| {
+            error::vendored_corpus(format!(
+                "{}: missing required field \"ring_fenced\"",
+                path.display()
+            ))
+        })?;
+    Ok(VendoredCorpusDescriptor {
+        spdx_license,
+        source_url,
+        attribution,
+        ring_fenced,
+    })
 }
 
 // ── coverage family ─────────────────────────────────────────────────────────
@@ -744,5 +884,151 @@ fn collect_rq(dir: &Path, out: &mut Vec<PathBuf>) {
         } else if path.extension().and_then(|e| e.to_str()) == Some("rq") {
             out.push(path);
         }
+    }
+}
+
+#[cfg(test)]
+mod vendored_corpus_license_tests {
+    use super::vendored_corpus_license_findings;
+
+    /// A unique temp directory under the system temp dir; the caller removes it.
+    fn tempdir(slug: &str) -> std::path::PathBuf {
+        let mut path = std::env::temp_dir();
+        path.push(format!(
+            "gmeow-dev-cli-vendored-license-{slug}-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        std::fs::create_dir_all(&path).expect("create temp dir");
+        path
+    }
+
+    fn write_descriptor(root: &std::path::Path, crate_name: &str, corpus_name: &str, json: &str) {
+        let dir = root
+            .join("crates")
+            .join(crate_name)
+            .join("tests")
+            .join("vendored")
+            .join(corpus_name);
+        std::fs::create_dir_all(&dir).expect("mkdir vendored corpus dir");
+        std::fs::write(dir.join("corpus.json"), json).expect("write corpus.json");
+    }
+
+    /// Positive: the real EWT descriptor (ring-fenced, attributed CC-BY-SA-4.0) shipped at
+    /// `crates/lang-bridge/tests/vendored/ud-english-ewt/corpus.json` is IMPORT_OK — the gate
+    /// yields NO findings against the live tree.
+    #[test]
+    fn real_ewt_descriptor_is_import_ok_no_findings() {
+        let root = crate::dev_common::project_root();
+        let descriptor = root
+            .join("crates")
+            .join("lang-bridge")
+            .join("tests")
+            .join("vendored")
+            .join("ud-english-ewt")
+            .join("corpus.json");
+        assert!(
+            descriptor.is_file(),
+            "expected the real EWT descriptor to exist at {}",
+            descriptor.display()
+        );
+        let findings = vendored_corpus_license_findings(&root);
+        assert!(
+            findings.is_empty(),
+            "expected no vendored-corpus-license findings against the live tree, got: {findings:?}"
+        );
+    }
+
+    /// Negative: a CC-BY-SA-4.0 descriptor that is NOT ring-fenced fails the classifier's
+    /// share-alike vendoring exception, so the gate must fold exactly one Error finding — the
+    /// proof that this actually hard-fails in production, not just in the classifier's own
+    /// unit tests.
+    #[test]
+    fn unfenced_cc_by_sa_descriptor_yields_one_error_finding() {
+        let root = tempdir("unfenced");
+        write_descriptor(
+            &root,
+            "some-crate",
+            "bad-corpus",
+            r#"{
+                "name": "bad-corpus",
+                "treebank": "Bad_Treebank",
+                "spdx_license": "CC-BY-SA-4.0",
+                "source_url": "https://example.org/treebank.conllu",
+                "version_or_commit": "main",
+                "fetch_date": "2026-07-11",
+                "attribution": "Some credited authors",
+                "ring_fenced": false,
+                "sent_ids": []
+            }"#,
+        );
+        let findings = vendored_corpus_license_findings(&root);
+        assert_eq!(
+            findings.len(),
+            1,
+            "expected exactly one finding for the unfenced CC-BY-SA descriptor: {findings:?}"
+        );
+        assert_eq!(findings[0].code, "vendored-corpus-license-violation");
+        std::fs::remove_dir_all(&root).ok();
+    }
+
+    /// Negative: a CC-BY-SA-4.0 descriptor with empty attribution likewise fails the exception
+    /// and is folded as an Error finding.
+    #[test]
+    fn unattributed_cc_by_sa_descriptor_yields_one_error_finding() {
+        let root = tempdir("unattributed");
+        write_descriptor(
+            &root,
+            "some-crate",
+            "bad-corpus",
+            r#"{
+                "name": "bad-corpus",
+                "treebank": "Bad_Treebank",
+                "spdx_license": "CC-BY-SA-4.0",
+                "source_url": "https://example.org/treebank.conllu",
+                "version_or_commit": "main",
+                "fetch_date": "2026-07-11",
+                "attribution": "   ",
+                "ring_fenced": true,
+                "sent_ids": []
+            }"#,
+        );
+        let findings = vendored_corpus_license_findings(&root);
+        assert_eq!(
+            findings.len(),
+            1,
+            "expected exactly one finding for the unattributed CC-BY-SA descriptor: {findings:?}"
+        );
+        assert_eq!(findings[0].code, "vendored-corpus-license-violation");
+        std::fs::remove_dir_all(&root).ok();
+    }
+
+    /// A descriptor missing a required field (`ring_fenced`) is itself a HARD FAIL — no
+    /// optionality, no silent skip.
+    #[test]
+    fn descriptor_missing_required_field_is_hard_fail() {
+        let root = tempdir("missing-field");
+        write_descriptor(
+            &root,
+            "some-crate",
+            "bad-corpus",
+            r#"{
+                "name": "bad-corpus",
+                "spdx_license": "CC-BY-SA-4.0",
+                "source_url": "https://example.org/treebank.conllu",
+                "attribution": "Some credited authors"
+            }"#,
+        );
+        let findings = vendored_corpus_license_findings(&root);
+        assert_eq!(
+            findings.len(),
+            1,
+            "expected exactly one finding for the descriptor missing ring_fenced: {findings:?}"
+        );
+        assert_eq!(findings[0].code, "vendored-corpus-license-invalid");
+        std::fs::remove_dir_all(&root).ok();
     }
 }

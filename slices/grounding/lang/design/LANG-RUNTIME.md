@@ -119,8 +119,16 @@ demo:
 1. **Total lift of the repository's prose.** Every `@x-gmeow-english` literal in the bundle is
    reachable as a `lang:SurfaceForm` (unanalyzed at minimum) with a stable content key, and the
    prose-hash discipline resolves through it. (Flagship 2, minimal form.)
-2. **CoNLL-U round-trip.** UD treebank sentences (license-reviewed) lift and re-emit to
-   byte-equivalent CoNLL-U modulo declared column normalizations, per reading.
+2. **CoNLL-U round-trip.** A real, ring-fenced + fully-attributed vendored UD treebank fragment
+   (CC BY-SA 4.0, cleared for vendoring by the native license CATEGORY keyed off its descriptor,
+   not a path) lifts and re-emits byte-identically through the production `ConlluBridge` ON-GATE —
+   the same round-trip surface the per-reading projection stage enforces on every shipped
+   `.conllu`. The retraction law `serialize∘parse = id` is grounded as the carried
+   `logic:Correspondence`/`SectionLaw` and property-tested over a deterministic grammar-edge
+   mutation generator (permuted FEATS order, injected/removed `SpaceAfter=No`, a multiword-token
+   range, an empty node, and a populated enhanced `DEPS`): every well-formed mutant round-trips
+   byte-exact, every ill-formed mutant hard-fails. A CoNLL-U file that violates the UD spec is
+   rejected, not repaired.
 3. **Grammar round-trip.** The Turtle and GTS grammars lift from EBNF, re-emit, and re-lift to
    isomorphic grammar objects — `ExactPreservation` demonstrated, not asserted. (Flagship 4,
    minimal form.)
@@ -130,5 +138,15 @@ demo:
 5. **Ambiguity survives the pipeline.** A fixture with co-resident readings enters, folds,
    projects, and returns with both readings and their vantages intact — no stage collapses it.
    (Flagship 5, minimal form.)
-6. **Determinism.** Two runs over the same input produce byte-identical generated artifacts —
-   the project-wide determinism bar, inherited without exception.
+6. **Determinism.** The three `lang:` corpus producers — the compositional-lowering corpus, the
+   prose-lift corpus, and the projection corpus (its graph AND every per-reading `.conllu` and
+   sibling external artifact) — produce byte-identical output across repeated regeneration, the
+   project-wide determinism bar inherited without exception, discharged ON-GATE by execution rather
+   than fixture existence. Two legs prove it: an in-process two-run byte replay asserts each
+   producer emits identical bytes across two runs, and the drift lane (`run_full(RunMode::Check)`,
+   the `check-generated` host) re-derives every committed artifact fresh-process — the per-reading
+   `.conllu` files by exact bytes, the corpus graphs through the bundle superset/fold gate. The
+   same-process leg is no false green: every corpus payload is asserted to be in the SORTED, DEDUPED
+   canonical order the shared N-Triples emitter produces, a property that is a pure function of the
+   line set and independent of any hash-map iteration seed — so byte identity in one process holds
+   across fresh processes, which the drift lane then confirms.

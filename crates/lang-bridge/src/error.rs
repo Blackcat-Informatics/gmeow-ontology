@@ -11,6 +11,8 @@
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 
+use crate::gmn1_codec::Gmn1Error;
+
 define_diag_kind! {
     /// Two DISTINCT full content keys map to the same [`digest16`](crate::digest16)
     /// short IRI segment. The full key is the identity, so a collision is a hard
@@ -53,12 +55,57 @@ define_diag_kind! {
     message = "lang:GmnUncoveredTerm: {}", construct;
 }
 
+define_diag_kind! {
+    /// `lang:GmnNonCanonicalOrder` — a GMN-1 record's field keys are not in the canonical
+    /// key order (`s p o v q st ev m ek bd it`), forfeiting byte-comparability. The typed
+    /// read-side counterpart of [`crate::gmn1_codec::Gmn1Error::NonCanonicalOrder`].
+    pub struct GmnNonCanonicalOrder { detail: String }
+    code = "lang-bridge.gmn1.non-canonical-order";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "lang:GmnNonCanonicalOrder: {}", detail;
+}
+
+define_diag_kind! {
+    /// `lang:GmnMalformedNumber` — a number-shaped GMN-1 value token outside the grammar's
+    /// number production (scientific notation, or a non-two-digit fraction). The typed
+    /// read-side counterpart of [`crate::gmn1_codec::Gmn1Error::MalformedNumber`].
+    pub struct GmnMalformedNumber { token: String }
+    code = "lang-bridge.gmn1.malformed-number";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "lang:GmnMalformedNumber: number-shaped token '{}' is not a canonical integer or two-digit decimal", token;
+}
+
+define_diag_kind! {
+    /// `lang:GmnUndeclaredDialectVersion` — a GMN-1 document reaches the reader without a
+    /// `@gmn` header pinning its dialect/dictionary version. The typed read-side counterpart
+    /// of [`crate::gmn1_codec::Gmn1Error::UndeclaredDialectVersion`].
+    pub struct GmnUndeclaredDialectVersion { detail: String }
+    code = "lang-bridge.gmn1.undeclared-dialect-version";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "lang:GmnUndeclaredDialectVersion: {}", detail;
+}
+
+define_diag_kind! {
+    /// `lang:GmnNonDecodableGrammar` — the residual GMN-1 grammar defect (unbalanced brace,
+    /// unknown sigil/key, duplicate key, schema/row mismatch, or the codec's own round-trip
+    /// mismatch). The typed read-side counterpart of
+    /// [`crate::gmn1_codec::Gmn1Error::NonDecodableGrammar`].
+    pub struct GmnNonDecodableGrammar { detail: String }
+    code = "lang-bridge.gmn1.non-decodable-grammar";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "lang:GmnNonDecodableGrammar: {}", detail;
+}
+
 /// The complete `lang:` bridge diagnostic-code catalog, in registration order.
 pub const LANG_BRIDGE_DIAG_CODES: &[&str] = &[
     DigestCollision::CODE,
     ClassNotEmissionWorthy::CODE,
     MissingProjectionTargets::CODE,
     GmnUncoveredTerm::CODE,
+    GmnNonCanonicalOrder::CODE,
+    GmnMalformedNumber::CODE,
+    GmnUndeclaredDialectVersion::CODE,
+    GmnNonDecodableGrammar::CODE,
 ];
 
 /// Eagerly intern every `lang:` bridge diagnostic code (idempotent).
@@ -68,25 +115,52 @@ pub fn register_all() -> Vec<Code> {
         ClassNotEmissionWorthy::register(),
         MissingProjectionTargets::register(),
         GmnUncoveredTerm::register(),
+        GmnNonCanonicalOrder::register(),
+        GmnMalformedNumber::register(),
+        GmnUndeclaredDialectVersion::register(),
+        GmnNonDecodableGrammar::register(),
     ]
 }
 
-/// Intern one `lang:GmnUncoveredTerm` finding into `ledger`, focused on `focus` (the
-/// fixture/source name the uncovered construct came from) — the LossLedger/DiagLedger
-/// identity discipline (finding_iri + anchor + antecedents) every hard-fail finding in
-/// this codebase routes through, never a bespoke ad hoc error type. Mirrors
-/// `crates/pipeline/src/run.rs`'s `attach_pipeline_finding` for the drift/superset
-/// findings — the SAME mechanism, applied to the GMN-1 round-trip gate's findings.
-pub fn attach_gmn_uncovered(
+/// Intern ONE typed GMN-1 codec failure into `ledger` with DiagLedger finding identity
+/// (finding_iri + anchor), focused on `focus` (the source/artifact the failure came from) —
+/// the SAME interning mechanism [`attach_pipeline_finding`](../../pipeline/src/run.rs) uses,
+/// generalized across every [`Gmn1Error`] variant so a reasoner/meta-fold over the finding
+/// graph can join any GMN validator-tier failure by its class, never a hand-built Finding.
+///
+/// Dispatch is driven off the codec's ONE canonical classifier ([`Gmn1Error::failure_class`]):
+/// the variant selects the matching typed [`gmeow_errors::DiagKind`], so there is a single
+/// class→finding mapping, not a second classifier.
+pub fn attach_gmn_failure(
     ledger: &mut gmeow_errors::DiagLedger,
     stage_id: &str,
     focus: &str,
-    construct: &str,
+    error: &Gmn1Error,
 ) {
-    let diag = gmeow_errors::Diag::of_kind(GmnUncoveredTerm {
-        construct: construct.to_owned(),
-    })
-    .with_focus(focus.to_owned());
+    let diag = match error {
+        Gmn1Error::Uncovered(term) => gmeow_errors::Diag::of_kind(GmnUncoveredTerm {
+            construct: term.0.clone(),
+        }),
+        Gmn1Error::NonCanonicalOrder { detail } => {
+            gmeow_errors::Diag::of_kind(GmnNonCanonicalOrder {
+                detail: detail.clone(),
+            })
+        }
+        Gmn1Error::MalformedNumber { token } => gmeow_errors::Diag::of_kind(GmnMalformedNumber {
+            token: token.clone(),
+        }),
+        Gmn1Error::UndeclaredDialectVersion { detail } => {
+            gmeow_errors::Diag::of_kind(GmnUndeclaredDialectVersion {
+                detail: detail.clone(),
+            })
+        }
+        Gmn1Error::NonDecodableGrammar { detail } => {
+            gmeow_errors::Diag::of_kind(GmnNonDecodableGrammar {
+                detail: detail.clone(),
+            })
+        }
+    };
+    let diag = diag.with_focus(focus.to_owned());
     ledger.attach(diag, gmeow_errors::StageId::new(stage_id.to_owned()));
 }
 
