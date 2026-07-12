@@ -41,5 +41,4 @@ ex:build a gmeow:BuildActivity ;
     gmeow:buildSource ex:commit2 ;
     gmeow:buildOutput ex:dist .
 
-ex:dist a gmeow:Distribution ; rdfs:label "myapp-1.0.0.tar.gz"@x-gmeow-english ;
-    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" .
+ex:dist a gmeow:Distribution ; rdfs:label "myapp-1.0.0.tar.gz"@x-gmeow-english .
