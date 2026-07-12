@@ -74,6 +74,10 @@ pub fn export_docs(
             directory,
             source_snippets(gmeow_docs::render_site_lang(&model, &source_lang).files),
         ),
+        ExportFormat::Pydantic => write_docs_projection(
+            directory,
+            gmeow_pipeline::stages::pydantic::render_models_python_package(&root),
+        ),
         ExportFormat::All => {
             let plan = [
                 (
@@ -85,6 +89,10 @@ pub fn export_docs(
                 (
                     "snippets",
                     source_snippets(gmeow_docs::render_site_lang(&model, &source_lang).files),
+                ),
+                (
+                    "pydantic",
+                    gmeow_pipeline::stages::pydantic::render_models_python_package(&root),
                 ),
             ];
             for (sub, tree) in plan {
