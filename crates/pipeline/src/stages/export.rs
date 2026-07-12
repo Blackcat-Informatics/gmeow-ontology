@@ -20,6 +20,7 @@
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
+use gmeow_logic_compile::ingest::{ns_to_prefix, registry_iri};
 use gmeow_validate::language_tags::{
     self, LitDesc, filter_literals as authority_filter_literals, is_internal_tag,
     marked as authority_marked, select_literal as authority_select_literal,
@@ -68,6 +69,28 @@ pub(crate) fn curie(iri: &str) -> String {
         }
     }
     iri.to_string()
+}
+
+/// The GMEOW grounding namespaces whose OWL terms are describable and visible to the
+/// consumer/MCP term surface — the super-ontology's own vocabulary. Resolved from the
+/// canonical [`gmeow_logic_compile::ingest::PREFIX_REGISTRY`] so a new grounding
+/// namespace is a one-line registry change, not a code change here (MAXIMAL GROUNDING:
+/// the `math`/`logic`/`lang` grounding slices are first-class, not gmeow-only).
+fn grounding_namespaces() -> [&'static str; 4] {
+    ["gmeow", "logic", "math", "lang"]
+        .map(|p| registry_iri(p).expect("a grounding prefix must be in the canonical registry"))
+}
+
+/// The registry-local name of a term IRI — the remainder after stripping the longest
+/// registered namespace (`ns_to_prefix()` is longest-first). Returns the whole IRI when
+/// no registered namespace prefixes it.
+fn registry_local(iri: &str) -> &str {
+    for (ns, _prefix) in ns_to_prefix() {
+        if let Some(local) = iri.strip_prefix(ns) {
+            return local;
+        }
+    }
+    iri
 }
 
 // ── FoldView: read-side idioms over a folded gts Graph (mirror gts_views.py) ───
@@ -868,8 +891,15 @@ const PROPERTY_KINDS: &[(&str, &str)] = &[
 ];
 
 pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
-    let in_namespace =
-        |view: &FoldView, tid: usize| view.is_iri(tid) && view.lex(tid).starts_with(NAMESPACE);
+    // Every GMEOW grounding namespace is a term surface, not just `gmeow:` — the
+    // `logic:`/`math:`/`lang:` grounding slices are describable and MCP-visible.
+    let grounding = grounding_namespaces();
+    let in_namespace = |view: &FoldView, tid: usize| {
+        view.is_iri(tid) && {
+            let iri = view.lex(tid);
+            grounding.iter().any(|ns| iri.starts_with(ns))
+        }
+    };
 
     let classes: BTreeSet<usize> = view
         .subjects_by_type(&format!("{OWL}Class"), DEFAULT_SCOPE)
@@ -1785,7 +1815,9 @@ mod consumer {
         let lower = needle.to_lowercase();
         let mut matches: Vec<&Term> = Vec::new();
         for term in terms {
-            let local = term.iri.strip_prefix(NAMESPACE).unwrap_or(&term.iri);
+            // Bare local-name matching spans every registered namespace (not only
+            // `gmeow:`), so `lang:Denotation`'s bare `Denotation` resolves too.
+            let local = registry_local(&term.iri);
             let candidates = [
                 term.curie.as_str(),
                 term.iri.as_str(),
