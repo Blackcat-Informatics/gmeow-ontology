@@ -577,7 +577,8 @@ maint-bench-engines: ## (maintainer) Engine/reference benchmark over the committ
 	  echo "→ bench-engines run 1 (artifact + advisory table on stderr)"; \
 	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-1.json"; \
 	  echo "→ bench-engines run 2 (exact-descriptor + allocation-band replay)"; \
-	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost "$$tmpdir/cost-1.json" >/dev/null 2>&1; then \
+	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost "$$tmpdir/cost-1.json" >"$$tmpdir/replay.log" 2>&1; then \
+	    cat "$$tmpdir/replay.log"; \
 	    echo "ERROR: replay diverged in an exact descriptor or breached the allocation tolerance band."; \
 	    exit 1; \
 	  fi; \
@@ -601,8 +602,11 @@ maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from
 	@# is the drift-gated projection (the `stage-export-cost-ledger` leaf), regenerated +
 	@# committed alongside.
 	@set -e; \
+	  replay_log="$$(mktemp)"; \
+	  trap 'rm -f "$$replay_log"' EXIT; \
 	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost bench/cost-baseline.json; \
-	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost bench/cost-baseline.json >/dev/null 2>&1; then \
+	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost bench/cost-baseline.json >"$$replay_log" 2>&1; then \
+	    cat "$$replay_log"; \
 	    echo "ERROR: a fresh run diverged from the just-written bench/cost-baseline.json (exact descriptor drift, or an alloc total outside the tolerance band)."; \
 	    exit 1; \
 	  fi; \
