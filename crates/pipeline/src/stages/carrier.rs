@@ -292,6 +292,21 @@ fn serialize_carrier_snapshot_without_docs(
         .and_then(|p| p.artifact(crate::stages::json_schema::OPENAPI_PATH))
         .ok_or_else(|| stage_err("missing stage-export-json-schema gmeow.openapi.json artifact"))?
         .to_vec();
+    // THIS run's two hand-authored self-describing schemas (the term `Card` shape +
+    // the `validate_local` envelope shape), from the SAME product so they never lag a
+    // regenerate — folded into REP_SCHEMAS alongside the SHACL-derived pair.
+    let card_schema_json = upstream
+        .get("stage-export-json-schema")
+        .and_then(|p| p.artifact(crate::stages::json_schema::CARD_SCHEMA_PATH))
+        .ok_or_else(|| stage_err("missing stage-export-json-schema card.schema.json artifact"))?
+        .to_vec();
+    let finding_schema_json = upstream
+        .get("stage-export-json-schema")
+        .and_then(|p| p.artifact(crate::stages::json_schema::FINDING_SCHEMA_PATH))
+        .ok_or_else(|| {
+            stage_err("missing stage-export-json-schema validate-finding.schema.json artifact")
+        })?
+        .to_vec();
     // THIS run's compiled axiom surface (REP_AXIOMS), from the stage-compile-logic
     // product so it never lags a regenerate.
     let compile_artifacts = upstream
@@ -336,8 +351,12 @@ fn serialize_carrier_snapshot_without_docs(
         .to_vec();
     let mut blobs = build_archive_blobs(
         root,
-        &schema_json,
-        &openapi_json,
+        &SchemaSurfaces {
+            schema: &schema_json,
+            openapi: &openapi_json,
+            card: &card_schema_json,
+            finding: &finding_schema_json,
+        },
         &compile_artifacts,
         &mappings_artifacts,
         &ShapeSurfaces {
@@ -1145,6 +1164,19 @@ struct ShapeSurfaces<'a> {
     constraint: &'a [u8],
 }
 
+/// The four JSON Schema surfaces folded into REP_SCHEMAS, all sourced from THIS
+/// run's `stage-export-json-schema` product. Grouped into named fields (like
+/// [`ShapeSurfaces`]) so the same-typed `&[u8]` cannot be transposed at the call
+/// site: the two SHACL-derived documents (`schema` = `gmeow.schema.json`, `openapi`
+/// = `gmeow.openapi.json`) and the two hand-authored self-describing schemas (`card`
+/// = `card.schema.json`, `finding` = `validate-finding.schema.json`).
+struct SchemaSurfaces<'a> {
+    schema: &'a [u8],
+    openapi: &'a [u8],
+    card: &'a [u8],
+    finding: &'a [u8],
+}
+
 /// Build the bundle archive blobs from the repo tree: mappings, cells, queries,
 /// tests, schemas, the SHACL shape surface, and the compiled logic/DL axiom
 /// surface. The SHACL-derived JSON Schema + OpenAPI bytes are passed in from
@@ -1153,8 +1185,7 @@ struct ShapeSurfaces<'a> {
 /// not flushed until phase 1 returns.
 fn build_archive_blobs(
     root: &Path,
-    schema_json: &[u8],
-    openapi_json: &[u8],
+    schema_surfaces: &SchemaSurfaces<'_>,
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
     shape_surfaces: &ShapeSurfaces<'_>,
@@ -1197,8 +1228,22 @@ fn build_archive_blobs(
     // committed files by a regenerate. Bare-filename member names
     // (`gmeow.schema.json` / `gmeow.openapi.json`), so the fold is stable.
     let schemas = vec![
-        ("gmeow.schema.json".to_string(), schema_json.to_vec()),
-        ("gmeow.openapi.json".to_string(), openapi_json.to_vec()),
+        (
+            "gmeow.schema.json".to_string(),
+            schema_surfaces.schema.to_vec(),
+        ),
+        (
+            "gmeow.openapi.json".to_string(),
+            schema_surfaces.openapi.to_vec(),
+        ),
+        (
+            "card.schema.json".to_string(),
+            schema_surfaces.card.to_vec(),
+        ),
+        (
+            "validate-finding.schema.json".to_string(),
+            schema_surfaces.finding.to_vec(),
+        ),
     ];
     // cells: equivalences + projections + slice mappings, member = repo-relative path.
     let mut cells: Vec<(String, Vec<u8>)> = Vec::new();
@@ -1403,6 +1448,8 @@ fn opaque_already_carried(path: &str) -> bool {
         || path.ends_with(".rq")                        // REP_QUERIES
         || path == "generated/schemas/gmeow.schema.json"  // REP_SCHEMAS
         || path == "generated/schemas/gmeow.openapi.json" // REP_SCHEMAS
+        || path == "generated/schemas/card.schema.json"   // REP_SCHEMAS
+        || path == "generated/schemas/validate-finding.schema.json" // REP_SCHEMAS
         || path == "generated/datalog/gmeow.dl"           // REP_AXIOMS
         || path == "generated/logic/gmeow.rls" // REP_AXIOMS
 }
@@ -4063,6 +4110,18 @@ mod ustar_tests {
             .unwrap()
     }
 
+    /// Empty schema surfaces for the blob-archive unit tests, which assert the
+    /// REP_AXIOMS / mappings / queries / shapes channels and do not read the schema
+    /// bytes (production sources them from the `stage-export-json-schema` product).
+    fn empty_schemas() -> SchemaSurfaces<'static> {
+        SchemaSurfaces {
+            schema: b"",
+            openapi: b"",
+            card: b"",
+            finding: b"",
+        }
+    }
+
     /// Mirror the committed `generated/mappings/*.sssom.tsv` AND `generated/queries/*.rq`
     /// into an artifact map keyed by repo-relative path — the stand-in for the
     /// stage-mappings product in blob-archive unit tests (production sources both the
@@ -4253,8 +4312,14 @@ mod ustar_tests {
         let mut mappings = mappings_artifacts_from_disk(&root);
         mappings.insert(probe_rel.clone(), probe_bytes.clone());
 
-        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &mappings, &shapes)
-            .expect("archive blobs");
+        let blobs = build_archive_blobs(
+            &root,
+            &empty_schemas(),
+            &axiom_artifacts,
+            &mappings,
+            &shapes,
+        )
+        .expect("archive blobs");
         let queries = blobs
             .iter()
             .find(|b| b.rep == REP_QUERIES)
@@ -4273,8 +4338,14 @@ mod ustar_tests {
         // fallback to a stale disk read.
         let mut no_queries = mappings_artifacts_from_disk(&root);
         no_queries.retain(|k, _| !k.starts_with("generated/queries/"));
-        let err = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &no_queries, &shapes)
-            .expect_err("empty queries product must fail closed");
+        let err = build_archive_blobs(
+            &root,
+            &empty_schemas(),
+            &axiom_artifacts,
+            &no_queries,
+            &shapes,
+        )
+        .expect_err("empty queries product must fail closed");
         assert!(
             format!("{err:?}").contains("queries archive would fold empty"),
             "unexpected error: {err:?}"
@@ -4310,8 +4381,14 @@ mod ustar_tests {
         let mut mappings = mappings_artifacts_from_disk(&root);
         mappings.insert(probe_rel.clone(), probe_bytes.clone());
 
-        let blobs = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &mappings, &shapes)
-            .expect("archive blobs");
+        let blobs = build_archive_blobs(
+            &root,
+            &empty_schemas(),
+            &axiom_artifacts,
+            &mappings,
+            &shapes,
+        )
+        .expect("archive blobs");
         let archive = blobs
             .iter()
             .find(|b| b.rep == REP_MAPPINGS)
@@ -4330,8 +4407,14 @@ mod ustar_tests {
         // silent fallback to a stale disk read.
         let mut no_mappings = mappings_artifacts_from_disk(&root);
         no_mappings.retain(|k, _| !k.starts_with("generated/mappings/"));
-        let err = build_archive_blobs(&root, b"", b"", &axiom_artifacts, &no_mappings, &shapes)
-            .expect_err("empty mappings product must fail closed");
+        let err = build_archive_blobs(
+            &root,
+            &empty_schemas(),
+            &axiom_artifacts,
+            &no_mappings,
+            &shapes,
+        )
+        .expect_err("empty mappings product must fail closed");
         assert!(
             format!("{err:?}").contains("mappings archive would fold empty"),
             "unexpected error: {err:?}"
@@ -4372,8 +4455,7 @@ mod ustar_tests {
 
         let blobs = build_archive_blobs(
             &root,
-            b"",
-            b"",
+            &empty_schemas(),
             &axiom_artifacts_from_disk(&root),
             &mappings_artifacts_from_disk(&root),
             &ShapeSurfaces {
@@ -4442,8 +4524,7 @@ mod ustar_tests {
         );
         let blobs = build_archive_blobs(
             &root,
-            b"",
-            b"",
+            &empty_schemas(),
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
             &ShapeSurfaces {
@@ -4550,8 +4631,7 @@ mod ustar_tests {
         );
         let blobs = build_archive_blobs(
             &root,
-            b"",
-            b"",
+            &empty_schemas(),
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
             &ShapeSurfaces {
@@ -4586,8 +4666,7 @@ mod ustar_tests {
         // Determinism: rebuild and assert byte-equality.
         let again = build_archive_blobs(
             &root,
-            b"",
-            b"",
+            &empty_schemas(),
             &axiom_artifacts,
             &mappings_artifacts_from_disk(&root),
             &ShapeSurfaces {

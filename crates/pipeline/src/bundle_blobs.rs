@@ -285,8 +285,11 @@ impl Bundle {
         self.archive(REP_AXIOMS)
     }
 
-    /// The folded SHACL-derived schemas as `{filename: bytes}` ([`REP_SCHEMAS`]):
-    /// `gmeow.schema.json` (JSON Schema) + `gmeow.openapi.json` (OpenAPI).
+    /// The folded schemas as `{filename: bytes}` ([`REP_SCHEMAS`]): the
+    /// SHACL-derived `gmeow.schema.json` (JSON Schema) + `gmeow.openapi.json`
+    /// (OpenAPI), plus the two hand-authored self-describing schemas
+    /// `card.schema.json` (the term-`Card` shape) and
+    /// `validate-finding.schema.json` (the `validate_local` envelope shape).
     pub fn schemas(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
         self.archive(REP_SCHEMAS)
     }
@@ -295,6 +298,19 @@ impl Bundle {
     /// absent.
     pub fn schema(&self) -> Result<Option<Vec<u8>>, gmeow_errors::Diag> {
         Ok(self.schemas()?.remove("gmeow.schema.json"))
+    }
+
+    /// The bundled term-`Card` JSON Schema (`card.schema.json`) — the
+    /// self-describing schema for the `card.json` / MCP `doc_card format=json`
+    /// shape — or `None` if absent.
+    pub fn card_schema(&self) -> Result<Option<Vec<u8>>, gmeow_errors::Diag> {
+        Ok(self.schemas()?.remove("card.schema.json"))
+    }
+
+    /// The bundled `validate_local` envelope JSON Schema
+    /// (`validate-finding.schema.json`), or `None` if absent.
+    pub fn finding_schema(&self) -> Result<Option<Vec<u8>>, gmeow_errors::Diag> {
+        Ok(self.schemas()?.remove("validate-finding.schema.json"))
     }
 
     /// The folded JSON-LD-star + YAML-LD-star serializations ([`REP_YAMLLD`]):

@@ -4605,6 +4605,93 @@ mod tests {
         }
     }
 
+    /// Compile a hand-authored draft-2020-12 schema and assert `instance` CONFORMS,
+    /// surfacing every validation error verbatim on failure (a real payload the
+    /// schema rejects is a schema bug to FIX, never to weaken).
+    fn assert_conforms(schema: &Value, instance: &Value, what: &str) {
+        let validator = jsonschema::options()
+            .with_draft(jsonschema::Draft::Draft202012)
+            .build(schema)
+            .unwrap_or_else(|e| panic!("{what}: schema does not compile: {e}"));
+        let errors: Vec<String> = validator
+            .iter_errors(instance)
+            .map(|e| e.to_string())
+            .collect();
+        assert!(
+            errors.is_empty(),
+            "{what}: real payload does not conform to its schema:\n{}\ninstance: {instance}",
+            errors.join("\n")
+        );
+    }
+
+    /// SELF-DESCRIBING SURFACE (card): a REAL `doc_card format=json` payload — the
+    /// exact bytes the packed `terms/{slug}/card.json` member carries — CONFORMS to
+    /// the hand-authored `card.schema.json` (`gmeow_docs::card::card_json_schema`).
+    /// Both the STANDARD tier (the `card.json` shape) and the FULL tier (every rich
+    /// panel, exercising the `$defs`) are checked against the SAME schema.
+    #[test]
+    fn card_json_conforms_to_card_schema() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let schema = gmeow_docs::card::card_json_schema();
+
+        // STANDARD tier — the `card.json` shape. `gmeow:Entity` is a real bundled term.
+        let standard = text_payload(server.call_tool_result(
+            "doc_card",
+            &json!({"term": "gmeow:Entity", "format": "json", "detail": "standard"}),
+        ));
+        assert_eq!(standard["ok"], true, "doc_card standard: {standard}");
+        assert_conforms(&schema, &standard["card"], "card.json (standard tier)");
+
+        // FULL tier — exercises the rich panels ($defs). `gmeow:Activity` documents
+        // conformance fixtures and `gmeow:Entity` grounds entailments in the shipped
+        // bundle, so at least one full card carries populated panels.
+        for term in ["gmeow:Activity", "gmeow:Entity"] {
+            let full = text_payload(server.call_tool_result(
+                "doc_card",
+                &json!({"term": term, "format": "json", "detail": "full"}),
+            ));
+            assert_eq!(full["ok"], true, "doc_card full for {term}: {full}");
+            assert_conforms(&schema, &full["card"], "card.json (full tier)");
+        }
+    }
+
+    /// SELF-DESCRIBING SURFACE (finding): a REAL `validate_local` envelope — produced
+    /// by driving the tool over a REAL counter-example from the shipped bundle —
+    /// CONFORMS to the hand-authored `validate-finding.schema.json`
+    /// (`gmeow_validate::local_oracle::finding_json_schema`), exercising the finding /
+    /// fixture / entailment `$defs` on a payload that carries an attached
+    /// counter-example.
+    #[test]
+    fn enriched_report_conforms_to_finding_schema() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (_fixture_iri, _code, text) = select_reproducing_counter_example(&server);
+        let enriched = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+        );
+        // The chosen fixture reproduces its violation, so the envelope is non-vacuous:
+        // at least one finding, and at least one attached counter-example fixture.
+        let findings = enriched["findings"].as_array().expect("findings array");
+        assert!(!findings.is_empty(), "expected findings: {enriched}");
+        assert!(
+            findings.iter().any(|f| !f["counter_example"].is_null()),
+            "expected an attached counter-example (exercises the fixture $def): {enriched}"
+        );
+        let schema = gmeow_validate::local_oracle::finding_json_schema();
+        assert_conforms(&schema, &enriched, "validate_local EnrichedReport");
+    }
+
     /// DEEP PASS (heavy): drive the tool end-to-end with `deep = true` over a REAL
     /// counter-example from the shipped bundle and assert the Tier-2 semantic pass ran
     /// (a `validate.deep.*` finding is present) AND that the Tier-1 surface is

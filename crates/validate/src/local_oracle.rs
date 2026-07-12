@@ -112,6 +112,85 @@ pub struct EnrichedReport {
     pub findings: Vec<EnrichedFinding>,
 }
 
+/// The hand-authored JSON Schema (draft 2020-12) describing the serialized
+/// [`EnrichedReport`] envelope — the exact shape `validate_local` returns and the
+/// packed `validate-finding.schema.json` self-describing surface publishes.
+///
+/// It is co-located WITH the enrichment types (drift-resistance / dogfooding): the
+/// `properties` mirror the serialized fields. None of these structs carry a
+/// `#[serde(skip_serializing_if)]`, so EVERY field is always present in the output —
+/// hence every field is `required`, an absent-when-`None` `Option<String>` is
+/// `["string", "null"]`, and an absent-when-`None` nested view is `anyOf` a `$ref`
+/// or `null`. A field added to any of these structs that is not mirrored here is
+/// caught by the conformance test that validates a REAL enriched report against this
+/// schema.
+#[must_use]
+pub fn finding_json_schema() -> serde_json::Value {
+    let nullable_string = || serde_json::json!({ "type": ["string", "null"] });
+    serde_json::json!({
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://blackcatinformatics.ca/gmeow/schemas/validate-finding.schema.json",
+        "title": "GMEOW enriched validation report",
+        "description": "The teaching envelope `validate_local` returns: each finding \
+                        corresponded to the bundle's own counter-example, exemplar, help \
+                        URI, and entailments.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ok", "tool", "findings"],
+        "properties": {
+            "ok": { "type": "boolean" },
+            "tool": { "type": "string" },
+            "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } }
+        },
+        "$defs": {
+            "finding": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                    "code", "message", "help_uri", "counter_example",
+                    "wellformed_exemplar", "entails", "finding_iri", "anchor_iri"
+                ],
+                "properties": {
+                    "code": { "type": "string" },
+                    "message": { "type": "string" },
+                    "help_uri": { "type": "string" },
+                    "counter_example": {
+                        "anyOf": [{ "$ref": "#/$defs/fixture" }, { "type": "null" }]
+                    },
+                    "wellformed_exemplar": {
+                        "anyOf": [{ "$ref": "#/$defs/fixture" }, { "type": "null" }]
+                    },
+                    "entails": { "type": "array", "items": { "$ref": "#/$defs/entailment" } },
+                    "finding_iri": nullable_string(),
+                    "anchor_iri": nullable_string()
+                }
+            },
+            "fixture": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["title", "text", "expected_outcome", "violation_code", "rationale"],
+                "properties": {
+                    "title": { "type": "string" },
+                    "text": { "type": "string" },
+                    "expected_outcome": nullable_string(),
+                    "violation_code": nullable_string(),
+                    "rationale": nullable_string()
+                }
+            },
+            "entailment": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["rule", "conclusion", "premises"],
+                "properties": {
+                    "rule": { "type": "string" },
+                    "conclusion": { "type": "string" },
+                    "premises": { "type": "array", "items": { "type": "string" } }
+                }
+            }
+        }
+    })
+}
+
 /// Enrich `report` by CORRESPONDENCE against the three documentation lookup maps.
 ///
 /// * `counter_examples_by_code` — `finding-code → counter-example fixture`; a
