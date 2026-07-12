@@ -3755,9 +3755,10 @@ mod tests {
     fn math_probability_counter_examples_fire_exactly_their_class() {
         // Each native-gate probability counter-example fires EXACTLY its named failure
         // class (and none of the other four probability classes), so each (fixture, class)
-        // pair is load-bearing. Both distribution-parameter counter-examples fire the shared
-        // math:DistributionParameterConstraint class (positivity arm vs dimension arm).
-        let cases: [(&str, &str); 10] = [
+        // pair is load-bearing. All three distribution-parameter counter-examples fire the
+        // shared math:DistributionParameterConstraint class (positivity arm vs the
+        // absolute-dimension arm vs the relational — same-as/square-of — dimension arm).
+        let cases: [(&str, &str); 11] = [
             (
                 include_str!(
                     "../../../slices/grounding/math/tests/counter-examples/probability-out-of-bounds.ttl"
@@ -3773,6 +3774,12 @@ mod tests {
             (
                 include_str!(
                     "../../../slices/grounding/math/tests/counter-examples/distribution-parameter-wrong-dimension.ttl"
+                ),
+                "math:DistributionParameterConstraint",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/distribution-parameter-relational-dimension.ttl"
                 ),
                 "math:DistributionParameterConstraint",
             ),
@@ -3843,7 +3850,7 @@ mod tests {
     fn math_probability_clean_fixtures_fire_no_probability_class() {
         // Each clean conformance fixture is the positive counterpart of one counter-example
         // and MUST raise none of the five native probability failure classes.
-        let clean: [&str; 10] = [
+        let clean: [&str; 11] = [
             include_str!(
                 "../../../slices/grounding/math/tests/conformance-fixtures/probability-in-bounds.ttl"
             ),
@@ -3852,6 +3859,13 @@ mod tests {
             ),
             include_str!(
                 "../../../slices/grounding/math/tests/conformance-fixtures/distribution-parameter-right-dimension.ttl"
+            ),
+            // Positive counterpart of counter-examples/distribution-parameter-relational-dimension.ttl
+            // for the RELATIONAL (math:sameAsRandomVariableDimension) dimension arm: the random
+            // variable and its location parameter's quantity both carry the resolvable
+            // math:lengthDimension, so the ℚ⁷ exact comparison agrees and raises nothing.
+            include_str!(
+                "../../../slices/grounding/math/tests/fixtures/random-variable-distribution.ttl"
             ),
             include_str!(
                 "../../../slices/grounding/math/tests/conformance-fixtures/probability-model-lowering-declared.ttl"
