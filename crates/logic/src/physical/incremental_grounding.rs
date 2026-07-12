@@ -30,6 +30,7 @@
 //! blank-node binding cannot currently be represented as a constant [`EvalTerm`]
 //! and is rejected rather than rewritten as an IRI.
 
+use std::cell::Cell;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
@@ -125,7 +126,7 @@ pub(crate) struct IncrementalGroundProgram {
     positive: IncrementalSession,
     edb: BTreeMap<FactKey, Fact>,
     ground_rules: BTreeMap<GroundRuleKey, WeightedGroundRule>,
-    scratch_ground_rule_probe_rows: u64,
+    scratch_ground_rule_probe_rows: Cell<Option<u64>>,
 }
 
 impl IncrementalGroundProgram {
@@ -157,7 +158,7 @@ impl IncrementalGroundProgram {
             positive,
             edb,
             ground_rules,
-            scratch_ground_rule_probe_rows,
+            scratch_ground_rule_probe_rows: Cell::new(Some(scratch_ground_rule_probe_rows)),
         })
     }
 
@@ -293,6 +294,7 @@ impl IncrementalGroundProgram {
         let edb_changes = consolidated.into_values().collect::<Vec<_>>();
         self.positive = next_positive;
         self.edb = next_edb;
+        self.scratch_ground_rule_probe_rows.set(None);
 
         Ok(GroundingUpdate {
             slice_changed: !edb_changes.is_empty() || !rule_changes.is_empty(),
@@ -307,8 +309,14 @@ impl IncrementalGroundProgram {
     }
 
     /// Candidate-row probes paid by a clean full grounding of this exact snapshot.
-    pub(crate) fn scratch_ground_rule_probe_rows(&self) -> u64 {
-        self.scratch_ground_rule_probe_rows
+    pub(crate) fn scratch_ground_rule_probe_rows(&self) -> gmeow_errors::Result<u64> {
+        if let Some(probes) = self.scratch_ground_rule_probe_rows.get() {
+            return Ok(probes);
+        }
+        let mut probes = 0;
+        let _ = ground_from_scratch(&self.source_rules, &self.positive, &mut probes)?;
+        self.scratch_ground_rule_probe_rows.set(Some(probes));
+        Ok(probes)
     }
 
     /// Number of active fully-ground rule instances in the current solver slice.
@@ -740,6 +748,37 @@ mod tests {
         assert_eq!(update.universe_changes, 0);
         assert!(update.rule_changes.is_empty());
         session.check_scratch_parity().expect("EDB-only parity");
+    }
+
+    #[test]
+    fn scratch_probe_count_tracks_each_committed_snapshot() {
+        let mut session =
+            IncrementalGroundProgram::new("contract", [fact("a", "edge", "b")], &rules())
+                .expect("initial ground program");
+        let initial = session
+            .scratch_ground_rule_probe_rows()
+            .expect("initial scratch probes");
+
+        session
+            .apply([signed(fact("b", "edge", "c"), 1)])
+            .expect("insert b->c");
+        let refreshed = session
+            .scratch_ground_rule_probe_rows()
+            .expect("refreshed scratch probes");
+        let rebuilt = IncrementalGroundProgram::new(
+            "contract",
+            [fact("a", "edge", "b"), fact("b", "edge", "c")],
+            &rules(),
+        )
+        .expect("fresh current-snapshot ground program")
+        .scratch_ground_rule_probe_rows()
+        .expect("fresh current-snapshot probes");
+
+        assert_ne!(
+            refreshed, initial,
+            "the expanded snapshot changes probe work"
+        );
+        assert_eq!(refreshed, rebuilt);
     }
 
     #[test]

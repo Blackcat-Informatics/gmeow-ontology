@@ -117,7 +117,7 @@ impl IncrementalWellFoundedSession {
     }
 
     /// Full-grounding candidate probes paid when this session was built.
-    pub(crate) fn scratch_ground_rule_probe_rows(&self) -> u64 {
+    pub(crate) fn scratch_ground_rule_probe_rows(&self) -> gmeow_errors::Result<u64> {
         self.ground.scratch_ground_rule_probe_rows()
     }
 
