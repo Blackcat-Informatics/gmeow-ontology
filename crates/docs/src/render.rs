@@ -2671,7 +2671,123 @@ const SYNTAX_TAB_PROVIDERS: &[SyntaxTabProvider] = &[
     jsonld_syntax_tab,
     json_schema_syntax_tab,
     openapi_syntax_tab,
+    python_syntax_tab,
+    rust_syntax_tab,
 ];
+
+/// The generated `gmeow_models` module slug for a slice IRI (the last IRI segment,
+/// lowercased, non-identifier chars → `_`) — the same routing the Pydantic emitter
+/// uses, so `gmeow_models.<slice>` resolves to the term's model module.
+fn pydantic_module_slug(slice_iri: &str) -> String {
+    let local = slice_iri.rsplit(['#', '/']).next().unwrap_or(slice_iri);
+    let mut out = String::new();
+    for ch in local.chars() {
+        out.push(if ch == '_' || ch.is_ascii_alphanumeric() {
+            ch.to_ascii_lowercase()
+        } else {
+            '_'
+        });
+    }
+    while out.contains("__") {
+        out = out.replace("__", "_");
+    }
+    out.trim_matches('_').to_string()
+}
+
+/// The generated Pydantic class name for a class IRI: the CamelCase of its local
+/// name (mirroring the emitter's `sanitize_type`), guarded against a leading digit.
+fn pydantic_class_name(iri: &str) -> String {
+    let local = iri.rsplit(['#', '/']).next().unwrap_or(iri);
+    let mut ident = String::new();
+    for ch in local.chars() {
+        ident.push(if ch == '_' || ch.is_ascii_alphanumeric() {
+            ch
+        } else {
+            '_'
+        });
+    }
+    while ident.contains("__") {
+        ident = ident.replace("__", "_");
+    }
+    ident = ident.trim_matches('_').to_string();
+    let mut chars = ident.chars();
+    let name = match chars.next() {
+        Some(c) => format!("{}{}", c.to_ascii_uppercase(), chars.as_str()),
+        None => "GmeowModel".to_string(),
+    };
+    if name.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+        format!("N{name}")
+    } else {
+        name
+    }
+}
+
+/// The Python (Pydantic) example tab: construct-and-validate the term's worked
+/// instance against its generated `gmeow_models` model — importing the model IS
+/// reading the term. Present only for a modeled class (one carrying a schema
+/// fragment); the payload is the SAME quickstart instance the Turtle / JSON-LD
+/// tabs render, so the code never drifts from the RDF example.
+fn python_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+    // Only a modeled class has a Pydantic model + a JSON-Schema fragment.
+    model
+        .schema_fragments
+        .as_ref()?
+        .schema_by_term
+        .get(&term.iri)?;
+    let skeleton = synthesize_quickstart(model, term);
+    if !skeleton_has_triple(&skeleton) {
+        return None;
+    }
+    let payload = quickstart_turtle_to_jsonld(&skeleton)?;
+    let module = pydantic_module_slug(&term.owner_slice);
+    let class = pydantic_class_name(&term.iri);
+    let body = format!(
+        "import json\n\n\
+         from gmeow_models.{module} import {class}\n\n\
+         # The same worked instance shown in the Turtle / JSON-LD tabs, validated\n\
+         # against the ontology-derived model:\n\
+         payload = json.loads(r'''{payload}''')\n\
+         obj = {class}.model_validate(payload)\n\
+         print(obj.model_dump(by_alias=True, exclude_none=True))"
+    );
+    Some(DocSyntaxTab {
+        id: "python".to_string(),
+        label: "Python".to_string(),
+        lang: "python".to_string(),
+        body,
+    })
+}
+
+/// The Rust example tab: parse the SAME quickstart instance and validate it with
+/// the native GMEOW validator — the shipped Rust surface paired with the Python
+/// tab, from the one worked instance. Present under the same modeled-class
+/// condition as [`python_syntax_tab`].
+fn rust_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+    model
+        .schema_fragments
+        .as_ref()?
+        .schema_by_term
+        .get(&term.iri)?;
+    let skeleton = synthesize_quickstart(model, term);
+    if !skeleton_has_triple(&skeleton) {
+        return None;
+    }
+    let turtle = format!("{QUICKSTART_TURTLE_PREAMBLE}{skeleton}");
+    let body = format!(
+        "// Parse the same worked instance shown in the Turtle tab and validate it\n\
+         // with the native GMEOW validator (the shipped Rust surface).\n\
+         let turtle = r#\"{turtle}\"#;\n\
+         let dataset = purrdf::parse_turtle(turtle)?;\n\
+         let report = gmeow_validate::validate(&dataset)?;\n\
+         assert!(report.conforms());"
+    );
+    Some(DocSyntaxTab {
+        id: "rust".to_string(),
+        label: "Rust".to_string(),
+        lang: "rust".to_string(),
+        body: body.trim_end().to_string(),
+    })
+}
 
 /// Whether a synthesized quickstart skeleton carries at least one Turtle triple
 /// line (a non-comment, non-blank line) — the class/property skeletons do; the
