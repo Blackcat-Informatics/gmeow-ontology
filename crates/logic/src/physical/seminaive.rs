@@ -227,6 +227,29 @@ pub(crate) enum ProvenanceMode {
     Skip,
 }
 
+/// How one semi-naive round schedules its immutable per-rule candidate work.
+///
+/// Production selects [`Parallel`](Self::Parallel). [`Sequential`](Self::Sequential)
+/// remains an internal parity oracle: both policies feed the SAME lexical winner merge
+/// and sorted commit, so scheduling can never affect bytes or budget observations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RoundExecution {
+    /// Evaluate every rule directly into one round buffer in program order.
+    Sequential,
+    /// Evaluate rules into independent buffers, then merge them in program order.
+    Parallel,
+}
+
+impl RoundExecution {
+    /// Whether this round has enough independent work and workers to use Rayon.
+    ///
+    /// Single-rule strata and one-worker deterministic measurement pools stay on the
+    /// allocation-minimal direct path; there is no parallelism to recover in either case.
+    fn should_parallelize(self, rule_count: usize) -> bool {
+        self == Self::Parallel && rule_count > 1 && rayon::current_num_threads() > 1
+    }
+}
+
 /// Governs the step/derivation budget for the native fixpoint.
 ///
 /// A native "step" is **one committed derivation** — a winner inserted in the
@@ -1555,6 +1578,19 @@ pub(crate) fn materialize_native(
     exe: &Executable,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>> {
+    materialize_native_with_round_execution(store, exe, max_steps, RoundExecution::Parallel)
+}
+
+/// Policy-selectable implementation behind [`materialize_native`].
+///
+/// The policy is private because callers may not weaken production execution; focused
+/// tests use it to prove forced sequential and forced parallel rounds are identical.
+fn materialize_native_with_round_execution(
+    store: &crate::store::WorldStore,
+    exe: &Executable,
+    max_steps: Option<u64>,
+    round_execution: RoundExecution,
+) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>> {
     // Stratification and per-rule join planning are properties of the rules alone; the
     // caller computed them ONCE through the `Parsed → Stratified → Planned → Executable`
     // pipeline (a non-stratifiable program never reaches here — it is the pipeline's
@@ -1569,9 +1605,9 @@ pub(crate) fn materialize_native(
     // `status` is always `Ok`, no world is left untouched, and the worlds are fully
     // independent (each reads only the shared `store` + `exe`, both `&`-
     // shared/read-only).  That independence is what makes per-world rayon parallelism
-    // deterministic and byte-identical to the sequential fold.  A SHARED step budget,
-    // by contrast, is inherently order-serial and cannot be parallelized deterministically
-    // — so the budgeted arm keeps the sequential loop below, untouched.
+    // deterministic and byte-identical to the sequential fold. A SHARED step budget keeps
+    // the OUTER sorted-world loop order-serial, but each world's immutable per-rule round
+    // work still uses `round_execution`; only the lexical commit mutates shared state.
     if max_steps.is_none() {
         // `WorldStore` holds a `RefCell` and is therefore NOT `Sync`, so the store read
         // (`world_edb_facts`) is hoisted out of the parallel region and run sequentially
@@ -1602,6 +1638,7 @@ pub(crate) fn materialize_native(
                         exe,
                         &mut governor,
                         ProvenanceMode::Record,
+                        round_execution,
                     )?;
                     // Derived rows AFTER the echo rows (same order as the sequential body).
                     for mut row in budgeted.rows {
@@ -1670,8 +1707,13 @@ pub(crate) fn materialize_native(
         // Asserted-EDB echo (identical to wellfounded::materialize).
         out.extend(echo_asserted(world, &edb_facts)?);
 
-        let budgeted =
-            eval_world_stratified(&edb_facts, exe, &mut governor, ProvenanceMode::Record)?;
+        let budgeted = eval_world_stratified(
+            &edb_facts,
+            exe,
+            &mut governor,
+            ProvenanceMode::Record,
+            round_execution,
+        )?;
         for mut row in budgeted.rows {
             row.graph = world.clone();
             out.push(row);
@@ -1733,6 +1775,7 @@ fn eval_world_stratified(
     exe: &Executable,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
+    round_execution: RoundExecution,
 ) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
     // Shared accumulated store (both forms), seeded from the EDB in sorted-key order
     // (world_edb_facts already sorted), so seeding matches the reference.
@@ -1791,6 +1834,7 @@ fn eval_world_stratified(
             },
             governor,
             mode,
+            round_execution,
         )? {
             FixpointStatus::Complete => {
                 // This stratum reached its natural fixpoint: its head predicates are now
@@ -1838,6 +1882,197 @@ struct FixpointState<'a> {
     builtin_gap: &'a mut bool,
 }
 
+/// The immutable snapshot every rule task reads during one semi-naive round.
+///
+/// No task may mutate these structures. The single sorted commit begins only after all
+/// task buffers have been collected and deterministically merged.
+#[derive(Clone, Copy)]
+struct RoundSnapshot<'a> {
+    store: &'a FactStore,
+    rel: &'a RelationStore,
+    depth: &'a [ProofHeight],
+    delta: Delta,
+    mode: ProvenanceMode,
+}
+
+/// One rule task's round-local winners and arithmetic-gap observation.
+///
+/// The borrowed-key index points into `entries`, so keys are owned exactly once. Parallel
+/// tasks own independent instances; after task completion they are merged serially in
+/// executable program order using the same total provenance winner relation.
+struct RoundCandidateBuffer {
+    entries: Vec<(FactKey, RuleRoundCandidate)>,
+    index: HashTable<usize>,
+    builtin_gap: bool,
+}
+
+impl RoundCandidateBuffer {
+    fn new() -> Self {
+        Self {
+            entries: Vec::new(),
+            index: HashTable::new(),
+            builtin_gap: false,
+        }
+    }
+
+    /// Insert or quality-merge one candidate under its cached fact key.
+    fn insert(
+        &mut self,
+        key: FactKey,
+        candidate: RuleRoundCandidate,
+        mode: ProvenanceMode,
+    ) -> gmeow_errors::Result<()> {
+        let hash = fact_key_hash(&key);
+        match self.index.find(hash, |&i| self.entries[i].0 == key) {
+            Some(&i) => {
+                if mode == ProvenanceMode::Record && candidate.preferred_over(&self.entries[i].1)? {
+                    self.entries[i].1 = candidate;
+                }
+            }
+            None => {
+                let index = self.entries.len();
+                self.entries.push((key, candidate));
+                let entries = &self.entries;
+                self.index
+                    .insert_unique(hash, index, |&i| fact_key_hash(&entries[i].0));
+            }
+        }
+        Ok(())
+    }
+
+    /// Merge a completed rule-local buffer at the scheduling-erasing serial boundary.
+    fn merge_from(&mut self, other: Self, mode: ProvenanceMode) -> gmeow_errors::Result<()> {
+        self.builtin_gap |= other.builtin_gap;
+        for (key, candidate) in other.entries {
+            self.insert(key, candidate, mode)?;
+        }
+        Ok(())
+    }
+}
+
+/// Evaluate one rule against the frozen round snapshot into `round`.
+///
+/// The sequential policy calls this directly on one shared round buffer (preserving the
+/// allocation-minimal one-worker baseline). The parallel policy gives every invocation a
+/// private buffer and merges those buffers after all joins finish.
+fn evaluate_rule_into_round(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    snapshot: RoundSnapshot<'_>,
+    round: &mut RoundCandidateBuffer,
+) -> gmeow_errors::Result<()> {
+    for sol in join_body_indexed(
+        rule,
+        plan,
+        snapshot.rel,
+        snapshot.rel,
+        snapshot.delta,
+        &mut round.builtin_gap,
+    ) {
+        if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
+            continue;
+        }
+        let head = ground_head(&rule.head, &sol)?;
+        let key = head.key();
+        if snapshot.store.contains_key(&key) {
+            continue; // a prior round/stratum already derived it; earlier wins
+        }
+
+        let candidate = match snapshot.mode {
+            ProvenanceMode::Record => {
+                // Provenance: reifiers of matched POSITIVE body facts in body order.
+                let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
+                let mut max_sd = ProofHeight::ASSERTED;
+                let mut sum_sd: u64 = 0;
+                for sf in &sol.source_facts {
+                    sources.push(sf.reifier()?);
+                    let source_key = sf.key();
+                    let row = snapshot.store.row_index(&source_key).ok_or_else(|| {
+                        seminaive_err(format!(
+                            "provenance source {source_key:?} is absent from the physical fact store"
+                        ))
+                    })?;
+                    drop(source_key);
+                    let d = snapshot.depth.get(row).copied().ok_or_else(|| {
+                        seminaive_err(format!(
+                            "provenance source row {row} has no proof-height annotation"
+                        ))
+                    })?;
+                    max_sd = max_sd.max(d);
+                    sum_sd = sum_sd.saturating_add(u64::from(d.get()));
+                }
+                let proof_height = MinProofHeightSemiring.derive([max_sd])?;
+                let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                let deriv = mint_derivation_id(&rule.rule_iri, &source_refs);
+                let mut sorted_sources = sources.clone();
+                sorted_sources.sort();
+
+                RuleRoundCandidate {
+                    head,
+                    prov: Some(Provenance {
+                        sources,
+                        sorted_sources,
+                        source_facts: sol.source_facts.clone(),
+                        deriv,
+                        rule_iri: rule.rule_iri.clone(),
+                        proof_height,
+                        sum_src_depth: sum_sd,
+                    }),
+                }
+            }
+            ProvenanceMode::Skip => {
+                // Facts-only: every candidate under `key` has the same content-derived head,
+                // so first-seen is sufficient and no provenance work is performed.
+                RuleRoundCandidate { head, prov: None }
+            }
+        };
+        round.insert(key, candidate, snapshot.mode)?;
+    }
+    Ok(())
+}
+
+/// Evaluate all rules in a stratum, optionally in parallel, and erase scheduling order.
+fn evaluate_round_candidates(
+    exe: &Executable,
+    stratum: usize,
+    snapshot: RoundSnapshot<'_>,
+    execution: RoundExecution,
+) -> gmeow_errors::Result<RoundCandidateBuffer> {
+    let rule_indices = exe.stratum_rule_indices(stratum);
+    if !execution.should_parallelize(rule_indices.len()) {
+        let mut round = RoundCandidateBuffer::new();
+        for &rule_index in rule_indices {
+            let (rule, plan) = exe.rule_entry(rule_index);
+            evaluate_rule_into_round(rule, plan, snapshot, &mut round)?;
+        }
+        return Ok(round);
+    }
+
+    // `par_iter` over a slice is indexed: `collect::<Vec<_>>()` preserves input program
+    // order regardless of completion order. Keep each task result wrapped until the serial
+    // loop so, if multiple rules fail, the observable diagnostic is also the first one in
+    // program order rather than whichever worker happened to finish first.
+    let rule_results: Vec<gmeow_errors::Result<RoundCandidateBuffer>> = rule_indices
+        .par_iter()
+        .map(|&rule_index| {
+            let (rule, plan) = exe.rule_entry(rule_index);
+            let mut round = RoundCandidateBuffer::new();
+            evaluate_rule_into_round(rule, plan, snapshot, &mut round)?;
+            Ok(round)
+        })
+        .collect();
+
+    let mut buffers = rule_results.into_iter();
+    let Some(first) = buffers.next() else {
+        return Ok(RoundCandidateBuffer::new());
+    };
+    let mut merged = first?;
+    for buffer in buffers {
+        merged.merge_from(buffer?, snapshot.mode)?;
+    }
+    Ok(merged)
+}
+
 /// Run the semi-naive fixpoint for the rules of ONE stratum into the shared stores.
 ///
 /// This loop is a structural copy of `least_model_of_reduct`'s round loop — same
@@ -1864,6 +2099,7 @@ fn eval_stratum_fixpoint(
     state: &mut FixpointState<'_>,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
+    round_execution: RoundExecution,
 ) -> gmeow_errors::Result<FixpointStatus> {
     // Reborrow each accumulator into a single `&mut` local so the loop body below is a verbatim
     // copy of `least_model_of_reduct`'s — the `FixpointState` bundle exists only to keep the
@@ -1881,102 +2117,23 @@ fn eval_stratum_fixpoint(
     let mut delta = Delta::all(rel.row_count());
 
     loop {
-        // Per-round canonical-winner map: a borrowed-key `HashTable<usize>` into a side
-        // `Vec<(FactKey, RuleRoundCandidate)>` (mirrors `FactStore`'s cached-surface
-        // probe) — no owned-key clone per candidate, and the cached `FactKey` is reused
-        // at commit for the sort.  Identical selection semantics to
-        // `least_model_of_reduct`'s round map.
-        let mut round_entries: Vec<(FactKey, RuleRoundCandidate)> = Vec::new();
-        let mut round_index: HashTable<usize> = HashTable::new();
-
-        for (rule, plan) in exe.stratum_entries(stratum) {
-            for sol in join_body_indexed(rule, plan, rel, rel, delta, builtin_gap) {
-                if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
-                    continue;
-                }
-                let head = ground_head(&rule.head, &sol)?;
-                let key = head.key();
-                if store.contains_key(&key) {
-                    continue; // a prior round/stratum already derived it; earlier wins
-                }
-
-                match mode {
-                    ProvenanceMode::Record => {
-                        // Provenance: reifiers of matched POSITIVE body facts in body order.
-                        let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
-                        let mut max_sd = ProofHeight::ASSERTED;
-                        let mut sum_sd: u64 = 0;
-                        for sf in &sol.source_facts {
-                            sources.push(sf.reifier()?);
-                            let source_key = sf.key();
-                            let row = store.row_index(&source_key).ok_or_else(|| {
-                                seminaive_err(format!(
-                                    "provenance source {source_key:?} is absent from the physical fact store"
-                                ))
-                            })?;
-                            drop(source_key);
-                            let d = depth.get(row).copied().ok_or_else(|| {
-                                seminaive_err(format!(
-                                    "provenance source row {row} has no proof-height annotation"
-                                ))
-                            })?;
-                            max_sd = max_sd.max(d);
-                            sum_sd = sum_sd.saturating_add(u64::from(d.get()));
-                        }
-                        let proof_height = MinProofHeightSemiring.derive([max_sd])?;
-                        let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
-                        let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
-                        let mut sorted_sources = sources.clone();
-                        sorted_sources.sort();
-
-                        let candidate = RuleRoundCandidate {
-                            head,
-                            prov: Some(Provenance {
-                                sources,
-                                sorted_sources,
-                                source_facts: sol.source_facts.clone(),
-                                deriv,
-                                rule_iri: rule.rule_iri.clone(),
-                                proof_height,
-                                sum_src_depth: sum_sd,
-                            }),
-                        };
-                        let hash = fact_key_hash(&key);
-                        match round_index.find(hash, |&i| round_entries[i].0 == key) {
-                            Some(&i) => {
-                                if candidate.preferred_over(&round_entries[i].1)? {
-                                    round_entries[i].1 = candidate;
-                                }
-                            }
-                            None => {
-                                let idx = round_entries.len();
-                                round_entries.push((key, candidate));
-                                let entries = &round_entries;
-                                round_index
-                                    .insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
-                            }
-                        }
-                    }
-                    ProvenanceMode::Skip => {
-                        // Facts-only: no `reifier()` minting, no derivation id, no depth read,
-                        // no tiebreak.  Every candidate under `key` shares an identical `head`
-                        // (the key is content-derived from the head), so first-seen wins and the
-                        // committed fact is invariant to the choice.  `prov: None` makes the
-                        // absence of provenance a type-enforced fact, not a sentinel-filled struct.
-                        let hash = fact_key_hash(&key);
-                        if round_index
-                            .find(hash, |&i| round_entries[i].0 == key)
-                            .is_none()
-                        {
-                            let idx = round_entries.len();
-                            round_entries.push((key, RuleRoundCandidate { head, prov: None }));
-                            let entries = &round_entries;
-                            round_index.insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
-                        }
-                    }
-                }
-            }
-        }
+        // Every rule reads this immutable snapshot. Parallel tasks produce independent
+        // borrowed-key winner buffers; their program-order merge erases scheduling before
+        // the single lexical commit mutates either store or charges the governor.
+        let round = evaluate_round_candidates(
+            exe,
+            stratum,
+            RoundSnapshot {
+                store,
+                rel,
+                depth,
+                delta,
+                mode,
+            },
+            round_execution,
+        )?;
+        *builtin_gap |= round.builtin_gap;
+        let round_entries = round.entries;
 
         if round_entries.is_empty() {
             break; // stratum fixpoint
@@ -2168,6 +2325,7 @@ pub(crate) fn evaluate(
             },
             &mut governor,
             ProvenanceMode::Skip,
+            RoundExecution::Parallel,
         )? {
             FixpointStatus::Complete => {
                 for pred in exe.stratum_head_predicates(k) {
@@ -2248,6 +2406,7 @@ mod tests {
             &mut FixpointState<'_>,
             &mut StepGovernor,
             ProvenanceMode,
+            RoundExecution,
         ) -> gmeow_errors::Result<FixpointStatus> = eval_stratum_fixpoint;
     }
 
@@ -3137,6 +3296,124 @@ mod tests {
                  never the MINT/RowId order (zzz first) — RowId assignment is purely additive"
             );
         }
+    }
+
+    /// INTRA-WORLD RULE-PARALLELISM DETERMINISM + BUDGET GATE.
+    ///
+    /// Six same-stratum rules produce two rounds of work over one world. Two rules derive
+    /// every `shared` head with DIFFERENT observable provenance, and the lexically smaller
+    /// rule IRI is deliberately authored second, so the rule-local-buffer merge must apply
+    /// the total winner relation rather than arrival order or first-buffer wins. The
+    /// remaining rules create disjoint heads on both sides of that shared predicate.
+    ///
+    /// A private forced-sequential run is compared against a forced-parallel run inside a
+    /// four-worker Rayon pool for the unbounded closure and cuts before, inside, and exactly
+    /// at round boundaries. Equality covers the entire `Budgeted<Vec<DerivedRow>>`: rows,
+    /// full provenance, status, completion frontier, and consumed-step count.
+    #[test]
+    fn physical_intra_world_parallel_matches_sequential_under_budget_sweep() {
+        let rule_text = format!(
+            "#[name(\"{NS}rule/z-duplicate\")]\n\
+             <{NS}shared>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/a-duplicate\")]\n\
+             <{NS}shared>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/alpha\")]\n\
+             <{NS}alpha>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/omega\")]\n\
+             <{NS}omega>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/left\")]\n\
+             <{NS}left>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/right\")]\n\
+             <{NS}right>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n"
+        );
+        let rules = parse_eval_rules(&rule_text).expect("parse rule-parallel fixture");
+        let store = WorldStore::new();
+        for index in 0..24 {
+            let node = nn(&format!("node-{index:02}"));
+            store.insert_quad(WORLD, &node, &nn("seed"), &node);
+        }
+
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .expect("build four-worker parity pool");
+        pool.install(move || {
+            assert!(
+                RoundExecution::Parallel.should_parallelize(rules.len()),
+                "the forced-parallel leg must genuinely enter the multi-worker rule path"
+            );
+            let executable = exe(&rules);
+            let run = |max_steps, execution| match materialize_native_with_round_execution(
+                &store,
+                &executable,
+                max_steps,
+                execution,
+            )
+            .expect("policy-selectable materialization")
+            {
+                NativeOutcome::Decided(budgeted) => budgeted,
+                other => panic!("expected Decided, got {other:?}"),
+            };
+            let full_rows = |budgeted: &Budgeted<Vec<DerivedRow>>| {
+                budgeted
+                    .rows
+                    .iter()
+                    .map(|row| {
+                        (
+                            row.graph.clone(),
+                            term_display(&row.subject),
+                            row.predicate.clone(),
+                            term_display(&row.object),
+                            row.rule_iri.clone(),
+                            row.source_quad_ids.clone(),
+                            row.derivation_id.clone(),
+                            row.proof_height,
+                            row.antecedents.iter().map(Fact::key).collect::<Vec<_>>(),
+                        )
+                    })
+                    .collect::<Vec<_>>()
+            };
+            let assert_same = |parallel: &Budgeted<Vec<DerivedRow>>,
+                               sequential: &Budgeted<Vec<DerivedRow>>,
+                               label: &str| {
+                assert_eq!(parallel.status, sequential.status, "{label}: status");
+                assert_eq!(
+                    parallel.progress, sequential.progress,
+                    "{label}: completion frontier"
+                );
+                assert_eq!(
+                    parallel.consumed_steps, sequential.consumed_steps,
+                    "{label}: consumed steps"
+                );
+                assert_eq!(
+                    full_rows(parallel),
+                    full_rows(sequential),
+                    "{label}: rows and full provenance"
+                );
+            };
+
+            let sequential_full = run(None, RoundExecution::Sequential);
+            let parallel_full = run(None, RoundExecution::Parallel);
+            assert_same(&parallel_full, &sequential_full, "unbounded closure");
+            assert_eq!(
+                derived_only(&sequential_full.rows).len(),
+                120,
+                "24 seeds × five unique derived predicates"
+            );
+            assert!(
+                derived_only(&sequential_full.rows)
+                    .iter()
+                    .filter(|row| row.predicate.as_str() == nn("shared"))
+                    .all(|row| row.rule_iri == nn("rule/a-duplicate")),
+                "cross-rule duplicate heads must choose the total-order provenance winner"
+            );
+
+            for budget in [0, 1, 23, 72, 73, 119, 120, 121] {
+                let sequential = run(Some(budget), RoundExecution::Sequential);
+                let parallel = run(Some(budget), RoundExecution::Parallel);
+                assert_same(&parallel, &sequential, &format!("budget {budget}"));
+            }
+        });
     }
 
     /// PER-WORLD PARALLELISM DETERMINISM GATE.
