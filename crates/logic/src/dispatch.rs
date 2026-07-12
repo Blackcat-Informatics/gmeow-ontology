@@ -25,7 +25,8 @@ fn query_contract_hash(profile: &str, budget: &Budget) -> String {
 
     let mut hasher = blake3::Hasher::new();
     frame(&mut hasher, b"gmeow-backward-query-contract-v1");
-    frame(&mut hasher, profile.as_bytes());
+    let canonical_profile = profile_gate::canonical_profile_identity(profile);
+    frame(&mut hasher, canonical_profile.as_bytes());
     match budget.max_answers {
         Some(value) => {
             hasher.update(&[1]);
@@ -121,6 +122,21 @@ mod tests {
                     max_answers: Some(0),
                     max_steps: Some(0),
                 }
+            )
+        );
+        assert_eq!(
+            query_contract_hash(HORN_PROFILE, &unlimited),
+            query_contract_hash("logic:PositiveHornProfile", &unlimited)
+        );
+        assert_eq!(
+            query_contract_hash(HORN_PROFILE, &unlimited),
+            query_contract_hash("PositiveHornProfile", &unlimited)
+        );
+        assert_eq!(
+            query_contract_hash(HORN_PROFILE, &unlimited),
+            query_contract_hash(
+                "<https://blackcatinformatics.ca/logic/PositiveHornProfile>",
+                &unlimited,
             )
         );
     }

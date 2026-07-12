@@ -91,10 +91,27 @@ pub fn check_builtin_profile(program: &QProgram, profile: &str) -> gmeow_errors:
 /// bare local name) — the substring after the last `/` or `:`.
 fn profile_local_name(profile: &str) -> &str {
     profile
+        .strip_prefix('<')
+        .and_then(|value| value.strip_suffix('>'))
+        .unwrap_or(profile)
         .rsplit(['/', ':'])
         .next()
         .filter(|s| !s.is_empty())
         .unwrap_or(profile)
+}
+
+/// Resolve every accepted spelling of a semantic preset to one full-IRI identity.
+/// Unknown values remain distinct so an unrecognized contract cannot alias a known
+/// preset or another caller's opaque profile.
+pub(crate) fn canonical_profile_identity(profile: &str) -> String {
+    if let Some(preset) = SemanticProfileId::from_local(profile_local_name(profile)) {
+        return preset.iri();
+    }
+    match profile_local_name(profile) {
+        LEWIS_SKEPTICAL_SHORT => LEWIS_SKEPTICAL_PROFILE.to_owned(),
+        LEWIS_CREDULOUS_SHORT => LEWIS_CREDULOUS_PROFILE.to_owned(),
+        _ => profile.to_owned(),
+    }
 }
 
 /// Return `true` if `profile` denotes a reasoning contract whose facet bundle
