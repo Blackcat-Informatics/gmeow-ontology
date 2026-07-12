@@ -50,6 +50,12 @@ const XSD_DOUBLE: &str = "http://www.w3.org/2001/XMLSchema#double";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+/// An annotation property carries no object/datatype OWL character, so its EDOAL kind is
+/// read from its declared `rdfs:range` (a datatype/literal range → `property`).
+const OWL_ANNOTATION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AnnotationProperty";
+const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+const RDFS_LITERAL: &str = "http://www.w3.org/2000/01/rdf-schema#Literal";
+const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
 
 /// The internal carrier tag (the `x-gmeow-*` private-use tag) rides
 /// `lang:carrierTag` on the three carrier varieties since the lang: graft.
@@ -388,11 +394,35 @@ fn gmeow_entity_kind(onto: &DslView, iri: &str) -> Option<&'static str> {
     let is_object = types.iter().any(|t| t == OWL_OBJECT_PROPERTY);
     let is_data = types.iter().any(|t| t == OWL_DATATYPE_PROPERTY);
     let is_class = types.iter().any(|t| t == OWL_CLASS);
-    match (is_object, is_data, is_class) {
-        (true, false, false) => Some("relation"),
-        (false, true, false) => Some("property"),
-        (false, false, true) => Some("class"),
-        _ => None,
+    if is_object && !is_data && !is_class {
+        return Some("relation");
+    }
+    if is_data && !is_object && !is_class {
+        return Some("property");
+    }
+    if is_class && !is_object && !is_data {
+        return Some("class");
+    }
+    // An annotation property has no object/datatype character; derive from its range —
+    // a datatype/literal range is a `property`, an IRI/class range a `relation`.
+    if types.iter().any(|t| t == OWL_ANNOTATION_PROPERTY) {
+        return range_entity_kind(onto, iri);
+    }
+    None
+}
+
+/// The EDOAL kind implied by a term's `rdfs:range`: all datatype/literal ranges → a
+/// `property`, any resource/class range → a `relation`. `None` when no range is declared.
+fn range_entity_kind(onto: &DslView, iri: &str) -> Option<&'static str> {
+    let ranges = onto.object_iris(iri, RDFS_RANGE);
+    if ranges.is_empty() {
+        return None;
+    }
+    let is_datatype = |r: &String| r.starts_with(XSD_NS) || r == RDFS_LITERAL;
+    if ranges.iter().all(is_datatype) {
+        Some("property")
+    } else {
+        Some("relation")
     }
 }
 
@@ -1003,6 +1033,31 @@ mod tests {
         );
         let err = emit_kind_nt(&onto, &cell).expect_err("indeterminate kind must hard-fail");
         assert!(err.message().contains("indeterminate"), "{err}");
+    }
+
+    #[test]
+    fn annotation_property_derives_kind_from_range() {
+        // An annotation property carries no object/datatype OWL character; a datatype
+        // (xsd) range makes it a `property`, a class/IRI range a `relation`.
+        let onto_ds = ds(&format!(
+            "{OWL_PREFIX}@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             gm:validFrom a owl:AnnotationProperty ; rdfs:range xsd:dateTime .\n\
+             gm:seeThing a owl:AnnotationProperty ; rdfs:range gm:Thing .",
+        ));
+        let onto = DslView::new(&onto_ds);
+        assert_eq!(
+            gmeow_entity_kind(&onto, &format!("{GM}validFrom")),
+            Some("property")
+        );
+        assert_eq!(
+            gmeow_entity_kind(&onto, &format!("{GM}seeThing")),
+            Some("relation")
+        );
+        // No range → indeterminate (the caller then requires an override or hard-fails).
+        let bare_ds = ds(&format!("{OWL_PREFIX} gm:bare a owl:AnnotationProperty ."));
+        let bare = DslView::new(&bare_ds);
+        assert_eq!(gmeow_entity_kind(&bare, &format!("{GM}bare")), None);
     }
 
     #[test]
