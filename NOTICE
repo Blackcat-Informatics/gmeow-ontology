@@ -75,3 +75,20 @@ External correctness corpora (conformance/logic/cases/external/)
     the native reasoner against it for consistency soundness; the per-ontology
     divergences are written as a gmeow:Finding graph and never folded into the
     committed bundle.
+
+Vendored corpora (crates/lang-bridge/tests/vendored/)
+  Ring-fenced, fully-attributed third-party corpus fragments used only as native
+  correctness fixtures — NOT part of the published CC BY 4.0 GMEOW vocabulary and
+  never merged into it. Each fragment carries a corpus.json declaring its SPDX
+  license, source URL, upstream ref, attribution, and ring-fence flag; only a
+  ring-fenced + fully-attributed CC BY-SA fragment clears vendoring (enforced by
+  gmeow_license::policy_for_vendored_corpus).
+  - UD_English-EWT (en_ewt-ud-dev-fragment.conllu) — a three-sentence fragment of
+    the Universal Dependencies English Web Treebank (UD_English-EWT), reproduced
+    verbatim. Copyright the Universal Dependencies project and the EWT treebank
+    authors, licensed CC BY-SA 4.0. Source:
+      https://raw.githubusercontent.com/UniversalDependencies/UD_English-EWT/b7711cce01cdd4f5fcc0a8199b8a50d951b16c0c/en_ewt-ud-dev.conllu
+    Upstream ref: release r2.18 (commit b7711cce01cdd4f5fcc0a8199b8a50d951b16c0c).
+    The fragment exercises the lang: CoNLL-U byte round-trip
+    (Gate 2); the exact sentences vendored are declared by sent_id in its
+    corpus.json.

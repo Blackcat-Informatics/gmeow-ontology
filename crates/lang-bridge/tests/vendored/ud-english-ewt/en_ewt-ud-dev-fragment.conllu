@@ -1,0 +1,26 @@
+# sent_id = weblog-blogspot.com_marketview_20040611132900_ENG_20040611_132900-0002
+# text = We've moved on.
+1-2	We've	_	_	_	_	_	_	_	_
+1	We	we	PRON	PRP	Case=Nom|Number=Plur|Person=1|PronType=Prs	3	nsubj	3:nsubj	_
+2	've	have	AUX	VBP	Mood=Ind|Number=Plur|Person=1|Tense=Pres|VerbForm=Fin	3	aux	3:aux	_
+3	moved	move	VERB	VBN	Tense=Past|VerbForm=Part	0	root	0:root	_
+4	on	on	ADV	RB	_	3	advmod	3:advmod	SpaceAfter=No
+5	.	.	PUNCT	.	_	3	punct	3:punct	_
+
+# sent_id = weblog-blogspot.com_marketview_20040611132900_ENG_20040611_132900-0003
+# text = We've grown up.
+1-2	We've	_	_	_	_	_	_	_	_
+1	We	we	PRON	PRP	Case=Nom|Number=Plur|Person=1|PronType=Prs	3	nsubj	3:nsubj	_
+2	've	have	AUX	VBP	Mood=Ind|Number=Plur|Person=1|Tense=Pres|VerbForm=Fin	3	aux	3:aux	_
+3	grown	grow	VERB	VBN	Tense=Past|VerbForm=Part	0	root	0:root	_
+4	up	up	ADP	RP	_	3	compound:prt	3:compound:prt	SpaceAfter=No
+5	.	.	PUNCT	.	_	3	punct	3:punct	_
+
+# sent_id = reviews-389136-0003
+# text = Its fab!
+1-2	Its	_	_	_	_	_	_	_	_
+1	It	it	PRON	PRP	Case=Nom|Gender=Neut|Number=Sing|Person=3|PronType=Prs	3	nsubj	3:nsubj	_
+2	s	be	AUX	VBZ	Mood=Ind|Number=Sing|Person=3|Tense=Pres|Typo=Yes|VerbForm=Fin	3	cop	3:cop	CorrectForm='s|Supersense=v.stative
+3	fab	fab	ADJ	JJ	Degree=Pos	0	root	0:root	SpaceAfter=No
+4	!	!	PUNCT	.	_	3	punct	3:punct	_
+

@@ -104,6 +104,69 @@ fn has_marker_segment(token: &str, marker: &str) -> bool {
     marker == "GPL" && segments.iter().any(|seg| seg.ends_with("GPL"))
 }
 
+/// The descriptor of a vendored external corpus — the `corpus.json` fields that bear on the
+/// reuse policy. The vendoring CATEGORY below is keyed off THESE descriptor fields, never off
+/// a filesystem path, so it is reusable for any future vendored corpus with no policy churn.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct VendoredCorpus<'a> {
+    /// SPDX license identifier of the vendored artifacts.
+    pub spdx_license: &'a str,
+    /// The upstream source URL the attribution points at (the provenance of the vendored
+    /// bytes). Must be non-empty for the share-alike vendoring category.
+    pub source_url: &'a str,
+    /// The human attribution the vendored corpus credits (authors / project). Must be
+    /// non-empty for the share-alike vendoring category.
+    pub attribution: &'a str,
+    /// Whether the corpus is RING-FENCED: committed as a clearly-separated, non-published
+    /// vendored fragment that is NEVER merged into the CC-BY GMEOW vocabulary.
+    pub ring_fenced: bool,
+}
+
+/// Classify a vendored corpus into a reuse policy, admitting the ONE additional category the
+/// bare-token classifier cannot express: a **ring-fenced, fully-attributed CC BY-SA
+/// share-alike corpus**.
+///
+/// Share-alike (`SA`) is [`LicensePolicy::ReferenceOnly`] as a bare token because copying such
+/// content into the CC-BY-published GMEOW vocabulary would violate the copyleft. But a corpus
+/// that is (a) ring-fenced — never merged into the published vocabulary — AND (b) fully
+/// attributed — a credited source URL and attribution line — honours CC BY-SA 4.0's own terms,
+/// so it clears vendoring as [`LicensePolicy::ImportOk`].
+///
+/// The exception is gated on the CC-BY-SA share-alike family SPECIFICALLY and does NOT loosen
+/// any other restrictive license: a non-commercial (`NC`) or no-derivatives (`ND`) CC license,
+/// a GPL/EUPL copyleft, or a proprietary/unknown token stays [`LicensePolicy::ReferenceOnly`]
+/// regardless of ring-fencing or attribution.
+pub fn policy_for_vendored_corpus(corpus: &VendoredCorpus) -> LicensePolicy {
+    // A token the bare classifier already clears needs no exception.
+    if policy_for_license(corpus.spdx_license) == LicensePolicy::ImportOk {
+        return LicensePolicy::ImportOk;
+    }
+    // The share-alike vendoring exception: CC-BY-SA (attribution + share-alike, and NOT
+    // NC/ND), ring-fenced, with a non-empty source URL and attribution.
+    if is_cc_by_sa(corpus.spdx_license)
+        && corpus.ring_fenced
+        && !corpus.attribution.trim().is_empty()
+        && !corpus.source_url.trim().is_empty()
+    {
+        return LicensePolicy::ImportOk;
+    }
+    LicensePolicy::ReferenceOnly
+}
+
+/// Whether the token is a Creative-Commons Attribution-ShareAlike license (`CC-BY-SA-*`):
+/// a CC attribution + share-alike license carrying NO non-commercial (`NC`) or no-derivatives
+/// (`ND`) restriction. These are exactly the licenses the ring-fenced-vendoring category
+/// admits; a CC license bearing `NC`/`ND` is deliberately excluded.
+fn is_cc_by_sa(license_id: &str) -> bool {
+    let token = license_id.trim().to_uppercase().replace(['_', ' '], "-");
+    let segments: Vec<&str> = token.split('-').collect();
+    segments.first() == Some(&"CC")
+        && segments.contains(&"BY")
+        && segments.contains(&"SA")
+        && !segments.contains(&"NC")
+        && !segments.contains(&"ND")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -172,5 +235,89 @@ mod tests {
             policy_for_license("Some-Proprietary-EULA"),
             LicensePolicy::ReferenceOnly
         );
+    }
+
+    #[test]
+    fn ring_fenced_attributed_cc_by_sa_is_import_ok() {
+        // The Gate-2 vendored UD fragment: CC BY-SA 4.0 is ReferenceOnly as a bare token
+        // (share-alike), but ring-fenced + fully attributed it clears vendoring.
+        assert_eq!(
+            policy_for_license("CC-BY-SA-4.0"),
+            LicensePolicy::ReferenceOnly,
+            "bare share-alike is reference-only"
+        );
+        let ok = VendoredCorpus {
+            spdx_license: "CC-BY-SA-4.0",
+            source_url: "https://raw.githubusercontent.com/UniversalDependencies/\
+                         UD_English-EWT/master/en_ewt-ud-dev.conllu",
+            attribution: "Universal Dependencies English EWT — the UD project and treebank authors",
+            ring_fenced: true,
+        };
+        assert_eq!(policy_for_vendored_corpus(&ok), LicensePolicy::ImportOk);
+    }
+
+    #[test]
+    fn unattributed_or_unfenced_cc_by_sa_hard_fails() {
+        // Missing attribution → rejected.
+        let no_attr = VendoredCorpus {
+            spdx_license: "CC-BY-SA-4.0",
+            source_url: "https://example.org/treebank.conllu",
+            attribution: "   ",
+            ring_fenced: true,
+        };
+        assert_eq!(
+            policy_for_vendored_corpus(&no_attr),
+            LicensePolicy::ReferenceOnly
+        );
+        // Missing source URL → rejected.
+        let no_url = VendoredCorpus {
+            spdx_license: "CC-BY-SA-4.0",
+            source_url: "",
+            attribution: "The UD project",
+            ring_fenced: true,
+        };
+        assert_eq!(
+            policy_for_vendored_corpus(&no_url),
+            LicensePolicy::ReferenceOnly
+        );
+        // Not ring-fenced → rejected.
+        let leaky = VendoredCorpus {
+            spdx_license: "CC-BY-SA-4.0",
+            source_url: "https://example.org/treebank.conllu",
+            attribution: "The UD project",
+            ring_fenced: false,
+        };
+        assert_eq!(
+            policy_for_vendored_corpus(&leaky),
+            LicensePolicy::ReferenceOnly
+        );
+    }
+
+    #[test]
+    fn ring_fencing_does_not_loosen_other_restrictive_licenses() {
+        // Even fully ring-fenced + attributed, a non-commercial / no-derivatives CC license, a
+        // GPL/EUPL copyleft, or a proprietary/unknown token stays ReferenceOnly — the category
+        // admits the CC-BY-SA share-alike family SPECIFICALLY, nothing else.
+        for id in [
+            "CC-BY-NC-SA-4.0",
+            "CC-BY-ND-4.0",
+            "CC-BY-NC-4.0",
+            "GPL-3.0",
+            "AGPL-3.0",
+            "EUPL-1.2",
+            "Some-Proprietary-EULA",
+        ] {
+            let d = VendoredCorpus {
+                spdx_license: id,
+                source_url: "https://example.org/x",
+                attribution: "credited authors",
+                ring_fenced: true,
+            };
+            assert_eq!(
+                policy_for_vendored_corpus(&d),
+                LicensePolicy::ReferenceOnly,
+                "{id}"
+            );
+        }
     }
 }

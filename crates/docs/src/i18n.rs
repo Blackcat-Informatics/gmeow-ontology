@@ -50,7 +50,11 @@ const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 ///
 /// Recognises the prefixes used by GMEOW's localizable predicates. A full IRI or
 /// an unknown prefixed form is returned unchanged.
-fn expand_predicate(predicate: &str) -> String {
+/// Expand a `.po` `msgctxt` predicate token to its full IRI: a known CURIE prefix
+/// (`rdfs`/`skos`/`dcterms`/`dct`/`gmeow`) is expanded, a full IRI or unknown prefix
+/// is returned unchanged. This is the inverse of the CURIE the catalog authors write,
+/// so a consumer can key translations by the same full predicate IRI the RDF graph uses.
+pub fn expand_predicate(predicate: &str) -> String {
     let Some((prefix, local)) = predicate.split_once(':') else {
         return predicate.to_string();
     };

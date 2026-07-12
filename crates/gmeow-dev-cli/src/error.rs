@@ -91,6 +91,15 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+define_diag_kind! {
+    /// A vendored-corpus `corpus.json` descriptor is unreadable, unparsable, or
+    /// missing a required license-policy field.
+    pub struct VendoredCorpusDescriptorInvalid { detail: String }
+    code = "gmeow-dev-cli.gates.vendored-corpus-descriptor-invalid";
+    grade = Grade::new(Severity::Error, FindingCategory::DataShapeViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
 /// The single conversion seam: fold any `Display` error (a `String`, a foreign
 /// `Error`, or a `Diag`) into a typed developer-CLI [`Diag`]. One constructor per
 /// kind keeps each call site a terse `.map_err(error::rdf)?`.
@@ -113,6 +122,7 @@ ctor!(logic, LogicQueryFailed);
 ctor!(feedback, FeedbackBundleFailed);
 ctor!(crosscheck, CrosscheckFailed);
 ctor!(refresh, TargetRefreshFailed);
+ctor!(vendored_corpus, VendoredCorpusDescriptorInvalid);
 
 /// The complete developer-CLI diagnostic-code catalog, in registration order.
 /// (Consumed by the collision test; the running CLI reaches its kinds directly.)
@@ -127,6 +137,7 @@ pub const GMEOW_DEV_CLI_DIAG_CODES: &[&str] = &[
     FeedbackBundleFailed::CODE,
     CrosscheckFailed::CODE,
     TargetRefreshFailed::CODE,
+    VendoredCorpusDescriptorInvalid::CODE,
 ];
 
 /// Eagerly intern every developer-CLI diagnostic code (idempotent). Reachable for
@@ -143,6 +154,7 @@ pub fn register_all() -> Vec<Code> {
         FeedbackBundleFailed::register(),
         CrosscheckFailed::register(),
         TargetRefreshFailed::register(),
+        VendoredCorpusDescriptorInvalid::register(),
     ]
 }
 
