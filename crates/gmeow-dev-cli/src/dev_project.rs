@@ -28,13 +28,13 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     let resolved: Option<String> = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok());
-    let (text, code) = gmeow_docs::describe(term, &bytes, resolved.as_deref());
-    if code == 0 {
+    let (text, status) = gmeow_docs::describe(term, &bytes, resolved.as_deref());
+    if status == gmeow_docs::DescribeStatus::Ok {
         println!("{text}");
     } else {
         emit_error("gmeow-dev.describe.error", text);
     }
-    code
+    status.exit_code()
 }
 
 /// `gmeow-dev export-docs --format F -d DIR [--force --lang]` — render from
