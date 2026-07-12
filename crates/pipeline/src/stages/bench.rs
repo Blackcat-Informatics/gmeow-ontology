@@ -569,11 +569,77 @@ struct LedgerTally {
     finding_graph_blake3: String,
 }
 
+/// Scheduler-independent evidence from the permanent four-worker rule fixture.
+#[derive(Deserialize)]
+struct RuleParallelCost {
+    fixture: String,
+    worker_count: u64,
+    rule_count: u64,
+    seed_rows: u64,
+    derived_rows: u64,
+    consumed_steps: u64,
+    parallel_rounds: u64,
+    rule_tasks: u64,
+    serial_candidate_rows: u64,
+    critical_path_candidate_rows: u64,
+    critical_path_rows_saved: u64,
+    max_buffered_candidate_rows: u64,
+    max_task_candidate_rows: u64,
+    budget_cases: u64,
+    output_parity: bool,
+    budget_parity: bool,
+    parallel_path_entered: bool,
+    critical_path_strictly_lower: bool,
+    closure_blake3: String,
+}
+
+impl RuleParallelCost {
+    /// Refuse to render a committed parallelism claim unless the evidence is
+    /// non-vacuous, internally coherent, and records the promised four-worker path.
+    fn validate(&self) -> Result<(), gmeow_errors::Diag> {
+        let rows_saved = self
+            .serial_candidate_rows
+            .checked_sub(self.critical_path_candidate_rows);
+        let digest_is_blake3 = self.closure_blake3.len() == 64
+            && self
+                .closure_blake3
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit());
+        if self.fixture.is_empty()
+            || self.worker_count != 4
+            || self.rule_count < 2
+            || self.seed_rows == 0
+            || self.derived_rows == 0
+            || self.consumed_steps == 0
+            || self.parallel_rounds == 0
+            || self.rule_tasks < self.parallel_rounds
+            || rows_saved != Some(self.critical_path_rows_saved)
+            || self.critical_path_rows_saved == 0
+            || self.max_buffered_candidate_rows < self.max_task_candidate_rows
+            || self.budget_cases == 0
+            || !self.output_parity
+            || !self.budget_parity
+            || !self.parallel_path_entered
+            || !self.critical_path_strictly_lower
+            || !digest_is_blake3
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!(
+                    "cost baseline carries incomplete or inconsistent four-worker rule-parallel evidence for fixture `{}`",
+                    self.fixture
+                ),
+            }));
+        }
+        Ok(())
+    }
+}
+
 /// The committed deterministic cost/agreement artifact (`bench/cost-baseline.json`).
 #[derive(Deserialize)]
 struct CostArtifact {
     engine_pins: EnginePins,
     cases: Vec<CaseRecord>,
+    rule_parallelism: RuleParallelCost,
     ledgers: BTreeMap<String, LedgerTally>,
 }
 
@@ -594,6 +660,7 @@ pub(crate) fn render_cost_ledger(
             message: format!("cost baseline parse: {e}"),
         })
     })?;
+    artifact.rule_parallelism.validate()?;
 
     // Sort by (corpus, case) so the render is independent of the artifact's array order.
     let mut cases: Vec<&CaseRecord> = artifact.cases.iter().collect();
@@ -606,8 +673,8 @@ pub(crate) fn render_cost_ledger(
         String::new(),
         "Committed engine/reference cost/agreement baseline (`bench/cost-baseline.json`),"
             .to_string(),
-        "refreshed via `make maint-bench-cost-baseline`. Every value is an integer count".to_string(),
-        "or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the".to_string(),
+        "refreshed via `make maint-bench-cost-baseline`. Every measured performance value is".to_string(),
+        "an integer count or boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the".to_string(),
         "harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,".to_string(),
         "and `alloc_bytes`/`alloc_count` through one-sided tolerance bands: bytes use 1%,".to_string(),
         "while counts use the greater of 1% and the measured 42-allocation quantized floor. This".to_string(),
@@ -902,6 +969,52 @@ pub(crate) fn render_cost_ledger(
         }
     }
 
+    let parallel = &artifact.rule_parallelism;
+    lines.push(String::new());
+    lines.push("## Four-worker rule-parallel structural evidence".to_string());
+    lines.push(String::new());
+    lines.push(
+        "The permanent balanced fixture runs in a real four-worker Rayon pool and is compared with forced-sequential execution. Candidate rows are counted after rule-local deduplication and before the deterministic merge; the critical-path count sums the largest task in each sequential round. These are exact structural row counts, not wall-clock speedup or byte-level memory claims."
+            .to_string(),
+    );
+    lines.push(String::new());
+    lines.push(
+        "| fixture | workers | rules | seed rows | derived rows | consumed steps | parallel rounds | rule tasks | budget cuts |"
+            .to_string(),
+    );
+    lines.push("|---|---|---|---|---|---|---|---|---|".to_string());
+    lines.push(format!(
+        "| {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+        parallel.fixture,
+        parallel.worker_count,
+        parallel.rule_count,
+        parallel.seed_rows,
+        parallel.derived_rows,
+        parallel.consumed_steps,
+        parallel.parallel_rounds,
+        parallel.rule_tasks,
+        parallel.budget_cases,
+    ));
+    lines.push(String::new());
+    lines.push(
+        "| serial candidate-row sum | critical-path candidate-row sum | structural row gap | max merge-barrier rows | max task rows | output + provenance parity | budget parity | parallel path entered | strict critical-path reduction | closure blake3 |"
+            .to_string(),
+    );
+    lines.push("|---|---|---|---|---|---|---|---|---|---|".to_string());
+    lines.push(format!(
+        "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+        parallel.serial_candidate_rows,
+        parallel.critical_path_candidate_rows,
+        parallel.critical_path_rows_saved,
+        parallel.max_buffered_candidate_rows,
+        parallel.max_task_candidate_rows,
+        parallel.output_parity,
+        parallel.budget_parity,
+        parallel.parallel_path_entered,
+        parallel.critical_path_strictly_lower,
+        parallel.closure_blake3,
+    ));
+
     // Per-corpus divergence-ledger tally (the content-addressed agreement fold): the
     // finding graph blake3 is a pure function of the comparisons, so it is a stable
     // drift signal.
@@ -960,6 +1073,7 @@ pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeo
             message: format!("cost baseline parse: {e}"),
         })
     })?;
+    artifact.rule_parallelism.validate()?;
 
     // Assert gap-zero per corpus BEFORE rendering, and fold the invariant per-corpus
     // finding-graph digests into a single combined soak digest (blake3 over the sorted
@@ -1065,8 +1179,8 @@ impl Stage for CostLedgerStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        // v3: surface the incremental-vs-scratch deterministic delta in the ledger.
-        "cost-ledger.v5"
+        // v6: surface exact four-worker structural evidence in the cost ledger.
+        "cost-ledger.v6"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The committed cost/agreement baseline is the only input; a baseline refresh
@@ -1166,6 +1280,30 @@ mod tests {
             .expect_err("incomplete grounding evidence must return a diagnostic");
         assert!(error.message().contains(&format!("{corpus}/{case}")));
         assert!(error.message().contains("scratch comparator"));
+    }
+
+    #[test]
+    fn cost_ledger_rejects_incoherent_rule_parallel_evidence() {
+        let root = repo_root();
+        let bytes = fs::read(root.join(COST_BASELINE_PATH)).expect("read committed baseline");
+        let mut artifact: serde_json::Value =
+            serde_json::from_slice(&bytes).expect("parse committed baseline");
+        artifact["rule_parallelism"]["critical_path_rows_saved"] = serde_json::json!(95);
+
+        let tmp = tempdir().expect("temp root");
+        fs::create_dir(tmp.path().join("bench")).expect("bench dir");
+        fs::write(
+            tmp.path().join(COST_BASELINE_PATH),
+            serde_json::to_vec(&artifact).unwrap(),
+        )
+        .expect("write malformed baseline");
+        let error = render_cost_ledger(tmp.path())
+            .expect_err("incoherent rule-parallel evidence must return a diagnostic");
+        assert!(
+            error
+                .message()
+                .contains("four-worker rule-parallel evidence")
+        );
     }
 
     #[test]

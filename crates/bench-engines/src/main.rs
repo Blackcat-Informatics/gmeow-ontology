@@ -127,6 +127,7 @@ use gmeow_errors::Diag;
 use gmeow_logic::cost::{
     ForwardRows, IncrementalForwardSession, IncrementalGroundingCostSession, RepeatForwardSession,
     SignedForwardRow, run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
+    run_rule_parallel_evidence,
 };
 use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::materialize::materialize_routed;
@@ -345,6 +346,37 @@ fn main() -> gmeow_errors::Result<()> {
         );
     }
 
+    // A real four-worker run over the permanent balanced fixture. This is deliberately
+    // outside every allocation-measured case: its gate is the scheduler-independent
+    // rule-task work vector, exact merge-buffer row bound, full output/provenance parity,
+    // and budget-sweep parity — never wall time on this shared host.
+    let parallel = run_rule_parallel_evidence().map_err(|error| {
+        Diag::of_kind(RunFailed {
+            detail: format!("four-worker rule-parallel evidence failed: {error}"),
+        })
+    })?;
+    let rule_parallelism = json!({
+        "fixture": "balanced-six-rule-v1",
+        "worker_count": parallel.worker_count,
+        "rule_count": parallel.rule_count,
+        "seed_rows": parallel.seed_rows,
+        "derived_rows": parallel.derived_rows,
+        "consumed_steps": parallel.consumed_steps,
+        "parallel_rounds": parallel.parallel_rounds,
+        "rule_tasks": parallel.rule_tasks,
+        "serial_candidate_rows": parallel.serial_candidate_rows,
+        "critical_path_candidate_rows": parallel.critical_path_candidate_rows,
+        "critical_path_rows_saved": parallel.serial_candidate_rows - parallel.critical_path_candidate_rows,
+        "max_buffered_candidate_rows": parallel.max_buffered_candidate_rows,
+        "max_task_candidate_rows": parallel.max_task_candidate_rows,
+        "budget_cases": parallel.budget_cases,
+        "output_parity": parallel.output_parity,
+        "budget_parity": parallel.budget_parity,
+        "parallel_path_entered": parallel.parallel_path_entered,
+        "critical_path_strictly_lower": parallel.critical_path_strictly_lower,
+        "closure_blake3": blake3::Hash::from_bytes(parallel.closure_hash).to_hex().to_string(),
+    });
+
     // ── Cost-regression check (L3): compare THIS fresh run's deterministic cost +
     //    verdict-agreement against the committed baseline; ANY divergence is a
     //    cost-regression gmeow:Finding routed through the SHARED divergence ledger
@@ -353,6 +385,7 @@ fn main() -> gmeow_errors::Result<()> {
     //    drift gate. Run BEFORE the artifact is assembled (it borrows the records). ──
     if let Some(baseline_path) = &check_cost {
         run_cost_regression_check(baseline_path, &case_records)?;
+        run_parallelism_regression_check(baseline_path, &rule_parallelism)?;
     }
 
     // ── (2a) The DETERMINISTIC structured artifact ──────────────────────────────
@@ -365,6 +398,7 @@ fn main() -> gmeow_errors::Result<()> {
         },
         "case_count": case_records.len(),
         "cases": case_records,
+        "rule_parallelism": rule_parallelism,
         "ledgers": corpus_ledgers,
     });
     let json = serde_json::to_string_pretty(&artifact).map_err(|e| {
@@ -1796,6 +1830,90 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
     }))
 }
 
+/// Exact drift gate for the dedicated multi-worker structural evidence record.
+///
+/// Kept separate from per-case allocation bands because it contains no allocation
+/// sample: every field is a deterministic integer, boolean, or closure fingerprint.
+/// Divergence still folds through the shared reasoning ledger, so a mismatch is a
+/// content-addressed cost-regression finding rather than an ad hoc JSON diff.
+fn run_parallelism_regression_check(
+    baseline_path: &Path,
+    fresh: &Value,
+) -> gmeow_errors::Result<()> {
+    let bytes = std::fs::read(baseline_path).map_err(|error| {
+        Diag::of_kind(Io {
+            detail: format!("reading cost baseline {}: {error}", baseline_path.display()),
+        })
+    })?;
+    let baseline: Value = serde_json::from_slice(&bytes).map_err(|error| {
+        Diag::of_kind(Serialize {
+            detail: format!("cost baseline {} parse: {error}", baseline_path.display()),
+        })
+    })?;
+    let published = baseline.get("rule_parallelism");
+    let native_token = serde_json::to_string(fresh).map_err(|error| {
+        Diag::of_kind(Serialize {
+            detail: format!("serialize fresh rule-parallel evidence: {error}"),
+        })
+    })?;
+    let published_token = match published {
+        Some(value) => serde_json::to_string(value).map_err(|error| {
+            Diag::of_kind(Serialize {
+                detail: format!("serialize baseline rule-parallel evidence: {error}"),
+            })
+        })?,
+        None => "absent-from-baseline".to_owned(),
+    };
+    let comparison = ExternalComparison {
+        case: "relational-core-mini/rule-parallel-critical-path::cost".to_owned(),
+        world: "https://example.org/parallel/world".to_owned(),
+        native: native_token,
+        published: published_token,
+    };
+    let rows = compare_external_corpus("relational-core-mini", &[comparison]);
+    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    if ledger.corpus_only == 0 {
+        eprintln!(
+            "✓ rule-parallel cost-regression check: four-worker structural evidence matches {}.",
+            baseline_path.display()
+        );
+        return Ok(());
+    }
+
+    let findings = divergence_findings(&ledger)
+        .into_iter()
+        .filter(|finding| finding.code == "reason.divergence.corpus-only")
+        .map(|finding| {
+            json!({
+                "code": finding.code,
+                "finding_iri": finding.finding_iri.unwrap_or_default(),
+                "anchor_iri": finding.anchor_iri.unwrap_or_default(),
+                "antecedents": finding.antecedents,
+                "message": finding.message,
+            })
+        })
+        .collect::<Vec<_>>();
+    let report = json!({
+        "schema": "gmeow.bench-engines.rule-parallel-regression/1",
+        "baseline": baseline_path.display().to_string(),
+        "findings": findings,
+    });
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&report).map_err(|error| {
+            Diag::of_kind(Serialize {
+                detail: format!("serialize rule-parallel regression report: {error}"),
+            })
+        })?
+    );
+    Err(Diag::of_kind(RunFailed {
+        detail: format!(
+            "four-worker rule-parallel evidence diverged from the committed baseline {}",
+            baseline_path.display()
+        ),
+    }))
+}
+
 // ── The committed cost-WIN gate: `--compare-baseline <ref>` ──────────────────────
 //
 // `--check-cost` gates by EXACT drift-match against a committed baseline, so it proves
@@ -2809,8 +2927,8 @@ mod tests {
         })
     }
 
-    /// Write a minimal cost baseline artifact to a unique temp path.
-    fn write_baseline(cases: Vec<Value>) -> PathBuf {
+    /// Write a JSON artifact to a unique cost-baseline temp path.
+    fn write_baseline_doc(document: &Value) -> PathBuf {
         let nanos = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -2820,12 +2938,37 @@ mod tests {
             "gmeow-cost-baseline-test-{}-{nanos}.json",
             std::process::id()
         ));
-        std::fs::write(
-            &p,
-            serde_json::to_string(&json!({ "cases": cases })).unwrap(),
-        )
-        .unwrap();
+        std::fs::write(&p, serde_json::to_string(document).unwrap()).unwrap();
         p
+    }
+
+    /// Write a minimal per-case cost baseline artifact to a unique temp path.
+    fn write_baseline(cases: Vec<Value>) -> PathBuf {
+        write_baseline_doc(&json!({ "cases": cases }))
+    }
+
+    fn parallelism_record() -> Value {
+        json!({
+            "fixture": "balanced-six-rule-v1",
+            "worker_count": 4,
+            "rule_count": 6,
+            "seed_rows": 24,
+            "derived_rows": 120,
+            "consumed_steps": 120,
+            "parallel_rounds": 3,
+            "rule_tasks": 18,
+            "serial_candidate_rows": 144,
+            "critical_path_candidate_rows": 48,
+            "critical_path_rows_saved": 96,
+            "max_buffered_candidate_rows": 96,
+            "max_task_candidate_rows": 24,
+            "budget_cases": 8,
+            "output_parity": true,
+            "budget_parity": true,
+            "parallel_path_entered": true,
+            "critical_path_strictly_lower": true,
+            "closure_blake3": "6e7c8e8dfb2c3d6537ba91ce1ec2d0c22be9cb2d66d595213493506047eb54f3",
+        })
     }
 
     #[test]
@@ -3065,6 +3208,36 @@ mod tests {
         assert!(
             out.is_err(),
             "a case present in the baseline but absent from the fresh run must regress"
+        );
+    }
+
+    #[test]
+    fn rule_parallelism_regression_check_is_exact_and_bites() {
+        let fresh = parallelism_record();
+        let matching = write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
+        let match_result = run_parallelism_regression_check(&matching, &fresh);
+        std::fs::remove_file(&matching).ok();
+        assert!(
+            match_result.is_ok(),
+            "identical structural evidence must pass: {match_result:?}"
+        );
+
+        let mut drifted = fresh.clone();
+        drifted["critical_path_candidate_rows"] = json!(49);
+        let baseline = write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
+        let drift_result = run_parallelism_regression_check(&baseline, &drifted);
+        std::fs::remove_file(&baseline).ok();
+        assert!(
+            drift_result.is_err(),
+            "one changed structural count must produce a blocking divergence"
+        );
+
+        let absent = write_baseline_doc(&json!({ "cases": [] }));
+        let absent_result = run_parallelism_regression_check(&absent, &fresh);
+        std::fs::remove_file(&absent).ok();
+        assert!(
+            absent_result.is_err(),
+            "a baseline without the multi-worker record must hard-fail"
         );
     }
 }

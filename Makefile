@@ -559,12 +559,16 @@ maint-bench-engines: ## (maintainer) Engine/reference benchmark over the committ
 	@# carrying non-deterministic wall/RSS.
 	@#
 	@# R1 pool-quiesce: `main` pins the process-GLOBAL Rayon pool to a single thread
-	@# (`ThreadPoolBuilder::new().num_threads(1).build_global()`) before any engine
-	@# call — good hygiene that makes peak-live-bytes rock-solid. The TOTAL allocation
+	@# (`ThreadPoolBuilder::new().num_threads(1).build_global()`) before any measured
+	@# engine case — good hygiene that makes peak-live-bytes rock-solid. After every
+	@# allocation-measured case, a dedicated local four-worker pool runs the permanent
+	@# rule-parallel fixture and records scheduler-independent candidate-row work,
+	@# merge-buffer bounds, full output/provenance parity, and budget-cut parity. It
+	@# records no wall-time claim. The TOTAL allocation
 	@# bytes/count still carry a small irreducible transient (rayon/allocator scratch,
 	@# ~0.008% on the most-recursive case, proven by differing back-to-back in-process
-	@# measures), so they are advisory-only; peak simultaneously-live bytes nets that
-	@# scratch to zero and is the deterministic, gate-eligible allocation metric in (2a).
+	@# measures), so they use the documented one-sided tolerance bands; peak
+	@# simultaneously-live bytes nets that scratch to zero and remains exact in (2a).
 	@#
 	@# Replay assertion: the second run uses the harness's OWN `--check-cost` contract.
 	@# Every deterministic descriptor field (including peak-live) must match exactly;
@@ -590,8 +594,9 @@ maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from
 	@# `--corpus-dir`, so the Nemo-fetch full corpora are NOT included). Mirrors
 	@# `maint-bench-baseline`: a deliberate, hand-committed refresh — never auto-drift.
 	@# The deterministic part of the artifact (integer cost vectors, consumed_steps,
-	@# derived counts, peak-live bytes, verdict-agreement tokens, the per-corpus
-	@# divergence-ledger tally) is a pure function of engine version + corpus. The two
+	@# derived counts, peak-live bytes, verdict-agreement tokens, the four-worker
+	@# structural evidence record, and the per-corpus divergence-ledger tally) is a pure
+	@# function of engine version + corpus. The two
 	@# TOTAL-allocation scalars (alloc_bytes / alloc_count) are NOT byte-reproducible
 	@# (allocation counts move in a measured 14-allocation quantum across a 42-count
 	@# span on small cases), so instead of a raw two-run byte-diff
