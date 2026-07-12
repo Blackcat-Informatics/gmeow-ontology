@@ -4721,6 +4721,211 @@ math:distributionFamily
     skos:definition "Relates a math:Distribution to the family it belongs to — normal, binomial, Poisson, and the rest. Domain math:Distribution, range the distribution family (stated in prose). A distribution names its family and its parameterization; missing the family it is underspecified."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# =========================================================================== #
+# The statistics study spine — target of inference vs thing actually measured
+#
+# The STATISTICS-charter "Study and data" section: the objects that make a
+# statistical estimate refer to a population rather than float free of one. The
+# spine keeps the target of inference (math:StatisticalPopulation) apart from the
+# operational list drawn from (math:SamplingFrame), the sample actually measured
+# (math:Sample), and what a row denotes (math:ObservationUnit), so coverage and
+# selection bias are evaluable rather than conflated. A math:StatisticalVariable
+# carries its role, scale, unit policy, missing-value encoding, survey design, and
+# derivation as first-class objects — the canonical form richer than any Data-Cube
+# export. Missingness is modelled, not implied: a variable whose values encode
+# absence (math:MissingValueCode / math:MissingnessIndicator) must declare the
+# math:MissingnessMechanism (MCAR/MAR/MNAR) an analysis depending on it rests on,
+# or it is ill-formed (math:ImplicitMissingness). math:DatasetMatrix is defined
+# above with the R-bridge statistical objects and is not re-minted here.
+# =========================================================================== #
+
+math:StatisticalPopulation
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Statistical Population"@x-gmeow-english ;
+    skos:definition "A statistical population: the complete collection of units an estimate is meant to refer to — the target of inference, the who-we-care-about. A subclass of math:MathematicalObject named as the referent of a math:Estimate or math:Sample through math:population and operationalized by a math:SamplingFrame through math:samplingFrame. Held strictly apart from the frame and the sample so coverage and selection bias are evaluable: the population is who the estimate speaks about, never merely who was measured. An estimate that names no population it refers to is underspecified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SamplingFrame
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sampling Frame"@x-gmeow-english ;
+    skos:definition "A sampling frame: the operational list or procedure from which a math:Sample is actually drawn — the concrete enumeration standing in for a math:StatisticalPopulation. A subclass of math:MathematicalObject related to the population it operationalizes through math:samplingFrame and to the sample drawn from it through math:sampleOf. Kept distinct from the population it approximates so under-coverage (units in the population but not the frame) and over-coverage are first-class rather than hidden: the frame is what we could reach, the population is who we mean."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Sample
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sample"@x-gmeow-english ;
+    skos:definition "A sample: the units actually drawn and measured — the thing we have, drawn from a math:SamplingFrame through math:sampleOf and referring to a math:StatisticalPopulation through math:population. A subclass of math:MathematicalObject whose rows denote a math:ObservationUnit through math:observationUnit and whose columns are recorded as math:StatisticalVariable through math:statisticalVariable. Held apart from the population it stands in for so the layer estimates coverage rather than conflating who-we-measured with who-we-care-about."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ObservationUnit
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Observation Unit"@x-gmeow-english ;
+    skos:definition "An observation unit: what a single row of a sample or dataset denotes — the entity a measurement is taken on (a person, a household, a visit, a firm-year). A subclass of math:MathematicalObject named by a math:Sample or math:DatasetMatrix through math:observationUnit. Naming the unit explicitly is what makes the grain of the data first-class, so a person-level and a household-level analysis of the same study are never silently conflated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:StatisticalVariable
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Statistical Variable"@x-gmeow-english ;
+    skos:definition "A statistical variable: a measured or derived quantity recorded across the observation units of a sample — not merely a column name but an object carrying its math:VariableRole, its math:MeasurementScale, its math:UnitPolicy, its missing-value encoding (math:MissingValueCode / math:hasMissingnessIndicator), and, where derived, the math:DataTransformation that produced it. A subclass of math:MathematicalObject named by a math:Sample or math:DatasetMatrix through math:statisticalVariable. A variable whose values encode absence but names no math:MissingnessMechanism an analysis rests on is ill-formed (math:ImplicitMissingness)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:VariableRole
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Variable Role"@x-gmeow-english ;
+    skos:definition "A variable role: the analytical part a math:StatisticalVariable plays in a model — outcome, predictor, covariate, weight, stratum, cluster, or offset. A subclass of math:MathematicalObject naming the role a variable holds rather than an intrinsic property of the column, so the same measured variable can be an outcome in one model and a predictor in another without changing the data. A variable's role is a first-class object so a model's structure is queryable, never read off a naming convention."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MeasurementScale
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Measurement Scale"@x-gmeow-english ;
+    skos:definition "A measurement scale: the level of measurement a math:StatisticalVariable is recorded on — nominal, ordinal, interval, ratio, count, or compositional. A subclass of math:MathematicalObject naming which arithmetic and comparisons the values license, so a nominal code is never averaged and a compositional part is never treated as a free real. The scale is a first-class object carried by the variable, so scale-appropriate analysis is checkable rather than assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnitPolicy
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unit Policy"@x-gmeow-english ;
+    skos:definition "A unit policy: how the values of a math:StatisticalVariable are dimensioned and encoded — the unit of measure, rounding, and coding convention the recorded numbers follow. A subclass of math:MathematicalObject naming the convention so a value is never a bare number without the policy that gives it meaning. Distinct from the missing-value encoding, which is carried by math:MissingValueCode; the unit policy governs the present values, not their absence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MissingValueCode
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Missing Value Code"@x-gmeow-english ;
+    skos:definition "A missing-value code: the sentinel a math:StatisticalVariable uses to encode an absent value (a coded NA, a −99, an empty cell), named as a first-class object rather than left as a magic number that a naive analysis would treat as data. A subclass of math:MathematicalObject; a variable that references a missing-value code declares that its values encode absence, which is what obliges it to name the math:MissingnessMechanism an analysis depending on it rests on (else math:ImplicitMissingness)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MissingnessIndicator
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Missingness Indicator"@x-gmeow-english ;
+    skos:definition "A missingness indicator: the companion variable or flag marking, per observation unit, whether a math:StatisticalVariable's value is present or absent — the R_i of the missing-data literature. A subclass of math:MathematicalObject attached to the variable it flags through math:hasMissingnessIndicator. A variable carrying a missingness indicator has values that encode absence, so an analysis depending on it must declare the math:MissingnessMechanism (MCAR/MAR/MNAR) it assumes, or it is ill-formed (math:ImplicitMissingness)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SamplingWeight
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sampling Weight"@x-gmeow-english ;
+    skos:definition "A sampling weight: the design weight attached to an observation unit — the number of population units it represents under the math:SurveyDesign, the reciprocal of its selection probability adjusted for non-response and calibration. A subclass of math:MathematicalObject naming the weight as a first-class object so a weighted estimate is analyzable as more than a simple mean. A weight is part of the design, never an intrinsic property of the measured value it scales."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Stratum
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Stratum"@x-gmeow-english ;
+    skos:definition "A stratum: a mutually exclusive subgroup of a math:SamplingFrame within which sampling is carried out independently under a stratified math:SurveyDesign. A subclass of math:MathematicalObject naming the stratum as a first-class object, so stratified variance estimation is possible rather than a design detail lost to a flat weight. Strata partition the frame; a unit belongs to exactly one, distinct from a math:Cluster, which groups units for multi-stage selection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Cluster
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cluster"@x-gmeow-english ;
+    skos:definition "A cluster: a group of observation units selected together as a primary sampling unit under a multi-stage math:SurveyDesign (a school, a census block, a clinic). A subclass of math:MathematicalObject naming the cluster as a first-class object, so the within-cluster correlation that inflates variance is analyzable rather than ignored. Distinct from a math:Stratum: strata partition the frame for independent sampling, whereas clusters are the units sampled at a stage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SurveyDesign
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Survey Design"@x-gmeow-english ;
+    skos:definition "A survey design: the declared sampling scheme that makes a math:Sample analyzable as more than a simple random sample — the stratification (math:Stratum), clustering (math:Cluster), and weighting (math:SamplingWeight) under which the sample was drawn. A subclass of math:MathematicalObject binding the design elements into a first-class object, so design-based estimation and variance are queryable. A design-based estimate that treats a stratified, clustered, weighted sample as a simple random sample misstates its uncertainty."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DataTransformation
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Data Transformation"@x-gmeow-english ;
+    skos:definition "A data transformation: the declared operation that produces a math:DerivedVariable from other variables — a log, a standardization, a recode, a ratio — carried as a math:MathematicalExpression AST rather than an opaque recipe. A subclass of math:MathematicalObject naming the transformation so a derived column's provenance is inspectable structure, never a stringly-typed note. A derived variable whose transformation is not a real expression is not a declared derivation but an unexplained new field."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DerivedVariable
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Derived Variable"@x-gmeow-english ;
+    skos:definition "A derived variable: a math:StatisticalVariable that is the declared result of a math:DataTransformation over other variables, rather than a directly measured column. A subclass of math:MathematicalObject (and, in role, a statistical variable) whose provenance is the transformation that produced it — an expression AST, not an opaque new field — so a log-income or a standardized-score is traceable to its inputs and operation. A derived column with no declared transformation is an unexplained field, not a derivation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MissingnessMechanism
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Missingness Mechanism"@x-gmeow-english ;
+    skos:definition "A missingness mechanism: the declared assumption about WHY values are absent that an analysis of incomplete data rests on — recording whether the missingness is MCAR (missing completely at random, absence independent of all data), MAR (missing at random, absence explained by observed data), or MNAR (missing not at random, absence depends on the unobserved value itself). A subclass of math:MathematicalObject naming the mechanism as a first-class object, because the validity of every missing-data method (listwise deletion, multiple imputation, weighting) is conditional on which of MCAR/MAR/MNAR holds. An analysis that depends on a variable encoding absence but declares no mechanism assumes one implicitly, which is ill-formed (math:ImplicitMissingness)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Study-spine object properties (STATISTICS-charter "Study and data") ----- #
+
+math:population
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "population"@x-gmeow-english ;
+    skos:definition "Relates a math:Sample or math:Estimate to the math:StatisticalPopulation it refers to — the target of inference the sample stands in for and the estimate speaks about. Domain a math:Sample or math:Estimate, range math:StatisticalPopulation (stated in prose). Naming the population is what keeps who-we-care-about distinct from who-we-measured; an estimate that names no population it refers to is underspecified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:samplingFrame
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "sampling frame"@x-gmeow-english ;
+    skos:definition "Relates a math:StatisticalPopulation to the math:SamplingFrame that operationalizes it — the concrete list or procedure standing in for the population. Domain math:StatisticalPopulation, range math:SamplingFrame (stated in prose). The frame is what makes under- and over-coverage first-class: the gap between the population and the frame it names is precisely the coverage the layer can evaluate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:sampleOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "sample of"@x-gmeow-english ;
+    skos:definition "Relates a math:Sample to the math:SamplingFrame it is drawn from — the operational list the units were actually selected out of. Domain math:Sample, range math:SamplingFrame (stated in prose). A sample is drawn from a frame, not directly from a population; this edge is what lets selection bias be traced to the frame rather than assumed away."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:observationUnit
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "observation unit"@x-gmeow-english ;
+    skos:definition "Relates a math:Sample or math:DatasetMatrix to the math:ObservationUnit a single row denotes — the entity each measurement is taken on. Domain a math:Sample or math:DatasetMatrix, range math:ObservationUnit (stated in prose). Naming the unit fixes the grain of the data, so a person-level and a household-level view of the same study are never silently conflated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:statisticalVariable
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "statistical variable"@x-gmeow-english ;
+    skos:definition "Relates a math:Sample or math:DatasetMatrix to a math:StatisticalVariable it records — a column of the data, as a first-class object carrying its role, scale, unit policy, and missing-value encoding. Domain a math:Sample or math:DatasetMatrix, range math:StatisticalVariable (stated in prose). A variable is never a bare column name; this edge names the object that carries its analytical structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasMissingnessIndicator
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has missingness indicator"@x-gmeow-english ;
+    skos:definition "Relates a math:StatisticalVariable to the math:MissingnessIndicator flagging, per observation unit, whether its value is present or absent. Domain math:StatisticalVariable, range math:MissingnessIndicator (stated in prose). Carrying this indicator is the detectable mark that a variable's values encode absence, which obliges an analysis depending on the variable to declare its math:MissingnessMechanism through math:missingnessMechanism (else math:ImplicitMissingness)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:missingnessMechanism
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "missingness mechanism"@x-gmeow-english ;
+    skos:definition "Relates a math:StatisticalVariable whose values encode absence to the math:MissingnessMechanism (MCAR/MAR/MNAR) an analysis depending on it declares it rests on. Domain math:StatisticalVariable, range math:MissingnessMechanism (stated in prose). This is the declaration whose absence, on a variable carrying a math:hasMissingnessIndicator, is the implicit-missingness conflation the gate catches (math:ImplicitMissingness)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # --- Proof-bridge codomain: the proof layer (EXPRESSIONS-charter vocabulary) -- #
 
 math:ProofDependencyGraph
@@ -5082,6 +5287,14 @@ math:UnfittedModel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unfitted Model"@x-gmeow-english ;
     skos:definition "The failure raised when a math:FittedModel does not reference the data it was fitted to through math:fittedToData or the specification it fits through math:modelFormula. A fitted model is a math:StatisticalModel bound to concrete data by a declared specification; missing either, it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ImplicitMissingness
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Implicit Missingness"@x-gmeow-english ;
+    skos:definition "The failure raised when an analysis that depends on a math:StatisticalVariable whose values encode absence — a variable carrying a math:MissingnessIndicator through math:hasMissingnessIndicator (or referencing a math:MissingValueCode) — declares no math:MissingnessMechanism through math:missingnessMechanism, and so assumes an MCAR/MAR/MNAR mechanism implicitly rather than stating it. The validity of every missing-data method is conditional on which mechanism holds; leaving it implicit is ill-formed. Primary gate: the SHACL-SPARQL requirement (math:ImplicitMissingnessShape) that a variable with a declared missingness indicator name its math:MissingnessMechanism."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ResultRoleConflation

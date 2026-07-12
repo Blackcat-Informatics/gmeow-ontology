@@ -1528,6 +1528,26 @@ math:ModelFormulaShape
         sh:message "A math:ModelFormula must carry its response/term structure as indexed math:ArgumentSlot operands (a math:BindingExpression AST), never a bare string." ;
     ] .
 
+# Rule — missingness is modelled, not implied: a variable whose values encode
+# absence declares the mechanism an analysis depending on it rests on.
+math:ImplicitMissingnessShape
+    a sh:NodeShape ;
+    rdfs:label "Implicit-missingness declared-mechanism shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:StatisticalVariable: a variable whose values encode absence — detected by a declared math:MissingnessIndicator attached through math:hasMissingnessIndicator — must name the math:MissingnessMechanism (MCAR/MAR/MNAR) an analysis depending on it rests on, through math:missingnessMechanism. The validity of every missing-data method is conditional on which mechanism holds, so a variable that carries a missingness indicator but declares no mechanism assumes one implicitly and is ill-formed (math:ImplicitMissingness). Absent a missingness indicator the shape is silent; it fires only on the un-declared conflation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:ImplicitMissingness ;
+    sh:targetClass math:StatisticalVariable ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) must declare the math:MissingnessMechanism an analysis depending on it rests on, through math:missingnessMechanism; a variable that depends on missing data but names no MCAR/MAR/MNAR mechanism assumes one implicitly and is ill-formed (math:ImplicitMissingness)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/hasMissingnessIndicator> ?indicator .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/missingnessMechanism> ?mechanism . }
+            }
+        """ ;
+    ] .
+
 math:FormalVerificationResultShape
     a sh:NodeShape ;
     rdfs:label "Formal-verification-result grounding shape"@x-gmeow-english ;

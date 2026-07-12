@@ -657,6 +657,19 @@ ex:ecFittedModelUnfitted a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example names its specification but omits the data through math:fittedToData (sh:minCount 1 on math:FittedModelShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnfittedModel)." .
 
+# === Study spine: missingness is modelled, not implied ====================== #
+
+ex:ecImplicitMissingnessDeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/implicit-missingness-declared.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) AND declares the math:MissingnessMechanism it rests on through math:missingnessMechanism satisfies math:ImplicitMissingnessShape and validates with no findings." .
+
+ex:ecImplicitMissingnessUndeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/implicit-missingness-undeclared.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries the same antecedent — a math:StatisticalVariable with a math:MissingnessIndicator through math:hasMissingnessIndicator (its values encode absence) — but declares no math:MissingnessMechanism through math:missingnessMechanism (the SPARQL constraint of math:ImplicitMissingnessShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:ImplicitMissingness)." .
+
 # === Bridges: verification-result grounding ================================= #
 
 ex:ecVerificationResultGrounded a gmeow:ExampleConformance ;
