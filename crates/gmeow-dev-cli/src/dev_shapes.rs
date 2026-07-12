@@ -126,22 +126,31 @@ fn node_shape_iris(ds: &RdfDataset) -> Vec<String> {
     out.into_iter().collect()
 }
 
-/// Read every `sh:NodeShape` in `ds` into a [`ShapeRead`] keyed by its focus-node target. A shape
-/// that fails to read (malformed) is reported to the caller through `errors`, never silently
-/// dropped. Two shapes on the same target keep the first-read (deterministic by sorted IRI).
+/// Read every `sh:NodeShape` in `ds`. A shape that fails to read (malformed) is reported to the
+/// caller through `errors`, never silently dropped. The vector stays in deterministic IRI order
+/// and deliberately retains multiple shapes with the same target: each authored block is an
+/// independent migration obligation and must receive its own equivalence verdict.
+fn read_shapes(ds: &RdfDataset, errors: &mut Vec<String>) -> Vec<(String, ShapeRead)> {
+    let mut out = Vec::new();
+    for iri in node_shape_iris(ds) {
+        match read_shacl_shape(ds, &iri) {
+            Ok(read) => out.push((iri, read)),
+            Err(e) => errors.push(format!("{iri}: {e}")),
+        }
+    }
+    out
+}
+
+/// Read projected shapes into the target index used for peer lookup. The projector normally emits
+/// one merged declarative shape per target; retaining the first in deterministic IRI order preserves
+/// that contract while [`read_shapes`] keeps the authored legacy population lossless.
 fn shapes_by_target(
     ds: &RdfDataset,
     errors: &mut Vec<String>,
 ) -> BTreeMap<ShapeTarget, (String, ShapeRead)> {
-    let mut out: BTreeMap<ShapeTarget, (String, ShapeRead)> = BTreeMap::new();
-    for iri in node_shape_iris(ds) {
-        match read_shacl_shape(ds, &iri) {
-            Ok(read) => {
-                out.entry(read.ir.target.clone())
-                    .or_insert_with(|| (iri.clone(), read));
-            }
-            Err(e) => errors.push(format!("{iri}: {e}")),
-        }
+    let mut out = BTreeMap::new();
+    for (iri, read) in read_shapes(ds, errors) {
+        out.entry(read.ir.target.clone()).or_insert((iri, read));
     }
     out
 }
@@ -501,7 +510,7 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
             }
         };
         let mut read_errors = Vec::new();
-        let legacy = shapes_by_target(&ds, &mut read_errors);
+        let legacy = read_shapes(&ds, &mut read_errors);
         for e in &read_errors {
             eprintln!(
                 "shape-equivalence: {}: legacy shape read error: {e}",
@@ -513,7 +522,8 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
             continue;
         }
         println!("{}", rel(&root, file));
-        for (target, (iri, read)) in &legacy {
+        for (iri, read) in &legacy {
+            let target = &read.ir.target;
             total += 1;
             let verdict = ctx.verdict(iri, target, read);
             if !verdict.is_grounded() {
@@ -575,7 +585,7 @@ pub fn shape_lift(path: Option<&Path>) -> i32 {
             }
         };
         let mut read_errors = Vec::new();
-        let legacy = shapes_by_target(&ds, &mut read_errors);
+        let legacy = read_shapes(&ds, &mut read_errors);
         for e in &read_errors {
             eprintln!(
                 "shape-lift: {}: legacy shape read error: {e}",
@@ -587,7 +597,7 @@ pub fn shape_lift(path: Option<&Path>) -> i32 {
             continue;
         }
         println!("{}", rel(&root, file));
-        for (iri, read) in legacy.values() {
+        for (iri, read) in &legacy {
             total += 1;
             let proposal = lift(&read.ir);
             println!("  # {iri} — proposed OWL antecedent:");
@@ -1283,7 +1293,7 @@ pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
             }
         };
         let mut read_errors = Vec::new();
-        let legacy = shapes_by_target(&ds, &mut read_errors);
+        let legacy = read_shapes(&ds, &mut read_errors);
         for e in &read_errors {
             eprintln!(
                 "shape-migrate: {}: legacy shape read error: {e}",
@@ -1295,7 +1305,8 @@ pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
             continue;
         }
         println!("{}", rel(&root, file));
-        for (target, (iri, read)) in &legacy {
+        for (iri, read) in &legacy {
+            let target = &read.ir.target;
             // Only class-target shapes are injected here.
             let ShapeTarget::Class(k) = target else {
                 println!(
@@ -1461,7 +1472,7 @@ pub fn shape_prune(path: Option<&Path>, apply: bool) -> i32 {
             }
         };
         let mut read_errors = Vec::new();
-        let legacy = shapes_by_target(&ds, &mut read_errors);
+        let legacy = read_shapes(&ds, &mut read_errors);
         for e in &read_errors {
             eprintln!(
                 "shape-migrate: {}: legacy shape read error: {e}",
@@ -1474,7 +1485,8 @@ pub fn shape_prune(path: Option<&Path>, apply: bool) -> i32 {
         }
         // Collect the IRIs of blocks proven redundant in THIS file.
         let mut to_delete: Vec<String> = Vec::new();
-        for (target, (iri, read)) in &legacy {
+        for (iri, read) in &legacy {
+            let target = &read.ir.target;
             let v = ctx.verdict(iri, target, read);
             if matches!(v, Verdict::Equiv | Verdict::EquivGroundedResidue) {
                 to_delete.push(iri.clone());
@@ -1552,4 +1564,39 @@ fn short_iri(iri: &str) -> String {
     iri.strip_prefix("https://blackcatinformatics.ca/gmeow/")
         .map(|l| format!("gmeow:{l}"))
         .unwrap_or_else(|| iri.to_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn authored_shapes_with_the_same_target_are_all_retained() {
+        let ds = parse_dataset(
+            br#"
+            @prefix ex: <https://example.test/> .
+            @prefix sh: <http://www.w3.org/ns/shacl#> .
+
+            ex:First a sh:NodeShape ;
+                sh:targetClass ex:Widget ;
+                sh:property [ sh:path ex:name ; sh:minCount 1 ] .
+            ex:Second a sh:NodeShape ;
+                sh:targetClass ex:Widget ;
+                sh:property [ sh:path ex:code ; sh:minCount 1 ] .
+            "#,
+            "text/turtle",
+            None,
+        )
+        .expect("fixture parses");
+        let mut errors = Vec::new();
+        let shapes = read_shapes(&ds, &mut errors);
+        assert!(errors.is_empty());
+        assert_eq!(
+            shapes.len(),
+            2,
+            "no authored shape may disappear by target-key collision"
+        );
+        assert_eq!(shapes[0].0, "https://example.test/First");
+        assert_eq!(shapes[1].0, "https://example.test/Second");
+    }
 }
