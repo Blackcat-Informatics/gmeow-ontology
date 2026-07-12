@@ -377,7 +377,6 @@ pub fn resolve_term(graph: &DescribeGraph, query: &str) -> Resolution {
     }
 
     // 3. Bare local name across all bundled namespaces.
-    let lower = text.to_lowercase();
     let mut exact: Vec<String> = Vec::new();
     let mut exact_ci: Vec<String> = Vec::new();
     for iri in &terms {
@@ -385,7 +384,7 @@ pub fn resolve_term(graph: &DescribeGraph, query: &str) -> Resolution {
         if local == text {
             exact.push(iri.clone());
         }
-        if local.to_lowercase() == lower {
+        if local.eq_ignore_ascii_case(text) {
             exact_ci.push(iri.clone());
         }
     }
@@ -410,7 +409,11 @@ pub fn resolve_term(graph: &DescribeGraph, query: &str) -> Resolution {
     // Finally, a unique case-insensitive prefix resolves; multiple are suggestions.
     let prefix_matches: Vec<String> = terms
         .iter()
-        .filter(|iri| local_name(iri).to_lowercase().starts_with(&lower))
+        .filter(|iri| {
+            local_name(iri)
+                .get(..text.len())
+                .is_some_and(|head| head.eq_ignore_ascii_case(text))
+        })
         .cloned()
         .collect();
     if let [only] = prefix_matches.as_slice() {
