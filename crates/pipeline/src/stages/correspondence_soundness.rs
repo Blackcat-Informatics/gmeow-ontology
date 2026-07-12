@@ -35,6 +35,7 @@ use gmeow_logic_compile::ingest::DslView;
 use gmeow_logic_compile::projections::correspondence_soundness::{
     self as soundness, Mapping, ProjectionDiagnostic, expand_curie, parse_sssom_tsv, prefix_of,
 };
+use gmeow_logic_compile::projections::get_leg::{self, ProjectionCell};
 use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, parse_dataset};
@@ -167,6 +168,60 @@ fn merge_ontology(
         for record in catalog.records() {
             for artifact in &record.artifacts {
                 if artifact.role == ArtifactRole::Module {
+                    artifacts.push((
+                        record.slice_dir.join(&artifact.logical_path),
+                        &artifact.content,
+                    ));
+                }
+            }
+        }
+        artifacts.sort_by(|a, c| a.0.cmp(&c.0));
+        for (path, bytes) in &artifacts {
+            let ds = parse_turtle(bytes, &path.display().to_string())?;
+            b.push_dataset(&ds);
+        }
+    }
+    b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
+}
+
+/// Recursively collect every `.ttl` file under `dir` (mirrors
+/// `correspondence_lower::collect_ttl_files`; duplicated here since this stage reads its
+/// own committed corpus independently, exactly like the four dialect lowerings do).
+fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceError> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    for entry in std::fs::read_dir(dir).map_err(SliceError::Io)? {
+        let path = entry.map_err(SliceError::Io)?.path();
+        if path.is_dir() {
+            collect_ttl_files(&path, out)?;
+        } else if path.extension().and_then(|e| e.to_str()) == Some("ttl") {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
+/// Merge the mapping-DSL source set (`dsl/mappings/**/*.ttl` ⊕ sorted slice `Mapping`
+/// artifacts) — the same merge `correspondence_lower::merge_dsl` performs. This is the
+/// carrier of every `gmeow:ProjectionMapping` cell the EDOAL lowering renders from; the
+/// entity2 template-coherence check (`check_edoal_entity_kind`'s check B) re-parses it via
+/// [`get_leg::projections`] to correlate a committed EDOAL cell to its authoring template.
+fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDataset>, SliceError> {
+    let mut b = RdfDatasetBuilder::new();
+    let mut files = Vec::new();
+    collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;
+    files.sort();
+    for path in &files {
+        let bytes = std::fs::read(path).map_err(SliceError::Io)?;
+        let ds = parse_turtle(&bytes, &path.display().to_string())?;
+        b.push_dataset(&ds);
+    }
+    if let Some(catalog) = catalog {
+        let mut artifacts: Vec<(PathBuf, &[u8])> = Vec::new();
+        for record in catalog.records() {
+            for artifact in &record.artifacts {
+                if artifact.role == ArtifactRole::Mapping {
                     artifacts.push((
                         record.slice_dir.join(&artifact.logical_path),
                         &artifact.content,
@@ -476,6 +531,10 @@ struct Corpus {
     network_failed: BTreeMap<String, String>,
     fno: Arc<RdfDataset>,
     edoal: Vec<(String, Arc<RdfDataset>)>,
+    /// Every parsed `gmeow:ProjectionMapping` cell (from `merge_dsl`'s view) — owned
+    /// (no lifetime tied to the DSL dataset), the entity2 template-coherence check's
+    /// correlation authority.
+    cells: Vec<ProjectionCell>,
 }
 
 impl Corpus {
@@ -500,6 +559,7 @@ impl Corpus {
             mappings: &self.mappings,
             fno: &fno,
             edoal: &edoal,
+            cells: &self.cells,
         };
         soundness::run_soundness(&inputs)
     }
@@ -533,6 +593,17 @@ pub fn lint_correspondence_soundness(
 
     let ontology = merge_ontology(root, catalog.as_ref())?;
     let mappings = load_sssom_mappings(root)?;
+
+    // The mapping-DSL corpus (`dsl/mappings/` ⊕ slice `Mapping` artifacts): every
+    // `gmeow:ProjectionMapping` cell, parsed via the SAME shared get-leg model the EDOAL
+    // lowering renders from — the entity2 template-coherence check's correlation
+    // authority. Scoped so the view's borrow of `dsl` ends before `cells` (owned, no
+    // lifetime) outlives it.
+    let dsl = merge_dsl(root, catalog.as_ref())?;
+    let cells: Vec<ProjectionCell> = {
+        let dsl_view = DslView::new(&dsl);
+        get_leg::projections(&dsl_view).map_err(|e| SliceError::Parse(e.to_string()))?
+    };
 
     // Scope the ontology view so its borrow of `ontology` ends before `ontology` is moved
     // into the `Corpus` below (the view is only needed to compute the referenced prefixes).
@@ -583,6 +654,7 @@ pub fn lint_correspondence_soundness(
         network_failed,
         fno,
         edoal,
+        cells,
     };
     Ok(corpus.run())
 }
