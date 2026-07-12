@@ -140,11 +140,11 @@ gmeow:mapOaiDcFormat a gmeow:ProjectionMapping ;
         gmeow:anchor "work" ; gmeow:value "fmt" ;
         gmeow:atom (
             [ gmeow:subjectVar "work" ; gmeow:predicate gmeow:embodiedIn ; gmeow:objectVar "manif" ]
-            [ gmeow:subjectVar "manif" ; gmeow:predicate gmeow:hasFormat ; gmeow:objectVar "fmt" ] ) ;
-        gmeow:edoalSource gmeow:hasFormat ] ;
+            [ gmeow:subjectVar "manif" ; gmeow:predicate gmeow:hasManifestationFormat ; gmeow:objectVar "fmt" ] ) ;
+        gmeow:edoalSource gmeow:hasManifestationFormat ] ;
     gmeow:hasBinding [
         gmeow:profile "oai_dc" ; gmeow:toPredicate dc:format ; gmeow:relation "<=" ; gmeow:confidence 0.6 ;
-        gmeow:lossyDrop "GMEOW hasFormat lives on Manifestation, not Work; the projection traverses embodies" ] .
+        gmeow:lossyDrop "GMEOW hasManifestationFormat lives on Manifestation, not Work; the projection traverses embodies" ] .
 
 gmeow:mapOaiDcPublisher a gmeow:ProjectionMapping ;
     rdfs:label "dc:publisher (projected from production activity agent)"@x-gmeow-english ;

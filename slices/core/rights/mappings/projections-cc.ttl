@@ -53,7 +53,6 @@ gmeow:mapCcAttributionUrl a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:attributionUrl ] ;
     gmeow:hasBinding [
         gmeow:profile "cc" ; gmeow:toPredicate cc:attributionURL ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
-        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
         gmeow:sssomFile "gmeow-rights.sssom.tsv" ] .
 
