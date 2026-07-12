@@ -138,6 +138,25 @@ golden — the regression golden must be updated, with the update explicitly rev
 change passes the regression goldens but fails the external corpus, the engine has a correctness
 defect that no amount of self-consistency can paper over.
 
+### Retired backward-engine reference lane
+
+The native backward engine is checked against versioned, captured SLD answer
+goldens rather than a live embedded Prolog runtime. The backward benchmark cases
+name `captured-sld-goldens/v1` as their independent reference, pin the complete
+canonical answer digest in each `expected/result.json`, and require both the
+`native` profile and that digest before the benchmark corpus accepts the case.
+This preserves the independently decided SLD witness while keeping the retired
+engine, its transitive dependency graph, and its process-global runtime lock out
+of production and CI execution.
+
+Cut and SLD-only n-ary arithmetic cases are not retained as executable positive
+claims. Cut remains parseable solely so every profile returns a stable typed
+retirement diagnostic; n-ary arithmetic reaches a typed unsupported-fragment
+diagnostic. The positive cut case and SLD-only list-query fixtures were deleted.
+The `docs/test-retention/` dossier rule does not apply because it governs living
+pytest survivors, and this repository retains neither a pytest survivor nor an
+embedded-SLD test. The captured answer corpus is the durable reference evidence.
+
 **The external FOL soundness oracle.** For the full first-order fragment of the canonical IR, the
 external correctness corpus is instantiated by problems drawn from the TPTP library, each carrying a
 community-decided SZS status as engine-agnostic ground truth. A problem is parsed natively into the

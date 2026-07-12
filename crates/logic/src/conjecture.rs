@@ -54,18 +54,19 @@
 //! from a vacuous "added nothing"). A PARTIALLY-supported formula still evaluates its
 //! Horn part and discloses the residue in the preservation claim.
 //!
-//! # The budget seam (the Nemo oracle is uninterruptible)
+//! # The budget seam
 //!
-//! The DL+formula path runs on the Nemo forward chase, which is uninterruptible and
-//! HARD-FAILS if handed a bounded [`crate::oracle::ForwardBudget`] — forward-budget
-//! governance is "a governor concern above the oracle" ([`crate::oracle`]). So
-//! [`conjecture_test`] NEVER hands Nemo a bounded budget and never seam-lies an
-//! inline-bounded run. Instead it honors the declared [`Budget`] HONESTLY as a *post-hoc
-//! closure-size ceiling above the oracle boundary*: after computing `with_phi`, a derived
-//! (non-EDB) closure larger than `budget.max_answers` / `budget.max_steps` stamps
-//! [`EvaluationStatus::BudgetExhausted`] and forces the information state to
-//! [`InformationState::Undetermined`] (the run is inconclusive — never
-//! Supported/Opposed/Both). An unbounded budget runs to completion normally.
+//! A ground IRI-or-literal candidate keeps the reasoning contract and rule set fixed,
+//! so it is a signed `+1` transaction on the native incremental session. The shared
+//! `StepGovernor` charges genuinely new derivations inline at the deterministic sorted
+//! commit boundary; cached closure facts and the asserted candidate are not recharged.
+//! A cut returns a sound partial closure and `BudgetExhausted`, never a post-hoc fiction.
+//!
+//! A candidate that changes the rule program (a non-trivial formula) cannot reuse that
+//! fixed-contract session.  It remains on the complete native program evaluator and its
+//! declared ceiling is applied after closure construction until rule-program sessions are
+//! separately incrementalized.  The two cases are explicit in [`conjecture_test`]; neither
+//! is routed through a secondary reasoner.
 //!
 //! # Lifecycle projection
 //!
@@ -272,8 +273,9 @@ fn discharge_of(info: InformationState) -> ConjectureDischarge {
 /// Test the candidate first-order formula `candidate` against `kb` in the ISOLATED
 /// scenario world `scenario_world`, scoped to `standpoint` (REQUIRED — Principle 9 refuses
 /// a global-false verdict), with `assume_context` ground `(subject, predicate, object)`
-/// IRI triples layered onto the scenario EDB, honoring `budget` as a post-hoc closure-size
-/// ceiling (see the module doc's budget-seam note).
+/// IRI triples layered onto the scenario EDB, honoring `budget` inline for ground-fact
+/// candidates and as the declared post-hoc ceiling for rule-program-changing formulas
+/// (see the module doc's budget-seam note).
 ///
 /// `kb` is borrowed `&` and NEVER mutated: the scenario EDB is a fresh dataset built from a
 /// copy of `kb` plus the assume-context and (for a ground candidate) `φ`.
@@ -313,16 +315,32 @@ pub fn conjecture_test(
 
     // (2) Route the candidate: a trivially-Horn ground atom is a fact in the EDB; every
     //     other formula is a program `P_phi` reason_program lowers and evaluates.
-    let (with_phi, semantics_available) = match as_ground_fact(candidate)? {
+    let (with_phi, semantics_available, inline_budget) = match as_ground_fact(candidate)? {
         Some((subject, predicate, object)) => {
             // The "asserted φ": a ground fact in the scenario world.
             let phi_edb = build_scenario_edb(
                 kb,
                 scenario_world,
                 assume_context,
-                Some((subject, predicate, object)),
+                Some((subject.clone(), predicate.clone(), object.clone())),
             )?;
-            (reason_all(&phi_edb)?, true)
+            let adjusted = crate::reason::reason_ground_fact_insert_incremental(
+                crate::reason::GroundFactIncrementalRequest {
+                    base_edb: &base_edb,
+                    with_candidate_edb: &phi_edb,
+                    base: &base,
+                    scenario_world,
+                    subject: &subject,
+                    predicate: &predicate,
+                    object: &object,
+                    max_steps: budget.max_steps,
+                },
+            )?;
+            (
+                adjusted.result,
+                true,
+                Some((adjusted.status, adjusted.consumed_steps)),
+            )
         }
         None => {
             // A full candidate formula. `with_formulas` hard-fails on a trivially-Horn leaf,
@@ -335,9 +353,19 @@ pub fn conjecture_test(
             let (rls, _residue) = formula_eval_rls(&p_phi);
             let nary_rls = formula_nary_head_rls(&p_phi);
             let evaluable = !rls.trim().is_empty() || !nary_rls.trim().is_empty();
-            (reason_program(&p_phi, &base_edb)?, evaluable)
+            (reason_program(&p_phi, &base_edb)?, evaluable, None)
         }
     };
+
+    let derived_closure_size = with_phi.inferred().iter().filter(|a| !a.is_edb).count() as u64;
+    let answer_ceiling_tripped = budget
+        .max_answers
+        .is_some_and(|n| derived_closure_size > n as u64);
+    let step_ceiling_tripped = match inline_budget {
+        Some((status, _)) => status == crate::seam::BudgetStatus::Exhausted,
+        None => budget.max_steps.is_some_and(|n| derived_closure_size > n),
+    };
+    let budget_tripped = answer_ceiling_tripped || step_ceiling_tripped;
 
     // (4) The Belnap inputs — two INDEPENDENT legs (φ and ¬φ).
     // ¬φ leg (counterproof): KB ⊨ ¬φ, decided soundly & completely by the inconsistency of
@@ -351,7 +379,7 @@ pub fn conjecture_test(
     // base that ALREADY entails φ while refuting it, both legs fire and the verdict is `Both`.
     let redundant = triple_set(with_phi.inferred()) == triple_set(base.inferred());
     let has_proof = semantics_available && redundant;
-    let conclusive = with_phi.is_conclusive();
+    let conclusive = with_phi.is_conclusive() && !budget_tripped;
 
     // (4a) The base-consistency guard, now leg-aware. A base inconsistent SPECIFICALLY about
     //      the candidate (it entails φ AND refutes φ) is a genuine within-standpoint glut and
@@ -371,13 +399,6 @@ pub fn conjecture_test(
             ),
         }));
     }
-
-    // (6) Budget as a post-hoc closure-size ceiling ABOVE the oracle (never handed to Nemo).
-    let derived_closure_size = with_phi.inferred().iter().filter(|a| !a.is_edb).count() as u64;
-    let budget_tripped = budget
-        .max_answers
-        .is_some_and(|n| derived_closure_size > n as u64)
-        || budget.max_steps.is_some_and(|n| derived_closure_size > n);
 
     // (5) Classify, then apply the budget ceiling and the beyond-fragment status.
     let information = if budget_tripped {
@@ -433,6 +454,8 @@ pub fn conjecture_test(
     provenance.context.standpoint = Some(standpoint.to_owned());
     provenance.consumed_budget.allowance =
         budget.max_steps.or(budget.max_answers.map(|n| n as u64));
+    provenance.consumed_budget.consumed =
+        inline_budget.map_or(derived_closure_size, |(_, consumed)| consumed);
     if budget_tripped {
         provenance.consumed_budget.limit = Some(crate::result::BudgetLimit::Inference);
     }

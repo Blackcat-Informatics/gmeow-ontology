@@ -402,7 +402,7 @@ impl Stage for BenchLeaderboardStage {
 struct EnginePins {
     native: String,
     nemo_rev: String,
-    scryer_branch: String,
+    backward_reference: String,
 }
 
 /// The native engine's deterministic cost record for one bench case. `answer_count`
@@ -426,6 +426,97 @@ struct NativeCost {
     /// Sorted `[rule, predicate, stratum, derivations]` tuples (may be empty at seams
     /// that expose no decomposable vector — never fabricated).
     cost_vector: Vec<(String, String, u32, u64)>,
+    /// Incremental-only deterministic join-work count.
+    #[serde(default)]
+    joined_rows: Option<u64>,
+    /// Incremental-only clean-rebuild comparator, embedded in the exact descriptor.
+    #[serde(default)]
+    scratch: Option<ScratchCost>,
+    /// Forward-only cold/warm complete-evaluation evidence for the bounded physical
+    /// plan cache.
+    #[serde(default)]
+    plan_cache: Option<PlanCacheCost>,
+    /// Forward-only bounded-provenance Record/Skip evidence over the same physical
+    /// plan and fact closure.
+    #[serde(default)]
+    provenance: Option<ProvenanceCost>,
+    /// Incremental-grounding-only deterministic work vector and explicit solver
+    /// boundary.
+    #[serde(default)]
+    grounding: Option<IncrementalGroundingCost>,
+}
+
+#[derive(Deserialize)]
+struct IncrementalGroundingCost {
+    edb_changes: u64,
+    ground_rule_changes: u64,
+    universe_changes: u64,
+    universe_joined_rows: u64,
+    ground_rule_joined_rows: u64,
+    ground_rule_probe_rows: u64,
+    active_ground_rules: u64,
+    solver: String,
+    solver_status: String,
+    solver_reran: bool,
+}
+
+#[derive(Deserialize)]
+struct PlanCacheCost {
+    solver_version: String,
+    rule_hash: String,
+    cold: PlanEvaluationCost,
+    warm: PlanEvaluationCost,
+    same_executable: bool,
+    repeat_parity: bool,
+    warm_alloc_count_strictly_lower: bool,
+    warm_peak_live_strictly_lower: bool,
+}
+
+#[derive(Deserialize)]
+struct PlanEvaluationCost {
+    cache_hit: bool,
+    plan_builds: u64,
+    planning_units: u64,
+    consumed_steps: u64,
+    peak_live_bytes: u64,
+    closure_blake3: String,
+    cost_vector: Vec<(String, String, u32, u64)>,
+}
+
+#[derive(Deserialize)]
+struct ProvenanceCost {
+    record: ProvenanceModeCost,
+    skip: ProvenanceModeCost,
+    closure_parity: bool,
+    step_parity: bool,
+    annotation_complete: bool,
+    record_peak_overhead_bytes: i128,
+    record_alloc_count_overhead: i128,
+}
+
+#[derive(Deserialize)]
+struct ProvenanceModeCost {
+    annotation_count: u64,
+    #[serde(default)]
+    max_proof_height: Option<u32>,
+    consumed_steps: u64,
+    fact_count: u64,
+    fact_closure_blake3: String,
+    alloc_count: u64,
+    peak_live_bytes: u64,
+}
+
+/// The clean native rebuild paired with an incremental transaction.
+#[derive(Deserialize)]
+struct ScratchCost {
+    consumed_steps: u64,
+    derived_count: u64,
+    peak_live_bytes: u64,
+    cost_vector: Vec<(String, String, u32, u64)>,
+    #[serde(default)]
+    ground_rule_probe_rows: Option<u64>,
+    #[serde(default)]
+    active_ground_rules: Option<u64>,
 }
 
 /// The deterministic verdict-agreement booleans for one bench case.
@@ -433,6 +524,10 @@ struct NativeCost {
 struct Agreement {
     native_vs_golden: bool,
     native_vs_oracle: bool,
+    #[serde(default)]
+    incremental_insert_vs_scratch: Option<bool>,
+    #[serde(default)]
+    incremental_retract_vs_scratch: Option<bool>,
 }
 
 /// One `(corpus, case)` deterministic cost + agreement record.
@@ -474,11 +569,77 @@ struct LedgerTally {
     finding_graph_blake3: String,
 }
 
+/// Scheduler-independent evidence from the permanent four-worker rule fixture.
+#[derive(Deserialize)]
+struct RuleParallelCost {
+    fixture: String,
+    worker_count: u64,
+    rule_count: u64,
+    seed_rows: u64,
+    derived_rows: u64,
+    consumed_steps: u64,
+    parallel_rounds: u64,
+    rule_tasks: u64,
+    serial_candidate_rows: u64,
+    critical_path_candidate_rows: u64,
+    critical_path_rows_saved: u64,
+    max_buffered_candidate_rows: u64,
+    max_task_candidate_rows: u64,
+    budget_cases: u64,
+    output_parity: bool,
+    budget_parity: bool,
+    parallel_path_entered: bool,
+    critical_path_strictly_lower: bool,
+    closure_blake3: String,
+}
+
+impl RuleParallelCost {
+    /// Refuse to render a committed parallelism claim unless the evidence is
+    /// non-vacuous, internally coherent, and records the promised four-worker path.
+    fn validate(&self) -> Result<(), gmeow_errors::Diag> {
+        let rows_saved = self
+            .serial_candidate_rows
+            .checked_sub(self.critical_path_candidate_rows);
+        let digest_is_blake3 = self.closure_blake3.len() == 64
+            && self
+                .closure_blake3
+                .bytes()
+                .all(|byte| byte.is_ascii_hexdigit());
+        if self.fixture.is_empty()
+            || self.worker_count != 4
+            || self.rule_count < 2
+            || self.seed_rows == 0
+            || self.derived_rows == 0
+            || self.consumed_steps == 0
+            || self.parallel_rounds == 0
+            || self.rule_tasks < self.parallel_rounds
+            || rows_saved != Some(self.critical_path_rows_saved)
+            || self.critical_path_rows_saved == 0
+            || self.max_buffered_candidate_rows < self.max_task_candidate_rows
+            || self.budget_cases == 0
+            || !self.output_parity
+            || !self.budget_parity
+            || !self.parallel_path_entered
+            || !self.critical_path_strictly_lower
+            || !digest_is_blake3
+        {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!(
+                    "cost baseline carries incomplete or inconsistent four-worker rule-parallel evidence for fixture `{}`",
+                    self.fixture
+                ),
+            }));
+        }
+        Ok(())
+    }
+}
+
 /// The committed deterministic cost/agreement artifact (`bench/cost-baseline.json`).
 #[derive(Deserialize)]
 struct CostArtifact {
     engine_pins: EnginePins,
     cases: Vec<CaseRecord>,
+    rule_parallelism: RuleParallelCost,
     ledgers: BTreeMap<String, LedgerTally>,
 }
 
@@ -499,6 +660,7 @@ pub(crate) fn render_cost_ledger(
             message: format!("cost baseline parse: {e}"),
         })
     })?;
+    artifact.rule_parallelism.validate()?;
 
     // Sort by (corpus, case) so the render is independent of the artifact's array order.
     let mut cases: Vec<&CaseRecord> = artifact.cases.iter().collect();
@@ -509,21 +671,21 @@ pub(crate) fn render_cost_ledger(
         String::new(),
         "# gmeow deterministic engine-cost ledger".to_string(),
         String::new(),
-        "Committed engine-vs-engine cost/agreement baseline (`bench/cost-baseline.json`),"
+        "Committed engine/reference cost/agreement baseline (`bench/cost-baseline.json`),"
             .to_string(),
-        "refreshed via `make maint-bench-cost-baseline`. Every value is an integer count".to_string(),
-        "or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the".to_string(),
+        "refreshed via `make maint-bench-cost-baseline`. Every measured performance value is".to_string(),
+        "an integer count or boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the".to_string(),
         "harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,".to_string(),
-        "and `alloc_bytes`/`alloc_count` (the total-allocation scalars, which jitter ~0.06%".to_string(),
-        "run-to-run) through a one-sided tolerance band `fresh ≤ baseline·(1+ε)`, ε = 1%. This".to_string(),
+        "and `alloc_bytes`/`alloc_count` through one-sided tolerance bands: bytes use 1%,".to_string(),
+        "while counts use the greater of 1% and the measured 42-allocation quantized floor. This".to_string(),
         "is a drift-gated projection of the deterministic cost artifact; `check-generated`".to_string(),
         "reproduces it byte-for-byte from the committed baseline without running a benchmark.".to_string(),
         String::new(),
         format!(
-            "Engine pins: native `{}`, nemo `{}`, scryer `{}`.",
+            "Engine/reference pins: native `{}`, nemo `{}`, backward `{}`.",
             artifact.engine_pins.native,
             artifact.engine_pins.nemo_rev,
-            artifact.engine_pins.scryer_branch
+            artifact.engine_pins.backward_reference
         ),
         String::new(),
         "## Per-case deterministic cost + verdict-agreement".to_string(),
@@ -564,10 +726,294 @@ pub(crate) fn render_cost_ledger(
             ));
             vector_rows += 1;
         }
+        if let Some(scratch) = &case.native.scratch {
+            for (rule, predicate, stratum, derivations) in &scratch.cost_vector {
+                lines.push(format!(
+                    "| {} | {} (scratch rebuild) | {} | {} | {} | {} |",
+                    case.corpus, case.case, rule, predicate, stratum, derivations
+                ));
+                vector_rows += 1;
+            }
+        }
     }
     if vector_rows == 0 {
         lines.push("| — | — | — | — | — | — |".to_string());
     }
+
+    // The incremental lane's paired native rebuild is retained inside the exact
+    // descriptor. Surface the raw deterministic delta explicitly: no wall-clock and
+    // no inferred percentage, just the committed counts/high-water marks.
+    let incremental_cases: Vec<&&CaseRecord> = cases
+        .iter()
+        .filter(|case| case.native.scratch.is_some())
+        .collect();
+    if !incremental_cases.is_empty() {
+        lines.push(String::new());
+        lines.push("## Incremental transaction vs clean native rebuild".to_string());
+        lines.push(String::new());
+        lines.push(
+            "| corpus | case | incremental steps | scratch steps | steps saved | derived rows | incremental peak_live_bytes | scratch peak_live_bytes | peak bytes saved | joined delta rows | insert parity | retract parity |"
+                .to_string(),
+        );
+        lines.push("|---|---|---|---|---|---|---|---|---|---|---|---|".to_string());
+        for case in incremental_cases {
+            let scratch = case
+                .native
+                .scratch
+                .as_ref()
+                .expect("filtered to incremental scratch cases");
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                case.corpus,
+                case.case,
+                case.native.consumed_steps,
+                scratch.consumed_steps,
+                i128::from(scratch.consumed_steps) - i128::from(case.native.consumed_steps),
+                scratch.derived_count,
+                case.native.peak_live_bytes,
+                scratch.peak_live_bytes,
+                i128::from(scratch.peak_live_bytes) - i128::from(case.native.peak_live_bytes),
+                case.native.joined_rows.unwrap_or(0),
+                case.agreement
+                    .incremental_insert_vs_scratch
+                    .unwrap_or(false),
+                case.agreement
+                    .incremental_retract_vs_scratch
+                    .unwrap_or(false),
+            ));
+        }
+    }
+
+    let grounding_cases: Vec<&&CaseRecord> = cases
+        .iter()
+        .filter(|case| case.native.grounding.is_some())
+        .collect();
+    if !grounding_cases.is_empty() {
+        lines.push(String::new());
+        lines.push("## Incremental non-monotone grounding".to_string());
+        lines.push(String::new());
+        lines.push(
+            "Ground-rule commits and candidate probes are deterministic. The maintained ground program is incremental; the named WFS/stable-model solver remains explicitly from scratch whenever its complete slice changes."
+                .to_string(),
+        );
+        lines.push(String::new());
+        lines.push(
+            "| corpus | case | incremental ground commits | scratch ground commits | commits saved | incremental ground probes | scratch ground probes | probes saved | active ground rules | EDB changes | universe changes | universe delta rows | ground-rule delta rows | solver | solver status | solver reran | insert parity | retract parity |"
+                .to_string(),
+        );
+        lines.push(
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
+        );
+        for case in grounding_cases {
+            let evidence_error = |missing: &str| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!(
+                        "cost baseline case `{}/{}` carries incremental-grounding evidence but is missing {missing}",
+                        case.corpus, case.case
+                    ),
+                })
+            };
+            let grounding = case
+                .native
+                .grounding
+                .as_ref()
+                .ok_or_else(|| evidence_error("the grounding record"))?;
+            let scratch = case
+                .native
+                .scratch
+                .as_ref()
+                .ok_or_else(|| evidence_error("the scratch comparator"))?;
+            let scratch_probes = scratch
+                .ground_rule_probe_rows
+                .ok_or_else(|| evidence_error("scratch ground_rule_probe_rows"))?;
+            let scratch_rules = scratch
+                .active_ground_rules
+                .ok_or_else(|| evidence_error("scratch active_ground_rules"))?;
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                case.corpus,
+                case.case,
+                grounding.ground_rule_changes,
+                scratch_rules,
+                i128::from(scratch_rules) - i128::from(grounding.ground_rule_changes),
+                grounding.ground_rule_probe_rows,
+                scratch_probes,
+                i128::from(scratch_probes) - i128::from(grounding.ground_rule_probe_rows),
+                grounding.active_ground_rules,
+                grounding.edb_changes,
+                grounding.universe_changes,
+                grounding.universe_joined_rows,
+                grounding.ground_rule_joined_rows,
+                grounding.solver,
+                grounding.solver_status,
+                grounding.solver_reran,
+                case.agreement
+                    .incremental_insert_vs_scratch
+                    .unwrap_or(false),
+                case.agreement
+                    .incremental_retract_vs_scratch
+                    .unwrap_or(false),
+            ));
+        }
+    }
+
+    // Complete cold/warm evaluations over identical EDB+rules. The second run must
+    // consume the same immutable plan, do zero planning work, preserve the closure and
+    // decomposable cost vector, and strictly reduce allocation count + peak live bytes.
+    let planned_cases: Vec<&&CaseRecord> = cases
+        .iter()
+        .filter(|case| case.native.plan_cache.is_some())
+        .collect();
+    if !planned_cases.is_empty() {
+        lines.push(String::new());
+        lines.push("## Cold vs warm physical-plan reuse".to_string());
+        lines.push(String::new());
+        lines.push(
+            "Each row is two complete materializations over identical inputs; parsing/EDB loading/certification are outside both measured regions."
+                .to_string(),
+        );
+        lines.push(String::new());
+        lines.push(
+            "| corpus | case | solver | rule hash | cold hit | warm hit | cold builds | warm builds | cold planning units | warm planning units | cold steps | warm steps | cold peak_live_bytes | warm peak_live_bytes | peak bytes saved | same plan | closure+cost parity | warm alloc count lower | warm peak lower |"
+                .to_string(),
+        );
+        lines.push(
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"
+                .to_string(),
+        );
+        for case in planned_cases {
+            let plan = case
+                .native
+                .plan_cache
+                .as_ref()
+                .expect("filtered to plan-cache cases");
+            let closure_and_cost_parity = plan.repeat_parity
+                && plan.cold.closure_blake3 == plan.warm.closure_blake3
+                && plan.cold.cost_vector == plan.warm.cost_vector;
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                case.corpus,
+                case.case,
+                plan.solver_version,
+                plan.rule_hash,
+                plan.cold.cache_hit,
+                plan.warm.cache_hit,
+                plan.cold.plan_builds,
+                plan.warm.plan_builds,
+                plan.cold.planning_units,
+                plan.warm.planning_units,
+                plan.cold.consumed_steps,
+                plan.warm.consumed_steps,
+                plan.cold.peak_live_bytes,
+                plan.warm.peak_live_bytes,
+                i128::from(plan.cold.peak_live_bytes) - i128::from(plan.warm.peak_live_bytes),
+                plan.same_executable,
+                closure_and_cost_parity,
+                plan.warm_alloc_count_strictly_lower,
+                plan.warm_peak_live_strictly_lower,
+            ));
+        }
+    }
+
+    // Bounded provenance overhead: Record and Skip execute the same complete plan.
+    // The fact digest and steps are exact laws; peak-live is the deterministic
+    // overhead signal. Total allocation counts are retained as advisory corroboration
+    // and excluded from the harness's exact descriptor.
+    let provenance_cases: Vec<&&CaseRecord> = cases
+        .iter()
+        .filter(|case| case.native.provenance.is_some())
+        .collect();
+    if !provenance_cases.is_empty() {
+        lines.push(String::new());
+        lines.push("## Record vs Skip bounded-provenance overhead".to_string());
+        lines.push(String::new());
+        lines.push(
+            "Each row executes the same warm physical plan over identical EDB/rules. Fact-closure and committed-step parity are hard laws; peak-live is exact, while allocation-count deltas are advisory."
+                .to_string(),
+        );
+        lines.push(String::new());
+        lines.push(
+            "| corpus | case | facts | annotations | max proof height | Record steps | Skip steps | Record peak_live_bytes | Skip peak_live_bytes | Record peak overhead | Record alloc_count | Skip alloc_count | alloc-count overhead (advisory) | fact-closure parity | step parity | annotation complete |"
+                .to_string(),
+        );
+        lines.push("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|".to_string());
+        for case in provenance_cases {
+            let provenance = case
+                .native
+                .provenance
+                .as_ref()
+                .expect("filtered to provenance cases");
+            let closure_parity = provenance.closure_parity
+                && provenance.record.fact_closure_blake3 == provenance.skip.fact_closure_blake3;
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                case.corpus,
+                case.case,
+                provenance.record.fact_count,
+                provenance.record.annotation_count,
+                provenance.record.max_proof_height.unwrap_or(0),
+                provenance.record.consumed_steps,
+                provenance.skip.consumed_steps,
+                provenance.record.peak_live_bytes,
+                provenance.skip.peak_live_bytes,
+                provenance.record_peak_overhead_bytes,
+                provenance.record.alloc_count,
+                provenance.skip.alloc_count,
+                provenance.record_alloc_count_overhead,
+                closure_parity,
+                provenance.step_parity,
+                provenance.annotation_complete
+                    && provenance.skip.annotation_count == 0
+                    && provenance.record.annotation_count == provenance.skip.fact_count,
+            ));
+        }
+    }
+
+    let parallel = &artifact.rule_parallelism;
+    lines.push(String::new());
+    lines.push("## Four-worker rule-parallel structural evidence".to_string());
+    lines.push(String::new());
+    lines.push(
+        "The permanent balanced fixture runs in a real four-worker Rayon pool and is compared with forced-sequential execution. Candidate rows are counted after rule-local deduplication and before the deterministic merge; the critical-path count sums the largest task in each sequential round. These are exact structural row counts, not wall-clock speedup or byte-level memory claims."
+            .to_string(),
+    );
+    lines.push(String::new());
+    lines.push(
+        "| fixture | workers | rules | seed rows | derived rows | consumed steps | parallel rounds | rule tasks | budget cuts |"
+            .to_string(),
+    );
+    lines.push("|---|---|---|---|---|---|---|---|---|".to_string());
+    lines.push(format!(
+        "| {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+        parallel.fixture,
+        parallel.worker_count,
+        parallel.rule_count,
+        parallel.seed_rows,
+        parallel.derived_rows,
+        parallel.consumed_steps,
+        parallel.parallel_rounds,
+        parallel.rule_tasks,
+        parallel.budget_cases,
+    ));
+    lines.push(String::new());
+    lines.push(
+        "| serial candidate-row sum | critical-path candidate-row sum | structural row gap | max merge-barrier rows | max task rows | output + provenance parity | budget parity | parallel path entered | strict critical-path reduction | closure blake3 |"
+            .to_string(),
+    );
+    lines.push("|---|---|---|---|---|---|---|---|---|---|".to_string());
+    lines.push(format!(
+        "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+        parallel.serial_candidate_rows,
+        parallel.critical_path_candidate_rows,
+        parallel.critical_path_rows_saved,
+        parallel.max_buffered_candidate_rows,
+        parallel.max_task_candidate_rows,
+        parallel.output_parity,
+        parallel.budget_parity,
+        parallel.parallel_path_entered,
+        parallel.critical_path_strictly_lower,
+        parallel.closure_blake3,
+    ));
 
     // Per-corpus divergence-ledger tally (the content-addressed agreement fold): the
     // finding graph blake3 is a pure function of the comparisons, so it is a stable
@@ -627,6 +1073,7 @@ pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeo
             message: format!("cost baseline parse: {e}"),
         })
     })?;
+    artifact.rule_parallelism.validate()?;
 
     // Assert gap-zero per corpus BEFORE rendering, and fold the invariant per-corpus
     // finding-graph digests into a single combined soak digest (blake3 over the sorted
@@ -705,12 +1152,12 @@ pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeo
     ));
     lines.push(String::new());
     lines.push(format!(
-        "Gap-zero HELD across {} corpora at soak window {SOAK_WINDOW}; engine pins native `{}`, \
-         nemo `{}`, scryer `{}`.",
+        "Gap-zero HELD across {} corpora at soak window {SOAK_WINDOW}; pins native `{}`, \
+         nemo `{}`, backward reference `{}`.",
         artifact.ledgers.len(),
         artifact.engine_pins.native,
         artifact.engine_pins.nemo_rev,
-        artifact.engine_pins.scryer_branch,
+        artifact.engine_pins.backward_reference,
     ));
     let md = lines.join("\n") + "\n";
 
@@ -732,8 +1179,8 @@ impl Stage for CostLedgerStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        // v2: the leaf now also renders the soak-window record (`generated/bench/soak.md`).
-        "cost-ledger.v2"
+        // v6: surface exact four-worker structural evidence in the cost ledger.
+        "cost-ledger.v6"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The committed cost/agreement baseline is the only input; a baseline refresh
@@ -803,6 +1250,59 @@ mod tests {
             "generated/bench/cost-ledger.md drifted from committed (len built {} vs committed {})",
             built.len(),
             committed.len()
+        );
+    }
+
+    #[test]
+    fn cost_ledger_returns_contextual_error_for_incomplete_grounding_evidence() {
+        let root = repo_root();
+        let bytes = fs::read(root.join(COST_BASELINE_PATH)).expect("read committed baseline");
+        let mut artifact: serde_json::Value =
+            serde_json::from_slice(&bytes).expect("parse committed baseline");
+        let broken = artifact["cases"]
+            .as_array_mut()
+            .expect("cases array")
+            .iter_mut()
+            .find(|case| !case["native"]["grounding"].is_null())
+            .expect("committed baseline has incremental-grounding evidence");
+        let corpus = broken["corpus"].as_str().unwrap().to_owned();
+        let case = broken["case"].as_str().unwrap().to_owned();
+        broken["native"].as_object_mut().unwrap().remove("scratch");
+
+        let tmp = tempdir().expect("temp root");
+        fs::create_dir(tmp.path().join("bench")).expect("bench dir");
+        fs::write(
+            tmp.path().join(COST_BASELINE_PATH),
+            serde_json::to_vec(&artifact).unwrap(),
+        )
+        .expect("write malformed baseline");
+        let error = render_cost_ledger(tmp.path())
+            .expect_err("incomplete grounding evidence must return a diagnostic");
+        assert!(error.message().contains(&format!("{corpus}/{case}")));
+        assert!(error.message().contains("scratch comparator"));
+    }
+
+    #[test]
+    fn cost_ledger_rejects_incoherent_rule_parallel_evidence() {
+        let root = repo_root();
+        let bytes = fs::read(root.join(COST_BASELINE_PATH)).expect("read committed baseline");
+        let mut artifact: serde_json::Value =
+            serde_json::from_slice(&bytes).expect("parse committed baseline");
+        artifact["rule_parallelism"]["critical_path_rows_saved"] = serde_json::json!(95);
+
+        let tmp = tempdir().expect("temp root");
+        fs::create_dir(tmp.path().join("bench")).expect("bench dir");
+        fs::write(
+            tmp.path().join(COST_BASELINE_PATH),
+            serde_json::to_vec(&artifact).unwrap(),
+        )
+        .expect("write malformed baseline");
+        let error = render_cost_ledger(tmp.path())
+            .expect_err("incoherent rule-parallel evidence must return a diagnostic");
+        assert!(
+            error
+                .message()
+                .contains("four-worker rule-parallel evidence")
         );
     }
 

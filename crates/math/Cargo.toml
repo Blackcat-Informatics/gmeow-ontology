@@ -16,7 +16,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-purrdf = "0.4"
+purrdf.workspace = true
 # The diagnostic substrate: every exact-rational / graph-loading failure is a
 # typed `Diag` under the `math.*` code namespace, not a bare string. Non-optional —
 # the substrate is the standard error surface for this grounding crate.

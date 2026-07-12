@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `bench-engines` — the engine-vs-engine benchmark harness.
+//! `bench-engines` — the engine/reference benchmark harness.
 //!
 //! It drives every committed mini bench case (`conformance/logic/cases/bench/`, or an
 //! explicit `--corpus-dir`) through the NATIVE engine and, per fragment, the
-//! applicable ORACLE, and emits TWO strictly-separated outputs.
+//! applicable live or captured reference, and emits two strictly-separated outputs.
 //!
-//! Two cheap native-only gate verbs run BEFORE any oracle is constructed: `--check-golden`
+//! Two cheap native-only gate verbs run before any live oracle is constructed: `--check-golden`
 //! (a single-run native-vs-published agreement gate) and `--soak N` (the N-run soak
 //! window — the same deterministic check re-run N times, asserting gap-zero AND a
 //! byte-identical finding-graph digest across every run; see [`run_soak`]).
@@ -29,6 +29,12 @@
 //!   allocator high-water, page reuse), so they live HERE and NEVER enter the committed
 //!   artifact.
 //!
+//! The primary forward/backward allocation sample is a **warm-plan execution**: one
+//! semantically-checked call primes the process cache outside the measured region, then the
+//! recorded call executes through that immutable plan. Cold planning is not hidden; every
+//! forward case separately records a paired cold/warm complete-materialization probe with plan
+//! builds, planning units, closure/cost parity, and both allocation-win verdicts.
+//!
 //! # How each allocation scalar gates
 //!
 //! `main` pins the process-GLOBAL Rayon pool to a SINGLE thread once, adding the calling
@@ -42,14 +48,14 @@
 //! `peak_live_bytes` (the [`gmeow_cost_measure`] net-live high-water) is deterministic
 //! because it nets each transient scratch allocation — freed within the region — back to
 //! zero, so it enters the exact descriptor. The two TOTAL-allocation scalars (`alloc_bytes`
-//! / `alloc_count`) are NOT byte-reproducible: across ≥20 harness runs the most-recursive
-//! case (`same-generation`) occupies three discrete states spanning ~0.06% — a single
-//! quantized ±14-allocation transient deep in the native forward core that survives a
-//! process-global total, the inline single-thread pool, AND a fully rayon-free sequential
-//! engine (proven by direct experiment), i.e. genuine per-run engine allocation jitter,
-//! not a threading artifact a thread cap could remove. So the totals gate through a
-//! separate ONE-SIDED tolerance band (`fresh ≤ baseline·(1+ε)`, ε = 1% ≈ 17× the measured
-//! floor; see [`ALLOC_BAND_NUM`]) folded through the SAME divergence ledger: a within-band
+//! / `alloc_count`) are NOT byte-reproducible: they occupy discrete 14-allocation states
+//! deep in the native core that survive a process-global total, the inline single-thread
+//! pool, AND a fully rayon-free sequential engine. After flat-slot kernels cut small-query
+//! allocation totals roughly in half, a 12-process soak exposed the same quantum across a
+//! 42-allocation span on `ancestor-query`; that absolute floor now dominates a percentage
+//! for small totals. So bytes gate through a 1% one-sided band, while counts use the greater
+//! of 1% and the measured 42-allocation floor (see [`ALLOC_COUNT_JITTER_FLOOR`]), folded
+//! through the SAME divergence ledger: a within-band
 //! run is a non-blocking `Agree`, a breach a blocking `CorpusOnly` cost-regression finding.
 //! They are therefore stripped from the exact `cost_descriptor` (an exact match would
 //! flake) but remain in the artifact (2a) as committed, drift-gated integer columns — no
@@ -63,7 +69,8 @@
 //!   hand-derived golden's committed `rows` count (the golden carries only a count, so
 //!   the token is `derived=<n>`);
 //! * **native ↔ oracle** — for the FORWARD and BACKWARD fragments a `blake3`
-//!   fingerprint of the fully-sorted result rows / bindings (a true set equality over
+//!   fingerprint of the fully-sorted result rows / bindings (for backward cases the
+//!   published token is the captured SLD digest; for forward cases it is Nemo), a true set equality over
 //!   ground terms), and for the EXISTENTIAL fragment the derived COUNT (the chase
 //!   invents fresh labeled nulls whose identifiers legitimately differ per engine, so
 //!   only the count is a sound cross-engine invariant).
@@ -80,10 +87,9 @@
 //! # Oracle isolation (in-process, fresh engine per call)
 //!
 //! Cases run IN-PROCESS with a fresh EDB per case; no subprocess is needed. This is
-//! sound because each oracle already rebuilds a FRESH engine per call: Nemo's
+//! sound because the remaining live oracle rebuilds a fresh engine per call: Nemo's
 //! `nemo_engine::load_string(rls)` constructs a new engine inside every
-//! `run_chase_typed`, serialized by `CHASE_LOCK`, and Scryer's `run_scryer` builds a
-//! fresh `Machine` under `SCRYER_LOCK`. The production `reason::crosscheck_native_vs_nemo`
+//! `run_chase_typed`, serialized by `CHASE_LOCK`. The production `reason::crosscheck_native_vs_nemo`
 //! lane already dual-runs many cases in one process on exactly this design, so the
 //! same in-process, lock-serialized pattern is the established precedent here.
 //!
@@ -119,9 +125,11 @@ use gmeow_cost_measure::{CountingAllocator, measure};
 use gmeow_errors::Diag;
 
 use gmeow_logic::cost::{
-    ForwardRows, run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
+    ForwardRows, IncrementalForwardSession, IncrementalGroundingCostSession, RepeatForwardSession,
+    SignedForwardRow, run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
+    run_rule_parallel_evidence,
 };
-use gmeow_logic::dispatch::{cyclic_predicates, dispatch_query};
+use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::materialize::materialize_routed;
 use gmeow_logic::nary::{
     nary_canonical_fingerprint, run_native_nary_forward_run, run_nemo_nary_forward,
@@ -133,8 +141,7 @@ use gmeow_logic::reason::{
     ExternalComparison, build_ledger, compare_external_corpus, divergence_findings,
 };
 use gmeow_logic::result::EngineId;
-use gmeow_logic::scryer_engine::run_scryer;
-use gmeow_logic::seam::WorldStoreForeign;
+use gmeow_logic::seam::WorldFactSnapshot;
 use gmeow_logic::store::WorldStore;
 
 /// Install the counting allocator on THIS binary (and only this binary) so
@@ -153,9 +160,8 @@ const HORN_PROFILE_TOKEN: &str = "PositiveHornProfile";
 /// `rev`). Surfaced as an engine-version pin in the deterministic artifact so a
 /// cost/agreement baseline is attributable to the exact oracle build that produced it.
 const NEMO_REV: &str = "4415bc2e180adf33a7a4b98ddc41be9914b7584e";
-/// The pinned Scryer-Prolog branch (mirrors `crates/logic/Cargo.toml`'s
-/// `scryer-prolog` git `branch`). Surfaced as an engine-version pin.
-const SCRYER_BRANCH: &str = "master";
+/// Version of the captured SLD answer-set goldens used by the backward lane.
+const BACKWARD_REFERENCE: &str = "captured-sld-goldens/v1";
 
 fn main() -> gmeow_errors::Result<()> {
     // Pool-quiesce: force the process-GLOBAL Rayon pool to a single thread — the calling
@@ -264,7 +270,7 @@ fn main() -> gmeow_errors::Result<()> {
     // ── (1) The ON-GATE native-vs-golden agreement gate ─────────────────────────
     // `--check-golden` runs the NATIVE engine ONLY over the committed mini corpora and
     // HARD-FAILS if any case's native result disagrees with its committed golden
-    // (`expected/result.json`). It deliberately drives NO oracle (Nemo/Scryer): golden
+    // (`expected/result.json`). It deliberately drives no live oracle: golden
     // agreement is native-vs-published only, so the check stays cheap enough to wire into
     // `make check`. It returns before any oracle run / artifact emission below.
     if check_golden {
@@ -340,6 +346,37 @@ fn main() -> gmeow_errors::Result<()> {
         );
     }
 
+    // A real four-worker run over the permanent balanced fixture. This is deliberately
+    // outside every allocation-measured case: its gate is the scheduler-independent
+    // rule-task work vector, exact merge-buffer row bound, full output/provenance parity,
+    // and budget-sweep parity — never wall time on this shared host.
+    let parallel = run_rule_parallel_evidence().map_err(|error| {
+        Diag::of_kind(RunFailed {
+            detail: format!("four-worker rule-parallel evidence failed: {error}"),
+        })
+    })?;
+    let rule_parallelism = json!({
+        "fixture": "balanced-six-rule-v1",
+        "worker_count": parallel.worker_count,
+        "rule_count": parallel.rule_count,
+        "seed_rows": parallel.seed_rows,
+        "derived_rows": parallel.derived_rows,
+        "consumed_steps": parallel.consumed_steps,
+        "parallel_rounds": parallel.parallel_rounds,
+        "rule_tasks": parallel.rule_tasks,
+        "serial_candidate_rows": parallel.serial_candidate_rows,
+        "critical_path_candidate_rows": parallel.critical_path_candidate_rows,
+        "critical_path_rows_saved": parallel.serial_candidate_rows - parallel.critical_path_candidate_rows,
+        "max_buffered_candidate_rows": parallel.max_buffered_candidate_rows,
+        "max_task_candidate_rows": parallel.max_task_candidate_rows,
+        "budget_cases": parallel.budget_cases,
+        "output_parity": parallel.output_parity,
+        "budget_parity": parallel.budget_parity,
+        "parallel_path_entered": parallel.parallel_path_entered,
+        "critical_path_strictly_lower": parallel.critical_path_strictly_lower,
+        "closure_blake3": blake3::Hash::from_bytes(parallel.closure_hash).to_hex().to_string(),
+    });
+
     // ── Cost-regression check (L3): compare THIS fresh run's deterministic cost +
     //    verdict-agreement against the committed baseline; ANY divergence is a
     //    cost-regression gmeow:Finding routed through the SHARED divergence ledger
@@ -348,6 +385,7 @@ fn main() -> gmeow_errors::Result<()> {
     //    drift gate. Run BEFORE the artifact is assembled (it borrows the records). ──
     if let Some(baseline_path) = &check_cost {
         run_cost_regression_check(baseline_path, &case_records)?;
+        run_parallelism_regression_check(baseline_path, &rule_parallelism)?;
     }
 
     // ── (2a) The DETERMINISTIC structured artifact ──────────────────────────────
@@ -356,10 +394,11 @@ fn main() -> gmeow_errors::Result<()> {
         "engine_pins": {
             "native": EngineId::native().version,
             "nemo_rev": NEMO_REV,
-            "scryer_branch": SCRYER_BRANCH,
+            "backward_reference": BACKWARD_REFERENCE,
         },
         "case_count": case_records.len(),
         "cases": case_records,
+        "rule_parallelism": rule_parallelism,
         "ledgers": corpus_ledgers,
     });
     let json = serde_json::to_string_pretty(&artifact).map_err(|e| {
@@ -424,6 +463,8 @@ fn run_case(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         Fragment::Forward => run_forward(case),
         Fragment::Existential => run_existential(case),
         Fragment::Backward => run_backward(case),
+        Fragment::Incremental => run_incremental(case),
+        Fragment::IncrementalGrounding => run_incremental_grounding(case),
         Fragment::NaryExistential => run_nary(case),
     }
 }
@@ -456,6 +497,69 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 
     let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
+
+    // Deterministic repeat-evaluation evidence for compile-don't-interpret. Parsing,
+    // EDB loading, and stratum certification are outside both measured regions. Each
+    // region performs a complete materialization; only the physical plan may persist.
+    let plan_contract = format!("bench-repeat-plan-v1:{}/{}", case.corpus, case.name);
+    let mut repeat = RepeatForwardSession::prepare(edb.as_ref(), &case.rules, plan_contract)
+        .map_err(|e| run_err(case, format!("repeat-forward prepare failed: {e}")))?;
+    let (cold_res, cold_sample) = measure(|| repeat.evaluate());
+    let cold = cold_res.map_err(|e| run_err(case, format!("cold plan evaluation failed: {e}")))?;
+    let (warm_res, warm_sample) = measure(|| repeat.evaluate());
+    let warm = warm_res.map_err(|e| run_err(case, format!("warm plan evaluation failed: {e}")))?;
+    let (record_res, record_sample) = measure(|| repeat.evaluate_record_provenance());
+    let record_probe =
+        record_res.map_err(|e| run_err(case, format!("Record evaluation failed: {e}")))?;
+    let (skip_res, skip_sample) = measure(|| repeat.evaluate_skip());
+    let skip = skip_res.map_err(|e| run_err(case, format!("Skip evaluation failed: {e}")))?;
+    let repeat_parity = cold.closure_hash == warm.closure_hash
+        && cold.consumed_steps == warm.consumed_steps
+        && cold.cost == warm.cost
+        && cold.rule_hash == warm.rule_hash
+        && cold.solver_version == warm.solver_version;
+    let plan_reused = !cold.cache_hit
+        && cold.plan_builds == 1
+        && cold.planning_units > 0
+        && warm.cache_hit
+        && warm.plan_builds == 0
+        && warm.planning_units == 0
+        && warm.same_executable_as_first;
+    let alloc_count_win = warm_sample.count < cold_sample.count;
+    let peak_live_win = warm_sample.peak_live < cold_sample.peak_live;
+    let provenance_closure_parity = record_probe.fact_closure_hash == skip.fact_closure_hash;
+    let provenance_step_parity = record_probe.consumed_steps == skip.consumed_steps;
+    let annotation_complete = record_probe.annotation_count == skip.fact_count;
+    if !(repeat_parity
+        && plan_reused
+        && alloc_count_win
+        && peak_live_win
+        && provenance_closure_parity
+        && provenance_step_parity
+        && annotation_complete)
+    {
+        return Err(run_err(
+            case,
+            format!(
+                "repeat-forward contract failed: parity={repeat_parity} plan_reused={plan_reused} \
+                 cold_alloc_count={} warm_alloc_count={} cold_peak_live={} warm_peak_live={} \
+                 provenance_closure_parity={provenance_closure_parity} \
+                 provenance_step_parity={provenance_step_parity} \
+                 annotation_complete={annotation_complete}",
+                cold_sample.count, warm_sample.count, cold_sample.peak_live, warm_sample.peak_live
+            ),
+        ));
+    }
+    let record_peak_overhead_bytes =
+        i128::from(record_sample.peak_live) - i128::from(skip_sample.peak_live);
+    let record_alloc_count_overhead =
+        i128::from(record_sample.count) - i128::from(skip_sample.count);
+
+    // Prime the production process-wide plan cache outside the primary allocation sample.
+    // Cold planning remains measured explicitly by the paired local repeat probe above;
+    // this sample is the steady-state execution cost, not a cold-start/cache mixture.
+    run_native_forward(edb.as_ref(), &case.rules)
+        .map_err(|e| run_err(case, format!("native forward plan prime failed: {e}")))?;
 
     // Native (measured). The global Rayon pool is the single calling thread (set in
     // `main`), so the engine's parallel work runs inline on the measuring thread; the
@@ -515,6 +619,57 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "peak_live_bytes": native.cost.peak_live_bytes(),
             "rows_fingerprint": native_fp,
             "cost_vector": cost_tuples(&native.cost.to_sorted_tuples()),
+            "plan_cache": {
+                "solver_version": cold.solver_version,
+                "rule_hash": blake3::Hash::from_bytes(cold.rule_hash).to_hex().to_string(),
+                "cold": {
+                    "cache_hit": cold.cache_hit,
+                    "plan_builds": cold.plan_builds,
+                    "planning_units": cold.planning_units,
+                    "consumed_steps": cold.consumed_steps,
+                    "peak_live_bytes": cold_sample.peak_live,
+                    "closure_blake3": blake3::Hash::from_bytes(cold.closure_hash).to_hex().to_string(),
+                    "cost_vector": cost_tuples(&cold.cost.to_sorted_tuples()),
+                },
+                "warm": {
+                    "cache_hit": warm.cache_hit,
+                    "plan_builds": warm.plan_builds,
+                    "planning_units": warm.planning_units,
+                    "consumed_steps": warm.consumed_steps,
+                    "peak_live_bytes": warm_sample.peak_live,
+                    "closure_blake3": blake3::Hash::from_bytes(warm.closure_hash).to_hex().to_string(),
+                    "cost_vector": cost_tuples(&warm.cost.to_sorted_tuples()),
+                },
+                "same_executable": warm.same_executable_as_first,
+                "repeat_parity": repeat_parity,
+                "warm_alloc_count_strictly_lower": alloc_count_win,
+                "warm_peak_live_strictly_lower": peak_live_win,
+            },
+            "provenance": {
+                "record": {
+                    "annotation_count": record_probe.annotation_count,
+                    "max_proof_height": record_probe.max_proof_height,
+                    "consumed_steps": record_probe.consumed_steps,
+                    "fact_count": record_probe.annotation_count,
+                    "fact_closure_blake3": blake3::Hash::from_bytes(record_probe.fact_closure_hash).to_hex().to_string(),
+                    // Total allocation count remains advisory engine scratch; peak-live is exact.
+                    "alloc_count": record_sample.count,
+                    "peak_live_bytes": record_sample.peak_live,
+                },
+                "skip": {
+                    "annotation_count": 0,
+                    "consumed_steps": skip.consumed_steps,
+                    "fact_count": skip.fact_count,
+                    "fact_closure_blake3": blake3::Hash::from_bytes(skip.fact_closure_hash).to_hex().to_string(),
+                    "alloc_count": skip_sample.count,
+                    "peak_live_bytes": skip_sample.peak_live,
+                },
+                "closure_parity": provenance_closure_parity,
+                "step_parity": provenance_step_parity,
+                "annotation_complete": annotation_complete,
+                "record_peak_overhead_bytes": record_peak_overhead_bytes,
+                "record_alloc_count_overhead": record_alloc_count_overhead,
+            },
         },
         "oracle": {
             "engine": "nemo",
@@ -554,6 +709,470 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         ],
         comparisons,
     })
+}
+
+/// INCREMENTAL fragment: prepare one fixed-rule session from `input.nq` outside
+/// measurement, apply `delta.nq` as a signed insertion, compare the full closure
+/// against a clean native rebuild, then retract the same batch and compare with the
+/// original base closure. The scratch native path is the semantic reference; no live
+/// secondary engine is constructed.
+fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
+    let (world, golden_rows) = sole_world(case)?;
+    let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
+    let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
+    let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+
+    // Bootstrap and base scratch evaluation are intentionally outside the measured
+    // transaction. The optimized consumer is a loop over one stable base session.
+    let mut session = IncrementalForwardSession::prepare(base.as_ref(), &case.rules)
+        .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
+    let base_scratch = run_native_forward(base.as_ref(), &case.rules)
+        .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
+    let base_fp = fingerprint_rows(&base_scratch.rows);
+
+    let incremental_start = Instant::now();
+    let (incremental_res, incremental_sample) = measure(|| session.insert(delta.as_ref(), None));
+    let incremental_wall = incremental_start.elapsed().as_nanos();
+    let mut incremental =
+        incremental_res.map_err(|e| run_err(case, format!("incremental insertion failed: {e}")))?;
+    incremental.cost.set_allocation(
+        incremental_sample.bytes,
+        incremental_sample.count,
+        incremental_sample.peak_live,
+    );
+    let incremental_fp = fingerprint_rows(&incremental.rows);
+    let incremental_changes_fp = fingerprint_signed_rows(&incremental.changes);
+
+    let scratch_start = Instant::now();
+    let (scratch_res, scratch_sample) = measure(|| run_native_forward(&updated, &case.rules));
+    let scratch_wall = scratch_start.elapsed().as_nanos();
+    let mut scratch =
+        scratch_res.map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
+    scratch.cost.set_allocation(
+        scratch_sample.bytes,
+        scratch_sample.count,
+        scratch_sample.peak_live,
+    );
+    let scratch_fp = fingerprint_rows(&scratch.rows);
+    let scratch_derived = scratch.cost.total_derivations();
+
+    // Retraction parity is part of every incremental corpus observation, not just a
+    // unit test. This is unbounded by design: bounded deletion has no partial frontier.
+    let retracted = session
+        .retract(delta.as_ref())
+        .map_err(|e| run_err(case, format!("incremental retraction failed: {e}")))?;
+    let retracted_fp = fingerprint_rows(&retracted.rows);
+    let retracted_changes_fp = fingerprint_signed_rows(&retracted.changes);
+
+    let native_golden_tok = count_token(incremental.derived_count);
+    let golden_tok = count_token(golden_rows);
+    let agree_golden = native_golden_tok == golden_tok;
+    let agree_insert = incremental_fp == scratch_fp;
+    let agree_retract = retracted_fp == base_fp;
+    let parity_token = if agree_insert && agree_retract {
+        "insert-and-retract-match-scratch"
+    } else {
+        "incremental-scratch-parity-mismatch"
+    };
+    let step_win = incremental.consumed_steps < scratch.consumed_steps;
+    let step_token = if step_win {
+        "incremental-steps-strictly-lower".to_owned()
+    } else {
+        format!(
+            "incremental-steps={} scratch-steps={}",
+            incremental.consumed_steps, scratch.consumed_steps
+        )
+    };
+
+    let comparisons = vec![
+        comp(
+            case,
+            &world,
+            "native-vs-golden",
+            &native_golden_tok,
+            &golden_tok,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-insert-vs-scratch",
+            &incremental_fp,
+            &scratch_fp,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-retract-vs-scratch",
+            &retracted_fp,
+            &base_fp,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-step-win",
+            &step_token,
+            "incremental-steps-strictly-lower",
+        ),
+    ];
+
+    let record = json!({
+        "corpus": case.corpus,
+        "case": case.name,
+        "fragment": "incremental",
+        "world": world,
+        "golden_rows": golden_rows,
+        "native": {
+            "engine": incremental.engine.version,
+            "consumed_steps": incremental.consumed_steps,
+            "derived_count": incremental.derived_count,
+            "joined_rows": incremental.joined_rows,
+            "inner_iterations": incremental.inner_iterations,
+            "signed_change_count": incremental.changes.len(),
+            "signed_changes_blake3": incremental_changes_fp,
+            "rows_fingerprint": incremental_fp,
+            "alloc_bytes": incremental.cost.alloc_bytes(),
+            "alloc_count": incremental.cost.alloc_count(),
+            "peak_live_bytes": incremental.cost.peak_live_bytes(),
+            "cost_vector": cost_tuples(&incremental.cost.to_sorted_tuples()),
+            "retraction": {
+                "derived_count": retracted.derived_count,
+                "joined_rows": retracted.joined_rows,
+                "inner_iterations": retracted.inner_iterations,
+                "signed_change_count": retracted.changes.len(),
+                "signed_changes_blake3": retracted_changes_fp,
+                "rows_fingerprint": retracted_fp,
+            },
+            // The clean rebuild comparator lives inside the exact native descriptor,
+            // so its deterministic counts/vector/peak are drift-gated alongside the
+            // incremental transaction. Non-reproducible total allocs stay omitted.
+            "scratch": {
+                "engine": scratch.engine.version,
+                "consumed_steps": scratch.consumed_steps,
+                "derived_count": scratch_derived,
+                "peak_live_bytes": scratch.cost.peak_live_bytes(),
+                "rows_fingerprint": scratch_fp,
+                "cost_vector": cost_tuples(&scratch.cost.to_sorted_tuples()),
+            },
+        },
+        "oracle": {
+            "engine": "native-scratch",
+            "derived_count": scratch_derived,
+            "rows_fingerprint": scratch_fp,
+            "base_rows_fingerprint": base_fp,
+        },
+        "agreement": {
+            "native_vs_golden": agree_golden,
+            "native_vs_oracle": agree_insert && agree_retract,
+            "incremental_insert_vs_scratch": agree_insert,
+            "incremental_retract_vs_scratch": agree_retract,
+            "incremental_step_win": step_win,
+            "native_golden_token": native_golden_tok,
+            "golden_token": golden_tok,
+            "native_oracle_token": parity_token,
+            "oracle_token": "insert-and-retract-match-scratch",
+            "step_token": step_token,
+        },
+    });
+
+    let peak = peak_rss_kib();
+    Ok(CaseOutcome {
+        record,
+        advisory: vec![
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "incremental",
+                engine: "native-incremental",
+                wall_ns: incremental_wall,
+                peak_rss_kib: peak,
+                agreement: agree_golden && agree_insert && agree_retract && step_win,
+            },
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "incremental",
+                engine: "native-scratch",
+                wall_ns: scratch_wall,
+                peak_rss_kib: peak,
+                agreement: agree_insert,
+            },
+        ],
+        comparisons,
+    })
+}
+
+/// INCREMENTAL-GROUNDING fragment: maintain the exact ground WFS solver slice under
+/// one insertion, compare it with a clean ground+solve rebuild, then retract the
+/// same batch and prove recovery of the base result.  The solver itself reruns from
+/// scratch on both changed shots and is reported as such; the measured optimization
+/// is grounding only.
+fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
+    let (world, golden_rows) = sole_world(case)?;
+    let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
+    let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
+    let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+    let updated_edb_count = updated.quads().count() as u64;
+
+    let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &case.rules)
+        .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
+    let base_fp = session.current_rows_fingerprint();
+
+    let incremental_start = Instant::now();
+    let (incremental_res, incremental_sample) = measure(|| session.insert(delta.as_ref()));
+    let incremental_wall = incremental_start.elapsed().as_nanos();
+    let incremental = incremental_res
+        .map_err(|e| run_err(case, format!("incremental grounding insertion failed: {e}")))?;
+    session.check_grounding_scratch_parity().map_err(|e| {
+        run_err(
+            case,
+            format!("maintained ground-program parity failed: {e}"),
+        )
+    })?;
+
+    let scratch_start = Instant::now();
+    let (scratch_res, scratch_sample) = measure(|| session.scratch_rebuild());
+    let scratch_wall = scratch_start.elapsed().as_nanos();
+    let scratch =
+        scratch_res.map_err(|e| run_err(case, format!("grounding scratch rebuild failed: {e}")))?;
+
+    let retracted = session.retract(delta.as_ref()).map_err(|e| {
+        run_err(
+            case,
+            format!("incremental grounding retraction failed: {e}"),
+        )
+    })?;
+    session
+        .check_grounding_scratch_parity()
+        .map_err(|e| run_err(case, format!("retracted ground-program parity failed: {e}")))?;
+
+    let incremental_derived = incremental
+        .row_count
+        .checked_sub(updated_edb_count)
+        .ok_or_else(|| {
+            run_err(
+                case,
+                "incremental WFS row count is below updated EDB count".to_owned(),
+            )
+        })?;
+    let scratch_derived = scratch
+        .row_count
+        .checked_sub(updated_edb_count)
+        .ok_or_else(|| {
+            run_err(
+                case,
+                "scratch WFS row count is below updated EDB count".to_owned(),
+            )
+        })?;
+    let incremental_fp = blake3::Hash::from_bytes(incremental.rows_fingerprint)
+        .to_hex()
+        .to_string();
+    let scratch_fp = blake3::Hash::from_bytes(scratch.rows_fingerprint)
+        .to_hex()
+        .to_string();
+    let retracted_fp = blake3::Hash::from_bytes(retracted.rows_fingerprint)
+        .to_hex()
+        .to_string();
+    let base_fp = blake3::Hash::from_bytes(base_fp).to_hex().to_string();
+
+    let agree_golden = incremental_derived == golden_rows;
+    let agree_insert = incremental_fp == scratch_fp && incremental_derived == scratch_derived;
+    let agree_retract = retracted_fp == base_fp;
+    let committed_groundings = incremental.ground_rule_changes as u64;
+    let scratch_groundings = scratch.active_ground_rules as u64;
+    let step_win = committed_groundings < scratch_groundings;
+    let probe_win = incremental.ground_rule_probe_rows < scratch.ground_rule_probe_rows;
+    if !changed_solver_shots_are_flagged(
+        incremental.solver_reran,
+        incremental.solver_status,
+        retracted.solver_reran,
+        retracted.solver_status,
+    ) {
+        return Err(run_err(
+            case,
+            "changed ground slices must explicitly report a flagged from-scratch solver run"
+                .to_owned(),
+        ));
+    }
+
+    let native_golden_tok = count_token(incremental_derived);
+    let golden_tok = count_token(golden_rows);
+    let parity_token = if agree_insert && agree_retract {
+        "insert-and-retract-ground-slice-match-scratch"
+    } else {
+        "incremental-grounding-scratch-parity-mismatch"
+    };
+    let step_token = if step_win {
+        "incremental-ground-commits-strictly-lower".to_owned()
+    } else {
+        format!(
+            "incremental-ground-commits={committed_groundings} scratch-ground-commits={scratch_groundings}"
+        )
+    };
+    let probe_token = if probe_win {
+        "incremental-ground-probes-strictly-lower".to_owned()
+    } else {
+        format!(
+            "incremental-ground-probes={} scratch-ground-probes={}",
+            incremental.ground_rule_probe_rows, scratch.ground_rule_probe_rows
+        )
+    };
+
+    let comparisons = vec![
+        comp(
+            case,
+            &world,
+            "native-vs-golden",
+            &native_golden_tok,
+            &golden_tok,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-grounding-insert-vs-scratch",
+            &incremental_fp,
+            &scratch_fp,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-grounding-retract-vs-scratch",
+            &retracted_fp,
+            &base_fp,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-grounding-commit-win",
+            &step_token,
+            "incremental-ground-commits-strictly-lower",
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-grounding-probe-win",
+            &probe_token,
+            "incremental-ground-probes-strictly-lower",
+        ),
+    ];
+
+    let record = json!({
+        "corpus": case.corpus,
+        "case": case.name,
+        "fragment": "incremental-grounding",
+        "world": world,
+        "golden_rows": golden_rows,
+        "native": {
+            "engine": EngineId::native().version,
+            // A committed step in this lane is an active ground-rule zero-crossing,
+            // not a non-monotone solver step.
+            "consumed_steps": committed_groundings,
+            "derived_count": incremental_derived,
+            "joined_rows": incremental.joined_rows,
+            "alloc_bytes": incremental_sample.bytes,
+            "alloc_count": incremental_sample.count,
+            "peak_live_bytes": incremental_sample.peak_live,
+            "cost_vector": Value::Array(Vec::new()),
+            "rows_fingerprint": incremental_fp,
+            "grounding": {
+                "edb_changes": incremental.edb_changes,
+                "ground_rule_changes": incremental.ground_rule_changes,
+                "universe_changes": incremental.universe_changes,
+                "universe_joined_rows": incremental.universe_joined_rows,
+                "ground_rule_joined_rows": incremental.ground_rule_joined_rows,
+                "ground_rule_probe_rows": incremental.ground_rule_probe_rows,
+                "active_ground_rules": incremental.active_ground_rules,
+                "solver": incremental.solver,
+                "solver_status": incremental.solver_status,
+                "solver_reran": incremental.solver_reran,
+            },
+            "retraction": {
+                "rows_fingerprint": retracted_fp,
+                "edb_changes": retracted.edb_changes,
+                "ground_rule_changes": retracted.ground_rule_changes,
+                "universe_changes": retracted.universe_changes,
+                "joined_rows": retracted.joined_rows,
+                "ground_rule_probe_rows": retracted.ground_rule_probe_rows,
+                "solver_status": retracted.solver_status,
+                "solver_reran": retracted.solver_reran,
+            },
+            "scratch": {
+                "engine": EngineId::native().version,
+                "consumed_steps": scratch_groundings,
+                "derived_count": scratch_derived,
+                "peak_live_bytes": scratch_sample.peak_live,
+                "rows_fingerprint": scratch_fp,
+                "cost_vector": Value::Array(Vec::new()),
+                "ground_rule_probe_rows": scratch.ground_rule_probe_rows,
+                "active_ground_rules": scratch.active_ground_rules,
+            },
+        },
+        "oracle": {
+            "engine": "native-grounding-scratch",
+            "derived_count": scratch_derived,
+            "rows_fingerprint": scratch_fp,
+            "base_rows_fingerprint": base_fp,
+        },
+        "agreement": {
+            "native_vs_golden": agree_golden,
+            "native_vs_oracle": grounding_semantic_parity(agree_insert, agree_retract),
+            "incremental_insert_vs_scratch": agree_insert,
+            "incremental_retract_vs_scratch": agree_retract,
+            "incremental_step_win": step_win,
+            "incremental_probe_win": probe_win,
+            "native_golden_token": native_golden_tok,
+            "golden_token": golden_tok,
+            "native_oracle_token": parity_token,
+            "oracle_token": "insert-and-retract-ground-slice-match-scratch",
+            "step_token": step_token,
+            "probe_token": probe_token,
+        },
+    });
+
+    let peak = peak_rss_kib();
+    Ok(CaseOutcome {
+        record,
+        advisory: vec![
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "incremental-grounding",
+                engine: "native-incremental-grounding",
+                wall_ns: incremental_wall,
+                peak_rss_kib: peak,
+                agreement: agree_golden && agree_insert && agree_retract && step_win && probe_win,
+            },
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "incremental-grounding",
+                engine: "native-grounding-scratch",
+                wall_ns: scratch_wall,
+                peak_rss_kib: peak,
+                agreement: agree_insert,
+            },
+        ],
+        comparisons,
+    })
+}
+
+/// Semantic oracle agreement is answer parity only. Deterministic work wins are
+/// recorded in their dedicated fields and must never redefine correctness.
+fn grounding_semantic_parity(insert_matches: bool, retract_matches: bool) -> bool {
+    insert_matches && retract_matches
+}
+
+/// Every changed non-monotone solver shot must disclose that solving reran from
+/// scratch; insertion and retraction are symmetric parts of the evidence contract.
+fn changed_solver_shots_are_flagged(
+    insert_reran: bool,
+    insert_status: &str,
+    retract_reran: bool,
+    retract_status: &str,
+) -> bool {
+    insert_reran
+        && insert_status == "flagged-non-incremental"
+        && retract_reran
+        && retract_status == "flagged-non-incremental"
 }
 
 /// EXISTENTIAL fragment: native value-inventing chase (`materialize_routed`) vs the
@@ -790,9 +1409,8 @@ fn run_nary(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     })
 }
 
-/// BACKWARD fragment: native goal-directed `dispatch_query` vs the Scryer oracle
-/// `run_scryer`. The EDB loads into a `WorldStore`; the `.logic` query text parses to
-/// a `QProgram`; both engines answer the same goal against the same world snapshot.
+/// BACKWARD fragment: native goal-directed `dispatch_query` against the committed
+/// answer-count and answer-set fingerprint captured from the retired SLD reference lane.
 fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     if case.golden.len() != 1 {
         return Err(Diag::of_kind(RunFailed {
@@ -806,6 +1424,14 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     }
     let (world, golden) = case.golden.iter().next().expect("checked len == 1");
     let golden_rows = golden.rows;
+    let published_fp = golden.digest.as_deref().ok_or_else(|| {
+        Diag::of_kind(RunFailed {
+            detail: format!(
+                "{}/{}: backward golden must carry the captured answer-set digest",
+                case.corpus, case.name
+            ),
+        })
+    })?;
 
     let store = WorldStore::new();
     store
@@ -813,32 +1439,27 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         .map_err(|e| run_err(case, format!("EDB load failed: {e}")))?;
     let program = parse_query_program(&case.rules)
         .map_err(|e| run_err(case, format!("query parse failed: {e}")))?;
-    let foreign = WorldStoreForeign::from_world(&store, world, HORN_PROFILE_IRI)
+    let foreign = WorldFactSnapshot::from_world(&store, world, HORN_PROFILE_IRI)
         .map_err(|e| run_err(case, format!("foreign snapshot failed: {e}")))?;
     let budget = Budget::default();
-    let table_preds = cyclic_predicates(&program);
-
+    // Prime the process-wide demand-plan cache outside the steady-state sample. The
+    // answer is checked because a failed prime is a real engine failure, never ignored.
+    dispatch_query(&foreign, world, &program, HORN_PROFILE_IRI, &budget)
+        .map_err(|e| run_err(case, format!("native backward plan prime failed: {e}")))?;
     // Native backward (measured; global Rayon pool is the single calling thread — pool-quiesce).
     let native_start = Instant::now();
     let (native_res, sample) =
-        measure(|| dispatch_query(&foreign, &store, world, &program, HORN_PROFILE_IRI, &budget));
+        measure(|| dispatch_query(&foreign, world, &program, HORN_PROFILE_IRI, &budget));
     let native_wall = native_start.elapsed().as_nanos();
     let native = native_res.map_err(|e| run_err(case, format!("native backward failed: {e}")))?;
     let native_count = native.bindings.len() as u64;
     let native_fp = fingerprint_answers(&native);
     let consumed_steps = native.frontier.consumed_steps;
 
-    // Scryer oracle.
-    let scryer_start = Instant::now();
-    let scryer = run_scryer(&foreign, world, &program, &table_preds, &budget)
-        .map_err(|e| run_err(case, format!("scryer backward failed: {e}")))?;
-    let scryer_wall = scryer_start.elapsed().as_nanos();
-    let scryer_fp = fingerprint_answers(&scryer);
-
     let native_golden_tok = count_token(native_count);
     let golden_tok = count_token(golden_rows);
     let agree_golden = native_golden_tok == golden_tok;
-    let agree_scryer = native_fp == scryer_fp;
+    let agree_published = native_fp == published_fp;
 
     let comparisons = vec![
         comp(
@@ -848,7 +1469,13 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             &native_golden_tok,
             &golden_tok,
         ),
-        comp(case, world, "native-vs-scryer", &native_fp, &scryer_fp),
+        comp(
+            case,
+            world,
+            "native-vs-captured-sld",
+            &native_fp,
+            published_fp,
+        ),
     ];
 
     let record = json!({
@@ -872,41 +1499,31 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "cost_vector": Value::Array(Vec::new()),
         },
         "oracle": {
-            "engine": "scryer",
-            "answer_count": scryer.bindings.len(),
-            "answers_fingerprint": scryer_fp,
+            "engine": BACKWARD_REFERENCE,
+            "answer_count": golden_rows,
+            "answers_fingerprint": published_fp,
         },
         "agreement": {
             "native_vs_golden": agree_golden,
-            "native_vs_oracle": agree_scryer,
+            "native_vs_oracle": agree_published,
             "native_golden_token": native_golden_tok,
             "golden_token": golden_tok,
             "native_oracle_token": native_fp,
-            "oracle_token": scryer_fp,
+            "oracle_token": published_fp,
         },
     });
 
     let peak = peak_rss_kib();
     Ok(CaseOutcome {
         record,
-        advisory: vec![
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "backward",
-                engine: "native",
-                wall_ns: native_wall,
-                peak_rss_kib: peak,
-                agreement: agree_golden,
-            },
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "backward",
-                engine: "scryer",
-                wall_ns: scryer_wall,
-                peak_rss_kib: peak,
-                agreement: agree_scryer,
-            },
-        ],
+        advisory: vec![AdvisoryRow {
+            corpus: case.corpus.clone(),
+            fragment: "backward",
+            engine: "native",
+            wall_ns: native_wall,
+            peak_rss_kib: peak,
+            agreement: agree_golden && agree_published,
+        }],
         comparisons,
     })
 }
@@ -929,22 +1546,22 @@ fn case_key(rec: &Value) -> gmeow_errors::Result<(String, String)> {
     Ok((corpus.to_owned(), case.to_owned()))
 }
 
-/// The allocation-band tolerance `ε = ALLOC_BAND_NUM / ALLOC_BAND_DEN = 1%`. The
-/// total-allocation scalars (`alloc_bytes` / `alloc_count`) are NOT byte-reproducible:
-/// across ≥20 harness runs the most-recursive case (`same-generation`) occupies three
-/// discrete states spanning ~0.06% (a single quantized ±14-allocation transient deep in
-/// the native forward core that survives a process-global total, an inline single-thread
-/// Rayon pool, AND a fully rayon-free sequential engine — i.e. genuine per-run engine
-/// allocation jitter, not a threading artifact). So alloc gates as a **one-sided
-/// regression band** `fresh ≤ baseline·(1+ε)` — deterministic in the sense that the
-/// verdict is a pure function of `(fresh, baseline, ε)` — with ε set ~17× above the
-/// measured 0.06% floor so the band never flakes yet still bites a gross allocation
-/// regression (the "fewer clones / fewer owned-key allocations" backslide the doctrine
-/// names, which re-adds allocations far above the band). See `LOGIC-PERFORMANCE.md
-/// §Measurement doctrine`.
+/// Percentage component of the one-sided allocation regression band.
+///
+/// Allocation bytes use this 1% ceiling directly. Allocation counts use the greater of
+/// this ceiling and [`ALLOC_COUNT_JITTER_FLOOR`]: flat-slot kernels reduced the small
+/// backward cases enough that the allocator's existing absolute quantization became
+/// larger than 1% even though its absolute span did not grow.
 const ALLOC_BAND_NUM: u64 = 1;
 /// Denominator of the allocation-band tolerance (see [`ALLOC_BAND_NUM`]).
 const ALLOC_BAND_DEN: u64 = 100;
+/// Absolute allocation-count jitter admitted in addition to the 1% relative band.
+///
+/// A 12-fresh-process soak of `ancestor-query` observed exactly 1793, 1821, and 1835
+/// allocations: the established 14-allocation quantum across a maximum span of 42. This
+/// remains one-sided: reductions always pass, while a 43-allocation increase at this
+/// scale fails.
+const ALLOC_COUNT_JITTER_FLOOR: u64 = 42;
 
 /// A COMPLETE deterministic descriptor of one case's native cost + verdict-agreement
 /// sub-records, EXCLUDING the two non-reproducible total-allocation scalars (`alloc_bytes`
@@ -960,6 +1577,18 @@ fn cost_descriptor(rec: &Value) -> String {
     if let Some(obj) = native.as_object_mut() {
         obj.remove("alloc_bytes");
         obj.remove("alloc_count");
+        // Record-vs-Skip total allocation counts are the same advisory transient as
+        // the top-level total. Keep them in the committed evidence table, but exclude
+        // them (and their derived delta) from exact drift identity. The exact
+        // per-mode peak-live values remain in the descriptor.
+        if let Some(provenance) = obj.get_mut("provenance").and_then(Value::as_object_mut) {
+            provenance.remove("record_alloc_count_overhead");
+            for mode in ["record", "skip"] {
+                if let Some(mode_obj) = provenance.get_mut(mode).and_then(Value::as_object_mut) {
+                    mode_obj.remove("alloc_count");
+                }
+            }
+        }
     }
     let agreement = rec.get("agreement").cloned().unwrap_or(Value::Null);
     // Both sub-objects are now integer/boolean/fingerprint-valued; a compact canonical
@@ -983,18 +1612,18 @@ fn native_alloc(rec: &Value) -> Option<(u64, u64)> {
     ))
 }
 
-/// Whether `fresh ≤ baseline · (1 + ε)` under the integer allocation band (`ε =
-/// ALLOC_BAND_NUM / ALLOC_BAND_DEN`), computed in `u128` so no product overflows.
-fn within_alloc_band(fresh: u64, baseline: u64) -> bool {
-    (fresh as u128) * (ALLOC_BAND_DEN as u128)
-        <= (baseline as u128) * ((ALLOC_BAND_DEN + ALLOC_BAND_NUM) as u128)
+/// Whether `fresh` is under the greater of the relative 1% ceiling and an optional
+/// measured absolute jitter floor.
+fn within_alloc_band(fresh: u64, baseline: u64, absolute_floor: u64) -> bool {
+    fresh <= alloc_band_ceiling(baseline, absolute_floor)
 }
 
 /// The inclusive integer ceiling of the allocation band for `baseline` — the largest
 /// `fresh` value that still passes [`within_alloc_band`].
-fn alloc_band_ceiling(baseline: u64) -> u64 {
-    ((baseline as u128) * ((ALLOC_BAND_DEN + ALLOC_BAND_NUM) as u128) / (ALLOC_BAND_DEN as u128))
-        as u64
+fn alloc_band_ceiling(baseline: u64, absolute_floor: u64) -> u64 {
+    let relative = ((baseline as u128) * ((ALLOC_BAND_DEN + ALLOC_BAND_NUM) as u128)
+        / (ALLOC_BAND_DEN as u128)) as u64;
+    relative.max(baseline.saturating_add(absolute_floor))
 }
 
 /// Build one allocation-band divergence comparison for the shared ledger: within-band ⇒
@@ -1009,8 +1638,9 @@ fn alloc_band_comp(
     kind: &str,
     fresh: u64,
     baseline: u64,
+    absolute_floor: u64,
 ) -> ExternalComparison {
-    let (native, published) = if within_alloc_band(fresh, baseline) {
+    let (native, published) = if within_alloc_band(fresh, baseline, absolute_floor) {
         (
             "within-alloc-band".to_string(),
             "within-alloc-band".to_string(),
@@ -1018,7 +1648,10 @@ fn alloc_band_comp(
     } else {
         (
             format!("alloc={fresh}"),
-            format!("alloc<=ceiling={}", alloc_band_ceiling(baseline)),
+            format!(
+                "alloc<=ceiling={}",
+                alloc_band_ceiling(baseline, absolute_floor)
+            ),
         )
     };
     ExternalComparison {
@@ -1128,6 +1761,7 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
                 "alloc-bytes-band",
                 fresh_bytes,
                 base_bytes,
+                0,
             ));
             corpus_comps.push(alloc_band_comp(
                 corpus,
@@ -1136,6 +1770,7 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
                 "alloc-count-band",
                 fresh_count,
                 base_count,
+                ALLOC_COUNT_JITTER_FLOOR,
             ));
         }
     }
@@ -1190,6 +1825,90 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
         detail: format!(
             "{regressions} cost-regression finding(s): the fresh engine cost/agreement run diverged \
              from the committed baseline {} — regenerate + review before refreshing the baseline",
+            baseline_path.display()
+        ),
+    }))
+}
+
+/// Exact drift gate for the dedicated multi-worker structural evidence record.
+///
+/// Kept separate from per-case allocation bands because it contains no allocation
+/// sample: every field is a deterministic integer, boolean, or closure fingerprint.
+/// Divergence still folds through the shared reasoning ledger, so a mismatch is a
+/// content-addressed cost-regression finding rather than an ad hoc JSON diff.
+fn run_parallelism_regression_check(
+    baseline_path: &Path,
+    fresh: &Value,
+) -> gmeow_errors::Result<()> {
+    let bytes = std::fs::read(baseline_path).map_err(|error| {
+        Diag::of_kind(Io {
+            detail: format!("reading cost baseline {}: {error}", baseline_path.display()),
+        })
+    })?;
+    let baseline: Value = serde_json::from_slice(&bytes).map_err(|error| {
+        Diag::of_kind(Serialize {
+            detail: format!("cost baseline {} parse: {error}", baseline_path.display()),
+        })
+    })?;
+    let published = baseline.get("rule_parallelism");
+    let native_token = serde_json::to_string(fresh).map_err(|error| {
+        Diag::of_kind(Serialize {
+            detail: format!("serialize fresh rule-parallel evidence: {error}"),
+        })
+    })?;
+    let published_token = match published {
+        Some(value) => serde_json::to_string(value).map_err(|error| {
+            Diag::of_kind(Serialize {
+                detail: format!("serialize baseline rule-parallel evidence: {error}"),
+            })
+        })?,
+        None => "absent-from-baseline".to_owned(),
+    };
+    let comparison = ExternalComparison {
+        case: "relational-core-mini/rule-parallel-critical-path::cost".to_owned(),
+        world: "https://example.org/parallel/world".to_owned(),
+        native: native_token,
+        published: published_token,
+    };
+    let rows = compare_external_corpus("relational-core-mini", &[comparison]);
+    let ledger = build_ledger(Vec::new(), Vec::new(), Vec::new(), rows);
+    if ledger.corpus_only == 0 {
+        eprintln!(
+            "✓ rule-parallel cost-regression check: four-worker structural evidence matches {}.",
+            baseline_path.display()
+        );
+        return Ok(());
+    }
+
+    let findings = divergence_findings(&ledger)
+        .into_iter()
+        .filter(|finding| finding.code == "reason.divergence.corpus-only")
+        .map(|finding| {
+            json!({
+                "code": finding.code,
+                "finding_iri": finding.finding_iri.unwrap_or_default(),
+                "anchor_iri": finding.anchor_iri.unwrap_or_default(),
+                "antecedents": finding.antecedents,
+                "message": finding.message,
+            })
+        })
+        .collect::<Vec<_>>();
+    let report = json!({
+        "schema": "gmeow.bench-engines.rule-parallel-regression/1",
+        "baseline": baseline_path.display().to_string(),
+        "findings": findings,
+    });
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&report).map_err(|error| {
+            Diag::of_kind(Serialize {
+                detail: format!("serialize rule-parallel regression report: {error}"),
+            })
+        })?
+    );
+    Err(Diag::of_kind(RunFailed {
+        detail: format!(
+            "four-worker rule-parallel evidence diverged from the committed baseline {}",
             baseline_path.display()
         ),
     }))
@@ -1475,12 +2194,18 @@ fn run_compare_baseline(git_ref: &str) -> gmeow_errors::Result<()> {
     }
 }
 
-/// Drive one case through the NATIVE engine ONLY and return `(world, native_count,
-/// golden_rows)` — the native derived-fact / answer COUNT and the committed golden's
-/// count for its sole world. This is the exact native invocation each `run_*` fragment
-/// runner performs, minus the allocation `measure` wrapper and WITHOUT touching any
-/// oracle (Nemo/Scryer are never constructed), so the golden gate stays cheap on-gate.
-fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u64)> {
+/// Drive one case through the native engine and return its world, count comparison,
+/// and optional full-result fingerprint comparison. Backward cases must compare the
+/// native answer-set fingerprint with the captured SLD digest; other fragments retain
+/// their mathematically sound count invariant. No external engine is constructed.
+struct GoldenObservation {
+    world: String,
+    native_count: u64,
+    golden_count: u64,
+    fingerprint: Option<(&'static str, String, String)>,
+}
+
+fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservation> {
     match case.fragment {
         Fragment::Forward => {
             let (world, golden_rows) = sole_world(case)?;
@@ -1488,7 +2213,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
                 .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
             let native = run_native_forward(edb.as_ref(), &case.rules)
                 .map_err(|e| run_err(case, format!("native forward failed: {e}")))?;
-            Ok((world, native.cost.total_derivations(), golden_rows))
+            Ok(GoldenObservation {
+                world,
+                native_count: native.cost.total_derivations(),
+                golden_count: golden_rows,
+                fingerprint: None,
+            })
         }
         Fragment::Existential => {
             let (world, golden_rows) = sole_world(case)?;
@@ -1506,7 +2236,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
                 .iter()
                 .filter(|q| q.rule_iri != ASSERT_RULE_IRI)
                 .count() as u64;
-            Ok((world, native_derived, golden_rows))
+            Ok(GoldenObservation {
+                world,
+                native_count: native_derived,
+                golden_count: golden_rows,
+                fingerprint: None,
+            })
         }
         Fragment::NaryExistential => {
             let (world, golden_rows) = sole_world(case)?;
@@ -1514,7 +2249,106 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
                 .map_err(|e| run_err(case, format!("n-ary .rls parse failed: {e}")))?;
             let native = run_native_nary_forward_run(&case.nary_edb, &rules)
                 .map_err(|e| run_err(case, format!("native n-ary chase failed: {e}")))?;
-            Ok((world, native.tuples.len() as u64, golden_rows))
+            Ok(GoldenObservation {
+                world,
+                native_count: native.tuples.len() as u64,
+                golden_count: golden_rows,
+                fingerprint: None,
+            })
+        }
+        Fragment::Incremental => {
+            let (world, golden_rows) = sole_world(case)?;
+            let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+                .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
+            let delta =
+                purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
+                    .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
+            let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+            let base_scratch = run_native_forward(base.as_ref(), &case.rules)
+                .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
+            let updated_scratch = run_native_forward(&updated, &case.rules)
+                .map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
+            let mut session = IncrementalForwardSession::prepare(base.as_ref(), &case.rules)
+                .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
+            let inserted = session
+                .insert(delta.as_ref(), None)
+                .map_err(|e| run_err(case, format!("incremental insertion failed: {e}")))?;
+            let retracted = session
+                .retract(delta.as_ref())
+                .map_err(|e| run_err(case, format!("incremental retraction failed: {e}")))?;
+            let incremental_fp = format!(
+                "insert={};retract={}",
+                fingerprint_rows(&inserted.rows),
+                fingerprint_rows(&retracted.rows)
+            );
+            let scratch_fp = format!(
+                "insert={};retract={}",
+                fingerprint_rows(&updated_scratch.rows),
+                fingerprint_rows(&base_scratch.rows)
+            );
+            Ok(GoldenObservation {
+                world,
+                native_count: inserted.derived_count,
+                golden_count: golden_rows,
+                fingerprint: Some(("incremental-vs-scratch", incremental_fp, scratch_fp)),
+            })
+        }
+        Fragment::IncrementalGrounding => {
+            let (world, golden_rows) = sole_world(case)?;
+            let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+                .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
+            let delta =
+                purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
+                    .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
+            let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+            let updated_edb_count = updated.quads().count() as u64;
+            let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &case.rules)
+                .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
+            let base_fp = blake3::Hash::from_bytes(session.current_rows_fingerprint())
+                .to_hex()
+                .to_string();
+            let inserted = session.insert(delta.as_ref()).map_err(|e| {
+                run_err(case, format!("incremental grounding insertion failed: {e}"))
+            })?;
+            let scratch = session
+                .scratch_rebuild()
+                .map_err(|e| run_err(case, format!("grounding scratch rebuild failed: {e}")))?;
+            let retracted = session.retract(delta.as_ref()).map_err(|e| {
+                run_err(
+                    case,
+                    format!("incremental grounding retraction failed: {e}"),
+                )
+            })?;
+            let inserted_fp = blake3::Hash::from_bytes(inserted.rows_fingerprint)
+                .to_hex()
+                .to_string();
+            let retracted_fp = blake3::Hash::from_bytes(retracted.rows_fingerprint)
+                .to_hex()
+                .to_string();
+            let scratch_fp = blake3::Hash::from_bytes(scratch.rows_fingerprint)
+                .to_hex()
+                .to_string();
+            let incremental_fp = format!("insert={inserted_fp};retract={retracted_fp}");
+            let scratch_fp = format!("insert={scratch_fp};retract={base_fp}");
+            let native_count = inserted
+                .row_count
+                .checked_sub(updated_edb_count)
+                .ok_or_else(|| {
+                    run_err(
+                        case,
+                        "incremental WFS row count is below updated EDB count".to_owned(),
+                    )
+                })?;
+            Ok(GoldenObservation {
+                world,
+                native_count,
+                golden_count: golden_rows,
+                fingerprint: Some((
+                    "incremental-grounding-vs-scratch",
+                    incremental_fp,
+                    scratch_fp,
+                )),
+            })
         }
         Fragment::Backward => {
             if case.golden.len() != 1 {
@@ -1529,33 +2363,46 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
             }
             let (world, golden) = case.golden.iter().next().expect("checked len == 1");
             let golden_rows = golden.rows;
+            let published_fp = golden.digest.clone().ok_or_else(|| {
+                Diag::of_kind(RunFailed {
+                    detail: format!(
+                        "{}/{}: backward golden must carry the captured answer-set digest",
+                        case.corpus, case.name
+                    ),
+                })
+            })?;
             let store = WorldStore::new();
             store
                 .load_nquads(&case.edb_nq)
                 .map_err(|e| run_err(case, format!("EDB load failed: {e}")))?;
             let program = parse_query_program(&case.rules)
                 .map_err(|e| run_err(case, format!("query parse failed: {e}")))?;
-            let foreign = WorldStoreForeign::from_world(&store, world, HORN_PROFILE_IRI)
+            let foreign = WorldFactSnapshot::from_world(&store, world, HORN_PROFILE_IRI)
                 .map_err(|e| run_err(case, format!("foreign snapshot failed: {e}")))?;
             let budget = Budget::default();
-            let native =
-                dispatch_query(&foreign, &store, world, &program, HORN_PROFILE_IRI, &budget)
-                    .map_err(|e| run_err(case, format!("native backward failed: {e}")))?;
-            Ok((world.clone(), native.bindings.len() as u64, golden_rows))
+            let native = dispatch_query(&foreign, world, &program, HORN_PROFILE_IRI, &budget)
+                .map_err(|e| run_err(case, format!("native backward failed: {e}")))?;
+            let native_fp = fingerprint_answers(&native);
+            Ok(GoldenObservation {
+                world: world.clone(),
+                native_count: native.bindings.len() as u64,
+                golden_count: golden_rows,
+                fingerprint: Some(("native-vs-captured-sld", native_fp, published_fp)),
+            })
         }
     }
 }
 
 /// (Deliverable 1) The ON-GATE native-vs-golden agreement gate. Runs the NATIVE engine
 /// ONLY over every committed mini bench case and compares its deterministic derived /
-/// answer COUNT against the committed golden (`expected/result.json`). Each `(corpus,
-/// case)` comparison is folded through the SHARED divergence ledger — an equal count is
-/// `Agree`, a divergent one is `CorpusOnly` — so every disagreement becomes a named
+/// answer count against the committed golden (`expected/result.json`). Backward cases
+/// additionally compare the complete canonical answer-set fingerprint with the captured
+/// SLD digest. Each comparison is folded through the shared divergence ledger, so every disagreement becomes a named
 /// `gmeow:Finding` carrying content-addressed ledger identity (`finding_iri` + anchor +
 /// antecedents), NOT a bare diff. ANY disagreement HARD-FAILS (no-optionality). No oracle
 /// is driven, so this is cheap enough for `make check`.
 /// Drive every committed mini bench case through the NATIVE engine ONLY and group the
-/// resulting native-vs-golden count comparisons by corpus (deterministic BTree order; the
+/// resulting native-vs-golden comparisons by corpus (deterministic BTree order; the
 /// loader yields cases sorted by `(corpus, case)`). This is the shared native-only path
 /// behind BOTH the single-run golden gate ([`run_golden_gate`]) and the N-run soak window
 /// ([`run_soak`]) — no oracle is ever constructed, so both stay cheap on-gate.
@@ -1564,17 +2411,24 @@ fn golden_comps_by_corpus(
 ) -> gmeow_errors::Result<BTreeMap<String, Vec<ExternalComparison>>> {
     let mut comps_by_corpus: BTreeMap<String, Vec<ExternalComparison>> = BTreeMap::new();
     for case in cases {
-        let (world, native_count, golden_rows) = native_golden_pair(case)?;
-        comps_by_corpus
-            .entry(case.corpus.clone())
-            .or_default()
-            .push(comp(
+        let observation = native_golden_pair(case)?;
+        let comps = comps_by_corpus.entry(case.corpus.clone()).or_default();
+        comps.push(comp(
+            case,
+            &observation.world,
+            "native-vs-golden",
+            &count_token(observation.native_count),
+            &count_token(observation.golden_count),
+        ));
+        if let Some((kind, native_fp, published_fp)) = observation.fingerprint {
+            comps.push(comp(
                 case,
-                &world,
-                "native-vs-golden",
-                &count_token(native_count),
-                &count_token(golden_rows),
+                &observation.world,
+                kind,
+                &native_fp,
+                &published_fp,
             ));
+        }
     }
     Ok(comps_by_corpus)
 }
@@ -1604,7 +2458,7 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
     if disagreements == 0 {
         eprintln!(
             "✓ golden gate: all {} native mini-corpus case(s) agree with their committed golden \
-             (native-vs-golden count equality; no oracle run).",
+             (count invariants plus captured backward answer digests; no live oracle run).",
             cases.len()
         );
         return Ok(());
@@ -1659,12 +2513,11 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
     // Each run's finding-graph digest; asserted byte-identical across the whole window.
     let mut run_digests: Vec<String> = Vec::with_capacity(window);
     let mut corpora_count = 0usize;
-    let mut case_count = 0usize;
+    let case_count = cases.len();
 
     for run_ix in 1..=window {
         let comps_by_corpus = golden_comps_by_corpus(cases)?;
         corpora_count = comps_by_corpus.len();
-        case_count = comps_by_corpus.values().map(Vec::len).sum();
 
         // Fold each corpus through the SHARED divergence ledger: tally the gap kinds and
         // fold the per-corpus finding graph into this run's combined digest (sorted corpus
@@ -1817,6 +2670,23 @@ fn fingerprint_rows(rows: &ForwardRows) -> String {
         hasher.update(row.predicate.as_bytes());
         hasher.update(b"\x1f");
         for arg in &row.args {
+            hasher.update(term_display(arg).as_bytes());
+            hasher.update(b"\x1f");
+        }
+        hasher.update(b"\n");
+    }
+    hasher.finalize().to_hex().to_string()
+}
+
+/// A stable fingerprint of a lexical signed closure-change batch.
+fn fingerprint_signed_rows(rows: &[SignedForwardRow]) -> String {
+    let mut hasher = blake3::Hasher::new();
+    for change in rows {
+        hasher.update(change.weight.to_string().as_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(change.row.predicate.as_bytes());
+        hasher.update(b"\x1f");
+        for arg in &change.row.args {
             hasher.update(term_display(arg).as_bytes());
             hasher.update(b"\x1f");
         }
@@ -2057,8 +2927,8 @@ mod tests {
         })
     }
 
-    /// Write a minimal cost baseline artifact to a unique temp path.
-    fn write_baseline(cases: Vec<Value>) -> PathBuf {
+    /// Write a JSON artifact to a unique cost-baseline temp path.
+    fn write_baseline_doc(document: &Value) -> PathBuf {
         let nanos = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -2068,12 +2938,37 @@ mod tests {
             "gmeow-cost-baseline-test-{}-{nanos}.json",
             std::process::id()
         ));
-        std::fs::write(
-            &p,
-            serde_json::to_string(&json!({ "cases": cases })).unwrap(),
-        )
-        .unwrap();
+        std::fs::write(&p, serde_json::to_string(document).unwrap()).unwrap();
         p
+    }
+
+    /// Write a minimal per-case cost baseline artifact to a unique temp path.
+    fn write_baseline(cases: Vec<Value>) -> PathBuf {
+        write_baseline_doc(&json!({ "cases": cases }))
+    }
+
+    fn parallelism_record() -> Value {
+        json!({
+            "fixture": "balanced-six-rule-v1",
+            "worker_count": 4,
+            "rule_count": 6,
+            "seed_rows": 24,
+            "derived_rows": 120,
+            "consumed_steps": 120,
+            "parallel_rounds": 3,
+            "rule_tasks": 18,
+            "serial_candidate_rows": 144,
+            "critical_path_candidate_rows": 48,
+            "critical_path_rows_saved": 96,
+            "max_buffered_candidate_rows": 96,
+            "max_task_candidate_rows": 24,
+            "budget_cases": 8,
+            "output_parity": true,
+            "budget_parity": true,
+            "parallel_path_entered": true,
+            "critical_path_strictly_lower": true,
+            "closure_blake3": "6e7c8e8dfb2c3d6537ba91ce1ec2d0c22be9cb2d66d595213493506047eb54f3",
+        })
     }
 
     #[test]
@@ -2113,6 +3008,94 @@ mod tests {
     }
 
     #[test]
+    fn provenance_descriptor_excludes_advisory_counts_but_keeps_exact_peak() {
+        let provenance = || {
+            json!({
+                "record": {"alloc_count": 100, "peak_live_bytes": 900},
+                "skip": {"alloc_count": 80, "peak_live_bytes": 700},
+                "record_alloc_count_overhead": 20,
+                "record_peak_overhead_bytes": 200,
+                "closure_parity": true,
+                "step_parity": true,
+            })
+        };
+        let mut a = rec("c", "p", 3);
+        a["native"]["provenance"] = provenance();
+        let mut b = a.clone();
+        b["native"]["provenance"]["record"]["alloc_count"] = json!(9_999);
+        b["native"]["provenance"]["skip"]["alloc_count"] = json!(1);
+        b["native"]["provenance"]["record_alloc_count_overhead"] = json!(9_998);
+        assert_eq!(
+            cost_descriptor(&a),
+            cost_descriptor(&b),
+            "per-mode allocation-count jitter must stay outside exact identity"
+        );
+
+        b["native"]["provenance"]["record"]["peak_live_bytes"] = json!(901);
+        assert_ne!(
+            cost_descriptor(&a),
+            cost_descriptor(&b),
+            "per-mode peak-live is deterministic and must remain exact"
+        );
+    }
+
+    #[test]
+    fn incremental_grounding_descriptor_keeps_work_and_solver_honesty_exact() {
+        let mut baseline = rec("c", "ground", 1);
+        baseline["native"]["grounding"] = json!({
+            "ground_rule_probe_rows": 28,
+            "ground_rule_changes": 1,
+            "solver_status": "flagged-non-incremental",
+            "solver_reran": true,
+        });
+
+        let mut changed_work = baseline.clone();
+        changed_work["native"]["grounding"]["ground_rule_probe_rows"] = json!(29);
+        assert_ne!(
+            cost_descriptor(&baseline),
+            cost_descriptor(&changed_work),
+            "grounding probe work is deterministic and must remain exact"
+        );
+
+        let mut overclaimed = baseline.clone();
+        overclaimed["native"]["grounding"]["solver_status"] = json!("incremental");
+        assert_ne!(
+            cost_descriptor(&baseline),
+            cost_descriptor(&overclaimed),
+            "the explicit non-incremental solver status is part of exact identity"
+        );
+    }
+
+    #[test]
+    fn incremental_grounding_requires_both_changed_solver_shots_to_be_flagged() {
+        assert!(changed_solver_shots_are_flagged(
+            true,
+            "flagged-non-incremental",
+            true,
+            "flagged-non-incremental",
+        ));
+        assert!(!changed_solver_shots_are_flagged(
+            true,
+            "flagged-non-incremental",
+            true,
+            "incremental",
+        ));
+        assert!(!changed_solver_shots_are_flagged(
+            true,
+            "flagged-non-incremental",
+            false,
+            "flagged-non-incremental",
+        ));
+    }
+
+    #[test]
+    fn incremental_grounding_oracle_agreement_is_semantic_only() {
+        assert!(grounding_semantic_parity(true, true));
+        assert!(!grounding_semantic_parity(true, false));
+        assert!(!grounding_semantic_parity(false, true));
+    }
+
+    #[test]
     fn alloc_band_passes_within_tolerance() {
         // Baseline alloc_count=10000/bytes=1_000_000; a fresh run 0.5% higher is inside
         // the 1% band → no regression (the sub-ε jitter the band is designed to absorb).
@@ -2123,6 +3106,21 @@ mod tests {
         assert!(
             out.is_ok(),
             "a fresh alloc within the 1% band must not regress: {out:?}"
+        );
+    }
+
+    #[test]
+    fn alloc_count_band_absorbs_measured_quantum_but_still_bites() {
+        assert!(within_alloc_band(1_835, 1_793, ALLOC_COUNT_JITTER_FLOOR));
+        assert_eq!(alloc_band_ceiling(1_793, ALLOC_COUNT_JITTER_FLOOR), 1_835);
+        assert!(
+            !within_alloc_band(1_836, 1_793, ALLOC_COUNT_JITTER_FLOOR),
+            "one allocation beyond the measured 42-count span must fail"
+        );
+        assert_eq!(
+            alloc_band_ceiling(1_000_000, ALLOC_COUNT_JITTER_FLOOR),
+            1_010_000,
+            "the 1% relative band dominates for large totals"
         );
     }
 
@@ -2210,6 +3208,36 @@ mod tests {
         assert!(
             out.is_err(),
             "a case present in the baseline but absent from the fresh run must regress"
+        );
+    }
+
+    #[test]
+    fn rule_parallelism_regression_check_is_exact_and_bites() {
+        let fresh = parallelism_record();
+        let matching = write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
+        let match_result = run_parallelism_regression_check(&matching, &fresh);
+        std::fs::remove_file(&matching).ok();
+        assert!(
+            match_result.is_ok(),
+            "identical structural evidence must pass: {match_result:?}"
+        );
+
+        let mut drifted = fresh.clone();
+        drifted["critical_path_candidate_rows"] = json!(49);
+        let baseline = write_baseline_doc(&json!({ "rule_parallelism": fresh.clone() }));
+        let drift_result = run_parallelism_regression_check(&baseline, &drifted);
+        std::fs::remove_file(&baseline).ok();
+        assert!(
+            drift_result.is_err(),
+            "one changed structural count must produce a blocking divergence"
+        );
+
+        let absent = write_baseline_doc(&json!({ "cases": [] }));
+        let absent_result = run_parallelism_regression_check(&absent, &fresh);
+        std::fs::remove_file(&absent).ok();
+        assert!(
+            absent_result.is_err(),
+            "a baseline without the multi-worker record must hard-fail"
         );
     }
 }

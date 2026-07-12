@@ -18,7 +18,7 @@
 //! control flow.
 //!
 //! Evaluation is over checked `i64`. Integer division `//` truncates toward zero
-//! (ISO `//`, matching the subsumed Scryer semantics), and `=:=` is numeric value
+//! (ISO `//`, matching the captured SLD semantics), and `=:=` is numeric value
 //! equality, never structural unification. A value that cannot be computed is a
 //! first-class declared gap ([`BuiltinOutcome::Unbound`]) or domain/precision
 //! error ([`BuiltinOutcome::Error`]) — never a wrong answer or a panic.
@@ -29,7 +29,7 @@ use std::borrow::Cow;
 /// The canonical `xsd:integer` datatype IRI — the type of every computed
 /// arithmetic answer. The surface form produced by [`emit_integer_surface`] is
 /// byte-identical to `provenance::literal_n3` for `xsd:integer` and to the form
-/// the Scryer oracle renders, so a generated value reads back like a
+/// the captured SLD reference renders, so a generated value reads back like a
 /// materialized typed literal.
 pub(crate) const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
 
@@ -164,7 +164,7 @@ pub(crate) fn eval<'a>(
             rhs,
         } => {
             // Both operands must be bound integers to compute; anything else is a
-            // declared mode gap (a non-numeric operand would be a Scryer type
+            // declared mode gap (a non-numeric operand is a type
             // error, which we decline rather than guess).
             let (l, r) = match (resolve_operand(lhs, lookup), resolve_operand(rhs, lookup)) {
                 (Operand::Num(l), Operand::Num(r)) => (l, r),
@@ -175,8 +175,8 @@ pub(crate) fn eval<'a>(
                 Err(e) => return BuiltinOutcome::Error(e),
             };
             // Target role: unbound variable → generate; bound numeric → filter on
-            // numeric equality; bound non-numeric → filter false (Scryer's
-            // `foo is 1+2` fails, it is not a gap).
+            // numeric equality; bound non-numeric → filter false (`foo is 1+2`
+            // fails, it is not a gap).
             match target {
                 QTerm::Var(v) => match lookup(v) {
                     None => BuiltinOutcome::Generate {
@@ -314,7 +314,7 @@ mod tests {
 
     #[test]
     fn is_bound_non_numeric_target_is_filter_false_not_gap() {
-        // `foo is 1 + 2` fails in Scryer — it is a filter-false, never a gap.
+        // `foo is 1 + 2` is a filter-false, never a gap.
         let lookup = env(&[("T", "<https://example.org/foo>")]);
         let b = is(var("T"), QTerm::Num(1), ArithOp::Add, QTerm::Num(2));
         assert_eq!(eval(&b, &lookup), BuiltinOutcome::Filter(false));
