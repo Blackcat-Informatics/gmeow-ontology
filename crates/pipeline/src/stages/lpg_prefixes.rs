@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
-// GENERATED prefix table (from src/gmeow_tools/config.py PREFIXES), longest-ns-first.
+// The LPG/consumer-projection prefix table, longest-namespace-first. It MUST stay a
+// superset-consistent mirror of the canonical `gmeow_logic_compile::ingest::PREFIX_REGISTRY`
+// for every GMEOW-local namespace (the four grounding namespaces `gmeow`/`logic`/`math`/
+// `lang` MUST all be present); the extra external vocabularies here beyond the registry are
+// retained so their CURIEs survive in the LPG projections.
 const PREFIXES_BY_LEN: &[(&str, &str)] = &[
     ("fibo-fbc-pas-fpas", "https://spec.edmcouncil.org/fibo/ontology/FBC/ProductsAndServices/FinancialProductsAndServices/"),
     ("fibo-fbc-fi-fi", "https://spec.edmcouncil.org/fibo/ontology/FBC/FinancialInstruments/FinancialInstruments/"),
@@ -52,6 +56,7 @@ const PREFIXES_BY_LEN: &[(&str, &str)] = &[
     ("geo", "http://www.opengis.net/ont/geosparql#"),
     ("mrg", "http://marineregions.org/ns/ontology#"),
     ("math", "https://blackcatinformatics.ca/math/"),
+    ("lang", "https://blackcatinformatics.ca/lang/"),
     ("skos", "http://www.w3.org/2004/02/skos/core#"),
     ("pato", "http://purl.obolibrary.org/obo/PATO_"),
     ("crmarc", "http://www.cidoc-crm.org/crmarchaeo/"),
