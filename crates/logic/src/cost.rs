@@ -732,6 +732,180 @@ pub struct IncrementalForwardSession {
     strata: BTreeMap<String, u32>,
 }
 
+/// Deterministic observation for one maintained non-monotone ground-program shot.
+#[derive(Debug, Clone)]
+pub struct NativeIncrementalGroundingRun {
+    /// Byte-stable fact-only fingerprint of the WFS result after this shot.
+    pub rows_fingerprint: [u8; 32],
+    /// Asserted plus well-founded-derived row count.
+    pub row_count: u64,
+    /// Consolidated asserted-fact changes in the solver slice.
+    pub edb_changes: usize,
+    /// Active ground-rule zero-crossings in the solver slice.
+    pub ground_rule_changes: usize,
+    /// Candidate-universe fact zero-crossings.
+    pub universe_changes: usize,
+    /// Signed rows admitted across both differentiated layers.
+    pub joined_rows: u64,
+    /// Signed rows admitted by recursive positive-universe maintenance.
+    pub universe_joined_rows: u64,
+    /// Signed rows admitted by the differentiated ground-rule projection.
+    pub ground_rule_joined_rows: u64,
+    /// Every candidate row inspected by the differentiated ground-rule projection.
+    pub ground_rule_probe_rows: u64,
+    /// Active fully-ground rules after the transaction.
+    pub active_ground_rules: usize,
+    /// Whether the explicitly non-incremental WFS solver reran from scratch.
+    pub solver_reran: bool,
+    /// Stable name of the solver boundary reported by the per-shot ledger row.
+    pub solver: &'static str,
+    /// Stable perf status; always `flagged-non-incremental`, never an incremental-
+    /// solving claim.
+    pub solver_status: &'static str,
+}
+
+/// Deterministic observation for a clean ground-program + WFS rebuild.
+#[derive(Debug, Clone)]
+pub struct NativeGroundingScratchRun {
+    /// Byte-stable fact-only result fingerprint.
+    pub rows_fingerprint: [u8; 32],
+    /// Asserted plus well-founded-derived row count.
+    pub row_count: u64,
+    /// Candidate-row probes paid by the full ground-rule projection.
+    pub ground_rule_probe_rows: u64,
+    /// Active fully-ground rules in the rebuilt solver slice.
+    pub active_ground_rules: usize,
+}
+
+/// Public deterministic-cost seam for incremental WFS grounding.
+///
+/// Construction settles and solves the base shot. [`Self::insert`] and
+/// [`Self::retract`] maintain only the ground program before deliberately rerunning
+/// WFS when its complete slice changes. [`Self::scratch_rebuild`] is the semantic
+/// and cost comparator: fresh grounding plus the same from-scratch WFS solve.
+#[derive(Debug, Clone)]
+pub struct IncrementalGroundingCostSession {
+    world: String,
+    contract_hash: String,
+    rules: Vec<crate::rule_ir::EvalRule>,
+    edb: BTreeMap<crate::rule_ir::FactKey, crate::rule_ir::Fact>,
+    inner: crate::wellfounded::IncrementalWellFoundedSession,
+}
+
+impl IncrementalGroundingCostSession {
+    /// Prepare a fixed-rule, single-world incremental WFS-grounding session.
+    pub fn prepare(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<Self> {
+        let (world, facts) = incremental_dataset_facts(edb, None)?;
+        let eval_rules = crate::rule_ir::parse_eval_rules(rules)?;
+        let contract_hash = format!(
+            "gmeow-native-incremental-wfs-grounding-v1:{}",
+            blake3::hash(world.as_bytes()).to_hex()
+        );
+        let keyed_edb = facts
+            .iter()
+            .cloned()
+            .map(|fact| (fact.key(), fact))
+            .collect();
+        let inner = crate::wellfounded::IncrementalWellFoundedSession::new(
+            contract_hash.clone(),
+            world.clone(),
+            facts,
+            &eval_rules,
+        )?;
+        Ok(Self {
+            world,
+            contract_hash,
+            rules: eval_rules,
+            edb: keyed_edb,
+            inner,
+        })
+    }
+
+    /// Fingerprint of the current cached WFS rows.
+    #[must_use]
+    pub fn current_rows_fingerprint(&self) -> [u8; 32] {
+        derived_fact_rows_hash(self.inner.rows())
+    }
+
+    /// Apply an insert-only EDB shot.
+    pub fn insert(
+        &mut self,
+        changes: &RdfDataset,
+    ) -> gmeow_errors::Result<NativeIncrementalGroundingRun> {
+        let (_world, facts) = incremental_dataset_facts(changes, Some(&self.world))?;
+        let shot = self.inner.apply(
+            facts
+                .iter()
+                .cloned()
+                .map(|fact| crate::physical::SignedFact { fact, weight: 1 }),
+        )?;
+        for fact in facts {
+            self.edb.insert(fact.key(), fact);
+        }
+        Ok(incremental_grounding_run(&self.inner, shot))
+    }
+
+    /// Apply an unbounded retract-only EDB shot.
+    pub fn retract(
+        &mut self,
+        changes: &RdfDataset,
+    ) -> gmeow_errors::Result<NativeIncrementalGroundingRun> {
+        let (_world, facts) = incremental_dataset_facts(changes, Some(&self.world))?;
+        let shot = self.inner.apply(
+            facts
+                .iter()
+                .cloned()
+                .map(|fact| crate::physical::SignedFact { fact, weight: -1 }),
+        )?;
+        for fact in facts {
+            self.edb.remove(&fact.key());
+        }
+        Ok(incremental_grounding_run(&self.inner, shot))
+    }
+
+    /// Rebuild the current EDB's ground program and WFS result from scratch.
+    pub fn scratch_rebuild(&self) -> gmeow_errors::Result<NativeGroundingScratchRun> {
+        let scratch = crate::wellfounded::IncrementalWellFoundedSession::new(
+            self.contract_hash.clone(),
+            self.world.clone(),
+            self.edb.values().cloned(),
+            &self.rules,
+        )?;
+        Ok(NativeGroundingScratchRun {
+            rows_fingerprint: derived_fact_rows_hash(scratch.rows()),
+            row_count: scratch.rows().len() as u64,
+            ground_rule_probe_rows: scratch.scratch_ground_rule_probe_rows(),
+            active_ground_rules: scratch.active_ground_rule_count(),
+        })
+    }
+
+    /// Hard-fail if the maintained ground program differs from clean reconstruction.
+    pub fn check_grounding_scratch_parity(&self) -> gmeow_errors::Result<()> {
+        self.inner.check_grounding_scratch_parity()
+    }
+}
+
+fn incremental_grounding_run(
+    session: &crate::wellfounded::IncrementalWellFoundedSession,
+    shot: crate::wellfounded::IncrementalWellFoundedShot,
+) -> NativeIncrementalGroundingRun {
+    NativeIncrementalGroundingRun {
+        rows_fingerprint: derived_fact_rows_hash(&shot.rows),
+        row_count: shot.rows.len() as u64,
+        edb_changes: shot.grounding.edb_changes.len(),
+        ground_rule_changes: shot.grounding.rule_changes.len(),
+        universe_changes: shot.grounding.universe_changes,
+        joined_rows: shot.grounding.joined_rows,
+        universe_joined_rows: shot.grounding.universe_joined_rows,
+        ground_rule_joined_rows: shot.grounding.ground_rule_joined_rows,
+        ground_rule_probe_rows: shot.grounding.ground_rule_probe_rows,
+        active_ground_rules: session.active_ground_rule_count(),
+        solver_reran: shot.solve.solver_reran(),
+        solver: shot.solve.solver.as_str(),
+        solver_status: "flagged-non-incremental",
+    }
+}
+
 impl IncrementalForwardSession {
     /// Prepare a fixed-rule incremental session from a single named-graph world.
     ///

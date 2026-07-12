@@ -125,8 +125,8 @@ use gmeow_cost_measure::{CountingAllocator, measure};
 use gmeow_errors::Diag;
 
 use gmeow_logic::cost::{
-    ForwardRows, IncrementalForwardSession, RepeatForwardSession, SignedForwardRow,
-    run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
+    ForwardRows, IncrementalForwardSession, IncrementalGroundingCostSession, RepeatForwardSession,
+    SignedForwardRow, run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
 };
 use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::materialize::materialize_routed;
@@ -430,6 +430,7 @@ fn run_case(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         Fragment::Existential => run_existential(case),
         Fragment::Backward => run_backward(case),
         Fragment::Incremental => run_incremental(case),
+        Fragment::IncrementalGrounding => run_incremental_grounding(case),
         Fragment::NaryExistential => run_nary(case),
     }
 }
@@ -857,6 +858,258 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 corpus: case.corpus.clone(),
                 fragment: "incremental",
                 engine: "native-scratch",
+                wall_ns: scratch_wall,
+                peak_rss_kib: peak,
+                agreement: agree_insert,
+            },
+        ],
+        comparisons,
+    })
+}
+
+/// INCREMENTAL-GROUNDING fragment: maintain the exact ground WFS solver slice under
+/// one insertion, compare it with a clean ground+solve rebuild, then retract the
+/// same batch and prove recovery of the base result.  The solver itself reruns from
+/// scratch on both changed shots and is reported as such; the measured optimization
+/// is grounding only.
+fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
+    let (world, golden_rows) = sole_world(case)?;
+    let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
+    let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
+    let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+    let updated_edb_count = updated.quads().count() as u64;
+
+    let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &case.rules)
+        .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
+    let base_fp = session.current_rows_fingerprint();
+
+    let incremental_start = Instant::now();
+    let (incremental_res, incremental_sample) = measure(|| session.insert(delta.as_ref()));
+    let incremental_wall = incremental_start.elapsed().as_nanos();
+    let incremental = incremental_res
+        .map_err(|e| run_err(case, format!("incremental grounding insertion failed: {e}")))?;
+    session.check_grounding_scratch_parity().map_err(|e| {
+        run_err(
+            case,
+            format!("maintained ground-program parity failed: {e}"),
+        )
+    })?;
+
+    let scratch_start = Instant::now();
+    let (scratch_res, scratch_sample) = measure(|| session.scratch_rebuild());
+    let scratch_wall = scratch_start.elapsed().as_nanos();
+    let scratch =
+        scratch_res.map_err(|e| run_err(case, format!("grounding scratch rebuild failed: {e}")))?;
+
+    let retracted = session.retract(delta.as_ref()).map_err(|e| {
+        run_err(
+            case,
+            format!("incremental grounding retraction failed: {e}"),
+        )
+    })?;
+    session
+        .check_grounding_scratch_parity()
+        .map_err(|e| run_err(case, format!("retracted ground-program parity failed: {e}")))?;
+
+    let incremental_derived = incremental
+        .row_count
+        .checked_sub(updated_edb_count)
+        .ok_or_else(|| {
+            run_err(
+                case,
+                "incremental WFS row count is below updated EDB count".to_owned(),
+            )
+        })?;
+    let scratch_derived = scratch
+        .row_count
+        .checked_sub(updated_edb_count)
+        .ok_or_else(|| {
+            run_err(
+                case,
+                "scratch WFS row count is below updated EDB count".to_owned(),
+            )
+        })?;
+    let incremental_fp = blake3::Hash::from_bytes(incremental.rows_fingerprint)
+        .to_hex()
+        .to_string();
+    let scratch_fp = blake3::Hash::from_bytes(scratch.rows_fingerprint)
+        .to_hex()
+        .to_string();
+    let retracted_fp = blake3::Hash::from_bytes(retracted.rows_fingerprint)
+        .to_hex()
+        .to_string();
+    let base_fp = blake3::Hash::from_bytes(base_fp).to_hex().to_string();
+
+    let agree_golden = incremental_derived == golden_rows;
+    let agree_insert = incremental_fp == scratch_fp && incremental_derived == scratch_derived;
+    let agree_retract = retracted_fp == base_fp;
+    let committed_groundings = incremental.ground_rule_changes as u64;
+    let scratch_groundings = scratch.active_ground_rules as u64;
+    let step_win = committed_groundings < scratch_groundings;
+    let probe_win = incremental.ground_rule_probe_rows < scratch.ground_rule_probe_rows;
+    if !(incremental.solver_reran
+        && retracted.solver_reran
+        && incremental.solver_status == "flagged-non-incremental")
+    {
+        return Err(run_err(
+            case,
+            "changed ground slices must explicitly report a flagged from-scratch solver run"
+                .to_owned(),
+        ));
+    }
+
+    let native_golden_tok = count_token(incremental_derived);
+    let golden_tok = count_token(golden_rows);
+    let parity_token = if agree_insert && agree_retract {
+        "insert-and-retract-ground-slice-match-scratch"
+    } else {
+        "incremental-grounding-scratch-parity-mismatch"
+    };
+    let step_token = if step_win {
+        "incremental-ground-commits-strictly-lower".to_owned()
+    } else {
+        format!(
+            "incremental-ground-commits={committed_groundings} scratch-ground-commits={scratch_groundings}"
+        )
+    };
+    let probe_token = if probe_win {
+        "incremental-ground-probes-strictly-lower".to_owned()
+    } else {
+        format!(
+            "incremental-ground-probes={} scratch-ground-probes={}",
+            incremental.ground_rule_probe_rows, scratch.ground_rule_probe_rows
+        )
+    };
+
+    let comparisons = vec![
+        comp(
+            case,
+            &world,
+            "native-vs-golden",
+            &native_golden_tok,
+            &golden_tok,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-grounding-insert-vs-scratch",
+            &incremental_fp,
+            &scratch_fp,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-grounding-retract-vs-scratch",
+            &retracted_fp,
+            &base_fp,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-grounding-commit-win",
+            &step_token,
+            "incremental-ground-commits-strictly-lower",
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-grounding-probe-win",
+            &probe_token,
+            "incremental-ground-probes-strictly-lower",
+        ),
+    ];
+
+    let record = json!({
+        "corpus": case.corpus,
+        "case": case.name,
+        "fragment": "incremental-grounding",
+        "world": world,
+        "golden_rows": golden_rows,
+        "native": {
+            "engine": EngineId::native().version,
+            // A committed step in this lane is an active ground-rule zero-crossing,
+            // not a non-monotone solver step.
+            "consumed_steps": committed_groundings,
+            "derived_count": incremental_derived,
+            "joined_rows": incremental.joined_rows,
+            "alloc_bytes": incremental_sample.bytes,
+            "alloc_count": incremental_sample.count,
+            "peak_live_bytes": incremental_sample.peak_live,
+            "cost_vector": Value::Array(Vec::new()),
+            "rows_fingerprint": incremental_fp,
+            "grounding": {
+                "edb_changes": incremental.edb_changes,
+                "ground_rule_changes": incremental.ground_rule_changes,
+                "universe_changes": incremental.universe_changes,
+                "universe_joined_rows": incremental.universe_joined_rows,
+                "ground_rule_joined_rows": incremental.ground_rule_joined_rows,
+                "ground_rule_probe_rows": incremental.ground_rule_probe_rows,
+                "active_ground_rules": incremental.active_ground_rules,
+                "solver": incremental.solver,
+                "solver_status": incremental.solver_status,
+                "solver_reran": incremental.solver_reran,
+            },
+            "retraction": {
+                "rows_fingerprint": retracted_fp,
+                "edb_changes": retracted.edb_changes,
+                "ground_rule_changes": retracted.ground_rule_changes,
+                "universe_changes": retracted.universe_changes,
+                "joined_rows": retracted.joined_rows,
+                "ground_rule_probe_rows": retracted.ground_rule_probe_rows,
+                "solver_status": retracted.solver_status,
+                "solver_reran": retracted.solver_reran,
+            },
+            "scratch": {
+                "engine": EngineId::native().version,
+                "consumed_steps": scratch_groundings,
+                "derived_count": scratch_derived,
+                "peak_live_bytes": scratch_sample.peak_live,
+                "rows_fingerprint": scratch_fp,
+                "cost_vector": Value::Array(Vec::new()),
+                "ground_rule_probe_rows": scratch.ground_rule_probe_rows,
+                "active_ground_rules": scratch.active_ground_rules,
+            },
+        },
+        "oracle": {
+            "engine": "native-grounding-scratch",
+            "derived_count": scratch_derived,
+            "rows_fingerprint": scratch_fp,
+            "base_rows_fingerprint": base_fp,
+        },
+        "agreement": {
+            "native_vs_golden": agree_golden,
+            "native_vs_oracle": agree_insert && agree_retract && step_win && probe_win,
+            "incremental_insert_vs_scratch": agree_insert,
+            "incremental_retract_vs_scratch": agree_retract,
+            "incremental_step_win": step_win,
+            "incremental_probe_win": probe_win,
+            "native_golden_token": native_golden_tok,
+            "golden_token": golden_tok,
+            "native_oracle_token": parity_token,
+            "oracle_token": "insert-and-retract-ground-slice-match-scratch",
+            "step_token": step_token,
+            "probe_token": probe_token,
+        },
+    });
+
+    let peak = peak_rss_kib();
+    Ok(CaseOutcome {
+        record,
+        advisory: vec![
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "incremental-grounding",
+                engine: "native-incremental-grounding",
+                wall_ns: incremental_wall,
+                peak_rss_kib: peak,
+                agreement: agree_golden && agree_insert && agree_retract && step_win && probe_win,
+            },
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "incremental-grounding",
+                engine: "native-grounding-scratch",
                 wall_ns: scratch_wall,
                 peak_rss_kib: peak,
                 agreement: agree_insert,
@@ -1900,6 +2153,63 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                 fingerprint: Some(("incremental-vs-scratch", incremental_fp, scratch_fp)),
             })
         }
+        Fragment::IncrementalGrounding => {
+            let (world, golden_rows) = sole_world(case)?;
+            let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+                .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
+            let delta =
+                purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
+                    .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
+            let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+            let updated_edb_count = updated.quads().count() as u64;
+            let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &case.rules)
+                .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
+            let base_fp = blake3::Hash::from_bytes(session.current_rows_fingerprint())
+                .to_hex()
+                .to_string();
+            let inserted = session.insert(delta.as_ref()).map_err(|e| {
+                run_err(case, format!("incremental grounding insertion failed: {e}"))
+            })?;
+            let scratch = session
+                .scratch_rebuild()
+                .map_err(|e| run_err(case, format!("grounding scratch rebuild failed: {e}")))?;
+            let retracted = session.retract(delta.as_ref()).map_err(|e| {
+                run_err(
+                    case,
+                    format!("incremental grounding retraction failed: {e}"),
+                )
+            })?;
+            let inserted_fp = blake3::Hash::from_bytes(inserted.rows_fingerprint)
+                .to_hex()
+                .to_string();
+            let retracted_fp = blake3::Hash::from_bytes(retracted.rows_fingerprint)
+                .to_hex()
+                .to_string();
+            let scratch_fp = blake3::Hash::from_bytes(scratch.rows_fingerprint)
+                .to_hex()
+                .to_string();
+            let incremental_fp = format!("insert={inserted_fp};retract={retracted_fp}");
+            let scratch_fp = format!("insert={scratch_fp};retract={base_fp}");
+            let native_count = inserted
+                .row_count
+                .checked_sub(updated_edb_count)
+                .ok_or_else(|| {
+                    run_err(
+                        case,
+                        "incremental WFS row count is below updated EDB count".to_owned(),
+                    )
+                })?;
+            Ok(GoldenObservation {
+                world,
+                native_count,
+                golden_count: golden_rows,
+                fingerprint: Some((
+                    "incremental-grounding-vs-scratch",
+                    incremental_fp,
+                    scratch_fp,
+                )),
+            })
+        }
         Fragment::Backward => {
             if case.golden.len() != 1 {
                 return Err(Diag::of_kind(RunFailed {
@@ -2561,6 +2871,33 @@ mod tests {
             cost_descriptor(&a),
             cost_descriptor(&b),
             "per-mode peak-live is deterministic and must remain exact"
+        );
+    }
+
+    #[test]
+    fn incremental_grounding_descriptor_keeps_work_and_solver_honesty_exact() {
+        let mut baseline = rec("c", "ground", 1);
+        baseline["native"]["grounding"] = json!({
+            "ground_rule_probe_rows": 28,
+            "ground_rule_changes": 1,
+            "solver_status": "flagged-non-incremental",
+            "solver_reran": true,
+        });
+
+        let mut changed_work = baseline.clone();
+        changed_work["native"]["grounding"]["ground_rule_probe_rows"] = json!(29);
+        assert_ne!(
+            cost_descriptor(&baseline),
+            cost_descriptor(&changed_work),
+            "grounding probe work is deterministic and must remain exact"
+        );
+
+        let mut overclaimed = baseline.clone();
+        overclaimed["native"]["grounding"]["solver_status"] = json!("incremental");
+        assert_ne!(
+            cost_descriptor(&baseline),
+            cost_descriptor(&overclaimed),
+            "the explicit non-incremental solver status is part of exact identity"
         );
     }
 

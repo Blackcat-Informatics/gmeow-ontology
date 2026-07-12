@@ -142,11 +142,11 @@ re-enter the engine with small deltas over large stable worlds.
 - The **contract identity remains the invalidation key**: an incremental result is only valid
   under an unchanged contract hash, rule-set hash, and solver version. Incrementality
   accelerates re-evaluation under a fixed contract; it never blurs cache identity.
-- Honesty about the frontier: incremental maintenance of the existential chase and of
-  well-founded/stable-model semantics are open research areas, not engineering backlog. The
-  doctrine commits to incremental grounding for the non-monotonic fragments and flags the
-  solving step non-incremental until the theory exists; a flagged non-incremental fragment is a
-  ledger entry, never a silent slow path.
+- Honesty about the frontier: incremental maintenance of the existential chase and incremental
+  **solving** for well-founded/stable-model semantics are open research areas, not engineering
+  backlog. Grounding for the non-monotonic fragments is incremental; the solving step remains
+  flagged non-incremental until the theory exists. A flagged non-incremental fragment is a ledger
+  entry, never a silent slow path.
 
 The native implementation covers the fixed-contract, finite positive binary-Datalog fragment.
 It stores the recursive inner-iteration history, differentiates every rule join by the same
@@ -158,13 +158,40 @@ programs carrying NAF, builtins, or rule facts stay on named native fallbacks an
 performance ledger. This boundary is an identity boundary too: the session pins the contract
 hash, rendered rule-set hash, and native incremental-solver version.
 
+The non-monotone sibling (`physical/incremental_grounding.rs`) keeps the ground-and-solve
+boundary literal. It removes NAF literals to maintain the finite positive candidate universe
+with the same recursive signed session, then differentiates every source rule's grounding join
+with `new[..p] × delta[p] × old[p+1..]`. Fully-ground rule instances carry checked integer support
+weights; only a `0 ↔ positive` crossing changes the active program. The exact solver slice is the
+asserted EDB plus those active rules, so asserting a fact already present in the candidate
+universe still invalidates the solver. Every head, NAF, and inequality variable must be bound by
+a positive body atom; builtins, positive-body-free rules, and blank-node constants hard-fail at
+this seam rather than silently falling back.
+
+`IncrementalWellFoundedSession` and `IncrementalStableModelSession` cache the last answer only
+when that complete slice is unchanged. A changed slice reruns the existing alternating-fixpoint
+or cautious stable-model evaluator from scratch and emits a per-shot
+`FlaggedNonIncremental` run row naming that fact. This follows the ground-and-solve separation in
+[Calimeri et al., *ASP-Based Multi-Shot Reasoning via DLV2 with Incremental Grounding*](https://doi.org/10.1017/S1471068425000067):
+grounding state persists across shots while the solver remains non-incremental. It does **not**
+claim incremental WFS or answer-set solving.
+
 Loop forks share the immutable rule plan, fact arena, EDB, and cached inner-iteration histories
 by reference; a branch installs new roots only when its signed transaction commits. The committed
 `relational-core-mini/incremental-transitive-closure` cost lane prepares that base outside the
 measurement boundary, then proves insert and retract closure fingerprints against clean native
 rebuilds. Its deterministic observation is 13 charged incremental derivations versus 91 for the
-clean rebuild, with `peak_live_bytes` 129288 versus 235847; these raw counts are projected into
+clean rebuild, with `peak_live_bytes` 130246 versus 231822; these raw counts are projected into
 `generated/bench/cost-ledger.md`. Wall-clock is not part of the claim.
+
+The committed `relational-core-mini/incremental-wfs-grounding` lane makes the second boundary
+equally falsifiable. It measures a signed ground-program insertion against a clean ground+WFS
+rebuild, checks the full result fingerprint, retracts the batch back to the base fingerprint,
+and records ground-rule commits, candidate probes, signed join rows, and exact peak-live bytes.
+The deterministic observation is 1 active ground-rule commit versus 13 on rebuild, 28 candidate
+probes versus 195, and `peak_live_bytes` 238187 versus 239714. The ledger also records
+`solver_status = flagged-non-incremental` and `solver_reran = true`; the measured win is grounding
+work only. Wall-clock remains advisory.
 
 ## Chase doctrine
 
