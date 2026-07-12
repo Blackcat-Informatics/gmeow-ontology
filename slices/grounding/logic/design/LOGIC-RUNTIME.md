@@ -146,14 +146,18 @@ EDB lookups therefore share the same deterministic plan. Certified fragments ter
 construction; a resource budget bounds other supported programs and returns
 `evaluation = budget-exhausted` rather than diverging. Unsupported fragments hard-fail.
 
-**Phase 3 — construct (native counterfactual path invokes a transient chase; Stratum C only).** When a
+**Phase 3 — construct (native counterfactual revision; Stratum C only).** When a
 goal reaches a counterfactual predicate — `holds(W_cf, φ)` with
 `W_cf = counterfactualOf(W_base, A)` — the native path calls `construct_context(W_base, A,
 W_cf)`. That seeds a fresh, **isolated** named graph from the base context minimally revised to
 admit `A` (the AGM step, made deterministic by a declared entrenchment ordering — see
 [LOGIC-SEMANTICS.md § Deterministic revision](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion)),
-runs an **isolated, transient chase** scoped to that context, and only then resolves `φ` inside
-it. The constructed context is per-query and discarded afterward — or memoized (see
+runs an isolated resolution scoped to that context, and only then resolves `φ` inside it. For a
+fixed positive-Datalog program the cache retains one signed incremental base session and each
+closest-world branch cheaply shares its immutable rule/arena/iteration-history roots and applies
+only its functional-slot `-1/+1` revision; an uncovered fragment
+uses the named native transient-chase fallback. The constructed context is per-query and
+discarded afterward — or memoized (see
 [Graph versioning](#graph-versioning-and-staleness)). Isolation preserves paraconsistency: a
 counterfactual context is a separate graph; nested counterfactuals are nested transient graphs
 bounded by the depth budget. This is the *primary* place generative, undecidable work happens —
@@ -166,11 +170,11 @@ materializer-produced, resolver-produced, or built during a Stratum-C chase, car
 and source-IRIs, so one proof trace (and the prose explanation composed from it) spans both
 components without a seam in the narrative.
 
-Two optimizations, neither required for correctness: **demand-driven materialization**
+Two native optimizations preserve the same semantics: **demand-driven materialization**
 (magic-sets over the forward engine) replaces full Phase-1 closure when the base is large and the
-query narrow; and **incremental maintenance** keeps the materialized store fresh under base edits
-without a full re-chase — the harder of the two, since the forward engine is not incremental, so
-that capability belongs to the custom solver layer.
+query narrow; **incremental maintenance** keeps the fixed-contract positive-Datalog store fresh
+under signed edits without a full re-chase. Uncovered fragments are explicit perf-ledger rows,
+never an unnamed slow path.
 
 ### The seam data contract
 
@@ -359,13 +363,14 @@ logic: IR (full-FOL, facets)
   → native core: semi-naive + alternating fixpoint, tabling, incremental, compiled
 ```
 
-Seven levers (lowering onto battle-tested Rust dataflow cores, not rebuilding everything): (1) **one
+Seven levers on the native Rust core: (1) **one
 relational core** — Datalog *is* relational algebra + fixpoint, and forward (materialize) and backward
 (resolve) both reduce to it; (2) **magic-sets / demand transformation** — dissolves the forward-vs-
 backward two-engine split into one bottom-up core; (3) **incremental maintenance** via differential
 dataflow / DBSP — the biggest lever, making re-reason-after-edit proportional to the change (the
-upgrade of the "incremental maintenance belongs to the custom solver layer" note above); (4)
-**worst-case-optimal joins** for cyclic graph patterns; (5) **provenance semirings** — computing
+upgrade of the "incremental maintenance belongs to the custom solver layer" note above), now
+built for fixed-contract finite positive binary Datalog; (4) **worst-case-optimal joins** for
+planner-certified cyclic subplans, now selectively built; (5) **provenance semirings** — computing
 world/standpoint and the quantitative axes in one pass, where the semiring *is* the axis algebra; (6)
 **compile-don't-interpret** — specialized per content-addressed `contract_hash`; (7) **fragment-routing**
 — the `ReasoningContract` ([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)) as the physical-plan selector, i.e.

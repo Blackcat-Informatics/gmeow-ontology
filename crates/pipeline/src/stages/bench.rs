@@ -426,6 +426,21 @@ struct NativeCost {
     /// Sorted `[rule, predicate, stratum, derivations]` tuples (may be empty at seams
     /// that expose no decomposable vector — never fabricated).
     cost_vector: Vec<(String, String, u32, u64)>,
+    /// Incremental-only deterministic join-work count.
+    #[serde(default)]
+    joined_rows: Option<u64>,
+    /// Incremental-only clean-rebuild comparator, embedded in the exact descriptor.
+    #[serde(default)]
+    scratch: Option<ScratchCost>,
+}
+
+/// The clean native rebuild paired with an incremental transaction.
+#[derive(Deserialize)]
+struct ScratchCost {
+    consumed_steps: u64,
+    derived_count: u64,
+    peak_live_bytes: u64,
+    cost_vector: Vec<(String, String, u32, u64)>,
 }
 
 /// The deterministic verdict-agreement booleans for one bench case.
@@ -433,6 +448,10 @@ struct NativeCost {
 struct Agreement {
     native_vs_golden: bool,
     native_vs_oracle: bool,
+    #[serde(default)]
+    incremental_insert_vs_scratch: Option<bool>,
+    #[serde(default)]
+    incremental_retract_vs_scratch: Option<bool>,
 }
 
 /// One `(corpus, case)` deterministic cost + agreement record.
@@ -564,9 +583,62 @@ pub(crate) fn render_cost_ledger(
             ));
             vector_rows += 1;
         }
+        if let Some(scratch) = &case.native.scratch {
+            for (rule, predicate, stratum, derivations) in &scratch.cost_vector {
+                lines.push(format!(
+                    "| {} | {} (scratch rebuild) | {} | {} | {} | {} |",
+                    case.corpus, case.case, rule, predicate, stratum, derivations
+                ));
+                vector_rows += 1;
+            }
+        }
     }
     if vector_rows == 0 {
         lines.push("| — | — | — | — | — | — |".to_string());
+    }
+
+    // The incremental lane's paired native rebuild is retained inside the exact
+    // descriptor. Surface the raw deterministic delta explicitly: no wall-clock and
+    // no inferred percentage, just the committed counts/high-water marks.
+    let incremental_cases: Vec<&&CaseRecord> = cases
+        .iter()
+        .filter(|case| case.native.scratch.is_some())
+        .collect();
+    if !incremental_cases.is_empty() {
+        lines.push(String::new());
+        lines.push("## Incremental transaction vs clean native rebuild".to_string());
+        lines.push(String::new());
+        lines.push(
+            "| corpus | case | incremental steps | scratch steps | steps saved | derived rows | incremental peak_live_bytes | scratch peak_live_bytes | peak bytes saved | joined delta rows | insert parity | retract parity |"
+                .to_string(),
+        );
+        lines.push("|---|---|---|---|---|---|---|---|---|---|---|---|".to_string());
+        for case in incremental_cases {
+            let scratch = case
+                .native
+                .scratch
+                .as_ref()
+                .expect("filtered to incremental scratch cases");
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                case.corpus,
+                case.case,
+                case.native.consumed_steps,
+                scratch.consumed_steps,
+                i128::from(scratch.consumed_steps) - i128::from(case.native.consumed_steps),
+                scratch.derived_count,
+                case.native.peak_live_bytes,
+                scratch.peak_live_bytes,
+                i128::from(scratch.peak_live_bytes) - i128::from(case.native.peak_live_bytes),
+                case.native.joined_rows.unwrap_or(0),
+                case.agreement
+                    .incremental_insert_vs_scratch
+                    .unwrap_or(false),
+                case.agreement
+                    .incremental_retract_vs_scratch
+                    .unwrap_or(false),
+            ));
+        }
     }
 
     // Per-corpus divergence-ledger tally (the content-addressed agreement fold): the
@@ -732,8 +804,8 @@ impl Stage for CostLedgerStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        // v2: the leaf now also renders the soak-window record (`generated/bench/soak.md`).
-        "cost-ledger.v2"
+        // v3: surface the incremental-vs-scratch deterministic delta in the ledger.
+        "cost-ledger.v3"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The committed cost/agreement baseline is the only input; a baseline refresh

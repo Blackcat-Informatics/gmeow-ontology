@@ -1661,27 +1661,9 @@ pub(crate) fn evaluate(
     exe: &Executable<'_>,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<Fact>>>> {
-    // Lower the columnar EDB into the ternary `Fact` seed in sorted-key order so the
-    // semi-naive seed order is deterministic (mirrors `world_edb_facts`).
-    let mut edb_facts: Vec<Fact> = Vec::new();
-    let interner = edb.interner();
-    for pred in edb.predicates() {
-        // `pred` is a predicate IRI surface already validated by the seam; carry it directly.
-        let predicate = pred.to_owned();
-        // Drive the lending cursor directly (no eager `Vec`): each `next()` yields one
-        // id row (plus a delta-probe RowId unused when seeding) in row-id order.
-        let mut cursor = edb.select(pred, Bound::Any);
-        while let Some((s_id, o_id, _row)) = cursor.next() {
-            // Resolve each term id to its `TermValue` surface here, at the point the
-            // `Fact` seed actually needs them.
-            edb_facts.push(Fact {
-                subject: interner.resolve(s_id).clone(),
-                predicate: predicate.clone(),
-                object: interner.resolve(o_id).clone(),
-            });
-        }
-    }
-    edb_facts.sort_by_key(Fact::key);
+    // Lower the columnar EDB through the single shared projection used by both the
+    // scratch and incremental evaluators.  It returns lexical FactKey order.
+    let edb_facts = edb.facts_sorted();
 
     // Run the stratified fixpoint, accumulating into a shared FactStore/RelationStore.
     let mut store = FactStore::new();

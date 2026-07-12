@@ -30,7 +30,7 @@
 //! engine sees a byte-identical fact set and any measured difference is the engine's
 //! alone.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::{RdfDataset, TermValue};
 
@@ -129,6 +129,61 @@ impl CostVector {
                 .or_insert(0) += 1;
         }
         Ok(CostVector {
+            counts,
+            alloc_bytes: 0,
+            alloc_count: 0,
+            peak_live_bytes: 0,
+        })
+    }
+
+    /// Attribute the newly-present derived rows in one signed incremental
+    /// transaction to their concrete `(rule, predicate, stratum)` witnesses.
+    /// Asserted insertions carry no derivation witness and are deliberately omitted;
+    /// negative closure changes likewise carry no fabricated reverse attribution.
+    fn from_incremental_delta(
+        delta: &crate::physical::IncrementalDelta,
+        strata: &BTreeMap<String, u32>,
+        asserted_changes: &BTreeSet<crate::rule_ir::FactKey>,
+    ) -> gmeow_errors::Result<Self> {
+        let mut counts: BTreeMap<CostKey, u64> = BTreeMap::new();
+        for change in &delta.changes {
+            if change.weight <= 0 {
+                continue;
+            }
+            let key = change.fact.key();
+            let Some(witness) = delta.derivations.get(&key) else {
+                if asserted_changes.contains(&key) {
+                    continue;
+                }
+                return Err(cost_err(format!(
+                    "incremental positive derived row {key:?} carries no firing witness"
+                )));
+            };
+            let predicate = change.fact.predicate.clone();
+            let Some(&stratum) = strata.get(&predicate) else {
+                return Err(cost_err(format!(
+                    "incrementally-derived predicate {predicate:?} has no stratum in the \
+                     certifier's stratification"
+                )));
+            };
+            let count = u64::try_from(change.weight).map_err(|_| {
+                cost_err(format!(
+                    "positive incremental distinct weight {} cannot be represented as u64",
+                    change.weight
+                ))
+            })?;
+            let slot = counts
+                .entry(CostKey {
+                    rule: witness.rule_iri.clone(),
+                    predicate,
+                    stratum,
+                })
+                .or_insert(0);
+            *slot = slot.checked_add(count).ok_or_else(|| {
+                cost_err("incremental cost-vector coordinate overflow".to_owned())
+            })?;
+        }
+        Ok(Self {
             counts,
             alloc_bytes: 0,
             alloc_count: 0,
@@ -283,6 +338,276 @@ pub struct NativeForwardRun {
     pub cost: CostVector,
     /// The engine-version identity this run was produced under.
     pub engine: EngineId,
+}
+
+/// One signed row emitted by the public incremental benchmark seam.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SignedForwardRow {
+    /// The world-scoped row whose set membership changed.
+    pub row: ForwardRow,
+    /// `+1` for insertion into the closure, `-1` for retraction.
+    pub weight: i64,
+}
+
+/// The deterministic result of one incremental forward transaction.
+#[derive(Debug, Clone)]
+pub struct NativeIncrementalRun {
+    /// The sound closure after the transaction (or at an inline budget cut).
+    pub rows: ForwardRows,
+    /// Signed closure changes in lexical fact order.
+    pub changes: Vec<SignedForwardRow>,
+    /// Number of derived rows currently present beyond the asserted EDB set.
+    pub derived_count: u64,
+    /// Genuinely-new derived rows charged by the inline governor.
+    pub consumed_steps: u64,
+    /// Signed-delta rows admitted at mechanically differentiated join positions.
+    pub joined_rows: u64,
+    /// Adjusted nested fixed-point iterations run by this transaction.
+    pub inner_iterations: usize,
+    /// The positive derived-change cost vector. Retractions never receive a
+    /// fabricated reverse-rule attribution.
+    pub cost: CostVector,
+    /// Whether an inline step bound completed or cut the transaction.
+    pub status: crate::seam::BudgetStatus,
+    /// Native engine identity.
+    pub engine: EngineId,
+}
+
+/// A fixed-program, single-world incremental forward session for deterministic
+/// benchmark and parity lanes.
+///
+/// Construction performs the initial materialization. Callers therefore create the
+/// session outside a measured region and measure only [`Self::insert`] or
+/// [`Self::retract`], matching the stable-world/small-delta loop this path optimizes.
+#[derive(Debug, Clone)]
+pub struct IncrementalForwardSession {
+    world: String,
+    inner: crate::physical::IncrementalSession,
+    edb: BTreeSet<crate::rule_ir::FactKey>,
+    strata: BTreeMap<String, u32>,
+}
+
+impl IncrementalForwardSession {
+    /// Prepare a fixed-rule incremental session from a single named-graph world.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the EDB is not exactly one named world, the rule text
+    /// is outside finite positive binary Datalog, or the rules cannot be stratified.
+    pub fn prepare(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<Self> {
+        let (world, facts) = incremental_dataset_facts(edb, None)?;
+        let eval_rules = crate::rule_ir::parse_eval_rules(rules)?;
+        let strata = crate::certify::predicate_strata(rules)?;
+        let edb_keys = facts.iter().map(crate::rule_ir::Fact::key).collect();
+        let contract_hash = format!(
+            "gmeow-native-incremental-forward-v1:{}",
+            blake3::hash(world.as_bytes()).to_hex()
+        );
+        let inner = crate::physical::IncrementalSession::new(contract_hash, facts, &eval_rules)?;
+        Ok(Self {
+            world,
+            inner,
+            edb: edb_keys,
+            strata,
+        })
+    }
+
+    /// Apply an insert-only dataset under the inline governor.
+    ///
+    /// `max_steps = None` is unbounded but still counts committed derived rows. An
+    /// exhausted transaction leaves the cached session unchanged and returns its
+    /// sound partial closure.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a different/default world, duplicate insertion, or an
+    /// invalid/overflowing signed transaction.
+    pub fn insert(
+        &mut self,
+        changes: &RdfDataset,
+        max_steps: Option<u64>,
+    ) -> gmeow_errors::Result<NativeIncrementalRun> {
+        let (_world, facts) = incremental_dataset_facts(changes, Some(&self.world))?;
+        let asserted_changes: BTreeSet<crate::rule_ir::FactKey> =
+            facts.iter().map(crate::rule_ir::Fact::key).collect();
+        let next_edb_count = self.edb.len().checked_add(facts.len()).ok_or_else(|| {
+            cost_err("incremental EDB row-count overflow during insertion".to_owned())
+        })?;
+        let signed = facts
+            .iter()
+            .cloned()
+            .map(|fact| crate::physical::SignedFact { fact, weight: 1 });
+        let budgeted = self.inner.apply_insert_budgeted(signed, max_steps)?;
+        let run = incremental_run(
+            &self.world,
+            &self.strata,
+            next_edb_count,
+            budgeted,
+            &asserted_changes,
+        )?;
+        if run.status == crate::seam::BudgetStatus::Ok {
+            self.edb.extend(facts.iter().map(crate::rule_ir::Fact::key));
+        }
+        Ok(run)
+    }
+
+    /// Apply an unbounded retract-only dataset.
+    ///
+    /// Bounded deletion deliberately remains outside this seam until a sound partial
+    /// delete frontier is defined; unbounded retraction still uses the signed nested
+    /// circuit and returns the exact new least model.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a different/default world, absent retraction, or an
+    /// invalid/overflowing signed transaction.
+    pub fn retract(&mut self, changes: &RdfDataset) -> gmeow_errors::Result<NativeIncrementalRun> {
+        let (_world, facts) = incremental_dataset_facts(changes, Some(&self.world))?;
+        let asserted_changes: BTreeSet<crate::rule_ir::FactKey> =
+            facts.iter().map(crate::rule_ir::Fact::key).collect();
+        let next_edb_count = self.edb.len().checked_sub(facts.len()).ok_or_else(|| {
+            cost_err("incremental EDB row-count underflow during retraction".to_owned())
+        })?;
+        let signed = facts
+            .iter()
+            .cloned()
+            .map(|fact| crate::physical::SignedFact { fact, weight: -1 });
+        let delta = self.inner.apply(signed)?;
+        let closure = self.inner.closure();
+        let run = incremental_run(
+            &self.world,
+            &self.strata,
+            next_edb_count,
+            crate::physical::BudgetedIncrementalDelta {
+                delta,
+                closure,
+                status: crate::seam::BudgetStatus::Ok,
+                consumed_steps: 0,
+            },
+            &asserted_changes,
+        )?;
+        for fact in facts {
+            self.edb.remove(&fact.key());
+        }
+        Ok(run)
+    }
+}
+
+fn incremental_run(
+    world: &str,
+    strata: &BTreeMap<String, u32>,
+    edb_count: usize,
+    budgeted: crate::physical::BudgetedIncrementalDelta,
+    asserted_changes: &BTreeSet<crate::rule_ir::FactKey>,
+) -> gmeow_errors::Result<NativeIncrementalRun> {
+    let crate::physical::BudgetedIncrementalDelta {
+        delta,
+        closure,
+        status,
+        consumed_steps,
+    } = budgeted;
+    let derived_count = closure.len().checked_sub(edb_count).ok_or_else(|| {
+        cost_err(format!(
+            "incremental closure has {} rows but the asserted EDB has {edb_count}",
+            closure.len()
+        ))
+    })? as u64;
+    let cost = CostVector::from_incremental_delta(&delta, strata, asserted_changes)?;
+    let rows = forward_rows_from_facts(&closure, world);
+    let changes = delta
+        .changes
+        .into_iter()
+        .map(|change| SignedForwardRow {
+            row: forward_row_from_fact(change.fact, world),
+            weight: change.weight,
+        })
+        .collect();
+    Ok(NativeIncrementalRun {
+        rows,
+        changes,
+        derived_count,
+        consumed_steps,
+        joined_rows: delta.joined_rows,
+        inner_iterations: delta.inner_iterations,
+        cost,
+        status,
+        engine: EngineId::native(),
+    })
+}
+
+fn forward_rows_from_facts(facts: &[crate::rule_ir::Fact], world: &str) -> ForwardRows {
+    let mut rows: Vec<ForwardRow> = facts
+        .iter()
+        .cloned()
+        .map(|fact| forward_row_from_fact(fact, world))
+        .collect();
+    rows.sort_by_key(row_sort_key);
+    ForwardRows { rows }
+}
+
+fn forward_row_from_fact(fact: crate::rule_ir::Fact, world: &str) -> ForwardRow {
+    ForwardRow {
+        predicate: fact.predicate,
+        args: vec![fact.subject, fact.object, TermValue::simple_literal(world)],
+    }
+}
+
+/// Coerce a dataset through the production typed-EDB bridge and then drop the
+/// validated single world column into the binary incremental fact shape.
+fn incremental_dataset_facts(
+    dataset: &RdfDataset,
+    expected_world: Option<&str>,
+) -> gmeow_errors::Result<(String, Vec<crate::rule_ir::Fact>)> {
+    let typed = crate::reason::build_edb_facts(dataset)?;
+    if typed.is_empty() {
+        return Err(cost_err(
+            "incremental dataset must contain at least one named-world IRI-object fact".to_owned(),
+        ));
+    }
+    let interner = typed.interner();
+    let mut world: Option<String> = None;
+    let mut facts = Vec::new();
+    for fact in typed.facts() {
+        if fact.args.len() != 3 {
+            return Err(cost_err(format!(
+                "incremental binary fact {:?} has arity {}, expected 3",
+                fact.predicate,
+                fact.args.len()
+            )));
+        }
+        let row_world = match interner.resolve(fact.args[2]) {
+            TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+            other => {
+                return Err(cost_err(format!(
+                    "incremental world column must be a simple literal, got {other:?}"
+                )));
+            }
+        };
+        if let Some(expected) = expected_world
+            && row_world != expected
+        {
+            return Err(cost_err(format!(
+                "incremental transaction world {row_world:?} differs from session world {expected:?}"
+            )));
+        }
+        if let Some(first) = &world {
+            if first != &row_world {
+                return Err(cost_err(format!(
+                    "incremental dataset spans multiple worlds ({first:?}, {row_world:?}); \
+                     prepare one fixed session per world"
+                )));
+            }
+        } else {
+            world = Some(row_world);
+        }
+        facts.push(crate::rule_ir::Fact {
+            subject: interner.resolve(fact.args[0]).clone(),
+            predicate: fact.predicate.clone(),
+            object: interner.resolve(fact.args[1]).clone(),
+        });
+    }
+    facts.sort_by_key(crate::rule_ir::Fact::key);
+    Ok((world.expect("non-empty typed EDB has a world"), facts))
 }
 
 /// Drive the NATIVE stratified forward core over `edb` under `rules`, returning the

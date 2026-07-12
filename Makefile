@@ -549,13 +549,11 @@ maint-bench-engines: ## (maintainer) Engine/reference benchmark over the committ
 	@# native↔Nemo crosscheck already dual-runs many cases in one process. Offline:
 	@# no network, no Valgrind.
 	@#
-	@# It produces TWO strictly-separated outputs: (2a) a DETERMINISTIC, gate-eligible
-	@# cost/agreement artifact (integer cost vectors, consumed_steps, derived_count,
-	@# the deterministic peak-live bytes, and verdict-agreement tokens; NO wall-clock,
-	@# NO peak-RSS, NO total-allocation scalars), and (2b) a REPORT-ONLY advisory table
-	@# on stderr carrying the non-deterministic wall/RSS AND the total-allocation
-	@# bytes/count. The committed baseline + drift gate over (2a) is a downstream task;
-	@# this lane only PRODUCES the artifact and prints the advisory table.
+	@# It produces TWO strictly-separated outputs: (2a) a gate-eligible cost/agreement
+	@# artifact (integer cost vectors, consumed_steps, derived_count, deterministic
+	@# peak-live bytes, verdict tokens, and the band-gated total-allocation scalars;
+	@# NO wall-clock / peak-RSS), and (2b) a REPORT-ONLY advisory table on stderr
+	@# carrying non-deterministic wall/RSS.
 	@#
 	@# R1 pool-quiesce: `main` pins the process-GLOBAL Rayon pool to a single thread
 	@# (`ThreadPoolBuilder::new().num_threads(1).build_global()`) before any engine
@@ -565,20 +563,21 @@ maint-bench-engines: ## (maintainer) Engine/reference benchmark over the committ
 	@# measures), so they are advisory-only; peak simultaneously-live bytes nets that
 	@# scratch to zero and is the deterministic, gate-eligible allocation metric in (2a).
 	@#
-	@# Determinism assertion: emit the artifact TWICE and diff — a byte difference
-	@# FAILS the lane (the artifact must be a pure function of engine version + corpus).
+	@# Replay assertion: the second run uses the harness's OWN `--check-cost` contract.
+	@# Every deterministic descriptor field (including peak-live) must match exactly;
+	@# alloc_bytes/alloc_count must remain inside their one-sided 1% band. A raw whole-
+	@# artifact diff would contradict the documented allocation-jitter contract.
 	@set -e; \
 	  tmpdir="$$(mktemp -d)"; \
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
 	  echo "→ bench-engines run 1 (artifact + advisory table on stderr)"; \
 	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-1.json"; \
-	  echo "→ bench-engines run 2 (determinism replay)"; \
-	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-2.json" 2>/dev/null; \
-	  if ! diff -u "$$tmpdir/cost-1.json" "$$tmpdir/cost-2.json"; then \
-	    echo "ERROR: the deterministic cost/agreement artifact DIFFERED across two runs — it must be byte-identical."; \
+	  echo "→ bench-engines run 2 (exact-descriptor + allocation-band replay)"; \
+	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost "$$tmpdir/cost-1.json" >/dev/null 2>&1; then \
+	    echo "ERROR: replay diverged in an exact descriptor or breached the allocation tolerance band."; \
 	    exit 1; \
 	  fi; \
-	  echo "✓ deterministic cost/agreement artifact is byte-identical across two runs ($$(wc -c < "$$tmpdir/cost-1.json") bytes)"
+	  echo "✓ deterministic descriptors are byte-identical and total allocations remain in band ($$(wc -c < "$$tmpdir/cost-1.json")-byte artifact)"
 
 maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh engine/reference run (offline; the drift-gated cost-ledger source).
 	@# The SINGLE producer of the committed deterministic cost/agreement baseline:

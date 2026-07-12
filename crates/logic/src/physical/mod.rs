@@ -35,6 +35,10 @@ mod chase;
 // path (`seminaive`, `chase`).
 mod cursor;
 mod generic;
+// The signed-batch / nested-iteration incremental circuit for the finite positive
+// binary Datalog fragment. It owns recursive insert/retract maintenance and is the
+// stateful sibling of the scratch `seminaive` evaluator.
+mod incremental;
 // Branded niche IDs for every engine entity class (`TermId`/`PredId`/`RuleId`/
 // `RowId`). `pub(crate)` so `crate::facts` can re-express its `TermId` as this
 // module's `Id<Term>` alias (one definition, not two — greenfield).
@@ -62,6 +66,12 @@ pub(crate) use binding_pattern::BindingPattern;
 #[allow(unused_imports)]
 pub(crate) use generic::{
     GenericRule, lower_program_generic_rules, materialize_generic, parse_generic_rules,
+};
+
+#[allow(unused_imports)]
+pub(crate) use incremental::{
+    BudgetedIncrementalDelta, IncrementalDelta, IncrementalDerivation, IncrementalIdentity,
+    IncrementalSession, SignedFact,
 };
 
 // Phase-A: these are the engine's public-to-crate surface, consumed by the
@@ -107,7 +117,7 @@ pub use chase::ChaseAdmission;
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
 // backward path consumed by `dispatch::dispatch_query`.
-pub(crate) use magic::resolve_native;
+pub(crate) use magic::{IncrementalQuerySession, prepare_incremental_query, resolve_native};
 
 // The shared moded builtin evaluator: one arithmetic/comparison semantics called
 // by every native engine. `emit_integer_surface` is the single canonical

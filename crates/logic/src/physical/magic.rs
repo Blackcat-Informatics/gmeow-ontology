@@ -90,6 +90,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use purrdf::TermValue;
 
 use crate::physical::binding_pattern::BindingPattern;
+use crate::physical::incremental::{IncrementalSession, SignedFact};
 use crate::physical::plan::Parsed;
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind, evaluate};
 use crate::physical::store::{RelationStore, extract_edb};
@@ -954,6 +955,151 @@ fn project_answers(facts: &[crate::rule_ir::Fact], goal: &QAtom, goal_pred: &str
         bindings.push(binding);
     }
     bindings
+}
+
+/// A reusable, fixed-program incremental query state.
+///
+/// Counterfactual/conjecture loops clone this base state and apply a small signed EDB
+/// revision instead of rebuilding the stable world's demand-restricted least model.
+/// The session is deliberately facts-only: backward answer projection consumes only
+/// the goal relation and never fabricates provenance.
+#[derive(Debug, Clone)]
+pub(crate) struct IncrementalQuerySession {
+    state: IncrementalSession,
+    goal: QAtom,
+    goal_predicate: String,
+}
+
+impl IncrementalQuerySession {
+    /// Apply IRI-only signed changes and project the resulting goal answers.
+    ///
+    /// This path is unbounded by construction; [`prepare_incremental_query`] declines
+    /// a request carrying `max_steps`, leaving it on the existing inline-governed
+    /// scratch evaluator. `max_answers` remains a deterministic output cap.
+    pub(crate) fn apply_iri_changes(
+        &mut self,
+        changes: impl IntoIterator<Item = (String, String, String, i64)>,
+        max_answers: Option<usize>,
+    ) -> gmeow_errors::Result<AnswerSet> {
+        self.state.apply(
+            changes
+                .into_iter()
+                .map(|(subject, predicate, object, weight)| SignedFact {
+                    fact: Fact {
+                        subject: TermValue::iri(subject),
+                        predicate,
+                        object: TermValue::iri(object),
+                    },
+                    weight,
+                }),
+        )?;
+
+        let closure = self.state.closure();
+        let mut bindings = project_answers(&closure, &self.goal, &self.goal_predicate);
+        let mut answer = AnswerSet {
+            bindings: Vec::new(),
+            status: BudgetStatus::Ok,
+            preservation: crate::result::PreservationClaim::exact(),
+            // No StepGovernor ran: this is an unbounded, fully-settled transaction.
+            // Empty is the established ungoverned-frontier convention.
+            frontier: CompletionFrontier::empty(),
+        };
+        answer.bindings.append(&mut bindings);
+        answer.canonicalize();
+        if let Some(max_answers) = max_answers
+            && answer.bindings.len() >= max_answers
+            && !answer.bindings.is_empty()
+        {
+            answer.bindings.truncate(max_answers);
+            answer.status = BudgetStatus::Partial;
+        }
+        Ok(answer)
+    }
+}
+
+/// Prepare the reusable incremental form of an eligible binary positive query.
+///
+/// `Ok(None)` is an explicit optimization-boundary result, not a semantic refusal:
+/// the ordinary native scratch path still decides the request.  The session declines
+/// cut, n-ary atoms, NAF, builtins, rule facts/bodyless rules, and step-bounded runs;
+/// those paths retain their existing governed or fragment-specific implementation.
+pub(crate) fn prepare_incremental_query(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    contract_hash: &str,
+    budget: &Budget,
+) -> gmeow_errors::Result<Option<IncrementalQuerySession>> {
+    if budget.max_steps.is_some() || profile_gate::has_cut(program) || program.goal.atoms.len() != 1
+    {
+        return Ok(None);
+    }
+    let goal = &program.goal.atoms[0];
+    let binary_eligible = goal.args.len() == 2
+        && program.rules.iter().all(|rule| {
+            rule.head.args.len() == 2
+                && !rule.body.is_empty()
+                && rule.body.iter().all(|literal| match literal {
+                    QBodyLit::Atom(atom) => atom.args.len() == 2,
+                    QBodyLit::Neg(_) | QBodyLit::Builtin(_) | QBodyLit::Cut => false,
+                })
+        });
+    if !binary_eligible {
+        // An EDB-only program has no rules and is still eligible.
+        if !program.rules.is_empty() {
+            return Ok(None);
+        }
+        if goal.args.len() != 2 {
+            return Ok(None);
+        }
+    }
+
+    let mut rules = Vec::with_capacity(program.rules.len());
+    for rule in &program.rules {
+        let Ok(head) = atom_of(&rule.head) else {
+            return Ok(None);
+        };
+        let mut body = Vec::with_capacity(rule.body.len());
+        for literal in &rule.body {
+            let QBodyLit::Atom(atom) = literal else {
+                return Ok(None);
+            };
+            let Ok(atom) = atom_of(atom) else {
+                return Ok(None);
+            };
+            body.push(atom);
+        }
+        rules.push(EvalRule {
+            rule_iri: format!("{}::rule", head.predicate.as_str()),
+            head,
+            body,
+            distinct_pairs: Vec::new(),
+            builtins: Vec::new(),
+        });
+    }
+
+    let Ok(goal_atom) = atom_of(goal) else {
+        return Ok(None);
+    };
+    let transformed = magic_transform(&rules, &goal_atom, goal_adornment(goal));
+    if transformed.rules.iter().any(|rule| {
+        rule.body.is_empty()
+            || rule.body.iter().any(|atom| atom.negated)
+            || !rule.builtins.is_empty()
+    }) {
+        return Ok(None);
+    }
+
+    let mut edb = extract_edb(foreign, world).facts_sorted();
+    if let Some(seed) = &transformed.seed {
+        edb.push(seed_to_fact(seed)?);
+    }
+    let state = IncrementalSession::new(contract_hash, edb, &transformed.rules)?;
+    Ok(Some(IncrementalQuerySession {
+        state,
+        goal: goal.clone(),
+        goal_predicate: goal_atom.predicate,
+    }))
 }
 
 /// Resolve `program` against `world` via the native bottom-up engine over a

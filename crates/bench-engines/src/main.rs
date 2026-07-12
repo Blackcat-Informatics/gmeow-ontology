@@ -119,7 +119,8 @@ use gmeow_cost_measure::{CountingAllocator, measure};
 use gmeow_errors::Diag;
 
 use gmeow_logic::cost::{
-    ForwardRows, run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
+    ForwardRows, IncrementalForwardSession, SignedForwardRow, run_native_forward, run_nemo_forward,
+    run_nemo_forward_facts_only,
 };
 use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::materialize::materialize_routed;
@@ -422,6 +423,7 @@ fn run_case(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         Fragment::Forward => run_forward(case),
         Fragment::Existential => run_existential(case),
         Fragment::Backward => run_backward(case),
+        Fragment::Incremental => run_incremental(case),
         Fragment::NaryExistential => run_nary(case),
     }
 }
@@ -548,6 +550,196 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 wall_ns: nemo_wall,
                 peak_rss_kib: peak,
                 agreement: agree_nemo,
+            },
+        ],
+        comparisons,
+    })
+}
+
+/// INCREMENTAL fragment: prepare one fixed-rule session from `input.nq` outside
+/// measurement, apply `delta.nq` as a signed insertion, compare the full closure
+/// against a clean native rebuild, then retract the same batch and compare with the
+/// original base closure. The scratch native path is the semantic reference; no live
+/// secondary engine is constructed.
+fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
+    let (world, golden_rows) = sole_world(case)?;
+    let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
+    let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
+    let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+
+    // Bootstrap and base scratch evaluation are intentionally outside the measured
+    // transaction. The optimized consumer is a loop over one stable base session.
+    let mut session = IncrementalForwardSession::prepare(base.as_ref(), &case.rules)
+        .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
+    let base_scratch = run_native_forward(base.as_ref(), &case.rules)
+        .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
+    let base_fp = fingerprint_rows(&base_scratch.rows);
+
+    let incremental_start = Instant::now();
+    let (incremental_res, incremental_sample) = measure(|| session.insert(delta.as_ref(), None));
+    let incremental_wall = incremental_start.elapsed().as_nanos();
+    let mut incremental =
+        incremental_res.map_err(|e| run_err(case, format!("incremental insertion failed: {e}")))?;
+    incremental.cost.set_allocation(
+        incremental_sample.bytes,
+        incremental_sample.count,
+        incremental_sample.peak_live,
+    );
+    let incremental_fp = fingerprint_rows(&incremental.rows);
+    let incremental_changes_fp = fingerprint_signed_rows(&incremental.changes);
+
+    let scratch_start = Instant::now();
+    let (scratch_res, scratch_sample) = measure(|| run_native_forward(&updated, &case.rules));
+    let scratch_wall = scratch_start.elapsed().as_nanos();
+    let mut scratch =
+        scratch_res.map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
+    scratch.cost.set_allocation(
+        scratch_sample.bytes,
+        scratch_sample.count,
+        scratch_sample.peak_live,
+    );
+    let scratch_fp = fingerprint_rows(&scratch.rows);
+    let scratch_derived = scratch.cost.total_derivations();
+
+    // Retraction parity is part of every incremental corpus observation, not just a
+    // unit test. This is unbounded by design: bounded deletion has no partial frontier.
+    let retracted = session
+        .retract(delta.as_ref())
+        .map_err(|e| run_err(case, format!("incremental retraction failed: {e}")))?;
+    let retracted_fp = fingerprint_rows(&retracted.rows);
+    let retracted_changes_fp = fingerprint_signed_rows(&retracted.changes);
+
+    let native_golden_tok = count_token(incremental.derived_count);
+    let golden_tok = count_token(golden_rows);
+    let agree_golden = native_golden_tok == golden_tok;
+    let agree_insert = incremental_fp == scratch_fp;
+    let agree_retract = retracted_fp == base_fp;
+    let parity_token = if agree_insert && agree_retract {
+        "insert-and-retract-match-scratch"
+    } else {
+        "incremental-scratch-parity-mismatch"
+    };
+    let step_win = incremental.consumed_steps < scratch.consumed_steps;
+    let step_token = if step_win {
+        "incremental-steps-strictly-lower".to_owned()
+    } else {
+        format!(
+            "incremental-steps={} scratch-steps={}",
+            incremental.consumed_steps, scratch.consumed_steps
+        )
+    };
+
+    let comparisons = vec![
+        comp(
+            case,
+            &world,
+            "native-vs-golden",
+            &native_golden_tok,
+            &golden_tok,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-insert-vs-scratch",
+            &incremental_fp,
+            &scratch_fp,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-retract-vs-scratch",
+            &retracted_fp,
+            &base_fp,
+        ),
+        comp(
+            case,
+            &world,
+            "incremental-step-win",
+            &step_token,
+            "incremental-steps-strictly-lower",
+        ),
+    ];
+
+    let record = json!({
+        "corpus": case.corpus,
+        "case": case.name,
+        "fragment": "incremental",
+        "world": world,
+        "golden_rows": golden_rows,
+        "native": {
+            "engine": incremental.engine.version,
+            "consumed_steps": incremental.consumed_steps,
+            "derived_count": incremental.derived_count,
+            "joined_rows": incremental.joined_rows,
+            "inner_iterations": incremental.inner_iterations,
+            "signed_change_count": incremental.changes.len(),
+            "signed_changes_blake3": incremental_changes_fp,
+            "rows_fingerprint": incremental_fp,
+            "alloc_bytes": incremental.cost.alloc_bytes(),
+            "alloc_count": incremental.cost.alloc_count(),
+            "peak_live_bytes": incremental.cost.peak_live_bytes(),
+            "cost_vector": cost_tuples(&incremental.cost.to_sorted_tuples()),
+            "retraction": {
+                "derived_count": retracted.derived_count,
+                "joined_rows": retracted.joined_rows,
+                "inner_iterations": retracted.inner_iterations,
+                "signed_change_count": retracted.changes.len(),
+                "signed_changes_blake3": retracted_changes_fp,
+                "rows_fingerprint": retracted_fp,
+            },
+            // The clean rebuild comparator lives inside the exact native descriptor,
+            // so its deterministic counts/vector/peak are drift-gated alongside the
+            // incremental transaction. Non-reproducible total allocs stay omitted.
+            "scratch": {
+                "engine": scratch.engine.version,
+                "consumed_steps": scratch.consumed_steps,
+                "derived_count": scratch_derived,
+                "peak_live_bytes": scratch.cost.peak_live_bytes(),
+                "rows_fingerprint": scratch_fp,
+                "cost_vector": cost_tuples(&scratch.cost.to_sorted_tuples()),
+            },
+        },
+        "oracle": {
+            "engine": "native-scratch",
+            "derived_count": scratch_derived,
+            "rows_fingerprint": scratch_fp,
+            "base_rows_fingerprint": base_fp,
+        },
+        "agreement": {
+            "native_vs_golden": agree_golden,
+            "native_vs_oracle": agree_insert && agree_retract,
+            "incremental_insert_vs_scratch": agree_insert,
+            "incremental_retract_vs_scratch": agree_retract,
+            "incremental_step_win": step_win,
+            "native_golden_token": native_golden_tok,
+            "golden_token": golden_tok,
+            "native_oracle_token": parity_token,
+            "oracle_token": "insert-and-retract-match-scratch",
+            "step_token": step_token,
+        },
+    });
+
+    let peak = peak_rss_kib();
+    Ok(CaseOutcome {
+        record,
+        advisory: vec![
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "incremental",
+                engine: "native-incremental",
+                wall_ns: incremental_wall,
+                peak_rss_kib: peak,
+                agreement: agree_golden && agree_insert && agree_retract && step_win,
+            },
+            AdvisoryRow {
+                corpus: case.corpus.clone(),
+                fragment: "incremental",
+                engine: "native-scratch",
+                wall_ns: scratch_wall,
+                peak_rss_kib: peak,
+                agreement: agree_insert,
             },
         ],
         comparisons,
@@ -1475,7 +1667,7 @@ struct GoldenObservation {
     world: String,
     native_count: u64,
     golden_count: u64,
-    fingerprint: Option<(String, String)>,
+    fingerprint: Option<(&'static str, String, String)>,
 }
 
 fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservation> {
@@ -1529,6 +1721,43 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                 fingerprint: None,
             })
         }
+        Fragment::Incremental => {
+            let (world, golden_rows) = sole_world(case)?;
+            let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+                .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
+            let delta =
+                purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
+                    .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
+            let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
+            let base_scratch = run_native_forward(base.as_ref(), &case.rules)
+                .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
+            let updated_scratch = run_native_forward(&updated, &case.rules)
+                .map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
+            let mut session = IncrementalForwardSession::prepare(base.as_ref(), &case.rules)
+                .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
+            let inserted = session
+                .insert(delta.as_ref(), None)
+                .map_err(|e| run_err(case, format!("incremental insertion failed: {e}")))?;
+            let retracted = session
+                .retract(delta.as_ref())
+                .map_err(|e| run_err(case, format!("incremental retraction failed: {e}")))?;
+            let incremental_fp = format!(
+                "insert={};retract={}",
+                fingerprint_rows(&inserted.rows),
+                fingerprint_rows(&retracted.rows)
+            );
+            let scratch_fp = format!(
+                "insert={};retract={}",
+                fingerprint_rows(&updated_scratch.rows),
+                fingerprint_rows(&base_scratch.rows)
+            );
+            Ok(GoldenObservation {
+                world,
+                native_count: inserted.derived_count,
+                golden_count: golden_rows,
+                fingerprint: Some(("incremental-vs-scratch", incremental_fp, scratch_fp)),
+            })
+        }
         Fragment::Backward => {
             if case.golden.len() != 1 {
                 return Err(Diag::of_kind(RunFailed {
@@ -1566,7 +1795,7 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                 world: world.clone(),
                 native_count: native.bindings.len() as u64,
                 golden_count: golden_rows,
-                fingerprint: Some((native_fp, published_fp)),
+                fingerprint: Some(("native-vs-captured-sld", native_fp, published_fp)),
             })
         }
     }
@@ -1599,11 +1828,11 @@ fn golden_comps_by_corpus(
             &count_token(observation.native_count),
             &count_token(observation.golden_count),
         ));
-        if let Some((native_fp, published_fp)) = observation.fingerprint {
+        if let Some((kind, native_fp, published_fp)) = observation.fingerprint {
             comps.push(comp(
                 case,
                 &observation.world,
-                "native-vs-captured-sld",
+                kind,
                 &native_fp,
                 &published_fp,
             ));
@@ -1849,6 +2078,23 @@ fn fingerprint_rows(rows: &ForwardRows) -> String {
         hasher.update(row.predicate.as_bytes());
         hasher.update(b"\x1f");
         for arg in &row.args {
+            hasher.update(term_display(arg).as_bytes());
+            hasher.update(b"\x1f");
+        }
+        hasher.update(b"\n");
+    }
+    hasher.finalize().to_hex().to_string()
+}
+
+/// A stable fingerprint of a lexical signed closure-change batch.
+fn fingerprint_signed_rows(rows: &[SignedForwardRow]) -> String {
+    let mut hasher = blake3::Hasher::new();
+    for change in rows {
+        hasher.update(change.weight.to_string().as_bytes());
+        hasher.update(b"\x1f");
+        hasher.update(change.row.predicate.as_bytes());
+        hasher.update(b"\x1f");
+        for arg in &change.row.args {
             hasher.update(term_display(arg).as_bytes());
             hasher.update(b"\x1f");
         }
