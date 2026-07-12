@@ -3512,41 +3512,29 @@
           "gmeow:buildOutput": {
             "anyOf": [
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/Distribution"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
+                "$comment": "gmeow:Distribution has no NodeShape; node reference only",
+                "properties": {
+                  "@id": {
+                    "type": "string"
                   }
-                ]
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               },
               {
                 "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/Distribution"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
+                  "$comment": "gmeow:Distribution has no NodeShape; node reference only",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
                     }
-                  ]
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 },
                 "type": "array"
               }
@@ -7718,43 +7706,6 @@
             ]
           }
         },
-        "type": "object"
-      },
-      "Distribution": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "gmeow:contentDigest": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "required": [
-          "gmeow:contentDigest"
-        ],
         "type": "object"
       },
       "DocEvidence": {
@@ -20889,31 +20840,6 @@
             },
             "then": {
               "$ref": "#/$defs/DigitalSubjectTenure"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "gmeow:Distribution"
-                    },
-                    {
-                      "contains": {
-                        "const": "gmeow:Distribution"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/Distribution"
             }
           },
           {
@@ -44627,29 +44553,41 @@
           "logic:namesContradictionWitness": {
             "anyOf": [
               {
-                "$comment": "external class https://blackcatinformatics.ca/logic/ContradictionWitness",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/logic:ContradictionWitness"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/logic/ContradictionWitness",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/logic:ContradictionWitness"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "minItems": 1,
                 "type": "array"
@@ -45618,16 +45556,7 @@
               {
                 "anyOf": [
                   {
-                    "$comment": "external class https://blackcatinformatics.ca/math/FiltrationStage",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
+                    "$ref": "#/$defs/math:FiltrationStage"
                   },
                   {
                     "properties": {
@@ -45646,16 +45575,7 @@
                 "items": {
                   "anyOf": [
                     {
-                      "$comment": "external class https://blackcatinformatics.ca/math/FiltrationStage",
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
+                      "$ref": "#/$defs/math:FiltrationStage"
                     },
                     {
                       "properties": {
@@ -46838,16 +46758,7 @@
           "math:overFiltration": {
             "anyOf": [
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Filtration",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/math:Filtration"
               },
               {
                 "properties": {
@@ -47580,16 +47491,7 @@
               {
                 "anyOf": [
                   {
-                    "$comment": "external class https://blackcatinformatics.ca/math/PersistenceLifetime",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
+                    "$ref": "#/$defs/math:PersistenceLifetime"
                   },
                   {
                     "properties": {
@@ -47608,16 +47510,7 @@
                 "items": {
                   "anyOf": [
                     {
-                      "$comment": "external class https://blackcatinformatics.ca/math/PersistenceLifetime",
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
+                      "$ref": "#/$defs/math:PersistenceLifetime"
                     },
                     {
                       "properties": {
@@ -47667,16 +47560,7 @@
           "math:stabilityGuarantee": {
             "anyOf": [
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/Theorem",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/math:Theorem"
               },
               {
                 "properties": {

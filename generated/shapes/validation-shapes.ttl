@@ -345,10 +345,6 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureSupportedBy> ; sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/tenureSubjectAgent> ; sh:class <https://blackcatinformatics.ca/gmeow/Agent> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/gmeow/Agent> ] ; sh:qualifiedMaxCount 1 ] .
 
-<https://blackcatinformatics.ca/gmeow/Distribution-shape> a sh:NodeShape ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/Distribution> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/contentDigest> ; sh:minCount 1 ] .
-
 <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/defeatedBy> ; sh:class <https://blackcatinformatics.ca/gmeow/Defeater> ] ;

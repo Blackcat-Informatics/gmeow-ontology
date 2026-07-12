@@ -134,21 +134,21 @@ resolver = "2"
 # version skew between family members). Drop this patch once the fix ships
 # in a released purrdf-* version gmeow depends on.
 [patch.crates-io]
-purrdf = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-core = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-entail = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-events = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-gts = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-iri = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-rdf = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-shapes = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-shex = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-slice = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-sparql-algebra = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-sparql-eval = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-sparql-results = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-validate = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
-purrdf-xsd = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "fa1b0a0cdddf6282da3aa3b7b842e0c6703ae9ab" }
+purrdf = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-core = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-entail = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-events = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-gts = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-iri = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-rdf = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-shapes = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-shex = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-slice = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-sparql-algebra = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-sparql-eval = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-sparql-results = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-validate = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+purrdf-xsd = { git = "ssh://git@ssh.github.com:443/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
 
 [workspace.package]
 version = "0.1.0"
