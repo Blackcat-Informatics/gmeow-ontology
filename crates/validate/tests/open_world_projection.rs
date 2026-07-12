@@ -134,29 +134,46 @@ ex:ada a gmeow:Agent ;
 
 #[test]
 fn sh_closed_true_still_closes() {
-    // The SAME shape with an explicit `sh:closed true` MUST close the class — this
-    // pins the "open UNLESS sh:closed" contract in both directions, so the
-    // open-world fix cannot silently disable legitimate closure.
+    // A PURE `sh:closed true` shape (NO `sh:not`, NO `sh:property`) MUST close the
+    // class to only the structural keys — this pins the "open UNLESS sh:closed"
+    // contract in both directions, so the open-world fix cannot silently disable
+    // legitimate closure. Isolating closure from `sh:not` keeps the rejection signal
+    // attributable to closure ALONE, not to a disjointness constraint (so this test
+    // stays a true closure regression even if `sh:not` were to regress separately).
     let shapes = r#"
 @prefix sh:    <http://www.w3.org/ns/shacl#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 
 gmeow:AgentShape a sh:NodeShape ;
     sh:targetClass gmeow:Agent ;
-    sh:closed true ;
-    sh:not [ sh:class gmeow:SocialObject ] .
+    sh:closed true .
 "#;
-    let data = r#"
+    // A node carrying an undeclared property is REJECTED by closure alone.
+    let dirty = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://example.org/> .
 
 ex:ada a gmeow:Agent ;
     gmeow:knowsThat ex:earthOrbitsSun .
 "#;
-    let violations = projection_accepts(shapes, data);
+    let violations = projection_accepts(shapes, dirty);
     assert!(
         !violations.is_empty(),
         "sh:closed true must close the class — an undeclared property must be rejected"
+    );
+
+    // A clean node carrying ONLY the structural keys (`@type`) is still ACCEPTED —
+    // closure rejects undeclared properties, it does not reject conformant nodes.
+    let clean = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://example.org/> .
+
+ex:eve a gmeow:Agent .
+"#;
+    let violations = projection_accepts(shapes, clean);
+    assert!(
+        violations.is_empty(),
+        "sh:closed true must still ACCEPT a node carrying only structural keys, got {violations:?}"
     );
 
     let (_, schema) = compile_schema(shapes);
@@ -182,31 +199,47 @@ gmeow:AgentShape a sh:NodeShape ;
     sh:not [ sh:class gmeow:UnmodeledThing ] .
 "#;
 
-    // A node typed the UNMODELED class must be REJECTED (it IS an UnmodeledThing).
+    // A node typed the UNMODELED class must be REJECTED (it IS an UnmodeledThing),
+    // and — Principle-17 oracle — the projection must AGREE with native SHACL rather
+    // than merely match a hard-coded expectation.
     let is_unmodeled = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://example.org/> .
 
 ex:x a gmeow:Agent, gmeow:UnmodeledThing .
 "#;
-    let violations = projection_accepts(shapes, is_unmodeled);
+    let shacl = shacl_conforms(shapes, is_unmodeled);
     assert!(
-        !violations.is_empty(),
-        "sh:not[sh:class X] over unmodeled X must REJECT a node typed X, got acceptance"
+        !shacl,
+        "native SHACL premise: a node typed the sh:not[sh:class X] class must be non-conformant"
+    );
+    let accepted = projection_accepts(shapes, is_unmodeled).is_empty();
+    assert_eq!(
+        accepted, shacl,
+        "sh:not[sh:class X] over unmodeled X: projection must AGREE with native SHACL for a \
+         node typed X (SHACL conforms={shacl}, projection accepts={accepted}) — X has no $def, \
+         so the `not` must be a negated @type test, not a match-any-object inversion"
     );
 
     // A node NOT typed the unmodeled class must be ACCEPTED — proving the `not`
-    // discriminates on @type rather than matching every object.
+    // discriminates on @type rather than matching every object — and again agree
+    // with native SHACL.
     let not_unmodeled = r#"
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://example.org/> .
 
 ex:y a gmeow:Agent .
 "#;
-    let violations = projection_accepts(shapes, not_unmodeled);
+    let shacl = shacl_conforms(shapes, not_unmodeled);
     assert!(
-        violations.is_empty(),
-        "sh:not[sh:class X] over unmodeled X must ACCEPT a node not typed X, got {violations:?}"
+        shacl,
+        "native SHACL premise: a node NOT typed the sh:not[sh:class X] class must be conformant"
+    );
+    let accepted = projection_accepts(shapes, not_unmodeled).is_empty();
+    assert_eq!(
+        accepted, shacl,
+        "sh:not[sh:class X] over unmodeled X: projection must AGREE with native SHACL for a \
+         node not typed X (SHACL conforms={shacl}, projection accepts={accepted})"
     );
 }
 
