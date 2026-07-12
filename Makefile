@@ -11,13 +11,6 @@ TARGET ?= foaf
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= chore: regenerate checked-in artifacts
 GMEOW_DEV ?= cargo run -q -p gmeow-dev-cli --
-NPROC ?= $(shell nproc 2>/dev/null || echo 4)
-# check-generated reproduces every committed artifact through the gmeow-pipeline DAG;
-# its stages mix CPU work with artifact IO, so oversubscribing jobs past the core
-# count overlaps the IO and measurably cuts wall-time (≈25% on a 2-core runner),
-# keeping the ontology-generated CI lane under the 5-minute target. Bounded in
-# practice by the DAG width per level.
-CHECK_GENERATED_JOBS ?= $(shell echo $$(( $(NPROC) * 2 )))
 CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
@@ -169,25 +162,20 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: ## Run the full Docker-free local quality gate.
-	# check-generated is one of CHECK_TARGETS, so it already runs as one of the
-	# -j$(NPROC) outer jobs here; cap its inner pipeline pool to the outer count
-	# (a command-line assignment overrides the CHECK_GENERATED_JOBS ?= NPROC*2
-	# default) so the nested pools don't oversubscribe a small box. The standalone
-	# `make check-generated` CI lane keeps the wider NPROC*2 IO-overlap pool.
-	$(MAKE) -j$(NPROC) CHECK_GENERATED_JOBS=$(NPROC) $(CHECK_TARGETS)
+	$(MAKE) $(CHECK_TARGETS)
 	$(MAKE) compliance-report
 	@echo "all checks passed (Docker-free, Java-free)"
 
 ##@ Generated Artifacts And Outputs
 
 regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.
-	$(GMEOW_DEV) regenerate -j $(NPROC)
+	$(GMEOW_DEV) regenerate
 
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
-	$(GMEOW_DEV) fanout -j $(NPROC)
+	$(GMEOW_DEV) fanout
 
 check-generated: ## Drift + orphan check for all registered generators.
-	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS)
+	$(GMEOW_DEV) check-generated
 
 commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and commit.
 	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) regenerate --list-paths); \
@@ -465,7 +453,7 @@ bench-soak: ## On-gate divergence-ledger soak window: run the deterministic nati
 perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.
 	mkdir -p $(PERF_DIR)
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
-	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS) --timings-json $(PERF_DIR)/check-generated.json
+	$(GMEOW_DEV) check-generated --timings-json $(PERF_DIR)/check-generated.json
 	$(GMEOW_DEV) reason-verify --timings-json $(PERF_DIR)/reason-verify.json
 	cargo run -q -p gmeow-pipeline --bin perf_gate_merge -- $(PERF_DIR)
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
