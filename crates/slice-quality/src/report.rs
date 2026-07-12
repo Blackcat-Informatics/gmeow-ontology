@@ -57,6 +57,7 @@ pub const FINDING_CODES: &[&str] = &[
     "slice-quality.testing.untested-term",
     "slice-quality.documentation.thin-thesis",
     "slice-quality.documentation.no-docs",
+    "slice-quality.translation.integrity-rejected",
     "slice-quality.translation.incomplete",
     "slice-quality.flagship.counterexample-structural-only",
     "slice-quality.gmn1-coverage.no-repo-root",

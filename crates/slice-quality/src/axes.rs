@@ -21,7 +21,7 @@ use gmeow_logic_compile::projections::correspondence_soundness::{Mapping, lint_d
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use regex::Regex;
 
-use crate::graph::{self, g, id, instances_of, one_iri, one_lit};
+use crate::graph::{self, all_lits, g, id, instances_of, one_iri, one_lit};
 use crate::score::{AxisScore, ScoreContext, advisory};
 
 /// A measurement primitive: score the slice and surface advisories.
@@ -172,6 +172,34 @@ fn is_tbox_term(ctx: &ScoreContext, iri: &str) -> bool {
         })
 }
 
+fn is_generic_usage_coat(value: &str) -> bool {
+    let value = value.to_ascii_lowercase();
+    [
+        "when the modeled statement satisfies the scope and necessary conditions stated in this term's definition",
+        "for a merely similar construct whose identity, truth conditions, or validation contract differs",
+        "with its declared owl kind and preserve its domain, range, standpoint, and provenance constraints",
+    ]
+    .iter()
+    .any(|template| value.contains(template))
+}
+
+fn coat_field_is_substantive(
+    ds: &RdfDataset,
+    subject: purrdf::TermId,
+    label: &str,
+    predicate: purrdf::TermId,
+) -> bool {
+    match label {
+        "skos:example" => all_lits(ds, subject, predicate)
+            .iter()
+            .any(|value| is_worked_triple(value)),
+        "useWhen" | "avoidWhen" | "howToUse" => all_lits(ds, subject, predicate)
+            .iter()
+            .any(|value| !value.trim().is_empty() && !is_generic_usage_coat(value)),
+        _ => graph::has_any(ds, subject, predicate),
+    }
+}
+
 /// Average annotation-coat completeness across the slice's terms.
 fn information_axis(ctx: &ScoreContext) -> AxisScore {
     let ds = ctx.graph;
@@ -209,7 +237,8 @@ fn information_axis(ctx: &ScoreContext) -> AxisScore {
         let mut missing = Vec::new();
         for (label, pred_iri) in &required {
             total_expected += 1;
-            let present = id(ds, pred_iri).is_some_and(|p| graph::has_any(ds, sid, p));
+            let present =
+                id(ds, pred_iri).is_some_and(|p| coat_field_is_substantive(ds, sid, label, p));
             if present {
                 total_present += 1;
             } else {
@@ -302,6 +331,14 @@ fn states_boundary(def: &str) -> bool {
         "distinct from",
     ];
     let d = def.to_lowercase();
+    // A term-agnostic coat is not a semantic boundary. This exact family was
+    // mechanically appended to hundreds of definitions and says nothing that
+    // distinguishes one term from another, despite containing the cue "not".
+    if d.contains(
+        "not an interchangeable alias for a broader, narrower, or merely related construct",
+    ) {
+        return false;
+    }
     CUES.iter().any(|cue| word_at_boundary(&d, cue))
 }
 
@@ -314,7 +351,11 @@ fn states_boundary(def: &str) -> bool {
 /// [`states_boundary`], a false negative (under-crediting an oddly-formatted example)
 /// is preferred to a false positive that would inflate this ratchet-gated score.
 fn is_worked_triple(example: &str) -> bool {
-    has_curie(example)
+    // `term rdfs:isDefinedBy slice` is ownership metadata, not an example of
+    // the term in use. Counting it lets a generated provenance inventory pose
+    // as hundreds of worked examples.
+    !example.contains("rdfs:isDefinedBy")
+        && has_curie(example)
         && (word_at_boundary(example, "a")
             || example.contains(" ;")
             || example.contains(" .")
@@ -886,13 +927,93 @@ fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
 
 // ── Axis 6: Optimal testing ────────────────────────────────────────────────
 
-/// Concatenated text of every `.ttl`/`.rq` under `tests/` and `queries/`.
+/// Concatenated semantic text of every `.ttl`/`.rq` under `tests/` and
+/// `queries/`. Comment-only mentions and SPARQL `VALUES` inventories are erased:
+/// neither executes an assertion about an individual term, and counting them
+/// rewards exhaustive name lists rather than test behaviour.
 fn test_corpus(ctx: &ScoreContext) -> String {
     let mut buf = String::new();
     for sub in ["tests", "queries"] {
         collect_text(&ctx.slice_dir.join(sub), &mut buf);
     }
-    buf
+    strip_non_executing_test_mentions(&buf)
+}
+
+fn strip_non_executing_test_mentions(corpus: &str) -> String {
+    let mut bytes = corpus.as_bytes().to_vec();
+
+    // Strip hash comments when `#` begins a token. A namespace fragment such as
+    // `<https://example/#Foo>` is retained because its `#` is not preceded by
+    // whitespace. Replacing with spaces preserves identifier boundaries.
+    let mut line_start = 0usize;
+    while line_start < bytes.len() {
+        let line_end = bytes[line_start..]
+            .iter()
+            .position(|byte| *byte == b'\n')
+            .map_or(bytes.len(), |offset| line_start + offset);
+        let mut comment = None;
+        for idx in line_start..line_end {
+            if bytes[idx] == b'#' && (idx == line_start || bytes[idx - 1].is_ascii_whitespace()) {
+                comment = Some(idx);
+                break;
+            }
+        }
+        if let Some(start) = comment {
+            bytes[start..line_end].fill(b' ');
+        }
+        line_start = line_end.saturating_add(1);
+    }
+
+    // Erase complete SPARQL VALUES clauses with a small brace-aware scanner.
+    // VALUES is ASCII by grammar; byte replacement therefore cannot split any
+    // retained UTF-8 scalar.
+    let lower = String::from_utf8_lossy(&bytes).to_ascii_lowercase();
+    let lower = lower.as_bytes();
+    let mut cursor = 0usize;
+    while cursor + 6 <= lower.len() {
+        let Some(offset) = lower[cursor..].windows(6).position(|w| w == b"values") else {
+            break;
+        };
+        let start = cursor + offset;
+        let before_ok =
+            start == 0 || !(lower[start - 1].is_ascii_alphanumeric() || lower[start - 1] == b'_');
+        let after = start + 6;
+        let after_ok =
+            after == lower.len() || !(lower[after].is_ascii_alphanumeric() || lower[after] == b'_');
+        if !before_ok || !after_ok {
+            cursor = after;
+            continue;
+        }
+        let Some(open_offset) = lower[after..].iter().position(|byte| *byte == b'{') else {
+            break;
+        };
+        let header = &lower[after..after + open_offset];
+        if header.len() > 256 || !header.iter().any(|byte| matches!(byte, b'?' | b'$')) {
+            cursor = after;
+            continue;
+        }
+        let open = after + open_offset;
+        let mut depth = 0usize;
+        let mut close = None;
+        for (offset, byte) in lower[open..].iter().enumerate() {
+            match byte {
+                b'{' => depth += 1,
+                b'}' => {
+                    depth = depth.saturating_sub(1);
+                    if depth == 0 {
+                        close = Some(open + offset);
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+        let Some(close) = close else { break };
+        bytes[start..=close].fill(b' ');
+        cursor = close + 1;
+    }
+
+    String::from_utf8(bytes).expect("test corpus remains UTF-8 after ASCII-region redaction")
 }
 
 fn collect_text(dir: &std::path::Path, buf: &mut String) {
@@ -1006,11 +1127,12 @@ const TRANSLATION_LANGS: &[(&str, &str)] = &[("fr", "fr"), ("cmn", "zh")];
 /// coverage requires English (authored, always full) plus French and Mandarin on
 /// every localizable literal; the score is the mean of the three per-language
 /// coverage fractions, bounded `[0,1]` and `1.0` iff every localizable literal is
-/// fully translated into both fr and cmn.
+/// fully translated into both fr and cmn. A non-empty value only counts after the
+/// shared deterministic translation-integrity guard accepts it.
 fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     use std::collections::HashSet;
 
-    use gmeow_docs::i18n::{expand_predicate, parse_po};
+    use gmeow_docs::i18n::{expand_predicate, parse_po, translation_has_integrity};
     use gmeow_docs::i18n_compile::LOCALIZABLE_PREDICATES;
 
     let ds = ctx.graph;
@@ -1038,19 +1160,42 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
         let po = ctx.slice_dir.join(format!("i18n/{stem}.po"));
         // Covered (term, full-predicate) pairs: catalog entries with a real
         // (non-empty) msgstr, keyed by the same full predicate IRI as the graph.
+        let mut rejected = 0usize;
         let covered: HashSet<(String, String)> = std::fs::read_to_string(&po)
             .map(|text| {
-                parse_po(&text)
+                let catalog = parse_po(&text);
+                let language = if catalog.language.is_empty() {
+                    *tag
+                } else {
+                    &catalog.language
+                };
+                catalog
                     .entries
                     .iter()
-                    .filter(|e| !e.msgctxt.is_empty() && !e.msgstr.is_empty())
-                    .filter_map(|e| {
-                        let (term, pred) = e.msgctxt.split_once('|')?;
+                    .filter(|entry| !entry.msgctxt.is_empty() && !entry.msgstr.is_empty())
+                    .filter(|entry| {
+                        let valid =
+                            translation_has_integrity(language, &entry.msgid, &entry.msgstr);
+                        if !valid {
+                            rejected += 1;
+                        }
+                        valid
+                    })
+                    .filter_map(|entry| {
+                        let (term, pred) = entry.msgctxt.split_once('|')?;
                         Some((term.to_string(), expand_predicate(pred)))
                     })
                     .collect()
             })
             .unwrap_or_default();
+        if rejected > 0 {
+            findings.push(advisory(
+                "slice-quality.translation.integrity-rejected",
+                format!(
+                    "{tag} has {rejected} non-empty catalog value(s) rejected by the translation-integrity guard; copied or hybrid English does not count as coverage."
+                ),
+            ));
+        }
         let hits = literals
             .iter()
             .filter(|pair| covered.contains(*pair))
@@ -1280,6 +1425,9 @@ mod tests {
         assert!(!states_boundary(
             "A note about the cannon on the annotation."
         ));
+        assert!(!states_boundary(
+            "A widget. It is not an interchangeable alias for a broader, narrower, or merely related construct."
+        ));
     }
 
     #[test]
@@ -1291,6 +1439,39 @@ mod tests {
         assert!(!is_worked_triple("See section 3: this is important."));
         // A full-IRI scheme colon is not a CURIE either.
         assert!(!is_worked_triple("visit http://example.org/ for details."));
+        // Ownership metadata is not a worked use of the subject term.
+        assert!(!is_worked_triple(
+            "logic:Widget rdfs:isDefinedBy <https://example.org/slice> ."
+        ));
+    }
+
+    #[test]
+    fn testing_corpus_excludes_comments_and_values_inventories() {
+        let corpus = r#"
+# logic:CommentOnly
+ASK {
+    VALUES ?term { logic:InventoryOnly logic:AlsoInventoryOnly }
+    logic:ActuallyExercised rdfs:subClassOf ?term .
+}
+"#;
+        let semantic = strip_non_executing_test_mentions(corpus);
+        assert!(!word_at_boundary(&semantic, "CommentOnly"));
+        assert!(!word_at_boundary(&semantic, "InventoryOnly"));
+        assert!(!word_at_boundary(&semantic, "AlsoInventoryOnly"));
+        assert!(word_at_boundary(&semantic, "ActuallyExercised"));
+    }
+
+    #[test]
+    fn generic_usage_coats_are_not_substantive_information() {
+        assert!(is_generic_usage_coat(
+            "Use logic:Widget when the modeled statement satisfies the scope and necessary conditions stated in this term's definition."
+        ));
+        assert!(is_generic_usage_coat(
+            "Assert logic:Widget with its declared OWL kind and preserve its domain, range, standpoint, and provenance constraints."
+        ));
+        assert!(!is_generic_usage_coat(
+            "Use logic:Widget for a rigid identity-bearing type whose instances remain Widgets in every accessible world."
+        ));
     }
 
     #[test]

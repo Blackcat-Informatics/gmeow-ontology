@@ -256,16 +256,6 @@
 #     `make maint-rust-heavy`, every other slice's `structural.ttl` stays on-gate (this
 #     exclusion is scoped to this one file's datatest case, not the whole class), and the
 #     rubric's axis-shape invariants stay drift-gated via `make check-generated`.
-#   - gmeow-pipeline projection_report_unions_logic_and_correspondence_rows and
-#     lang_docs_rendering::rollup_targets_are_real_translation_units: 28.9 s and
-#     26.2 s respectively in an isolated `make rust-gate` after the
-#     logic slice gained complete fr-CA/zh-Hans label+definition carriers. Each
-#     walks a WHOLE-repository product: the full projection report or every
-#     translated rollup unit. Their cost is
-#     irreducibly O(bundle/report/site size), not fixture size. No coverage class
-#     leaves the gate: mapping/product/docs artifacts remain byte-drift-gated by
-#     `make check-generated`, focused mapping and language-rendering tests stay
-#     on-gate, and these two exhaustive sweeps run on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -286,8 +276,6 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/))
     | (package(gmeow-pipeline) & test(/stages::docs_render::tests::diagnostics_digest_total_is_non_vacuous_on_the_real_repo/))
     | (package(gmeow-pipeline) & test(/stages::docs_render::tests::term_loss_digest_is_non_vacuous_on_the_real_repo/))
-    | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
-    | (package(gmeow-pipeline) & test(/stages::lang_docs_rendering::tests::rollup_targets_are_real_translation_units/))
     | (package(gmeow-slicetest) & test(/run_structural_file::core\/slice-quality-rubric\/tests\/structural\.ttl/))
     | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
     | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode) | test(describe_wheel_mode_equals_repo_mode)))

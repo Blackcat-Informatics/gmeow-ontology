@@ -478,20 +478,9 @@ signature, reject an invalid one — stays on-gate via
 rather than replaying the shipped bundle, and `release.rs`'s own unit tests
 cover the fold/verify pair's logic against a tiny synthetic snapshot; the full
 committed-bundle round-trip stays on-gate on `maint-heavy`).
-Complete `fr-CA`/`zh-Hans` label-and-definition carriers for the logic slice grew
-the multilingual bundle/report/site enough to push two exhaustive whole-repo
-tests past budget even in an isolated `make rust-gate`:
-`gmeow-pipeline::stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows`
-(28.9 s) and
-`gmeow-pipeline::stages::lang_docs_rendering::tests::rollup_targets_are_real_translation_units`
-(26.2 s). Each walks the complete projection report or
-translated rollup set and is irreducibly O(bundle/report/site size). No coverage
-class leaves the gate: `make check-generated` byte-gates all mapping/product/docs
-artifacts, focused mapping-routing and language-rendering tests remain on-gate,
-and the two exhaustive sweeps run on `maint-heavy`.
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
-correspondence parity, most mapping parity, carrier/docs archive tests, scoreboards
+correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
 acceptance, JSON-LD round-trips, product routing, slice/slicetest parity, and
 docs live-render guards are in the default/ci profile.
 

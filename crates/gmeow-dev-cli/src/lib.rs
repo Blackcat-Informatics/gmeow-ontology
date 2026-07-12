@@ -584,6 +584,13 @@ pub enum I18nCommands {
         #[arg(long = "terms-only")]
         terms_only: bool,
     },
+    /// Reject malformed, stale-risk, or mechanically corrupted translations.
+    Lint {
+        #[arg(long = "root")]
+        root: Option<PathBuf>,
+        #[arg(long = "max-fuzzy-ratio", default_value_t = 100.0)]
+        max_fuzzy_ratio: f64,
+    },
     /// Sync English translations from PO catalogs back to canonical sources.
     #[command(name = "sync-english")]
     SyncEnglish {
@@ -960,6 +967,10 @@ pub fn run() -> i32 {
                 lang.as_deref(),
                 terms_only,
             ),
+            I18nCommands::Lint {
+                root,
+                max_fuzzy_ratio,
+            } => dev_i18n::lint(root.as_deref(), max_fuzzy_ratio),
             I18nCommands::SyncEnglish { root, dry_run } => {
                 dev_i18n::sync_english(root.as_deref(), dry_run)
             }
