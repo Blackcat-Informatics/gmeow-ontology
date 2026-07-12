@@ -992,26 +992,41 @@ fn documentation_axis(ctx: &ScoreContext) -> AxisScore {
 
 // ── Axis 9: Translation coverage ───────────────────────────────────────────
 
-/// The project languages beyond the authored English.
-const TRANSLATION_LANGS: &[&str] = &["fr", "zh"];
+/// The project languages beyond the authored English, as `(semantic tag, catalog
+/// stem)`. Mandarin's objective tag is `cmn`; its physical catalog is authored under
+/// the `zh.po` stem (the convention the slices — e.g. `logic` — already use), so the
+/// axis reports `cmn` while reading `i18n/zh.po`.
+const TRANSLATION_LANGS: &[(&str, &str)] = &[("fr", "fr"), ("cmn", "zh")];
 
-/// Translation: per-language coverage of the slice's label+definition literals,
-/// audited via `.po` catalogs. Full coverage requires English (authored) plus
-/// French and Mandarin.
+/// Translation: per-language coverage of **every localizable literal** the slice
+/// authors — each `(term, predicate)` where `predicate` is one of
+/// [`gmeow_docs::i18n_compile::LOCALIZABLE_PREDICATES`] and the slice graph carries a
+/// literal — audited via the `i18n/<stem>.po` catalogs. A literal counts as covered
+/// for a language iff its catalog entry carries a real (non-empty) `msgstr`. Full
+/// coverage requires English (authored, always full) plus French and Mandarin on
+/// every localizable literal; the score is the mean of the three per-language
+/// coverage fractions, bounded `[0,1]` and `1.0` iff every localizable literal is
+/// fully translated into both fr and cmn.
 fn translation_axis(ctx: &ScoreContext) -> AxisScore {
+    use std::collections::HashSet;
+
+    use gmeow_docs::i18n::{expand_predicate, parse_po};
+    use gmeow_docs::i18n_compile::LOCALIZABLE_PREDICATES;
+
     let ds = ctx.graph;
-    let label_p = id(ds, "http://www.w3.org/2000/01/rdf-schema#label");
-    let def_p = id(ds, "http://www.w3.org/2004/02/skos/core#definition");
-    let mut expected = 0usize;
+
+    // Denominator: every localizable literal the slice authors, as the set of
+    // (term-iri, full-predicate-iri) pairs the graph carries a literal for.
+    let mut literals: Vec<(String, String)> = Vec::new();
     for iri in &ctx.terms {
         let Some(sid) = id(ds, iri) else { continue };
-        if label_p.is_some_and(|p| graph::has_any(ds, sid, p)) {
-            expected += 1;
-        }
-        if def_p.is_some_and(|p| graph::has_any(ds, sid, p)) {
-            expected += 1;
+        for pred in LOCALIZABLE_PREDICATES {
+            if id(ds, pred).is_some_and(|p| graph::has_any(ds, sid, p)) {
+                literals.push((iri.clone(), (*pred).to_string()));
+            }
         }
     }
+    let expected = literals.len();
     if expected == 0 {
         return AxisScore::clean(1.0);
     }
@@ -1019,24 +1034,35 @@ fn translation_axis(ctx: &ScoreContext) -> AxisScore {
     // English is authored, so it is always fully covered.
     let mut lang_cov = vec![1.0_f64];
     let mut findings = Vec::new();
-    for lang in TRANSLATION_LANGS {
-        let po = ctx.slice_dir.join(format!("i18n/{lang}.po"));
-        let entries = std::fs::read_to_string(&po)
-            .map(|t| {
-                t.lines()
-                    .filter(|l| {
-                        l.starts_with("msgctxt")
-                            && (l.contains("|rdfs:label") || l.contains("|skos:definition"))
+    for (tag, stem) in TRANSLATION_LANGS {
+        let po = ctx.slice_dir.join(format!("i18n/{stem}.po"));
+        // Covered (term, full-predicate) pairs: catalog entries with a real
+        // (non-empty) msgstr, keyed by the same full predicate IRI as the graph.
+        let covered: HashSet<(String, String)> = std::fs::read_to_string(&po)
+            .map(|text| {
+                parse_po(&text)
+                    .entries
+                    .iter()
+                    .filter(|e| !e.msgctxt.is_empty() && !e.msgstr.is_empty())
+                    .filter_map(|e| {
+                        let (term, pred) = e.msgctxt.split_once('|')?;
+                        Some((term.to_string(), expand_predicate(pred)))
                     })
-                    .count()
+                    .collect()
             })
-            .unwrap_or(0);
+            .unwrap_or_default();
+        let hits = literals
+            .iter()
+            .filter(|pair| covered.contains(*pair))
+            .count();
         #[allow(clippy::cast_precision_loss)]
-        let cov = (entries as f64 / expected as f64).min(1.0);
+        let cov = hits as f64 / expected as f64;
         if cov < 1.0 {
             findings.push(advisory(
                 "slice-quality.translation.incomplete",
-                format!("{lang} covers {entries}/{expected} label+definition literals; the top tier requires 100% en+fr+cmn."),
+                format!(
+                    "{tag} covers {hits}/{expected} localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal."
+                ),
             ));
         }
         lang_cov.push(cov);
