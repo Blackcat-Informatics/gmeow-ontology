@@ -5712,6 +5712,47 @@ mod tests {
             .expect("the shipped bundle documents a term with entailments AND fixtures")
     }
 
+    /// A documented term that still carries full-tier panels (≥1 entailment AND ≥1
+    /// fixture) but the FEWEST of them — the cheapest term whose `full` card exercises
+    /// every rich-panel path. Tier/determinism assertions that render the full card
+    /// several times use this instead of [`richest_card_term`] (whose ~1000-entailment
+    /// surface is only needed for the byte-ceiling proof), so they render fast.
+    fn modest_panel_card_term(server: &McpServer) -> String {
+        let entailments = server
+            .view
+            .entailment_map()
+            .expect("entailment map from the shipped documentation graph");
+        let fixtures_query = format!(
+            "PREFIX gm: <{GMEOW_NS}>\nSELECT ?term ?f WHERE {{ ?f a gm:DocFixture ; \
+             gm:documents ?term . }}"
+        );
+        let mut fixtures_per_term: BTreeMap<String, usize> = BTreeMap::new();
+        for row in server
+            .view
+            .docs_select_rows(&fixtures_query)
+            .expect("fixture-by-term scan over graph/documentation")
+        {
+            if let Some(term) = row.get("term") {
+                *fixtures_per_term.entry(term.clone()).or_default() += 1;
+            }
+        }
+        let mut candidates: Vec<(usize, String)> = entailments
+            .iter()
+            .filter_map(|(iri, ents)| {
+                fixtures_per_term
+                    .get(iri)
+                    .map(|&fx| (ents.len() + fx, iri.clone()))
+            })
+            .collect();
+        // FEWEST panels first, then lexicographically-first IRI (deterministic).
+        candidates.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        candidates
+            .into_iter()
+            .next()
+            .map(|(_, iri)| iri)
+            .expect("the shipped bundle documents a term with entailments AND fixtures")
+    }
+
     /// `doc_card` tiers: `summary` is the leanest surface (title + definition only,
     /// under a pinned byte ceiling, none of the advisory / panel sections); `full`
     /// is strictly larger and carries the rich oracle panels (Entailments / Do /
@@ -5814,7 +5855,10 @@ mod tests {
     #[test]
     fn tool_doc_card_json_determinism_and_tier_fields() {
         let server = consumer_server();
-        let term = richest_card_term(&server);
+        // Determinism + tier-field presence hold for ANY term that carries panels,
+        // so use the cheapest such term (not the ~1000-entailment richest term) —
+        // this test renders the full card three times, so a lean term keeps it fast.
+        let term = modest_panel_card_term(&server);
 
         // Byte-identical raw tool text across two identical calls.
         let call = || {
