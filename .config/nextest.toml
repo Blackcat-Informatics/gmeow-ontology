@@ -274,8 +274,8 @@
 #     golden), so every tool is still exercised on-gate; and both whole-bundle sweeps
 #     stay on-gate on `maint-heavy`.
 #   - gmeow-pipeline stages::mappings::tests::
-#     projection_report_unions_logic_and_correspondence_rows (26.768 s in PR #1504
-#     CI shard 1) + product_routing::compiler_products_are_first_class_dag_artifacts
+#     projection_report_unions_logic_and_correspondence_rows (26.768 s in the
+#     failing CI shard) + product_routing::compiler_products_are_first_class_dag_artifacts
 #     (26.026 s in the same shard): both run the real compile-logic -> mappings chain
 #     over the WHOLE authored repository. They overlapped for ~9 s in the two-slot
 #     `engine` group, but their cost is still irreducibly O(ontology/projection size),
@@ -307,7 +307,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::docs_render::tests::term_loss_digest_is_non_vacuous_on_the_real_repo/))
     | (package(gmeow-slicetest) & test(/run_structural_file::core\/slice-quality-rubric\/tests\/structural\.ttl/))
     | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
-    | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode) | test(describe_wheel_mode_equals_repo_mode)))
+    | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode)))
     | (package(gmeow-docs) & binary(render_golden) & test(render_site_is_byte_stable))
     | (package(gmeow-docs) & binary(mdbook_render) & test(book_bodies_are_rewrite_of_single_authority))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(english_carrier_tree_matches_render_site))
@@ -320,7 +320,7 @@ default-filter = '''
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
 retries = { backoff = "fixed", count = 2, delay = "1s" }
-# Output ergonomics (#871): surface the slowest tests in the final summary every
+# Output ergonomics: surface the slowest tests in the final summary every
 # run (previously invisible until they hit the slow-timeout terminate cliff).
 # Passing runs stay quiet; a failing test's captured output shows inline AND is
 # recapped at the end so it is not lost in a parallel run.
@@ -333,7 +333,7 @@ inherits = "default"
 junit = { path = "junit.xml" }
 fail-fast = false
 
-# Maintainer lane (#1045): runs EVERYTHING, including the heavy tests the default/ci
+# Maintainer lane: runs EVERYTHING, including the heavy tests the default/ci
 # profiles carve out via `default-filter`. Used by `make maint-rust-heavy` so the
 # off-gate parity / full-fold / codec coverage still runs (locally + on a CI schedule),
 # just not on the per-commit gate. `default-filter = 'all()'` overrides the inherited
@@ -344,11 +344,11 @@ default-filter = 'all()'
 junit = { path = "junit.xml" }
 fail-fast = false
 
-# Engine memory cap (#871, sub-ask 3). The retained Nemo comparison engine is
+# Engine memory cap. The retained Nemo comparison engine is
 # RAM-heavy: nextest runs EACH test in its own process, and the in-process
 # `CHASE_LOCK` (nemo_engine.rs)
 # process-global mutexes serialize only WITHIN a process — they do NOT cap how many multi-GB chase
-# PROCESSES run at once. On the 16 GB CI runner the default thread count = nproc
+# PROCESSES run at once. On the 16 GB CI runner the available CPU count is four
 # (4), so up to 4 concurrent chases could OOM-thrash. This group caps concurrent engine
 # tests to 2; the fast leaf-crate tests (rdf/shacl/validate/docs/diagnostics) and
 # the ~360 fast gmeow-logic unit tests stay fully parallel.
@@ -391,7 +391,7 @@ test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The #896 native reasoning-entailment harness (crates/logic/tests/ontology_entailments.rs)
+# The native reasoning-entailment harness (crates/logic/tests/ontology_entailments.rs)
 # migrates the OWL/EL/DL reasoning pytest cluster: each test drives Nemo
 # (rl_closure -> run_chase) over a scoped set of authored slice modules. These
 # are now on-gate and under budget after the 2026-06-29 reevaluation, but they
@@ -465,7 +465,7 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier (whole-bundle export/serialize),
 # and stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows (whole
 # projection-report union). The product-routing and projection-report sweeps are off-gated via
-# `default-filter` after both exceeded 25 s in PR #1504; this override still serializes them on
+# `default-filter` after both exceeded 25 s in the failing CI shard; this override serializes them on
 # `maint-heavy`. The remaining on-gate bundle folds use the same group so they do not contend with
 # concurrent chases.
 filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::export::tests::export_produces_structurally_valid_artifacts|stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
@@ -507,7 +507,7 @@ test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The B3 real-repo non-vacuity proof (F1, issue 1404) drives a full native-chase
+# The B3 real-repo non-vacuity proof (F1) drives a full native-chase
 # reasoning pass over the WHOLE object-level EDB via the real `ReasonStage`. It is
 # off-gated via `default-filter` (runs only on `maint-heavy`), but the override
 # still applies there: serialize under the `engine` memory group so it does not
@@ -518,7 +518,7 @@ test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The B1 real-repo non-vacuity proof (issue 1404) runs the whole-ontology SHACL
+# The B1 real-repo non-vacuity proof runs the whole-ontology SHACL
 # validate + logic-compile chain (no Nemo chase, so no `engine` memory group — the
 # same class as the off-gate `conformance_*` validate binaries). It is off-gated via
 # `default-filter` (runs only on `maint-heavy`); grant a runaway cliff well over its
