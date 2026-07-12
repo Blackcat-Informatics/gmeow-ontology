@@ -10,7 +10,7 @@
 //! as a doc contract ("call `stratify` first") is fragile: a caller can forget, or
 //! re-stratify per call.  This module makes an unstratified/unplanned program
 //! **unrepresentable at the executor boundary** — the executor's only input is an
-//! [`Executable`], whose sole constructor chain is `Parsed::new(..).stratify()?.plan()
+//! [`Executable`], whose sole constructor chain is `Parsed::uncached(..).stratify()?.plan()
 //! .into_executable()`.  There is no other way to obtain one, so the compiler — not a
 //! comment — enforces "stratify then plan then execute".
 //!
@@ -953,10 +953,10 @@ pub(crate) struct Parsed {
 impl Parsed {
     /// Enter the uncached pipeline with a parsed rule program.
     ///
-    /// This compatibility constructor is primarily for focused tests and one-shot
-    /// internal callers. Production repeated-evaluation boundaries use
+    /// This explicit one-shot constructor is for focused tests and genuinely uncached
+    /// internal evaluations. Production repeated-evaluation boundaries use
     /// [`compile_cached`] with their real reasoning/query contract hash.
-    pub(crate) fn new(rules: &[EvalRule]) -> Self {
+    pub(crate) fn uncached(rules: &[EvalRule]) -> Self {
         let identity = PlanIdentity::new("gmeow-uncached-plan", rules);
         Self::from_owned(identity, rules.to_vec())
     }
@@ -1156,7 +1156,7 @@ mod tests {
 
         // (1) Walk the pipeline; the explicit stage annotations are the distinct-types
         // proof. There is no shortcut: `Executable` has no other constructor.
-        let parsed: Parsed = Parsed::new(&rules);
+        let parsed: Parsed = Parsed::uncached(&rules);
         let stratified: Stratified = parsed.stratify().expect("stratifiable");
         let planned: Planned = stratified.plan();
         let executable: Executable = planned.into_executable();

@@ -108,7 +108,7 @@ pub(crate) use seminaive::{
 // The type-state plan pipeline: the executor's entry-gate types. `Parsed` is the sole
 // entry; `Executable` is the sole type the forward/backward evaluators accept. The
 // intermediate `Stratified`/`Planned` are re-exported so a caller can name a stage if it
-// chooses, though the fluent `Parsed::new(..).stratify()?.plan().into_executable()` chain
+// chooses, though the fluent `Parsed::uncached(..).stratify()?.plan().into_executable()` chain
 // never needs to.
 #[allow(unused_imports)]
 pub(crate) use plan::{Executable, Parsed, PlanCache, Planned, Stratified, compile_cached};

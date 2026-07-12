@@ -2149,7 +2149,7 @@ fn evaluate_round_candidates(
 ///
 /// This is the semi-naive executor entry point, and it is **unrepresentable without an
 /// [`Executable`]**: the rules of stratum `stratum` are read from `exe`, whose only
-/// constructor chain is `Parsed::new(..).stratify()?.plan().into_executable()` (see
+/// constructor chain is `Parsed::uncached(..).stratify()?.plan().into_executable()` (see
 /// [`super::plan`]).  There is no overload taking `&[EvalRule]`, a `Parsed`, a
 /// `Stratified`, or a `Planned`; the compiler — not a doc comment — rejects any attempt
 /// to execute a program that has not been stratified AND join-planned.
@@ -2537,7 +2537,7 @@ pub(crate) fn rule_parallel_probe() -> gmeow_errors::Result<RuleParallelProbe> {
          <{NS}right>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n"
     );
     let rules = crate::rule_ir::parse_eval_rules(&rule_text)?;
-    let executable = super::plan::Parsed::new(&rules)
+    let executable = super::plan::Parsed::uncached(&rules)
         .stratify()
         .ok_or_else(|| seminaive_err("rule-parallel evidence fixture is non-stratifiable"))?
         .plan()
@@ -2634,7 +2634,7 @@ mod tests {
     /// to the `Executable` the forward/backward executors accept.  A non-stratifiable
     /// program has no place in these tests (it is a caller-side declared gap), so `expect`.
     fn exe(rules: &[EvalRule]) -> Executable {
-        Parsed::new(rules)
+        Parsed::uncached(rules)
             .stratify()
             .expect("stratifiable test program")
             .plan()
@@ -3231,7 +3231,7 @@ mod tests {
         let rules = parse_eval_rules(&rls).expect("parse cyclic-negation rules");
 
         assert!(
-            Parsed::new(&rules).stratify().is_none(),
+            Parsed::uncached(&rules).stratify().is_none(),
             "p↔q via mutual negation must be reported non-stratifiable (no Executable)"
         );
     }
@@ -4201,7 +4201,7 @@ mod tests {
             },
         ];
         assert!(
-            Parsed::new(&rules).stratify().is_none(),
+            Parsed::uncached(&rules).stratify().is_none(),
             "the pipeline must refuse a non-stratifiable program before either lane runs"
         );
     }

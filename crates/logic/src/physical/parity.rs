@@ -1264,7 +1264,7 @@ mod tests {
         // trips: the returned status is always `Ok` and the full least model is produced.
         // The corpus program is stratifiable by construction, so the type-state pipeline's
         // `stratify()` always yields the `Executable` the executor requires.
-        let executable = Parsed::new(&rules)
+        let executable = Parsed::uncached(&rules)
             .stratify()
             .unwrap_or_else(|| panic!("[{}] corpus program must be stratifiable", p.label))
             .plan()
