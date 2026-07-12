@@ -1131,3 +1131,26 @@ ex:cqConfidenceAsProbabilityShape a logic:ResultShape ;
 ex:rowUnmappedClaim a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:unmappedClaim ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "confidence" ; gmeow:cellValueLiteral "0.9" ] .
+
+# === SQ1 — study spine: population and sample of an estimate ================ #
+
+ex:cqStatisticsPopulationAndSample a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-population-and-sample.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-population-and-sample.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Sample refers (math:population) to the math:StatisticalPopulation it stands in for and is drawn (math:sampleOf) from the math:SamplingFrame that operationalizes (math:samplingFrame) that population — keeping who-we-care-about distinct from who-we-measured. Over the fixture the answer is exactly {cohortSample → population cohortPopulation, frame cohortRegistry}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsPopulationAndSampleShape ;
+    gmeow:cqExpectRow ex:rowCohortSample .
+
+ex:cqStatisticsPopulationAndSampleShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "sample" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "population" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "frame" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCohortSample a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sample" ; gmeow:cellValueIri exf:cohortSample ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "population" ; gmeow:cellValueIri exf:cohortPopulation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "frame" ; gmeow:cellValueIri exf:cohortRegistry ] .
