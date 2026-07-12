@@ -34,12 +34,12 @@
 //!
 //! # Thread-locality
 //!
-//! The forward core's rayon parallelism is **per world** (each world runs its own
-//! sequential `eval_world_stratified` on its own stores — see
-//! [`crate::physical::seminaive`]); there is NO rayon-parallel rule-firing loop within
-//! a round.  A `RowArena` is therefore created inside a single fixpoint invocation and
-//! is thread-local by construction: no arena is ever shared across parallel firings, so
-//! there is no cross-thread aliasing to guard.
+//! The forward core parallelizes both independent worlds and immutable per-rule work
+//! within one semi-naive round (see [`crate::physical::seminaive`]). A `RowArena` is
+//! therefore owned by the rule/phase invocation that creates it: arenas are never shared
+//! across rule tasks, and completed task buffers cross the scheduling boundary only as
+//! owned values before the single sorted commit. There is no cross-thread arena aliasing
+//! to guard.
 
 use smallvec::SmallVec;
 

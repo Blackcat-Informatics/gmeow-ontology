@@ -86,7 +86,6 @@ pub mod result_rdf;
 /// re-exported here as `gmeow_logic::result_shape` for the result family.
 pub use gmeow_logic_compile::result_shape;
 pub mod rule_ir;
-pub mod scryer_engine;
 pub mod seam;
 pub mod slme;
 pub mod stablemodel;

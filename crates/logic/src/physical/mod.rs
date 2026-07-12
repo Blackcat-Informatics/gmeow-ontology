@@ -3,8 +3,8 @@
 
 //! Native physical execution core.
 //!
-//! The destination is ONE native Rust engine: Scryer/Nemo/oxigraph are
-//! bootstrap oracles, not the runtime. This module hosts that engine's working
+//! The destination is one native Rust engine. Nemo remains a temporary forward
+//! comparison oracle; oxigraph remains a storage compatibility layer. This module hosts the engine's working
 //! representation — starting with the columnar [`RelationStore`] and the single
 //! oxigraph → columnar bridge [`extract_edb`].
 //!
@@ -35,6 +35,15 @@ mod chase;
 // path (`seminaive`, `chase`).
 mod cursor;
 mod generic;
+// The signed-batch / nested-iteration incremental circuit for the finite positive
+// binary Datalog fragment. It owns recursive insert/retract maintenance and is the
+// stateful sibling of the scratch `seminaive` evaluator.
+mod incremental;
+// Incremental grounding for the non-monotone binary fragment.  It reuses the
+// signed positive-Datalog session for the candidate universe, then differentiates
+// each grounding join while deliberately leaving WFS / stable-model solving on
+// its named from-scratch boundary.
+mod incremental_grounding;
 // Branded niche IDs for every engine entity class (`TermId`/`PredId`/`RuleId`/
 // `RowId`). `pub(crate)` so `crate::facts` can re-express its `TermId` as this
 // module's `Id<Term>` alias (one definition, not two — greenfield).
@@ -44,7 +53,8 @@ mod magic_generic;
 mod parity;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
-// semi-naive executor boundary and memoizes the stratification + per-rule join partition.
+// semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,
+// flat slots, SIPS/index/kernel choices, and selective cyclic groups.
 mod plan;
 mod seminaive;
 mod store;
@@ -64,6 +74,16 @@ pub(crate) use generic::{
     GenericRule, lower_program_generic_rules, materialize_generic, parse_generic_rules,
 };
 
+#[allow(unused_imports)]
+pub(crate) use incremental::{
+    BudgetedIncrementalDelta, IncrementalDelta, IncrementalDerivation, IncrementalIdentity,
+    IncrementalSession, SignedFact,
+};
+#[allow(unused_imports)]
+pub(crate) use incremental_grounding::{
+    GroundProgramSnapshot, GroundRuleChange, GroundingUpdate, IncrementalGroundProgram,
+};
+
 // Phase-A: these are the engine's public-to-crate surface, consumed by the
 // forward/backward evaluators landing on the next rung. Until then the re-export is
 // unused crate-wide, so allow it here rather than dropping the intended API.
@@ -81,16 +101,17 @@ pub(crate) use cursor::{LendingIterator, RowCursor};
 // `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
 pub(crate) use seminaive::{
-    Budgeted, NativeOutcome, UnsupportedKind, evaluate, materialize_native,
+    Budgeted, NativeOutcome, RuleParallelProbe, UnsupportedKind, evaluate, materialize_native,
+    rule_parallel_probe,
 };
 
 // The type-state plan pipeline: the executor's entry-gate types. `Parsed` is the sole
 // entry; `Executable` is the sole type the forward/backward evaluators accept. The
 // intermediate `Stratified`/`Planned` are re-exported so a caller can name a stage if it
-// chooses, though the fluent `Parsed::new(..).stratify()?.plan().into_executable()` chain
+// chooses, though the fluent `Parsed::uncached(..).stratify()?.plan().into_executable()` chain
 // never needs to.
 #[allow(unused_imports)]
-pub(crate) use plan::{Executable, Parsed, Planned, Stratified};
+pub(crate) use plan::{Executable, Parsed, PlanCache, Planned, Stratified, compile_cached};
 
 // The native restricted (standard) existential-rule chase: value invention for the
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and
@@ -107,11 +128,13 @@ pub use chase::ChaseAdmission;
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
 // backward path consumed by `dispatch::dispatch_query`.
+#[cfg(test)]
 pub(crate) use magic::resolve_native;
+pub(crate) use magic::{IncrementalQuerySession, prepare_incremental_query, resolve_native_under};
 
 // The shared moded builtin evaluator: one arithmetic/comparison semantics called
 // by every native engine. `emit_integer_surface` is the single canonical
-// computed-value surface, reused by the dispatch/Scryer surface emitters so
+// computed-value surface, reused by dispatch and reference emitters so
 // byte-identity is by construction. `eval_builtin`/`BuiltinOutcome`/`BuiltinError`
 // are consumed by the forward/backward evaluators wired on the next rungs.
 #[allow(unused_imports)]

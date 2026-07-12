@@ -384,11 +384,11 @@ so nothing is lost in the move from lint to logic.
 The native `logic:` solver is the **reasoning authority**; the in-process OWL 2 DL oracle cross-check and the Datalog / SHACL
 engines become **secondary validators of their projected fragments**. This supersedes the
 OWL-2-DL-core framing of Principles 2, 8, and 12 (annotated there). Correctness is **verified by
-construction** (Principle 7): the **Rust core is canonical** (the native gmeow RDF-1.2 / SPARQL
-engine + Nemo + an embedded Prolog, bound by PyO3 — the Principle 13 tool pattern), and every committed conformance
-golden is the derivation graph it produces. The slow, independent Python oracle is retained as a
-**secondary validator** — it must agree with the Rust core on the shared, language-neutral
-conformance corpus — but it is no longer the spec. The reasoner remains *our* quality assurance,
+construction** (Principle 7): the **Rust core is canonical** (the native gmeow RDF 1.2,
+SPARQL, and relational logic engines — the Principle 13 tool pattern). Committed regression
+goldens and external corpora remain engine-independent evidence, never self-authored truth;
+retained comparison engines must agree with the Rust core on their shared fragments but are not
+the spec. The reasoner remains *our* quality assurance,
 never the consumer's prerequisite (Principle 13): the canon is maximal; the projections are what
 anyone else consumes.
 

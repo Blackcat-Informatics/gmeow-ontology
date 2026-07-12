@@ -40,6 +40,7 @@
 
 use purrdf::TermValue;
 use sha1::{Digest, Sha1};
+use std::num::NonZeroU32;
 
 /// Wrap a provenance-derivation condition message as a typed diagnostic on the
 /// shared substrate, preserving the authored text verbatim.
@@ -68,6 +69,223 @@ pub const REIFIER_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/reifier/"
 
 /// Prefix for derivation IRIs.
 pub const DERIVATION_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/derivation/";
+
+// ── Bounded provenance algebras ───────────────────────────────────────────────
+
+/// The checked algebraic plug-point shared by bounded provenance annotations.
+///
+/// `add` combines alternative derivations (`⊕`); `multiply` combines conjunctive
+/// evidence (`⊗`).  The interface is deliberately smaller than a symbolic-lineage
+/// system: recursive `N[X]` polynomials are not a materialization target.  Concrete
+/// carriers stay bounded — [`MinProofHeightSemiring`] stores one small height and
+/// [`ZWeightSemiring`] stores one signed counting weight.
+///
+/// Operations are fallible because a numeric carrier overflowing is a hard engine
+/// error, never a saturated or wrapped provenance claim.
+pub trait ProvenanceSemiring {
+    /// One annotation value.
+    type Element: Copy + Eq;
+
+    /// Additive identity: no derivation.
+    fn zero(self) -> Self::Element;
+    /// Multiplicative identity: asserted/unit evidence.
+    fn one(self) -> Self::Element;
+    /// Combine alternative derivations.
+    fn add(self, left: Self::Element, right: Self::Element) -> gmeow_errors::Result<Self::Element>;
+    /// Combine conjunctive premises.
+    fn multiply(
+        self,
+        left: Self::Element,
+        right: Self::Element,
+    ) -> gmeow_errors::Result<Self::Element>;
+}
+
+/// A provenance semiring with additive inverses (the signed Z-set carrier).
+pub trait ProvenanceRing: ProvenanceSemiring {
+    /// Additive inverse, used by retractions.
+    fn negate(self, value: Self::Element) -> gmeow_errors::Result<Self::Element>;
+}
+
+/// Finite height of a selected minimal proof tree (`0` for an asserted fact).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ProofHeight(NonZeroU32);
+
+impl ProofHeight {
+    /// An asserted fact is a proof leaf.
+    pub const ASSERTED: Self = Self(NonZeroU32::MIN);
+
+    /// Construct a finite proof height.
+    ///
+    /// # Errors
+    ///
+    /// Returns a typed provenance error if `value + 1` cannot fit the nonzero niche
+    /// encoding. No height is saturated or wrapped.
+    pub fn new(value: u32) -> gmeow_errors::Result<Self> {
+        let encoded = value.checked_add(1).ok_or_else(|| {
+            provenance_err(format!(
+                "finite proof height {value} exceeds the niche-encoded u32 carrier"
+            ))
+        })?;
+        Ok(Self(
+            NonZeroU32::new(encoded).expect("checked height + 1 is nonzero"),
+        ))
+    }
+
+    /// The finite height as a scalar.
+    #[must_use]
+    pub const fn get(self) -> u32 {
+        self.0.get() - 1
+    }
+
+    /// Lift a conjunction of premise proofs through one rule firing.
+    fn successor(self) -> gmeow_errors::Result<Self> {
+        self.0
+            .get()
+            .checked_add(1)
+            .and_then(NonZeroU32::new)
+            .map(Self)
+            .ok_or_else(|| {
+                provenance_err("minimal proof-height annotation overflowed u32".to_owned())
+            })
+    }
+}
+
+/// The `N ∪ {∞}` carrier of the `(min, max)` idempotent semiring.
+///
+/// `Infinity` is additive identity/no derivation. `Finite(0)` is multiplicative
+/// identity/asserted evidence. Alternative proofs choose `min`; a conjunction takes
+/// `max`. A rule application then performs one checked successor, yielding the
+/// Zhao/Subotić/Scholz recurrence `1 + max(body heights)`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MinProofHeight {
+    /// A finite proof annotation.
+    Finite(ProofHeight),
+    /// No derivation (the additive identity).
+    Infinity,
+}
+
+/// Minimal-proof-height provenance over the bounded `(min, max)` carrier.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct MinProofHeightSemiring;
+
+impl ProvenanceSemiring for MinProofHeightSemiring {
+    type Element = MinProofHeight;
+
+    fn zero(self) -> Self::Element {
+        MinProofHeight::Infinity
+    }
+
+    fn one(self) -> Self::Element {
+        MinProofHeight::Finite(ProofHeight::ASSERTED)
+    }
+
+    fn add(self, left: Self::Element, right: Self::Element) -> gmeow_errors::Result<Self::Element> {
+        Ok(match (left, right) {
+            (MinProofHeight::Infinity, other) | (other, MinProofHeight::Infinity) => other,
+            (MinProofHeight::Finite(a), MinProofHeight::Finite(b)) => {
+                MinProofHeight::Finite(a.min(b))
+            }
+        })
+    }
+
+    fn multiply(
+        self,
+        left: Self::Element,
+        right: Self::Element,
+    ) -> gmeow_errors::Result<Self::Element> {
+        Ok(match (left, right) {
+            (MinProofHeight::Infinity, _) | (_, MinProofHeight::Infinity) => {
+                MinProofHeight::Infinity
+            }
+            (MinProofHeight::Finite(a), MinProofHeight::Finite(b)) => {
+                MinProofHeight::Finite(a.max(b))
+            }
+        })
+    }
+}
+
+impl MinProofHeightSemiring {
+    /// Annotate one rule firing from its premise heights.
+    ///
+    /// An empty body folds to the multiplicative identity and therefore has height
+    /// `1`; a non-empty body has `1 + max(premises)`. The finite iterator cannot
+    /// produce `Infinity`, so reaching it is an internal algebra bug.
+    pub fn derive(
+        self,
+        premises: impl IntoIterator<Item = ProofHeight>,
+    ) -> gmeow_errors::Result<ProofHeight> {
+        let mut product = self.one();
+        for premise in premises {
+            product = self.multiply(product, MinProofHeight::Finite(premise))?;
+        }
+        match product {
+            MinProofHeight::Finite(height) => height.successor(),
+            MinProofHeight::Infinity => Err(provenance_err(
+                "finite proof premises unexpectedly folded to infinity".to_owned(),
+            )),
+        }
+    }
+
+    /// Choose the lower of two finite alternative proof heights.
+    pub fn choose(
+        self,
+        left: ProofHeight,
+        right: ProofHeight,
+    ) -> gmeow_errors::Result<ProofHeight> {
+        match self.add(MinProofHeight::Finite(left), MinProofHeight::Finite(right))? {
+            MinProofHeight::Finite(height) => Ok(height),
+            MinProofHeight::Infinity => Err(provenance_err(
+                "two finite proof alternatives unexpectedly combined to infinity".to_owned(),
+            )),
+        }
+    }
+}
+
+/// Signed integer counting provenance used by the incremental Z-set circuit.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ZWeightSemiring;
+
+impl ProvenanceSemiring for ZWeightSemiring {
+    type Element = i64;
+
+    fn zero(self) -> Self::Element {
+        0
+    }
+
+    fn one(self) -> Self::Element {
+        1
+    }
+
+    fn add(self, left: Self::Element, right: Self::Element) -> gmeow_errors::Result<Self::Element> {
+        left.checked_add(right).ok_or_else(|| {
+            provenance_err(format!(
+                "signed counting-provenance addition overflow: {left} + {right}"
+            ))
+        })
+    }
+
+    fn multiply(
+        self,
+        left: Self::Element,
+        right: Self::Element,
+    ) -> gmeow_errors::Result<Self::Element> {
+        left.checked_mul(right).ok_or_else(|| {
+            provenance_err(format!(
+                "signed counting-provenance multiplication overflow: {left} * {right}"
+            ))
+        })
+    }
+}
+
+impl ProvenanceRing for ZWeightSemiring {
+    fn negate(self, value: Self::Element) -> gmeow_errors::Result<Self::Element> {
+        value.checked_neg().ok_or_else(|| {
+            provenance_err(format!(
+                "signed counting-provenance negation overflow: -({value})"
+            ))
+        })
+    }
+}
 
 // ── XSD / RDF datatype IRIs ────────────────────────────────────────────────────
 
@@ -388,6 +606,88 @@ pub fn mint_derivation_id(rule_iri: &str, source_reifier_iris: &[&str]) -> Strin
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn min_proof_height_uses_max_for_premises_and_min_for_alternatives() {
+        let algebra = MinProofHeightSemiring;
+        let direct = algebra
+            .derive([ProofHeight::new(0).unwrap(), ProofHeight::new(2).unwrap()])
+            .expect("finite proof heights must combine");
+        let indirect = algebra
+            .derive([ProofHeight::new(3).unwrap()])
+            .expect("finite proof height must lift");
+
+        assert_eq!(direct.get(), 3, "rule height is 1 + max(body heights)");
+        assert_eq!(indirect.get(), 4);
+        assert_eq!(
+            algebra
+                .choose(indirect, direct)
+                .expect("finite alternatives must combine"),
+            direct,
+            "alternative derivations select the minimal proof height"
+        );
+        assert_eq!(
+            algebra
+                .derive([])
+                .expect("a bodyless derived rule has one rule level")
+                .get(),
+            1
+        );
+    }
+
+    #[test]
+    fn bounded_provenance_overflow_hard_fails() {
+        assert!(
+            ProofHeight::new(u32::MAX).is_err(),
+            "the niche constructor must refuse an unencodable finite value"
+        );
+        let height_err = MinProofHeightSemiring
+            .derive([ProofHeight::new(u32::MAX - 1).unwrap()])
+            .expect_err("proof height must not saturate or wrap");
+        assert!(height_err.to_string().contains("proof-height"));
+
+        let add_err = ZWeightSemiring
+            .add(i64::MAX, 1)
+            .expect_err("Z-weight addition must be checked");
+        assert!(add_err.to_string().contains("addition overflow"));
+
+        let mul_err = ZWeightSemiring
+            .multiply(i64::MAX, 2)
+            .expect_err("Z-weight multiplication must be checked");
+        assert!(mul_err.to_string().contains("multiplication overflow"));
+
+        let neg_err = ZWeightSemiring
+            .negate(i64::MIN)
+            .expect_err("Z-weight negation must be checked");
+        assert!(neg_err.to_string().contains("negation overflow"));
+    }
+
+    #[test]
+    fn provenance_algebras_obey_identity_and_absorption_contracts() {
+        let min_height = MinProofHeightSemiring;
+        let two = MinProofHeight::Finite(ProofHeight::new(2).unwrap());
+        assert_eq!(min_height.add(two, min_height.zero()).unwrap(), two);
+        assert_eq!(min_height.multiply(two, min_height.one()).unwrap(), two);
+        assert_eq!(
+            min_height.multiply(two, min_height.zero()).unwrap(),
+            MinProofHeight::Infinity
+        );
+
+        let z = ZWeightSemiring;
+        assert_eq!(z.add(7, z.zero()).unwrap(), 7);
+        assert_eq!(z.multiply(7, z.one()).unwrap(), 7);
+        assert_eq!(z.multiply(7, z.zero()).unwrap(), 0);
+        assert_eq!(z.add(7, z.negate(7).unwrap()).unwrap(), 0);
+    }
+
+    #[test]
+    fn optional_proof_height_uses_the_nonzero_niche() {
+        assert_eq!(
+            std::mem::size_of::<Option<ProofHeight>>(),
+            std::mem::size_of::<u32>(),
+            "an absent annotation must not widen neutral provenance rows"
+        );
+    }
 
     /// Test-only helper mirroring `literal_n3_parts` over a constructed `TermValue`.
     fn literal_n3(term: &TermValue) -> String {

@@ -51,8 +51,8 @@ Required solver capabilities:
 - materialize declared rule consequences (monotonic and stratified non-monotonic), under the
   reasoning contract declared by the request (see [LOGIC-SEMANTICS.md § The reasoning
   contract](LOGIC-SEMANTICS.md#the-reasoning-contract));
-- resolve goals by unification and backward chaining, with builtins (cut only in the procedural
-  preset — see [LOGIC-SEMANTICS.md § Cut is procedural](LOGIC-SEMANTICS.md#cut-is-procedural-not-canonical));
+- resolve goals by unification through demand transformation, with checked builtins; cut is
+  retired and rejected before evaluation;
 - evaluate closed-world constraints over asserted and derived graphs;
 - carry contextual/temporal/modal/probabilistic scope through inference, and construct
   hypothesized/counterfactual typed contexts on demand (see
@@ -85,10 +85,9 @@ filled by a component optimized for that purpose; the architecture does not conf
   provenance capture, and disposal) layered on top of it. The architectural insight that
   existential chase approximates typed-context construction is a `logic:`-level design choice,
   not a property the substrate itself ships.
-- **Backward goal resolution.** A Prolog-grade SLD resolution engine fills this role — unification,
-  backward chaining, builtins, and tabling. Cut is confined to the procedural preset. The backward
-  engine reads the materialized store as read-only data; it never writes back to it except under
-  the explicit materialize-back policy described below.
+- **Backward goal resolution.** Subsumptive demand transformation rewrites a goal into the native
+  relational core and runs the same stratified semi-naive fixpoint over the demand-restricted
+  program. Checked builtins and budgets are native; cut is retired and rejected.
 - **Proof traces and provenance.** Derivations are first-class, keyed by rule IRI and the source
   statements' reifier IRIs — reusing the statement layer's reifier identity.
 - **Contradiction witnesses.** Minimal conflict-set detection plus truth-maintenance; a witness is
@@ -96,23 +95,18 @@ filled by a component optimized for that purpose; the architecture does not conf
 
 ### Substrate lineage
 
-The materializer role is filled by a Rust-native existential-rule engine (**Nemo** — knowsys);
-the backward-resolution role by an embedded Rust Prolog (**Scryer**); storage and SPARQL by a
-Rust-native RDF 1.2 quad store (**oxigraph**). These are conceptual substrate choices — named here
-because the design decisions (asymmetric pipeline, blackboard handoff, Kripke algebra mapped to
-typed named-graph contexts) are grounded in what those engines commit to. They are not build-time
-feature flags or replaceable components the architecture is neutral about; the seam design is
-written *for* these substrates. External OWL reasoners remain available for
+Production forward and backward reasoning are implemented by the native Rust relational core;
+storage and SPARQL use a Rust-native RDF 1.2 quad store (**oxigraph**). **Nemo** remains only as a
+temporary forward differential reference while its final existential correctness gates land.
+**Scryer has been retired**: there is no embedded Prolog dependency or backward fallback. External
+reasoners remain available for
 checking the OWL projections of the IR, but they are secondary validators of their projected
 fragments — not authorities over the canonical `logic:` semantics.
 
-**Trajectory.** The named substrates are the current *bootstrap*; the long-term engine subsumes
-their evaluation primitives into a single native relational core (see
-[The native physical engine](#the-native-physical-engine--execution-and-optimization)) and demotes
-Nemo/Scryer to conformance oracles + not-yet-native fallbacks + capability stand-ins, subsumed
-fragment-by-fragment and oracle-gated. The seam above stays correct for the bootstrap; the
-trajectory makes the engine *engine-agnostic* — named engines become stand-ins for capability
-bundles, not architectural commitments.
+**Trajectory.** The backward substrate is fully subsumed. The remaining forward retirement work
+promotes production existential reasoning onto the native chase and deletes Nemo after its
+correctness and evidence gates pass. Named engines are evidence sources, not architectural
+commitments.
 
 > Ownership boundary. The existential-rule substrate provides the chase *mechanism* used by
 > `logic:` typed-context construction — it is not, by itself, a context-construction engine.
@@ -120,47 +114,18 @@ bundles, not architectural commitments.
 > chase, memoization, provenance capture, and disposal. The architectural insight ("existential
 > chase ≈ context construction") is a `logic:`-level design choice layered on that substrate.
 
-### Backward-resolver instance lifecycle and reuse
+### Backward-resolver lifecycle
 
-The backward resolver constructs a **fresh solver instance for every query** and disposes of it
-afterward. The embedded Prolog keeps process-global mutable symbol state, so the runtime serialises
-a solver instance's entire lifecycle — construction through disposal — and instances are not
-movable across threads.
-
-One query proceeds as: snapshot the world's asserted facts as ground clauses (in a canonical order
-so clause enumeration is deterministic); assemble those facts together with the program's rules and
-tabling directives into a single program text; construct a solver instance; load that program into
-the instance; resolve the goal; then dispose of the instance.
-
-The per-query cost is dominated by **instance construction and program loading**. Assembling the
-fact snapshot is negligible by comparison, so caching that snapshot earns nothing. Of the dominant
-cost, raw instance construction is the larger share and program compilation the smaller; and within
-program compilation the fixed standard-library imports are recompiled on every query even though
-they never change, while only the asserted facts and the program's rules actually vary from one
-query to the next.
-
-This is why **instance reuse (pooling) is structurally blocked**. Warm reuse would amortise instance
-construction and the fixed library compilation, but the embedded Prolog exposes no way to *reset* an
-instance — no way to clear a loaded program's asserted facts and reload a new world's facts while
-keeping the constructed solver and the compiled libraries warm. Because the program legitimately
-changes per query and there is no reset/reload seam, every query must rebuild from scratch; combined
-with the global-symbol-state serialisation of construction and disposal, even a pool could issue
-instances only one at a time.
-
-**Re-entry condition.** Warm-instance reuse becomes possible once the embedded Prolog grows a small
-reset surface — the ability to clear a loaded program's asserted facts, reload a fresh fact set, and
-reset tabled state — so the constructed solver and its compiled libraries stay warm across queries.
-That is an upstream capability to contribute, not a local change: the architecture would adopt it
-the moment it exists. Until then, the per-query instance is the correct, contention-safe design, and
-instance pooling stays **deferred pending that capability**.
+The native resolver has no per-query virtual machine and no process-global serialization lock.
+Each query snapshots its world into the typed fact source, lowers the adorned goal into a
+demand-transformed program, and evaluates that plan in the native fixpoint core. The snapshot and
+working relations are query-local, while immutable compiled plans may be cached by contract hash.
 
 ## The forward materialization ↔ backward resolution seam
 
-The runtime interface between the **materializer** (forward) and the **goal resolver** (backward)
-is an **asymmetric pipeline**: the two components never call each other directly. They communicate
-only through named graphs in the shared quad store, where the graph IRI identifies a typed context.
-The materializer writes; the goal resolver reads; the quad store is the shared blackboard. The
-three runtime phases map one-to-one to the three
+Forward materialization and backward demand evaluation share one relational core and exchange
+world-scoped facts through named graphs, where the graph IRI identifies a typed context. The
+materializer writes; goal resolution reads. The three runtime phases map one-to-one to the three
 [strata](LOGIC-SEMANTICS.md#three-strata-of-context-reasoning).
 
 **Phase 1 — materialize (forward engine owns it; Strata A and B).** The forward-stratified rules
@@ -174,26 +139,25 @@ gate enforced, the runtime enforces the contract's certified-fragment annotation
 guarantee, and the result, when the phase completes, is a saturated, read-only **extensional
 database (EDB)**.
 
-**Phase 2 — resolve (backward engine owns it; the query / logic-programming layer).** Backward
-goal resolution runs over the materialized store as read-only data. A base predicate is resolved
-by a foreign predicate `in_world(W, S, P, O)` backed by a quad lookup; the Prolog clauses are the
-**intensional database (IDB)**, the recursive, unification-driven part the forward engine cannot
-express. Non-recursive pattern goals route to SPARQL (the fast path); recursive or
-unification-heavy goals go to the backward engine. Termination in Phase 2
-is not automatic — unrestricted recursion, stable-model evaluation, and procedural goal resolution
-can be non-terminating unless the contract certifies a terminating fragment (e.g. Datalog
-restriction, tabling with finite tables, bounded search). The resource budget acts as a backstop,
-returning `evaluation = budget-exhausted` rather than diverging; it does not make the phase
-"terminating by construction."
+**Phase 2 — resolve (native demand evaluation; the query / logic-programming layer).** Backward
+goals read the materialized store through `WorldFactSource`, undergo subsumptive demand
+transformation, and execute over the native stratified semi-naive core. Recursive IDB goals and
+EDB lookups therefore share the same deterministic plan. Certified fragments terminate by
+construction; a resource budget bounds other supported programs and returns
+`evaluation = budget-exhausted` rather than diverging. Unsupported fragments hard-fail.
 
-**Phase 3 — construct (backward engine invokes a transient chase; Stratum C only).** When a
-backward goal reaches a counterfactual predicate — `holds(W_cf, φ)` with
-`W_cf = counterfactualOf(W_base, A)` — the backward engine calls `construct_context(W_base, A,
+**Phase 3 — construct (native counterfactual revision; Stratum C only).** When a
+goal reaches a counterfactual predicate — `holds(W_cf, φ)` with
+`W_cf = counterfactualOf(W_base, A)` — the native path calls `construct_context(W_base, A,
 W_cf)`. That seeds a fresh, **isolated** named graph from the base context minimally revised to
 admit `A` (the AGM step, made deterministic by a declared entrenchment ordering — see
 [LOGIC-SEMANTICS.md § Deterministic revision](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion)),
-runs an **isolated, transient chase** scoped to that context, and only then resolves `φ` inside
-it. The constructed context is per-query and discarded afterward — or memoized (see
+runs an isolated resolution scoped to that context, and only then resolves `φ` inside it. For a
+fixed positive-Datalog program the cache retains one signed incremental base session and each
+closest-world branch cheaply shares its immutable rule/arena/iteration-history roots and applies
+only its functional-slot `-1/+1` revision; an uncovered fragment
+uses the named native transient-chase fallback. The constructed context is per-query and
+discarded afterward — or memoized (see
 [Graph versioning](#graph-versioning-and-staleness)). Isolation preserves paraconsistency: a
 counterfactual context is a separate graph; nested counterfactuals are nested transient graphs
 bounded by the depth budget. This is the *primary* place generative, undecidable work happens —
@@ -206,11 +170,11 @@ materializer-produced, resolver-produced, or built during a Stratum-C chase, car
 and source-IRIs, so one proof trace (and the prose explanation composed from it) spans both
 components without a seam in the narrative.
 
-Two optimizations, neither required for correctness: **demand-driven materialization**
+Two native optimizations preserve the same semantics: **demand-driven materialization**
 (magic-sets over the forward engine) replaces full Phase-1 closure when the base is large and the
-query narrow; and **incremental maintenance** keeps the materialized store fresh under base edits
-without a full re-chase — the harder of the two, since the forward engine is not incremental, so
-that capability belongs to the custom solver layer.
+query narrow; **incremental maintenance** keeps the fixed-contract positive-Datalog store fresh
+under signed edits without a full re-chase. Uncovered fragments are explicit perf-ledger rows,
+never an unnamed slow path.
 
 ### The seam data contract
 
@@ -373,7 +337,7 @@ within-context inconsistency.
 
 ## The native physical engine — execution and optimization
 
-Routing every query to the bootstrap substrates (Nemo's chase, Scryer's SLD) was the starting point,
+Routing every query to bootstrap substrates (Nemo's chase and an embedded SLD engine) was the starting point,
 not the long-term architecture: two black-box whole-program engines cannot be planned across,
 specialized, parallelized, or made incremental, and each boundary pays re-serialization. On the
 forward path that starting point is now behind us: the Nemo-track promotion has **landed**, so the
@@ -381,9 +345,9 @@ production reasoning engine is the single native physical core in Rust that the 
 lowering ([LOGIC-IR.md § IR commitments](LOGIC-IR.md)) targets *downward*. `forward_oracle()` returns
 the native forward oracle; the fixed OWL-profile rule texts (EL, RL, and the DL Horn fragment) run on
 the native chase, and the RL `triple/4` fragment is evaluated by the native generic n-ary evaluator
-(predicate-as-data) rather than by a black-box substrate. The bootstrap substrates are correspondingly
-demoted to conformance oracles, not-yet-native fallbacks, and capability stand-ins — subsumed
-(Nemo-track) fragment-by-fragment, **oracle-gated** by the divergence ledger
+(predicate-as-data) rather than by a black-box substrate. The backward substrate and fallback
+router are deleted; Nemo is correspondingly demoted to a forward conformance oracle — subsumed
+fragment-by-fragment and **oracle-gated** by the divergence ledger
 ([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)), the same retirement discipline used for the Python
 oracle. Nemo has left the primary reasoning path entirely: it survives only as the scheduled
 differential cross-check lane (`make maint-nemo-crosscheck`) and the parity gates that keep the native
@@ -396,16 +360,17 @@ logic: IR (full-FOL, facets)
   → ReasoningContract / fragment analysis    — route to the weakest sufficient strategy
   → relational-core dialect (logic:RelationalCore; Datalog± + stratified ¬ + aggregation + existentials)
   → physical plan (join order · worst-case-optimal joins · magic-sets · semiring annotation)
-  → native core: semi-naive + alternating fixpoint, tabling, incremental, compiled
+  → native core: semi-naive + alternating fixpoint, demand transformation, incremental, compiled
 ```
 
-Seven levers (lowering onto battle-tested Rust dataflow cores, not rebuilding everything): (1) **one
+Seven levers on the native Rust core: (1) **one
 relational core** — Datalog *is* relational algebra + fixpoint, and forward (materialize) and backward
 (resolve) both reduce to it; (2) **magic-sets / demand transformation** — dissolves the forward-vs-
 backward two-engine split into one bottom-up core; (3) **incremental maintenance** via differential
 dataflow / DBSP — the biggest lever, making re-reason-after-edit proportional to the change (the
-upgrade of the "incremental maintenance belongs to the custom solver layer" note above); (4)
-**worst-case-optimal joins** for cyclic graph patterns; (5) **provenance semirings** — computing
+upgrade of the "incremental maintenance belongs to the custom solver layer" note above), now
+built for fixed-contract finite positive binary Datalog; (4) **worst-case-optimal joins** for
+planner-certified cyclic subplans, now selectively built; (5) **provenance semirings** — computing
 world/standpoint and the quantitative axes in one pass, where the semiring *is* the axis algebra; (6)
 **compile-don't-interpret** — specialized per content-addressed `contract_hash`; (7) **fragment-routing**
 — the `ReasoningContract` ([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)) as the physical-plan selector, i.e.
@@ -427,10 +392,13 @@ concretely-subsumed fragment of this discipline. The **closed set** is fixed by
 the IR, not open-ended: the arithmetic operators are `+ - * //` (integer
 division) and the comparisons are `> < >= =< =:=` (arithmetic equality). This is
 the entire set the native core evaluates; anything outside it is a declared gap.
-The ontology carries no arithmetic in its shipped or conformance rule bodies —
-the fragment exists to serve list-shaped programs (length, index-of) and to
-pre-position the core for the future `math:`/`lang:` demand for evaluated
-arithmetic inside resolution.
+The ontology carries no arithmetic in its shipped rule bodies. The conformance
+corpus exercises the native binary list-length program and pre-positions the core
+for future `math:`/`lang:` demand for evaluated arithmetic inside resolution.
+N-ary arithmetic programs such as the former list-index implementation remain an
+explicit native gap and receive `Unsupported(Arithmetic)` from the production
+dispatcher; deleting the SLD fallback did not silently turn that gap into an
+empty answer.
 
 Builtins are **mode-constrained relations** evaluated in body order as part of a
 rule's sideways-information-passing (SIPS): a comparison is the infinite relation
@@ -442,23 +410,20 @@ bind). Because a generator's target participates in SIPS, it must contribute a
 bound variable to the adornment of the atoms that follow it, so demand stays
 restricted rather than degrading to the free pattern a naïve post-join filter
 would produce. One shared moded evaluator carries these semantics across the
-forward (semi-naive), backward (magic), and reference (SLD) engines, so they
-cannot diverge from one another; each op is separately anchored to an independent
-oracle so agreement is proven, not assumed.
+forward (semi-naive), backward (demand-transformed), and reference paths, so they
+cannot diverge from one another; hand-verified operator goldens pin the semantics.
 
 Evaluation is over checked `i64`. Integer division `//` truncates toward zero
-(ISO `//`, matching the subsumed Scryer semantics), and `=:=` is numeric value
+(ISO `//`, matching the captured SLD semantics), and `=:=` is numeric value
 equality, never structural unification. Three **residual gap kinds** stay
-first-class and route to the oracle without ever producing a wrong answer:
+first-class and hard-fail without ever producing a wrong answer:
 **mode-unsupported** (an operand is still unbound at evaluation — the core
-declines rather than guessing), **domain-error** (division by zero — the oracle
-raises), and **i64-domain-exceeded** (an intermediate overflows the machine
-integer where the oracle would compute a bignum). Each is a *ledgered*
-re-demotion recorded in the divergence/coverage ledger, distinct in
-attestation even though all three fall back the same way — never a silent
-approximation. The whole path stays confined to the procedural execution profile
-by the same facet gate that confines cut; a builtin under any other profile is a
-hard rejection upstream of the engine.
+declines rather than guessing), **domain-error** (division by zero), and
+**i64-domain-exceeded** (an intermediate overflows the checked machine integer).
+Each is a typed refusal, distinct in attestation and never a silent approximation.
+The whole path stays confined to the procedural execution profile; a builtin under
+any other profile is a hard rejection upstream of the engine, while cut is rejected
+under every profile.
 
 ## Generated artifacts and the compiler's projection role
 
@@ -531,5 +496,5 @@ respectively, as first-class operations on the running solver.
 
 ---
 
-*Engines and tools named here — oxigraph, Nemo, Scryer, ProbLog, EYE/cwm — are
+*Engines and tools named here — oxigraph, Nemo, the retired Scryer reference, ProbLog, EYE/cwm — are
 listed in [LOGIC-REFERENCES.md](LOGIC-REFERENCES.md).*

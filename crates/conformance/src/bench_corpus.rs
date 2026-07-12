@@ -16,14 +16,21 @@
 //!   [`gmeow_logic::cost::run_native_forward`] / [`gmeow_logic::materialize::materialize_routed`]
 //!   accept; for `backward` cases it is the goal-directed `.logic` query surface
 //!   [`gmeow_logic::query_ir::parse_query_program`] parses and
-//!   [`gmeow_logic::scryer_engine::run_scryer`] / [`gmeow_logic::dispatch::dispatch_query`]
-//!   consume (the EDB is supplied separately from `input.nq`, NOT inlined in the query).
+//!   [`gmeow_logic::dispatch::dispatch_query`] consumes (the EDB is supplied
+//!   separately from `input.nq`, not inlined in the query).
 //! * `input.nq` — the world-scoped EDB as N-Quads.
 //! * `expected/result.json` — the HAND-DERIVED, known-correct golden: a map from
 //!   world IRI to `{ rows, digest? }`, where `rows` is the mathematically-correct
 //!   count of derived facts (forward/existential) or goal answers (backward),
 //!   authored by formula/hand — never an engine echo.
 //! * `profile.json` — `{ "fragment": …, "engines": [ … ] }`.
+//!
+//! The `incremental` and `incremental-grounding` fragments additionally carry
+//! `delta.nq`: one single-world
+//! insertion batch. The harness prepares a fixed-rule session from `input.nq`, applies
+//! `delta.nq`, checks the resulting closure against a clean native rebuild, retracts the
+//! same batch, and checks that the base closure is recovered. Its golden `rows` is the
+//! derived-row count after insertion.
 //!
 //! The `nary-existential` fragment (the ChaseBench/Nemo-KR2024 family shape) carries a
 //! DIFFERENT EDB + rule surface instead of `program.rules` + `input.nq`: an n-ary
@@ -55,8 +62,15 @@ pub enum Fragment {
     Forward,
     /// Existential (value-inventing) TGD chase (native / Nemo).
     Existential,
-    /// Goal-directed backward query (native / Scryer).
+    /// Goal-directed backward query (native / captured SLD golden).
     Backward,
+    /// Signed insert/retract maintenance of finite positive binary Datalog, compared
+    /// against clean native rebuilds rather than a secondary engine.
+    Incremental,
+    /// Signed maintenance of the fully-ground WFS/stable-model solver slice. The
+    /// grounder is incremental; the non-monotone solver remains from scratch and is
+    /// reported explicitly per shot.
+    IncrementalGrounding,
     /// Fixed-arity n-ary multi-head existential TGD chase (native reified-binary lowering
     /// vs Nemo), driven from an n-ary `.rls` program + delimited (`data/<rel>.csv`) EDB —
     /// the ChaseBench/Nemo-KR2024 family shape. Distinct from [`Fragment::Existential`]
@@ -71,11 +85,14 @@ impl Fragment {
             "forward" => Ok(Fragment::Forward),
             "existential" => Ok(Fragment::Existential),
             "backward" => Ok(Fragment::Backward),
+            "incremental" => Ok(Fragment::Incremental),
+            "incremental-grounding" => Ok(Fragment::IncrementalGrounding),
             "nary-existential" => Ok(Fragment::NaryExistential),
             other => Err(Diag::of_kind(ProfileInvalid {
                 detail: format!(
                     "profile.json fragment must be \"forward\", \"existential\", \"backward\", \
-                     or \"nary-existential\", got {other:?}"
+                     \"incremental\", \"incremental-grounding\", or \
+                     \"nary-existential\", got {other:?}"
                 ),
             })),
         }
@@ -88,6 +105,8 @@ impl Fragment {
             Fragment::Forward => "forward",
             Fragment::Existential => "existential",
             Fragment::Backward => "backward",
+            Fragment::Incremental => "incremental",
+            Fragment::IncrementalGrounding => "incremental-grounding",
             Fragment::NaryExistential => "nary-existential",
         }
     }
@@ -126,6 +145,10 @@ pub struct BenchCase {
     /// The world-scoped EDB as N-Quads (`input.nq`), verbatim. EMPTY for an
     /// [`Fragment::NaryExistential`] case, whose EDB is the n-ary `nary_edb` instead.
     pub edb_nq: String,
+    /// The signed insertion fixture (`delta.nq`) for [`Fragment::Incremental`] and
+    /// [`Fragment::IncrementalGrounding`] cases ONLY — empty for every other
+    /// fragment. The same rows are retracted after insertion to prove parity.
+    pub delta_nq: String,
     /// The n-ary EDB (`data/<rel>.csv` files, arity-driven), for
     /// [`Fragment::NaryExistential`] cases ONLY — empty for every other fragment.
     pub nary_edb: Vec<gmeow_logic::nary::NaryTuple>,
@@ -213,32 +236,19 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
     let (fragment, engines) = parse_profile(&read_json(&case_dir.join("profile.json"))?)?;
     let golden = parse_golden(&read_json(&case_dir.join("expected").join("result.json"))?)?;
 
-    // Fragment ↔ engine invariant (anti-empty-golden for the backward lane): Scryer is
-    // the backward-only engine, and a backward case MUST list it — so the required
-    // goal-directed Scryer case can never silently degrade into an engine-less shell.
-    let lists_scryer = engines.iter().any(|e| e == "scryer");
-    match fragment {
-        Fragment::Backward if !lists_scryer => {
-            return Err(Diag::of_kind(ProfileInvalid {
-                detail: format!(
-                    "{corpus}/{name}: a backward-fragment case must list the \"scryer\" engine"
-                ),
-            }));
-        }
-        Fragment::Forward | Fragment::Existential | Fragment::NaryExistential if lists_scryer => {
-            return Err(Diag::of_kind(ProfileInvalid {
-                detail: format!(
-                    "{corpus}/{name}: the \"scryer\" engine is valid only for the \
-                     backward fragment, not {:?}",
-                    fragment.as_str()
-                ),
-            }));
-        }
-        _ => {}
+    // Every backward case must explicitly list the native engine. Its committed
+    // digest is the retained SLD answer-set reference; no live secondary engine is
+    // constructed by the corpus loader.
+    if fragment == Fragment::Backward && !engines.iter().any(|e| e == "native") {
+        return Err(Diag::of_kind(ProfileInvalid {
+            detail: format!(
+                "{corpus}/{name}: a backward-fragment case must list the native engine"
+            ),
+        }));
     }
 
     // Shape-specific rule text + EDB.
-    let (rules, edb_nq, nary_edb) = match fragment {
+    let (rules, edb_nq, delta_nq, nary_edb) = match fragment {
         Fragment::NaryExistential => {
             let rules = read_to_string(&case_dir.join("program.rls"))?;
             // Resolve the delimited EDB relation stems against the SAME `@prefix` map the
@@ -248,12 +258,18 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
             // derives nothing.
             let prefixes = gmeow_logic::nary_rls::parse_rls_prefixes(&rules);
             let nary_edb = load_nary_edb_dir(corpus, name, &case_dir.join("data"), &prefixes)?;
-            (rules, String::new(), nary_edb)
+            (rules, String::new(), String::new(), nary_edb)
+        }
+        Fragment::Incremental | Fragment::IncrementalGrounding => {
+            let rules = read_to_string(&case_dir.join("program.rules"))?;
+            let edb_nq = read_to_string(&case_dir.join("input.nq"))?;
+            let delta_nq = read_to_string(&case_dir.join("delta.nq"))?;
+            (rules, edb_nq, delta_nq, Vec::new())
         }
         Fragment::Forward | Fragment::Existential | Fragment::Backward => {
             let rules = read_to_string(&case_dir.join("program.rules"))?;
             let edb_nq = read_to_string(&case_dir.join("input.nq"))?;
-            (rules, edb_nq, Vec::new())
+            (rules, edb_nq, String::new(), Vec::new())
         }
     };
 
@@ -264,6 +280,7 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
         engines,
         rules,
         edb_nq,
+        delta_nq,
         nary_edb,
         golden,
     })
@@ -578,6 +595,32 @@ mod tests {
                         c.corpus,
                         c.name
                     );
+                    assert!(
+                        c.delta_nq.is_empty(),
+                        "{}/{}: an nary-existential case carries no delta.nq",
+                        c.corpus,
+                        c.name
+                    );
+                }
+                Fragment::Incremental | Fragment::IncrementalGrounding => {
+                    assert!(
+                        !c.edb_nq.trim().is_empty(),
+                        "{}/{}: empty incremental input.nq",
+                        c.corpus,
+                        c.name
+                    );
+                    assert!(
+                        !c.delta_nq.trim().is_empty(),
+                        "{}/{}: empty incremental delta.nq",
+                        c.corpus,
+                        c.name
+                    );
+                    assert!(
+                        c.nary_edb.is_empty(),
+                        "{}/{}: an incremental case carries no n-ary EDB",
+                        c.corpus,
+                        c.name
+                    );
                 }
                 _ => {
                     assert!(
@@ -589,6 +632,12 @@ mod tests {
                     assert!(
                         c.nary_edb.is_empty(),
                         "{}/{}: a ternary-fragment case carries no n-ary EDB",
+                        c.corpus,
+                        c.name
+                    );
+                    assert!(
+                        c.delta_nq.is_empty(),
+                        "{}/{}: a non-incremental case carries no delta.nq",
                         c.corpus,
                         c.name
                     );
@@ -613,26 +662,30 @@ mod tests {
             });
         }
 
-        // The required goal-directed backward Scryer case is present (anti-empty-golden):
-        // ≥1 backward case listing the "scryer" engine, over the parseable query surface.
+        // The required goal-directed backward native case is present with a captured
+        // full-answer digest, over the parseable query surface.
         let backward: Vec<&BenchCase> = cases
             .iter()
             .filter(|c| c.fragment == Fragment::Backward)
             .collect();
         assert!(
             !backward.is_empty(),
-            "the bench corpus must include >= 1 backward (Scryer) case"
+            "the bench corpus must include >= 1 backward native case"
         );
         for c in &backward {
             assert!(
-                c.engines.iter().any(|e| e == "scryer"),
-                "{}/{}: backward case must list the scryer engine",
+                c.engines.iter().any(|e| e == "native"),
+                "{}/{}: backward case must list the native engine",
                 c.corpus,
                 c.name
             );
-            // Confirm the query text is in the fragment the Scryer entry accepts: it
-            // parses as a goal-directed QProgram (the surface `run_scryer` / `dispatch_query`
-            // consume). The EDB is supplied separately from `input.nq`.
+            assert!(
+                c.golden.values().all(|g| g.digest.is_some()),
+                "{}/{}: backward case must carry a captured answer-set digest",
+                c.corpus,
+                c.name
+            );
+            // Confirm the query text parses on the native production surface.
             gmeow_logic::query_ir::parse_query_program(&c.rules).unwrap_or_else(|e| {
                 panic!(
                     "{}/{}: backward query text must parse as a QProgram: {e}",

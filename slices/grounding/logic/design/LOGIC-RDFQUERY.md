@@ -50,14 +50,14 @@ front-end over parts the project ships:
   mapping DSL, the test DSL). A query surface is one more front-end into the same IR and
   the same projectors — not a new back-end.
 - **Named, composable units.** Reusable, named, parameterized query/derivation units
-  are `logic:Rule` individuals, Scryer user predicates, and FnO functions — already
+  are `logic:Rule` individuals and FnO functions — already
   first-class, content-addressed, and referenceable by IRI. Composition is rule
   composition, not string templating. The named/parametric traversal of
   [`LOGIC-PATHS.md`](LOGIC-PATHS.md) is the worked precedent: `:nearbyOrgs(?maxDepth := 2)`
   is reified data the engine reasons over, not privileged syntax.
-- **Recursion and tabling.** The canon is Turing-complete with recursion, stratified
-  negation, and tabled resolution behind it — the things a query author reaches SPARQL's
-  limits for. A query surface over the canon inherits these for free.
+- **Recursion and demand transformation.** The canon is Turing-complete with recursion,
+  stratified negation, and demand-transformed fixpoint evaluation behind it — the things a
+  query author reaches SPARQL's limits for. A query surface over the canon inherits these for free.
 - **Provenance and reasoning result.** Every answer carries content-addressed
   provenance and the typed reasoning result ([`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)):
   a query is not a bag of bindings but a result with completeness, preservation, and

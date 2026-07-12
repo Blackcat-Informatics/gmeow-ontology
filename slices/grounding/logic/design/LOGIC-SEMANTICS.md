@@ -30,11 +30,11 @@
   (tuple-generating dependencies) permit value invention. Which non-monotonic semantics governs a
   rule set is **declared, not assumed** — it is the Model-semantics and Negation facets of the
   reasoning contract (see [The reasoning contract](#the-reasoning-contract)).
-- **Logic programming, Prolog-grade.** Unification, SLD-style backward goal resolution,
-  query-as-program, builtins, and generative/relational computation. The engine runs **both**
-  directions: forward materialization and classification *and* backward goal resolution. Graph query
-  becomes a projection of goal resolution, not a separate paradigm. Procedural control — cut — is
-  *not* part of the canonical truth theory (see [Cut is procedural](#cut-is-procedural-not-canonical)).
+- **Logic programming, Prolog-grade.** Unification, goal-directed resolution through subsumptive
+  demand transformation, query-as-program, builtins, and generative/relational computation. The
+  engine runs **both** directions through one fixpoint core: forward materialization and
+  classification *and* demand-restricted goal resolution. Graph query becomes a projection of goal
+  resolution, not a separate paradigm. Procedural control — cut — is retired and rejected.
 - **Contextual, temporal, modal, and probabilistic scope as first-class.** Every axiom or clause
   may carry standpoint, valid time, asserted time, provenance, confidence, modality, and
   disclosure/display state. These four quantitative axes are distinct and **not interchangeable**
@@ -153,9 +153,9 @@ Two attributions matter especially, because the old single-column table got them
   semantics is in force, never in place of one.
 
 The historical profile names survive only as **presets** — named bundles of facet values the compiler
-expands before anything else runs (see [LOGIC-CONTRACT.md § Presets](LOGIC-CONTRACT.md)). Procedural
-search with cut is the `procedural` preset: least-model semantics with cut and builtins under a
-bounded `Resource`, operational rather than declarative.
+expands before anything else runs (see [LOGIC-CONTRACT.md § Presets](LOGIC-CONTRACT.md)). The
+historical `procedural` preset now selects least-model semantics with the closed set of checked
+builtins under a bounded `Resource`; it does not license cut or a second search engine.
 
 The governing rule on combinations is the contract's, restated here for the semantics:
 
@@ -167,15 +167,14 @@ The governing rule on combinations is the contract's, restated here for the sema
 
 A request with no resolvable contract is rejected before any reasoning begins.
 
-### Cut is procedural, not canonical
+### Cut is retired, not canonical
 
 Cut is operational search control; it can change a program's answer set and makes explanations hard
 to treat as logical proofs. It therefore stays out of the canonical declarative semantics:
 
-> The canonical rule semantics is **cut-free**. `logic:cut` is permitted **only** under the
-> procedural preset (consequence positive-Horn with a bounded `Resource`), where it is treated as an
-> operational search directive. Artifacts using cut MUST NOT project as declarative rules without
-> recording the loss in the preservation judgment (see [LOGIC-IR.md](LOGIC-IR.md)).
+> The canonical rule semantics is **cut-free**. The parser recognizes `logic:cut` only to emit a
+> typed retirement diagnostic before execution; no preset licenses it, and an artifact containing
+> cut is rejected rather than projected as a declarative rule (see [LOGIC-IR.md](LOGIC-IR.md)).
 
 This preserves Prolog-grade *computation* (in its own profile, where it belongs) without letting
 procedural pruning become part of the logic's truth theory or contaminate the faithful-by-
@@ -459,7 +458,8 @@ full expressivity and an explicit `completeness = incomplete` (typically alongsi
 `evaluation = budget-exhausted`).
 
 **The canonical engine is sound-but-incomplete under an explicit budget.** Operationally the solver
-runs under stratified evaluation, tabling / SLG-style resolution, and a resource budget — the
+runs under stratified semi-naive evaluation, subsumptive demand transformation over that fixpoint,
+and a resource budget — the
 `bounded` value of the contract's `Resource` facet, generalized. When the budget is exhausted it
 returns `evaluation = budget-exhausted` with `completeness = incomplete`, never a false answer.
 Soundness is total; completeness is relative to the budget and the certified fragment. Because

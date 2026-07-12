@@ -65,9 +65,8 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A backing engine (the forward Nemo chase or the backward Scryer machine)
-    /// refused a program or dataset: a load/parse failure, or a chase/resolution
-    /// that could not close.
+    /// A retained comparison engine refused a program or dataset: a load/parse
+    /// failure or a chase that could not close.
     pub struct Engine { detail: String }
     code = "logic.engine";
     grade = logic_grade!();
