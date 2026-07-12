@@ -90,7 +90,7 @@ gmeow:Resource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Resource"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A shared execution resource a build stage must hold exclusively while it runs — declared through gmeow:requiresResource (a specialization of logic:actionResource). Two stages requiring the same resource compete for it (logic:competesForResource) and the scheduler serializes them; a stage requiring no resource runs in parallel within its topological level. The canonical example is the process-wide reasoning engine (gmeow:engineResource), whose underlying Nemo/Scryer engines are not concurrency-safe — modelled as a resource so serialization is a conflict the scheduler reads, not a hardcoded special case."@x-gmeow-english ;
+    skos:definition "A shared execution resource a build stage must hold exclusively while it runs — declared through gmeow:requiresResource (a specialization of logic:actionResource). Two stages requiring the same resource compete for it (logic:competesForResource) and the scheduler serializes them; a stage requiring no resource runs in parallel within its topological level. The canonical example is the process-wide reasoning engine (gmeow:engineResource), whose retained Nemo comparison engine is not concurrency-safe — modelled as a resource so serialization is a conflict the scheduler reads, not a hardcoded special case."@x-gmeow-english ;
     skos:example "gmeow:engineResource a gmeow:Resource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -353,7 +353,7 @@ gmeow:engineResource
     a gmeow:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "reasoning engine"@x-gmeow-english ;
-    skos:definition "The process-wide reasoning engine (native EL/DL closure over Nemo/Scryer), which is not concurrency-safe. A stage that gmeow:requiresResource it runs serialized against every other stage requiring it — the resource-conflict serialization that replaces the former derived engine-lock flag. The sole reasoning stage (gmeow:stage-reason) declares it."@x-gmeow-english ;
+    skos:definition "The process-wide reasoning resource covering native EL/DL closure and the retained Nemo comparison lane. A stage that gmeow:requiresResource it runs serialized against every other stage requiring it — the resource-conflict serialization that replaces the former derived engine-lock flag. The sole reasoning stage (gmeow:stage-reason) declares it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # =========================================================================== #

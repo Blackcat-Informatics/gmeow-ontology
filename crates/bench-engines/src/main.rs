@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! `bench-engines` — the engine-vs-engine benchmark harness.
+//! `bench-engines` — the engine/reference benchmark harness.
 //!
 //! It drives every committed mini bench case (`conformance/logic/cases/bench/`, or an
 //! explicit `--corpus-dir`) through the NATIVE engine and, per fragment, the
-//! applicable ORACLE, and emits TWO strictly-separated outputs.
+//! applicable live or captured reference, and emits two strictly-separated outputs.
 //!
-//! Two cheap native-only gate verbs run BEFORE any oracle is constructed: `--check-golden`
+//! Two cheap native-only gate verbs run before any live oracle is constructed: `--check-golden`
 //! (a single-run native-vs-published agreement gate) and `--soak N` (the N-run soak
 //! window — the same deterministic check re-run N times, asserting gap-zero AND a
 //! byte-identical finding-graph digest across every run; see [`run_soak`]).
@@ -63,7 +63,8 @@
 //!   hand-derived golden's committed `rows` count (the golden carries only a count, so
 //!   the token is `derived=<n>`);
 //! * **native ↔ oracle** — for the FORWARD and BACKWARD fragments a `blake3`
-//!   fingerprint of the fully-sorted result rows / bindings (a true set equality over
+//!   fingerprint of the fully-sorted result rows / bindings (for backward cases the
+//!   published token is the captured SLD digest; for forward cases it is Nemo), a true set equality over
 //!   ground terms), and for the EXISTENTIAL fragment the derived COUNT (the chase
 //!   invents fresh labeled nulls whose identifiers legitimately differ per engine, so
 //!   only the count is a sound cross-engine invariant).
@@ -80,10 +81,9 @@
 //! # Oracle isolation (in-process, fresh engine per call)
 //!
 //! Cases run IN-PROCESS with a fresh EDB per case; no subprocess is needed. This is
-//! sound because each oracle already rebuilds a FRESH engine per call: Nemo's
+//! sound because the remaining live oracle rebuilds a fresh engine per call: Nemo's
 //! `nemo_engine::load_string(rls)` constructs a new engine inside every
-//! `run_chase_typed`, serialized by `CHASE_LOCK`, and Scryer's `run_scryer` builds a
-//! fresh `Machine` under `SCRYER_LOCK`. The production `reason::crosscheck_native_vs_nemo`
+//! `run_chase_typed`, serialized by `CHASE_LOCK`. The production `reason::crosscheck_native_vs_nemo`
 //! lane already dual-runs many cases in one process on exactly this design, so the
 //! same in-process, lock-serialized pattern is the established precedent here.
 //!
@@ -121,7 +121,7 @@ use gmeow_errors::Diag;
 use gmeow_logic::cost::{
     ForwardRows, run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
 };
-use gmeow_logic::dispatch::{cyclic_predicates, dispatch_query};
+use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::materialize::materialize_routed;
 use gmeow_logic::nary::{
     nary_canonical_fingerprint, run_native_nary_forward_run, run_nemo_nary_forward,
@@ -133,8 +133,7 @@ use gmeow_logic::reason::{
     ExternalComparison, build_ledger, compare_external_corpus, divergence_findings,
 };
 use gmeow_logic::result::EngineId;
-use gmeow_logic::scryer_engine::run_scryer;
-use gmeow_logic::seam::WorldStoreForeign;
+use gmeow_logic::seam::WorldFactSnapshot;
 use gmeow_logic::store::WorldStore;
 
 /// Install the counting allocator on THIS binary (and only this binary) so
@@ -153,9 +152,8 @@ const HORN_PROFILE_TOKEN: &str = "PositiveHornProfile";
 /// `rev`). Surfaced as an engine-version pin in the deterministic artifact so a
 /// cost/agreement baseline is attributable to the exact oracle build that produced it.
 const NEMO_REV: &str = "4415bc2e180adf33a7a4b98ddc41be9914b7584e";
-/// The pinned Scryer-Prolog branch (mirrors `crates/logic/Cargo.toml`'s
-/// `scryer-prolog` git `branch`). Surfaced as an engine-version pin.
-const SCRYER_BRANCH: &str = "master";
+/// Version of the captured SLD answer-set goldens used by the backward lane.
+const BACKWARD_REFERENCE: &str = "captured-sld-goldens/v1";
 
 fn main() -> gmeow_errors::Result<()> {
     // Pool-quiesce: force the process-GLOBAL Rayon pool to a single thread — the calling
@@ -247,7 +245,7 @@ fn main() -> gmeow_errors::Result<()> {
     // ── (1) The ON-GATE native-vs-golden agreement gate ─────────────────────────
     // `--check-golden` runs the NATIVE engine ONLY over the committed mini corpora and
     // HARD-FAILS if any case's native result disagrees with its committed golden
-    // (`expected/result.json`). It deliberately drives NO oracle (Nemo/Scryer): golden
+    // (`expected/result.json`). It deliberately drives no live oracle: golden
     // agreement is native-vs-published only, so the check stays cheap enough to wire into
     // `make check`. It returns before any oracle run / artifact emission below.
     if check_golden {
@@ -339,7 +337,7 @@ fn main() -> gmeow_errors::Result<()> {
         "engine_pins": {
             "native": EngineId::native().version,
             "nemo_rev": NEMO_REV,
-            "scryer_branch": SCRYER_BRANCH,
+            "backward_reference": BACKWARD_REFERENCE,
         },
         "case_count": case_records.len(),
         "cases": case_records,
@@ -773,9 +771,8 @@ fn run_nary(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     })
 }
 
-/// BACKWARD fragment: native goal-directed `dispatch_query` vs the Scryer oracle
-/// `run_scryer`. The EDB loads into a `WorldStore`; the `.logic` query text parses to
-/// a `QProgram`; both engines answer the same goal against the same world snapshot.
+/// BACKWARD fragment: native goal-directed `dispatch_query` against the committed
+/// answer-count and answer-set fingerprint captured from the retired SLD reference lane.
 fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     if case.golden.len() != 1 {
         return Err(Diag::of_kind(RunFailed {
@@ -789,6 +786,14 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     }
     let (world, golden) = case.golden.iter().next().expect("checked len == 1");
     let golden_rows = golden.rows;
+    let published_fp = golden.digest.as_deref().ok_or_else(|| {
+        Diag::of_kind(RunFailed {
+            detail: format!(
+                "{}/{}: backward golden must carry the captured answer-set digest",
+                case.corpus, case.name
+            ),
+        })
+    })?;
 
     let store = WorldStore::new();
     store
@@ -796,32 +801,23 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         .map_err(|e| run_err(case, format!("EDB load failed: {e}")))?;
     let program = parse_query_program(&case.rules)
         .map_err(|e| run_err(case, format!("query parse failed: {e}")))?;
-    let foreign = WorldStoreForeign::from_world(&store, world, HORN_PROFILE_IRI)
+    let foreign = WorldFactSnapshot::from_world(&store, world, HORN_PROFILE_IRI)
         .map_err(|e| run_err(case, format!("foreign snapshot failed: {e}")))?;
     let budget = Budget::default();
-    let table_preds = cyclic_predicates(&program);
-
     // Native backward (measured; global Rayon pool is the single calling thread — pool-quiesce).
     let native_start = Instant::now();
     let (native_res, sample) =
-        measure(|| dispatch_query(&foreign, &store, world, &program, HORN_PROFILE_IRI, &budget));
+        measure(|| dispatch_query(&foreign, world, &program, HORN_PROFILE_IRI, &budget));
     let native_wall = native_start.elapsed().as_nanos();
     let native = native_res.map_err(|e| run_err(case, format!("native backward failed: {e}")))?;
     let native_count = native.bindings.len() as u64;
     let native_fp = fingerprint_answers(&native);
     let consumed_steps = native.frontier.consumed_steps;
 
-    // Scryer oracle.
-    let scryer_start = Instant::now();
-    let scryer = run_scryer(&foreign, world, &program, &table_preds, &budget)
-        .map_err(|e| run_err(case, format!("scryer backward failed: {e}")))?;
-    let scryer_wall = scryer_start.elapsed().as_nanos();
-    let scryer_fp = fingerprint_answers(&scryer);
-
     let native_golden_tok = count_token(native_count);
     let golden_tok = count_token(golden_rows);
     let agree_golden = native_golden_tok == golden_tok;
-    let agree_scryer = native_fp == scryer_fp;
+    let agree_published = native_fp == published_fp;
 
     let comparisons = vec![
         comp(
@@ -831,7 +827,13 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             &native_golden_tok,
             &golden_tok,
         ),
-        comp(case, world, "native-vs-scryer", &native_fp, &scryer_fp),
+        comp(
+            case,
+            world,
+            "native-vs-captured-sld",
+            &native_fp,
+            published_fp,
+        ),
     ];
 
     let record = json!({
@@ -855,41 +857,31 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "cost_vector": Value::Array(Vec::new()),
         },
         "oracle": {
-            "engine": "scryer",
-            "answer_count": scryer.bindings.len(),
-            "answers_fingerprint": scryer_fp,
+            "engine": BACKWARD_REFERENCE,
+            "answer_count": golden_rows,
+            "answers_fingerprint": published_fp,
         },
         "agreement": {
             "native_vs_golden": agree_golden,
-            "native_vs_oracle": agree_scryer,
+            "native_vs_oracle": agree_published,
             "native_golden_token": native_golden_tok,
             "golden_token": golden_tok,
             "native_oracle_token": native_fp,
-            "oracle_token": scryer_fp,
+            "oracle_token": published_fp,
         },
     });
 
     let peak = peak_rss_kib();
     Ok(CaseOutcome {
         record,
-        advisory: vec![
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "backward",
-                engine: "native",
-                wall_ns: native_wall,
-                peak_rss_kib: peak,
-                agreement: agree_golden,
-            },
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "backward",
-                engine: "scryer",
-                wall_ns: scryer_wall,
-                peak_rss_kib: peak,
-                agreement: agree_scryer,
-            },
-        ],
+        advisory: vec![AdvisoryRow {
+            corpus: case.corpus.clone(),
+            fragment: "backward",
+            engine: "native",
+            wall_ns: native_wall,
+            peak_rss_kib: peak,
+            agreement: agree_golden && agree_published,
+        }],
         comparisons,
     })
 }
@@ -1178,12 +1170,18 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
     }))
 }
 
-/// Drive one case through the NATIVE engine ONLY and return `(world, native_count,
-/// golden_rows)` — the native derived-fact / answer COUNT and the committed golden's
-/// count for its sole world. This is the exact native invocation each `run_*` fragment
-/// runner performs, minus the allocation `measure` wrapper and WITHOUT touching any
-/// oracle (Nemo/Scryer are never constructed), so the golden gate stays cheap on-gate.
-fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u64)> {
+/// Drive one case through the native engine and return its world, count comparison,
+/// and optional full-result fingerprint comparison. Backward cases must compare the
+/// native answer-set fingerprint with the captured SLD digest; other fragments retain
+/// their mathematically sound count invariant. No external engine is constructed.
+struct GoldenObservation {
+    world: String,
+    native_count: u64,
+    golden_count: u64,
+    fingerprint: Option<(String, String)>,
+}
+
+fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservation> {
     match case.fragment {
         Fragment::Forward => {
             let (world, golden_rows) = sole_world(case)?;
@@ -1191,7 +1189,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
                 .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
             let native = run_native_forward(edb.as_ref(), &case.rules)
                 .map_err(|e| run_err(case, format!("native forward failed: {e}")))?;
-            Ok((world, native.cost.total_derivations(), golden_rows))
+            Ok(GoldenObservation {
+                world,
+                native_count: native.cost.total_derivations(),
+                golden_count: golden_rows,
+                fingerprint: None,
+            })
         }
         Fragment::Existential => {
             let (world, golden_rows) = sole_world(case)?;
@@ -1209,7 +1212,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
                 .iter()
                 .filter(|q| q.rule_iri != ASSERT_RULE_IRI)
                 .count() as u64;
-            Ok((world, native_derived, golden_rows))
+            Ok(GoldenObservation {
+                world,
+                native_count: native_derived,
+                golden_count: golden_rows,
+                fingerprint: None,
+            })
         }
         Fragment::NaryExistential => {
             let (world, golden_rows) = sole_world(case)?;
@@ -1217,7 +1225,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
                 .map_err(|e| run_err(case, format!("n-ary .rls parse failed: {e}")))?;
             let native = run_native_nary_forward_run(&case.nary_edb, &rules)
                 .map_err(|e| run_err(case, format!("native n-ary chase failed: {e}")))?;
-            Ok((world, native.tuples.len() as u64, golden_rows))
+            Ok(GoldenObservation {
+                world,
+                native_count: native.tuples.len() as u64,
+                golden_count: golden_rows,
+                fingerprint: None,
+            })
         }
         Fragment::Backward => {
             if case.golden.len() != 1 {
@@ -1232,33 +1245,46 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<(String, u64, u6
             }
             let (world, golden) = case.golden.iter().next().expect("checked len == 1");
             let golden_rows = golden.rows;
+            let published_fp = golden.digest.clone().ok_or_else(|| {
+                Diag::of_kind(RunFailed {
+                    detail: format!(
+                        "{}/{}: backward golden must carry the captured answer-set digest",
+                        case.corpus, case.name
+                    ),
+                })
+            })?;
             let store = WorldStore::new();
             store
                 .load_nquads(&case.edb_nq)
                 .map_err(|e| run_err(case, format!("EDB load failed: {e}")))?;
             let program = parse_query_program(&case.rules)
                 .map_err(|e| run_err(case, format!("query parse failed: {e}")))?;
-            let foreign = WorldStoreForeign::from_world(&store, world, HORN_PROFILE_IRI)
+            let foreign = WorldFactSnapshot::from_world(&store, world, HORN_PROFILE_IRI)
                 .map_err(|e| run_err(case, format!("foreign snapshot failed: {e}")))?;
             let budget = Budget::default();
-            let native =
-                dispatch_query(&foreign, &store, world, &program, HORN_PROFILE_IRI, &budget)
-                    .map_err(|e| run_err(case, format!("native backward failed: {e}")))?;
-            Ok((world.clone(), native.bindings.len() as u64, golden_rows))
+            let native = dispatch_query(&foreign, world, &program, HORN_PROFILE_IRI, &budget)
+                .map_err(|e| run_err(case, format!("native backward failed: {e}")))?;
+            let native_fp = fingerprint_answers(&native);
+            Ok(GoldenObservation {
+                world: world.clone(),
+                native_count: native.bindings.len() as u64,
+                golden_count: golden_rows,
+                fingerprint: Some((native_fp, published_fp)),
+            })
         }
     }
 }
 
 /// (Deliverable 1) The ON-GATE native-vs-golden agreement gate. Runs the NATIVE engine
 /// ONLY over every committed mini bench case and compares its deterministic derived /
-/// answer COUNT against the committed golden (`expected/result.json`). Each `(corpus,
-/// case)` comparison is folded through the SHARED divergence ledger — an equal count is
-/// `Agree`, a divergent one is `CorpusOnly` — so every disagreement becomes a named
+/// answer count against the committed golden (`expected/result.json`). Backward cases
+/// additionally compare the complete canonical answer-set fingerprint with the captured
+/// SLD digest. Each comparison is folded through the shared divergence ledger, so every disagreement becomes a named
 /// `gmeow:Finding` carrying content-addressed ledger identity (`finding_iri` + anchor +
 /// antecedents), NOT a bare diff. ANY disagreement HARD-FAILS (no-optionality). No oracle
 /// is driven, so this is cheap enough for `make check`.
 /// Drive every committed mini bench case through the NATIVE engine ONLY and group the
-/// resulting native-vs-golden count comparisons by corpus (deterministic BTree order; the
+/// resulting native-vs-golden comparisons by corpus (deterministic BTree order; the
 /// loader yields cases sorted by `(corpus, case)`). This is the shared native-only path
 /// behind BOTH the single-run golden gate ([`run_golden_gate`]) and the N-run soak window
 /// ([`run_soak`]) — no oracle is ever constructed, so both stay cheap on-gate.
@@ -1267,17 +1293,24 @@ fn golden_comps_by_corpus(
 ) -> gmeow_errors::Result<BTreeMap<String, Vec<ExternalComparison>>> {
     let mut comps_by_corpus: BTreeMap<String, Vec<ExternalComparison>> = BTreeMap::new();
     for case in cases {
-        let (world, native_count, golden_rows) = native_golden_pair(case)?;
-        comps_by_corpus
-            .entry(case.corpus.clone())
-            .or_default()
-            .push(comp(
+        let observation = native_golden_pair(case)?;
+        let comps = comps_by_corpus.entry(case.corpus.clone()).or_default();
+        comps.push(comp(
+            case,
+            &observation.world,
+            "native-vs-golden",
+            &count_token(observation.native_count),
+            &count_token(observation.golden_count),
+        ));
+        if let Some((native_fp, published_fp)) = observation.fingerprint {
+            comps.push(comp(
                 case,
-                &world,
-                "native-vs-golden",
-                &count_token(native_count),
-                &count_token(golden_rows),
+                &observation.world,
+                "native-vs-captured-sld",
+                &native_fp,
+                &published_fp,
             ));
+        }
     }
     Ok(comps_by_corpus)
 }
@@ -1307,7 +1340,7 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
     if disagreements == 0 {
         eprintln!(
             "✓ golden gate: all {} native mini-corpus case(s) agree with their committed golden \
-             (native-vs-golden count equality; no oracle run).",
+             (count invariants plus captured backward answer digests; no live oracle run).",
             cases.len()
         );
         return Ok(());
@@ -1362,12 +1395,11 @@ fn run_soak(cases: &[BenchCase], window: usize) -> gmeow_errors::Result<()> {
     // Each run's finding-graph digest; asserted byte-identical across the whole window.
     let mut run_digests: Vec<String> = Vec::with_capacity(window);
     let mut corpora_count = 0usize;
-    let mut case_count = 0usize;
+    let case_count = cases.len();
 
     for run_ix in 1..=window {
         let comps_by_corpus = golden_comps_by_corpus(cases)?;
         corpora_count = comps_by_corpus.len();
-        case_count = comps_by_corpus.values().map(Vec::len).sum();
 
         // Fold each corpus through the SHARED divergence ledger: tally the gap kinds and
         // fold the per-corpus finding graph into this run's combined digest (sorted corpus

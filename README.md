@@ -493,8 +493,8 @@ BFO/DOLCE/SUMO/YAMATO are bridge views.
 A **native, Docker-free execution engine** (`crates/logic` + `crates/logic-compile`) is the
 reasoning authority: forward materialization and backward goal-resolution over a relational-core
 dialect (semi-naive + magic-sets), per-triple derivation provenance, and a typed five-field
-`ReasoningResult`. Scryer (Prolog) and Nemo (Datalog) are bootstrap substrates being subsumed into
-the native core — demoted to cross-check oracles + not-yet-native fallbacks; the in-process
+`ReasoningResult`. The Scryer substrate has been retired; Nemo remains a temporary forward
+cross-check while its final existential correctness gates land. The in-process
 `purrdf::entail` engine survives as the non-authoritative, on-gate cross-check oracle. Every
 lowering carries a preservation judgment (exact
 / under- / over-approximation / validation-only / unsupported), and any reasoning-contract

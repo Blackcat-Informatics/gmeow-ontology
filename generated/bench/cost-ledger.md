@@ -2,7 +2,7 @@
 
 # gmeow deterministic engine-cost ledger
 
-Committed engine-vs-engine cost/agreement baseline (`bench/cost-baseline.json`),
+Committed engine/reference cost/agreement baseline (`bench/cost-baseline.json`),
 refreshed via `make maint-bench-cost-baseline`. Every value is an integer count
 or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the
 harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,
@@ -11,7 +11,7 @@ run-to-run) through a one-sided tolerance band `fresh ≤ baseline·(1+ε)`, ε 
 is a drift-gated projection of the deterministic cost artifact; `check-generated`
 reproduces it byte-for-byte from the committed baseline without running a benchmark.
 
-Engine pins: native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b98ddc41be9914b7584e`, scryer `master`.
+Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33a7a4b98ddc41be9914b7584e`, backward `captured-sld-goldens/v1`.
 
 ## Per-case deterministic cost + verdict-agreement
 
@@ -25,14 +25,14 @@ Engine pins: native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b
 | nary-mini | stb-like | nary-existential | 24 | 10 | 773065 | 7969 | 94509 | true | true |
 | nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 280728 | 3588 | 31689 | true | true |
 | nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 164797 | 2086 | 25492 | true | true |
-| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3911672 | 33198 | 37822 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6247705 | 54311 | 58473 | true | true |
-| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3990910 | 34450 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3953008 | 33961 | 42113 | true | true |
-| relational-core-mini | reachability | forward | 2 | 2 | 3711272 | 31284 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5459473 | 47641 | 54978 | true | true |
-| relational-core-mini | scc | forward | 8 | 8 | 6169418 | 52906 | 53796 | true | true |
-| relational-core-mini | transitive-closure | forward | 3 | 3 | 3911843 | 33222 | 37785 | true | true |
+| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3911667 | 33198 | 37822 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6247288 | 54297 | 58473 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3990905 | 34450 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3953431 | 33975 | 42113 | true | true |
+| relational-core-mini | reachability | forward | 2 | 2 | 3711267 | 31284 | 36685 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5459887 | 47655 | 54978 | true | true |
+| relational-core-mini | scc | forward | 8 | 8 | 6169413 | 52906 | 53796 | true | true |
+| relational-core-mini | transitive-closure | forward | 3 | 3 | 3911838 | 33222 | 37785 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
@@ -63,7 +63,7 @@ Engine pins: native `gmeow-logic/0.1.0+nemo+scryer`, nemo `4415bc2e180adf33a7a4b
 |---|---|---|---|---|---|---|
 | chasebench-mini | 6 | 6 | 0 | 0 | 6 | 7e3b2cd6c21f854f97f6ea48cbb652374161227cad90affd984a08a2792cf680 |
 | nary-mini | 6 | 6 | 0 | 0 | 6 | 37c8169a51b2e49f54342cfb4eca9469ba0fb8c981981441a6dcef290953188c |
-| nemo-kr2024-mini | 6 | 6 | 0 | 0 | 6 | 5045913f33f8fd69de1f1d78fecdb2091eaa065c173fab4dcadcebef14a4d48d |
+| nemo-kr2024-mini | 6 | 6 | 0 | 0 | 6 | c3d339d0a17be2a42e9cceea34e815395af1d903cb2063da4a4e61f9abb5ac29 |
 | relational-core-mini | 14 | 14 | 0 | 0 | 14 | 5ad25e7490e3ae7225b48679a6792b11c1cec4b4479a06237b1bc72396c3560b |
 
 16 case(s) across 4 corpora in the committed cost baseline.

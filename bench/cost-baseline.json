@@ -20,7 +20,7 @@
         "consumed_steps": 3,
         "cost_vector": [],
         "derived_count": 3,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 34937
       },
       "oracle": {
@@ -48,7 +48,7 @@
         "consumed_steps": 4,
         "cost_vector": [],
         "derived_count": 4,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 29729
       },
       "oracle": {
@@ -76,7 +76,7 @@
         "consumed_steps": 3,
         "cost_vector": [],
         "derived_count": 3,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 34989
       },
       "oracle": {
@@ -105,7 +105,7 @@
         "consumed_steps": 16,
         "cost_vector": [],
         "derived_count": 6,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 102307
       },
       "oracle": {
@@ -135,7 +135,7 @@
         "consumed_steps": 14,
         "cost_vector": [],
         "derived_count": 6,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 88846
       },
       "oracle": {
@@ -165,7 +165,7 @@
         "consumed_steps": 24,
         "cost_vector": [],
         "derived_count": 10,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 94509
       },
       "oracle": {
@@ -195,13 +195,13 @@
         "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
         "consumed_steps": 9,
         "cost_vector": [],
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 31689
       },
       "oracle": {
         "answer_count": 3,
         "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
-        "engine": "scryer"
+        "engine": "captured-sld-goldens/v1"
       },
       "world": "https://example.org/bench/world"
     },
@@ -225,13 +225,13 @@
         "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
         "consumed_steps": 5,
         "cost_vector": [],
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 25492
       },
       "oracle": {
         "answer_count": 2,
         "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
-        "engine": "scryer"
+        "engine": "captured-sld-goldens/v1"
       },
       "world": "https://example.org/bench/world"
     },
@@ -249,7 +249,7 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3911672,
+        "alloc_bytes": 3911667,
         "alloc_count": 33198,
         "consumed_steps": 3,
         "cost_vector": [
@@ -267,7 +267,7 @@
           ]
         ],
         "derived_count": 3,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 37822,
         "rows_fingerprint": "51cd1fc8691b307c9a429b7afa4ef6ddbcb5c91f8d89bd45f3c676cb5aaa9447"
       },
@@ -292,8 +292,8 @@
       "fragment": "forward",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 6247705,
-        "alloc_count": 54311,
+        "alloc_bytes": 6247288,
+        "alloc_count": 54297,
         "consumed_steps": 10,
         "cost_vector": [
           [
@@ -316,7 +316,7 @@
           ]
         ],
         "derived_count": 10,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 58473,
         "rows_fingerprint": "0d84466554d296a5a509495191251472f1c83cfca18ef74ffe262d7d201d379a"
       },
@@ -341,7 +341,7 @@
       "fragment": "forward",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 3990910,
+        "alloc_bytes": 3990905,
         "alloc_count": 34450,
         "consumed_steps": 6,
         "cost_vector": [
@@ -359,7 +359,7 @@
           ]
         ],
         "derived_count": 6,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 44101,
         "rows_fingerprint": "5447f838db015f827b8d62343f77931f7d9c676602bb0da83646834bdaa65a98"
       },
@@ -384,8 +384,8 @@
       "fragment": "forward",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3953008,
-        "alloc_count": 33961,
+        "alloc_bytes": 3953431,
+        "alloc_count": 33975,
         "consumed_steps": 4,
         "cost_vector": [
           [
@@ -402,7 +402,7 @@
           ]
         ],
         "derived_count": 4,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 42113,
         "rows_fingerprint": "b082266a94784f35afdb0dd05d3197ab6ec425d54d1c4bbc589ae80101c8f80d"
       },
@@ -427,7 +427,7 @@
       "fragment": "forward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 3711272,
+        "alloc_bytes": 3711267,
         "alloc_count": 31284,
         "consumed_steps": 2,
         "cost_vector": [
@@ -445,7 +445,7 @@
           ]
         ],
         "derived_count": 2,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 36685,
         "rows_fingerprint": "62f716d024cd5c0ae67195157d008fc9bcccab7ecb0df10117bd617b27d4d494"
       },
@@ -470,8 +470,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5459473,
-        "alloc_count": 47641,
+        "alloc_bytes": 5459887,
+        "alloc_count": 47655,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -488,7 +488,7 @@
           ]
         ],
         "derived_count": 8,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 54978,
         "rows_fingerprint": "1fbc5a74847284527461ac58d15ba951d3c4c41330019eef0441a08465d5d308"
       },
@@ -513,7 +513,7 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 6169418,
+        "alloc_bytes": 6169413,
         "alloc_count": 52906,
         "consumed_steps": 8,
         "cost_vector": [
@@ -537,7 +537,7 @@
           ]
         ],
         "derived_count": 8,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 53796,
         "rows_fingerprint": "8de03a4728f4bc62d04f3288454b73ef3e883beee6dd0660690f81b84aa4cd28"
       },
@@ -562,7 +562,7 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3911843,
+        "alloc_bytes": 3911838,
         "alloc_count": 33222,
         "consumed_steps": 3,
         "cost_vector": [
@@ -580,7 +580,7 @@
           ]
         ],
         "derived_count": 3,
-        "engine": "gmeow-logic/0.1.0+nemo+scryer",
+        "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 37785,
         "rows_fingerprint": "cf8d6fe43b6165e0fa972fb1546426dcb381c541a0f53c77a2ab2d654bdba22b"
       },
@@ -593,9 +593,9 @@
     }
   ],
   "engine_pins": {
-    "native": "gmeow-logic/0.1.0+nemo+scryer",
-    "nemo_rev": "4415bc2e180adf33a7a4b98ddc41be9914b7584e",
-    "scryer_branch": "master"
+    "backward_reference": "captured-sld-goldens/v1",
+    "native": "gmeow-logic/0.1.0+native",
+    "nemo_rev": "4415bc2e180adf33a7a4b98ddc41be9914b7584e"
   },
   "ledgers": {
     "chasebench-mini": {
@@ -696,8 +696,20 @@
       "corpus_only": 0,
       "dl_gap": 0,
       "finding_count": 6,
-      "finding_graph_blake3": "5045913f33f8fd69de1f1d78fecdb2091eaa065c173fab4dcadcebef14a4d48d",
+      "finding_graph_blake3": "c3d339d0a17be2a42e9cceea34e815395af1d903cb2063da4a4e61f9abb5ac29",
       "findings": [
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/a3c211688407f4cf7d04edcda2c621eb",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/58a6d7e81ac8b8b0fd24245fdf29d62c"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/e24eaef03e789b66bd2ec6690a830f27",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/61fd30c4edc1e3f117ce8d363fd8e1a0"
+        },
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/904335816af109d55ba49a40f2ed1557",
           "antecedents": [],
@@ -711,22 +723,10 @@
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/691a7c0e619da77a130f9d486f651ff6"
         },
         {
-          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/0dbf60b71eb9942025f419a83e5f4b35",
-          "antecedents": [],
-          "code": "reason.divergence.agreement",
-          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/6e0ab30e4beabc2d9d66c590ce29a090"
-        },
-        {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/770478b3da13d0910d273651329cf91c",
           "antecedents": [],
           "code": "reason.divergence.agreement",
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/6f4a319e5c5a7b3b9bec28def2a844d9"
-        },
-        {
-          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/53e66072951ae1a7c3c22dc3645be8f6",
-          "antecedents": [],
-          "code": "reason.divergence.agreement",
-          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/92d00dd2be0aeaa51862a7956f2a724a"
         },
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d9f5f38622b98c35220ca1da213b2134",

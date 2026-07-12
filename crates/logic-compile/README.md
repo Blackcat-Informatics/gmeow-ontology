@@ -22,8 +22,8 @@ surface (oxigraph-free, the same surface `crates/rdf-wasm` uses), so the entire
 compiler builds for `wasm32-unknown-unknown`. `make wasm` gates this and asserts
 the dependency tree stays free of the runtime crates.
 
-The reasoning **runtime** — world-indexed stores, the Nemo/Scryer chase, certify,
-counterfactuals, and the PyO3 `compile_logic` entrypoint — lives in the sibling
+The reasoning **runtime** — world-indexed stores, native backward evaluation, the
+retained Nemo comparison chase, certification, and counterfactuals — lives in the sibling
 `gmeow-logic` crate, which depends on this one. Two pieces stay runtime-side by
 design: `lower.rs` (compiler-IR → runtime `EvalRule`, Nemo-coupled) and
 `diagnostics_report` (returns a PyO3-tainted `gmeow_diagnostics::Report`).

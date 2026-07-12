@@ -16,8 +16,8 @@
 //!   [`gmeow_logic::cost::run_native_forward`] / [`gmeow_logic::materialize::materialize_routed`]
 //!   accept; for `backward` cases it is the goal-directed `.logic` query surface
 //!   [`gmeow_logic::query_ir::parse_query_program`] parses and
-//!   [`gmeow_logic::scryer_engine::run_scryer`] / [`gmeow_logic::dispatch::dispatch_query`]
-//!   consume (the EDB is supplied separately from `input.nq`, NOT inlined in the query).
+//!   [`gmeow_logic::dispatch::dispatch_query`] consumes (the EDB is supplied
+//!   separately from `input.nq`, not inlined in the query).
 //! * `input.nq` — the world-scoped EDB as N-Quads.
 //! * `expected/result.json` — the HAND-DERIVED, known-correct golden: a map from
 //!   world IRI to `{ rows, digest? }`, where `rows` is the mathematically-correct
@@ -55,7 +55,7 @@ pub enum Fragment {
     Forward,
     /// Existential (value-inventing) TGD chase (native / Nemo).
     Existential,
-    /// Goal-directed backward query (native / Scryer).
+    /// Goal-directed backward query (native / captured SLD golden).
     Backward,
     /// Fixed-arity n-ary multi-head existential TGD chase (native reified-binary lowering
     /// vs Nemo), driven from an n-ary `.rls` program + delimited (`data/<rel>.csv`) EDB —
@@ -213,28 +213,15 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
     let (fragment, engines) = parse_profile(&read_json(&case_dir.join("profile.json"))?)?;
     let golden = parse_golden(&read_json(&case_dir.join("expected").join("result.json"))?)?;
 
-    // Fragment ↔ engine invariant (anti-empty-golden for the backward lane): Scryer is
-    // the backward-only engine, and a backward case MUST list it — so the required
-    // goal-directed Scryer case can never silently degrade into an engine-less shell.
-    let lists_scryer = engines.iter().any(|e| e == "scryer");
-    match fragment {
-        Fragment::Backward if !lists_scryer => {
-            return Err(Diag::of_kind(ProfileInvalid {
-                detail: format!(
-                    "{corpus}/{name}: a backward-fragment case must list the \"scryer\" engine"
-                ),
-            }));
-        }
-        Fragment::Forward | Fragment::Existential | Fragment::NaryExistential if lists_scryer => {
-            return Err(Diag::of_kind(ProfileInvalid {
-                detail: format!(
-                    "{corpus}/{name}: the \"scryer\" engine is valid only for the \
-                     backward fragment, not {:?}",
-                    fragment.as_str()
-                ),
-            }));
-        }
-        _ => {}
+    // Every backward case must explicitly list the native engine. Its committed
+    // digest is the retained SLD answer-set reference; no live secondary engine is
+    // constructed by the corpus loader.
+    if fragment == Fragment::Backward && !engines.iter().any(|e| e == "native") {
+        return Err(Diag::of_kind(ProfileInvalid {
+            detail: format!(
+                "{corpus}/{name}: a backward-fragment case must list the native engine"
+            ),
+        }));
     }
 
     // Shape-specific rule text + EDB.
@@ -613,26 +600,30 @@ mod tests {
             });
         }
 
-        // The required goal-directed backward Scryer case is present (anti-empty-golden):
-        // ≥1 backward case listing the "scryer" engine, over the parseable query surface.
+        // The required goal-directed backward native case is present with a captured
+        // full-answer digest, over the parseable query surface.
         let backward: Vec<&BenchCase> = cases
             .iter()
             .filter(|c| c.fragment == Fragment::Backward)
             .collect();
         assert!(
             !backward.is_empty(),
-            "the bench corpus must include >= 1 backward (Scryer) case"
+            "the bench corpus must include >= 1 backward native case"
         );
         for c in &backward {
             assert!(
-                c.engines.iter().any(|e| e == "scryer"),
-                "{}/{}: backward case must list the scryer engine",
+                c.engines.iter().any(|e| e == "native"),
+                "{}/{}: backward case must list the native engine",
                 c.corpus,
                 c.name
             );
-            // Confirm the query text is in the fragment the Scryer entry accepts: it
-            // parses as a goal-directed QProgram (the surface `run_scryer` / `dispatch_query`
-            // consume). The EDB is supplied separately from `input.nq`.
+            assert!(
+                c.golden.values().all(|g| g.digest.is_some()),
+                "{}/{}: backward case must carry a captured answer-set digest",
+                c.corpus,
+                c.name
+            );
+            // Confirm the query text parses on the native production surface.
             gmeow_logic::query_ir::parse_query_program(&c.rules).unwrap_or_else(|e| {
                 panic!(
                     "{}/{}: backward query text must parse as a QProgram: {e}",

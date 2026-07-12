@@ -456,10 +456,10 @@ bench: ## Run criterion benchmarks with host-tuned codegen.
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
 
-bench-golden-gate: ## On-gate native-vs-golden agreement gate: run the NATIVE engine over the committed mini corpora and hard-fail on any golden divergence (no Nemo/Scryer — cheap).
+bench-golden-gate: ## On-gate native-vs-golden agreement gate: run the native engine over the committed mini corpora and hard-fail on any golden divergence (no live oracle — cheap).
 	cargo run -q -p gmeow-bench-engines -- --check-golden
 
-bench-soak: ## On-gate divergence-ledger soak window: run the DETERMINISTIC native-vs-golden check 3× over the committed mini corpora and hard-fail unless every run is gap-zero with a byte-identical finding-graph digest (no Nemo/Scryer — cheap; the checkable form of the gap-zero-over-a-soak-window claim in generated/bench/soak.md).
+bench-soak: ## On-gate divergence-ledger soak window: run the deterministic native-vs-golden check 3× and require gap-zero with a byte-identical digest (no live oracle).
 	cargo run -q -p gmeow-bench-engines -- --soak 3
 
 perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.
@@ -552,12 +552,12 @@ maint-bench-instructions: ## (maintainer) Deterministic retired-instruction coun
 	@# Needs NO Valgrind — the counts are host-independent — so it always runs.
 	cargo bench -p gmeow-validate --bench conformance_union_cost_alloc
 
-maint-bench-engines: ## (maintainer) Engine-vs-engine benchmark over the committed mini corpora: emit the DETERMINISTIC cost/agreement artifact + the REPORT-ONLY wall/RSS advisory table (offline; NOT wired into `make check`).
+maint-bench-engines: ## (maintainer) Engine/reference benchmark over the committed mini corpora: emit deterministic cost/agreement + report-only wall/RSS evidence.
 	@# The `bench-engines` harness drives every committed mini bench case through the
-	@# native engine and the applicable oracle (Nemo forward/existential, Scryer
-	@# backward), IN-PROCESS with a fresh EDB per case. This is sound because each
-	@# oracle rebuilds a FRESH engine per call (Nemo `load_string` under CHASE_LOCK,
-	@# Scryer a fresh Machine under SCRYER_LOCK), exactly as the production
+	@# native engine and the applicable live or captured reference (Nemo for the
+	@# forward/existential lanes, captured SLD answer digests for backward),
+	@# IN-PROCESS with a fresh EDB per case. Nemo rebuilds a fresh engine per call
+	@# under CHASE_LOCK, exactly as the production
 	@# native↔Nemo crosscheck already dual-runs many cases in one process. Offline:
 	@# no network, no Valgrind.
 	@#
@@ -592,7 +592,7 @@ maint-bench-engines: ## (maintainer) Engine-vs-engine benchmark over the committ
 	  fi; \
 	  echo "✓ deterministic cost/agreement artifact is byte-identical across two runs ($$(wc -c < "$$tmpdir/cost-1.json") bytes)"
 
-maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh engine-vs-engine run (offline; the drift-gated cost-ledger source).
+maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh engine/reference run (offline; the drift-gated cost-ledger source).
 	@# The SINGLE producer of the committed deterministic cost/agreement baseline:
 	@# `gmeow-bench-engines --emit-cost` over the committed mini corpora (offline; no
 	@# `--corpus-dir`, so the Nemo-fetch full corpora are NOT included). Mirrors

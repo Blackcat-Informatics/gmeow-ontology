@@ -36,7 +36,7 @@
 //! arithmetic builtin, a cut, or a negated body atom in the goal program is a declared gap
 //! ([`NativeOutcome::Unsupported`]). Stratified negation-as-failure is supported ONLY on the
 //! binary backward path ([`super::magic`]); an n-ary program carrying a `\+`/`not` literal
-//! is an explicit, honest gap routed to the oracle, never a silent drop.
+//! is an explicit, honest gap that production dispatch rejects, never a silent drop.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -54,7 +54,7 @@ use crate::query_ir::{
     QProgram, QTerm,
 };
 use crate::rule_ir::EvalTerm;
-use crate::seam::{BudgetStatus, ScryerForeign};
+use crate::seam::{BudgetStatus, WorldFactSource};
 
 // ── Lowering (QProgram → arity-generic IR, ALL terms kept) ───────────────────────
 
@@ -264,7 +264,7 @@ fn magic_transform_generic(
 /// Build the arity-4 generic-triple EDB `triple(subject, predicate, object, world)` by
 /// scanning the world — the REAL n-ary data (the predicate carried as a DATA term) the
 /// binary store cannot represent.
-fn build_generic_edb(foreign: &dyn ScryerForeign, world: &str) -> TypedFactSet {
+fn build_generic_edb(foreign: &dyn WorldFactSource, world: &str) -> TypedFactSet {
     let mut facts = TypedFactSet::new();
     for dq in foreign.in_world(world, None, None, None) {
         let s = facts.intern(&dq.subject);
@@ -404,7 +404,7 @@ fn project_generic(rows: &[(TypedRow, TypedProvenance)], goal: &QAtom) -> Vec<Bi
 /// Propagates a [`materialize_generic`] failure (e.g. an unbound head variable — a
 /// malformed rule the positive-Datalog core cannot ground).
 pub(super) fn resolve_native_generic(
-    foreign: &dyn ScryerForeign,
+    foreign: &dyn WorldFactSource,
     world: &str,
     program: &QProgram,
     budget: &Budget,
@@ -428,8 +428,7 @@ pub(super) fn resolve_native_generic(
                 // The generic core is positive Datalog only — negation / arithmetic / cut
                 // are declared gaps. Stratified NAF is supported ONLY on the binary backward
                 // path (`super::magic`); an n-ary program that carries a negated body atom
-                // is an explicit, honest gap routed to the oracle (never a silent drop of
-                // the negation).
+                // is an explicit, honest gap (never a silent drop of the negation).
                 QBodyLit::Neg(_) => {
                     return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
                 }
@@ -513,7 +512,7 @@ pub(super) fn resolve_native_generic(
 mod tests {
     use super::*;
     use crate::query_ir::QGoal;
-    use crate::seam::WorldStoreForeign;
+    use crate::seam::WorldFactSnapshot;
     use crate::store::WorldStore;
 
     const W: &str = "http://logic.test/world/magic-generic";
@@ -577,7 +576,7 @@ mod tests {
         // arity-4 backward goal must return that derived edge — resolution the binary
         // store cannot express (the predicate rides in a DATA position).
         let (store, world) = make_world(&[("http://ex/x", P1, "http://ex/y")]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = subprop_program();
 
         // The dispatch signal: the goal atom is arity 4, so resolve_native routes here.
@@ -604,7 +603,7 @@ mod tests {
         // Only a <p2>-unrelated edge under a DIFFERENT predicate: no <p1> edge to
         // propagate, so the demand-restricted fixpoint derives nothing.
         let (store, world) = make_world(&[("http://ex/x", "http://ex/other", "http://ex/y")]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = subprop_program();
         let answer = decided(
             super::super::magic::resolve_native(&foreign, &world, &prog, &Budget::default())
@@ -656,7 +655,7 @@ mod tests {
             ("http://ex/b", trans, "http://ex/c"),
             ("http://ex/c", trans, "http://ex/d"),
         ]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = transitive_program();
 
         // Unbudgeted: the full demand-restricted closure, complete (`Ok`).
@@ -702,7 +701,7 @@ mod tests {
     #[test]
     fn generic_derived_row_carries_demand_and_rule_provenance() {
         let (store, world) = make_world(&[("http://ex/x", P1, "http://ex/y")]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = subprop_program();
 
         // Drive the transform + generic materialization directly to inspect provenance.

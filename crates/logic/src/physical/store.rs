@@ -36,7 +36,7 @@
 //! # The single oxigraph → columnar bridge
 //!
 //! [`extract_edb`] is the SOLE place the forward and backward engine paths cross from
-//! the oxigraph blackboard ([`crate::seam::ScryerForeign`]) into the columnar form.
+//! the oxigraph blackboard ([`crate::seam::WorldFactSource`]) into the columnar form.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
@@ -47,7 +47,7 @@ use crate::facts::{PredId, PredInterner, TermId, TermInterner, skolem_iri};
 use crate::physical::cursor::RowCursor;
 use crate::physical::id::RowId;
 use crate::provenance::term_display;
-use crate::seam::ScryerForeign;
+use crate::seam::WorldFactSource;
 
 // ── Chase-invented nulls: recipe-carrying Skolem terms ──────────────────────────
 //
@@ -542,10 +542,10 @@ impl RelationStore {
 ///
 /// This is the SINGLE oxigraph → columnar bridge used by both the forward and
 /// backward native engine paths.  It scans every quad in `world` via
-/// [`ScryerForeign::in_world`] and inserts each `(subject, predicate, object)` as a
+/// [`WorldFactSource::in_world`] and inserts each `(subject, predicate, object)` as a
 /// binary tuple.  Insertion order follows `in_world`'s iteration order; dedup and
 /// index maintenance are handled by [`RelationStore::insert`].
-pub(crate) fn extract_edb(foreign: &dyn ScryerForeign, world: &str) -> RelationStore {
+pub(crate) fn extract_edb(foreign: &dyn WorldFactSource, world: &str) -> RelationStore {
     let mut store = RelationStore::new();
     for dq in foreign.in_world(world, None, None, None) {
         store.insert(&dq.predicate, &dq.subject, &dq.object);
@@ -881,9 +881,9 @@ mod tests {
         assert_eq!(preds, p2);
     }
 
-    // ── extract_edb round-trip via a minimal ScryerForeign test double ───────────
+    // ── extract_edb round-trip via a minimal WorldFactSource test double ───────────
 
-    /// A hand-rolled `ScryerForeign` yielding a fixed list of `DerivedQuad`s in
+    /// A hand-rolled `WorldFactSource` yielding a fixed list of `DerivedQuad`s in
     /// `world`. Only `in_world` is exercised by `extract_edb`; the other legs are
     /// vacuous (and unused) for this test.
     struct FakeForeign {
@@ -916,7 +916,7 @@ mod tests {
         }
     }
 
-    impl ScryerForeign for FakeForeign {
+    impl WorldFactSource for FakeForeign {
         fn in_world<'a>(
             &'a self,
             world: &str,

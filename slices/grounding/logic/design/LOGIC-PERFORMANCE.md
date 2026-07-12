@@ -113,9 +113,9 @@ engine, two directions.
   variant-based magic sets and is the reason a native SLG resolution engine — suspended goals,
   answer tables, delay lists — is **explicitly rejected**: it would duplicate the fixpoint core
   to recover behavior the rewrite already provides.
-- Procedural control (cut and its relatives) stays outside the native core. Programs that need
-  it are rewritten declaratively at authoring time or confined to the procedural preset; the
-  native engine never simulates control flow inside a fixpoint.
+- Procedural control (cut and its relatives) is retired. Programs are rewritten
+  declaratively at authoring time; the native engine rejects cut and never simulates
+  control flow inside a fixpoint.
 - Budgets transfer unchanged: the demand-transformed program is charged through the same
   committed-derivation counting point, so a backward query's budget semantics are identical to a
   forward materialization's.

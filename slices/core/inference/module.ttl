@@ -588,7 +588,7 @@ gmeow:modeDeduction
     a gmeow:InferenceMode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "deduction"@x-gmeow-english ;
-    skos:definition "Deductive inference — truth-preserving derivation under a monotonic profile (a logic: proof-trace, Nemo / Scryer): if the premises hold, the conclusion holds. Non-defeasible; default modality gmeow:unequivocal. At the logic: derivation layer the mode is read off the profile and never separately tagged (Principle 4); gmeow:modeDeduction is the legitimate way to record, at the epistemic / memory layer, that the agent reached this by deduction."@x-gmeow-english ;
+    skos:definition "Deductive inference — truth-preserving derivation under a monotonic profile with a native logic proof trace: if the premises hold, the conclusion holds. Non-defeasible; default modality gmeow:unequivocal. At the logic: derivation layer the mode is read off the profile and never separately tagged (Principle 4); gmeow:modeDeduction is the legitimate way to record, at the epistemic / memory layer, that the agent reached this by deduction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:modeInduction

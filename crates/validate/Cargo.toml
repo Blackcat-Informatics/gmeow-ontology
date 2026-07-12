@@ -40,7 +40,7 @@ ciborium = "0.2"
 
 # Native-only dependencies: the slice-authoring dev gate, repo-lint guards, DSL
 # phases, and the Tier-2 `--deep` reasoner path. None of these cross-compile to wasm
-# (gmeow-logic drags in nemo/scryer/tokio, rayon needs threads, ureq needs sockets),
+# (gmeow-logic drags in nemo/tokio, rayon needs threads, ureq needs sockets),
 # so they are excluded from the wasm target entirely — the modules that use them are
 # `#[cfg(not(target_arch = "wasm32"))]` in lib.rs.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

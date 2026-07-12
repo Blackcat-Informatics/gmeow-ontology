@@ -1,27 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Profile gate — cut-confinement guard (AC-2).
+//! Profile gates for retired cut syntax and native procedural builtins.
 //!
 //! # Structural no-write firewall
 //!
-//! The entire query and resolution path (`run_scryer`, `resolve`, `fast_path`) accepts only
-//! `&dyn ScryerForeign` and `&WorldStore` — **shared, read-only references**. There is no
-//! `&mut` write path anywhere in the resolution stack. A `cut` (`!`) in a rule body can
-//! influence *which* answers Scryer Prolog returns (first-answer commitment), but it can
-//! **never produce a stored quad**: the engine drives a fresh Scryer machine per query,
-//! collects virtual answer bindings into a `Vec<Binding>`, and returns. Zero quads are
-//! inserted into `WorldStore.inner` during or after resolution. Cut is virtual-only by
-//! construction.
+//! The query path accepts only `&dyn WorldFactSource`: there is no write path in
+//! goal resolution. Cut (`!`) is recognized by the parser solely to produce a clear,
+//! typed retirement diagnostic before evaluation.
 //!
-//! # Cut-permission is facet-derived
-//!
-//! Cut-confinement is decided in FACET terms, not by a raw profile-name match: a
-//! profile reference (full IRI, `prefix:Local`, or bare local name) is resolved to its
-//! preset, and cut is licensed iff that preset's facet bundle carries the
-//! procedural-execution facet (`logic:ProceduralExecution`, see
-//! [`SemanticProfileId::permits_cut`]).  An unrecognized reference resolves to no preset
-//! and does not license cut — the AC-2 seal is preserved.
+//! `logic:ProceduralExecution` remains the facet that licenses the closed set of
+//! native arithmetic/comparison builtins. It no longer licenses search-control
+//! semantics.
 
 use crate::query_ir::{QBodyLit, QProgram};
 use gmeow_logic_compile::ir::SemanticProfileId;
@@ -38,41 +28,19 @@ pub fn has_cut(program: &QProgram) -> bool {
         .any(|rule| rule.body.iter().any(|lit| matches!(lit, QBodyLit::Cut)))
 }
 
-/// Assert that if `program` contains cut, `profile` resolves to a preset whose
-/// facet bundle licenses cut.
-///
-/// Cut may appear ONLY under a profile whose facet bundle licenses it. Hard-fail
-/// otherwise — there is no fallback or silent stripping of cut.
-///
-/// The decision is **facet-derived**: `profile` is resolved to its preset
-/// via its local name ([`SemanticProfileId::from_local`]) and cut is licensed iff
-/// that preset's facet bundle carries the procedural-execution facet
-/// (`logic:ProceduralExecution`, exposed by [`SemanticProfileId::permits_cut`] and
-/// pinned to the facet by the `procedural_preset_carries_procedural_execution_facet`
-/// test) — see [`is_procedural_profile`]. An unrecognized reference resolves to no
-/// preset and does not license cut. This is NOT a raw name match against
-/// `ProceduralPrologProfile`; that preset only licenses cut because its facet bundle
-/// carries the procedural-execution facet.
-///
-/// If the program contains no cut this function always returns `Ok(())`.
+/// Reject retired cut syntax before any engine evaluates the program.
 ///
 /// # Errors
 ///
-/// Returns `Err` with a message naming the offending profile when the program
-/// contains cut and the profile resolves to no cut-licensing preset.
-pub fn check_cut_profile(program: &QProgram, profile: &str) -> gmeow_errors::Result<()> {
+/// Returns `Err` when the program contains cut. The parser retains the marker so
+/// callers receive this stable diagnostic instead of a generic syntax failure.
+pub fn reject_cut(program: &QProgram) -> gmeow_errors::Result<()> {
     if !has_cut(program) {
         return Ok(());
     }
-    if is_procedural_profile(profile) {
-        return Ok(());
-    }
     Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
-        detail: format!(
-            "program contains cut (`!`) but profile {profile:?} does not denote \
-             ProceduralPrologProfile; cut is only permitted under \
-             {PROCEDURAL_PROLOG_PROFILE:?}"
-        ),
+        detail: "program contains retired cut syntax (`!`); rewrite the rule declaratively"
+            .to_owned(),
     }))
 }
 
@@ -92,9 +60,9 @@ pub fn has_builtin(program: &QProgram) -> bool {
 /// resolves to a preset whose facet bundle licenses procedural execution.
 ///
 /// Arithmetic builtins (`logic:builtinArithmetic`) are gated to
-/// `ProceduralPrologProfile` (per `slices/grounding/logic/module.ttl`), exactly as cut is.
+/// `ProceduralPrologProfile` (per `slices/grounding/logic/module.ttl`).
 /// The decision is **facet-derived** (the same [`is_procedural_profile`] predicate
-/// used for cut): an unrecognized profile resolves to no preset and does not license
+/// used for native procedural builtins): an unrecognized profile resolves to no preset and does not license
 /// builtins. There is no fallback or silent stripping.
 ///
 /// If the program contains no builtin this function always returns `Ok(())`.
@@ -130,17 +98,13 @@ fn profile_local_name(profile: &str) -> &str {
 }
 
 /// Return `true` if `profile` denotes a reasoning contract whose facet bundle
-/// licenses cut.
+/// licenses native procedural builtins.
 ///
-/// The decision is **facet-derived**: the profile string is resolved to its preset and
-/// the cut decision flows from that preset's procedural-execution facet
-/// ([`SemanticProfileId::permits_cut`] ⇔ the `logic:ProceduralExecution` facet in its
-/// `logic:expandsToFacet` bundle), NOT from a raw `ProceduralPrologProfile` name match.
-/// An unrecognized profile reference resolves to no preset and therefore does not
-/// license cut (hard-fail), preserving the AC-2 seal.
+/// The decision is facet-derived from `logic:ProceduralExecution`, not from a
+/// raw profile-name match.
 fn is_procedural_profile(profile: &str) -> bool {
     SemanticProfileId::from_local(profile_local_name(profile))
-        .is_some_and(SemanticProfileId::permits_cut)
+        .is_some_and(SemanticProfileId::permits_procedural_execution)
 }
 
 // ── Probabilistic profile recognition ─────────────────────────────────
@@ -249,9 +213,9 @@ pub fn evolution_mode_local(evolution: &str) -> Option<&'static str> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::oracle::{BackwardOracle, backward_oracle};
+    use crate::dispatch::dispatch_query;
     use crate::query_ir::parse_query_program;
-    use crate::seam::WorldStoreForeign;
+    use crate::seam::WorldFactSnapshot;
     use crate::store::WorldStore;
 
     const BASE: &str = "https://example.org/";
@@ -294,65 +258,19 @@ mod tests {
         );
     }
 
-    // ── check_cut_profile — Ok cases ──────────────────────────────────────────
+    // ── retired cut syntax ────────────────────────────────────────────────────
 
     #[test]
-    fn cut_with_full_procedural_iri_is_ok() {
+    fn cut_is_rejected_under_every_profile() {
         let prog = cut_program();
-        assert!(
-            check_cut_profile(&prog, PROCEDURAL_PROLOG_PROFILE).is_ok(),
-            "cut + full IRI must be Ok"
-        );
+        let error = reject_cut(&prog).expect_err("cut must be retired unconditionally");
+        assert!(error.message().contains("retired cut syntax"));
     }
-
-    #[test]
-    fn cut_with_bare_short_name_is_ok() {
-        let prog = cut_program();
-        assert!(
-            check_cut_profile(&prog, "ProceduralPrologProfile").is_ok(),
-            "cut + bare short name must be Ok"
-        );
-    }
-
-    #[test]
-    fn cut_with_prefixed_name_ending_in_short_name_is_ok() {
-        let prog = cut_program();
-        // A profile.json-style prefixed form that ends_with the short name.
-        assert!(
-            check_cut_profile(&prog, "logic:ProceduralPrologProfile").is_ok(),
-            "cut + prefixed name ending in short name must be Ok"
-        );
-    }
-
-    // ── check_cut_profile — Err cases ─────────────────────────────────────────
-
-    #[test]
-    fn cut_with_positive_horn_profile_returns_err() {
-        let prog = cut_program();
-        let result = check_cut_profile(&prog, HORN_PROFILE);
-        assert!(result.is_err(), "cut + PositiveHornProfile must be Err");
-        let msg = result.unwrap_err().message().to_owned();
-        assert!(
-            msg.contains(HORN_PROFILE),
-            "error message must name the offending profile: {msg:?}"
-        );
-    }
-
-    #[test]
-    fn cut_with_empty_profile_returns_err() {
-        let prog = cut_program();
-        let result = check_cut_profile(&prog, "");
-        assert!(result.is_err(), "cut + empty profile must be Err");
-    }
-
-    // ── check_cut_profile — no-cut programs always pass ───────────────────────
 
     #[test]
     fn no_cut_any_profile_is_ok() {
         let prog = no_cut_program();
-        assert!(check_cut_profile(&prog, HORN_PROFILE).is_ok());
-        assert!(check_cut_profile(&prog, "").is_ok());
-        assert!(check_cut_profile(&prog, "SomeRandomProfile").is_ok());
+        assert!(reject_cut(&prog).is_ok());
     }
 
     // ── Lewis profile recognition ──────────────────────────────────────
@@ -427,12 +345,11 @@ mod tests {
 
     // ── No-write firewall ──────────────────────────────────────────────────────
     //
-    // Run a terminating cut program through the backward oracle under the procedural
-    // profile and verify the store quad count is unchanged — cut is virtual-only,
-    // no quads are inserted.
+    // Reject a cut program through production dispatch and verify the store remains
+    // unchanged.
 
     #[test]
-    fn no_write_firewall_cut_program_leaves_store_unchanged() {
+    fn rejected_cut_program_leaves_store_unchanged() {
         let store = WorldStore::new();
         store.insert_quad(
             WORLD,
@@ -449,7 +366,7 @@ mod tests {
 
         let before = store.quads_in_world(WORLD).len();
 
-        let foreign = WorldStoreForeign::from_world(&store, WORLD, PROCEDURAL_PROLOG_PROFILE)
+        let foreign = WorldFactSnapshot::from_world(&store, WORLD, PROCEDURAL_PROLOG_PROFILE)
             .expect("from_world must succeed");
 
         let src = format!(
@@ -459,30 +376,20 @@ mod tests {
         );
         let prog = parse_query_program(&src).unwrap();
 
-        // Gate passes; engine runs; answers are virtual only.
-        check_cut_profile(&prog, PROCEDURAL_PROLOG_PROFILE)
-            .expect("gate must pass under ProceduralPrologProfile");
+        let error = dispatch_query(
+            &foreign,
+            WORLD,
+            &prog,
+            PROCEDURAL_PROLOG_PROFILE,
+            &crate::query_ir::Budget::default(),
+        )
+        .expect_err("cut must be rejected even under the procedural builtin profile");
+        assert!(error.message().contains("retired cut syntax"));
 
-        let ans = backward_oracle()
-            .solve(
-                &foreign,
-                WORLD,
-                &prog,
-                &[], // no tabling — cut program is procedural
-                &crate::query_ir::Budget::default(),
-            )
-            .expect("the backward oracle must succeed on a terminating cut program");
-
-        // Cut commits to the first answer; store is still unchanged.
-        assert_eq!(
-            ans.bindings.len(),
-            1,
-            "cut must commit to first answer: {ans:?}"
-        );
         let after = store.quads_in_world(WORLD).len();
         assert_eq!(
             before, after,
-            "store quad count must be UNCHANGED after the backward oracle solve (no-write firewall)"
+            "store quad count must be unchanged after the rejected query"
         );
     }
 }
