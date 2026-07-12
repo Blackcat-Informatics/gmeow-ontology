@@ -949,10 +949,12 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
     let scratch_groundings = scratch.active_ground_rules as u64;
     let step_win = committed_groundings < scratch_groundings;
     let probe_win = incremental.ground_rule_probe_rows < scratch.ground_rule_probe_rows;
-    if !(incremental.solver_reran
-        && retracted.solver_reran
-        && incremental.solver_status == "flagged-non-incremental")
-    {
+    if !changed_solver_shots_are_flagged(
+        incremental.solver_reran,
+        incremental.solver_status,
+        retracted.solver_reran,
+        retracted.solver_status,
+    ) {
         return Err(run_err(
             case,
             "changed ground slices must explicitly report a flagged from-scratch solver run"
@@ -1080,7 +1082,7 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
         },
         "agreement": {
             "native_vs_golden": agree_golden,
-            "native_vs_oracle": agree_insert && agree_retract && step_win && probe_win,
+            "native_vs_oracle": grounding_semantic_parity(agree_insert, agree_retract),
             "incremental_insert_vs_scratch": agree_insert,
             "incremental_retract_vs_scratch": agree_retract,
             "incremental_step_win": step_win,
@@ -1117,6 +1119,26 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
         ],
         comparisons,
     })
+}
+
+/// Semantic oracle agreement is answer parity only. Deterministic work wins are
+/// recorded in their dedicated fields and must never redefine correctness.
+fn grounding_semantic_parity(insert_matches: bool, retract_matches: bool) -> bool {
+    insert_matches && retract_matches
+}
+
+/// Every changed non-monotone solver shot must disclose that solving reran from
+/// scratch; insertion and retraction are symmetric parts of the evidence contract.
+fn changed_solver_shots_are_flagged(
+    insert_reran: bool,
+    insert_status: &str,
+    retract_reran: bool,
+    retract_status: &str,
+) -> bool {
+    insert_reran
+        && insert_status == "flagged-non-incremental"
+        && retract_reran
+        && retract_status == "flagged-non-incremental"
 }
 
 /// EXISTENTIAL fragment: native value-inventing chase (`materialize_routed`) vs the
@@ -2899,6 +2921,35 @@ mod tests {
             cost_descriptor(&overclaimed),
             "the explicit non-incremental solver status is part of exact identity"
         );
+    }
+
+    #[test]
+    fn incremental_grounding_requires_both_changed_solver_shots_to_be_flagged() {
+        assert!(changed_solver_shots_are_flagged(
+            true,
+            "flagged-non-incremental",
+            true,
+            "flagged-non-incremental",
+        ));
+        assert!(!changed_solver_shots_are_flagged(
+            true,
+            "flagged-non-incremental",
+            true,
+            "incremental",
+        ));
+        assert!(!changed_solver_shots_are_flagged(
+            true,
+            "flagged-non-incremental",
+            false,
+            "flagged-non-incremental",
+        ));
+    }
+
+    #[test]
+    fn incremental_grounding_oracle_agreement_is_semantic_only() {
+        assert!(grounding_semantic_parity(true, true));
+        assert!(!grounding_semantic_parity(true, false));
+        assert!(!grounding_semantic_parity(false, true));
     }
 
     #[test]
