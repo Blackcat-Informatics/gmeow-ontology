@@ -1034,6 +1034,23 @@ pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
     } else {
         vec![t.range.clone()]
     };
+    // The explicit term→model link (§19): a modeled class carries the importable
+    // dotted path of its generated Pydantic model plus a compact construct/validate
+    // snippet, from the SAME emitter routing the docs-site Python tab uses (never
+    // duplicated). Only a class with an owning slice has a model to route to, so the
+    // MCP `doc_card` for a class flows the Python surface through the shared renderer.
+    let (python_model, python_snippet) = if t.category == "class" && !t.owner_slice.is_empty() {
+        (
+            Some(gmeow_docs::card::python_model_path(&t.owner_slice, &t.iri)),
+            Some(gmeow_docs::card::python_model_snippet(
+                &t.owner_slice,
+                &t.iri,
+                &t.curie,
+            )),
+        )
+    } else {
+        (None, None)
+    };
     // Individuals carry `types` rather than parents; surface them as Related-style
     // "a Type" is not a card field, so fold types into related_terms is wrong;
     // instead they ride the `(a …)` signature suffix on the heading. Keep the
@@ -1065,6 +1082,8 @@ pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
         use_for_consumer: t.use_for_consumer.clone(),
         avoid_for_consumer: t.avoid_for_consumer.clone(),
         aligns: t.alignments.clone(),
+        python_model,
+        python_snippet,
         // Full-tier rich panels: the folded builder has no documentation-graph
         // access; the MCP `doc_card` full tier populates them from the graph.
         ..gmeow_docs::card::Card::default()

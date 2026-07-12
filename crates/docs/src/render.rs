@@ -2678,7 +2678,7 @@ const SYNTAX_TAB_PROVIDERS: &[SyntaxTabProvider] = &[
 /// The generated `gmeow_models` module slug for a slice IRI (the last IRI segment,
 /// lowercased, non-identifier chars → `_`) — the same routing the Pydantic emitter
 /// uses, so `gmeow_models.<slice>` resolves to the term's model module.
-fn pydantic_module_slug(slice_iri: &str) -> String {
+pub(crate) fn pydantic_module_slug(slice_iri: &str) -> String {
     let local = slice_iri.rsplit(['#', '/']).next().unwrap_or(slice_iri);
     let mut out = String::new();
     for ch in local.chars() {
@@ -2696,7 +2696,7 @@ fn pydantic_module_slug(slice_iri: &str) -> String {
 
 /// The generated Pydantic class name for a class IRI: the CamelCase of its local
 /// name (mirroring the emitter's `sanitize_type`), guarded against a leading digit.
-fn pydantic_class_name(iri: &str) -> String {
+pub(crate) fn pydantic_class_name(iri: &str) -> String {
     let local = iri.rsplit(['#', '/']).next().unwrap_or(iri);
     let mut ident = String::new();
     for ch in local.chars() {

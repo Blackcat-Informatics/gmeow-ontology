@@ -437,18 +437,35 @@ pub fn build_card(
 
     let box_roles = sorted_curies(graph.named_objects(term, GM_GRAPH_BOX_ROLE));
 
-    // Owning slice display name (the local segment of the isDefinedBy IRI).
-    let slice = graph
+    // Owning slice: keep the full isDefinedBy IRI (the Pydantic module route needs
+    // it) and derive the display name (its local segment) for the card header.
+    let defined_by = graph
         .named_objects(term, RDFS_IS_DEFINED_BY)
         .into_iter()
-        .next()
-        .map(|iri| {
-            iri.trim_end_matches('/')
-                .rsplit('/')
-                .next()
-                .unwrap_or(&iri)
-                .to_owned()
-        });
+        .next();
+    let slice = defined_by.as_deref().map(|iri| {
+        iri.trim_end_matches('/')
+            .rsplit('/')
+            .next()
+            .unwrap_or(iri)
+            .to_owned()
+    });
+
+    // The explicit term→model link: a modeled class carries the importable dotted
+    // path of its generated Pydantic model plus a compact construct/validate
+    // snippet, computed via the SAME emitter routing (never duplicated). Only a
+    // class with an owning slice has a generated model to route to.
+    let (python_model, python_snippet) = match (category.as_str(), defined_by.as_deref()) {
+        ("Class", Some(slice_iri)) => (
+            Some(crate::card::python_model_path(slice_iri, term)),
+            Some(crate::card::python_model_snippet(
+                slice_iri,
+                term,
+                &short(term),
+            )),
+        ),
+        _ => (None, None),
+    };
 
     Card {
         category,
@@ -470,6 +487,8 @@ pub fn build_card(
         use_for_consumer,
         avoid_for_consumer,
         aligns: Vec::new(),
+        python_model,
+        python_snippet,
         // Full-tier rich panels: never populated on the describe/site path.
         ..Card::default()
     }
