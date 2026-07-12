@@ -972,6 +972,37 @@ fn derive_class_target_stays_sh_class() {
 }
 
 #[test]
+fn derived_shape_failure_class_dedupes_identical_values() {
+    let ds = shape_dataset(
+        "g:Widget a owl:Class ;
+             g:enforcesFailureClass g:Failure, g:Failure ;
+             rdfs:subClassOf [ a owl:Restriction ; owl:onProperty g:id ; owl:minCardinality 1 ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(
+            |shape| matches!(&shape.target, ShapeTarget::Class(class) if class.ends_with("Widget")),
+        )
+        .expect("Widget shape");
+    assert_eq!(
+        shape.failure_class.as_deref(),
+        Some("https://blackcatinformatics.ca/gmeow/Failure")
+    );
+}
+
+#[test]
+fn derived_shape_failure_class_rejects_distinct_values() {
+    let ds = shape_dataset(
+        "g:Widget a owl:Class ;
+             g:enforcesFailureClass g:FailureA, g:FailureB ;
+             rdfs:subClassOf [ a owl:Restriction ; owl:onProperty g:id ; owl:minCardinality 1 ] .",
+    );
+    let err = derive_validation_shapes(ds.as_ref()).expect_err("distinct metadata must fail");
+    assert!(err.message().contains("distinct"), "{err}");
+}
+
+#[test]
 fn derive_owl_thing_target_lowers_to_node_kind_not_sh_class() {
     // A someValuesFrom owl:Thing is an intentionally-open range ("any individual"). Under
     // spec-conformant SHACL, sh:class owl:Thing would demand a never-materialized rdf:type

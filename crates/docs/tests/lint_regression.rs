@@ -175,8 +175,10 @@ fn coverage_ratchet_baseline_is_recorded() {
     // committed baseline, and the counts are EXPECTED to fall over time as source
     // prose, examples, scope notes, and alignments land. When they change, run
     // `cargo insta review` and accept the lower numbers — the diff is the burn-down
-    // ledger. This golden legitimately drifts with slice content; do not chase it in
-    // unrelated PRs.
+    // ledger. An increase is legitimate only when an explicit forensic correction
+    // removes previously credited invalid evidence; inspect and record that rebaseline
+    // rather than concealing it. This golden legitimately drifts with slice content;
+    // do not chase it in unrelated PRs.
     let model = common::cached_model();
     let site = common::cached_site();
     let report = lint(&model, &site);
