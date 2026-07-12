@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the probability-layer competency question "space + σ-algebra kind
+# of a probability value". Two probability values, each framed (through its event's
+# math:eventInSpace) in a math:ProbabilitySpace: one over a continuous symbolic sample
+# space carrying a math:BorelSigmaAlgebra (symbolic), one over a discrete sample space
+# carrying a math:PowerSetSigmaAlgebra (extensional). Unioned onto the merged ontology
+# by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+# A continuous probability space: ℝ with its Borel σ-algebra — a SYMBOLIC event algebra.
+ex:contProb a math:ProbabilityValue .
+ex:contEvent a math:ProbabilityEvent ;
+    math:probabilityOfEvent ex:contProb ;
+    math:eventInSpace ex:contSpace .
+ex:contSpace a math:ProbabilitySpace ;
+    math:sampleSpace ex:realLine ;
+    math:eventSigmaAlgebra ex:borelAlg ;
+    math:probabilityMeasure ex:contMeasure .
+ex:realLine a math:SymbolicSampleSpace .
+ex:borelAlg a math:BorelSigmaAlgebra .
+ex:contMeasure a math:ProbabilityMeasure .
+
+# A discrete probability space: six die faces with the power-set σ-algebra — every
+# subset is measurable, an EXTENSIONAL event algebra.
+ex:diceProb a math:ProbabilityValue .
+ex:diceEvent a math:ProbabilityEvent ;
+    math:probabilityOfEvent ex:diceProb ;
+    math:eventInSpace ex:diceSpace .
+ex:diceSpace a math:ProbabilitySpace ;
+    math:sampleSpace ex:sixFaces ;
+    math:eventSigmaAlgebra ex:powerAlg ;
+    math:probabilityMeasure ex:diceMeasure .
+ex:sixFaces a math:SampleSpace .
+ex:powerAlg a math:PowerSetSigmaAlgebra .
+ex:diceMeasure a math:ProbabilityMeasure .

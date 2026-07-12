@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The five flagship-acceptance producers of the `math:` grounding slice.
+//! The six native producers of the `math:` grounding slice: five flagship-acceptance
+//! producers plus the probability layer's live `logic:probabilityModel` seam producer.
 //!
 //! Each flagship scenario in `slices/grounding/math/examples/flagship-acceptance.ttl`
-//! names a native producer entrypoint (`gmeow:demonstratedByProducer`). This module
-//! IS those entrypoints: five deterministic, exact-arithmetic Rust functions that each
+//! names a native producer entrypoint (`gmeow:demonstratedByProducer`). This module IS
+//! those five entrypoints — deterministic, exact-arithmetic Rust functions that each
 //!
 //! 1. compute a **falsifiable pinned value** (the E8 Weyl order, the homomorphic-sum
 //!    equality, the grounded verification verdict, the lifted-observation count, and the
@@ -13,6 +14,17 @@
 //! 2. emit a **deterministic RDF graph fragment** (Turtle) in the exact `math:` / `gmeow:`
 //!    / `logic:` vocabulary the slice's SHACL shapes expect, so the emitted graph validates
 //!    clean against the math shapes (no `math:` failure) once merged with the ontology.
+//!
+//! [`probability_model_seam`] is a SIXTH producer, folded into the bundle the SAME way
+//! (Design A) but NOT bound to a `gmeow:FlagshipScenario` — the flagship manifest's "five,
+//! not adjectives" depth-bar contract stays exactly five. It exists so the probability
+//! layer's `logic:probabilityModel` reasoning seam has a LIVE A-box crossing triple inside
+//! `gmeow.gts` itself, not merely in the illustrative `examples/probability.ttl` fixture
+//! (which — like every `examples/*.ttl` worked example across the whole ontology — is
+//! validated on disk by `make validate` but never folded into the shipped bundle; only
+//! `module.ttl` + `imports/*.ttl` feed the bundle's authored default graph, and Design A's
+//! native producers are the one established path for demonstrator A-box content to ride
+//! inside `gmeow.gts` as queryable RDF).
 //!
 //! The graphs are built from constant templates and formatted exact integers/rationals —
 //! there is no `HashMap` iteration, no clock, and no randomness — so two calls to the same
@@ -459,6 +471,100 @@ pub fn exact_pca_residual() -> ExactPcaResidual {
     }
 }
 
+// ===========================================================================
+// Sixth producer — the probability layer's live logic:probabilityModel seam.
+// ===========================================================================
+
+/// The rain×sprinkler joint table's four exact outcome masses: `3/10, 2/10, 4/10, 1/10`
+/// (mirroring `examples/probability.ttl`'s `ex:rainSprinklerJoint`).
+fn sprinkler_joint_masses() -> [Rational; 4] {
+    [
+        Rational::new(3, 10).expect("3/10 is a rational"),
+        Rational::new(2, 10).expect("2/10 is a rational"),
+        Rational::new(4, 10).expect("4/10 is a rational"),
+        Rational::new(1, 10).expect("1/10 is a rational"),
+    ]
+}
+
+/// The pinned result of [`probability_model_seam`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProbabilityModelSeam {
+    /// The exact sum of the four joint-outcome masses — pinned at exactly one, the
+    /// completeness condition the table's declared `logic:ExactPreservation` claims.
+    pub joint_mass_total: Rational,
+    /// The IRI of the `logic:World` carrying the LIVE `logic:probabilityModel` crossing
+    /// triple.
+    pub world: String,
+    /// The IRI of the `math:BayesianNetwork` the world's probability model names.
+    pub model: String,
+    /// The graph: a rain×sprinkler joint table whose four outcomes sum to exactly one, a
+    /// `math:BayesianNetwork` over the same scene, and a `logic:World` naming that network
+    /// through the LIVE `logic:probabilityModel` crossing triple.
+    pub turtle: String,
+}
+
+/// Emit the `math:` ↔ `logic:` probability-model reasoning seam.
+///
+/// Sums the rain×sprinkler joint table's four outcome masses (`3/10, 2/10, 4/10, 1/10`)
+/// EXACTLY (as [`Rational`], never `f64`) and asserts they total exactly one — the
+/// completeness condition `math:JointProbabilityTable`'s declared `logic:ExactPreservation`
+/// claims — then emits a `math:BayesianNetwork` over the same scene, referenced by a
+/// `logic:World` through the LIVE `logic:probabilityModel` crossing triple: a worked
+/// probability model reference folded into `gmeow.gts` itself (Design A, mirroring the five
+/// flagship producers), not merely a fixture behind a test-side gate.
+///
+/// # Panics
+///
+/// Panics (a loud hard fail) if the four masses do not sum to exactly one — a demonstrator
+/// whose own joint table is not a probability measure is a bug, never a silently-degraded
+/// fallback.
+pub fn probability_model_seam() -> ProbabilityModelSeam {
+    let masses = sprinkler_joint_masses();
+    let mut total = Rational::zero();
+    for mass in masses {
+        total = total
+            .checked_add(mass)
+            .expect("exact joint-mass sum overflow");
+    }
+    assert_eq!(
+        total,
+        Rational::one(),
+        "the rain×sprinkler joint table's outcome masses must sum to EXACTLY one"
+    );
+
+    let world = format!("{PRODUCER_NS}forecastWorld");
+    let model = format!("{PRODUCER_NS}sprinklerNet");
+
+    let mut t = header();
+    t.push_str("# The probability layer's live logic:probabilityModel seam producer.\n");
+    t.push_str("# The rain×sprinkler joint table's four outcomes sum to EXACTLY one\n");
+    t.push_str("# (3/10 + 2/10 + 4/10 + 1/10 = 1), verified exactly (Rational, never f64).\n");
+    t.push_str("p:rainSprinklerJoint a math:JointProbabilityTable ;\n");
+    t.push_str("    logic:jointOutcome p:joRainOn , p:joRainOff , p:joDryOn , p:joDryOff .\n\n");
+    t.push_str("p:joRainOn  logic:jointProbability 0.3 .\n");
+    t.push_str("p:joRainOff logic:jointProbability 0.2 .\n");
+    t.push_str("p:joDryOn   logic:jointProbability 0.4 .\n");
+    t.push_str("p:joDryOff  logic:jointProbability 0.1 .\n\n");
+    t.push_str("# A Bayesian network over the same rain×sprinkler scene, naming its\n");
+    t.push_str("# dependency graph — the TBox lowering (math:probabilityModelLowering) on\n");
+    t.push_str("# math:BayesianNetwork carries the declared logic: crossing.\n");
+    t.push_str("p:sprinklerNet a math:BayesianNetwork ;\n");
+    t.push_str("    math:dependencyGraph p:sprinklerDag ;\n");
+    t.push_str("    logic:preservationKind logic:ExactPreservation .\n\n");
+    t.push_str("p:sprinklerDag a math:MathematicalObject .\n\n");
+    t.push_str("# The LIVE logic:probabilityModel crossing triple this producer exists to\n");
+    t.push_str("# fold into gmeow.gts: a logic:World naming its probability model.\n");
+    t.push_str("p:forecastWorld a logic:World ;\n");
+    t.push_str("    logic:probabilityModel p:sprinklerNet .\n");
+
+    ProbabilityModelSeam {
+        joint_mass_total: total,
+        world,
+        model,
+        turtle: t,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -729,5 +835,58 @@ mod tests {
     #[test]
     fn exact_pca_residual_is_deterministic() {
         assert_eq!(exact_pca_residual().turtle, exact_pca_residual().turtle);
+    }
+
+    // ---- Sixth producer — the probability-model seam ----------------------
+
+    #[test]
+    fn probability_model_seam_pins_the_exact_joint_mass_total() {
+        let s = probability_model_seam();
+        assert_eq!(s.joint_mass_total, r(1, 1));
+        // Independent recomputation of the exact sum.
+        let recomputed = sprinkler_joint_masses()
+            .into_iter()
+            .fold(Rational::zero(), |acc, m| acc.checked_add(m).expect("sum"));
+        assert_eq!(recomputed, r(1, 1));
+        assert_eq!(s.world, prod("forecastWorld"));
+        assert_eq!(s.model, prod("sprinklerNet"));
+    }
+
+    #[test]
+    fn probability_model_seam_graph_carries_the_live_crossing_triple() {
+        let s = probability_model_seam();
+        let idx = index_turtle(s.turtle.as_bytes()).expect("parse probability-seam graph");
+        const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+        let logic_iri = |local: &str| format!("{LOGIC}{local}");
+
+        assert!(has_type(
+            &idx,
+            &prod("sprinklerNet"),
+            &math_iri("BayesianNetwork")
+        ));
+        assert!(has_type(&idx, &prod("forecastWorld"), &logic_iri("World")));
+        // The LIVE logic:probabilityModel A-box crossing triple — the whole point.
+        assert_eq!(
+            first_iri(&idx, &prod("forecastWorld"), &logic_iri("probabilityModel")).as_deref(),
+            Some(prod("sprinklerNet").as_str())
+        );
+        assert!(first_iri(&idx, &prod("sprinklerNet"), &math_iri("dependencyGraph")).is_some());
+        assert_eq!(
+            first_iri(&idx, &prod("sprinklerNet"), &logic_iri("preservationKind")).as_deref(),
+            Some(logic_iri("ExactPreservation").as_str())
+        );
+        assert!(has_type(
+            &idx,
+            &prod("rainSprinklerJoint"),
+            &math_iri("JointProbabilityTable")
+        ));
+    }
+
+    #[test]
+    fn probability_model_seam_is_deterministic() {
+        assert_eq!(
+            probability_model_seam().turtle,
+            probability_model_seam().turtle
+        );
     }
 }

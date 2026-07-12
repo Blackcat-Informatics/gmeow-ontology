@@ -4961,6 +4961,10 @@
     sh:targetClass <https://blackcatinformatics.ca/math/DimensionalExpression> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/homogeneousOperand> ; sh:minCount 2 ] .
 
+<https://blackcatinformatics.ca/math/Distribution-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Distribution> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/distributionFamily> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/DistributionFamily> ] ; sh:qualifiedMinCount 1 ] .
+
 <https://blackcatinformatics.ca/math/Embedding-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/Embedding> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/targetSpace> ; sh:minCount 1 ] ;
@@ -5021,6 +5025,10 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/math/limitOf> ; sh:minCount 1 ; sh:maxCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/limitPoint> ; sh:minCount 1 ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/math/LogOddsValue-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/LogOddsValue> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/math/ProbabilityValue> ] .
+
 <https://blackcatinformatics.ca/math/Manifold-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/Manifold> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/manifoldDimension> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ;
@@ -5048,6 +5056,10 @@
     sh:targetClass <https://blackcatinformatics.ca/math/Number> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/inNumberSystem> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/NumberSystem> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/NumberSystem> ] ; sh:qualifiedMinCount 1 ] .
 
+<https://blackcatinformatics.ca/math/OddsValue-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/OddsValue> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/math/ProbabilityValue> ] .
+
 <https://blackcatinformatics.ca/math/OrthogonalComplement-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/OrthogonalComplement> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/definedByInnerProduct> ; sh:minCount 1 ; sh:maxCount 1 ] .
@@ -5066,9 +5078,19 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/math/principalComponent> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/explainedVarianceRatio> ; sh:minCount 1 ] .
 
+<https://blackcatinformatics.ca/math/ProbabilityEvent-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ProbabilityEvent> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/logic/Event> ] .
+
 <https://blackcatinformatics.ca/math/ProbabilityMeasure-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/ProbabilityMeasure> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/totalMass> ; sh:hasValue "1"^^<http://www.w3.org/2001/XMLSchema#integer> ] .
+
+<https://blackcatinformatics.ca/math/ProbabilitySpace-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ProbabilitySpace> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/sampleSpace> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/SampleSpace> ] ; sh:qualifiedMinCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/eventSigmaAlgebra> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/SigmaAlgebra> ] ; sh:qualifiedMinCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/probabilityMeasure> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/ProbabilityMeasure> ] ; sh:qualifiedMinCount 1 ] .
 
 <https://blackcatinformatics.ca/math/ProofCheckActivity-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/ProofCheckActivity> ;

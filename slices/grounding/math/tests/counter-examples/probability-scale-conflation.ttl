@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ProbabilityScaleDisjointShape (Rule P2): a node typed BOTH
+# math:ProbabilityValue AND math:OddsValue. Odds are a probability-scale transform held
+# owl:disjointWith the closed unit interval, so the sh:not [ sh:class math:OddsValue ]
+# fires — shacl.NotConstraintComponent (math:ProbabilityScaleConflation).
+# Single violation: it carries a gmeow:hasReferenceFrame so math:ProbabilityValueFramedShape
+# (P3) stays SATISFIED, it carries NO gmeow:quantityValue so the range gate
+# math:ProbabilityValueRangeShape (P1) is vacuously satisfied, and NO logic:confidence so
+# math:ConfidenceAsProbabilityConstraint (P10) stays silent — EXACTLY ONE finding, no sibling fires.
+# Back-reference: math:OddsValue owl:disjointWith math:ProbabilityValue / math:ProbabilityScaleConflation (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecProbabilityScaleConflationBad).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:conflatedScale a math:ProbabilityValue , math:OddsValue ;
+    gmeow:hasReferenceFrame ex:forecastFrame .
+
+ex:forecastFrame a gmeow:ReferenceFrame .

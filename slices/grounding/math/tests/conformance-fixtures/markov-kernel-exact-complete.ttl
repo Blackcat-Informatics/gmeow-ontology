@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:ExactPreservationViolated gate
+# (MarkovKernel arm): a math:MarkovKernel that declares BOTH its math:kernelDomain and
+# math:kernelCodomain (structurally complete) AND declares logic:preservationKind
+# logic:ExactPreservation directly on itself. It MUST raise NO probability failure
+# class — a complete model declaring exactness overclaims nothing. Positive counterpart
+# of counter-examples/markov-kernel-exact-preservation-violated.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:completeExactKernel a math:MarkovKernel ;
+    math:kernelDomain ex:sourceSpace ;
+    math:kernelCodomain ex:targetSpace ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:sourceSpace a math:MeasurableSpace .
+ex:targetSpace a math:MeasurableSpace .

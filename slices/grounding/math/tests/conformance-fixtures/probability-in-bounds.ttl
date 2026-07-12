@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:ProbabilityOutOfBounds gate: a
+# math:ProbabilityValue whose gmeow:quantityValue magnitude (0.72) lies within the
+# closed unit interval [0, 1]. It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/probability-out-of-bounds.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:inBoundsProbability a math:ProbabilityValue ;
+    gmeow:quantityValue "0.72" .

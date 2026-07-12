@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:DistributionParameterizationShape (Rule P6b): a PARAMETRIC
+# math:Distribution — one that SUPPLIES a math:hasDistributionParameter — that names NO
+# math:distributionParameterization, so the SHACL-SPARQL "supplied parameter with no
+# named parameterization" constraint fires — shacl.SPARQLConstraintComponent
+# (math:MissingDistributionParameterization).
+# Single violation: it names its math:distributionFamily so math:DistributionFamilyShape
+# (P6a) stays SATISFIED, and it names no math:distributionParameterization so
+# math:ParameterRoleCardinalityConstraint (P7) has no required role to count and stays
+# SILENT — EXACTLY ONE finding. (P6a's MinCount and P6b's SPARQL are DISTINCT components;
+# this isolates the parameterization SPARQL gate.)
+# Back-reference: math:Distribution / math:MissingDistributionParameterization (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecDistributionMissingParameterizationBad).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:parametricDistribution a math:Distribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:hasDistributionParameter ex:meanParam .
+
+ex:normalFamily a math:DistributionFamily .
+
+ex:meanParam a math:DistributionParameter ;
+    math:parameterRole ex:meanRole .
+
+ex:meanRole a math:DistributionParameterRole .

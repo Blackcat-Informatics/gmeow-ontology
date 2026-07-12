@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:IncompleteDependencyModel gate: a
+# math:FactorGraph that declares its math:dependencyGraph (the bipartite
+# variable/factor structure). It MUST raise NO probability failure class. Positive
+# counterpart of counter-examples/factor-graph-incomplete.ttl.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:completeFactorGraph a math:FactorGraph ;
+    math:dependencyGraph ex:factorGraphStructure .
+
+ex:factorGraphStructure a math:MathematicalObject .

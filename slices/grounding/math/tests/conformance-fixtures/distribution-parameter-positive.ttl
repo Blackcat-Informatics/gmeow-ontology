@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:DistributionParameterConstraint gate: a
+# math:DistributionParameter fills a math:requiresPositiveValue role with a strictly
+# positive math:parameterQuantity magnitude (2.5). It MUST raise NO probability failure
+# class. Positive counterpart of counter-examples/distribution-parameter-negative.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:stddevRole a math:DistributionParameterRole ;
+    math:requiresPositiveValue true .
+
+ex:positiveQuantity a gmeow:Quantity ;
+    gmeow:quantityValue "2.5" .
+
+ex:positiveParameter a math:DistributionParameter ;
+    math:parameterRole ex:stddevRole ;
+    math:parameterQuantity ex:positiveQuantity .

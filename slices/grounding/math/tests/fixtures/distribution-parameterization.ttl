@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the probability-layer competency question "parameterization + role
+# per parameter". A normal math:Distribution under an explicit mean/stddev
+# parameterization, supplying two math:DistributionParameter objects, each filling its
+# scoped math:DistributionParameterRole (mu → mean role, sigma → stddev role). Unioned
+# onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:normalDist a math:Distribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParam ;
+    math:hasDistributionParameter ex:muParam , ex:sigmaParam .
+ex:normalFamily a math:DistributionFamily .
+ex:meanStddevParam a math:DistributionParameterization ;
+    math:requiresParameterRole ex:meanRole , ex:stddevRole .
+
+ex:muParam a math:DistributionParameter ;
+    math:parameterRole ex:meanRole ;
+    math:parameterQuantity ex:muQty .
+ex:sigmaParam a math:DistributionParameter ;
+    math:parameterRole ex:stddevRole ;
+    math:parameterQuantity ex:sigmaQty .
+
+ex:meanRole a math:DistributionParameterRole ;
+    math:roleWithinParameterization ex:meanStddevParam ;
+    math:requiresPositiveValue false .
+ex:stddevRole a math:DistributionParameterRole ;
+    math:roleWithinParameterization ex:meanStddevParam ;
+    math:requiresPositiveValue true .
+
+ex:muQty a gmeow:Quantity .
+ex:sigmaQty a gmeow:Quantity .

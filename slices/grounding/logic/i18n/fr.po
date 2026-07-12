@@ -1192,6 +1192,18 @@ msgctxt "https://blackcatinformatics.ca/logic/EndurantType|skos:definition"
 msgid "A logic:Type whose instances are logic:Endurants — the type whose extension (via logic:instanceOf) is drawn from continuants. The counterpart of gufo:EndurantType; the type-of-endurants branch under which the sortal and non-sortal foundation meta-types (logic:Kind, logic:Phase, logic:Role, logic:Category, …) ultimately fall. Stated in prose, not as a subclass edge. Contrast logic:Event and logic:Situation, which carry gUFO's EventType/SituationType roles per the down-projection."
 msgstr "Un logic:type dont instances sont logic:Endurants — the type dont extension (via logic:instanceOf) est drawn de continuants."
 
+msgctxt "https://blackcatinformatics.ca/logic/EngineCapability|rdfs:label"
+msgid "Engine Capability"
+msgstr "Engine Capability"
+
+msgctxt "https://blackcatinformatics.ca/logic/EngineCapability|skos:definition"
+msgid "A declared capability of a reasoning engine — the executional ability an actor must hold to execute a logic:ActionSchema, named as the object of logic:capability. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:EngineCapability only under the stated identity and validation conditions."
+msgstr "Un declared capability de a reasoning engine — the executional ability an actor doit hold à execute a logic:ActionSchema, named as the object de logic:capability."
+
+msgctxt "https://blackcatinformatics.ca/logic/EngineCapability|skos:example"
+msgid "logic:EngineCapability rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."
+msgstr "logic:EngineCapability rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."
+
 msgctxt "https://blackcatinformatics.ca/logic/EntrenchmentRevision|rdfs:label"
 msgid "Entrenchment Revision"
 msgstr "Entrenchment Revision"
@@ -1632,6 +1644,18 @@ msgstr "Gate Undetermined"
 msgctxt "https://blackcatinformatics.ca/logic/GateUndetermined|skos:definition"
 msgid "The logic:gateVerdict value for an action whose gate is neither admitted nor denied because the judgment is withheld on insufficient information — a single conclusiveness value with two causes. (1) A precondition datum fails its logic:FreshnessGuard on EITHER of two independent valid-time axes: (1a) the AGE HORIZON — the datum was recorded too long before the logic:decisionTime, its age exceeding the guard's logic:freshnessHorizon; or (1b) the EXPLICIT VALID-TIME WINDOW — the logic:decisionTime falls outside the closed [logic:freshnessWindowStart, logic:freshnessWindowEnd] interval the guard declares (an off-episode / out-of-window decision). Either way the datum is treated as undetermined rather than stale-but-usable, carrying a logic:gateUndeterminedReason that names the failing axis. The two axes are orthogonal: a datum may fail one and pass the other. (2) A logic:NotificationWaitSchema is still awaiting its logic:ExternalSignal: the engine has not been told the wait completed, carrying a logic:awaitingSignal witness. Both mirror the logic:GoalEvaluationUndetermined conclusiveness axis of goal evaluation: a judgment the evaluator declines to make on insufficient input rather than guessing — NOT a denial, since the datum may refresh or the signal may arrive."
 msgstr "Le logic:gateVerdict valeur pour an action dont gate est neither admitted nor denied parce que the judgment est withheld sur insufficient information — a single conclusiveness valeur avec two causes."
+
+msgctxt "https://blackcatinformatics.ca/logic/GenericDependence|rdfs:label"
+msgid "Generic Dependence"
+msgstr "Generic Dependence"
+
+msgctxt "https://blackcatinformatics.ca/logic/GenericDependence|skos:definition"
+msgid "A probability model for a GENERIC (unstructured) stochastic dependence between random variables: the lowering target for a math:MarkovKernel via math:probabilityModelLowering, whose conditional structure is not further factored into an explicit joint table (logic:DependencyModel) or a full-independence product (logic:FullIndependence). It records that a dependence exists without committing to its internal structure. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:GenericDependence only under the stated identity and validation conditions."
+msgstr "Un probability modèle pour a GENERIC (unstructured) stochastic dependence entre random variables: the lowering target pour a math:MarkovKernel via math:probabilityModelLowering, dont conditional structure est not further factored dans an explicit joint table (logic:DependencyModel) ou a full-independence product (logic:FullIndependence)."
+
+msgctxt "https://blackcatinformatics.ca/logic/GenericDependence|skos:example"
+msgid "logic:GenericDependence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."
+msgstr "logic:GenericDependence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."
 
 msgctxt "https://blackcatinformatics.ca/logic/GetPut|rdfs:label"
 msgid "GetPut"

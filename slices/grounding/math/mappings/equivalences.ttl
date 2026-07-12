@@ -1460,3 +1460,105 @@ gmeow:eqMathFiltration a gmeow:TermEquivalence ;
     gmeow:objectLabel "persistent homology" ;
     gmeow:comment "math:Filtration is the indexed nested family a persistence computation runs over; wd:Q17099562 (persistent homology) is the method built on that family, not the family itself. A related but non-identical concept, so skos:closeMatch rather than skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Probability layer → Wikidata (identity) ------------------------------- #
+
+gmeow:eqMathProbabilitySpace a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ProbabilitySpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q623472 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "probability space" ;
+    gmeow:comment "math:ProbabilitySpace is the Kolmogorov triple (Ω, ℱ, P) made explicit; wd:Q623472 (probability space) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSampleSpace a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:SampleSpace ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q467440 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "sample space" ;
+    gmeow:comment "math:SampleSpace is the set of all possible outcomes Ω of a probabilistic experiment; wd:Q467440 (sample space) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathRandomVariable a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:RandomVariable ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q176623 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "random variable" ;
+    gmeow:comment "math:RandomVariable is a measurable map from a sample space into a measurable codomain; wd:Q176623 (random variable) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDistribution a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Distribution ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q200726 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "probability distribution" ;
+    gmeow:comment "math:Distribution is a law assigning probabilities over outcomes; wd:Q200726 (probability distribution) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathConditionalProbability a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ConditionalProbability ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q327069 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "conditional probability" ;
+    gmeow:comment "math:ConditionalProbability P(A|B) names both event and conditioning context; wd:Q327069 (conditional probability) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathBayesianNetwork a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:BayesianNetwork ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q812540 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Bayesian network" ;
+    gmeow:comment "math:BayesianNetwork is a DAG of random variables with conditional probability tables; wd:Q812540 (Bayesian network) is the same probabilistic graphical model. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathFactorGraph a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:FactorGraph ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q5428725 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "factor graph" ;
+    gmeow:comment "math:FactorGraph is a bipartite graph representing the factorization of a joint distribution; wd:Q5428725 (factor graph) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMarkovKernel a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:MarkovKernel ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q6771323 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "Markov kernel" ;
+    gmeow:comment "math:MarkovKernel is a measurable map assigning to each source point a probability measure on a target space; wd:Q6771323 (Markov kernel) is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathPriorDistribution a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:PriorDistribution ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q278090 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "prior probability" ;
+    gmeow:comment "math:PriorDistribution is the distribution over a parameter before data, the input of a Bayesian update; wd:Q278090 (prior probability) is the prior probability distribution. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathPosteriorDistribution a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:PosteriorDistribution ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q278079 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "posterior probability" ;
+    gmeow:comment "math:PosteriorDistribution is the distribution over a parameter after data, proportional to prior times likelihood; wd:Q278079 (posterior probability) is the posterior probability distribution used in Bayesian statistics. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .

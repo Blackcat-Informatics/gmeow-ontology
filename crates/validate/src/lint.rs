@@ -141,6 +141,19 @@ mod codes {
     pub const MATH_INTEGRAL_COMPOSITION_MISMATCH: &str =
         "validate.lint.math.integral-composition-mismatch";
     pub const MATH_UNLIFTABLE_INGEST: &str = "validate.lint.math.unliftable-ingest";
+    pub const MATH_PROBABILITY_OUT_OF_BOUNDS: &str = "validate.lint.math.probability-out-of-bounds";
+    pub const MATH_PROBABILITY_PARAMETER_CONSTRAINT: &str =
+        "validate.lint.math.probability-distribution-parameter-constraint";
+    pub const MATH_PROBABILITY_MISSING_MODEL_LOWERING: &str =
+        "validate.lint.math.probability-missing-model-lowering";
+    pub const MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL: &str =
+        "validate.lint.math.probability-incomplete-dependency-model";
+    pub const MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED: &str =
+        "validate.lint.math.probability-exact-preservation-violated";
+    pub const MATH_PROJECTION_CONFIDENCE_AS_PROBABILITY: &str =
+        "validate.lint.math.projection-confidence-as-probability";
+    pub const MATH_PROJECTION_DROPPED_PARAMETERIZATION: &str =
+        "validate.lint.math.projection-dropped-parameterization";
     pub const NAMING_SELECTOR_TOKEN: &str = "validate.lint.naming.selector-token";
 }
 
@@ -807,6 +820,22 @@ pub fn structural_lint_dataset(ds: &RdfDataset, cfg: &LintConfig) -> LintReport 
     // logic:Correspondence) lifts fully or hard-fails; a run retaining a source but
     // producing no structured math: codomain has silently dropped its content.
     check_math_ingest_invariants(ds, &mut report);
+
+    // math: probability-layer reasoned gate — the closed-unit-interval bound, the
+    // role-carried positivity/dimension constraints on distribution parameters, the
+    // mandatory logic: lowering of a referenced probability model, the structural
+    // completeness of a dependency model, and the exact-preservation↔mass-sums-to-one
+    // overclaim on a joint probability table. Each is computed from the exact-rational
+    // carrier, not asserted data, and holds bundle-wide (`GraphMatch::Any`).
+    check_math_probability_invariants(ds, &mut report);
+
+    // math: projection-side reasoned gate — the two join-requiring native checks over
+    // math:ProjectionRecord loss-ledger carriers: a projection converting a source
+    // confidence into a math:ProbabilityValue without a declared mapping, and a lossy
+    // projection dropping a source math:Distribution's parameterization without
+    // enumerating it in logic:unsupportedConstruct. Purely native (no SHACL target
+    // shape), exactly like the four lang: native projection gates.
+    check_math_projection_invariants(ds, &mut report);
 
     report
 }
@@ -1854,6 +1883,598 @@ fn check_unliftable_ingest(ds: &RdfDataset, report: &mut LintReport) {
                      never emitting a degraded or empty lift"
                 ),
             );
+        }
+    }
+}
+
+/// The `gmeow:` vocabulary namespace root — the canonical GMEOW IRI stem. A
+/// `gmeow:Quantity` (the superclass of `math:ProbabilityValue`) carries its
+/// magnitude in `gmeow:quantityValue`, distinct from the `math:Quantity`-scoped
+/// `math:quantityValue`.
+const GMEOW_NS_ROOT: &str = "https://blackcatinformatics.ca/gmeow/";
+
+fn gmeow_iri(term: &str) -> String {
+    format!("{GMEOW_NS_ROOT}{term}")
+}
+
+/// Parse a plain decimal literal (optional leading `-`/`+`, an integer part, an
+/// optional `.frac`) into an EXACT [`Rational`]: the value is the digit string with
+/// the point removed over `10^(count of fractional digits)`. Scientific notation
+/// (`e`/`E`) and any otherwise-unparseable input yield `None` so an unreadable
+/// magnitude is SKIPPED (never a false positive), never coerced.
+fn decimal_to_rational(s: &str) -> Option<Rational> {
+    let s = s.trim();
+    if s.is_empty() || s.contains('e') || s.contains('E') {
+        return None;
+    }
+    let (neg, body) = match s.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, s.strip_prefix('+').unwrap_or(s)),
+    };
+    let (int_part, frac_part) = match body.split_once('.') {
+        Some((i, f)) => (i, f),
+        None => (body, ""),
+    };
+    if int_part.is_empty() || !int_part.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    if !frac_part.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    let digits: String = format!("{int_part}{frac_part}");
+    let mut num = digits.parse::<i128>().ok()?;
+    if neg {
+        num = num.checked_neg()?;
+    }
+    let den = 10i128.checked_pow(u32::try_from(frac_part.len()).ok()?)?;
+    Rational::new(num, den).ok()
+}
+
+/// The exact-rational magnitude of a value node: if the node is a `math:RationalValue`,
+/// its `math:numerator`/`math:denominator` pair; otherwise the first readable decimal
+/// literal among `decimal_preds` (in order), parsed by [`decimal_to_rational`]. `None`
+/// when no magnitude is readable, so an unreadable node is SKIPPED, never false-flagged.
+fn read_magnitude(ds: &RdfDataset, node: &str, decimal_preds: &[String]) -> Option<Rational> {
+    if ds_has_type(ds, node, &math_iri("RationalValue")) {
+        let num = ds_object_literals(ds, node, &math_iri("numerator"))
+            .into_iter()
+            .find_map(|l| l.trim().parse::<i128>().ok())?;
+        let den = ds_object_literals(ds, node, &math_iri("denominator"))
+            .into_iter()
+            .find_map(|l| l.trim().parse::<i128>().ok())?;
+        return Rational::new(num, den).ok();
+    }
+    for pred in decimal_preds {
+        if let Some(r) = ds_object_literals(ds, node, pred)
+            .into_iter()
+            .find_map(|l| decimal_to_rational(&l))
+        {
+            return Some(r);
+        }
+    }
+    None
+}
+
+/// All named-node objects of any `(?, predicate, object)` triple across the dataset,
+/// deduplicated and sorted. The dual of [`ds_subjects_of_type`] for the object slot —
+/// used to enumerate the probability models a reasoning request references.
+fn ds_objects_of_predicate(ds: &RdfDataset, predicate_iri: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let Some(p_id) = ds_iri_id(ds, predicate_iri) else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Any) {
+        if let TermRef::Iri(o) = ds.resolve(q.o) {
+            out.push(o.to_owned());
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// All subjects of a `(subject, predicate, object)` triple with a fixed object IRI —
+/// the inverse lookup used to walk from a distribution parameter back to its owning
+/// distribution and thence to the random variable it parameterizes.
+fn ds_subjects_with_object(ds: &RdfDataset, predicate_iri: &str, object_iri: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let (Some(p_id), Some(o_id)) = (ds_iri_id(ds, predicate_iri), ds_iri_id(ds, object_iri)) else {
+        return out;
+    };
+    for q in ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Any) {
+        if let TermRef::Iri(s) = ds.resolve(q.s) {
+            out.push(s.to_owned());
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// Structural completeness predicate for a `math:MarkovKernel`: a declared domain AND
+/// codomain (`math:kernelDomain`, `math:kernelCodomain`). Shared VERBATIM between Gate 4
+/// (`math:IncompleteDependencyModel`) and Gate 5 (`math:ExactPreservationViolated`) so the
+/// two gates can never disagree on what "complete" means for a kernel.
+fn markov_kernel_is_complete(ds: &RdfDataset, k: &str) -> bool {
+    ds_has_predicate(ds, k, &math_iri("kernelDomain"))
+        && ds_has_predicate(ds, k, &math_iri("kernelCodomain"))
+}
+
+/// Structural completeness predicate for a `math:BayesianNetwork` or `math:FactorGraph`: a
+/// declared `math:dependencyGraph`. Shared VERBATIM between Gate 4 and Gate 5 so the two
+/// gates can never disagree on what "complete" means for a dependency-graph model.
+fn dependency_graph_is_complete(ds: &RdfDataset, node: &str) -> bool {
+    ds_has_predicate(ds, node, &math_iri("dependencyGraph"))
+}
+
+/// Whether `node` declares `logic:preservationKind logic:ExactPreservation` DIRECTLY on
+/// itself (the instance), as opposed to inheriting the declaration from its class's
+/// TBox-level `logic:preservationKind logic:ExactPreservation` (module.ttl declares this
+/// unconditionally on `math:BayesianNetwork`, `math:FactorGraph`, and `math:MarkovKernel` so
+/// the charter's "conditional — exact once the completeness gate holds" row can be read off
+/// the class at all). Only the instance-level declaration is an author's explicit exactness
+/// CLAIM about THIS model; it is what Gate 5 checks against structural completeness to catch
+/// the overclaim `math:ExactPreservationViolated`.
+fn declares_exact_preservation_directly(ds: &RdfDataset, node: &str) -> bool {
+    ds_object_iris(ds, node, &logic_iri("preservationKind"))
+        .contains(&logic_iri("ExactPreservation"))
+}
+
+/// The `math:` probability-layer invariants the charter designates as native
+/// Rust-validator primary gates, computed from the exact-rational carrier (never
+/// asserted data). Runs over the merged dataset (`GraphMatch::Any`), so the invariants
+/// hold bundle-wide, not merely per fixture.
+fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    let (Some(zero), Some(one)) = (Rational::new(0, 1).ok(), Rational::new(1, 1).ok()) else {
+        return;
+    };
+
+    // Gate 1 — math:ProbabilityOutOfBounds: a math:ProbabilityValue is ALWAYS in the
+    // closed unit interval [0, 1]. Its magnitude is read exactly (a math:RationalValue
+    // numerator/denominator pair, else its gmeow:quantityValue decimal) and compared by
+    // exact-rational order; an unreadable magnitude is skipped, never coerced.
+    for node in ds_subjects_of_type(ds, &math_iri("ProbabilityValue")) {
+        let Some(mag) = read_magnitude(ds, &node, &[gmeow_iri("quantityValue")]) else {
+            continue;
+        };
+        if mag < zero || mag > one {
+            report.push_error(
+                codes::MATH_PROBABILITY_OUT_OF_BOUNDS,
+                node.clone(),
+                format!(
+                    "math:ProbabilityOutOfBounds: probability value {node} has magnitude {}/{} \
+                     outside the closed unit interval [0,1]",
+                    mag.numerator(),
+                    mag.denominator()
+                ),
+            );
+        }
+    }
+
+    // Gate 2 — math:DistributionParameterConstraint: a parameter's quantity must satisfy
+    // the positivity and dimension constraints CARRIED on the role it fills. Positivity is
+    // an exact `> 0` check; the dimension constraint is resolved by exact ℚ⁷ arithmetic
+    // (same-as / square-of the random variable's dimension, or an absolute dimension).
+    for p in ds_subjects_of_type(ds, &math_iri("DistributionParameter")) {
+        let Some(role) = ds_object_iris_sorted(ds, &p, &math_iri("parameterRole"))
+            .into_iter()
+            .next()
+        else {
+            continue;
+        };
+
+        // Positivity: a role declaring math:requiresPositiveValue true forbids a quantity
+        // whose exact magnitude is not strictly positive. xsd:boolean also serializes as
+        // "1" (canonical is "true"/"false", but "0"/"1" are valid lexical forms), so both
+        // are accepted.
+        let requires_positive = ds_object_literals(ds, &role, &math_iri("requiresPositiveValue"))
+            .iter()
+            .any(|l| {
+                let t = l.trim();
+                t == "true" || t == "1"
+            });
+        if requires_positive
+            && let Some(q) = ds_object_iris_sorted(ds, &p, &math_iri("parameterQuantity"))
+                .into_iter()
+                .next()
+            && let Some(mag) = read_magnitude(
+                ds,
+                &q,
+                &[gmeow_iri("quantityValue"), math_iri("quantityValue")],
+            )
+            && mag <= zero
+        {
+            report.push_error(
+                codes::MATH_PROBABILITY_PARAMETER_CONSTRAINT,
+                p.clone(),
+                format!(
+                    "math:DistributionParameterConstraint: parameter {p} fills a positive-required \
+                     role but its quantity magnitude {}/{} is not > 0",
+                    mag.numerator(),
+                    mag.denominator()
+                ),
+            );
+        }
+
+        // Dimension: the role names the dimension its parameter's quantity must carry,
+        // absolutely or by reference to the random variable's dimension.
+        let Some(dspec) = ds_object_iris_sorted(ds, &role, &math_iri("quantityDimension"))
+            .into_iter()
+            .next()
+        else {
+            continue;
+        };
+        let Some(q) = ds_object_iris_sorted(ds, &p, &math_iri("parameterQuantity"))
+            .into_iter()
+            .next()
+        else {
+            continue;
+        };
+        let Some(pd) = node_dimension_iri(ds, &q) else {
+            continue;
+        };
+        let Some(actual) = dimension_vector(ds, &pd) else {
+            continue;
+        };
+
+        let same = dspec == math_iri("sameAsRandomVariableDimension");
+        let square = dspec == math_iri("squareOfRandomVariableDimension");
+        if same || square {
+            // Resolve the random variable's dimension: parameter → owning distribution →
+            // random variable. Any missing link is a deliberate skip (no false positive).
+            let Some(dist) = ds_subjects_with_object(ds, &math_iri("hasDistributionParameter"), &p)
+                .into_iter()
+                .next()
+            else {
+                continue;
+            };
+            let Some(rv) = ds_subjects_with_object(ds, &math_iri("hasDistribution"), &dist)
+                .into_iter()
+                .find(|rv| ds_has_type(ds, rv, &math_iri("RandomVariable")))
+            else {
+                continue;
+            };
+            let Some(rvdim) = node_dimension_iri(ds, &rv) else {
+                continue;
+            };
+            let Some(rvec) = dimension_vector(ds, &rvdim) else {
+                continue;
+            };
+            let required = if square {
+                add_vectors(&rvec, &rvec)
+            } else {
+                Some(rvec)
+            };
+            let Some(required) = required else {
+                continue;
+            };
+            if required != actual {
+                let relation = if square {
+                    "the square"
+                } else {
+                    "the same dimension"
+                };
+                report.push_error(
+                    codes::MATH_PROBABILITY_PARAMETER_CONSTRAINT,
+                    p.clone(),
+                    format!(
+                        "math:DistributionParameterConstraint: parameter {p} must carry {relation} \
+                         of the random variable's dimension but carries a different dimension"
+                    ),
+                );
+            }
+        } else if let Some(required) = dimension_vector(ds, &dspec)
+            && required != actual
+        {
+            report.push_error(
+                codes::MATH_PROBABILITY_PARAMETER_CONSTRAINT,
+                p.clone(),
+                format!(
+                    "math:DistributionParameterConstraint: parameter {p} must carry dimension \
+                     {dspec} but its quantity carries a different dimension"
+                ),
+            );
+        }
+    }
+
+    // Gate 3 — math:MissingProbabilityModelLowering: a reasoning request references a
+    // probability model through logic:probabilityModel; that model must declare its logic:
+    // lowering (math:probabilityModelLowering) either directly or class-level (on one of
+    // its rdf:types). Absent a lowering the engine reports unsupported, never assumes
+    // independence — so the absence is a caught, typed failure.
+    let lowering = math_iri("probabilityModelLowering");
+    for o in ds_objects_of_predicate(ds, &logic_iri("probabilityModel")) {
+        let direct = ds_has_predicate(ds, &o, &lowering);
+        let via_type = ds_rdf_types(ds, &o)
+            .iter()
+            .any(|t| ds_has_predicate(ds, t, &lowering));
+        if !direct && !via_type {
+            report.push_error(
+                codes::MATH_PROBABILITY_MISSING_MODEL_LOWERING,
+                o.clone(),
+                format!(
+                    "math:MissingProbabilityModelLowering: reasoning request references probability \
+                     model {o} with no declared logic: lowering (math:probabilityModelLowering)"
+                ),
+            );
+        }
+    }
+
+    // Gate 4 — math:IncompleteDependencyModel: structural presence. A math:MarkovKernel
+    // declares BOTH its domain and codomain; a math:BayesianNetwork declares its dependency
+    // graph; a math:FactorGraph declares its dependency graph (the bipartite variable/factor
+    // structure); a math:JointProbabilityTable tabulates at least one outcome. A model
+    // missing any of these cannot fix a joint distribution.
+    //
+    // math:BayesianNetwork, math:FactorGraph, and math:MarkovKernel each carry
+    // logic:preservationKind logic:ExactPreservation UNCONDITIONALLY at the TBox (class)
+    // level (module.ttl) — that class-level declaration exists so the charter's "conditional"
+    // lowering can be read off the class at all, not to license every instance as exact. An
+    // instance that is structurally incomplete AND additionally declares
+    // logic:ExactPreservation directly on ITSELF has made the honest-when-complete claim
+    // explicit while failing the gate that would make it true: that is the overclaim Gate 5
+    // (below) reports, not Gate 4's plain structural-incompleteness report, so Gate 4 skips
+    // it here (`markov_kernel_is_complete` / `dependency_graph_is_complete` and
+    // `declares_exact_preservation_directly` are shared verbatim with Gate 5 so the two gates
+    // can never diverge on what "complete" or "declares exact" means).
+    for k in ds_subjects_of_type(ds, &math_iri("MarkovKernel")) {
+        if markov_kernel_is_complete(ds, &k) || declares_exact_preservation_directly(ds, &k) {
+            continue;
+        }
+        let has_domain = ds_has_predicate(ds, &k, &math_iri("kernelDomain"));
+        let has_codomain = ds_has_predicate(ds, &k, &math_iri("kernelCodomain"));
+        let missing = match (has_domain, has_codomain) {
+            (false, false) => "math:kernelDomain and math:kernelCodomain",
+            (false, true) => "math:kernelDomain",
+            (true, false) => "math:kernelCodomain",
+            (true, true) => unreachable!(),
+        };
+        report.push_error(
+            codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
+            k.clone(),
+            format!("math:IncompleteDependencyModel: Markov kernel {k} is missing {missing}"),
+        );
+    }
+    for bn in ds_subjects_of_type(ds, &math_iri("BayesianNetwork")) {
+        if dependency_graph_is_complete(ds, &bn) || declares_exact_preservation_directly(ds, &bn) {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
+            bn.clone(),
+            format!(
+                "math:IncompleteDependencyModel: Bayesian network {bn} declares no \
+                 math:dependencyGraph"
+            ),
+        );
+    }
+    for fg in ds_subjects_of_type(ds, &math_iri("FactorGraph")) {
+        if dependency_graph_is_complete(ds, &fg) || declares_exact_preservation_directly(ds, &fg) {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
+            fg.clone(),
+            format!(
+                "math:IncompleteDependencyModel: factor graph {fg} declares no \
+                 math:dependencyGraph"
+            ),
+        );
+    }
+    for t in ds_subjects_of_type(ds, &math_iri("JointProbabilityTable")) {
+        if ds_object_iris_sorted(ds, &t, &logic_iri("jointOutcome")).is_empty() {
+            report.push_error(
+                codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
+                t.clone(),
+                format!(
+                    "math:IncompleteDependencyModel: joint probability table {t} has no tabulated \
+                     outcomes (logic:jointOutcome)"
+                ),
+            );
+        }
+    }
+
+    // Gate 5 — math:ExactPreservationViolated: a math:JointProbabilityTable declares
+    // logic:ExactPreservation at the TBox level, so a tabulated instance whose outcome mass
+    // does not sum to exactly one overclaims. Only tables WITH at least one outcome are in
+    // scope here (the empty case is Gate 4's). An unreadable outcome probability skips the
+    // whole table (no false positive).
+    for t in ds_subjects_of_type(ds, &math_iri("JointProbabilityTable")) {
+        let outcomes = ds_object_iris_sorted(ds, &t, &logic_iri("jointOutcome"));
+        if outcomes.is_empty() {
+            continue;
+        }
+        let mut sum = zero;
+        let mut readable = true;
+        for outcome in &outcomes {
+            let prob = read_magnitude(ds, outcome, &[logic_iri("jointProbability")]);
+            let Some(prob) = prob else {
+                readable = false;
+                break;
+            };
+            match sum.checked_add(prob) {
+                Ok(s) => sum = s,
+                Err(_) => {
+                    readable = false;
+                    break;
+                }
+            }
+        }
+        if readable && sum != one {
+            report.push_error(
+                codes::MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED,
+                t.clone(),
+                format!(
+                    "math:ExactPreservationViolated: joint probability table {t} declares \
+                     logic:ExactPreservation but its outcome mass sums to {}/{} \u{2260} 1",
+                    sum.numerator(),
+                    sum.denominator()
+                ),
+            );
+        }
+    }
+
+    // Gate 5 (continued) — the "conditional" dependency models: math:BayesianNetwork,
+    // math:FactorGraph, and math:MarkovKernel each declare logic:ExactPreservation
+    // UNCONDITIONALLY at the class (TBox) level (module.ttl) — the lowering IS exact once
+    // the model's completeness gate holds (Gate 4's `markov_kernel_is_complete` /
+    // `dependency_graph_is_complete`), and IS NOT otherwise. An instance that is
+    // structurally INCOMPLETE and additionally declares logic:ExactPreservation DIRECTLY on
+    // itself has made that exactness claim explicit for a model that cannot honor it — the
+    // preservation↔completeness overclaim math:ExactPreservationViolated. An incomplete
+    // instance that does not itself declare logic:ExactPreservation is Gate 4's plain
+    // structural-incompleteness report instead (skipped here to keep the two gates
+    // mutually exclusive); a complete instance overclaims nothing regardless of what it
+    // declares.
+    for k in ds_subjects_of_type(ds, &math_iri("MarkovKernel")) {
+        if markov_kernel_is_complete(ds, &k) || !declares_exact_preservation_directly(ds, &k) {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED,
+            k.clone(),
+            format!(
+                "math:ExactPreservationViolated: Markov kernel {k} declares \
+                 logic:ExactPreservation but is missing its declared domain or codomain \
+                 (kernel totality cannot hold over an undeclared domain/codomain)"
+            ),
+        );
+    }
+    for bn in ds_subjects_of_type(ds, &math_iri("BayesianNetwork")) {
+        if dependency_graph_is_complete(ds, &bn) || !declares_exact_preservation_directly(ds, &bn) {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED,
+            bn.clone(),
+            format!(
+                "math:ExactPreservationViolated: Bayesian network {bn} declares \
+                 logic:ExactPreservation but declares no math:dependencyGraph (DAG and CPT \
+                 completeness cannot hold over an undeclared graph)"
+            ),
+        );
+    }
+    for fg in ds_subjects_of_type(ds, &math_iri("FactorGraph")) {
+        if dependency_graph_is_complete(ds, &fg) || !declares_exact_preservation_directly(ds, &fg) {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED,
+            fg.clone(),
+            format!(
+                "math:ExactPreservationViolated: factor graph {fg} declares \
+                 logic:ExactPreservation but declares no math:dependencyGraph (finite \
+                 normalized factors cannot hold over an undeclared factor structure)"
+            ),
+        );
+    }
+}
+
+/// The `math:` projection-side invariants: the two join-requiring native gates over
+/// `math:ProjectionRecord` loss-ledger carriers. Kept purely native (no SHACL target
+/// shape) exactly like the four `lang:` projection gates, because each requires a join
+/// the closed-world shape language cannot express. Runs bundle-wide (`GraphMatch::Any`).
+fn check_math_projection_invariants(ds: &RdfDataset, report: &mut LintReport) {
+    check_math_projection_confidence_as_probability(ds, report);
+    check_math_projection_dropped_parameterization(ds, report);
+}
+
+/// `math:ProjectionConfidenceAsProbability` — a `math:ProjectionRecord` that declares it
+/// converts a source confidence into a `math:ProbabilityValue`
+/// (`math:projectsConfidenceAsProbability` true) MUST license that conversion with an
+/// explicit `math:declaredConfidenceMapping`. A conversion with none erodes the `logic:`
+/// probability/confidence boundary at the projection seam — the projection-side
+/// counterpart of `math:ConfidenceAsProbability`.
+fn check_math_projection_confidence_as_probability(ds: &RdfDataset, report: &mut LintReport) {
+    let projects_confidence = math_iri("projectsConfidenceAsProbability");
+    let declared_mapping = math_iri("declaredConfidenceMapping");
+    for r in ds_subjects_of_type(ds, &math_iri("ProjectionRecord")) {
+        // xsd:boolean also serializes as "1" (canonical is "true"/"false", but "0"/"1"
+        // are valid lexical forms), so both are accepted.
+        let converts = ds_object_literals(ds, &r, &projects_confidence)
+            .iter()
+            .any(|v| {
+                let t = v.trim();
+                t == "true" || t == "1"
+            });
+        if converts && !ds_has_predicate(ds, &r, &declared_mapping) {
+            report.push_error(
+                codes::MATH_PROJECTION_CONFIDENCE_AS_PROBABILITY,
+                r.clone(),
+                format!(
+                    "math:ProjectionConfidenceAsProbability: projection {r} converts a confidence into \
+                     a math:ProbabilityValue without a declared mapping (math:declaredConfidenceMapping)"
+                ),
+            );
+        }
+    }
+}
+
+/// `math:ProjectionDroppedParameterization` — a LOSSY `math:ProjectionRecord` (a declared
+/// `logic:preservationKind` that is not `logic:ExactPreservation`) EACH of whose
+/// `math:projectionSource` values is a `math:Distribution` carrying a
+/// `math:distributionParameterization` MUST enumerate that parameterization among its
+/// `logic:unsupportedConstruct` drops — as the parameterization IRI, or a string literal
+/// naming it. A lossy projection that drops the parameterization without recording it has
+/// performed the drop silently. Checked independently per `math:projectionSource` (a
+/// record may declare several; the gate is not satisfied merely because the
+/// alphabetically-first one is clean).
+fn check_math_projection_dropped_parameterization(ds: &RdfDataset, report: &mut LintReport) {
+    let preservation_kind = logic_iri("preservationKind");
+    let exact = logic_iri("ExactPreservation");
+    let projection_source = math_iri("projectionSource");
+    let parameterization = math_iri("distributionParameterization");
+    let unsupported = logic_iri("unsupportedConstruct");
+    for r in ds_subjects_of_type(ds, &math_iri("ProjectionRecord")) {
+        // Only a lossy projection can drop anything: it declares at least one preservation
+        // kind and NONE of them is `logic:ExactPreservation`. An undeclared preservation
+        // kind is out of scope here, never treated as lossy (no false positive).
+        let kinds = ds_object_iris(ds, &r, &preservation_kind);
+        if kinds.is_empty() || kinds.contains(&exact) {
+            continue;
+        }
+        let sources = ds_object_iris_sorted(ds, &r, &projection_source);
+        if sources.is_empty() {
+            continue;
+        }
+        // The drop list: `logic:unsupportedConstruct` values, whether IRIs or string
+        // literals (the property is a DatatypeProperty, but a drop may be recorded either
+        // way, so the gate accepts both — the parameterization IRI, or a literal that
+        // names the parameterization's local name as a whole token, not merely a
+        // substring of some longer word).
+        let drop_iris = ds_object_iris(ds, &r, &unsupported);
+        let drop_literals: Vec<String> = ds_object_literals(ds, &r, &unsupported)
+            .into_iter()
+            .map(|d| d.to_lowercase())
+            .collect();
+        for src in &sources {
+            if !ds_has_type(ds, src, &math_iri("Distribution")) {
+                continue;
+            }
+            for param in ds_object_iris_sorted(ds, src, &parameterization) {
+                let local = param
+                    .rsplit(['/', '#'])
+                    .next()
+                    .unwrap_or(param.as_str())
+                    .to_lowercase();
+                let recorded = drop_iris.contains(&param)
+                    || (!local.is_empty()
+                        && drop_literals.iter().any(|d| {
+                            d.split(|c: char| !c.is_alphanumeric())
+                                .any(|tok| tok == local)
+                        }));
+                if !recorded {
+                    report.push_error(
+                        codes::MATH_PROJECTION_DROPPED_PARAMETERIZATION,
+                        format!("{r}\t{param}"),
+                        format!(
+                            "math:ProjectionDroppedParameterization: lossy projection {r} drops \
+                             the distribution parameterization of {src} without enumerating it \
+                             in logic:unsupportedConstruct"
+                        ),
+                    );
+                }
+            }
         }
     }
 }
@@ -3136,6 +3757,336 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// The five native probability-layer failure classes the isolation test polices.
+    const MATH_PROBABILITY_CLASSES: [&str; 5] = [
+        "math:ProbabilityOutOfBounds",
+        "math:DistributionParameterConstraint",
+        "math:MissingProbabilityModelLowering",
+        "math:IncompleteDependencyModel",
+        "math:ExactPreservationViolated",
+    ];
+
+    #[test]
+    fn math_probability_counter_examples_fire_exactly_their_class() {
+        // Each native-gate probability counter-example fires EXACTLY its named failure
+        // class (and none of the other four probability classes), so each (fixture, class)
+        // pair is load-bearing. All three distribution-parameter counter-examples fire the
+        // shared math:DistributionParameterConstraint class (positivity arm vs the
+        // absolute-dimension arm vs the relational — same-as/square-of — dimension arm).
+        let cases: [(&str, &str); 12] = [
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/probability-out-of-bounds.ttl"
+                ),
+                "math:ProbabilityOutOfBounds",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/probability-out-of-bounds-signed.ttl"
+                ),
+                "math:ProbabilityOutOfBounds",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/distribution-parameter-negative.ttl"
+                ),
+                "math:DistributionParameterConstraint",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/distribution-parameter-wrong-dimension.ttl"
+                ),
+                "math:DistributionParameterConstraint",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/distribution-parameter-relational-dimension.ttl"
+                ),
+                "math:DistributionParameterConstraint",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/missing-probability-model-lowering.ttl"
+                ),
+                "math:MissingProbabilityModelLowering",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/incomplete-dependency-model.ttl"
+                ),
+                "math:IncompleteDependencyModel",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/factor-graph-incomplete.ttl"
+                ),
+                "math:IncompleteDependencyModel",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/exact-preservation-violated.ttl"
+                ),
+                "math:ExactPreservationViolated",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/bayesian-network-exact-preservation-violated.ttl"
+                ),
+                "math:ExactPreservationViolated",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/factor-graph-exact-preservation-violated.ttl"
+                ),
+                "math:ExactPreservationViolated",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/markov-kernel-exact-preservation-violated.ttl"
+                ),
+                "math:ExactPreservationViolated",
+            ),
+        ];
+        for (ttl, expected) in cases {
+            let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            assert!(
+                report.errors().iter().any(|e| e.contains(expected)),
+                "fixture must fire {expected}: {:?}",
+                report.errors()
+            );
+            for other in MATH_PROBABILITY_CLASSES {
+                if other == expected {
+                    continue;
+                }
+                assert!(
+                    !report.errors().iter().any(|e| e.contains(other)),
+                    "fixture for {expected} must not also fire {other}: {:?}",
+                    report.errors()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn math_probability_clean_fixtures_fire_no_probability_class() {
+        // Each clean conformance fixture is the positive counterpart of one counter-example
+        // and MUST raise none of the five native probability failure classes.
+        let clean: [&str; 11] = [
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/probability-in-bounds.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/distribution-parameter-positive.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/distribution-parameter-right-dimension.ttl"
+            ),
+            // Positive counterpart of counter-examples/distribution-parameter-relational-dimension.ttl
+            // for the RELATIONAL (math:sameAsRandomVariableDimension) dimension arm: the random
+            // variable and its location parameter's quantity both carry the resolvable
+            // math:lengthDimension, so the ℚ⁷ exact comparison agrees and raises nothing.
+            include_str!(
+                "../../../slices/grounding/math/tests/fixtures/random-variable-distribution.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/probability-model-lowering-declared.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/dependency-model-complete.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/factor-graph-complete.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/joint-table-mass-one.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/bayesian-network-exact-complete.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/factor-graph-exact-complete.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/markov-kernel-exact-complete.ttl"
+            ),
+        ];
+        for ttl in clean {
+            let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            for class in MATH_PROBABILITY_CLASSES {
+                assert!(
+                    !report.errors().iter().any(|e| e.contains(class)),
+                    "clean fixture must not fire {class}: {:?}",
+                    report.errors()
+                );
+            }
+        }
+    }
+
+    /// The two native projection-side failure classes the isolation test polices.
+    const MATH_PROJECTION_CLASSES: [&str; 2] = [
+        "math:ProjectionConfidenceAsProbability",
+        "math:ProjectionDroppedParameterization",
+    ];
+
+    #[test]
+    fn math_projection_counter_examples_fire_exactly_their_class() {
+        // Each projection-side counter-example fires EXACTLY its named failure class (and
+        // not the other projection class), so each (fixture, class) pair is load-bearing.
+        let cases: [(&str, &str); 2] = [
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/projection-confidence-as-probability.ttl"
+                ),
+                "math:ProjectionConfidenceAsProbability",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/projection-dropped-parameterization.ttl"
+                ),
+                "math:ProjectionDroppedParameterization",
+            ),
+        ];
+        for (ttl, expected) in cases {
+            let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            assert!(
+                report.errors().iter().any(|e| e.contains(expected)),
+                "fixture must fire {expected}: {:?}",
+                report.errors()
+            );
+            for other in MATH_PROJECTION_CLASSES {
+                if other == expected {
+                    continue;
+                }
+                assert!(
+                    !report.errors().iter().any(|e| e.contains(other)),
+                    "fixture for {expected} must not also fire {other}: {:?}",
+                    report.errors()
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn math_projection_clean_fixtures_fire_no_projection_class() {
+        // Each clean conformance fixture is the positive counterpart of one projection
+        // counter-example and MUST raise neither projection failure class.
+        let clean: [&str; 2] = [
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/projection-confidence-mapping-declared.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/projection-parameterization-recorded.ttl"
+            ),
+        ];
+        for ttl in clean {
+            let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
+            for class in MATH_PROJECTION_CLASSES {
+                assert!(
+                    !report.errors().iter().any(|e| e.contains(class)),
+                    "clean fixture must not fire {class}: {:?}",
+                    report.errors()
+                );
+            }
+        }
+    }
+
+    /// Prefixes for inline math: probability unit fixtures.
+    const MATH_PROB_PREFIXES: &str = "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+         @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         @prefix ex: <http://example.org/math/> .\n";
+
+    #[test]
+    fn probability_value_at_boundaries_is_clean() {
+        // A math:ProbabilityValue at exactly 0 and exactly 1 sits on the closed interval's
+        // boundary — the gate is inclusive, so neither fires math:ProbabilityOutOfBounds.
+        let ds = dataset_from(&format!(
+            "{MATH_PROB_PREFIXES}\
+             ex:zero a math:ProbabilityValue ; gmeow:quantityValue \"0\" .\n\
+             ex:one a math:ProbabilityValue ; gmeow:quantityValue \"1.0\" .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:ProbabilityOutOfBounds")),
+            "errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn rational_value_three_halves_fires_out_of_bounds() {
+        // A math:ProbabilityValue carried as an exact math:RationalValue 3/2 is read from
+        // its numerator/denominator pair (never a decimal) and exceeds 1.
+        let ds = dataset_from(&format!(
+            "{MATH_PROB_PREFIXES}\
+             ex:p a math:ProbabilityValue , math:RationalValue ;\n\
+               math:numerator 3 ; math:denominator 2 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report.errors().iter().any(|e| e
+                .contains("math:ProbabilityOutOfBounds: probability value")
+                && e.contains("3/2")),
+            "errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn exact_rational_half_plus_half_sums_to_one_clean() {
+        // 1/2 + 1/2 = 1 exactly, so a joint table with that mass does not overclaim.
+        let ds = dataset_from(&format!(
+            "{MATH_PROB_PREFIXES}\
+             ex:t a math:JointProbabilityTable ; logic:jointOutcome ex:a , ex:b .\n\
+             ex:a logic:jointProbability 0.5 .\n\
+             ex:b logic:jointProbability 0.5 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            !report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:ExactPreservationViolated")),
+            "errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn joint_mass_zero_point_nine_fires_exact_preservation() {
+        // 0.5 + 0.4 = 0.9 ≠ 1 (exact-rational), so the table overclaims exact preservation.
+        let ds = dataset_from(&format!(
+            "{MATH_PROB_PREFIXES}\
+             ex:t a math:JointProbabilityTable ; logic:jointOutcome ex:a , ex:b .\n\
+             ex:a logic:jointProbability 0.5 .\n\
+             ex:b logic:jointProbability 0.4 .\n"
+        ));
+        let report = structural_lint_dataset(&ds, &cfg());
+        assert!(
+            report
+                .errors()
+                .iter()
+                .any(|e| e.contains("math:ExactPreservationViolated") && e.contains("9/10")),
+            "errors: {:?}",
+            report.errors()
+        );
+    }
+
+    #[test]
+    fn decimal_to_rational_parses_plain_decimals_and_rejects_scientific() {
+        assert_eq!(decimal_to_rational("1.5"), Rational::new(3, 2).ok());
+        assert_eq!(decimal_to_rational("-1"), Rational::new(-1, 1).ok());
+        assert_eq!(decimal_to_rational("0.72"), Rational::new(18, 25).ok());
+        assert_eq!(decimal_to_rational("0"), Rational::new(0, 1).ok());
+        assert_eq!(decimal_to_rational("1e3"), None);
+        assert_eq!(decimal_to_rational("1.2E4"), None);
+        assert_eq!(decimal_to_rational("abc"), None);
+        assert_eq!(decimal_to_rational(""), None);
     }
 
     #[test]
