@@ -39,7 +39,7 @@
     {
       "severity": "warning",
       "code": "slice-quality.axis-advice",
-      "message": "axisTranslationCoverage: Add audited French and Mandarin translations for every label and definition literal, recorded in the slice's i18n/fr.po and i18n/zh.po catalogs.",
+      "message": "axisTranslationCoverage: Add audited French and Mandarin translations for every localizable literal the slice authors — labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names — recorded (non-empty msgstr) in the slice's i18n/fr.po and i18n/zh.po catalogs.",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
@@ -81,14 +81,14 @@
     {
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
-      "message": "fr covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.",
+      "message": "cmn covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },
     {
       "severity": "warning",
       "code": "slice-quality.translation.incomplete",
-      "message": "zh covers 0/4 label+definition literals; the top tier requires 100% en+fr+cmn.",
+      "message": "fr covers 0/6 localizable literals; the top tier requires 100% en+fr+cmn on every localizable literal.",
       "tool": "slice-quality",
       "standpoint": "advisory"
     },

@@ -49,14 +49,12 @@ const CODE_SUPERSET_MISMATCH: &str = "pipeline.superset.mismatch";
 const CODE_SUPERSET_ORPHAN: &str = "pipeline.superset.orphan";
 const CODE_MISSING: &str = "pipeline.missing";
 const CODE_DRIFT: &str = "pipeline.drift";
-/// The GMN-1 round-trip gate's finding code — parallel to
-/// [`CODE_SUPERSET_MISMATCH`], the byte teeth behind `gmeow:gmnCorrNormalToGmn`.
-const CODE_GMN1_ROUNDTRIP_MISMATCH: &str = "pipeline.gmn1.roundtrip-mismatch";
 /// The GMN-1 construct-coverage-completeness audit's finding code: a codec
-/// construct category the real grounding corpus never exercises, distinct
-/// from [`CODE_GMN1_ROUNDTRIP_MISMATCH`] (a quad that failed to
-/// round-trip) — this fires on a category with ZERO real occurrences, the completeness
-/// gap the round-trip gate alone cannot see.
+/// construct category the real grounding corpus never exercises — distinct from a GMN-1
+/// round-trip failure (a quad that failed to round-trip, now interned with typed
+/// `lang:`-class DiagLedger identity via `gmeow_lang_bridge::error::attach_gmn_failure`) —
+/// this fires on a category with ZERO real occurrences, the completeness gap the round-trip
+/// gate alone cannot see.
 const CODE_GMN1_CONSTRUCT_COVERAGE_GAP: &str = "pipeline.gmn1.construct-coverage-gap";
 
 /// Intern a reconcile-phase drift/superset finding into the carrier ledger. The
@@ -620,35 +618,38 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
                     });
                     for failure in gmn1_report.failures {
                         drifted.push(failure.path.clone());
-                        // L3 ledger-identity split: an UNCOVERED GMN-0 construct is
-                        // `lang:GmnUncoveredTerm` — interned through the dedicated
-                        // DiagLedger identity `gmeow_lang_bridge::error::attach_gmn_uncovered`
-                        // exposes (finding_iri + anchor + antecedents), never the generic
-                        // drift code, so a reasoner-over-findings meta-fold can join it (per
-                        // the diagnostics-producers-must-carry-ledger-identity rule). Any
-                        // OTHER round-trip defect (a canonical mismatch, a malformed-text
-                        // parse defect) keeps the generic pipeline drift code.
-                        match failure.kind {
-                            crate::stages::gmn1_gate::Gmn1FailureKind::Uncovered => {
-                                gmeow_lang_bridge::error::attach_gmn_uncovered(
-                                    &mut ledger,
-                                    PIPELINE_STAGE_ID,
-                                    &failure.path,
-                                    &failure.detail,
-                                );
-                            }
-                            crate::stages::gmn1_gate::Gmn1FailureKind::RoundTripDefect => {
-                                attach_pipeline_finding(
-                                    &mut ledger,
-                                    CODE_GMN1_ROUNDTRIP_MISMATCH,
-                                    &failure.path,
-                                    format!(
-                                        "{} failed the GMN-1 round-trip gate: {}",
-                                        failure.path, failure.detail
-                                    ),
-                                );
-                            }
-                        }
+                        // L3 ledger-identity split, driven off the codec's ONE canonical
+                        // classifier (`Gmn1Error::failure_class()`): every typed GMN failure
+                        // — uncovered term, non-canonical order, malformed number, undeclared
+                        // dialect version, non-decodable grammar — is interned through
+                        // `attach_gmn_failure`'s DiagLedger identity (finding_iri + anchor +
+                        // antecedents), so a reasoner-over-findings meta-fold can join ANY of
+                        // them by class (per the diagnostics-producers-must-carry-ledger-
+                        // identity rule), never a hand-built Finding and never a second
+                        // classifier.
+                        gmeow_lang_bridge::error::attach_gmn_failure(
+                            &mut ledger,
+                            PIPELINE_STAGE_ID,
+                            &failure.path,
+                            &failure.error,
+                        );
+                    }
+
+                    // Production shipped-projection lint: read every committed
+                    // `generated/projections/lang/gmn1/*.gmn` back through the production
+                    // codec and hard-fail (with the same ledger identity) if any shipped
+                    // projection fails to read clean — a real production caller of the
+                    // canonical `failure_class()` over shipped artifacts.
+                    let gmn1_shipped_report =
+                        crate::stages::gmn1_gate::check_gmn1_shipped_projections(root)?;
+                    for failure in gmn1_shipped_report.failures {
+                        drifted.push(failure.path.clone());
+                        gmeow_lang_bridge::error::attach_gmn_failure(
+                            &mut ledger,
+                            PIPELINE_STAGE_ID,
+                            &failure.path,
+                            &failure.error,
+                        );
                     }
 
                     // GMN-1 construct-coverage-completeness audit: the round-trip
