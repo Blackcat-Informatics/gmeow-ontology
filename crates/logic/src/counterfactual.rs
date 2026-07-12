@@ -563,6 +563,37 @@ fn cartesian(choices: &[SlotChoice]) -> Vec<Vec<(String, String, String)>> {
     worlds
 }
 
+/// One canonical functional-slot revision shared by the incremental and scratch
+/// execution branches. The base partition is computed once, so the two paths cannot
+/// drift on which facts an admitted `(subject, predicate)` slot overwrites.
+struct FunctionalRevision<'a> {
+    retained_base: Vec<&'a (String, String, String)>,
+    overwritten_base: Vec<&'a (String, String, String)>,
+}
+
+fn plan_functional_revision<'a>(
+    base_facts: &'a [(String, String, String)],
+    admitted: &[(String, String, String)],
+) -> FunctionalRevision<'a> {
+    let admitted_slots: BTreeSet<(&str, &str)> = admitted
+        .iter()
+        .map(|(subject, predicate, _)| (subject.as_str(), predicate.as_str()))
+        .collect();
+    let mut retained_base = Vec::new();
+    let mut overwritten_base = Vec::new();
+    for fact @ (subject, predicate, _) in base_facts {
+        if admitted_slots.contains(&(subject.as_str(), predicate.as_str())) {
+            overwritten_base.push(fact);
+        } else {
+            retained_base.push(fact);
+        }
+    }
+    FunctionalRevision {
+        retained_base,
+        overwritten_base,
+    }
+}
+
 /// Build one isolated world `world_iri` from `base_facts` with the `admitted`
 /// slots overwritten, then resolve `program`'s goal inside it. Returns the
 /// deduplicated binding set and the resolution status.
@@ -575,16 +606,11 @@ fn resolve_in_world(
     world_iri: &str,
     incremental_base: Option<&IncrementalQuerySession>,
 ) -> gmeow_errors::Result<(BTreeSet<Binding>, CfStatus)> {
+    let revision = plan_functional_revision(base_facts, admitted);
     if let Some(incremental_base) = incremental_base {
-        let admitted_slots: BTreeSet<(&str, &str)> = admitted
-            .iter()
-            .map(|(subject, predicate, _)| (subject.as_str(), predicate.as_str()))
-            .collect();
         let mut changes = Vec::new();
-        for (subject, predicate, object) in base_facts {
-            if admitted_slots.contains(&(subject.as_str(), predicate.as_str())) {
-                changes.push((subject.clone(), predicate.clone(), object.clone(), -1));
-            }
+        for (subject, predicate, object) in revision.overwritten_base {
+            changes.push((subject.clone(), predicate.clone(), object.clone(), -1));
         }
         changes.extend(admitted.iter().map(|(subject, predicate, object)| {
             (subject.clone(), predicate.clone(), object.clone(), 1)
@@ -599,18 +625,7 @@ fn resolve_in_world(
     }
 
     let cf_store = WorldStore::new();
-    // Borrow the (subject, predicate) slots from `admitted` (which outlives this
-    // function) rather than cloning every key — and the per-fact lookup below
-    // borrows too, avoiding an allocation for each base fact.
-    let admitted_slots: BTreeSet<(&str, &str)> = admitted
-        .iter()
-        .map(|(s, p, _)| (s.as_str(), p.as_str()))
-        .collect();
-    for (s, p, o) in base_facts {
-        // Functional overwrite: drop base facts in any slot the antecedent sets.
-        if admitted_slots.contains(&(s.as_str(), p.as_str())) {
-            continue;
-        }
+    for (s, p, o) in revision.retained_base {
         cf_store.insert_quad(world_iri, s, p, o);
     }
     for (s, p, o) in admitted {
@@ -1009,6 +1024,59 @@ mod tests {
         assert_eq!(ans.status_str(), "ok", "ans: {ans:?}");
         assert_eq!(ans.bindings.len(), 1, "exactly one consequent: {ans:?}");
         assert_eq!(ans.bindings[0]["Z"], "<https://ex/fired>");
+    }
+
+    #[test]
+    fn functional_revision_is_identical_for_incremental_and_scratch_paths() {
+        let base = vec![
+            (
+                "https://ex/server".to_owned(),
+                "https://ex/status".to_owned(),
+                "https://ex/up".to_owned(),
+            ),
+            (
+                "https://ex/other".to_owned(),
+                "https://ex/kept".to_owned(),
+                "https://ex/value".to_owned(),
+            ),
+        ];
+        let admitted = vec![(
+            "https://ex/server".to_owned(),
+            "https://ex/status".to_owned(),
+            "https://ex/down".to_owned(),
+        )];
+        let program = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             ?- ex:status(ex:server, Z).\n",
+        )
+        .unwrap();
+        let budget = Budget::default();
+        let mut cache = CfCache::new();
+        let incremental = incremental_base_session(&mut cache, &base, &program, HORN, &budget)
+            .unwrap()
+            .expect("positive query admits a fixed-program incremental session");
+
+        let scratch = resolve_in_world(&base, &admitted, &program, HORN, &budget, CF, None)
+            .expect("scratch revision");
+        let maintained = resolve_in_world(
+            &base,
+            &admitted,
+            &program,
+            HORN,
+            &budget,
+            CF,
+            Some(&incremental),
+        )
+        .expect("incremental revision");
+
+        assert_eq!(maintained, scratch);
+        assert_eq!(
+            maintained.0,
+            BTreeSet::from([BTreeMap::from([(
+                "Z".to_owned(),
+                "<https://ex/down>".to_owned(),
+            )])])
+        );
     }
 
     // ── Native production path: recursion resolves inside the constructed world ─
