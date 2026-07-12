@@ -2026,19 +2026,19 @@ fn require_all_iri_objects(store: &WorldStore) -> gmeow_errors::Result<()> {
 fn chase_all_worlds_physical(store: &WorldStore) -> gmeow_errors::Result<Vec<FoundationQuad>> {
     require_all_iri_objects(store)?;
     let rules = lower_foundation_rules();
-    // Enter the type-state plan pipeline. The foundation program is stratified by
-    // construction, so `stratify()` → `None` is a contract violation (hard fail), never a
-    // degraded fallback.
-    let Some(stratified) = crate::physical::Parsed::new(&rules).stratify() else {
+    // The foundation program and its contract are process-stable; cache the immutable
+    // executable rather than repeating stratification/SIPS planning on every evaluation.
+    // A negative cache entry is a contract violation (hard fail), never a fallback.
+    let lookup = crate::physical::compile_cached("gmeow-foundation-v1", rules);
+    let Some(executable) = lookup.executable else {
         return Err(foundation_err(
             "foundation program unexpectedly non-stratifiable under the native chase \
              (the foundation program is stratified by construction)"
                 .to_owned(),
         ));
     };
-    let executable = stratified.plan().into_executable();
     // Unbounded: the foundation oracle runs to full fixpoint (`BUDGET_OK`).
-    let outcome = crate::physical::materialize_native(store, &executable, None)?;
+    let outcome = crate::physical::materialize_native(store, executable.as_ref(), None)?;
     let rows = match outcome {
         crate::physical::NativeOutcome::Decided(budgeted) => budgeted.rows,
         crate::physical::NativeOutcome::Unsupported(kind) => {

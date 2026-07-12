@@ -29,7 +29,7 @@ the no-debug-symbol policy, and `nemo` build-memory caps intact.
 
 ## Regenerate & gates
 
-* Regenerate with `make regenerate`. Per the `regenerate:` Makefile target that is exactly `gmeow-dev regenerate -j <nproc>` — a **single, idempotent pass**; the `make` wrapper only adds parallelism, there is no separate "diagnostics fold," and a second run produces no changes. Run it once, never in a loop.
+* Regenerate with `make regenerate`. The target delegates one **single, idempotent pass** to `gmeow-dev regenerate`; the Rust command owns its worker scheduling and memory-aware cap, while Make neither infers nor injects a job count. There is no separate "diagnostics fold," and a second run produces no changes. Run it once, never in a loop.
 * `generated/dist/gmeow.gts` is `merge=ours` (`.gitattributes`), so a `git merge` leaves it holding the branch's pre-merge bytes; `make regenerate` rewrites it from the merged sources, so run it once after integrating `main`. A stale bundle is **not** silently accepted — its drift is caught by the superset/fold gate (the `crates/pipeline` superset check + `tests/full_parity.rs`), which compares the bundle semantically because it is CBOR and cannot be byte-diffed by `check-generated`.
 * Verify with the full `make check` — `make validate` / `make reason` alone are not sufficient. CI builds the PR **merged into `main`**, so integrate current `main` before final verification.
 

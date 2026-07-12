@@ -16,7 +16,7 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
-purrdf = "0.4"
+purrdf.workspace = true
 # The diagnostic substrate: the affect graph readers raise typed `Diag` kinds
 # (never ad-hoc `String` errors) so a malformed affect graph carries a stable code.
 gmeow-errors = { path = "../errors" }

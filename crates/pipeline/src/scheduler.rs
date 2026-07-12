@@ -32,7 +32,7 @@ use crate::provenance::register_stage_unit;
 /// stages competing for the same resource serialize. A permit, not data — results
 /// are returned, never stored behind the lock. The engine resource
 /// ([`crate::node::ENGINE_RESOURCE`]) mirrors the `CHASE_LOCK` in `gmeow-logic`
-/// (the Nemo/Scryer engines are not concurrency-safe); any other shared resource a
+/// (the retained Nemo comparison engine is not concurrency-safe); any other shared resource a
 /// stage declares serializes the same way, with no new special case.
 static RESOURCE_LOCKS: LazyLock<Mutex<HashMap<String, Arc<Mutex<()>>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));

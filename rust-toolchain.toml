@@ -6,9 +6,8 @@
 # and slice_swap_unchecked.  There is no fallback — nemo does not compile on
 # stable.  Tracking issues: #499, PR #531 (logic-engine-scaffold).
 #
-# Use the latest available nightly. The Rust-native logic engines depend on
-# unstable features through Nemo, and the scryer-prolog/Ring cleanup needs a
-# current enough toolchain for upstream Scryer.
+# Use the latest available nightly. The retained Nemo comparison engine depends
+# on unstable features.
 # CI keeps this in lockstep via the dtolnay `toolchain:` inputs in ci.yml.
 [toolchain]
 channel = "nightly"

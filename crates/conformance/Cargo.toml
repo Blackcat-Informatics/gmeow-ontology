@@ -41,7 +41,7 @@ path = "src/bin/bench_ingest.rs"
 # LinkPolicy shim, which reaches it via the gmeow-validate PyO3 surface.
 gmeow-license = { path = "../license" }
 # The native logic engine: compile / certify / materialize / explain / foundation
-# / scryer / stable-model / probabilistic cores. The harness calls these directly
+# / native backward / stable-model / probabilistic cores. The harness calls these directly
 # (the SAME functions py.rs wraps), so case outputs are identical by construction.
 gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str / compile_program / projections /
@@ -62,7 +62,7 @@ gmeow-cli-core = { path = "../cli-core" }
 # named graphs via `RdfDataset::project_named_graph` + `serialize_dataset` — all on the
 # native, oxigraph-free path (no `oxigraph` feature). `gmeow-logic` already
 # depends on this crate, so no new layering edge is created.
-purrdf = "0.4"
+purrdf.workspace = true
 # Canonical-JSON comparison (sorted keys) for verdicts / ledger / certification /
 # budget / answers, and parsing the committed JSON goldens. NO `preserve_order`:
 # the default BTreeMap-backed `Value` serializes keys in sorted order, which IS

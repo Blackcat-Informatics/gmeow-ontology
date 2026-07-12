@@ -13,7 +13,7 @@ PyO3 module registered by `gmeow-native`.
 
 | Family | Modules | Role |
 | --- | --- | --- |
-| Engine bridges | `nemo_engine`, `scryer_engine`, `rule_ir`, `materialize`, `dispatch` | Drive native rule and query engines from the shared runtime IR. |
+| Engine and dispatch | `nemo_engine`, `rule_ir`, `materialize`, `dispatch` | Drive native rule and query execution; retain Nemo only for forward comparison. |
 | Reasoning and verification | `reason`, `slme`, `verify`, `certificate`, `certify`, `profile_gate`, `dag_profile` | Entailment, consistency, module extraction, static profile checks, and coherence certificates. |
 | Results and provenance | `result`, `result_rdf`, `derivation_graph`, `provenance`, `explain`, `seam` | Stable result contracts, RDF projections, derivation metadata, and Python seam shapes. |
 | Logic features | `counterfactual`, `entrenchment`, `foundation`, `obligations`, `probabilistic`, `stablemodel`, `teleology`, `transaction`, `transition`, `versioning`, `wellfounded` | Domain-specific logic surfaces layered on the core runtime. |
