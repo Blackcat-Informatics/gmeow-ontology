@@ -342,6 +342,7 @@ pub fn describe(
     term: &str,
     gts: Option<&Path>,
     lang: Option<&str>,
+    format: gmeow_docs::card::CardFormat,
 ) -> i32 {
     let bytes = match gts_bytes(reporter, gts) {
         Ok(b) => b,
@@ -353,7 +354,7 @@ pub fn describe(
     let resolved: Option<String> = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok());
-    let (text, status) = gmeow_docs::describe(term, &bytes, resolved.as_deref());
+    let (text, status) = gmeow_docs::describe(term, &bytes, resolved.as_deref(), format);
     // Map each backend failure kind to its OWN typed diagnostic code — a resolution
     // miss, a cross-namespace ambiguity, an unknown language, and a bundle-load
     // failure are distinct, greppable codes (the old path lumped them all under
