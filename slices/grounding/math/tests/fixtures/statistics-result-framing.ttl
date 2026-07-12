@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the result-framing competency question "which properties frame a test, an
+# effect size, an interval, a prediction, a diagnostic, a fitted model, and a run". A worked
+# result/evaluation scene: a math:HypothesisTest weighing an alternative
+# (math:alternativeHypothesis) and reporting an effect size (math:effectSize); that
+# math:EffectSize naming its contrast (math:effectSizeContrast) and standardization scale
+# (math:effectSizeScale); a math:ConfidenceInterval naming its two bounds
+# (math:hasIntervalBound) and coverage (math:confidenceLevel); a math:CredibleInterval naming
+# its posterior mass (math:credibleMass); a math:Prediction naming its target
+# (math:predictionTarget); a math:ModelDiagnostic anchored to a fit (math:diagnosticFor) via a
+# method (math:diagnosticMethod); the math:FittedModel positing an assumption
+# (math:modelAssumption); and a math:InferenceRun following a plan (math:usedAnalysisPlan). The
+# reasoning-free query projects each predicate on the framed subjects. Unioned onto the merged
+# ontology by gmeow:cqDataFile.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+# A hypothesis test: weighs an alternative, reports an effect size.
+ex:test a math:HypothesisTest ;
+    math:alternativeHypothesis ex:alt ;
+    math:effectSize ex:es .
+
+# The effect size: its contrast and the scale it is standardized on.
+ex:es a math:EffectSize ;
+    math:effectSizeContrast ex:contrast ;
+    math:effectSizeScale ex:scale .
+
+# A confidence interval: two bounds and a coverage level.
+ex:ci a math:ConfidenceInterval ;
+    math:hasIntervalBound ex:lower , ex:upper ;
+    math:confidenceLevel ex:level .
+
+# A credible interval: its posterior mass.
+ex:cri a math:CredibleInterval ;
+    math:credibleMass ex:mass .
+
+# A prediction: what it forecasts.
+ex:pred a math:Prediction ;
+    math:predictionTarget ex:target .
+
+# A diagnostic anchored to the fit through a method.
+ex:diag a math:ModelDiagnostic ;
+    math:diagnosticFor ex:fit ;
+    math:diagnosticMethod ex:method .
+
+# The fitted model, positing an assumption.
+ex:fit a math:FittedModel ;
+    math:modelAssumption ex:assumption .
+
+# The inference run, following an analysis plan.
+ex:run a math:InferenceRun ;
+    math:usedAnalysisPlan ex:plan .
