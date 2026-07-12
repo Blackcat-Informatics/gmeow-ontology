@@ -2821,6 +2821,43 @@ mod tests {
         (collect_terms(&view), title, version)
     }
 
+    /// The consumer/MCP term surface resolves grounding-namespace terms (the twin of
+    /// `gmeow describe`): CURIE, full IRI, and bare local name across `logic:`/
+    /// `math:`/`lang:`, from the real folded bundle. Before the fix `collect_terms`
+    /// filtered to `gmeow:`, so these were absent entirely.
+    #[test]
+    fn resolve_term_iri_spans_grounding_namespaces() {
+        let (terms, _t, _v) = english_terms();
+        assert_eq!(
+            resolve_term_iri(&terms, "lang:Denotation"),
+            Some("https://blackcatinformatics.ca/lang/Denotation")
+        );
+        assert_eq!(
+            resolve_term_iri(&terms, "math:Function"),
+            Some("https://blackcatinformatics.ca/math/Function")
+        );
+        // Full IRI.
+        assert_eq!(
+            resolve_term_iri(&terms, "https://blackcatinformatics.ca/logic/Formula"),
+            Some("https://blackcatinformatics.ca/logic/Formula")
+        );
+        // Bare local name (namespace-agnostic).
+        assert_eq!(
+            resolve_term_iri(&terms, "Denotation"),
+            Some("https://blackcatinformatics.ca/lang/Denotation")
+        );
+        // A grounding term carries a real CURIE (proving the `lang` prefix fix).
+        let denotation = terms
+            .iter()
+            .find(|t| t.iri == "https://blackcatinformatics.ca/lang/Denotation")
+            .expect("lang:Denotation folded into the term set");
+        assert_eq!(denotation.curie, "lang:Denotation");
+        assert!(
+            !denotation.label.is_empty(),
+            "the folded grounding term carries a label"
+        );
+    }
+
     /// `lookup_term`: exact CURIE match → `as_record` with `ok:true`;
     /// unknown → `{"ok": false, "error": "Term not found: …"}`; per-language label.
     #[test]

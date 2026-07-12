@@ -1003,6 +1003,197 @@ mod tests {
         assert!(!text.is_empty());
     }
 
+    /// A fixture spanning the grounding namespaces: `math:Function` and
+    /// `logic:Function` (a cross-namespace bare-name COLLISION on `Function`) plus a
+    /// unique `lang:Denotation`. Each carries the full describable predicate shape,
+    /// and an English carrier seeds the tag map so cards render.
+    fn grounding_gts() -> Vec<u8> {
+        let mut nt = String::new();
+        for (prefix, local) in [
+            ("math", "Function"),
+            ("logic", "Function"),
+            ("lang", "Denotation"),
+        ] {
+            let iri = format!("https://blackcatinformatics.ca/{prefix}/{local}");
+            nt.push_str(&format!("<{iri}> <{RDF_TYPE}> <{OWL_CLASS}> .\n"));
+            nt.push_str(&format!(
+                "<{iri}> <{RDFS_LABEL}> \"{local}\"@x-gmeow-english .\n"
+            ));
+            nt.push_str(&format!(
+                "<{iri}> <{SKOS_DEFINITION}> \"Definition of {prefix}:{local}.\"@x-gmeow-english .\n"
+            ));
+            nt.push_str(&format!(
+                "<{iri}> <{RDFS_IS_DEFINED_BY}> <{NAMESPACE}slices/{prefix}> .\n"
+            ));
+        }
+        // English carrier so the tag map resolves `x-gmeow-english`.
+        const LANG_VARIETY: &str = "https://blackcatinformatics.ca/lang/LanguageVariety";
+        const CARRIER_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
+        let carrier = "https://blackcatinformatics.ca/lang/gmeowEnglish";
+        nt.push_str(&format!("<{carrier}> <{RDF_TYPE}> <{LANG_VARIETY}> .\n"));
+        nt.push_str(&format!(
+            "<{carrier}> <{CARRIER_TAG}> \"x-gmeow-english\" .\n"
+        ));
+        nt.push_str(&format!("<{carrier}> <{NAMESPACE}bcp47Tag> \"en\" .\n"));
+
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+            .expect("fixture N-Triples must parse");
+        purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
+            .expect("fixture must serialize to GTS")
+    }
+
+    #[test]
+    fn resolve_term_spans_grounding_namespaces() {
+        let gts = grounding_gts();
+        let graph = DescribeGraph::from_gts_bytes(&gts).expect("load");
+
+        // Registered CURIE across each grounding namespace.
+        assert_eq!(
+            resolved_iri(resolve_term(&graph, "math:Function")).as_deref(),
+            Some("https://blackcatinformatics.ca/math/Function")
+        );
+        // Full IRI.
+        assert_eq!(
+            resolved_iri(resolve_term(
+                &graph,
+                "https://blackcatinformatics.ca/lang/Denotation"
+            ))
+            .as_deref(),
+            Some("https://blackcatinformatics.ca/lang/Denotation")
+        );
+        // Bare local name unique to one namespace.
+        assert_eq!(
+            resolved_iri(resolve_term(&graph, "Denotation")).as_deref(),
+            Some("https://blackcatinformatics.ca/lang/Denotation")
+        );
+        // Bare local name colliding across namespaces → Ambiguous, sorted CURIEs, no
+        // silent gmeow: precedence.
+        match resolve_term(&graph, "Function") {
+            Resolution::Ambiguous { candidates } => assert_eq!(
+                candidates,
+                vec!["logic:Function".to_string(), "math:Function".to_string()]
+            ),
+            other => panic!("colliding bare name must be Ambiguous, got {other:?}"),
+        }
+        // A registered prefix whose term is absent → NotFound (not a bare search).
+        match resolve_term(&graph, "math:Nonexistent") {
+            Resolution::NotFound { .. } => {}
+            other => panic!("absent CURIE must be NotFound, got {other:?}"),
+        }
+        // Wholly unknown.
+        match resolve_term(&graph, "Nonexistent") {
+            Resolution::NotFound { .. } => {}
+            other => panic!("unknown must be NotFound, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn describe_renders_grounding_term_card() {
+        let gts = grounding_gts();
+        let (text, code) = describe_prose("lang:Denotation", &gts, None);
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
+        assert!(text.starts_with("# lang:Denotation"), "{text}");
+        assert!(text.contains("category: Class"), "{text}");
+        assert!(text.contains("slice: lang"), "{text}");
+        assert!(text.contains("Definition of lang:Denotation."), "{text}");
+    }
+
+    #[test]
+    fn describe_ambiguous_grounding_name_is_typed() {
+        let gts = grounding_gts();
+        let (text, code) = describe_prose("Function", &gts, None);
+        assert_eq!(code, DescribeStatus::Ambiguous, "{text}");
+        assert!(text.contains("logic:Function"), "{text}");
+        assert!(text.contains("math:Function"), "{text}");
+    }
+
+    #[test]
+    fn prefix_query_yields_deterministic_sorted_candidates() {
+        let gts = grounding_gts();
+        let graph = DescribeGraph::from_gts_bytes(&gts).expect("load");
+        // `Fun` prefix-matches `math:Function` and `logic:Function` → NotFound with a
+        // deterministic, CURIE-sorted suggestion list.
+        match resolve_term(&graph, "Fun") {
+            Resolution::NotFound { suggestions } => assert_eq!(
+                suggestions,
+                vec!["logic:Function".to_string(), "math:Function".to_string()]
+            ),
+            other => panic!("multi-prefix query must be NotFound with suggestions, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn short_uses_canonical_registry_and_gufo_matches() {
+        // The local GUFO constant must equal the registry's `gufo` namespace, so
+        // stereotype detection and CURIE-shortening never diverge.
+        assert_eq!(registry_iri("gufo"), Some(GUFO));
+        assert_eq!(
+            short("https://blackcatinformatics.ca/lang/Denotation"),
+            "lang:Denotation"
+        );
+        assert_eq!(short(&format!("{GUFO}Kind")), "gufo:Kind");
+    }
+
+    #[test]
+    fn every_grounding_namespace_has_describable_terms_that_render() {
+        // Bundle-wide sweep: prove the REQUIREMENT ("every bundled term"), not an
+        // example — each grounding namespace has >0 describable terms and a
+        // deterministic sample renders on the production entry point.
+        let bytes = shipped_bundle_bytes();
+        let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load shipped bundle");
+        let terms = term_iris(&graph);
+        for prefix in ["gmeow", "logic", "math", "lang"] {
+            let ns = registry_iri(prefix).expect("grounding prefix registered");
+            let in_ns: Vec<&String> = terms.iter().filter(|t| t.starts_with(ns)).collect();
+            assert!(
+                !in_ns.is_empty(),
+                "no describable terms in the `{prefix}:` namespace — the feature is dark there"
+            );
+            // `terms` is a BTreeSet, so the sample is deterministic. One render per
+            // namespace proves the surface is live end-to-end (breadth is covered by
+            // the coherence gate and the resolver tests); `describe` re-folds the
+            // whole bundle per call, so the sample is kept small.
+            let iri = in_ns[0];
+            let (text, code) = describe_prose(iri, &bytes, None);
+            assert_eq!(code, DescribeStatus::Ok, "`{prefix}:` term {iri}: {text}");
+        }
+    }
+
+    #[test]
+    fn grounding_term_grounding_references_are_themselves_describable() {
+        // Navigability closure: a card renders parents/domain/range as CURIEs; every
+        // GMEOW-local (grounding) reference must ITSELF be describable, or the
+        // "self-describing" ontology has dead links.
+        let bytes = shipped_bundle_bytes();
+        let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load shipped bundle");
+        let terms = term_iris(&graph);
+        let grounding_ns: [&str; 4] = ["gmeow", "logic", "math", "lang"]
+            .map(|p| registry_iri(p).expect("grounding prefix registered"));
+        let is_grounding = |iri: &str| grounding_ns.iter().any(|ns| iri.starts_with(ns));
+
+        let mut checked = 0usize;
+        for term in terms.iter().filter(|t| is_grounding(t)).take(200) {
+            for reference in graph
+                .named_objects(term, RDFS_SUBCLASS_OF)
+                .into_iter()
+                .chain(graph.named_objects(term, RDFS_DOMAIN))
+                .chain(graph.named_objects(term, RDFS_RANGE))
+            {
+                if is_grounding(&reference) {
+                    assert!(
+                        terms.contains(&reference),
+                        "term {term} references grounding term {reference} that is not itself describable"
+                    );
+                    checked += 1;
+                }
+            }
+        }
+        assert!(
+            checked > 0,
+            "navigability closure asserted nothing — no grounding references found in the sample"
+        );
+    }
+
     /// The committed, shipped bundle bytes (`generated/dist/gmeow.gts`) — the exact
     /// bytes `gmeow-cli` embeds. Used by the coherence gate.
     fn shipped_bundle_bytes() -> Vec<u8> {
