@@ -1587,15 +1587,12 @@ impl Stage for PydanticStage {
 }
 
 /// The docs-model source files whose edits must bust this leaf's cache: every
-/// slice `module.ttl` (definitions/prose) plus the committed term-content
-/// manifest (digests). A superset is fine — over-declaring only busts the cache
-/// more often; under-declaring would risk a stale render.
+/// slice `module.ttl` (definitions/prose). A term's content digest changes only
+/// when its slice content changes, so the slice sources are the complete
+/// change-detection set — the leaf never reaches into a `generated/` path (which
+/// would be the stale-disk-fold bug class the pipeline-static lint guards).
 fn docs_source_files(root: &Path) -> Vec<std::path::PathBuf> {
     let mut files = Vec::new();
-    let manifest = root.join("generated/catalog/term-content-manifest.nq");
-    if manifest.is_file() {
-        files.push(manifest);
-    }
     let slices = root.join("slices");
     collect_named(&slices, "module.ttl", &mut files);
     files
