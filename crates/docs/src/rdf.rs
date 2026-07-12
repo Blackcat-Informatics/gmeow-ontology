@@ -643,6 +643,15 @@ pub fn to_gmeow_rdf(
         .map(|f| (fixture_identity(f), f))
         .collect();
     fixture_subjects.sort_by(|a, b| a.0.cmp(&b.0));
+    // CURIE → term IRI, built ONCE so the per-fixture, per-reference resolution
+    // below is an O(1) map lookup rather than an O(terms) linear scan (the fixture
+    // loop is otherwise O(fixtures × refs × terms)). Lookup only — iteration order
+    // is unaffected since we never iterate this map, only probe it.
+    let term_iri_by_curie: std::collections::HashMap<&str, &str> = model
+        .terms
+        .iter()
+        .map(|t| (t.curie.as_str(), t.iri.as_str()))
+        .collect();
     for (subject, f) in &fixture_subjects {
         triple(
             subject,
@@ -655,11 +664,11 @@ pub fn to_gmeow_rdf(
         // lands on the term node, never a CURIE literal). A referenced term that
         // is not itself documented is honestly absent — no fabricated edge.
         for curie in &f.terms_referenced {
-            if let Some(term) = model.terms.iter().find(|t| &t.curie == curie) {
+            if let Some(iri) = term_iri_by_curie.get(curie.as_str()) {
                 triple(
                     subject,
                     &format!("{GMEOW}documents"),
-                    &format!("<{}>", term.iri),
+                    &format!("<{}>", iri),
                     &mut lines,
                 );
             }
