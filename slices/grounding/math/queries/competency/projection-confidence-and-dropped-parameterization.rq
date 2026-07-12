@@ -1,0 +1,36 @@
+# Competency question: "Which projections converted a confidence to a probability without
+# a declared mapping, or dropped a distribution parameterization without recording it?"
+# The projection-side loss ledger made queryable: a math:ProjectionRecord that either
+# (a) converts a source confidence into a math:ProbabilityValue
+# (math:projectsConfidenceAsProbability true) with no licensing math:declaredConfidenceMapping,
+# or (b) is lossy (logic:preservationKind other than logic:ExactPreservation) and projects a
+# source math:Distribution whose math:distributionParameterization it does not enumerate in
+# logic:unsupportedConstruct. Scoped to the fixture namespace so the answer is the one flagged
+# confidence projection, not every projection in the merged ontology. The target and the issue
+# label are projected as their string form (STR(...)) so each expected cell is a plain literal.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?projection ?target ?issue WHERE {
+    ?projection a math:ProjectionRecord ;
+                math:projectionTargetName ?targetRaw .
+    {
+        ?projection math:projectsConfidenceAsProbability true .
+        FILTER NOT EXISTS { ?projection math:declaredConfidenceMapping ?mapping }
+        BIND("confidence-as-probability" AS ?issueRaw)
+    }
+    UNION
+    {
+        ?projection logic:preservationKind ?pk .
+        FILTER(?pk != logic:ExactPreservation)
+        ?projection math:projectionSource ?src .
+        ?src a math:Distribution ;
+             math:distributionParameterization ?param .
+        FILTER NOT EXISTS { ?projection logic:unsupportedConstruct ?param }
+        BIND("dropped-parameterization" AS ?issueRaw)
+    }
+    BIND(STR(?targetRaw) AS ?target)
+    BIND(STR(?issueRaw) AS ?issue)
+    FILTER(STRSTARTS(STR(?projection), "http://example.org/math/"))
+}
+ORDER BY ?projection ?issue

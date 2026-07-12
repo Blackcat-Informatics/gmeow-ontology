@@ -1,0 +1,46 @@
+# Competency question: "For each candidate pair of facts, is their independence modeled
+# as marginal, as conditional-given, or NOT modeled — and who asserted it in which
+# model?" Exercises the CRITICAL three-state independence discipline: a marginal
+# math:IndependenceAssertion (A ⫫ B), a math:ConditionalIndependenceAssertion
+# (A ⫫ C | D), and the distinct third state — a candidate pair (B, C) with NO
+# assertion, which a reasoning engine must NEVER read as independence. The candidate
+# pairs are enumerated with VALUES and LEFT JOINed (OPTIONAL) against the two assertion
+# kinds; the classification COALESCEs to "not-modeled" for the un-asserted pair, whose
+# vantage and model columns are legitimately unbound (BindingOptional). Independence is
+# a standpoint-scoped claim, so each modeled pair also reports who holds it
+# (gmeow:vantage) and the model it holds in (math:independenceHoldsInModel). Scoped to
+# the fixture namespace so the answer is exactly:
+#   {eventA, eventB, marginal, modeler, indepModel}
+#   {eventA, eventC, conditional-given, modeler, indepModel}
+#   {eventB, eventC, not-modeled} (vantage/model unbound).
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?subject ?other ?classification ?vantage ?model WHERE {
+    VALUES (?subject ?other) {
+        (<http://example.org/math/eventA> <http://example.org/math/eventB>)
+        (<http://example.org/math/eventA> <http://example.org/math/eventC>)
+        (<http://example.org/math/eventB> <http://example.org/math/eventC>)
+    }
+    OPTIONAL {
+        ?marg a math:IndependenceAssertion ;
+              math:independenceSubject ?subject ;
+              math:independentOf ?other ;
+              math:independenceHoldsInModel ?margModel ;
+              gmeow:vantage ?margVantage .
+        BIND("marginal" AS ?margClass)
+    }
+    OPTIONAL {
+        ?cond a math:ConditionalIndependenceAssertion ;
+              math:independenceSubject ?subject ;
+              math:independentOf ?other ;
+              math:independentGiven ?given ;
+              math:independenceHoldsInModel ?condModel ;
+              gmeow:vantage ?condVantage .
+        BIND("conditional-given" AS ?condClass)
+    }
+    BIND(COALESCE(?margClass, ?condClass, "not-modeled") AS ?classification)
+    BIND(COALESCE(?margVantage, ?condVantage) AS ?vantage)
+    BIND(COALESCE(?margModel, ?condModel) AS ?model)
+}
+ORDER BY ?subject ?other

@@ -71,11 +71,11 @@ RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -typ
 
 CHECK_TARGETS := lint rust-gate gts-frame-profile-gate validate check-generated constitution-check \
 	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
-	mappings lint-alignment doc-lint coherence-gate-teeth slice-quality-gate \
+	mappings lint-alignment i18n-lint doc-lint coherence-gate-teeth slice-quality-gate \
 	bench-golden-gate bench-soak
 
 .PHONY: help \
-	install fmt lint lint-issue-refs \
+	install fmt lint lint-issue-refs i18n-lint \
 	validate validate-gts gts-frame-profile-gate reason verify reason-verify reason-crosscheck rust-build rust-test rust-docs check \
 	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
@@ -177,6 +177,9 @@ check: ## Run the full Docker-free local quality gate.
 	$(MAKE) -j$(NPROC) CHECK_GENERATED_JOBS=$(NPROC) $(CHECK_TARGETS)
 	$(MAKE) compliance-report
 	@echo "all checks passed (Docker-free, Java-free)"
+
+i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
+	$(GMEOW_DEV) i18n lint
 
 ##@ Generated Artifacts And Outputs
 

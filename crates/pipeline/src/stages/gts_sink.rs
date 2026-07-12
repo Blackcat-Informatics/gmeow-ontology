@@ -221,6 +221,14 @@ mod tests {
             crate::stages::json_schema::OPENAPI_PATH.to_string(),
             b"{}".to_vec(),
         );
+        json_artifacts.insert(
+            crate::stages::json_schema::CARD_SCHEMA_PATH.to_string(),
+            b"{}".to_vec(),
+        );
+        json_artifacts.insert(
+            crate::stages::json_schema::FINDING_SCHEMA_PATH.to_string(),
+            b"{}".to_vec(),
+        );
         let json_schema = StageProduct::from_artifacts("stage-export-json-schema", json_artifacts);
 
         let mut mapping_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();

@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:DistributionParameterConstraint gate: a
+# math:DistributionParameter fills a role declaring math:requiresPositiveValue true,
+# but its math:parameterQuantity carries a strictly negative magnitude (-1), so the
+# native probability gate MUST emit math:DistributionParameterConstraint (and no other
+# probability failure class). The role declares no math:quantityDimension, so only the
+# positivity arm fires.
+# Back-reference: math:DistributionParameter / math:DistributionParameterConstraint (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:stddevRole a math:DistributionParameterRole ;
+    math:requiresPositiveValue true .
+
+ex:negativeQuantity a gmeow:Quantity ;
+    gmeow:quantityValue "-1" .
+
+ex:negativeParameter a math:DistributionParameter ;
+    math:parameterRole ex:stddevRole ;
+    math:parameterQuantity ex:negativeQuantity .

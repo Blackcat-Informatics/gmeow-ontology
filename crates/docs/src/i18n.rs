@@ -72,6 +72,147 @@ pub fn expand_predicate(predicate: &str) -> String {
     format!("{ns}{local}")
 }
 
+// ── Translation-integrity checks ──────────────────────────────────────────────
+
+/// Return a stable reason when a non-English translation is not credible enough
+/// to enter a generated graph or count as translated coverage.
+///
+/// This is deliberately a conservative lexical guard, not a language model or a
+/// claim of translation correctness. It catches the two mechanically verifiable
+/// corruption classes that have appeared in committed catalogs: copied multi-word
+/// English source text and target strings that retain several unmistakably English
+/// prose tokens. Chinese prose must additionally contain at least one Han character.
+/// Single-word cognates and notation-only technical invariants remain admissible.
+pub fn translation_integrity_issue(
+    language: &str,
+    msgid: &str,
+    msgstr: &str,
+) -> Option<&'static str> {
+    let source = msgid.trim();
+    let target = msgstr.trim();
+    if target.is_empty() {
+        return Some("empty translation");
+    }
+
+    let language = language
+        .split(['-', '_'])
+        .next()
+        .unwrap_or(language)
+        .to_ascii_lowercase();
+    if language == "en" || language == ENGLISH {
+        return None;
+    }
+
+    let source_words = ascii_words(source);
+    if source.eq_ignore_ascii_case(target)
+        && source_words.len() > 1
+        && !is_technical_invariant(source)
+    {
+        return Some("multi-word English source text was copied into msgstr");
+    }
+
+    let english_leaks = ascii_words(target)
+        .iter()
+        .filter(|word| is_english_prose_token(word))
+        .count();
+    if english_leaks >= 2 {
+        return Some("msgstr retains multiple English prose tokens");
+    }
+
+    if matches!(language.as_str(), "zh" | "cmn")
+        && !source.is_empty()
+        && !is_technical_invariant(source)
+        && !target.chars().any(is_han)
+    {
+        return Some("Chinese prose translation contains no Han characters");
+    }
+
+    None
+}
+
+/// Whether a catalog value passes the deterministic integrity guard.
+pub fn translation_has_integrity(language: &str, msgid: &str, msgstr: &str) -> bool {
+    translation_integrity_issue(language, msgid, msgstr).is_none()
+}
+
+fn ascii_words(text: &str) -> Vec<String> {
+    text.split(|ch: char| !ch.is_ascii_alphabetic())
+        .filter(|word| !word.is_empty())
+        .map(str::to_ascii_lowercase)
+        .collect()
+}
+
+fn is_technical_invariant(text: &str) -> bool {
+    if text.eq_ignore_ascii_case("Creative Commons") {
+        return true;
+    }
+    if text.contains("://") && !text.chars().any(char::is_whitespace) {
+        return true;
+    }
+    let tokens: Vec<&str> = text
+        .split(|ch: char| !(ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | ':')))
+        .filter(|token| !token.is_empty())
+        .collect();
+    !tokens.is_empty()
+        && tokens.iter().all(|token| {
+            token.chars().all(|ch| ch.is_ascii_digit())
+                || token.contains(':')
+                || (token.len() > 1
+                    && token
+                        .chars()
+                        .filter(|ch| ch.is_ascii_alphabetic())
+                        .all(|ch| ch.is_ascii_uppercase()))
+        })
+}
+
+fn is_english_prose_token(word: &str) -> bool {
+    matches!(
+        word,
+        "the"
+            | "this"
+            | "that"
+            | "these"
+            | "those"
+            | "when"
+            | "where"
+            | "which"
+            | "whose"
+            | "every"
+            | "only"
+            | "under"
+            | "with"
+            | "without"
+            | "from"
+            | "into"
+            | "must"
+            | "should"
+            | "would"
+            | "cannot"
+            | "never"
+            | "instead"
+            | "broader"
+            | "narrower"
+            | "related"
+            | "construct"
+            | "stated"
+            | "conditions"
+            | "use"
+            | "assert"
+            | "preserve"
+            | "declared"
+            | "merely"
+            | "scope"
+            | "truth"
+    )
+}
+
+fn is_han(ch: char) -> bool {
+    matches!(
+        ch as u32,
+        0x3400..=0x4DBF | 0x4E00..=0x9FFF | 0xF900..=0xFAFF
+    )
+}
+
 // ── gettext `.po` parsing ──────────────────────────────────────────────────────
 
 /// One parsed `.po` entry.
@@ -348,7 +489,9 @@ impl Translations {
                 }
                 langs.insert(parsed.language.clone());
                 for entry in &parsed.entries {
-                    if entry.msgctxt.is_empty() || entry.msgstr.is_empty() {
+                    if entry.msgctxt.is_empty()
+                        || !translation_has_integrity(&parsed.language, &entry.msgid, &entry.msgstr)
+                    {
                         continue;
                     }
                     let Some((term_iri, predicate)) = entry.msgctxt.split_once('|') else {
@@ -908,7 +1051,7 @@ impl UiCatalog {
                 continue;
             }
             for entry in &parsed.entries {
-                if entry.msgstr.is_empty() {
+                if !translation_has_integrity(&parsed.language, &entry.msgid, &entry.msgstr) {
                     continue;
                 }
                 let Some(key) = entry.msgctxt.strip_prefix("ontology-docs-template|") else {
@@ -1012,6 +1155,59 @@ msgstr ""
         assert_eq!(
             expand_predicate("https://example.org/p"),
             "https://example.org/p"
+        );
+    }
+
+    #[test]
+    fn translation_integrity_accepts_real_translations_and_invariants() {
+        assert!(translation_has_integrity(
+            "fr-CA",
+            "Lifecycle state",
+            "Etat du cycle de vie" // codespell:ignore vie
+        ));
+        assert!(translation_has_integrity(
+            "zh-Hans",
+            "Lifecycle state",
+            "生命周期状态"
+        ));
+        assert!(translation_has_integrity("fr", "adoption", "adoption"));
+        assert!(translation_has_integrity(
+            "fr",
+            "Creative Commons",
+            "Creative Commons"
+        ));
+        assert!(translation_has_integrity("zh", "OWL 2 DL", "OWL 2 DL"));
+    }
+
+    #[test]
+    fn translation_integrity_rejects_copied_and_hybrid_english() {
+        assert_eq!(
+            translation_integrity_issue("fr", "Lifecycle state", "Lifecycle state"),
+            Some("multi-word English source text was copied into msgstr")
+        );
+        assert_eq!(
+            translation_integrity_issue(
+                "fr",
+                "A state in a lifecycle.",
+                "Un etat. Use this construct only under the stated conditions."
+            ),
+            Some("msgstr retains multiple English prose tokens")
+        );
+        assert_eq!(
+            translation_integrity_issue(
+                "zh-Hans",
+                "A state in a lifecycle.",
+                "A state in a lifecycle."
+            ),
+            Some("multi-word English source text was copied into msgstr")
+        );
+        assert_eq!(
+            translation_integrity_issue("zh-Hans", "Lifecycle state", "Lifecycle status"),
+            Some("Chinese prose translation contains no Han characters")
+        );
+        assert_eq!(
+            translation_integrity_issue("zh-Hans", "Permission", "Permission"),
+            Some("Chinese prose translation contains no Han characters")
         );
     }
 

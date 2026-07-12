@@ -578,6 +578,68 @@ ex:c2_atom a logic:Formula ;
     }
 
     #[test]
+    fn authored_constraint_failure_class_dedupes_identical_values() {
+        let body = "\
+ex:fc_body a logic:Formula ;
+  logic:exists ex:fc_atom ;
+  logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"c\" ] .
+ex:fc_atom a logic:Formula ;
+  logic:relation ex:companion ;
+  logic:argument [ logic:termIndex 0 ; logic:termVariable \"this\" ] ,
+                 [ logic:termIndex 1 ; logic:termVariable \"c\" ] .";
+        let turtle = format!(
+            "{}\nex:fc <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ex:Failure, ex:Failure .",
+            guarded("ex:fc", body, "ex:fc_body")
+        );
+        let cs = constraints_of(&turtle);
+        assert_eq!(cs.len(), 1);
+        assert_eq!(cs[0].failure_class.as_deref(), Some("https://ex/Failure"));
+    }
+
+    #[test]
+    fn authored_constraint_failure_class_rejects_distinct_values() {
+        let body = "\
+ex:fc_bad_body a logic:Formula ;
+  logic:exists ex:fc_bad_atom ;
+  logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"c\" ] .
+ex:fc_bad_atom a logic:Formula ;
+  logic:relation ex:companion ;
+  logic:argument [ logic:termIndex 0 ; logic:termVariable \"this\" ] ,
+                 [ logic:termIndex 1 ; logic:termVariable \"c\" ] .";
+        let turtle = format!(
+            "{PREFIXES}{}\nex:fc_bad <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ex:FailureA, ex:FailureB .",
+            guarded("ex:fc_bad", body, "ex:fc_bad_body")
+        );
+        let (program, diagnostics) = parse_logic_str(&turtle, None).expect("fixture must parse");
+        assert!(program.constraints.is_empty());
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "MALFORMED_CONSTRAINT" && diagnostic.message.contains("distinct")
+        }));
+    }
+
+    #[test]
+    fn authored_constraint_failure_class_rejects_literal_value() {
+        let body = "\
+ex:fc_literal_body a logic:Formula ;
+  logic:exists ex:fc_literal_atom ;
+  logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable \"c\" ] .
+ex:fc_literal_atom a logic:Formula ;
+  logic:relation ex:companion ;
+  logic:argument [ logic:termIndex 0 ; logic:termVariable \"this\" ] ,
+                 [ logic:termIndex 1 ; logic:termVariable \"c\" ] .";
+        let turtle = format!(
+            "{PREFIXES}{}\nex:fc_literal <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> \"Failure\" .",
+            guarded("ex:fc_literal", body, "ex:fc_literal_body")
+        );
+        let (program, diagnostics) = parse_logic_str(&turtle, None).expect("fixture must parse");
+        assert!(program.constraints.is_empty());
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "MALFORMED_CONSTRAINT"
+                && diagnostic.message.contains("must be an IRI")
+        }));
+    }
+
+    #[test]
     fn p3_disjunctive_requiredness_round_trips() {
         // ∀ this. Widget(this) → (∃a. hasA(this,a) ∨ ∃b. hasB(this,b))
         let body = "\

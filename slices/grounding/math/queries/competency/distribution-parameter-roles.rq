@@ -1,0 +1,15 @@
+# Competency question: "For this distribution's parameterization, which parameter fills
+# which role?" Exercises the mandatory, explicit parameterization discipline: a
+# math:Distribution supplies math:DistributionParameter objects, each naming the
+# scoped math:DistributionParameterRole it fills (math:parameterRole), so 'scale'
+# cannot silently mean stddev in one family and rate in another. Scoped to the fixture
+# namespace so the answer is exactly {muParam → meanRole, sigmaParam → stddevRole}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?parameter ?role WHERE {
+    ?distribution a math:Distribution ;
+                  math:hasDistributionParameter ?parameter .
+    ?parameter math:parameterRole ?role .
+    FILTER(STRSTARTS(STR(?parameter), "http://example.org/math/"))
+}
+ORDER BY ?parameter

@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:MissingProbabilityModelLowering gate: a world
+# references a probability model through logic:probabilityModel, but that model
+# individual is typed as a plain math:MathematicalObject (a non-dependency-model class)
+# and declares NO math:probabilityModelLowering — neither directly nor class-level. The
+# native gate MUST emit math:MissingProbabilityModelLowering (and no other probability
+# failure class): absent a lowering the engine reports unsupported, never assumes
+# independence.
+# Back-reference: math:probabilityModelLowering / math:MissingProbabilityModelLowering (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:world logic:probabilityModel ex:unloweredModel .
+
+ex:unloweredModel a math:MathematicalObject .
