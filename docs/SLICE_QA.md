@@ -133,22 +133,29 @@ quality *score* as a competency cell, and do not expect a cell to move a tier.
   `generated/governance/slice-quality-axis-floors.tsv` are **generated lossy
   projections** of them (Principle 17), carrying a loss-ledger preservation judgment —
   view them, never hand-edit them. A human raises a floor by editing the individual in
-  the rubric slice (raise-only, monotonic, hard-fail enforced).
+  the rubric slice. Floors are **raise-only**: LOWERING a committed floor is a hard gate
+  failure, as is deleting a still-live floor. There is no in-repo way to permit a
+  lowering — re-baselining a floor downward is a **maintainer-only decision**, and the
+  maintainer applies it out-of-band by authorizing the merge past the resulting red.
+  No code path, flag, record, doc, or signal a tool or agent can set ever relaxes the
+  ratchet.
 
 This is the sibling of the four blocking *validation* gates in
 [`docs/validation-thresholds.md`](./validation-thresholds.md): same ratchet
 temperament, different family. Those four are hard validation gates over the whole
 ontology; this one measures per-slice quality. Do not conflate the two floor sets.
 
-**The floor-ratchet policy (raise-only, hard-fail enforced).** Both floor levels are
-monotonic non-regression contracts, read straight from the ontology individuals in the
-rubric slice: a committed floor may be **RAISED** freely as a slice earns it (edit the
-`gmeow:AxisFloorCommitment` / `gmeow:SliceTierFloor` individual), and only ever raised —
-never lowered, never forced upward ahead of a real measured uplift (scores stay
-objective, uncalibrated intrinsic measures; you do not tune a floor to a target). The
-gate reads **every** committed axis floor from the ontology (not just GMN-1) and enforces
-each in addition to the roll-up-tier ratchet. The gate verdicts, verbatim from
-`crates/slice-quality/src/gate.rs`, are:
+**The floor-ratchet policy (strictly raise-only).** Both floor levels are non-regression
+contracts, read straight from the ontology individuals in the rubric slice: a committed
+floor may be **RAISED** freely as a slice earns it (edit the `gmeow:AxisFloorCommitment`
+/ `gmeow:SliceTierFloor` individual), and is never forced upward ahead of a real measured
+uplift (scores stay objective, uncalibrated intrinsic measures; you do not tune a floor
+to a target). **LOWERING a committed floor is a hard gate failure.** There is no in-repo
+permit, exemption, or re-anchor signal — re-baselining a floor downward is a
+**maintainer-only decision**, exercised out-of-band by the maintainer authorizing the
+merge past the red. The gate reads **every** committed axis floor from the ontology (not
+just GMN-1) and enforces each in addition to the roll-up-tier ratchet. The gate verdicts,
+verbatim from `crates/slice-quality/src/gate.rs`, are:
 
 - `MeasuredBelowDeclared` — the slice's measured roll-up tier fell below the tier
   its manifest declares.
@@ -158,10 +165,12 @@ each in addition to the roll-up-tier ratchet. The gate verdicts, verbatim from
   floor (gated in addition to, never instead of, the roll-up-tier ratchet).
 
 Separately, a **floor-monotonicity** check diffs the committed floor individuals against
-the merge base: a lowered `gmeow:floorValue`/`gmeow:floorTier`, or a deleted floor
-individual for a still-live slice/axis, is a HARD FAIL that reds
-`make slice-quality-gate`. Additions and raises are clean; greenfield deletion is
-allowed only once the slice or axis is genuinely gone.
+the merge base. A lowered `gmeow:floorValue`/`gmeow:floorTier` is a **HARD FAIL**, as is
+the deletion of a floor individual for a still-live slice/axis. Additions and raises are
+clean; greenfield deletion is allowed only once the slice or axis is genuinely gone. When
+a measure definition legitimately changes and a floor must be re-baselined downward, that
+is the maintainer's call alone — applied out-of-band by authorizing the merge past the
+red, never by any in-repo relaxation the gate would honour.
 
 And a **floor-coherence** check ties the two committed levels together as a pure
 consistency assertion (it compares committed floors against each other, never a measured
