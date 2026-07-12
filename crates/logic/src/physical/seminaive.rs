@@ -1147,7 +1147,7 @@ fn eval_stratum_fixpoint(
                 // and the columnar store dedups on the SAME predicate + interned surfaces,
                 // so it is new there too — the insert stamps the next dense RowId, keeping
                 // the committed span `[round_lo, rel.row_count())` contiguous.
-                debug_assert!(
+                assert!(
                     inserted.is_some(),
                     "a fresh winner must insert a new columnar row (dense RowId span)"
                 );
