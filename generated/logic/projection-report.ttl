@@ -117,6 +117,12 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
+<https://blackcatinformatics.ca/logic/target/conllu:pvalue-tri-slice#pvalueSentence>
+    a logic:ProjectionTarget ;
+    rdfs:label "conllu:pvalue-tri-slice#pvalueSentence" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
 <https://blackcatinformatics.ca/logic/target/correspondence:693dca551ec34fc1>
     a logic:ProjectionTarget ;
     rdfs:label "correspondence:693dca551ec34fc1" ;
@@ -8212,6 +8218,12 @@
 <https://blackcatinformatics.ca/logic/target/gmn1:proficiency>
     a logic:ProjectionTarget ;
     rdfs:label "gmn1:proficiency" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
+<https://blackcatinformatics.ca/logic/target/gmn1:pvalue-tri-slice>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:pvalue-tri-slice" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
@@ -37365,6 +37377,16 @@
         "actual: lang:Denotation <https://blackcatinformatics.ca/gmeow/examples/names/chosenDenotation> has lang:denotationKind lang:denotesEntity whose target has no AMR/SemAF meaning-graph form (only lang:denotesLogicFormula lowers)" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:Unsupported .
+
+<https://blackcatinformatics.ca/logic/target/semaf:pvalue-tri-slice#pvalueDenotation>
+    a logic:ProjectionTarget ;
+    rdfs:label "semaf:pvalue-tri-slice#pvalueDenotation" ;
+    gmeow:lossyDrop "actual: AMR / SemAF carry no vantage: perspectival / standpoint support is dropped" ,
+        "actual: AMR has no modality depth: modal operators in the denotation collapse" ,
+        "actual: AMR has no quantifier scope: quantifier scoping in the logic: formula is not carried" ,
+        "actual: SemAF role inventory is coarser than the full logic: predicate-argument structure" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
 
 <https://blackcatinformatics.ca/logic/target/shacl-af>
     a logic:ProjectionTarget ;
@@ -86221,6 +86243,18 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:SoundUnderApproximation .
 
+<https://blackcatinformatics.ca/logic/target/tei:pvalue-tri-slice#pvalueSentence>
+    a logic:ProjectionTarget ;
+    rdfs:label "tei:pvalue-tri-slice#pvalueSentence" ;
+    gmeow:lossyDrop "actual: co-resident lang:Reading alternatives of an ambiguous form collapse to a single TEI constituent structure" ,
+        "actual: dependency relations among the constituents of composed form <https://blackcatinformatics.ca/gmeow/examples/math/statistics/pvalueSentence> are not carried into the flat TEI <s> token run (only the analyzed head is hinted)" ,
+        "actual: lang:Denotation meaning records (form→referent assignments) have no TEI element" ,
+        "actual: lang:Sense inventory (the middle Frege corner) has no TEI element" ,
+        "actual: lang:vantage / perspectival standpoint support is not carried into TEI" ,
+        "actual: logic:preservationKind / preservation judgments have no TEI target" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:SoundUnderApproximation .
+
 <https://blackcatinformatics.ca/logic/target/xcl>
     a logic:ProjectionTarget ;
     rdfs:label "xcl" ;
@@ -86242,6 +86276,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/clif> ,
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/conllu:forms-and-sign-systems#sentSawHerDuck> ,
+        <https://blackcatinformatics.ca/logic/target/conllu:pvalue-tri-slice#pvalueSentence> ,
         <https://blackcatinformatics.ca/logic/target/correspondence:693dca551ec34fc1> ,
         <https://blackcatinformatics.ca/logic/target/datalog> ,
         <https://blackcatinformatics.ca/logic/target/docs-format:mdbook> ,
@@ -86956,6 +86991,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/gmn1:notation-systems> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:person-names> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:proficiency> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:pvalue-tri-slice> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:word-etymology> ,
         <https://blackcatinformatics.ca/logic/target/governance-floor:axis-floors> ,
         <https://blackcatinformatics.ca/logic/target/governance-floor:tier-floors> ,
@@ -88645,6 +88681,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/semaf:forms-and-sign-systems#denCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/semaf:gmn-dialect#denSubsumesOperator> ,
         <https://blackcatinformatics.ca/logic/target/semaf:person-names#chosenDenotation> ,
+        <https://blackcatinformatics.ca/logic/target/semaf:pvalue-tri-slice#pvalueDenotation> ,
         <https://blackcatinformatics.ca/logic/target/shacl-af> ,
         <https://blackcatinformatics.ca/logic/target/shacl-core> ,
         <https://blackcatinformatics.ca/logic/target/shex> ,
@@ -91275,6 +91312,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/sssom:fffc3b18a883cc6c> ,
         <https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentCatsChaseMice> ,
         <https://blackcatinformatics.ca/logic/target/tei:forms-and-sign-systems#sentSawHerDuck> ,
+        <https://blackcatinformatics.ca/logic/target/tei:pvalue-tri-slice#pvalueSentence> ,
         <https://blackcatinformatics.ca/logic/target/xcl> ;
     logic:lawfulUpliftCount 0 ;
     logic:profileCount 7 ;

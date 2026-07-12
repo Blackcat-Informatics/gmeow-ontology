@@ -27648,6 +27648,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:BayesianResult"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:BayesianResult"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:BayesianResult"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:BindingExpression"
                     },
                     {
@@ -27665,6 +27690,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:BindingExpression"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:CalibrationDiagnostic"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:CalibrationDiagnostic"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:CalibrationDiagnostic"
             }
           },
           {
@@ -27798,6 +27848,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:ConfidenceInterval"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ConfidenceInterval"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ConfidenceInterval"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:ConnectedSpace"
                     },
                     {
@@ -27865,6 +27940,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:Convergence"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:CredibleInterval"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:CredibleInterval"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:CredibleInterval"
             }
           },
           {
@@ -27998,6 +28098,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:EffectSize"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:EffectSize"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:EffectSize"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Embedding"
                     },
                     {
@@ -28015,6 +28140,56 @@
             },
             "then": {
               "$ref": "#/$defs/math:Embedding"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Estimand"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Estimand"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Estimand"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:Estimate"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:Estimate"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:Estimate"
             }
           },
           {
@@ -28148,6 +28323,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:FrequentistResult"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:FrequentistResult"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:FrequentistResult"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:Function"
                     },
                     {
@@ -28240,6 +28440,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:Homomorphism"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:InferenceRun"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:InferenceRun"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:InferenceRun"
             }
           },
           {
@@ -28473,6 +28698,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:ModelDiagnostic"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:ModelDiagnostic"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:ModelDiagnostic"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:ModelFormula"
                     },
                     {
@@ -28615,6 +28865,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:PCAAnalysis"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:PValue"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:PValue"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:PValue"
             }
           },
           {
@@ -29040,6 +29315,31 @@
             },
             "then": {
               "$ref": "#/$defs/math:StabilityCalibrationRecord"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:StatisticalVariable"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:StatisticalVariable"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:StatisticalVariable"
             }
           },
           {
@@ -44871,6 +45171,54 @@
         ],
         "type": "object"
       },
+      "math:BayesianResult": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Observation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Observation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "math:BindingExpression": {
         "properties": {
           "@annotation": {
@@ -44908,6 +45256,54 @@
           "math:argumentSlot",
           "math:boundVariable"
         ],
+        "type": "object"
+      },
+      "math:CalibrationDiagnostic": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:StabilityCalibrationRecord"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:StabilityCalibrationRecord"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:Chart": {
@@ -45099,6 +45495,49 @@
         ],
         "type": "object"
       },
+      "math:ConfidenceInterval": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:confidenceLevel": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasIntervalBound": {
+            "items": {},
+            "minItems": 2,
+            "type": "array"
+          }
+        },
+        "required": [
+          "math:confidenceLevel",
+          "math:hasIntervalBound"
+        ],
+        "type": "object"
+      },
       "math:ConnectedSpace": {
         "properties": {
           "@annotation": {
@@ -45234,6 +45673,54 @@
         },
         "required": [
           "math:convergesTo"
+        ],
+        "type": "object"
+      },
+      "math:CredibleInterval": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:credibleMass": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:hasPosterior": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:credibleMass",
+          "math:hasPosterior"
         ],
         "type": "object"
       },
@@ -45460,6 +45947,54 @@
         },
         "type": "object"
       },
+      "math:EffectSize": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Observation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Observation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "math:Embedding": {
         "properties": {
           "@annotation": {
@@ -45528,6 +46063,102 @@
           "math:embeddingSource",
           "math:targetSpace"
         ],
+        "type": "object"
+      },
+      "math:Estimand": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Observation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Observation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
+      "math:Estimate": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Observation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Observation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:Filtration": {
@@ -45782,6 +46413,76 @@
         },
         "type": "object"
       },
+      "math:FrequentistResult": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Observation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Observation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          },
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:BayesianResult"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:BayesianResult"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "math:Function": {
         "properties": {
           "@annotation": {
@@ -45965,6 +46666,54 @@
         "required": [
           "math:preservationLaw"
         ],
+        "type": "object"
+      },
+      "math:InferenceRun": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "gmeow:Observation"
+                    },
+                    {
+                      "contains": {
+                        "const": "gmeow:Observation"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:IngestRun": {
@@ -46386,6 +47135,54 @@
         },
         "type": "object"
       },
+      "math:ModelDiagnostic": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:diagnosticFor": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:diagnosticMethod": {
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "required": [
+          "math:diagnosticFor",
+          "math:diagnosticMethod"
+        ],
+        "type": "object"
+      },
       "math:ModelFormula": {
         "properties": {
           "@annotation": {
@@ -46710,6 +47507,57 @@
           "math:residualSubspace",
           "math:scoreVector"
         ],
+        "type": "object"
+      },
+      "math:PValue": {
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "math:alternativeSidedness": {
+            "anyOf": [
+              {
+                "enum": [
+                  "math:exactTail",
+                  "math:greaterAlternative",
+                  "math:lessAlternative",
+                  "math:midPTail",
+                  "math:oneSidedAlternative",
+                  "math:twoSidedAlternative"
+                ]
+              },
+              {
+                "items": {
+                  "enum": [
+                    "math:exactTail",
+                    "math:greaterAlternative",
+                    "math:lessAlternative",
+                    "math:midPTail",
+                    "math:oneSidedAlternative",
+                    "math:twoSidedAlternative"
+                  ]
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:PersistenceLifetime": {
@@ -47581,6 +48429,31 @@
           "math:credenceDerivationKind",
           "math:stabilityGuarantee"
         ],
+        "type": "object"
+      },
+      "math:StatisticalVariable": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:TangentSpace": {
