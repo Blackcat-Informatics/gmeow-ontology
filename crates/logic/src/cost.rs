@@ -554,6 +554,11 @@ impl RepeatForwardSession {
         let lookup = self
             .cache
             .get_or_compile(self.contract_hash.clone(), self.rules.clone());
+        if !lookup.cache_hit {
+            return Err(cost_err(
+                "repeat-forward Skip provenance probe requires a warm plan cache".to_owned(),
+            ));
+        }
         let executable = lookup.executable.ok_or_else(|| {
             cost_err("repeat-forward Skip probe program is non-stratifiable".to_owned())
         })?;
@@ -603,6 +608,11 @@ impl RepeatForwardSession {
         let lookup = self
             .cache
             .get_or_compile(self.contract_hash.clone(), self.rules.clone());
+        if !lookup.cache_hit {
+            return Err(cost_err(
+                "repeat-forward Record provenance probe requires a warm plan cache".to_owned(),
+            ));
+        }
         let executable = lookup.executable.ok_or_else(|| {
             cost_err("repeat-forward Record probe program is non-stratifiable".to_owned())
         })?;
@@ -1361,6 +1371,32 @@ mod tests {
         assert_eq!(skip.fact_count, record.annotation_count);
         assert_eq!(skip.fact_closure_hash, record.fact_closure_hash);
         assert_eq!(skip.consumed_steps, record.consumed_steps);
+    }
+
+    #[test]
+    fn provenance_probes_refuse_cold_plan_cache_measurements() {
+        let edb = two_edge_edb();
+        let rules = two_stratum_rules();
+
+        let mut record_session =
+            RepeatForwardSession::prepare(edb.as_ref(), &rules, "cold-record-test")
+                .expect("prepare Record session");
+        let record_err = record_session
+            .evaluate_record_provenance()
+            .err()
+            .expect("a cold Record probe must be refused");
+        assert!(record_err.message().contains("Record"));
+        assert!(record_err.message().contains("warm plan cache"));
+
+        let mut skip_session =
+            RepeatForwardSession::prepare(edb.as_ref(), &rules, "cold-skip-test")
+                .expect("prepare Skip session");
+        let skip_err = skip_session
+            .evaluate_skip()
+            .err()
+            .expect("a cold Skip probe must be refused");
+        assert!(skip_err.message().contains("Skip"));
+        assert!(skip_err.message().contains("warm plan cache"));
     }
 
     /// The facts-only Nemo seam materializes a value-inventing (existential-rule)
