@@ -49,6 +49,8 @@ use gmeow_errors::Diag;
 
 use crate::ingest::dataset::{DslTerm, DslView};
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
+use crate::projections::edoal::template_target_kind;
+use crate::projections::get_leg::ProjectionCell;
 
 // ── Predicate / class constants (ported VERBATIM from the retired Python linter) ───
 
@@ -413,6 +415,13 @@ pub struct SoundnessInputs<'a> {
     pub fno: &'a DslView<'a>,
     /// The committed EDOAL views, sorted by file name (mirrors the sorted glob).
     pub edoal: &'a [(String, DslView<'a>)],
+    /// Every parsed `gmeow:ProjectionMapping` cell (the SAME shared get-leg model both the
+    /// EDOAL and SPARQL-CONSTRUCT lowerings render from — [`crate::projections::get_leg::projections`]
+    /// over the merged `dsl/mappings/` view). The sole authority
+    /// [`check_edoal_entity_kind`]'s entity2 check correlates a committed EDOAL cell
+    /// against, so the gate verifies internal template coherence — never the external
+    /// target vocabulary (EDOAL is DERIVED FROM GMEOW's own templates, per Principle 17).
+    pub cells: &'a [ProjectionCell],
 }
 
 /// Run the seven correspondence-soundness checks over the already-parsed inputs.
@@ -426,7 +435,7 @@ pub fn run_soundness(inputs: &SoundnessInputs<'_>) -> Vec<ProjectionDiagnostic> 
     out.extend(fno_reference_integrity(inputs.fno, inputs.edoal));
     out.extend(check_edoal_entity_kind(
         inputs.ontology,
-        inputs.target_graphs,
+        inputs.cells,
         inputs.edoal,
     ));
     out.extend(lint_alignment_directions(inputs));
@@ -435,21 +444,28 @@ pub fn run_soundness(inputs: &SoundnessInputs<'_>) -> Vec<ProjectionDiagnostic> 
 }
 
 /// Cross-check the committed EDOAL cells' entity kinds for coherence. Emission DERIVES
-/// each kind from the GMEOW source term's OWL character, so a finding here is a genuine
+/// each kind from GMEOW's own model — the source term's OWL character (entity1) or the
+/// correspondence TEMPLATE's object-position (entity2) — so a finding here is a genuine
 /// drift, never a guess:
 /// * **A** — a direct-URI cell must align same-kind entities (`entity1` kind = `entity2`).
 /// * **C** — `entity1` (the GMEOW source) must match its own OWL character in the ontology
 ///   (an authored `gmeow:edoalSourceKind` override that contradicts GMEOW is rejected).
-/// * **B** — an equivalence (`=`) cell's external target (`entity2`) must match the target
-///   vocabulary's OWL kind where a committed snapshot declares it (best-effort: skipped
-///   when no axioms exist, and only for `=` since a `<=` collapse may cross kinds lossily).
+/// * **B** — every committed cell's `entity2` must match the kind its OWN correspondence
+///   TEMPLATE derives ([`template_target_kind`], the SAME derivation the EDOAL lowering
+///   itself uses), correlated by profile + `to_predicate`. This is INTERNAL coherence —
+///   the committed bytes must agree with the templates that (re)generation would emit —
+///   never a comparison against the external target vocabulary (EDOAL is a lossy
+///   projection DERIVED FROM GMEOW's `gmeow:ProjectionMapping` templates, per Principle
+///   17; the target vocabulary is not an authority over it). Runs on EVERY cell, not just
+///   `=`: a `<=` subsumption target must be as truthfully typed as an equivalence one.
 fn check_edoal_entity_kind(
     onto: &DslView<'_>,
-    target_graphs: &BTreeMap<String, DslView<'_>>,
+    cells: &[ProjectionCell],
     edoal: &[(String, DslView<'_>)],
 ) -> Vec<ProjectionDiagnostic> {
     let mut out: Vec<ProjectionDiagnostic> = Vec::new();
     for (name, view) in edoal {
+        let profile = name.strip_suffix(".edoal.ttl").unwrap_or(name.as_str());
         for cell in subject_terms_of_type(view, ALIGN_CELL) {
             let (Some(n1), Some(n2)) = (
                 view.objects_of_term(&cell, ALIGN_ENTITY1)
@@ -502,17 +518,19 @@ fn check_edoal_entity_kind(
                 ));
             }
 
-            // B — an equivalence cell's external target must match the target vocabulary.
+            // B — every cell's entity2 must match the correspondence TEMPLATE's own
+            // derivation (never the external target vocabulary). `None` means no template
+            // in this profile targets `u2` via `to_predicate` — a direct 1:1 predicate
+            // mapping has no template to check coherence against, so no claim is made.
             if let Some(u2) = &uri2
-                && cell_is_equivalence(view, &cell)
-                && let Some(expected) = target_owl_kind_edoal(target_graphs, u2)
+                && let Some(expected) = expected_entity2_kind(cells, onto, profile, u2)
                 && expected != k2
             {
                 out.push(ProjectionDiagnostic::error(
                     "edoal-entity-kind",
                     format!(
-                        "{name}: entity2 emitted edoal:{k2} but target {u2} is an owl:{expected} \
-                         in its vocabulary (equivalence must not cross kinds)"
+                        "{name}: entity2 emitted edoal:{k2} ({u2}) but the correspondence \
+                         template derives edoal:{expected} for this target — kind mismatch"
                     ),
                     Some(u2.clone()),
                 ));
@@ -520,6 +538,33 @@ fn check_edoal_entity_kind(
         }
     }
     out
+}
+
+/// The `edoal:Relation`/`edoal:Property` capitalized token the correspondence TEMPLATE
+/// derives for `to_predicate` (== the committed cell's `entity2` `edoal:uri`, `u2`) in
+/// `profile`, by re-running [`template_target_kind`] — the SAME derivation the EDOAL
+/// lowering itself used to emit the committed bytes — over every parsed
+/// `gmeow:ProjectionMapping` cell/binding pair. `None` when no binding in this profile
+/// targets `u2` via a correspondence template (a direct 1:1 predicate target with no
+/// `gmeow:templateAtoms` naming it carries no template-derived expectation).
+fn expected_entity2_kind(
+    cells: &[ProjectionCell],
+    onto: &DslView<'_>,
+    profile: &str,
+    to_predicate: &str,
+) -> Option<&'static str> {
+    let lower = cells.iter().find_map(|cell| {
+        cell.bindings
+            .iter()
+            .filter(|b| b.profile == profile && b.to_predicate.as_deref() == Some(to_predicate))
+            .find_map(|b| template_target_kind(onto, b, &cell.pattern))
+    })?;
+    Some(match lower {
+        "relation" => "Relation",
+        "property" => "Property",
+        "class" => "Class",
+        other => unreachable!("template_target_kind returned unknown token {other:?}"),
+    })
 }
 
 /// The EDOAL kind (`Relation`/`Property`/`Class`) an entity blank node is typed as, plus
@@ -551,24 +596,6 @@ fn owl_kind_edoal(onto: &DslView<'_>, iri: &str) -> Option<&'static str> {
     } else {
         None
     }
-}
-
-/// The EDOAL kind a target vocabulary declares for `iri` (scanning every committed target
-/// graph), or `None` when no snapshot types it as an object/datatype property.
-fn target_owl_kind_edoal(
-    target_graphs: &BTreeMap<String, DslView<'_>>,
-    iri: &str,
-) -> Option<&'static str> {
-    for graph in target_graphs.values() {
-        let types = objects_iri(graph, iri, RDF_TYPE);
-        if types.iter().any(|t| t == OWL_OBJECT_PROPERTY) {
-            return Some("Relation");
-        }
-        if types.iter().any(|t| t == OWL_DATATYPE_PROPERTY) {
-            return Some("Property");
-        }
-    }
-    None
 }
 
 /// Whether an `align:Cell` carries the equivalence relation token `=`.
