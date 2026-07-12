@@ -1520,7 +1520,7 @@ mod tests {
     /// Drive the type-state plan pipeline for a stratifiable test program — the only path
     /// to the `Executable` the backward `evaluate` executor accepts.
     fn exe(rules: &[EvalRule]) -> crate::physical::plan::Executable {
-        Parsed::new(rules)
+        Parsed::uncached(rules)
             .stratify()
             .expect("stratifiable test program")
             .plan()
