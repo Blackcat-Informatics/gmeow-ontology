@@ -635,7 +635,7 @@ fn toon_scalar(v: &Value) -> String {
 fn toon_scalar_str(s: &str) -> String {
     let needs_quote = s.is_empty()
         || s != s.trim()
-        || s.contains([',', ':', '"', '\n', '\t', '[', ']', '{', '}'])
+        || s.contains([',', ':', '"', '\n', '\t', '\r', '\\', '[', ']', '{', '}'])
         || matches!(s, "true" | "false" | "null")
         || s.parse::<f64>().is_ok();
     if needs_quote {
@@ -643,7 +643,8 @@ fn toon_scalar_str(s: &str) -> String {
             .replace('\\', "\\\\")
             .replace('"', "\\\"")
             .replace('\n', "\\n")
-            .replace('\t', "\\t");
+            .replace('\t', "\\t")
+            .replace('\r', "\\r");
         format!("\"{escaped}\"")
     } else {
         s.to_string()
@@ -845,5 +846,17 @@ mod tests {
         // Monotone by size.
         assert!(summary.len() <= standard.len());
         assert!(standard.len() < full.len());
+    }
+
+    #[test]
+    fn toon_scalar_str_escapes_carriage_return_and_backslash() {
+        // A lone `\r` and a `\` must both force quoting AND be escaped —
+        // otherwise TOON's line-oriented, indentation-based format would
+        // either emit a raw CR inside a bare token or leave a backslash
+        // ambiguous with the escape sequences that follow it.
+        assert_eq!(
+            toon_scalar_str("line1\rline2\\tail"),
+            "\"line1\\rline2\\\\tail\""
+        );
     }
 }
