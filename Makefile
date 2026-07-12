@@ -162,7 +162,8 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: ## Run the full Docker-free local quality gate.
-	$(MAKE) -j$(shell nproc 2>/dev/null || echo 4) $(CHECK_TARGETS)
+	$(MAKE) -j$(shell nproc 2>/dev/null || echo 4) $(filter-out check-generated,$(CHECK_TARGETS))
+	$(MAKE) check-generated
 	$(MAKE) compliance-report
 	@echo "all checks passed (Docker-free, Java-free)"
 
