@@ -524,7 +524,7 @@ fn health_page_numbers_are_derivable_from_the_documentation_graph() {
     let local = |iri: &str| iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned();
 
     let model = common::cached_model();
-    let nquads = to_gmeow_rdf(&model);
+    let nquads = to_gmeow_rdf(&model, &BTreeMap::new());
 
     // INDEPENDENT raw scan: per documented-term subject, its covered dimension
     // local names (SET semantics — the RDF graph is a set of quads, so a subject
@@ -648,6 +648,67 @@ fn llms_full_txt_header_golden() {
     let txt = gmeow_docs::render::llms_full_txt(&model);
     let head: String = txt.lines().take(8).collect::<Vec<_>>().join("\n");
     insta::assert_snapshot!(head);
+}
+
+/// The five standing documentation pages the `llms.txt` surfaces must both
+/// reference: (Reference-section title, `llms.txt` URL). The whole-repo model
+/// always renders all five (it carries a pipeline), so both surfaces cover each.
+const STANDING_PAGES: [(&str, &str); 5] = [
+    ("Competency questions", "competency/index.html"),
+    ("Conformance fixtures", "fixtures/index.html"),
+    ("Notation grammars", "notation/index.html"),
+    ("Glossary", "glossary/index.html"),
+    ("Build pipeline", "pipeline/index.html"),
+];
+
+#[test]
+fn llms_txt_references_the_standing_pages() {
+    let model = common::cached_model();
+    assert!(
+        model.pipeline.is_some(),
+        "the whole-repo model carries a build pipeline, so the pipeline page is rendered"
+    );
+    let txt = gmeow_docs::render::llms_txt(&model);
+    for (title, url) in STANDING_PAGES {
+        assert!(
+            txt.contains(&format!("[{title}]({url})")),
+            "llms.txt must link the standing page {title:?} at {url:?}"
+        );
+    }
+}
+
+#[test]
+fn llms_full_txt_covers_the_standing_pages() {
+    // The complete inlined form is linkless, so it names each standing page by
+    // its title. Kept in sync with `llms_txt` (both cover all five).
+    let model = common::cached_model();
+    let txt = gmeow_docs::render::llms_full_txt(&model);
+    for (title, _url) in STANDING_PAGES {
+        assert!(
+            txt.contains(title),
+            "llms-full.txt must cover the standing page {title:?}"
+        );
+    }
+}
+
+#[test]
+fn llms_surfaces_advertise_the_offline_snippet_corpus() {
+    // Both `llms.txt` surfaces point at the offline snippet-corpus affordance so
+    // an agent can find the ingestible per-term cards.
+    let model = common::cached_model();
+    let note = gmeow_docs::render::SNIPPETS_CORPUS_NOTE;
+    assert!(
+        note.contains("gmeow-dev export-docs --format snippets"),
+        "the shared corpus note names the snippets-export affordance"
+    );
+    assert!(
+        gmeow_docs::render::llms_txt(&model).contains(note),
+        "llms.txt must carry the offline snippet-corpus note"
+    );
+    assert!(
+        gmeow_docs::render::llms_full_txt(&model).contains(note),
+        "llms-full.txt must carry the offline snippet-corpus note"
+    );
 }
 
 #[test]

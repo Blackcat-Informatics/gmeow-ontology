@@ -483,12 +483,41 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
     // Prompt-ready per-term cards: a compact, link-free Markdown card per
     // term at `terms/{slug}/card.md`, for context-window injection. The alignment
     // facets are precomputed once so emitting every card stays O(N), not O(N²).
+    //
+    // Alongside the human-oriented `card.md` two machine surfaces ride:
+    // `card.json` — the STANDARD-tier `Card` serialized through the SAME
+    // `serde_json` path the live MCP `doc_card format=json detail=standard` uses
+    // (byte-identical to that tool's card payload for the term) — and
+    // `card-full.md` — the FULL-tier oracle card: the compact card enriched with
+    // the rich panels (entailments, Do / Don't fixtures, diagnostics, projection
+    // loss) drawn from `model` + `exec`, rendered by the ONE canonical
+    // `render_card` at `CardDetail::Full` (no second full-card renderer).
     {
         let alignment_facets = precompute_alignment_facets(model);
+        let fixtures_by_curie = precompute_fixtures_by_curie(model);
         for term in &model.terms {
+            let slug = term_slug(term);
             files.insert(
-                format!("terms/{}/card.md", term_slug(term)),
+                format!("terms/{slug}/card.md"),
                 term_card_md_inner(term, &alignment_facets).into_bytes(),
+            );
+            // card.json — the standard-tier neutral card, deterministically
+            // serialized (the `Card` derives `Serialize` with a fixed field
+            // order and every internal collection is already ordered).
+            let standard =
+                doc_term_card(term, &alignment_facets).projected(crate::card::CardDetail::Standard);
+            let json = serde_json::to_vec(&standard).unwrap_or_else(|e| {
+                // A pure-data `Card` of `String`/`Vec`/`Option` fields cannot fail
+                // to serialize; a failure here is a genuine invariant break.
+                panic!("card.json serialize for {slug}: {e}")
+            });
+            files.insert(format!("terms/{slug}/card.json"), json);
+            // card-full.md — the full-tier oracle card.
+            let full = full_card_for(model, exec, term, &alignment_facets, &fixtures_by_curie);
+            let title = format!("{}{}", term.curie, term_signature(term));
+            files.insert(
+                format!("terms/{slug}/card-full.md"),
+                crate::card::render_card(&title, &full, crate::card::CardDetail::Full).into_bytes(),
             );
         }
     }
@@ -5685,7 +5714,7 @@ fn rel(from: &str, to: &str) -> String {
 // ── Display helpers ───────────────────────────────────────────────────────────
 
 /// The display name for a slice: its title, then label, then IRI local name.
-fn slice_display(slice: &DocSlice) -> String {
+pub(crate) fn slice_display(slice: &DocSlice) -> String {
     slice
         .title
         .clone()
@@ -5694,7 +5723,7 @@ fn slice_display(slice: &DocSlice) -> String {
 }
 
 /// The display name for a concern: its label, else its IRI local name.
-fn concern_display(concern: &DocConcern) -> String {
+pub(crate) fn concern_display(concern: &DocConcern) -> String {
     concern
         .label
         .clone()
@@ -5951,7 +5980,7 @@ fn md_escape(text: &str) -> String {
 /// The flattened advice facet for a term — its English advisory carriers in a
 /// stable field order (scope, use-when, avoid-when, how-to-use). Empty when the
 /// term carries no advice. Lets search match on advisory prose, not just label.
-fn term_advice_facet(term: &DocTerm) -> Vec<String> {
+pub(crate) fn term_advice_facet(term: &DocTerm) -> Vec<String> {
     term.scope_notes
         .iter()
         .chain(term.use_when.iter())
@@ -5963,12 +5992,12 @@ fn term_advice_facet(term: &DocTerm) -> Vec<String> {
 
 /// Maps each subject IRI to its sorted+deduped `tag:object` alignment tokens.
 /// Borrows the subject IRIs from the model, so it is lifetime-bound to it.
-type AlignmentFacets<'a> = std::collections::HashMap<&'a str, Vec<String>>;
+pub(crate) type AlignmentFacets<'a> = std::collections::HashMap<&'a str, Vec<String>>;
 
 /// Precompute alignment facets for all terms in one pass: maps each subject IRI
 /// to a sorted+deduped `tag:object` token list. Avoids the O(N×M) per-term
 /// linear scan of `model.linkages` when rendering the search and llms surfaces.
-fn precompute_alignment_facets(model: &DocsModel) -> AlignmentFacets<'_> {
+pub(crate) fn precompute_alignment_facets(model: &DocsModel) -> AlignmentFacets<'_> {
     let mut map: std::collections::HashMap<&str, Vec<String>> = std::collections::HashMap::new();
     for l in &model.linkages {
         map.entry(l.subject.as_str()).or_default().push(format!(
@@ -5980,6 +6009,28 @@ fn precompute_alignment_facets(model: &DocsModel) -> AlignmentFacets<'_> {
     for tags in map.values_mut() {
         tags.sort_unstable();
         tags.dedup();
+    }
+    map
+}
+
+/// Maps each term CURIE to the [`crate::model::DocFixture`]s that reference it
+/// (via `terms_referenced`). Borrows both the CURIE keys and the fixtures from
+/// the model, so it is lifetime-bound to it.
+pub(crate) type FixturesByCurie<'a> =
+    std::collections::HashMap<&'a str, Vec<&'a crate::model::DocFixture>>;
+
+/// Precompute the fixture index for all terms in one pass: maps each term CURIE
+/// to the fixtures referencing it. Avoids the O(terms × fixtures) per-term
+/// linear scan of `model.fixtures` in [`full_card_for`]. The index itself
+/// carries no ordering guarantee — callers re-sort the looked-up `Vec` (see
+/// `full_card_for`'s `(slice, logical_path)` sort) so output order is
+/// unaffected by build order here.
+pub(crate) fn precompute_fixtures_by_curie(model: &DocsModel) -> FixturesByCurie<'_> {
+    let mut map: FixturesByCurie<'_> = std::collections::HashMap::new();
+    for fixture in &model.fixtures {
+        for curie in &fixture.terms_referenced {
+            map.entry(curie.as_str()).or_default().push(fixture);
+        }
     }
     map
 }
@@ -6264,19 +6315,67 @@ pub fn llms_txt(model: &DocsModel) -> String {
         });
     }
 
-    // ── Reference: the standing index pages (always present). ──
+    // ── Reference: the standing index pages (always present) plus the
+    // offline-corpus affordance. The five titled by
+    // `llms::STANDING_REFERENCE_PAGES` are the SAME ones the MCP/consumer
+    // surfaces name (linkless there, via `llms::standing_reference_section`);
+    // this site rendering links each into its published page so wording/order
+    // cannot drift between the two while the site keeps real URLs. ──
+    let standing = standing_reference_site_pages();
+    let mut reference_bullets = vec![
+        reference_bullet("Slice index", &Page::SliceIndex),
+        reference_bullet("Linkages", &Page::LinkageIndex),
+    ];
+    for (title, page) in &standing[..4] {
+        reference_bullets.push(reference_bullet(title, page));
+    }
+    reference_bullets.extend([
+        reference_bullet("External ontologies", &Page::ExternalIndex),
+        reference_bullet("Integrity constraints", &Page::IntegrityIndex),
+        reference_bullet("Logic & reasoning", &Page::Logic),
+    ]);
+    // The build-pipeline DAG page is emitted only when a pipeline was discovered
+    // (honest absence for a bare model); link it only when it is actually rendered.
+    if model.pipeline.is_some() {
+        let (title, page) = &standing[4];
+        reference_bullets.push(reference_bullet(title, page));
+    }
+    // The offline, agent-ingestible corpus: a flattened per-term card projection
+    // written by the docs-export snippets affordance (linkless — it names a
+    // capability, not a published page).
+    reference_bullets.push(LlmsBullet {
+        text: "Offline snippet corpus".to_string(),
+        url: None,
+        signature: String::new(),
+        note: llms::SNIPPETS_CORPUS_NOTE.to_string(),
+    });
     sections.push(LlmsSection {
         heading: "Reference".to_string(),
-        bullets: vec![
-            reference_bullet("Slice index", &Page::SliceIndex),
-            reference_bullet("Linkages", &Page::LinkageIndex),
-            reference_bullet("External ontologies", &Page::ExternalIndex),
-            reference_bullet("Integrity constraints", &Page::IntegrityIndex),
-            reference_bullet("Logic & reasoning", &Page::Logic),
-        ],
+        bullets: reference_bullets,
     });
 
     llms::render_index(&model.title, &prose, &sections)
+}
+
+/// The one-line description of the offline snippet corpus. Re-exported from the
+/// shared [`llms`] module (the single definition both the docs site and the
+/// MCP/consumer surfaces reference) so this crate's existing
+/// `render::SNIPPETS_CORPUS_NOTE` path keeps working.
+pub use crate::llms::SNIPPETS_CORPUS_NOTE;
+
+/// Map each of `llms::STANDING_REFERENCE_PAGES` (title, same order) to its
+/// docs-site page. The docs-site rendering of the shared standing-page list;
+/// the MCP/consumer surfaces render the same titles linkless via
+/// `llms::standing_reference_section` instead.
+fn standing_reference_site_pages() -> [(&'static str, Page); 5] {
+    let titles = llms::STANDING_REFERENCE_PAGES;
+    [
+        (titles[0], Page::CompetencyIndex),
+        (titles[1], Page::FixtureIndex),
+        (titles[2], Page::NotationIndex),
+        (titles[3], Page::Glossary),
+        (titles[4], Page::PipelineDag),
+    ]
 }
 
 /// A single Reference-section bullet linking to a standing index page.
@@ -6330,6 +6429,24 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
         out.push('\n');
     }
 
+    // ── Reference: the standing index pages an agent should know exist, plus the
+    // offline-corpus affordance. This surface is self-contained (linkless), so the
+    // pages are named rather than linked; built from the SAME
+    // `llms::standing_reference_section` the MCP/consumer surfaces render, so the
+    // two genuinely cannot drift (this was previously a hand-duplicated list). ──
+    let mut reference_section = llms::standing_reference_section();
+    if model.pipeline.is_none() {
+        // Honest absence for a bare model: the build-pipeline DAG page is only
+        // ever rendered when a pipeline was actually discovered.
+        let pipeline_title = *llms::STANDING_REFERENCE_PAGES
+            .last()
+            .expect("standing reference pages is non-empty");
+        reference_section
+            .bullets
+            .retain(|b| b.text != pipeline_title);
+    }
+    out.push_str(&llms::render_section(&reference_section));
+
     out
 }
 
@@ -6339,7 +6456,10 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
 /// precomputed alignment facets so a caller emitting every term pays the linkage
 /// scan ONCE (not O(N²)).
 fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
-    crate::card::render_card_body(&doc_term_card(term, alignment_facets))
+    crate::card::render_card_body(
+        &doc_term_card(term, alignment_facets),
+        crate::card::CardDetail::Standard,
+    )
 }
 
 /// Build the neutral [`crate::card::Card`] from a docs-site [`DocTerm`], resolving
@@ -6376,7 +6496,109 @@ fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::c
             .get(term.iri.as_str())
             .cloned()
             .unwrap_or_default(),
+        // Full-tier rich panels: never populated on the docs-site path.
+        ..crate::card::Card::default()
     }
+}
+
+/// Build the FULL-tier [`crate::card::Card`] for a site term: the compact
+/// [`doc_term_card`] enriched with the rich oracle panels drawn DIRECTLY from the
+/// site model + executable-docs data (`model` + `exec`) — the site twin of the MCP
+/// `doc_card` full tier. It carries the SAME `Card` field types and is rendered by
+/// the SAME [`crate::card::render_card`], so the two full-card surfaces never fork a
+/// second renderer (§19 one-path).
+///
+/// Panel provenance mirrors the term page's own sections:
+/// * entailments — `exec.term_entailments[term.iri]` (the reasoned B3 derivations);
+/// * Do / Don't — `fixtures_by_curie[term.curie]` (`model.fixtures` referencing
+///   the term's CURIE, precomputed once by [`precompute_fixtures_by_curie`]),
+///   split by kind;
+/// * diagnostics — `model.diagnostics.by_term[term.iri]`;
+/// * loss — `model.term_loss.by_term[term.iri]`.
+///
+/// Every panel is an honest projection: a term with no data for a panel simply
+/// carries an empty `Vec`, which the renderer omits — never a fabricated section.
+/// In a model-only render (`ExecutableDocsData::default`, non-English tree) the
+/// entailments panel is empty by construction, exactly like the term page.
+fn full_card_for(
+    model: &DocsModel,
+    exec: &ExecutableDocsData,
+    term: &DocTerm,
+    alignment_facets: &AlignmentFacets,
+    fixtures_by_curie: &FixturesByCurie<'_>,
+) -> crate::card::Card {
+    let mut card = doc_term_card(term, alignment_facets);
+
+    // Entailments — the reasoner "why" derivations documenting the term.
+    if let Some(entailments) = exec.term_entailments.get(&term.iri) {
+        card.entailments = entailments
+            .iter()
+            .map(|e| crate::card::CardEntailment {
+                rule: e.rule.clone(),
+                conclusion: e.conclusion.clone(),
+                premises: e.premises.clone(),
+            })
+            .collect();
+    }
+
+    // Do / Don't conformance fixtures referencing this term, in the same
+    // (slice, logical_path) order the term page lists them. Each body is one-lined
+    // and capped to a short snippet (the full Turtle stays available on the
+    // fixtures index / `counter_examples` tool). Looked up from the precomputed
+    // CURIE index (O(1)) rather than rescanning `model.fixtures` per term.
+    let mut term_fixtures: Vec<&crate::model::DocFixture> = fixtures_by_curie
+        .get(term.curie.as_str())
+        .cloned()
+        .unwrap_or_default();
+    term_fixtures.sort_by(|a, b| {
+        a.slice
+            .cmp(&b.slice)
+            .then_with(|| a.logical_path.cmp(&b.logical_path))
+    });
+    for fixture in term_fixtures {
+        let entry = crate::card::CardFixture {
+            title: fixture.title.clone(),
+            body: crate::llms::cap_note(&one_line(&fixture.text)),
+        };
+        match fixture.kind {
+            crate::model::DocFixtureKind::Wellformed => card.fixtures_do.push(entry),
+            crate::model::DocFixtureKind::CounterExample => card.fixtures_dont.push(entry),
+        }
+    }
+
+    // Diagnostics the term may hit — the per-term join from `stage-validate` +
+    // `stage-compile-logic`, in the digest's stable node order.
+    if let Some(findings) = model
+        .diagnostics
+        .as_ref()
+        .and_then(|d| d.by_term.get(&term.iri))
+    {
+        card.diagnostics = findings
+            .iter()
+            .map(|f| crate::card::CardDiagnostic {
+                code: f.code.clone(),
+                note: f.message.clone(),
+            })
+            .collect();
+    }
+
+    // Projection loss — the dynamic per-term degradation rows, in the digest's
+    // by-target order.
+    if let Some(rows) = model
+        .term_loss
+        .as_ref()
+        .and_then(|d| d.by_term.get(&term.iri))
+    {
+        card.loss = rows
+            .iter()
+            .map(|r| crate::card::CardLoss {
+                target: r.target.clone(),
+                preservation: r.preservation_kind.clone(),
+            })
+            .collect();
+    }
+
+    card
 }
 
 /// The full inlined block for one term in `llms-full.txt`: a `### {curie}{signature}`
@@ -6693,6 +6915,165 @@ mod tests {
         let en_keys: Vec<&String> = en.files.keys().collect();
         let fr_keys: Vec<&String> = fr.files.keys().collect();
         assert_eq!(en_keys, fr_keys, "no dangling/extra links per language");
+    }
+
+    #[test]
+    fn per_term_card_json_and_full_md_are_emitted() {
+        use crate::model::{
+            DiagnosticsDigest, DocDiagFinding, DocFixture, DocFixtureKind, TermLossDigest,
+            TermLossRow,
+        };
+
+        let mut model = tiny_model();
+        let foo_iri = format!("{GMEOW_NS}Foo");
+
+        // A Do (well-formed) and a Don't (counter-example) fixture referencing Foo.
+        model.fixtures.push(DocFixture {
+            slice: format!("{GMEOW_NS}slices/demo"),
+            logical_path: "tests/conformance-fixtures/foo-ok.ttl".to_string(),
+            title: "Well-formed Foo".to_string(),
+            text: "ex:a a gmeow:Foo .".to_string(),
+            kind: DocFixtureKind::Wellformed,
+            terms_referenced: vec!["gmeow:Foo".to_string()],
+            expected_outcome: Some("conforms".to_string()),
+            violation_code: None,
+            rationale: None,
+            catalog_slug: None,
+        });
+        model.fixtures.push(DocFixture {
+            slice: format!("{GMEOW_NS}slices/demo"),
+            logical_path: "tests/counter-examples/foo-bad.ttl".to_string(),
+            title: "Foo missing something".to_string(),
+            text: "ex:b a gmeow:Foo .".to_string(),
+            kind: DocFixtureKind::CounterExample,
+            terms_referenced: vec!["gmeow:Foo".to_string()],
+            expected_outcome: Some("violates".to_string()),
+            violation_code: Some("shacl.MinCountConstraintComponent".to_string()),
+            rationale: None,
+            catalog_slug: None,
+        });
+
+        // A per-term diagnostic and a per-term projection-loss row for Foo.
+        let mut diag_by_term = BTreeMap::new();
+        diag_by_term.insert(
+            foo_iri.clone(),
+            vec![DocDiagFinding {
+                code: "gmeow-range-missing".to_string(),
+                severity: "error".to_string(),
+                category: "structural".to_string(),
+                message: "Foo is missing a range".to_string(),
+                slice_iri: None,
+                help_uri: None,
+            }],
+        );
+        model.diagnostics = Some(DiagnosticsDigest {
+            by_term: diag_by_term,
+            by_slice: BTreeMap::new(),
+            total: 1,
+        });
+        let mut loss_by_term = BTreeMap::new();
+        loss_by_term.insert(
+            foo_iri.clone(),
+            vec![TermLossRow {
+                target: "property-path:https://example/fooShape".to_string(),
+                preservation_kind: "SoundUnderApproximation".to_string(),
+                complexity_class: "PTIME".to_string(),
+                lossy_drops: Vec::new(),
+            }],
+        );
+        model.term_loss = Some(TermLossDigest {
+            by_term: loss_by_term,
+            total_property_path_rows: 1,
+        });
+
+        // Reasoned entailment for Foo (English-only executable data).
+        let mut term_entailments = BTreeMap::new();
+        term_entailments.insert(
+            foo_iri.clone(),
+            vec![crate::exec::Entailment {
+                rule: "subClassOf-transitivity".to_string(),
+                conclusion: "gmeow:Foo rdfs:subClassOf owl:Thing".to_string(),
+                premises: vec!["gmeow:Foo rdfs:subClassOf gmeow:Bar".to_string()],
+            }],
+        );
+        let exec = ExecutableDocsData {
+            term_entailments,
+            ..Default::default()
+        };
+
+        let site = render_site_lang_exec(&model, "english", &exec);
+        let foo = model
+            .terms
+            .iter()
+            .find(|t| t.curie == "gmeow:Foo")
+            .expect("foo term");
+        let slug = term_slug(foo);
+        let json_key = format!("terms/{slug}/card.json");
+        let full_key = format!("terms/{slug}/card-full.md");
+
+        // Both machine surfaces ride alongside `card.md`.
+        assert!(site.files.contains_key(&json_key), "card.json emitted");
+        assert!(site.files.contains_key(&full_key), "card-full.md emitted");
+        assert!(
+            site.files.contains_key(&format!("terms/{slug}/card.md")),
+            "card.md still emitted"
+        );
+
+        // card.json parses and EQUALS the standard-tier Card serialized through the
+        // SAME `serde_json` path the MCP `doc_card format=json detail=standard` uses.
+        let bytes = &site.files[&json_key];
+        let parsed: serde_json::Value =
+            serde_json::from_slice(bytes).expect("card.json parses as JSON");
+        assert_eq!(parsed["category"], "Class");
+        assert_eq!(parsed["iri"], foo_iri);
+        // The standard tier carries NO rich-panel keys.
+        assert!(parsed.get("entailments").is_none(), "standard omits panels");
+        let facets = precompute_alignment_facets(&model);
+        let expected = doc_term_card(foo, &facets).projected(crate::card::CardDetail::Standard);
+        let expected_bytes = serde_json::to_vec(&expected).expect("serialize standard card");
+        assert_eq!(
+            bytes, &expected_bytes,
+            "packed card.json equals the standard Card via the same serializer"
+        );
+
+        // card-full.md carries the H1 title and EVERY rich panel (the data is present
+        // for Foo), rendered by the ONE canonical renderer at the Full tier.
+        let full_md = String::from_utf8(site.files[&full_key].clone()).unwrap();
+        assert!(
+            full_md.starts_with("# gmeow:Foo"),
+            "full card H1: {full_md}"
+        );
+        assert!(full_md.contains("## Entailments"), "{full_md}");
+        assert!(full_md.contains("## Do"), "{full_md}");
+        assert!(full_md.contains("## Don't"), "{full_md}");
+        assert!(full_md.contains("## Diagnostics"), "{full_md}");
+        assert!(
+            full_md.contains("## Degrades under projection"),
+            "{full_md}"
+        );
+        // The full body is a strict superset of the standard body (single renderer).
+        let standard_body = crate::card::render_card_body(
+            &doc_term_card(foo, &facets),
+            crate::card::CardDetail::Standard,
+        );
+        assert!(
+            full_md.contains(standard_body.trim_end()),
+            "full card contains the whole standard body"
+        );
+
+        // Bar has NO fixtures / diagnostics / loss / entailments, so its full card is
+        // an honest projection: identical to its standard card (no fabricated panels).
+        let bar = model
+            .terms
+            .iter()
+            .find(|t| t.curie == "gmeow:Bar")
+            .expect("bar term");
+        let bar_full = String::from_utf8(
+            site.files[&format!("terms/{}/card-full.md", term_slug(bar))].clone(),
+        )
+        .unwrap();
+        assert!(!bar_full.contains("## Entailments"), "{bar_full}");
+        assert!(!bar_full.contains("## Do"), "{bar_full}");
     }
 
     #[test]

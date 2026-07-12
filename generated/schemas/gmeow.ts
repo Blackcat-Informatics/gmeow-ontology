@@ -1424,6 +1424,11 @@ export enum DocEvidenceKindEnum {
     docEvidenceKindProvenance = "docEvidenceKindProvenance",
 }
 
+export enum DocFixtureKindEnum {
+    docFixtureKindCounterExample = "docFixtureKindCounterExample",
+    docFixtureKindWellformed = "docFixtureKindWellformed",
+}
+
 export enum DocMaturityEnum {
     docMaturityBasic = "docMaturityBasic",
     docMaturityFull = "docMaturityFull",
@@ -4661,6 +4666,11 @@ export interface CommunitySummary extends Summary {
     summarizesCommunity?: Community,
 }
 
+export interface CompetencyExpectedRow extends InformationObject {
+    cqCellValueLiteral?: string[],
+    cqCellVar?: string[],
+}
+
 export interface ComplianceAssessment extends Observation {
     assessedEvent?: Event,
     assessedNorm?: Norm,
@@ -5096,6 +5106,17 @@ export interface DocEvidence extends InformationObject {
 export interface DocEvidenceKind {
 }
 
+export interface DocFixture extends InformationObject {
+    conformanceRationale?: string[],
+    docExpectedOutcome?: string[],
+    docFixtureKind?: DocFixtureKind[],
+    docFixtureText?: string[],
+    docViolationCode?: string[],
+}
+
+export interface DocFixtureKind {
+}
+
 export interface DocMaturity {
     maturityRequiresDimension?: DocCoverageDimension[],
 }
@@ -5104,6 +5125,14 @@ export interface Document extends Work {
 }
 
 export interface DocumentationConcern {
+}
+
+export interface DocumentedCompetency extends InformationObject {
+    cqExactRows?: boolean[],
+    cqExpectRowCount?: number[],
+    cqExpectedRow?: CompetencyExpectedRow[],
+    cqQueryText?: string[],
+    cqRationale?: string[],
 }
 
 export interface DocumentedConcern extends InformationObject {
@@ -5119,6 +5148,8 @@ export interface DocumentedTerm extends InformationObject {
     docCategory?: string[],
     docHasDefinition?: boolean[],
     docReasoningStatus?: string[],
+    docSearchAdvice?: string[],
+    docSearchAlignment?: string[],
 }
 
 export interface DoxasticStandpointClaim extends StandpointClaim {
@@ -5235,6 +5266,12 @@ export interface Employment extends Membership {
 }
 
 export interface EmploymentType {
+}
+
+export interface Entailment extends InformationObject {
+    entailmentConclusion?: string[],
+    entailmentPremise?: string[],
+    entailmentRule?: string[],
 }
 
 export interface Entity {
