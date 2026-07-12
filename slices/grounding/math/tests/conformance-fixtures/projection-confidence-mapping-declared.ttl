@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:ProjectionConfidenceAsProbability gate: a
+# math:ProjectionRecord converts a source confidence into a math:ProbabilityValue
+# (math:projectsConfidenceAsProbability true) AND licenses the conversion with an explicit
+# math:declaredConfidenceMapping. It MUST raise NO projection failure class. Positive
+# counterpart of counter-examples/projection-confidence-as-probability.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:confidenceProjection a math:ProjectionRecord ;
+    math:projectionSource ex:extractionScore ;
+    math:projectionTargetName "OWL annotation (probability literal)" ;
+    math:projectsConfidenceAsProbability true ;
+    math:declaredConfidenceMapping ex:logisticCalibrationMapping .
+
+ex:logisticCalibrationMapping a math:MathematicalObject .

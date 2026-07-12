@@ -5839,6 +5839,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/homogeneousOperand> . {2,} ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/Distribution> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/Distribution-shape> {
+  <https://blackcatinformatics.ca/math/distributionFamily> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/math/Embedding> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/Embedding-shape> {
   <https://blackcatinformatics.ca/math/targetSpace> . + ;
@@ -5908,6 +5913,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/limitPoint> . ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/LogOddsValue> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/LogOddsValue-shape> {
+}
+
 # targetClass <https://blackcatinformatics.ca/math/Manifold> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/Manifold-shape> {
   <https://blackcatinformatics.ca/math/manifoldDimension> <http://www.w3.org/2001/XMLSchema#integer> ;
@@ -5941,6 +5950,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/inNumberSystem> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/OddsValue> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/OddsValue-shape> {
+}
+
 # targetClass <https://blackcatinformatics.ca/math/OrthogonalComplement> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/OrthogonalComplement-shape> {
   <https://blackcatinformatics.ca/math/definedByInnerProduct> . ;
@@ -5960,9 +5973,20 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/explainedVarianceRatio> . + ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/ProbabilityEvent> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/ProbabilityEvent-shape> {
+}
+
 # targetClass <https://blackcatinformatics.ca/math/ProbabilityMeasure> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/ProbabilityMeasure-shape> {
   <https://blackcatinformatics.ca/math/totalMass> ["1"^^<http://www.w3.org/2001/XMLSchema#integer>] ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/ProbabilitySpace> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/ProbabilitySpace-shape> {
+  <https://blackcatinformatics.ca/math/sampleSpace> IRI ;
+  <https://blackcatinformatics.ca/math/eventSigmaAlgebra> IRI ;
+  <https://blackcatinformatics.ca/math/probabilityMeasure> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ProofCheckActivity> (associate via ShapeMap)

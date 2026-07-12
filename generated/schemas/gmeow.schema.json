@@ -27747,6 +27747,56 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:ConditionalIndependenceAssertion"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ConditionalIndependenceAssertion"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ConditionalIndependenceAssertion"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:ConditionalProbability"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ConditionalProbability"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ConditionalProbability"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:ConnectedSpace"
                   },
                   {
@@ -27914,6 +27964,31 @@
           },
           "then": {
             "$ref": "#/$defs/math:DimensionalExpression"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:Distribution"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:Distribution"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:Distribution"
           }
         },
         {
@@ -28272,6 +28347,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:LogOddsValue"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:LogOddsValue"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:LogOddsValue"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:Manifold"
                   },
                   {
@@ -28447,6 +28547,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:OddsValue"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:OddsValue"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:OddsValue"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:OrthogonalComplement"
                   },
                   {
@@ -28522,6 +28647,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "math:ProbabilityEvent"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ProbabilityEvent"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ProbabilityEvent"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "math:ProbabilityMeasure"
                   },
                   {
@@ -28539,6 +28689,56 @@
           },
           "then": {
             "$ref": "#/$defs/math:ProbabilityMeasure"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:ProbabilitySpace"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ProbabilitySpace"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ProbabilitySpace"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:ProbabilityValue"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ProbabilityValue"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:ProbabilityValue"
           }
         },
         {
@@ -28589,6 +28789,31 @@
           },
           "then": {
             "$ref": "#/$defs/math:Quantity"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:RandomVariable"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:RandomVariable"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/math:RandomVariable"
           }
         },
         {
@@ -44327,29 +44552,41 @@
         "logic:namesContradictionWitness": {
           "anyOf": [
             {
-              "$comment": "external class https://blackcatinformatics.ca/logic/ContradictionWitness",
-              "properties": {
-                "@id": {
-                  "type": "string"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/logic:ContradictionWitness"
+                },
+                {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
                 }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              ]
             },
             {
               "items": {
-                "$comment": "external class https://blackcatinformatics.ca/logic/ContradictionWitness",
-                "properties": {
-                  "@id": {
-                    "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/logic:ContradictionWitness"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               "minItems": 1,
               "type": "array"
@@ -44787,6 +45024,80 @@
       ],
       "type": "object"
     },
+    "math:ConditionalIndependenceAssertion": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:independentGiven": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:independentGiven"
+      ],
+      "type": "object"
+    },
+    "math:ConditionalProbability": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:conditionalOn": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:conditionalOn"
+      ],
+      "type": "object"
+    },
     "math:ConnectedSpace": {
       "properties": {
         "@annotation": {
@@ -45115,6 +45426,39 @@
       ],
       "type": "object"
     },
+    "math:Distribution": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:distributionFamily": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "math:Embedding": {
       "properties": {
         "@annotation": {
@@ -45211,16 +45555,7 @@
             {
               "anyOf": [
                 {
-                  "$comment": "external class https://blackcatinformatics.ca/math/FiltrationStage",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  "$ref": "#/$defs/math:FiltrationStage"
                 },
                 {
                   "properties": {
@@ -45239,16 +45574,7 @@
               "items": {
                 "anyOf": [
                   {
-                    "$comment": "external class https://blackcatinformatics.ca/math/FiltrationStage",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
+                    "$ref": "#/$defs/math:FiltrationStage"
                   },
                   {
                     "properties": {
@@ -45841,6 +46167,54 @@
       ],
       "type": "object"
     },
+    "math:LogOddsValue": {
+      "allOf": [
+        {
+          "not": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:ProbabilityValue"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ProbabilityValue"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "math:Manifold": {
       "properties": {
         "@annotation": {
@@ -46105,6 +46479,54 @@
       },
       "type": "object"
     },
+    "math:OddsValue": {
+      "allOf": [
+        {
+          "not": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "math:ProbabilityValue"
+                  },
+                  {
+                    "contains": {
+                      "const": "math:ProbabilityValue"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "math:OrthogonalComplement": {
       "properties": {
         "@annotation": {
@@ -46335,16 +46757,7 @@
         "math:overFiltration": {
           "anyOf": [
             {
-              "$comment": "external class https://blackcatinformatics.ca/math/Filtration",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/math:Filtration"
             },
             {
               "properties": {
@@ -46395,6 +46808,54 @@
       ],
       "type": "object"
     },
+    "math:ProbabilityEvent": {
+      "allOf": [
+        {
+          "not": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:Event"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:Event"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "math:ProbabilityMeasure": {
       "properties": {
         "@annotation": {
@@ -46430,6 +46891,82 @@
                   "@type": "xsd:integer",
                   "@value": "1"
                 }
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "math:ProbabilitySpace": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:eventSigmaAlgebra": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "type": "array"
+            }
+          ]
+        },
+        "math:probabilityMeasure": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "type": "array"
+            }
+          ]
+        },
+        "math:sampleSpace": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "math:ProbabilityValue": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
               },
               "type": "array"
             }
@@ -46517,6 +47054,126 @@
           ]
         }
       },
+      "type": "object"
+    },
+    "math:RandomVariable": {
+      "anyOf": [
+        {
+          "properties": {
+            "@annotation": {
+              "$ref": "#/$defs/Annotation"
+            },
+            "@id": {
+              "type": "string"
+            },
+            "@type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "math:hasDistribution": {
+              "anyOf": [
+                {},
+                {
+                  "items": {},
+                  "minItems": 1,
+                  "type": "array"
+                }
+              ]
+            }
+          },
+          "required": [
+            "math:hasDistribution"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "@annotation": {
+              "$ref": "#/$defs/Annotation"
+            },
+            "@id": {
+              "type": "string"
+            },
+            "@type": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              ]
+            },
+            "math:randomVariableDomain": {
+              "anyOf": [
+                {},
+                {
+                  "items": {},
+                  "type": "array"
+                }
+              ]
+            }
+          },
+          "type": "object"
+        }
+      ],
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "math:randomVariableCodomain": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        },
+        "math:randomVariableDomain": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "math:randomVariableCodomain",
+        "math:randomVariableDomain"
+      ],
       "type": "object"
     },
     "math:RationalValue": {
@@ -46833,16 +47490,7 @@
             {
               "anyOf": [
                 {
-                  "$comment": "external class https://blackcatinformatics.ca/math/PersistenceLifetime",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  "$ref": "#/$defs/math:PersistenceLifetime"
                 },
                 {
                   "properties": {
@@ -46861,16 +47509,7 @@
               "items": {
                 "anyOf": [
                   {
-                    "$comment": "external class https://blackcatinformatics.ca/math/PersistenceLifetime",
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
+                    "$ref": "#/$defs/math:PersistenceLifetime"
                   },
                   {
                     "properties": {
@@ -46920,16 +47559,7 @@
         "math:stabilityGuarantee": {
           "anyOf": [
             {
-              "$comment": "external class https://blackcatinformatics.ca/math/Theorem",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/math:Theorem"
             },
             {
               "properties": {

@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:ProbabilityEventOccurrentDisjointShape (Rule P11): a
+# math:ProbabilityEvent — a measurable set of outcomes (the rain-event SET in a forecast
+# space) — that is NOT typed logic:Event, so the sh:not [ sh:class logic:Event ] stays
+# satisfied. It carries neither math:hasElement nor math:memberCondition, so the inherited
+# math:Set extent SPARQL gate stays silent. It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/probability-event-occurrent-conflation.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecProbabilityEventDistinct).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:rainEventSet a math:ProbabilityEvent .

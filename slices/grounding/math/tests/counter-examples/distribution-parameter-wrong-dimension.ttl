@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:DistributionParameterConstraint gate (dimension
+# arm): a variance-role math:DistributionParameter whose role requires the SQUARED
+# (area = length²) dimension, but whose math:parameterQuantity carries the LINEAR
+# math:lengthDimension. The native gate resolves the role's math:quantityDimension by
+# exact ℚ⁷ arithmetic and MUST emit math:DistributionParameterConstraint (and no other
+# probability failure class). The role declares no math:requiresPositiveValue, so only
+# the dimension arm fires.
+# Back-reference: math:quantityDimension / math:DistributionParameterConstraint (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:areaDimension a math:DerivedDimension ;
+    math:baseDimensionExponent ex:areaLengthSquared .
+
+ex:areaLengthSquared a math:DimensionExponent ;
+    math:exponentOfDimension math:lengthDimension ;
+    math:exponentNumerator 2 ;
+    math:exponentDenominator 1 .
+
+ex:varianceRole a math:DistributionParameterRole ;
+    math:quantityDimension ex:areaDimension .
+
+ex:linearQuantity a gmeow:Quantity ;
+    math:hasDimension math:lengthDimension .
+
+ex:misdimensionedParameter a math:DistributionParameter ;
+    math:parameterRole ex:varianceRole ;
+    math:parameterQuantity ex:linearQuantity .
