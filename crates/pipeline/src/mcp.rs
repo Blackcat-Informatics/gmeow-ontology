@@ -3649,6 +3649,14 @@ mod tests {
         assert!(consumer_tools.contains("\"okf_index\""));
         assert!(consumer_tools.contains("\"query_docs\""));
         assert!(consumer_tools.contains("\"store_claim\""));
+        // The AI-agent docs surface: all five new tools are CONSUMER-visible
+        // (served by the shippable `gmeow mcp` off the bundle alone), never
+        // dev-gated. `validate_local` is distinct from the dev-only `validate`.
+        assert!(consumer_tools.contains("\"validate_local\""));
+        assert!(consumer_tools.contains("\"docs_search\""));
+        assert!(consumer_tools.contains("\"counter_examples\""));
+        assert!(consumer_tools.contains("\"entailments\""));
+        assert!(consumer_tools.contains("\"competency_questions\""));
         assert!(!consumer_tools.contains("\"validate\""));
         assert!(!consumer_tools.contains("\"slice_quality\""));
         assert!(
