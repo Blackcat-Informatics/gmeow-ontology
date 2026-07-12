@@ -38,14 +38,12 @@
 //! exists is dropped (first-wins).  Provenance for each derived fact is the FIRST
 //! firing's `(rule_iri, source_reifiers)`.
 //!
-//! # Phase-A dead code
+//! # Internal oracle surface
 //!
-//! This is Phase A: the evaluators and their unit tests are landed, but the
-//! `py.rs` materialize routing that consumes [`parse_eval_rules`] and reads the
-//! [`DerivedRow`] provenance fields is Phase B.  Until that lands, a few
-//! constructors / fields are exercised only by tests, so this module allows
-//! `dead_code` crate-internally rather than scattering per-item attributes that
-//! would have to be unwound next phase.
+//! The routed and stateful materializers consume [`parse_eval_rules`] and
+//! [`DerivedRow`] in production. A few lower-level constructors and comparison
+//! helpers remain intentionally available only to scratch-parity tests, so this
+//! module keeps a crate-internal `dead_code` allowance rather than exporting them.
 #![allow(dead_code)]
 
 use std::collections::{BTreeSet, HashMap, HashSet};
