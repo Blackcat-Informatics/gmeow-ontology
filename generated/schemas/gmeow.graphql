@@ -5351,6 +5351,8 @@ type DocumentedTerm {
   docCategory: [String!]
   docHasDefinition: [Boolean!]
   docReasoningStatus: [String!]
+  docSearchAdvice: [String!]
+  docSearchAlignment: [String!]
 }
 
 type DoxasticStandpointClaim {

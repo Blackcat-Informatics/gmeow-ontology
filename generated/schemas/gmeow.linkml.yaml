@@ -1344,6 +1344,8 @@ classes:
     - docCategory
     - docHasDefinition
     - docReasoningStatus
+    - docSearchAdvice
+    - docSearchAlignment
   DoxasticStandpointClaim:
     class_uri: https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim
     title: doxastic standpoint claim
@@ -7549,6 +7551,28 @@ slots:
     title: doc reasoning status
     range: string
     domain: DocumentedTerm
+    multivalued: true
+  docSearchAdvice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docSearchAdvice
+    title: doc search advice
+    range: string
+    domain: DocumentedTerm
+    multivalued: true
+  docSearchAlignment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docSearchAlignment
+    title: doc search alignment
+    range: string
+    domain: DocumentedTerm
+    multivalued: true
+  docSearchDefinition:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docSearchDefinition
+    title: doc search definition
+    range: string
+    multivalued: true
+  docSearchLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docSearchLabel
+    title: doc search label
+    range: string
     multivalued: true
   docUrl:
     slot_uri: https://blackcatinformatics.ca/gmeow/docUrl

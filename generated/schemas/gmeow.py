@@ -5779,6 +5779,8 @@ class DocumentedTerm(InformationObject):
     docCategory: list[str] | None = Field(default=None)
     docHasDefinition: list[bool] | None = Field(default=None)
     docReasoningStatus: list[str] | None = Field(default=None)
+    docSearchAdvice: list[str] | None = Field(default=None)
+    docSearchAlignment: list[str] | None = Field(default=None)
 
 
 class DoxasticStandpointClaim(StandpointClaim):

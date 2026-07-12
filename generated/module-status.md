@@ -27,7 +27,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | creative-works | core | core | 4 | 16 | 42 | 0 | 1 | 58/58 | full |
 | deception | core | core | 5 | 2 | 10 | 0 | 1 | 12/12 | full |
 | diagnostics | core | core | 3 | 14 | 46 | 3 | 1 | 46/60 | full |
-| documentation | core | core | 5 | 13 | 39 | 0 | 1 | 52/52 | full |
+| documentation | core | core | 5 | 13 | 43 | 0 | 1 | 56/56 | full |
 | documents | core | core | 7 | 22 | 37 | 0 | 1 | 59/59 | full |
 | dreaming | extension | extensions | 10 | 1 | 1 | 0 | 3 | - | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
@@ -89,4 +89,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 2021/2265 core class/property terms.
+**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 2025/2269 core class/property terms.

@@ -4909,6 +4909,8 @@ export interface DocumentedTerm extends InformationObject {
     docCategory?: string[],
     docHasDefinition?: boolean[],
     docReasoningStatus?: string[],
+    docSearchAdvice?: string[],
+    docSearchAlignment?: string[],
 }
 
 export interface DoxasticStandpointClaim extends StandpointClaim {
