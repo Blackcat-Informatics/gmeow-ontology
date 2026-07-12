@@ -1777,6 +1777,17 @@ fn eval_world_stratified(
     mode: ProvenanceMode,
     round_execution: RoundExecution,
 ) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
+    eval_world_stratified_with_trace(edb_facts, exe, governor, mode, round_execution, None)
+}
+
+fn eval_world_stratified_with_trace(
+    edb_facts: &[Fact],
+    exe: &Executable,
+    governor: &mut StepGovernor,
+    mode: ProvenanceMode,
+    round_execution: RoundExecution,
+    mut parallel_trace: Option<&mut RuleParallelTrace>,
+) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
     // Shared accumulated store (both forms), seeded from the EDB in sorted-key order
     // (world_edb_facts already sorted), so seeding matches the reference.
     let mut store = FactStore::new();
@@ -1835,6 +1846,7 @@ fn eval_world_stratified(
             governor,
             mode,
             round_execution,
+            parallel_trace.as_deref_mut(),
         )? {
             FixpointStatus::Complete => {
                 // This stratum reached its natural fixpoint: its head predicates are now
@@ -1904,6 +1916,40 @@ struct RoundCandidateBuffer {
     entries: Vec<(FactKey, RuleRoundCandidate)>,
     index: HashTable<usize>,
     builtin_gap: bool,
+}
+
+/// Deterministic structural work observed on the rule-parallel path.
+///
+/// Candidate rows are counted after each rule-local winner dedup and before the
+/// scheduling-erasing merge. For one round, serial buffered work is the sum of
+/// every task's rows while the ideal rule-task critical path is the maximum. Summing
+/// those quantities across the necessarily sequential semi-naive rounds produces a
+/// scheduler-independent comparison; no wall clock or worker-arrival order enters it.
+#[derive(Debug, Default, Clone, Copy)]
+pub(super) struct RuleParallelTrace {
+    pub(super) parallel_rounds: u64,
+    pub(super) rule_tasks: u64,
+    pub(super) serial_candidate_rows: u64,
+    pub(super) critical_path_candidate_rows: u64,
+    pub(super) max_buffered_candidate_rows: u64,
+    pub(super) max_task_candidate_rows: u64,
+}
+
+impl RuleParallelTrace {
+    fn record_round(&mut self, task_rows: &[usize]) {
+        let serial = task_rows.iter().map(|&rows| rows as u64).sum::<u64>();
+        let critical = task_rows
+            .iter()
+            .copied()
+            .max()
+            .map_or(0, |rows| rows as u64);
+        self.parallel_rounds += 1;
+        self.rule_tasks += task_rows.len() as u64;
+        self.serial_candidate_rows += serial;
+        self.critical_path_candidate_rows += critical;
+        self.max_buffered_candidate_rows = self.max_buffered_candidate_rows.max(serial);
+        self.max_task_candidate_rows = self.max_task_candidate_rows.max(critical);
+    }
 }
 
 impl RoundCandidateBuffer {
@@ -2037,6 +2083,7 @@ fn evaluate_round_candidates(
     stratum: usize,
     snapshot: RoundSnapshot<'_>,
     execution: RoundExecution,
+    trace: Option<&mut RuleParallelTrace>,
 ) -> gmeow_errors::Result<RoundCandidateBuffer> {
     let rule_indices = exe.stratum_rule_indices(stratum);
     if !execution.should_parallelize(rule_indices.len()) {
@@ -2061,6 +2108,19 @@ fn evaluate_round_candidates(
             Ok(round)
         })
         .collect();
+
+    if let Some(trace) = trace {
+        // Do not inspect or reorder diagnostics here. Evidence is recorded only when
+        // every task succeeded; otherwise the program-order merge below returns the
+        // same first error it always did.
+        let task_rows = rule_results
+            .iter()
+            .map(|result| result.as_ref().ok().map(|buffer| buffer.entries.len()))
+            .collect::<Option<Vec<_>>>();
+        if let Some(task_rows) = task_rows {
+            trace.record_round(&task_rows);
+        }
+    }
 
     let mut buffers = rule_results.into_iter();
     let Some(first) = buffers.next() else {
@@ -2100,6 +2160,7 @@ fn eval_stratum_fixpoint(
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
     round_execution: RoundExecution,
+    mut parallel_trace: Option<&mut RuleParallelTrace>,
 ) -> gmeow_errors::Result<FixpointStatus> {
     // Reborrow each accumulator into a single `&mut` local so the loop body below is a verbatim
     // copy of `least_model_of_reduct`'s — the `FixpointState` bundle exists only to keep the
@@ -2131,6 +2192,7 @@ fn eval_stratum_fixpoint(
                 mode,
             },
             round_execution,
+            parallel_trace.as_deref_mut(),
         )?;
         *builtin_gap |= round.builtin_gap;
         let round_entries = round.entries;
@@ -2326,6 +2388,7 @@ pub(crate) fn evaluate(
             &mut governor,
             ProvenanceMode::Skip,
             RoundExecution::Parallel,
+            None,
         )? {
             FixpointStatus::Complete => {
                 for pred in exe.stratum_head_predicates(k) {
@@ -2369,6 +2432,181 @@ pub(crate) fn evaluate(
     }))
 }
 
+/// Deterministic evidence from the four-worker rule-parallel production path.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct RuleParallelProbe {
+    pub(crate) worker_count: usize,
+    pub(crate) rule_count: usize,
+    pub(crate) seed_rows: usize,
+    pub(crate) derived_rows: usize,
+    pub(crate) consumed_steps: u64,
+    pub(crate) parallel_rounds: u64,
+    pub(crate) rule_tasks: u64,
+    pub(crate) serial_candidate_rows: u64,
+    pub(crate) critical_path_candidate_rows: u64,
+    pub(crate) max_buffered_candidate_rows: u64,
+    pub(crate) max_task_candidate_rows: u64,
+    pub(crate) budget_cases: usize,
+    pub(crate) output_parity: bool,
+    pub(crate) budget_parity: bool,
+    pub(crate) parallel_path_entered: bool,
+    pub(crate) critical_path_strictly_lower: bool,
+    pub(crate) closure_hash: [u8; 32],
+}
+
+fn same_derived_rows(left: &[DerivedRow], right: &[DerivedRow]) -> bool {
+    left.len() == right.len()
+        && left.iter().zip(right).all(|(left, right)| {
+            left.graph == right.graph
+                && left.subject == right.subject
+                && left.predicate == right.predicate
+                && left.object == right.object
+                && left.rule_iri == right.rule_iri
+                && left.source_quad_ids == right.source_quad_ids
+                && left.derivation_id == right.derivation_id
+                && left.proof_height == right.proof_height
+                && left
+                    .antecedents
+                    .iter()
+                    .map(Fact::key)
+                    .eq(right.antecedents.iter().map(Fact::key))
+        })
+}
+
+fn same_budgeted_rows(left: &Budgeted<Vec<DerivedRow>>, right: &Budgeted<Vec<DerivedRow>>) -> bool {
+    left.status == right.status
+        && left.progress == right.progress
+        && left.consumed_steps == right.consumed_steps
+        && same_derived_rows(&left.rows, &right.rows)
+}
+
+fn derived_rows_hash(rows: &[DerivedRow]) -> [u8; 32] {
+    fn feed(hasher: &mut blake3::Hasher, value: &str) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-rule-parallel-derived-rows-v1\0");
+    hasher.update(&(rows.len() as u64).to_le_bytes());
+    for row in rows {
+        feed(&mut hasher, &row.graph);
+        feed(&mut hasher, &crate::provenance::term_display(&row.subject));
+        feed(&mut hasher, &row.predicate);
+        feed(&mut hasher, &crate::provenance::term_display(&row.object));
+        feed(&mut hasher, &row.rule_iri);
+        hasher.update(&(row.source_quad_ids.len() as u64).to_le_bytes());
+        for source in &row.source_quad_ids {
+            feed(&mut hasher, source);
+        }
+        feed(&mut hasher, &row.derivation_id);
+        hasher.update(&row.proof_height.get().to_le_bytes());
+        hasher.update(&(row.antecedents.len() as u64).to_le_bytes());
+        for antecedent in &row.antecedents {
+            let key = antecedent.key();
+            feed(&mut hasher, &key.0);
+            feed(&mut hasher, &key.1);
+            feed(&mut hasher, &key.2);
+        }
+    }
+    *hasher.finalize().as_bytes()
+}
+
+/// Run the permanent balanced rule-parallel fixture under a real four-worker pool.
+///
+/// The returned work comparison is structural, not timed: the serial work is the
+/// sum of rule-local candidate buffers, while the parallel critical path is the sum
+/// of each round's largest task. Full output/provenance and a budget sweep are also
+/// compared against the forced-sequential policy.
+pub(crate) fn rule_parallel_probe() -> gmeow_errors::Result<RuleParallelProbe> {
+    const NS: &str = "https://example.org/parallel/";
+    const WORLD: &str = "https://example.org/parallel/world";
+    let iri = |local: &str| format!("{NS}{local}");
+    let rule_text = format!(
+        "#[name(\"{NS}rule/z-duplicate\")]\n\
+         <{NS}shared>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/a-duplicate\")]\n\
+         <{NS}shared>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/alpha\")]\n\
+         <{NS}alpha>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/omega\")]\n\
+         <{NS}omega>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/left\")]\n\
+         <{NS}left>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/right\")]\n\
+         <{NS}right>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n"
+    );
+    let rules = crate::rule_ir::parse_eval_rules(&rule_text)?;
+    let executable = super::plan::Parsed::new(&rules)
+        .stratify()
+        .ok_or_else(|| seminaive_err("rule-parallel evidence fixture is non-stratifiable"))?
+        .plan()
+        .into_executable();
+    let store = crate::store::WorldStore::new();
+    const SEED_ROWS: usize = 24;
+    for index in 0..SEED_ROWS {
+        let node = iri(&format!("node-{index:02}"));
+        store.insert_quad(WORLD, &node, &iri("seed"), &node);
+    }
+    let edb = world_edb_facts(&store, WORLD)?;
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(4)
+        .build()
+        .map_err(|error| seminaive_err(format!("build four-worker evidence pool: {error}")))?;
+
+    pool.install(move || {
+        let run = |max_steps: Option<u64>,
+                   execution: RoundExecution,
+                   trace: Option<&mut RuleParallelTrace>| {
+            let mut governor = StepGovernor::new(max_steps);
+            eval_world_stratified_with_trace(
+                &edb,
+                &executable,
+                &mut governor,
+                ProvenanceMode::Record,
+                execution,
+                trace,
+            )
+        };
+
+        let sequential = run(None, RoundExecution::Sequential, None)?;
+        let mut trace = RuleParallelTrace::default();
+        let parallel = run(None, RoundExecution::Parallel, Some(&mut trace))?;
+        let output_parity = same_budgeted_rows(&parallel, &sequential);
+        const BUDGETS: [u64; 8] = [0, 1, 23, 72, 73, 119, 120, 121];
+        let mut budget_parity = true;
+        for budget in BUDGETS {
+            let sequential_cut = run(Some(budget), RoundExecution::Sequential, None)?;
+            let parallel_cut = run(Some(budget), RoundExecution::Parallel, None)?;
+            budget_parity &= same_budgeted_rows(&parallel_cut, &sequential_cut);
+        }
+
+        let worker_count = rayon::current_num_threads();
+        let parallel_path_entered = worker_count == 4 && trace.parallel_rounds > 0;
+        let critical_path_strictly_lower = trace.critical_path_candidate_rows > 0
+            && trace.critical_path_candidate_rows < trace.serial_candidate_rows;
+        Ok(RuleParallelProbe {
+            worker_count,
+            rule_count: rules.len(),
+            seed_rows: SEED_ROWS,
+            derived_rows: parallel.rows.len(),
+            consumed_steps: parallel.consumed_steps,
+            parallel_rounds: trace.parallel_rounds,
+            rule_tasks: trace.rule_tasks,
+            serial_candidate_rows: trace.serial_candidate_rows,
+            critical_path_candidate_rows: trace.critical_path_candidate_rows,
+            max_buffered_candidate_rows: trace.max_buffered_candidate_rows,
+            max_task_candidate_rows: trace.max_task_candidate_rows,
+            budget_cases: BUDGETS.len(),
+            output_parity,
+            budget_parity,
+            parallel_path_entered,
+            critical_path_strictly_lower,
+            closure_hash: derived_rows_hash(&parallel.rows),
+        })
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2380,6 +2618,17 @@ mod tests {
     const NS: &str = "https://example.org/p3/";
 
     use crate::physical::plan::Parsed;
+
+    /// Named shape for the compile-time executor entry gate below.
+    type StratumExecutorGate<'state> = fn(
+        &Executable,
+        usize,
+        &mut FixpointState<'state>,
+        &mut StepGovernor,
+        ProvenanceMode,
+        RoundExecution,
+        Option<&mut RuleParallelTrace>,
+    ) -> gmeow_errors::Result<FixpointStatus>;
 
     /// Drive the type-state plan pipeline for a stratifiable test program: the only path
     /// to the `Executable` the forward/backward executors accept.  A non-stratifiable
@@ -2400,14 +2649,7 @@ mod tests {
     /// is enforced by the type system here, not by a doc comment.
     #[test]
     fn executor_entry_accepts_only_executable() {
-        let _executor_gate: fn(
-            &Executable,
-            usize,
-            &mut FixpointState<'_>,
-            &mut StepGovernor,
-            ProvenanceMode,
-            RoundExecution,
-        ) -> gmeow_errors::Result<FixpointStatus> = eval_stratum_fixpoint;
+        let _executor_gate: StratumExecutorGate<'_> = eval_stratum_fixpoint;
     }
 
     fn nn(local: &str) -> String {

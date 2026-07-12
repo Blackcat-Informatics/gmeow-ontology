@@ -3,8 +3,8 @@
 # gmeow deterministic engine-cost ledger
 
 Committed engine/reference cost/agreement baseline (`bench/cost-baseline.json`),
-refreshed via `make maint-bench-cost-baseline`. Every value is an integer count
-or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the
+refreshed via `make maint-bench-cost-baseline`. Every measured performance value is
+an integer count or boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the
 harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,
 and `alloc_bytes`/`alloc_count` through one-sided tolerance bands: bytes use 1%,
 while counts use the greater of 1% and the measured 42-allocation quantized floor. This
@@ -23,20 +23,20 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | nary-mini | co-witness | nary-existential | 16 | 6 | 565335 | 5680 | 97071 | true | true |
 | nary-mini | split-null | nary-existential | 14 | 6 | 458974 | 4686 | 84282 | true | true |
 | nary-mini | stb-like | nary-existential | 24 | 10 | 766049 | 7881 | 89385 | true | true |
-| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 183591 | 1701 | 22188 | true | true |
-| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 110880 | 1072 | 16884 | true | true |
-| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3901583 | 32984 | 37950 | true | true |
-| relational-core-mini | incremental-transitive-closure | incremental | 13 | 91 | 2411313 | 54874 | 130246 | true | true |
-| relational-core-mini | incremental-wfs-grounding | incremental-grounding | 1 | 7 | 7938051 | 190135 | 238187 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208028 | 53431 | 58601 | true | true |
-| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3969023 | 33958 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3941606 | 33674 | 42113 | true | true |
-| relational-core-mini | reachability | forward | 2 | 2 | 3702215 | 31095 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5406020 | 46472 | 53602 | true | true |
-| relational-core-mini | scc | forward | 8 | 8 | 6142905 | 52303 | 53924 | true | true |
-| relational-core-mini | transitive-closure | forward | 3 | 3 | 3901828 | 33008 | 37913 | true | true |
-| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5475628 | 56950 | 213558 | true | true |
-| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7894694 | 107652 | 626039 | true | true |
+| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 183766 | 1704 | 22188 | true | true |
+| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 111055 | 1075 | 16884 | true | true |
+| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3901623 | 32985 | 37950 | true | true |
+| relational-core-mini | incremental-transitive-closure | incremental | 13 | 91 | 2618011 | 58006 | 130246 | true | true |
+| relational-core-mini | incremental-wfs-grounding | incremental-grounding | 1 | 7 | 7924429 | 189871 | 238187 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208480 | 53446 | 58601 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3969475 | 33973 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3941646 | 33675 | 42113 | true | true |
+| relational-core-mini | reachability | forward | 2 | 2 | 3702255 | 31096 | 36685 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5406060 | 46473 | 53602 | true | true |
+| relational-core-mini | scc | forward | 8 | 8 | 6142945 | 52304 | 53924 | true | true |
+| relational-core-mini | transitive-closure | forward | 3 | 3 | 3901868 | 33009 | 37913 | true | true |
+| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5473545 | 56881 | 213558 | true | true |
+| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7898232 | 106747 | 626039 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
@@ -109,13 +109,25 @@ Each row executes the same warm physical plan over identical EDB/rules. Fact-clo
 | nemo-kr2024-mini | transitive-connection | 5 | 5 | 2 | 3 | 3 | 13315 | 9379 | 3936 | 639 | 577 | 62 | true | true | true |
 | relational-core-mini | mutual-recursion | 14 | 14 | 4 | 10 | 10 | 33856 | 20245 | 13611 | 1966 | 2134 | -168 | true | true | true |
 | relational-core-mini | non-linear-transitive-closure | 9 | 9 | 3 | 6 | 6 | 25050 | 16701 | 8349 | 1282 | 1143 | 139 | true | true | true |
-| relational-core-mini | points-to | 8 | 8 | 3 | 4 | 4 | 18647 | 13077 | 5570 | 1002 | 916 | 86 | true | true | true |
+| relational-core-mini | points-to | 8 | 8 | 3 | 4 | 4 | 18647 | 13077 | 5570 | 988 | 902 | 86 | true | true | true |
 | relational-core-mini | reachability | 4 | 4 | 2 | 2 | 2 | 12048 | 8610 | 3438 | 515 | 443 | 72 | true | true | true |
-| relational-core-mini | same-generation | 12 | 12 | 2 | 8 | 8 | 35727 | 26005 | 9722 | 2068 | 1759 | 309 | true | true | true |
+| relational-core-mini | same-generation | 12 | 12 | 2 | 8 | 8 | 35727 | 26005 | 9722 | 2096 | 1787 | 309 | true | true | true |
 | relational-core-mini | scc | 10 | 10 | 3 | 8 | 8 | 24534 | 14235 | 10299 | 1463 | 1201 | 262 | true | true | true |
 | relational-core-mini | transitive-closure | 5 | 5 | 2 | 3 | 3 | 13244 | 9325 | 3919 | 639 | 549 | 90 | true | true | true |
-| relational-core-mini | transitive-closure-scaled | 90 | 90 | 12 | 78 | 78 | 198794 | 92812 | 105982 | 12223 | 16390 | -4167 | true | true | true |
-| relational-core-mini | triangle-heavy | 256 | 256 | 1 | 64 | 64 | 514700 | 344443 | 170257 | 49354 | 48588 | 766 | true | true | true |
+| relational-core-mini | transitive-closure-scaled | 90 | 90 | 12 | 78 | 78 | 198794 | 92812 | 105982 | 12293 | 16460 | -4167 | true | true | true |
+| relational-core-mini | triangle-heavy | 256 | 256 | 1 | 64 | 64 | 514700 | 344443 | 170257 | 50156 | 49390 | 766 | true | true | true |
+
+## Four-worker rule-parallel structural evidence
+
+The permanent balanced fixture runs in a real four-worker Rayon pool and is compared with forced-sequential execution. Candidate rows are counted after rule-local deduplication and before the deterministic merge; the critical-path count sums the largest task in each sequential round. These are exact structural row counts, not wall-clock speedup or byte-level memory claims.
+
+| fixture | workers | rules | seed rows | derived rows | consumed steps | parallel rounds | rule tasks | budget cuts |
+|---|---|---|---|---|---|---|---|---|
+| balanced-six-rule-v1 | 4 | 6 | 24 | 120 | 120 | 3 | 18 | 8 |
+
+| serial candidate-row sum | critical-path candidate-row sum | structural row gap | max merge-barrier rows | max task rows | output + provenance parity | budget parity | parallel path entered | strict critical-path reduction | closure blake3 |
+|---|---|---|---|---|---|---|---|---|---|
+| 144 | 48 | 96 | 96 | 24 | true | true | true | true | 2566655fb8364e5466291dec66b60b1013434971633192ef030a719082eeb617 |
 
 ## Per-corpus divergence-ledger tally
 

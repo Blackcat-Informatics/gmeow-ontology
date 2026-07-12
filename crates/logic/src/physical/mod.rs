@@ -101,7 +101,8 @@ pub(crate) use cursor::{LendingIterator, RowCursor};
 // `evaluate`/`UnsupportedKind` are consumed by the backward `magic` leg.
 #[allow(unused_imports)]
 pub(crate) use seminaive::{
-    Budgeted, NativeOutcome, UnsupportedKind, evaluate, materialize_native,
+    Budgeted, NativeOutcome, RuleParallelProbe, UnsupportedKind, evaluate, materialize_native,
+    rule_parallel_probe,
 };
 
 // The type-state plan pipeline: the executor's entry-gate types. `Parsed` is the sole

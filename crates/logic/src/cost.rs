@@ -787,6 +787,101 @@ pub struct NativeGroundingScratchRun {
     pub active_ground_rules: usize,
 }
 
+/// Deterministic structural evidence for one real four-worker rule-parallel run.
+///
+/// `serial_candidate_rows` is the sum of rule-local winner buffers across rounds;
+/// `critical_path_candidate_rows` is the sum of the largest task buffer in each
+/// round. Their strict delta is the scheduler-independent parallel work signal.
+/// `max_buffered_candidate_rows` is the exact maximum number of rule-local rows
+/// retained at the merge barrier, a deterministic memory-bound carrier in row units.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RuleParallelEvidence {
+    /// Rayon workers in the local evidence pool.
+    pub worker_count: usize,
+    /// Rules in the permanent balanced fixture.
+    pub rule_count: usize,
+    /// Asserted seed rows supplied to the fixture.
+    pub seed_rows: usize,
+    /// Rows derived at the complete fixpoint.
+    pub derived_rows: usize,
+    /// Governor steps consumed by the complete run.
+    pub consumed_steps: u64,
+    /// Semi-naive rounds that entered the rule-parallel path.
+    pub parallel_rounds: u64,
+    /// Rule-local tasks evaluated across those rounds.
+    pub rule_tasks: u64,
+    /// Sum of every rule-local candidate buffer across sequential rounds.
+    pub serial_candidate_rows: u64,
+    /// Sum of each round's largest rule-local candidate buffer.
+    pub critical_path_candidate_rows: u64,
+    /// Largest total candidate-row buffer retained at one merge barrier.
+    pub max_buffered_candidate_rows: u64,
+    /// Largest candidate-row buffer produced by one rule task.
+    pub max_task_candidate_rows: u64,
+    /// Step-budget cut points checked against forced-sequential execution.
+    pub budget_cases: usize,
+    /// Whether complete rows and provenance match forced-sequential execution.
+    pub output_parity: bool,
+    /// Whether every budget cut matches forced-sequential execution.
+    pub budget_parity: bool,
+    /// Whether execution actually entered the multi-worker rule path.
+    pub parallel_path_entered: bool,
+    /// Whether structural critical-path work is strictly below serial work.
+    pub critical_path_strictly_lower: bool,
+    /// Deterministic digest of the complete derived rows and provenance.
+    pub closure_hash: [u8; 32],
+}
+
+/// Run the permanent balanced rule-parallel fixture in a real four-worker pool.
+///
+/// # Errors
+///
+/// Returns an error if the fixture cannot execute, if the multi-worker path is not
+/// entered, if full output/provenance or any budget cut differs from forced sequential
+/// execution, or if the structural critical path is not strictly smaller than serial
+/// buffered work.
+pub fn run_rule_parallel_evidence() -> gmeow_errors::Result<RuleParallelEvidence> {
+    let probe = crate::physical::rule_parallel_probe()?;
+    if !(probe.parallel_path_entered
+        && probe.output_parity
+        && probe.budget_parity
+        && probe.critical_path_strictly_lower)
+    {
+        return Err(cost_err(format!(
+            "rule-parallel evidence failed: entered={} output_parity={} budget_parity={} \
+             critical_path_strictly_lower={} workers={} parallel_rounds={} serial_rows={} \
+             critical_rows={}",
+            probe.parallel_path_entered,
+            probe.output_parity,
+            probe.budget_parity,
+            probe.critical_path_strictly_lower,
+            probe.worker_count,
+            probe.parallel_rounds,
+            probe.serial_candidate_rows,
+            probe.critical_path_candidate_rows,
+        )));
+    }
+    Ok(RuleParallelEvidence {
+        worker_count: probe.worker_count,
+        rule_count: probe.rule_count,
+        seed_rows: probe.seed_rows,
+        derived_rows: probe.derived_rows,
+        consumed_steps: probe.consumed_steps,
+        parallel_rounds: probe.parallel_rounds,
+        rule_tasks: probe.rule_tasks,
+        serial_candidate_rows: probe.serial_candidate_rows,
+        critical_path_candidate_rows: probe.critical_path_candidate_rows,
+        max_buffered_candidate_rows: probe.max_buffered_candidate_rows,
+        max_task_candidate_rows: probe.max_task_candidate_rows,
+        budget_cases: probe.budget_cases,
+        output_parity: probe.output_parity,
+        budget_parity: probe.budget_parity,
+        parallel_path_entered: probe.parallel_path_entered,
+        critical_path_strictly_lower: probe.critical_path_strictly_lower,
+        closure_hash: probe.closure_hash,
+    })
+}
+
 /// Public deterministic-cost seam for incremental WFS grounding.
 ///
 /// Construction settles and solves the base shot. [`Self::insert`] and
@@ -1233,6 +1328,34 @@ mod tests {
     const A: &str = "http://example.org/a";
     const B: &str = "http://example.org/b";
     const C: &str = "http://example.org/c";
+
+    #[test]
+    fn four_worker_rule_parallel_evidence_is_non_vacuous_and_deterministic() {
+        let evidence = run_rule_parallel_evidence().expect("four-worker evidence run");
+        assert_eq!(
+            (
+                evidence.worker_count,
+                evidence.rule_count,
+                evidence.seed_rows,
+                evidence.derived_rows,
+                evidence.consumed_steps,
+                evidence.parallel_rounds,
+                evidence.rule_tasks,
+                evidence.serial_candidate_rows,
+                evidence.critical_path_candidate_rows,
+                evidence.max_buffered_candidate_rows,
+                evidence.max_task_candidate_rows,
+                evidence.budget_cases,
+            ),
+            (4, 6, 24, 120, 120, 3, 18, 144, 48, 96, 24, 8),
+            "the committed fixture's structural work vector must stay exact: {evidence:?}"
+        );
+        assert!(evidence.output_parity);
+        assert!(evidence.budget_parity);
+        assert!(evidence.parallel_path_entered);
+        assert!(evidence.critical_path_strictly_lower);
+        assert_ne!(evidence.closure_hash, [0; 32]);
+    }
 
     /// A tiny 2-stratum pure-ternary Datalog program (binary-eligible, so the
     /// governed semi-naive core runs and `consumed_steps` is populated):

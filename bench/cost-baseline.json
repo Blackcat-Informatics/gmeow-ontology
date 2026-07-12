@@ -189,8 +189,8 @@
       "fragment": "backward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 183591,
-        "alloc_count": 1701,
+        "alloc_bytes": 183766,
+        "alloc_count": 1704,
         "answer_count": 3,
         "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
         "consumed_steps": 9,
@@ -219,8 +219,8 @@
       "fragment": "backward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 110880,
-        "alloc_count": 1072,
+        "alloc_bytes": 111055,
+        "alloc_count": 1075,
         "answer_count": 2,
         "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
         "consumed_steps": 5,
@@ -249,8 +249,8 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3901583,
-        "alloc_count": 32984,
+        "alloc_bytes": 3901623,
+        "alloc_count": 32985,
         "consumed_steps": 3,
         "cost_vector": [
           [
@@ -372,8 +372,8 @@
       "fragment": "incremental",
       "golden_rows": 91,
       "native": {
-        "alloc_bytes": 2411313,
-        "alloc_count": 54874,
+        "alloc_bytes": 2618011,
+        "alloc_count": 58006,
         "consumed_steps": 13,
         "cost_vector": [
           [
@@ -455,8 +455,8 @@
       "fragment": "incremental-grounding",
       "golden_rows": 7,
       "native": {
-        "alloc_bytes": 7938051,
-        "alloc_count": 190135,
+        "alloc_bytes": 7924429,
+        "alloc_count": 189871,
         "consumed_steps": 1,
         "cost_vector": [],
         "derived_count": 7,
@@ -519,8 +519,8 @@
       "fragment": "forward",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 6208028,
-        "alloc_count": 53431,
+        "alloc_bytes": 6208480,
+        "alloc_count": 53446,
         "consumed_steps": 10,
         "cost_vector": [
           [
@@ -656,8 +656,8 @@
       "fragment": "forward",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 3969023,
-        "alloc_count": 33958,
+        "alloc_bytes": 3969475,
+        "alloc_count": 33973,
         "consumed_steps": 6,
         "cost_vector": [
           [
@@ -775,8 +775,8 @@
       "fragment": "forward",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3941606,
-        "alloc_count": 33674,
+        "alloc_bytes": 3941646,
+        "alloc_count": 33675,
         "consumed_steps": 4,
         "cost_vector": [
           [
@@ -851,7 +851,7 @@
           "annotation_complete": true,
           "closure_parity": true,
           "record": {
-            "alloc_count": 1002,
+            "alloc_count": 988,
             "annotation_count": 8,
             "consumed_steps": 4,
             "fact_closure_blake3": "5353351b029dcfc461244479341da0d1803fda00a892d77561876f3619fd8bdd",
@@ -862,7 +862,7 @@
           "record_alloc_count_overhead": 86,
           "record_peak_overhead_bytes": 5570,
           "skip": {
-            "alloc_count": 916,
+            "alloc_count": 902,
             "annotation_count": 0,
             "consumed_steps": 4,
             "fact_closure_blake3": "5353351b029dcfc461244479341da0d1803fda00a892d77561876f3619fd8bdd",
@@ -894,8 +894,8 @@
       "fragment": "forward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 3702215,
-        "alloc_count": 31095,
+        "alloc_bytes": 3702255,
+        "alloc_count": 31096,
         "consumed_steps": 2,
         "cost_vector": [
           [
@@ -1013,8 +1013,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5406020,
-        "alloc_count": 46472,
+        "alloc_bytes": 5406060,
+        "alloc_count": 46473,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -1089,7 +1089,7 @@
           "annotation_complete": true,
           "closure_parity": true,
           "record": {
-            "alloc_count": 2068,
+            "alloc_count": 2096,
             "annotation_count": 12,
             "consumed_steps": 8,
             "fact_closure_blake3": "e673e2b2c93f25f42b1069025d4e431430186915a37c6cec0f667470142bd59b",
@@ -1100,7 +1100,7 @@
           "record_alloc_count_overhead": 309,
           "record_peak_overhead_bytes": 9722,
           "skip": {
-            "alloc_count": 1759,
+            "alloc_count": 1787,
             "annotation_count": 0,
             "consumed_steps": 8,
             "fact_closure_blake3": "e673e2b2c93f25f42b1069025d4e431430186915a37c6cec0f667470142bd59b",
@@ -1132,8 +1132,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 6142905,
-        "alloc_count": 52303,
+        "alloc_bytes": 6142945,
+        "alloc_count": 52304,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -1269,8 +1269,8 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3901828,
-        "alloc_count": 33008,
+        "alloc_bytes": 3901868,
+        "alloc_count": 33009,
         "consumed_steps": 3,
         "cost_vector": [
           [
@@ -1388,8 +1388,8 @@
       "fragment": "forward",
       "golden_rows": 78,
       "native": {
-        "alloc_bytes": 5475628,
-        "alloc_count": 56950,
+        "alloc_bytes": 5473545,
+        "alloc_count": 56881,
         "consumed_steps": 78,
         "cost_vector": [
           [
@@ -1464,7 +1464,7 @@
           "annotation_complete": true,
           "closure_parity": true,
           "record": {
-            "alloc_count": 12223,
+            "alloc_count": 12293,
             "annotation_count": 90,
             "consumed_steps": 78,
             "fact_closure_blake3": "c43fd032019b21d55b3867ca50dc685f2c1906fe90888ad2760d5cb286d03024",
@@ -1475,7 +1475,7 @@
           "record_alloc_count_overhead": -4167,
           "record_peak_overhead_bytes": 105982,
           "skip": {
-            "alloc_count": 16390,
+            "alloc_count": 16460,
             "annotation_count": 0,
             "consumed_steps": 78,
             "fact_closure_blake3": "c43fd032019b21d55b3867ca50dc685f2c1906fe90888ad2760d5cb286d03024",
@@ -1507,8 +1507,8 @@
       "fragment": "forward",
       "golden_rows": 64,
       "native": {
-        "alloc_bytes": 7894694,
-        "alloc_count": 107652,
+        "alloc_bytes": 7898232,
+        "alloc_count": 106747,
         "consumed_steps": 64,
         "cost_vector": [
           [
@@ -1565,7 +1565,7 @@
           "annotation_complete": true,
           "closure_parity": true,
           "record": {
-            "alloc_count": 49354,
+            "alloc_count": 50156,
             "annotation_count": 256,
             "consumed_steps": 64,
             "fact_closure_blake3": "a586b01ef07f206678063a4b2d2c28ee65b23647b4e58035aeb9771e9a1f0186",
@@ -1576,7 +1576,7 @@
           "record_alloc_count_overhead": 766,
           "record_peak_overhead_bytes": 170257,
           "skip": {
-            "alloc_count": 48588,
+            "alloc_count": 49390,
             "annotation_count": 0,
             "consumed_steps": 64,
             "fact_closure_blake3": "a586b01ef07f206678063a4b2d2c28ee65b23647b4e58035aeb9771e9a1f0186",
@@ -1911,6 +1911,27 @@
         }
       ]
     }
+  },
+  "rule_parallelism": {
+    "budget_cases": 8,
+    "budget_parity": true,
+    "closure_blake3": "2566655fb8364e5466291dec66b60b1013434971633192ef030a719082eeb617",
+    "consumed_steps": 120,
+    "critical_path_candidate_rows": 48,
+    "critical_path_rows_saved": 96,
+    "critical_path_strictly_lower": true,
+    "derived_rows": 120,
+    "fixture": "balanced-six-rule-v1",
+    "max_buffered_candidate_rows": 96,
+    "max_task_candidate_rows": 24,
+    "output_parity": true,
+    "parallel_path_entered": true,
+    "parallel_rounds": 3,
+    "rule_count": 6,
+    "rule_tasks": 18,
+    "seed_rows": 24,
+    "serial_candidate_rows": 144,
+    "worker_count": 4
   },
   "schema": "gmeow.bench-engines.cost/1"
 }

@@ -158,7 +158,11 @@ are consumed through its public Rust API:
   executable program order, quality-merges duplicate heads, and mutates the stores
   only at the existing lexical `FactKey` commit. Budgeted and unbounded runs therefore
   observe the identical committed prefix, provenance, and completion frontier; one-rule
-  strata and the one-worker deterministic measurement pool retain the direct path.
+  strata and the one-worker allocation-measurement pool retain the direct path. The
+  permanent balanced evidence fixture separately enters the real four-worker path and
+  drift-gates its output/provenance and budget-cut parity, candidate-row critical path,
+  and merge-buffer row bound. Those are scheduler-independent structural counts, not a
+  wall-time speedup or byte-level memory claim.
 - SIMD: `purrdf-iri` uses safe portable SIMD only for dense ASCII delimiter scans;
   semantic validation remains scalar and byte-exact.
 - Sealed traits: `purrdf::DatasetView` and `DatasetMut` are sealed to the purrdf
