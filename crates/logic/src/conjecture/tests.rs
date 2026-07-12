@@ -344,6 +344,58 @@ fn ground_candidate_incremental_closure_matches_scratch_with_real_premises() {
     );
 }
 
+#[test]
+fn asserting_an_already_derived_candidate_promotes_it_to_edb_provenance() {
+    let store = kb(&[(A_CLS, SUBCLASS, B_CLS), (B_CLS, SUBCLASS, C_CLS)]);
+    let base_edb = build_scenario_edb(&store, SCN, &[], None).unwrap();
+    let base = reason_all(&base_edb).unwrap();
+    assert!(base.inferred().iter().any(|axiom| {
+        axiom.subject == A_CLS
+            && axiom.predicate == SUBCLASS
+            && axiom.object == format!("<{C_CLS}>")
+            && !axiom.is_edb
+    }));
+
+    let with_candidate = build_scenario_edb(
+        &store,
+        SCN,
+        &[],
+        Some((A_CLS.to_owned(), SUBCLASS.to_owned(), RdfTerm::iri(C_CLS))),
+    )
+    .unwrap();
+    let adjusted = crate::reason::reason_ground_iri_insert_incremental(
+        crate::reason::GroundIriIncrementalRequest {
+            base_edb: &base_edb,
+            with_candidate_edb: &with_candidate,
+            base: &base,
+            scenario_world: SCN,
+            subject: A_CLS,
+            predicate: SUBCLASS,
+            object: C_CLS,
+            max_steps: None,
+        },
+    )
+    .unwrap();
+
+    let candidate = adjusted
+        .result
+        .inferred()
+        .iter()
+        .find(|axiom| {
+            axiom.subject == A_CLS
+                && axiom.predicate == SUBCLASS
+                && axiom.object == format!("<{C_CLS}>")
+                && axiom.world == SCN
+        })
+        .expect("candidate remains in the adjusted closure");
+    assert!(
+        candidate.is_edb,
+        "the newly asserted candidate owns EDB provenance"
+    );
+    assert!(candidate.rule_name.is_none());
+    assert!(candidate.premises.is_empty());
+}
+
 // ── Test 6: beyond-fragment candidate ⇒ Unsupported + disclosed residue ───────
 
 #[test]
