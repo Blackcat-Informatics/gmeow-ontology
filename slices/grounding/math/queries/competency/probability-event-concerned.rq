@@ -1,0 +1,14 @@
+# Competency question: "What probability event is this probability value about?"
+# Exercises the discipline that a framed probability is P(A) for a specific
+# math:ProbabilityEvent — a MEASURABLE SET OF OUTCOMES, held disjoint from a
+# logic:Event occurrent — reached through math:probabilityOfEvent. Scoped to the
+# fixture namespace so the answer is exactly {rainProb → rainEvent}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?value ?event WHERE {
+    ?event a math:ProbabilityEvent ;
+           math:probabilityOfEvent ?value .
+    ?value a math:ProbabilityValue .
+    FILTER(STRSTARTS(STR(?value), "http://example.org/math/"))
+}
+ORDER BY ?value

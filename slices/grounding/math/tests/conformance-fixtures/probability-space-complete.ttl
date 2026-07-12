@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:ProbabilitySpaceCompleteShape (Rule P4): a
+# math:ProbabilitySpace naming all three components of the Kolmogorov triple (Ω, ℱ, P),
+# each SYMBOLIC — a math:SymbolicSampleSpace Ω, a math:BorelSigmaAlgebra ℱ, and a
+# math:ProbabilityMeasure P. The measure is well-formed as a math:Measure too
+# (math:measureOn a math:MeasurableSpace, math:totalMass 1), satisfying the inherited
+# math:MeasureCompletenessShape and math:ProbabilityMeasureShape (total mass one).
+# It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/probability-space-incomplete.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecProbabilitySpaceComplete).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:realLineSpace a math:ProbabilitySpace ;
+    math:sampleSpace ex:omega ;
+    math:eventSigmaAlgebra ex:borelAlgebra ;
+    math:probabilityMeasure ex:measureP .
+
+# Ω = ℝ, named symbolically rather than by enumerating outcomes.
+ex:omega a math:SymbolicSampleSpace .
+
+# ℱ = the Borel σ-algebra of ℝ, given symbolically by its generator.
+ex:borelAlgebra a math:BorelSigmaAlgebra .
+
+# P, a probability measure of total mass one over the measurable space.
+ex:measureP a math:ProbabilityMeasure ;
+    math:measureOn ex:realMeasurableSpace ;
+    math:totalMass 1 .
+
+ex:realMeasurableSpace a math:MeasurableSpace .

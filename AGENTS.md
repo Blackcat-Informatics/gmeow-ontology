@@ -478,20 +478,26 @@ signature, reject an invalid one — stays on-gate via
 rather than replaying the shipped bundle, and `release.rs`'s own unit tests
 cover the fold/verify pair's logic against a tiny synthetic snapshot; the full
 committed-bundle round-trip stays on-gate on `maint-heavy`).
-Complete `fr-CA`/`zh-Hans` label-and-definition carriers for the logic slice grew
-the multilingual bundle/report/site enough to push two exhaustive whole-repo
-tests past budget even in an isolated `make rust-gate`:
-`gmeow-pipeline::stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows`
-(28.9 s) and
-`gmeow-pipeline::stages::lang_docs_rendering::tests::rollup_targets_are_real_translation_units`
-(26.2 s). Each walks the complete projection report or
-translated rollup set and is irreducibly O(bundle/report/site size). No coverage
-class leaves the gate: `make check-generated` byte-gates all mapping/product/docs
-artifacts, focused mapping-routing and language-rendering tests remain on-gate,
-and the two exhaustive sweeps run on `maint-heavy`.
+The AI-agent docs surface (native `validate_local` + `doc_card` tiers + the
+`docs_search`/`counter_examples`/`entailments`/`competency_questions` tools, backed
+by a `graph/documentation` teaching-content projection) grew the bundle and the MCP
+tool surface enough to push two whole-bundle sweeps past budget:
+`gmeow-pipeline::stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle`
+(27.1 s; reconstructs every axis floor from the committed bundle alone, irreducibly
+O(bundle size), the same whole-committed-bundle class as the superset/reconstruction
+siblings above) and
+`gmeow-pipeline::mcp::tests::json_rpc_protocol_conformance_round_trip`
+(25.3 s; dispatches EVERY advertised tool over the whole bundle — `validate_local`
+runs the full SHACL surface and the four content tools each query the whole
+`graph/documentation` projection — so it grew on tool-surface/bundle size, not
+fixture cost). No coverage leaves the gate: the axis-floor bytes are drift-gated on
+every `make check` via `make check-generated`; each new MCP tool keeps its own
+focused on-gate test (`validate_local` parity+correspondence, the four content-tool
+surface tests, and the `tools/list` mode-gating golden), so every tool is still
+exercised on-gate; and both whole-bundle sweeps run on `maint-heavy`.
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
-correspondence parity, most mapping parity, carrier/docs archive tests, scoreboards
+correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
 acceptance, JSON-LD round-trips, product routing, slice/slicetest parity, and
 docs live-render guards are in the default/ci profile.
 

@@ -118,8 +118,13 @@ fn literal_fixture(name: &str, translate_example: bool) -> (PathBuf, String) {
     .unwrap();
 
     for lang in ["fr", "zh"] {
+        let (label, definition, example_value) = match lang {
+            "fr" => ("Étiquette", "Définition", "ex:chose a ex:Chose ."),
+            "zh" => ("标签", "定义", "示例：ex:thing a ex:Thing ."),
+            _ => unreachable!(),
+        };
         let example = if translate_example {
-            format!("\nmsgctxt \"{term}|skos:example\"\nmsgid \"E\"\nmsgstr \"E-{lang}\"\n")
+            format!("\nmsgctxt \"{term}|skos:example\"\nmsgid \"E\"\nmsgstr \"{example_value}\"\n")
         } else {
             String::new()
         };
@@ -127,8 +132,8 @@ fn literal_fixture(name: &str, translate_example: bool) -> (PathBuf, String) {
             dir.join(format!("i18n/{lang}.po")),
             format!(
                 "msgid \"\"\nmsgstr \"Language: {lang}\\n\"\n\
-                 \nmsgctxt \"{term}|rdfs:label\"\nmsgid \"L\"\nmsgstr \"L-{lang}\"\n\
-                 \nmsgctxt \"{term}|skos:definition\"\nmsgid \"D\"\nmsgstr \"D-{lang}\"\n{example}"
+                 \nmsgctxt \"{term}|rdfs:label\"\nmsgid \"L\"\nmsgstr \"{label}\"\n\
+                 \nmsgctxt \"{term}|skos:definition\"\nmsgid \"D\"\nmsgstr \"{definition}\"\n{example}"
             ),
         )
         .unwrap();
@@ -165,4 +170,49 @@ fn translation_denominator_is_every_localizable_literal_not_just_label_and_defin
 
     std::fs::remove_dir_all(&dir).ok();
     std::fs::remove_dir_all(&dir2).ok();
+}
+
+#[test]
+fn translation_axis_does_not_credit_copied_english() {
+    let (dir, iri) = literal_fixture("integrity", false);
+    let term = "https://blackcatinformatics.ca/gmeow/xlit/Thing";
+    std::fs::write(
+        dir.join("module.ttl"),
+        format!(
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             <{term}> a owl:Class ;\n\
+                 rdfs:isDefinedBy <{iri}> ;\n\
+                 rdfs:label \"Lifecycle state\"@en .\n"
+        ),
+    )
+    .unwrap();
+    for lang in ["fr", "zh"] {
+        std::fs::write(
+            dir.join(format!("i18n/{lang}.po")),
+            format!(
+                "msgid \"\"\nmsgstr \"Language: {lang}\\n\"\n\n\
+                 msgctxt \"{term}|rdfs:label\"\n\
+                 msgid \"Lifecycle state\"\n\
+                 msgstr \"Lifecycle state\"\n"
+            ),
+        )
+        .unwrap();
+    }
+
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
+    let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(iri, dir.clone(), &ds));
+    assert_eq!(
+        tr.score,
+        1.0 / 3.0,
+        "copied English must earn no fr/cmn credit"
+    );
+    assert_eq!(
+        tr.findings
+            .iter()
+            .filter(|finding| finding.code == "slice-quality.translation.integrity-rejected")
+            .count(),
+        2
+    );
+    std::fs::remove_dir_all(dir).ok();
 }

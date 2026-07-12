@@ -251,8 +251,14 @@ fn every_emitted_documentation_term_is_declared() {
     // gmeow:DocEvidence per-kind predicate, including the diagnostics/loss paths
     // the real repo does not populate today) — so the emitted set is the fullest
     // faithful projection surface, not a subset.
-    let mut emitted = emitted_terms(&to_gmeow_rdf(&common::cached_model()));
-    emitted.extend(emitted_terms(&to_gmeow_rdf(&evidence_rich_model())));
+    let mut emitted = emitted_terms(&to_gmeow_rdf(
+        &common::cached_model(),
+        &std::collections::BTreeMap::new(),
+    ));
+    emitted.extend(emitted_terms(&to_gmeow_rdf(
+        &evidence_rich_model(),
+        &std::collections::BTreeMap::new(),
+    )));
 
     // Non-vacuity: the projection must genuinely emit doc vocabulary, else the
     // subset check below would be trivially satisfiable and the gate meaningless.

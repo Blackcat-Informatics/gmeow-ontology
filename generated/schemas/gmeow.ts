@@ -648,15 +648,11 @@ export enum AxisFloorCommitmentEnum {
     afc_logic_axisFlagshipCounterExampleDepth = "afc-logic-axisFlagshipCounterExampleDepth",
     afc_logic_axisGmn1Coverage = "afc-logic-axisGmn1Coverage",
     afc_logic_axisMaximalGrounding = "afc-logic-axisMaximalGrounding",
-    afc_logic_axisMaximalInformation = "afc-logic-axisMaximalInformation",
     afc_logic_axisMaximalLinkage = "afc-logic-axisMaximalLinkage",
     afc_logic_axisMaximalProjection = "afc-logic-axisMaximalProjection",
-    afc_logic_axisOptimalTesting = "afc-logic-axisOptimalTesting",
-    afc_logic_axisProseQuality = "afc-logic-axisProseQuality",
     afc_logic_axisProvenanceHonesty = "afc-logic-axisProvenanceHonesty",
     afc_logic_axisReasonerDerived = "afc-logic-axisReasonerDerived",
     afc_logic_axisShapeMigration = "afc-logic-axisShapeMigration",
-    afc_logic_axisTranslationCoverage = "afc-logic-axisTranslationCoverage",
     afc_math_axisDocMaturity = "afc-math-axisDocMaturity",
     afc_math_axisDocumentation = "afc-math-axisDocumentation",
     afc_math_axisGmn1Coverage = "afc-math-axisGmn1Coverage",
@@ -1426,6 +1422,11 @@ export enum DocEvidenceKindEnum {
     docEvidenceKindFixture = "docEvidenceKindFixture",
     docEvidenceKindLoss = "docEvidenceKindLoss",
     docEvidenceKindProvenance = "docEvidenceKindProvenance",
+}
+
+export enum DocFixtureKindEnum {
+    docFixtureKindCounterExample = "docFixtureKindCounterExample",
+    docFixtureKindWellformed = "docFixtureKindWellformed",
 }
 
 export enum DocMaturityEnum {
@@ -4665,6 +4666,11 @@ export interface CommunitySummary extends Summary {
     summarizesCommunity?: Community,
 }
 
+export interface CompetencyExpectedRow extends InformationObject {
+    cqCellValueLiteral?: string[],
+    cqCellVar?: string[],
+}
+
 export interface ComplianceAssessment extends Observation {
     assessedEvent?: Event,
     assessedNorm?: Norm,
@@ -5100,6 +5106,17 @@ export interface DocEvidence extends InformationObject {
 export interface DocEvidenceKind {
 }
 
+export interface DocFixture extends InformationObject {
+    conformanceRationale?: string[],
+    docExpectedOutcome?: string[],
+    docFixtureKind?: DocFixtureKind[],
+    docFixtureText?: string[],
+    docViolationCode?: string[],
+}
+
+export interface DocFixtureKind {
+}
+
 export interface DocMaturity {
     maturityRequiresDimension?: DocCoverageDimension[],
 }
@@ -5108,6 +5125,14 @@ export interface Document extends Work {
 }
 
 export interface DocumentationConcern {
+}
+
+export interface DocumentedCompetency extends InformationObject {
+    cqExactRows?: boolean[],
+    cqExpectRowCount?: number[],
+    cqExpectedRow?: CompetencyExpectedRow[],
+    cqQueryText?: string[],
+    cqRationale?: string[],
 }
 
 export interface DocumentedConcern extends InformationObject {
@@ -5123,6 +5148,8 @@ export interface DocumentedTerm extends InformationObject {
     docCategory?: string[],
     docHasDefinition?: boolean[],
     docReasoningStatus?: string[],
+    docSearchAdvice?: string[],
+    docSearchAlignment?: string[],
 }
 
 export interface DoxasticStandpointClaim extends StandpointClaim {
@@ -5239,6 +5266,12 @@ export interface Employment extends Membership {
 }
 
 export interface EmploymentType {
+}
+
+export interface Entailment extends InformationObject {
+    entailmentConclusion?: string[],
+    entailmentPremise?: string[],
+    entailmentRule?: string[],
 }
 
 export interface Entity {

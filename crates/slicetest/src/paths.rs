@@ -63,7 +63,7 @@ pub fn module_file(slice_dir: &Path) -> PathBuf {
 
 /// The SHACL surfaces enforcing one slice. During migration this is the local
 /// `<slice>/shapes.ttl`; after equivalence-proven deletion it is the canonical generated
-/// validation plus procedural projection.
+/// validation plus declarative-constraint and procedural projections.
 pub fn shapes_files(slice_dir: &Path) -> Vec<PathBuf> {
     let local = slice_dir.join("shapes.ttl");
     if local.is_file() {
@@ -71,6 +71,7 @@ pub fn shapes_files(slice_dir: &Path) -> Vec<PathBuf> {
     } else {
         vec![
             repo_root().join("generated/shapes/validation-shapes.ttl"),
+            repo_root().join("generated/shapes/constraint-shapes.ttl"),
             repo_root().join("generated/shapes/procedural-constraints.ttl"),
         ]
     }
@@ -112,6 +113,7 @@ mod tests {
             shapes_files(slice),
             vec![
                 repo_root().join("generated/shapes/validation-shapes.ttl"),
+                repo_root().join("generated/shapes/constraint-shapes.ttl"),
                 repo_root().join("generated/shapes/procedural-constraints.ttl"),
             ]
         );

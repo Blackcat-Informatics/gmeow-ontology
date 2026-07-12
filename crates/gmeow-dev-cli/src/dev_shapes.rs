@@ -141,16 +141,28 @@ fn read_shapes(ds: &RdfDataset, errors: &mut Vec<String>) -> Vec<(String, ShapeR
     out
 }
 
-/// Read projected shapes into the target index used for peer lookup. The projector normally emits
-/// one merged declarative shape per target; retaining the first in deterministic IRI order preserves
-/// that contract while [`read_shapes`] keeps the authored legacy population lossless.
+/// Index projected shapes by focus target. The generated validation surface is
+/// canonicalized to one aggregate declarative shape per target. A duplicate is
+/// an oracle error: choosing either candidate could conceal enforcement carried
+/// by the other and therefore cannot authorize deletion.
 fn shapes_by_target(
     ds: &RdfDataset,
     errors: &mut Vec<String>,
 ) -> BTreeMap<ShapeTarget, (String, ShapeRead)> {
     let mut out = BTreeMap::new();
     for (iri, read) in read_shapes(ds, errors) {
-        out.entry(read.ir.target.clone()).or_insert((iri, read));
+        let target = read.ir.target.clone();
+        match out.entry(target) {
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert((iri, read));
+            }
+            std::collections::btree_map::Entry::Occupied(entry) => errors.push(format!(
+                "projected shapes {} and {} share target {}; aggregate them before equivalence testing",
+                entry.get().0,
+                iri,
+                target_label(entry.key())
+            )),
+        }
     }
     out
 }
@@ -268,6 +280,9 @@ impl OracleCtx {
         let projected = shapes_by_target(&projected_ds, &mut proj_errors);
         for e in &proj_errors {
             eprintln!("{tool}: projected shape read error: {e}");
+        }
+        if !proj_errors.is_empty() {
+            return Err(1);
         }
 
         // Functional-property max-counts ride a SEPARATE projected shape targeted at the property's
@@ -1598,5 +1613,30 @@ mod tests {
         );
         assert_eq!(shapes[0].0, "https://example.test/First");
         assert_eq!(shapes[1].0, "https://example.test/Second");
+    }
+
+    #[test]
+    fn projected_shapes_with_the_same_target_are_rejected() {
+        let dataset = parse_dataset(
+            br#"
+            @prefix ex: <https://example.test/> .
+            @prefix sh: <http://www.w3.org/ns/shacl#> .
+
+            ex:First a sh:NodeShape ;
+                sh:targetClass ex:Widget ;
+                sh:property [ sh:path ex:name ; sh:minCount 1 ] .
+            ex:Second a sh:NodeShape ;
+                sh:targetClass ex:Widget ;
+                sh:property [ sh:path ex:code ; sh:minCount 1 ] .
+            "#,
+            "text/turtle",
+            None,
+        )
+        .expect("fixture parses");
+        let mut errors = Vec::new();
+        let projected = shapes_by_target(&dataset, &mut errors);
+        assert_eq!(projected.len(), 1);
+        assert_eq!(errors.len(), 1);
+        assert!(errors[0].contains("share target"));
     }
 }

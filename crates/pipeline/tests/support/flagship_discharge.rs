@@ -503,6 +503,7 @@ pub fn run_flagship_discharge_with_counterexample(
     } else {
         vec![
             repo_root().join("generated/shapes/validation-shapes.ttl"),
+            repo_root().join("generated/shapes/constraint-shapes.ttl"),
             repo_root().join("generated/shapes/procedural-constraints.ttl"),
         ]
     };

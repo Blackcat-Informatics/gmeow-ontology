@@ -715,3 +715,167 @@ ex:ecFlagshipNonFailureClass a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a gmeow:FlagshipScenario whose gmeow:enforcesFailureClass names math:Set — a real class that is NOT a math:MathConformanceFailure subclass (the failure-range sh:sparql of the slice's thin math:FlagshipScenarioShape). That constraint fires, so validation MUST emit shacl.SPARQLConstraintComponent (math:UnwiredFlagshipScenario) — the enforcing failure class is checked by value." .
+
+# =========================================================================== #
+# Probability-layer gates (Rules P1–P11 of shapes.ttl) — each SHACL/SHACL-SPARQL
+# gate gets one conforming fixture and one counter-example isolating exactly one
+# violation. See slices/grounding/math/design/MATHEMATICS-PROBABILITY.md.
+# =========================================================================== #
+
+# === Rule P1: a probability value's magnitude lies in the closed unit interval [0,1] === #
+
+ex:ecProbabilityValueInUnit a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/probability-value-in-unit.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A framed math:ProbabilityValue carrying its exact magnitude 0.72 as a math:RationalValue 18/25 (exact-rational discipline, AC#6) satisfies math:ProbabilityValueRangeShape, math:ProbabilityScaleDisjointShape, math:ProbabilityValueFramedShape, math:ConfidenceAsProbabilityConstraint and math:RationalValueShape, validating with no findings." .
+
+ex:ecProbabilityValueAboveUnitBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/probability-value-above-unit.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxInclusiveConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a framed math:ProbabilityValue whose gmeow:quantityValue (1.5) exceeds the closed unit interval's sh:maxInclusive 1 on math:ProbabilityValueRangeShape, so validation MUST emit shacl.MaxInclusiveConstraintComponent and NO other finding — the frame keeps math:ProbabilityValueFramedShape satisfied (math:ProbabilityOutOfBounds)." .
+
+# === Rule P2: a probability value is never also an odds or log-odds value === #
+
+ex:ecOddsValueDistinct a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/odds-value-distinct.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:OddsValue that is NOT typed math:ProbabilityValue, recovering its probability through a declared math:ProbabilityScaleTransform, faces none of the probability-value gates and validates with no findings." .
+
+ex:ecProbabilityScaleConflationBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/probability-scale-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a node typed BOTH math:ProbabilityValue and math:OddsValue, tripping the sh:not [ sh:class math:OddsValue ] of math:ProbabilityScaleDisjointShape, so validation MUST emit shacl.NotConstraintComponent and NO other finding — the frame keeps math:ProbabilityValueFramedShape satisfied (math:ProbabilityScaleConflation)." .
+
+# === Rule P3: a probability value names its reference frame or its probability model === #
+
+ex:ecProbabilityValueFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/probability-value-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ProbabilityValue naming its gmeow:hasReferenceFrame, carrying its exact magnitude 1/2 as a math:RationalValue (AC#6), satisfies the sh:or of math:ProbabilityValueFramedShape and validates with no findings." .
+
+ex:ecProbabilityValueUnframedBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/probability-value-unframed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.OrConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ProbabilityValue naming NEITHER gmeow:hasReferenceFrame NOR logic:probabilityModel, so the sh:or of math:ProbabilityValueFramedShape fails; validation MUST emit shacl.OrConstraintComponent and NO other finding — its in-range 0.5 keeps math:ProbabilityValueRangeShape satisfied (math:UnframedProbabilityValue)." .
+
+# === Rule P4: a probability space names all three Kolmogorov-triple components === #
+
+ex:ecProbabilitySpaceComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/probability-space-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ProbabilitySpace naming a symbolic math:SymbolicSampleSpace, a math:BorelSigmaAlgebra, and a total-mass-one math:ProbabilityMeasure satisfies math:ProbabilitySpaceCompleteShape (and the inherited measure shapes) and validates with no findings." .
+
+ex:ecProbabilitySpaceIncompleteBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/probability-space-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ProbabilitySpace naming its sample space and σ-algebra but omitting its math:probabilityMeasure (sh:minCount 1 on math:ProbabilitySpaceCompleteShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteProbabilitySpace)." .
+
+# === Rule P5: a random variable declares its domain, codomain, and a context === #
+
+ex:ecRandomVariableScoped a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/random-variable-scoped.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:RandomVariable declaring math:randomVariableDomain, math:randomVariableCodomain, and a math:hasDistribution context (to a family-named distribution) satisfies math:RandomVariableScopedShape and validates with no findings." .
+
+ex:ecRandomVariableUnscopedBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/random-variable-unscoped.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:RandomVariable with a domain and a distribution context but no math:randomVariableCodomain (sh:minCount 1 on math:RandomVariableScopedShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding — its family-named distribution keeps math:DistributionFamilyShape satisfied (math:UnscopedRandomVariable)." .
+
+# === Rule P6a: a distribution names its family (MinCount) === #
+
+ex:ecDistributionParameterized a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/distribution-parameterized.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Distribution naming its math:distributionFamily and its math:distributionParameterization, supplying each required role exactly once, satisfies math:DistributionFamilyShape, math:DistributionParameterizationShape, and math:ParameterRoleCardinalityConstraint, validating with no findings." .
+
+ex:ecDistributionMissingFamilyBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/distribution-missing-family.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a bare math:Distribution naming no math:distributionFamily (sh:minCount 1 on math:DistributionFamilyShape); supplying no parameters keeps the parametric SPARQL gates silent, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:MissingDistributionParameterization)." .
+
+# === Rule P6b: a parameter-supplying distribution names its parameterization (SPARQL) === #
+
+ex:ecDistributionMissingParameterizationBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/distribution-missing-parameterization.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a parametric math:Distribution (it supplies a math:hasDistributionParameter) that names no math:distributionParameterization, tripping the SHACL-SPARQL of math:DistributionParameterizationShape; its named math:distributionFamily keeps math:DistributionFamilyShape satisfied, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:MissingDistributionParameterization)." .
+
+# === Rule P7: each required parameter role is supplied exactly once (SPARQL) === #
+
+ex:ecDistributionRoleExact a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/distribution-role-exact.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Distribution whose parameterization requires one rate role, supplied by exactly one math:DistributionParameter, keeps math:ParameterRoleCardinalityConstraint silent (and satisfies P6a/P6b), validating with no findings." .
+
+ex:ecDistributionRoleCardinalityBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/distribution-role-cardinality.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:Distribution whose parameterization requires one rate role but which supplies it TWICE, so the aggregate per-role count (2 ≠ 1) trips the SHACL-SPARQL of math:ParameterRoleCardinalityConstraint; its named family and parameterization keep P6a/P6b satisfied, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:DistributionParameterRoleCardinality)." .
+
+# === Rule P8: a conditional probability names its conditioning context === #
+
+ex:ecConditionalProbabilityConditioned a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/conditional-probability-conditioned.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ConditionalProbability naming its conditioning context through math:conditionalOn satisfies math:ConditionedAssertionShape and validates with no findings." .
+
+ex:ecConditionalProbabilityUnconditionedBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/conditional-probability-unconditioned.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ConditionalProbability naming no math:conditionalOn (sh:minCount 1 on math:ConditionedAssertionShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnconditionedAssertion)." .
+
+# === Rule P9: a conditional-independence assertion names its conditioning set === #
+
+ex:ecConditionalIndependenceGiven a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/conditional-independence-given.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ConditionalIndependenceAssertion naming its conditioning set through math:independentGiven satisfies math:ConditionalIndependenceGivenShape and validates with no findings." .
+
+ex:ecConditionalIndependenceUngivenBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/conditional-independence-ungiven.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ConditionalIndependenceAssertion naming its subject and independent-of event but no math:independentGiven (sh:minCount 1 on math:ConditionalIndependenceGivenShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnconditionedAssertion)." .
+
+# === Rule P10: a confidence-carrying probability value declares its mapping (SPARQL) === #
+
+ex:ecConfidenceWithModel a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/confidence-with-model.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ProbabilityValue carrying a logic:confidence that ALSO declares its logic:probabilityModel keeps math:ConfidenceAsProbabilityConstraint silent (and the model satisfies math:ProbabilityValueFramedShape), validating with no findings." .
+
+ex:ecConfidenceAsProbabilityBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/confidence-as-probability.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ProbabilityValue carrying a logic:confidence with no logic:probabilityModel, tripping the SHACL-SPARQL of math:ConfidenceAsProbabilityConstraint; its gmeow:hasReferenceFrame keeps math:ProbabilityValueFramedShape satisfied, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:ConfidenceAsProbability)." .
+
+# === Rule P11: a probability event (set of outcomes) is not an occurrent (logic:Event) === #
+
+ex:ecProbabilityEventDistinct a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/probability-event-distinct.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ProbabilityEvent that is NOT typed logic:Event satisfies the sh:not of math:ProbabilityEventOccurrentDisjointShape and validates with no findings." .
+
+ex:ecProbabilityEventOccurrentConflationBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/probability-event-occurrent-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a node typed BOTH math:ProbabilityEvent and logic:Event, tripping the sh:not [ sh:class logic:Event ] of math:ProbabilityEventOccurrentDisjointShape, so validation MUST emit shacl.NotConstraintComponent and NO other finding (math:ProbabilityEventOccurrentConflation)." .
+
+# === Lossy dogfooding: the non-exact polarity of the probability-model lowering seam === #
+
+ex:ecDependencyModelApproximateLossy a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/dependency-model-approximate-lossy.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A reasoning-facing math:FactorGraph whose math:probabilityModelLowering into logic:DependencyModel carries a NON-exact logic:preservationKind (logic:SoundUnderApproximation) with its dropped constructs enumerated through logic:unsupportedConstruct exercises the lossy branch of the lowering seam; it carries no SHACL target shape and validates with no findings, dogfooding the loss ledger on the non-exact polarity." .

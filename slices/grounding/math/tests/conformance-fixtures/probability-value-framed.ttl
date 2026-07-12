@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:ProbabilityValueFramedShape (Rule P3): a
+# math:ProbabilityValue that names its gmeow:hasReferenceFrame, so the sh:or (reference
+# frame OR probability model) is satisfied. Following the exact-rational discipline (AC#6)
+# its exact magnitude 1/2 is carried as a math:RationalValue (also satisfying
+# math:RationalValueShape); it is not typed math:OddsValue / math:LogOddsValue (P2) and
+# carries no logic:confidence (P10). It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/probability-value-unframed.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecProbabilityValueFramed).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:framedProbability a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 1 ;         # 1/2 = 0.5, within [0, 1]
+    math:denominator 2 ;
+    gmeow:hasReferenceFrame ex:fairCoinFrame .
+
+ex:fairCoinFrame a gmeow:ReferenceFrame .

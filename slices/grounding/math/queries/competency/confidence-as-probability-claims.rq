@@ -1,0 +1,19 @@
+# Competency question: "Which claims carry a logic:confidence and are typed
+# math:ProbabilityValue yet declare NO logic:probabilityModel?" Exercises the
+# logic: probability/confidence boundary: a confidence annotation is never silently
+# read as a probability, so a math:ProbabilityValue derived from a confidence score
+# without a declared probability model is the un-mapped confidence-as-probability claim
+# this question surfaces (math:ConfidenceAsProbability). The FILTER NOT EXISTS excludes
+# the control claim that DOES declare a probability model. Scoped to the fixture
+# namespace so the answer is exactly {unmappedClaim, confidence 0.9}.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?claim ?confidence WHERE {
+    ?claim a math:ProbabilityValue ;
+           logic:confidence ?confRaw .
+    FILTER NOT EXISTS { ?claim logic:probabilityModel ?anyModel . }
+    FILTER(STRSTARTS(STR(?claim), "http://example.org/math/"))
+    BIND(STR(?confRaw) AS ?confidence)
+}
+ORDER BY ?claim
