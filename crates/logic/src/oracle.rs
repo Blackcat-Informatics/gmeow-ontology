@@ -472,10 +472,12 @@ pub(crate) fn native_forward_with_frontier(
     // least-fixpoint closure UNBOUNDED (`None` max_steps — the governor never
     // cuts, so the full least model is produced).
     let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
-    // Enter the type-state plan pipeline: a non-stratifiable program is a DECLARED
-    // gap (`stratify()` → `None`) the native engine does not decide — never
-    // approximate it into a fabricated closure.
-    let Some(stratified) = crate::physical::Parsed::new(&eval_rules).stratify() else {
+    // Compile once per reasoning-contract + canonical-rule identity. A cache hit skips
+    // both stratification and physical planning and returns an immutable plan shared by
+    // forward and backward execution. Non-stratifiable programs are negative-cached as
+    // `None`, preserving the declared-gap behavior without repeating the analysis.
+    let lookup = crate::physical::compile_cached(crate::reason::native_contract_hash(), eval_rules);
+    let Some(executable) = lookup.executable else {
         return Err(oracle_err(
             "NativeForwardOracle: the native chase does not decide this rule set \
                  (non-stratifiable: a negative dependency-graph edge inside a cycle); it \
@@ -483,24 +485,24 @@ pub(crate) fn native_forward_with_frontier(
                 .to_owned(),
         ));
     };
-    let executable = stratified.plan().into_executable();
     // Capture the governor's completion frontier alongside the rows: its
     // `consumed_steps` is the committed-derivation count the benchmark seam reads
     // as a scalar projection of the cost semiring.
-    let (rows, frontier) = match crate::physical::materialize_native(&store, &executable, None)? {
-        crate::physical::NativeOutcome::Decided(budgeted) => {
-            let frontier = budgeted.frontier();
-            (budgeted.rows, frontier)
-        }
-        // Any other declared native gap the forward executor might raise — never
-        // approximate it into a fabricated closure.
-        crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(oracle_err(format!(
-                "NativeForwardOracle: the native chase does not decide this rule set \
+    let (rows, frontier) =
+        match crate::physical::materialize_native(&store, executable.as_ref(), None)? {
+            crate::physical::NativeOutcome::Decided(budgeted) => {
+                let frontier = budgeted.frontier();
+                (budgeted.rows, frontier)
+            }
+            // Any other declared native gap the forward executor might raise — never
+            // approximate it into a fabricated closure.
+            crate::physical::NativeOutcome::Unsupported(kind) => {
+                return Err(oracle_err(format!(
+                    "NativeForwardOracle: the native chase does not decide this rule set \
                      (Unsupported({kind:?})); it must not approximate an undecided fragment"
-            )));
-        }
-    };
+                )));
+            }
+        };
 
     // Re-expose each native `DerivedRow` as a ternary `TypedRow`
     // `predicate(subject, object, world)` — the shape `run_reasoning`'s decoder

@@ -432,6 +432,33 @@ struct NativeCost {
     /// Incremental-only clean-rebuild comparator, embedded in the exact descriptor.
     #[serde(default)]
     scratch: Option<ScratchCost>,
+    /// Forward-only cold/warm complete-evaluation evidence for the bounded physical
+    /// plan cache.
+    #[serde(default)]
+    plan_cache: Option<PlanCacheCost>,
+}
+
+#[derive(Deserialize)]
+struct PlanCacheCost {
+    solver_version: String,
+    rule_hash: String,
+    cold: PlanEvaluationCost,
+    warm: PlanEvaluationCost,
+    same_executable: bool,
+    repeat_parity: bool,
+    warm_alloc_count_strictly_lower: bool,
+    warm_peak_live_strictly_lower: bool,
+}
+
+#[derive(Deserialize)]
+struct PlanEvaluationCost {
+    cache_hit: bool,
+    plan_builds: u64,
+    planning_units: u64,
+    consumed_steps: u64,
+    peak_live_bytes: u64,
+    closure_blake3: String,
+    cost_vector: Vec<(String, String, u32, u64)>,
 }
 
 /// The clean native rebuild paired with an incremental transaction.
@@ -533,8 +560,8 @@ pub(crate) fn render_cost_ledger(
         "refreshed via `make maint-bench-cost-baseline`. Every value is an integer count".to_string(),
         "or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the".to_string(),
         "harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,".to_string(),
-        "and `alloc_bytes`/`alloc_count` (the total-allocation scalars, which jitter ~0.06%".to_string(),
-        "run-to-run) through a one-sided tolerance band `fresh ≤ baseline·(1+ε)`, ε = 1%. This".to_string(),
+        "and `alloc_bytes`/`alloc_count` through one-sided tolerance bands: bytes use 1%,".to_string(),
+        "while counts use the greater of 1% and the measured 42-allocation quantized floor. This".to_string(),
         "is a drift-gated projection of the deterministic cost artifact; `check-generated`".to_string(),
         "reproduces it byte-for-byte from the committed baseline without running a benchmark.".to_string(),
         String::new(),
@@ -637,6 +664,64 @@ pub(crate) fn render_cost_ledger(
                 case.agreement
                     .incremental_retract_vs_scratch
                     .unwrap_or(false),
+            ));
+        }
+    }
+
+    // Complete cold/warm evaluations over identical EDB+rules. The second run must
+    // consume the same immutable plan, do zero planning work, preserve the closure and
+    // decomposable cost vector, and strictly reduce allocation count + peak live bytes.
+    let planned_cases: Vec<&&CaseRecord> = cases
+        .iter()
+        .filter(|case| case.native.plan_cache.is_some())
+        .collect();
+    if !planned_cases.is_empty() {
+        lines.push(String::new());
+        lines.push("## Cold vs warm physical-plan reuse".to_string());
+        lines.push(String::new());
+        lines.push(
+            "Each row is two complete materializations over identical inputs; parsing/EDB loading/certification are outside both measured regions."
+                .to_string(),
+        );
+        lines.push(String::new());
+        lines.push(
+            "| corpus | case | solver | rule hash | cold hit | warm hit | cold builds | warm builds | cold planning units | warm planning units | cold steps | warm steps | cold peak_live_bytes | warm peak_live_bytes | peak bytes saved | same plan | closure+cost parity | warm alloc count lower | warm peak lower |"
+                .to_string(),
+        );
+        lines.push(
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"
+                .to_string(),
+        );
+        for case in planned_cases {
+            let plan = case
+                .native
+                .plan_cache
+                .as_ref()
+                .expect("filtered to plan-cache cases");
+            let closure_and_cost_parity = plan.repeat_parity
+                && plan.cold.closure_blake3 == plan.warm.closure_blake3
+                && plan.cold.cost_vector == plan.warm.cost_vector;
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                case.corpus,
+                case.case,
+                plan.solver_version,
+                plan.rule_hash,
+                plan.cold.cache_hit,
+                plan.warm.cache_hit,
+                plan.cold.plan_builds,
+                plan.warm.plan_builds,
+                plan.cold.planning_units,
+                plan.warm.planning_units,
+                plan.cold.consumed_steps,
+                plan.warm.consumed_steps,
+                plan.cold.peak_live_bytes,
+                plan.warm.peak_live_bytes,
+                i128::from(plan.cold.peak_live_bytes) - i128::from(plan.warm.peak_live_bytes),
+                plan.same_executable,
+                closure_and_cost_parity,
+                plan.warm_alloc_count_strictly_lower,
+                plan.warm_peak_live_strictly_lower,
             ));
         }
     }

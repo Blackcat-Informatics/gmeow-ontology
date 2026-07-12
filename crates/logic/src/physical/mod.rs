@@ -48,7 +48,8 @@ mod magic_generic;
 mod parity;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
-// semi-naive executor boundary and memoizes the stratification + per-rule join partition.
+// semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,
+// flat slots, SIPS/index/kernel choices, and selective cyclic groups.
 mod plan;
 mod seminaive;
 mod store;
@@ -100,7 +101,7 @@ pub(crate) use seminaive::{
 // chooses, though the fluent `Parsed::new(..).stratify()?.plan().into_executable()` chain
 // never needs to.
 #[allow(unused_imports)]
-pub(crate) use plan::{Executable, Parsed, Planned, Stratified};
+pub(crate) use plan::{Executable, Parsed, PlanCache, Planned, Stratified, compile_cached};
 
 // The native restricted (standard) existential-rule chase: value invention for the
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and
@@ -117,7 +118,9 @@ pub use chase::ChaseAdmission;
 // The backward native evaluator: magic-sets demand transformation +
 // `resolve_native`, the oracle-parity sibling of `reference_resolver::resolve`. The primary
 // backward path consumed by `dispatch::dispatch_query`.
-pub(crate) use magic::{IncrementalQuerySession, prepare_incremental_query, resolve_native};
+#[cfg(test)]
+pub(crate) use magic::resolve_native;
+pub(crate) use magic::{IncrementalQuerySession, prepare_incremental_query, resolve_native_under};
 
 // The shared moded builtin evaluator: one arithmetic/comparison semantics called
 // by every native engine. `emit_integer_surface` is the single canonical

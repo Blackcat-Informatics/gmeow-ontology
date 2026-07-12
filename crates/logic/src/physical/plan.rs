@@ -29,12 +29,10 @@
 //!   into the per-stratum rule grouping (`strata[k]` = the program-order rule indices
 //!   of stratum `k`) — exactly the `rules_by_stratum` the forward/backward evaluators
 //!   used to rebuild inside every `materialize_native`/`evaluate` call.
-//! - [`Planned`] owns a [`RulePlan`] per rule: the positive/negated body-atom partition
-//!   the per-round join
-//!   ([`join_body_indexed`](super::seminaive::join_body_indexed)) used to re-`filter`
-//!   and re-allocate on every semi-naive round.  This is the genuinely
-//!   per-round-redundant work; the partition is a static function of the rule, so it is
-//!   hoisted here once.
+//! - [`Planned`] owns a [`RulePlan`] per rule: the positive/negated body partition,
+//!   flat variable slots, binding-aware SIPS order, guaranteed index shape,
+//!   variable/constant kernel shape, cyclic subplans, and source-order restoration.
+//!   All are static functions of the rule and are hoisted out of every semi-naive round.
 //! - [`Executable`] additionally memoizes the head-predicate set (the IDB-derivable
 //!   predicates) the completion frontier reads.
 //!
@@ -44,33 +42,355 @@
 //! that does not yet exist at plan time.  The plan is store-independent; resolving ids
 //! here would be unsound, not an optimization.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use petgraph::algo::bridges;
 use petgraph::graph::{EdgeIndex, UnGraph};
 use petgraph::unionfind::UnionFind;
 use petgraph::visit::EdgeRef;
 
-use crate::rule_ir::EvalRule;
+use crate::provenance::term_display;
+use crate::query_ir::{QBuiltin, QTerm};
+use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
 
 use super::seminaive::stratify;
 
+/// Version of the physical planner and its executable-kernel ABI.
+///
+/// This is deliberately independent of the rule and reasoning-contract digests: a
+/// planner/kernel change invalidates every cached plan even when its logical input is
+/// unchanged.
+pub(crate) const PLAN_SOLVER_VERSION: &str = "gmeow-native-plan-v1";
+
+/// Maximum number of compiled programs retained by the process-wide plan cache.
+///
+/// The cache is intentionally small and bounded. Plans are immutable [`Arc`] values;
+/// eviction drops only the cache's reference and cannot invalidate an in-flight run.
+const PLAN_CACHE_CAPACITY: usize = 64;
+
+/// Content-addressed identity of one immutable executable plan.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct PlanIdentity {
+    contract_hash: String,
+    rule_hash: [u8; 32],
+    solver_version: &'static str,
+}
+
+impl PlanIdentity {
+    fn new(contract_hash: impl Into<String>, rules: &[EvalRule]) -> Self {
+        Self {
+            contract_hash: contract_hash.into(),
+            rule_hash: canonical_rule_hash(rules),
+            solver_version: PLAN_SOLVER_VERSION,
+        }
+    }
+
+    pub(crate) fn contract_hash(&self) -> &str {
+        &self.contract_hash
+    }
+
+    pub(crate) fn rule_hash(&self) -> &[u8; 32] {
+        &self.rule_hash
+    }
+
+    pub(crate) fn solver_version(&self) -> &'static str {
+        self.solver_version
+    }
+}
+
+/// Result of looking up or compiling a physical plan.
+///
+/// `plan_builds` and `planning_units` are deterministic cost-vector coordinates:
+/// a cold lookup reports one build and the exact number of static rule/atom/builtin
+/// nodes inspected; a warm lookup reports zero for both. Neither relies on wall time.
+pub(crate) struct PlanLookup {
+    pub(crate) executable: Option<Arc<Executable>>,
+    pub(crate) cache_hit: bool,
+    pub(crate) plan_builds: u64,
+    pub(crate) planning_units: u64,
+}
+
+struct CachedPlan {
+    identity: PlanIdentity,
+    executable: Option<Arc<Executable>>,
+}
+
+/// Explicit bounded LRU cache used both by the process-wide planning seam and focused
+/// deterministic tests. Execution never takes this lock: the lookup returns an immutable
+/// [`Arc<Executable>`], then releases the cache before touching data.
+pub(crate) struct PlanCache {
+    capacity: usize,
+    entries: VecDeque<CachedPlan>,
+}
+
+impl PlanCache {
+    pub(crate) fn new(capacity: usize) -> Self {
+        assert!(capacity > 0, "plan cache capacity must be non-zero");
+        Self {
+            capacity,
+            entries: VecDeque::with_capacity(capacity),
+        }
+    }
+
+    /// Look up `rules`, compiling and inserting them on a miss.
+    ///
+    /// Non-stratifiable programs are cached as `None`, so repeated declared gaps also
+    /// skip stratification. The cache key contains the full canonical rule digest; a
+    /// contract hash alone can never alias two programs.
+    pub(crate) fn get_or_compile(
+        &mut self,
+        contract_hash: impl Into<String>,
+        rules: Vec<EvalRule>,
+    ) -> PlanLookup {
+        let identity = PlanIdentity::new(contract_hash, &rules);
+        if let Some(position) = self
+            .entries
+            .iter()
+            .position(|entry| entry.identity == identity)
+        {
+            let entry = self
+                .entries
+                .remove(position)
+                .expect("located cache entry still exists");
+            let executable = entry.executable.clone();
+            self.entries.push_back(entry);
+            return PlanLookup {
+                executable,
+                cache_hit: true,
+                plan_builds: 0,
+                planning_units: 0,
+            };
+        }
+
+        let planning_units = static_planning_units(&rules);
+        let executable = Parsed::from_owned(identity.clone(), rules)
+            .stratify()
+            .map(|stratified| Arc::new(stratified.plan().into_executable()));
+        if self.entries.len() == self.capacity {
+            self.entries.pop_front();
+        }
+        self.entries.push_back(CachedPlan {
+            identity,
+            executable: executable.clone(),
+        });
+        PlanLookup {
+            executable,
+            cache_hit: false,
+            plan_builds: 1,
+            planning_units,
+        }
+    }
+}
+
+static PLAN_CACHE: OnceLock<Mutex<PlanCache>> = OnceLock::new();
+
+/// Compile through the process-wide bounded plan cache.
+pub(crate) fn compile_cached(contract_hash: impl Into<String>, rules: Vec<EvalRule>) -> PlanLookup {
+    let cache = PLAN_CACHE.get_or_init(|| Mutex::new(PlanCache::new(PLAN_CACHE_CAPACITY)));
+    cache
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .get_or_compile(contract_hash, rules)
+}
+
+fn static_planning_units(rules: &[EvalRule]) -> u64 {
+    rules.iter().fold(0_u64, |units, rule| {
+        units
+            .saturating_add(1)
+            .saturating_add(rule.body.len() as u64)
+            .saturating_add(rule.distinct_pairs.len() as u64)
+            .saturating_add(rule.builtins.len() as u64)
+    })
+}
+
+fn frame(hasher: &mut blake3::Hasher, bytes: &[u8]) {
+    hasher.update(&(bytes.len() as u64).to_le_bytes());
+    hasher.update(bytes);
+}
+
+fn frame_str(hasher: &mut blake3::Hasher, value: &str) {
+    frame(hasher, value.as_bytes());
+}
+
+fn hash_eval_term(hasher: &mut blake3::Hasher, term: &EvalTerm) {
+    match term {
+        EvalTerm::Var(name) => {
+            hasher.update(&[0]);
+            frame_str(hasher, name);
+        }
+        EvalTerm::ConstNamed(iri) => {
+            hasher.update(&[1]);
+            frame_str(hasher, iri);
+        }
+        EvalTerm::ConstLit(value) => {
+            hasher.update(&[2]);
+            frame_str(hasher, &term_display(value));
+        }
+    }
+}
+
+fn hash_eval_atom(hasher: &mut blake3::Hasher, atom: &EvalAtom) {
+    hash_eval_term(hasher, &atom.subject);
+    frame_str(hasher, &atom.predicate);
+    hash_eval_term(hasher, &atom.object);
+    hasher.update(&[u8::from(atom.negated)]);
+}
+
+fn hash_qterm(hasher: &mut blake3::Hasher, term: &QTerm) {
+    match term {
+        QTerm::Const(value) => {
+            hasher.update(&[0]);
+            frame_str(hasher, value);
+        }
+        QTerm::Var(name) => {
+            hasher.update(&[1]);
+            frame_str(hasher, name);
+        }
+        QTerm::Num(value) => {
+            hasher.update(&[2]);
+            hasher.update(&value.to_le_bytes());
+        }
+    }
+}
+
+fn hash_builtin(hasher: &mut blake3::Hasher, builtin: &QBuiltin) {
+    match builtin {
+        QBuiltin::Is {
+            target,
+            lhs,
+            op,
+            rhs,
+        } => {
+            hasher.update(&[0]);
+            hash_qterm(hasher, target);
+            hash_qterm(hasher, lhs);
+            frame_str(hasher, op.token());
+            hash_qterm(hasher, rhs);
+        }
+        QBuiltin::Compare { lhs, op, rhs } => {
+            hasher.update(&[1]);
+            hash_qterm(hasher, lhs);
+            frame_str(hasher, op.token());
+            hash_qterm(hasher, rhs);
+        }
+    }
+}
+
+/// Canonical, order-sensitive digest of every execution-relevant [`EvalRule`] field.
+///
+/// Every variable-length field is length-prefixed and every enum has an explicit tag;
+/// this is not a display/debug hash. Rule, body, distinct-guard, and builtin order are
+/// retained because all four are observable by deterministic execution/provenance.
+pub(crate) fn canonical_rule_hash(rules: &[EvalRule]) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new();
+    frame_str(&mut hasher, "gmeow-eval-rule-ir-v1");
+    hasher.update(&(rules.len() as u64).to_le_bytes());
+    for rule in rules {
+        hash_eval_atom(&mut hasher, &rule.head);
+        hasher.update(&(rule.body.len() as u64).to_le_bytes());
+        for atom in &rule.body {
+            hash_eval_atom(&mut hasher, atom);
+        }
+        frame_str(&mut hasher, &rule.rule_iri);
+        hasher.update(&(rule.distinct_pairs.len() as u64).to_le_bytes());
+        for (left, right) in &rule.distinct_pairs {
+            frame_str(&mut hasher, left);
+            frame_str(&mut hasher, right);
+        }
+        hasher.update(&(rule.builtins.len() as u64).to_le_bytes());
+        for builtin in &rule.builtins {
+            hash_builtin(&mut hasher, builtin);
+        }
+    }
+    *hasher.finalize().as_bytes()
+}
+
 /// A per-rule precomputed join plan.
 ///
-/// Today this is the positive/negated body-atom partition — the ONLY genuinely
-/// per-round-redundant, statically-determinable work in the join.  The atom ORDER is
-/// already static in `rule.body`, and the actual `Bound` VALUES depend on the runtime
-/// partial solution (so they are not precomputable); what the per-round loop needlessly
-/// recomputed was the `rule.body.iter().filter(..).collect()` partition, re-allocated
-/// every round.  That is hoisted here once.
+/// This is the store-independent relational-algebra plan: body partition, flat binding
+/// frame, SIPS order, index and term-shape kernels, selective cyclic groups, and the swap
+/// programs that restore authored provenance order. Store-local term IDs remain runtime
+/// values, but which columns are bound and which concrete kernel consumes them are
+/// decided here once.
 pub(crate) struct RulePlan {
     /// Body indices of the POSITIVE atoms, in body order (the join drivers).
     positive: Box<[usize]>,
     /// Body indices of the NEGATED atoms, in body order (the NAF filters).
     negated: Box<[usize]>,
+    /// Stable authored-first-occurrence variable names. The acyclic executor stores
+    /// bindings in a flat `Vec<Option<String>>` indexed by these slots.
+    variables: Box<[String]>,
+    /// One statically-shaped atom operator per positive body atom, in physical SIPS
+    /// order. Each retains its authored positive position for provenance restoration.
+    /// Term kind dispatch, index shape, and constant rendering happen here, once.
+    operators: Box<[AtomOperator]>,
+    /// In-place swaps restoring positive-source provenance from physical execution
+    /// order to authored body order.
+    operator_source_order_swaps: Box<[(usize, usize)]>,
     /// Present only for a structurally-certified cyclic rule. Acyclic rules retain
     /// exactly two immutable slices and allocate no physical-group sidecar.
     hybrid: Option<Box<HybridPlan>>,
+}
+
+/// A positive atom lowered to a body coordinate plus one monomorphic term-shape
+/// kernel. Runtime binding presence still selects an index (`Any`/subject/object/both),
+/// but variable-name and term-enum interpretation is absent from the tuple loop.
+#[derive(Debug)]
+pub(crate) struct AtomOperator {
+    body_index: usize,
+    positive_position: usize,
+    index: IndexChoice,
+    kernel: AtomKernel,
+}
+
+impl AtomOperator {
+    pub(crate) fn body_index(&self) -> usize {
+        self.body_index
+    }
+
+    pub(crate) fn positive_position(&self) -> usize {
+        self.positive_position
+    }
+
+    pub(crate) fn index(&self) -> IndexChoice {
+        self.index
+    }
+
+    pub(crate) fn kernel(&self) -> &AtomKernel {
+        &self.kernel
+    }
+}
+
+/// Guaranteed index shape at this point in the planned SIPS order. Runtime values are
+/// resolved to store-local term IDs, but the bound columns are a plan-time property.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum IndexChoice {
+    Any,
+    Subject,
+    Object,
+    Both,
+}
+
+/// Statically selected subject/object term shape for one binary atom.
+#[derive(Debug)]
+pub(crate) enum AtomKernel {
+    Vars {
+        subject_slot: usize,
+        object_slot: usize,
+    },
+    VarConst {
+        subject_slot: usize,
+        object: String,
+    },
+    ConstVar {
+        subject: String,
+        object_slot: usize,
+    },
+    Consts {
+        subject: String,
+        object: String,
+    },
 }
 
 /// The cyclic-only physical sidecar. Boxing it keeps the common acyclic `RulePlan`
@@ -108,6 +428,8 @@ pub(crate) struct CyclicPlan {
     /// Deterministic LFTJ variable order: structural degree descending, then first
     /// authored occurrence, then lexical name.
     variables: Vec<String>,
+    /// The same deterministic order lowered to the rule's flat binding slots.
+    variable_slots: Vec<usize>,
 }
 
 impl CyclicPlan {
@@ -117,6 +439,10 @@ impl CyclicPlan {
 
     pub(crate) fn variables(&self) -> &[String] {
         &self.variables
+    }
+
+    pub(crate) fn variable_slots(&self) -> &[usize] {
+        &self.variable_slots
     }
 }
 
@@ -143,18 +469,42 @@ impl RulePlan {
                 positive.push(i);
             }
         }
+
+        // Assign flat slots in authored first-occurrence order across the body, then
+        // the head. Body-first preserves the join's natural binding order; including
+        // the head gives diagnostics/tests a complete rule layout without changing the
+        // positive operators. Builtin-generated variables remain a post-join concern.
+        let mut variables = Vec::new();
+        let mut slots = BTreeMap::new();
+        for atom in rule.body.iter().chain(std::iter::once(&rule.head)) {
+            for term in [&atom.subject, &atom.object] {
+                if let EvalTerm::Var(name) = term
+                    && !slots.contains_key(name)
+                {
+                    let slot = variables.len();
+                    variables.push(name.clone());
+                    slots.insert(name.clone(), slot);
+                }
+            }
+        }
         // A simple undirected cycle requires at least three positive edges. Avoid all
         // graph/planned-atom scratch for the overwhelmingly-common 0/1/2-atom rules.
         let cyclic = if positive.len() < 3 {
             Vec::new()
         } else {
-            certified_cyclic_components(rule, &positive)
+            certified_cyclic_components(rule, &positive, &slots)
         };
 
         if cyclic.is_empty() {
+            let execution_order = sips_order(rule, &positive);
+            let operators = lower_operators(rule, &positive, &execution_order, &slots);
+            let operator_source_order_swaps = restore_body_order_swaps(&execution_order);
             return Self {
                 positive: positive.into_boxed_slice(),
                 negated: negated.into_boxed_slice(),
+                variables: variables.into_boxed_slice(),
+                operators: operators.into_boxed_slice(),
+                operator_source_order_swaps: operator_source_order_swaps.into_boxed_slice(),
                 hybrid: None,
             };
         }
@@ -195,9 +545,14 @@ impl RulePlan {
         }
 
         let source_order_swaps = restore_body_order_swaps(&execution_source_order);
+        let operators = lower_operators(rule, &positive, &execution_source_order, &slots);
+        let operator_source_order_swaps = restore_body_order_swaps(&execution_source_order);
         Self {
             positive: positive.into_boxed_slice(),
             negated: negated.into_boxed_slice(),
+            variables: variables.into_boxed_slice(),
+            operators: operators.into_boxed_slice(),
+            operator_source_order_swaps: operator_source_order_swaps.into_boxed_slice(),
             hybrid: Some(Box::new(HybridPlan {
                 join_groups: join_groups.into_boxed_slice(),
                 source_order_swaps: source_order_swaps.into_boxed_slice(),
@@ -215,6 +570,24 @@ impl RulePlan {
         &self.negated
     }
 
+    /// Stable slot-to-variable table for the rule's physical binding frame.
+    pub(crate) fn variables(&self) -> &[String] {
+        &self.variables
+    }
+
+    /// Prelowered positive atom operators, in physical SIPS/group order.
+    pub(crate) fn operators(&self) -> &[AtomOperator] {
+        &self.operators
+    }
+
+    /// The operator for one authored positive-body coordinate.
+    pub(crate) fn operator_at(&self, positive_position: usize) -> &AtomOperator {
+        self.operators
+            .iter()
+            .find(|operator| operator.positive_position == positive_position)
+            .expect("every positive atom has exactly one physical operator")
+    }
+
     /// Whether this rule has a planner-certified cyclic positive subplan.
     pub(crate) fn has_cyclic_subplan(&self) -> bool {
         self.hybrid.is_some()
@@ -230,12 +603,130 @@ impl RulePlan {
     }
 
     /// In-place swaps restoring physical source order to authored body order.
-    pub(crate) fn source_order_swaps(&self) -> &[(usize, usize)] {
+    pub(crate) fn operator_source_order_swaps(&self) -> &[(usize, usize)] {
+        &self.operator_source_order_swaps
+    }
+
+    /// Source restoration for the cyclic group's physical execution order.
+    pub(crate) fn hybrid_source_order_swaps(&self) -> &[(usize, usize)] {
         &self
             .hybrid
             .as_ref()
-            .expect("source swaps exist only for a certified cyclic plan")
+            .expect("hybrid source swaps exist only for a cyclic plan")
             .source_order_swaps
+    }
+}
+
+fn term_is_known(term: &EvalTerm, bound: &BTreeSet<String>) -> bool {
+    match term {
+        EvalTerm::Var(variable) => bound.contains(variable),
+        EvalTerm::ConstNamed(_) | EvalTerm::ConstLit(_) => true,
+    }
+}
+
+fn bind_atom_variables(atom: &EvalAtom, bound: &mut BTreeSet<String>) {
+    for term in [&atom.subject, &atom.object] {
+        if let EvalTerm::Var(variable) = term {
+            bound.insert(variable.clone());
+        }
+    }
+}
+
+/// Deterministic sideways-information-passing order for an acyclic positive body.
+///
+/// With no store yet, cardinalities cannot be consulted soundly. The static information
+/// available at plan time is still valuable: prefer atoms with more constant/already-
+/// bound columns, then constants, then repeated-variable equality, and finally authored
+/// position. After choosing an atom, all of its variables become bound for subsequent
+/// choices. This is store-independent and byte-stable.
+fn sips_order(rule: &EvalRule, positive: &[usize]) -> Vec<usize> {
+    let mut remaining: Vec<usize> = (0..positive.len()).collect();
+    let mut bound = BTreeSet::new();
+    let mut order = Vec::with_capacity(positive.len());
+    while !remaining.is_empty() {
+        let (slot, &positive_position) = remaining
+            .iter()
+            .enumerate()
+            .max_by_key(|&(_, &positive_position)| {
+                let atom = &rule.body[positive[positive_position]];
+                let known = usize::from(term_is_known(&atom.subject, &bound))
+                    + usize::from(term_is_known(&atom.object, &bound));
+                let constants = usize::from(!matches!(atom.subject, EvalTerm::Var(_)))
+                    + usize::from(!matches!(atom.object, EvalTerm::Var(_)));
+                let repeated = usize::from(matches!(
+                    (&atom.subject, &atom.object),
+                    (EvalTerm::Var(left), EvalTerm::Var(right)) if left == right
+                ));
+                (known, constants, repeated, usize::MAX - positive_position)
+            })
+            .expect("a non-empty remaining set has a best SIPS atom");
+        remaining.remove(slot);
+        order.push(positive_position);
+        bind_atom_variables(&rule.body[positive[positive_position]], &mut bound);
+    }
+    order
+}
+
+fn index_choice(atom: &EvalAtom, bound: &BTreeSet<String>) -> IndexChoice {
+    match (
+        term_is_known(&atom.subject, bound),
+        term_is_known(&atom.object, bound),
+    ) {
+        (false, false) => IndexChoice::Any,
+        (true, false) => IndexChoice::Subject,
+        (false, true) => IndexChoice::Object,
+        (true, true) => IndexChoice::Both,
+    }
+}
+
+fn lower_operators(
+    rule: &EvalRule,
+    positive: &[usize],
+    execution_order: &[usize],
+    slots: &BTreeMap<String, usize>,
+) -> Vec<AtomOperator> {
+    let mut bound = BTreeSet::new();
+    let mut operators = Vec::with_capacity(execution_order.len());
+    for &positive_position in execution_order {
+        let body_index = positive[positive_position];
+        let atom = &rule.body[body_index];
+        operators.push(AtomOperator {
+            body_index,
+            positive_position,
+            index: index_choice(atom, &bound),
+            kernel: atom_kernel(atom, slots),
+        });
+        bind_atom_variables(atom, &mut bound);
+    }
+    operators
+}
+
+fn constant_surface(term: &EvalTerm) -> String {
+    match term {
+        EvalTerm::ConstNamed(iri) => format!("<{iri}>"),
+        EvalTerm::ConstLit(value) => term_display(value),
+        EvalTerm::Var(_) => unreachable!("constant_surface called only for a constant term"),
+    }
+}
+
+fn atom_kernel(atom: &EvalAtom, slots: &BTreeMap<String, usize>) -> AtomKernel {
+    match (&atom.subject, &atom.object) {
+        (EvalTerm::Var(subject), EvalTerm::Var(object)) => AtomKernel::Vars {
+            subject_slot: slots[subject],
+            object_slot: slots[object],
+        },
+        (EvalTerm::Var(subject), object) => AtomKernel::VarConst {
+            subject_slot: slots[subject],
+            object: constant_surface(object),
+        },
+        (subject, EvalTerm::Var(object)) => AtomKernel::ConstVar {
+            subject: constant_surface(subject),
+            object_slot: slots[object],
+        },
+        (subject, object) => AtomKernel::Consts {
+            subject: constant_surface(subject),
+            object: constant_surface(object),
+        },
     }
 }
 
@@ -247,7 +738,11 @@ impl RulePlan {
 /// graph bridge leaves exactly the edges participating in a simple cycle; their
 /// connected components are the subplans safe to promote. Constants, repeated
 /// variables, unary atoms, trees, and bridge atoms consequently remain binary.
-fn certified_cyclic_components(rule: &EvalRule, positive: &[usize]) -> Vec<CyclicPlan> {
+fn certified_cyclic_components(
+    rule: &EvalRule,
+    positive: &[usize],
+    slots: &BTreeMap<String, usize>,
+) -> Vec<CyclicPlan> {
     use crate::rule_ir::EvalTerm;
 
     let mut edge_atoms: BTreeMap<(String, String), Vec<PlannedAtom>> = BTreeMap::new();
@@ -359,7 +854,12 @@ fn certified_cyclic_components(rule: &EvalRule, positive: &[usize]) -> Vec<Cycli
                 .then_with(|| first_occurrence[left].cmp(&first_occurrence[right]))
                 .then_with(|| left.cmp(right))
         });
-        plans.push(CyclicPlan { atoms, variables });
+        let variable_slots = variables.iter().map(|variable| slots[variable]).collect();
+        plans.push(CyclicPlan {
+            atoms,
+            variables,
+            variable_slots,
+        });
     }
     plans
 }
@@ -386,16 +886,29 @@ fn restore_body_order_swaps(execution_order: &[usize]) -> Vec<(usize, usize)> {
 
 /// Stage 1: a parsed rule program, not yet stratified.
 ///
-/// Borrows the caller-owned rules (the pipeline threads references, never a clone, so
-/// the memoized plan sits next to the rules the caller already holds).
-pub(crate) struct Parsed<'r> {
-    rules: &'r [EvalRule],
+/// Owns the rules behind an [`Arc`], so the terminal executable can be cached and shared
+/// across calls without borrowing a parser/query scratch buffer.
+pub(crate) struct Parsed {
+    rules: Arc<[EvalRule]>,
+    identity: PlanIdentity,
 }
 
-impl<'r> Parsed<'r> {
-    /// Enter the pipeline with a parsed rule program.
-    pub(crate) fn new(rules: &'r [EvalRule]) -> Self {
-        Self { rules }
+impl Parsed {
+    /// Enter the uncached pipeline with a parsed rule program.
+    ///
+    /// This compatibility constructor is primarily for focused tests and one-shot
+    /// internal callers. Production repeated-evaluation boundaries use
+    /// [`compile_cached`] with their real reasoning/query contract hash.
+    pub(crate) fn new(rules: &[EvalRule]) -> Self {
+        let identity = PlanIdentity::new("gmeow-uncached-plan", rules);
+        Self::from_owned(identity, rules.to_vec())
+    }
+
+    fn from_owned(identity: PlanIdentity, rules: Vec<EvalRule>) -> Self {
+        Self {
+            rules: Arc::from(rules),
+            identity,
+        }
     }
 
     /// Compute the stratification ONCE and lower it into the per-stratum rule grouping.
@@ -403,8 +916,8 @@ impl<'r> Parsed<'r> {
     /// `None` ⇒ the program is non-stratifiable (a negative dependency-graph edge inside
     /// a cycle): a declared gap the caller routes to its oracle / base-fallback, exactly
     /// where the evaluators used to return `Unsupported(NonStratifiable)`.
-    pub(crate) fn stratify(self) -> Option<Stratified<'r>> {
-        let stratum_of = stratify(self.rules)?;
+    pub(crate) fn stratify(self) -> Option<Stratified> {
+        let stratum_of = stratify(&self.rules)?;
 
         // Order the rules into strata.  A rule belongs to the stratum of its HEAD
         // predicate; within a stratum the original program order is preserved (rules
@@ -425,25 +938,28 @@ impl<'r> Parsed<'r> {
 
         Some(Stratified {
             rules: self.rules,
+            identity: self.identity,
             strata,
         })
     }
 }
 
 /// Stage 2: a stratifiable program with its per-stratum rule grouping memoized.
-pub(crate) struct Stratified<'r> {
-    rules: &'r [EvalRule],
+pub(crate) struct Stratified {
+    rules: Arc<[EvalRule]>,
+    identity: PlanIdentity,
     /// `strata[k]` = the program-order indices (into `rules`) of stratum `k`'s rules.
     strata: Vec<Vec<usize>>,
 }
 
-impl<'r> Stratified<'r> {
-    /// Precompute a [`RulePlan`] per rule (the positive/negated partition hoisted out of
-    /// the per-round join), yielding the [`Planned`] stage.
-    pub(crate) fn plan(self) -> Planned<'r> {
+impl Stratified {
+    /// Precompute one complete store-independent [`RulePlan`] per rule, yielding the
+    /// [`Planned`] stage.
+    pub(crate) fn plan(self) -> Planned {
         let plans: Vec<RulePlan> = self.rules.iter().map(RulePlan::for_rule).collect();
         Planned {
             rules: self.rules,
+            identity: self.identity,
             strata: self.strata,
             plans,
         }
@@ -451,17 +967,18 @@ impl<'r> Stratified<'r> {
 }
 
 /// Stage 3: a stratified program with its per-rule join plans memoized.
-pub(crate) struct Planned<'r> {
-    rules: &'r [EvalRule],
+pub(crate) struct Planned {
+    rules: Arc<[EvalRule]>,
+    identity: PlanIdentity,
     strata: Vec<Vec<usize>>,
     /// One entry per rule, parallel to `rules` by index.
     plans: Vec<RulePlan>,
 }
 
-impl<'r> Planned<'r> {
+impl Planned {
     /// Seal the plan into the terminal [`Executable`] — the ONLY type the semi-naive
     /// executor accepts.  Memoizes the head-predicate set the completion frontier reads.
-    pub(crate) fn into_executable(self) -> Executable<'r> {
+    pub(crate) fn into_executable(self) -> Executable {
         let head_predicates: BTreeSet<String> = self
             .rules
             .iter()
@@ -469,6 +986,7 @@ impl<'r> Planned<'r> {
             .collect();
         Executable {
             rules: self.rules,
+            identity: self.identity,
             strata: self.strata,
             plans: self.plans,
             head_predicates,
@@ -482,14 +1000,20 @@ impl<'r> Planned<'r> {
 /// ([`super::seminaive::eval_stratum_fixpoint`]).  Its fields are private and its only
 /// constructor is [`Planned::into_executable`], so a value of this type is a proof that
 /// the program was stratified (stage 1→2) and planned (stage 2→3) — the type gate.
-pub(crate) struct Executable<'r> {
-    rules: &'r [EvalRule],
+pub(crate) struct Executable {
+    rules: Arc<[EvalRule]>,
+    identity: PlanIdentity,
     strata: Vec<Vec<usize>>,
     plans: Vec<RulePlan>,
     head_predicates: BTreeSet<String>,
 }
 
-impl Executable<'_> {
+impl Executable {
+    /// The immutable content identity under which this plan was compiled.
+    pub(crate) fn identity(&self) -> &PlanIdentity {
+        &self.identity
+    }
+
     /// The number of strata (the completion frontier's `total`).
     pub(crate) fn stratum_count(&self) -> usize {
         self.strata.len()
@@ -557,7 +1081,7 @@ mod tests {
     ///    is moved-from, so a stale `Parsed`/`Stratified`/`Planned` cannot be reused.
     ///
     /// 2. **Executor input is `&Executable`.** The `fn`-pointer coercions pin the
-    ///    rule-input parameter of BOTH executor entries to `&Executable<'_>`. Were either
+    ///    rule-input parameter of BOTH executor entries to `&Executable`. Were either
     ///    changed to accept `&[EvalRule]` (the old ad-hoc-stratify signature), a `Parsed`,
     ///    a `Stratified`, or a `Planned`, the coercion would fail to compile. Combined with
     ///    `Executable`'s private fields and single constructor (`Planned::into_executable`),
@@ -568,16 +1092,16 @@ mod tests {
 
         // (1) Walk the pipeline; the explicit stage annotations are the distinct-types
         // proof. There is no shortcut: `Executable` has no other constructor.
-        let parsed: Parsed<'_> = Parsed::new(&rules);
-        let stratified: Stratified<'_> = parsed.stratify().expect("stratifiable");
-        let planned: Planned<'_> = stratified.plan();
-        let executable: Executable<'_> = planned.into_executable();
+        let parsed: Parsed = Parsed::new(&rules);
+        let stratified: Stratified = parsed.stratify().expect("stratifiable");
+        let planned: Planned = stratified.plan();
+        let executable: Executable = planned.into_executable();
 
         // (2) The forward/backward executor entries accept ONLY `&Executable`. These
         // coercions are the compile-time gate — `_` infers the parameters we do not pin.
-        let _forward_gate: fn(&WorldStore, &Executable<'_>, Option<u64>) -> _ =
+        let _forward_gate: fn(&WorldStore, &Executable, Option<u64>) -> _ =
             crate::physical::materialize_native;
-        let _backward_gate: fn(RelationStore, &Executable<'_>, Option<u64>) -> _ =
+        let _backward_gate: fn(RelationStore, &Executable, Option<u64>) -> _ =
             crate::physical::evaluate;
 
         // The terminal stage genuinely drives the executor end-to-end (not just a type
@@ -647,6 +1171,150 @@ mod tests {
         assert!(plan.negated().windows(2).all(|w| w[0] < w[1]));
     }
 
+    #[test]
+    fn rule_plan_lowers_variables_and_term_shapes_once() {
+        let rules = one_rule(&format!(
+            "<{NS}vv>(?X, ?Y, ?W), <{NS}vc>(?Y, <{NS}c>, ?W), \
+             <{NS}cv>(<{NS}c>, ?Z, ?W), <{NS}cc>(<{NS}c>, <{NS}d>, ?W)"
+        ));
+        let plan = RulePlan::for_rule(&rules[0]);
+
+        assert_eq!(plan.variables(), &["?X", "?Y", "?Z"]);
+        assert_eq!(plan.operators().len(), 4);
+        assert_eq!(
+            plan.operators()
+                .iter()
+                .map(AtomOperator::positive_position)
+                .collect::<Vec<_>>(),
+            vec![3, 1, 2, 0],
+            "SIPS prefers both-constant, then one-constant atoms, with authored ties"
+        );
+        let operator = |position| {
+            plan.operators()
+                .iter()
+                .find(|operator| operator.positive_position() == position)
+                .expect("every positive atom has one operator")
+        };
+        assert!(matches!(
+            operator(0).kernel(),
+            AtomKernel::Vars {
+                subject_slot: 0,
+                object_slot: 1
+            }
+        ));
+        assert!(matches!(
+            operator(1).kernel(),
+            AtomKernel::VarConst {
+                subject_slot: 1,
+                object
+            } if object == &format!("<{NS}c>")
+        ));
+        assert!(matches!(
+            operator(2).kernel(),
+            AtomKernel::ConstVar {
+                subject,
+                object_slot: 2
+            } if subject == &format!("<{NS}c>")
+        ));
+        assert!(matches!(
+            operator(3).kernel(),
+            AtomKernel::Consts { subject, object }
+                if subject == &format!("<{NS}c>") && object == &format!("<{NS}d>")
+        ));
+        assert_eq!(operator(3).index(), IndexChoice::Both);
+        assert_eq!(operator(1).index(), IndexChoice::Object);
+        assert_eq!(operator(2).index(), IndexChoice::Subject);
+        assert_eq!(operator(0).index(), IndexChoice::Object);
+        assert!(
+            !plan.operator_source_order_swaps().is_empty(),
+            "physical SIPS order needs authored-provenance restoration"
+        );
+    }
+
+    #[test]
+    fn canonical_rule_hash_covers_guards_builtins_and_order() {
+        use crate::query_ir::{CmpOp, QBuiltin, QTerm};
+
+        let rules = tc_rules();
+        assert_eq!(canonical_rule_hash(&rules), canonical_rule_hash(&rules));
+
+        let mut reordered = rules.clone();
+        reordered.reverse();
+        assert_ne!(canonical_rule_hash(&rules), canonical_rule_hash(&reordered));
+
+        let mut changed = rules.clone();
+        changed[0]
+            .distinct_pairs
+            .push(("?X".to_owned(), "?Z".to_owned()));
+        assert_ne!(canonical_rule_hash(&rules), canonical_rule_hash(&changed));
+
+        changed = rules.clone();
+        changed[0].builtins.push(QBuiltin::Compare {
+            lhs: QTerm::Var("X".to_owned()),
+            op: CmpOp::Ge,
+            rhs: QTerm::Num(1),
+        });
+        assert_ne!(canonical_rule_hash(&rules), canonical_rule_hash(&changed));
+    }
+
+    #[test]
+    fn bounded_plan_cache_hits_skip_all_planning_and_evict_lru() {
+        let rules = tc_rules();
+        let mut cache = PlanCache::new(2);
+
+        let cold = cache.get_or_compile("contract-a", rules.clone());
+        assert!(!cold.cache_hit);
+        assert_eq!(cold.plan_builds, 1);
+        assert!(cold.planning_units > 0);
+        let cold_exe = cold.executable.expect("TC program is stratifiable");
+        assert_eq!(cold_exe.identity().contract_hash(), "contract-a");
+        assert_eq!(cold_exe.identity().solver_version(), PLAN_SOLVER_VERSION);
+        assert_eq!(
+            cold_exe.identity().rule_hash(),
+            &canonical_rule_hash(&rules)
+        );
+
+        let warm = cache.get_or_compile("contract-a", rules.clone());
+        assert!(warm.cache_hit);
+        assert_eq!((warm.plan_builds, warm.planning_units), (0, 0));
+        let warm_exe = warm.executable.expect("cached executable");
+        assert!(Arc::ptr_eq(&cold_exe, &warm_exe));
+
+        // Contract identity is part of the key even for byte-identical rules.
+        let other_contract = cache.get_or_compile("contract-b", rules.clone());
+        assert!(!other_contract.cache_hit);
+
+        // A third identity evicts the least-recently-used A entry (A was touched before B).
+        let mut changed = rules.clone();
+        changed[0].rule_iri.push_str("/changed");
+        assert!(!cache.get_or_compile("contract-c", changed).cache_hit);
+        assert!(
+            !cache.get_or_compile("contract-a", rules).cache_hit,
+            "evicted identity must compile again"
+        );
+    }
+
+    #[test]
+    fn plan_cache_negative_caches_nonstratifiable_programs() {
+        let source = format!(
+            "#[name(\"{NS}a-rule\")]\n\
+             <{NS}a>(?X, ?Y, ?W) :- ~<{NS}b>(?X, ?Y, ?W) .\n\
+             #[name(\"{NS}b-rule\")]\n\
+             <{NS}b>(?X, ?Y, ?W) :- ~<{NS}a>(?X, ?Y, ?W) .\n"
+        );
+        let rules = parse_eval_rules(&source).expect("parse negative cycle");
+        let mut cache = PlanCache::new(1);
+        let cold = cache.get_or_compile("negative-contract", rules.clone());
+        assert!(!cold.cache_hit);
+        assert!(cold.executable.is_none());
+        assert_eq!(cold.plan_builds, 1);
+
+        let warm = cache.get_or_compile("negative-contract", rules);
+        assert!(warm.cache_hit);
+        assert!(warm.executable.is_none());
+        assert_eq!((warm.plan_builds, warm.planning_units), (0, 0));
+    }
+
     fn one_rule(body: &str) -> Vec<EvalRule> {
         let rls = format!(
             "#[name(\"{NS}cycle-test\")]\n\
@@ -713,7 +1381,7 @@ mod tests {
         };
         assert_eq!(atom.body_index(), 1);
         assert!(
-            !plan.source_order_swaps().is_empty(),
+            !plan.hybrid_source_order_swaps().is_empty(),
             "interleaved physical groups need a body-order restoration program"
         );
     }

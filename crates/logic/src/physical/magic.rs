@@ -91,7 +91,6 @@ use purrdf::TermValue;
 
 use crate::physical::binding_pattern::BindingPattern;
 use crate::physical::incremental::{IncrementalSession, SignedFact};
-use crate::physical::plan::Parsed;
 use crate::physical::seminaive::{NativeOutcome, UnsupportedKind, evaluate};
 use crate::physical::store::{RelationStore, extract_edb};
 use crate::profile_gate;
@@ -1169,9 +1168,10 @@ enum FallbackOutcome {
 /// Propagates an [`evaluate`] failure (unbound head/guard variable or provenance-recipe
 /// failure) from either the transformed or the base evaluation.
 fn eval_with_base_fallback(
+    contract_hash: &str,
     edb: RelationStore,
-    transformed_rules: &[EvalRule],
-    base_rules: &[EvalRule],
+    transformed_rules: Vec<EvalRule>,
+    base_rules: Vec<EvalRule>,
     max_steps: Option<u64>,
     base_edb: impl FnOnce() -> RelationStore,
 ) -> gmeow_errors::Result<FallbackOutcome> {
@@ -1183,21 +1183,17 @@ fn eval_with_base_fallback(
     // rules over a freshly extracted EDB (without the demand seed the base rules never
     // reference); the answer is exact but the demand pruning was dropped, so the caller
     // downgrades the preservation claim.
-    let Some(transformed_exe) = Parsed::new(transformed_rules)
-        .stratify()
-        .map(|s| s.plan().into_executable())
-    else {
-        let Some(base_exe) = Parsed::new(base_rules)
-            .stratify()
-            .map(|s| s.plan().into_executable())
-        else {
+    let transformed_lookup = super::plan::compile_cached(contract_hash, transformed_rules);
+    let Some(transformed_exe) = transformed_lookup.executable else {
+        let base_lookup = super::plan::compile_cached(contract_hash, base_rules);
+        let Some(base_exe) = base_lookup.executable else {
             // If the BASE program is also non-stratifiable, the program genuinely is — a
             // real declared gap returned to the caller.
             return Ok(FallbackOutcome::Unsupported(
                 UnsupportedKind::NonStratifiable,
             ));
         };
-        return match evaluate(base_edb(), &base_exe, max_steps)? {
+        return match evaluate(base_edb(), base_exe.as_ref(), max_steps)? {
             NativeOutcome::Decided(budgeted) => {
                 let frontier = budgeted.frontier();
                 Ok(FallbackOutcome::Decided {
@@ -1212,7 +1208,7 @@ fn eval_with_base_fallback(
         };
     };
 
-    match evaluate(edb, &transformed_exe, max_steps)? {
+    match evaluate(edb, transformed_exe.as_ref(), max_steps)? {
         NativeOutcome::Decided(budgeted) => {
             let frontier = budgeted.frontier();
             Ok(FallbackOutcome::Decided {
@@ -1263,6 +1259,27 @@ fn demand_pruning_dropped_claim() -> crate::result::PreservationClaim {
 /// native verdict. Stratified negation stays entirely inside this native path (decided or a
 /// declared gap); it is never a silent drop.
 pub(crate) fn resolve_native(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+) -> gmeow_errors::Result<NativeOutcome<AnswerSet>> {
+    resolve_native_under(
+        "gmeow-backward-unscoped-v1",
+        foreign,
+        world,
+        program,
+        budget,
+    )
+}
+
+/// Contract-scoped form used by production dispatch.
+///
+/// The contract hash participates in the immutable plan identity; callers that change
+/// profile/resource semantics cannot accidentally reuse a plan compiled under an older
+/// contract even when their lowered rule text happens to match.
+pub(crate) fn resolve_native_under(
+    contract_hash: &str,
     foreign: &dyn WorldFactSource,
     world: &str,
     program: &QProgram,
@@ -1396,18 +1413,22 @@ pub(crate) fn resolve_native(
     // incomplete, and the caller reads `completed < total` to tell that from a conclusive
     // result.  On a non-stratifiable transformed program the helper falls back to the base
     // rules over a lazily re-extracted EDB (see `eval_with_base_fallback`).
-    let (facts, fixpoint_status, frontier, demand_pruning_dropped) =
-        match eval_with_base_fallback(edb, &transformed.rules, &rules, budget.max_steps, || {
-            extract_edb(foreign, world)
-        })? {
-            FallbackOutcome::Decided {
-                facts,
-                status,
-                frontier,
-                demand_pruning_dropped,
-            } => (facts, status, frontier, demand_pruning_dropped),
-            FallbackOutcome::Unsupported(k) => return Ok(NativeOutcome::Unsupported(k)),
-        };
+    let (facts, fixpoint_status, frontier, demand_pruning_dropped) = match eval_with_base_fallback(
+        contract_hash,
+        edb,
+        transformed.rules,
+        rules,
+        budget.max_steps,
+        || extract_edb(foreign, world),
+    )? {
+        FallbackOutcome::Decided {
+            facts,
+            status,
+            frontier,
+            demand_pruning_dropped,
+        } => (facts, status, frontier, demand_pruning_dropped),
+        FallbackOutcome::Unsupported(k) => return Ok(NativeOutcome::Unsupported(k)),
+    };
 
     // (4) Project the goal predicate's derived tuples into bindings.
     let mut bindings = project_answers(&facts, goal, goal_atom.predicate.as_str());
@@ -1486,6 +1507,7 @@ pub(crate) fn resolve_native(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::physical::plan::Parsed;
     use crate::query_ir::parse_query_program;
     use crate::reference_resolver;
     use crate::seam::WorldFactSnapshot;
@@ -1497,7 +1519,7 @@ mod tests {
 
     /// Drive the type-state plan pipeline for a stratifiable test program — the only path
     /// to the `Executable` the backward `evaluate` executor accepts.
-    fn exe(rules: &[EvalRule]) -> crate::physical::plan::Executable<'_> {
+    fn exe(rules: &[EvalRule]) -> crate::physical::plan::Executable {
         Parsed::new(rules)
             .stratify()
             .expect("stratifiable test program")
@@ -2367,9 +2389,15 @@ mod tests {
         };
         // The transformed EDB is irrelevant: the transform is non-stratifiable, so
         // `evaluate` short-circuits before touching it.
-        let out =
-            eval_with_base_fallback(RelationStore::new(), &transformed, &base, None, base_edb)
-                .expect("fallback must not error");
+        let out = eval_with_base_fallback(
+            "fallback-test",
+            RelationStore::new(),
+            transformed,
+            base,
+            None,
+            base_edb,
+        )
+        .expect("fallback must not error");
         let FallbackOutcome::Decided {
             facts,
             status,
@@ -2418,9 +2446,10 @@ mod tests {
         // The base EDB never matters here: the base program is also non-stratifiable, so
         // its `evaluate` short-circuits at stratification.
         let out = eval_with_base_fallback(
+            "fallback-both-gap-test",
             RelationStore::new(),
-            &transformed,
-            &base,
+            transformed,
+            base,
             None,
             RelationStore::new,
         )

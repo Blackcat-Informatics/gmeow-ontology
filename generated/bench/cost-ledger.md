@@ -6,8 +6,8 @@ Committed engine/reference cost/agreement baseline (`bench/cost-baseline.json`),
 refreshed via `make maint-bench-cost-baseline`. Every value is an integer count
 or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the
 harness). The three allocation scalars GATE: `peak_live_bytes` by exact drift-match,
-and `alloc_bytes`/`alloc_count` (the total-allocation scalars, which jitter ~0.06%
-run-to-run) through a one-sided tolerance band `fresh ≤ baseline·(1+ε)`, ε = 1%. This
+and `alloc_bytes`/`alloc_count` through one-sided tolerance bands: bytes use 1%,
+while counts use the greater of 1% and the measured 42-allocation quantized floor. This
 is a drift-gated projection of the deterministic cost artifact; `check-generated`
 reproduces it byte-for-byte from the committed baseline without running a benchmark.
 
@@ -23,19 +23,19 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | nary-mini | co-witness | nary-existential | 16 | 6 | 564567 | 5680 | 96687 | true | true |
 | nary-mini | split-null | nary-existential | 14 | 6 | 458334 | 4686 | 83962 | true | true |
 | nary-mini | stb-like | nary-existential | 24 | 10 | 765537 | 7881 | 89129 | true | true |
-| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 277811 | 3555 | 27749 | true | true |
-| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 162437 | 2056 | 22088 | true | true |
-| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3910107 | 33179 | 37822 | true | true |
+| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 183591 | 1701 | 22188 | true | true |
+| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 110880 | 1072 | 16884 | true | true |
+| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3901271 | 32984 | 37822 | true | true |
 | relational-core-mini | incremental-transitive-closure | incremental | 13 | 91 | 2411313 | 54874 | 130246 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6244084 | 54277 | 58473 | true | true |
-| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3989001 | 34423 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3950487 | 33928 | 42113 | true | true |
-| relational-core-mini | reachability | forward | 2 | 2 | 3709779 | 31266 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5458877 | 47640 | 53474 | true | true |
-| relational-core-mini | scc | forward | 8 | 8 | 6167001 | 52876 | 53796 | true | true |
-| relational-core-mini | transitive-closure | forward | 3 | 3 | 3910278 | 33203 | 37785 | true | true |
-| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5645488 | 60917 | 217467 | true | true |
-| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7921793 | 109100 | 626530 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208164 | 53459 | 58473 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3968687 | 33958 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3939838 | 33701 | 42113 | true | true |
+| relational-core-mini | reachability | forward | 2 | 2 | 3702103 | 31095 | 36685 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5405476 | 46472 | 53474 | true | true |
+| relational-core-mini | scc | forward | 8 | 8 | 6142361 | 52303 | 53796 | true | true |
+| relational-core-mini | transitive-closure | forward | 3 | 3 | 3901516 | 33008 | 37785 | true | true |
+| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5471953 | 56992 | 212438 | true | true |
+| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7894128 | 107890 | 623735 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
@@ -71,7 +71,24 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 
 | corpus | case | incremental steps | scratch steps | steps saved | derived rows | incremental peak_live_bytes | scratch peak_live_bytes | peak bytes saved | joined delta rows | insert parity | retract parity |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| relational-core-mini | incremental-transitive-closure | 13 | 91 | 78 | 91 | 130246 | 235847 | 105601 | 1211 | true | true |
+| relational-core-mini | incremental-transitive-closure | 13 | 91 | 78 | 91 | 130246 | 230694 | 100448 | 1211 | true | true |
+
+## Cold vs warm physical-plan reuse
+
+Each row is two complete materializations over identical inputs; parsing/EDB loading/certification are outside both measured regions.
+
+| corpus | case | solver | rule hash | cold hit | warm hit | cold builds | warm builds | cold planning units | warm planning units | cold steps | warm steps | cold peak_live_bytes | warm peak_live_bytes | peak bytes saved | same plan | closure+cost parity | warm alloc count lower | warm peak lower |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| nemo-kr2024-mini | transitive-connection | gmeow-native-plan-v1 | a77437b7834189200cb51b5b5e9f118c2b03e222241e222aca1415543ee67aee | false | true | 1 | 0 | 5 | 0 | 3 | 3 | 15893 | 13267 | 2626 | true | true | true | true |
+| relational-core-mini | mutual-recursion | gmeow-native-plan-v1 | 8625b5773c9fd37b151f8fd8aab0d2d6dfda6587b9918555ba42a8f1d7cf1047 | false | true | 1 | 0 | 8 | 0 | 10 | 10 | 37494 | 33696 | 3798 | true | true | true | true |
+| relational-core-mini | non-linear-transitive-closure | gmeow-native-plan-v1 | dd3e53e57eb1170b56d04302c32188208809460cb28952b0c4a0ea96098acd81 | false | true | 1 | 0 | 5 | 0 | 6 | 6 | 27612 | 24962 | 2650 | true | true | true | true |
+| relational-core-mini | points-to | gmeow-native-plan-v1 | 86af6d4aa41766e3c00b66b308daf047751a9ba4212e2b7feb42cda3ef5b8d01 | false | true | 1 | 0 | 5 | 0 | 4 | 4 | 21244 | 18615 | 2629 | true | true | true | true |
+| relational-core-mini | reachability | gmeow-native-plan-v1 | e046827c8a3d2c0341b8fc89a49422295bdb92da92691bb042bfefea80d55354 | false | true | 1 | 0 | 5 | 0 | 2 | 2 | 14814 | 12032 | 2782 | true | true | true | true |
+| relational-core-mini | same-generation | gmeow-native-plan-v1 | 74233e47e2e0af222e3d81165dcec62f686683df3f5e81dc8477279dd53c9d4d | false | true | 1 | 0 | 7 | 0 | 8 | 8 | 38937 | 35631 | 3306 | true | true | true | true |
+| relational-core-mini | scc | gmeow-native-plan-v1 | 33fc141eeda9d1a28700734213ac0b95583229f08bdeb18130a64b2756115001 | false | true | 1 | 0 | 8 | 0 | 8 | 8 | 28234 | 24454 | 3780 | true | true | true | true |
+| relational-core-mini | transitive-closure | gmeow-native-plan-v1 | 61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616 | false | true | 1 | 0 | 5 | 0 | 3 | 3 | 15820 | 13196 | 2624 | true | true | true | true |
+| relational-core-mini | transitive-closure-scaled | gmeow-native-plan-v1 | 61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616 | false | true | 1 | 0 | 5 | 0 | 78 | 78 | 200312 | 197674 | 2638 | true | true | true | true |
+| relational-core-mini | triangle-heavy | gmeow-native-plan-v1 | 42f1f1834d011e457334bc7f62f4ae089fe3e605c0395b588810374ffcde8091 | false | true | 1 | 0 | 4 | 0 | 64 | 64 | 514781 | 512396 | 2385 | true | true | true | true |
 
 ## Per-corpus divergence-ledger tally
 

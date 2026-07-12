@@ -60,15 +60,23 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 /// shipped `graph/reasoning` verdict can refuse one minted under a different
 /// contract than the engine it is about to trust it against.
 pub fn native_contract_hash() -> String {
-    let contract = format!(
-        "{dl_rules}\n{el_rules}\n{rl_rules}\n{dl_src}\n{mod_src}",
-        dl_rules = dl::dl_rules(),
-        el_rules = el::EL_RULES,
-        rl_rules = rl::RL_RULES,
-        dl_src = include_str!("dl.rs"),
-        mod_src = include_str!("mod.rs"),
-    );
-    crate::provenance::sha1_hex(&contract)
+    static HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    HASH.get_or_init(|| {
+        // Contract source is immutable for the lifetime of a compiled binary. Build
+        // and hash the large concatenated surface once; plan-cache lookups then clone
+        // only the 40-byte digest instead of rematerializing the whole rules/source
+        // corpus on every evaluation.
+        let contract = format!(
+            "{dl_rules}\n{el_rules}\n{rl_rules}\n{dl_src}\n{mod_src}",
+            dl_rules = dl::dl_rules(),
+            el_rules = el::EL_RULES,
+            rl_rules = rl::RL_RULES,
+            dl_src = include_str!("dl.rs"),
+            mod_src = include_str!("mod.rs"),
+        );
+        crate::provenance::sha1_hex(&contract)
+    })
+    .clone()
 }
 
 /// Run the native single-chase pipeline and return the shared

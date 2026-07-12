@@ -136,6 +136,37 @@ impl CostVector {
         })
     }
 
+    fn from_derived_rows(
+        rows: &[crate::rule_ir::DerivedRow],
+        strata: &BTreeMap<String, u32>,
+    ) -> gmeow_errors::Result<Self> {
+        let mut counts = BTreeMap::new();
+        for row in rows {
+            if row.rule_iri == crate::provenance::ASSERT_RULE_IRI {
+                continue;
+            }
+            let Some(&stratum) = strata.get(&row.predicate) else {
+                return Err(cost_err(format!(
+                    "repeat-evaluation derived predicate {:?} has no certified stratum",
+                    row.predicate
+                )));
+            };
+            *counts
+                .entry(CostKey {
+                    rule: row.rule_iri.clone(),
+                    predicate: row.predicate.clone(),
+                    stratum,
+                })
+                .or_insert(0) += 1;
+        }
+        Ok(Self {
+            counts,
+            alloc_bytes: 0,
+            alloc_count: 0,
+            peak_live_bytes: 0,
+        })
+    }
+
     /// Attribute the newly-present derived rows in one signed incremental
     /// transaction to their concrete `(rule, predicate, stratum)` witnesses.
     /// Asserted insertions carry no derivation witness and are deliberately omitted;
@@ -338,6 +369,147 @@ pub struct NativeForwardRun {
     pub cost: CostVector,
     /// The engine-version identity this run was produced under.
     pub engine: EngineId,
+}
+
+/// One cold/warm observation from [`RepeatForwardSession`].
+///
+/// Every field is deterministic: no wall-clock enters this surface. Allocation count
+/// and peak-live are attached by the dedicated benchmark allocator outside this crate.
+pub struct RepeatForwardObservation {
+    /// Whether the bounded cache supplied the executable.
+    pub cache_hit: bool,
+    /// Physical plans built during this evaluation (`1` cold, `0` warm).
+    pub plan_builds: u64,
+    /// Static rule/atom/guard/builtin nodes inspected by planning (`N` cold, `0` warm).
+    pub planning_units: u64,
+    /// Whether this evaluation consumed the exact same immutable `Arc<Executable>` as
+    /// the session's first evaluation.
+    pub same_executable_as_first: bool,
+    /// Canonical rule-program hash from the executable identity.
+    pub rule_hash: [u8; 32],
+    /// Physical solver/planner ABI version from the executable identity.
+    pub solver_version: &'static str,
+    /// Governor committed-derivation count.
+    pub consumed_steps: u64,
+    /// Decomposable `(rule, predicate, stratum)` derivation vector.
+    pub cost: CostVector,
+    /// Byte-stable BLAKE3 digest of the complete sorted materialized row set.
+    pub closure_hash: [u8; 32],
+}
+
+/// Fixed-EDB/rule session proving a second evaluation reuses one immutable physical
+/// plan while executing the same forward core from scratch.
+///
+/// Parsing, EDB loading, and certified-stratum construction happen in [`Self::prepare`]
+/// outside the measured region. Each [`Self::evaluate`] still performs a complete
+/// materialization; only stratification and physical planning are cacheable.
+pub struct RepeatForwardSession {
+    store: crate::store::WorldStore,
+    rules: Vec<crate::rule_ir::EvalRule>,
+    strata: BTreeMap<String, u32>,
+    contract_hash: String,
+    cache: crate::physical::PlanCache,
+    first_executable: Option<std::sync::Arc<crate::physical::Executable>>,
+}
+
+impl RepeatForwardSession {
+    /// Prepare a binary named-ternary forward session.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for malformed/non-ternary rules, EDB loading failure, or a
+    /// certification/lowering failure.
+    pub fn prepare(
+        edb: &RdfDataset,
+        rules: &str,
+        contract_hash: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let program = crate::nemo_engine::NemoParsedRules::parse_unvalidated(rules)?.into_program();
+        if !crate::oracle::program_is_pure_ternary(&program) {
+            return Err(cost_err(
+                "repeat-forward plan probe requires a pure named-ternary rule program".to_owned(),
+            ));
+        }
+        let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
+        let strata = crate::certify::predicate_strata(rules)?;
+        let store = crate::store::WorldStore::new();
+        store.load_dataset(edb)?;
+        Ok(Self {
+            store,
+            rules: eval_rules,
+            strata,
+            contract_hash: contract_hash.into(),
+            cache: crate::physical::PlanCache::new(2),
+            first_executable: None,
+        })
+    }
+
+    /// Execute one complete materialization through the session-local plan cache.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the program is non-stratifiable, execution reports a
+    /// declared native gap, or a derived row cannot be attributed to its stratum.
+    pub fn evaluate(&mut self) -> gmeow_errors::Result<RepeatForwardObservation> {
+        let lookup = self
+            .cache
+            .get_or_compile(self.contract_hash.clone(), self.rules.clone());
+        let executable = lookup.executable.ok_or_else(|| {
+            cost_err("repeat-forward plan probe program is non-stratifiable".to_owned())
+        })?;
+        let same_executable_as_first = self
+            .first_executable
+            .as_ref()
+            .is_none_or(|first| std::sync::Arc::ptr_eq(first, &executable));
+        if self.first_executable.is_none() {
+            self.first_executable = Some(executable.clone());
+        }
+        let identity = executable.identity();
+        let rule_hash = *identity.rule_hash();
+        let solver_version = identity.solver_version();
+
+        let budgeted =
+            match crate::physical::materialize_native(&self.store, executable.as_ref(), None)? {
+                crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
+                crate::physical::NativeOutcome::Unsupported(kind) => {
+                    return Err(cost_err(format!(
+                        "repeat-forward plan probe hit declared native gap {kind:?}"
+                    )));
+                }
+            };
+        let closure_hash = derived_rows_hash(&budgeted.rows);
+        let cost = CostVector::from_derived_rows(&budgeted.rows, &self.strata)?;
+        Ok(RepeatForwardObservation {
+            cache_hit: lookup.cache_hit,
+            plan_builds: lookup.plan_builds,
+            planning_units: lookup.planning_units,
+            same_executable_as_first,
+            rule_hash,
+            solver_version,
+            consumed_steps: budgeted.consumed_steps,
+            cost,
+            closure_hash,
+        })
+    }
+}
+
+fn derived_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
+    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    frame(&mut hasher, "gmeow-repeat-forward-closure-v1");
+    hasher.update(&(rows.len() as u64).to_le_bytes());
+    for row in rows {
+        frame(&mut hasher, &row.graph);
+        frame(&mut hasher, &crate::provenance::term_display(&row.subject));
+        frame(&mut hasher, &row.predicate);
+        frame(&mut hasher, &crate::provenance::term_display(&row.object));
+        frame(&mut hasher, &row.rule_iri);
+    }
+    *hasher.finalize().as_bytes()
 }
 
 /// One signed row emitted by the public incremental benchmark seam.
@@ -798,6 +970,33 @@ mod tests {
         assert!(
             !nemo.is_empty(),
             "the Nemo seam must materialize a non-empty row set for the same program"
+        );
+    }
+
+    #[test]
+    fn repeat_forward_session_reuses_plan_with_identical_cost_and_closure() {
+        let edb = two_edge_edb();
+        let rules = two_stratum_rules();
+        let mut session =
+            RepeatForwardSession::prepare(edb.as_ref(), &rules, "repeat-forward-test")
+                .expect("prepare repeat-forward session");
+
+        let cold = session.evaluate().expect("cold evaluation");
+        let warm = session.evaluate().expect("warm evaluation");
+        assert!(!cold.cache_hit);
+        assert_eq!(cold.plan_builds, 1);
+        assert!(cold.planning_units > 0);
+        assert!(warm.cache_hit);
+        assert_eq!((warm.plan_builds, warm.planning_units), (0, 0));
+        assert!(warm.same_executable_as_first);
+        assert_eq!(cold.rule_hash, warm.rule_hash);
+        assert_eq!(cold.solver_version, warm.solver_version);
+        assert_eq!(cold.closure_hash, warm.closure_hash);
+        assert_eq!(cold.consumed_steps, warm.consumed_steps);
+        assert_eq!(cold.cost, warm.cost);
+        assert!(
+            cold.cost.attributed_coordinates() >= 2,
+            "repeat evidence retains per-(rule,predicate,stratum) attribution"
         );
     }
 

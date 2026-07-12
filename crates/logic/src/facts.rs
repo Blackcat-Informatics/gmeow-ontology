@@ -198,9 +198,9 @@ impl TermInterner {
 
     /// The cached display surface for `id` (same panic contract as [`Self::resolve`]).
     ///
-    /// Test-only introspection: production consumers resolve values
-    /// ([`Self::resolve`]) or key on surfaces ([`Self::lookup`]).
-    #[cfg(test)]
+    /// This is also the zero-render physical join surface: slot kernels compare and
+    /// copy the already-interned lexical value rather than rerunning `term_display` for
+    /// every selected row.
     pub(crate) fn display_of(&self, id: TermId) -> &str {
         self.displays.get(id.index()).unwrap_or_else(|| {
             panic!(

@@ -29,6 +29,12 @@
 //!   allocator high-water, page reuse), so they live HERE and NEVER enter the committed
 //!   artifact.
 //!
+//! The primary forward/backward allocation sample is a **warm-plan execution**: one
+//! semantically-checked call primes the process cache outside the measured region, then the
+//! recorded call executes through that immutable plan. Cold planning is not hidden; every
+//! forward case separately records a paired cold/warm complete-materialization probe with plan
+//! builds, planning units, closure/cost parity, and both allocation-win verdicts.
+//!
 //! # How each allocation scalar gates
 //!
 //! `main` pins the process-GLOBAL Rayon pool to a SINGLE thread once, adding the calling
@@ -42,14 +48,14 @@
 //! `peak_live_bytes` (the [`gmeow_cost_measure`] net-live high-water) is deterministic
 //! because it nets each transient scratch allocation — freed within the region — back to
 //! zero, so it enters the exact descriptor. The two TOTAL-allocation scalars (`alloc_bytes`
-//! / `alloc_count`) are NOT byte-reproducible: across ≥20 harness runs the most-recursive
-//! case (`same-generation`) occupies three discrete states spanning ~0.06% — a single
-//! quantized ±14-allocation transient deep in the native forward core that survives a
-//! process-global total, the inline single-thread pool, AND a fully rayon-free sequential
-//! engine (proven by direct experiment), i.e. genuine per-run engine allocation jitter,
-//! not a threading artifact a thread cap could remove. So the totals gate through a
-//! separate ONE-SIDED tolerance band (`fresh ≤ baseline·(1+ε)`, ε = 1% ≈ 17× the measured
-//! floor; see [`ALLOC_BAND_NUM`]) folded through the SAME divergence ledger: a within-band
+//! / `alloc_count`) are NOT byte-reproducible: they occupy discrete 14-allocation states
+//! deep in the native core that survive a process-global total, the inline single-thread
+//! pool, AND a fully rayon-free sequential engine. After flat-slot kernels cut small-query
+//! allocation totals roughly in half, a 12-process soak exposed the same quantum across a
+//! 42-allocation span on `ancestor-query`; that absolute floor now dominates a percentage
+//! for small totals. So bytes gate through a 1% one-sided band, while counts use the greater
+//! of 1% and the measured 42-allocation floor (see [`ALLOC_COUNT_JITTER_FLOOR`]), folded
+//! through the SAME divergence ledger: a within-band
 //! run is a non-blocking `Agree`, a breach a blocking `CorpusOnly` cost-regression finding.
 //! They are therefore stripped from the exact `cost_descriptor` (an exact match would
 //! flake) but remain in the artifact (2a) as committed, drift-gated integer columns — no
@@ -119,8 +125,8 @@ use gmeow_cost_measure::{CountingAllocator, measure};
 use gmeow_errors::Diag;
 
 use gmeow_logic::cost::{
-    ForwardRows, IncrementalForwardSession, SignedForwardRow, run_native_forward, run_nemo_forward,
-    run_nemo_forward_facts_only,
+    ForwardRows, IncrementalForwardSession, RepeatForwardSession, SignedForwardRow,
+    run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
 };
 use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::materialize::materialize_routed;
@@ -457,6 +463,47 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
 
+    // Deterministic repeat-evaluation evidence for compile-don't-interpret. Parsing,
+    // EDB loading, and stratum certification are outside both measured regions. Each
+    // region performs a complete materialization; only the physical plan may persist.
+    let plan_contract = format!("bench-repeat-plan-v1:{}/{}", case.corpus, case.name);
+    let mut repeat = RepeatForwardSession::prepare(edb.as_ref(), &case.rules, plan_contract)
+        .map_err(|e| run_err(case, format!("repeat-forward prepare failed: {e}")))?;
+    let (cold_res, cold_sample) = measure(|| repeat.evaluate());
+    let cold = cold_res.map_err(|e| run_err(case, format!("cold plan evaluation failed: {e}")))?;
+    let (warm_res, warm_sample) = measure(|| repeat.evaluate());
+    let warm = warm_res.map_err(|e| run_err(case, format!("warm plan evaluation failed: {e}")))?;
+    let repeat_parity = cold.closure_hash == warm.closure_hash
+        && cold.consumed_steps == warm.consumed_steps
+        && cold.cost == warm.cost
+        && cold.rule_hash == warm.rule_hash
+        && cold.solver_version == warm.solver_version;
+    let plan_reused = !cold.cache_hit
+        && cold.plan_builds == 1
+        && cold.planning_units > 0
+        && warm.cache_hit
+        && warm.plan_builds == 0
+        && warm.planning_units == 0
+        && warm.same_executable_as_first;
+    let alloc_count_win = warm_sample.count < cold_sample.count;
+    let peak_live_win = warm_sample.peak_live < cold_sample.peak_live;
+    if !(repeat_parity && plan_reused && alloc_count_win && peak_live_win) {
+        return Err(run_err(
+            case,
+            format!(
+                "repeat-forward contract failed: parity={repeat_parity} plan_reused={plan_reused} \
+                 cold_alloc_count={} warm_alloc_count={} cold_peak_live={} warm_peak_live={}",
+                cold_sample.count, warm_sample.count, cold_sample.peak_live, warm_sample.peak_live
+            ),
+        ));
+    }
+
+    // Prime the production process-wide plan cache outside the primary allocation sample.
+    // Cold planning remains measured explicitly by the paired local repeat probe above;
+    // this sample is the steady-state execution cost, not a cold-start/cache mixture.
+    run_native_forward(edb.as_ref(), &case.rules)
+        .map_err(|e| run_err(case, format!("native forward plan prime failed: {e}")))?;
+
     // Native (measured). The global Rayon pool is the single calling thread (set in
     // `main`), so the engine's parallel work runs inline on the measuring thread; the
     // process-global totals and per-thread peak-live capture it completely — pool-quiesce.
@@ -515,6 +562,32 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             "peak_live_bytes": native.cost.peak_live_bytes(),
             "rows_fingerprint": native_fp,
             "cost_vector": cost_tuples(&native.cost.to_sorted_tuples()),
+            "plan_cache": {
+                "solver_version": cold.solver_version,
+                "rule_hash": blake3::Hash::from_bytes(cold.rule_hash).to_hex().to_string(),
+                "cold": {
+                    "cache_hit": cold.cache_hit,
+                    "plan_builds": cold.plan_builds,
+                    "planning_units": cold.planning_units,
+                    "consumed_steps": cold.consumed_steps,
+                    "peak_live_bytes": cold_sample.peak_live,
+                    "closure_blake3": blake3::Hash::from_bytes(cold.closure_hash).to_hex().to_string(),
+                    "cost_vector": cost_tuples(&cold.cost.to_sorted_tuples()),
+                },
+                "warm": {
+                    "cache_hit": warm.cache_hit,
+                    "plan_builds": warm.plan_builds,
+                    "planning_units": warm.planning_units,
+                    "consumed_steps": warm.consumed_steps,
+                    "peak_live_bytes": warm_sample.peak_live,
+                    "closure_blake3": blake3::Hash::from_bytes(warm.closure_hash).to_hex().to_string(),
+                    "cost_vector": cost_tuples(&warm.cost.to_sorted_tuples()),
+                },
+                "same_executable": warm.same_executable_as_first,
+                "repeat_parity": repeat_parity,
+                "warm_alloc_count_strictly_lower": alloc_count_win,
+                "warm_peak_live_strictly_lower": peak_live_win,
+            },
         },
         "oracle": {
             "engine": "nemo",
@@ -1013,6 +1086,10 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let foreign = WorldFactSnapshot::from_world(&store, world, HORN_PROFILE_IRI)
         .map_err(|e| run_err(case, format!("foreign snapshot failed: {e}")))?;
     let budget = Budget::default();
+    // Prime the process-wide demand-plan cache outside the steady-state sample. The
+    // answer is checked because a failed prime is a real engine failure, never ignored.
+    dispatch_query(&foreign, world, &program, HORN_PROFILE_IRI, &budget)
+        .map_err(|e| run_err(case, format!("native backward plan prime failed: {e}")))?;
     // Native backward (measured; global Rayon pool is the single calling thread — pool-quiesce).
     let native_start = Instant::now();
     let (native_res, sample) =
@@ -1113,22 +1190,22 @@ fn case_key(rec: &Value) -> gmeow_errors::Result<(String, String)> {
     Ok((corpus.to_owned(), case.to_owned()))
 }
 
-/// The allocation-band tolerance `ε = ALLOC_BAND_NUM / ALLOC_BAND_DEN = 1%`. The
-/// total-allocation scalars (`alloc_bytes` / `alloc_count`) are NOT byte-reproducible:
-/// across ≥20 harness runs the most-recursive case (`same-generation`) occupies three
-/// discrete states spanning ~0.06% (a single quantized ±14-allocation transient deep in
-/// the native forward core that survives a process-global total, an inline single-thread
-/// Rayon pool, AND a fully rayon-free sequential engine — i.e. genuine per-run engine
-/// allocation jitter, not a threading artifact). So alloc gates as a **one-sided
-/// regression band** `fresh ≤ baseline·(1+ε)` — deterministic in the sense that the
-/// verdict is a pure function of `(fresh, baseline, ε)` — with ε set ~17× above the
-/// measured 0.06% floor so the band never flakes yet still bites a gross allocation
-/// regression (the "fewer clones / fewer owned-key allocations" backslide the doctrine
-/// names, which re-adds allocations far above the band). See `LOGIC-PERFORMANCE.md
-/// §Measurement doctrine`.
+/// Percentage component of the one-sided allocation regression band.
+///
+/// Allocation bytes use this 1% ceiling directly. Allocation counts use the greater of
+/// this ceiling and [`ALLOC_COUNT_JITTER_FLOOR`]: flat-slot kernels reduced the small
+/// backward cases enough that the allocator's existing absolute quantization became
+/// larger than 1% even though its absolute span did not grow.
 const ALLOC_BAND_NUM: u64 = 1;
 /// Denominator of the allocation-band tolerance (see [`ALLOC_BAND_NUM`]).
 const ALLOC_BAND_DEN: u64 = 100;
+/// Absolute allocation-count jitter admitted in addition to the 1% relative band.
+///
+/// A 12-fresh-process soak of `ancestor-query` observed exactly 1793, 1821, and 1835
+/// allocations: the established 14-allocation quantum across a maximum span of 42. This
+/// remains one-sided: reductions always pass, while a 43-allocation increase at this
+/// scale fails.
+const ALLOC_COUNT_JITTER_FLOOR: u64 = 42;
 
 /// A COMPLETE deterministic descriptor of one case's native cost + verdict-agreement
 /// sub-records, EXCLUDING the two non-reproducible total-allocation scalars (`alloc_bytes`
@@ -1167,18 +1244,18 @@ fn native_alloc(rec: &Value) -> Option<(u64, u64)> {
     ))
 }
 
-/// Whether `fresh ≤ baseline · (1 + ε)` under the integer allocation band (`ε =
-/// ALLOC_BAND_NUM / ALLOC_BAND_DEN`), computed in `u128` so no product overflows.
-fn within_alloc_band(fresh: u64, baseline: u64) -> bool {
-    (fresh as u128) * (ALLOC_BAND_DEN as u128)
-        <= (baseline as u128) * ((ALLOC_BAND_DEN + ALLOC_BAND_NUM) as u128)
+/// Whether `fresh` is under the greater of the relative 1% ceiling and an optional
+/// measured absolute jitter floor.
+fn within_alloc_band(fresh: u64, baseline: u64, absolute_floor: u64) -> bool {
+    fresh <= alloc_band_ceiling(baseline, absolute_floor)
 }
 
 /// The inclusive integer ceiling of the allocation band for `baseline` — the largest
 /// `fresh` value that still passes [`within_alloc_band`].
-fn alloc_band_ceiling(baseline: u64) -> u64 {
-    ((baseline as u128) * ((ALLOC_BAND_DEN + ALLOC_BAND_NUM) as u128) / (ALLOC_BAND_DEN as u128))
-        as u64
+fn alloc_band_ceiling(baseline: u64, absolute_floor: u64) -> u64 {
+    let relative = ((baseline as u128) * ((ALLOC_BAND_DEN + ALLOC_BAND_NUM) as u128)
+        / (ALLOC_BAND_DEN as u128)) as u64;
+    relative.max(baseline.saturating_add(absolute_floor))
 }
 
 /// Build one allocation-band divergence comparison for the shared ledger: within-band ⇒
@@ -1193,8 +1270,9 @@ fn alloc_band_comp(
     kind: &str,
     fresh: u64,
     baseline: u64,
+    absolute_floor: u64,
 ) -> ExternalComparison {
-    let (native, published) = if within_alloc_band(fresh, baseline) {
+    let (native, published) = if within_alloc_band(fresh, baseline, absolute_floor) {
         (
             "within-alloc-band".to_string(),
             "within-alloc-band".to_string(),
@@ -1202,7 +1280,10 @@ fn alloc_band_comp(
     } else {
         (
             format!("alloc={fresh}"),
-            format!("alloc<=ceiling={}", alloc_band_ceiling(baseline)),
+            format!(
+                "alloc<=ceiling={}",
+                alloc_band_ceiling(baseline, absolute_floor)
+            ),
         )
     };
     ExternalComparison {
@@ -1312,6 +1393,7 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
                 "alloc-bytes-band",
                 fresh_bytes,
                 base_bytes,
+                0,
             ));
             corpus_comps.push(alloc_band_comp(
                 corpus,
@@ -1320,6 +1402,7 @@ fn run_cost_regression_check(baseline_path: &Path, fresh: &[Value]) -> gmeow_err
                 "alloc-count-band",
                 fresh_count,
                 base_count,
+                ALLOC_COUNT_JITTER_FLOOR,
             ));
         }
     }
@@ -2401,6 +2484,21 @@ mod tests {
         assert!(
             out.is_ok(),
             "a fresh alloc within the 1% band must not regress: {out:?}"
+        );
+    }
+
+    #[test]
+    fn alloc_count_band_absorbs_measured_quantum_but_still_bites() {
+        assert!(within_alloc_band(1_835, 1_793, ALLOC_COUNT_JITTER_FLOOR));
+        assert_eq!(alloc_band_ceiling(1_793, ALLOC_COUNT_JITTER_FLOOR), 1_835);
+        assert!(
+            !within_alloc_band(1_836, 1_793, ALLOC_COUNT_JITTER_FLOOR),
+            "one allocation beyond the measured 42-count span must fail"
+        );
+        assert_eq!(
+            alloc_band_ceiling(1_000_000, ALLOC_COUNT_JITTER_FLOOR),
+            1_010_000,
+            "the 1% relative band dominates for large totals"
         );
     }
 
