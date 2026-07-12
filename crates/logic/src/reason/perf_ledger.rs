@@ -79,7 +79,7 @@ pub struct PerfLedger {
 
 /// The non-monotone solver selected for one maintained-ground-program shot.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum NonmonotoneSolver {
+pub enum NonmonotoneSolver {
     /// Van Gelder alternating-fixpoint evaluation.
     WellFounded,
     /// Exhaustive stable-model enumeration followed by cautious intersection.
@@ -88,7 +88,7 @@ pub(crate) enum NonmonotoneSolver {
 
 impl NonmonotoneSolver {
     /// Stable machine-readable solver name for a per-shot ledger row.
-    pub(crate) fn as_str(self) -> &'static str {
+    pub fn as_str(self) -> &'static str {
         match self {
             Self::WellFounded => "well-founded alternating fixpoint",
             Self::StableModel => "stable-model cautious enumeration",
@@ -98,7 +98,7 @@ impl NonmonotoneSolver {
 
 /// What happened at the explicitly non-incremental solver boundary for one shot.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum SolveDisposition {
+pub enum SolveDisposition {
     /// The asserted EDB and active ground rules were unchanged, so the previous
     /// solution was reused without entering the solver.
     ReusedUnchangedGroundSlice,
@@ -113,22 +113,22 @@ pub(crate) enum SolveDisposition {
 /// boundary. This row makes each run equally explicit without contaminating the
 /// deterministic repository-wide Turtle with process history.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct NonmonotoneSolveRun {
+pub struct NonmonotoneSolveRun {
     /// Solver whose boundary this row records.
-    pub(crate) solver: NonmonotoneSolver,
+    pub solver: NonmonotoneSolver,
     /// Same honest status as the canonical static ledger row.
-    pub(crate) status: PerfStatus,
+    pub status: PerfStatus,
     /// Reuse versus explicit from-scratch solving for this shot.
-    pub(crate) disposition: SolveDisposition,
+    pub disposition: SolveDisposition,
     /// Consolidated asserted-fact changes in the solver slice.
-    pub(crate) edb_changes: usize,
+    pub edb_changes: usize,
     /// Active ground-rule zero-crossings in the solver slice.
-    pub(crate) ground_rule_changes: usize,
+    pub ground_rule_changes: usize,
 }
 
 impl NonmonotoneSolveRun {
     /// Whether this shot entered the deliberately non-incremental solver.
-    pub(crate) fn solver_reran(self) -> bool {
+    pub fn solver_reran(self) -> bool {
         self.disposition == SolveDisposition::ReranFromScratch
     }
 }

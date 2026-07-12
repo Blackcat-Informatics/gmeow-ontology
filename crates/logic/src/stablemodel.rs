@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native stable-model / answer-set evaluator (Phase A).
+//! Native stable-model / answer-set evaluator.
 //!
 //! Nemo rejects non-stratifiable programs, so the stable models are enumerated
 //! here directly, on top of the reduct least model in [`crate::rule_ir`].  Per
@@ -24,9 +24,10 @@
 //! `{candidate, inSet}` and `{candidate, outSet}` intersect to EMPTY (modulo EDB),
 //! so only the asserted `candidate(x,x)` quad is emitted.
 //!
-//! Phase-A note: [`stable_models`] / [`cautious_materialize`] are the entry points
-//! `py.rs` will call in Phase B; until that routing lands they are consumed
-//! only by this module's tests, hence the crate-internal `dead_code` allowance.
+//! [`IncrementalStableModelSession`] is the production multi-shot boundary used by
+//! [`crate::materialize::NonmonotoneMaterializationSession`]. The low-level model
+//! enumerator and scratch materializer remain crate-internal comparators for parity
+//! tests, hence the crate-internal `dead_code` allowance.
 #![allow(dead_code)]
 
 use std::collections::BTreeSet;
@@ -96,6 +97,11 @@ impl IncrementalStableModelSession {
     /// Current cached cautious rows.
     pub(crate) fn rows(&self) -> &[DerivedRow] {
         &self.rows
+    }
+
+    /// Active fully-ground rules in the current solver slice.
+    pub(crate) fn active_ground_rule_count(&self) -> usize {
+        self.ground.active_ground_rule_count()
     }
 
     /// Falsifiable maintenance oracle for tests / deterministic benchmark lanes.
