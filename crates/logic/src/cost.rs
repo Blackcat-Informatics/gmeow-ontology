@@ -884,7 +884,7 @@ impl IncrementalGroundingCostSession {
         Ok(NativeGroundingScratchRun {
             rows_fingerprint: derived_fact_rows_hash(scratch.rows()),
             row_count: scratch.rows().len() as u64,
-            ground_rule_probe_rows: scratch.scratch_ground_rule_probe_rows(),
+            ground_rule_probe_rows: scratch.scratch_ground_rule_probe_rows()?,
             active_ground_rules: scratch.active_ground_rule_count(),
         })
     }
