@@ -6293,19 +6293,43 @@ pub fn llms_txt(model: &DocsModel) -> String {
     }
 
     // ── Reference: the standing index pages (always present). ──
+    let mut reference_bullets = vec![
+        reference_bullet("Slice index", &Page::SliceIndex),
+        reference_bullet("Linkages", &Page::LinkageIndex),
+        reference_bullet("Competency questions", &Page::CompetencyIndex),
+        reference_bullet("Conformance fixtures", &Page::FixtureIndex),
+        reference_bullet("Notation grammars", &Page::NotationIndex),
+        reference_bullet("Glossary", &Page::Glossary),
+        reference_bullet("External ontologies", &Page::ExternalIndex),
+        reference_bullet("Integrity constraints", &Page::IntegrityIndex),
+        reference_bullet("Logic & reasoning", &Page::Logic),
+    ];
+    // The build-pipeline DAG page is emitted only when a pipeline was discovered
+    // (honest absence for a bare model); link it only when it is actually rendered.
+    if model.pipeline.is_some() {
+        reference_bullets.push(reference_bullet("Build pipeline", &Page::PipelineDag));
+    }
+    // The offline, agent-ingestible corpus: a flattened per-term card projection
+    // written by the docs-export snippets affordance (linkless — it names a
+    // capability, not a published page).
+    reference_bullets.push(LlmsBullet {
+        text: "Offline snippet corpus".to_string(),
+        url: None,
+        signature: String::new(),
+        note: SNIPPETS_CORPUS_NOTE.to_string(),
+    });
     sections.push(LlmsSection {
         heading: "Reference".to_string(),
-        bullets: vec![
-            reference_bullet("Slice index", &Page::SliceIndex),
-            reference_bullet("Linkages", &Page::LinkageIndex),
-            reference_bullet("External ontologies", &Page::ExternalIndex),
-            reference_bullet("Integrity constraints", &Page::IntegrityIndex),
-            reference_bullet("Logic & reasoning", &Page::Logic),
-        ],
+        bullets: reference_bullets,
     });
 
     llms::render_index(&model.title, &prose, &sections)
 }
+
+/// The one-line description of the offline snippet corpus — the flattened
+/// prompt-ready per-term cards written by `gmeow-dev export-docs --format
+/// snippets`. Shared verbatim by both `llms.txt` surfaces so they cannot drift.
+pub const SNIPPETS_CORPUS_NOTE: &str = "`gmeow-dev export-docs --format snippets` writes one prompt-ready Markdown card per term to `terms/<slug>.md` — the offline, agent-ingestible projection of these docs.";
 
 /// A single Reference-section bullet linking to a standing index page.
 fn reference_bullet(text: &str, page: &Page) -> LlmsBullet {
@@ -6357,6 +6381,23 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
         }
         out.push('\n');
     }
+
+    // ── Reference: the standing index pages an agent should know exist, plus the
+    // offline-corpus affordance. This surface is self-contained (linkless), so the
+    // pages are named rather than linked; kept in sync with the same standing
+    // pages listed in the `llms_txt` Reference section so the two cannot drift. ──
+    out.push_str("## Reference\n\n");
+    out.push_str("- Competency questions\n");
+    out.push_str("- Conformance fixtures\n");
+    out.push_str("- Notation grammars\n");
+    out.push_str("- Glossary\n");
+    if model.pipeline.is_some() {
+        out.push_str("- Build pipeline\n");
+    }
+    out.push_str("- Offline snippet corpus: ");
+    out.push_str(SNIPPETS_CORPUS_NOTE);
+    out.push('\n');
+    out.push('\n');
 
     out
 }
