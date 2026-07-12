@@ -96,11 +96,15 @@ fn every_pre_migration_tier_floor_is_reproduced() {
             .iter()
             .find(|f| f.slice == slice)
             .unwrap_or_else(|| panic!("no SliceTierFloor for slice {slice}"));
+        // The current rubric ladder (slices/core/slice-quality-rubric): Registered,
+        // Grounded, Linked, Exemplified, Maximal. (An earlier ladder called rank 2
+        // "tierRich"; it was renamed "tierLinked" and Exemplified inserted.)
         let rank = |tier: &str| match tier {
             "tierRegistered" => 0,
             "tierGrounded" => 1,
-            "tierRich" => 2,
-            "tierMaximal" => 3,
+            "tierLinked" => 2,
+            "tierExemplified" => 3,
+            "tierMaximal" => 4,
             other => panic!("unknown tier local name {other}"),
         };
         let loaded = local_name(&found.tier);
