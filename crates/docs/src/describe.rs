@@ -1002,4 +1002,72 @@ mod tests {
         assert_eq!(code, DescribeStatus::LoadFailed);
         assert!(!text.is_empty());
     }
+
+    /// The committed, shipped bundle bytes (`generated/dist/gmeow.gts`) — the exact
+    /// bytes `gmeow-cli` embeds. Used by the coherence gate.
+    fn shipped_bundle_bytes() -> Vec<u8> {
+        let path =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/dist/gmeow.gts");
+        std::fs::read(&path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()))
+    }
+
+    /// The namespace of an IRI: everything up to and including its last `/` or `#`.
+    fn namespace_of(iri: &str) -> &str {
+        match iri.rfind(['#', '/']) {
+            Some(i) => &iri[..=i],
+            None => iri,
+        }
+    }
+
+    /// COHERENCE GATE: every vocabulary term (OWL class/property) in the shipped
+    /// bundle must live in a namespace the canonical `PREFIX_REGISTRY` knows. A
+    /// describable term in an UNREGISTERED namespace can neither be resolved by CURIE
+    /// nor shortened for display — it would be silently undescribable. This turns
+    /// "every bundled term resolves" into a machine-checked invariant: add a fifth
+    /// grounding slice to the bundle without registering its prefix, and this HARD
+    /// FAILS (rather than the term silently vanishing from `describe`/MCP).
+    #[test]
+    fn every_bundled_term_namespace_is_registered() {
+        use gmeow_logic_compile::ingest::PREFIX_REGISTRY;
+
+        let bytes = shipped_bundle_bytes();
+        let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load shipped bundle");
+
+        let mut term_subjects: BTreeSet<String> = BTreeSet::new();
+        for ty in [
+            OWL_CLASS,
+            OWL_OBJECT_PROPERTY,
+            OWL_DATATYPE_PROPERTY,
+            OWL_ANNOTATION_PROPERTY,
+        ] {
+            term_subjects.extend(graph.subjects_with_object(RDF_TYPE, ty));
+        }
+        assert!(
+            !term_subjects.is_empty(),
+            "the shipped bundle declared no OWL terms — the gate would be vacuous"
+        );
+
+        let registered: BTreeSet<&str> = PREFIX_REGISTRY.iter().map(|(_, ns)| *ns).collect();
+        let unregistered: BTreeSet<&str> = term_subjects
+            .iter()
+            .map(|s| namespace_of(s))
+            .filter(|ns| !registered.contains(ns))
+            .collect();
+        assert!(
+            unregistered.is_empty(),
+            "describable OWL terms live in namespaces absent from the canonical PREFIX_REGISTRY \
+             (they can neither resolve by CURIE nor shorten — register their prefixes): {unregistered:?}"
+        );
+
+        // Positive guard: the four grounding namespaces are actually present as term
+        // subjects (else the gate is vacuously green for a namespace that silently
+        // dropped out of the bundle).
+        for prefix in ["gmeow", "logic", "math", "lang"] {
+            let ns = registry_iri(prefix).expect("grounding prefix registered");
+            assert!(
+                term_subjects.iter().any(|s| s.starts_with(ns)),
+                "no describable OWL term found in the `{prefix}:` grounding namespace"
+            );
+        }
+    }
 }
