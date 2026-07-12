@@ -4683,7 +4683,7 @@ math:estimatesEstimand
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "estimates estimand"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimate to the estimand — the target quantity — it estimates. Domain math:Estimate, range the estimand it targets (stated in prose). An estimate references its estimand and/or its estimated parameter and its estimator; missing them it is underspecified."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the math:Estimand — the target quantity, framed by population, outcome, contrast, time, intervention, and missing-data policy — it estimates. Domain math:Estimate, range math:Estimand (stated in prose). An estimate references its estimand and/or its estimated parameter and its estimator; naming neither the estimand nor the parameter, or naming no estimator, it is underspecified (math:UnderspecifiedEstimate)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:estimatedParameter
@@ -4704,7 +4704,7 @@ math:estimator
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "estimator"@x-gmeow-english ;
-    skos:definition "Relates a math:Estimate to the estimator — the rule or procedure — that produced it (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range the estimator (stated in prose). An estimate names its estimator so the produced value is never a bare number without its act."@x-gmeow-english ;
+    skos:definition "Relates a math:Estimate to the math:Estimator — the rule or procedure, a function of the data — that produced it (ordinary least squares, maximum likelihood, …). Domain math:Estimate, range math:Estimator (stated in prose). An estimate names its estimator so the produced value is never a bare number without its act; an estimate naming no estimator is underspecified (math:UnderspecifiedEstimate)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:residualOf
@@ -4924,6 +4924,127 @@ math:missingnessMechanism
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "missingness mechanism"@x-gmeow-english ;
     skos:definition "Relates a math:StatisticalVariable whose values encode absence to the math:MissingnessMechanism (MCAR/MAR/MNAR) an analysis depending on it declares it rests on. Domain math:StatisticalVariable, range math:MissingnessMechanism (stated in prose). This is the declaration whose absence, on a variable carrying a math:hasMissingnessIndicator, is the implicit-missingness conflation the gate catches (math:ImplicitMissingness)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Models and estimation — the target of inference vs the model quantity
+#
+# The STATISTICS-charter "Models and estimation" section: the objects that make a
+# statistical estimate a provenance-heavy result rather than a bare number. The
+# layer keeps the target of inference (math:Estimand — framed by population,
+# outcome, contrast, time, intervention, and missing-data policy) apart from the
+# model quantity an estimate names (math:estimatedParameter), and both apart from
+# the procedure that produces the value (math:Estimator) and the value itself
+# (math:Estimate, defined above with the R-bridge codomain). A math:Statistic is a
+# function of the data; a math:ModelAssumption is a first-class assumption a model
+# posits (normality, homoscedasticity, independence), so it can be checked, cited,
+# or violated with a diagnostic rather than left implicit. The modeled contrast a
+# study targets is a single shared math:StatisticalContrast, referenced both here
+# (math:targetContrast) and by a later effect-size layer, never two near-synonyms.
+# A math:InferenceRun is the gmeow:Activity that runs an estimation or inference and
+# produces the estimates and p-values — the PROCESS leg of the process / result /
+# claim separation, held disjoint from gmeow:Observation. An estimate that names
+# neither its estimand nor its estimated parameter, or names no estimator, is
+# ill-formed (math:UnderspecifiedEstimate).
+# =========================================================================== #
+
+math:Estimand
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Estimand"@x-gmeow-english ;
+    skos:definition "An estimand: the target quantity a study is actually trying to learn — the thing an estimate speaks about, distinct from any coefficient inside a particular model. A subclass of math:MathematicalObject framed by the six coordinates that make it well-posed: the target population it refers to (math:targetPopulation), the outcome measured on that population (math:targetOutcome), the contrast between conditions it compares (math:targetContrast, a math:StatisticalContrast), the time or horizon it is defined at (math:targetTime), the intervention condition it conditions on (math:interventionCondition), and the missing-data policy under which it is defined (math:missingDataPolicy). This framing is load-bearing for causal inference, surveys, trials, and policy models, where the same estimand (an average treatment effect) can be targeted by different parameters under different models. An estimate names its estimand through math:estimatesEstimand; an estimand held apart from the model parameter is what keeps the target of inference from being read off a coefficient."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Estimator
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Estimator"@x-gmeow-english ;
+    skos:definition "An estimator: the estimation PROCEDURE — a rule that is a function of the data (ordinary least squares, maximum likelihood, the method of moments, an inverse-probability-weighted estimator) — held strictly apart from the estimate it produces and the estimand it targets. A subclass of math:MathematicalObject; an estimate names the estimator that produced it through math:estimator, so a produced value is never a bare number without the procedure that computed it. The estimator is the map from data to a value; the math:Estimate is one output of applying it, and the math:Estimand is the quantity it aims at — three distinct objects, never collapsed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Statistic
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Statistic"@x-gmeow-english ;
+    skos:definition "A statistic: any function of the data — a summary computed from a math:Sample or math:DatasetMatrix (a sample mean, a variance, a test statistic, an order statistic). A subclass of math:MathematicalObject naming the computed quantity as a first-class object, distinct from the math:Estimator (the procedure) and from the math:Estimand (the target it may estimate). A statistic used as an estimator estimates an estimand; a statistic used as a test statistic drives a hypothesis test — but the object is a function of the data either way, never conflated with the frame it is used in."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ModelAssumption
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Model Assumption"@x-gmeow-english ;
+    skos:definition "A model assumption: a first-class condition a math:StatisticalModel or math:FittedModel posits about the data-generating process — normality of errors, homoscedasticity, independence of observations, linearity, proportional hazards. A subclass of math:MathematicalObject named by a model through math:modelAssumption, so an assumption is an object that can be checked (by a diagnostic), cited (by a result), or reported violated, rather than left implicit in the choice of model. A model whose assumptions are stated as objects is one whose validity conditions are queryable rather than folded into a method name."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:StatisticalContrast
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Statistical Contrast"@x-gmeow-english ;
+    skos:definition "A statistical contrast: the modeled comparison notion between conditions — a difference, a ratio, an odds ratio, a hazard ratio of an outcome between a treatment and a reference condition. A subclass of math:MathematicalObject naming the comparison as a first-class object. This is the SINGLE shared contrast object that both a math:Estimand's target comparison (math:targetContrast) and an effect size's contrast reference — one modeled object, never two near-synonym classes for 'the difference being estimated' and 'the difference an effect size measures'. Holding the contrast once, shared, is what keeps the estimand's target and the effect-size's scale talking about the same comparison."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:InferenceRun
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Inference Run"@x-gmeow-english ;
+    skos:definition "An inference run: the executed occurrence of an estimation or inference — the analysis activity that fits a model to data (math:fittedToData), applies an estimator, and produces result objects (a math:Estimate, a p-value) tied back through gmeow:wasGeneratedBy. A subclass of gmeow:Activity: the PROCESS half of the process / result / claim separation, distinct from the math:Estimate result objects it produces and from the gmeow:Observation that holds a claim about them from a vantage. Mirrors how math:IngestRun and math:PCAAnalysis subclass gmeow:Activity; it is held disjoint from gmeow:Observation, so a run typed as its own observation is ill-formed (math:ProcessObservationConflation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Estimand-framing and model-assumption object properties ---------------- #
+
+math:targetPopulation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target population"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the math:StatisticalPopulation it targets — the population the estimand is defined over, who the quantity being estimated speaks about. Domain math:Estimand, range math:StatisticalPopulation (stated in prose). One of the six coordinates that make an estimand well-posed; without a target population an estimand does not fix who it refers to. Distinct from math:population, which relates an estimate or sample to its population — this frames the estimand itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:targetOutcome
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target outcome"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the outcome it is defined on — the measured quantity (a math:StatisticalVariable or outcome measure) whose value the estimand summarizes across the target population. Domain math:Estimand, range the target outcome (stated in prose). One of the six framing coordinates; the same population and contrast over a different outcome is a different estimand."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:targetContrast
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target contrast"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the math:StatisticalContrast it targets — the comparison between conditions (a difference, ratio, odds ratio, hazard ratio of the outcome) the estimand quantifies. Domain math:Estimand, range math:StatisticalContrast (stated in prose). The contrast is the SHARED modeled object also referenced by an effect size, so the estimand's target and the effect-size's scale name the same comparison; an average treatment effect estimand targets the treatment-minus-control contrast of its outcome."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:targetTime
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "target time"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the time or horizon it is defined at — the follow-up time, the landmark, the period over which the outcome and contrast are evaluated. Domain math:Estimand, range the target time (a time point, interval, or horizon, stated in prose). One of the six framing coordinates; a five-year survival difference and a one-year survival difference are different estimands over the same population and contrast."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:interventionCondition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "intervention condition"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the intervention or exposure condition it conditions on — the treatment, policy, or exposure whose effect the estimand quantifies (a do-condition, an assigned arm, a hypothetical intervention). Domain math:Estimand, range the intervention condition (stated in prose). One of the six framing coordinates and the causal hinge of the estimand; without a declared intervention condition an average treatment effect is not well-posed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:missingDataPolicy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "missing-data policy"@x-gmeow-english ;
+    skos:definition "Relates a math:Estimand to the missing-data policy under which it is defined — the intercurrent-event and missing-data handling strategy (a treatment-policy, hypothetical, or composite strategy; a declared math:MissingnessMechanism the target rests on) that fixes what the estimand means when data are incomplete. Domain math:Estimand, range the missing-data policy (stated in prose). One of the six framing coordinates; the same treatment effect under a treatment-policy strategy and under a hypothetical strategy are distinct estimands. Distinct from math:missingnessMechanism, which declares the mechanism a variable's absence follows — this frames the estimand's policy for it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:modelAssumption
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "model assumption"@x-gmeow-english ;
+    skos:definition "Relates a math:StatisticalModel or math:FittedModel to a math:ModelAssumption it posits — normality of errors, homoscedasticity, independence of observations, linearity. Domain a math:StatisticalModel or math:FittedModel, range math:ModelAssumption (stated in prose). Naming assumptions as first-class objects is what makes a model's validity conditions checkable, citable, and reportable-as-violated rather than implicit in the choice of model."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Proof-bridge codomain: the proof layer (EXPRESSIONS-charter vocabulary) -- #
@@ -5254,6 +5375,7 @@ math:UngroundedTheoremClaim
 math:IngestRun owl:disjointWith gmeow:Observation .
 math:PCAAnalysis owl:disjointWith gmeow:Observation .
 math:ProofCheckActivity owl:disjointWith gmeow:Observation .
+math:InferenceRun owl:disjointWith gmeow:Observation .
 
 # --- Bridge failure classes -------------------------------------------------- #
 
@@ -5287,6 +5409,14 @@ math:UnfittedModel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unfitted Model"@x-gmeow-english ;
     skos:definition "The failure raised when a math:FittedModel does not reference the data it was fitted to through math:fittedToData or the specification it fits through math:modelFormula. A fitted model is a math:StatisticalModel bound to concrete data by a declared specification; missing either, it is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedEstimate
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Estimate"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Estimate is ill-formed because it does not fix what it estimates or how: it names neither its estimand through math:estimatesEstimand nor its estimated parameter through math:estimatedParameter, or it names no estimator through math:estimator. An estimate is the structured result object of the process / result / claim separation, not a bare number; it must reference its estimand and/or its model parameter and the procedure that produced it. An estimate missing its target or its act is underspecified."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:ImplicitMissingness

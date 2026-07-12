@@ -657,6 +657,19 @@ ex:ecFittedModelUnfitted a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example names its specification but omits the data through math:fittedToData (sh:minCount 1 on math:FittedModelShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnfittedModel)." .
 
+# === Models and estimation: an estimate fixes its target and its estimator == #
+
+ex:ecEstimateFullySpecified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/estimate-fully-specified.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Estimate that names its math:Estimand through math:estimatesEstimand (the target arm of the sh:or), the math:Estimator that produced it through math:estimator, and its value through math:estimateValue satisfies math:UnderspecifiedEstimateShape and validates with no findings." .
+
+ex:ecEstimateNoEstimator a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/estimate-no-estimator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example names its math:Estimand through math:estimatesEstimand (satisfying the sh:or target arm) and its value, but names no math:Estimator through math:estimator (sh:minCount 1 on math:UnderspecifiedEstimateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedEstimate)." .
+
 # === Study spine: missingness is modelled, not implied ====================== #
 
 ex:ecImplicitMissingnessDeclared a gmeow:ExampleConformance ;
