@@ -441,7 +441,11 @@ impl<W: Weight> Batch<W> {
         let idx = self.object_index.get_or_init(|| {
             let mut perm: Vec<u32> = (0..self.len() as u32).collect();
             // Sort positions by (object_id, subject_id) — the secondary access order.
-            perm.sort_by(|&a, &b| {
+            // `(object, subject)` keys are unique within a batch (the primary sort is
+            // key-disjoint), so no equal elements exist to preserve order for: the
+            // unstable sort is a pure win (no scratch allocation, lower constants),
+            // matching `seal()`'s `sort_unstable_by_key`.
+            perm.sort_unstable_by(|&a, &b| {
                 let (a, b) = (a as usize, b as usize);
                 (self.obj[a], self.subj[a]).cmp(&(self.obj[b], self.subj[b]))
             });
