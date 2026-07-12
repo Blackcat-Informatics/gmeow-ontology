@@ -27,7 +27,7 @@ sha1 = "0.10"
 # term's competency query text as a `blake3:<hex>` grounding property (matching
 # the term content manifest's own `blake3:` digests). Pure-Rust and wasm-clean.
 blake3 = "1"
-purrdf = "0.5"
+purrdf.workspace = true
 # Pure-Rust catalog only: we consume the Rust SliceCatalog/ownership surface.
 gmeow-errors = { path = "../errors" }
 # The wasm-clean logic compiler — the source of truth for the projection loss

@@ -17,7 +17,7 @@ path = "src/lib.rs"
 [dependencies]
 # Native RDF 1.2 graph building + deterministic Turtle serialization + GTS reader
 # (no rdflib, no oxigraph): the put leg emits through purrdf's RdfDatasetBuilder.
-purrdf = "0.5"
+purrdf.workspace = true
 # The pure graph-read primitives (index_graph/index_turtle/first_iri/all_iris/
 # first_literal/has_type/subjects) the get leg and the bundle-driven label-set +
 # closeMatch loader reuse — same reader the affect crate reads its geometry with.
