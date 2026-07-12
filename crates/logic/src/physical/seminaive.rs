@@ -1278,8 +1278,8 @@ pub(crate) fn evaluate(
     let mut derivations: Vec<DerivedRow> = Vec::new();
     // Set iff a builtin could not be evaluated in its binding mode, or hit a
     // domain/precision error (÷0, overflow).  Such a program is a declared native
-    // gap: the whole query re-demotes to the oracle rather than present an
-    // incomplete answer set — never a wrong answer.
+    // gap: the whole query is refused rather than presenting an incomplete
+    // answer set — never a wrong answer.
     let mut builtin_gap = false;
     for k in 0..total {
         if exe.stratum_is_empty(k) {

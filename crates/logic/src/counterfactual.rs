@@ -35,7 +35,7 @@ use crate::dispatch::dispatch_query;
 use crate::entrenchment::{Entrenchment, LeastEntrenched};
 use crate::query_ir::{Binding, Budget, QAtom, QProgram, QTerm};
 use crate::result::ReasoningResult;
-use crate::seam::{BudgetStatus, WorldStoreForeign};
+use crate::seam::{BudgetStatus, WorldFactSnapshot};
 use crate::store::WorldStore;
 use crate::versioning::{CounterfactualKeyInputs, counterfactual_world_key};
 
@@ -54,11 +54,9 @@ pub const DEFAULT_DEPTH_BUDGET: u64 = 4;
 /// [`CfStatus::Incomplete`] rather than branching without bound.
 pub const DEFAULT_BRANCH_BUDGET: u64 = 16;
 
-/// Combined Nemo + Scryer solver version stamped into the counterfactual cache
-/// key. A bump in **either** backend must invalidate cached counterfactual
-/// worlds, so this is a single string that moves when the engine crate moves —
-/// never the Nemo version alone.
-pub const SOLVER_VERSION: &str = concat!("gmeow-logic/", env!("CARGO_PKG_VERSION"), "+nemo+scryer");
+/// Native solver version stamped into the counterfactual cache key. Any native
+/// engine change invalidates cached counterfactual worlds.
+pub const SOLVER_VERSION: &str = concat!("gmeow-logic/", env!("CARGO_PKG_VERSION"), "+native");
 
 /// Status of a counterfactual resolution. A superset of [`BudgetStatus`] that adds
 /// the two Stratum-C-only outcomes.
@@ -576,8 +574,8 @@ fn resolve_in_world(
         cf_store.insert_quad(world_iri, s, p, o);
     }
 
-    let foreign = WorldStoreForeign::from_world(&cf_store, world_iri, profile)?;
-    let answer = dispatch_query(&foreign, &cf_store, world_iri, program, profile, budget)?;
+    let foreign = WorldFactSnapshot::from_world(&cf_store, world_iri, profile)?;
+    let answer = dispatch_query(&foreign, world_iri, program, profile, budget)?;
     Ok((
         answer.bindings.into_iter().collect(),
         CfStatus::from_budget(answer.status),
@@ -842,9 +840,8 @@ mod tests {
     // first), so a counterfactual whose consequent needs RECURSION exercises the
     // promoted native path end-to-end on the counterfactual production surface: the
     // assumed edge a→b joins the base chain b→c→d, so `reach(a, Y)` closes over
-    // {b, c, d} inside the constructed world. (The native↔Scryer gap-zero proof for
-    // this fragment is `dispatch_parity_counterfactual_fragment_native_matches_scryer`
-    // in `physical::parity`.)
+    // {b, c, d} inside the constructed world. The reference comparison for this
+    // fragment lives in `physical::parity`.
     #[test]
     fn counterfactual_native_resolves_recursion_in_constructed_world() {
         let store = WorldStore::new();

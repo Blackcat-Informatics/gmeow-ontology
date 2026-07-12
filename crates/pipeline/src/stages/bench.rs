@@ -402,7 +402,7 @@ impl Stage for BenchLeaderboardStage {
 struct EnginePins {
     native: String,
     nemo_rev: String,
-    scryer_branch: String,
+    backward_reference: String,
 }
 
 /// The native engine's deterministic cost record for one bench case. `answer_count`
@@ -509,7 +509,7 @@ pub(crate) fn render_cost_ledger(
         String::new(),
         "# gmeow deterministic engine-cost ledger".to_string(),
         String::new(),
-        "Committed engine-vs-engine cost/agreement baseline (`bench/cost-baseline.json`),"
+        "Committed engine/reference cost/agreement baseline (`bench/cost-baseline.json`),"
             .to_string(),
         "refreshed via `make maint-bench-cost-baseline`. Every value is an integer count".to_string(),
         "or a boolean verdict — NO wall-clock, NO peak-RSS (those are report-only in the".to_string(),
@@ -520,10 +520,10 @@ pub(crate) fn render_cost_ledger(
         "reproduces it byte-for-byte from the committed baseline without running a benchmark.".to_string(),
         String::new(),
         format!(
-            "Engine pins: native `{}`, nemo `{}`, scryer `{}`.",
+            "Engine/reference pins: native `{}`, nemo `{}`, backward `{}`.",
             artifact.engine_pins.native,
             artifact.engine_pins.nemo_rev,
-            artifact.engine_pins.scryer_branch
+            artifact.engine_pins.backward_reference
         ),
         String::new(),
         "## Per-case deterministic cost + verdict-agreement".to_string(),
@@ -705,12 +705,12 @@ pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeo
     ));
     lines.push(String::new());
     lines.push(format!(
-        "Gap-zero HELD across {} corpora at soak window {SOAK_WINDOW}; engine pins native `{}`, \
-         nemo `{}`, scryer `{}`.",
+        "Gap-zero HELD across {} corpora at soak window {SOAK_WINDOW}; pins native `{}`, \
+         nemo `{}`, backward reference `{}`.",
         artifact.ledgers.len(),
         artifact.engine_pins.native,
         artifact.engine_pins.nemo_rev,
-        artifact.engine_pins.scryer_branch,
+        artifact.engine_pins.backward_reference,
     ));
     let md = lines.join("\n") + "\n";
 

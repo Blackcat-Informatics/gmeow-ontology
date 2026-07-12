@@ -6,7 +6,7 @@
 # semi-naive fixpoint at 2 committed derivations. The chain a→b→c→d has 3
 # ancestors of a; the native governor stops early and returns a sound partial
 # subset with status "exhausted" — the backward-track step budget now runs on the
-# native core (no Scryer/Nemo demotion), incomplete but never wrong.
+# native core (no secondary-engine demotion), incomplete but never wrong.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://example.org/profiles/goal-budget-steps/> .

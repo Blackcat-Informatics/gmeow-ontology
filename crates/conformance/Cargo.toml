@@ -41,7 +41,7 @@ path = "src/bin/bench_ingest.rs"
 # LinkPolicy shim, which reaches it via the gmeow-validate PyO3 surface.
 gmeow-license = { path = "../license" }
 # The native logic engine: compile / certify / materialize / explain / foundation
-# / scryer / stable-model / probabilistic cores. The harness calls these directly
+# / native backward / stable-model / probabilistic cores. The harness calls these directly
 # (the SAME functions py.rs wraps), so case outputs are identical by construction.
 gmeow-logic = { path = "../logic" }
 # The pure compiler surface (parse_logic_str / compile_program / projections /

@@ -1399,7 +1399,7 @@ logic:ProceduralExecution
         logic:ResourcePolicy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Procedural Execution"@x-gmeow-english ;
-    skos:definition "The operational-execution property of a resource policy: SLD search control (cut) and builtins are permitted — an operational rather than purely declarative reading. This is the facet that licenses cut; cut-confinement (the AC-2 seal) is decided on it, never on the budget/bound property: a budget-bounded contract does not, by that fact alone, license cut. Only the procedural preset expands to it, but a contract assembled directly with this facet licenses cut even without the ProceduralPrologProfile preset name."@x-gmeow-english .
+    skos:definition "The operational-execution property of a resource policy: the closed set of native derivational builtins is permitted alongside declarative rules. This facet licenses checked arithmetic and comparison evaluation; it does not license search-control constructs. Cut is retired and rejected under every profile. Only the procedural preset expands to this facet, while a budget-bounded contract does not imply procedural execution."@x-gmeow-english .
 
 logic:ProceduralPrologProfile
     a owl:NamedIndividual ,
@@ -1409,7 +1409,7 @@ logic:ProceduralPrologProfile
         logic:ProceduralExecution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Procedural Prolog Profile"@x-gmeow-english ;
-    skos:definition "SLD resolution with cut and builtins: an operational, not purely declarative, semantics in which procedural search control (cut) and order-sensitive evaluation are permitted. Cut lives only here; artifacts using it must not project as declarative rules without recording the loss, because cut can change a program's answer set and defeats faithful-by-construction explanation."@x-gmeow-english .
+    skos:definition "The retained preset name for budget-bounded native derivational builtins: checked arithmetic and comparison operators evaluated by the native physical core alongside declarative rules. It does not provide an embedded Prolog runtime or license cut; cut syntax is retired and rejected before evaluation."@x-gmeow-english .
 
 logic:Process
     a owl:Class ;
@@ -2748,7 +2748,7 @@ logic:builtinArithmetic
         logic:Builtin ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "arithmetic builtin"@x-gmeow-english ;
-    skos:definition "The native basic-math builtin: derives a value by the arithmetic operations (add, subtract, multiply, divide, compare) over numeric arguments. A derivational builtin (Principle 12, in-logic): the lightweight math a foundation needs, NOT heavy numerical domain computation (n-dimensional vector operations, SLAM, trajectory updates), which stays external by reference. Gated to logic:ProceduralPrologProfile; the closed operator set is evaluated by the native physical reasoning core as binding-pattern-keyed filters and generators, with residual modes (an unbound operand, division by zero, integer overflow) declared as gaps and routed to the fallback oracle — never a wrong answer."@x-gmeow-english ;
+    skos:definition "The native basic-math builtin: derives a value by the arithmetic operations (add, subtract, multiply, divide, compare) over numeric arguments. A derivational builtin (Principle 12, in-logic): the lightweight math a foundation needs, NOT heavy numerical domain computation (n-dimensional vector operations, SLAM, trajectory updates), which stays external by reference. Gated to logic:ProceduralPrologProfile; the closed operator set is evaluated by the native physical reasoning core as binding-pattern-keyed filters and generators. Residual modes (an unbound operand, division by zero, integer overflow) are typed hard failures, never wrong answers or silent approximations."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:builtinDateDifference

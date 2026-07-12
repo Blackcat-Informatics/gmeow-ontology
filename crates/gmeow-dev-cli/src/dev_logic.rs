@@ -15,7 +15,7 @@ use gmeow_logic::dispatch::dispatch_query;
 use gmeow_logic::probabilistic;
 use gmeow_logic::profile_gate;
 use gmeow_logic::query_ir::{Budget, parse_query_program};
-use gmeow_logic::seam::WorldStoreForeign;
+use gmeow_logic::seam::WorldFactSnapshot;
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::projections::compile_program;
@@ -114,7 +114,7 @@ fn resolve_query(
         return Ok((answers, answer.status_str().to_owned()));
     }
 
-    let foreign = WorldStoreForeign::from_world(&store, &world, profile).map_err(error::logic)?;
+    let foreign = WorldFactSnapshot::from_world(&store, &world, profile).map_err(error::logic)?;
     let budget = Budget {
         max_answers,
         max_steps,
@@ -134,7 +134,7 @@ fn resolve_query(
             let status = cf.status_str().to_owned();
             (cf.bindings, status)
         } else {
-            let answer = dispatch_query(&foreign, &store, &world, &program, profile, &budget)
+            let answer = dispatch_query(&foreign, &world, &program, profile, &budget)
                 .map_err(error::logic)?;
             (answer.bindings, answer.status.as_str().to_owned())
         };

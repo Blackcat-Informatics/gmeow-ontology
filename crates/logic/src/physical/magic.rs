@@ -83,7 +83,7 @@
 //! Herbrand base, no value invention) — dropping only the demand pruning, and the answer's
 //! preservation is honestly downgraded from `{exact}` to record that. It stays native (no
 //! external-engine demotion: the native core remains authoritative). A base program that is
-//! ALSO non-stratifiable is a genuine gap routed to the oracle.
+//! ALSO non-stratifiable is a genuine gap returned to production dispatch.
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -99,7 +99,7 @@ use crate::query_ir::{
     AnswerSet, Binding, Budget, CompletionFrontier, QAtom, QBodyLit, QBuiltin, QProgram, QTerm,
 };
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
-use crate::seam::{BudgetStatus, ScryerForeign};
+use crate::seam::{BudgetStatus, WorldFactSource};
 
 /// Wrap a physical-chase condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -1002,7 +1002,7 @@ enum FallbackOutcome {
         frontier: CompletionFrontier,
         demand_pruning_dropped: bool,
     },
-    /// A declared native gap the caller routes to the oracle.
+    /// A declared native gap the caller must surface as a refusal.
     Unsupported(UnsupportedKind),
 }
 
@@ -1046,7 +1046,7 @@ fn eval_with_base_fallback(
             .map(|s| s.plan().into_executable())
         else {
             // If the BASE program is also non-stratifiable, the program genuinely is — a
-            // real declared gap the caller routes to the oracle.
+            // real declared gap returned to the caller.
             return Ok(FallbackOutcome::Unsupported(
                 UnsupportedKind::NonStratifiable,
             ));
@@ -1117,7 +1117,7 @@ fn demand_pruning_dropped_claim() -> crate::result::PreservationClaim {
 /// native verdict. Stratified negation stays entirely inside this native path (decided or a
 /// declared gap); it is never a silent drop.
 pub(crate) fn resolve_native(
-    foreign: &dyn ScryerForeign,
+    foreign: &dyn WorldFactSource,
     world: &str,
     program: &QProgram,
     budget: &Budget,
@@ -1342,7 +1342,7 @@ mod tests {
     use super::*;
     use crate::query_ir::parse_query_program;
     use crate::reference_resolver;
-    use crate::seam::WorldStoreForeign;
+    use crate::seam::WorldFactSnapshot;
     use crate::store::WorldStore;
 
     const W: &str = "http://logic.test/world/magic";
@@ -1383,7 +1383,7 @@ mod tests {
             &format!("{BASE}parentOf"),
             &format!("{BASE}bob"),
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -1440,7 +1440,7 @@ mod tests {
     #[test]
     fn magic_recursive_transitive_closure_matches_reference() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = tc_program();
         let budget = Budget::default();
 
@@ -1482,7 +1482,7 @@ mod tests {
     #[test]
     fn magic_backward_exhausted_recursive_goal_is_not_over_collapsed() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = tc_program(); // ?- ancestor(a, Y)
         let budget = Budget {
             max_answers: None,
@@ -1516,7 +1516,7 @@ mod tests {
     #[test]
     fn magic_bb_ground_goal_matches_reference() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         // ?- ancestor(a, c)  → present (a→b→c); one "yes" (empty-binding) answer.
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -1546,7 +1546,7 @@ mod tests {
     #[test]
     fn magic_bb_ground_goal_absent_matches_reference() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         // ?- ancestor(d, a)  → absent; zero answers.
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -1571,7 +1571,7 @@ mod tests {
     #[test]
     fn magic_fb_object_bound_goal_matches_reference() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         // ?- ancestor(X, d)  → X ∈ {a, b, c}.
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -1611,7 +1611,7 @@ mod tests {
     #[test]
     fn magic_ff_free_goal_matches_reference() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         // ?- ancestor(X, Y)  → the full transitive closure of a→b→c→d.
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -1663,7 +1663,7 @@ mod tests {
                 &format!("{BASE}r"),
             ),
         ]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:ancestor(X, Y) :- ex:parentOf(X, Y).\n\
@@ -1746,7 +1746,7 @@ mod tests {
             &format!("{BASE}parentOf"),
             &format!("{BASE}b"),
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:ancestor(X, Y) :- ex:parentOf(X, Y), !, ex:ancestor(X, Y).\n\
@@ -1771,7 +1771,7 @@ mod tests {
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              :- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').\n\
@@ -1826,7 +1826,7 @@ mod tests {
             &format!("{BASE}seed"),
             &format!("{BASE}a"),
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = parse_query_program(&self_drive_program()).unwrap();
         // No max_steps ⇒ the guard fires (an unbounded hang would otherwise occur).
         let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
@@ -1847,7 +1847,7 @@ mod tests {
             &format!("{BASE}seed"),
             &format!("{BASE}a"),
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = parse_query_program(&self_drive_program()).unwrap();
         // WITH a step budget the guard is bypassed: the StepGovernor cuts the otherwise-
         // infinite recursion deterministically, yielding a SOUND partial prefix.
@@ -1890,7 +1890,7 @@ mod tests {
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest",
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil",
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              :- prefix(rdf, 'http://www.w3.org/1999/02/22-rdf-syntax-ns#').\n\
@@ -1913,7 +1913,7 @@ mod tests {
     #[test]
     fn magic_budget_max_answers_matches_reference() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = tc_program();
         let budget = Budget {
             max_answers: Some(1),
@@ -1937,7 +1937,7 @@ mod tests {
     #[test]
     fn magic_budget_max_steps_exhausts_with_sound_subset() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = tc_program();
 
         let unbounded =
@@ -1976,7 +1976,7 @@ mod tests {
     #[test]
     fn magic_budget_single_counting_point_exact_charge_and_sound_prefix() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = tc_program();
 
         let full: BTreeSet<String> =
@@ -2023,7 +2023,7 @@ mod tests {
     #[test]
     fn magic_budget_composition_status_matrix() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = tc_program();
 
         // Ok: a generous step budget, no answer cap ⇒ the fixpoint completes.
@@ -2089,7 +2089,7 @@ mod tests {
     #[test]
     fn magic_budget_max_steps_is_deterministic() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = tc_program();
         let budget = Budget {
             max_steps: Some(2),
@@ -2109,7 +2109,7 @@ mod tests {
     #[test]
     fn magic_budget_max_steps_and_max_answers_partial_precedence() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = tc_program();
         // A generous step budget so the fixpoint completes, then a max_answers cap of 1.
         let budget = Budget {
@@ -2133,7 +2133,7 @@ mod tests {
     #[test]
     fn magic_pure_edb_goal_is_ok_under_zero_step_budget() {
         let (store, world_nn) = tc_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         // Goal is the EDB predicate parentOf; the program carries NO rules.
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -2337,7 +2337,7 @@ mod tests {
     #[test]
     fn magic_stratified_negation_reachability_decides_correctly() {
         let (store, world_nn) = reachability_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:reachable(X, Y) :- ex:edge(X, Y).\n\
@@ -2384,7 +2384,7 @@ mod tests {
     #[test]
     fn magic_negation_transform_nonstratifiable_falls_back_correctly_and_downgrades() {
         let (store, world_nn) = reachability_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:r(X, Y) :- ex:edge(X, Y).\n\
@@ -2435,7 +2435,7 @@ mod tests {
             &format!("{BASE}e"),
             &format!("{BASE}b"),
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:p(X, Y) :- ex:e(X, Y), \\+ ex:q(X, Y).\n\
@@ -2462,7 +2462,7 @@ mod tests {
             &format!("{BASE}e"),
             &format!("{BASE}b"),
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:p(X, Y) :- ex:e(X, Y), \\+ ex:q(Y, Z).\n\
@@ -2486,7 +2486,7 @@ mod tests {
     #[test]
     fn magic_negation_var_bound_by_later_atom_stays_sound() {
         let (store, world_nn) = reachability_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:r(X, Y) :- ex:edge(X, Y).\n\
@@ -2512,7 +2512,7 @@ mod tests {
     #[test]
     fn magic_not_keyword_negation_decides_like_backslash_plus() {
         let (store, world_nn) = reachability_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:reachable(X, Y) :- ex:edge(X, Y).\n\
@@ -2537,7 +2537,7 @@ mod tests {
             &format!("{BASE}e"),
             &format!("{BASE}b"),
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         // `t(X, Y, Z)` is arity 3 ⇒ the whole program routes to the generic n-ary path,
         // which declares negation unsupported.
         let src = format!(
@@ -2599,7 +2599,7 @@ mod tests {
     /// (the stratifiable-transform corpus), so it never needs the base fallback.
     fn answers_via(
         transform: impl Fn(&[EvalRule], &EvalAtom, BindingPattern) -> MagicProgram,
-        foreign: &dyn ScryerForeign,
+        foreign: &dyn WorldFactSource,
         world: &str,
         prog: &QProgram,
     ) -> Vec<Binding> {
@@ -2629,7 +2629,12 @@ mod tests {
 
     /// Assert the subsumptive transform produces the byte-identical goal answer set to the
     /// variant transform for `prog`.
-    fn assert_ab_identical(foreign: &dyn ScryerForeign, world: &str, prog: &QProgram, label: &str) {
+    fn assert_ab_identical(
+        foreign: &dyn WorldFactSource,
+        world: &str,
+        prog: &QProgram,
+        label: &str,
+    ) {
         let variant = answers_via(magic_transform_variant, foreign, world, prog);
         let subsumptive = answers_via(magic_transform, foreign, world, prog);
         assert_eq!(
@@ -2701,7 +2706,7 @@ mod tests {
         // Single-adornment corpus (subsumptive ≡ variant trivially — each predicate is
         // demanded at ONE adornment, so nothing collapses) over the tc / reachability worlds.
         let (tc_store, tc_w) = tc_world();
-        let tc = WorldStoreForeign::from_world(&tc_store, W, PROFILE).unwrap();
+        let tc = WorldFactSnapshot::from_world(&tc_store, W, PROFILE).unwrap();
         let bf = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:ancestor(X, Y) :- ex:parentOf(X, Y).\n\
@@ -2730,7 +2735,7 @@ mod tests {
         // Stratified-negation corpus (transform stays stratifiable) over the reachability
         // world: `unreachable` and the later-bound-negated-var soundness shape.
         let (rw_store, rw_w) = reachability_world();
-        let rw = WorldStoreForeign::from_world(&rw_store, W, PROFILE).unwrap();
+        let rw = WorldFactSnapshot::from_world(&rw_store, W, PROFILE).unwrap();
         let unreachable = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:reachable(X, Y) :- ex:edge(X, Y).\n\
@@ -2757,7 +2762,7 @@ mod tests {
         // The multi-adornment program — where the collapse actually FIRES — must stay
         // byte-identical too.
         let (ma_store, ma_w) = multi_adornment_world();
-        let ma = WorldStoreForeign::from_world(&ma_store, W, PROFILE).unwrap();
+        let ma = WorldFactSnapshot::from_world(&ma_store, W, PROFILE).unwrap();
         assert_ab_identical(&ma, &ma_w, &multi_adornment_program(), "multi-adornment");
     }
 
@@ -2766,7 +2771,7 @@ mod tests {
     #[test]
     fn magic_subsumptive_collapses_multi_adornment_demand() {
         let (store, world_nn) = multi_adornment_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = multi_adornment_program();
 
         // (a) Byte-identical goal answers: q(a, W) = {b, c, d}. The leak-trap `z` is absent.
@@ -2825,7 +2830,7 @@ mod tests {
     #[test]
     fn magic_subsumptive_residual_no_leak() {
         let (store, world_nn) = multi_adornment_world();
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let prog = multi_adornment_program();
         let rules = eval_rules_of(&prog);
         let goal_atom = atom_of(&prog.goal.atoms[0]).unwrap();

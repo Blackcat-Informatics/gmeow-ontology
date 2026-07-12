@@ -3,8 +3,8 @@
 
 //! Native physical execution core.
 //!
-//! The destination is ONE native Rust engine: Scryer/Nemo/oxigraph are
-//! bootstrap oracles, not the runtime. This module hosts that engine's working
+//! The destination is one native Rust engine. Nemo remains a temporary forward
+//! comparison oracle; oxigraph remains a storage compatibility layer. This module hosts the engine's working
 //! representation — starting with the columnar [`RelationStore`] and the single
 //! oxigraph → columnar bridge [`extract_edb`].
 //!
@@ -110,7 +110,7 @@ pub(crate) use magic::resolve_native;
 
 // The shared moded builtin evaluator: one arithmetic/comparison semantics called
 // by every native engine. `emit_integer_surface` is the single canonical
-// computed-value surface, reused by the dispatch/Scryer surface emitters so
+// computed-value surface, reused by dispatch and reference emitters so
 // byte-identity is by construction. `eval_builtin`/`BuiltinOutcome`/`BuiltinError`
 // are consumed by the forward/backward evaluators wired on the next rungs.
 #[allow(unused_imports)]

@@ -136,30 +136,29 @@ fn semantic_profile_ids_match_module_ttl() {
 }
 
 #[test]
-fn reasoning_contract_permits_cut_only_with_procedural_execution_facet() {
-    // The cut-confinement (AC-2) decision is facet-derived: a contract licenses cut iff
-    // its resource policy carries logic:ProceduralExecution — never via the budget facet.
+fn reasoning_contract_permits_procedural_execution_only_with_procedural_execution_facet() {
+    // Native builtin permission is facet-derived: a contract is procedural iff its
+    // resource policy carries logic:ProceduralExecution — never via the budget facet.
     let mut c = ReasoningContract::new();
-    assert!(!c.permits_cut(), "empty contract must not license cut");
+    assert!(!c.permits_procedural_execution());
     c.resource_policies
         .insert("BudgetBoundedResource".to_owned());
     assert!(
-        !c.permits_cut(),
-        "a budget-bounded contract must NOT license cut (budget != procedural)"
+        !c.permits_procedural_execution(),
+        "a budget-bounded contract must not imply procedural execution"
     );
     c.resource_policies
         .insert(PROCEDURAL_EXECUTION_FACET.to_owned());
     assert!(
-        c.permits_cut(),
-        "the ProceduralExecution facet licenses cut even alongside a budget"
+        c.permits_procedural_execution(),
+        "the ProceduralExecution facet licenses native builtins even alongside a budget"
     );
 }
 
 #[test]
 fn procedural_preset_carries_procedural_execution_facet() {
-    // Tie the Rust cut gate (SemanticProfileId::permits_cut) to the ontology surface:
-    // exactly the presets whose module.ttl expandsToFacet bundle includes
-    // logic:ProceduralExecution may license cut — so the two can never silently diverge.
+    // Tie native builtin permission to the ontology surface: exactly the presets
+    // whose bundle includes logic:ProceduralExecution are procedural.
     let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../../slices/grounding/logic/module.ttl");
     let text = std::fs::read_to_string(&module_ttl)
@@ -204,11 +203,12 @@ fn procedural_preset_carries_procedural_execution_facet() {
         let in_ttl = carries.get(id.as_str()).copied().unwrap_or(false);
         assert_eq!(
             in_ttl,
-            id.permits_cut(),
-            "preset {} cut-licensing must agree between module.ttl ProceduralExecution \
-             bundle ({in_ttl}) and SemanticProfileId::permits_cut ({})",
+            id.permits_procedural_execution(),
+            "preset {} procedural-execution permission must agree between module.ttl \
+             ProceduralExecution \
+             bundle ({in_ttl}) and SemanticProfileId::permits_procedural_execution ({})",
             id.as_str(),
-            id.permits_cut()
+            id.permits_procedural_execution()
         );
     }
 }

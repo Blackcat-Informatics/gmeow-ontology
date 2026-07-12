@@ -10,8 +10,8 @@
 //! It carries **no reasoning-runtime dependencies**: no Nemo, Scryer, tokio, PyO3,
 //! or oxigraph. The RDF parse/serialize path rides the wasm-clean `gmeow-rdf` `gts`
 //! surface (the same surface `crates/rdf-wasm` uses), so the whole compiler builds
-//! for `wasm32-unknown-unknown`. The reasoning runtime (worlds, the Nemo/Scryer
-//! chase, certify, the PyO3 `compile_logic` entrypoint) lives in the sibling
+//! for `wasm32-unknown-unknown`. The reasoning runtime (worlds, native backward
+//! evaluation, the retained Nemo comparison chase, and certification) lives in the sibling
 //! `gmeow-logic` crate, which depends on this one. The compiler-IR → runtime
 //! `EvalRule` bridge (`lower.rs`) and the PyO3-tainted `diagnostics_report` stay in
 //! `gmeow-logic` by design — they are runtime concerns, not pure compilation.

@@ -50,7 +50,7 @@ front-end over parts the project ships:
   mapping DSL, the test DSL). A query surface is one more front-end into the same IR and
   the same projectors — not a new back-end.
 - **Named, composable units.** Reusable, named, parameterized query/derivation units
-  are `logic:Rule` individuals, Scryer user predicates, and FnO functions — already
+  are `logic:Rule` individuals and FnO functions — already
   first-class, content-addressed, and referenceable by IRI. Composition is rule
   composition, not string templating. The named/parametric traversal of
   [`LOGIC-PATHS.md`](LOGIC-PATHS.md) is the worked precedent: `:nearbyOrgs(?maxDepth := 2)`

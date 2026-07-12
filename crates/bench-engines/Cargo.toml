@@ -3,7 +3,7 @@
 
 [package]
 name = "gmeow-bench-engines"
-description = "Engine-vs-engine benchmark harness: drives every committed mini bench case through the native engine and the applicable oracle (Nemo forward/existential, Scryer backward), IN-PROCESS with a fresh EDB per case. Emits (a) a DETERMINISTIC, drift-gate-eligible cost/agreement artifact (integer cost vectors + deterministic peak-live bytes + verdict-agreement tokens — NO wall-clock, NO peak-RSS) and (b) a REPORT-ONLY wall/RSS/alloc-total advisory table. This crate is a DEDICATED LEAF: it is the ONLY consumer that installs the counting #[global_allocator] from gmeow-cost-measure, and NOTHING depends on it, so gmeow-cost-measure stays out of the shipped gmeow CLI's dependency graph (the pipeline→conformance→cli edge does not reach it). Driven by `make maint-bench-engines`."
+description = "Engine/reference benchmark harness: drives every committed mini bench case through the native engine and its applicable live or captured reference. Emits deterministic cost/agreement evidence plus a report-only wall/RSS advisory table."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -28,8 +28,8 @@ path = "src/main.rs"
 gmeow-conformance = { path = "../conformance" }
 # The native logic engine seams the harness drives each engine through:
 # cost::{run_native_forward, run_nemo_forward, run_nemo_forward_facts_only},
-# materialize::materialize_routed, dispatch::{dispatch_query, cyclic_predicates},
-# scryer_engine::run_scryer, plus the query IR / store / seam / provenance / result
+# materialize::materialize_routed and dispatch::dispatch_query, plus the query IR,
+# store, seam, provenance, result,
 # / reason (divergence-ledger) surfaces.
 gmeow-logic = { path = "../logic" }
 # The typed diagnostic substrate the harness raises hard-fail conditions on (a

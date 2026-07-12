@@ -1,31 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Nemo–Prolog seam data contract.
+//! World-scoped fact and provenance access contract.
 //!
-//! # Asymmetric blackboard
-//!
-//! The two reasoning engines — **Nemo** (forward, existential-rule materialization) and **Scryer
-//! Prolog** (backward, SLD resolution) — **never call each other directly**. They communicate
-//! exclusively through the oxigraph quad store (see [`crate::store::WorldStore`]): Nemo writes
-//! derived quads into named graphs; Scryer reads them through the three fixed foreign predicates
-//! declared in [`ScryerForeign`]. The named-graph IRI *is* the world; everything on this module
-//! is scoped to that abstraction.
-//!
-//! # Materialize-back policy
-//!
-//! Prolog-derived answers are **not** written back into oxigraph by default. Phase 2
-//! (Scryer resolution) is a read-only query layer; its derivations are *virtual* —
-//! cited in explanations as virtual derivation steps keyed by `derivation_id`, never as stored
-//! quads.
-//!
-//! **Two explicit exceptions are deferred** and are intentionally absent from this
-//! module:
-//! 1. Stratum-C constructed worlds *are* materialized (into a transient named graph).
-//! 2. A query may opt into IDB memoization, writing a clearly-marked derived graph.
-//!
-//! In all cases the invariant holds: **no Prolog answer is silently promoted to an asserted base
-//! fact**, and an explanation must be able to cite every step, virtual or materialized.
+//! [`WorldFactSource`] is the read-only input boundary shared by the native
+//! demand-transformed evaluator and the retained reference resolver. A named-graph
+//! IRI identifies the world, while [`DerivedQuad`] carries the fact and its provenance.
+//! Query answers never mutate the source snapshot.
 
 use purrdf::TermValue;
 
@@ -33,8 +14,7 @@ use purrdf::TermValue;
 
 /// A stable, opaque identifier for a single derivation step.
 ///
-/// Stored as an IRI string. Derivation IDs are assigned by the Nemo layer during
-/// materialization and carried through as provenance anchors for explanation.
+/// Stored as an IRI string and carried through as a provenance anchor.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct DerivationId(pub String);
 
@@ -93,17 +73,16 @@ impl std::fmt::Display for BudgetStatus {
 
 // ── DerivedQuad ────────────────────────────────────────────────────────────────────────────────
 
-/// A derived quad as it crosses the Nemo → oxigraph blackboard boundary.
+/// A world-scoped quad with derivation metadata.
 ///
-/// Every quad materialized by Nemo into a world's named graph carries its full derivation
-/// metadata so that Scryer (and the explanation surface) can trace provenance without
-/// consulting any secondary index.
+/// Every materialized quad carries enough metadata for the explanation surface to
+/// trace provenance without consulting a secondary index.
 ///
 /// Field names and semantics match the design contract in
 /// `slices/grounding/logic/design/LOGIC-RUNTIME.md §"The seam data contract"` verbatim:
 ///
 /// ```text
-/// Nemo output (per derived quad written to oxigraph):
+/// Native carrier (per derived quad):
 ///   graph:          IRI            # the world the quad belongs to
 ///   quad:           (S, P, O, G)   # the quad itself (G == graph)
 ///   derivation_id:  IRI            # stable id for this derivation step
@@ -154,30 +133,14 @@ pub struct DerivedQuad {
     pub budget_status: BudgetStatus,
 }
 
-// ── ScryerForeign trait ────────────────────────────────────────────────────────────────────────
+// ── WorldFactSource trait ────────────────────────────────────────────────────────────────────────
 
-/// Typed signatures for the three Scryer foreign predicates that read the blackboard.
-///
-/// These are **contract stubs only** — no Prolog embedding is present in this task.
-/// Embedding Scryer and wiring these to a live Prolog session is deferred to a later rung
-/// (see task notes and LOGIC-RUNTIME.md §"Backward chaining").
-///
-/// Each method maps directly to its Prolog mode annotation:
-///
-/// ```prolog
-/// in_world(+W, ?S, ?P, ?O)
-/// derived_by(?QuadId, ?Rule, ?Sources)
-/// contradiction_witness(+W, ?WitnessGraph)
-/// ```
-pub trait ScryerForeign {
-    /// `in_world(+W, ?S, ?P, ?O)` — world-indexed quad lookup.
+/// Read-only access to the facts, provenance, and contradiction witnesses of a world.
+pub trait WorldFactSource {
+    /// World-indexed quad lookup.
     ///
     /// Mode: `W` is ground (the world IRI is always known at call time); `S`, `P`, `O` may be
     /// unbound variables that unify against the store, or ground terms that act as filters.
-    ///
-    /// Backed by an oxigraph named-graph pattern query. The non-recursive, non-unification-heavy
-    /// case is served directly by SPARQL (fast path); recursive or unification-heavy calls go to
-    /// Scryer's own resolution loop.
     ///
     /// Returns the set of quads (as [`DerivedQuad`] references) in world `world` that unify
     /// with the (possibly partial) `(subject, predicate, object)` pattern.
@@ -189,7 +152,7 @@ pub trait ScryerForeign {
         object: Option<&TermValue>,
     ) -> Box<dyn Iterator<Item = &'a DerivedQuad> + 'a>;
 
-    /// `derived_by(?QuadId, ?Rule, ?Sources)` — provenance leg for explanations.
+    /// Provenance lookup for explanations.
     ///
     /// Mode: any argument may be unbound; all are output if unbound. When `quad_id` is ground
     /// this is a direct provenance lookup; when unbound it enumerates all derivations.
@@ -203,8 +166,7 @@ pub trait ScryerForeign {
         sources: Option<&[String]>,
     ) -> Box<dyn Iterator<Item = (&'a DerivationId, &'a str, &'a [String])> + 'a>;
 
-    /// `contradiction_witness(+W, ?WitnessGraph)` — within-world inconsistency, as a statement
-    /// graph.
+    /// Within-world inconsistency as a statement graph.
     ///
     /// Mode: `W` is ground (the world to inspect is always specified); `WitnessGraph` is an
     /// output — the IRI of a GMEOW statement graph representing the minimal conflict set
@@ -215,24 +177,23 @@ pub trait ScryerForeign {
     fn contradiction_witness<'a>(&'a self, world: &str) -> Box<dyn Iterator<Item = String> + 'a>;
 }
 
-// ── WorldStoreForeign ──────────────────────────────────────────────────────────────────────────
+// ── WorldFactSnapshot ──────────────────────────────────────────────────────────────────────────
 
-/// A concrete [`ScryerForeign`] implementer that owns a snapshot of asserted base facts
+/// A concrete [`WorldFactSource`] implementer that owns a snapshot of asserted base facts
 /// drawn from a [`crate::store::WorldStore`] world.
 ///
-/// `WorldStoreForeign` is populated by [`WorldStoreForeign::from_world`], which takes a
+/// `WorldFactSnapshot` is populated by [`WorldFactSnapshot::from_world`], which takes a
 /// synchronous snapshot of all quads in a named-graph world and wraps each as a
 /// [`DerivedQuad`] carrying the `logic:assert` rule IRI and a content-addressed
 /// [`DerivationId`].  The snapshot is immutable after construction.
 ///
-/// This is the "asserted facts as DB" fast path for Scryer's `in_world/4` predicate:
-/// no Nemo chase is needed when the query is over base EDB facts only.
-pub struct WorldStoreForeign {
+/// This snapshot is the native evaluator's asserted-fact input.
+pub struct WorldFactSnapshot {
     quads: Vec<DerivedQuad>,
 }
 
-impl WorldStoreForeign {
-    /// Build a `WorldStoreForeign` by snapshotting all quads in `world` from `store`.
+impl WorldFactSnapshot {
+    /// Build a `WorldFactSnapshot` by snapshotting all quads in `world` from `store`.
     ///
     /// Each oxigraph quad is converted to a [`DerivedQuad`] representing an asserted
     /// base fact:
@@ -272,7 +233,7 @@ impl WorldStoreForeign {
             let reifier =
                 crate::provenance::mint_reifier(&subject, &predicate, &object).map_err(|e| {
                     gmeow_errors::Diag::of_kind(crate::error::Reason {
-                        detail: format!("WorldStoreForeign: mint_reifier failed: {e}"),
+                        detail: format!("WorldFactSnapshot: mint_reifier failed: {e}"),
                     })
                 })?;
 
@@ -299,7 +260,7 @@ impl WorldStoreForeign {
     }
 }
 
-impl ScryerForeign for WorldStoreForeign {
+impl WorldFactSource for WorldFactSnapshot {
     /// `in_world(+W, ?S, ?P, ?O)` — return quads in `world` matching the optional pattern.
     ///
     /// Filters `self.quads` by world equality and each provided optional term filter.
@@ -513,7 +474,7 @@ mod tests {
         assert_eq!(id.as_str(), id.to_string().as_str());
     }
 
-    // ── WorldStoreForeign ─────────────────────────────────────────────────────────────────────
+    // ── WorldFactSnapshot ─────────────────────────────────────────────────────────────────────
 
     const TEST_WORLD: &str = "http://world/TestForeign";
     const TEST_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
@@ -531,9 +492,9 @@ mod tests {
         store
     }
 
-    fn small_foreign() -> WorldStoreForeign {
+    fn small_foreign() -> WorldFactSnapshot {
         let store = small_store();
-        WorldStoreForeign::from_world(&store, TEST_WORLD, TEST_PROFILE)
+        WorldFactSnapshot::from_world(&store, TEST_WORLD, TEST_PROFILE)
             .expect("from_world on a valid store must succeed")
     }
 

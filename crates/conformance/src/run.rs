@@ -23,7 +23,7 @@ use gmeow_logic::foundation::{AntiRigidityPolicy, evaluate as foundation_evaluat
 use gmeow_logic::materialize::materialize_routed;
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::result::PreservationClaim;
-use gmeow_logic::seam::{BudgetStatus, WorldStoreForeign};
+use gmeow_logic::seam::{BudgetStatus, WorldFactSnapshot};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic::teleology::materialize_teleology as teleology_evaluate;
 use gmeow_logic_compile::frontend::{Diagnostic, Severity, parse_logic_str};
@@ -1140,17 +1140,11 @@ fn resolve_query(
             gmeow_logic::query_ir::CompletionFrontier::empty(),
         )
     } else {
-        let foreign = WorldStoreForeign::from_world(&store, &world, profile_str)
+        let foreign = WorldFactSnapshot::from_world(&store, &world, profile_str)
             .map_err(|e| err(e.message().to_owned()))?;
-        let answer = gmeow_logic::dispatch::dispatch_query(
-            &foreign,
-            &store,
-            &world,
-            &program,
-            profile_str,
-            &budget,
-        )
-        .map_err(|e| err(e.message().to_owned()))?;
+        let answer =
+            gmeow_logic::dispatch::dispatch_query(&foreign, &world, &program, profile_str, &budget)
+                .map_err(|e| err(e.message().to_owned()))?;
         let preservation = answer.preservation.clone();
         (
             answer.bindings,
