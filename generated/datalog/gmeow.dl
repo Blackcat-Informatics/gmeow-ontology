@@ -246,7 +246,7 @@ candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateFrame
 candidateScope("https://blackcatinformatics.ca/logic/candidateFrameRelativity", 'the true-quantity/measured-value seam: a logic:measuredValue is frame-relative and ill-formed without its logic:referenceFrame; no frame-free equality collapse', "default").
 candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateFrameRelativity", "https://blackcatinformatics.ca/logic/RiskCoreContaminating", "default").
 candidateSourceField("https://blackcatinformatics.ca/logic/candidateFrameRelativity", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
-candidateSourceHash("https://blackcatinformatics.ca/logic/candidateFrameRelativity", 'sha256:9b534b56de08b5f1b78228385b31b15e63e772039e313d84c8503aa6cd26779c', "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateFrameRelativity", 'sha256:2e7a0baa563e6237f44afac81e9cc35ca4fa4c2dff5f55deb9fdc99a8777deeb', "default").
 reviewedBy("https://blackcatinformatics.ca/logic/candidateFrameRelativity", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/CategoryIntegrityConstraint", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateFunctionalComplexKindDisjoint", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").
@@ -390,7 +390,7 @@ candidateProjectionBehavior("https://blackcatinformatics.ca/logic/candidateRelat
 candidateScope("https://blackcatinformatics.ca/logic/candidateRelatorMediation", 'every class subClassOf logic:Relator; a concrete relator (one with no logic: subclass) must reach at least two distinct entities — two distinct logic:mediates roles, or one non-functional role — or fire logic:violation logic:RelComp', "default").
 candidateSemanticRisk("https://blackcatinformatics.ca/logic/candidateRelatorMediation", "https://blackcatinformatics.ca/logic/RiskCoreContaminating", "default").
 candidateSourceField("https://blackcatinformatics.ca/logic/candidateRelatorMediation", "https://blackcatinformatics.ca/logic/ProseFieldDefinition", "default").
-candidateSourceHash("https://blackcatinformatics.ca/logic/candidateRelatorMediation", 'sha256:337c38e3f1cdbd5cf52fff4ac49ce1bc4324818db3e94c8adb57a75c7ef2fe00', "default").
+candidateSourceHash("https://blackcatinformatics.ca/logic/candidateRelatorMediation", 'sha256:b3799a43d3716eb873c0fff6c0931bf68a9bdf3b6182571a305df0cb08ba40f9', "default").
 reviewedBy("https://blackcatinformatics.ca/logic/candidateRelatorMediation", "https://blackcatinformatics.ca/logic/reviewerLogicFoundation", "default").
 candidateCategory("https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap", "https://blackcatinformatics.ca/logic/CategoryDeliberateOverlap", "default").
 candidateContract("https://blackcatinformatics.ca/logic/candidateSocialInformationOverlap", "https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "default").

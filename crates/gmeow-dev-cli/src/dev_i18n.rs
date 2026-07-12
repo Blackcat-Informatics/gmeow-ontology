@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `gmeow-dev i18n {extract,sync-english,merge,export-csv,export-xliff}`
+//! The `gmeow-dev i18n {extract,lint,sync-english,merge,export-csv,export-xliff}`
 //! internationalization toolchain, over the native `gmeow_docs::i18n_compile`.
 
 use std::path::{Path, PathBuf};
@@ -33,6 +33,31 @@ pub fn extract(
         }
         Err(e) => fail(format!("i18n extract failed: {e}")),
     }
+}
+
+/// `gmeow-dev i18n lint [--root --max-fuzzy-ratio]`.
+pub fn lint(root: Option<&Path>, max_fuzzy_ratio: f64) -> i32 {
+    let root = root.map(Path::to_path_buf).unwrap_or_else(project_root);
+    let report = i18n_compile::lint_po_files(&root, max_fuzzy_ratio);
+    for warning in &report.warnings {
+        note("gmeow-dev.i18n.warning", warning);
+    }
+    for error in &report.errors {
+        note("gmeow-dev.i18n.error", error);
+    }
+    if !report.errors.is_empty() {
+        return fail(format!(
+            "i18n lint failed with {} error(s) and {} warning(s)",
+            report.errors.len(),
+            report.warnings.len()
+        ));
+    }
+    println!(
+        "i18n lint passed ({} catalog language(s), {} warning(s))",
+        report.total_counts.len(),
+        report.warnings.len()
+    );
+    0
 }
 
 /// `gmeow-dev i18n sync-english [--root --dry-run]`.

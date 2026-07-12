@@ -19,6 +19,7 @@ use sha1::{Digest, Sha1};
 use crate::error::{
     CatalogInconsistent, FileIo, PoParse, RdfFormat, RdfParse, TurtleUnescape, UnsupportedSource,
 };
+use crate::i18n::translation_integrity_issue;
 
 const ENGLISH_TAG: &str = "x-gmeow-english";
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -678,7 +679,10 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
     let tag_map = bcp47_to_internal_map(root);
     let current = current_english_values(root);
 
-    for path in collect_po_paths(root) {
+    for path in collect_po_paths(root)
+        .into_iter()
+        .filter(|path| path.starts_with(root.join("slices")))
+    {
         let rel = path
             .strip_prefix(root)
             .unwrap_or(&path)
@@ -725,6 +729,15 @@ pub fn lint_po_files(root: &Path, max_fuzzy_ratio: f64) -> I18nLintReport {
             total += 1;
             if entry.fuzzy {
                 fuzzy += 1;
+            }
+            if !entry.msgstr.is_empty()
+                && let Some(reason) =
+                    translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
+            {
+                report.errors.push(format!(
+                    "{rel}: invalid translation {:?}: {reason}",
+                    entry.msgctxt
+                ));
             }
             if !entry.msgctxt.contains('|') {
                 report
@@ -898,7 +911,7 @@ pub fn extract_catalog(
             .map(|key| PoEntry {
                 msgctxt: format!("{}|{}", key.term_iri, key.predicate),
                 msgid: key.english_value.clone(),
-                msgstr: lang.map(|_| key.english_value.clone()).unwrap_or_default(),
+                msgstr: String::new(),
                 fuzzy: false,
             })
             .collect();
@@ -947,7 +960,7 @@ pub fn extract_catalog(
             .map(|(key, value)| PoEntry {
                 msgctxt: format!("ontology-docs-template|{key}"),
                 msgid: (*value).to_owned(),
-                msgstr: lang.map(|_| (*value).to_owned()).unwrap_or_default(),
+                msgstr: String::new(),
                 fuzzy: false,
             })
             .collect();
@@ -1165,6 +1178,17 @@ pub fn merge_terms(root: &Path, output: Option<&Path>, lang: Option<&str>) -> Re
         for entry in parse_po(&po_text, true)? {
             if entry.msgstr.is_empty() {
                 continue;
+            }
+            if let Some(reason) =
+                translation_integrity_issue(&language, &entry.msgid, &entry.msgstr)
+            {
+                return Err(Diag::of_kind(CatalogInconsistent {
+                    detail: format!(
+                        "{}: invalid translation {:?}: {reason}",
+                        path.display(),
+                        entry.msgctxt
+                    ),
+                }));
             }
             let Some((term, predicate)) = entry.msgctxt.split_once('|') else {
                 return Err(Diag::of_kind(CatalogInconsistent {
@@ -2050,7 +2074,7 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
     }
 
     fn write_test_po(root: &Path, name: &str, body: &str) {
-        let path = root.join("tests/fixtures/i18n").join(name);
+        let path = root.join("slices/core/test/i18n").join(name);
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         fs::write(path, body).unwrap();
     }
@@ -2166,6 +2190,26 @@ gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
                 .iter()
                 .any(|warning| warning.contains("stale"))
         );
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn lint_rejects_copied_or_hybrid_english_as_translation() {
+        let root = test_root("lint-english-leak");
+        write_minimal_ontology(&root);
+        write_test_po(
+            &root,
+            "leaked_fr.po",
+            &po_body(&[(
+                "https://blackcatinformatics.ca/gmeow/chainId|rdfs:label",
+                "chain id",
+                "chain id",
+                false,
+            )]),
+        );
+        let report = lint_po_files(&root, 100.0);
+        assert_eq!(report.errors.len(), 1, "{:?}", report.errors);
+        assert!(report.errors[0].contains("copied into msgstr"));
         let _ = fs::remove_dir_all(root);
     }
 
