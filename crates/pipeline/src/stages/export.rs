@@ -1815,8 +1815,11 @@ mod consumer {
     /// canonical term IRI, via the SAME [`resolve_term`] path `lookup_term` and
     /// `doc_card` use. `None` when the query does not resolve to exactly one term —
     /// the caller HARD-FAILS an unknown term rather than fabricating an empty result.
-    pub(crate) fn resolve_term_iri(terms: &[Term], query: &str) -> Option<String> {
-        resolve_term(terms, query).map(|term| term.iri.clone())
+    /// Borrows the IRI from `terms` — zero-copy on this path; callers that must
+    /// escape the borrow (e.g. past the cache lock the terms slice is borrowed
+    /// from) own the ONE necessary allocation at their boundary instead.
+    pub(crate) fn resolve_term_iri<'a>(terms: &'a [Term], query: &str) -> Option<&'a str> {
+        resolve_term(terms, query).map(|term| term.iri.as_str())
     }
 
     /// `lookup_term`: resolve a query to its `as_record()` JSON with

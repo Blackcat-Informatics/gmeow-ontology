@@ -660,8 +660,14 @@ impl McpView {
     /// canonical term IRI, via the SAME resolution path `lookup_term` / `doc_card`
     /// use. `None` when the query does not resolve to exactly one term — the caller
     /// HARD-FAILS an unknown term rather than returning a fabricated empty result.
+    /// `export::resolve_term_iri` itself borrows zero-copy; this wrapper must
+    /// allocate ONE owned `String` here because the resolved IRI has to outlive
+    /// the cached `terms` slice that `with_terms` only lends for the closure's
+    /// duration.
     fn resolve_term_iri(&self, term: &str, requested: Vec<String>) -> Option<String> {
-        self.with_terms(requested, |terms| export::resolve_term_iri(terms, term))
+        self.with_terms(requested, |terms| {
+            export::resolve_term_iri(terms, term).map(str::to_owned)
+        })
     }
 
     /// The counter-example / well-formed conformance fixtures documenting `term_iri`,
