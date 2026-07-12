@@ -403,7 +403,7 @@ mod tests {
             binds: Vec::new(),
             mints: Vec::new(),
             edoal_source: None,
-            edoal_source_kind: "relation".to_owned(),
+            edoal_source_kind: None,
             edoal_path: false,
         };
         let binding = ProfileBinding {
@@ -508,7 +508,7 @@ mod tests {
             binds: Vec::new(),
             mints: Vec::new(),
             edoal_source: None,
-            edoal_source_kind: "relation".to_owned(),
+            edoal_source_kind: None,
             edoal_path: false,
         };
         let mut cell = class_cell("=", true, None);
