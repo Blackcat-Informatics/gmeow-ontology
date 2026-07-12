@@ -148,6 +148,24 @@ re-enter the engine with small deltas over large stable worlds.
   solving step non-incremental until the theory exists; a flagged non-incremental fragment is a
   ledger entry, never a silent slow path.
 
+The native implementation covers the fixed-contract, finite positive binary-Datalog fragment.
+It stores the recursive inner-iteration history, differentiates every rule join by the same
+telescoping product law, and settles signed insertions and retractions to the new least fixed
+point. Ground-IRI conjecture candidates use an insert-only governed transaction; unbounded
+positive counterfactual branches fork a cached base session and apply their functional-slot
+`-1/+1` revision. Rule-program-changing conjectures, bounded retractions, and counterfactual
+programs carrying NAF, builtins, or rule facts stay on named native fallbacks and appear in the
+performance ledger. This boundary is an identity boundary too: the session pins the contract
+hash, rendered rule-set hash, and native incremental-solver version.
+
+Loop forks share the immutable rule plan, fact arena, EDB, and cached inner-iteration histories
+by reference; a branch installs new roots only when its signed transaction commits. The committed
+`relational-core-mini/incremental-transitive-closure` cost lane prepares that base outside the
+measurement boundary, then proves insert and retract closure fingerprints against clean native
+rebuilds. Its deterministic observation is 13 charged incremental derivations versus 91 for the
+clean rebuild, with `peak_live_bytes` 129288 versus 235847; these raw counts are projected into
+`generated/bench/cost-ledger.md`. Wall-clock is not part of the claim.
+
 ## Chase doctrine
 
 Existential-rule execution keeps the restricted chase and grows by **certifying broader

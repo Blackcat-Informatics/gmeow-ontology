@@ -59,9 +59,12 @@ use std::sync::OnceLock;
 use purrdf::TermValue;
 
 use crate::facts::{PredId, PredInterner, TermId, TermInterner, skolem_iri};
-use crate::physical::cursor::{RowCursor, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
+use crate::physical::cursor::{
+    LendingIterator, RowCursor, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor,
+};
 use crate::physical::id::RowId;
 use crate::provenance::term_display;
+use crate::rule_ir::Fact;
 use crate::seam::WorldFactSource;
 
 // ── Chase-invented nulls: recipe-carrying Skolem terms ──────────────────────────
@@ -289,7 +292,8 @@ impl Weight for i64 {
     const UNIT: Self = 1;
     #[inline]
     fn combine(self, rhs: Self) -> Self {
-        self.saturating_add(rhs)
+        self.checked_add(rhs)
+            .expect("signed Z-set weight overflow: exact ring addition exceeded i64")
     }
     #[inline]
     fn is_annihilated(self) -> bool {
@@ -858,6 +862,30 @@ impl RelationStore {
             .collect::<BTreeSet<_>>()
             .into_iter()
     }
+
+    /// Project every live row back to the shared ternary [`Fact`] IR in lexical
+    /// [`Fact::key`] order.
+    ///
+    /// This is the single columnar-to-logical bridge used by the scratch backward
+    /// evaluator and by the stateful incremental session bootstrap.  Keeping it here
+    /// prevents those two consumers from growing subtly different seed ordering or
+    /// term-resolution rules.
+    pub(crate) fn facts_sorted(&self) -> Vec<Fact> {
+        let mut facts = Vec::with_capacity(self.row_count);
+        for pred in self.predicates() {
+            let predicate = pred.to_owned();
+            let mut cursor = self.select(pred, Bound::Any);
+            while let Some((s_id, o_id, _row)) = cursor.next() {
+                facts.push(Fact {
+                    subject: self.interner.resolve(s_id).clone(),
+                    predicate: predicate.clone(),
+                    object: self.interner.resolve(o_id).clone(),
+                });
+            }
+        }
+        facts.sort_by_key(Fact::key);
+        facts
+    }
 }
 
 /// Extract the EDB of `world` from the blackboard into columnar form.
@@ -1379,6 +1407,14 @@ mod tests {
             2,
             "disjoint keys interleave, no combine fires"
         );
+    }
+
+    /// Saturation is not a ring operation (and is not associative across mixed-sign
+    /// updates), so overflow must hard-fail instead of silently changing the Z-set.
+    #[test]
+    #[should_panic(expected = "signed Z-set weight overflow")]
+    fn signed_weight_overflow_never_saturates() {
+        let _ = i64::MAX.combine(1);
     }
 
     // ── Chase-invented Skolem-term nulls ─────────────────────────────────────────

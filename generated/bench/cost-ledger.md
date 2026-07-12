@@ -23,18 +23,19 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | nary-mini | co-witness | nary-existential | 16 | 6 | 564567 | 5680 | 96687 | true | true |
 | nary-mini | split-null | nary-existential | 14 | 6 | 458334 | 4686 | 83962 | true | true |
 | nary-mini | stb-like | nary-existential | 24 | 10 | 765537 | 7881 | 89129 | true | true |
-| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 277384 | 3541 | 27749 | true | true |
-| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 162621 | 2056 | 22272 | true | true |
+| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 277811 | 3555 | 27749 | true | true |
+| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 162437 | 2056 | 22088 | true | true |
 | nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3910107 | 33179 | 37822 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6244084 | 54277 | 58473 | true | true |
+| relational-core-mini | incremental-transitive-closure | incremental | 13 | 91 | 2411313 | 54874 | 130246 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6243260 | 54249 | 58473 | true | true |
 | relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3989001 | 34423 | 44101 | true | true |
 | relational-core-mini | points-to | forward | 4 | 4 | 3950915 | 33942 | 42113 | true | true |
 | relational-core-mini | reachability | forward | 2 | 2 | 3709779 | 31266 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5459715 | 47668 | 53474 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5459296 | 47654 | 53474 | true | true |
 | relational-core-mini | scc | forward | 8 | 8 | 6167001 | 52876 | 53796 | true | true |
 | relational-core-mini | transitive-closure | forward | 3 | 3 | 3910278 | 33203 | 37785 | true | true |
-| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5640788 | 60763 | 217467 | true | true |
-| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7911059 | 108764 | 626530 | true | true |
+| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5642926 | 60833 | 217467 | true | true |
+| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7933285 | 109464 | 626530 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
@@ -42,6 +43,10 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 |---|---|---|---|---|---|
 | nemo-kr2024-mini | transitive-connection | https://example.org/bench/rules/conn-base | https://example.org/bench/conn | 1 | 2 |
 | nemo-kr2024-mini | transitive-connection | https://example.org/bench/rules/conn-step | https://example.org/bench/conn | 1 | 1 |
+| relational-core-mini | incremental-transitive-closure | https://example.org/bench/rules/tc-base | https://example.org/bench/path | 1 | 1 |
+| relational-core-mini | incremental-transitive-closure | https://example.org/bench/rules/tc-step | https://example.org/bench/path | 1 | 12 |
+| relational-core-mini | incremental-transitive-closure (scratch rebuild) | https://example.org/bench/rules/tc-base | https://example.org/bench/path | 1 | 13 |
+| relational-core-mini | incremental-transitive-closure (scratch rebuild) | https://example.org/bench/rules/tc-step | https://example.org/bench/path | 1 | 78 |
 | relational-core-mini | mutual-recursion | https://example.org/bench/rules/mr-even-step | https://example.org/bench/even | 1 | 4 |
 | relational-core-mini | mutual-recursion | https://example.org/bench/rules/mr-odd-base | https://example.org/bench/odd | 1 | 4 |
 | relational-core-mini | mutual-recursion | https://example.org/bench/rules/mr-odd-step | https://example.org/bench/odd | 1 | 2 |
@@ -62,6 +67,12 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | relational-core-mini | transitive-closure-scaled | https://example.org/bench/rules/tc-step | https://example.org/bench/path | 1 | 66 |
 | relational-core-mini | triangle-heavy | https://example.org/bench/rules/triangle | https://example.org/bench/triangle | 1 | 64 |
 
+## Incremental transaction vs clean native rebuild
+
+| corpus | case | incremental steps | scratch steps | steps saved | derived rows | incremental peak_live_bytes | scratch peak_live_bytes | peak bytes saved | joined delta rows | insert parity | retract parity |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| relational-core-mini | incremental-transitive-closure | 13 | 91 | 78 | 91 | 130246 | 235847 | 105601 | 1211 | true | true |
+
 ## Per-corpus divergence-ledger tally
 
 | corpus | cases | agree | corpus_only | dl_gap | findings | finding_graph_blake3 |
@@ -69,6 +80,6 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | chasebench-mini | 6 | 6 | 0 | 0 | 6 | 7e3b2cd6c21f854f97f6ea48cbb652374161227cad90affd984a08a2792cf680 |
 | nary-mini | 6 | 6 | 0 | 0 | 6 | 37c8169a51b2e49f54342cfb4eca9469ba0fb8c981981441a6dcef290953188c |
 | nemo-kr2024-mini | 6 | 6 | 0 | 0 | 6 | c3d339d0a17be2a42e9cceea34e815395af1d903cb2063da4a4e61f9abb5ac29 |
-| relational-core-mini | 18 | 18 | 0 | 0 | 18 | fc7bf4fa285e2cfdc0124b8a0884f40bdf223fcc0a7b4c9eec8ac3d5e4441f8a |
+| relational-core-mini | 22 | 22 | 0 | 0 | 22 | b347f84ef89776c04003344777a35b7444e37c2837748fc7976837aa7907924e |
 
-18 case(s) across 4 corpora in the committed cost baseline.
+19 case(s) across 4 corpora in the committed cost baseline.

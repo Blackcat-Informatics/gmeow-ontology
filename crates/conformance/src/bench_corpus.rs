@@ -25,6 +25,12 @@
 //!   authored by formula/hand — never an engine echo.
 //! * `profile.json` — `{ "fragment": …, "engines": [ … ] }`.
 //!
+//! The `incremental` fragment additionally carries `delta.nq`: one single-world
+//! insertion batch. The harness prepares a fixed-rule session from `input.nq`, applies
+//! `delta.nq`, checks the resulting closure against a clean native rebuild, retracts the
+//! same batch, and checks that the base closure is recovered. Its golden `rows` is the
+//! derived-row count after insertion.
+//!
 //! The `nary-existential` fragment (the ChaseBench/Nemo-KR2024 family shape) carries a
 //! DIFFERENT EDB + rule surface instead of `program.rules` + `input.nq`: an n-ary
 //! `program.rls` program ([`gmeow_logic::nary_rls::parse_nary_rls_program`]) plus a `data/`
@@ -57,6 +63,9 @@ pub enum Fragment {
     Existential,
     /// Goal-directed backward query (native / captured SLD golden).
     Backward,
+    /// Signed insert/retract maintenance of finite positive binary Datalog, compared
+    /// against clean native rebuilds rather than a secondary engine.
+    Incremental,
     /// Fixed-arity n-ary multi-head existential TGD chase (native reified-binary lowering
     /// vs Nemo), driven from an n-ary `.rls` program + delimited (`data/<rel>.csv`) EDB —
     /// the ChaseBench/Nemo-KR2024 family shape. Distinct from [`Fragment::Existential`]
@@ -71,11 +80,12 @@ impl Fragment {
             "forward" => Ok(Fragment::Forward),
             "existential" => Ok(Fragment::Existential),
             "backward" => Ok(Fragment::Backward),
+            "incremental" => Ok(Fragment::Incremental),
             "nary-existential" => Ok(Fragment::NaryExistential),
             other => Err(Diag::of_kind(ProfileInvalid {
                 detail: format!(
                     "profile.json fragment must be \"forward\", \"existential\", \"backward\", \
-                     or \"nary-existential\", got {other:?}"
+                     \"incremental\", or \"nary-existential\", got {other:?}"
                 ),
             })),
         }
@@ -88,6 +98,7 @@ impl Fragment {
             Fragment::Forward => "forward",
             Fragment::Existential => "existential",
             Fragment::Backward => "backward",
+            Fragment::Incremental => "incremental",
             Fragment::NaryExistential => "nary-existential",
         }
     }
@@ -126,6 +137,10 @@ pub struct BenchCase {
     /// The world-scoped EDB as N-Quads (`input.nq`), verbatim. EMPTY for an
     /// [`Fragment::NaryExistential`] case, whose EDB is the n-ary `nary_edb` instead.
     pub edb_nq: String,
+    /// The signed insertion fixture (`delta.nq`) for [`Fragment::Incremental`]
+    /// cases ONLY — empty for every other fragment. The same rows are retracted
+    /// after insertion to prove recursive delete parity.
+    pub delta_nq: String,
     /// The n-ary EDB (`data/<rel>.csv` files, arity-driven), for
     /// [`Fragment::NaryExistential`] cases ONLY — empty for every other fragment.
     pub nary_edb: Vec<gmeow_logic::nary::NaryTuple>,
@@ -225,7 +240,7 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
     }
 
     // Shape-specific rule text + EDB.
-    let (rules, edb_nq, nary_edb) = match fragment {
+    let (rules, edb_nq, delta_nq, nary_edb) = match fragment {
         Fragment::NaryExistential => {
             let rules = read_to_string(&case_dir.join("program.rls"))?;
             // Resolve the delimited EDB relation stems against the SAME `@prefix` map the
@@ -235,12 +250,18 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
             // derives nothing.
             let prefixes = gmeow_logic::nary_rls::parse_rls_prefixes(&rules);
             let nary_edb = load_nary_edb_dir(corpus, name, &case_dir.join("data"), &prefixes)?;
-            (rules, String::new(), nary_edb)
+            (rules, String::new(), String::new(), nary_edb)
+        }
+        Fragment::Incremental => {
+            let rules = read_to_string(&case_dir.join("program.rules"))?;
+            let edb_nq = read_to_string(&case_dir.join("input.nq"))?;
+            let delta_nq = read_to_string(&case_dir.join("delta.nq"))?;
+            (rules, edb_nq, delta_nq, Vec::new())
         }
         Fragment::Forward | Fragment::Existential | Fragment::Backward => {
             let rules = read_to_string(&case_dir.join("program.rules"))?;
             let edb_nq = read_to_string(&case_dir.join("input.nq"))?;
-            (rules, edb_nq, Vec::new())
+            (rules, edb_nq, String::new(), Vec::new())
         }
     };
 
@@ -251,6 +272,7 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
         engines,
         rules,
         edb_nq,
+        delta_nq,
         nary_edb,
         golden,
     })
@@ -565,6 +587,32 @@ mod tests {
                         c.corpus,
                         c.name
                     );
+                    assert!(
+                        c.delta_nq.is_empty(),
+                        "{}/{}: an nary-existential case carries no delta.nq",
+                        c.corpus,
+                        c.name
+                    );
+                }
+                Fragment::Incremental => {
+                    assert!(
+                        !c.edb_nq.trim().is_empty(),
+                        "{}/{}: empty incremental input.nq",
+                        c.corpus,
+                        c.name
+                    );
+                    assert!(
+                        !c.delta_nq.trim().is_empty(),
+                        "{}/{}: empty incremental delta.nq",
+                        c.corpus,
+                        c.name
+                    );
+                    assert!(
+                        c.nary_edb.is_empty(),
+                        "{}/{}: an incremental case carries no n-ary EDB",
+                        c.corpus,
+                        c.name
+                    );
                 }
                 _ => {
                     assert!(
@@ -576,6 +624,12 @@ mod tests {
                     assert!(
                         c.nary_edb.is_empty(),
                         "{}/{}: a ternary-fragment case carries no n-ary EDB",
+                        c.corpus,
+                        c.name
+                    );
+                    assert!(
+                        c.delta_nq.is_empty(),
+                        "{}/{}: a non-incremental case carries no delta.nq",
                         c.corpus,
                         c.name
                     );

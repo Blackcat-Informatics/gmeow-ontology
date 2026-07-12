@@ -33,6 +33,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 use crate::dispatch::dispatch_query;
 use crate::entrenchment::{Entrenchment, LeastEntrenched};
+use crate::physical::IncrementalQuerySession;
 use crate::query_ir::{Binding, Budget, QAtom, QProgram, QTerm};
 use crate::result::ReasoningResult;
 use crate::seam::{BudgetStatus, WorldFactSnapshot};
@@ -231,8 +232,11 @@ impl CfAnswer {
 #[derive(Debug, Default)]
 pub struct CfCache {
     entries: HashMap<String, CfAnswer>,
+    incremental_sessions: HashMap<String, IncrementalQuerySession>,
+    incremental_ineligible: BTreeSet<String>,
     hits: u64,
     misses: u64,
+    incremental_updates: u64,
 }
 
 impl CfCache {
@@ -247,6 +251,11 @@ impl CfCache {
     /// Number of cache misses observed (test/inspection aid).
     pub fn misses(&self) -> u64 {
         self.misses
+    }
+    /// Number of counterfactual worlds resolved by applying a signed revision to a
+    /// cached fixed-program base session instead of rebuilding the least model.
+    pub fn incremental_updates(&self) -> u64 {
+        self.incremental_updates
     }
 }
 
@@ -402,6 +411,7 @@ pub fn construct_and_resolve_cached(
     //     deterministic world uses W_cf directly; Lewis branches get per-branch
     //     graph IRIs. The base graph is never touched, so nothing leaks.
     let worlds = cartesian(&choices);
+    let incremental_base = incremental_base_session(cache, &base_facts, program, profile, budget)?;
     let mut per_world: Vec<(BTreeSet<Binding>, CfStatus)> = Vec::with_capacity(worlds.len());
     for (i, admitted) in worlds.iter().enumerate() {
         let world_iri = if worlds.len() == 1 {
@@ -416,7 +426,16 @@ pub fn construct_and_resolve_cached(
             profile,
             budget,
             &world_iri,
+            incremental_base.as_ref(),
         )?);
+        if incremental_base.is_some() {
+            cache.incremental_updates =
+                cache.incremental_updates.checked_add(1).ok_or_else(|| {
+                    counterfactual_err(
+                        "counterfactual incremental-update counter overflow".to_owned(),
+                    )
+                })?;
+        }
     }
 
     let result = match lewis {
@@ -554,7 +573,31 @@ fn resolve_in_world(
     profile: &str,
     budget: &Budget,
     world_iri: &str,
+    incremental_base: Option<&IncrementalQuerySession>,
 ) -> gmeow_errors::Result<(BTreeSet<Binding>, CfStatus)> {
+    if let Some(incremental_base) = incremental_base {
+        let admitted_slots: BTreeSet<(&str, &str)> = admitted
+            .iter()
+            .map(|(subject, predicate, _)| (subject.as_str(), predicate.as_str()))
+            .collect();
+        let mut changes = Vec::new();
+        for (subject, predicate, object) in base_facts {
+            if admitted_slots.contains(&(subject.as_str(), predicate.as_str())) {
+                changes.push((subject.clone(), predicate.clone(), object.clone(), -1));
+            }
+        }
+        changes.extend(admitted.iter().map(|(subject, predicate, object)| {
+            (subject.clone(), predicate.clone(), object.clone(), 1)
+        }));
+
+        let mut session = incremental_base.clone();
+        let answer = session.apply_iri_changes(changes, budget.max_answers)?;
+        return Ok((
+            answer.bindings.into_iter().collect(),
+            CfStatus::from_budget(answer.status),
+        ));
+    }
+
     let cf_store = WorldStore::new();
     // Borrow the (subject, predicate) slots from `admitted` (which outlives this
     // function) rather than cloning every key — and the per-fact lookup below
@@ -580,6 +623,64 @@ fn resolve_in_world(
         answer.bindings.into_iter().collect(),
         CfStatus::from_budget(answer.status),
     ))
+}
+
+/// Fetch or build the fixed-program base session shared by counterfactual revisions.
+///
+/// The cache key excludes the antecedent on purpose: every antecedent is a signed
+/// transaction over the same base/rules/goal state.  It includes the exact base facts,
+/// rule set, goal, profile, and solver version, so reuse never crosses a contract seam.
+fn incremental_base_session(
+    cache: &mut CfCache,
+    base_facts: &[(String, String, String)],
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+) -> gmeow_errors::Result<Option<IncrementalQuerySession>> {
+    if budget.max_steps.is_some() {
+        return Ok(None);
+    }
+    let key = incremental_base_key(base_facts, program, profile);
+    if cache.incremental_ineligible.contains(&key) {
+        return Ok(None);
+    }
+    if let Some(session) = cache.incremental_sessions.get(&key) {
+        return Ok(Some(session.clone()));
+    }
+
+    const BASE: &str = "urn:gmeow:counterfactual-incremental-base";
+    let base_store = WorldStore::new();
+    for (subject, predicate, object) in base_facts {
+        base_store.insert_quad(BASE, subject, predicate, object);
+    }
+    let foreign = WorldFactSnapshot::from_world(&base_store, BASE, profile)?;
+    match crate::physical::prepare_incremental_query(&foreign, BASE, program, &key, budget)? {
+        Some(session) => {
+            cache.incremental_sessions.insert(key, session.clone());
+            Ok(Some(session))
+        }
+        None => {
+            cache.incremental_ineligible.insert(key);
+            Ok(None)
+        }
+    }
+}
+
+fn incremental_base_key(
+    base_facts: &[(String, String, String)],
+    program: &QProgram,
+    profile: &str,
+) -> String {
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-counterfactual-incremental-base-v1\n");
+    hasher.update(&hash_facts(base_facts));
+    hasher.update(&hash_rules(program));
+    hasher.update(format!("{:?}", program.goal).as_bytes());
+    hasher.update(b"\n");
+    hasher.update(profile.as_bytes());
+    hasher.update(b"\n");
+    hasher.update(SOLVER_VERSION.as_bytes());
+    hasher.finalize().to_hex().to_string()
 }
 
 /// Combine per-closest-world resolutions under a Lewis quantifier:
@@ -856,13 +957,28 @@ mod tests {
              ?- ex:reach(ex:a, Y).\n",
         )
         .unwrap();
-        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4, None).unwrap();
+        let mut cache = CfCache::new();
+        let ans = construct_and_resolve_cached(
+            &store,
+            &prog,
+            HORN,
+            &Budget::default(),
+            4,
+            &mut cache,
+            None,
+        )
+        .unwrap();
         assert_eq!(ans.status_str(), "ok", "ans: {ans:?}");
         let zs: BTreeSet<&str> = ans.bindings.iter().map(|b| b["Y"].as_str()).collect();
         assert_eq!(
             zs,
             BTreeSet::from(["<https://ex/b>", "<https://ex/c>", "<https://ex/d>"]),
             "native recursion inside the constructed counterfactual world: {ans:?}"
+        );
+        assert_eq!(
+            cache.incremental_updates(),
+            1,
+            "the recursive counterfactual must apply one signed revision to the cached base"
         );
     }
 

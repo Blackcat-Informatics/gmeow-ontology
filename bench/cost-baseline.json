@@ -1,5 +1,5 @@
 {
-  "case_count": 18,
+  "case_count": 19,
   "cases": [
     {
       "agreement": {
@@ -189,8 +189,8 @@
       "fragment": "backward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 277384,
-        "alloc_count": 3541,
+        "alloc_bytes": 277811,
+        "alloc_count": 3555,
         "answer_count": 3,
         "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
         "consumed_steps": 9,
@@ -219,14 +219,14 @@
       "fragment": "backward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 162621,
+        "alloc_bytes": 162437,
         "alloc_count": 2056,
         "answer_count": 2,
         "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
         "consumed_steps": 5,
         "cost_vector": [],
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 22272
+        "peak_live_bytes": 22088
       },
       "oracle": {
         "answer_count": 2,
@@ -280,6 +280,87 @@
     },
     {
       "agreement": {
+        "golden_token": "derived=91",
+        "incremental_insert_vs_scratch": true,
+        "incremental_retract_vs_scratch": true,
+        "incremental_step_win": true,
+        "native_golden_token": "derived=91",
+        "native_oracle_token": "insert-and-retract-match-scratch",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "insert-and-retract-match-scratch",
+        "step_token": "incremental-steps-strictly-lower"
+      },
+      "case": "incremental-transitive-closure",
+      "corpus": "relational-core-mini",
+      "fragment": "incremental",
+      "golden_rows": 91,
+      "native": {
+        "alloc_bytes": 2411313,
+        "alloc_count": 54874,
+        "consumed_steps": 13,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/tc-base",
+            "https://example.org/bench/path",
+            1,
+            1
+          ],
+          [
+            "https://example.org/bench/rules/tc-step",
+            "https://example.org/bench/path",
+            1,
+            12
+          ]
+        ],
+        "derived_count": 91,
+        "engine": "gmeow-logic/0.1.0+native",
+        "inner_iterations": 14,
+        "joined_rows": 1211,
+        "peak_live_bytes": 130246,
+        "retraction": {
+          "derived_count": 78,
+          "inner_iterations": 14,
+          "joined_rows": 1120,
+          "rows_fingerprint": "1f86ea6e7e1310abd38056e988333fb87abed91d3626c48d6ae39bc190841ae7",
+          "signed_change_count": 14,
+          "signed_changes_blake3": "f1db88e32dc73c8ae43c61a2515f70ba50d02dae23b50bf50afe88cc1fbbf4ed"
+        },
+        "rows_fingerprint": "e158535c2dff2e613af8a28ed2f481ddb485368d04041983b88d2acf4e0dd3d0",
+        "scratch": {
+          "consumed_steps": 91,
+          "cost_vector": [
+            [
+              "https://example.org/bench/rules/tc-base",
+              "https://example.org/bench/path",
+              1,
+              13
+            ],
+            [
+              "https://example.org/bench/rules/tc-step",
+              "https://example.org/bench/path",
+              1,
+              78
+            ]
+          ],
+          "derived_count": 91,
+          "engine": "gmeow-logic/0.1.0+native",
+          "peak_live_bytes": 235847,
+          "rows_fingerprint": "e158535c2dff2e613af8a28ed2f481ddb485368d04041983b88d2acf4e0dd3d0"
+        },
+        "signed_change_count": 14,
+        "signed_changes_blake3": "de14879ba48cfcda327428ac1a669f314099e71758f66d3a3029574dd103028b"
+      },
+      "oracle": {
+        "base_rows_fingerprint": "1f86ea6e7e1310abd38056e988333fb87abed91d3626c48d6ae39bc190841ae7",
+        "derived_count": 91,
+        "engine": "native-scratch",
+        "rows_fingerprint": "e158535c2dff2e613af8a28ed2f481ddb485368d04041983b88d2acf4e0dd3d0"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
         "golden_token": "derived=10",
         "native_golden_token": "derived=10",
         "native_oracle_token": "0d84466554d296a5a509495191251472f1c83cfca18ef74ffe262d7d201d379a",
@@ -292,8 +373,8 @@
       "fragment": "forward",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 6244084,
-        "alloc_count": 54277,
+        "alloc_bytes": 6243260,
+        "alloc_count": 54249,
         "consumed_steps": 10,
         "cost_vector": [
           [
@@ -470,8 +551,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5459715,
-        "alloc_count": 47668,
+        "alloc_bytes": 5459296,
+        "alloc_count": 47654,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -605,8 +686,8 @@
       "fragment": "forward",
       "golden_rows": 78,
       "native": {
-        "alloc_bytes": 5640788,
-        "alloc_count": 60763,
+        "alloc_bytes": 5642926,
+        "alloc_count": 60833,
         "consumed_steps": 78,
         "cost_vector": [
           [
@@ -648,8 +729,8 @@
       "fragment": "forward",
       "golden_rows": 64,
       "native": {
-        "alloc_bytes": 7911059,
-        "alloc_count": 108764,
+        "alloc_bytes": 7933285,
+        "alloc_count": 109464,
         "consumed_steps": 64,
         "cost_vector": [
           [
@@ -817,12 +898,12 @@
       ]
     },
     "relational-core-mini": {
-      "agree": 18,
-      "cases": 18,
+      "agree": 22,
+      "cases": 22,
       "corpus_only": 0,
       "dl_gap": 0,
-      "finding_count": 18,
-      "finding_graph_blake3": "fc7bf4fa285e2cfdc0124b8a0884f40bdf223fcc0a7b4c9eec8ac3d5e4441f8a",
+      "finding_count": 22,
+      "finding_graph_blake3": "b347f84ef89776c04003344777a35b7444e37c2837748fc7976837aa7907924e",
       "findings": [
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d7f9dad000434c585e2cd30caa3a6420",
@@ -867,6 +948,12 @@
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/4d88150ecc45398078ec6e8083b94370"
         },
         {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/0986c70e4983c7be848daf1572e15f9b",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/506f8b0c1bcae544c97e2da0d228fa97"
+        },
+        {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/fdd4f18a9760131267dd4b7df1de4ead",
           "antecedents": [],
           "code": "reason.divergence.agreement",
@@ -897,6 +984,12 @@
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bafdb2d0b328e4211d715923e80c4dc0"
         },
         {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/222d43d47de0c7b2d7fdc536ad91ab39",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bbc4974a7d63603428c141d9a20e3a97"
+        },
+        {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/08f5b1ed306b0444a14628994704e0c3",
           "antecedents": [],
           "code": "reason.divergence.agreement",
@@ -921,6 +1014,12 @@
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/cb6876933c9442a218f2ca88c7a8b38c"
         },
         {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/8c257cfb7c8e6912fbed4a6d3c46992a",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/d4a68dc34f17d3f0923456b6e078ac59"
+        },
+        {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/1ae0532a272fbfa3059aa5e7b5d3625c",
           "antecedents": [],
           "code": "reason.divergence.agreement",
@@ -931,6 +1030,12 @@
           "antecedents": [],
           "code": "reason.divergence.agreement",
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/dd7a4dc9e2066dd99cadc7310882a2d2"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/6ed119a5ec8277b2a572c15d83abd3f4",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/f2d07e81b3cd0bd1e0faeba12fbc6a59"
         }
       ]
     }

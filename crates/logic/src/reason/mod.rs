@@ -140,6 +140,200 @@ pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
     Ok(typed_result(inferred, &verdict))
 }
 
+/// Result of applying one ground-IRI conjecture candidate to a cached fixed-rule
+/// reasoning state.
+pub(crate) struct IncrementalReasoningResult {
+    pub(crate) result: ReasoningResult,
+    pub(crate) status: crate::seam::BudgetStatus,
+    pub(crate) consumed_steps: u64,
+}
+
+/// Inputs to one fixed-calculus ground-IRI incremental reasoning transaction.
+pub(crate) struct GroundIriIncrementalRequest<'a> {
+    pub(crate) base_edb: &'a RdfDataset,
+    pub(crate) with_candidate_edb: &'a RdfDataset,
+    pub(crate) base: &'a ReasoningResult,
+    pub(crate) scenario_world: &'a str,
+    pub(crate) subject: &'a str,
+    pub(crate) predicate: &'a str,
+    pub(crate) object: &'a str,
+    pub(crate) max_steps: Option<u64>,
+}
+
+/// Incrementally reason over `base_edb + candidate` for one scenario world.
+///
+/// The stable base result is reused byte-for-byte outside `scenario_world`. Inside
+/// that world the fixed DL rule program is maintained by the signed nested-iteration
+/// circuit, with newly derived facts carrying a real firing rule and immediate
+/// premises. The finite DL post-pass then runs over the sound adjusted closure.
+///
+/// This entry accepts an IRI object only, matching [`build_edb_facts`]'s fixed-calculus
+/// EDB filter. Literal candidates remain on [`reason_all`] until the fixed rules admit
+/// literal objects directly.
+pub(crate) fn reason_ground_iri_insert_incremental(
+    request: GroundIriIncrementalRequest<'_>,
+) -> gmeow_errors::Result<IncrementalReasoningResult> {
+    let GroundIriIncrementalRequest {
+        base_edb,
+        with_candidate_edb,
+        base,
+        scenario_world,
+        subject,
+        predicate,
+        object,
+        max_steps,
+    } = request;
+    let typed_edb = build_edb_facts(base_edb)?;
+    let interner = typed_edb.interner();
+    let mut world_edb = Vec::new();
+    for typed in typed_edb.facts() {
+        if typed.args.len() != 3 {
+            return Err(reason_err(format!(
+                "incremental fixed-calculus EDB row has arity {} (expected 3)",
+                typed.args.len()
+            )));
+        }
+        if world_string(interner.resolve(typed.args[2]))? != scenario_world {
+            continue;
+        }
+        world_edb.push(crate::rule_ir::Fact {
+            subject: interner.resolve(typed.args[0]).clone(),
+            predicate: typed.predicate.clone(),
+            object: interner.resolve(typed.args[1]).clone(),
+        });
+    }
+
+    let candidate = crate::rule_ir::Fact {
+        subject: TermValue::iri(subject.to_owned()),
+        predicate: predicate.to_owned(),
+        object: TermValue::iri(object.to_owned()),
+    };
+    let candidate_key = candidate.key();
+    if world_edb.iter().any(|fact| fact.key() == candidate_key) {
+        return Ok(IncrementalReasoningResult {
+            result: base.clone(),
+            status: crate::seam::BudgetStatus::Ok,
+            consumed_steps: 0,
+        });
+    }
+
+    let rules = crate::rule_ir::parse_eval_rules(&dl::dl_rules())?;
+    let mut session =
+        crate::physical::IncrementalSession::new(native_contract_hash(), world_edb, &rules)?;
+    let adjusted = session.apply_insert_budgeted(
+        [crate::physical::SignedFact {
+            fact: candidate,
+            weight: 1,
+        }],
+        max_steps,
+    )?;
+
+    type AxiomKey = (String, String, String, String);
+    let base_by_key: std::collections::BTreeMap<AxiomKey, InferredAxiom> = base
+        .inferred()
+        .iter()
+        .map(|axiom| {
+            (
+                (
+                    axiom.subject.clone(),
+                    axiom.predicate.clone(),
+                    axiom.object.clone(),
+                    axiom.world.clone(),
+                ),
+                axiom.clone(),
+            )
+        })
+        .collect();
+
+    // Worlds untouched by the candidate retain their existing axioms/provenance.
+    let mut inferred: Vec<InferredAxiom> = base
+        .inferred()
+        .iter()
+        .filter(|axiom| axiom.world != scenario_world)
+        .cloned()
+        .collect();
+    for fact in adjusted.closure {
+        let subject = subject_iri(&fact.subject)?;
+        let object = crate::provenance::term_display(&fact.object);
+        let key = (
+            subject.clone(),
+            fact.predicate.clone(),
+            object.clone(),
+            scenario_world.to_owned(),
+        );
+        if let Some(base_axiom) = base_by_key.get(&key) {
+            inferred.push(base_axiom.clone());
+            continue;
+        }
+
+        let fact_key = fact.key();
+        if fact_key == candidate_key {
+            inferred.push(InferredAxiom {
+                subject,
+                predicate: fact.predicate,
+                object,
+                world: scenario_world.to_owned(),
+                is_edb: true,
+                rule_name: None,
+                premises: Vec::new(),
+            });
+            continue;
+        }
+
+        let witness = adjusted.delta.derivations.get(&fact_key).ok_or_else(|| {
+            reason_err(format!(
+                "incremental reasoning produced new derived fact {fact_key:?} without a firing witness"
+            ))
+        })?;
+        let premises = witness
+            .premises
+            .iter()
+            .map(|premise| {
+                Ok((
+                    subject_iri(&premise.subject)?,
+                    premise.predicate.clone(),
+                    crate::provenance::term_display(&premise.object),
+                ))
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+        inferred.push(InferredAxiom {
+            subject,
+            predicate: fact.predicate,
+            object,
+            world: scenario_world.to_owned(),
+            is_edb: false,
+            rule_name: Some(witness.rule_iri.clone()),
+            premises,
+        });
+    }
+
+    // The DL-only post-pass is monotone, so every base consequence remains valid and
+    // is free cached state. Only run the post-pass for NEW consequences when the
+    // governed recursive transaction reached its natural fixed point; doing so after a
+    // cut would smuggle uncharged derivations into the partial closure.
+    inferred.extend(
+        base.inferred()
+            .iter()
+            .filter(|axiom| axiom.world == scenario_world)
+            .cloned(),
+    );
+    if adjusted.status == crate::seam::BudgetStatus::Ok {
+        dl::augment_inferred_with_dl(&mut inferred, with_candidate_edb)?;
+    }
+    for axiom in &mut inferred {
+        axiom.premises.sort();
+        axiom.premises.dedup();
+    }
+    inferred.sort();
+    inferred.dedup();
+    let verdict = dl::verdict_from_inferred(&inferred, with_candidate_edb)?;
+    Ok(IncrementalReasoningResult {
+        result: typed_result(inferred, &verdict),
+        status: adjusted.status,
+        consumed_steps: adjusted.consumed_steps,
+    })
+}
+
 /// Reason over a canonical [`gmeow_logic_compile::ir::LogicProgram`]'s rules AND full-FOL formulas against `edb`,
 /// returning the shared typed [`ReasoningResult`].
 ///
