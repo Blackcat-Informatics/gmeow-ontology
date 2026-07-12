@@ -1936,4 +1936,144 @@ mod tests {
             "models-python render is {total} bytes, exceeding the {CEILING_BYTES}-byte budget ceiling"
         );
     }
+
+    /// The constraint core of one emitted model, reconstructed from its rendered
+    /// `.py` text — the Pydantic side of the Task-8a normalizer.
+    #[derive(Default)]
+    struct ModelCore {
+        /// `alias` (the CURIE property key) → is-required (no `default=None`).
+        fields: BTreeMap<String, bool>,
+        /// The `ConfigDict(extra=...)` policy.
+        extra: String,
+    }
+
+    /// Scan the whole rendered package into `class_name -> ModelCore` by walking each
+    /// module's text: a `class X(...)` that is not a `StrEnum` opens a model; its
+    /// `extra="..."` and each `Field(...)` line (alias = last kwarg; `default=None`
+    /// ⇒ optional) populate the core. This is the emitted-side normalizer.
+    fn scan_cores(artifacts: &BTreeMap<String, Vec<u8>>) -> BTreeMap<String, ModelCore> {
+        fn quoted_after<'a>(line: &'a str, key: &str) -> Option<&'a str> {
+            let start = line.rfind(key)? + key.len();
+            let rest = &line[start..];
+            let inner = rest.strip_prefix('"')?;
+            inner.split('"').next()
+        }
+        let mut cores: BTreeMap<String, ModelCore> = BTreeMap::new();
+        for (path, bytes) in artifacts {
+            if !path.ends_with(".py") {
+                continue;
+            }
+            let text = std::str::from_utf8(bytes).unwrap();
+            let mut current: Option<String> = None;
+            for line in text.lines() {
+                if let Some(rest) = line.strip_prefix("class ") {
+                    // `Name(Parent):`
+                    current = None;
+                    if !rest.contains("(StrEnum)")
+                        && let Some(name) = rest.split('(').next()
+                        && name != "ConfiguredBaseModel"
+                    {
+                        current = Some(name.to_owned());
+                        cores.entry(name.to_owned()).or_default();
+                    }
+                    continue;
+                }
+                let Some(cls) = current.as_deref() else {
+                    continue;
+                };
+                let trimmed = line.trim_start();
+                if let Some(extra) = quoted_after(trimmed, "extra=") {
+                    cores.get_mut(cls).unwrap().extra = extra.to_owned();
+                } else if trimmed.contains(" = Field(")
+                    && let Some(alias) = quoted_after(trimmed, "alias=")
+                {
+                    let required = !trimmed.contains("default=None");
+                    cores
+                        .get_mut(cls)
+                        .unwrap()
+                        .fields
+                        .insert(alias.to_owned(), required);
+                }
+            }
+        }
+        cores
+    }
+
+    /// CROSS-SURFACE CONFORMANCE GATE (on-gate, Rust, no Python — Task 8a/8b):
+    /// every packed `$def` and its emitted Pydantic model agree on the normalized
+    /// constraint core — the field-alias set, the required set, and the
+    /// `additionalProperties`/`extra` polarity. Both sides come from the ONE compiled
+    /// `$defs`, so this proves the emitter faithfully renders that compilation into
+    /// Python text (the live `model_json_schema()` confirmation runs off-gate). A
+    /// dropped required field / property / wrong extra polarity hard-fails HERE.
+    #[test]
+    fn emitted_models_agree_with_packed_schema_defs() {
+        let root = repo_root();
+        let (_store, shapes) =
+            purrdf::shapes::shape_union::load_shapes(&root).expect("load shapes");
+        let ns = gmeow_json_schema_namespaces();
+        let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns);
+        let schema: Value = serde_json::from_str(&compiled.schema_json).unwrap();
+        let defs = schema["$defs"].as_object().unwrap();
+
+        let artifacts = render_models_python(&root).expect("render").artifacts;
+        let cores = scan_cores(&artifacts);
+
+        let mut mismatches: Vec<String> = Vec::new();
+        for (key, body) in defs {
+            let class = py_type_name(key, "GmeowModel");
+            let Some(core) = cores.get(&class) else {
+                mismatches.push(format!("$def {key}: no emitted model {class}"));
+                continue;
+            };
+            let want_extra = if body.get("additionalProperties") == Some(&Value::Bool(false)) {
+                "forbid"
+            } else {
+                "allow"
+            };
+            if core.extra != want_extra {
+                mismatches.push(format!(
+                    "{class}: extra={:?} but $def wants {want_extra:?}",
+                    core.extra
+                ));
+            }
+            let want_props: BTreeSet<&str> = body
+                .get("properties")
+                .and_then(Value::as_object)
+                .map(|p| p.keys().map(String::as_str).collect())
+                .unwrap_or_default();
+            let got_props: BTreeSet<&str> = core.fields.keys().map(String::as_str).collect();
+            if want_props != got_props {
+                mismatches.push(format!(
+                    "{class}: property-alias set disagrees (missing {:?}, extra {:?})",
+                    want_props.difference(&got_props).collect::<Vec<_>>(),
+                    got_props.difference(&want_props).collect::<Vec<_>>()
+                ));
+            }
+            let want_req: BTreeSet<&str> = body
+                .get("required")
+                .and_then(Value::as_array)
+                .map(|a| a.iter().filter_map(Value::as_str).collect())
+                .unwrap_or_default();
+            let got_req: BTreeSet<&str> = core
+                .fields
+                .iter()
+                .filter(|(_, req)| **req)
+                .map(|(a, _)| a.as_str())
+                .collect();
+            if want_req != got_req {
+                mismatches.push(format!(
+                    "{class}: required set disagrees (missing {:?}, extra {:?})",
+                    want_req.difference(&got_req).collect::<Vec<_>>(),
+                    got_req.difference(&want_req).collect::<Vec<_>>()
+                ));
+            }
+        }
+        assert!(
+            mismatches.is_empty(),
+            "Pydantic ⇄ JSON-Schema constraint-core disagreement ({} classes):\n{}",
+            mismatches.len(),
+            mismatches.join("\n")
+        );
+    }
 }
