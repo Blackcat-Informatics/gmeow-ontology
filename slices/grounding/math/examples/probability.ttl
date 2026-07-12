@@ -22,7 +22,7 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix ex:    <http://example.org/math/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/> .
 
 # =========================================================================== #
 # 1. The Kolmogorov spine — three probability spaces, each component symbolic   #
@@ -110,6 +110,11 @@ ex:pRainTomorrow a gmeow:Quantity , math:ProbabilityValue ;
     gmeow:quantityValue "0.72"^^xsd:decimal ;               # in the closed unit interval [0,1] (P1)
     gmeow:hasReferenceFrame ex:weatherForecastProbabilityFrame ;   # names its frame (P3)
     gmeow:isResultOf ex:forecastRun .
+
+# Anchors the value to the event it quantifies (math:probabilityOfEvent, domain
+# math:ProbabilityEvent, range math:ProbabilityValue): P(rain tomorrow) = 0.72 IS the
+# forecast-run's probability of the rain event-set declared in §1.
+ex:forecastRainEvent math:probabilityOfEvent ex:pRainTomorrow .
 
 ex:weatherForecastProbabilityFrame a gmeow:ReferenceFrame ;
     rdfs:label "weather-forecast probability frame"@x-gmeow-english .
@@ -332,7 +337,11 @@ ex:rainSprinklerCondIndep a math:ConditionalIndependenceAssertion ;
     rdfs:label "rain ⫫ sprinkler | season"@x-gmeow-english ;
     math:independenceSubject ex:forecastRainEvent ;
     math:independentOf ex:sprinklerFaultEvent ;
-    math:independentGiven ex:drySeasonEvent .
+    math:independentGiven ex:drySeasonEvent ;
+    # Independence is a standpoint-scoped claim, never a bare fact of the graph
+    # (Rule): it names the dependency model it holds in — the sprinkler Bayesian
+    # network of §4(c), the modeled branch this conditional claim is scoped to.
+    math:independenceHoldsInModel ex:sprinklerNet .
 
 # =========================================================================== #
 # 7. Lawful probability-SCALE transforms — odds and log-odds are NOT             #
@@ -362,3 +371,8 @@ ex:pRainFromOdds a gmeow:Quantity , math:ProbabilityValue ;
     rdfs:label "P = 0.75 (recovered from 3:1 odds)"@x-gmeow-english ;
     gmeow:quantityValue "0.75"^^xsd:decimal ;              # in [0,1] (P1)
     gmeow:hasReferenceFrame ex:weatherForecastProbabilityFrame .
+
+# Anchors the recovered value to the same rain event the odds themselves re-express
+# (math:probabilityOfEvent) — a second, scale-transformed estimate of P(rain), not an
+# unanchored bare quantity.
+ex:forecastRainEvent math:probabilityOfEvent ex:pRainFromOdds .
