@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IncompleteConfidenceIntervalShape (Rule I4): a
+# math:ConfidenceInterval carrying its two bounds through math:hasIntervalBound (so the
+# sh:minCount 2 bound arm is SATISFIED) but omitting math:confidenceLevel, tripping the
+# level arm's sh:minCount 1 — shacl.MinCountConstraintComponent (math:IncompleteConfidenceInterval).
+# Single violation: it is NOT typed math:CredibleInterval, so math:IntervalKindConflationShape
+# (Rule I3) stays satisfied, and its two bounds keep the bound arm satisfied — EXACTLY ONE
+# finding, no sibling fires.
+# Back-reference: math:IncompleteConfidenceInterval (slices/grounding/math/module.ttl).
+# Negative counterpart of conformance-fixtures/confidence-interval-complete.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecConfidenceIntervalIncomplete).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:levellessCI a math:ConfidenceInterval ;
+    math:hasIntervalBound ex:ciLower , ex:ciUpper .    # bounds present, but NO math:confidenceLevel
+
+ex:ciLower a math:MathematicalObject .
+ex:ciUpper a math:MathematicalObject .

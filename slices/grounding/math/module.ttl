@@ -6264,7 +6264,7 @@ math:hasPosterior
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has posterior"@x-gmeow-english ;
-    skos:definition "Relates a Bayesian update to the math:PosteriorDistribution it produces. Domain a Bayesian update, range math:PosteriorDistribution (stated in prose). Names the posterior resulting from combining the prior and likelihood."@x-gmeow-english ;
+    skos:definition "Relates a Bayesian update — or a Bayesian interval estimate (a math:CredibleInterval / math:CredibleRegion) that summarizes it — to the math:PosteriorDistribution it produces or is taken over. Domain a Bayesian update or a credible interval/region, range math:PosteriorDistribution (stated in prose). Names the posterior resulting from combining the prior and likelihood, and the posterior context a credible interval's math:credibleMass is a probability over; a credible interval naming no posterior is ill-formed (math:IncompleteCredibleInterval)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:dependencyGraph
@@ -6750,6 +6750,200 @@ math:IllFramedPValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Ill-Framed P-Value"@x-gmeow-english ;
     skos:definition "The failure raised when a math:PValue is ambiguous because it does not carry the frame that makes P(T ≥ t | H0) well-defined: it names no test (neither a math:testStatistic nor the math:HypothesisTest whose math:pValue it is), or no math:nullHypothesis, or no math:testStatistic, or no math:nullDistribution, or neither a math:tailDefinition nor a math:alternativeSidedness — or it carries an math:alternativeSidedness outside the six lawful math:Sidedness values. A p-value with a null and a statistic but no tail or sidedness is still ambiguous, because whether the extremity is one-tailed, two-tailed, or mid-p changes the value; such a p-value is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Intervals, regions, effect size — the rest of the paradigm result layer      #
+# (STATISTICS-charter "Inference and results" + "Frequentist and Bayesian       #
+# parity")                                                                     #
+#                                                                              #
+# Uncertainty is not always a scalar interval. The paradigm-EXCLUSIVE interval  #
+# and region kinds are placed under the two families: math:ConfidenceInterval   #
+# and math:ConfidenceRegion ⊑ math:FrequentistResult (coverage under a sampling  #
+# procedure), math:CredibleInterval and math:CredibleRegion ⊑ math:BayesianResult#
+# (posterior mass), together with math:BayesFactor and math:PosteriorProbability.#
+# The disjointness math:ConfidenceInterval ⊥ math:CredibleInterval is ENTAILED   #
+# by the paradigm parents (CI ⊑ Frequentist, Credible ⊑ Bayesian, Frequentist ⊥  #
+# Bayesian), so no redundant direct owl:disjointWith is minted; the conflation    #
+# of the two is its own failure identity (math:IntervalKindConflation). The       #
+# paradigm-NEUTRAL kinds — math:PredictionInterval, math:ToleranceInterval,       #
+# math:EffectSize, and math:Prediction — are left under math:MathematicalObject,  #
+# free of either family, because a prediction interval and a tolerance interval   #
+# are computed in both paradigms and an effect size is a magnitude of a contrast  #
+# either way.                                                                    #
+# =========================================================================== #
+
+# --- Frequentist interval and region kinds (⊑ math:FrequentistResult) -------- #
+
+math:ConfidenceInterval
+    a owl:Class ;
+    rdfs:subClassOf math:FrequentistResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Confidence Interval"@x-gmeow-english ;
+    skos:definition "A confidence interval: the frequentist interval estimate whose coverage is a property of the PROCEDURE under repeated sampling — an interval constructed so that, across replications of the study, a stated proportion of such intervals contain the true parameter. A subclass of math:FrequentistResult, so it is held owl:disjointWith the Bayesian math:CredibleInterval THROUGH the paradigm parents (a single node is never both — that conflation is math:IntervalKindConflation). It names its bounds through math:hasIntervalBound and its coverage through math:confidenceLevel (a framed math:ProbabilityValue over the sampling procedure); an interval missing its bounds or its level is ill-formed (math:IncompleteConfidenceInterval). It is NOT a statement of posterior probability that the parameter lies in the interval — that is the credible interval's semantics, which this class must never be read as."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ConfidenceRegion
+    a owl:Class ;
+    rdfs:subClassOf math:FrequentistResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Confidence Region"@x-gmeow-english ;
+    skos:definition "A confidence region: the MULTIVARIATE generalization of a math:ConfidenceInterval — a region in parameter space whose frequentist coverage under repeated sampling is a stated proportion, for a vector-valued parameter (a joint region for two or more coefficients). A subclass of math:FrequentistResult, held owl:disjointWith the Bayesian math:CredibleRegion through the paradigm parents. Its coverage is a procedure property, carried through math:confidenceLevel, never a posterior mass; it is the region-valued sibling of the confidence interval, not a credible region."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Bayesian interval, region, and evidence kinds (⊑ math:BayesianResult) --- #
+
+math:CredibleInterval
+    a owl:Class ;
+    rdfs:subClassOf math:BayesianResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Credible Interval"@x-gmeow-english ;
+    skos:definition "A credible interval: the Bayesian interval estimate whose semantics rest on a POSTERIOR — an interval carrying a stated posterior probability mass that the parameter lies within it, given the prior, the likelihood, and the data. A subclass of math:BayesianResult, so it is held owl:disjointWith the frequentist math:ConfidenceInterval THROUGH the paradigm parents (a single node is never both — that conflation is math:IntervalKindConflation: they share the word 'interval' and nothing else, frequentist coverage versus posterior mass). It names its posterior context through math:hasPosterior (the math:PosteriorDistribution it summarizes), its bounds through math:hasIntervalBound, and its mass through math:credibleMass (a framed math:ProbabilityValue over that posterior); a credible interval naming no posterior or no credible mass is ill-formed (math:IncompleteCredibleInterval)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CredibleRegion
+    a owl:Class ;
+    rdfs:subClassOf math:BayesianResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Credible Region"@x-gmeow-english ;
+    skos:definition "A credible region: the MULTIVARIATE generalization of a math:CredibleInterval — a region in parameter space carrying a stated posterior probability mass, for a vector-valued parameter (a joint highest-posterior-density region). A subclass of math:BayesianResult, held owl:disjointWith the frequentist math:ConfidenceRegion through the paradigm parents. Its mass is a posterior probability over the math:PosteriorDistribution it summarizes (math:hasPosterior, math:credibleMass), never a procedure's coverage; it is the region-valued sibling of the credible interval, not a confidence region."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BayesFactor
+    a owl:Class ;
+    rdfs:subClassOf math:BayesianResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Bayes Factor"@x-gmeow-english ;
+    skos:definition "A Bayes factor: the ratio of the marginal likelihoods of two models (or hypotheses) under the data — the Bayesian measure of the evidence the data provide FOR one model OVER another, the update factor from prior odds to posterior odds. A subclass of math:BayesianResult, one of the paradigm-exclusive Bayesian result kinds held owl:disjointWith math:FrequentistResult; it is the Bayesian counterpart to a frequentist test's evidence summary, never a p-value, and is read as a ratio of evidences rather than a tail probability under a null."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PosteriorProbability
+    a owl:Class ;
+    rdfs:subClassOf math:BayesianResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Posterior Probability"@x-gmeow-english ;
+    skos:definition "A posterior probability: the probability of a hypothesis or a parameter event AFTER the data, P(H | data) — the direct Bayesian answer a frequentist p-value is so often mistaken for. A subclass of math:BayesianResult, one of the paradigm-exclusive Bayesian result kinds held owl:disjointWith math:FrequentistResult; its magnitude is a framed math:ProbabilityValue over a posterior. It is a probability of the hypothesis given the data, the inverse of a p-value's P(data as extreme | null), and the two are never conflated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Paradigm-neutral interval, effect-size, and prediction kinds ----------- #
+# Left under math:MathematicalObject, NOT placed under either paradigm family,
+# because they are computed in both frequentist and Bayesian analyses.
+
+math:PredictionInterval
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Prediction Interval"@x-gmeow-english ;
+    skos:definition "A prediction interval: an interval expected to contain a FUTURE observation (a new data point), not a fixed parameter — wider than a confidence interval because it carries the sampling uncertainty of a new draw on top of the estimation uncertainty. A subclass of math:MathematicalObject, deliberately left PARADIGM-NEUTRAL (under neither math:FrequentistResult nor math:BayesianResult) because a prediction interval is constructed in both paradigms — a frequentist prediction interval and a Bayesian posterior-predictive interval are the same interval kind under different frames — so forcing it into one family would misclassify the other. It names its bounds through math:hasIntervalBound and the target it predicts through math:predictionTarget."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ToleranceInterval
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tolerance Interval"@x-gmeow-english ;
+    skos:definition "A tolerance interval: an interval that, with a stated confidence, contains at least a stated PROPORTION of the population — the two-parameter uncertainty (a confidence level over a coverage proportion) distinct from both a confidence interval on a parameter and a prediction interval on a single future value. A subclass of math:MathematicalObject, deliberately left PARADIGM-NEUTRAL (under neither family) because tolerance intervals are constructed in both paradigms; it names its bounds through math:hasIntervalBound. Held apart from math:PredictionInterval (a single future observation) and math:ConfidenceInterval (a fixed parameter), because a proportion of the population is neither."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:EffectSize
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Effect Size"@x-gmeow-english ;
+    skos:definition "An effect size: the standardized MAGNITUDE of a contrast — a Cohen's d, a correlation, an odds ratio, an R² — that answers 'how big is the effect' rather than 'is it distinguishable from zero'. A subclass of math:MathematicalObject, deliberately PARADIGM-NEUTRAL (under neither family) because an effect size is estimated in both paradigms. To be interpretable it identifies THREE things: the comparison it measures the magnitude of through math:effectSizeContrast — the SAME shared math:StatisticalContrast object an estimand targets through math:targetContrast, one modeled contrast, never a near-synonym — the math:MeasurementScale it is expressed on through math:effectSizeScale, and its reference frame through gmeow:hasReferenceFrame (the house frame predicate, the same edge a math:ProbabilityValue is framed by). An effect size missing its contrast, scale, or frame is an uninterpretable bare number (math:UnframedEffectSize)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Prediction
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Prediction"@x-gmeow-english ;
+    skos:definition "A prediction: a model's forecast value for the outcome at a given input — a point prediction, distinct from the math:PredictionInterval that bounds its uncertainty and from the math:Residual that is the gap between it and the observed value. A subclass of math:MathematicalObject, deliberately PARADIGM-NEUTRAL (models predict in both paradigms); it names what it predicts through math:predictionTarget. Held apart from math:Estimate (a value of a parameter or estimand) — a prediction is a value of the OUTCOME for a case, not of a parameter of the model."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Interval, effect-size, and prediction object properties ---------------- #
+
+math:hasIntervalBound
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has interval bound"@x-gmeow-english ;
+    skos:definition "Relates an interval (a math:ConfidenceInterval, math:CredibleInterval, math:PredictionInterval, or math:ToleranceInterval) to one of its bounds — a lower or an upper endpoint of the interval. Domain an interval kind, range the bound object (stated in prose). A two-sided interval names its lower AND its upper bound (two math:hasIntervalBound edges); a confidence interval that does not name its bounds is ill-formed (math:IncompleteConfidenceInterval)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:confidenceLevel
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "confidence level"@x-gmeow-english ;
+    skos:definition "Relates a math:ConfidenceInterval (or math:ConfidenceRegion) to its coverage level — a framed math:ProbabilityValue (a 0.95, a 0.99) that is the proportion of such intervals, under repeated sampling, containing the true parameter. Domain a confidence interval or region, range math:ProbabilityValue (stated in prose). The coverage is a property of the PROCEDURE, never a posterior mass; a confidence interval naming no confidence level is ill-formed (math:IncompleteConfidenceInterval). Its counterpart on the Bayesian side is math:credibleMass, which the two must never be collapsed onto one another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:credibleMass
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "credible mass"@x-gmeow-english ;
+    skos:definition "Relates a math:CredibleInterval (or math:CredibleRegion) to its posterior mass — a framed math:ProbabilityValue (a 0.95) that is the posterior probability, given prior and data, that the parameter lies within the interval. Domain a credible interval or region, range math:ProbabilityValue (stated in prose). The mass is a POSTERIOR probability over the math:PosteriorDistribution the interval summarizes (math:hasPosterior), never a procedure's coverage; a credible interval naming no credible mass is ill-formed (math:IncompleteCredibleInterval). Its frequentist counterpart is math:confidenceLevel, held strictly apart from it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:predictionTarget
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "prediction target"@x-gmeow-english ;
+    skos:definition "Relates a math:Prediction or a math:PredictionInterval to the target it forecasts — the outcome, unit, or future observation the prediction speaks about. Domain a math:Prediction or math:PredictionInterval, range the target object (stated in prose). Naming the target is what keeps a prediction a forecast ABOUT something (a new case's outcome) rather than a bare number, and distinguishes it from an estimate of a parameter."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:effectSize
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "effect size"@x-gmeow-english ;
+    skos:definition "Relates an inference result or a math:HypothesisTest to the math:EffectSize accompanying it — the standardized magnitude of the effect the result concerns, alongside its significance. Domain a result object or a math:HypothesisTest, range math:EffectSize (stated in prose). Naming the effect size as an object is what lets 'how big is the effect', not only 'is it significant', be answered — a test with a p-value but no effect size reports distinguishability without magnitude."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:effectSizeContrast
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "effect-size contrast"@x-gmeow-english ;
+    skos:definition "Relates a math:EffectSize to the math:StatisticalContrast whose magnitude it measures — the comparison between conditions (a difference, a ratio, an odds ratio) the effect size quantifies the size of. Domain math:EffectSize, range math:StatisticalContrast (stated in prose). This is the SAME shared math:StatisticalContrast object a math:Estimand targets through math:targetContrast — one modeled contrast referenced by both the estimand's target and the effect size's magnitude, never two near-synonym contrasts — so the effect size and the estimand talk about the same comparison. An effect size naming no contrast is uninterpretable (math:UnframedEffectSize)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:effectSizeScale
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "effect-size scale"@x-gmeow-english ;
+    skos:definition "Relates a math:EffectSize to the math:MeasurementScale it is expressed on — the standardization (a standard-deviation scale for a Cohen's d, a correlation scale, a log-odds scale for an odds ratio) that fixes how its magnitude is read. Domain math:EffectSize, range math:MeasurementScale (stated in prose). The same math:MeasurementScale first-class object the variables layer uses; an effect size naming no scale is a magnitude with no units of comparison, uninterpretable (math:UnframedEffectSize)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Interval and effect-size conformance-failure classes ------------------- #
+
+math:IntervalKindConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Interval-Kind Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when one resource is typed BOTH a math:ConfidenceInterval and a math:CredibleInterval — frequentist coverage under a sampling procedure conflated with Bayesian posterior mass. They share the word 'interval' and nothing else: a confidence interval's level is a property of the procedure, a credible interval's mass is a posterior probability, and the two are held owl:disjointWith through their paradigm parents (math:ConfidenceInterval ⊑ math:FrequentistResult, math:CredibleInterval ⊑ math:BayesianResult, math:FrequentistResult owl:disjointWith math:BayesianResult). The disjointness is thus ENTAILED rather than directly asserted; the native DL coherence gate forces any individual typed both to owl:Nothing, and the paired SHACL shape (math:IntervalKindConflationShape) surfaces the same conflation as a finding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteConfidenceInterval
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Confidence Interval"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ConfidenceInterval does not carry the structure that makes it an interval estimate — its bounds through math:hasIntervalBound (a two-sided interval names its lower AND upper endpoint) or its coverage through math:confidenceLevel (a framed math:ProbabilityValue over the sampling procedure). A confidence interval with no bounds, or with no confidence level, is not a coverage statement but a bare pair of numbers, and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteCredibleInterval
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Credible Interval"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:CredibleInterval does not carry the structure that makes it a Bayesian interval estimate — its posterior context through math:hasPosterior (the math:PosteriorDistribution it summarizes) or its posterior mass through math:credibleMass (a framed math:ProbabilityValue over that posterior). A credible interval with no posterior, or with no credible mass, cannot state a posterior probability that the parameter lies within it, and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnframedEffectSize
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unframed Effect Size"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:EffectSize does not identify all three of the frame that makes its magnitude interpretable: the comparison it measures through math:effectSizeContrast (a math:StatisticalContrast), the scale it is expressed on through math:effectSizeScale (a math:MeasurementScale), and its reference frame through gmeow:hasReferenceFrame. An effect size missing any of the three is an uninterpretable bare number — a magnitude with no comparison, no units of comparison, or no frame it is expressed in."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #

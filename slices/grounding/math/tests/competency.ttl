@@ -1214,3 +1214,56 @@ ex:rowPValueFraming a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:twoSidedAlternative ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "adjustment" ; gmeow:cellValueIri exf:benjaminiHochberg ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri exf:geneFamily ] .
+
+# === SQ4 — interval estimates: kind and its level or mass ================== #
+
+ex:cqStatisticsIntervalKind a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-interval-kind.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-interval-kind.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A frequentist math:ConfidenceInterval carries its coverage through math:confidenceLevel (a property of the sampling procedure) and a Bayesian math:CredibleInterval carries its posterior mass through math:credibleMass (a posterior probability) — the same word 'interval' over two irreconcilable semantics, read on separate branches so each interval binds its OWN quantity and the two edges are never collapsed. Over the fixture the answer is exactly {coverageInterval → math:ConfidenceInterval, level coverageLevel; posteriorInterval → math:CredibleInterval, mass posteriorMass}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsIntervalKindShape ;
+    gmeow:cqExpectRow ex:rowCoverageInterval , ex:rowPosteriorInterval .
+
+ex:cqStatisticsIntervalKindShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "interval" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "amount" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exf:coverageInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ConfidenceInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "amount" ; gmeow:cellValueIri exf:coverageLevel ] .
+
+ex:rowPosteriorInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exf:posteriorInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:CredibleInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "amount" ; gmeow:cellValueIri exf:posteriorMass ] .
+
+# === SQ5 — which inference paradigm a result belongs to =================== #
+
+ex:cqStatisticsResultParadigm a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-result-paradigm.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-result-paradigm.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each result is typed a paradigm-exclusive kind and its inference family is resolved by walking the ASSERTED subclass taxonomy math:ConfidenceInterval ⊑ math:FrequentistResult / math:CredibleInterval ⊑ math:BayesianResult held in module.ttl — an rdfs:subClassOf* path that resolves WITHOUT reasoning because those edges are asserted (exactly as the embedding question walks subClassOf*), and the two families are held owl:disjointWith so a result reaches exactly one. Over the fixture the answer is exactly {bayesianResult → math:BayesianResult, frequentistResult → math:FrequentistResult}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsResultParadigmShape ;
+    gmeow:cqExpectRow ex:rowBayesianParadigm , ex:rowFrequentistParadigm .
+
+ex:cqStatisticsResultParadigmShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "paradigm" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowBayesianParadigm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri exf:bayesianResult ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "paradigm" ; gmeow:cellValueIri math:BayesianResult ] .
+
+ex:rowFrequentistParadigm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri exf:frequentistResult ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "paradigm" ; gmeow:cellValueIri math:FrequentistResult ] .
