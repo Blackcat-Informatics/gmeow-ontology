@@ -7719,6 +7719,43 @@
       },
       "type": "object"
     },
+    "Distribution": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:contentDigest": {
+          "anyOf": [
+            {},
+            {
+              "items": {},
+              "minItems": 1,
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "required": [
+        "gmeow:contentDigest"
+      ],
+      "type": "object"
+    },
     "DocEvidence": {
       "properties": {
         "@annotation": {
@@ -20851,6 +20888,31 @@
           },
           "then": {
             "$ref": "#/$defs/DigitalSubjectTenure"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:Distribution"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:Distribution"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/Distribution"
           }
         },
         {
