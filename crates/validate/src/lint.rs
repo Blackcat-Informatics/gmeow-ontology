@@ -1897,7 +1897,7 @@ fn gmeow_iri(term: &str) -> String {
     format!("{GMEOW_NS_ROOT}{term}")
 }
 
-/// Parse a plain decimal literal (optional leading `-`, an integer part, an
+/// Parse a plain decimal literal (optional leading `-`/`+`, an integer part, an
 /// optional `.frac`) into an EXACT [`Rational`]: the value is the digit string with
 /// the point removed over `10^(count of fractional digits)`. Scientific notation
 /// (`e`/`E`) and any otherwise-unparseable input yield `None` so an unreadable
@@ -1909,7 +1909,7 @@ fn decimal_to_rational(s: &str) -> Option<Rational> {
     }
     let (neg, body) = match s.strip_prefix('-') {
         Some(rest) => (true, rest),
-        None => (false, s),
+        None => (false, s.strip_prefix('+').unwrap_or(s)),
     };
     let (int_part, frac_part) = match body.split_once('.') {
         Some((i, f)) => (i, f),
@@ -2064,10 +2064,15 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
         };
 
         // Positivity: a role declaring math:requiresPositiveValue true forbids a quantity
-        // whose exact magnitude is not strictly positive.
+        // whose exact magnitude is not strictly positive. xsd:boolean also serializes as
+        // "1" (canonical is "true"/"false", but "0"/"1" are valid lexical forms), so both
+        // are accepted.
         let requires_positive = ds_object_literals(ds, &role, &math_iri("requiresPositiveValue"))
             .iter()
-            .any(|l| l == "true");
+            .any(|l| {
+                let t = l.trim();
+                t == "true" || t == "1"
+            });
         if requires_positive
             && let Some(q) = ds_object_iris_sorted(ds, &p, &math_iri("parameterQuantity"))
                 .into_iter()
@@ -2384,9 +2389,14 @@ fn check_math_projection_confidence_as_probability(ds: &RdfDataset, report: &mut
     let projects_confidence = math_iri("projectsConfidenceAsProbability");
     let declared_mapping = math_iri("declaredConfidenceMapping");
     for r in ds_subjects_of_type(ds, &math_iri("ProjectionRecord")) {
+        // xsd:boolean also serializes as "1" (canonical is "true"/"false", but "0"/"1"
+        // are valid lexical forms), so both are accepted.
         let converts = ds_object_literals(ds, &r, &projects_confidence)
             .iter()
-            .any(|v| v.trim() == "true");
+            .any(|v| {
+                let t = v.trim();
+                t == "true" || t == "1"
+            });
         if converts && !ds_has_predicate(ds, &r, &declared_mapping) {
             report.push_error(
                 codes::MATH_PROJECTION_CONFIDENCE_AS_PROBABILITY,
@@ -2401,12 +2411,14 @@ fn check_math_projection_confidence_as_probability(ds: &RdfDataset, report: &mut
 }
 
 /// `math:ProjectionDroppedParameterization` — a LOSSY `math:ProjectionRecord` (a declared
-/// `logic:preservationKind` that is not `logic:ExactPreservation`) whose first
-/// `math:projectionSource` is a `math:Distribution` carrying a
+/// `logic:preservationKind` that is not `logic:ExactPreservation`) EACH of whose
+/// `math:projectionSource` values is a `math:Distribution` carrying a
 /// `math:distributionParameterization` MUST enumerate that parameterization among its
 /// `logic:unsupportedConstruct` drops — as the parameterization IRI, or a string literal
 /// naming it. A lossy projection that drops the parameterization without recording it has
-/// performed the drop silently.
+/// performed the drop silently. Checked independently per `math:projectionSource` (a
+/// record may declare several; the gate is not satisfied merely because the
+/// alphabetically-first one is clean).
 fn check_math_projection_dropped_parameterization(ds: &RdfDataset, report: &mut LintReport) {
     let preservation_kind = logic_iri("preservationKind");
     let exact = logic_iri("ExactPreservation");
@@ -2421,42 +2433,47 @@ fn check_math_projection_dropped_parameterization(ds: &RdfDataset, report: &mut 
         if kinds.is_empty() || kinds.contains(&exact) {
             continue;
         }
-        let Some(src) = ds_object_iris_sorted(ds, &r, &projection_source)
-            .into_iter()
-            .next()
-        else {
-            continue;
-        };
-        if !ds_has_type(ds, &src, &math_iri("Distribution")) {
+        let sources = ds_object_iris_sorted(ds, &r, &projection_source);
+        if sources.is_empty() {
             continue;
         }
         // The drop list: `logic:unsupportedConstruct` values, whether IRIs or string
         // literals (the property is a DatatypeProperty, but a drop may be recorded either
-        // way, so the gate accepts both — the parameterization IRI, or a literal whose
-        // lowercased text contains the parameterization's local name).
+        // way, so the gate accepts both — the parameterization IRI, or a literal that
+        // names the parameterization's local name as a whole token, not merely a
+        // substring of some longer word).
         let drop_iris = ds_object_iris(ds, &r, &unsupported);
         let drop_literals: Vec<String> = ds_object_literals(ds, &r, &unsupported)
             .into_iter()
             .map(|d| d.to_lowercase())
             .collect();
-        for param in ds_object_iris_sorted(ds, &src, &parameterization) {
-            let local = param
-                .rsplit(['/', '#'])
-                .next()
-                .unwrap_or(param.as_str())
-                .to_lowercase();
-            let recorded = drop_iris.contains(&param)
-                || (!local.is_empty() && drop_literals.iter().any(|d| d.contains(&local)));
-            if !recorded {
-                report.push_error(
-                    codes::MATH_PROJECTION_DROPPED_PARAMETERIZATION,
-                    format!("{r}\t{param}"),
-                    format!(
-                        "math:ProjectionDroppedParameterization: lossy projection {r} drops the \
-                         distribution parameterization of {src} without enumerating it in \
-                         logic:unsupportedConstruct"
-                    ),
-                );
+        for src in &sources {
+            if !ds_has_type(ds, src, &math_iri("Distribution")) {
+                continue;
+            }
+            for param in ds_object_iris_sorted(ds, src, &parameterization) {
+                let local = param
+                    .rsplit(['/', '#'])
+                    .next()
+                    .unwrap_or(param.as_str())
+                    .to_lowercase();
+                let recorded = drop_iris.contains(&param)
+                    || (!local.is_empty()
+                        && drop_literals.iter().any(|d| {
+                            d.split(|c: char| !c.is_alphanumeric())
+                                .any(|tok| tok == local)
+                        }));
+                if !recorded {
+                    report.push_error(
+                        codes::MATH_PROJECTION_DROPPED_PARAMETERIZATION,
+                        format!("{r}\t{param}"),
+                        format!(
+                            "math:ProjectionDroppedParameterization: lossy projection {r} drops \
+                             the distribution parameterization of {src} without enumerating it \
+                             in logic:unsupportedConstruct"
+                        ),
+                    );
+                }
             }
         }
     }
@@ -3758,10 +3775,16 @@ mod tests {
         // pair is load-bearing. All three distribution-parameter counter-examples fire the
         // shared math:DistributionParameterConstraint class (positivity arm vs the
         // absolute-dimension arm vs the relational — same-as/square-of — dimension arm).
-        let cases: [(&str, &str); 11] = [
+        let cases: [(&str, &str); 12] = [
             (
                 include_str!(
                     "../../../slices/grounding/math/tests/counter-examples/probability-out-of-bounds.ttl"
+                ),
+                "math:ProbabilityOutOfBounds",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/probability-out-of-bounds-signed.ttl"
                 ),
                 "math:ProbabilityOutOfBounds",
             ),
