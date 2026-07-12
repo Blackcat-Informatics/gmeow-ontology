@@ -495,10 +495,21 @@ every `make check` via `make check-generated`; each new MCP tool keeps its own
 focused on-gate test (`validate_local` parity+correspondence, the four content-tool
 surface tests, and the `tools/list` mode-gating golden), so every tool is still
 exercised on-gate; and both whole-bundle sweeps run on `maint-heavy`.
+The two exhaustive compile-logic -> mappings integration sweeps are also off-gate:
+`gmeow-pipeline::stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows`
+(26.768 s in the failing CI shard) and
+`gmeow-pipeline::product_routing::compiler_products_are_first_class_dag_artifacts`
+(26.026 s in the same shard). Each runs the real pipeline over the WHOLE authored
+repository and is irreducibly O(ontology/projection size). No coverage class leaves
+the gate: `compile_logic_stage_emits_every_product` proves the compiler artifacts and
+in-memory channel, `loss_ledger_and_diagnostics_reach_the_shipped_bundle` proves the
+routed bundle graphs, focused projection-report units cover report construction, and
+`make check-generated` byte-gates the final committed union; the exhaustive pair runs
+on `maint-heavy`.
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards
-acceptance, JSON-LD round-trips, product routing, slice/slicetest parity, and
+acceptance, JSON-LD round-trips, slice/slicetest parity, and
 docs live-render guards are in the default/ci profile.
 
 Nearly the whole `gmeow-docs` test cluster is **on-gate**: each test loads a shared

@@ -273,6 +273,18 @@
 #     competency_questions/docs_search surface tests, and the tools/list mode-gating
 #     golden), so every tool is still exercised on-gate; and both whole-bundle sweeps
 #     stay on-gate on `maint-heavy`.
+#   - gmeow-pipeline stages::mappings::tests::
+#     projection_report_unions_logic_and_correspondence_rows (26.768 s in PR #1504
+#     CI shard 1) + product_routing::compiler_products_are_first_class_dag_artifacts
+#     (26.026 s in the same shard): both run the real compile-logic -> mappings chain
+#     over the WHOLE authored repository. They overlapped for ~9 s in the two-slot
+#     `engine` group, but their cost is still irreducibly O(ontology/projection size),
+#     and both exceeded the hard 25 s policy. No coverage class leaves the gate:
+#     compile_logic_stage_emits_every_product proves the compiler products and channel,
+#     loss_ledger_and_diagnostics_reach_the_shipped_bundle proves the routed bundle
+#     graphs, focused projection-report units cover report construction, and
+#     `make check-generated` byte-gates the final committed union. The exhaustive
+#     real-repository cross-stage sweeps remain on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -302,6 +314,8 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
     | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
     | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
+    | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
+    | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -450,11 +464,10 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # and
 # stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier (whole-bundle export/serialize),
 # and stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows (whole
-# projection-report union). Each is ~20 s standalone but rode the 25 s cliff (25.5-31 s) under
-# full-parallelism CI contention — the same whole-committed-bundle contention class as
-# `fanout_parity` above, and cheap enough standalone to stay on-gate. Serialize under the `engine`
-# group so bundle-fold work does not contend with concurrent chases; full coverage stays on every
-# `make check`, only concurrency is capped.
+# projection-report union). The product-routing and projection-report sweeps are off-gated via
+# `default-filter` after both exceeded 25 s in PR #1504; this override still serializes them on
+# `maint-heavy`. The remaining on-gate bundle folds use the same group so they do not contend with
+# concurrent chases.
 filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::export::tests::export_produces_structurally_valid_artifacts|stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
 test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
