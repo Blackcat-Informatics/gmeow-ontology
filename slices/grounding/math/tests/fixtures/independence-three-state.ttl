@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the probability-layer competency question "three-state
+# independence". It exhibits ALL THREE independence states over three events A, B, C:
+#   * A ⫫ B     — a marginal math:IndependenceAssertion (holds in a model, held by a vantage);
+#   * A ⫫ C | D — a math:ConditionalIndependenceAssertion (names its conditioning set D);
+#   * (B, C)    — NO assertion, the distinct third state "not modeled".
+# Independence is a standpoint-scoped modeler's claim: each assertion names the model it
+# holds in (math:independenceHoldsInModel) and the vantage that holds it (gmeow:vantage).
+# Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:eventA a math:ProbabilityEvent .
+ex:eventB a math:ProbabilityEvent .
+ex:eventC a math:ProbabilityEvent .
+ex:eventD a math:ProbabilityEvent .
+
+# The dependency model within which the claims are asserted, and the modeler holding them.
+ex:indepModel a math:BayesianNetwork .
+ex:modeler a gmeow:Standpoint .
+
+# State 1 — marginal independence A ⫫ B.
+ex:abIndep a math:IndependenceAssertion ;
+    math:independenceSubject ex:eventA ;
+    math:independentOf ex:eventB ;
+    math:independenceHoldsInModel ex:indepModel ;
+    gmeow:vantage ex:modeler .
+
+# State 2 — conditional independence A ⫫ C | D.
+ex:acGivenD a math:ConditionalIndependenceAssertion ;
+    math:independenceSubject ex:eventA ;
+    math:independentOf ex:eventC ;
+    math:independentGiven ex:eventD ;
+    math:independenceHoldsInModel ex:indepModel ;
+    gmeow:vantage ex:modeler .
+
+# State 3 — (B, C) carries NO independence assertion: "not modeled".

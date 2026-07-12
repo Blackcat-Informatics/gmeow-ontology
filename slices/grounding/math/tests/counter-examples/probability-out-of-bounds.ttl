@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:ProbabilityOutOfBounds gate: a
+# math:ProbabilityValue whose gmeow:quantityValue magnitude (1.5) lies outside the
+# closed unit interval [0, 1], so the native probability gate MUST emit
+# math:ProbabilityOutOfBounds (and no other probability failure class). It carries a
+# gmeow:hasReferenceFrame so math:ProbabilityValueFramedShape (P3) stays SATISFIED,
+# isolating exactly the out-of-bounds range gate rather than also tripping the
+# unframed-value shape.
+# Back-reference: math:ProbabilityValue / math:ProbabilityOutOfBounds (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:outOfBoundsProbability a math:ProbabilityValue ;
+    gmeow:quantityValue "1.5" ;
+    gmeow:hasReferenceFrame ex:outOfBoundsFrame .
+
+ex:outOfBoundsFrame a gmeow:ReferenceFrame .

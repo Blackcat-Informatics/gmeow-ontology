@@ -108,7 +108,8 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &["diagnostics:nodes"],
     );
 
-    // stage-math-producers — the five flagship producer graphs.
+    // stage-math-producers — the five flagship producer graphs plus the probability-model
+    // seam producer graph.
     entry(
         &mut t,
         "stage-math-producers",
@@ -116,6 +117,7 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
+            "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest",
             "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge",
         ],

@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Real-SHACL conformance for the five `math:` flagship-acceptance producers.
+//! Real-SHACL conformance for the six `math:` producers: five flagship-acceptance
+//! producers plus the probability layer's live `logic:probabilityModel` seam producer.
 //!
 //! `gmeow-validate` depends on `gmeow-math`, so this crate can call the native
 //! producers directly and validate their emitted RDF graph fragments against the
@@ -20,8 +21,8 @@ mod conformance_support;
 use conformance_support::*;
 
 use gmeow_math::producers::{
-    self, PRODUCER_NS, additive_he_demo, e8_weyl_order, exact_pca_residual, proof_ingest,
-    r_bridge_lift,
+    self, PRODUCER_NS, additive_he_demo, e8_weyl_order, exact_pca_residual, probability_model_seam,
+    proof_ingest, r_bridge_lift,
 };
 use purrdf::shapes::report::Severity;
 use purrdf::shapes::term::Term;
@@ -106,6 +107,19 @@ fn exact_pca_residual_graph_validates_clean() {
     );
 }
 
+/// The sixth (non-flagship) producer — the probability layer's live
+/// `logic:probabilityModel` seam — validates clean the SAME way the five flagship
+/// producers do: the LIVE A-box crossing triple this fold exists to ship must be
+/// example-clean against the real shape corpus, not merely well-typed Turtle.
+#[test]
+fn probability_model_seam_graph_validates_clean() {
+    let v = producer_violations(&probability_model_seam().turtle);
+    assert!(
+        v.is_empty(),
+        "probability-model-seam producer graph raised math violations: {v:#?}"
+    );
+}
+
 /// The pinned values are the flagship falsifiable invariants — re-assert them here
 /// so the conformance surface and the value surface stay wired to one producer call.
 #[test]
@@ -123,4 +137,7 @@ fn producers_pin_their_falsifiable_values() {
     let pca = exact_pca_residual();
     assert_eq!(pca.dominant_axis, 0);
     assert_eq!(pca.ldlt_pivots.len(), 3);
+
+    let seam = probability_model_seam();
+    assert_eq!(seam.joint_mass_total, gmeow_math::Rational::one());
 }

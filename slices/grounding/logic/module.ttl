@@ -457,6 +457,12 @@ logic:EndurantType
     skos:definition "A logic:Type whose instances are logic:Endurants — the type whose extension (via logic:instanceOf) is drawn from continuants. The counterpart of gufo:EndurantType; the type-of-endurants branch under which the sortal and non-sortal foundation meta-types (logic:Kind, logic:Phase, logic:Role, logic:Category, …) ultimately fall. Stated in prose, not as a subclass edge. Contrast logic:Event and logic:Situation, which carry gUFO's EventType/SituationType roles per the down-projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:EngineCapability
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Engine Capability"@x-gmeow-english ;
+    skos:definition "A declared capability of a reasoning engine — the executional ability an actor must hold to execute a logic:ActionSchema, named as the object of logic:capability. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:EngineCapability only under the stated identity and validation conditions."@x-gmeow-english .
+
 logic:EntrenchmentRevision
     a owl:NamedIndividual ,
         logic:RevisionPolicy ;
@@ -616,6 +622,13 @@ logic:FuzzyMeasure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Fuzzy Measure"@x-gmeow-english ;
     skos:definition "The uncertainty measure carrying fuzzy (degree-of-truth) membership values. One member of the uncertainty-measure set facet, which may carry several measures at once; distinct from logic:ProbabilisticMeasure (a calibrated probability) and logic:WeightedRankingMeasure (a solver preference order)."@x-gmeow-english .
+
+logic:GenericDependence
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Generic Dependence"@x-gmeow-english ;
+    rdfs:subClassOf logic:ProbabilityModel ;
+    skos:definition "A probability model for a GENERIC (unstructured) stochastic dependence between random variables: the lowering target for a math:MarkovKernel via math:probabilityModelLowering, whose conditional structure is not further factored into an explicit joint table (logic:DependencyModel) or a full-independence product (logic:FullIndependence). It records that a dependence exists without committing to its internal structure. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:GenericDependence only under the stated identity and validation conditions."@x-gmeow-english .
 
 # === Teleology layer: goal expressions, evaluation, plans, decomposition ======
 # The reasoning structure over GMEOW's own teleological vocabulary (gmeow:Goal,
@@ -6890,7 +6903,7 @@ logic:wfWorldSeeded
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:wfReductEngineCapability
-    a logic:GenericDependence ;
+    a logic:EngineCapability ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "well-founded reduct-engine capability"@x-gmeow-english ;
     skos:definition "The executional precondition on the actor the well-founded materializer's phase action schemas carry as their logic:capability: the least-model-of-reduct engine (crate::rule_ir::least_model_of_reduct) is available to evaluate a reduct against a reference fact set. The generic ability the native engine must hold to run any of the three phases — distinct from logic:wfWorldSeeded, which is a precondition on the world state, not on the engine."@x-gmeow-english ;
@@ -10496,6 +10509,13 @@ logic:EndurantType
     gmeow:avoidWhen "Do not use logic:EndurantType for a merely similar construct whose identity, truth conditions, or validation contract differs."@x-gmeow-english ;
     gmeow:howToUse "Assert logic:EndurantType with its declared OWL kind and preserve its domain, range, standpoint, and provenance constraints."@x-gmeow-english .
 
+logic:EngineCapability
+    skos:example "logic:EngineCapability rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."@x-gmeow-english ;
+    gmeow:useWhen "Use logic:EngineCapability when the modeled statement satisfies the scope and necessary conditions stated in this term's definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:EngineCapability for a merely similar construct whose identity, truth conditions, or validation contract differs."@x-gmeow-english ;
+    gmeow:howToUse "Assert logic:EngineCapability with its declared OWL kind and preserve its domain, range, standpoint, and provenance constraints."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:EntrenchmentRevision
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -10718,6 +10738,13 @@ logic:GateProbe
 
 logic:GateUndetermined
     gmeow:graphBoxRole gmeow:boxABox .
+
+logic:GenericDependence
+    skos:example "logic:GenericDependence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."@x-gmeow-english ;
+    gmeow:useWhen "Use logic:GenericDependence when the modeled statement satisfies the scope and necessary conditions stated in this term's definition."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:GenericDependence for a merely similar construct whose identity, truth conditions, or validation contract differs."@x-gmeow-english ;
+    gmeow:howToUse "Assert logic:GenericDependence with its declared OWL kind and preserve its domain, range, standpoint, and provenance constraints."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:GetPut
     gmeow:graphBoxRole gmeow:boxABox .

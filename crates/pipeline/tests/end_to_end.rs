@@ -161,8 +161,9 @@ fn spine() -> PipelineSpec {
             spec("stage-source-load", "source_load", &[]),
             spec("stage-statements", "statements", &[]),
             spec("stage-compile-logic", "compile_logic", &[]),
-            // Leaf compute: the five math flagship producers, folded into the snapshot
-            // (mirrors `run.rs::full_spec()` — kept in sync so `bind`'s Rust/RDF
+            // Leaf compute: the six math producers (five flagship producers plus the
+            // probability-model seam producer), folded into the snapshot (mirrors
+            // `run.rs::full_spec()` — kept in sync so `bind`'s Rust/RDF
             // consumes-agreement check holds for `stage-snapshot`).
             spec("stage-math-producers", "math_producers", &[]),
             spec("stage-mappings", "mappings", &["stage-compile-logic"]),
@@ -213,7 +214,8 @@ fn spine() -> PipelineSpec {
             // generated `references.bib` the snapshot folds into the print PDF
             // bibliography (mirrors `SnapshotStage::consumes()`).
             spec("stage-export-references", "references", &[]),
-            // The five math flagship producer graphs the snapshot folds into gmeow.gts
+            // The six math producer graphs (five flagship producers plus the
+            // probability-model seam producer) the snapshot folds into gmeow.gts
             // as their own bundle-internal named graphs (mirrors `SnapshotStage::consumes()`).
             spec("stage-math-producers", "math_producers", &[]),
             spec(

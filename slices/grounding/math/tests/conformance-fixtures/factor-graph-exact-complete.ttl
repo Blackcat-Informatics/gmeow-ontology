@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:ExactPreservationViolated gate
+# (FactorGraph arm): a math:FactorGraph that declares its math:dependencyGraph
+# (structurally complete) AND declares logic:preservationKind logic:ExactPreservation
+# directly on itself. It MUST raise NO probability failure class — a complete model
+# declaring exactness overclaims nothing. Positive counterpart of
+# counter-examples/factor-graph-exact-preservation-violated.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:completeExactFactorGraph a math:FactorGraph ;
+    math:dependencyGraph ex:factorGraphStructure ;
+    logic:preservationKind logic:ExactPreservation .
+
+ex:factorGraphStructure a math:MathematicalObject .

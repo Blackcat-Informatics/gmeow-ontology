@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:IncompleteDependencyModel gate: a
+# math:MarkovKernel that declares BOTH its math:kernelDomain and math:kernelCodomain. It
+# MUST raise NO probability failure class. Positive counterpart of
+# counter-examples/incomplete-dependency-model.ttl.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:completeKernel a math:MarkovKernel ;
+    math:kernelDomain ex:sourceSpace ;
+    math:kernelCodomain ex:targetSpace .
+
+ex:sourceSpace a math:MeasurableSpace .
+ex:targetSpace a math:MeasurableSpace .

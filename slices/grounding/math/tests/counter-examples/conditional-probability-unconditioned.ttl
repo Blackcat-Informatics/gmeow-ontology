@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ConditionedAssertionShape (Rule P8): a math:ConditionalProbability
+# that names NO math:conditionalOn — the B in P(A | B) is left implicit — so that property's
+# sh:minCount 1 fires — shacl.MinCountConstraintComponent (math:UnconditionedAssertion).
+# Single violation: math:ConditionalProbability is a math:MathematicalObject subclass carrying
+# no other SHACL target shape, and this node trips no other math: gate — EXACTLY ONE finding.
+# Back-reference: math:ConditionalProbability / math:UnconditionedAssertion (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecConditionalProbabilityUnconditionedBad).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:unconditionedProbability a math:ConditionalProbability .
