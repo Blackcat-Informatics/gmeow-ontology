@@ -457,7 +457,7 @@ The self-sufficiency parity harness added four more whole-bundle CLI tests —
 `::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak`,
 `::project_wheel_mode_equals_repo_mode`, and
 `::describe_wheel_mode_equals_repo_mode` (31-53 s locally, `describe` 7.6 s
-standalone but 27.6 s under full-parallelism CI contention; each drives
+standalone but 28.0 s under full-gate contention; each drives
 `gmeow transpile`/`gmeow project`/`gmeow describe` over the WHOLE embedded
 bundle — the transpile parity test runs it twice, blinded-cwd and repo-cwd
 legs — the identical whole-committed-bundle class as the
