@@ -129,12 +129,12 @@ pub(crate) struct BudgetedIncrementalDelta {
 struct WeightedHead {
     fact: Fact,
     weight: i64,
-    witness: Option<IncrementalDerivation>,
+    witnesses: BTreeMap<(String, Vec<FactKey>), IncrementalDerivation>,
 }
 
 struct InternedWeights {
     weights: Weights,
-    witnesses: BTreeMap<usize, IncrementalDerivation>,
+    witnesses: BTreeMap<usize, Vec<IncrementalDerivation>>,
 }
 
 type WeightedHeads = BTreeMap<FactKey, WeightedHead>;
@@ -385,10 +385,17 @@ impl IncrementalSession {
             }
 
             let next_snapshot = distinct(&adjusted_raw);
-            for (&id, witness) in &interned.witnesses {
+            for (&id, witnesses) in &interned.witnesses {
                 if next_snapshot.contains(&id)
                     && !old_fixed.contains(&id)
                     && !next_edb.contains(&id)
+                    && let Some(witness) = witnesses.iter().find(|witness| {
+                        witness.premises.iter().all(|premise| {
+                            self.arena
+                                .row_index(&premise.key())
+                                .is_some_and(|premise_id| next_snapshot.contains(&premise_id))
+                        })
+                    })
                 {
                     added_derivations
                         .entry(id)
@@ -660,10 +667,8 @@ impl IncrementalSession {
                     .expect("a missing weighted head must intern exactly once"),
             };
             add_id_weight(&mut weights, id, head.weight)?;
-            if head.weight > 0
-                && let Some(witness) = head.witness
-            {
-                witnesses.insert(id, witness);
+            if head.weight > 0 && !head.witnesses.is_empty() {
+                witnesses.insert(id, head.witnesses.into_values().collect());
             }
         }
         Ok(InternedWeights { weights, witnesses })
@@ -736,21 +741,19 @@ fn add_head(
     let key = fact.key();
     match output.entry(key) {
         std::collections::btree_map::Entry::Vacant(slot) => {
+            let mut witnesses = BTreeMap::new();
+            if let Some(witness) = witness {
+                witnesses.insert(witness.key(), witness);
+            }
             slot.insert(WeightedHead {
                 fact,
                 weight,
-                witness,
+                witnesses,
             });
         }
         std::collections::btree_map::Entry::Occupied(mut slot) => {
-            if let Some(witness) = witness
-                && slot
-                    .get()
-                    .witness
-                    .as_ref()
-                    .is_none_or(|current| witness.key() < current.key())
-            {
-                slot.get_mut().witness = Some(witness);
+            if let Some(witness) = witness {
+                slot.get_mut().witnesses.insert(witness.key(), witness);
             }
             let combined = ZWeightSemiring.add(slot.get().weight, weight)?;
             if combined == 0 {
@@ -1033,6 +1036,63 @@ mod tests {
                 .iter()
                 .any(|change| { change.fact.key() == fact("answer", "a", "b").key() })
         );
+    }
+
+    #[test]
+    fn newly_derived_fact_selects_a_witness_that_survives_signed_cancellation() {
+        let rules = vec![
+            rule(
+                "a-left",
+                atom("answer", var("X"), var("Y")),
+                vec![
+                    atom("left", var("X"), var("Y")),
+                    atom("gate", var("X"), var("Y")),
+                ],
+            ),
+            rule(
+                "b-right",
+                atom("answer", var("X"), var("Y")),
+                vec![
+                    atom("right", var("X"), var("Y")),
+                    atom("gate", var("X"), var("Y")),
+                ],
+            ),
+        ];
+        let left = fact("left", "a", "b");
+        let right = fact("right", "a", "b");
+        let gate = fact("gate", "a", "b");
+        let answer = fact("answer", "a", "b");
+        let mut session = IncrementalSession::new("contract", [left.clone()], &rules).unwrap();
+
+        // The left rule contributes +answer when gate arrives and -answer when its
+        // old support retracts; the right rule contributes the surviving +answer.
+        let delta = session
+            .apply([
+                SignedFact {
+                    fact: gate.clone(),
+                    weight: 1,
+                },
+                SignedFact {
+                    fact: right.clone(),
+                    weight: 1,
+                },
+                SignedFact {
+                    fact: left.clone(),
+                    weight: -1,
+                },
+            ])
+            .unwrap();
+
+        let witness = delta
+            .derivations
+            .get(&answer.key())
+            .expect("new answer carries a surviving proof witness");
+        let premise_keys: BTreeSet<_> = witness.premises.iter().map(Fact::key).collect();
+        assert_eq!(witness.rule_iri, format!("{NS}rule/b-right"));
+        assert!(premise_keys.contains(&right.key()));
+        assert!(premise_keys.contains(&gate.key()));
+        assert!(!premise_keys.contains(&left.key()));
+        assert_scratch_parity(&session, &[right, gate], &rules);
     }
 
     #[test]
