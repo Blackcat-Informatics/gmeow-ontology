@@ -43,7 +43,12 @@ fn describe_resolves_carrier_tags_against_shipped_bundle() {
     // `describe_rejects_unknown_tag_but_lists_the_carriers` (which folds once and
     // reads the available set), and the internal `x-gmeow-*` path by the
     // describe.rs unit tests.
-    let (text, status) = gmeow_docs::describe("gmeow:Language", &bytes, Some("fr"));
+    let (text, status) = gmeow_docs::describe(
+        "gmeow:Language",
+        &bytes,
+        Some("fr"),
+        gmeow_docs::card::CardFormat::Prose,
+    );
     assert_eq!(
         status,
         gmeow_docs::DescribeStatus::Ok,
@@ -58,7 +63,12 @@ fn describe_resolves_carrier_tags_against_shipped_bundle() {
 #[test]
 fn describe_rejects_unknown_tag_but_lists_the_carriers() {
     let bytes = bundle_bytes();
-    let (text, status) = gmeow_docs::describe("gmeow:Language", &bytes, Some("zz-nonsense"));
+    let (text, status) = gmeow_docs::describe(
+        "gmeow:Language",
+        &bytes,
+        Some("zz-nonsense"),
+        gmeow_docs::card::CardFormat::Prose,
+    );
     assert_eq!(
         status,
         gmeow_docs::DescribeStatus::UnknownLanguage,

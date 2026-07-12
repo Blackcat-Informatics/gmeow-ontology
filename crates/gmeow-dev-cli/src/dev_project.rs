@@ -28,7 +28,12 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     let resolved: Option<String> = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok());
-    let (text, status) = gmeow_docs::describe(term, &bytes, resolved.as_deref());
+    let (text, status) = gmeow_docs::describe(
+        term,
+        &bytes,
+        resolved.as_deref(),
+        gmeow_docs::card::CardFormat::Prose,
+    );
     if status == gmeow_docs::DescribeStatus::Ok {
         println!("{text}");
     } else {

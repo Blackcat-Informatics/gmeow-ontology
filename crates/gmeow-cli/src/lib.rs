@@ -38,6 +38,30 @@ pub const BUNDLE_GTS: &[u8] = include_bytes!(concat!(
 /// The GMEOW IRI namespace the discipline checks and term catalog key on.
 pub(crate) const NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 
+/// The `describe` output serialization — the clap surface for
+/// [`gmeow_docs::card::CardFormat`].
+#[derive(Debug, Clone, Copy, Default, clap::ValueEnum)]
+pub enum DescribeFormat {
+    /// Human-facing Markdown prose (the default).
+    #[default]
+    Prose,
+    /// Pretty JSON of the term card (the `card.json` shape).
+    Json,
+    /// TOON (Token-Oriented Object Notation) — compact, token-efficient output for
+    /// LLM/agent consumers.
+    Toon,
+}
+
+impl From<DescribeFormat> for gmeow_docs::card::CardFormat {
+    fn from(format: DescribeFormat) -> Self {
+        match format {
+            DescribeFormat::Prose => gmeow_docs::card::CardFormat::Prose,
+            DescribeFormat::Json => gmeow_docs::card::CardFormat::Json,
+            DescribeFormat::Toon => gmeow_docs::card::CardFormat::Toon,
+        }
+    }
+}
+
 /// The `gmeow` consumer CLI.
 #[derive(Debug, Parser)]
 #[command(name = "gmeow", version, about = "The GMEOW ontology consumer CLI.")]
@@ -99,6 +123,9 @@ pub enum Commands {
         /// Describe from this `.gts` package instead of the bundle.
         #[arg(long = "gts")]
         gts: Option<PathBuf>,
+        /// Output serialization: `prose` (Markdown, default), `json`, or `toon`.
+        #[arg(long = "format", short = 'f', value_enum, default_value_t = DescribeFormat::Prose)]
+        format: DescribeFormat,
     },
     /// Validate RDF data against the bundle, or a JSON/YAML instance against a schema.
     Validate {
@@ -363,9 +390,13 @@ pub fn run() -> i32 {
         Commands::VerifyReleaseBundle { bundle, public_key } => {
             commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())
         }
-        Commands::Describe { term, gts } => {
-            commands::describe(reporter, &term, gts.as_deref(), lang.as_deref())
-        }
+        Commands::Describe { term, gts, format } => commands::describe(
+            reporter,
+            &term,
+            gts.as_deref(),
+            lang.as_deref(),
+            format.into(),
+        ),
         Commands::Validate {
             instance,
             schema,

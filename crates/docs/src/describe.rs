@@ -33,7 +33,7 @@ use gmeow_validate::language_tags::{
     select_literal,
 };
 
-use crate::card::{Card, CardDetail, render_card};
+use crate::card::{Card, CardDetail, CardFormat, card_json, card_toon, render_card};
 use crate::error::GtsRead;
 
 /// The GMEOW namespace prefix for term IRIs.
@@ -622,11 +622,19 @@ impl DescribeStatus {
 /// * `lang` — the already-resolved language request (`None` → the English
 ///   carrier); the env/`--lang` precedence is the caller's (the consumer bin's)
 ///   concern.
+/// * `format` — the output serialization ([`CardFormat::Prose`] Markdown,
+///   [`CardFormat::Json`], or [`CardFormat::Toon`]). The format governs only a
+///   successful card render; every failure keeps its diagnostic text and status.
 ///
-/// Returns `(text, status)`: the rendered Markdown card with [`DescribeStatus::Ok`],
-/// or a diagnostic message with the classifying [`DescribeStatus`] on a load /
+/// Returns `(text, status)`: the rendered card with [`DescribeStatus::Ok`], or a
+/// diagnostic message with the classifying [`DescribeStatus`] on a load /
 /// unresolved / ambiguous / unknown-language failure.
-pub fn describe(query: &str, gts_bytes: &[u8], lang: Option<&str>) -> (String, DescribeStatus) {
+pub fn describe(
+    query: &str,
+    gts_bytes: &[u8],
+    lang: Option<&str>,
+    format: CardFormat,
+) -> (String, DescribeStatus) {
     let graph = match DescribeGraph::from_gts_bytes(gts_bytes) {
         Ok(graph) => graph,
         Err(e) => return (e.to_string(), DescribeStatus::LoadFailed),
@@ -730,12 +738,15 @@ pub fn describe(query: &str, gts_bytes: &[u8], lang: Option<&str>) -> (String, D
     };
 
     let card = build_card(&graph, &term, &selector, &tag_map);
-    // The card header is the term's own display CURIE (`gmeow:Entity`,
-    // `lang:Denotation`, …), shortened through the canonical registry.
-    (
-        render_card(&short(&term), &card, CardDetail::Standard),
-        DescribeStatus::Ok,
-    )
+    // The prose card header is the term's own display CURIE (`gmeow:Entity`,
+    // `lang:Denotation`, …), shortened through the canonical registry. The
+    // structured formats carry the full IRI (and every card field) directly.
+    let text = match format {
+        CardFormat::Prose => render_card(&short(&term), &card, CardDetail::Standard),
+        CardFormat::Json => card_json(&card),
+        CardFormat::Toon => card_toon(&card),
+    };
+    (text, DescribeStatus::Ok)
 }
 
 #[cfg(test)]
@@ -745,6 +756,12 @@ mod tests {
 
     /// The GTS write profile for test fixtures (arbitrary, deterministic).
     const TEST_PROFILE: &str = "purrdf-test";
+
+    /// Prose-format `describe` — the default used by every language/resolution test
+    /// (the JSON/TOON formats are exercised by the CLI live-binary suite).
+    fn describe_prose(query: &str, gts: &[u8], lang: Option<&str>) -> (String, DescribeStatus) {
+        describe(query, gts, lang, CardFormat::Prose)
+    }
 
     /// The controlled multilingual fixture, mirroring `_multilingual_gts` in
     /// `tests/test_cli.py`: a `gmeow:SampleTerm` class with English (always) and
@@ -850,7 +867,7 @@ mod tests {
     #[test]
     fn describe_known_term_returns_prose_and_zero() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, None);
+        let (text, code) = describe_prose("SampleTerm", &gts, None);
         assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("gmeow:SampleTerm"), "{text}");
         assert!(text.contains("English definition text."), "{text}");
@@ -861,7 +878,7 @@ mod tests {
     #[test]
     fn describe_renders_french_without_fallback() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some("fr"));
+        let (text, code) = describe_prose("SampleTerm", &gts, Some("fr"));
         assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("Définition en français."), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
@@ -870,7 +887,7 @@ mod tests {
     #[test]
     fn describe_renders_mandarin_without_fallback() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some("zh"));
+        let (text, code) = describe_prose("SampleTerm", &gts, Some("zh"));
         assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("中文定义。"), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
@@ -880,7 +897,7 @@ mod tests {
     fn describe_falls_back_to_english_when_language_absent() {
         // English-only fixture, French requested → the carrier fallback marker.
         let gts = multilingual_gts(false, false);
-        let (text, code) = describe("SampleTerm", &gts, Some("fr"));
+        let (text, code) = describe_prose("SampleTerm", &gts, Some("fr"));
         assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("English definition text."), "{text}");
         assert!(text.contains("fallback: en"), "{text}");
@@ -893,7 +910,7 @@ mod tests {
         // English rather than hard-failing, and every carrier is listed. A
         // truly-unknown tag still hard-fails.
         let gts = multilingual_gts(true, false);
-        let (text, code) = describe("SampleTerm", &gts, Some("notatag"));
+        let (text, code) = describe_prose("SampleTerm", &gts, Some("notatag"));
         assert_ne!(code, DescribeStatus::Ok, "{text}");
         assert!(
             text.to_lowercase().contains("unknown language tag"),
@@ -904,7 +921,7 @@ mod tests {
 
         // The contentless zh carrier resolves with the English fallback marker,
         // never an "unknown language" hard-fail.
-        let (zh_text, zh_code) = describe("SampleTerm", &gts, Some("zh"));
+        let (zh_text, zh_code) = describe_prose("SampleTerm", &gts, Some("zh"));
         assert_eq!(
             zh_code,
             DescribeStatus::Ok,
@@ -917,7 +934,7 @@ mod tests {
     fn describe_empty_lang_selects_english_carrier() {
         // An explicit empty request maps to the default English carrier.
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some(""));
+        let (text, code) = describe_prose("SampleTerm", &gts, Some(""));
         assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("English definition text."), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
@@ -926,7 +943,7 @@ mod tests {
     #[test]
     fn describe_unknown_term_returns_nonzero() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("NoSuchTermAtAll", &gts, None);
+        let (text, code) = describe_prose("NoSuchTermAtAll", &gts, None);
         assert_eq!(code, DescribeStatus::Unresolved);
         assert!(text.contains("NoSuchTermAtAll"), "{text}");
     }
@@ -937,7 +954,7 @@ mod tests {
         // resolves; a shorter, colliding query would list candidates. Here we prove
         // the case-insensitive exact-name path works for the mixed-case query.
         let gts = multilingual_gts(true, true);
-        let (_, code) = describe("sampleterm", &gts, None);
+        let (_, code) = describe_prose("sampleterm", &gts, None);
         assert_eq!(code, DescribeStatus::Ok);
     }
 
@@ -980,7 +997,7 @@ mod tests {
 
     #[test]
     fn describe_invalid_gts_bytes_is_nonzero() {
-        let (text, code) = describe("SampleTerm", b"not a gts bundle", None);
+        let (text, code) = describe_prose("SampleTerm", b"not a gts bundle", None);
         assert_ne!(code, DescribeStatus::Ok);
         assert_eq!(code, DescribeStatus::LoadFailed);
         assert!(!text.is_empty());
