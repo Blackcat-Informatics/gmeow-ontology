@@ -278,6 +278,22 @@ std Rust" is not a neutral default on a hot path, it is a measured cost.
   zero-allocation borrowed-iterator doctrine extended into the engine.
 - **Type-state plan pipeline**: parsed → stratified → planned → executable as distinct types, so
   an unstratified or unplanned program is unrepresentable at the executor boundary.
+- **Content-addressed owned plans**: the terminal executable owns its immutable rule IR behind an
+  `Arc` and is cached under `(contract_hash, canonical_rule_hash, solver_version)` in a bounded
+  LRU. The rule digest length-prefixes every execution-relevant term, atom, guard, builtin, and
+  authored ordering; non-stratifiable results are negative-cached as declared gaps. Cache locking
+  ends before evaluation, and eviction drops only the cache reference, never an in-flight plan.
+  Both native forward materialization and demand-transformed backward evaluation consume this one
+  executable type.
+- **Flat binding frames**: every rule assigns variables stable authored-first-occurrence slots and
+  lowers acyclic positive atoms into a deterministic binding-aware SIPS order, recording the
+  guaranteed `Any`/subject/object/both index shape at each step, then selects one of four
+  variable/constant operator shapes. Provenance sources are restored to authored body order after
+  physical execution. Binary and certified-
+  cyclic kernels read those slots directly and copy the interner's cached display surface only when
+  first binding a slot; they do not interpret `EvalTerm` or search `(name, value)` pairs per tuple.
+  The shared named solution form is reconstructed once after the positive join for builtin, NAF,
+  head, and provenance semantics.
 - **SIMD only on dense ID or rational/vector columns with a measured win**, per the standing
   optimization rules; layout for autovectorization first, explicit portable SIMD second.
 - All of it under the standing order of operations: **data shape, ownership shape, dispatch
@@ -302,12 +318,15 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
     bytes / allocation count**. The count and peak-live are byte-reproducible and gate **on-gate**
     by exact drift-match; externally-instrumented retired-instruction counts corroborate them in a
     maintainer lane. The two total-allocation scalars are NOT byte-reproducible — the native core
-    emits a small quantized run-to-run allocation transient (measured at ~0.06% on the most-recursive
-    corpus case, and empirically irreducible: it survives a process-global total, an inline
+    emits a small quantized run-to-run allocation transient (allocation counts move in a
+    14-allocation quantum; after flat-slot kernels lowered small-query totals, a 12-process
+    `ancestor-query` soak observed a maximum 42-allocation span; the transient is empirically
+    irreducible: it survives a process-global total, an inline
     single-thread parallel pool, and a fully serial engine, so it is genuine per-run engine jitter,
     not a threading artifact). Rather than leave them advisory, they gate through a **one-sided
-    tolerance band** `fresh ≤ baseline·(1+ε)` with **ε = 1%** (set ~17× above the measured 0.06%
-    jitter floor), folded through the SAME divergence ledger as the exact signals: a within-band run
+    tolerance band**: bytes use `fresh ≤ baseline·1.01`; counts use the greater of that ceiling
+    and the measured 42-allocation absolute floor. It is folded through the SAME divergence ledger
+    as the exact signals: a within-band run
     is a non-blocking `Agree`, a breach a blocking `CorpusOnly` cost-regression finding. The band is a
     deterministic verdict (a pure function of `(fresh, baseline, ε)`) that never flakes yet still bites
     the gross allocation regression the doctrine targets — a "fewer clones / fewer owned-key
@@ -323,6 +342,14 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
   bytes/count, and peak-live bytes are its scalar projections. A regression therefore attributes
   to a rule family, not merely to a benchmark group — which is exactly what a fragment-by-fragment
   performance-lever program needs to state "this change reduced the cost of *this* fragment".
+- **Plan reuse is measured as repeat evaluation, not a cache microbenchmark.** Every committed
+  forward mini-corpus case runs two complete materializations over identical EDB and rules with
+  parsing, EDB loading, and certification outside both measured regions. The cold run must report
+  one plan build and nonzero planning units; the warm run must report a cache hit, the identical
+  immutable executable, zero builds, and zero planning units. Closure digest, committed steps, and
+  the full `(rule, predicate, stratum)` vector must match exactly, while allocation count and
+  peak-live bytes must both strictly fall. These integer/boolean observations are projected into
+  `generated/bench/cost-ledger.md`; wall-clock is absent from the claim.
 - **The engine-vs-engine lanes on external corpora remain** — the standard chase benchmark
   scenarios, the subsumed forward engine's own published evaluation sets for the existential and
   materialization fragments, and the transitive-closure/points-to program families the
@@ -391,6 +418,6 @@ keeps "not yet fast" or "not yet reachable" honest instead of silently reading a
   genuine residual ~0.059% per-run allocation jitter (a single quantized ±14-alloc event deep in
   the forward core; the engine already fixed-seeds its hashers) that neither process-global
   counting nor fully-serial execution eliminates. `alloc_bytes`/`alloc_count` therefore gate
-  through a one-sided band (`fresh ≤ baseline·(1+ε)`, ε = 1%, ~17× the measured floor);
+  through one-sided bands (bytes: 1%; counts: greater of 1% and the measured 42-allocation floor);
   `peak_live_bytes` gates by exact drift-match. Forward path: de-randomize the residual
   allocating structure in the forward core to restore exact-match allocation gating.

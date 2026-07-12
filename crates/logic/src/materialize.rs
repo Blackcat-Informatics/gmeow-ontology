@@ -867,17 +867,24 @@ pub fn materialize_routed(
                     (None, Some(b)) => Some(b),
                     (None, None) => None,
                 };
-                // Enter the type-state plan pipeline: stratify ONCE (a non-stratifiable
-                // program is `None` here — a declared native gap that falls through to the
-                // Nemo fallback / conformance oracle, exactly as the old
-                // `Unsupported(NonStratifiable)` did), then join-plan and seal into the
-                // `Executable` the native forward executor requires.
-                match crate::physical::Parsed::new(&eval_rules).stratify() {
+                // Compile/cache under the declared profile contract. The canonical rule
+                // hash is the other plan-key coordinate, so two programs under the same
+                // profile cannot alias. A negative-cached non-stratifiable result falls
+                // through to the declared oracle path exactly as before.
+                let contract_hash = format!(
+                    "gmeow-materialize-native-v1:{}",
+                    profile.unwrap_or("undeclared")
+                );
+                let lookup = crate::physical::compile_cached(contract_hash, eval_rules);
+                match lookup.executable {
                     None => None,
-                    Some(stratified) => {
-                        let executable = stratified.plan().into_executable();
-                        match crate::physical::materialize_native(&store, &executable, max_steps)
-                            .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?
+                    Some(executable) => {
+                        match crate::physical::materialize_native(
+                            &store,
+                            executable.as_ref(),
+                            max_steps,
+                        )
+                        .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?
                         {
                             crate::physical::NativeOutcome::Decided(budgeted) => {
                                 // Surface the forward governor's completion frontier instead

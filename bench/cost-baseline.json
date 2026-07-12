@@ -189,14 +189,14 @@
       "fragment": "backward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 277811,
-        "alloc_count": 3555,
+        "alloc_bytes": 183591,
+        "alloc_count": 1701,
         "answer_count": 3,
         "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
         "consumed_steps": 9,
         "cost_vector": [],
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 27749
+        "peak_live_bytes": 22188
       },
       "oracle": {
         "answer_count": 3,
@@ -219,14 +219,14 @@
       "fragment": "backward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 162437,
-        "alloc_count": 2056,
+        "alloc_bytes": 110880,
+        "alloc_count": 1072,
         "answer_count": 2,
         "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
         "consumed_steps": 5,
         "cost_vector": [],
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 22088
+        "peak_live_bytes": 16884
       },
       "oracle": {
         "answer_count": 2,
@@ -249,8 +249,8 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3910107,
-        "alloc_count": 33179,
+        "alloc_bytes": 3901271,
+        "alloc_count": 32984,
         "consumed_steps": 3,
         "cost_vector": [
           [
@@ -269,6 +269,58 @@
         "derived_count": 3,
         "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 37822,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "494c9961ed972bb21af687f16881cd432640860ebda86126dd5c121deeeaa88c",
+            "consumed_steps": 3,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/conn-base",
+                "https://example.org/bench/conn",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/conn-step",
+                "https://example.org/bench/conn",
+                1,
+                1
+              ]
+            ],
+            "peak_live_bytes": 15893,
+            "plan_builds": 1,
+            "planning_units": 5
+          },
+          "repeat_parity": true,
+          "rule_hash": "a77437b7834189200cb51b5b5e9f118c2b03e222241e222aca1415543ee67aee",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "494c9961ed972bb21af687f16881cd432640860ebda86126dd5c121deeeaa88c",
+            "consumed_steps": 3,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/conn-base",
+                "https://example.org/bench/conn",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/conn-step",
+                "https://example.org/bench/conn",
+                1,
+                1
+              ]
+            ],
+            "peak_live_bytes": 13267,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "51cd1fc8691b307c9a429b7afa4ef6ddbcb5c91f8d89bd45f3c676cb5aaa9447"
       },
       "oracle": {
@@ -345,7 +397,7 @@
           ],
           "derived_count": 91,
           "engine": "gmeow-logic/0.1.0+native",
-          "peak_live_bytes": 235847,
+          "peak_live_bytes": 230694,
           "rows_fingerprint": "e158535c2dff2e613af8a28ed2f481ddb485368d04041983b88d2acf4e0dd3d0"
         },
         "signed_change_count": 14,
@@ -373,8 +425,8 @@
       "fragment": "forward",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 6244084,
-        "alloc_count": 54277,
+        "alloc_bytes": 6208164,
+        "alloc_count": 53459,
         "consumed_steps": 10,
         "cost_vector": [
           [
@@ -399,6 +451,70 @@
         "derived_count": 10,
         "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 58473,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "d7b9057c14552727b9e5172a2c0a7ee9647668aaf764c5b21ca3e7e24f5aaa96",
+            "consumed_steps": 10,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/mr-even-step",
+                "https://example.org/bench/even",
+                1,
+                4
+              ],
+              [
+                "https://example.org/bench/rules/mr-odd-base",
+                "https://example.org/bench/odd",
+                1,
+                4
+              ],
+              [
+                "https://example.org/bench/rules/mr-odd-step",
+                "https://example.org/bench/odd",
+                1,
+                2
+              ]
+            ],
+            "peak_live_bytes": 37494,
+            "plan_builds": 1,
+            "planning_units": 8
+          },
+          "repeat_parity": true,
+          "rule_hash": "8625b5773c9fd37b151f8fd8aab0d2d6dfda6587b9918555ba42a8f1d7cf1047",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "d7b9057c14552727b9e5172a2c0a7ee9647668aaf764c5b21ca3e7e24f5aaa96",
+            "consumed_steps": 10,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/mr-even-step",
+                "https://example.org/bench/even",
+                1,
+                4
+              ],
+              [
+                "https://example.org/bench/rules/mr-odd-base",
+                "https://example.org/bench/odd",
+                1,
+                4
+              ],
+              [
+                "https://example.org/bench/rules/mr-odd-step",
+                "https://example.org/bench/odd",
+                1,
+                2
+              ]
+            ],
+            "peak_live_bytes": 33696,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "0d84466554d296a5a509495191251472f1c83cfca18ef74ffe262d7d201d379a"
       },
       "oracle": {
@@ -422,8 +538,8 @@
       "fragment": "forward",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 3989001,
-        "alloc_count": 34423,
+        "alloc_bytes": 3968687,
+        "alloc_count": 33958,
         "consumed_steps": 6,
         "cost_vector": [
           [
@@ -442,6 +558,58 @@
         "derived_count": 6,
         "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 44101,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "78564e425380af018dd49e90d11798301c55c4c238531b7912c2a06e7ea30b08",
+            "consumed_steps": 6,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/nltc-base",
+                "https://example.org/bench/path",
+                1,
+                3
+              ],
+              [
+                "https://example.org/bench/rules/nltc-join",
+                "https://example.org/bench/path",
+                1,
+                3
+              ]
+            ],
+            "peak_live_bytes": 27612,
+            "plan_builds": 1,
+            "planning_units": 5
+          },
+          "repeat_parity": true,
+          "rule_hash": "dd3e53e57eb1170b56d04302c32188208809460cb28952b0c4a0ea96098acd81",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "78564e425380af018dd49e90d11798301c55c4c238531b7912c2a06e7ea30b08",
+            "consumed_steps": 6,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/nltc-base",
+                "https://example.org/bench/path",
+                1,
+                3
+              ],
+              [
+                "https://example.org/bench/rules/nltc-join",
+                "https://example.org/bench/path",
+                1,
+                3
+              ]
+            ],
+            "peak_live_bytes": 24962,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "5447f838db015f827b8d62343f77931f7d9c676602bb0da83646834bdaa65a98"
       },
       "oracle": {
@@ -465,8 +633,8 @@
       "fragment": "forward",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3950487,
-        "alloc_count": 33928,
+        "alloc_bytes": 3939838,
+        "alloc_count": 33701,
         "consumed_steps": 4,
         "cost_vector": [
           [
@@ -485,6 +653,58 @@
         "derived_count": 4,
         "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 42113,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "83038cbbb2d85d8100b5c940e760ca7b99d3ea3f7147d6ef4fb1b8554c407d58",
+            "consumed_steps": 4,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/pt-base",
+                "https://example.org/bench/pointsTo",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/pt-copy",
+                "https://example.org/bench/pointsTo",
+                1,
+                2
+              ]
+            ],
+            "peak_live_bytes": 21244,
+            "plan_builds": 1,
+            "planning_units": 5
+          },
+          "repeat_parity": true,
+          "rule_hash": "86af6d4aa41766e3c00b66b308daf047751a9ba4212e2b7feb42cda3ef5b8d01",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "83038cbbb2d85d8100b5c940e760ca7b99d3ea3f7147d6ef4fb1b8554c407d58",
+            "consumed_steps": 4,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/pt-base",
+                "https://example.org/bench/pointsTo",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/pt-copy",
+                "https://example.org/bench/pointsTo",
+                1,
+                2
+              ]
+            ],
+            "peak_live_bytes": 18615,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "b082266a94784f35afdb0dd05d3197ab6ec425d54d1c4bbc589ae80101c8f80d"
       },
       "oracle": {
@@ -508,8 +728,8 @@
       "fragment": "forward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 3709779,
-        "alloc_count": 31266,
+        "alloc_bytes": 3702103,
+        "alloc_count": 31095,
         "consumed_steps": 2,
         "cost_vector": [
           [
@@ -528,6 +748,58 @@
         "derived_count": 2,
         "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 36685,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "92925c08e95e6c5bbc95fa9af9fc5babb692b5adb89b1f9240a391cd95d29f96",
+            "consumed_steps": 2,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/reach-base",
+                "https://example.org/bench/reach",
+                1,
+                1
+              ],
+              [
+                "https://example.org/bench/rules/reach-step",
+                "https://example.org/bench/reach",
+                1,
+                1
+              ]
+            ],
+            "peak_live_bytes": 14814,
+            "plan_builds": 1,
+            "planning_units": 5
+          },
+          "repeat_parity": true,
+          "rule_hash": "e046827c8a3d2c0341b8fc89a49422295bdb92da92691bb042bfefea80d55354",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "92925c08e95e6c5bbc95fa9af9fc5babb692b5adb89b1f9240a391cd95d29f96",
+            "consumed_steps": 2,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/reach-base",
+                "https://example.org/bench/reach",
+                1,
+                1
+              ],
+              [
+                "https://example.org/bench/rules/reach-step",
+                "https://example.org/bench/reach",
+                1,
+                1
+              ]
+            ],
+            "peak_live_bytes": 12032,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "62f716d024cd5c0ae67195157d008fc9bcccab7ecb0df10117bd617b27d4d494"
       },
       "oracle": {
@@ -551,8 +823,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5458877,
-        "alloc_count": 47640,
+        "alloc_bytes": 5405476,
+        "alloc_count": 46472,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -571,6 +843,58 @@
         "derived_count": 8,
         "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 53474,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "38ab0391cf1bc4ef239aaa1948376d59e3584ec5a375efd921feb9f29b87c2f0",
+            "consumed_steps": 8,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/sg-base",
+                "https://example.org/bench/same_gen",
+                1,
+                6
+              ],
+              [
+                "https://example.org/bench/rules/sg-step",
+                "https://example.org/bench/same_gen",
+                1,
+                2
+              ]
+            ],
+            "peak_live_bytes": 38937,
+            "plan_builds": 1,
+            "planning_units": 7
+          },
+          "repeat_parity": true,
+          "rule_hash": "74233e47e2e0af222e3d81165dcec62f686683df3f5e81dc8477279dd53c9d4d",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "38ab0391cf1bc4ef239aaa1948376d59e3584ec5a375efd921feb9f29b87c2f0",
+            "consumed_steps": 8,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/sg-base",
+                "https://example.org/bench/same_gen",
+                1,
+                6
+              ],
+              [
+                "https://example.org/bench/rules/sg-step",
+                "https://example.org/bench/same_gen",
+                1,
+                2
+              ]
+            ],
+            "peak_live_bytes": 35631,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "1fbc5a74847284527461ac58d15ba951d3c4c41330019eef0441a08465d5d308"
       },
       "oracle": {
@@ -594,8 +918,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 6167001,
-        "alloc_count": 52876,
+        "alloc_bytes": 6142361,
+        "alloc_count": 52303,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -620,6 +944,70 @@
         "derived_count": 8,
         "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 53796,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "f8b8fd81a77306a46900dc56c2752047f21bfdc341d46325b6e3b814eb423ee3",
+            "consumed_steps": 8,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/scc-path-base",
+                "https://example.org/bench/path",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/scc-path-step",
+                "https://example.org/bench/path",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/scc-same-component",
+                "https://example.org/bench/same_component",
+                2,
+                4
+              ]
+            ],
+            "peak_live_bytes": 28234,
+            "plan_builds": 1,
+            "planning_units": 8
+          },
+          "repeat_parity": true,
+          "rule_hash": "33fc141eeda9d1a28700734213ac0b95583229f08bdeb18130a64b2756115001",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "f8b8fd81a77306a46900dc56c2752047f21bfdc341d46325b6e3b814eb423ee3",
+            "consumed_steps": 8,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/scc-path-base",
+                "https://example.org/bench/path",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/scc-path-step",
+                "https://example.org/bench/path",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/scc-same-component",
+                "https://example.org/bench/same_component",
+                2,
+                4
+              ]
+            ],
+            "peak_live_bytes": 24454,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "8de03a4728f4bc62d04f3288454b73ef3e883beee6dd0660690f81b84aa4cd28"
       },
       "oracle": {
@@ -643,8 +1031,8 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3910278,
-        "alloc_count": 33203,
+        "alloc_bytes": 3901516,
+        "alloc_count": 33008,
         "consumed_steps": 3,
         "cost_vector": [
           [
@@ -663,6 +1051,58 @@
         "derived_count": 3,
         "engine": "gmeow-logic/0.1.0+native",
         "peak_live_bytes": 37785,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "dceb28938ae98273f63e698024d0a9b81a61bbff67dcb5feb9c13fe2d32dd950",
+            "consumed_steps": 3,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/tc-base",
+                "https://example.org/bench/path",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/tc-step",
+                "https://example.org/bench/path",
+                1,
+                1
+              ]
+            ],
+            "peak_live_bytes": 15820,
+            "plan_builds": 1,
+            "planning_units": 5
+          },
+          "repeat_parity": true,
+          "rule_hash": "61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "dceb28938ae98273f63e698024d0a9b81a61bbff67dcb5feb9c13fe2d32dd950",
+            "consumed_steps": 3,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/tc-base",
+                "https://example.org/bench/path",
+                1,
+                2
+              ],
+              [
+                "https://example.org/bench/rules/tc-step",
+                "https://example.org/bench/path",
+                1,
+                1
+              ]
+            ],
+            "peak_live_bytes": 13196,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "cf8d6fe43b6165e0fa972fb1546426dcb381c541a0f53c77a2ab2d654bdba22b"
       },
       "oracle": {
@@ -686,8 +1126,8 @@
       "fragment": "forward",
       "golden_rows": 78,
       "native": {
-        "alloc_bytes": 5645488,
-        "alloc_count": 60917,
+        "alloc_bytes": 5471953,
+        "alloc_count": 56992,
         "consumed_steps": 78,
         "cost_vector": [
           [
@@ -705,7 +1145,59 @@
         ],
         "derived_count": 78,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 217467,
+        "peak_live_bytes": 212438,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "24094e1ab19040400add75d1aabcb497d9e5abdcaef8a688653536b772b236dc",
+            "consumed_steps": 78,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/tc-base",
+                "https://example.org/bench/path",
+                1,
+                12
+              ],
+              [
+                "https://example.org/bench/rules/tc-step",
+                "https://example.org/bench/path",
+                1,
+                66
+              ]
+            ],
+            "peak_live_bytes": 200312,
+            "plan_builds": 1,
+            "planning_units": 5
+          },
+          "repeat_parity": true,
+          "rule_hash": "61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "24094e1ab19040400add75d1aabcb497d9e5abdcaef8a688653536b772b236dc",
+            "consumed_steps": 78,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/tc-base",
+                "https://example.org/bench/path",
+                1,
+                12
+              ],
+              [
+                "https://example.org/bench/rules/tc-step",
+                "https://example.org/bench/path",
+                1,
+                66
+              ]
+            ],
+            "peak_live_bytes": 197674,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "1f86ea6e7e1310abd38056e988333fb87abed91d3626c48d6ae39bc190841ae7"
       },
       "oracle": {
@@ -729,8 +1221,8 @@
       "fragment": "forward",
       "golden_rows": 64,
       "native": {
-        "alloc_bytes": 7921793,
-        "alloc_count": 109100,
+        "alloc_bytes": 7894128,
+        "alloc_count": 107890,
         "consumed_steps": 64,
         "cost_vector": [
           [
@@ -742,7 +1234,47 @@
         ],
         "derived_count": 64,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 626530,
+        "peak_live_bytes": 623735,
+        "plan_cache": {
+          "cold": {
+            "cache_hit": false,
+            "closure_blake3": "1cc46b56034bc4560ad10adae133939f63977be3fa12d65c8d92a84f79eb8e5b",
+            "consumed_steps": 64,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/triangle",
+                "https://example.org/bench/triangle",
+                1,
+                64
+              ]
+            ],
+            "peak_live_bytes": 514781,
+            "plan_builds": 1,
+            "planning_units": 4
+          },
+          "repeat_parity": true,
+          "rule_hash": "42f1f1834d011e457334bc7f62f4ae089fe3e605c0395b588810374ffcde8091",
+          "same_executable": true,
+          "solver_version": "gmeow-native-plan-v1",
+          "warm": {
+            "cache_hit": true,
+            "closure_blake3": "1cc46b56034bc4560ad10adae133939f63977be3fa12d65c8d92a84f79eb8e5b",
+            "consumed_steps": 64,
+            "cost_vector": [
+              [
+                "https://example.org/bench/rules/triangle",
+                "https://example.org/bench/triangle",
+                1,
+                64
+              ]
+            ],
+            "peak_live_bytes": 512396,
+            "plan_builds": 0,
+            "planning_units": 0
+          },
+          "warm_alloc_count_strictly_lower": true,
+          "warm_peak_live_strictly_lower": true
+        },
         "rows_fingerprint": "514c3c29b7468bd1868ff276d4ae3897d538658049d67936be10174a66883c19"
       },
       "oracle": {

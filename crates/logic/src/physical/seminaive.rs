@@ -65,9 +65,11 @@ use rayon::prelude::*;
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
 use crate::physical::cursor::{LendingIterator, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
 use crate::physical::id::{RowId, TermId};
-use crate::physical::plan::{CyclicPlan, Executable, JoinGroup, RulePlan};
+use crate::physical::plan::{
+    AtomKernel, AtomOperator, CyclicPlan, Executable, IndexChoice, JoinGroup, RulePlan,
+};
 use crate::physical::store::{Bound, RelationStore};
-use crate::provenance::{mint_derivation_id, term_display};
+use crate::provenance::mint_derivation_id;
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
@@ -280,6 +282,391 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
         (None, Some(o)) => Bound::Object(rel.term_id(o)?),
         (None, None) => Bound::Any,
     })
+}
+
+/// Flat physical binding frame for the acyclic binary join.
+///
+/// Slots are assigned once by [`RulePlan`]. A row probe is therefore two direct indexed
+/// reads instead of repeated linear searches over `(variable_name, value)` pairs. The
+/// legacy named [`Solution`] is reconstructed once after the positive join because the
+/// post-join builtin/NAF/head helpers remain the shared semantic authority.
+#[derive(Clone)]
+struct SlotSolution {
+    bindings: Vec<Option<String>>,
+    source_facts: Vec<Fact>,
+}
+
+impl SlotSolution {
+    fn empty(slot_count: usize) -> Self {
+        Self {
+            bindings: vec![None; slot_count],
+            source_facts: Vec::new(),
+        }
+    }
+
+    fn get(&self, slot: usize) -> Option<&str> {
+        self.bindings[slot].as_deref()
+    }
+
+    fn into_named(self, variables: &[String]) -> Solution {
+        debug_assert_eq!(self.bindings.len(), variables.len());
+        let bindings = variables
+            .iter()
+            .zip(self.bindings)
+            .filter_map(|(name, value)| value.map(|value| (name.clone(), value)))
+            .collect();
+        Solution {
+            bindings,
+            source_facts: self.source_facts,
+        }
+    }
+}
+
+fn selected_fact(atom: &EvalAtom, rel: &RelationStore, subject: TermId, object: TermId) -> Fact {
+    Fact {
+        subject: rel.interner().resolve(subject).clone(),
+        predicate: atom.predicate.clone(),
+        object: rel.interner().resolve(object).clone(),
+    }
+}
+
+/// One enum dispatch per atom invocation selects a statically-shaped kernel. The
+/// const-generic scan selection remains outside the tuple loop as well.
+fn extend_slot_solutions_indexed(
+    operator: &AtomOperator,
+    atom: &EvalAtom,
+    rel: &RelationStore,
+    delta: Delta,
+    scan: Scan,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    match scan {
+        Scan::Delta => extend_slot_operator::<SCAN_DELTA>(operator, atom, rel, delta, solutions),
+        Scan::Full => extend_slot_operator::<SCAN_FULL>(operator, atom, rel, delta, solutions),
+        Scan::OldOnly => {
+            extend_slot_operator::<SCAN_OLD_ONLY>(operator, atom, rel, delta, solutions)
+        }
+    }
+}
+
+fn extend_slot_operator<const SCAN: u8>(
+    operator: &AtomOperator,
+    atom: &EvalAtom,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    match (operator.kernel(), operator.index()) {
+        (
+            AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            },
+            IndexChoice::Any,
+        ) => extend_slot_vars::<SCAN, INDEX_ANY>(
+            atom,
+            *subject_slot,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            },
+            IndexChoice::Subject,
+        ) => extend_slot_vars::<SCAN, INDEX_SUBJECT>(
+            atom,
+            *subject_slot,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            },
+            IndexChoice::Object,
+        ) => extend_slot_vars::<SCAN, INDEX_OBJECT>(
+            atom,
+            *subject_slot,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            },
+            IndexChoice::Both,
+        ) => extend_slot_vars::<SCAN, INDEX_BOTH>(
+            atom,
+            *subject_slot,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::VarConst {
+                subject_slot,
+                object,
+            },
+            IndexChoice::Object,
+        ) => extend_slot_var_const::<SCAN, INDEX_OBJECT>(
+            atom,
+            *subject_slot,
+            object,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::VarConst {
+                subject_slot,
+                object,
+            },
+            IndexChoice::Both,
+        ) => extend_slot_var_const::<SCAN, INDEX_BOTH>(
+            atom,
+            *subject_slot,
+            object,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::ConstVar {
+                subject,
+                object_slot,
+            },
+            IndexChoice::Subject,
+        ) => extend_slot_const_var::<SCAN, INDEX_SUBJECT>(
+            atom,
+            subject,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::ConstVar {
+                subject,
+                object_slot,
+            },
+            IndexChoice::Both,
+        ) => extend_slot_const_var::<SCAN, INDEX_BOTH>(
+            atom,
+            subject,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (AtomKernel::Consts { subject, object }, IndexChoice::Both) => {
+            extend_slot_consts::<SCAN>(atom, subject, object, rel, delta, solutions)
+        }
+        _ => unreachable!("planner emits a term-shape-compatible index choice"),
+    }
+}
+
+const INDEX_ANY: u8 = 0;
+const INDEX_SUBJECT: u8 = 1;
+const INDEX_OBJECT: u8 = 2;
+const INDEX_BOTH: u8 = 3;
+
+fn extend_slot_vars<const SCAN: u8, const INDEX: u8>(
+    atom: &EvalAtom,
+    subject_slot: usize,
+    object_slot: usize,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let mut next = Vec::new();
+    for solution in solutions {
+        let bound = match INDEX {
+            INDEX_ANY => Bound::Any,
+            INDEX_SUBJECT => {
+                let Some(subject) = solution
+                    .get(subject_slot)
+                    .and_then(|value| rel.term_id(value))
+                else {
+                    continue;
+                };
+                Bound::Subject(subject)
+            }
+            INDEX_OBJECT => {
+                let Some(object) = solution
+                    .get(object_slot)
+                    .and_then(|value| rel.term_id(value))
+                else {
+                    continue;
+                };
+                Bound::Object(object)
+            }
+            INDEX_BOTH => {
+                let (Some(subject), Some(object)) = (
+                    solution
+                        .get(subject_slot)
+                        .and_then(|value| rel.term_id(value)),
+                    solution
+                        .get(object_slot)
+                        .and_then(|value| rel.term_id(value)),
+                ) else {
+                    continue;
+                };
+                Bound::Both(subject, object)
+            }
+            _ => unreachable!("INDEX is a planned index code"),
+        };
+        let mut cursor = rel.select(atom.predicate.as_str(), bound);
+        while let Some((subject_id, object_id, row_id)) = cursor.next() {
+            if !keep_row::<SCAN>(delta, row_id)
+                || (subject_slot == object_slot && subject_id != object_id)
+            {
+                continue;
+            }
+            let mut merged = solution.clone();
+            if INDEX == INDEX_ANY || INDEX == INDEX_OBJECT {
+                merged.bindings[subject_slot] =
+                    Some(rel.interner().display_of(subject_id).to_owned());
+            }
+            if (INDEX == INDEX_ANY || INDEX == INDEX_SUBJECT) && object_slot != subject_slot {
+                merged.bindings[object_slot] =
+                    Some(rel.interner().display_of(object_id).to_owned());
+            }
+            merged
+                .source_facts
+                .push(selected_fact(atom, rel, subject_id, object_id));
+            next.push(merged);
+        }
+    }
+    next
+}
+
+fn extend_slot_var_const<const SCAN: u8, const INDEX: u8>(
+    atom: &EvalAtom,
+    subject_slot: usize,
+    object: &str,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let Some(object_id) = rel.term_id(object) else {
+        return Vec::new();
+    };
+    let mut next = Vec::new();
+    for solution in solutions {
+        let bound = match INDEX {
+            INDEX_OBJECT => Bound::Object(object_id),
+            INDEX_BOTH => {
+                let Some(subject_id) = solution
+                    .get(subject_slot)
+                    .and_then(|value| rel.term_id(value))
+                else {
+                    continue;
+                };
+                Bound::Both(subject_id, object_id)
+            }
+            _ => unreachable!("VarConst uses Object or Both index"),
+        };
+        let mut cursor = rel.select(atom.predicate.as_str(), bound);
+        while let Some((subject_id, selected_object, row_id)) = cursor.next() {
+            if !keep_row::<SCAN>(delta, row_id) {
+                continue;
+            }
+            let mut merged = solution.clone();
+            if INDEX == INDEX_OBJECT {
+                merged.bindings[subject_slot] =
+                    Some(rel.interner().display_of(subject_id).to_owned());
+            }
+            merged
+                .source_facts
+                .push(selected_fact(atom, rel, subject_id, selected_object));
+            next.push(merged);
+        }
+    }
+    next
+}
+
+fn extend_slot_const_var<const SCAN: u8, const INDEX: u8>(
+    atom: &EvalAtom,
+    subject: &str,
+    object_slot: usize,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let Some(subject_id) = rel.term_id(subject) else {
+        return Vec::new();
+    };
+    let mut next = Vec::new();
+    for solution in solutions {
+        let bound = match INDEX {
+            INDEX_SUBJECT => Bound::Subject(subject_id),
+            INDEX_BOTH => {
+                let Some(object_id) = solution
+                    .get(object_slot)
+                    .and_then(|value| rel.term_id(value))
+                else {
+                    continue;
+                };
+                Bound::Both(subject_id, object_id)
+            }
+            _ => unreachable!("ConstVar uses Subject or Both index"),
+        };
+        let mut cursor = rel.select(atom.predicate.as_str(), bound);
+        while let Some((selected_subject, object_id, row_id)) = cursor.next() {
+            if !keep_row::<SCAN>(delta, row_id) {
+                continue;
+            }
+            let mut merged = solution.clone();
+            if INDEX == INDEX_SUBJECT {
+                merged.bindings[object_slot] =
+                    Some(rel.interner().display_of(object_id).to_owned());
+            }
+            merged
+                .source_facts
+                .push(selected_fact(atom, rel, selected_subject, object_id));
+            next.push(merged);
+        }
+    }
+    next
+}
+
+fn extend_slot_consts<const SCAN: u8>(
+    atom: &EvalAtom,
+    subject: &str,
+    object: &str,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let (Some(subject_id), Some(object_id)) = (rel.term_id(subject), rel.term_id(object)) else {
+        return Vec::new();
+    };
+    let mut next = Vec::new();
+    for solution in solutions {
+        let mut cursor = rel.select(atom.predicate.as_str(), Bound::Both(subject_id, object_id));
+        while let Some((selected_subject, selected_object, row_id)) = cursor.next() {
+            if !keep_row::<SCAN>(delta, row_id) {
+                continue;
+            }
+            let mut merged = solution.clone();
+            merged
+                .source_facts
+                .push(selected_fact(atom, rel, selected_subject, selected_object));
+            next.push(merged);
+        }
+    }
+    next
 }
 
 /// Extend each partial solution by index-selecting `atom`'s matching rows under `scan`.
@@ -625,19 +1012,22 @@ fn keep_row_for_scan(scan: Scan, delta: Delta, row: RowId) -> bool {
 /// its other variable. Cycle certification guarantees two distinct variable terms.
 fn cycle_atom_cursor<'a>(
     atom: &EvalAtom,
-    variable: &str,
-    solution: &Solution,
+    operator: &AtomOperator,
+    variable_slot: usize,
+    solution: &SlotSolution,
     rel: &'a RelationStore,
     scan: Scan,
     delta: Delta,
 ) -> Option<LeapfrogValueCursor<'a>> {
-    use crate::rule_ir::EvalTerm;
-
-    let (EvalTerm::Var(subject), EvalTerm::Var(object)) = (&atom.subject, &atom.object) else {
+    let AtomKernel::Vars {
+        subject_slot,
+        object_slot,
+    } = operator.kernel()
+    else {
         return None;
     };
-    if subject == variable {
-        let other = match solution.get(object) {
+    if *subject_slot == variable_slot {
+        let other = match solution.get(*object_slot) {
             Some(surface) => Some(rel.term_id(surface)?),
             None => None,
         };
@@ -646,8 +1036,8 @@ fn cycle_atom_cursor<'a>(
             scan,
             delta,
         ))
-    } else if object == variable {
-        let other = match solution.get(subject) {
+    } else if *object_slot == variable_slot {
+        let other = match solution.get(*subject_slot) {
             Some(surface) => Some(rel.term_id(surface)?),
             None => None,
         };
@@ -665,23 +1055,31 @@ fn cycle_atom_cursor<'a>(
 /// authored atom order. Returns false if a scan-mode constraint excludes any row.
 fn append_cycle_sources(
     rule: &EvalRule,
+    plan: &RulePlan,
     cycle: &CyclicPlan,
     delta_position: usize,
     rel: &RelationStore,
     delta: Delta,
-    solution: &mut Solution,
+    solution: &mut SlotSolution,
 ) -> bool {
     let original_len = solution.source_facts.len();
     for &planned in cycle.atoms() {
         let atom = &rule.body[planned.body_index()];
-        let (Some(subject), Some(object)) = (
-            ground(&atom.subject, solution),
-            ground(&atom.object, solution),
-        ) else {
+        let operator = plan.operator_at(planned.positive_position());
+        let AtomKernel::Vars {
+            subject_slot,
+            object_slot,
+        } = operator.kernel()
+        else {
+            unreachable!("cycle certification admits only distinct variable-variable atoms")
+        };
+        let (Some(subject), Some(object)) =
+            (solution.get(*subject_slot), solution.get(*object_slot))
+        else {
             solution.source_facts.truncate(original_len);
             return false;
         };
-        let (Some(subject_id), Some(object_id)) = (rel.term_id(&subject), rel.term_id(&object))
+        let (Some(subject_id), Some(object_id)) = (rel.term_id(subject), rel.term_id(object))
         else {
             solution.source_facts.truncate(original_len);
             return false;
@@ -711,6 +1109,7 @@ fn append_cycle_sources(
 /// Immutable state shared by every recursive variable level of one LFTJ component.
 struct LeapfrogRun<'a> {
     rule: &'a EvalRule,
+    plan: &'a RulePlan,
     cycle: &'a CyclicPlan,
     delta_position: usize,
     rel: &'a RelationStore,
@@ -719,10 +1118,16 @@ struct LeapfrogRun<'a> {
 
 impl LeapfrogRun<'_> {
     /// Recursive LFTJ variable descent for one certified cycle component.
-    fn recurse(&self, variable_position: usize, solution: &mut Solution, out: &mut Vec<Solution>) {
-        if variable_position == self.cycle.variables().len() {
+    fn recurse(
+        &self,
+        variable_position: usize,
+        solution: &mut SlotSolution,
+        out: &mut Vec<SlotSolution>,
+    ) {
+        if variable_position == self.cycle.variable_slots().len() {
             if append_cycle_sources(
                 self.rule,
+                self.plan,
                 self.cycle,
                 self.delta_position,
                 self.rel,
@@ -737,8 +1142,8 @@ impl LeapfrogRun<'_> {
             return;
         }
 
-        let variable = self.cycle.variables()[variable_position].as_str();
-        let externally_bound = match solution.get(variable) {
+        let variable_slot = self.cycle.variable_slots()[variable_position];
+        let externally_bound = match solution.get(variable_slot) {
             Some(surface) => match self.rel.term_id(surface) {
                 Some(value) => Some(value),
                 None => return,
@@ -748,15 +1153,28 @@ impl LeapfrogRun<'_> {
         let mut cursors = Vec::new();
         for &planned in self.cycle.atoms() {
             let atom = &self.rule.body[planned.body_index()];
-            let contains_variable = matches!(&atom.subject, crate::rule_ir::EvalTerm::Var(name) if name == variable)
-                || matches!(&atom.object, crate::rule_ir::EvalTerm::Var(name) if name == variable);
+            let operator = self.plan.operator_at(planned.positive_position());
+            let AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            } = operator.kernel()
+            else {
+                unreachable!("cycle certification admits only variable-variable atoms")
+            };
+            let contains_variable = *subject_slot == variable_slot || *object_slot == variable_slot;
             if !contains_variable {
                 continue;
             }
             let scan = scan_for(planned.positive_position(), self.delta_position);
-            let Some(cursor) =
-                cycle_atom_cursor(atom, variable, solution, self.rel, scan, self.delta)
-            else {
+            let Some(cursor) = cycle_atom_cursor(
+                atom,
+                operator,
+                variable_slot,
+                solution,
+                self.rel,
+                scan,
+                self.delta,
+            ) else {
                 return;
             };
             cursors.push(cursor);
@@ -774,13 +1192,11 @@ impl LeapfrogRun<'_> {
         }
 
         while let Some(value) = intersection.next() {
-            solution.bindings.push((
-                variable.to_owned(),
-                term_display(self.rel.interner().resolve(value)),
-            ));
+            debug_assert!(solution.bindings[variable_slot].is_none());
+            solution.bindings[variable_slot] =
+                Some(self.rel.interner().display_of(value).to_owned());
             self.recurse(variable_position + 1, solution, out);
-            let popped = solution.bindings.pop();
-            debug_assert!(popped.is_some_and(|(name, _)| name == variable));
+            solution.bindings[variable_slot] = None;
         }
     }
 }
@@ -789,15 +1205,17 @@ impl LeapfrogRun<'_> {
 /// materializing any binary intermediate relation.
 fn extend_solutions_leapfrog(
     rule: &EvalRule,
+    plan: &RulePlan,
     cycle: &CyclicPlan,
     delta_position: usize,
     rel: &RelationStore,
     delta: Delta,
-    solutions: &[Solution],
-) -> Vec<Solution> {
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
     let mut out = Vec::new();
     let run = LeapfrogRun {
         rule,
+        plan,
         cycle,
         delta_position,
         rel,
@@ -819,37 +1237,45 @@ fn join_body_leapfrog(
     delta: Delta,
     gap: &mut bool,
 ) -> Vec<Solution> {
-    let empty = Solution {
-        bindings: Vec::new(),
-        source_facts: Vec::new(),
-    };
-    let mut solutions = Vec::new();
+    let mut slot_solutions = Vec::new();
     for delta_position in 0..plan.positive().len() {
-        let mut partial = vec![empty.clone()];
+        let mut partial = vec![SlotSolution::empty(plan.variables().len())];
         for group in plan.join_groups() {
             partial = match group {
-                JoinGroup::Binary(planned) => extend_solutions_indexed(
+                JoinGroup::Binary(planned) => extend_slot_solutions_indexed(
+                    plan.operator_at(planned.positive_position()),
                     &rule.body[planned.body_index()],
                     rel,
                     delta,
                     scan_for(planned.positive_position(), delta_position),
                     &partial,
                 ),
-                JoinGroup::Leapfrog(cycle) => {
-                    extend_solutions_leapfrog(rule, cycle, delta_position, rel, delta, &partial)
-                }
+                JoinGroup::Leapfrog(cycle) => extend_solutions_leapfrog(
+                    rule,
+                    plan,
+                    cycle,
+                    delta_position,
+                    rel,
+                    delta,
+                    &partial,
+                ),
             };
             if partial.is_empty() {
                 break;
             }
         }
         for solution in &mut partial {
-            for &(left, right) in plan.source_order_swaps() {
+            for &(left, right) in plan.hybrid_source_order_swaps() {
                 solution.source_facts.swap(left, right);
             }
         }
-        solutions.extend(partial);
+        slot_solutions.extend(partial);
     }
+
+    let mut solutions: Vec<Solution> = slot_solutions
+        .into_iter()
+        .map(|solution| solution.into_named(plan.variables()))
+        .collect();
 
     if !rule.builtins.is_empty() {
         solutions = apply_builtins(&rule.builtins, solutions, gap);
@@ -870,7 +1296,8 @@ fn join_body_leapfrog(
 /// The index-selected twin of `rule_ir::join_body`: the positive join is the SAME
 /// semi-naive delta×full position decomposition (union over each delta position `p`
 /// of `{ a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta }`), with each per-atom
-/// scan performed by [`extend_solutions_indexed`].  NAF body atoms are filtered
+/// scan performed by the planned slot/index kernels (or the certified LFTJ group).
+/// NAF body atoms are filtered
 /// after the positive join via membership in `accumulated` (the frozen-below store),
 /// which is exactly the stratified-negation reference.
 fn join_body_indexed(
@@ -904,22 +1331,18 @@ fn join_body_binary(
     let positive = plan.positive();
     let negated = plan.negated();
 
-    let empty = Solution {
-        bindings: Vec::new(),
-        source_facts: Vec::new(),
-    };
-
     let mut solutions: Vec<Solution> = if positive.is_empty() {
         // Zero positive atoms never touch delta, so they never fire in a semi-naive
         // round — matches `join_body`'s empty-positive branch exactly.
         Vec::new()
     } else {
         let k = positive.len();
-        let mut all: Vec<Solution> = Vec::new();
+        debug_assert_eq!(plan.operators().len(), k);
+        let mut all: Vec<SlotSolution> = Vec::new();
         for p in 0..k {
-            let mut partial: Vec<Solution> = vec![empty.clone()];
-            for (j, &atom_idx) in positive.iter().enumerate() {
-                let atom = &rule.body[atom_idx];
+            let mut partial = vec![SlotSolution::empty(plan.variables().len())];
+            for (j, operator) in plan.operators().iter().enumerate() {
+                let atom = &rule.body[operator.body_index()];
                 let scan = if j < p {
                     Scan::Full
                 } else if j == p {
@@ -927,14 +1350,21 @@ fn join_body_binary(
                 } else {
                     Scan::OldOnly
                 };
-                partial = extend_solutions_indexed(atom, rel, delta, scan, &partial);
+                partial = extend_slot_solutions_indexed(operator, atom, rel, delta, scan, &partial);
                 if partial.is_empty() {
                     break;
                 }
             }
             all.extend(partial);
         }
-        all
+        for solution in &mut all {
+            for &(left, right) in plan.operator_source_order_swaps() {
+                solution.source_facts.swap(left, right);
+            }
+        }
+        all.into_iter()
+            .map(|solution| solution.into_named(plan.variables()))
+            .collect()
     };
 
     // Post-join constraint stage: evaluate the rule's arithmetic/comparison
@@ -1116,7 +1546,7 @@ pub(super) fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
 /// provenance-recipe failure (propagated from the shared `rule_ir` helpers).
 pub(crate) fn materialize_native(
     store: &crate::store::WorldStore,
-    exe: &Executable<'_>,
+    exe: &Executable,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>> {
     // Stratification and per-rule join planning are properties of the rules alone; the
@@ -1294,7 +1724,7 @@ pub(crate) fn materialize_native(
 /// strictly-lower strata fully materialized and frozen.
 fn eval_world_stratified(
     edb_facts: &[Fact],
-    exe: &Executable<'_>,
+    exe: &Executable,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
 ) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
@@ -1423,7 +1853,7 @@ struct FixpointState<'a> {
 /// `Stratified`, or a `Planned`; the compiler — not a doc comment — rejects any attempt
 /// to execute a program that has not been stratified AND join-planned.
 fn eval_stratum_fixpoint(
-    exe: &Executable<'_>,
+    exe: &Executable,
     stratum: usize,
     state: &mut FixpointState<'_>,
     governor: &mut StepGovernor,
@@ -1658,7 +2088,7 @@ fn eval_stratum_fixpoint(
 /// `Unsupported` this leg raises is [`UnsupportedKind::Arithmetic`] (a builtin gap).
 pub(crate) fn evaluate(
     edb: RelationStore,
-    exe: &Executable<'_>,
+    exe: &Executable,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<Fact>>>> {
     // Lower the columnar EDB through the single shared projection used by both the
@@ -1781,7 +2211,7 @@ mod tests {
     /// Drive the type-state plan pipeline for a stratifiable test program: the only path
     /// to the `Executable` the forward/backward executors accept.  A non-stratifiable
     /// program has no place in these tests (it is a caller-side declared gap), so `expect`.
-    fn exe(rules: &[EvalRule]) -> Executable<'_> {
+    fn exe(rules: &[EvalRule]) -> Executable {
         Parsed::new(rules)
             .stratify()
             .expect("stratifiable test program")
@@ -1798,7 +2228,7 @@ mod tests {
     #[test]
     fn executor_entry_accepts_only_executable() {
         let _executor_gate: fn(
-            &Executable<'_>,
+            &Executable,
             usize,
             &mut FixpointState<'_>,
             &mut StepGovernor,

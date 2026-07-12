@@ -568,7 +568,8 @@ maint-bench-engines: ## (maintainer) Engine/reference benchmark over the committ
 	@#
 	@# Replay assertion: the second run uses the harness's OWN `--check-cost` contract.
 	@# Every deterministic descriptor field (including peak-live) must match exactly;
-	@# alloc_bytes/alloc_count must remain inside their one-sided 1% band. A raw whole-
+	@# alloc_bytes must remain inside its one-sided 1% band; alloc_count uses the greater
+	@# of 1% and the measured 42-allocation quantized floor. A raw whole-
 	@# artifact diff would contradict the documented allocation-jitter contract.
 	@set -e; \
 	  tmpdir="$$(mktemp -d)"; \
@@ -590,8 +591,9 @@ maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from
 	@# The deterministic part of the artifact (integer cost vectors, consumed_steps,
 	@# derived counts, peak-live bytes, verdict-agreement tokens, the per-corpus
 	@# divergence-ledger tally) is a pure function of engine version + corpus. The two
-	@# TOTAL-allocation scalars (alloc_bytes / alloc_count) are NOT byte-reproducible (a
-	@# ~0.06% quantized per-run engine transient), so instead of a raw two-run byte-diff
+	@# TOTAL-allocation scalars (alloc_bytes / alloc_count) are NOT byte-reproducible
+	@# (allocation counts move in a measured 14-allocation quantum across a 42-count
+	@# span on small cases), so instead of a raw two-run byte-diff
 	@# the fresh baseline is re-verified with the harness's OWN band-aware `--check-cost`:
 	@# it hard-fails on ANY exact-descriptor divergence AND on an alloc total outside the
 	@# one-sided tolerance band, so a passing self-check proves the deterministic part is

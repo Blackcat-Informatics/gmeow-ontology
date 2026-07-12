@@ -132,6 +132,14 @@ are consumed through its public Rust API:
 - Type-state: `purrdf::ValidatedRdfDatasetBuilder` makes validated -> frozen an
   explicit phase boundary while preserving the one-shot
   `RdfDatasetBuilder::freeze()` API.
+- Compile-don't-interpret: `crates/logic/src/physical/plan.rs` lowers rules through
+  parsed -> stratified -> planned -> executable type states into an immutable owned
+  plan. Its identity is `(contract_hash, canonical_rule_hash, solver_version)`;
+  forward and demand-transformed evaluation share the same plan type through a
+  bounded cache. Positive atoms carry stable variable slots, a deterministic
+  binding-aware SIPS order, a guaranteed index shape, and a preselected
+  variable/constant kernel shape, while scan mode dispatch enters a const-generic
+  kernel once per operator rather than branching per tuple.
 - SIMD: `purrdf-iri` uses safe portable SIMD only for dense ASCII delimiter scans;
   semantic validation remains scalar and byte-exact.
 - Sealed traits: `purrdf::DatasetView` and `DatasetMut` are sealed to the purrdf

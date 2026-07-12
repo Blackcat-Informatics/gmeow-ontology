@@ -12,6 +12,41 @@ use crate::profile_gate;
 use crate::query_ir::{AnswerSet, Budget, QProgram};
 use crate::seam::WorldFactSource;
 
+/// Content identity of the backward execution contract available at this boundary.
+///
+/// The rule program has its own canonical digest in the physical plan key. This digest
+/// covers the remaining semantics/resource inputs that can change dispatch behavior,
+/// with explicit option tags so `None` cannot alias a numeric zero.
+fn query_contract_hash(profile: &str, budget: &Budget) -> String {
+    fn frame(hasher: &mut blake3::Hasher, value: &[u8]) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value);
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    frame(&mut hasher, b"gmeow-backward-query-contract-v1");
+    frame(&mut hasher, profile.as_bytes());
+    match budget.max_answers {
+        Some(value) => {
+            hasher.update(&[1]);
+            hasher.update(&(value as u64).to_le_bytes());
+        }
+        None => {
+            hasher.update(&[0]);
+        }
+    }
+    match budget.max_steps {
+        Some(value) => {
+            hasher.update(&[1]);
+            hasher.update(&value.to_le_bytes());
+        }
+        None => {
+            hasher.update(&[0]);
+        }
+    }
+    hasher.finalize().to_hex().to_string()
+}
+
 /// Resolve `program` against `world` with the native physical core.
 ///
 /// # Errors
@@ -28,7 +63,8 @@ pub fn dispatch_query(
     profile_gate::reject_cut(program)?;
     profile_gate::check_builtin_profile(program, profile)?;
 
-    match crate::physical::resolve_native(foreign, world, program, budget)? {
+    let contract_hash = query_contract_hash(profile, budget);
+    match crate::physical::resolve_native_under(&contract_hash, foreign, world, program, budget)? {
         crate::physical::NativeOutcome::Decided(answer) => Ok(answer),
         crate::physical::NativeOutcome::Unsupported(kind) => {
             Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
@@ -64,6 +100,29 @@ mod tests {
 
     fn rdf(local: &str) -> String {
         format!("{RDF}{local}")
+    }
+
+    #[test]
+    fn query_contract_hash_covers_profile_and_resource_limits() {
+        let unlimited = Budget::default();
+        assert_eq!(
+            query_contract_hash(HORN_PROFILE, &unlimited),
+            query_contract_hash(HORN_PROFILE, &unlimited)
+        );
+        assert_ne!(
+            query_contract_hash(HORN_PROFILE, &unlimited),
+            query_contract_hash(PROCEDURAL_PROFILE, &unlimited)
+        );
+        assert_ne!(
+            query_contract_hash(HORN_PROFILE, &unlimited),
+            query_contract_hash(
+                HORN_PROFILE,
+                &Budget {
+                    max_answers: Some(0),
+                    max_steps: Some(0),
+                }
+            )
+        );
     }
 
     /// Build a 3-element RDF list (x y z) at l0 → l1 → l2 → rdf:nil in a fresh world.
