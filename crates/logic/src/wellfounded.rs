@@ -35,6 +35,8 @@
 //! the crate-internal `dead_code` allowance.
 #![allow(dead_code)]
 
+use std::sync::Arc;
+
 use crate::rule_ir::{
     DerivedRow, EvalRule, FactStore, echo_asserted, least_model_of_reduct, world_edb_facts,
 };
@@ -77,7 +79,7 @@ pub const WELL_FOUNDED_ITERATED_PHASE: &str = "wfResolveFixpoint";
 pub(crate) struct IncrementalWellFoundedShot {
     pub(crate) grounding: GroundingUpdate,
     pub(crate) solve: NonmonotoneSolveRun,
-    pub(crate) rows: Vec<DerivedRow>,
+    pub(crate) rows: Arc<[DerivedRow]>,
 }
 
 /// Stateful WFS facade over an incrementally maintained ground program.
@@ -89,7 +91,7 @@ pub(crate) struct IncrementalWellFoundedShot {
 pub(crate) struct IncrementalWellFoundedSession {
     world: String,
     ground: IncrementalGroundProgram,
-    rows: Vec<DerivedRow>,
+    rows: Arc<[DerivedRow]>,
 }
 
 impl IncrementalWellFoundedSession {
@@ -103,7 +105,11 @@ impl IncrementalWellFoundedSession {
         let world = world.into();
         let ground = IncrementalGroundProgram::new(contract_hash, edb, rules)?;
         let snapshot = ground.snapshot();
-        let rows = materialize_ground_slice(&world, &snapshot.edb, &snapshot.rules)?;
+        let rows = Arc::from(materialize_ground_slice(
+            &world,
+            &snapshot.edb,
+            &snapshot.rules,
+        )?);
         Ok(Self {
             world,
             ground,
@@ -147,7 +153,11 @@ impl IncrementalWellFoundedSession {
         );
         let next_rows = if solve.solver_reran() {
             let snapshot = next_ground.snapshot();
-            materialize_ground_slice(&self.world, &snapshot.edb, &snapshot.rules)?
+            Arc::from(materialize_ground_slice(
+                &self.world,
+                &snapshot.edb,
+                &snapshot.rules,
+            )?)
         } else {
             self.rows.clone()
         };
@@ -362,6 +372,7 @@ mod tests {
             "ground-program solve preserves direct WFS rows"
         );
 
+        let initial_rows = session.rows.clone();
         let cancelled = session
             .apply([
                 SignedFact {
@@ -378,6 +389,8 @@ mod tests {
         assert!(!cancelled.solve.solver_reran());
         assert_eq!(cancelled.solve.edb_changes, 0);
         assert_eq!(cancelled.solve.ground_rule_changes, 0);
+        assert!(Arc::ptr_eq(&initial_rows, &cancelled.rows));
+        assert!(Arc::ptr_eq(&cancelled.rows, &session.rows));
 
         let changed = session
             .apply([SignedFact {
@@ -387,6 +400,7 @@ mod tests {
             .expect("changed shot");
         assert!(changed.grounding.slice_changed);
         assert!(changed.solve.solver_reran());
+        assert!(!Arc::ptr_eq(&cancelled.rows, &changed.rows));
         assert_eq!(
             changed.solve.solver.as_str(),
             "well-founded alternating fixpoint"
