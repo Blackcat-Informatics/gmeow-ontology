@@ -696,6 +696,11 @@ ex:ecPValueMissingSidednessBad a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is the SAME math:PValue fully framed — a math:testStatistic, a math:nullHypothesis, a parameterized math:nullDistribution, and a framed math:ProbabilityValue magnitude — EXCEPT it omits BOTH math:tailDefinition AND math:alternativeSidedness, so the tail-or-sidedness arm of math:IllFramedPValueShape fires. math:AlternativeSidednessValueShape's sh:in is satisfied vacuously (no math:alternativeSidedness value to check), the framed value still satisfies the probability-value shapes, and the null distribution keeps the distribution gates silent, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:IllFramedPValue)." .
 
+ex:ecPValueHypothesisTestFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/pvalue-hypothesis-test-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PValue whose test arm is satisfied via the math:HypothesisTest whose math:pValue it is (the statistic lives on the test, not the p-value) rather than a direct math:testStatistic; every arm of math:IllFramedPValueShape is satisfied so its SPARQL stays silent, the lawful sidedness (math:twoSidedAlternative) satisfies math:AlternativeSidednessValueShape's sh:in, the framed value satisfies math:ProbabilityValueRangeShape / math:ProbabilityValueFramedShape / math:ProbabilityScaleDisjointShape / math:RationalValueShape, and the null distribution satisfies the P6a/P6b/P7 gates; it exercises the HypothesisTest path of the shape's test arm, so validation emits no findings." .
+
 # === The signature lang: -> logic: -> math: p-value round-trip ============== #
 
 ex:ecPValueTriSlice a gmeow:ExampleConformance ;

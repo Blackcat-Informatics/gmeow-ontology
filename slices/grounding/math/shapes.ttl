@@ -1893,13 +1893,13 @@ math:ProbabilityEventOccurrentDisjointShape
 math:IllFramedPValueShape
     a sh:NodeShape ;
     rdfs:label "Ill-framed p-value shape"@x-gmeow-english ;
-    skos:definition "SHACL-SPARQL constraint over math:PValue: a p-value carries the whole frame that makes P(T ≥ t | H0) well-defined — a test (a math:testStatistic, and/or the math:HypothesisTest whose math:pValue it is), a math:nullHypothesis, a math:testStatistic, a math:nullDistribution, and a tail-or-sidedness (a math:tailDefinition OR a math:alternativeSidedness). The select fires when ANY arm is missing, so a p-value with a null and a statistic but no tail or sidedness is still caught as ambiguous — because whether the extremity is one-tailed, two-tailed, or mid-p changes the value. A missing arm trips shacl.SPARQLConstraintComponent (math:IllFramedPValue)."@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:PValue: a p-value carries the whole frame that makes P(T ≥ t | H0) well-defined — a test (a math:testStatistic, and/or the math:HypothesisTest whose math:pValue it is), a math:nullHypothesis, a math:nullDistribution, and a tail-or-sidedness (a math:tailDefinition OR a math:alternativeSidedness). The select fires when ANY arm is missing, so a p-value with a null and a statistic but no tail or sidedness is still caught as ambiguous — because whether the extremity is one-tailed, two-tailed, or mid-p changes the value. A missing arm trips shacl.SPARQLConstraintComponent (math:IllFramedPValue)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:enforcesFailureClass math:IllFramedPValue ;
     sh:targetClass math:PValue ;
     sh:sparql [
         sh:severity sh:Violation ;
-        sh:message "A math:PValue must carry its test (a math:testStatistic or the math:HypothesisTest whose math:pValue it is), its math:nullHypothesis, its math:testStatistic, its math:nullDistribution, and a math:tailDefinition or math:alternativeSidedness; a p-value missing any of these is ambiguous and ill-formed (math:IllFramedPValue)." ;
+        sh:message "A math:PValue must carry its test (a math:testStatistic or the math:HypothesisTest whose math:pValue it is), its math:nullHypothesis, its math:nullDistribution, and a math:tailDefinition or math:alternativeSidedness; a p-value missing any of these is ambiguous and ill-formed (math:IllFramedPValue)." ;
         sh:select """
             SELECT DISTINCT $this WHERE {
                 $this a <https://blackcatinformatics.ca/math/PValue> .
@@ -1909,7 +1909,6 @@ math:IllFramedPValueShape
                         && NOT EXISTS { ?test a <https://blackcatinformatics.ca/math/HypothesisTest> ; <https://blackcatinformatics.ca/math/pValue> $this . }
                     )
                     || NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullHypothesis> ?nullHyp . }
-                    || NOT EXISTS { $this <https://blackcatinformatics.ca/math/testStatistic> ?testStat . }
                     || NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullDistribution> ?nullDist . }
                     || (
                         NOT EXISTS { $this <https://blackcatinformatics.ca/math/tailDefinition> ?tailDef . }
