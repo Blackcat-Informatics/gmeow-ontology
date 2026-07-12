@@ -62,6 +62,9 @@ impl GtsSinkStage {
                 "stage-export-evals".to_string(),
                 "stage-export-matrix".to_string(),
                 "stage-export-metadata".to_string(),
+                // The Pydantic model package, folded into REP_MODELS_PYTHON by
+                // build_archive_blobs from this run's fresh product.
+                "stage-export-pydantic".to_string(),
                 "stage-export-references".to_string(),
                 "stage-export-research-objects".to_string(),
                 // The generated shape surfaces (P11 frame shapes + the ResultShape
