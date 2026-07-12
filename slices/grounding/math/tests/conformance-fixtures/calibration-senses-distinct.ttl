@@ -1,0 +1,81 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:CalibrationSenseConflationShape (Rule D2): a
+# math:CalibrationDiagnostic (the STATISTICAL calibration sense — a model's predicted
+# probabilities against observed frequencies) and a SEPARATE math:StabilityCalibrationRecord
+# (the TOPOLOGICAL sense — a credence calibrated against a bottleneck stability bound over a
+# math:PersistenceLifetime), each on its OWN node and each well-formed for its own kind. The
+# calibration diagnostic — being a math:ModelDiagnostic — names the math:FittedModel it checks
+# through math:diagnosticFor and its method through math:diagnosticMethod (satisfying
+# math:UnanchoredDiagnosticShape), and is NOT a math:StabilityCalibrationRecord, so
+# math:CalibrationSenseConflationShape's sh:not stays satisfied. The stability-calibration
+# record names its math:calibrationEvidence (a well-formed essential math:PersistenceLifetime
+# over a math:Filtration), its math:credenceDerivationKind, and its math:stabilityGuarantee
+# (satisfying math:StabilityCalibrationRecordShape). Two distinct senses of "calibration",
+# held apart, both well-formed — it MUST raise NO failure class.
+# Positive counterpart of counter-examples/calibration-sense-conflation.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecCalibrationSensesDistinct).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+# --- The STATISTICAL sense: a calibration diagnostic over a fitted model ----- #
+
+ex:reliabilityDiagnostic a math:CalibrationDiagnostic ;
+    math:diagnosticFor ex:classifierFit ;
+    math:diagnosticMethod ex:expectedCalibrationError .
+
+ex:expectedCalibrationError a math:MathematicalObject .   # the diagnostic method
+
+# The fit whose predicted probabilities are checked: a well-formed math:FittedModel.
+ex:classifierFit a math:FittedModel ;
+    math:fittedToData ex:heldOutData ;
+    math:modelFormula ex:classifierFormula .
+
+ex:heldOutData a math:DatasetMatrix .
+ex:classifierFormula a math:ModelFormula .
+
+# --- The TOPOLOGICAL sense: a stability-calibration record — a DISTINCT node -- #
+
+ex:stabilityRecord a math:StabilityCalibrationRecord ;
+    math:calibrationEvidence ex:essentialLifetime ;
+    math:credenceDerivationKind math:persistenceDerivedCredence ;
+    math:stabilityGuarantee math:bottleneckStabilityTheorem .
+
+# An essential H0 component born at ε₁ that never dies within the filtration:
+# math:diesAt is the individual math:PositiveInfinity, not a finite threshold.
+ex:essentialLifetime a math:PersistenceLifetime ;
+    math:overFiltration ex:persistenceFiltration ;
+    math:persistenceFeature ex:h0Component ;
+    math:bornAt ex:eps1 ;
+    math:diesAt math:PositiveInfinity .
+
+# The tracked feature is a math:HomologyGroup generator; because math:HomologyGroup is a
+# math:AbelianGroup, it carries the algebraic-structure frame.
+ex:h0Component a math:HomologyGroup ;
+    math:underlyingSet ex:h0Carrier ;
+    math:structureOperation ex:h0Addition ;
+    math:satisfiesAxiom ex:h0CommutativityAxiom .
+ex:h0Carrier a math:Set .
+ex:h0Addition a math:Operation .
+
+# The filtration the lifetime is read over: a single stage carrying a threshold and structure.
+ex:persistenceFiltration a math:Filtration ;
+    math:filtrationAmbient ex:ambientSpace ;
+    math:filtrationIndexKind math:lengthDimension ;
+    math:hasFiltrationStage ex:stageEps1 .
+
+ex:ambientSpace a math:TopologicalSpace .
+
+ex:stageEps1 a math:FiltrationStage ;
+    math:filtrationThreshold ex:eps1 ;
+    math:stageStructure ex:cx1 .
+
+ex:cx1 a math:TopologicalSpace .
+
+# The threshold ε₁ as a dimensioned quantity (a latent-space scale).
+ex:eps1 a gmeow:Quantity ;
+    gmeow:quantityValue "0.10"^^xsd:decimal ;
+    gmeow:unit ex:latentScaleUnit .

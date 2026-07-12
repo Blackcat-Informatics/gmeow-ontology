@@ -1267,3 +1267,40 @@ ex:rowBayesianParadigm a gmeow:ExpectedRow ;
 ex:rowFrequentistParadigm a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri exf:frequentistResult ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "paradigm" ; gmeow:cellValueIri math:FrequentistResult ] .
+
+# === SQ6 — which diagnostics, comparisons, and calibration results evaluate a fit === #
+
+ex:cqStatisticsModelDiagnostics a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-model-diagnostics.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-model-diagnostics.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A single math:FittedModel is evaluated by five first-class objects, each anchored to it through the shared math:diagnosticFor edge: a math:ModelDiagnostic, a math:CalibrationDiagnostic (the statistical calibration sense), an math:InformationCriterion, a math:CrossValidationResult, and a math:ModelComparison. Each evaluation is asserted with its OWN type only, so the reasoning-free query reads each on its own asserted-type UNION branch — a math:CalibrationDiagnostic does NOT also surface on the math:ModelDiagnostic branch — and every evaluation binds its own kind, the five edges never collapsed. Over the fixture the answer is exactly {aicScore → math:InformationCriterion; cvScore → math:CrossValidationResult; lrtComparison → math:ModelComparison; reliabilityDiagnostic → math:CalibrationDiagnostic; residualDiagnostic → math:ModelDiagnostic}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsModelDiagnosticsShape ;
+    gmeow:cqExpectRow ex:rowAicScore , ex:rowCvScore , ex:rowLrtComparison , ex:rowReliabilityDiagnostic , ex:rowResidualDiagnostic .
+
+ex:cqStatisticsModelDiagnosticsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "evaluation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowAicScore a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:aicScore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:InformationCriterion ] .
+
+ex:rowCvScore a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:cvScore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:CrossValidationResult ] .
+
+ex:rowLrtComparison a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:lrtComparison ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ModelComparison ] .
+
+ex:rowReliabilityDiagnostic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:reliabilityDiagnostic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:CalibrationDiagnostic ] .
+
+ex:rowResidualDiagnostic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:residualDiagnostic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ModelDiagnostic ] .

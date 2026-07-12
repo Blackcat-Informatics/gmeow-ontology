@@ -6331,6 +6331,13 @@ math:ProbabilityEvent owl:disjointWith logic:Event .
 math:OddsValue owl:disjointWith math:ProbabilityValue .
 math:LogOddsValue owl:disjointWith math:ProbabilityValue .
 math:FrequentistResult owl:disjointWith math:BayesianResult .
+# The two senses of "calibration" share the word and nothing else. Both
+# math:CalibrationDiagnostic (⊑ math:ModelDiagnostic) and its topological homonym
+# math:StabilityCalibrationRecord descend from math:MathematicalObject, so their
+# disjointness is NOT entailed by their parents and MUST be asserted directly —
+# the OWL-axiom gate backing math:CalibrationSenseConflation, read by the native
+# DL coherence check, paired with math:CalibrationSenseConflationShape.
+math:CalibrationDiagnostic owl:disjointWith math:StabilityCalibrationRecord .
 
 # --- Structural restriction axioms (presence gates) ------------------------- #
 # A math:ProbabilitySpace requires a sample-space, a σ-algebra, and a measure
@@ -6944,6 +6951,151 @@ math:UnframedEffectSize
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unframed Effect Size"@x-gmeow-english ;
     skos:definition "The failure raised when a math:EffectSize does not identify all three of the frame that makes its magnitude interpretable: the comparison it measures through math:effectSizeContrast (a math:StatisticalContrast), the scale it is expressed on through math:effectSizeScale (a math:MeasurementScale), and its reference frame through gmeow:hasReferenceFrame. An effect size missing any of the three is an uninterpretable bare number — a magnitude with no comparison, no units of comparison, or no frame it is expressed in."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Diagnostics, model comparison, calibration, and design/integrity             #
+# (STATISTICS-charter "Model comparison and calibration" + "Design and         #
+# integrity")                                                                  #
+#                                                                              #
+# A math:ModelDiagnostic evaluates a fitted model: it names the math:FittedModel#
+# it is a diagnostic FOR (math:diagnosticFor) and the method it applies         #
+# (math:diagnosticMethod), so a diagnostic anchored to neither its model nor its#
+# method is ill-formed (math:UnanchoredDiagnostic). Comparing and calibrating   #
+# models is first-class: math:ModelComparison, math:InformationCriterion        #
+# (AIC/BIC/WAIC/…), math:CrossValidationResult, and — the STATISTICAL sense of   #
+# calibration — math:CalibrationDiagnostic (predicted probabilities vs observed  #
+# frequencies: reliability curves, Brier decomposition, expected calibration    #
+# error). That statistical sense must NEVER be conflated with the TOPOLOGICAL    #
+# math:StabilityCalibrationRecord (a credence calibrated against a bottleneck    #
+# stability bound over a math:PersistenceLifetime): they share the word and      #
+# nothing else. math:CalibrationDiagnostic ⊑ math:ModelDiagnostic and            #
+# math:StabilityCalibrationRecord ⊑ math:MathematicalObject BOTH descend from    #
+# math:MathematicalObject, so their disjointness is NOT entailed by their        #
+# parents — it is asserted directly (math:CalibrationDiagnostic owl:disjointWith #
+# math:StabilityCalibrationRecord, in the disjointness block) and surfaced by    #
+# the paired math:CalibrationSenseConflationShape (math:CalibrationSenseConflation#
+# ). The design/integrity core — math:ExperimentalDesign, math:Randomization     #
+# Scheme, and math:AnalysisPlan (with math:analysisPlanVersion, and named by an  #
+# inference run through math:usedAnalysisPlan) — records how units were assigned #
+# and which pre-specified plan a result claims to follow, so pre-registered      #
+# versus post-hoc is data, not lost context.                                    #
+# =========================================================================== #
+
+# --- Model diagnostics, comparison, and calibration (⊑ math:MathematicalObject) #
+
+math:ModelDiagnostic
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Model Diagnostic"@x-gmeow-english ;
+    skos:definition "A model diagnostic: a first-class evaluation of a fitted model — a residual plot's summary, a Q–Q assessment, a heteroscedasticity or influence measure, a goodness-of-fit statistic. A subclass of math:MathematicalObject that names the math:FittedModel it evaluates through math:diagnosticFor and the diagnostic method it applies through math:diagnosticMethod, so 'what was checked, on which fit, by which method' is queryable rather than folded into a plot's caption. A diagnostic anchored to neither its fitted model nor its method is ill-formed (math:UnanchoredDiagnostic)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ModelComparison
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Model Comparison"@x-gmeow-english ;
+    skos:definition "A model comparison: a first-class object weighing two or more fitted models against one another — a likelihood-ratio test, an information-criterion difference, a cross-validated score comparison, a Bayes-factor model choice. A subclass of math:MathematicalObject; it names the math:FittedModel objects it evaluates through math:diagnosticFor (the same anchoring edge a diagnostic uses to point at a fit), so 'which model, and how it compared' is an answerable object rather than an implicit preference. Making the comparison first-class is what keeps model selection auditable rather than read off a single reported number."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:InformationCriterion
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Information Criterion"@x-gmeow-english ;
+    skos:definition "An information criterion: a penalized-fit score for a fitted model that trades goodness-of-fit against complexity — an AIC, a BIC, a WAIC, a DIC, a leave-one-out score. A subclass of math:MathematicalObject naming the math:FittedModel it scores through math:diagnosticFor, so a criterion value is never a bare number detached from the fit it penalizes and the model comparison that reads it. It is the per-model score a math:ModelComparison contrasts, held as its own object rather than an attribute buried in a fit summary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CrossValidationResult
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Cross-Validation Result"@x-gmeow-english ;
+    skos:definition "A cross-validation result: the out-of-sample performance estimate a resampling scheme (k-fold, leave-one-out, repeated, nested) produces for a fitted model — a held-out score with its resampling structure, distinct from an in-sample fit statistic. A subclass of math:MathematicalObject naming the math:FittedModel it evaluates through math:diagnosticFor, so a validated score carries which fit it estimates the generalization of. It is the held-out counterpart to an in-sample math:InformationCriterion, and a math:ModelComparison may weigh either."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CalibrationDiagnostic
+    a owl:Class ;
+    rdfs:subClassOf math:ModelDiagnostic ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Calibration Diagnostic"@x-gmeow-english ;
+    skos:definition "A calibration diagnostic: the STATISTICAL sense of calibration — how well a fitted model's predicted probabilities match observed frequencies over held-out data, measured by a reliability curve, a Brier-score decomposition, or an expected-calibration-error binning. A subclass of math:ModelDiagnostic (a calibration diagnostic IS a model diagnostic), so it names the math:FittedModel whose probabilities it checks through math:diagnosticFor and the method it applies through math:diagnosticMethod. It is held owl:disjointWith math:StabilityCalibrationRecord — the TOPOLOGICAL sense, which calibrates a credence against a bottleneck stability bound over a math:PersistenceLifetime: the two share the word 'calibration' and nothing else, one calibrating a model's probabilities against data and the other a credence against a stability guarantee, so a consumer selects on the specific class, never on the shared token. Because both descend from math:MathematicalObject their disjointness is NOT entailed by their parents and is asserted directly; a node typed both is math:CalibrationSenseConflation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Design and integrity (⊑ math:MathematicalObject) ----------------------- #
+
+math:ExperimentalDesign
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Experimental Design"@x-gmeow-english ;
+    skos:definition "An experimental design: the first-class record of how a study's units were structured and assigned — a completely randomized, block, factorial, crossover, or split-plot design. A subclass of math:MathematicalObject; together with the math:RandomizationScheme it names, it records how units were assigned to conditions, so the design is queryable structure rather than a phrase in a methods section. Naming the design as an object is what lets an analysis's validity conditions be checked against the assignment that actually produced the data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RandomizationScheme
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Randomization Scheme"@x-gmeow-english ;
+    skos:definition "A randomization scheme: the first-class rule by which units were assigned to conditions — simple, blocked, stratified, cluster, or adaptive randomization, with its allocation ratio and any constraints. A subclass of math:MathematicalObject naming the assignment mechanism a math:ExperimentalDesign uses, so how randomness entered the assignment is recorded structure rather than an implicit assumption. Holding the scheme as an object is what lets a design's exchangeability and its analysis's warrant be traced to the mechanism that generated the assignment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:AnalysisPlan
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Analysis Plan"@x-gmeow-english ;
+    skos:definition "An analysis plan: the pre-specified plan a result claims to follow — the primary and secondary endpoints, the estimand, the model, and the decision rule fixed BEFORE the data were seen. A subclass of math:MathematicalObject carrying its version through math:analysisPlanVersion (a version literal or a version object) and named by the inference run that ran it through math:usedAnalysisPlan, so pre-registered versus post-hoc is data, not lost context. A result that names the plan and its version it followed is one whose analysis-was-pre-specified claim is auditable rather than asserted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Diagnostic, comparison, and design object properties ------------------- #
+
+math:diagnosticFor
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "diagnostic for"@x-gmeow-english ;
+    skos:definition "Relates a math:ModelDiagnostic (or the math:ModelComparison, math:InformationCriterion, math:CalibrationDiagnostic, and math:CrossValidationResult that specialize the diagnostic role over a fit) to the math:FittedModel it evaluates. Domain a model-evaluation object, range math:FittedModel (stated in prose). It is the anchoring edge that ties an evaluation to the fit it speaks about; a math:ModelDiagnostic naming no fitted model through it is ill-formed (math:UnanchoredDiagnostic). One shared edge for 'the fit this evaluation is about', never a near-synonym per diagnostic kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:diagnosticMethod
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "diagnostic method"@x-gmeow-english ;
+    skos:definition "Relates a math:ModelDiagnostic to the method it applies — a residual-analysis procedure, a goodness-of-fit test, an influence measure, a reliability-curve or expected-calibration-error binning for a math:CalibrationDiagnostic. Domain math:ModelDiagnostic, range the diagnostic method object (stated in prose). The method is a first-class object, not an opaque label, so a diagnostic's procedure is queryable alongside the fit it evaluates; a diagnostic naming no method is ill-formed (math:UnanchoredDiagnostic). Held apart from math:usesProofMethod (a proof's strategy) and math:estimator (an estimate's procedure): this is the method a diagnostic applies over a fit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:analysisPlanVersion
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "analysis-plan version"@x-gmeow-english ;
+    skos:definition "Relates a math:AnalysisPlan to its version — the identifier fixing WHICH revision of the pre-specified plan a result followed. Domain math:AnalysisPlan, range a version literal (a SemVer-like string or release label) or a version object (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal and an individual: neither DL property kind admits both, so the honest RDF supertype carries the version without a DL contradiction (mirroring math:totalMass). Naming the version is what distinguishes a plan followed pre-registration from a later-amended one, so pre-registered versus post-hoc is data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:usedAnalysisPlan
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "used analysis plan"@x-gmeow-english ;
+    skos:definition "Relates a math:InferenceRun (or another analysis gmeow:Activity) to the math:AnalysisPlan it followed. Domain an inference or analysis process, range math:AnalysisPlan (stated in prose). It is the process-layer edge that lets a result's claim to follow a pre-specified plan be traced from the run to the plan and its math:analysisPlanVersion, so 'which plan, at which version, this analysis ran under' is queryable rather than asserted in prose."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Diagnostic and calibration conformance-failure classes ----------------- #
+
+math:UnanchoredDiagnostic
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unanchored Diagnostic"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ModelDiagnostic does not anchor itself to what it evaluates and how — it names no math:FittedModel through math:diagnosticFor, or no method through math:diagnosticMethod. A diagnostic is an evaluation OF a fit BY a method; missing either its fitted model or its method, it is a floating number rather than a checked property of a model, and is ill-formed. Primary gate: the SHACL-Core requirement (math:UnanchoredDiagnosticShape) that a diagnostic name both its fitted model and its diagnostic method."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:CalibrationSenseConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Calibration-Sense Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when one node is typed BOTH a math:CalibrationDiagnostic and a math:StabilityCalibrationRecord — the STATISTICAL sense of calibration (a model's predicted probabilities against observed frequencies) conflated with the TOPOLOGICAL sense (a credence calibrated against a bottleneck stability bound over a math:PersistenceLifetime). They share the word 'calibration' and nothing else. Because math:CalibrationDiagnostic ⊑ math:ModelDiagnostic ⊑ math:MathematicalObject and math:StabilityCalibrationRecord ⊑ math:MathematicalObject both descend from math:MathematicalObject, the disjointness is NOT entailed by their parents and is asserted DIRECTLY (math:CalibrationDiagnostic owl:disjointWith math:StabilityCalibrationRecord); the native DL coherence gate forces any individual typed both to owl:Nothing, and the paired SHACL shape (math:CalibrationSenseConflationShape) surfaces the same conflation as a finding so a consumer selects on the specific class, never on the shared token."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
