@@ -595,7 +595,14 @@ pub fn render_docs_graph(
     model.attach_diagnostics(diagnostics);
     let term_loss = term_loss_digest_from_upstream(upstream, &model.shapes, &model.terms)?;
     model.attach_term_loss(term_loss);
-    Ok(to_gmeow_rdf(&model))
+    // The per-term entailment DAG, parsed from `stage-reason`'s already-materialized
+    // `reasoning-explanations` proof skeletons (reason-once — this READS the same
+    // upstream product, never a second reasoning pass) and joined against every
+    // documented term IRI, so the documentation graph carries each term's
+    // derivations (rule → conclusion, all premises) as first-class queryable RDF.
+    let entailments =
+        crate::stages::carrier::term_entailments_from_upstream(upstream, &known_term_iris)?;
+    Ok(to_gmeow_rdf(&model, &entailments))
 }
 
 /// Recursively collect every regular file under `dir` into `out` (fail-fast on a
@@ -919,6 +926,20 @@ mod tests {
         upstream.insert(
             "stage-mappings".to_string(),
             StageProduct::new("stage-mappings", "test-empty-mappings-digest"),
+        );
+        // The docs graph now folds the per-term entailment DAG parsed from
+        // stage-reason's materialized reasoning-explanations (reason-once); provide a
+        // valid-but-empty explanations artifact so the read-back joins to zero
+        // derivations (an honest absence) rather than hard-failing on a missing
+        // artifact.
+        let mut reason_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        reason_artifacts.insert(
+            crate::stages::reason::EXPLANATIONS_PATH.to_string(),
+            b"# no derivations\n".to_vec(),
+        );
+        upstream.insert(
+            "stage-reason".to_string(),
+            StageProduct::from_artifacts("stage-reason", reason_artifacts),
         );
         upstream
     }

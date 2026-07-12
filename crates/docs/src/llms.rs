@@ -110,21 +110,85 @@ fn render_bullet(b: &LlmsBullet) -> String {
     }
 }
 
+/// Render a single `## `-headed section (heading + bullets + a trailing blank
+/// line) — the per-section unit [`render_index`] emits for each entry in its
+/// `sections` list. Exposed so a caller that builds its own header/body by hand
+/// (e.g. the complete/`llms-full.txt` forms, which inline term blocks directly
+/// rather than going through [`LlmsSection`] end to end) can still append a
+/// caller-built section (such as the shared [`standing_reference_section`])
+/// through the ONE bullet-rendering path.
+pub fn render_section(section: &LlmsSection) -> String {
+    let mut out = String::new();
+    out.push_str("## ");
+    out.push_str(&section.heading);
+    out.push_str("\n\n");
+    for bullet in &section.bullets {
+        out.push_str(&render_bullet(bullet));
+        out.push('\n');
+    }
+    out.push('\n');
+    out
+}
+
 /// Render a complete llmstxt.org index document: the header (with the canonical
 /// summary blockquote) followed by each section's `## ` heading and bullets.
 pub fn render_index(title: &str, prose: &[String], sections: &[LlmsSection]) -> String {
     let mut out = llms_header(title, prose);
     for section in sections {
-        out.push_str("## ");
-        out.push_str(&section.heading);
-        out.push_str("\n\n");
-        for bullet in &section.bullets {
-            out.push_str(&render_bullet(bullet));
-            out.push('\n');
-        }
-        out.push('\n');
+        out.push_str(&render_section(section));
     }
     out
+}
+
+/// The standing documentation pages every `llms.txt`-family **Reference**
+/// section names, in canonical order. The docs-site index (`render::llms_txt`)
+/// links each into its published page; the MCP/consumer surfaces (which are
+/// not always tied to a published site) name them as plain-text bullets via
+/// [`standing_reference_section`]. Shared by both so they cannot silently
+/// diverge — the docs-site llms-full form and the MCP surface had previously
+/// drifted (the expansion landed only on the site).
+pub const STANDING_REFERENCE_PAGES: &[&str] = &[
+    "Competency questions",
+    "Conformance fixtures",
+    "Notation grammars",
+    "Glossary",
+    "Build pipeline",
+];
+
+/// The one-line description of the offline snippet corpus — the flattened
+/// prompt-ready per-term cards written by `gmeow-dev export-docs --format
+/// snippets`. Shared verbatim by every `llms.txt`-family surface (docs site +
+/// MCP/consumer) so they cannot drift.
+pub const SNIPPETS_CORPUS_NOTE: &str = "`gmeow-dev export-docs --format snippets` writes one prompt-ready Markdown card per term to `terms/<slug>.md` — the offline, agent-ingestible projection of these docs.";
+
+/// Build the linkless **Reference** [`LlmsSection`] every MCP/consumer
+/// `llms.txt`-family surface must carry: [`STANDING_REFERENCE_PAGES`] as
+/// plain-text bullets, plus the offline-snippet-corpus row carrying
+/// [`SNIPPETS_CORPUS_NOTE`]. `Build pipeline` is included unconditionally — the
+/// MCP/consumer surfaces render from the whole-repo fold graph, which always
+/// carries a discovered pipeline (no bare-model case to gate on). The docs-site
+/// renderer instead builds its own linked bullets from the same page-name list
+/// (it DOES gate `Build pipeline` on a bare model — see `render::llms_txt`).
+pub fn standing_reference_section() -> LlmsSection {
+    let mut bullets: Vec<LlmsBullet> = STANDING_REFERENCE_PAGES
+        .iter()
+        .map(|title| LlmsBullet {
+            text: (*title).to_string(),
+            url: None,
+            signature: String::new(),
+            note: String::new(),
+        })
+        .collect();
+    bullets.push(LlmsBullet {
+        text: "Offline snippet corpus".to_string(),
+        url: None,
+        signature: String::new(),
+        note: SNIPPETS_CORPUS_NOTE.to_string(),
+    });
+    LlmsSection {
+        heading: "Reference".to_string(),
+        bullets,
+    }
 }
 
 #[cfg(test)]

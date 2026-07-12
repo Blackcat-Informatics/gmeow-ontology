@@ -32,7 +32,7 @@ use gmeow_validate::language_tags::{
     select_literal,
 };
 
-use crate::card::{Card, render_card};
+use crate::card::{Card, CardDetail, render_card};
 use crate::error::GtsRead;
 
 /// The GMEOW namespace prefix for term IRIs.
@@ -470,6 +470,8 @@ pub fn build_card(
         use_for_consumer,
         avoid_for_consumer,
         aligns: Vec::new(),
+        // Full-tier rich panels: never populated on the describe/site path.
+        ..Card::default()
     }
 }
 
@@ -581,7 +583,10 @@ pub fn describe(query: &str, gts_bytes: &[u8], lang: Option<&str>) -> (String, i
 
     let card = build_card(&graph, &term, &selector, &tag_map);
     let local = term.strip_prefix(NAMESPACE).unwrap_or(&term);
-    (render_card(&format!("gmeow:{local}"), &card), 0)
+    (
+        render_card(&format!("gmeow:{local}"), &card, CardDetail::Standard),
+        0,
+    )
 }
 
 #[cfg(test)]
