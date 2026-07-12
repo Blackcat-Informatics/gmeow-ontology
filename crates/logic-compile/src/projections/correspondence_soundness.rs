@@ -49,6 +49,8 @@ use gmeow_errors::Diag;
 
 use crate::ingest::dataset::{DslTerm, DslView};
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
+use crate::projections::edoal::template_target_kind;
+use crate::projections::get_leg::ProjectionCell;
 
 // ── Predicate / class constants (ported VERBATIM from the retired Python linter) ───
 
@@ -145,7 +147,27 @@ const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
+/// The remaining OWL 2 object-property subtypes: a term typed with ANY of these (or
+/// `OWL_SYMMETRIC_PROPERTY` above), without a co-asserted `owl:ObjectProperty`, is still
+/// an object property by OWL 2 semantics — [`owl_kind_edoal`] treats them the same as an
+/// explicit `owl:ObjectProperty`.
+const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+const OWL_INVERSE_FUNCTIONAL_PROPERTY: &str =
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty";
+const OWL_REFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ReflexiveProperty";
+const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+/// The object-property subtype markers, for the `owl_kind_edoal` membership test.
+const OWL_OBJECT_PROPERTY_SUBTYPES: &[&str] = &[
+    OWL_SYMMETRIC_PROPERTY,
+    OWL_TRANSITIVE_PROPERTY,
+    OWL_INVERSE_FUNCTIONAL_PROPERTY,
+    OWL_REFLEXIVE_PROPERTY,
+    OWL_ASYMMETRIC_PROPERTY,
+    OWL_IRREFLEXIVE_PROPERTY,
+];
 const OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
 const OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
@@ -170,7 +192,14 @@ const FNO_PREDICATE: &str = "https://w3id.org/function/ontology#predicate";
 const FNO_TYPE: &str = "https://w3id.org/function/ontology#type";
 
 const ALIGN_CELL: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#Cell";
+const ALIGN_ENTITY1: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity1";
+const ALIGN_ENTITY2: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity2";
+const ALIGN_RELATION: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#relation";
 const EDOAL_TRANSFORMATION: &str = "http://ns.inria.org/edoal/1.0/#transformation";
+const EDOAL_URI: &str = "http://ns.inria.org/edoal/1.0/#uri";
+const EDOAL_RELATION_T: &str = "http://ns.inria.org/edoal/1.0/#Relation";
+const EDOAL_PROPERTY_T: &str = "http://ns.inria.org/edoal/1.0/#Property";
+const EDOAL_CLASS_T: &str = "http://ns.inria.org/edoal/1.0/#Class";
 
 /// Known alignment-target prefixes (the keys of the historical `ALIGNMENT_TARGETS`).
 const ALIGNMENT_TARGETS: &[&str] = &[
@@ -405,6 +434,13 @@ pub struct SoundnessInputs<'a> {
     pub fno: &'a DslView<'a>,
     /// The committed EDOAL views, sorted by file name (mirrors the sorted glob).
     pub edoal: &'a [(String, DslView<'a>)],
+    /// Every parsed `gmeow:ProjectionMapping` cell (the SAME shared get-leg model both the
+    /// EDOAL and SPARQL-CONSTRUCT lowerings render from — [`crate::projections::get_leg::projections`]
+    /// over the merged `dsl/mappings/` view). The sole authority
+    /// [`check_edoal_entity_kind`]'s entity2 check correlates a committed EDOAL cell
+    /// against, so the gate verifies internal template coherence — never the external
+    /// target vocabulary (EDOAL is DERIVED FROM GMEOW's own templates, per Principle 17).
+    pub cells: &'a [ProjectionCell],
 }
 
 /// Run the seven correspondence-soundness checks over the already-parsed inputs.
@@ -416,9 +452,202 @@ pub fn run_soundness(inputs: &SoundnessInputs<'_>) -> Vec<ProjectionDiagnostic> 
     let mut out: Vec<ProjectionDiagnostic> = Vec::new();
     out.extend(fno_type_mismatches(inputs.ontology, inputs.fno));
     out.extend(fno_reference_integrity(inputs.fno, inputs.edoal));
+    out.extend(check_edoal_entity_kind(
+        inputs.ontology,
+        inputs.cells,
+        inputs.edoal,
+    ));
     out.extend(lint_alignment_directions(inputs));
     out.sort_by(ProjectionDiagnostic::cmp_severity_check_instance);
     out
+}
+
+/// Cross-check the committed EDOAL cells' entity kinds for coherence. Emission DERIVES
+/// each kind from GMEOW's own model — the source term's OWL character (entity1) or the
+/// correspondence TEMPLATE's object-position (entity2) — so a finding here is a genuine
+/// drift, never a guess:
+/// * **A** — a direct-URI cell must align same-kind entities (`entity1` kind = `entity2`).
+/// * **C** — `entity1` (the GMEOW source) must match its own OWL character in the ontology
+///   (an authored `gmeow:edoalSourceKind` override that contradicts GMEOW is rejected).
+/// * **B** — every committed cell's `entity2` must match the kind its OWN correspondence
+///   TEMPLATE derives ([`template_target_kind`], the SAME derivation the EDOAL lowering
+///   itself uses), correlated by profile + `to_predicate`. This is INTERNAL coherence —
+///   the committed bytes must agree with the templates that (re)generation would emit —
+///   never a comparison against the external target vocabulary (EDOAL is a lossy
+///   projection DERIVED FROM GMEOW's `gmeow:ProjectionMapping` templates, per Principle
+///   17; the target vocabulary is not an authority over it). Runs on EVERY cell, not just
+///   `=`: a `<=` subsumption target must be as truthfully typed as an equivalence one.
+fn check_edoal_entity_kind(
+    onto: &DslView<'_>,
+    cells: &[ProjectionCell],
+    edoal: &[(String, DslView<'_>)],
+) -> Vec<ProjectionDiagnostic> {
+    let mut out: Vec<ProjectionDiagnostic> = Vec::new();
+    for (name, view) in edoal {
+        let profile = name.strip_suffix(".edoal.ttl").unwrap_or(name.as_str());
+        for cell in subject_terms_of_type(view, ALIGN_CELL) {
+            let (Some(n1), Some(n2)) = (
+                view.objects_of_term(&cell, ALIGN_ENTITY1)
+                    .into_iter()
+                    .next(),
+                view.objects_of_term(&cell, ALIGN_ENTITY2)
+                    .into_iter()
+                    .next(),
+            ) else {
+                continue;
+            };
+            let (Some((k1, uri1)), Some((k2, uri2))) = (
+                edoal_node_kind_uri(view, &n1),
+                edoal_node_kind_uri(view, &n2),
+            ) else {
+                continue;
+            };
+
+            // A — an EQUIVALENCE (`=`) direct-URI cell must align same-kind entities. A
+            // lossy `<=` collapse may legitimately cross kinds (e.g. a GMEOW relation
+            // projected onto a target literal or class), documented by its lossyDrop.
+            if let (Some(u1), Some(u2)) = (&uri1, &uri2)
+                && k1 != k2
+                && cell_is_equivalence(view, &cell)
+            {
+                out.push(ProjectionDiagnostic::error(
+                    "edoal-entity-kind",
+                    format!(
+                        "{name}: equivalence cell aligns edoal:{k1} ({u1}) with edoal:{k2} ({u2}) \
+                         — entity1/entity2 kind mismatch"
+                    ),
+                    Some(u2.clone()),
+                ));
+            }
+
+            // C — an equivalence cell's entity1 (GMEOW source) must match its ontology OWL
+            // character; a lossy `<=` projection may carry a deliberately coarsened kind.
+            if let Some(u1) = &uri1
+                && cell_is_equivalence(view, &cell)
+                && let Some(expected) = owl_kind_edoal(onto, u1)
+                && expected != k1
+            {
+                out.push(ProjectionDiagnostic::error(
+                    "edoal-entity-kind",
+                    format!(
+                        "{name}: equivalence cell entity1 emitted edoal:{k1} but GMEOW {u1} is an \
+                         owl:{expected} term"
+                    ),
+                    Some(u1.clone()),
+                ));
+            }
+
+            // B — every cell's entity2 must match the correspondence TEMPLATE's own
+            // derivation (never the external target vocabulary). `None` means no template
+            // in this profile targets `u2` via `to_predicate` — a direct 1:1 predicate
+            // mapping has no template to check coherence against, so no claim is made.
+            if let Some(u2) = &uri2
+                && let Some(expected) =
+                    expected_entity2_kind(cells, onto, profile, u2, uri1.as_deref())
+                && expected != k2
+            {
+                out.push(ProjectionDiagnostic::error(
+                    "edoal-entity-kind",
+                    format!(
+                        "{name}: entity2 emitted edoal:{k2} ({u2}) but the correspondence \
+                         template derives edoal:{expected} for this target — kind mismatch"
+                    ),
+                    Some(u2.clone()),
+                ));
+            }
+        }
+    }
+    out
+}
+
+/// The `edoal:Relation`/`edoal:Property` capitalized token the correspondence TEMPLATE
+/// derives for `to_predicate` (== the committed cell's `entity2` `edoal:uri`, `u2`) in
+/// `profile`, by re-running [`template_target_kind`] — the SAME derivation the EDOAL
+/// lowering itself used to emit the committed bytes — over the cell that produced this
+/// committed row. `None` when no matching binding targets `u2` via a correspondence
+/// template (a direct 1:1 predicate target with no `gmeow:templateAtoms` naming it carries
+/// no template-derived expectation).
+///
+/// `source_uri` is the committed cell's `entity1` `edoal:uri` (the GMEOW source term) when
+/// it is a direct term reference. It disambiguates a POLYMORPHIC target predicate — one
+/// `to_predicate` legitimately reused by two mappings with different source kinds (e.g.
+/// `bf:title` carrying a flat literal from `gmeow:title` in one cell and a structured
+/// `bf:Title` node from `gmeow:hasTitle` in another): the expectation must come from the
+/// cell whose OWN source matches this committed row, never from a sibling cell that merely
+/// shares the target predicate. A compose/restriction `entity1` (`source_uri` `None`, e.g.
+/// a path source) cannot be matched by source, so it falls back to `to_predicate` alone.
+fn expected_entity2_kind(
+    cells: &[ProjectionCell],
+    onto: &DslView<'_>,
+    profile: &str,
+    to_predicate: &str,
+    source_uri: Option<&str>,
+) -> Option<&'static str> {
+    let lower = cells.iter().find_map(|cell| {
+        // Correlate to the committed row's OWN source: when entity1 is a direct term, only
+        // the mapping whose `edoalSource` matches it may supply this row's expectation.
+        if let Some(src) = source_uri
+            && cell.pattern.edoal_source.as_deref() != Some(src)
+        {
+            return None;
+        }
+        cell.bindings
+            .iter()
+            .filter(|b| b.profile == profile && b.to_predicate.as_deref() == Some(to_predicate))
+            .find_map(|b| template_target_kind(onto, b, &cell.pattern))
+    })?;
+    Some(match lower {
+        "relation" => "Relation",
+        "property" => "Property",
+        "class" => "Class",
+        other => unreachable!("template_target_kind returned unknown token {other:?}"),
+    })
+}
+
+/// The EDOAL kind (`Relation`/`Property`/`Class`) an entity blank node is typed as, plus
+/// its `edoal:uri` when it is a direct term reference (`None` for a compose/restriction).
+fn edoal_node_kind_uri(
+    view: &DslView<'_>,
+    node: &DslTerm,
+) -> Option<(&'static str, Option<String>)> {
+    let kind = view
+        .objects_of_term(node, RDF_TYPE)
+        .into_iter()
+        .find_map(|t| match t.as_iri()? {
+            EDOAL_RELATION_T => Some("Relation"),
+            EDOAL_PROPERTY_T => Some("Property"),
+            EDOAL_CLASS_T => Some("Class"),
+            _ => None,
+        })?;
+    Some((kind, view.object_iri_of_term(node, EDOAL_URI)))
+}
+
+/// The EDOAL kind implied by a GMEOW term's OWL character in the ontology, or `None`.
+/// A term typed with an OWL 2 object-property subtype (Symmetric/Transitive/
+/// InverseFunctional/Reflexive/Asymmetric/Irreflexive) — even without a co-asserted
+/// `owl:ObjectProperty` — is still an object property by OWL 2 semantics, so it also
+/// derives `Relation` here.
+fn owl_kind_edoal(onto: &DslView<'_>, iri: &str) -> Option<&'static str> {
+    if has_type(onto, iri, OWL_OBJECT_PROPERTY)
+        || OWL_OBJECT_PROPERTY_SUBTYPES
+            .iter()
+            .any(|t| has_type(onto, iri, t))
+    {
+        Some("Relation")
+    } else if has_type(onto, iri, OWL_DATATYPE_PROPERTY) {
+        Some("Property")
+    } else if has_type(onto, iri, OWL_CLASS) {
+        Some("Class")
+    } else {
+        None
+    }
+}
+
+/// Whether an `align:Cell` carries the equivalence relation token `=`.
+fn cell_is_equivalence(view: &DslView<'_>, cell: &DslTerm) -> bool {
+    view.objects_of_term(cell, ALIGN_RELATION)
+        .iter()
+        .any(|t| t.as_literal() == Some("="))
 }
 
 /// Run only the five alignment-direction checks (the historical

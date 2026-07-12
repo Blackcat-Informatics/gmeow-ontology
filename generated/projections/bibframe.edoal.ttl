@@ -30,7 +30,7 @@
                 edoal:uri gmeow:hasTitle ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bibframe:title ;
             ] ;
             align:relation "<=" ;
@@ -40,11 +40,11 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:identifier ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bibframe:identifiedBy ;
             ] ;
             align:relation "<=" ;
@@ -54,11 +54,11 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:identifier ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bibframe:identifiedBy ;
             ] ;
             align:relation "<=" ;
@@ -68,7 +68,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:title ;
             ] ;
             align:entity2 [

@@ -28,7 +28,7 @@
                 edoal:uri gmeow:hasSLSALevel ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri <https://slsa.dev/provenance/v1#buildLevel> ;
             ] ;
             align:relation "<=" ;

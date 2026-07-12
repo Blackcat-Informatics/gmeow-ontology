@@ -135,7 +135,7 @@
                 ] ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bot:hasSpace ;
             ] ;
             align:relation "<=" ;
@@ -152,7 +152,7 @@
                 ] ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bot:hasSpace ;
             ] ;
             align:relation "<=" ;
@@ -169,7 +169,7 @@
                 ] ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bot:hasStorey ;
             ] ;
             align:relation "<=" ;
@@ -183,7 +183,7 @@
                 edoal:uri gmeow:adjacentTo ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bot:adjacentZone ;
             ] ;
             align:relation "=" ;
@@ -196,7 +196,7 @@
                 edoal:uri gmeow:containsPlace ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bot:containsZone ;
             ] ;
             align:relation "=" ;

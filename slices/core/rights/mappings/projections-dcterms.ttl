@@ -71,6 +71,5 @@ gmeow:mapDctermsAccessRights a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:conditionsOfAccess ] ;
     gmeow:hasBinding [
         gmeow:profile "dcterms" ; gmeow:toPredicate dcterms:accessRights ; gmeow:relation "=" ; gmeow:confidence 0.85 ; gmeow:mnemomorphic true ;
-        gmeow:edoalTargetKind "relation" ;
         gmeow:emitSssom true ; gmeow:sssomPredicate skos:closeMatch ;
         gmeow:sssomFile "gmeow-dublin-core.sssom.tsv" ] .

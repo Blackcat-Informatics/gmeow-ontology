@@ -69,7 +69,7 @@
                 edoal:uri gmeow:platformLocation ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri geo:location ;
             ] ;
             align:relation "<=" ;
@@ -83,7 +83,7 @@
                 edoal:uri gmeow:sensoryObservationOf ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sosa:hasFeatureOfInterest ;
             ] ;
             align:relation "<=" ;
@@ -97,7 +97,7 @@
                 edoal:uri gmeow:sensoryProperty ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sosa:observedProperty ;
             ] ;
             align:relation "=" ;
@@ -111,7 +111,7 @@
                 edoal:uri gmeow:sensoryResult ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sosa:hasResult ;
             ] ;
             align:relation "<=" ;
@@ -125,7 +125,7 @@
                 edoal:uri gmeow:vantage ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sosa:madeBySensor ;
             ] ;
             align:relation "<=" ;

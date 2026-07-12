@@ -4089,7 +4089,7 @@
     rdfs:label "edoal:8a22480dafab3223" ;
     gmeow:lossyDrop "EDOAL carries the get leg + relation + measure only" ,
         "actual: correspondence: mapOaiDcFormat::oai_dc" ,
-        "actual: get-leg profile loss: GMEOW hasFormat lives on Manifestation, not Work; the projection traverses embodies" ,
+        "actual: get-leg profile loss: GMEOW hasManifestationFormat lives on Manifestation, not Work; the projection traverses embodies" ,
         "actual: get-leg: the put leg is not carried by EDOAL" ,
         "actual: get-leg: world/standpoint scope is not carried by EDOAL" ,
         "the SOL caveats, the put leg, and world/standpoint scope are dropped" ;
@@ -40790,7 +40790,7 @@
     a logic:ProjectionTarget ;
     rdfs:label "sparql:53aac47dee90fa11" ;
     gmeow:lossyDrop "actual: correspondence: mapOaiDcFormat::oai_dc" ,
-        "actual: get-leg profile loss: GMEOW hasFormat lives on Manifestation, not Work; the projection traverses embodies" ,
+        "actual: get-leg profile loss: GMEOW hasManifestationFormat lives on Manifestation, not Work; the projection traverses embodies" ,
         "actual: get-leg: the put leg is not carried by the SPARQL CONSTRUCT down-projection" ,
         "actual: get-leg: world/standpoint scope is not carried by the SPARQL down-projection" ,
         "the faithful executable down-projection; per-profile losses are made explicit in the query header (`# Lossy and directional by design; drops:`)" ,
