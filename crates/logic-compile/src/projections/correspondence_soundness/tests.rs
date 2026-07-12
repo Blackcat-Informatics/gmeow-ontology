@@ -625,6 +625,28 @@ fn edoal_entity_kind_scopes_to_equivalence_and_gmeow() {
     );
 }
 
+// ── G3: OWL 2 object-property subtypes carry object character in `owl_kind_edoal` too
+// (even without a co-asserted `owl:ObjectProperty`) ───────────────────────────────
+
+#[test]
+fn owl_kind_edoal_recognizes_object_property_subtypes() {
+    let onto_ds = ds("@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix gm: <https://blackcatinformatics.ca/gmeow/> .\n\
+         gm:sibling a owl:SymmetricProperty .\n\
+         gm:ancestor a owl:TransitiveProperty .\n");
+    let onto = DslView::new(&onto_ds);
+    assert_eq!(
+        owl_kind_edoal(&onto, "https://blackcatinformatics.ca/gmeow/sibling"),
+        Some("Relation"),
+        "a term typed ONLY owl:SymmetricProperty is still an object property"
+    );
+    assert_eq!(
+        owl_kind_edoal(&onto, "https://blackcatinformatics.ca/gmeow/ancestor"),
+        Some("Relation"),
+        "a term typed ONLY owl:TransitiveProperty is still an object property"
+    );
+}
+
 // ── Check B rework (G2): entity2 vs the correspondence TEMPLATE, not the external
 // target vocabulary ─────────────────────────────────────────────────────────────
 

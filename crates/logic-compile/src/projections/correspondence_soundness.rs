@@ -149,6 +149,25 @@ const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty"
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
+/// The remaining OWL 2 object-property subtypes: a term typed with ANY of these (or
+/// `OWL_SYMMETRIC_PROPERTY` above), without a co-asserted `owl:ObjectProperty`, is still
+/// an object property by OWL 2 semantics — [`owl_kind_edoal`] treats them the same as an
+/// explicit `owl:ObjectProperty`.
+const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+const OWL_INVERSE_FUNCTIONAL_PROPERTY: &str =
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty";
+const OWL_REFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ReflexiveProperty";
+const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+/// The object-property subtype markers, for the `owl_kind_edoal` membership test.
+const OWL_OBJECT_PROPERTY_SUBTYPES: &[&str] = &[
+    OWL_SYMMETRIC_PROPERTY,
+    OWL_TRANSITIVE_PROPERTY,
+    OWL_INVERSE_FUNCTIONAL_PROPERTY,
+    OWL_REFLEXIVE_PROPERTY,
+    OWL_ASYMMETRIC_PROPERTY,
+    OWL_IRREFLEXIVE_PROPERTY,
+];
 const OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
 const OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
@@ -586,8 +605,16 @@ fn edoal_node_kind_uri(
 }
 
 /// The EDOAL kind implied by a GMEOW term's OWL character in the ontology, or `None`.
+/// A term typed with an OWL 2 object-property subtype (Symmetric/Transitive/
+/// InverseFunctional/Reflexive/Asymmetric/Irreflexive) — even without a co-asserted
+/// `owl:ObjectProperty` — is still an object property by OWL 2 semantics, so it also
+/// derives `Relation` here.
 fn owl_kind_edoal(onto: &DslView<'_>, iri: &str) -> Option<&'static str> {
-    if has_type(onto, iri, OWL_OBJECT_PROPERTY) {
+    if has_type(onto, iri, OWL_OBJECT_PROPERTY)
+        || OWL_OBJECT_PROPERTY_SUBTYPES
+            .iter()
+            .any(|t| has_type(onto, iri, t))
+    {
         Some("Relation")
     } else if has_type(onto, iri, OWL_DATATYPE_PROPERTY) {
         Some("Property")

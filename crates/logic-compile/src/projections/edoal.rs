@@ -50,6 +50,27 @@ const XSD_DOUBLE: &str = "http://www.w3.org/2001/XMLSchema#double";
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
 const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
+/// The six OWL 2 object-property subtypes (RL/DL vocabulary axioms that only ever apply
+/// to object properties): a term typed with ONE of these but no explicit
+/// `owl:ObjectProperty` co-assertion is still, by OWL 2 semantics, an object property —
+/// so it carries the same `relation` EDOAL character as an explicit `owl:ObjectProperty`.
+const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
+const OWL_TRANSITIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#TransitiveProperty";
+const OWL_INVERSE_FUNCTIONAL_PROPERTY: &str =
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty";
+const OWL_REFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ReflexiveProperty";
+const OWL_ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricProperty";
+const OWL_IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
+/// The object-property subtype markers, for the `is_object` membership test in
+/// [`gmeow_entity_kind`].
+const OWL_OBJECT_PROPERTY_SUBTYPES: &[&str] = &[
+    OWL_SYMMETRIC_PROPERTY,
+    OWL_TRANSITIVE_PROPERTY,
+    OWL_INVERSE_FUNCTIONAL_PROPERTY,
+    OWL_REFLEXIVE_PROPERTY,
+    OWL_ASYMMETRIC_PROPERTY,
+    OWL_IRREFLEXIVE_PROPERTY,
+];
 /// An annotation property carries no object/datatype OWL character, so its EDOAL kind is
 /// read from its declared `rdfs:range` (a datatype/literal range → `property`).
 const OWL_ANNOTATION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AnnotationProperty";
@@ -391,7 +412,12 @@ fn valid_kind(kind: &str) -> gmeow_errors::Result<&'static str> {
 /// then requires an explicit override or hard-fails.
 fn gmeow_entity_kind(onto: &DslView, iri: &str) -> Option<&'static str> {
     let types = onto.object_iris(iri, RDF_TYPE);
-    let is_object = types.iter().any(|t| t == OWL_OBJECT_PROPERTY);
+    // A term typed ONLY with an OWL 2 object-property subtype (Symmetric/Transitive/
+    // InverseFunctional/Reflexive/Asymmetric/Irreflexive), without a co-asserted
+    // `owl:ObjectProperty`, is still an object property by OWL 2 semantics.
+    let is_object = types
+        .iter()
+        .any(|t| t == OWL_OBJECT_PROPERTY || OWL_OBJECT_PROPERTY_SUBTYPES.contains(&t.as_str()));
     let is_data = types.iter().any(|t| t == OWL_DATATYPE_PROPERTY);
     let is_class = types.iter().any(|t| t == OWL_CLASS);
     if is_object && !is_data && !is_class {
@@ -418,7 +444,12 @@ fn range_entity_kind(onto: &DslView, iri: &str) -> Option<&'static str> {
     if ranges.is_empty() {
         return None;
     }
-    let is_datatype = |r: &String| r.starts_with(XSD_NS) || r == RDFS_LITERAL;
+    // A datatype/literal range also includes the RDF namespace's own datatypes
+    // (`rdf:langString`, `rdf:HTML`, `rdf:PlainLiteral`, …) — an annotation property
+    // ranged on one of those is a literal-valued `property`, not an object `relation`.
+    let is_datatype = |r: &String| {
+        r.starts_with(XSD_NS) || r == RDFS_LITERAL || r.starts_with(crate::projections::RDF_NS)
+    };
     if ranges.iter().all(is_datatype) {
         Some("property")
     } else {
@@ -1172,6 +1203,50 @@ mod tests {
         let bare_ds = ds(&format!("{OWL_PREFIX} gm:bare a owl:AnnotationProperty ."));
         let bare = DslView::new(&bare_ds);
         assert_eq!(gmeow_entity_kind(&bare, &format!("{GM}bare")), None);
+    }
+
+    // ── G3: OWL 2 object-property subtypes carry object character even without an
+    // explicit `owl:ObjectProperty` co-assertion ────────────────────────────────────
+
+    #[test]
+    fn object_property_subtype_alone_derives_relation() {
+        // A term typed ONLY `owl:SymmetricProperty` (no co-asserted `owl:ObjectProperty`)
+        // is still, by OWL 2 semantics, an object property — `gmeow_entity_kind` must not
+        // derive `None` (which would HARD-FAIL the build) for it.
+        let sym_ds = ds(&format!(
+            "{OWL_PREFIX} gm:sibling a owl:SymmetricProperty ."
+        ));
+        let sym = DslView::new(&sym_ds);
+        assert_eq!(
+            gmeow_entity_kind(&sym, &format!("{GM}sibling")),
+            Some("relation")
+        );
+
+        let trans_ds = ds(&format!(
+            "{OWL_PREFIX} gm:ancestor a owl:TransitiveProperty ."
+        ));
+        let trans = DslView::new(&trans_ds);
+        assert_eq!(
+            gmeow_entity_kind(&trans, &format!("{GM}ancestor")),
+            Some("relation")
+        );
+    }
+
+    // ── G4: an annotation property ranged on an RDF-namespace datatype (rdf:langString,
+    // rdf:HTML, rdf:PlainLiteral) is a literal-valued `property`, not a `relation` ────
+
+    #[test]
+    fn annotation_property_range_rdf_lang_string_derives_property() {
+        let onto_ds = ds(&format!(
+            "{OWL_PREFIX}@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             gm:label2 a owl:AnnotationProperty ; rdfs:range rdf:langString .\n",
+        ));
+        let onto = DslView::new(&onto_ds);
+        assert_eq!(
+            range_entity_kind(&onto, &format!("{GM}label2")),
+            Some("property")
+        );
     }
 
     #[test]
