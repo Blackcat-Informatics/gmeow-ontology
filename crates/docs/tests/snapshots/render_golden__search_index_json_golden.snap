@@ -11,18 +11,20 @@ expression: summary
     "url": "concerns/concerndisclosure/index.html"
   },
   "last": {
+    "advice": [
+      "Use math:ZeroDenominator when the modeled mathematical object or relation satisfies the identity, scope, and necessary conditions in its definition.",
+      "Do not use math:ZeroDenominator for a merely analogous construct whose identity, operands, frame, or validation contract differs.",
+      "Assert math:ZeroDenominator with its declared OWL kind and supply the operands, frame, provenance, or evidence required by its canonical constraints."
+    ],
     "definition": "The failure raised when a math:RationalValue declares a math:denominator of 0. Zero is not a valid denominator — p/0 is not a rational value — so the exact carrier is ill-formed. The object-layer analogue of the dimension-exponent zero-denominator rule.",
     "id": "math:ZeroDenominator",
     "kind": "term",
     "label": "Zero Denominator",
     "missing_coverage": [
-      "usage_advice",
-      "example",
       "scope_note",
       "fixture_pair",
       "competency_rationale",
       "worked_instance",
-      "annotation_coat",
       "translation_coverage",
       "test_reach",
       "prose_quality"

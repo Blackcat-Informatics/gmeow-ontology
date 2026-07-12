@@ -5,10 +5,8 @@
 //!
 //! The axis measures the fraction of a slice's `gmeow:FlagshipScenario`
 //! individuals whose guarding counter-example is reasoner-driven rather than a
-//! structural/SHACL proxy. Every flagship counter-example in the repo is structural
-//! today, so the axis must score exactly 0.0 on each grounding slice and surface one
-//! advisory per structural-only scenario — the opportunity, honestly measured. A
-//! slice with no flagship manifest scores vacuously 1.0.
+//! structural/SHACL proxy. Logic and math execute all five native negative paths; lang
+//! retains five structural proxies. A slice with no flagship manifest scores vacuously 1.0.
 
 use std::path::{Path, PathBuf};
 
@@ -37,8 +35,8 @@ fn score(slice: &str, iri: &str) -> gmeow_slice_quality::score::AxisScore {
 
 #[test]
 fn flagship_counterexample_depth_tracks_each_grounding_slice() {
-    // Logic has uplifted all five flagships to native reasoner discharge. Lang and math retain
-    // their structural/SHACL proxies until their own slice-local uplift lands.
+    // Logic and math have uplifted all five flagships to native reasoner discharge. Lang retains
+    // its structural/SHACL proxies until its own slice-local uplift lands.
     for (slice, iri) in [
         (
             "slices/grounding/logic",
@@ -58,11 +56,12 @@ fn flagship_counterexample_depth_tracks_each_grounding_slice() {
             continue; // slice not present in this checkout — skip.
         }
         let result = score(slice, iri);
-        let (expected_score, expected_findings) = if slice.ends_with("/logic") {
-            (1.0, 0)
-        } else {
-            (0.0, 5)
-        };
+        let (expected_score, expected_findings) =
+            if slice.ends_with("/logic") || slice.ends_with("/math") {
+                (1.0, 0)
+            } else {
+                (0.0, 5)
+            };
         assert_eq!(
             result.score, expected_score,
             "{slice}: reasoner-depth score"

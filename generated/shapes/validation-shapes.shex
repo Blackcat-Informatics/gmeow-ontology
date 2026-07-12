@@ -3288,10 +3288,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/observationResult> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/observationResult> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/observationResult-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/observedAt> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/observedAt-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/observedAt> . {0,1} ;
@@ -5244,14 +5240,6 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/utilizationOf> . {0,1} ;
 }
 
-# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vantage> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/vantage-domain-shape> {
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/gmeow/vantage> (associate via ShapeMap)
-<https://blackcatinformatics.ca/gmeow/vantage-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/vectorProfile> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/vectorProfile-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/vectorProfile> . {0,1} ;
@@ -5526,26 +5514,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/candidateCategory> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/logic/candidateCategory> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/candidateCategory-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateContract> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/candidateContract-domain-shape> {
   <https://blackcatinformatics.ca/logic/candidateContract> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/logic/candidateContract> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/candidateContract-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/candidateExtractionProvenance-domain-shape> {
   <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/logic/candidateExtractionProvenance> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/candidateExtractionProvenance-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateFormalizes> (associate via ShapeMap)
@@ -5558,17 +5534,9 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/candidateLifecycle> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/logic/candidateLifecycle> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/candidateLifecycle-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/candidateProjectionBehavior-domain-shape> {
   <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/logic/candidateProjectionBehavior> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/candidateProjectionBehavior-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateScope> (associate via ShapeMap)
@@ -5576,17 +5544,9 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/candidateScope> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/logic/candidateScope> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/candidateScope-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateSemanticRisk> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/candidateSemanticRisk-domain-shape> {
   <https://blackcatinformatics.ca/logic/candidateSemanticRisk> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/logic/candidateSemanticRisk> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/candidateSemanticRisk-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateSourceField> (associate via ShapeMap)
@@ -5599,26 +5559,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/candidateSourceHash> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/logic/candidateSourceHash> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/candidateSourceHash-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/conjectureFormula> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/conjectureFormula-domain-shape> {
   <https://blackcatinformatics.ca/logic/conjectureFormula> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/logic/conjectureFormula> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/conjectureFormula-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/conjectureLifecycleState> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/conjectureLifecycleState-domain-shape> {
   <https://blackcatinformatics.ca/logic/conjectureLifecycleState> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/logic/conjectureLifecycleState> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/conjectureLifecycleState-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/conjectureStandpoint> (associate via ShapeMap)
@@ -5676,21 +5624,9 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/objectiveValue> . {0,1} ;
 }
 
-# targetSubjectsOf <https://blackcatinformatics.ca/logic/obligationDischargeCondition> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/obligationDischargeCondition-domain-shape> {
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/logic/obligationDischargeCondition> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/obligationDischargeCondition-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate-domain-shape> {
   <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/logic/obligationForbiddenPredicate> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/obligationForbiddenPredicate-range-shape> {
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/observation> (associate via ShapeMap)
@@ -5728,34 +5664,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/verdictProvenance> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/logic/verdictProvenance> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/verdictProvenance-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/witnessIndividual> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/witnessIndividual-domain-shape> {
   <https://blackcatinformatics.ca/logic/witnessIndividual> . {0,1} ;
 }
 
-# targetObjectsOf <https://blackcatinformatics.ca/logic/witnessIndividual> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/witnessIndividual-range-shape> {
-}
-
-# targetSubjectsOf <https://blackcatinformatics.ca/logic/witnessPremise> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/witnessPremise-domain-shape> {
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/logic/witnessPremise> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/witnessPremise-range-shape> {
-}
-
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/witnessWorld> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/witnessWorld-domain-shape> {
   <https://blackcatinformatics.ca/logic/witnessWorld> . {0,1} ;
-}
-
-# targetObjectsOf <https://blackcatinformatics.ca/logic/witnessWorld> (associate via ShapeMap)
-<https://blackcatinformatics.ca/logic/witnessWorld-range-shape> {
 }
 
 # targetClass <https://blackcatinformatics.ca/math/AlgebraicStructure> (associate via ShapeMap)
@@ -5773,7 +5689,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/math/ApproximateValue> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/ApproximateValue-shape> {
   <https://blackcatinformatics.ca/math/approximates> IRI + ;
-  <https://blackcatinformatics.ca/math/approximationError> NONLITERAL + ;
+  <https://blackcatinformatics.ca/math/approximationError> LITERAL + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ArgumentSlot> (associate via ShapeMap)
@@ -5946,7 +5862,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/math/Measure> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/Measure-shape> {
   <https://blackcatinformatics.ca/math/measureOn> IRI + ;
-  <https://blackcatinformatics.ca/math/totalMass> NONLITERAL ;
+  <https://blackcatinformatics.ca/math/totalMass> . + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ModelFormula> (associate via ShapeMap)
@@ -5986,14 +5902,14 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/math/PersistenceLifetime> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/PersistenceLifetime-shape> {
   <https://blackcatinformatics.ca/math/bornAt> NONLITERAL ;
-  <https://blackcatinformatics.ca/math/diesAt> NONLITERAL ;
+  <https://blackcatinformatics.ca/math/diesAt> . ;
   <https://blackcatinformatics.ca/math/overFiltration> IRI + ;
   <https://blackcatinformatics.ca/math/persistenceFeature> IRI + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ProbabilityMeasure> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/ProbabilityMeasure-shape> {
-  <https://blackcatinformatics.ca/math/totalMass> ["1"^^<http://www.w3.org/2001/XMLSchema#integer>] {0,1} ;
+  <https://blackcatinformatics.ca/math/totalMass> ["1"^^<http://www.w3.org/2001/XMLSchema#integer>] ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ProofCheckActivity> (associate via ShapeMap)
@@ -6027,7 +5943,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/math/RootSystem-shape> {
   <https://blackcatinformatics.ca/math/weylGroup> IRI + ;
   <https://blackcatinformatics.ca/math/cartanMatrix> IRI + ;
-  <https://blackcatinformatics.ca/math/rootSystemRank> NONLITERAL + ;
+  <https://blackcatinformatics.ca/math/rootSystemRank> LITERAL + ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/Sequence> (associate via ShapeMap)

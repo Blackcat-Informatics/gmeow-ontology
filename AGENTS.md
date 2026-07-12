@@ -489,6 +489,17 @@ translated rollup set and is irreducibly O(bundle/report/site size). No coverage
 class leaves the gate: `make check-generated` byte-gates all mapping/product/docs
 artifacts, focused mapping-routing and language-rendering tests remain on-gate,
 and the two exhaustive sweeps run on `maint-heavy`.
+Complete `fr-CA`/`zh-Hans` carriers plus the Maximal 13-axis floor record for the
+math slice pushed two more exhaustive whole-repository projection tests past the
+budget in an isolated `make check NPROC=1`:
+`gmeow-pipeline::stages::lang_docs_rendering::tests::every_page_has_one_rendering_and_a_rollup_translation`
+(28.4 s) and
+`gmeow-pipeline::stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle`
+(25.1 s). They render every translated page/rollup or reconstruct the complete
+governance-floor table from the shipped bundle, so both are irreducibly
+O(site/bundle size). No coverage class leaves the gate: `make check-generated`
+byte-gates both products, focused language-rendering and governance-floor tests
+remain on-gate, and the exhaustive pair runs on `maint-heavy`.
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, most mapping parity, carrier/docs archive tests, scoreboards

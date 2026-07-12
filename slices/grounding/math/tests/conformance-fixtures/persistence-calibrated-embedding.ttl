@@ -123,9 +123,12 @@ ex:calibration a math:StabilityCalibrationRecord ;
     math:credenceDerivationKind math:persistenceDerivedCredence ;
     math:stabilityGuarantee math:bottleneckStabilityTheorem .
 
+math:persistenceDerivedCredence a math:CredenceDerivationKind .
+math:bottleneckStabilityTheorem a math:Theorem .
+
 # --- The held latent-meaning claim carrying the calibrated credence --------- #
 
-ex:latentMeaningClaim a math:ResidualInterpretationClaim ;
+ex:latentMeaningClaim a math:ResidualInterpretationClaim , gmeow:Observation ;
     gmeow:vantage ex:topologyAnalystFrame ;
     gmeow:observedFeature ex:sentimentAxis ;
     gmeow:observationResult ex:sentimentMeaningFormula ;
@@ -134,5 +137,5 @@ ex:latentMeaningClaim a math:ResidualInterpretationClaim ;
 
 ex:sentimentAxis a math:EmbeddingDimension ;
     math:latentDimensionOf ex:latent .
-ex:topologyAnalystFrame a gmeow:Standpoint .
-ex:sentimentMeaningFormula a logic:MetaLevelFormula .
+ex:topologyAnalystFrame a gmeow:Standpoint , gmeow:Entity .
+ex:sentimentMeaningFormula a logic:MetaLevelFormula , gmeow:Entity .

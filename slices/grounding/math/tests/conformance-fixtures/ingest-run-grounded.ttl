@@ -16,8 +16,6 @@ ex:run a math:RIngestRun ;
     logic:instantiatesPlan ex:plan ;
     math:ingestCorrespondence ex:corr .
 ex:srcWitness a math:MathematicalObject ; logic:loadBearing true .
-ex:schema a logic:ActionSchema .
-ex:plan a logic:Plan .
 ex:corr a logic:Correspondence ;
     logic:morphismClass logic:LossyLens ;
     logic:mnemomorphic true .

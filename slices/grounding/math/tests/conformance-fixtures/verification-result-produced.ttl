@@ -16,9 +16,9 @@
 @prefix mprod:     <https://blackcatinformatics.ca/gmeow/examples/math/producers/> .
 
 # Flagship 3 — a proof trace whose QED verdict is a grounded observation.
-mprod:qedResult a math:FormalVerificationResult .
+mprod:qedResult a math:FormalVerificationResult , gmeow:Entity .
 
-mprod:pythagorasProof a math:Proof ;
+mprod:pythagorasProof a math:Proof , gmeow:Entity ;
     math:provesStatement mprod:pythagorasStatement .
 mprod:pythagorasStatement a math:MathematicalObject .
 
@@ -28,4 +28,4 @@ mprod:qedObservation a gmeow:Observation ;
     gmeow:observedFeature mprod:pythagorasProof ;
     gmeow:observationResult mprod:qedResult ;
     gmeow:vantage mprod:proofChecker .
-mprod:proofChecker a gmeow:Standpoint .
+mprod:proofChecker a gmeow:Standpoint , gmeow:Entity .

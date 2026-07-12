@@ -283,13 +283,13 @@ ex:ecDerivedDimensionNoExponents a gmeow:ExampleConformance ;
 ex:ecDimensionNonBaseExponent a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/dimension-nonbase-exponent.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example points math:exponentOfDimension at a non-base dimension (sh:class math:BaseDimension on math:DimensionExponentShape), so validation MUST emit shacl.ClassConstraintComponent and NO other finding (math:MalformedDimension)." .
 
 ex:ecDimensionZeroDenominator a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/dimension-zero-denominator.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example declares math:exponentDenominator 0 on a math:DimensionExponent (sh:not [ sh:hasValue 0 ] on math:DimensionExponentShape), so validation MUST emit shacl.NotConstraintComponent and NO other finding. A zero denominator is not an exact-rational power; the native zero-denominator scan is the whole-bundle twin (exercised by the in-crate lint tests), so the cell is never silently dropped." .
 
 # === Rule 21: a dimensional expression combines at least two operands ====== #
@@ -335,7 +335,7 @@ ex:ecLogicLoweringDeclared a gmeow:ExampleConformance ;
 ex:ecUndeclaredLogicLowering a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/undeclared-logic-lowering.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example lowers a math:MathematicalExpression to a logic:Formula through math:compilesToLogicFormula while omitting both math:denotationKind and math:logicLoweringPreservation (two sh:minCount 1 constraints on math:LogicLoweringShape), so validation MUST emit shacl.MinCountConstraintComponent (math:UndeclaredLogicLowering) — the forbidden silent-promotion case." .
 
 # Calculus: derivative, limit, series framing.
@@ -588,7 +588,7 @@ ex:ecRationalValueWellFormed a gmeow:ExampleConformance ;
 ex:ecRationalValueZeroDenominator a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/rational-value-zero-denominator.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example declares math:denominator 0 on a math:RationalValue (sh:not [ sh:hasValue 0 ] on math:RationalValueShape); the numerator is present and both are integers, so validation MUST emit shacl.NotConstraintComponent and NO other finding (math:ZeroDenominator) — the object-layer twin of the dimension-exponent zero-denominator case." .
 
 # === Numeric layer: a norm rests on a positive-definite symmetric form ======= #

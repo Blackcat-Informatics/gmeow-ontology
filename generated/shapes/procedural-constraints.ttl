@@ -2357,7 +2357,7 @@
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/FlagshipScenarioShape> ;
     gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UnwiredFlagshipScenario> ;
-    sh:targetClass <https://blackcatinformatics.ca/gmeow/FlagshipScenario> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/FlagshipScenario> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
         sh:severity sh:Violation ;

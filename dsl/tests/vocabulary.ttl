@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic:   <https://blackcatinformatics.ca/logic/> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
@@ -438,7 +439,7 @@ gmeow:conformanceRationale a owl:DatatypeProperty ;
 # shared here.
 # =============================================================================
 
-gmeow:FlagshipScenario a owl:Class ;
+gmeow:FlagshipScenario a owl:Class , logic:Kind ;
     rdfs:label "flagship scenario"@x-gmeow-english ;
     skos:definition "A typed acceptance-manifest object reifying one of a grounding slice's flagship acceptance scenarios — its depth bar. Each gmeow:FlagshipScenario binds one scenario to the artifacts that realize and enforce it: the worked example (gmeow:demonstratedByExample), the competency question that pins its structure (gmeow:demonstratedByCompetency), the native producer that emits its output (gmeow:demonstratedByProducer), the counter-example that proves its gate bites (gmeow:guardedByCounterExample), and the named conformance-failure subclass that gate raises (gmeow:enforcesFailureClass). A scenario missing its example, competency, producer, counter-example, or enforcing class, or naming an enforcing class that is not one of the owning slice's conformance-failure subclasses, is unwired and ill-formed (gmeow:UnwiredFlagshipScenario)."@x-gmeow-english ;
     skos:example "exa:e8Symmetry a gmeow:FlagshipScenario ; gmeow:demonstratedByExample \"examples/e8-symmetry.ttl\" ; gmeow:demonstratedByCompetency cq:cqE8RootSystem ; gmeow:demonstratedByProducer \"math::producers::e8_weyl_order\" ; gmeow:guardedByCounterExample \"tests/counter-examples/e8-wrong-weyl-order.ttl\" ; gmeow:enforcesFailureClass math:WrongE8WeylOrder ."@x-gmeow-english ;

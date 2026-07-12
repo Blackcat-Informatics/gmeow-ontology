@@ -10,8 +10,10 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <http://example.org/math/> .
 
-ex:qed a math:FormalVerificationResult .
+ex:qed a math:FormalVerificationResult , gmeow:Entity .
 ex:obs a gmeow:Observation ;
+    gmeow:observedFeature ex:checkedProof ;
     gmeow:observationResult ex:qed ;
     gmeow:vantage ex:checker .
-ex:checker a gmeow:Standpoint .
+ex:checkedProof a math:Proof , gmeow:Entity .
+ex:checker a gmeow:Standpoint , gmeow:Entity .

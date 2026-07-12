@@ -10,11 +10,11 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <http://example.org/math/> .
 
-ex:pc1Meaning a math:ResidualInterpretationClaim ;
+ex:pc1Meaning a math:ResidualInterpretationClaim , gmeow:Observation ;
     gmeow:vantage ex:analystFrame ;
     gmeow:observedFeature ex:pc1 ;
     gmeow:observationResult ex:themeFormula .
 
 ex:pc1 a math:PrincipalComponent .
-ex:analystFrame a gmeow:Standpoint .
-ex:themeFormula a logic:MetaLevelFormula .
+ex:analystFrame a gmeow:Standpoint , gmeow:Entity .
+ex:themeFormula a logic:MetaLevelFormula , gmeow:Entity .

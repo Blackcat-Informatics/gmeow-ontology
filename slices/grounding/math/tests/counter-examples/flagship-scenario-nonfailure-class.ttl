@@ -15,7 +15,7 @@
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix ex:   <http://example.org/math/> .
 
-ex:nonFailureClassScenario a gmeow:FlagshipScenario ;
+ex:nonFailureClassScenario a math:FlagshipScenario ;
     gmeow:demonstratedByExample "examples/e8-symmetry.ttl" ;
     gmeow:demonstratedByCompetency <https://blackcatinformatics.ca/gmeow/examples/math/tests/cqE8RootSystem> ;
     gmeow:demonstratedByProducer "math::producers::e8_weyl_order" ;

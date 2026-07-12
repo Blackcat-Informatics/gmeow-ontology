@@ -1199,6 +1199,46 @@ fn derive_class_scoped_closed_all_values_from_requires_the_path() {
 }
 
 #[test]
+fn class_scoped_closure_does_not_globally_close_property_domain_or_range() {
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:allValuesFrom g:Doc ] . \
+         g:cites a owl:ObjectProperty ; rdfs:domain g:Article ; rdfs:range g:Doc . \
+         [] a logic:ClosureEntry ; logic:onClass g:Article ; logic:closureKey g:cites ; \
+            logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(shapes.iter().all(|shape| !matches!(
+        &shape.target,
+        ShapeTarget::SubjectsOf(path) | ShapeTarget::ObjectsOf(path) if path.ends_with("cites")
+    )));
+}
+
+#[test]
+fn derive_mixed_rdf_property_with_thing_filler_keeps_requiredness_without_node_kind() {
+    let ds = shape_dataset_with_logic(
+        "g:Measure a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:mass ; owl:allValuesFrom owl:Thing ] . \
+         g:mass a rdf:Property . \
+         [] a logic:ClosureEntry ; logic:onClass g:Measure ; logic:closureKey g:mass ; \
+            logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let mass = shapes
+        .iter()
+        .flat_map(|shape| &shape.properties)
+        .find(|property| property.path.ends_with("mass"))
+        .expect("mixed required property projects");
+    assert_eq!(mass.min_count, Some(1));
+    assert!(
+        mass.components.is_empty(),
+        "a mixed rdf:Property must not acquire an object-only node kind: {:?}",
+        mass.components
+    );
+}
+
+#[test]
 fn derive_all_values_from_emits_bare_class_not_wrapped() {
     // owl:allValuesFrom is UNIVERSAL: every value is a g:Doc → a bare sh:class on the path,
     // never wrapped in a qualified value shape.

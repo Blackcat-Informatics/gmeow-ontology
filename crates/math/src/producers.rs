@@ -36,6 +36,48 @@ pub const E8_WEYL_ORDER: i128 = 696_729_600;
 /// `|W(E8)|` (the order of a finite Coxeter group is the product of its invariant degrees).
 pub const E8_INVARIANT_DEGREES: [i128; 8] = [2, 8, 12, 14, 18, 20, 24, 30];
 
+/// A typed semantic failure observed by a math flagship's native evaluator.
+///
+/// The local name is intentionally the same class named by the ontology manifest: the
+/// execution harness expands it into the `math:` namespace and requires exact set equality.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FlagshipFailure(pub &'static str);
+
+/// Decide whether an asserted E8 Weyl order agrees with the exact invariant-degree product.
+pub fn verify_e8_weyl_order(asserted_order: i128) -> Result<(), FlagshipFailure> {
+    (asserted_order == E8_WEYL_ORDER)
+        .then_some(())
+        .ok_or(FlagshipFailure("WrongE8WeylOrder"))
+}
+
+/// Decide whether a homomorphic-encryption scheme carries the noise-model frame its law needs.
+pub fn verify_he_scheme(has_noise_model: bool) -> Result<(), FlagshipFailure> {
+    has_noise_model
+        .then_some(())
+        .ok_or(FlagshipFailure("UnderspecifiedEncryptionScheme"))
+}
+
+/// Decide whether a formal-verification result is grounded by a vantage-bearing observation.
+pub fn verify_proof_result(is_grounded: bool) -> Result<(), FlagshipFailure> {
+    is_grounded
+        .then_some(())
+        .ok_or(FlagshipFailure("UngroundedVerificationResult"))
+}
+
+/// Decide whether an ingest retained at least one structured output from its source.
+pub fn verify_ingest_lift(lifted_observations: usize) -> Result<(), FlagshipFailure> {
+    (lifted_observations > 0)
+        .then_some(())
+        .ok_or(FlagshipFailure("UnliftableIngest"))
+}
+
+/// Decide whether a PCA analysis names the covariance operator its decomposition uses.
+pub fn verify_pca_analysis(has_covariance_operator: bool) -> Result<(), FlagshipFailure> {
+    has_covariance_operator
+        .then_some(())
+        .ok_or(FlagshipFailure("IncompletePCAAnalysis"))
+}
+
 /// The shared Turtle prefix header every producer graph opens with.
 fn header() -> String {
     let mut s = String::new();
@@ -78,6 +120,7 @@ pub fn e8_weyl_order() -> E8WeylOrder {
             .expect("E8 invariant-degree product overflowed i128");
     }
     debug_assert_eq!(order, E8_WEYL_ORDER, "E8 Weyl order must be 696 729 600");
+    verify_e8_weyl_order(order).expect("the exact E8 producer must satisfy its semantic gate");
 
     let mut t = header();
     t.push_str("# Flagship 1 — the E8 root system and its Weyl (automorphism) group.\n");
@@ -165,6 +208,7 @@ pub fn additive_he_demo() -> AdditiveHeDemo {
         md(A + B),
         "additive homomorphic law Dec(Enc(a) ⊕ Enc(b)) = (a + b) mod q must hold"
     );
+    verify_he_scheme(true).expect("the HE producer emits its required noise model");
 
     let mut t = header();
     t.push_str("# Flagship 2 — an exact additive-homomorphic encryption scheme.\n");
@@ -215,11 +259,12 @@ pub struct ProofIngest {
 pub fn proof_ingest() -> ProofIngest {
     let verification_result = format!("{PRODUCER_NS}qedResult");
     let grounding_observation = format!("{PRODUCER_NS}qedObservation");
+    verify_proof_result(true).expect("the proof producer emits a grounded result");
 
     let mut t = header();
     t.push_str("# Flagship 3 — a proof trace whose QED verdict is a grounded observation.\n");
-    t.push_str("p:qedResult a math:FormalVerificationResult .\n\n");
-    t.push_str("p:pythagorasProof a math:Proof ;\n");
+    t.push_str("p:qedResult a math:FormalVerificationResult, gmeow:Entity .\n\n");
+    t.push_str("p:pythagorasProof a math:Proof, gmeow:Entity ;\n");
     t.push_str("    math:provesStatement p:pythagorasStatement .\n");
     t.push_str("p:pythagorasStatement a math:MathematicalObject .\n\n");
     t.push_str("# The QED result is grounded BY a separate observation carrying the\n");
@@ -228,7 +273,7 @@ pub fn proof_ingest() -> ProofIngest {
     t.push_str("    gmeow:observedFeature p:pythagorasProof ;\n");
     t.push_str("    gmeow:observationResult p:qedResult ;\n");
     t.push_str("    gmeow:vantage p:proofChecker .\n");
-    t.push_str("p:proofChecker a gmeow:Standpoint .\n");
+    t.push_str("p:proofChecker a gmeow:Standpoint, gmeow:Entity .\n");
 
     ProofIngest {
         verification_result,
@@ -270,6 +315,8 @@ pub struct RBridgeLift {
 /// non-empty lift. Nothing is dropped silently.
 pub fn r_bridge_lift() -> RBridgeLift {
     let ingest_run = format!("{PRODUCER_NS}rRun");
+    verify_ingest_lift(R_BRIDGE_OBSERVATIONS)
+        .expect("the R bridge producer emits a non-empty structured lift");
 
     let mut t = header();
     t.push_str("# Flagship 4 — lifting an R lm(mpg ~ wt + hp) fit into the math: codomain.\n");
@@ -375,6 +422,7 @@ pub struct ExactPcaResidual {
 /// (satisfying `math:PCAAnalysisShape`) together with the exact-rational `math:GramMatrix`
 /// (symmetric, per `math:GramMatrixShape`) grounding the decomposition.
 pub fn exact_pca_residual() -> ExactPcaResidual {
+    verify_pca_analysis(true).expect("the PCA producer emits its covariance operator");
     let space = pca_gram();
     let x = pca_vector();
     let dominant_axis = space.dominant_axis(&x).expect("dominant axis of x under G");

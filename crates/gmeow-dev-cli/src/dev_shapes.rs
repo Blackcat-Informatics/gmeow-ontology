@@ -257,6 +257,7 @@ struct OracleCtx {
     formalized_shapes: std::collections::BTreeSet<String>,
     formalized_failure_classes: BTreeMap<String, std::collections::BTreeSet<String>>,
     object_properties: std::collections::BTreeSet<String>,
+    datatype_properties: std::collections::BTreeSet<String>,
 }
 
 impl OracleCtx {
@@ -313,6 +314,7 @@ impl OracleCtx {
             formalized_shapes,
             formalized_failure_classes,
             object_properties: object_property_iris(root),
+            datatype_properties: datatype_property_iris(root),
         })
     }
 
@@ -760,6 +762,7 @@ fn reasoner_safe_emit(
     ir: &ValidationShapeIr,
     functional_safe: &std::collections::BTreeSet<String>,
     object_properties: &std::collections::BTreeSet<String>,
+    datatype_properties: &std::collections::BTreeSet<String>,
     data: &InstanceData,
 ) -> MigrateEmit {
     let mut class_stmts = Vec::new();
@@ -824,13 +827,23 @@ fn reasoner_safe_emit(
             }
         } else if let Some(nk) = &nodekind_filler {
             class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{nk}>")));
-        } else if min_present {
+        } else if min_present && object_properties.contains(p) {
             // Bare existence with no class/datatype/node-kind filler.
             class_stmts.push(restriction(
                 k,
                 p,
                 "allValuesFrom",
                 &format!("<{OWL_THING}>"),
+            ));
+        } else if min_present && datatype_properties.contains(p) {
+            // A datatype property ranges over literals by definition. Mixed/undeclared
+            // `rdf:Property` paths deliberately receive NO universal filler: choosing either
+            // OWL top would falsely reject the other side of a legitimate mixed RDF range.
+            class_stmts.push(restriction(
+                k,
+                p,
+                "allValuesFrom",
+                &format!("<{RDFS_LITERAL}>"),
             ));
         }
 
@@ -1081,6 +1094,15 @@ impl InstanceData {
 /// IRI-named-individual convention an object-property value is always an IRI, so a `sh:nodeKind sh:IRI`
 /// on such a path is redundant (definitionally satisfied), which the oracle and the migrator credit.
 fn object_property_iris(root: &Path) -> std::collections::BTreeSet<String> {
+    property_iris(root, "http://www.w3.org/2002/07/owl#ObjectProperty")
+}
+
+/// The set of property IRIs declared `owl:DatatypeProperty` anywhere in the authored tree.
+fn datatype_property_iris(root: &Path) -> std::collections::BTreeSet<String> {
+    property_iris(root, "http://www.w3.org/2002/07/owl#DatatypeProperty")
+}
+
+fn property_iris(root: &Path, property_kind: &str) -> std::collections::BTreeSet<String> {
     let mut modules = Vec::new();
     collect_module_files(&root.join("slices"), &mut modules);
     let ont = root.join("ontology/gmeow.ttl");
@@ -1088,12 +1110,11 @@ fn object_property_iris(root: &Path) -> std::collections::BTreeSet<String> {
         modules.push(ont);
     }
     let mut out = std::collections::BTreeSet::new();
-    let op = "http://www.w3.org/2002/07/owl#ObjectProperty";
     for m in modules {
         let Ok(ds) = parse_ttl_file(&m) else { continue };
         let (Some(ty), Some(opo)) = (
             ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
-            ds.term_id_by_value(&TermValue::iri(op)),
+            ds.term_id_by_value(&TermValue::iri(property_kind)),
         ) else {
             continue;
         };
@@ -1393,8 +1414,14 @@ pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
                 println!("  [ALREADY-GROUNDED] {}", short_iri(iri));
                 continue;
             }
-            let emit =
-                reasoner_safe_emit(k, &read.ir, &functional_safe, &ctx.object_properties, &data);
+            let emit = reasoner_safe_emit(
+                k,
+                &read.ir,
+                &functional_safe,
+                &ctx.object_properties,
+                &ctx.datatype_properties,
+                &data,
+            );
             let is_groundable = emit.residue.is_empty();
             if is_groundable {
                 groundable += 1;
@@ -1702,5 +1729,77 @@ mod tests {
         assert_eq!(shape.properties[0].min_count, Some(1));
         assert_eq!(shape.properties[0].max_count, Some(1));
         assert_eq!(shape.properties[0].components, vec![class]);
+    }
+
+    #[test]
+    fn bare_required_datatype_path_uses_literal_filler() {
+        let property = "https://example.test/index";
+        let shape = ValidationShapeIr::new(
+            "https://example.test/Shape",
+            ShapeTarget::Class("https://example.test/Focus".into()),
+            vec![
+                PropertyConstraintIr::new(
+                    property,
+                    Some(1),
+                    None,
+                    Some(ConstraintProvenance::OwlRestriction),
+                    vec![],
+                )
+                .unwrap(),
+            ],
+            None,
+        )
+        .unwrap();
+        let data = InstanceData {
+            types: BTreeMap::new(),
+            edges: BTreeMap::new(),
+            literal_edges: std::collections::BTreeSet::new(),
+        };
+        let emit = reasoner_safe_emit(
+            "https://example.test/Focus",
+            &shape,
+            &std::collections::BTreeSet::new(),
+            &std::collections::BTreeSet::new(),
+            &std::iter::once(property.to_owned()).collect(),
+            &data,
+        );
+        assert!(emit.class_stmts.iter().any(|s| s.contains(RDFS_LITERAL)));
+        assert!(!emit.class_stmts.iter().any(|s| s.contains(OWL_THING)));
+    }
+
+    #[test]
+    fn bare_required_mixed_rdf_property_has_no_universal_filler() {
+        let property = "https://example.test/mixed";
+        let shape = ValidationShapeIr::new(
+            "https://example.test/Shape",
+            ShapeTarget::Class("https://example.test/Focus".into()),
+            vec![
+                PropertyConstraintIr::new(
+                    property,
+                    Some(1),
+                    None,
+                    Some(ConstraintProvenance::OwlRestriction),
+                    vec![],
+                )
+                .unwrap(),
+            ],
+            None,
+        )
+        .unwrap();
+        let data = InstanceData {
+            types: BTreeMap::new(),
+            edges: BTreeMap::new(),
+            literal_edges: std::collections::BTreeSet::new(),
+        };
+        let emit = reasoner_safe_emit(
+            "https://example.test/Focus",
+            &shape,
+            &std::collections::BTreeSet::new(),
+            &std::collections::BTreeSet::new(),
+            &std::collections::BTreeSet::new(),
+            &data,
+        );
+        assert!(emit.class_stmts.iter().any(|s| s.contains("ClosureEntry")));
+        assert!(!emit.class_stmts.iter().any(|s| s.contains("allValuesFrom")));
     }
 }

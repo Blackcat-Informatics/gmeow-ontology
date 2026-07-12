@@ -28023,6 +28023,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "math:FlagshipScenario"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:FlagshipScenario"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/math:FlagshipScenario"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "math:FormalVerificationResult"
                     },
                     {
@@ -44602,27 +44627,43 @@
           "math:approximationError": {
             "anyOf": [
               {
-                "properties": {
-                  "@id": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  },
+                  {
                     "type": "string"
                   }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                ]
               },
               {
                 "items": {
-                  "properties": {
-                    "@id": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    },
+                    {
                       "type": "string"
                     }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  ]
                 },
                 "minItems": 1,
                 "type": "array"
@@ -45629,6 +45670,31 @@
         ],
         "type": "object"
       },
+      "math:FlagshipScenario": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "math:FormalVerificationResult": {
         "allOf": [
           {
@@ -46549,34 +46615,15 @@
                 "const": {
                   "@type": "xsd:boolean",
                   "@value": "true"
-                },
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                }
               },
               {
                 "items": {
                   "const": {
                     "@type": "xsd:boolean",
                     "@value": "true"
-                  },
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
+                  }
                 },
-                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -46592,9 +46639,6 @@
             ]
           }
         },
-        "required": [
-          "math:isExact"
-        ],
         "type": "object"
       },
       "math:Measure": {
@@ -46651,15 +46695,14 @@
             ]
           },
           "math:totalMass": {
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {},
+              {
+                "items": {},
+                "minItems": 1,
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "required": [
@@ -47288,19 +47331,23 @@
             ]
           },
           "math:totalMass": {
-            "const": {
-              "@type": "xsd:integer",
-              "@value": "1"
-            },
-            "properties": {
-              "@id": {
-                "type": "string"
+            "anyOf": [
+              {
+                "const": {
+                  "@type": "xsd:integer",
+                  "@value": "1"
+                }
+              },
+              {
+                "items": {
+                  "const": {
+                    "@type": "xsd:integer",
+                    "@value": "1"
+                  }
+                },
+                "type": "array"
               }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
+            ]
           }
         },
         "type": "object"

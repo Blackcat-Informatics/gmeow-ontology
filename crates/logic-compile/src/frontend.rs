@@ -1179,7 +1179,22 @@ fn closure_keys_with_value(
 /// shape". Read directly off the merged authored store, consistent with the dataset-derive
 /// architecture.
 fn closure_validation_closed_optins(store: &RdfDataset) -> std::collections::BTreeSet<String> {
-    closure_keys_with_value(store, "ClosedWorldClosure")
+    let closed = Node::iri(logic_iri("ClosedWorldClosure"));
+    let key_pred = nn(&logic_iri("closureKey"));
+    let class_pred = nn(&logic_iri("onClass"));
+    let mut set = std::collections::BTreeSet::new();
+    for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &closed) {
+        // A class-scoped entry closes only C/P requiredness. It must not silently opt the
+        // property into a GLOBAL closed-world domain/range reading, which would impose C's local
+        // migration decision on every use of P in every slice.
+        if value(store, &entry, &class_pred).is_some() {
+            continue;
+        }
+        if let Some(key) = value(store, &entry, &key_pred) {
+            set.insert(term_str(&key));
+        }
+    }
+    set
 }
 
 /// Class/property pairs whose closure entry explicitly turns an `owl:allValuesFrom` restriction
@@ -1705,10 +1720,43 @@ pub fn derive_validation_shapes(
             // of a faceted-datatype filler. A non-faceted blank filler → skip.
             match value(store, &restr_subj, &p_all) {
                 Some(Node::Iri(cv)) => {
-                    if let Some(cc) = classify(&cv) {
-                        let min = closed_requirements
-                            .contains(&(class_iri.clone(), on.clone()))
-                            .then_some(1);
+                    let min = closed_requirements
+                        .contains(&(class_iri.clone(), on.clone()))
+                        .then_some(1);
+                    // `owl:Thing` is the object-property top only when the path is actually an
+                    // OWL object property. A deliberately mixed `rdf:Property` (for example an
+                    // extended-real carrier accepting either a literal or a named infinity)
+                    // must not become `sh:nodeKind sh:BlankNodeOrIRI`; that would make its literal
+                    // branch unsatisfiable. Retain the closed-world requiredness, but no range
+                    // component, for an untyped/mixed path.
+                    let object_property = Node::iri(format!("{owl}ObjectProperty"));
+                    let rdf_property =
+                        Node::iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#Property");
+                    if cv == owl_thing
+                        && contains(
+                            store,
+                            &Subject::Iri(on.clone()),
+                            &nn(RDF_TYPE),
+                            &rdf_property,
+                        )
+                        && !contains(
+                            store,
+                            &Subject::Iri(on.clone()),
+                            &nn(RDF_TYPE),
+                            &object_property,
+                        )
+                    {
+                        let pc = PropertyConstraintIr::new(
+                            &on,
+                            min,
+                            None,
+                            min.map(|_| ConstraintProvenance::OwlRestriction),
+                            vec![],
+                        )?;
+                        entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                            .2
+                            .push(pc);
+                    } else if let Some(cc) = classify(&cv) {
                         let pc = PropertyConstraintIr::new(
                             &on,
                             min,

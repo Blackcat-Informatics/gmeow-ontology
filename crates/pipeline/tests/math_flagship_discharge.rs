@@ -27,10 +27,13 @@
 
 use gmeow_math::Rational;
 use gmeow_math::producers;
+use gmeow_validate::store::parse_file_dataset;
+use purrdf::RdfTerm;
 
 mod support;
 use support::flagship_discharge::{
-    Flagship, FlagshipCtx, SliceSpec, repo_root, run_flagship_discharge,
+    CounterExampleExecution, Flagship, FlagshipCtx, SliceSpec, flagship_error, repo_root,
+    run_flagship_discharge_with_counterexample,
 };
 
 /// The `math:` grounding namespace — used for the SCANNED failure classes (`math:<Class>`),
@@ -50,7 +53,79 @@ fn math_spec() -> SliceSpec {
 
 #[test]
 fn every_flagship_is_discharged_by_execution() {
-    run_flagship_discharge(&math_spec(), 5, &run_producer);
+    run_flagship_discharge_with_counterexample(&math_spec(), 5, &run_producer, &run_counterexample);
+}
+
+/// Interpret the malformed fixture into the SAME native semantic predicate asserted by its
+/// positive producer. A parser/infrastructure failure is an error; only a decided negative
+/// result becomes the manifest's typed math failure.
+fn run_counterexample(
+    flagship: &Flagship,
+    _ctx: &FlagshipCtx<'_>,
+) -> gmeow_errors::Result<CounterExampleExecution> {
+    let ds = parse_file_dataset(&flagship.counter_example).map_err(|e| {
+        flagship_error(format!(
+            "counter-example {} parses: {e}",
+            flagship.counter_example.display()
+        ))
+    })?;
+    let values = |predicate: &str| {
+        ds.owned_quads()
+            .filter(|q| q.predicate == predicate)
+            .map(|q| q.object)
+            .collect::<Vec<_>>()
+    };
+
+    let failure = match flagship.producer.as_str() {
+        "math::producers::e8_weyl_order" => {
+            let orders = values(&format!("{MATH_NS}groupOrder"));
+            let asserted = match orders.as_slice() {
+                [RdfTerm::Literal(lit)] => lit.lexical_form.parse::<i128>().map_err(|e| {
+                    flagship_error(format!("invalid math:groupOrder in E8 guard: {e}"))
+                })?,
+                other => {
+                    return Err(flagship_error(format!(
+                        "E8 guard must carry exactly one literal math:groupOrder, got {other:?}"
+                    )));
+                }
+            };
+            producers::verify_e8_weyl_order(asserted)
+        }
+        "math::producers::additive_he_demo" => {
+            producers::verify_he_scheme(!values(&format!("{MATH_NS}noiseModel")).is_empty())
+        }
+        "math::producers::proof_ingest" => {
+            let result_pred = "https://blackcatinformatics.ca/gmeow/observationResult";
+            let vantage_pred = "https://blackcatinformatics.ca/gmeow/vantage";
+            let result_subjects: std::collections::BTreeSet<_> = ds
+                .owned_quads()
+                .filter(|q| q.predicate == result_pred)
+                .map(|q| format!("{:?}", q.subject))
+                .collect();
+            let vantage_subjects: std::collections::BTreeSet<_> = ds
+                .owned_quads()
+                .filter(|q| q.predicate == vantage_pred)
+                .map(|q| format!("{:?}", q.subject))
+                .collect();
+            producers::verify_proof_result(!result_subjects.is_disjoint(&vantage_subjects))
+        }
+        "math::producers::r_bridge_lift" => producers::verify_ingest_lift(
+            values("https://blackcatinformatics.ca/gmeow/wasGeneratedBy").len(),
+        ),
+        "math::producers::exact_pca_residual" => producers::verify_pca_analysis(
+            !values(&format!("{MATH_NS}covarianceOperator")).is_empty(),
+        ),
+        other => {
+            return Err(flagship_error(format!(
+                "unknown math flagship producer identifier: {other}"
+            )));
+        }
+    }
+    .expect_err("the guarding fixture must be rejected by native semantic execution");
+
+    Ok(CounterExampleExecution::ReasonerDriven(
+        std::iter::once(failure.0.to_owned()).collect(),
+    ))
 }
 
 /// Build the expected LDLᵀ pivot vector `[4, 11/4, 18/11]` from exact rationals — the pinned

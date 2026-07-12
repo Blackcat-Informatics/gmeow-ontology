@@ -11,6 +11,7 @@ use purrdf::RdfDataset;
 
 const LOGIC_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
 const OTHER_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/other";
+const MATH_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/math";
 
 fn parse(ttl: &str) -> std::sync::Arc<RdfDataset> {
     purrdf::parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("fixture parses")
@@ -126,4 +127,46 @@ fn intrinsic_foundation_credit_does_not_leak_by_slice_or_namespace() {
     );
     assert_eq!(non_logic_iri_owned_by_logic.score, 0.0);
     assert_eq!(non_logic_iri_owned_by_logic.findings.len(), 1);
+}
+
+#[test]
+fn real_math_population_and_maximal_axes_are_pinned() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .expect("repo root canonicalizes");
+    let dir = root.join("slices/grounding/math");
+    let paths = gmeow_slice_quality::report::slice_ttl_paths(&dir);
+    let refs: Vec<_> = paths.iter().map(PathBuf::as_path).collect();
+    let ds = gmeow_slice_quality::dataset_from_paths(&refs).expect("math slice parses");
+    let terms = slice_terms(&ds, MATH_SLICE);
+    assert_eq!(
+        terms.len(),
+        592,
+        "the scored math term population is explicit"
+    );
+
+    let ctx = ScoreContext::new(MATH_SLICE.to_owned(), dir, &ds);
+    for producer in [
+        "grounding_axis",
+        "information_axis",
+        "linkage_axis",
+        "testing_axis",
+        "projection_axis",
+        "shape_migration_axis",
+        "prose_axis",
+        "translation_axis",
+        "flagship_counterexample_depth_axis",
+    ] {
+        let result = axes::resolve(producer).expect("axis producer exists")(&ctx);
+        assert_eq!(
+            result.score, 1.0,
+            "math {producer} population stays complete"
+        );
+        assert!(
+            result.findings.is_empty(),
+            "math {producer}: {:?}",
+            result.findings
+        );
+    }
 }
