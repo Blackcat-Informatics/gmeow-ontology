@@ -353,14 +353,19 @@ pub fn describe(
     let resolved: Option<String> = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok());
-    let (text, code) = gmeow_docs::describe(term, &bytes, resolved.as_deref());
-    if code == 0 {
+    let (text, status) = gmeow_docs::describe(term, &bytes, resolved.as_deref());
+    if status == gmeow_docs::DescribeStatus::Ok {
         println!("{text}");
         0
     } else {
-        // The backend's non-zero code is a resolution failure; surface its text as
-        // a graded diagnostic and preserve the exit code it produced.
-        fail_code(reporter, "gmeow-cli.describe.unresolved", text, code)
+        // The backend's status is a resolution failure; surface its text as a graded
+        // diagnostic and preserve the exit code it produced.
+        fail_code(
+            reporter,
+            "gmeow-cli.describe.unresolved",
+            text,
+            status.exit_code(),
+        )
     }
 }
 
