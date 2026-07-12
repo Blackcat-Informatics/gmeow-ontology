@@ -15657,14 +15657,6 @@
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
-   <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalInformation> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/floorSlice> <http://www.w3.org/2000/01/rdf-schema#domain> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalInformation> <https://blackcatinformatics.ca/gmeow/floorSlice> <https://blackcatinformatics.ca/gmeow/slices/logic> >> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalLinkage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/floorSlice> <http://www.w3.org/2000/01/rdf-schema#domain> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalLinkage> <https://blackcatinformatics.ca/gmeow/floorSlice> <https://blackcatinformatics.ca/gmeow/slices/logic> >> ;
@@ -15676,22 +15668,6 @@
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalProjection> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/floorSlice> <http://www.w3.org/2000/01/rdf-schema#domain> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalProjection> <https://blackcatinformatics.ca/gmeow/floorSlice> <https://blackcatinformatics.ca/gmeow/slices/logic> >> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
-   <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisOptimalTesting> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/floorSlice> <http://www.w3.org/2000/01/rdf-schema#domain> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisOptimalTesting> <https://blackcatinformatics.ca/gmeow/floorSlice> <https://blackcatinformatics.ca/gmeow/slices/logic> >> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
-   <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisProseQuality> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/floorSlice> <http://www.w3.org/2000/01/rdf-schema#domain> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisProseQuality> <https://blackcatinformatics.ca/gmeow/floorSlice> <https://blackcatinformatics.ca/gmeow/slices/logic> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -15716,14 +15692,6 @@
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisShapeMigration> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/floorSlice> <http://www.w3.org/2000/01/rdf-schema#domain> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisShapeMigration> <https://blackcatinformatics.ca/gmeow/floorSlice> <https://blackcatinformatics.ca/gmeow/slices/logic> >> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
-   <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisTranslationCoverage> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/floorSlice> <http://www.w3.org/2000/01/rdf-schema#domain> <https://blackcatinformatics.ca/gmeow/skolem/096ae0e58cd49b6c470fd7d1459ac850a2f862f4> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/afc-logic-axisTranslationCoverage> <https://blackcatinformatics.ca/gmeow/floorSlice> <https://blackcatinformatics.ca/gmeow/slices/logic> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3Adomain> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;

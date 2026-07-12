@@ -5,7 +5,7 @@
 # and re-running `make regenerate` — never by editing this read-only generated file.)
 # Format: <slice-iri>\t<tier-local-name>
 https://blackcatinformatics.ca/gmeow/slices/lang	tierRegistered
-https://blackcatinformatics.ca/gmeow/slices/logic	tierLinked
+https://blackcatinformatics.ca/gmeow/slices/logic	tierRegistered
 https://blackcatinformatics.ca/gmeow/slices/math	tierRegistered
 https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric	tierRegistered
 https://blackcatinformatics.ca/gmeow/slices/tags	tierRegistered
