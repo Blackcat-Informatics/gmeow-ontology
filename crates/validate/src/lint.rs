@@ -1991,6 +1991,35 @@ fn ds_subjects_with_object(ds: &RdfDataset, predicate_iri: &str, object_iri: &st
     out
 }
 
+/// Structural completeness predicate for a `math:MarkovKernel`: a declared domain AND
+/// codomain (`math:kernelDomain`, `math:kernelCodomain`). Shared VERBATIM between Gate 4
+/// (`math:IncompleteDependencyModel`) and Gate 5 (`math:ExactPreservationViolated`) so the
+/// two gates can never disagree on what "complete" means for a kernel.
+fn markov_kernel_is_complete(ds: &RdfDataset, k: &str) -> bool {
+    ds_has_predicate(ds, k, &math_iri("kernelDomain"))
+        && ds_has_predicate(ds, k, &math_iri("kernelCodomain"))
+}
+
+/// Structural completeness predicate for a `math:BayesianNetwork` or `math:FactorGraph`: a
+/// declared `math:dependencyGraph`. Shared VERBATIM between Gate 4 and Gate 5 so the two
+/// gates can never disagree on what "complete" means for a dependency-graph model.
+fn dependency_graph_is_complete(ds: &RdfDataset, node: &str) -> bool {
+    ds_has_predicate(ds, node, &math_iri("dependencyGraph"))
+}
+
+/// Whether `node` declares `logic:preservationKind logic:ExactPreservation` DIRECTLY on
+/// itself (the instance), as opposed to inheriting the declaration from its class's
+/// TBox-level `logic:preservationKind logic:ExactPreservation` (module.ttl declares this
+/// unconditionally on `math:BayesianNetwork`, `math:FactorGraph`, and `math:MarkovKernel` so
+/// the charter's "conditional — exact once the completeness gate holds" row can be read off
+/// the class at all). Only the instance-level declaration is an author's explicit exactness
+/// CLAIM about THIS model; it is what Gate 5 checks against structural completeness to catch
+/// the overclaim `math:ExactPreservationViolated`.
+fn declares_exact_preservation_directly(ds: &RdfDataset, node: &str) -> bool {
+    ds_object_iris(ds, node, &logic_iri("preservationKind"))
+        .contains(&logic_iri("ExactPreservation"))
+}
+
 /// The `math:` probability-layer invariants the charter designates as native
 /// Rust-validator primary gates, computed from the exact-rational carrier (never
 /// asserted data). Runs over the merged dataset (`GraphMatch::Any`), so the invariants
@@ -2171,46 +2200,61 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
     // graph; a math:FactorGraph declares its dependency graph (the bipartite variable/factor
     // structure); a math:JointProbabilityTable tabulates at least one outcome. A model
     // missing any of these cannot fix a joint distribution.
+    //
+    // math:BayesianNetwork, math:FactorGraph, and math:MarkovKernel each carry
+    // logic:preservationKind logic:ExactPreservation UNCONDITIONALLY at the TBox (class)
+    // level (module.ttl) — that class-level declaration exists so the charter's "conditional"
+    // lowering can be read off the class at all, not to license every instance as exact. An
+    // instance that is structurally incomplete AND additionally declares
+    // logic:ExactPreservation directly on ITSELF has made the honest-when-complete claim
+    // explicit while failing the gate that would make it true: that is the overclaim Gate 5
+    // (below) reports, not Gate 4's plain structural-incompleteness report, so Gate 4 skips
+    // it here (`markov_kernel_is_complete` / `dependency_graph_is_complete` and
+    // `declares_exact_preservation_directly` are shared verbatim with Gate 5 so the two gates
+    // can never diverge on what "complete" or "declares exact" means).
     for k in ds_subjects_of_type(ds, &math_iri("MarkovKernel")) {
+        if markov_kernel_is_complete(ds, &k) || declares_exact_preservation_directly(ds, &k) {
+            continue;
+        }
         let has_domain = ds_has_predicate(ds, &k, &math_iri("kernelDomain"));
         let has_codomain = ds_has_predicate(ds, &k, &math_iri("kernelCodomain"));
-        if !has_domain || !has_codomain {
-            let missing = match (has_domain, has_codomain) {
-                (false, false) => "math:kernelDomain and math:kernelCodomain",
-                (false, true) => "math:kernelDomain",
-                (true, false) => "math:kernelCodomain",
-                (true, true) => unreachable!(),
-            };
-            report.push_error(
-                codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
-                k.clone(),
-                format!("math:IncompleteDependencyModel: Markov kernel {k} is missing {missing}"),
-            );
-        }
+        let missing = match (has_domain, has_codomain) {
+            (false, false) => "math:kernelDomain and math:kernelCodomain",
+            (false, true) => "math:kernelDomain",
+            (true, false) => "math:kernelCodomain",
+            (true, true) => unreachable!(),
+        };
+        report.push_error(
+            codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
+            k.clone(),
+            format!("math:IncompleteDependencyModel: Markov kernel {k} is missing {missing}"),
+        );
     }
     for bn in ds_subjects_of_type(ds, &math_iri("BayesianNetwork")) {
-        if !ds_has_predicate(ds, &bn, &math_iri("dependencyGraph")) {
-            report.push_error(
-                codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
-                bn.clone(),
-                format!(
-                    "math:IncompleteDependencyModel: Bayesian network {bn} declares no \
-                     math:dependencyGraph"
-                ),
-            );
+        if dependency_graph_is_complete(ds, &bn) || declares_exact_preservation_directly(ds, &bn) {
+            continue;
         }
+        report.push_error(
+            codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
+            bn.clone(),
+            format!(
+                "math:IncompleteDependencyModel: Bayesian network {bn} declares no \
+                 math:dependencyGraph"
+            ),
+        );
     }
     for fg in ds_subjects_of_type(ds, &math_iri("FactorGraph")) {
-        if !ds_has_predicate(ds, &fg, &math_iri("dependencyGraph")) {
-            report.push_error(
-                codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
-                fg.clone(),
-                format!(
-                    "math:IncompleteDependencyModel: factor graph {fg} declares no \
-                     math:dependencyGraph"
-                ),
-            );
+        if dependency_graph_is_complete(ds, &fg) || declares_exact_preservation_directly(ds, &fg) {
+            continue;
         }
+        report.push_error(
+            codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
+            fg.clone(),
+            format!(
+                "math:IncompleteDependencyModel: factor graph {fg} declares no \
+                 math:dependencyGraph"
+            ),
+        );
     }
     for t in ds_subjects_of_type(ds, &math_iri("JointProbabilityTable")) {
         if ds_object_iris_sorted(ds, &t, &logic_iri("jointOutcome")).is_empty() {
@@ -2263,6 +2307,61 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
                 ),
             );
         }
+    }
+
+    // Gate 5 (continued) — the "conditional" dependency models: math:BayesianNetwork,
+    // math:FactorGraph, and math:MarkovKernel each declare logic:ExactPreservation
+    // UNCONDITIONALLY at the class (TBox) level (module.ttl) — the lowering IS exact once
+    // the model's completeness gate holds (Gate 4's `markov_kernel_is_complete` /
+    // `dependency_graph_is_complete`), and IS NOT otherwise. An instance that is
+    // structurally INCOMPLETE and additionally declares logic:ExactPreservation DIRECTLY on
+    // itself has made that exactness claim explicit for a model that cannot honor it — the
+    // preservation↔completeness overclaim math:ExactPreservationViolated. An incomplete
+    // instance that does not itself declare logic:ExactPreservation is Gate 4's plain
+    // structural-incompleteness report instead (skipped here to keep the two gates
+    // mutually exclusive); a complete instance overclaims nothing regardless of what it
+    // declares.
+    for k in ds_subjects_of_type(ds, &math_iri("MarkovKernel")) {
+        if markov_kernel_is_complete(ds, &k) || !declares_exact_preservation_directly(ds, &k) {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED,
+            k.clone(),
+            format!(
+                "math:ExactPreservationViolated: Markov kernel {k} declares \
+                 logic:ExactPreservation but is missing its declared domain or codomain \
+                 (kernel totality cannot hold over an undeclared domain/codomain)"
+            ),
+        );
+    }
+    for bn in ds_subjects_of_type(ds, &math_iri("BayesianNetwork")) {
+        if dependency_graph_is_complete(ds, &bn) || !declares_exact_preservation_directly(ds, &bn) {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED,
+            bn.clone(),
+            format!(
+                "math:ExactPreservationViolated: Bayesian network {bn} declares \
+                 logic:ExactPreservation but declares no math:dependencyGraph (DAG and CPT \
+                 completeness cannot hold over an undeclared graph)"
+            ),
+        );
+    }
+    for fg in ds_subjects_of_type(ds, &math_iri("FactorGraph")) {
+        if dependency_graph_is_complete(ds, &fg) || !declares_exact_preservation_directly(ds, &fg) {
+            continue;
+        }
+        report.push_error(
+            codes::MATH_PROBABILITY_EXACT_PRESERVATION_VIOLATED,
+            fg.clone(),
+            format!(
+                "math:ExactPreservationViolated: factor graph {fg} declares \
+                 logic:ExactPreservation but declares no math:dependencyGraph (finite \
+                 normalized factors cannot hold over an undeclared factor structure)"
+            ),
+        );
     }
 }
 
@@ -3658,7 +3757,7 @@ mod tests {
         // class (and none of the other four probability classes), so each (fixture, class)
         // pair is load-bearing. Both distribution-parameter counter-examples fire the shared
         // math:DistributionParameterConstraint class (positivity arm vs dimension arm).
-        let cases: [(&str, &str); 7] = [
+        let cases: [(&str, &str); 10] = [
             (
                 include_str!(
                     "../../../slices/grounding/math/tests/counter-examples/probability-out-of-bounds.ttl"
@@ -3701,6 +3800,24 @@ mod tests {
                 ),
                 "math:ExactPreservationViolated",
             ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/bayesian-network-exact-preservation-violated.ttl"
+                ),
+                "math:ExactPreservationViolated",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/factor-graph-exact-preservation-violated.ttl"
+                ),
+                "math:ExactPreservationViolated",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/markov-kernel-exact-preservation-violated.ttl"
+                ),
+                "math:ExactPreservationViolated",
+            ),
         ];
         for (ttl, expected) in cases {
             let report = structural_lint_dataset(&dataset_from(ttl), &cfg());
@@ -3726,7 +3843,7 @@ mod tests {
     fn math_probability_clean_fixtures_fire_no_probability_class() {
         // Each clean conformance fixture is the positive counterpart of one counter-example
         // and MUST raise none of the five native probability failure classes.
-        let clean: [&str; 7] = [
+        let clean: [&str; 10] = [
             include_str!(
                 "../../../slices/grounding/math/tests/conformance-fixtures/probability-in-bounds.ttl"
             ),
@@ -3747,6 +3864,15 @@ mod tests {
             ),
             include_str!(
                 "../../../slices/grounding/math/tests/conformance-fixtures/joint-table-mass-one.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/bayesian-network-exact-complete.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/factor-graph-exact-complete.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/markov-kernel-exact-complete.ttl"
             ),
         ];
         for ttl in clean {
