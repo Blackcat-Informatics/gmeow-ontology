@@ -146,6 +146,12 @@ are consumed through its public Rust API:
   height per fact; Skip stores none. `crates/logic/src/explain.rs` indexes row
   identity once and descends only a queried witness subtree, so no eager proof-tree
   forest is materialized.
+- Incremental non-monotone grounding:
+  `crates/logic/src/physical/incremental_grounding.rs` reuses the signed recursive
+  session for the positive candidate universe and differentiates the ground-rule
+  projection with the same telescoping product law. The WFS/stable-model wrappers
+  cache an answer only for an unchanged EDB+ground-rule slice; a changed slice
+  explicitly records and runs the still-non-incremental solver from scratch.
 - SIMD: `purrdf-iri` uses safe portable SIMD only for dense ASCII delimiter scans;
   semantic validation remains scalar and byte-exact.
 - Sealed traits: `purrdf::DatasetView` and `DatasetMut` are sealed to the purrdf

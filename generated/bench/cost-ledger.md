@@ -23,19 +23,20 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | nary-mini | co-witness | nary-existential | 16 | 6 | 565335 | 5680 | 97071 | true | true |
 | nary-mini | split-null | nary-existential | 14 | 6 | 458974 | 4686 | 84282 | true | true |
 | nary-mini | stb-like | nary-existential | 24 | 10 | 766049 | 7881 | 89385 | true | true |
-| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 183591 | 1701 | 22188 | true | true |
+| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 184434 | 1729 | 22188 | true | true |
 | nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 110880 | 1072 | 16884 | true | true |
 | nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3901583 | 32984 | 37950 | true | true |
 | relational-core-mini | incremental-transitive-closure | incremental | 13 | 91 | 2411313 | 54874 | 130246 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208852 | 53459 | 58601 | true | true |
-| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3969023 | 33958 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3942462 | 33702 | 42113 | true | true |
+| relational-core-mini | incremental-wfs-grounding | incremental-grounding | 1 | 7 | 7938051 | 190135 | 238187 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208440 | 53445 | 58601 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3969435 | 33972 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3942034 | 33688 | 42113 | true | true |
 | relational-core-mini | reachability | forward | 2 | 2 | 3702215 | 31095 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5406020 | 46472 | 53602 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5406439 | 46486 | 53602 | true | true |
 | relational-core-mini | scc | forward | 8 | 8 | 6142905 | 52303 | 53924 | true | true |
 | relational-core-mini | transitive-closure | forward | 3 | 3 | 3901828 | 33008 | 37913 | true | true |
-| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5472212 | 56838 | 213558 | true | true |
-| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7856606 | 106392 | 626039 | true | true |
+| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5476055 | 56964 | 213558 | true | true |
+| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7884439 | 107344 | 626039 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
@@ -72,6 +73,15 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | corpus | case | incremental steps | scratch steps | steps saved | derived rows | incremental peak_live_bytes | scratch peak_live_bytes | peak bytes saved | joined delta rows | insert parity | retract parity |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | relational-core-mini | incremental-transitive-closure | 13 | 91 | 78 | 91 | 130246 | 231822 | 101576 | 1211 | true | true |
+| relational-core-mini | incremental-wfs-grounding | 1 | 13 | 12 | 7 | 238187 | 239714 | 1527 | 3 | true | true |
+
+## Incremental non-monotone grounding
+
+Ground-rule commits and candidate probes are deterministic. The maintained ground program is incremental; the named WFS/stable-model solver remains explicitly from scratch whenever its complete slice changes.
+
+| corpus | case | incremental ground commits | scratch ground commits | commits saved | incremental ground probes | scratch ground probes | probes saved | active ground rules | EDB changes | universe changes | universe delta rows | ground-rule delta rows | solver | solver status | solver reran | insert parity | retract parity |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| relational-core-mini | incremental-wfs-grounding | 1 | 13 | 12 | 28 | 195 | 167 | 13 | 1 | 2 | 2 | 1 | well-founded alternating fixpoint | flagged-non-incremental | true | true | true |
 
 ## Cold vs warm physical-plan reuse
 
@@ -101,11 +111,11 @@ Each row executes the same warm physical plan over identical EDB/rules. Fact-clo
 | relational-core-mini | non-linear-transitive-closure | 9 | 9 | 3 | 6 | 6 | 25050 | 16701 | 8349 | 1282 | 1143 | 139 | true | true | true |
 | relational-core-mini | points-to | 8 | 8 | 3 | 4 | 4 | 18679 | 13077 | 5602 | 988 | 902 | 86 | true | true | true |
 | relational-core-mini | reachability | 4 | 4 | 2 | 2 | 2 | 12080 | 8610 | 3470 | 515 | 443 | 72 | true | true | true |
-| relational-core-mini | same-generation | 12 | 12 | 2 | 8 | 8 | 35727 | 26005 | 9722 | 2082 | 1773 | 309 | true | true | true |
+| relational-core-mini | same-generation | 12 | 12 | 2 | 8 | 8 | 35727 | 26005 | 9722 | 2096 | 1787 | 309 | true | true | true |
 | relational-core-mini | scc | 10 | 10 | 3 | 8 | 8 | 24534 | 14235 | 10299 | 1463 | 1201 | 262 | true | true | true |
 | relational-core-mini | transitive-closure | 5 | 5 | 2 | 3 | 3 | 13244 | 9325 | 3919 | 639 | 549 | 90 | true | true | true |
-| relational-core-mini | transitive-closure-scaled | 90 | 90 | 12 | 78 | 78 | 198794 | 92812 | 105982 | 12237 | 16404 | -4167 | true | true | true |
-| relational-core-mini | triangle-heavy | 256 | 256 | 1 | 64 | 64 | 514700 | 344443 | 170257 | 49214 | 48448 | 766 | true | true | true |
+| relational-core-mini | transitive-closure-scaled | 90 | 90 | 12 | 78 | 78 | 198794 | 92812 | 105982 | 12153 | 16320 | -4167 | true | true | true |
+| relational-core-mini | triangle-heavy | 256 | 256 | 1 | 64 | 64 | 514700 | 344443 | 170257 | 49536 | 48770 | 766 | true | true | true |
 
 ## Per-corpus divergence-ledger tally
 
@@ -114,6 +124,6 @@ Each row executes the same warm physical plan over identical EDB/rules. Fact-clo
 | chasebench-mini | 6 | 6 | 0 | 0 | 6 | 7e3b2cd6c21f854f97f6ea48cbb652374161227cad90affd984a08a2792cf680 |
 | nary-mini | 6 | 6 | 0 | 0 | 6 | 37c8169a51b2e49f54342cfb4eca9469ba0fb8c981981441a6dcef290953188c |
 | nemo-kr2024-mini | 6 | 6 | 0 | 0 | 6 | c3d339d0a17be2a42e9cceea34e815395af1d903cb2063da4a4e61f9abb5ac29 |
-| relational-core-mini | 22 | 22 | 0 | 0 | 22 | b347f84ef89776c04003344777a35b7444e37c2837748fc7976837aa7907924e |
+| relational-core-mini | 27 | 27 | 0 | 0 | 27 | b5286b6bacfe00270424c570216ad68d8f7bdc7a71b2cd9de99c764ffe568eae |
 
-19 case(s) across 4 corpora in the committed cost baseline.
+20 case(s) across 4 corpora in the committed cost baseline.

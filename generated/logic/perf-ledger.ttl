@@ -3,7 +3,8 @@
 # of the seven-lever execution stack. The built P0 levers (the relational core —
 # semi-naive + stratified negation + index selection, selective worst-case-optimal
 # joins, magic-sets, positive-Datalog signed incrementality, cached compiled plans,
-# and bounded min-height / Z-weight provenance) are NOT
+# bounded min-height / Z-weight provenance, and non-monotone incremental grounding)
+# are NOT
 # rows here; this ledger records ONLY the deferred items, so a row is never
 # misread as a shipped feature. Two honest statuses:
 #   gmeow:FlaggedNonIncremental — a canonical hard part: a native fallback EXISTS,
@@ -22,9 +23,9 @@
 
 # --- deferred / non-incremental entries ---
 <https://blackcatinformatics.ca/gmeow/perf-entry-0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry> ;
-   <https://blackcatinformatics.ca/gmeow/construct> "incremental well-founded / stable-model semantics"@en ;
+   <https://blackcatinformatics.ca/gmeow/construct> "incremental well-founded / stable-model solving"@en ;
    <https://blackcatinformatics.ca/gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental> ;
-   <https://blackcatinformatics.ca/gmeow/note> "well-founded / stable-model semantics incrementally stays a heavy-path fallback longest; a native fallback exists but is not yet incremental"@en .
+   <https://blackcatinformatics.ca/gmeow/note> "the ground program is maintained incrementally, while well-founded / stable-model solving reruns from scratch when that slice changes and remains explicitly non-incremental"@en .
 <https://blackcatinformatics.ca/gmeow/perf-entry-1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry> ;
    <https://blackcatinformatics.ca/gmeow/construct> "existential-rule chase with termination and incrementality together"@en ;
    <https://blackcatinformatics.ca/gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental> ;

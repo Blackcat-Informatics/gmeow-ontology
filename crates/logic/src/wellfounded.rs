@@ -38,6 +38,11 @@
 use crate::rule_ir::{
     DerivedRow, EvalRule, FactStore, echo_asserted, least_model_of_reduct, world_edb_facts,
 };
+use crate::{
+    physical::{GroundingUpdate, IncrementalGroundProgram, SignedFact},
+    reason::perf_ledger::{NonmonotoneSolveRun, NonmonotoneSolver, nonmonotone_solve_run},
+    rule_ir::Fact,
+};
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -66,6 +71,96 @@ pub const WELL_FOUNDED_PHASES: [&str; 3] =
 /// `logic:iterationBody` is this phase's `logic:ActionSchema`.
 pub const WELL_FOUNDED_ITERATED_PHASE: &str = "wfResolveFixpoint";
 
+/// One multi-shot WFS update: maintained-ground-program evidence, the explicit
+/// non-incremental solver ledger row, and the current canonical result.
+#[derive(Debug, Clone)]
+pub(crate) struct IncrementalWellFoundedShot {
+    pub(crate) grounding: GroundingUpdate,
+    pub(crate) solve: NonmonotoneSolveRun,
+    pub(crate) rows: Vec<DerivedRow>,
+}
+
+/// Stateful WFS facade over an incrementally maintained ground program.
+///
+/// Only grounding is incremental.  A changed complete solver slice reruns the
+/// existing alternating fixpoint from scratch; an unchanged slice reuses the
+/// cached rows and records that disposition in the per-shot perf-ledger row.
+#[derive(Debug, Clone)]
+pub(crate) struct IncrementalWellFoundedSession {
+    world: String,
+    ground: IncrementalGroundProgram,
+    rows: Vec<DerivedRow>,
+}
+
+impl IncrementalWellFoundedSession {
+    /// Build the initial ground program and solve it once from scratch.
+    pub(crate) fn new(
+        contract_hash: impl Into<String>,
+        world: impl Into<String>,
+        edb: impl IntoIterator<Item = Fact>,
+        rules: &[EvalRule],
+    ) -> gmeow_errors::Result<Self> {
+        let world = world.into();
+        let ground = IncrementalGroundProgram::new(contract_hash, edb, rules)?;
+        let snapshot = ground.snapshot();
+        let rows = materialize_ground_slice(&world, &snapshot.edb, &snapshot.rules)?;
+        Ok(Self {
+            world,
+            ground,
+            rows,
+        })
+    }
+
+    /// Current cached rows.
+    pub(crate) fn rows(&self) -> &[DerivedRow] {
+        &self.rows
+    }
+
+    /// Full-grounding candidate probes paid when this session was built.
+    pub(crate) fn scratch_ground_rule_probe_rows(&self) -> u64 {
+        self.ground.scratch_ground_rule_probe_rows()
+    }
+
+    /// Active fully-ground rules in the current solver slice.
+    pub(crate) fn active_ground_rule_count(&self) -> usize {
+        self.ground.active_ground_rule_count()
+    }
+
+    /// Falsifiable maintenance oracle for tests / deterministic benchmark lanes.
+    pub(crate) fn check_grounding_scratch_parity(&self) -> gmeow_errors::Result<()> {
+        self.ground.check_scratch_parity()
+    }
+
+    /// Apply one signed EDB shot.  The session is atomic across grounding and
+    /// solving: a solver failure leaves both the old ground program and old rows.
+    pub(crate) fn apply(
+        &mut self,
+        changes: impl IntoIterator<Item = SignedFact>,
+    ) -> gmeow_errors::Result<IncrementalWellFoundedShot> {
+        let mut next_ground = self.ground.clone();
+        let grounding = next_ground.apply(changes)?;
+        let solve = nonmonotone_solve_run(
+            NonmonotoneSolver::WellFounded,
+            grounding.slice_changed,
+            grounding.edb_changes.len(),
+            grounding.rule_changes.len(),
+        );
+        let next_rows = if solve.solver_reran() {
+            let snapshot = next_ground.snapshot();
+            materialize_ground_slice(&self.world, &snapshot.edb, &snapshot.rules)?
+        } else {
+            self.rows.clone()
+        };
+        self.ground = next_ground;
+        self.rows = next_rows.clone();
+        Ok(IncrementalWellFoundedShot {
+            grounding,
+            solve,
+            rows: next_rows,
+        })
+    }
+}
+
 /// Materialize the well-founded model of `rules` over every world in `store`.
 ///
 /// Returns the asserted-EDB rows plus the derived true-atom rows, sorted by
@@ -86,48 +181,50 @@ pub(crate) fn materialize(
     let mut out: Vec<DerivedRow> = Vec::new();
     for world in &worlds {
         let edb_facts = world_edb_facts(store, world)?;
-
-        // Asserted-EDB echo.
-        out.extend(echo_asserted(world, &edb_facts)?);
-
-        // Seed the EDB store (sorted-key order already, from world_edb_facts).
-        let mut edb = FactStore::new();
-        for f in &edb_facts {
-            edb.insert(f.clone());
-        }
-
-        // Alternating fixpoint.
-        let mut k = edb.clone();
-        loop {
-            let u = least_model_of_reduct(&edb, rules, &k)?.store;
-            let k2 = least_model_of_reduct(&edb, rules, &u)?.store;
-            if k2.key_set() == k.key_set() {
-                k = k2;
-                break;
-            }
-            k = k2;
-        }
-        let well_founded = k;
-
-        // Final reduct against the well-founded model.  In a total model the least
-        // model of the reduct reproduces W exactly; a mismatch means an undefined
-        // atom (hard error in v1).
-        let final_res = least_model_of_reduct(&edb, rules, &well_founded)?;
-        if final_res.store.key_set() != well_founded.key_set() {
-            return Err(reason_err(
-                "well-founded model is partial (undefined atoms) — not supported in \
-                 gmeow-logic v1 (no Phase-A corpus case is non-total)"
-                    .to_owned(),
-            ));
-        }
-
-        // Emit derived rows (already excludes EDB), stamping the world graph.
-        for mut row in final_res.derivations {
-            row.graph = world.clone();
-            out.push(row);
-        }
+        out.extend(materialize_ground_slice(world, &edb_facts, rules)?);
     }
 
+    crate::rule_ir::sort_rows(&mut out);
+    Ok(out)
+}
+
+/// Run the deliberately non-incremental alternating fixpoint over one complete
+/// solver slice. `rules` may be the original variable program or the exact active
+/// ground program maintained by [`IncrementalGroundProgram`].
+fn materialize_ground_slice(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[EvalRule],
+) -> gmeow_errors::Result<Vec<DerivedRow>> {
+    let mut out = echo_asserted(world, edb_facts)?;
+    let mut edb = FactStore::new();
+    for fact in edb_facts {
+        edb.insert(fact.clone());
+    }
+
+    let mut k = edb.clone();
+    loop {
+        let u = least_model_of_reduct(&edb, rules, &k)?.store;
+        let k2 = least_model_of_reduct(&edb, rules, &u)?.store;
+        if k2.key_set() == k.key_set() {
+            k = k2;
+            break;
+        }
+        k = k2;
+    }
+    let well_founded = k;
+    let final_res = least_model_of_reduct(&edb, rules, &well_founded)?;
+    if final_res.store.key_set() != well_founded.key_set() {
+        return Err(reason_err(
+            "well-founded model is partial (undefined atoms) — not supported in \
+             gmeow-logic v1 (no Phase-A corpus case is non-total)"
+                .to_owned(),
+        ));
+    }
+    for mut row in final_res.derivations {
+        row.graph = world.to_owned();
+        out.push(row);
+    }
     crate::rule_ir::sort_rows(&mut out);
     Ok(out)
 }
@@ -185,6 +282,24 @@ mod tests {
         store
     }
 
+    fn wf_fact(subject: &str, predicate: &str, object: &str) -> Fact {
+        Fact {
+            subject: TermValue::iri(format!("{WF}{subject}")),
+            predicate: format!("{WF}{predicate}"),
+            object: TermValue::iri(format!("{WF}{object}")),
+        }
+    }
+
+    fn row_key(row: &DerivedRow) -> (String, String, String, String, String) {
+        (
+            row.graph.clone(),
+            crate::provenance::term_display(&row.subject),
+            row.predicate.clone(),
+            crate::provenance::term_display(&row.object),
+            row.rule_iri.clone(),
+        )
+    }
+
     #[test]
     fn well_founded_derives_exactly_win_p1_p1() {
         let rules = wf_rules();
@@ -227,5 +342,61 @@ mod tests {
                     && r.predicate.as_str() == format!("{WF}move")),
             "asserted move row present"
         );
+    }
+
+    #[test]
+    fn incremental_grounding_reuses_only_an_unchanged_complete_wfs_slice() {
+        let world = format!("{WF}world-game");
+        let rules = wf_rules();
+        let mut session = IncrementalWellFoundedSession::new(
+            "contract",
+            &world,
+            [wf_fact("p1", "move", "p2")],
+            &rules,
+        )
+        .expect("initial incremental WFS session");
+        let direct = materialize(&wf_store(), &rules).expect("direct WFS");
+        assert_eq!(
+            session.rows().iter().map(row_key).collect::<Vec<_>>(),
+            direct.iter().map(row_key).collect::<Vec<_>>(),
+            "ground-program solve preserves direct WFS rows"
+        );
+
+        let cancelled = session
+            .apply([
+                SignedFact {
+                    fact: wf_fact("p2", "move", "p3"),
+                    weight: 1,
+                },
+                SignedFact {
+                    fact: wf_fact("p2", "move", "p3"),
+                    weight: -1,
+                },
+            ])
+            .expect("cancelled shot");
+        assert!(!cancelled.grounding.slice_changed);
+        assert!(!cancelled.solve.solver_reran());
+        assert_eq!(cancelled.solve.edb_changes, 0);
+        assert_eq!(cancelled.solve.ground_rule_changes, 0);
+
+        let changed = session
+            .apply([SignedFact {
+                fact: wf_fact("p2", "move", "p3"),
+                weight: 1,
+            }])
+            .expect("changed shot");
+        assert!(changed.grounding.slice_changed);
+        assert!(changed.solve.solver_reran());
+        assert_eq!(
+            changed.solve.solver.as_str(),
+            "well-founded alternating fixpoint"
+        );
+        assert!(changed.rows.iter().any(|row| {
+            row.predicate == format!("{WF}win")
+                && crate::provenance::term_display(&row.subject) == format!("<{WF}p2>")
+        }));
+        session
+            .check_grounding_scratch_parity()
+            .expect("changed WFS grounding matches scratch");
     }
 }

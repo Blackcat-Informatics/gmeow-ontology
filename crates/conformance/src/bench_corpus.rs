@@ -25,7 +25,8 @@
 //!   authored by formula/hand — never an engine echo.
 //! * `profile.json` — `{ "fragment": …, "engines": [ … ] }`.
 //!
-//! The `incremental` fragment additionally carries `delta.nq`: one single-world
+//! The `incremental` and `incremental-grounding` fragments additionally carry
+//! `delta.nq`: one single-world
 //! insertion batch. The harness prepares a fixed-rule session from `input.nq`, applies
 //! `delta.nq`, checks the resulting closure against a clean native rebuild, retracts the
 //! same batch, and checks that the base closure is recovered. Its golden `rows` is the
@@ -66,6 +67,10 @@ pub enum Fragment {
     /// Signed insert/retract maintenance of finite positive binary Datalog, compared
     /// against clean native rebuilds rather than a secondary engine.
     Incremental,
+    /// Signed maintenance of the fully-ground WFS/stable-model solver slice. The
+    /// grounder is incremental; the non-monotone solver remains from scratch and is
+    /// reported explicitly per shot.
+    IncrementalGrounding,
     /// Fixed-arity n-ary multi-head existential TGD chase (native reified-binary lowering
     /// vs Nemo), driven from an n-ary `.rls` program + delimited (`data/<rel>.csv`) EDB —
     /// the ChaseBench/Nemo-KR2024 family shape. Distinct from [`Fragment::Existential`]
@@ -81,11 +86,13 @@ impl Fragment {
             "existential" => Ok(Fragment::Existential),
             "backward" => Ok(Fragment::Backward),
             "incremental" => Ok(Fragment::Incremental),
+            "incremental-grounding" => Ok(Fragment::IncrementalGrounding),
             "nary-existential" => Ok(Fragment::NaryExistential),
             other => Err(Diag::of_kind(ProfileInvalid {
                 detail: format!(
                     "profile.json fragment must be \"forward\", \"existential\", \"backward\", \
-                     \"incremental\", or \"nary-existential\", got {other:?}"
+                     \"incremental\", \"incremental-grounding\", or \
+                     \"nary-existential\", got {other:?}"
                 ),
             })),
         }
@@ -99,6 +106,7 @@ impl Fragment {
             Fragment::Existential => "existential",
             Fragment::Backward => "backward",
             Fragment::Incremental => "incremental",
+            Fragment::IncrementalGrounding => "incremental-grounding",
             Fragment::NaryExistential => "nary-existential",
         }
     }
@@ -137,9 +145,9 @@ pub struct BenchCase {
     /// The world-scoped EDB as N-Quads (`input.nq`), verbatim. EMPTY for an
     /// [`Fragment::NaryExistential`] case, whose EDB is the n-ary `nary_edb` instead.
     pub edb_nq: String,
-    /// The signed insertion fixture (`delta.nq`) for [`Fragment::Incremental`]
-    /// cases ONLY — empty for every other fragment. The same rows are retracted
-    /// after insertion to prove recursive delete parity.
+    /// The signed insertion fixture (`delta.nq`) for [`Fragment::Incremental`] and
+    /// [`Fragment::IncrementalGrounding`] cases ONLY — empty for every other
+    /// fragment. The same rows are retracted after insertion to prove parity.
     pub delta_nq: String,
     /// The n-ary EDB (`data/<rel>.csv` files, arity-driven), for
     /// [`Fragment::NaryExistential`] cases ONLY — empty for every other fragment.
@@ -252,7 +260,7 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
             let nary_edb = load_nary_edb_dir(corpus, name, &case_dir.join("data"), &prefixes)?;
             (rules, String::new(), String::new(), nary_edb)
         }
-        Fragment::Incremental => {
+        Fragment::Incremental | Fragment::IncrementalGrounding => {
             let rules = read_to_string(&case_dir.join("program.rules"))?;
             let edb_nq = read_to_string(&case_dir.join("input.nq"))?;
             let delta_nq = read_to_string(&case_dir.join("delta.nq"))?;
@@ -594,7 +602,7 @@ mod tests {
                         c.name
                     );
                 }
-                Fragment::Incremental => {
+                Fragment::Incremental | Fragment::IncrementalGrounding => {
                     assert!(
                         !c.edb_nq.trim().is_empty(),
                         "{}/{}: empty incremental input.nq",

@@ -39,6 +39,11 @@ mod generic;
 // binary Datalog fragment. It owns recursive insert/retract maintenance and is the
 // stateful sibling of the scratch `seminaive` evaluator.
 mod incremental;
+// Incremental grounding for the non-monotone binary fragment.  It reuses the
+// signed positive-Datalog session for the candidate universe, then differentiates
+// each grounding join while deliberately leaving WFS / stable-model solving on
+// its named from-scratch boundary.
+mod incremental_grounding;
 // Branded niche IDs for every engine entity class (`TermId`/`PredId`/`RuleId`/
 // `RowId`). `pub(crate)` so `crate::facts` can re-express its `TermId` as this
 // module's `Id<Term>` alias (one definition, not two — greenfield).
@@ -73,6 +78,10 @@ pub(crate) use generic::{
 pub(crate) use incremental::{
     BudgetedIncrementalDelta, IncrementalDelta, IncrementalDerivation, IncrementalIdentity,
     IncrementalSession, SignedFact,
+};
+#[allow(unused_imports)]
+pub(crate) use incremental_grounding::{
+    GroundProgramSnapshot, GroundRuleChange, GroundingUpdate, IncrementalGroundProgram,
 };
 
 // Phase-A: these are the engine's public-to-crate surface, consumed by the

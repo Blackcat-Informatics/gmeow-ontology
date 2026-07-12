@@ -77,6 +77,82 @@ pub struct PerfLedger {
     pub rows: Vec<PerfRow>,
 }
 
+/// The non-monotone solver selected for one maintained-ground-program shot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum NonmonotoneSolver {
+    /// Van Gelder alternating-fixpoint evaluation.
+    WellFounded,
+    /// Exhaustive stable-model enumeration followed by cautious intersection.
+    StableModel,
+}
+
+impl NonmonotoneSolver {
+    /// Stable machine-readable solver name for a per-shot ledger row.
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::WellFounded => "well-founded alternating fixpoint",
+            Self::StableModel => "stable-model cautious enumeration",
+        }
+    }
+}
+
+/// What happened at the explicitly non-incremental solver boundary for one shot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum SolveDisposition {
+    /// The asserted EDB and active ground rules were unchanged, so the previous
+    /// solution was reused without entering the solver.
+    ReusedUnchangedGroundSlice,
+    /// The maintained solver slice changed and the existing solver reran from
+    /// scratch.  This is the honest open-research boundary.
+    ReranFromScratch,
+}
+
+/// Machine-readable performance-ledger row for one incremental-grounding shot.
+///
+/// The static [`PerfLedger`] says that non-monotone **solving** remains a flagged
+/// boundary. This row makes each run equally explicit without contaminating the
+/// deterministic repository-wide Turtle with process history.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct NonmonotoneSolveRun {
+    /// Solver whose boundary this row records.
+    pub(crate) solver: NonmonotoneSolver,
+    /// Same honest status as the canonical static ledger row.
+    pub(crate) status: PerfStatus,
+    /// Reuse versus explicit from-scratch solving for this shot.
+    pub(crate) disposition: SolveDisposition,
+    /// Consolidated asserted-fact changes in the solver slice.
+    pub(crate) edb_changes: usize,
+    /// Active ground-rule zero-crossings in the solver slice.
+    pub(crate) ground_rule_changes: usize,
+}
+
+impl NonmonotoneSolveRun {
+    /// Whether this shot entered the deliberately non-incremental solver.
+    pub(crate) fn solver_reran(self) -> bool {
+        self.disposition == SolveDisposition::ReranFromScratch
+    }
+}
+
+/// Construct the per-shot ledger row at the maintained-ground-program boundary.
+pub(crate) fn nonmonotone_solve_run(
+    solver: NonmonotoneSolver,
+    slice_changed: bool,
+    edb_changes: usize,
+    ground_rule_changes: usize,
+) -> NonmonotoneSolveRun {
+    NonmonotoneSolveRun {
+        solver,
+        status: PerfStatus::FlaggedNonIncremental,
+        disposition: if slice_changed {
+            SolveDisposition::ReranFromScratch
+        } else {
+            SolveDisposition::ReusedUnchangedGroundSlice
+        },
+        edb_changes,
+        ground_rule_changes,
+    }
+}
+
 /// Build the canonical performance ledger.
 ///
 /// Five rows, fixed order: the remaining `flagged-non-incremental` boundaries.
@@ -90,11 +166,11 @@ pub fn perf_ledger() -> PerfLedger {
             // ── The three canonical hard parts (a native fallback EXISTS; not yet
             //    incremental, so they stay heavy-path fallbacks longest). ──
             PerfRow {
-                construct: "incremental well-founded / stable-model semantics",
+                construct: "incremental well-founded / stable-model solving",
                 status: PerfStatus::FlaggedNonIncremental,
-                note: "well-founded / stable-model semantics incrementally stays a \
-                       heavy-path fallback longest; a native fallback exists but is not \
-                       yet incremental",
+                note: "the ground program is maintained incrementally, while well-founded / \
+                       stable-model solving reruns from scratch when that slice changes and \
+                       remains explicitly non-incremental",
             },
             PerfRow {
                 construct: "existential-rule chase with termination and incrementality together",
@@ -137,7 +213,8 @@ const PERF_HEADER: &str = "\
 # of the seven-lever execution stack. The built P0 levers (the relational core —
 # semi-naive + stratified negation + index selection, selective worst-case-optimal
 # joins, magic-sets, positive-Datalog signed incrementality, cached compiled plans,
-# and bounded min-height / Z-weight provenance) are NOT
+# bounded min-height / Z-weight provenance, and non-monotone incremental grounding)
+# are NOT
 # rows here; this ledger records ONLY the deferred items, so a row is never
 # misread as a shipped feature. Two honest statuses:
 #   gmeow:FlaggedNonIncremental — a canonical hard part: a native fallback EXISTS,
@@ -266,7 +343,7 @@ mod tests {
 
         // The three FlaggedNonIncremental hard parts (canon wording).
         for construct in [
-            "incremental well-founded / stable-model semantics",
+            "incremental well-founded / stable-model solving",
             "existential-rule chase with termination and incrementality together",
             "paraconsistent / modal facets",
             "rule-program-changing conjecture candidates",
@@ -324,5 +401,23 @@ mod tests {
             perf_ledger().to_turtle(),
             "the perf-ledger Turtle must be byte-deterministic"
         );
+    }
+
+    #[test]
+    fn per_shot_row_never_mislabels_from_scratch_solving_as_incremental() {
+        let rerun = nonmonotone_solve_run(NonmonotoneSolver::WellFounded, true, 1, 3);
+        assert_eq!(rerun.status, PerfStatus::FlaggedNonIncremental);
+        assert_eq!(rerun.solver.as_str(), "well-founded alternating fixpoint");
+        assert!(rerun.solver_reran());
+        assert_eq!(rerun.edb_changes, 1);
+        assert_eq!(rerun.ground_rule_changes, 3);
+
+        let reused = nonmonotone_solve_run(NonmonotoneSolver::StableModel, false, 0, 0);
+        assert_eq!(
+            reused.disposition,
+            SolveDisposition::ReusedUnchangedGroundSlice
+        );
+        assert!(!reused.solver_reran());
+        assert_eq!(reused.solver.as_str(), "stable-model cautious enumeration");
     }
 }

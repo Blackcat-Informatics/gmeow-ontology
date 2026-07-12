@@ -224,6 +224,26 @@ impl IncrementalSession {
         out
     }
 
+    /// Borrow the current fixed-point rows for one predicate in arena insertion
+    /// order, without cloning the closure into a second [`FactStore`].
+    ///
+    /// The incremental non-monotone grounder needs simultaneous old/new relation
+    /// views for its telescoping product. Both sessions already share the immutable
+    /// arena and carry their own fixed snapshot, so this filtered borrowed iterator
+    /// is the zero-copy seam.
+    pub(crate) fn closure_facts_for_predicate<'a>(
+        &'a self,
+        predicate: &'a str,
+    ) -> impl Iterator<Item = &'a Fact> + 'a {
+        let snapshot = self.fixed_snapshot();
+        self.arena
+            .facts_for_predicate(predicate)
+            .iter()
+            .copied()
+            .filter(move |id| snapshot.contains(id))
+            .map(|id| &self.arena.facts()[id])
+    }
+
     /// Apply one atomic signed EDB transaction and return the signed closure change.
     ///
     /// The transaction is consolidated before application.  At the external set

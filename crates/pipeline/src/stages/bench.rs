@@ -440,6 +440,24 @@ struct NativeCost {
     /// plan and fact closure.
     #[serde(default)]
     provenance: Option<ProvenanceCost>,
+    /// Incremental-grounding-only deterministic work vector and explicit solver
+    /// boundary.
+    #[serde(default)]
+    grounding: Option<IncrementalGroundingCost>,
+}
+
+#[derive(Deserialize)]
+struct IncrementalGroundingCost {
+    edb_changes: u64,
+    ground_rule_changes: u64,
+    universe_changes: u64,
+    universe_joined_rows: u64,
+    ground_rule_joined_rows: u64,
+    ground_rule_probe_rows: u64,
+    active_ground_rules: u64,
+    solver: String,
+    solver_status: String,
+    solver_reran: bool,
 }
 
 #[derive(Deserialize)]
@@ -495,6 +513,10 @@ struct ScratchCost {
     derived_count: u64,
     peak_live_bytes: u64,
     cost_vector: Vec<(String, String, u32, u64)>,
+    #[serde(default)]
+    ground_rule_probe_rows: Option<u64>,
+    #[serde(default)]
+    active_ground_rules: Option<u64>,
 }
 
 /// The deterministic verdict-agreement booleans for one bench case.
@@ -685,6 +707,71 @@ pub(crate) fn render_cost_ledger(
                 scratch.peak_live_bytes,
                 i128::from(scratch.peak_live_bytes) - i128::from(case.native.peak_live_bytes),
                 case.native.joined_rows.unwrap_or(0),
+                case.agreement
+                    .incremental_insert_vs_scratch
+                    .unwrap_or(false),
+                case.agreement
+                    .incremental_retract_vs_scratch
+                    .unwrap_or(false),
+            ));
+        }
+    }
+
+    let grounding_cases: Vec<&&CaseRecord> = cases
+        .iter()
+        .filter(|case| case.native.grounding.is_some())
+        .collect();
+    if !grounding_cases.is_empty() {
+        lines.push(String::new());
+        lines.push("## Incremental non-monotone grounding".to_string());
+        lines.push(String::new());
+        lines.push(
+            "Ground-rule commits and candidate probes are deterministic. The maintained ground program is incremental; the named WFS/stable-model solver remains explicitly from scratch whenever its complete slice changes."
+                .to_string(),
+        );
+        lines.push(String::new());
+        lines.push(
+            "| corpus | case | incremental ground commits | scratch ground commits | commits saved | incremental ground probes | scratch ground probes | probes saved | active ground rules | EDB changes | universe changes | universe delta rows | ground-rule delta rows | solver | solver status | solver reran | insert parity | retract parity |"
+                .to_string(),
+        );
+        lines.push(
+            "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
+        );
+        for case in grounding_cases {
+            let grounding = case
+                .native
+                .grounding
+                .as_ref()
+                .expect("filtered to incremental-grounding cases");
+            let scratch = case
+                .native
+                .scratch
+                .as_ref()
+                .expect("incremental grounding always carries its scratch comparator");
+            let scratch_probes = scratch
+                .ground_rule_probe_rows
+                .expect("incremental grounding scratch carries probe rows");
+            let scratch_rules = scratch
+                .active_ground_rules
+                .expect("incremental grounding scratch carries active rules");
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                case.corpus,
+                case.case,
+                grounding.ground_rule_changes,
+                scratch_rules,
+                i128::from(scratch_rules) - i128::from(grounding.ground_rule_changes),
+                grounding.ground_rule_probe_rows,
+                scratch_probes,
+                i128::from(scratch_probes) - i128::from(grounding.ground_rule_probe_rows),
+                grounding.active_ground_rules,
+                grounding.edb_changes,
+                grounding.universe_changes,
+                grounding.universe_joined_rows,
+                grounding.ground_rule_joined_rows,
+                grounding.solver,
+                grounding.solver_status,
+                grounding.solver_reran,
                 case.agreement
                     .incremental_insert_vs_scratch
                     .unwrap_or(false),
@@ -971,7 +1058,7 @@ impl Stage for CostLedgerStage {
     }
     fn impl_version(&self) -> &str {
         // v3: surface the incremental-vs-scratch deterministic delta in the ledger.
-        "cost-ledger.v4"
+        "cost-ledger.v5"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The committed cost/agreement baseline is the only input; a baseline refresh
