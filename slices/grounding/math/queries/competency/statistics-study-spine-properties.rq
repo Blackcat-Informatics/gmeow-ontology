@@ -1,0 +1,19 @@
+# Competency question: "What are the linking properties of the study spine — how are
+# population, frame, sample, unit, variable, and missingness wired together?" Exercises the
+# object properties that keep the target of inference distinct from the thing measured: a
+# math:StatisticalPopulation is operationalized by a frame (math:samplingFrame), a
+# math:Sample is drawn from that frame (math:sampleOf), refers to the population
+# (math:population), and denotes an observation unit (math:observationUnit) recording a
+# variable (math:statisticalVariable), whose absences are carried by a missingness indicator
+# (math:hasMissingnessIndicator) resting on a mechanism (math:missingnessMechanism). The query
+# projects each PREDICATE, scoped to the spine subjects and the math: namespace. Over the
+# fixture the answer is exactly the seven spine-linking property edges.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <http://example.org/math/>
+
+SELECT ?subject ?prop ?object WHERE {
+    VALUES ?subject { ex:pop ex:sample ex:var }
+    ?subject ?prop ?object .
+    FILTER(STRSTARTS(STR(?prop), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?subject ?prop ?object

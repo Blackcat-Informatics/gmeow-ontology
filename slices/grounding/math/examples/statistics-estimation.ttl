@@ -1,0 +1,136 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked scene — MODELS AND ESTIMATION, dogfooding the "Models and estimation" charter
+# section. It keeps four things a naive report collapses strictly apart:
+#
+#   * the TARGET of inference — a math:Estimand (the average treatment effect of a
+#     drug on 5-year survival), framed by ALL SIX coordinates that make it well-posed:
+#     math:targetPopulation, math:targetOutcome, math:targetContrast, math:targetTime,
+#     math:interventionCondition, and math:missingDataPolicy;
+#   * the MODEL QUANTITY — a coefficient the estimate names (math:estimatedParameter);
+#   * the PROCEDURE — a math:Estimator (an inverse-probability-weighted estimator);
+#   * the VALUE — a math:Estimate, the structured result object that names its estimand
+#     AND its estimator, so math:UnderspecifiedEstimateShape stays silent (a bare
+#     number naming neither its target nor its act would fire math:UnderspecifiedEstimate).
+#
+# A math:Statistic is a function of the data; a math:ModelAssumption (normality of
+# errors) is a first-class, checkable condition a math:FittedModel posits. The estimate
+# is accompanied by a math:EffectSize (a Cohen's d) whose math:effectSizeContrast is the
+# SAME shared math:StatisticalContrast object the estimand targets (math:targetContrast)
+# — one modeled comparison, never two near-synonyms — so it satisfies
+# math:UnframedEffectSizeShape (contrast + scale + reference frame). A math:InferenceRun
+# is the PROCESS that produced the estimate; a math:Prediction (a forecast of a new
+# case's outcome) is held apart from the estimate of a parameter.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The estimand: the target of inference, framed by its six coordinates ----- #
+
+ex:ateEstimand a math:Estimand ;
+    rdfs:label "ATE of drug D on 5-year survival — the target quantity"@x-gmeow-english ;
+    math:targetPopulation ex:trialPopulation ;
+    math:targetOutcome ex:survivalOutcome ;
+    math:targetContrast ex:treatmentContrast ;
+    math:targetTime ex:fiveYearHorizon ;
+    math:interventionCondition ex:assignDrug ;
+    math:missingDataPolicy ex:treatmentPolicyStrategy .
+
+ex:trialPopulation a math:StatisticalPopulation ;
+    rdfs:label "Stage-II patients meeting the trial's eligibility criteria"@x-gmeow-english .
+
+ex:survivalOutcome a math:StatisticalVariable ;
+    rdfs:label "Five-year overall survival (0/1) — the outcome the estimand is defined on"@x-gmeow-english .
+
+# The SINGLE shared contrast object: the estimand targets it AND the effect size
+# below measures its magnitude — one modeled comparison referenced by both.
+ex:treatmentContrast a math:StatisticalContrast ;
+    rdfs:label "Drug D vs. standard-of-care — the treatment-minus-control contrast"@x-gmeow-english .
+
+ex:fiveYearHorizon a math:MathematicalObject ;
+    rdfs:label "The 5-year landmark the survival difference is evaluated at"@x-gmeow-english .
+
+ex:assignDrug a math:MathematicalObject ;
+    rdfs:label "do(assign drug D) — the intervention condition the estimand conditions on"@x-gmeow-english .
+
+ex:treatmentPolicyStrategy a math:MathematicalObject ;
+    rdfs:label "Treatment-policy strategy for intercurrent events (the missing-data policy)"@x-gmeow-english .
+
+# --- The estimator, the estimate, and the model quantity --------------------- #
+
+ex:ipwEstimator a math:Estimator ;
+    rdfs:label "Inverse-probability-weighted estimator — a function of the data"@x-gmeow-english .
+
+# The structured result object: it names its estimand AND its estimator (and a model
+# parameter), so it fixes both WHAT it estimates and HOW — no math:UnderspecifiedEstimate.
+ex:ateEstimate a math:Estimate ;
+    rdfs:label "The IPW estimate of the ATE"@x-gmeow-english ;
+    math:estimatesEstimand ex:ateEstimand ;
+    math:estimatedParameter ex:betaTreatment ;
+    math:estimator ex:ipwEstimator ;
+    math:estimateValue ex:ateValue ;
+    math:effectSize ex:cohensD ;
+    gmeow:wasGeneratedBy ex:estimationRun .
+
+ex:betaTreatment a math:MathematicalObject ;
+    rdfs:label "β_treatment — the model coefficient the estimate names"@x-gmeow-english .
+
+ex:ateValue a math:MathematicalObject ;
+    rdfs:label "+0.11 absolute five-year survival difference (the produced value)"@x-gmeow-english .
+
+# A statistic: any function of the data (here the weighted difference in survival means).
+ex:survivalDiffStatistic a math:Statistic ;
+    rdfs:label "Weighted difference in survival proportions — a statistic"@x-gmeow-english .
+
+# --- The effect size: framed by the SHARED contrast, a scale, and a frame ----- #
+
+ex:cohensD a math:EffectSize ;
+    rdfs:label "Cohen's d for the treatment effect on the survival latent"@x-gmeow-english ;
+    math:effectSizeContrast ex:treatmentContrast ;
+    math:effectSizeScale ex:sdScale ;
+    gmeow:hasReferenceFrame ex:analysisFrame .
+
+ex:sdScale a math:MeasurementScale ;
+    rdfs:label "Pooled-standard-deviation scale — how a Cohen's d is read"@x-gmeow-english .
+
+ex:analysisFrame a gmeow:ReferenceFrame ;
+    rdfs:label "The trial analysis reference frame"@x-gmeow-english .
+
+# --- The model, its assumption, and the process that produced the estimate ---- #
+
+ex:survivalFit a math:FittedModel ;
+    rdfs:label "Weighted logistic fit of survival on treatment and covariates"@x-gmeow-english ;
+    math:fittedToData ex:trialMatrix ;
+    math:modelFormula ex:survivalFormula ;
+    math:modelAssumption ex:noUnmeasuredConfounding .
+
+ex:trialMatrix a math:DatasetMatrix ;
+    rdfs:label "Trial analysis data frame (by reference)"@x-gmeow-english .
+
+# The model formula is a binder AST over indexed argument slots, never a string.
+ex:survivalFormula a math:ModelFormula ;
+    rdfs:label "survival ~ treatment + covariates"@x-gmeow-english ;
+    math:argumentSlot ex:respSlot , ex:trtSlot .
+ex:respSlot a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:survivalExpr .
+ex:trtSlot  a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:treatmentExpr .
+ex:survivalExpr a math:VariableExpression .
+ex:treatmentExpr a math:VariableExpression .
+
+# A first-class assumption the model posits — checkable by a diagnostic, not implicit.
+ex:noUnmeasuredConfounding a math:ModelAssumption ;
+    rdfs:label "No unmeasured confounding given the measured covariates"@x-gmeow-english .
+
+# The PROCESS leg: the run that fit the model and produced the estimate.
+ex:estimationRun a math:InferenceRun , gmeow:Activity ;
+    rdfs:label "The estimation run that fit the model and produced the ATE estimate"@x-gmeow-english .
+
+# --- A prediction: a forecast of an OUTCOME for a case, not a parameter value -- #
+
+ex:newPatientForecast a math:Prediction ;
+    rdfs:label "Predicted 5-year survival probability for a new patient"@x-gmeow-english ;
+    math:predictionTarget ex:newPatientOutcome .
+
+ex:newPatientOutcome a math:MathematicalObject ;
+    rdfs:label "The new patient's (future) survival outcome the prediction is about"@x-gmeow-english .

@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the failure-vocabulary competency question "what are the statistics
+# conformance-failure classes, each shown by an ill-formed exemplar". One exemplar per
+# statistics MathConformanceFailure subclass — the way each statistical object can be
+# ill-formed, each carrying a plain-language note on WHY it is ill-formed so the exemplar is a
+# genuine (mal)formed witness, not a bare type tag. The reasoning-free query reads back each
+# exemplar's asserted failure type. Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <http://example.org/math/> .
+
+# An estimate that fixes no target quantity and names no producing act.
+ex:badEstimate a math:UnderspecifiedEstimate ;
+    rdfs:label "an estimate naming neither its estimand nor its estimator or run"@en .
+
+# A variable encoding absence with a magic value but declaring no missingness at all.
+ex:hiddenMissing a math:ImplicitMissingness ;
+    rdfs:label "a -99 sentinel treated as a real value, with no missingness indicator"@en .
+
+# A p-value with a null and a statistic but no tail or sidedness — its magnitude is ambiguous.
+ex:ambiguousP a math:IllFramedPValue ;
+    rdfs:label "a p-value with no tail definition and no lawful sidedness"@en .
+
+# An interval claiming both frequentist coverage and Bayesian posterior mass at once.
+ex:mixedInterval a math:IntervalKindConflation ;
+    rdfs:label "an interval carrying both a confidence level and a credible mass"@en .
+
+# A confidence interval naming a level but only one of its two bounds.
+ex:halfCI a math:IncompleteConfidenceInterval ;
+    rdfs:label "a confidence interval missing one of its two bounds"@en .
+
+# A credible interval naming a posterior mass but no posterior it summarizes.
+ex:halfCrI a math:IncompleteCredibleInterval ;
+    rdfs:label "a credible interval with a mass but no posterior distribution"@en .
+
+# An effect-size magnitude carrying neither a contrast nor a standardization scale.
+ex:bareEffect a math:UnframedEffectSize ;
+    rdfs:label "a standardized effect magnitude with no contrast and no scale"@en .
+
+# A model diagnostic anchored to no fitted model — it evaluates nothing.
+ex:looseDiag a math:UnanchoredDiagnostic ;
+    rdfs:label "a diagnostic with no math:diagnosticFor edge to any fit"@en .
+
+# An object using the word 'calibration' for both the statistical and the confidence sense.
+ex:mixedCalib a math:CalibrationSenseConflation ;
+    rdfs:label "a calibration object conflating the statistical and epistemic senses"@en .
