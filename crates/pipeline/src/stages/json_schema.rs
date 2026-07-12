@@ -29,6 +29,32 @@ use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 pub const JSON_SCHEMA_PATH: &str = "generated/schemas/gmeow.schema.json";
 /// Committed logical path of the native OpenAPI 3.1 document.
 pub const OPENAPI_PATH: &str = "generated/schemas/gmeow.openapi.json";
+/// Committed logical path of the term-`Card` JSON Schema (draft 2020-12) — the
+/// self-describing schema for the packed `terms/{slug}/card.json` member and the
+/// live MCP `doc_card format=json` payload. Hand-authored beside the `Card` type
+/// ([`gmeow_docs::card::card_json_schema`]).
+pub const CARD_SCHEMA_PATH: &str = "generated/schemas/card.schema.json";
+/// Committed logical path of the `validate_local` [`EnrichedReport`] JSON Schema
+/// (draft 2020-12) — the self-describing schema for the enriched-finding envelope.
+/// Hand-authored beside the type
+/// ([`gmeow_validate::local_oracle::finding_json_schema`]).
+///
+/// [`EnrichedReport`]: gmeow_validate::local_oracle::EnrichedReport
+pub const FINDING_SCHEMA_PATH: &str = "generated/schemas/validate-finding.schema.json";
+
+/// Serialize a hand-authored JSON Schema `Value` to deterministic pretty-printed
+/// bytes with a trailing newline (matching the emitter's committed-file convention).
+/// `serde_json::Value` objects are key-sorted without the `preserve_order` feature,
+/// so the output is byte-stable across runs.
+fn schema_bytes(schema: &serde_json::Value) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let mut bytes = serde_json::to_vec_pretty(schema).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            message: format!("serialize hand-authored JSON Schema: {e}"),
+        })
+    })?;
+    bytes.push(b'\n');
+    Ok(bytes)
+}
 
 /// The `stage-export-json-schema` export-leaf stage.
 pub struct JsonSchemaStage;
@@ -66,6 +92,18 @@ impl Stage for JsonSchemaStage {
             compiled.schema_json.into_bytes(),
         );
         artifacts.insert(OPENAPI_PATH.to_string(), compiled.openapi_json.into_bytes());
+        // The two hand-authored self-describing schemas, co-located with their Rust
+        // types (drift-resistance). They ride REP_SCHEMAS so a repo-free consumer can
+        // validate a `card.json` / a `validate_local` envelope straight from the
+        // bundle.
+        artifacts.insert(
+            CARD_SCHEMA_PATH.to_string(),
+            schema_bytes(&gmeow_docs::card::card_json_schema())?,
+        );
+        artifacts.insert(
+            FINDING_SCHEMA_PATH.to_string(),
+            schema_bytes(&gmeow_validate::local_oracle::finding_json_schema())?,
+        );
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
@@ -135,6 +173,14 @@ mod tests {
             compiled.schema_json.into_bytes(),
         );
         artifacts.insert(OPENAPI_PATH.to_string(), compiled.openapi_json.into_bytes());
+        artifacts.insert(
+            CARD_SCHEMA_PATH.to_string(),
+            schema_bytes(&gmeow_docs::card::card_json_schema()).unwrap(),
+        );
+        artifacts.insert(
+            FINDING_SCHEMA_PATH.to_string(),
+            schema_bytes(&gmeow_validate::local_oracle::finding_json_schema()).unwrap(),
+        );
         // Touch `stage` so the id/impl coupling stays exercised.
         assert_eq!(stage.id(), "stage-export-json-schema");
         artifacts

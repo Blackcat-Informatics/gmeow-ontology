@@ -18,7 +18,10 @@ use crate::maturity::{
     Dimension, MaturityAnchor, anchor_table, coverage_fraction, earned_maturity,
 };
 use crate::model::DocsModel;
-use crate::render::{concern_slug, provenance_chain, slice_slug, term_slug};
+use crate::render::{
+    concern_display, concern_slug, precompute_alignment_facets, provenance_chain, slice_display,
+    slice_slug, term_advice_facet, term_slug,
+};
 
 /// The GMEOW namespace IRI prefix.
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -77,9 +80,39 @@ const GMEOW_CHANGELOG_ENTRY: &str = "https://blackcatinformatics.ca/gmeow/Change
 ///   construction (an ungrounded evidence node is the doc-layer analogue of a
 ///   DARK finding — enforced by `tests/doc_evidence.rs`).
 ///
+/// Beyond the per-term `gmeow:DocEvidence` incidence, three teaching-content
+/// surfaces are promoted to first-class, term-keyed, SPARQL-queryable subjects so
+/// a downstream MCP tool can serve them straight from the bundle:
+/// - each conformance fixture → its minted identity IRI
+///   `gmeow:documentation/fixture/{slice}-{path}` `a gmeow:DocFixture`, carrying
+///   the FULL Turtle body (`gmeow:docFixtureText`), a `gmeow:documents` edge per
+///   referenced documented term, an enumerated `gmeow:docFixtureKind`
+///   (`gmeow:docFixtureKindWellformed` / `…CounterExample`), and — when the slice
+///   authors a binding — `gmeow:docExpectedOutcome`, `gmeow:docViolationCode`, and
+///   `gmeow:conformanceRationale`. The SAME IRI the fixture `gmeow:DocEvidence`
+///   incidence node grounds by, so the count and the body join on one IRI.
+/// - each competency question → `gmeow:documentation/competency/{slug}` `a
+///   gmeow:DocumentedCompetency`, grounded by the real competency IRI, carrying
+///   the runnable `gmeow:cqQueryText`, `gmeow:cqExpectRowCount` /
+///   `gmeow:cqExactRows` / `gmeow:cqRationale` when present, a `gmeow:documents`
+///   edge per exercised term, and one `gmeow:CompetencyExpectedRow` node per
+///   enumerated expected row (its cells as `gmeow:cqCellVar` /
+///   `gmeow:cqCellValueIri` / `gmeow:cqCellValueLiteral`).
+/// - each per-term entailment (from the already-materialized
+///   `reasoning-explanations`; reason-once) → one
+///   `gmeow:documentation/entailment/{term}/{n}` `a gmeow:Entailment` node per
+///   derivation, grounded by the term IRI, carrying `gmeow:entailmentRule`,
+///   `gmeow:entailmentConclusion`, and one `gmeow:entailmentPremise` per premise
+///   (the full derivation DAG, never a flattened single hop). The `entailments`
+///   map is empty in the model-only render seam — no entailment nodes are then
+///   emitted (an honest absence, never a fabricated "no entailments" claim).
+///
 /// Output is deterministic: the model collections are already sorted by IRI, and
 /// every subject's triples are emitted in a fixed order.
-pub fn to_gmeow_rdf(model: &DocsModel) -> String {
+pub fn to_gmeow_rdf(
+    model: &DocsModel,
+    entailments: &BTreeMap<String, Vec<crate::exec::Entailment>>,
+) -> String {
     let graph = format!("<{DOCUMENTATION_GRAPH}>");
     let mut lines: Vec<String> = Vec::new();
 
@@ -122,6 +155,13 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
     // `docs/missing-*` lint counts, and the health page can never disagree. No
     // reasoner: the FCA earned-maturity closure is plain deterministic computation.
     let cov_ctx = CoverageContext::new(model);
+
+    // The per-term crosswalk facets, computed ONCE in a single pass over the
+    // linkages — the SAME producer the site `search-index.json` uses
+    // ([`crate::render::precompute_alignment_facets`]), so the RDF search facets and
+    // the site facets are byte-identical (single source of truth). Keyed by the real
+    // term IRI; a term with no linkages is simply absent (honest, no empty facet).
+    let alignment_facets = precompute_alignment_facets(model);
 
     let provenance: Option<(String, String)> = model.pipeline.as_ref().and_then(|pipeline| {
         let stage = pipeline
@@ -206,6 +246,48 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             ),
             &mut lines,
         );
+
+        // Searchable content facets — the REAL display label, definition, advisory
+        // prose, and crosswalk tokens (NOT the meta `annotate` label), so an offline
+        // consumer's `docs_search` matches on the same fields the site
+        // `search-index.json` indexes. Reuses the SAME facet builders
+        // (`term_advice_facet` / `precompute_alignment_facets`) so the two surfaces
+        // can never derive advice/alignments differently. Emitted in a fixed order,
+        // and never as an empty predicate (an absent definition/advice/alignment is an
+        // honest absence, never a vacuous triple). The MISSING-coverage facet is
+        // already carried by `gmeow:docMissesDimension` below — not duplicated here.
+        triple(
+            &subject,
+            &format!("{GMEOW}docSearchLabel"),
+            &literal(term.label.as_deref().unwrap_or(&term.curie)),
+            &mut lines,
+        );
+        if let Some(definition) = &term.definition {
+            triple(
+                &subject,
+                &format!("{GMEOW}docSearchDefinition"),
+                &literal(definition),
+                &mut lines,
+            );
+        }
+        for advice in term_advice_facet(term) {
+            triple(
+                &subject,
+                &format!("{GMEOW}docSearchAdvice"),
+                &literal(&advice),
+                &mut lines,
+            );
+        }
+        if let Some(tokens) = alignment_facets.get(term.iri.as_str()) {
+            for token in tokens {
+                triple(
+                    &subject,
+                    &format!("{GMEOW}docSearchAlignment"),
+                    &literal(token),
+                    &mut lines,
+                );
+            }
+        }
 
         // Per-term content-address provenance, projected on the REAL term IRI (not
         // the documentation-entry subject): the content digest, first-seen version,
@@ -410,6 +492,16 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             &format!("Documentation projection for slice {}.", slice.iri),
             &mut lines,
         );
+        // The slice's REAL display name as a searchable facet (the site
+        // `search-index.json` indexes the same `slice_display`), so `docs_search`
+        // can surface a slice record by its title/label. A slice carries no
+        // definition or advisory prose, so only the label facet is emitted.
+        triple(
+            &subject,
+            &format!("{GMEOW}docSearchLabel"),
+            &literal(&slice_display(slice)),
+            &mut lines,
+        );
 
         // Per-slice documentation-coverage incidence + FCA-derived maturity. The
         // slice's covered-dimension set is its concept intent over ALL nineteen
@@ -488,6 +580,23 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
             &format!("Documentation projection for concern {}.", concern.iri),
             &mut lines,
         );
+        // The concern's REAL display name (and definition, when authored) as
+        // searchable facets — the same fields the site `search-index.json` indexes
+        // for a concern record.
+        triple(
+            &subject,
+            &format!("{GMEOW}docSearchLabel"),
+            &literal(&concern_display(concern)),
+            &mut lines,
+        );
+        if let Some(definition) = &concern.definition {
+            triple(
+                &subject,
+                &format!("{GMEOW}docSearchDefinition"),
+                &literal(definition),
+                &mut lines,
+            );
+        }
     }
 
     // Mapping sets (model.mapping_sets is IRI-sorted). All link to the single
@@ -521,11 +630,351 @@ pub fn to_gmeow_rdf(model: &DocsModel) -> String {
         );
     }
 
+    // ── Fixture bodies (first-class, term-keyed) ─────────────────────────────
+    // The conformance Do/Don't fixture bodies, promoted from an opaque per-term
+    // count on the `fixture` gmeow:DocEvidence node to first-class,
+    // SPARQL-queryable subjects carrying the FULL Turtle body. The subject is the
+    // SAME minted identity IRI the fixture evidence node grounds BY (see
+    // `term_evidence`'s fixture branch), so the incidence count and the body join
+    // on one IRI. Emitted in minted-IRI order for determinism.
+    let mut fixture_subjects: Vec<(String, &crate::model::DocFixture)> = model
+        .fixtures
+        .iter()
+        .map(|f| (fixture_identity(f), f))
+        .collect();
+    fixture_subjects.sort_by(|a, b| a.0.cmp(&b.0));
+    // CURIE → term IRI, built ONCE so the per-fixture, per-reference resolution
+    // below is an O(1) map lookup rather than an O(terms) linear scan (the fixture
+    // loop is otherwise O(fixtures × refs × terms)). Lookup only — iteration order
+    // is unaffected since we never iterate this map, only probe it.
+    let term_iri_by_curie: std::collections::HashMap<&str, &str> = model
+        .terms
+        .iter()
+        .map(|t| (t.curie.as_str(), t.iri.as_str()))
+        .collect();
+    for (subject, f) in &fixture_subjects {
+        triple(
+            subject,
+            RDF_TYPE,
+            &format!("<{GMEOW}DocFixture>"),
+            &mut lines,
+        );
+        // One `gmeow:documents` edge per referenced DOCUMENTED term (the
+        // reference list is CURIEs; resolve each to its real term IRI so the edge
+        // lands on the term node, never a CURIE literal). A referenced term that
+        // is not itself documented is honestly absent — no fabricated edge.
+        for curie in &f.terms_referenced {
+            if let Some(iri) = term_iri_by_curie.get(curie.as_str()) {
+                triple(
+                    subject,
+                    &format!("{GMEOW}documents"),
+                    &format!("<{}>", iri),
+                    &mut lines,
+                );
+            }
+        }
+        // The well-formed / counter-example kind as an enumerated individual
+        // (mirrors gmeow:docEvidenceKind{Kind}) so the kind is a join-able resource.
+        let kind_suffix = match f.kind {
+            crate::model::DocFixtureKind::Wellformed => "Wellformed",
+            crate::model::DocFixtureKind::CounterExample => "CounterExample",
+        };
+        triple(
+            subject,
+            &format!("{GMEOW}docFixtureKind"),
+            &format!("<{GMEOW}docFixtureKind{kind_suffix}>"),
+            &mut lines,
+        );
+        triple(
+            subject,
+            &format!("{GMEOW}docFixtureText"),
+            &literal(&f.text),
+            &mut lines,
+        );
+        if let Some(outcome) = &f.expected_outcome {
+            triple(
+                subject,
+                &format!("{GMEOW}docExpectedOutcome"),
+                &literal(outcome),
+                &mut lines,
+            );
+        }
+        if let Some(code) = &f.violation_code {
+            triple(
+                subject,
+                &format!("{GMEOW}docViolationCode"),
+                &literal(code),
+                &mut lines,
+            );
+        }
+        if let Some(rationale) = &f.rationale {
+            triple(
+                subject,
+                &format!("{GMEOW}conformanceRationale"),
+                &literal(rationale),
+                &mut lines,
+            );
+        }
+        // Mandatory grounding: the owning slice IRI is the honest truthmaker (the
+        // slice's tests/ tree is where the fixture body lives).
+        triple(
+            subject,
+            &format!("{GMEOW}docGroundedBy"),
+            &format!("<{}>", f.slice),
+            &mut lines,
+        );
+        annotate(
+            subject,
+            &format!("Conformance fixture: {}", f.title),
+            &format!(
+                "Conformance fixture {} in slice {} ({}).",
+                f.logical_path,
+                f.slice,
+                kind_suffix.to_ascii_lowercase()
+            ),
+            &mut lines,
+        );
+    }
+
+    // ── Competency questions (query text + expected rows, first-class) ───────
+    // Each competency question promoted from an opaque blake3 digest on the
+    // `competency` gmeow:DocEvidence node to a first-class record carrying the
+    // runnable query text and the enumerated expected rows, keyed by a minted
+    // record IRI and grounded by the real competency IRI. `model.competencies` is
+    // IRI-sorted, so the emission order is deterministic.
+    for comp in &model.competencies {
+        let comp_slug = iri_slug(&comp.iri);
+        let subject = format!("<{GMEOW}documentation/competency/{comp_slug}>");
+        triple(
+            &subject,
+            RDF_TYPE,
+            &format!("<{GMEOW}DocumentedCompetency>"),
+            &mut lines,
+        );
+        // Mandatory grounding: the real competency-question IRI the record is a
+        // projection of.
+        triple(
+            &subject,
+            &format!("{GMEOW}docGroundedBy"),
+            &format!("<{}>", comp.iri),
+            &mut lines,
+        );
+        // One `gmeow:documents` edge per exercised term (exercises is
+        // sorted/deduped in the model).
+        for term_iri in &comp.exercises {
+            triple(
+                &subject,
+                &format!("{GMEOW}documents"),
+                &format!("<{term_iri}>"),
+                &mut lines,
+            );
+        }
+        if let Some(query) = &comp.query_text {
+            triple(
+                &subject,
+                &format!("{GMEOW}cqQueryText"),
+                &literal(query),
+                &mut lines,
+            );
+        }
+        if let Some(count) = comp.expected_row_count {
+            triple(
+                &subject,
+                &format!("{GMEOW}cqExpectRowCount"),
+                &integer(count),
+                &mut lines,
+            );
+        }
+        if let Some(exact) = comp.exact_rows {
+            triple(
+                &subject,
+                &format!("{GMEOW}cqExactRows"),
+                &boolean(exact),
+                &mut lines,
+            );
+        }
+        if let Some(rationale) = &comp.rationale {
+            triple(
+                &subject,
+                &format!("{GMEOW}cqRationale"),
+                &literal(rationale),
+                &mut lines,
+            );
+        }
+        // The enumerated expected result rows, each a first-class node carrying
+        // its per-variable cells — so the expected result set is queryable content,
+        // not just a count. Rows arrive in the model's deterministic order.
+        for (i, row) in comp.expected_rows.iter().enumerate() {
+            let row_iri = format!("<{GMEOW}documentation/competency/{comp_slug}/row/{i}>");
+            triple(
+                &subject,
+                &format!("{GMEOW}cqExpectedRow"),
+                &row_iri,
+                &mut lines,
+            );
+            triple(
+                &row_iri,
+                RDF_TYPE,
+                &format!("<{GMEOW}CompetencyExpectedRow>"),
+                &mut lines,
+            );
+            for cell in &row.cells {
+                if let Some(var) = &cell.var {
+                    triple(
+                        &row_iri,
+                        &format!("{GMEOW}cqCellVar"),
+                        &literal(var),
+                        &mut lines,
+                    );
+                }
+                if let Some(value_iri) = &cell.value_iri {
+                    triple(
+                        &row_iri,
+                        &format!("{GMEOW}cqCellValueIri"),
+                        &format!("<{value_iri}>"),
+                        &mut lines,
+                    );
+                }
+                if let Some(value_literal) = &cell.value_literal {
+                    triple(
+                        &row_iri,
+                        &format!("{GMEOW}cqCellValueLiteral"),
+                        &literal(value_literal),
+                        &mut lines,
+                    );
+                }
+            }
+            triple(
+                &row_iri,
+                &format!("{GMEOW}docGroundedBy"),
+                &format!("<{}>", comp.iri),
+                &mut lines,
+            );
+            annotate(
+                &row_iri,
+                &format!("Expected row {i}: {}", comp.iri),
+                &format!(
+                    "Expected result row {i} of competency question {}.",
+                    comp.iri
+                ),
+                &mut lines,
+            );
+        }
+        annotate(
+            &subject,
+            &format!("Competency question: {}", comp.iri),
+            &format!(
+                "Documentation projection of competency question {}.",
+                comp.iri
+            ),
+            &mut lines,
+        );
+    }
+
+    // ── Entailment DAG (per-term reasoner derivations) ───────────────────────
+    // The already-materialized per-term entailments (parsed from stage-reason's
+    // `reasoning-explanations` — reason-once, never a second reasoning pass here):
+    // one node per derivation carrying its firing rule, the concluded triple, and
+    // EVERY premise (the derivation DAG, not a flattened hop). The map is
+    // BTreeMap-sorted by term IRI and each Vec is already sorted, so emission is
+    // deterministic; an empty map (the model-only render seam) emits nothing.
+    for (term_iri, ents) in entailments {
+        let term_slug_ent = iri_slug(term_iri);
+        for (i, ent) in ents.iter().enumerate() {
+            let ent_iri = format!("<{GMEOW}documentation/entailment/{term_slug_ent}/{i}>");
+            triple(
+                &ent_iri,
+                RDF_TYPE,
+                &format!("<{GMEOW}Entailment>"),
+                &mut lines,
+            );
+            triple(
+                &ent_iri,
+                &format!("{GMEOW}documents"),
+                &format!("<{term_iri}>"),
+                &mut lines,
+            );
+            triple(
+                &ent_iri,
+                &format!("{GMEOW}entailmentRule"),
+                &literal(&ent.rule),
+                &mut lines,
+            );
+            triple(
+                &ent_iri,
+                &format!("{GMEOW}entailmentConclusion"),
+                &literal(&ent.conclusion),
+                &mut lines,
+            );
+            for premise in &ent.premises {
+                triple(
+                    &ent_iri,
+                    &format!("{GMEOW}entailmentPremise"),
+                    &literal(premise),
+                    &mut lines,
+                );
+            }
+            // Mandatory grounding: the documented term the derivation is about.
+            triple(
+                &ent_iri,
+                &format!("{GMEOW}docGroundedBy"),
+                &format!("<{term_iri}>"),
+                &mut lines,
+            );
+            annotate(
+                &ent_iri,
+                &format!("Entailment {i}: {term_iri}"),
+                &format!(
+                    "Reasoner entailment {i} about {term_iri}: {}.",
+                    ent.conclusion
+                ),
+                &mut lines,
+            );
+        }
+    }
+
     let mut out = lines.join("\n");
     if !out.is_empty() {
         out.push('\n');
     }
     out
+}
+
+/// The deterministically-minted identity IRI (angle-bracketed) of a conformance
+/// fixture — slice-scoped so two slices' same-named fixtures never collide. This is
+/// the SAME IRI the fixture `gmeow:DocEvidence` incidence node grounds by, so the
+/// evidence count and the first-class fixture body join on one IRI.
+fn fixture_identity(f: &crate::model::DocFixture) -> String {
+    format!(
+        "<{GMEOW}documentation/fixture/{}-{}>",
+        set_slug(local_name(&f.slice)),
+        set_slug(&f.logical_path)
+    )
+}
+
+/// A filesystem-safe slug over a WHOLE IRI (not just its local name), lowercased and
+/// reduced to `[a-z0-9-]`. Used to mint collision-free per-competency and
+/// per-entailment record IRIs where two subjects can share a local name across
+/// namespaces (so slugging the local name alone would fuse them).
+fn iri_slug(iri: &str) -> String {
+    let mut out = String::with_capacity(iri.len());
+    let mut prev_dash = false;
+    for ch in iri.chars() {
+        let lc = ch.to_ascii_lowercase();
+        if lc.is_ascii_alphanumeric() {
+            out.push(lc);
+            prev_dash = false;
+        } else if !prev_dash {
+            out.push('-');
+            prev_dash = true;
+        }
+    }
+    let trimmed = out.trim_matches('-');
+    if trimmed.is_empty() {
+        "unnamed".to_string()
+    } else {
+        trimmed.to_string()
+    }
 }
 
 /// The stable `gmeow:docCategory` label for a term category.
@@ -635,7 +1084,10 @@ fn take_iri(s: &str) -> Option<(&str, &str)> {
 /// `gmeow:coverageFraction`), so a literal-object line for an unrelated predicate is
 /// skipped without a full N-Quads parser.
 pub fn documentation_graph(model: &DocsModel) -> DocGraph {
-    let nquads = to_gmeow_rdf(model);
+    // The read-back reads only per-term / per-slice coverage facts, which are a
+    // pure function of the model — the entailment DAG is irrelevant here, so an
+    // empty entailments map is honest (no fabricated derivations).
+    let nquads = to_gmeow_rdf(model, &BTreeMap::new());
     let graph_suffix = format!(" <{DOCUMENTATION_GRAPH}> .");
 
     let documents_p = format!("{GMEOW}documents");
@@ -850,16 +1302,7 @@ fn term_evidence(
         .filter(|f| f.terms_referenced.iter().any(|c| c == &term.curie))
         .collect();
     if !fixtures.is_empty() {
-        let grounded = fixtures
-            .iter()
-            .map(|f| {
-                format!(
-                    "<{GMEOW}documentation/fixture/{}-{}>",
-                    set_slug(local_name(&f.slice)),
-                    set_slug(&f.logical_path)
-                )
-            })
-            .collect();
+        let grounded = fixtures.iter().map(|f| fixture_identity(f)).collect();
         out.push(Evidence {
             kind: "fixture",
             kind_suffix: "Fixture",
@@ -1069,8 +1512,8 @@ mod tests {
     #[test]
     fn projection_is_well_formed_and_deterministic() {
         let model = tiny_model();
-        let a = to_gmeow_rdf(&model);
-        let b = to_gmeow_rdf(&model);
+        let a = to_gmeow_rdf(&model, &BTreeMap::new());
+        let b = to_gmeow_rdf(&model, &BTreeMap::new());
         assert_eq!(a, b, "projection must be deterministic");
 
         // Every line is a 4-term N-Quad in the documentation graph.
@@ -1125,6 +1568,97 @@ mod tests {
             schema_fragments: None,
             lang: String::new(),
         };
-        assert_eq!(to_gmeow_rdf(&model), "");
+        assert_eq!(to_gmeow_rdf(&model, &BTreeMap::new()), "");
+    }
+
+    #[test]
+    fn entailment_dag_round_trips_rule_conclusion_and_all_premises() {
+        let model = tiny_model();
+        let mut entailments: BTreeMap<String, Vec<crate::exec::Entailment>> = BTreeMap::new();
+        entailments.insert(
+            format!("{GMEOW}Cat"),
+            vec![crate::exec::Entailment {
+                rule: "owl:subClassOf-transitive".to_string(),
+                conclusion: "gmeow:Cat rdfs:subClassOf gmeow:Animal".to_string(),
+                premises: vec![
+                    "gmeow:Cat rdfs:subClassOf gmeow:Feline".to_string(),
+                    "gmeow:Feline rdfs:subClassOf gmeow:Animal".to_string(),
+                ],
+            }],
+        );
+        let nq = to_gmeow_rdf(&model, &entailments);
+
+        // Determinism holds with a non-empty map too.
+        assert_eq!(nq, to_gmeow_rdf(&model, &entailments));
+
+        // The entailment node is minted, typed, term-keyed, and grounded.
+        assert!(nq.contains(&format!("<{GMEOW}Entailment>")));
+        assert!(nq.contains(&format!("{GMEOW}entailmentRule> ")));
+        assert!(nq.contains("owl:subClassOf-transitive"));
+        assert!(nq.contains("gmeow:Cat rdfs:subClassOf gmeow:Animal"));
+        // BOTH premises round-trip (the derivation DAG, not a flattened hop).
+        assert!(nq.contains("gmeow:Cat rdfs:subClassOf gmeow:Feline"));
+        assert!(nq.contains("gmeow:Feline rdfs:subClassOf gmeow:Animal"));
+        let premise_lines = nq
+            .lines()
+            .filter(|l| l.contains(&format!("{GMEOW}entailmentPremise>")))
+            .count();
+        assert_eq!(premise_lines, 2, "both premises must be emitted");
+
+        // The node grounds by the documented term IRI.
+        assert!(nq.contains(&format!("{GMEOW}docGroundedBy> <{GMEOW}Cat>")));
+
+        // Empty map ⇒ no entailment nodes (honest absence).
+        let bare = to_gmeow_rdf(&model, &BTreeMap::new());
+        assert!(!bare.contains(&format!("<{GMEOW}Entailment>")));
+    }
+
+    #[test]
+    fn search_facets_carry_real_content_and_honest_absence() {
+        use crate::model::DocLinkage;
+        let mut model = tiny_model();
+        // Cat gains advisory prose + a crosswalk linkage, so its documentation-entry
+        // record projects the full search-facet set.
+        model.terms[0].scope_notes = vec!["Prefer for a domestic cat.".to_string()];
+        model.linkages = vec![DocLinkage {
+            mapping_set: None,
+            subject: format!("{GMEOW}Cat"),
+            subject_curie: "gmeow:Cat".to_string(),
+            predicate: "http://www.w3.org/2004/02/skos/core#exactMatch".to_string(),
+            object: "http://www.wikidata.org/entity/Q146".to_string(),
+            justification: None,
+            confidence: None,
+            owner_slice: format!("{GMEOW}slice/zoo"),
+        }];
+        let nq = to_gmeow_rdf(&model, &BTreeMap::new());
+
+        // Cat: the REAL label / definition, the advice string, and the alignment token
+        // — NOT the meta annotate() label.
+        assert!(nq.contains(&format!("{GMEOW}docSearchLabel> \"Cat\"")));
+        assert!(nq.contains(&format!("{GMEOW}docSearchDefinition> \"A cat.\"")));
+        assert!(nq.contains(&format!(
+            "{GMEOW}docSearchAdvice> \"Prefer for a domestic cat.\""
+        )));
+        assert!(nq.contains(&format!("{GMEOW}docSearchAlignment> \"exactMatch:Q146\"")));
+
+        // hasOwner has no label/definition/advice/linkage: docSearchLabel falls back to
+        // the CURIE, and NO definition/advice/alignment facet is fabricated.
+        assert!(nq.contains(&format!("{GMEOW}docSearchLabel> \"gmeow:hasOwner\"")));
+        // The definition-less property emits no docSearchDefinition line for itself.
+        let has_owner_subject = format!("<{GMEOW}documentation/term/hasowner>");
+        for line in nq.lines().filter(|l| l.starts_with(&has_owner_subject)) {
+            assert!(
+                !line.contains("docSearchDefinition"),
+                "definition-less property must not emit docSearchDefinition: {line}"
+            );
+            assert!(
+                !line.contains("docSearchAdvice"),
+                "advice-less property must not emit docSearchAdvice: {line}"
+            );
+            assert!(
+                !line.contains("docSearchAlignment"),
+                "linkage-less property must not emit docSearchAlignment: {line}"
+            );
+        }
     }
 }

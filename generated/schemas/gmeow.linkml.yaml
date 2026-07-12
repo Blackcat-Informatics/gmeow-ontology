@@ -764,6 +764,13 @@ classes:
     is_a: Summary
     slots:
     - summarizesCommunity
+  CompetencyExpectedRow:
+    class_uri: https://blackcatinformatics.ca/gmeow/CompetencyExpectedRow
+    title: Competency Expected Row
+    is_a: InformationObject
+    slots:
+    - cqCellValueLiteral
+    - cqCellVar
   ComplianceAssessment:
     class_uri: https://blackcatinformatics.ca/gmeow/ComplianceAssessment
     title: Compliance Assessment
@@ -1282,6 +1289,19 @@ classes:
   DocEvidenceKind:
     class_uri: https://blackcatinformatics.ca/gmeow/DocEvidenceKind
     title: Doc Evidence Kind
+  DocFixture:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocFixture
+    title: Doc Fixture
+    is_a: InformationObject
+    slots:
+    - conformanceRationale
+    - docExpectedOutcome
+    - docFixtureKind
+    - docFixtureText
+    - docViolationCode
+  DocFixtureKind:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocFixtureKind
+    title: Doc Fixture Kind
   DocMaturity:
     class_uri: https://blackcatinformatics.ca/gmeow/DocMaturity
     title: Doc Maturity
@@ -1294,6 +1314,16 @@ classes:
   DocumentationConcern:
     class_uri: https://blackcatinformatics.ca/gmeow/DocumentationConcern
     title: Documentation Concern
+  DocumentedCompetency:
+    class_uri: https://blackcatinformatics.ca/gmeow/DocumentedCompetency
+    title: Documented Competency
+    is_a: InformationObject
+    slots:
+    - cqExactRows
+    - cqExpectRowCount
+    - cqExpectedRow
+    - cqQueryText
+    - cqRationale
   DocumentedConcern:
     class_uri: https://blackcatinformatics.ca/gmeow/DocumentedConcern
     title: Documented Concern
@@ -1314,6 +1344,8 @@ classes:
     - docCategory
     - docHasDefinition
     - docReasoningStatus
+    - docSearchAdvice
+    - docSearchAlignment
   DoxasticStandpointClaim:
     class_uri: https://blackcatinformatics.ca/gmeow/DoxasticStandpointClaim
     title: doxastic standpoint claim
@@ -1458,6 +1490,14 @@ classes:
   EmploymentType:
     class_uri: https://blackcatinformatics.ca/gmeow/EmploymentType
     title: Employment Type
+  Entailment:
+    class_uri: https://blackcatinformatics.ca/gmeow/Entailment
+    title: Entailment
+    is_a: InformationObject
+    slots:
+    - entailmentConclusion
+    - entailmentPremise
+    - entailmentRule
   Entity:
     class_uri: https://blackcatinformatics.ca/gmeow/Entity
     title: Entity
@@ -6455,6 +6495,12 @@ slots:
     range: ConflictStrategy
     domain: RightsStatement
     multivalued: false
+  conformanceRationale:
+    slot_uri: https://blackcatinformatics.ca/gmeow/conformanceRationale
+    title: conformance rationale
+    range: string
+    domain: DocFixture
+    multivalued: true
   conformsTo:
     slot_uri: https://blackcatinformatics.ca/gmeow/conformsTo
     title: conforms to
@@ -6811,6 +6857,52 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/coverageFraction
     title: coverage fraction
     range: decimal
+  cqCellValueIri:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cqCellValueIri
+    title: cq cell value iri
+    range: string
+  cqCellValueLiteral:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cqCellValueLiteral
+    title: cq cell value literal
+    range: string
+    domain: CompetencyExpectedRow
+    multivalued: true
+  cqCellVar:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cqCellVar
+    title: cq cell var
+    range: string
+    domain: CompetencyExpectedRow
+    multivalued: true
+  cqExactRows:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cqExactRows
+    title: cq exact rows
+    range: boolean
+    domain: DocumentedCompetency
+    multivalued: true
+  cqExpectRowCount:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cqExpectRowCount
+    title: cq expect row count
+    range: integer
+    domain: DocumentedCompetency
+    multivalued: true
+  cqExpectedRow:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cqExpectedRow
+    title: cq expected row
+    range: CompetencyExpectedRow
+    domain: DocumentedCompetency
+    multivalued: true
+  cqQueryText:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cqQueryText
+    title: cq query text
+    range: string
+    domain: DocumentedCompetency
+    multivalued: true
+  cqRationale:
+    slot_uri: https://blackcatinformatics.ca/gmeow/cqRationale
+    title: cq rationale
+    range: string
+    domain: DocumentedCompetency
+    multivalued: true
   credence:
     slot_uri: https://blackcatinformatics.ca/gmeow/credence
     title: credence
@@ -7381,6 +7473,12 @@ slots:
     range: DocEvidenceKind
     domain: DocEvidence
     multivalued: true
+  docExpectedOutcome:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docExpectedOutcome
+    title: doc expected outcome
+    range: string
+    domain: DocFixture
+    multivalued: true
   docFindingCount:
     slot_uri: https://blackcatinformatics.ca/gmeow/docFindingCount
     title: doc finding count
@@ -7392,6 +7490,18 @@ slots:
     title: doc fixture count
     range: integer
     domain: DocEvidence
+    multivalued: true
+  docFixtureKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docFixtureKind
+    title: doc fixture kind
+    range: DocFixtureKind
+    domain: DocFixture
+    multivalued: true
+  docFixtureText:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docFixtureText
+    title: doc fixture text
+    range: string
+    domain: DocFixture
     multivalued: true
   docGroundedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/docGroundedBy
@@ -7442,10 +7552,38 @@ slots:
     range: string
     domain: DocumentedTerm
     multivalued: true
+  docSearchAdvice:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docSearchAdvice
+    title: doc search advice
+    range: string
+    domain: DocumentedTerm
+    multivalued: true
+  docSearchAlignment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docSearchAlignment
+    title: doc search alignment
+    range: string
+    domain: DocumentedTerm
+    multivalued: true
+  docSearchDefinition:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docSearchDefinition
+    title: doc search definition
+    range: string
+    multivalued: true
+  docSearchLabel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docSearchLabel
+    title: doc search label
+    range: string
+    multivalued: true
   docUrl:
     slot_uri: https://blackcatinformatics.ca/gmeow/docUrl
     title: doc url
     range: string
+    multivalued: true
+  docViolationCode:
+    slot_uri: https://blackcatinformatics.ca/gmeow/docViolationCode
+    title: doc violation code
+    range: string
+    domain: DocFixture
     multivalued: true
   docsConcern:
     slot_uri: https://blackcatinformatics.ca/gmeow/docsConcern
@@ -7685,6 +7823,24 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/enforcedByShape
     title: enforced by shape
     range: string
+  entailmentConclusion:
+    slot_uri: https://blackcatinformatics.ca/gmeow/entailmentConclusion
+    title: entailment conclusion
+    range: string
+    domain: Entailment
+    multivalued: true
+  entailmentPremise:
+    slot_uri: https://blackcatinformatics.ca/gmeow/entailmentPremise
+    title: entailment premise
+    range: string
+    domain: Entailment
+    multivalued: true
+  entailmentRule:
+    slot_uri: https://blackcatinformatics.ca/gmeow/entailmentRule
+    title: entailment rule
+    range: string
+    domain: Entailment
+    multivalued: true
   entryNote:
     slot_uri: https://blackcatinformatics.ca/gmeow/entryNote
     title: entry note
@@ -19033,6 +19189,15 @@ enums:
       docEvidenceKindProvenance:
         meaning: https://blackcatinformatics.ca/gmeow/docEvidenceKindProvenance
         title: provenance
+  DocFixtureKindEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DocFixtureKind
+    permissible_values:
+      docFixtureKindCounterExample:
+        meaning: https://blackcatinformatics.ca/gmeow/docFixtureKindCounterExample
+        title: counter-example
+      docFixtureKindWellformed:
+        meaning: https://blackcatinformatics.ca/gmeow/docFixtureKindWellformed
+        title: wellformed
   DocMaturityEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DocMaturity
     permissible_values:

@@ -155,7 +155,7 @@ fn render_source_print(
 fn source_snippets(
     site: BTreeMap<String, Vec<u8>>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    let snippets = site
+    let mut snippets = site
         .into_iter()
         .filter_map(|(path, bytes)| {
             let rest = path.strip_prefix("terms/")?;
@@ -168,8 +168,38 @@ fn source_snippets(
             "source documentation render produced no term-card snippets",
         ));
     }
+    // Emit the corpus README describing what an agent/tool is looking at and how
+    // to consume it. One well-known root file, always present alongside the cards.
+    snippets.insert("README.md".to_string(), SNIPPETS_README.as_bytes().to_vec());
     Ok(snippets)
 }
+
+/// The README written at the root of the `--format snippets` export tree. It
+/// describes the corpus — one prompt-ready Markdown card per term — as the
+/// offline, agent-ingestible projection of the bundle documentation, and how a
+/// tool consumes it. Fixed text, deterministic from source.
+const SNIPPETS_README: &str = "\
+# GMEOW documentation snippets
+
+This directory is the **offline, agent-ingestible projection** of the GMEOW bundle
+documentation. It contains one prompt-ready Markdown card per vocabulary term at
+`terms/<slug>.md`. Each card is self-contained plain Markdown (metadata,
+definition, and usage advice) with no site chrome and no cross-page links, so it
+can be dropped straight into a prompt or a retrieval index without further
+rendering.
+
+## How to consume it
+
+- Read a single term card directly: `terms/<slug>.md`, where `<slug>` is the
+  lower-cased local name of the term.
+- Ingest the whole corpus: concatenate or index every `terms/*.md` file; the set
+  is complete (one card per documented term) and deterministically named.
+- Regenerate the corpus from canonical sources with
+  `gmeow-dev export-docs --format snippets -d <dir>`.
+
+The cards here are the same per-term surface the published documentation renders;
+this projection simply flattens them for offline agent use.
+";
 
 /// `gmeow-dev temporal QUERY [--data --focus --window-* --valid-at --as-of]`.
 #[allow(clippy::too_many_arguments)]
@@ -600,4 +630,61 @@ fn namespace_for(prefix: &str) -> String {
         _ => "http://example.org/",
     }
     .to_owned()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn snippets_readme_describes_the_offline_corpus() {
+        // The README must name the corpus, its per-term card layout, its offline
+        // agent-ingestible role, and how to (re)generate it.
+        assert!(SNIPPETS_README.starts_with("# GMEOW documentation snippets"));
+        assert!(SNIPPETS_README.contains("offline, agent-ingestible projection"));
+        assert!(SNIPPETS_README.contains("one prompt-ready Markdown card per vocabulary term"));
+        assert!(SNIPPETS_README.contains("terms/<slug>.md"));
+        assert!(SNIPPETS_README.contains("gmeow-dev export-docs --format snippets"));
+    }
+
+    #[test]
+    fn source_snippets_flattens_cards_and_emits_the_readme() {
+        // A minimal site tree: two term cards plus unrelated files that must be
+        // dropped by the snippets projection.
+        let mut site: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        site.insert("terms/foo/card.md".to_string(), b"# gmeow:Foo".to_vec());
+        site.insert("terms/bar/card.md".to_string(), b"# gmeow:Bar".to_vec());
+        site.insert("terms/foo/index.html".to_string(), b"<html/>".to_vec());
+        site.insert("index.html".to_string(), b"<html/>".to_vec());
+
+        let out = source_snippets(site).expect("cards present → snippets projection succeeds");
+
+        // The cards are flattened to `terms/<slug>.md`; nothing else leaks through.
+        assert_eq!(
+            out.get("terms/foo.md").map(Vec::as_slice),
+            Some(&b"# gmeow:Foo"[..])
+        );
+        assert_eq!(
+            out.get("terms/bar.md").map(Vec::as_slice),
+            Some(&b"# gmeow:Bar"[..])
+        );
+        assert!(!out.contains_key("terms/foo/index.html"));
+        assert!(!out.contains_key("index.html"));
+
+        // The corpus README is emitted at the tree root with the corpus paragraph.
+        let readme = out
+            .get("README.md")
+            .expect("snippets export writes a README");
+        let readme = std::str::from_utf8(readme).expect("README is UTF-8");
+        assert!(readme.contains("offline, agent-ingestible projection"));
+        assert!(readme.contains("terms/<slug>.md"));
+    }
+
+    #[test]
+    fn source_snippets_hard_fails_without_cards() {
+        // No `terms/*/card.md` in the tree → a hard error, never a silent empty tree.
+        let mut site: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        site.insert("index.html".to_string(), b"<html/>".to_vec());
+        assert!(source_snippets(site).is_err());
+    }
 }

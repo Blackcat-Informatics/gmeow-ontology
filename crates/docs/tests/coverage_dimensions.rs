@@ -62,7 +62,7 @@ fn representative_model() -> DocsModel {
 
 #[test]
 fn projection_emits_the_coverage_incidence_on_the_production_surface() {
-    let nq = to_gmeow_rdf(&representative_model());
+    let nq = to_gmeow_rdf(&representative_model(), &std::collections::BTreeMap::new());
 
     // Per-term incidence: the bare `Cat` misses (e.g.) the fixture-pair dimension
     // and covers definition/label.
@@ -190,13 +190,13 @@ fn coverage_projection_is_reasoner_independent_and_deterministic() {
     with_verdict.reasoning = Some(ReasoningVerdict::default());
     let without = representative_model();
 
-    let a = to_gmeow_rdf(&without);
-    let b = to_gmeow_rdf(&with_verdict);
+    let a = to_gmeow_rdf(&without, &std::collections::BTreeMap::new());
+    let b = to_gmeow_rdf(&with_verdict, &std::collections::BTreeMap::new());
 
     // Determinism.
     assert_eq!(
         a,
-        to_gmeow_rdf(&without),
+        to_gmeow_rdf(&without, &std::collections::BTreeMap::new()),
         "projection must be deterministic"
     );
 
