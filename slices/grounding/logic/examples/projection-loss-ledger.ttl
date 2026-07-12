@@ -73,3 +73,15 @@ ex:shaclJsonSchemaReport a gmeow:InformationObject ;
     rdfs:label "SHACL → JSON Schema (closed-world) projection of the GMEOW shapes"@x-gmeow-english ;
     logic:preservationKind logic:ValidationOnly ;
     logic:complexityClass "closed-world structural validation; sh:sparql constraints dropped" .
+
+# --- The SHACL → Pydantic v2 model package (gmeow_models) projection: a
+#     functional documentation surface CO-DERIVED from the SAME shape compilation as
+#     the JSON Schema above (both parse the one compiled $defs), so a model's
+#     model_json_schema() agrees with the packed JSON Schema. It validates instance
+#     shape as a closed RECORD but does NOT entail — validation-only. rdfs:subClassOf
+#     is flattened to single Python inheritance and sh:sparql constraints are dropped,
+#     exactly as its JSON Schema sibling drops them (Principle 17).
+ex:pydanticModelsReport a gmeow:InformationObject ;
+    rdfs:label "SHACL → Pydantic v2 model package (gmeow_models) projection of the GMEOW shapes"@x-gmeow-english ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:complexityClass "closed-record instance validation; co-derived with the JSON Schema; no reasoning, rdfs:subClassOf flattened to single inheritance, sh:sparql constraints dropped" .
