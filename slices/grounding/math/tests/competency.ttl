@@ -1154,3 +1154,34 @@ ex:rowCohortSample a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sample" ; gmeow:cellValueIri exf:cohortSample ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "population" ; gmeow:cellValueIri exf:cohortPopulation ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "frame" ; gmeow:cellValueIri exf:cohortRegistry ] .
+
+# === SQ2 — models and estimation: data, model, estimator, assumptions, process #
+
+ex:cqStatisticsEstimateProvenance a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-estimate-provenance.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-estimate-provenance.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Estimate names its math:Estimator (math:estimator) and math:Estimand (math:estimatesEstimand) and is produced by a math:InferenceRun process (gmeow:wasGeneratedBy); the run fits the math:DatasetMatrix data (math:fittedToData) and the math:FittedModel over that same data carries its math:ModelAssumption (math:modelAssumption) — so a statistical result is the traceable output of a method over data under stated assumptions, by a named process. Over the fixture the answer is exactly {treatmentEffectEstimate → run analysisRun, data trialData, model trialFittedModel, estimator olsEstimator, estimand averageTreatmentEffect, assumption normalErrors}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsEstimateProvenanceShape ;
+    gmeow:cqExpectRow ex:rowEstimateProvenance .
+
+ex:cqStatisticsEstimateProvenanceShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "estimate" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "data" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "model" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "estimator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "estimand" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "assumption" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowEstimateProvenance a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimate" ; gmeow:cellValueIri exf:treatmentEffectEstimate ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:analysisRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "data" ; gmeow:cellValueIri exf:trialData ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:trialFittedModel ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimator" ; gmeow:cellValueIri exf:olsEstimator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimand" ; gmeow:cellValueIri exf:averageTreatmentEffect ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri exf:normalErrors ] .

@@ -1513,6 +1513,28 @@ math:FittedModelShape
         sh:message "A math:FittedModel must reference its math:ModelFormula specification through math:modelFormula." ;
     ] .
 
+# Rule — an estimate fixes what it estimates and how: its estimand and/or its
+# estimated parameter, AND the estimator that produced it.
+math:UnderspecifiedEstimateShape
+    a sh:NodeShape ;
+    rdfs:label "Underspecified-estimate target-and-estimator shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Estimate: it fixes both WHAT it estimates and HOW. The target arm is an sh:or requiring the estimand (math:estimatesEstimand) and/or the estimated parameter (math:estimatedParameter) — an estimate may reference its math:Estimand, its model parameter, or both — and the procedure arm requires the math:Estimator that produced it (math:estimator, min one). An estimate is the structured result object of the process / result / claim separation, never a bare number; one naming neither its estimand nor its parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The two arms report distinct components — the target arm trips shacl.OrConstraintComponent, the estimator arm shacl.MinCountConstraintComponent — so a counter-example that satisfies the sh:or but omits the estimator isolates to the estimator min-count alone."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnderspecifiedEstimate ;
+    sh:targetClass math:Estimate ;
+    sh:or (
+        [ sh:path math:estimatesEstimand ; sh:minCount 1 ]
+        [ sh:path math:estimatedParameter ; sh:minCount 1 ]
+    ) ;
+    sh:property [
+        sh:path math:estimator ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Estimate must name the math:Estimator that produced it through math:estimator; a produced value with no estimator is a bare number without its act (math:UnderspecifiedEstimate)." ;
+    ] ;
+    sh:severity sh:Violation ;
+    sh:message "A math:Estimate must reference its estimand through math:estimatesEstimand and/or its estimated parameter through math:estimatedParameter; an estimate naming neither its target quantity nor a model parameter is underspecified (math:UnderspecifiedEstimate)." .
+
 math:ModelFormulaShape
     a sh:NodeShape ;
     rdfs:label "Model-formula binder shape"@x-gmeow-english ;
