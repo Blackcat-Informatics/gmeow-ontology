@@ -1065,6 +1065,9 @@ pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
         use_for_consumer: t.use_for_consumer.clone(),
         avoid_for_consumer: t.avoid_for_consumer.clone(),
         aligns: t.alignments.clone(),
+        // Full-tier rich panels: the folded builder has no documentation-graph
+        // access; the MCP `doc_card` full tier populates them from the graph.
+        ..gmeow_docs::card::Card::default()
     }
 }
 
@@ -1710,7 +1713,10 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
             "### {}{}\n\n{}\n",
             t.curie,
             llms_signature(t),
-            gmeow_docs::card::render_card_body(&term_to_card(t))
+            gmeow_docs::card::render_card_body(
+                &term_to_card(t),
+                gmeow_docs::card::CardDetail::Standard,
+            )
         );
         let cost = gmeow_docs::llms::estimate_tokens(&block);
         // Always emit at least one block; otherwise stop before the budget is
@@ -1752,7 +1758,7 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
 // gated behind `python`) and by the byte-format goldens under `test`.
 
 pub(crate) use consumer::{
-    consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope, okf_index_envelope,
+    consumer_llms_txt, doc_card_build, doc_url_map, lookup_envelope, okf_index_envelope,
     resolve_term_iri,
 };
 
@@ -1856,18 +1862,24 @@ mod consumer {
         gmeow_docs::llms::render_index(title, &prose, &sections)
     }
 
-    /// `doc_card`: a prompt-ready Markdown card for one term — the
-    /// live MCP twin of the docs-site `terms/{slug}/card.md`. Resolves the query,
-    /// then renders a `# {curie}{signature}` card with the definition and every
-    /// advisory field, through the ONE shared `gmeow_docs::card` renderer the
-    /// docs-site card uses (§19 one-path). Returns a plain not-found line when the
-    /// query does not resolve to exactly one term.
-    pub(crate) fn doc_card_md(terms: &[Term], query: &str) -> String {
-        let Some(t) = resolve_term(terms, query) else {
-            return format!("Term not found: {query}\n");
-        };
+    /// `doc_card`: resolve `query` to a term and build its `# {curie}{signature}`
+    /// title and the COMPACT shared [`gmeow_docs::card::Card`] — the live MCP twin
+    /// of the docs-site `terms/{slug}/card.md`, through the ONE shared
+    /// `gmeow_docs::card` builder + renderer (§19 one-path). `None` when the query
+    /// does not resolve to exactly one term.
+    ///
+    /// This builds the COMPACT card only (no full-tier rich panels) — it has just
+    /// the folded `Term` set, not the documentation graph. The MCP `doc_card` tool
+    /// populates the rich panels for [`gmeow_docs::card::CardDetail::Full`] from the
+    /// documentation graph, then renders through the SAME `render_card`; the site
+    /// path renders this compact card at `Standard`.
+    pub(crate) fn doc_card_build(
+        terms: &[Term],
+        query: &str,
+    ) -> Option<(String, gmeow_docs::card::Card)> {
+        let t = resolve_term(terms, query)?;
         let title = format!("{}{}", t.curie, llms_signature(t));
-        gmeow_docs::card::render_card(&title, &super::term_to_card(t))
+        Some((title, super::term_to_card(t)))
     }
 
     /// Build a `term-IRI → site URL` map from the `gmeow:graph/documentation`
@@ -2874,11 +2886,15 @@ mod tests {
     }
 
     /// `doc_card`: resolves a term and renders a `# {curie}` card with the
-    /// metadata + definition; an unresolved query yields the plain not-found line.
+    /// metadata + definition through the shared builder + renderer; an unresolved
+    /// query yields `None` (the caller supplies the not-found envelope).
     #[test]
-    fn doc_card_md_renders_card_and_not_found() {
+    fn doc_card_build_renders_card_and_not_found() {
         let (terms, _t, _v) = english_terms();
-        let card = doc_card_md(&terms, "gmeow:EntityExistence");
+        let (title, built) =
+            doc_card_build(&terms, "gmeow:EntityExistence").expect("known term resolves");
+        let card =
+            gmeow_docs::card::render_card(&title, &built, gmeow_docs::card::CardDetail::Standard);
         assert!(
             card.starts_with("# gmeow:EntityExistence"),
             "card head:\n{card}"
@@ -2899,8 +2915,10 @@ mod tests {
         );
         assert!(card.ends_with('\n'));
 
-        let miss = doc_card_md(&terms, "gmeow:NoSuchTerm");
-        assert_eq!(miss, "Term not found: gmeow:NoSuchTerm\n");
+        assert!(
+            doc_card_build(&terms, "gmeow:NoSuchTerm").is_none(),
+            "an unresolved query yields None"
+        );
     }
 
     /// `llms_full` / `llms-full.txt`: the standard header then `### ` term blocks
@@ -3013,6 +3031,7 @@ mod tests {
             use_for_consumer: vec!["gmeow:profileMemory".to_string()],
             avoid_for_consumer: vec!["gmeow:profileNarrative".to_string()],
             aligns: vec!["exactMatch=ex:hasFoo".to_string()],
+            ..gmeow_docs::card::Card::default()
         };
 
         // The folded builder must produce exactly that Card (field-for-field).
@@ -3023,8 +3042,12 @@ mod tests {
         );
 
         // …and both render IDENTICALLY through the SOLE body renderer.
-        let from_folded = gmeow_docs::card::render_card_body(&term_to_card(&folded));
-        let from_expected = gmeow_docs::card::render_card_body(&expected);
+        let from_folded = gmeow_docs::card::render_card_body(
+            &term_to_card(&folded),
+            gmeow_docs::card::CardDetail::Standard,
+        );
+        let from_expected =
+            gmeow_docs::card::render_card_body(&expected, gmeow_docs::card::CardDetail::Standard);
         assert_eq!(
             from_folded, from_expected,
             "shared renderer must agree byte-for-byte"
@@ -3054,8 +3077,11 @@ mod tests {
         };
         assert_eq!(term_to_card(&with_slice).slice, Some("zoo".to_string()));
         assert!(
-            gmeow_docs::card::render_card_body(&term_to_card(&with_slice))
-                .contains("- slice: zoo\n")
+            gmeow_docs::card::render_card_body(
+                &term_to_card(&with_slice),
+                gmeow_docs::card::CardDetail::Standard,
+            )
+            .contains("- slice: zoo\n")
         );
 
         let no_slice = Term {
@@ -3065,7 +3091,13 @@ mod tests {
             ..Term::default()
         };
         assert_eq!(term_to_card(&no_slice).slice, None);
-        assert!(!gmeow_docs::card::render_card_body(&term_to_card(&no_slice)).contains("- slice:"));
+        assert!(
+            !gmeow_docs::card::render_card_body(
+                &term_to_card(&no_slice),
+                gmeow_docs::card::CardDetail::Standard,
+            )
+            .contains("- slice:")
+        );
     }
 
     /// `okf_index`: the manifest envelope wraps `ok`/`format`/`lossy`/`count`
