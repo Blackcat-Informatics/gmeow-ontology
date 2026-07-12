@@ -308,13 +308,14 @@ impl OracleCtx {
             }
         }
 
+        let property_kinds = property_iris(root);
         Ok(Self {
             projected,
             functional_max,
             formalized_shapes,
             formalized_failure_classes,
-            object_properties: object_property_iris(root),
-            datatype_properties: datatype_property_iris(root),
+            object_properties: property_kinds.object,
+            datatype_properties: property_kinds.datatype,
         })
     }
 
@@ -1090,41 +1091,41 @@ impl InstanceData {
     }
 }
 
-/// The set of property IRIs declared `owl:ObjectProperty` anywhere in the authored tree. In GMEOW's
-/// IRI-named-individual convention an object-property value is always an IRI, so a `sh:nodeKind sh:IRI`
-/// on such a path is redundant (definitionally satisfied), which the oracle and the migrator credit.
-fn object_property_iris(root: &Path) -> std::collections::BTreeSet<String> {
-    property_iris(root, "http://www.w3.org/2002/07/owl#ObjectProperty")
+/// Property IRIs partitioned by their authored OWL kind. Both sets are collected in one tree walk
+/// and one parse per source module so building an oracle never repeats repository-wide RDF I/O.
+struct PropertyIris {
+    object: std::collections::BTreeSet<String>,
+    datatype: std::collections::BTreeSet<String>,
 }
 
-/// The set of property IRIs declared `owl:DatatypeProperty` anywhere in the authored tree.
-fn datatype_property_iris(root: &Path) -> std::collections::BTreeSet<String> {
-    property_iris(root, "http://www.w3.org/2002/07/owl#DatatypeProperty")
-}
-
-fn property_iris(root: &Path, property_kind: &str) -> std::collections::BTreeSet<String> {
+fn property_iris(root: &Path) -> PropertyIris {
     let mut modules = Vec::new();
     collect_module_files(&root.join("slices"), &mut modules);
     let ont = root.join("ontology/gmeow.ttl");
     if ont.is_file() {
         modules.push(ont);
     }
-    let mut out = std::collections::BTreeSet::new();
+    let mut object = std::collections::BTreeSet::new();
+    let mut datatype = std::collections::BTreeSet::new();
+    let object_kind = "http://www.w3.org/2002/07/owl#ObjectProperty";
+    let datatype_kind = "http://www.w3.org/2002/07/owl#DatatypeProperty";
     for m in modules {
         let Ok(ds) = parse_ttl_file(&m) else { continue };
-        let (Some(ty), Some(opo)) = (
-            ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
-            ds.term_id_by_value(&TermValue::iri(property_kind)),
-        ) else {
+        let Some(ty) = ds.term_id_by_value(&TermValue::iri(RDF_TYPE)) else {
             continue;
         };
-        for q in ds.quads_for_pattern(None, Some(ty), Some(opo), GraphMatch::Any) {
-            if let TermRef::Iri(s) = ds.resolve(q.s) {
-                out.insert(s.to_owned());
+        for q in ds.quads_for_pattern(None, Some(ty), None, GraphMatch::Any) {
+            let target = match ds.resolve(q.o) {
+                TermRef::Iri(kind) if kind == object_kind => &mut object,
+                TermRef::Iri(kind) if kind == datatype_kind => &mut datatype,
+                _ => continue,
+            };
+            if let TermRef::Iri(subject) = ds.resolve(q.s) {
+                target.insert(subject.to_owned());
             }
         }
     }
-    out
+    PropertyIris { object, datatype }
 }
 
 /// A copy of `ir` with every redundant `sh:nodeKind sh:IRI` component removed from an
@@ -1179,18 +1180,28 @@ fn strip_redundant_iri_nodekind(
 /// `owl:qualifiedCardinality`.
 fn fold_universally_qualified_counts(ir: &mut ValidationShapeIr) {
     for property in &mut ir.properties {
-        let universal: Vec<ConstraintComponent> = property
+        let foldable: Vec<bool> = property
             .components
             .iter()
-            .filter(|c| !matches!(c, ConstraintComponent::QualifiedValueShape { .. }))
-            .cloned()
+            .map(|component| match component {
+                ConstraintComponent::QualifiedValueShape { shape, .. } => {
+                    shape.iter().all(|inner| {
+                        property.components.iter().any(|candidate| {
+                            !matches!(candidate, ConstraintComponent::QualifiedValueShape { .. })
+                                && candidate == inner
+                        })
+                    })
+                }
+                _ => false,
+            })
             .collect();
         let mut keep = Vec::new();
-        for component in std::mem::take(&mut property.components) {
+        for (component, fold) in std::mem::take(&mut property.components)
+            .into_iter()
+            .zip(foldable)
+        {
             match component {
-                ConstraintComponent::QualifiedValueShape { shape, min, max }
-                    if shape.iter().all(|inner| universal.contains(inner)) =>
-                {
+                ConstraintComponent::QualifiedValueShape { min, max, .. } if fold => {
                     if let Some(min) = min {
                         property.min_count = Some(property.min_count.unwrap_or(0).max(min));
                     }
@@ -1729,6 +1740,34 @@ mod tests {
         assert_eq!(shape.properties[0].min_count, Some(1));
         assert_eq!(shape.properties[0].max_count, Some(1));
         assert_eq!(shape.properties[0].components, vec![class]);
+    }
+
+    #[test]
+    fn property_kinds_are_collected_together_from_one_authored_tree() {
+        let root =
+            std::env::temp_dir().join(format!("gmeow-shape-property-kinds-{}", std::process::id()));
+        let slice = root.join("slices/core/test");
+        std::fs::create_dir_all(&slice).expect("create fixture slice");
+        std::fs::write(
+            slice.join("module.ttl"),
+            "@prefix ex: <https://example.test/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             ex:object a owl:ObjectProperty .\n\
+             ex:datatype a owl:DatatypeProperty .\n",
+        )
+        .expect("write property-kind fixture");
+
+        let kinds = property_iris(&root);
+        assert_eq!(
+            kinds.object,
+            std::iter::once("https://example.test/object".to_owned()).collect()
+        );
+        assert_eq!(
+            kinds.datatype,
+            std::iter::once("https://example.test/datatype".to_owned()).collect()
+        );
+
+        std::fs::remove_dir_all(root).expect("remove property-kind fixture");
     }
 
     #[test]
