@@ -17,25 +17,25 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 
 | corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden | native_vs_oracle |
 |---|---|---|---|---|---|---|---|---|---|
-| chasebench-mini | deep-linear | existential | 3 | 3 | 4750742 | 40112 | 34937 | true | true |
-| chasebench-mini | doctors-like | existential | 4 | 4 | 3277814 | 27798 | 29729 | true | true |
-| chasebench-mini | lubm-like | existential | 3 | 3 | 4742305 | 40037 | 34989 | true | true |
-| nary-mini | co-witness | nary-existential | 16 | 6 | 564567 | 5680 | 96687 | true | true |
-| nary-mini | split-null | nary-existential | 14 | 6 | 458334 | 4686 | 83962 | true | true |
-| nary-mini | stb-like | nary-existential | 24 | 10 | 765537 | 7881 | 89129 | true | true |
+| chasebench-mini | deep-linear | existential | 3 | 3 | 4750782 | 40112 | 34937 | true | true |
+| chasebench-mini | doctors-like | existential | 4 | 4 | 3277926 | 27798 | 29729 | true | true |
+| chasebench-mini | lubm-like | existential | 3 | 3 | 4742345 | 40037 | 34989 | true | true |
+| nary-mini | co-witness | nary-existential | 16 | 6 | 565335 | 5680 | 97071 | true | true |
+| nary-mini | split-null | nary-existential | 14 | 6 | 458974 | 4686 | 84282 | true | true |
+| nary-mini | stb-like | nary-existential | 24 | 10 | 766049 | 7881 | 89385 | true | true |
 | nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 183591 | 1701 | 22188 | true | true |
 | nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 110880 | 1072 | 16884 | true | true |
-| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3901271 | 32984 | 37822 | true | true |
+| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3901583 | 32984 | 37950 | true | true |
 | relational-core-mini | incremental-transitive-closure | incremental | 13 | 91 | 2411313 | 54874 | 130246 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208164 | 53459 | 58473 | true | true |
-| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3968687 | 33958 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3939838 | 33701 | 42113 | true | true |
-| relational-core-mini | reachability | forward | 2 | 2 | 3702103 | 31095 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5405476 | 46472 | 53474 | true | true |
-| relational-core-mini | scc | forward | 8 | 8 | 6142361 | 52303 | 53796 | true | true |
-| relational-core-mini | transitive-closure | forward | 3 | 3 | 3901516 | 33008 | 37785 | true | true |
-| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5471953 | 56992 | 212438 | true | true |
-| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7894128 | 107890 | 623735 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208852 | 53459 | 58601 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3969023 | 33958 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3942462 | 33702 | 42113 | true | true |
+| relational-core-mini | reachability | forward | 2 | 2 | 3702215 | 31095 | 36685 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5406020 | 46472 | 53602 | true | true |
+| relational-core-mini | scc | forward | 8 | 8 | 6142905 | 52303 | 53924 | true | true |
+| relational-core-mini | transitive-closure | forward | 3 | 3 | 3901828 | 33008 | 37913 | true | true |
+| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5472212 | 56838 | 213558 | true | true |
+| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7856606 | 106392 | 626039 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
@@ -71,7 +71,7 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 
 | corpus | case | incremental steps | scratch steps | steps saved | derived rows | incremental peak_live_bytes | scratch peak_live_bytes | peak bytes saved | joined delta rows | insert parity | retract parity |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| relational-core-mini | incremental-transitive-closure | 13 | 91 | 78 | 91 | 130246 | 230694 | 100448 | 1211 | true | true |
+| relational-core-mini | incremental-transitive-closure | 13 | 91 | 78 | 91 | 130246 | 231822 | 101576 | 1211 | true | true |
 
 ## Cold vs warm physical-plan reuse
 
@@ -79,16 +79,33 @@ Each row is two complete materializations over identical inputs; parsing/EDB loa
 
 | corpus | case | solver | rule hash | cold hit | warm hit | cold builds | warm builds | cold planning units | warm planning units | cold steps | warm steps | cold peak_live_bytes | warm peak_live_bytes | peak bytes saved | same plan | closure+cost parity | warm alloc count lower | warm peak lower |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| nemo-kr2024-mini | transitive-connection | gmeow-native-plan-v1 | a77437b7834189200cb51b5b5e9f118c2b03e222241e222aca1415543ee67aee | false | true | 1 | 0 | 5 | 0 | 3 | 3 | 15893 | 13267 | 2626 | true | true | true | true |
-| relational-core-mini | mutual-recursion | gmeow-native-plan-v1 | 8625b5773c9fd37b151f8fd8aab0d2d6dfda6587b9918555ba42a8f1d7cf1047 | false | true | 1 | 0 | 8 | 0 | 10 | 10 | 37494 | 33696 | 3798 | true | true | true | true |
-| relational-core-mini | non-linear-transitive-closure | gmeow-native-plan-v1 | dd3e53e57eb1170b56d04302c32188208809460cb28952b0c4a0ea96098acd81 | false | true | 1 | 0 | 5 | 0 | 6 | 6 | 27612 | 24962 | 2650 | true | true | true | true |
-| relational-core-mini | points-to | gmeow-native-plan-v1 | 86af6d4aa41766e3c00b66b308daf047751a9ba4212e2b7feb42cda3ef5b8d01 | false | true | 1 | 0 | 5 | 0 | 4 | 4 | 21244 | 18615 | 2629 | true | true | true | true |
-| relational-core-mini | reachability | gmeow-native-plan-v1 | e046827c8a3d2c0341b8fc89a49422295bdb92da92691bb042bfefea80d55354 | false | true | 1 | 0 | 5 | 0 | 2 | 2 | 14814 | 12032 | 2782 | true | true | true | true |
-| relational-core-mini | same-generation | gmeow-native-plan-v1 | 74233e47e2e0af222e3d81165dcec62f686683df3f5e81dc8477279dd53c9d4d | false | true | 1 | 0 | 7 | 0 | 8 | 8 | 38937 | 35631 | 3306 | true | true | true | true |
-| relational-core-mini | scc | gmeow-native-plan-v1 | 33fc141eeda9d1a28700734213ac0b95583229f08bdeb18130a64b2756115001 | false | true | 1 | 0 | 8 | 0 | 8 | 8 | 28234 | 24454 | 3780 | true | true | true | true |
-| relational-core-mini | transitive-closure | gmeow-native-plan-v1 | 61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616 | false | true | 1 | 0 | 5 | 0 | 3 | 3 | 15820 | 13196 | 2624 | true | true | true | true |
-| relational-core-mini | transitive-closure-scaled | gmeow-native-plan-v1 | 61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616 | false | true | 1 | 0 | 5 | 0 | 78 | 78 | 200312 | 197674 | 2638 | true | true | true | true |
-| relational-core-mini | triangle-heavy | gmeow-native-plan-v1 | 42f1f1834d011e457334bc7f62f4ae089fe3e605c0395b588810374ffcde8091 | false | true | 1 | 0 | 4 | 0 | 64 | 64 | 514781 | 512396 | 2385 | true | true | true | true |
+| nemo-kr2024-mini | transitive-connection | gmeow-native-plan-v1 | a77437b7834189200cb51b5b5e9f118c2b03e222241e222aca1415543ee67aee | false | true | 1 | 0 | 5 | 0 | 3 | 3 | 15941 | 13315 | 2626 | true | true | true | true |
+| relational-core-mini | mutual-recursion | gmeow-native-plan-v1 | 8625b5773c9fd37b151f8fd8aab0d2d6dfda6587b9918555ba42a8f1d7cf1047 | false | true | 1 | 0 | 8 | 0 | 10 | 10 | 37654 | 33856 | 3798 | true | true | true | true |
+| relational-core-mini | non-linear-transitive-closure | gmeow-native-plan-v1 | dd3e53e57eb1170b56d04302c32188208809460cb28952b0c4a0ea96098acd81 | false | true | 1 | 0 | 5 | 0 | 6 | 6 | 27700 | 25050 | 2650 | true | true | true | true |
+| relational-core-mini | points-to | gmeow-native-plan-v1 | 86af6d4aa41766e3c00b66b308daf047751a9ba4212e2b7feb42cda3ef5b8d01 | false | true | 1 | 0 | 5 | 0 | 4 | 4 | 21308 | 18679 | 2629 | true | true | true | true |
+| relational-core-mini | reachability | gmeow-native-plan-v1 | e046827c8a3d2c0341b8fc89a49422295bdb92da92691bb042bfefea80d55354 | false | true | 1 | 0 | 5 | 0 | 2 | 2 | 14862 | 12080 | 2782 | true | true | true | true |
+| relational-core-mini | same-generation | gmeow-native-plan-v1 | 74233e47e2e0af222e3d81165dcec62f686683df3f5e81dc8477279dd53c9d4d | false | true | 1 | 0 | 7 | 0 | 8 | 8 | 39033 | 35727 | 3306 | true | true | true | true |
+| relational-core-mini | scc | gmeow-native-plan-v1 | 33fc141eeda9d1a28700734213ac0b95583229f08bdeb18130a64b2756115001 | false | true | 1 | 0 | 8 | 0 | 8 | 8 | 28314 | 24534 | 3780 | true | true | true | true |
+| relational-core-mini | transitive-closure | gmeow-native-plan-v1 | 61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616 | false | true | 1 | 0 | 5 | 0 | 3 | 3 | 15868 | 13244 | 2624 | true | true | true | true |
+| relational-core-mini | transitive-closure-scaled | gmeow-native-plan-v1 | 61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616 | false | true | 1 | 0 | 5 | 0 | 78 | 78 | 201432 | 198794 | 2638 | true | true | true | true |
+| relational-core-mini | triangle-heavy | gmeow-native-plan-v1 | 42f1f1834d011e457334bc7f62f4ae089fe3e605c0395b588810374ffcde8091 | false | true | 1 | 0 | 4 | 0 | 64 | 64 | 517085 | 514700 | 2385 | true | true | true | true |
+
+## Record vs Skip bounded-provenance overhead
+
+Each row executes the same warm physical plan over identical EDB/rules. Fact-closure and committed-step parity are hard laws; peak-live is exact, while allocation-count deltas are advisory.
+
+| corpus | case | facts | annotations | max proof height | Record steps | Skip steps | Record peak_live_bytes | Skip peak_live_bytes | Record peak overhead | Record alloc_count | Skip alloc_count | alloc-count overhead (advisory) | fact-closure parity | step parity | annotation complete |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| nemo-kr2024-mini | transitive-connection | 5 | 5 | 2 | 3 | 3 | 13315 | 9379 | 3936 | 639 | 577 | 62 | true | true | true |
+| relational-core-mini | mutual-recursion | 14 | 14 | 4 | 10 | 10 | 33856 | 20245 | 13611 | 1966 | 2134 | -168 | true | true | true |
+| relational-core-mini | non-linear-transitive-closure | 9 | 9 | 3 | 6 | 6 | 25050 | 16701 | 8349 | 1282 | 1143 | 139 | true | true | true |
+| relational-core-mini | points-to | 8 | 8 | 3 | 4 | 4 | 18679 | 13077 | 5602 | 988 | 902 | 86 | true | true | true |
+| relational-core-mini | reachability | 4 | 4 | 2 | 2 | 2 | 12080 | 8610 | 3470 | 515 | 443 | 72 | true | true | true |
+| relational-core-mini | same-generation | 12 | 12 | 2 | 8 | 8 | 35727 | 26005 | 9722 | 2082 | 1773 | 309 | true | true | true |
+| relational-core-mini | scc | 10 | 10 | 3 | 8 | 8 | 24534 | 14235 | 10299 | 1463 | 1201 | 262 | true | true | true |
+| relational-core-mini | transitive-closure | 5 | 5 | 2 | 3 | 3 | 13244 | 9325 | 3919 | 639 | 549 | 90 | true | true | true |
+| relational-core-mini | transitive-closure-scaled | 90 | 90 | 12 | 78 | 78 | 198794 | 92812 | 105982 | 12237 | 16404 | -4167 | true | true | true |
+| relational-core-mini | triangle-heavy | 256 | 256 | 1 | 64 | 64 | 514700 | 344443 | 170257 | 49214 | 48448 | 766 | true | true | true |
 
 ## Per-corpus divergence-ledger tally
 

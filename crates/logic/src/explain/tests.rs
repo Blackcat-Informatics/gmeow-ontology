@@ -539,3 +539,35 @@ fn explain_three_node_derivation_cycle_is_hard_error() {
         other => panic!("expected Cycle, got {other:?}"),
     }
 }
+
+#[test]
+fn lazy_index_descends_only_the_queried_witness_subtree() {
+    let mut rows = transitive_rows();
+    rows.push(Row {
+        graph: format!("{BASE}world-main"),
+        subject: format!("{BASE}Unrelated"),
+        predicate: format!("{BASE}broken"),
+        obj: format!("<{}Missing>", BASE),
+        derivation_id: format!("{BASE}derivation-broken"),
+        rule_iri: format!("{BASE}ruleBroken"),
+        source_quad_ids: vec![format!("{BASE}missing-reifier")],
+    });
+
+    let index = LazyExplanationIndex::new(&rows);
+    let witness = index
+        .explain_one(2)
+        .expect("an unrelated malformed provenance component must not be traversed");
+    assert_eq!(
+        witness.step_skeleton.len(),
+        3,
+        "only the queried transitive witness is reconstructed"
+    );
+
+    assert!(
+        matches!(
+            index.explain_one(3),
+            Err(ExplainError::UnresolvedReifier { .. })
+        ),
+        "the malformed branch still hard-fails when it is the queried witness"
+    );
+}

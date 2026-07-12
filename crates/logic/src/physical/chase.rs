@@ -51,7 +51,9 @@ use crate::physical::seminaive::{
     Budgeted, NativeOutcome, StepGovernor, StrataProgress, UnsupportedKind,
 };
 use crate::physical::store::{Bound, RelationStore, SkolemRegistry, SkolemTerm};
-use crate::provenance::{mint_derivation_id, mint_nary_reifier, term_display};
+use crate::provenance::{
+    MinProofHeightSemiring, ProofHeight, mint_derivation_id, mint_nary_reifier, term_display,
+};
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalTerm, Fact, FactKey, Solution, distinct_pairs_satisfied,
     echo_asserted, ground, ground_head, match_atom, sort_rows,
@@ -321,6 +323,7 @@ fn chase_world_into(
 
     let mut committed: BTreeSet<FactKey> = edb_facts.iter().map(Fact::key).collect();
     let mut status = BudgetStatus::Ok;
+    let mut prior_round_height = ProofHeight::ASSERTED;
 
     // A rule's existential/frontier variable sets are loop-invariant (they depend only on
     // the rule's shape, not the store), so compute them ONCE rather than re-deriving —
@@ -335,6 +338,9 @@ fn chase_world_into(
     // SkolemRegistry collapses repeat firings — so a weakly-acyclic program converges.
     // (Incrementality is out of scope: the perf ledger flags the chase non-incremental.)
     'fixpoint: loop {
+        // The restricted chase commits one breadth layer per round. The first
+        // appearance of a fact is therefore its minimal proof-height layer.
+        let round_height = MinProofHeightSemiring.derive([prior_round_height])?;
         // Gather this round's new facts with their provenance, keyed for deterministic
         // FactKey-sorted commit (the columnar-store determinism doctrine).
         let mut round: Vec<(FactKey, Fact, Vec<String>)> = Vec::new();
@@ -450,6 +456,7 @@ fn chase_world_into(
                 rule_iri: CHASE_RULE_IRI.to_owned(),
                 source_quad_ids: sources,
                 derivation_id,
+                proof_height: round_height,
                 // The restricted existential chase is consumed by the reifier-based
                 // provenance path (`materialize_routed`'s existential leg / the n-ary
                 // head chase), never through the ternary `ForwardOracle` seam that
@@ -464,6 +471,7 @@ fn chase_world_into(
         if !progressed {
             break; // natural fixpoint — the chase terminated
         }
+        prior_round_height = round_height;
     }
 
     Ok(status)

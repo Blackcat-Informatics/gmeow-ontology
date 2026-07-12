@@ -677,6 +677,7 @@ mod tests {
             rule_iri: "http://ex/rule/svf".to_owned(),
             source_quad_ids: vec![],
             derivation_id: format!("http://ex/deriv/{subject}/{predicate}/{object}"),
+            proof_height: crate::provenance::ProofHeight::new(1).unwrap(),
             antecedents: vec![],
         }
     }
@@ -694,6 +695,7 @@ mod tests {
                 is_edb: false,
                 rule_name: Some("http://ex/rule/svf".to_owned()),
                 antecedents: vec![],
+                proof_height: None,
                 attributions: vec![],
             },
         )

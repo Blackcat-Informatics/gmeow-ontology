@@ -59,7 +59,8 @@ use crate::facts::{PredId, PredInterner};
 use crate::physical::bitset::DenseBitset;
 use crate::physical::id::RowId;
 use crate::provenance::{
-    ASSERT_RULE_IRI, LOGIC_NAMESPACE, mint_derivation_id, mint_reifier, term_display,
+    ASSERT_RULE_IRI, LOGIC_NAMESPACE, MinProofHeightSemiring, ProofHeight, mint_derivation_id,
+    mint_reifier, term_display,
 };
 use crate::query_ir::QBuiltin;
 
@@ -329,6 +330,11 @@ pub(crate) struct DerivedRow {
     pub(crate) source_quad_ids: Vec<String>,
     /// The content-addressed derivation IRI.
     pub(crate) derivation_id: String,
+    /// Height of the selected minimal proof tree (`0` for an asserted leaf).
+    ///
+    /// Record mode carries exactly this bounded annotation per fact; full trees are
+    /// reconstructed only when an explanation query descends the selected premises.
+    pub(crate) proof_height: ProofHeight,
     /// The matched positive body facts of the winning firing, in body order —
     /// the pre-reifier `(subject, predicate, object)` antecedents whose reifiers
     /// are exactly [`source_quad_ids`](Self::source_quad_ids).
@@ -821,7 +827,7 @@ fn join_body(
 /// for `source_quad_ids`; the sorted copy never appears in output.
 ///
 /// Winner selection uses a **quality-ordered total-order** over same-head candidates:
-/// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri, sources)` — smaller wins.
+/// `(proof_height, sum_src_depth, sorted_sources, rule_iri, sources)` — smaller wins.
 /// This prefers the most-direct (shallowest) derivation, tiebreaks toward
 /// asserted-rooted proofs (lower depth sum), uses lex-min sorted reifiers as a
 /// content-addressed tiebreaker, uses `rule_iri` as a backstop (since rule IRIs vary
@@ -845,8 +851,8 @@ pub(crate) struct Provenance {
     pub(crate) deriv: String,
     /// The firing rule IRI (carried for comparison and output).
     pub(crate) rule_iri: String,
-    /// Maximum derivation depth across matched source facts (depth 0 = asserted).
-    pub(crate) max_src_depth: u32,
+    /// Minimal proof height of this candidate firing.
+    pub(crate) proof_height: ProofHeight,
     /// Sum of derivation depths across matched source facts.
     pub(crate) sum_src_depth: u64,
     /// The matched positive body facts, in body order — the same facts whose
@@ -869,13 +875,28 @@ pub(crate) struct RuleRoundCandidate {
 
 /// The quality-ordered **total-order** tiebreak key produced by
 /// [`RuleRoundCandidate::tiebreak_key`]:
-/// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri, sources)`, smaller wins.
+/// `(proof_height, sum_src_depth, sorted_sources, rule_iri, sources)`, smaller wins.
 /// The trailing body-order `sources` is the total-order closer (see `tiebreak_key`).
-type TiebreakKey<'a> = (u32, u64, &'a [String], &'a str, &'a [String]);
+type TiebreakKey<'a> = (ProofHeight, u64, &'a [String], &'a str, &'a [String]);
 
 impl RuleRoundCandidate {
+    /// Whether this recorded candidate is the semiring-selected winner over
+    /// `current`, including the deterministic total-order tie-break after equal
+    /// minimal heights.
+    pub(crate) fn preferred_over(&self, current: &Self) -> gmeow_errors::Result<bool> {
+        let (Some(candidate), Some(existing)) = (&self.prov, &current.prov) else {
+            return Ok(false);
+        };
+        let selected =
+            MinProofHeightSemiring.choose(candidate.proof_height, existing.proof_height)?;
+        if candidate.proof_height != existing.proof_height {
+            return Ok(selected == candidate.proof_height);
+        }
+        Ok(self.tiebreak_key() < current.tiebreak_key())
+    }
+
     /// The quality-ordered **total-order** tiebreak key —
-    /// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri, sources)`, smaller wins.
+    /// `(proof_height, sum_src_depth, sorted_sources, rule_iri, sources)`, smaller wins.
     /// `None` (the facts-only lane, which never tiebreaks — it only `or_insert`s a
     /// first-seen winner) sorts below any `Some` and never participates in a compare.
     ///
@@ -892,7 +913,7 @@ impl RuleRoundCandidate {
     pub(crate) fn tiebreak_key(&self) -> Option<TiebreakKey<'_>> {
         self.prov.as_ref().map(|p| {
             (
-                p.max_src_depth,
+                p.proof_height,
                 p.sum_src_depth,
                 p.sorted_sources.as_slice(),
                 p.rule_iri.as_str(),
@@ -911,8 +932,8 @@ impl RuleRoundCandidate {
 /// of every DERIVED (non-EDB) fact, selected by a quality-ordered total-order
 /// tiebreak (mirroring `foundation.rs::chase_world`):
 ///
-/// 1. **Fewest derivation steps** (`max_src_depth`) — prefer the candidate whose
-///    deepest source has the lowest depth.
+/// 1. **Minimal proof height** (`proof_height`) — prefer the candidate whose
+///    `1 + max(source heights)` annotation is lowest.
 /// 2. **Asserted-rooted preference** (`sum_src_depth`) — tiebreak on sum of source depths.
 /// 3. **Lex-min sorted source reifiers** (`sorted_sources`) — content-addressed tiebreaker.
 /// 4. **Rule IRI** (`rule_iri`) — total-order backstop (rule IRIs vary per rule here,
@@ -943,14 +964,14 @@ pub(crate) fn least_model_of_reduct(
     // fact; derived facts get depth = 1 + max(source depths) when committed at round
     // end.  It is pushed in lockstep with `store.insert`, so it never needs an owned-key
     // map — the row index the store returns is the column index.
-    let mut depth: Vec<u32> = Vec::new();
+    let mut depth: Vec<ProofHeight> = Vec::new();
 
     for f in edb.facts() {
         // `edb` is itself a `FactStore` (no duplicate keys), so every seed inserts into
         // the fresh `store`; guard on `Some` regardless so `depth` tracks `store`'s rows
         // exactly.
         if store.insert(f.clone()).is_some() {
-            depth.push(0); // EDB facts have depth 0
+            depth.push(ProofHeight::ASSERTED); // EDB facts have height 0
         }
     }
 
@@ -988,25 +1009,33 @@ pub(crate) fn least_model_of_reduct(
 
                 // Provenance: reifiers of matched POSITIVE body facts in body order.
                 let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
-                let mut max_sd: u32 = 0;
+                let mut max_sd = ProofHeight::ASSERTED;
                 let mut sum_sd: u64 = 0;
                 for sf in &sol.source_facts {
                     sources.push(sf.reifier()?);
-                    let d = store
-                        .row_index(&sf.key())
-                        .and_then(|i| depth.get(i))
-                        .copied()
-                        .unwrap_or(0);
+                    let source_key = sf.key();
+                    let row = store.row_index(&source_key).ok_or_else(|| {
+                        ir_err(format!(
+                            "provenance source {source_key:?} is absent from the reduct fact store"
+                        ))
+                    })?;
+                    drop(source_key);
+                    let d = depth.get(row).copied().ok_or_else(|| {
+                        ir_err(format!(
+                            "provenance source row {row} has no proof-height annotation"
+                        ))
+                    })?;
                     max_sd = max_sd.max(d);
-                    sum_sd = sum_sd.saturating_add(u64::from(d));
+                    sum_sd = sum_sd.saturating_add(u64::from(d.get()));
                 }
+                let proof_height = MinProofHeightSemiring.derive([max_sd])?;
                 let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                 let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
                 let mut sorted_sources = sources.clone();
                 sorted_sources.sort();
 
                 // Quality-ordered total-order tiebreak:
-                //   (max_src_depth, sum_src_depth, sorted_sources, rule_iri) — smaller wins.
+                //   (proof_height, sum_src_depth, sorted_sources, rule_iri) — smaller wins.
                 // Level 1: fewest derivation steps (most direct).
                 // Level 2: asserted-rooted preference (lower depth sum).
                 // Level 3: lex-min sorted reifiers (content-addressed tiebreaker).
@@ -1018,7 +1047,7 @@ pub(crate) fn least_model_of_reduct(
                         sorted_sources,
                         deriv,
                         rule_iri: rule.rule_iri.clone(),
-                        max_src_depth: max_sd,
+                        proof_height,
                         sum_src_depth: sum_sd,
                         source_facts: sol.source_facts.clone(),
                     }),
@@ -1026,7 +1055,7 @@ pub(crate) fn least_model_of_reduct(
                 let hash = fact_key_hash(&key);
                 match round_index.find(hash, |&i| round_entries[i].0 == key) {
                     Some(&i) => {
-                        if candidate.tiebreak_key() < round_entries[i].1.tiebreak_key() {
+                        if candidate.preferred_over(&round_entries[i].1)? {
                             round_entries[i].1 = candidate;
                         }
                     }
@@ -1055,7 +1084,7 @@ pub(crate) fn least_model_of_reduct(
             // The reduct evaluator always records provenance; a `None` here is an engine
             // bug (a candidate committed without its derivation), not a data condition.
             let prov = prov.expect("least_model_of_reduct always records provenance");
-            let winner_depth = prov.max_src_depth.saturating_add(1);
+            let winner_depth = prov.proof_height;
             // A winner is always a genuinely-new fact (heads already present are skipped
             // above via `store.contains_key`), so the insert returns `Some(idx)`; that
             // index drives the lockstep depth push AND the EDB-vs-derived membership test.
@@ -1083,6 +1112,7 @@ pub(crate) fn least_model_of_reduct(
                     rule_iri: prov.rule_iri,
                     source_quad_ids: prov.sources, // body-order, NEVER sorted copy
                     derivation_id: prov.deriv,
+                    proof_height: prov.proof_height,
                     antecedents: prov.source_facts,
                 });
             }
@@ -1175,6 +1205,7 @@ pub(crate) fn echo_asserted(world: &str, edb: &[Fact]) -> gmeow_errors::Result<V
             rule_iri: ASSERT_RULE_IRI.to_owned(),
             source_quad_ids: vec![reifier],
             derivation_id: deriv,
+            proof_height: ProofHeight::ASSERTED,
             // An asserted EDB fact has no antecedents (it is echoed, not derived).
             antecedents: Vec::new(),
         });

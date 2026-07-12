@@ -395,6 +395,44 @@ pub struct RepeatForwardObservation {
     pub cost: CostVector,
     /// Byte-stable BLAKE3 digest of the complete sorted materialized row set.
     pub closure_hash: [u8; 32],
+    /// Byte-stable BLAKE3 digest of only `(world, subject, predicate, object)`, used
+    /// to prove Record and Skip commit the identical fact closure.
+    pub fact_closure_hash: [u8; 32],
+    /// Number of bounded proof-height annotations retained by Record mode (one per
+    /// asserted or derived row in this complete closure).
+    pub annotation_count: u64,
+    /// Maximum selected minimal-proof height in the closure.
+    pub max_proof_height: u32,
+}
+
+/// Facts-only observation over the same EDB/rules/executable as a Record run.
+///
+/// Skip retains no proof annotations. This public benchmark projection records only
+/// the exact fact closure and committed-step count needed for the Record/Skip law.
+pub struct SkipForwardObservation {
+    /// Governor committed-derivation count.
+    pub consumed_steps: u64,
+    /// Byte-stable fact-only closure digest.
+    pub fact_closure_hash: [u8; 32],
+    /// Asserted plus derived fact count.
+    pub fact_count: u64,
+}
+
+/// Record-mode half of the fair bounded-provenance overhead probe.
+///
+/// Unlike [`RepeatForwardObservation`], this projection performs no plan-cache cost
+/// attribution or provenance-sensitive closure hash after evaluation. Its post-work
+/// exactly mirrors [`SkipForwardObservation`]: fact-only hash, steps, and row count,
+/// plus the two bounded annotation scalars Record alone owns.
+pub struct RecordForwardObservation {
+    /// Governor committed-derivation count.
+    pub consumed_steps: u64,
+    /// Byte-stable fact-only closure digest.
+    pub fact_closure_hash: [u8; 32],
+    /// Number of retained proof-height annotations.
+    pub annotation_count: u64,
+    /// Maximum selected minimal-proof height.
+    pub max_proof_height: u32,
 }
 
 /// Fixed-EDB/rule session proving a second evaluation reuses one immutable physical
@@ -478,6 +516,14 @@ impl RepeatForwardSession {
                 }
             };
         let closure_hash = derived_rows_hash(&budgeted.rows);
+        let fact_closure_hash = derived_fact_rows_hash(&budgeted.rows);
+        let annotation_count = budgeted.rows.len() as u64;
+        let max_proof_height = budgeted
+            .rows
+            .iter()
+            .map(|row| row.proof_height.get())
+            .max()
+            .unwrap_or(0);
         let cost = CostVector::from_derived_rows(&budgeted.rows, &self.strata)?;
         Ok(RepeatForwardObservation {
             cache_hit: lookup.cache_hit,
@@ -489,6 +535,96 @@ impl RepeatForwardSession {
             consumed_steps: budgeted.consumed_steps,
             cost,
             closure_hash,
+            fact_closure_hash,
+            annotation_count,
+            max_proof_height,
+        })
+    }
+
+    /// Execute the same complete binary plan in facts-only Skip mode.
+    ///
+    /// The session cache must already contain the executable (normally after the
+    /// paired cold/warm Record observations). The method deliberately records no
+    /// provenance and returns no cost vector that would require rule attribution.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a non-stratifiable program or a declared execution gap.
+    pub fn evaluate_skip(&mut self) -> gmeow_errors::Result<SkipForwardObservation> {
+        let lookup = self
+            .cache
+            .get_or_compile(self.contract_hash.clone(), self.rules.clone());
+        let executable = lookup.executable.ok_or_else(|| {
+            cost_err("repeat-forward Skip probe program is non-stratifiable".to_owned())
+        })?;
+
+        let mut worlds = self.store.worlds();
+        worlds.sort();
+        let mut rows = Vec::new();
+        let mut consumed_steps = 0u64;
+        for world in worlds {
+            let edb = crate::rule_ir::world_edb_facts(&self.store, &world)?;
+            let mut relation = crate::physical::RelationStore::new();
+            for fact in edb {
+                relation.insert(&fact.predicate, &fact.subject, &fact.object);
+            }
+            let budgeted = match crate::physical::evaluate(relation, executable.as_ref(), None)? {
+                crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
+                crate::physical::NativeOutcome::Unsupported(kind) => {
+                    return Err(cost_err(format!(
+                        "repeat-forward Skip probe hit declared native gap {kind:?}"
+                    )));
+                }
+            };
+            consumed_steps = consumed_steps
+                .checked_add(budgeted.consumed_steps)
+                .ok_or_else(|| cost_err("Skip committed-step count overflow".to_owned()))?;
+            rows.extend(budgeted.rows.into_iter().map(|fact| (world.clone(), fact)));
+        }
+        rows.sort_by(|(world_a, fact_a), (world_b, fact_b)| {
+            world_a
+                .cmp(world_b)
+                .then_with(|| fact_a.key().cmp(&fact_b.key()))
+        });
+        Ok(SkipForwardObservation {
+            consumed_steps,
+            fact_closure_hash: skipped_fact_rows_hash(&rows),
+            fact_count: rows.len() as u64,
+        })
+    }
+
+    /// Execute one complete warm-plan Record evaluation for the fair provenance
+    /// overhead pair.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a non-stratifiable program or a declared execution gap.
+    pub fn evaluate_record_provenance(&mut self) -> gmeow_errors::Result<RecordForwardObservation> {
+        let lookup = self
+            .cache
+            .get_or_compile(self.contract_hash.clone(), self.rules.clone());
+        let executable = lookup.executable.ok_or_else(|| {
+            cost_err("repeat-forward Record probe program is non-stratifiable".to_owned())
+        })?;
+        let budgeted =
+            match crate::physical::materialize_native(&self.store, executable.as_ref(), None)? {
+                crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
+                crate::physical::NativeOutcome::Unsupported(kind) => {
+                    return Err(cost_err(format!(
+                        "repeat-forward Record probe hit declared native gap {kind:?}"
+                    )));
+                }
+            };
+        Ok(RecordForwardObservation {
+            consumed_steps: budgeted.consumed_steps,
+            fact_closure_hash: derived_fact_rows_hash(&budgeted.rows),
+            annotation_count: budgeted.rows.len() as u64,
+            max_proof_height: budgeted
+                .rows
+                .iter()
+                .map(|row| row.proof_height.get())
+                .max()
+                .unwrap_or(0),
         })
     }
 }
@@ -508,6 +644,43 @@ fn derived_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
         frame(&mut hasher, &row.predicate);
         frame(&mut hasher, &crate::provenance::term_display(&row.object));
         frame(&mut hasher, &row.rule_iri);
+        hasher.update(&row.proof_height.get().to_le_bytes());
+    }
+    *hasher.finalize().as_bytes()
+}
+
+fn derived_fact_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
+    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    frame(&mut hasher, "gmeow-record-skip-fact-closure-v1");
+    hasher.update(&(rows.len() as u64).to_le_bytes());
+    for row in rows {
+        frame(&mut hasher, &row.graph);
+        frame(&mut hasher, &crate::provenance::term_display(&row.subject));
+        frame(&mut hasher, &row.predicate);
+        frame(&mut hasher, &crate::provenance::term_display(&row.object));
+    }
+    *hasher.finalize().as_bytes()
+}
+
+fn skipped_fact_rows_hash(rows: &[(String, crate::rule_ir::Fact)]) -> [u8; 32] {
+    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    frame(&mut hasher, "gmeow-record-skip-fact-closure-v1");
+    hasher.update(&(rows.len() as u64).to_le_bytes());
+    for (world, fact) in rows {
+        frame(&mut hasher, world);
+        frame(&mut hasher, &crate::provenance::term_display(&fact.subject));
+        frame(&mut hasher, &fact.predicate);
+        frame(&mut hasher, &crate::provenance::term_display(&fact.object));
     }
     *hasher.finalize().as_bytes()
 }
@@ -992,12 +1165,28 @@ mod tests {
         assert_eq!(cold.rule_hash, warm.rule_hash);
         assert_eq!(cold.solver_version, warm.solver_version);
         assert_eq!(cold.closure_hash, warm.closure_hash);
+        assert_eq!(cold.fact_closure_hash, warm.fact_closure_hash);
         assert_eq!(cold.consumed_steps, warm.consumed_steps);
         assert_eq!(cold.cost, warm.cost);
+        assert_eq!(warm.annotation_count, 8, "one height per closure fact");
+        assert_eq!(
+            warm.max_proof_height, 3,
+            "reach(a,c) is one level above the two-edge path proof"
+        );
         assert!(
             cold.cost.attributed_coordinates() >= 2,
             "repeat evidence retains per-(rule,predicate,stratum) attribution"
         );
+
+        let record = session
+            .evaluate_record_provenance()
+            .expect("bounded-provenance evaluation");
+        let skip = session.evaluate_skip().expect("facts-only evaluation");
+        assert_eq!(record.annotation_count, warm.annotation_count);
+        assert_eq!(record.max_proof_height, warm.max_proof_height);
+        assert_eq!(skip.fact_count, record.annotation_count);
+        assert_eq!(skip.fact_closure_hash, record.fact_closure_hash);
+        assert_eq!(skip.consumed_steps, record.consumed_steps);
     }
 
     /// The facts-only Nemo seam materializes a value-inventing (existential-rule)

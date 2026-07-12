@@ -473,6 +473,11 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let cold = cold_res.map_err(|e| run_err(case, format!("cold plan evaluation failed: {e}")))?;
     let (warm_res, warm_sample) = measure(|| repeat.evaluate());
     let warm = warm_res.map_err(|e| run_err(case, format!("warm plan evaluation failed: {e}")))?;
+    let (record_res, record_sample) = measure(|| repeat.evaluate_record_provenance());
+    let record_probe =
+        record_res.map_err(|e| run_err(case, format!("Record evaluation failed: {e}")))?;
+    let (skip_res, skip_sample) = measure(|| repeat.evaluate_skip());
+    let skip = skip_res.map_err(|e| run_err(case, format!("Skip evaluation failed: {e}")))?;
     let repeat_parity = cold.closure_hash == warm.closure_hash
         && cold.consumed_steps == warm.consumed_steps
         && cold.cost == warm.cost
@@ -487,16 +492,33 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         && warm.same_executable_as_first;
     let alloc_count_win = warm_sample.count < cold_sample.count;
     let peak_live_win = warm_sample.peak_live < cold_sample.peak_live;
-    if !(repeat_parity && plan_reused && alloc_count_win && peak_live_win) {
+    let provenance_closure_parity = record_probe.fact_closure_hash == skip.fact_closure_hash;
+    let provenance_step_parity = record_probe.consumed_steps == skip.consumed_steps;
+    let annotation_complete = record_probe.annotation_count == skip.fact_count;
+    if !(repeat_parity
+        && plan_reused
+        && alloc_count_win
+        && peak_live_win
+        && provenance_closure_parity
+        && provenance_step_parity
+        && annotation_complete)
+    {
         return Err(run_err(
             case,
             format!(
                 "repeat-forward contract failed: parity={repeat_parity} plan_reused={plan_reused} \
-                 cold_alloc_count={} warm_alloc_count={} cold_peak_live={} warm_peak_live={}",
+                 cold_alloc_count={} warm_alloc_count={} cold_peak_live={} warm_peak_live={} \
+                 provenance_closure_parity={provenance_closure_parity} \
+                 provenance_step_parity={provenance_step_parity} \
+                 annotation_complete={annotation_complete}",
                 cold_sample.count, warm_sample.count, cold_sample.peak_live, warm_sample.peak_live
             ),
         ));
     }
+    let record_peak_overhead_bytes =
+        i128::from(record_sample.peak_live) - i128::from(skip_sample.peak_live);
+    let record_alloc_count_overhead =
+        i128::from(record_sample.count) - i128::from(skip_sample.count);
 
     // Prime the production process-wide plan cache outside the primary allocation sample.
     // Cold planning remains measured explicitly by the paired local repeat probe above;
@@ -587,6 +609,31 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 "repeat_parity": repeat_parity,
                 "warm_alloc_count_strictly_lower": alloc_count_win,
                 "warm_peak_live_strictly_lower": peak_live_win,
+            },
+            "provenance": {
+                "record": {
+                    "annotation_count": record_probe.annotation_count,
+                    "max_proof_height": record_probe.max_proof_height,
+                    "consumed_steps": record_probe.consumed_steps,
+                    "fact_count": record_probe.annotation_count,
+                    "fact_closure_blake3": blake3::Hash::from_bytes(record_probe.fact_closure_hash).to_hex().to_string(),
+                    // Total allocation count remains advisory engine scratch; peak-live is exact.
+                    "alloc_count": record_sample.count,
+                    "peak_live_bytes": record_sample.peak_live,
+                },
+                "skip": {
+                    "annotation_count": 0,
+                    "consumed_steps": skip.consumed_steps,
+                    "fact_count": skip.fact_count,
+                    "fact_closure_blake3": blake3::Hash::from_bytes(skip.fact_closure_hash).to_hex().to_string(),
+                    "alloc_count": skip_sample.count,
+                    "peak_live_bytes": skip_sample.peak_live,
+                },
+                "closure_parity": provenance_closure_parity,
+                "step_parity": provenance_step_parity,
+                "annotation_complete": annotation_complete,
+                "record_peak_overhead_bytes": record_peak_overhead_bytes,
+                "record_alloc_count_overhead": record_alloc_count_overhead,
             },
         },
         "oracle": {
@@ -1221,6 +1268,18 @@ fn cost_descriptor(rec: &Value) -> String {
     if let Some(obj) = native.as_object_mut() {
         obj.remove("alloc_bytes");
         obj.remove("alloc_count");
+        // Record-vs-Skip total allocation counts are the same advisory transient as
+        // the top-level total. Keep them in the committed evidence table, but exclude
+        // them (and their derived delta) from exact drift identity. The exact
+        // per-mode peak-live values remain in the descriptor.
+        if let Some(provenance) = obj.get_mut("provenance").and_then(Value::as_object_mut) {
+            provenance.remove("record_alloc_count_overhead");
+            for mode in ["record", "skip"] {
+                if let Some(mode_obj) = provenance.get_mut(mode).and_then(Value::as_object_mut) {
+                    mode_obj.remove("alloc_count");
+                }
+            }
+        }
     }
     let agreement = rec.get("agreement").cloned().unwrap_or(Value::Null);
     // Both sub-objects are now integer/boolean/fingerprint-valued; a compact canonical
@@ -2470,6 +2529,38 @@ mod tests {
         assert!(
             cost_descriptor(&a).contains("peak_live_bytes"),
             "the deterministic peak_live_bytes must remain in the exact descriptor"
+        );
+    }
+
+    #[test]
+    fn provenance_descriptor_excludes_advisory_counts_but_keeps_exact_peak() {
+        let provenance = || {
+            json!({
+                "record": {"alloc_count": 100, "peak_live_bytes": 900},
+                "skip": {"alloc_count": 80, "peak_live_bytes": 700},
+                "record_alloc_count_overhead": 20,
+                "record_peak_overhead_bytes": 200,
+                "closure_parity": true,
+                "step_parity": true,
+            })
+        };
+        let mut a = rec("c", "p", 3);
+        a["native"]["provenance"] = provenance();
+        let mut b = a.clone();
+        b["native"]["provenance"]["record"]["alloc_count"] = json!(9_999);
+        b["native"]["provenance"]["skip"]["alloc_count"] = json!(1);
+        b["native"]["provenance"]["record_alloc_count_overhead"] = json!(9_998);
+        assert_eq!(
+            cost_descriptor(&a),
+            cost_descriptor(&b),
+            "per-mode allocation-count jitter must stay outside exact identity"
+        );
+
+        b["native"]["provenance"]["record"]["peak_live_bytes"] = json!(901);
+        assert_ne!(
+            cost_descriptor(&a),
+            cost_descriptor(&b),
+            "per-mode peak-live is deterministic and must remain exact"
         );
     }
 
