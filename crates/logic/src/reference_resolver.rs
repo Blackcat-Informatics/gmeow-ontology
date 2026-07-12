@@ -6,7 +6,7 @@
 //! # Design
 //!
 //! This module implements a pure, declarative backward-chaining resolver for
-//! [`QProgram`] queries over a [`ScryerForeign`] world.  It is deliberately
+//! [`QProgram`] queries over a [`WorldFactSource`] world.  It is deliberately
 //! **non-procedural**: cut (`!`) is detected and rejected with a clear error
 //! rather than being silently ignored or executed.
 //!
@@ -14,7 +14,7 @@
 //!
 //! A predicate is **IDB** (intensional) if it is the head predicate of at least
 //! one rule in the program.  All other predicates are **EDB** (extensional) and
-//! are looked up directly in the materialized world via `ScryerForeign::in_world`.
+//! are looked up directly in the materialized world via `WorldFactSource::in_world`.
 //!
 //! ## Termination guarantee
 //!
@@ -30,7 +30,7 @@
 //! The oracle is declarative.  If resolution would use a rule whose body
 //! contains `QBodyLit::Cut`, it returns
 //! `Err("cut is procedural; not supported by the declarative reference oracle ...")`.
-//! Cut-containing programs must use the Scryer engine instead.
+//! Production dispatch rejects cut before evaluation.
 //!
 //! ## Budget
 //!
@@ -45,7 +45,7 @@ use purrdf::TermValue;
 
 use crate::provenance::term_n3;
 use crate::query_ir::{AnswerSet, Binding, Budget, QAtom, QBodyLit, QGoal, QProgram, QTerm};
-use crate::seam::{BudgetStatus, ScryerForeign};
+use crate::seam::{BudgetStatus, WorldFactSource};
 
 /// Wrap a reference-oracle condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -59,7 +59,7 @@ fn reference_err(detail: String) -> gmeow_errors::Diag {
 ///
 /// # Arguments
 ///
-/// - `foreign` — the blackboard access layer (implements [`ScryerForeign`]).
+/// - `foreign` — the blackboard access layer (implements [`WorldFactSource`]).
 /// - `world`   — the named-graph IRI identifying the world to query.
 /// - `program` — the parsed `.logic` program (rules + goal).
 /// - `budget`  — execution limits; `Budget::default()` is unlimited.
@@ -75,7 +75,7 @@ fn reference_err(detail: String) -> gmeow_errors::Diag {
 /// - A rule body that would be used contains `!` (cut is procedural).
 /// - `term_n3` fails on an RDF-star triple-term (out of scope).
 pub fn resolve(
-    foreign: &dyn ScryerForeign,
+    foreign: &dyn WorldFactSource,
     world: &str,
     program: &QProgram,
     budget: &Budget,
@@ -125,7 +125,7 @@ pub fn resolve(
 // ── Internal state ────────────────────────────────────────────────────────────
 
 struct ResolveState<'a> {
-    foreign: &'a dyn ScryerForeign,
+    foreign: &'a dyn WorldFactSource,
     world: &'a str,
     program: &'a QProgram,
     idb: BTreeSet<String>,
@@ -204,15 +204,14 @@ impl<'a> ResolveState<'a> {
         match first {
             QBodyLit::Cut => Err(reference_err(
                 "cut is procedural; not supported by the declarative reference oracle \
-                 (use the Scryer engine)"
+                 (the production engine rejects cut)"
                     .to_owned(),
             )),
-            // Stratified negation-as-failure is decided by the native binary core (or the
-            // Scryer oracle for a non-stratifiable / n-ary program); this top-down SLD
-            // parity oracle covers only the positive corpus it is checked against.
+            // Stratified negation-as-failure is decided by the native binary core; this
+            // top-down SLD parity oracle covers only its positive comparison corpus.
             QBodyLit::Neg(_) => Err(reference_err(
                 "negation-as-failure is not supported by the declarative SLD reference \
-                 oracle (decided by the native stratified core or the Scryer engine)"
+                 oracle (supported cases are decided by the native stratified core)"
                     .to_owned(),
             )),
             QBodyLit::Builtin(b) => self.resolve_builtin(b, rest, subst, seen),
@@ -236,8 +235,7 @@ impl<'a> ResolveState<'a> {
     /// A generator extends the substitution with its computed value (stored as the
     /// canonical typed-integer surface, so it chases like a `Const`); a filter
     /// keeps or prunes the branch.  An unbound operand or a domain/precision error
-    /// (÷0, overflow) is a declared gap — an `Err` the caller routes to the Scryer
-    /// engine, exactly as cut is (never a wrong answer).
+    /// (÷0, overflow) is a declared gap returned as `Err`, never a wrong answer.
     fn resolve_builtin(
         &mut self,
         builtin: &crate::query_ir::QBuiltin,
@@ -269,7 +267,7 @@ impl<'a> ResolveState<'a> {
             crate::physical::BuiltinOutcome::Unbound
             | crate::physical::BuiltinOutcome::Error(_) => Err(reference_err(
                 "arithmetic/comparison builtin has an unbound operand or domain error in \
-                 the declarative reference oracle (use the Scryer engine)"
+                 the declarative reference oracle"
                     .to_owned(),
             )),
         }
@@ -325,7 +323,7 @@ impl<'a> ResolveState<'a> {
             if rule.body.iter().any(|b| matches!(b, QBodyLit::Cut)) {
                 return Err(reference_err(
                     "cut is procedural; not supported by the declarative reference oracle \
-                     (use the Scryer engine)"
+                     (the production engine rejects cut)"
                         .to_owned(),
                 ));
             }
@@ -643,7 +641,7 @@ fn goal_vars(goal: &QGoal) -> Vec<String> {
 mod tests {
     use super::*;
     use crate::query_ir::parse_query_program;
-    use crate::seam::WorldStoreForeign;
+    use crate::seam::WorldFactSnapshot;
     use crate::store::WorldStore;
 
     const W: &str = "http://logic.test/world/resolver";
@@ -675,7 +673,7 @@ mod tests {
             &format!("{base}bob"),
         )]);
 
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{base}').\n\
@@ -719,7 +717,7 @@ mod tests {
             ),
         ]);
 
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{base}').\n\
@@ -772,7 +770,7 @@ mod tests {
             ),
         ]);
 
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{base}').\n\
@@ -820,7 +818,7 @@ mod tests {
             ),
         ]);
 
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{base}').\n\
@@ -850,7 +848,7 @@ mod tests {
             &format!("{base}b"),
         )]);
 
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
 
         let src = format!(
             ":- prefix(ex, '{base}').\n\
@@ -894,7 +892,7 @@ mod tests {
                 &format!("{rdf}nil"),
             ),
         ]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{base}').\n\
              :- prefix(rdf, '{rdf}').\n\
@@ -923,7 +921,7 @@ mod tests {
             &format!("{base}kind"),
             &format!("{base}item"),
         )]);
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
 
         let pass_src = format!(
             ":- prefix(ex, '{base}').\n\

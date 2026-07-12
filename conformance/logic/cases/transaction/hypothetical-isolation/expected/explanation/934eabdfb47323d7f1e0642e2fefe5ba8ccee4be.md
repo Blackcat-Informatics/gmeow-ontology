@@ -2,7 +2,7 @@
   http://www.w3.org/1999/02/22-rdf-syntax-ns#type
   https://blackcatinformatics.ca/gmeow/derivation/6b35954a01a65981712581e916de0a2a85ea5b98
   https://blackcatinformatics.ca/gmeow/derivation/94c66dbf5ed397a8f529b92c107288259c2a41f4
-  https://blackcatinformatics.ca/gmeow/reifier/35cb5bdff2bde7ce645e6b1499aecf8121565bdd
+  https://blackcatinformatics.ca/gmeow/reifier/934eabdfb47323d7f1e0642e2fefe5ba8ccee4be
   https://blackcatinformatics.ca/gmeow/reifier/c9d930586cd96f142c9c41339cb38281e6bd4240
   https://blackcatinformatics.ca/logic/SerialConjunction
   https://blackcatinformatics.ca/logic/assert
@@ -25,12 +25,12 @@
     term=https://example.org/transaction/hypothetical-isolation/ser
 -->
 
-# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/35cb5bdff2bde7ce645e6b1499aecf8121565bdd>`
+# Explanation for `<https://blackcatinformatics.ca/gmeow/reifier/934eabdfb47323d7f1e0642e2fefe5ba8ccee4be>`
 
 **World:** `<https://example.org/transaction/hypothetical-isolation/world>`
 **Target derivation:** `<https://blackcatinformatics.ca/gmeow/derivation/6b35954a01a65981712581e916de0a2a85ea5b98>`
 
 **Derived** by rule `<https://blackcatinformatics.ca/logic/rule/transaction>`:
-  `<https://blackcatinformatics.ca/logic/outcome/fcf50176ec384ce368e9914bcca2c25a8e7468fb>` `<https://blackcatinformatics.ca/logic/executedHypotheticallyAs>` `"24f9fa3929dc61e31bda15ba8bb3536dd0590fc908b5b4f85a328f60fdd2e92f"` *(in `<https://example.org/transaction/hypothetical-isolation/world>`)*
+  `<https://blackcatinformatics.ca/logic/outcome/fcf50176ec384ce368e9914bcca2c25a8e7468fb>` `<https://blackcatinformatics.ca/logic/executedHypotheticallyAs>` `"f105e3b591f890e218f0c8f01d103124a74c56bc3501b60f320b72afa86bf5f4"` *(in `<https://example.org/transaction/hypothetical-isolation/world>`)*
   **Asserted fact** (input — `<https://blackcatinformatics.ca/gmeow/reifier/c9d930586cd96f142c9c41339cb38281e6bd4240>`):
     `<https://example.org/transaction/hypothetical-isolation/ser>` `<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>` `<https://blackcatinformatics.ca/logic/SerialConjunction>` *(in `<https://example.org/transaction/hypothetical-isolation/world>`)*

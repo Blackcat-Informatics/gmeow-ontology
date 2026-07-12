@@ -36,9 +36,12 @@
 //! repeated `(graph, reifier)` in the visited set is a hard error
 //! ([`ExplainError::Cycle`]). There is no silent skip and no degraded fallback.
 
-use std::collections::{BTreeSet, HashMap};
+use std::collections::BTreeSet;
+use std::hash::{BuildHasher, Hash, Hasher};
 
+use foldhash::fast::FixedState;
 use gmeow_errors::dag::{DagError, DagNode, walk};
+use hashbrown::HashTable;
 
 use crate::provenance::{ASSERT_RULE_IRI, reifier_from_strings};
 
@@ -232,19 +235,31 @@ fn precompute_reifiers(rows: &[Row]) -> Vec<String> {
     rows.iter().map(reifier_from_row).collect()
 }
 
-/// Build the `(graph, reifier)` → row-index lookup from pre-computed reifiers.
+fn reifier_key_hash(graph: &str, reifier: &str) -> u64 {
+    let mut hasher = FixedState::default().build_hasher();
+    graph.hash(&mut hasher);
+    reifier.hash(&mut hasher);
+    hasher.finish()
+}
+
+/// Build a borrowed-key `(graph, reifier) → row-index` lookup.
 ///
-/// Borrows graph IRIs from `rows` and reifier strings from `reifiers`; both slices
-/// must outlive the returned map.  On a duplicate `(graph, reifier)` the LAST row
-/// wins, matching the Python `dict` overwrite semantics
-/// (`index[(dq.graph, reifier)] = dq`).
-fn build_reifier_index<'a>(
-    rows: &'a [Row],
-    reifiers: &'a [String],
-) -> HashMap<(&'a str, &'a str), usize> {
-    let mut index: HashMap<(&'a str, &'a str), usize> = HashMap::with_capacity(rows.len());
+/// The table stores dense row indexes only; key equality reads `rows` and `reifiers`,
+/// so the reusable index does not clone every graph/reifier pair or become
+/// self-referential. On a duplicate key the LAST row wins, matching Python `dict`.
+fn build_reifier_index(rows: &[Row], reifiers: &[String]) -> HashTable<usize> {
+    let mut index: HashTable<usize> = HashTable::new();
     for (i, (row, reifier)) in rows.iter().zip(reifiers.iter()).enumerate() {
-        index.insert((row.graph.as_str(), reifier.as_str()), i);
+        let hash = reifier_key_hash(&row.graph, reifier);
+        if let Some(slot) = index.find_mut(hash, |&candidate| {
+            rows[candidate].graph == row.graph && reifiers[candidate] == *reifier
+        }) {
+            *slot = i;
+        } else {
+            index.insert_unique(hash, i, |&candidate| {
+                reifier_key_hash(&rows[candidate].graph, &reifiers[candidate])
+            });
+        }
     }
     index
 }
@@ -268,12 +283,20 @@ fn reconstruct_tree<'a>(
     target_reifier: &'a str,
     graph_iri: &'a str,
     rows: &'a [Row],
-    index: &HashMap<(&str, &str), usize>,
+    reifiers: &'a [String],
+    index: &HashTable<usize>,
 ) -> Result<Vec<ExplanationStep>, ExplainError> {
     let tree = walk(
         target_reifier,
         // Resolve a reifier to its row index within this world.
-        |reifier: &&'a str| index.get(&(graph_iri, *reifier)).copied(),
+        |reifier: &&'a str| {
+            let hash = reifier_key_hash(graph_iri, reifier);
+            index
+                .find(hash, |&candidate| {
+                    rows[candidate].graph == graph_iri && reifiers[candidate] == *reifier
+                })
+                .copied()
+        },
         // Antecedent reifiers: sorted and deduped, excluding the self-reference
         // asserted facts carry (a dual-witness listed twice must not double-cite).
         |reifier: &&'a str, row_idx: &usize| {
@@ -364,6 +387,63 @@ fn build_cited_iris(steps: &[ExplanationStep], world_iri: &str) -> BTreeSet<Stri
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
+/// Reusable lazy explanation index over one materialized result.
+///
+/// Construction indexes row identity only; it does not construct any proof tree.
+/// [`Self::explain_one`] descends the selected antecedents of exactly one queried row,
+/// so an unrelated malformed/cyclic provenance component is neither traversed nor
+/// allowed to poison the requested witness. This is the bounded backing seam for an
+/// `explain(witness)` consumer.
+pub struct LazyExplanationIndex<'a> {
+    rows: &'a [Row],
+    reifiers: Vec<String>,
+    index: HashTable<usize>,
+}
+
+impl<'a> LazyExplanationIndex<'a> {
+    /// Index a materialized result without constructing proof trees.
+    #[must_use]
+    pub fn new(rows: &'a [Row]) -> Self {
+        let reifiers = precompute_reifiers(rows);
+        let index = build_reifier_index(rows, &reifiers);
+        Self {
+            rows,
+            reifiers,
+            index,
+        }
+    }
+
+    /// Lazily reconstruct one queried proof tree.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ExplainError::TargetIndexOutOfRange`] if the index is out of range,
+    /// [`ExplainError::UnresolvedReifier`] if the queried subtree cites a missing row,
+    /// or [`ExplainError::Cycle`] if that subtree contains a cycle.
+    pub fn explain_one(&self, target_index: usize) -> Result<Explanation, ExplainError> {
+        if target_index >= self.rows.len() {
+            return Err(ExplainError::TargetIndexOutOfRange {
+                index: target_index,
+                len: self.rows.len(),
+            });
+        }
+        explain_with_index(self.rows, &self.reifiers, target_index, &self.index)
+    }
+
+    /// Reconstruct every proof in input order while sharing the identity index.
+    ///
+    /// # Errors
+    ///
+    /// Propagates the first queried subtree's [`ExplainError`].
+    pub fn explain_all(&self) -> Result<Vec<Explanation>, ExplainError> {
+        let mut out = Vec::with_capacity(self.rows.len());
+        for index in 0..self.rows.len() {
+            out.push(self.explain_one(index)?);
+        }
+        Ok(out)
+    }
+}
+
 /// Build the explanation for the row at `target_index`.
 ///
 /// # Errors
@@ -373,15 +453,7 @@ fn build_cited_iris(steps: &[ExplanationStep], world_iri: &str) -> BTreeSet<Stri
 /// resolved within its world, or [`ExplainError::Cycle`] if the derivation graph
 /// contains a cycle.
 pub fn explain_one(rows: &[Row], target_index: usize) -> Result<Explanation, ExplainError> {
-    if target_index >= rows.len() {
-        return Err(ExplainError::TargetIndexOutOfRange {
-            index: target_index,
-            len: rows.len(),
-        });
-    }
-    let reifiers = precompute_reifiers(rows);
-    let index = build_reifier_index(rows, &reifiers);
-    explain_with_index(rows, &reifiers, target_index, &index)
+    LazyExplanationIndex::new(rows).explain_one(target_index)
 }
 
 /// Build an explanation for every row, in input order.  Mirrors the Python
@@ -391,13 +463,7 @@ pub fn explain_one(rows: &[Row], target_index: usize) -> Result<Explanation, Exp
 ///
 /// Propagates any [`ExplainError`] from reconstructing an individual quad's tree.
 pub fn explain_all(rows: &[Row]) -> Result<Vec<Explanation>, ExplainError> {
-    let reifiers = precompute_reifiers(rows);
-    let index = build_reifier_index(rows, &reifiers);
-    let mut out: Vec<Explanation> = Vec::with_capacity(rows.len());
-    for i in 0..rows.len() {
-        out.push(explain_with_index(rows, &reifiers, i, &index)?);
-    }
-    Ok(out)
+    LazyExplanationIndex::new(rows).explain_all()
 }
 
 /// Shared core: build the explanation for `target_index` against a prebuilt index.
@@ -407,12 +473,12 @@ fn explain_with_index(
     rows: &[Row],
     reifiers: &[String],
     target_index: usize,
-    index: &HashMap<(&str, &str), usize>,
+    index: &HashTable<usize>,
 ) -> Result<Explanation, ExplainError> {
     let target = &rows[target_index];
     let target_reifier = &reifiers[target_index];
 
-    let steps = reconstruct_tree(target_reifier, &target.graph, rows, index)?;
+    let steps = reconstruct_tree(target_reifier, &target.graph, rows, reifiers, index)?;
     let cited_iris = build_cited_iris(&steps, &target.graph);
 
     Ok(Explanation {

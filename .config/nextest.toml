@@ -168,26 +168,21 @@
 #     `maint-heavy`.
 #   - gmeow-cli self_sufficiency::transpile_wheel_mode_equals_repo_mode +
 #     self_sufficiency::transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak +
-#     self_sufficiency::project_wheel_mode_equals_repo_mode:
-#     31-53 s locally. Each drives `gmeow transpile`/`gmeow project` over the
-#     WHOLE embedded bundle — `transpile`'s parity test runs it TWICE
+#     self_sufficiency::project_wheel_mode_equals_repo_mode +
+#     self_sufficiency::describe_wheel_mode_equals_repo_mode:
+#     31-53 s locally for the transpile/project cases; `describe` is 6.3-7.6 s
+#     standalone but took 28.0 s in an isolated full `make rust-test` even after
+#     assignment to a dedicated test group. Each drives `gmeow transpile`/
+#     `gmeow project`/`gmeow describe` over the WHOLE embedded bundle —
+#     `transpile`'s parity test runs it TWICE
 #     (blinded-cwd leg + repo-cwd leg), the leak/fan-out test folds the full
 #     multi-vocab MAXIMAL(G) output — the same whole-committed-bundle class as
 #     the `build_writes_serializations` / `export_respects_language_selector` /
 #     `project_schema_org_view_filter` trio above, irreducibly O(bundle size).
 #     Coverage stays: the SAME wheel-mode==repo-mode parity law stays on-gate
 #     at fixture scale via `self_sufficiency::validate_wheel_mode_equals_repo_mode`
-#     (the cheapest subcommand, no bundle-scale output), and all three heavier
-#     tests stay on-gate on `maint-heavy`.
-#     `self_sufficiency::describe_wheel_mode_equals_repo_mode` was moved BACK
-#     on-gate: unlike its three siblings above, it is genuinely cheap
-#     standalone (6.3-6.8 s measured locally, matching the file's prior
-#     "7.6 s standalone" note) and only rode the 25 s cliff (27.6 s) under
-#     full-parallelism CI contention — the same fix-not-off-gate situation as
-#     `fanout_parity` below (see that override's comment). It stays on the
-#     default-filter and instead joins a dedicated serialized test-group (see
-#     the `cli-cwd-parity` override near the bottom of this file) so CI
-#     contention can no longer push it over budget.
+#     (the cheapest subcommand, no bundle-scale output), and all four exhaustive
+#     whole-bundle tests stay on-gate on `maint-heavy`.
 #   - gmeow-pipeline release_verify_roundtrip binary:
 #     ~75 s per test locally. `fold_release_bundle`/`verify_release_bundle` each
 #     replay the WHOLE committed ~48 MB `generated/dist/gmeow.gts` — the
@@ -273,6 +268,18 @@
 #     competency_questions/docs_search surface tests, and the tools/list mode-gating
 #     golden), so every tool is still exercised on-gate; and both whole-bundle sweeps
 #     stay on-gate on `maint-heavy`.
+#   - gmeow-pipeline stages::mappings::tests::
+#     projection_report_unions_logic_and_correspondence_rows (26.768 s in the
+#     failing CI shard) + product_routing::compiler_products_are_first_class_dag_artifacts
+#     (26.026 s in the same shard): both run the real compile-logic -> mappings chain
+#     over the WHOLE authored repository. They overlapped for ~9 s in the two-slot
+#     `engine` group, but their cost is still irreducibly O(ontology/projection size),
+#     and both exceeded the hard 25 s policy. No coverage class leaves the gate:
+#     compile_logic_stage_emits_every_product proves the compiler products and channel,
+#     loss_ledger_and_diagnostics_reach_the_shipped_bundle proves the routed bundle
+#     graphs, focused projection-report units cover report construction, and
+#     `make check-generated` byte-gates the final committed union. The exhaustive
+#     real-repository cross-stage sweeps remain on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -302,11 +309,13 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
     | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
     | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
+    | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
+    | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
 retries = { backoff = "fixed", count = 2, delay = "1s" }
-# Output ergonomics (#871): surface the slowest tests in the final summary every
+# Output ergonomics: surface the slowest tests in the final summary every
 # run (previously invisible until they hit the slow-timeout terminate cliff).
 # Passing runs stay quiet; a failing test's captured output shows inline AND is
 # recapped at the end so it is not lost in a parallel run.
@@ -319,7 +328,7 @@ inherits = "default"
 junit = { path = "junit.xml" }
 fail-fast = false
 
-# Maintainer lane (#1045): runs EVERYTHING, including the heavy tests the default/ci
+# Maintainer lane: runs EVERYTHING, including the heavy tests the default/ci
 # profiles carve out via `default-filter`. Used by `make maint-rust-heavy` so the
 # off-gate parity / full-fold / codec coverage still runs (locally + on a CI schedule),
 # just not on the per-commit gate. `default-filter = 'all()'` overrides the inherited
@@ -330,39 +339,28 @@ default-filter = 'all()'
 junit = { path = "junit.xml" }
 fail-fast = false
 
-# Engine memory cap (#871, sub-ask 3). The Nemo/Scryer reasoning engines are
+# Engine memory cap. The retained Nemo comparison engine is
 # RAM-heavy: nextest runs EACH test in its own process, and the in-process
-# `CHASE_LOCK` (nemo_engine.rs) / `SCRYER_LOCK` (scryer_engine.rs)
+# `CHASE_LOCK` (nemo_engine.rs)
 # process-global mutexes serialize only WITHIN a process — they do NOT cap how many multi-GB chase
-# PROCESSES run at once. On the 16 GB CI runner the default thread count = nproc
-# (4), so up to 4 concurrent chases could OOM-thrash (and the scryer nightly
-# alloc-abort surfaces under parallelism). This group caps concurrent engine
+# PROCESSES run at once. On the 16 GB CI runner the available CPU count is four
+# (4), so up to 4 concurrent chases could OOM-thrash. This group caps concurrent engine
 # tests to 2; the fast leaf-crate tests (rdf/shacl/validate/docs/diagnostics) and
 # the ~360 fast gmeow-logic unit tests stay fully parallel.
 [test-groups]
 engine = { max-threads = 2 }
 mapping-stage = { max-threads = 1 }
-# CWD-parity CLI tests that fold the WHOLE embedded/committed bundle in-process
-# (no Nemo/Scryer chase, so they do not belong in `engine`'s memory-pressure
-# group) but are cheap enough standalone to stay on-gate rather than being
-# carved out entirely. This caps how many of them run concurrently so
-# generic CPU/process contention in a busy CI shard cannot push one of them
-# over the 25 s budget on its own.
-cli-cwd-parity = { max-threads = 2 }
 
 [[profile.default.overrides]]
 # The whole gmeow-conformance datatest harness (its foundation/* cases materialize
-# via nemo's run_chase) plus EVERY gmeow-logic test that drives Nemo or Scryer:
+# via nemo's run_chase) plus every gmeow-logic test that drives Nemo:
 # - Nemo (run_chase / run_reasoning): nemo_engine, materialize, reason, verify, certify
-# - Scryer (run_scryer, directly or via dispatch_query): scryer_engine, dispatch,
-#   profile_gate, counterfactual — so the scryer nightly alloc-abort insurance above
-#   actually covers all scryer execution, not just the scryer_engine module.
-# - The oracle boundary: `oracle` (the Nemo/Scryer adapter tests drive a real chase or
-#   run_scryer) and `physical::parity` (the divergence harness runs an engine oracle
+# - The oracle boundary: `oracle` and `physical::parity` drive the retained Nemo
+#   comparison engine
 #   against the native core per fragment). Matched by module so membership is by design,
 #   not by a test name happening to contain another module's substring.
 # foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
-filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual|oracle|parity/))'
+filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|materialize|reason|verify|certify|oracle|parity/))'
 test-group = 'engine'
 
 [[profile.default.overrides]]
@@ -381,7 +379,7 @@ test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The #896 native reasoning-entailment harness (crates/logic/tests/ontology_entailments.rs)
+# The native reasoning-entailment harness (crates/logic/tests/ontology_entailments.rs)
 # migrates the OWL/EL/DL reasoning pytest cluster: each test drives Nemo
 # (rl_closure -> run_chase) over a scoped set of authored slice modules. These
 # are now on-gate and under budget after the 2026-06-29 reevaluation, but they
@@ -420,7 +418,7 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 # scores_the_logic_slice_green_vs_advisory) drives `score_slice` over the WHOLE real logic
 # slice — running the reasoner/closure analysis that backs its `slice-quality.reasoner.*`
 # axes. It is ~8 s standalone (measured 8.3 s), NOT irreducible, so the bias is fix-not-off-gate
-# (the same class as `fanout_parity` above): unserialized it piled onto concurrent Nemo/Scryer
+# (the same class as `fanout_parity` above): unserialized it piled onto concurrent Nemo
 # chases in the shared CI shard and rode the 25 s cliff over on jitter (measured 25.9 s under
 # full-parallelism contention). Serialize it under the `engine` memory group so the slice-closure
 # reasoning does not contend with the other chases — this removes the contention WITHOUT
@@ -449,15 +447,16 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 [[profile.default.overrides]]
 # Bundle-scale pipeline tests that fold the WHOLE committed gmeow.gts / run the full DAG:
 # product_routing::compiler_products_are_first_class_dag_artifacts (full-DAG artifact routing),
-# stages::export::tests::export_produces_structurally_valid_artifacts and
+# stages::export::tests::export_produces_structurally_valid_artifacts,
+# stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle,
+# and
 # stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier (whole-bundle export/serialize),
 # and stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows (whole
-# projection-report union). Each is ~20 s standalone but rode the 25 s cliff (25.5-31 s) under
-# full-parallelism CI contention — the same whole-committed-bundle contention class as
-# `fanout_parity` above, and cheap enough standalone to stay on-gate. Serialize under the `engine`
-# group so bundle-fold work does not contend with concurrent chases; full coverage stays on every
-# `make check`, only concurrency is capped.
-filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::export::tests::export_produces_structurally_valid_artifacts|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
+# projection-report union). The product-routing and projection-report sweeps are off-gated via
+# `default-filter` after both exceeded 25 s in the failing CI shard; this override serializes them on
+# `maint-heavy`. The remaining on-gate bundle folds use the same group so they do not contend with
+# concurrent chases.
+filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::export::tests::export_produces_structurally_valid_artifacts|stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
 test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
@@ -496,7 +495,7 @@ test-group = 'engine'
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The B3 real-repo non-vacuity proof (F1, issue 1404) drives a full native-chase
+# The B3 real-repo non-vacuity proof (F1) drives a full native-chase
 # reasoning pass over the WHOLE object-level EDB via the real `ReasonStage`. It is
 # off-gated via `default-filter` (runs only on `maint-heavy`), but the override
 # still applies there: serialize under the `engine` memory group so it does not
@@ -507,7 +506,7 @@ test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
-# The B1 real-repo non-vacuity proof (issue 1404) runs the whole-ontology SHACL
+# The B1 real-repo non-vacuity proof runs the whole-ontology SHACL
 # validate + logic-compile chain (no Nemo chase, so no `engine` memory group — the
 # same class as the off-gate `conformance_*` validate binaries). It is off-gated via
 # `default-filter` (runs only on `maint-heavy`); grant a runaway cliff well over its
@@ -523,18 +522,3 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
 test-group = 'mapping-stage'
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
-
-[[profile.default.overrides]]
-# self_sufficiency::describe_wheel_mode_equals_repo_mode drives `gmeow
-# describe` over the WHOLE embedded bundle, but does NOT drive a Nemo/Scryer
-# chase, so it does not belong in the `engine` memory-pressure group (that
-# group exists for multi-GB chase processes, not generic whole-bundle load/
-# describe work). It stays ON the default-filter (~6.3-6.8 s standalone,
-# measured directly, well under the 25 s policy) but joins the dedicated
-# `cli-cwd-parity` test-group: unserialized it piled onto other whole-bundle-
-# folding tests in the shared shard and rode the 25 s cliff over on CI jitter
-# alone (measured 27.6 s under full-parallelism contention) — the same
-# fix-not-off-gate bias as `fanout_parity` above, for a test this cheap
-# standalone.
-filter = 'package(gmeow-cli) & binary(self_sufficiency) & test(describe_wheel_mode_equals_repo_mode)'
-test-group = 'cli-cwd-parity'

@@ -15,10 +15,10 @@
 //! Two honest statuses keep a row from being misread as a defect, a TODO, or a
 //! knob (Principle 17, no overclaim; maximal information flow):
 //!
-//! * [`PerfStatus::FlaggedNonIncremental`] — the three canonical "hard parts": a
-//!   native fallback EXISTS for each; they are simply not yet incremental, and
-//!   stay heavy-path fallbacks longest. NOT a missing capability.
-//! * [`PerfStatus::DeclaredP1`] — the three advanced levers intentionally out of
+//! * [`PerfStatus::FlaggedNonIncremental`] — an explicit incremental boundary: a
+//!   native fallback EXISTS; the construct is simply not yet incremental. NOT a
+//!   missing capability.
+//! * [`PerfStatus::DeclaredP1`] — the advanced levers intentionally out of
 //!   the P0 scope. NOT defects, NOT yet built: a declared, bounded later stage.
 //!
 //! The wording mirrors the canonical lever prose in
@@ -73,14 +73,91 @@ pub struct PerfRow {
 /// content-stable run to run.
 #[derive(Debug, Clone)]
 pub struct PerfLedger {
-    /// The six canonical rows in their fixed order.
+    /// The canonical deferred rows in their fixed order.
     pub rows: Vec<PerfRow>,
+}
+
+/// The non-monotone solver selected for one maintained-ground-program shot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NonmonotoneSolver {
+    /// Van Gelder alternating-fixpoint evaluation.
+    WellFounded,
+    /// Exhaustive stable-model enumeration followed by cautious intersection.
+    StableModel,
+}
+
+impl NonmonotoneSolver {
+    /// Stable machine-readable solver name for a per-shot ledger row.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::WellFounded => "well-founded alternating fixpoint",
+            Self::StableModel => "stable-model cautious enumeration",
+        }
+    }
+}
+
+/// What happened at the explicitly non-incremental solver boundary for one shot.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SolveDisposition {
+    /// The asserted EDB and active ground rules were unchanged, so the previous
+    /// solution was reused without entering the solver.
+    ReusedUnchangedGroundSlice,
+    /// The maintained solver slice changed and the existing solver reran from
+    /// scratch.  This is the honest open-research boundary.
+    ReranFromScratch,
+}
+
+/// Machine-readable performance-ledger row for one incremental-grounding shot.
+///
+/// The static [`PerfLedger`] says that non-monotone **solving** remains a flagged
+/// boundary. This row makes each run equally explicit without contaminating the
+/// deterministic repository-wide Turtle with process history.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct NonmonotoneSolveRun {
+    /// Solver whose boundary this row records.
+    pub solver: NonmonotoneSolver,
+    /// Same honest status as the canonical static ledger row.
+    pub status: PerfStatus,
+    /// Reuse versus explicit from-scratch solving for this shot.
+    pub disposition: SolveDisposition,
+    /// Consolidated asserted-fact changes in the solver slice.
+    pub edb_changes: usize,
+    /// Active ground-rule zero-crossings in the solver slice.
+    pub ground_rule_changes: usize,
+}
+
+impl NonmonotoneSolveRun {
+    /// Whether this shot entered the deliberately non-incremental solver.
+    pub fn solver_reran(self) -> bool {
+        self.disposition == SolveDisposition::ReranFromScratch
+    }
+}
+
+/// Construct the per-shot ledger row at the maintained-ground-program boundary.
+pub(crate) fn nonmonotone_solve_run(
+    solver: NonmonotoneSolver,
+    slice_changed: bool,
+    edb_changes: usize,
+    ground_rule_changes: usize,
+) -> NonmonotoneSolveRun {
+    NonmonotoneSolveRun {
+        solver,
+        status: PerfStatus::FlaggedNonIncremental,
+        disposition: if slice_changed {
+            SolveDisposition::ReranFromScratch
+        } else {
+            SolveDisposition::ReusedUnchangedGroundSlice
+        },
+        edb_changes,
+        ground_rule_changes,
+    }
 }
 
 /// Build the canonical performance ledger.
 ///
-/// Six rows, fixed order: the three `flagged-non-incremental` hard parts followed
-/// by the three `declared-p1` advanced levers. This is the single source of the
+/// Five rows, fixed order: the remaining `flagged-non-incremental` boundaries.
+/// Selective WCOJ, compile-don't-interpret, and bounded provenance annotations are
+/// built and therefore absent. This is the single source of the
 /// ledger content — both the Turtle emitter and any structured consumer fold from
 /// it, so they can never disagree.
 pub fn perf_ledger() -> PerfLedger {
@@ -89,11 +166,11 @@ pub fn perf_ledger() -> PerfLedger {
             // ── The three canonical hard parts (a native fallback EXISTS; not yet
             //    incremental, so they stay heavy-path fallbacks longest). ──
             PerfRow {
-                construct: "incremental well-founded / stable-model semantics",
+                construct: "incremental well-founded / stable-model solving",
                 status: PerfStatus::FlaggedNonIncremental,
-                note: "well-founded / stable-model semantics incrementally stays a \
-                       heavy-path fallback longest; a native fallback exists but is not \
-                       yet incremental",
+                note: "the ground program is maintained incrementally, while well-founded / \
+                       stable-model solving reruns from scratch when that slice changes and \
+                       remains explicitly non-incremental",
             },
             PerfRow {
                 construct: "existential-rule chase with termination and incrementality together",
@@ -108,27 +185,20 @@ pub fn perf_ledger() -> PerfLedger {
                 note: "the paraconsistent / modal facets stay heavy-path fallbacks longest; \
                        a native fallback exists but is not yet incremental",
             },
-            // ── The three advanced levers, intentionally out of P0 scope (NOT
-            //    defects, NOT yet built — a declared later stage). ──
             PerfRow {
-                construct: "worst-case-optimal joins",
-                status: PerfStatus::DeclaredP1,
-                note: "worst-case-optimal joins for cyclic graph patterns — an advanced \
-                       lever declared out of the current scope, not yet built",
+                construct: "rule-program-changing conjecture candidates",
+                status: PerfStatus::FlaggedNonIncremental,
+                note: "ground fact candidates use the signed fixed-contract session; a \
+                       candidate that changes the rule program has a native fallback but is \
+                       not yet incremental",
             },
             PerfRow {
-                construct: "provenance semirings",
-                status: PerfStatus::DeclaredP1,
-                note: "provenance semirings computing world/standpoint and the quantitative \
-                       axes in one pass, where the semiring is the axis algebra — an advanced \
-                       lever declared out of the current scope, not yet built",
-            },
-            PerfRow {
-                construct: "compile-don't-interpret (specialize per content-addressed contract hash)",
-                status: PerfStatus::DeclaredP1,
-                note: "compile-don't-interpret, specialized per content-addressed contract \
-                       hash — an advanced lever declared out of the current scope, not yet \
-                       built",
+                construct: "bounded retractions and non-positive counterfactual programs",
+                status: PerfStatus::FlaggedNonIncremental,
+                note: "unbounded positive counterfactual revisions use signed incremental \
+                       maintenance; bounded retractions and programs with negation, \
+                       builtins, or rule facts retain a native fallback but are not yet \
+                       incremental",
             },
         ],
     }
@@ -141,7 +211,10 @@ const PERF_HEADER: &str = "\
 # GMEOW native physical engine performance ledger.
 # A first-class reasoning artifact flagging the deferred / non-incremental parts
 # of the seven-lever execution stack. The built P0 levers (the relational core —
-# semi-naive + stratified negation + index selection — and magic-sets) are NOT
+# semi-naive + stratified negation + index selection, selective worst-case-optimal
+# joins, magic-sets, positive-Datalog signed incrementality, cached compiled plans,
+# bounded min-height / Z-weight provenance, and non-monotone incremental grounding)
+# are NOT
 # rows here; this ledger records ONLY the deferred items, so a row is never
 # misread as a shipped feature. Two honest statuses:
 #   gmeow:FlaggedNonIncremental — a canonical hard part: a native fallback EXISTS,
@@ -215,12 +288,12 @@ impl PerfLedger {
 mod tests {
     use super::*;
 
-    /// The ledger carries exactly the six canonical rows, three of each status,
-    /// in the fixed `flagged-non-incremental`-then-`declared-p1` order.
+    /// The ledger carries exactly the five still-live incremental boundaries. Built
+    /// optimization levers are removed rather than left behind as stale declarations.
     #[test]
-    fn ledger_has_six_rows_three_of_each_status() {
+    fn ledger_has_five_live_flagged_rows_and_no_stale_declared_levers() {
         let ledger = perf_ledger();
-        assert_eq!(ledger.rows.len(), 6, "exactly six deferred rows");
+        assert_eq!(ledger.rows.len(), 5, "exactly five deferred rows remain");
         let flagged = ledger
             .rows
             .iter()
@@ -231,28 +304,21 @@ mod tests {
             .iter()
             .filter(|r| r.status == PerfStatus::DeclaredP1)
             .count();
-        assert_eq!(flagged, 3, "three flagged-non-incremental hard parts");
-        assert_eq!(p1, 3, "three declared-p1 advanced levers");
-        // Fixed order: the three hard parts precede the three levers.
+        assert_eq!(flagged, 5, "five flagged-non-incremental boundaries");
+        assert_eq!(p1, 0, "no already-built lever remains declared-p1");
         assert!(
-            ledger.rows[..3]
+            ledger
+                .rows
                 .iter()
                 .all(|r| r.status == PerfStatus::FlaggedNonIncremental),
-            "the first three rows are the flagged-non-incremental hard parts"
-        );
-        assert!(
-            ledger.rows[3..]
-                .iter()
-                .all(|r| r.status == PerfStatus::DeclaredP1),
-            "the last three rows are the declared-p1 levers"
+            "all remaining rows are real non-incremental boundaries"
         );
     }
 
-    /// The emitted Turtle pins the exact canonical content: the banner, the two
-    /// status individuals, all three hard parts, and all three P1 levers. This is
-    /// the in-crate golden.
+    /// The emitted Turtle pins the exact canonical content and proves completed
+    /// levers are absent from the deferred ledger.
     #[test]
-    fn turtle_golden_pins_the_six_rows_and_two_statuses() {
+    fn turtle_golden_pins_five_rows_and_excludes_built_levers() {
         let ttl = perf_ledger().to_turtle();
 
         // Banner + the two status individuals are explained.
@@ -273,45 +339,47 @@ mod tests {
 
         // The ledger header individual + entry count.
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/PerfLedger>"));
-        assert!(ttl.contains("gmeow/entryCount> 6"));
+        assert!(ttl.contains("gmeow/entryCount> 5"));
 
         // The three FlaggedNonIncremental hard parts (canon wording).
         for construct in [
-            "incremental well-founded / stable-model semantics",
+            "incremental well-founded / stable-model solving",
             "existential-rule chase with termination and incrementality together",
             "paraconsistent / modal facets",
+            "rule-program-changing conjecture candidates",
+            "bounded retractions and non-positive counterfactual programs",
         ] {
             assert!(
                 ttl.contains(construct),
                 "the flagged-non-incremental hard part must appear verbatim: {construct}"
             );
         }
-        // The three DeclaredP1 advanced levers (canon wording).
+        // These three levers are built, so none may be misrepresented as deferred.
         for lever in [
-            "worst-case-optimal joins",
             "provenance semirings",
             "compile-don't-interpret (specialize per content-addressed contract hash)",
+            "worst-case-optimal joins",
         ] {
             assert!(
-                ttl.contains(lever),
-                "the declared-p1 advanced lever must appear verbatim: {lever}"
+                !ttl.contains(&format!("construct> \"{lever}")),
+                "a built lever must not remain a deferred construct: {lever}"
             );
         }
 
-        // Both status individuals are emitted as objects.
+        // Only the status used by a live row is emitted as an object.
         assert!(ttl.contains(
             "gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental>"
         ));
         assert!(
-            ttl.contains("gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1>")
+            !ttl.contains("gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1>")
         );
 
-        // Six entries of type gmeow:PerfLedgerEntry.
+        // Five entries of type gmeow:PerfLedgerEntry.
         assert_eq!(
             ttl.matches("#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry>")
                 .count(),
-            6,
-            "exactly six PerfLedgerEntry rows are emitted"
+            5,
+            "exactly five PerfLedgerEntry rows are emitted"
         );
 
         // NO process tokens: no `#NNNN` issue/PR references, no `F3`/`T6` ticket
@@ -333,5 +401,23 @@ mod tests {
             perf_ledger().to_turtle(),
             "the perf-ledger Turtle must be byte-deterministic"
         );
+    }
+
+    #[test]
+    fn per_shot_row_never_mislabels_from_scratch_solving_as_incremental() {
+        let rerun = nonmonotone_solve_run(NonmonotoneSolver::WellFounded, true, 1, 3);
+        assert_eq!(rerun.status, PerfStatus::FlaggedNonIncremental);
+        assert_eq!(rerun.solver.as_str(), "well-founded alternating fixpoint");
+        assert!(rerun.solver_reran());
+        assert_eq!(rerun.edb_changes, 1);
+        assert_eq!(rerun.ground_rule_changes, 3);
+
+        let reused = nonmonotone_solve_run(NonmonotoneSolver::StableModel, false, 0, 0);
+        assert_eq!(
+            reused.disposition,
+            SolveDisposition::ReusedUnchangedGroundSlice
+        );
+        assert!(!reused.solver_reran());
+        assert_eq!(reused.solver.as_str(), "stable-model cautious enumeration");
     }
 }
