@@ -203,16 +203,13 @@ impl WorldFactSnapshot {
     /// - `source_quad_ids` = `[reifier]`
     /// - `budget_status` = [`BudgetStatus::Ok`]
     ///
-    /// Quads whose predicate is not a `NamedNode` (i.e. blank-node predicates — which
-    /// RDF 1.2 does not permit) are skipped.  Quads where `mint_reifier` fails (e.g.
-    /// RDF-star triple-term subjects or objects) are skipped with the error propagated
-    /// as a warning string in the `Err` variant — callers should treat this as a
-    /// programming error, not a recoverable condition.
+    /// Quads whose predicate is not an IRI (which RDF 1.2 does not permit) are
+    /// skipped. The first `mint_reifier` failure aborts the entire snapshot and
+    /// returns `Err`; no partial snapshot is exposed to a caller.
     ///
     /// # Errors
     ///
-    /// Returns `Err` if `store.quads_for_pattern_in_world` itself panics
-    /// (it does not in practice), or if reifier minting fails for any quad.
+    /// Returns `Err` if reifier minting fails for any quad.
     pub fn from_world(
         store: &crate::store::WorldStore,
         world: &str,

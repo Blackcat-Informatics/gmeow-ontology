@@ -198,9 +198,9 @@ impl TermInterner {
 
     /// The cached display surface for `id` (same panic contract as [`Self::resolve`]).
     ///
-    /// This is also the zero-render physical join surface: slot kernels compare and
-    /// copy the already-interned lexical value rather than rerunning `term_display` for
-    /// every selected row.
+    /// Hot joins compare the interned [`TermId`] itself. This cached lexical surface
+    /// is materialized only when a binding or output crosses back to text, avoiding a
+    /// repeated `term_display` call at that boundary.
     pub(crate) fn display_of(&self, id: TermId) -> &str {
         self.displays.get(id.index()).unwrap_or_else(|| {
             panic!(

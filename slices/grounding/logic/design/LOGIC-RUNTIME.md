@@ -51,8 +51,8 @@ Required solver capabilities:
 - materialize declared rule consequences (monotonic and stratified non-monotonic), under the
   reasoning contract declared by the request (see [LOGIC-SEMANTICS.md § The reasoning
   contract](LOGIC-SEMANTICS.md#the-reasoning-contract));
-- resolve goals by unification and backward chaining, with builtins (cut only in the procedural
-  preset — see [LOGIC-SEMANTICS.md § Cut is procedural](LOGIC-SEMANTICS.md#cut-is-procedural-not-canonical));
+- resolve goals by unification through demand transformation, with checked builtins; cut is
+  retired and rejected before evaluation;
 - evaluate closed-world constraints over asserted and derived graphs;
 - carry contextual/temporal/modal/probabilistic scope through inference, and construct
   hypothesized/counterfactual typed contexts on demand (see
@@ -360,7 +360,7 @@ logic: IR (full-FOL, facets)
   → ReasoningContract / fragment analysis    — route to the weakest sufficient strategy
   → relational-core dialect (logic:RelationalCore; Datalog± + stratified ¬ + aggregation + existentials)
   → physical plan (join order · worst-case-optimal joins · magic-sets · semiring annotation)
-  → native core: semi-naive + alternating fixpoint, tabling, incremental, compiled
+  → native core: semi-naive + alternating fixpoint, demand transformation, incremental, compiled
 ```
 
 Seven levers on the native Rust core: (1) **one
