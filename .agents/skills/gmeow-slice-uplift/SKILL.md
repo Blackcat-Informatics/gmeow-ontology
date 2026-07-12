@@ -48,9 +48,11 @@ and the meet finally lifts.
 The ratchet floors are the **monotonicity CERTIFICATE** — and now a real hard-fail
 gate, not a reviewer promise: `tier_floor_monotonicity` and
 `axis_floor_monotonicity` in `crates/slice-quality/src/gate.rs` red on the deletion of
-a still-live floor. A committed floor may only be raised in the normal case; a
-*lowering* is a permitted, logged **re-anchor** — used only when the axis's measure
-definition changes and the old value denotes a different quantity.
+a still-live floor **and on any LOWERING of a committed floor**. Floors are strictly
+raise-only; there is no re-anchor, permit, or signal an agent can set. Re-baselining a
+floor downward is a **maintainer-only decision** — you never lower a floor, and no
+lowering you commit will pass the gate. The maintainer authorizes a downward
+re-baseline out-of-band by merging past the red.
 
 Per-slice **termination is a fixpoint of the advisory operator**: the slice is done
 when `advise(slice) = ∅` — the observable `advice=0` column in the prioritization
@@ -157,15 +159,16 @@ authored in the rubric slice's `module.ttl`
   gmeow-dev slice-quality-seed-floors --axis axisShapeMigration   # any axis-local; or --all-axes
   ```
 
-- **Raise-only, never ahead of a real uplift — with audited re-anchoring.** This is
-  hard-fail-enforced, not a reviewer promise, by two distinct gate layers — keep them straight
-  (mirrored from `crates/slice-quality/src/gate.rs`):
+- **Strictly raise-only, never ahead of a real uplift.** This is hard-fail-enforced, not a
+  reviewer promise, by two distinct gate layers — keep them straight (mirrored from
+  `crates/slice-quality/src/gate.rs`):
   - The **floor-monotonicity gate** — `tier_floor_monotonicity` / `axis_floor_monotonicity`
-    — guards the committed floor individuals: a lowered floor is a permitted **re-anchor**
-    (surfaced as a logged `note`, NOT a red — a measure-definition change may legitimately
-    re-baseline a floor to the honest measured value), while removing a still-live floor
-    individual reds as `DELETED`. Both functions return `FloorMonotonicity { violations,
-    relaxations }`: relaxations are logged, only violations red.
+    — guards the committed floor individuals: **LOWERING a floor reds** the gate, and so does
+    removing a still-live floor individual (`DELETED`). Both functions return
+    `FloorMonotonicity { violations }` — every lowering and every still-live deletion is a
+    violation. There is no permit, re-anchor, or relaxation an agent can trigger; a downward
+    re-baseline on a legitimate measure change is a maintainer-only decision, authorized
+    out-of-band by merging past the red.
   - The **ratchet-verdict gate** — `evaluate_ratchet` / `evaluate_axis_floor`, a separate
     check layer that compares a slice's measured/declared value against the CURRENT
     committed floor:
@@ -189,10 +192,9 @@ The lane is a background citizen. It **yields to issue lanes**:
 
 Two of these shards are machine-enforced, one is doctrine CI cannot see — know which:
 
-- **Machine-enforced:** floor monotonicity — the deletion of a still-live floor line
-  reds `make slice-quality-gate` (and thus `make check`) via
-  `tier_floor_monotonicity` / `axis_floor_monotonicity` (a lowering is a logged,
-  permitted re-anchor, not a red).
+- **Machine-enforced:** floor monotonicity — a LOWERED floor line or the deletion of a
+  still-live floor line reds `make slice-quality-gate` (and thus `make check`) via
+  `tier_floor_monotonicity` / `axis_floor_monotonicity`.
 - **Doctrine (CI cannot see it):** *don't touch a slice an in-flight branch owns* and
   *keep every PR slice-local*. Nothing in the gate knows which branch claimed which
   slice; these are discipline you uphold, not checks that catch you.
@@ -230,10 +232,10 @@ never expert judgement, never calibrated toward a target:
   reads the number. A slice reaches Maximal only by genuine uplift, never by
   re-weighting or re-calibrating the axis under it.
 - Tiers rise **only by genuine uplift** — the floors in §5 exist precisely so a score
-  cannot quietly slide back down after a ladder claims it. When an axis's *measure
-  definition* itself changes (a sharpened, more honest measure), the affected floors are
-  **re-anchored** to the new measured value — a permitted, logged relaxation (§5), not a
-  calibration. Example: `axisTranslationCoverage` measures the fraction of **every
+  cannot quietly slide back down after a ladder claims it. Lowering a floor is a hard
+  gate failure; even when an axis's *measure definition* legitimately sharpens, you do
+  not lower the floor — re-baselining downward is a maintainer-only decision, authorized
+  out-of-band. Example: `axisTranslationCoverage` measures the fraction of **every
   localizable literal** the slice authors (every `(term, predicate)` over the localizable
   predicates — labels, comments, definitions, scope notes, examples, pref/alt labels, notes,
   titles, descriptions, names) carrying a real non-empty translation, averaged over English
@@ -272,8 +274,8 @@ make check
 # (4) If the roll-up (or an axis floor) genuinely rose, add the additive floor line
 #     (§5) and re-confirm the ratchet gate stays green:
 make slice-quality-gate
-#   → deleting a still-live floor line reds here as DELETED (the floor-monotonicity
-#     check); a raise passes clean, and a lowering is a logged re-anchor (permitted).
+#   → a raise passes clean; LOWERING a floor line reds here, and so does deleting a
+#     still-live floor line (DELETED) — the floor-monotonicity check is raise-only.
 
 # (5) Re-read the worklist: <SLICE>'s `advice=` should have dropped. When it reads
 #     advice=0 the advisory operator has reached its fixpoint and the slice is done.
