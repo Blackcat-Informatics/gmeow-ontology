@@ -494,6 +494,7 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
     // `render_card` at `CardDetail::Full` (no second full-card renderer).
     {
         let alignment_facets = precompute_alignment_facets(model);
+        let fixtures_by_curie = precompute_fixtures_by_curie(model);
         for term in &model.terms {
             let slug = term_slug(term);
             files.insert(
@@ -512,7 +513,7 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
             });
             files.insert(format!("terms/{slug}/card.json"), json);
             // card-full.md — the full-tier oracle card.
-            let full = full_card_for(model, exec, term, &alignment_facets);
+            let full = full_card_for(model, exec, term, &alignment_facets, &fixtures_by_curie);
             let title = format!("{}{}", term.curie, term_signature(term));
             files.insert(
                 format!("terms/{slug}/card-full.md"),
@@ -6012,6 +6013,28 @@ pub(crate) fn precompute_alignment_facets(model: &DocsModel) -> AlignmentFacets<
     map
 }
 
+/// Maps each term CURIE to the [`crate::model::DocFixture`]s that reference it
+/// (via `terms_referenced`). Borrows both the CURIE keys and the fixtures from
+/// the model, so it is lifetime-bound to it.
+pub(crate) type FixturesByCurie<'a> =
+    std::collections::HashMap<&'a str, Vec<&'a crate::model::DocFixture>>;
+
+/// Precompute the fixture index for all terms in one pass: maps each term CURIE
+/// to the fixtures referencing it. Avoids the O(terms × fixtures) per-term
+/// linear scan of `model.fixtures` in [`full_card_for`]. The index itself
+/// carries no ordering guarantee — callers re-sort the looked-up `Vec` (see
+/// `full_card_for`'s `(slice, logical_path)` sort) so output order is
+/// unaffected by build order here.
+pub(crate) fn precompute_fixtures_by_curie(model: &DocsModel) -> FixturesByCurie<'_> {
+    let mut map: FixturesByCurie<'_> = std::collections::HashMap::new();
+    for fixture in &model.fixtures {
+        for curie in &fixture.terms_referenced {
+            map.entry(curie.as_str()).or_default().push(fixture);
+        }
+    }
+    map
+}
+
 /// A single search record. Serialized as a deterministic JSON array element.
 #[derive(serde::Serialize)]
 struct SearchRecord {
@@ -6487,7 +6510,9 @@ fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::c
 ///
 /// Panel provenance mirrors the term page's own sections:
 /// * entailments — `exec.term_entailments[term.iri]` (the reasoned B3 derivations);
-/// * Do / Don't — `model.fixtures` referencing the term's CURIE, split by kind;
+/// * Do / Don't — `fixtures_by_curie[term.curie]` (`model.fixtures` referencing
+///   the term's CURIE, precomputed once by [`precompute_fixtures_by_curie`]),
+///   split by kind;
 /// * diagnostics — `model.diagnostics.by_term[term.iri]`;
 /// * loss — `model.term_loss.by_term[term.iri]`.
 ///
@@ -6500,6 +6525,7 @@ fn full_card_for(
     exec: &ExecutableDocsData,
     term: &DocTerm,
     alignment_facets: &AlignmentFacets,
+    fixtures_by_curie: &FixturesByCurie<'_>,
 ) -> crate::card::Card {
     let mut card = doc_term_card(term, alignment_facets);
 
@@ -6518,12 +6544,12 @@ fn full_card_for(
     // Do / Don't conformance fixtures referencing this term, in the same
     // (slice, logical_path) order the term page lists them. Each body is one-lined
     // and capped to a short snippet (the full Turtle stays available on the
-    // fixtures index / `counter_examples` tool).
-    let mut term_fixtures: Vec<&crate::model::DocFixture> = model
-        .fixtures
-        .iter()
-        .filter(|f| f.terms_referenced.iter().any(|c| c == &term.curie))
-        .collect();
+    // fixtures index / `counter_examples` tool). Looked up from the precomputed
+    // CURIE index (O(1)) rather than rescanning `model.fixtures` per term.
+    let mut term_fixtures: Vec<&crate::model::DocFixture> = fixtures_by_curie
+        .get(term.curie.as_str())
+        .cloned()
+        .unwrap_or_default();
     term_fixtures.sort_by(|a, b| {
         a.slice
             .cmp(&b.slice)
