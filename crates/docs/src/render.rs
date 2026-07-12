@@ -2722,6 +2722,29 @@ pub(crate) fn pydantic_class_name(iri: &str) -> String {
     }
 }
 
+/// Escape `text` for embedding as a non-raw, double-quoted Python string
+/// literal: backslash and `"` are the only two characters a Python string
+/// escape needs to neutralize, and an embedded literal newline (the
+/// pretty-printer's structural whitespace, not a JSON string's *own*
+/// characters — JSON already `\n`-escapes those) must become `\n` too, since a
+/// non-raw, non-triple-quoted literal cannot contain one. Unlike a raw
+/// triple-quoted literal (`r'''...'''`), this form has no forbidden
+/// subsequence: `json.loads` decoding the result always reproduces `text`
+/// exactly, regardless of its content.
+fn python_str_escape(text: &str) -> String {
+    let mut out = String::with_capacity(text.len() + 2);
+    for ch in text.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
 /// The Python (Pydantic) example tab: construct-and-validate the term's worked
 /// instance against its generated `gmeow_models` model — importing the model IS
 /// reading the term. Present only for a modeled class (one carrying a schema
@@ -2739,6 +2762,11 @@ fn python_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> 
         return None;
     }
     let payload = quickstart_turtle_to_jsonld(&skeleton)?;
+    // A raw triple-quoted literal (`r'''...'''`) cannot escape a `'''` run, so
+    // an unlucky payload would terminate the string early and emit broken
+    // Python; a non-raw double-quoted literal has no such forbidden
+    // subsequence.
+    let payload_literal = python_str_escape(&payload);
     let module = pydantic_module_slug(&term.owner_slice);
     let class = pydantic_class_name(&term.iri);
     let body = format!(
@@ -2746,7 +2774,7 @@ fn python_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> 
          from gmeow_models.{module} import {class}\n\n\
          # The same worked instance shown in the Turtle / JSON-LD tabs, validated\n\
          # against the ontology-derived model:\n\
-         payload = json.loads(r'''{payload}''')\n\
+         payload = json.loads(\"{payload_literal}\")\n\
          obj = {class}.model_validate(payload)\n\
          print(obj.model_dump(by_alias=True, exclude_none=True))"
     );
@@ -2756,6 +2784,40 @@ fn python_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> 
         lang: "python".to_string(),
         body,
     })
+}
+
+/// The narrowest Rust raw-string hash-fence width that is safe for `text`: one
+/// more `#` than the longest run of `#` immediately following any `"` in
+/// `text`. A raw string `r###"..."###` terminates at the first `"` followed by
+/// AT LEAST as many `#` as the fence width, so a fixed one-`#` fence
+/// (`r#"..."#`) is unsafe whenever `text` itself contains a `"#` sequence;
+/// widening past every such run in `text` makes early termination impossible.
+fn rust_raw_fence_width(text: &str) -> usize {
+    let bytes = text.as_bytes();
+    let mut max_run = 0usize;
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'"' {
+            let mut run = 0usize;
+            let mut j = i + 1;
+            while j < bytes.len() && bytes[j] == b'#' {
+                run += 1;
+                j += 1;
+            }
+            max_run = max_run.max(run);
+        }
+        i += 1;
+    }
+    max_run + 1
+}
+
+/// Render `text` as a Rust raw-string literal (delimiters included) using a
+/// hash fence wide enough that `text` cannot terminate it early — see
+/// [`rust_raw_fence_width`]. For the common case (no `"#`-like run in `text`)
+/// this is the familiar `r#"..."#`.
+fn rust_raw_string_literal(text: &str) -> String {
+    let fence = "#".repeat(rust_raw_fence_width(text));
+    format!("r{fence}\"{text}\"{fence}")
 }
 
 /// The Rust example tab: parse the SAME quickstart instance and validate it with
@@ -2773,10 +2835,13 @@ fn rust_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
         return None;
     }
     let turtle = format!("{QUICKSTART_TURTLE_PREAMBLE}{skeleton}");
+    // A fixed one-`#` fence breaks if `turtle` ever contains `"#`; widen the
+    // fence to whatever this particular worked instance needs.
+    let turtle_literal = rust_raw_string_literal(&turtle);
     let body = format!(
         "// Parse the same worked instance shown in the Turtle tab and validate it\n\
          // with the native GMEOW validator (the shipped Rust surface).\n\
-         let turtle = r#\"{turtle}\"#;\n\
+         let turtle = {turtle_literal};\n\
          let dataset = purrdf::parse_turtle(turtle)?;\n\
          let report = gmeow_validate::validate(&dataset)?;\n\
          assert!(report.conforms());"
@@ -6886,6 +6951,92 @@ mod tests {
         assert_eq!(md_escape("a|b"), "a\\|b");
         assert_eq!(md_escape("<x>"), "\\<x\\>");
         assert_eq!(md_escape("line\nbreak"), "line break");
+    }
+
+    /// Decode a Python double-quoted literal body the way `json.loads` would
+    /// see it after Python's own string-literal decoding — i.e. undo exactly
+    /// the two escapes [`python_str_escape`] introduces (`\\` and `\"`, plus
+    /// the `\n`/`\r` it uses to stand in for a literal newline/CR that a
+    /// non-raw literal cannot otherwise carry) — so the test can assert the
+    /// round trip without invoking a Python interpreter.
+    fn decode_python_double_quoted(escaped: &str) -> String {
+        let mut out = String::with_capacity(escaped.len());
+        let mut chars = escaped.chars();
+        while let Some(c) = chars.next() {
+            if c == '\\' {
+                match chars.next() {
+                    Some('\\') => out.push('\\'),
+                    Some('"') => out.push('"'),
+                    Some('n') => out.push('\n'),
+                    Some('r') => out.push('\r'),
+                    other => panic!("unexpected escape \\{other:?} in {escaped:?}"),
+                }
+            } else {
+                out.push(c);
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn python_str_escape_round_trips_triple_quote_and_metachars() {
+        // A payload containing `'''` would prematurely terminate the OLD
+        // `r'''{payload}'''` raw literal; a payload containing `\` or `"`
+        // exercises the two escapes a non-raw double-quoted literal needs.
+        // A literal newline is what a pretty-printed JSON-LD payload actually
+        // contains, and is exactly what a non-raw, non-triple-quoted literal
+        // cannot carry unescaped.
+        let payload = "{\"a\": \"it's '''not''' a \\\"quote\\\"\\\\end\",\n  \"b\": 1}";
+        let literal = python_str_escape(payload);
+
+        // No unescaped `"` may appear in the body (each `"` must be preceded
+        // by exactly one `\`), and no raw newline may appear at all — both
+        // would break a non-raw double-quoted Python literal.
+        assert!(
+            !literal.contains('\n'),
+            "escaped body must not carry a literal newline: {literal:?}"
+        );
+        let mut prev = '\0';
+        for ch in literal.chars() {
+            if ch == '"' {
+                assert_eq!(prev, '\\', "unescaped quote in {literal:?}");
+            }
+            prev = ch;
+        }
+
+        // Decoding what Python would decode reproduces the original payload
+        // exactly, so `json.loads("{literal}")` gets back the exact JSON text.
+        assert_eq!(decode_python_double_quoted(&literal), payload);
+    }
+
+    #[test]
+    fn rust_raw_fence_width_widens_past_embedded_hash_quote_runs() {
+        // No `"#`-like run at all: the familiar single-`#` fence suffices.
+        assert_eq!(rust_raw_fence_width("plain turtle, no quotes"), 1);
+        assert_eq!(rust_raw_fence_width(r#"a "quoted" string"#), 1);
+
+        // A literal string value immediately followed by a `#`-fragment IRI
+        // puts a `"#` run in the content — this demands a wider fence than
+        // the naive one-`#` fence the old code always used (`r#"..."#`),
+        // which is exactly the twin bug the reviewer flagged in
+        // `python_syntax_tab`'s raw-triple-quote interpolation.
+        let turtle = "ex:x ex:note \"ends right here\"##weird .";
+        let width = rust_raw_fence_width(turtle);
+        assert_eq!(
+            width, 3,
+            "content has a 2-`#` run after `\"`, needs a 3-`#` fence"
+        );
+
+        let literal = rust_raw_string_literal(turtle);
+        let fence = "#".repeat(width);
+        assert_eq!(literal, format!("r{fence}\"{turtle}\"{fence}"));
+        // The fence must not appear as a `"`-followed-by-fence-or-more run
+        // anywhere inside the raw content, or the literal would close early.
+        let close = format!("\"{}", "#".repeat(width));
+        assert!(
+            !turtle.contains(&close),
+            "chosen fence {width} still matches inside content: {turtle:?}"
+        );
     }
 
     #[test]
