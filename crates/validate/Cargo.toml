@@ -26,7 +26,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # SHACL engine: the Rust-native validation reuses parsed shapes and validates the
 # frozen dataset directly. The engine core is PyO3-free; only the py modules touch PyO3.
-purrdf = "0.5"
+purrdf.workspace = true
 # Shared RDF 1.2 kernel: native GTS/text-codec ingress and diagnostics. The `gts`
 # feature is oxigraph-free and already cross-compiles to wasm32 (the purrdf engine).
 # Canonical Finding/Report model. Its surface is pure serde, so it is wasm-clean.
@@ -93,7 +93,7 @@ tracing = "0.1"
 
 [dev-dependencies]
 # Native RDF 1.2 dataset used directly by integration tests that query generated Turtle.
-purrdf = "0.5"
+purrdf.workspace = true
 # The classifier-ingestion producers under test: the conformance twin runs each
 # real captured classifier output through the unmodified whole-ontology SHACL
 # corpus and asserts the blind round-trip end-to-end.

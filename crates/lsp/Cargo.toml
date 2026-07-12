@@ -37,7 +37,7 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # Native (oxigraph-free) Turtle parse for the .ttl linter (EPIC #906): the `gts`
 # feature pulls the native text codecs; `gmeow-rdf-core` carries the RdfDiagnostic
 # location type the analyzer reports positions from.
-purrdf = "0.5"
+purrdf.workspace = true
 # The substrate SHACL validator: the `.ttl` analyzer routes a parsed data graph
 # through `data_validate::shacl_report_via_ledger` (the repo-free Tier-1 consumer
 # path) so publishDiagnostics READS THE SUBSTRATE — a shape violation surfaces with
