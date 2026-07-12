@@ -28,7 +28,7 @@
                 edoal:uri gmeow:CryptographicSignature ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Class ;
                 edoal:uri <https://in-toto.io/Statement/v1#signature> ;
             ] ;
             align:relation "<=" ;

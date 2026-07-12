@@ -80,7 +80,7 @@ gmeow:mapIcalSummary a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "et" ; gmeow:predicate rdfs:label ; gmeow:objectVar "summary" ] ) ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
-        gmeow:profile "ical" ; gmeow:toPredicate ical:summary ; gmeow:relation "<=" ;
+        gmeow:profile "ical" ; gmeow:toPredicate ical:summary ; gmeow:edoalTargetKind "property" ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnEventTypeToSummary ; gmeow:confidence 0.6 ;
         gmeow:lossyDrop "the event's full open type vocabulary collapses to one human-readable SUMMARY label" ] .
 

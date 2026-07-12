@@ -44,7 +44,7 @@
                 edoal:uri gmeow:connectsTo ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri crmarc:AP11_has_physical_relation ;
             ] ;
             align:relation "<=" ;

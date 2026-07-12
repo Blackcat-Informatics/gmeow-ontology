@@ -12,7 +12,7 @@
     align:map [
         a align:Cell ;
         align:entity1 [
-            a edoal:Relation ;
+            a edoal:Property ;
             edoal:uri gmeow:endedAtTime ;
         ] ;
         align:entity2 [
@@ -26,7 +26,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:eventTime ;
             ] ;
             align:entity2 [
@@ -40,7 +40,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:startedAtTime ;
             ] ;
             align:entity2 [

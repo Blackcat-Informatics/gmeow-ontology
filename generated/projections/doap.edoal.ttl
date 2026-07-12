@@ -55,7 +55,7 @@
                 edoal:uri gmeow:bugDatabase ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri doap:bug-database ;
             ] ;
             align:relation "=" ;
@@ -65,7 +65,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:dateCreated ;
             ] ;
             align:entity2 [
@@ -79,7 +79,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:description ;
             ] ;
             align:entity2 [
@@ -97,7 +97,7 @@
                 edoal:uri gmeow:downloadPage ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri doap:download-page ;
             ] ;
             align:relation "=" ;
@@ -107,7 +107,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:fullName ;
             ] ;
             align:entity2 [
@@ -125,7 +125,7 @@
                 edoal:uri gmeow:hasRepository ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri doap:repository ;
             ] ;
             align:relation "<=" ;
@@ -138,7 +138,7 @@
                 edoal:uri gmeow:hasTag ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri doap:category ;
             ] ;
             align:relation "<=" ;
@@ -152,7 +152,7 @@
                 edoal:uri gmeow:programmingLanguage ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri doap:programming-language ;
             ] ;
             align:relation "<=" ;
@@ -166,7 +166,7 @@
                 edoal:uri gmeow:projectHomepage ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri doap:homepage ;
             ] ;
             align:relation "=" ;
@@ -180,7 +180,7 @@
                 edoal:uri gmeow:projectLicense ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri doap:license ;
             ] ;
             align:relation "<=" ;
@@ -189,7 +189,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:releaseVersion ;
             ] ;
             align:entity2 [
@@ -216,7 +216,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:webUrl ;
             ] ;
             align:entity2 [

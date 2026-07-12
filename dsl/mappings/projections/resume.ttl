@@ -57,7 +57,7 @@ gmeow:mapResumeEmploymentType a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "etype" ; gmeow:predicate rdfs:label ; gmeow:objectVar "etypeLabel" ] ) ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
-        gmeow:profile "resume" ; gmeow:toPredicate schema:employmentType ; gmeow:relation "<=" ;
+        gmeow:profile "resume" ; gmeow:toPredicate schema:employmentType ; gmeow:edoalTargetKind "property" ; gmeow:relation "<=" ;
         gmeow:confidence 0.85 ;
         gmeow:lossyDrop "the EmploymentType value vocabulary individual collapses to its rdfs:label string; the structural type distinction is lost" ] .
 
@@ -78,7 +78,7 @@ gmeow:mapResumeJobTitle a gmeow:ProjectionMapping ;
               gmeow:objectVar "title" ] ) ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
-        gmeow:profile "resume" ; gmeow:toPredicate schema:jobTitle ; gmeow:relation "<=" ;
+        gmeow:profile "resume" ; gmeow:toPredicate schema:jobTitle ; gmeow:edoalTargetKind "property" ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnMembershipToJobTitle ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "the Employment relator (organization, period, compensation, type, standpoint) collapses to a flat schema:jobTitle literal; contested employment claims are not distinguished" ] .
 

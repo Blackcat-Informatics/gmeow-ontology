@@ -105,7 +105,7 @@
                 edoal:uri gmeow:membershipOrganization ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri schema:worksFor ;
             ] ;
             align:relation "<=" ;
