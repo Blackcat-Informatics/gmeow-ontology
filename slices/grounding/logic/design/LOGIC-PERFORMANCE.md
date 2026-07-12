@@ -151,8 +151,10 @@ re-enter the engine with small deltas over large stable worlds.
 The native implementation covers the fixed-contract, finite positive binary-Datalog fragment.
 It stores the recursive inner-iteration history, differentiates every rule join by the same
 telescoping product law, and settles signed insertions and retractions to the new least fixed
-point. Ground-IRI conjecture candidates use an insert-only governed transaction; unbounded
-positive counterfactual branches fork a cached base session and apply their functional-slot
+point. Ground IRI-or-literal conjecture candidates use an insert-only governed transaction;
+literal objects remain typed opaque facts for the fixed class/property rule program and still
+feed the literal-aware DL post-pass. Unbounded positive counterfactual branches fork a cached
+base session and apply their functional-slot
 `-1/+1` revision. Rule-program-changing conjectures, bounded retractions, and counterfactual
 programs carrying NAF, builtins, or rule facts stay on named native fallbacks and appear in the
 performance ledger. This boundary is an identity boundary too: the session pins the contract

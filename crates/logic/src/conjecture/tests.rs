@@ -3,7 +3,7 @@
 
 use super::*;
 use gmeow_logic_compile::ir::{Formula, Term};
-use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
 const SCN: &str = "http://world/scenario";
 const STANDPOINT: &str = "http://world/standpoint/alice";
@@ -15,6 +15,7 @@ const DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
 
 const KNOWS: &str = "http://ex/knows";
 const TRUSTS: &str = "http://ex/trusts";
+const NAME: &str = "http://ex/name";
 const ALICE: &str = "http://ex/alice";
 const BOB: &str = "http://ex/bob";
 const SAM_P: &str = "http://ex/sam";
@@ -45,6 +46,25 @@ fn binary_atom(rel: &str, s: &str, o: &str) -> Formula {
         ],
     )
     .unwrap()
+}
+
+fn literal_atom(rel: &str, s: &str, lexical: &str, datatype: Option<&str>) -> Formula {
+    Formula::atom(
+        Term::iri(rel.to_owned()).unwrap(),
+        vec![
+            Term::iri(s.to_owned()).unwrap(),
+            Term::literal(lexical, datatype.map(str::to_owned)).unwrap(),
+        ],
+    )
+    .unwrap()
+}
+
+fn literal_kb(subject: &str, predicate: &str, literal: RdfLiteral) -> std::sync::Arc<RdfDataset> {
+    let mut builder = RdfDatasetBuilder::new();
+    let quad = RdfQuad::new(RdfTerm::iri(subject), predicate, RdfTerm::literal(literal))
+        .in_graph(RdfTerm::iri(SCN));
+    builder.push_owned_quad(&quad);
+    builder.freeze().expect("valid literal test dataset")
 }
 
 /// `∀x. rel₁(x, c₁) → rel₂(x, c₂)` — a universally-quantified Horn implication.
@@ -294,6 +314,79 @@ fn ground_candidate_step_budget_cuts_incremental_recursion_inline() {
 }
 
 #[test]
+fn new_literal_candidate_is_not_falsely_corroborated() {
+    // Literal objects are outside the fixed class/property rule EDB, but they are still
+    // first-class signed facts. The candidate assertion must therefore make the adjusted
+    // closure differ from the base. The former scratch fallback dropped the literal and
+    // falsely treated this new fact as redundant/Supported.
+    let store = kb(&[]);
+    let candidate = literal_atom(NAME, IND_X, "Alice", None);
+    let ans = conjecture_test(
+        &store,
+        SCN,
+        &candidate,
+        STANDPOINT,
+        &[],
+        &Budget {
+            max_answers: None,
+            max_steps: Some(0),
+        },
+    )
+    .expect("literal candidate uses the inline signed-fact path");
+
+    assert_eq!(ans.verdict.evaluation, EvaluationStatus::Completed);
+    assert_eq!(ans.verdict.information, InformationState::Neither);
+    assert_eq!(ans.verdict.provenance.consumed_budget.consumed, 0);
+    assert!(ans.verdict.inferred().iter().any(|axiom| {
+        axiom.subject == IND_X
+            && axiom.predicate == NAME
+            && axiom.object.contains("Alice")
+            && axiom.is_edb
+    }));
+}
+
+#[test]
+fn already_asserted_literal_candidate_is_corroborated_without_recharge() {
+    let store = literal_kb(IND_X, NAME, RdfLiteral::simple("Alice"));
+    let candidate = literal_atom(NAME, IND_X, "Alice", None);
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("already-asserted literal candidate is a zero-delta shot");
+
+    assert_eq!(ans.verdict.evaluation, EvaluationStatus::Completed);
+    assert_eq!(ans.verdict.information, InformationState::Supported);
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Corroborated);
+    assert_eq!(ans.verdict.provenance.consumed_budget.consumed, 0);
+}
+
+#[test]
+fn literal_candidate_reaches_literal_aware_dl_refutation() {
+    const FUNCTIONAL: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
+    const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in [
+        RdfQuad::new(RdfTerm::iri(NAME), TYPE, RdfTerm::iri(FUNCTIONAL))
+            .in_graph(RdfTerm::iri(SCN)),
+        RdfQuad::new(
+            RdfTerm::iri(IND_X),
+            NAME,
+            RdfTerm::literal(RdfLiteral::typed("Alice", XSD_STRING)),
+        )
+        .in_graph(RdfTerm::iri(SCN)),
+    ] {
+        builder.push_owned_quad(&quad);
+    }
+    let store = builder.freeze().expect("valid functional-literal KB");
+    let candidate = literal_atom(NAME, IND_X, "Bob", Some(XSD_STRING));
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &Budget::default())
+        .expect("literal candidate must reach the DL post-pass");
+
+    assert_eq!(ans.verdict.information, InformationState::Opposed);
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::RefutedInStandpoint);
+    assert!(ans.witness.is_some());
+}
+
+#[test]
 fn ground_candidate_incremental_closure_matches_scratch_with_real_premises() {
     let store = kb(&[(A_CLS, SUBCLASS, B_CLS), (B_CLS, SUBCLASS, C_CLS)]);
     let base_edb = build_scenario_edb(&store, SCN, &[], None).unwrap();
@@ -306,15 +399,16 @@ fn ground_candidate_incremental_closure_matches_scratch_with_real_premises() {
     )
     .unwrap();
     let scratch = reason_all(&with_candidate).unwrap();
-    let incremental = crate::reason::reason_ground_iri_insert_incremental(
-        crate::reason::GroundIriIncrementalRequest {
+    let object = RdfTerm::iri(A_CLS);
+    let incremental = crate::reason::reason_ground_fact_insert_incremental(
+        crate::reason::GroundFactIncrementalRequest {
             base_edb: &base_edb,
             with_candidate_edb: &with_candidate,
             base: &base,
             scenario_world: SCN,
             subject: IND_X,
             predicate: TYPE,
-            object: A_CLS,
+            object: &object,
             max_steps: None,
         },
     )
@@ -363,15 +457,16 @@ fn asserting_an_already_derived_candidate_promotes_it_to_edb_provenance() {
         Some((A_CLS.to_owned(), SUBCLASS.to_owned(), RdfTerm::iri(C_CLS))),
     )
     .unwrap();
-    let adjusted = crate::reason::reason_ground_iri_insert_incremental(
-        crate::reason::GroundIriIncrementalRequest {
+    let object = RdfTerm::iri(C_CLS);
+    let adjusted = crate::reason::reason_ground_fact_insert_incremental(
+        crate::reason::GroundFactIncrementalRequest {
             base_edb: &base_edb,
             with_candidate_edb: &with_candidate,
             base: &base,
             scenario_world: SCN,
             subject: A_CLS,
             predicate: SUBCLASS,
-            object: C_CLS,
+            object: &object,
             max_steps: None,
         },
     )

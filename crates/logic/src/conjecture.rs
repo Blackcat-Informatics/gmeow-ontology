@@ -56,8 +56,8 @@
 //!
 //! # The budget seam
 //!
-//! A ground IRI candidate keeps the reasoning contract and rule set fixed, so it is a
-//! signed `+1` transaction on the native incremental session.  The shared
+//! A ground IRI-or-literal candidate keeps the reasoning contract and rule set fixed,
+//! so it is a signed `+1` transaction on the native incremental session. The shared
 //! `StepGovernor` charges genuinely new derivations inline at the deterministic sorted
 //! commit boundary; cached closure facts and the asserted candidate are not recharged.
 //! A cut returns a sound partial closure and `BudgetExhausted`, never a post-hoc fiction.
@@ -273,8 +273,9 @@ fn discharge_of(info: InformationState) -> ConjectureDischarge {
 /// Test the candidate first-order formula `candidate` against `kb` in the ISOLATED
 /// scenario world `scenario_world`, scoped to `standpoint` (REQUIRED — Principle 9 refuses
 /// a global-false verdict), with `assume_context` ground `(subject, predicate, object)`
-/// IRI triples layered onto the scenario EDB, honoring `budget` as a post-hoc closure-size
-/// ceiling (see the module doc's budget-seam note).
+/// IRI triples layered onto the scenario EDB, honoring `budget` inline for ground-fact
+/// candidates and as the declared post-hoc ceiling for rule-program-changing formulas
+/// (see the module doc's budget-seam note).
 ///
 /// `kb` is borrowed `&` and NEVER mutated: the scenario EDB is a fresh dataset built from a
 /// copy of `kb` plus the assume-context and (for a ground candidate) `φ`.
@@ -323,29 +324,23 @@ pub fn conjecture_test(
                 assume_context,
                 Some((subject.clone(), predicate.clone(), object.clone())),
             )?;
-            if let RdfTerm::Iri(object_iri) = &object {
-                let adjusted = crate::reason::reason_ground_iri_insert_incremental(
-                    crate::reason::GroundIriIncrementalRequest {
-                        base_edb: &base_edb,
-                        with_candidate_edb: &phi_edb,
-                        base: &base,
-                        scenario_world,
-                        subject: &subject,
-                        predicate: &predicate,
-                        object: object_iri,
-                        max_steps: budget.max_steps,
-                    },
-                )?;
-                (
-                    adjusted.result,
-                    true,
-                    Some((adjusted.status, adjusted.consumed_steps)),
-                )
-            } else {
-                // The fixed DL rule EDB deliberately excludes literal objects; retain
-                // the complete native path until that calculus admits them directly.
-                (reason_all(&phi_edb)?, true, None)
-            }
+            let adjusted = crate::reason::reason_ground_fact_insert_incremental(
+                crate::reason::GroundFactIncrementalRequest {
+                    base_edb: &base_edb,
+                    with_candidate_edb: &phi_edb,
+                    base: &base,
+                    scenario_world,
+                    subject: &subject,
+                    predicate: &predicate,
+                    object: &object,
+                    max_steps: budget.max_steps,
+                },
+            )?;
+            (
+                adjusted.result,
+                true,
+                Some((adjusted.status, adjusted.consumed_steps)),
+            )
         }
         None => {
             // A full candidate formula. `with_formulas` hard-fails on a trivially-Horn leaf,
