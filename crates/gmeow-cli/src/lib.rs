@@ -90,7 +90,11 @@ pub enum Commands {
     },
     /// Describe a GMEOW term as useful prose from a GTS snapshot.
     Describe {
-        /// A GMEOW term: `gmeow:X`, a local name, or a prefix.
+        /// A GMEOW term across any grounding namespace: a registered CURIE
+        /// (`gmeow:Entity`, `logic:Formula`, `math:Function`, `lang:Denotation`),
+        /// the full IRI, a bare local name, or a unique case-insensitive prefix. A
+        /// bare local name that names terms in more than one namespace is reported
+        /// as ambiguous (never silently resolved) — qualify it with its CURIE.
         term: String,
         /// Describe from this `.gts` package instead of the bundle.
         #[arg(long = "gts")]
