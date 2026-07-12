@@ -30,6 +30,7 @@
 #![allow(dead_code)]
 
 use std::collections::BTreeSet;
+use std::sync::Arc;
 
 use crate::rule_ir::{
     DerivedRow, EvalRule, Fact, FactStore, echo_asserted, least_model_of_reduct, world_edb_facts,
@@ -57,7 +58,7 @@ pub(crate) struct StableModel {
 pub(crate) struct IncrementalStableModelShot {
     pub(crate) grounding: GroundingUpdate,
     pub(crate) solve: NonmonotoneSolveRun,
-    pub(crate) rows: Vec<DerivedRow>,
+    pub(crate) rows: Arc<[DerivedRow]>,
 }
 
 /// Stateful cautious stable-model facade over an incrementally maintained ground
@@ -66,7 +67,7 @@ pub(crate) struct IncrementalStableModelShot {
 pub(crate) struct IncrementalStableModelSession {
     world: String,
     ground: IncrementalGroundProgram,
-    rows: Vec<DerivedRow>,
+    rows: Arc<[DerivedRow]>,
 }
 
 impl IncrementalStableModelSession {
@@ -80,7 +81,11 @@ impl IncrementalStableModelSession {
         let world = world.into();
         let ground = IncrementalGroundProgram::new(contract_hash, edb, rules)?;
         let snapshot = ground.snapshot();
-        let rows = cautious_ground_slice(&world, &snapshot.edb, &snapshot.rules)?;
+        let rows = Arc::from(cautious_ground_slice(
+            &world,
+            &snapshot.edb,
+            &snapshot.rules,
+        )?);
         Ok(Self {
             world,
             ground,
@@ -114,7 +119,11 @@ impl IncrementalStableModelSession {
         );
         let next_rows = if solve.solver_reran() {
             let snapshot = next_ground.snapshot();
-            cautious_ground_slice(&self.world, &snapshot.edb, &snapshot.rules)?
+            Arc::from(cautious_ground_slice(
+                &self.world,
+                &snapshot.edb,
+                &snapshot.rules,
+            )?)
         } else {
             self.rows.clone()
         };
@@ -478,6 +487,7 @@ mod tests {
             "ground-program solve preserves direct cautious rows"
         );
 
+        let initial_rows = session.rows.clone();
         let cancelled = session
             .apply([
                 SignedFact {
@@ -492,6 +502,8 @@ mod tests {
             .expect("cancelled stable-model shot");
         assert!(!cancelled.grounding.slice_changed);
         assert!(!cancelled.solve.solver_reran());
+        assert!(Arc::ptr_eq(&initial_rows, &cancelled.rows));
+        assert!(Arc::ptr_eq(&cancelled.rows, &session.rows));
 
         let changed = session
             .apply([SignedFact {
@@ -501,6 +513,7 @@ mod tests {
             .expect("changed stable-model shot");
         assert!(changed.grounding.slice_changed);
         assert!(changed.solve.solver_reran());
+        assert!(!Arc::ptr_eq(&cancelled.rows, &changed.rows));
         assert_eq!(
             changed.solve.solver.as_str(),
             "stable-model cautious enumeration"
