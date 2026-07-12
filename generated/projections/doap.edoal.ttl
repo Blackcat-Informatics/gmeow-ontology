@@ -209,7 +209,7 @@
                 a edoal:Class ;
                 edoal:uri doap:GitRepository ;
             ] ;
-            align:relation "=" ;
+            align:relation "<=" ;
             edoal:measure "0.95"^^xsd:double ;
             rdfs:label "Repository(repoTypeGit) → doap:GitRepository"@en ;
         ] ,

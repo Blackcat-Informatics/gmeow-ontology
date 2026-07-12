@@ -57,7 +57,7 @@
                 edoal:uri gmeow:conditionsOfAccess ;
             ] ;
             align:entity2 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri dcterms:accessRights ;
             ] ;
             align:relation "=" ;

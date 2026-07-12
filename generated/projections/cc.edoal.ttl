@@ -44,7 +44,7 @@
                 edoal:uri gmeow:attributionUrl ;
             ] ;
             align:entity2 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri cc:attributionURL ;
             ] ;
             align:relation "=" ;
