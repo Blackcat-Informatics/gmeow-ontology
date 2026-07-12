@@ -675,12 +675,46 @@ fn incremental_base_key(
     hasher.update(b"gmeow-counterfactual-incremental-base-v1\n");
     hasher.update(&hash_facts(base_facts));
     hasher.update(&hash_rules(program));
-    hasher.update(format!("{:?}", program.goal).as_bytes());
-    hasher.update(b"\n");
-    hasher.update(profile.as_bytes());
+    hasher.update(&hash_goal(&program.goal));
+    hasher.update(crate::profile_gate::canonical_profile_identity(profile).as_bytes());
     hasher.update(b"\n");
     hasher.update(SOLVER_VERSION.as_bytes());
     hasher.finalize().to_hex().to_string()
+}
+
+/// BLAKE3 of the typed goal structure. Every field is length-framed and every term
+/// variant is domain-tagged, so cache identity is independent of `Debug` rendering
+/// and cannot confuse a variable, constant, or number with the same surface text.
+fn hash_goal(goal: &crate::query_ir::QGoal) -> [u8; 32] {
+    fn frame(hasher: &mut blake3::Hasher, value: &[u8]) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value);
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    frame(&mut hasher, b"gmeow-counterfactual-goal-v1");
+    hasher.update(&(goal.atoms.len() as u64).to_le_bytes());
+    for atom in &goal.atoms {
+        frame(&mut hasher, atom.pred.as_bytes());
+        hasher.update(&(atom.args.len() as u64).to_le_bytes());
+        for term in &atom.args {
+            match term {
+                QTerm::Const(value) => {
+                    hasher.update(&[0]);
+                    frame(&mut hasher, value.as_bytes());
+                }
+                QTerm::Var(value) => {
+                    hasher.update(&[1]);
+                    frame(&mut hasher, value.as_bytes());
+                }
+                QTerm::Num(value) => {
+                    hasher.update(&[2]);
+                    hasher.update(&value.to_le_bytes());
+                }
+            }
+        }
+    }
+    *hasher.finalize().as_bytes()
 }
 
 /// Combine per-closest-world resolutions under a Lewis quantifier:
@@ -892,6 +926,48 @@ mod tests {
              ?- ex:p(ex:s, Y).\n",
         )
         .unwrap()
+    }
+
+    #[test]
+    fn incremental_goal_hash_is_typed_and_framed() {
+        let goal = |pred: &str, term: QTerm| crate::query_ir::QGoal {
+            atoms: vec![QAtom {
+                pred: pred.to_owned(),
+                args: vec![term],
+            }],
+        };
+
+        assert_ne!(
+            hash_goal(&goal("https://ex/p", QTerm::Const("1".to_owned()))),
+            hash_goal(&goal("https://ex/p", QTerm::Var("1".to_owned()))),
+        );
+        assert_ne!(
+            hash_goal(&goal("https://ex/p", QTerm::Const("1".to_owned()))),
+            hash_goal(&goal("https://ex/p", QTerm::Num(1))),
+        );
+        assert_ne!(
+            hash_goal(&goal("https://ex/a", QTerm::Const("bc".to_owned()))),
+            hash_goal(&goal("https://ex/ab", QTerm::Const("c".to_owned()))),
+            "length framing prevents adjacent-field boundary aliases",
+        );
+    }
+
+    #[test]
+    fn incremental_base_key_canonicalizes_profile_aliases() {
+        let program = plain_program();
+        let facts = vec![(
+            "https://ex/s".to_owned(),
+            "https://ex/p".to_owned(),
+            "https://ex/o".to_owned(),
+        )];
+        assert_eq!(
+            incremental_base_key(&facts, &program, HORN),
+            incremental_base_key(&facts, &program, "logic:PositiveHornProfile"),
+        );
+        assert_eq!(
+            incremental_base_key(&facts, &program, HORN),
+            incremental_base_key(&facts, &program, "PositiveHornProfile"),
+        );
     }
 
     #[test]
