@@ -129,12 +129,15 @@ pub(crate) struct BudgetedIncrementalDelta {
 struct WeightedHead {
     fact: Fact,
     weight: i64,
-    witnesses: BTreeMap<(String, Vec<FactKey>), IncrementalDerivation>,
+    /// One canonical proof candidate. The signed `weight` is the compact support
+    /// account; retaining every proof here would make a many-to-one join consume
+    /// memory proportional to its proof multiplicity.
+    witness: Option<IncrementalDerivation>,
 }
 
 struct InternedWeights {
     weights: Weights,
-    witnesses: BTreeMap<usize, Vec<IncrementalDerivation>>,
+    witnesses: BTreeMap<usize, IncrementalDerivation>,
 }
 
 type WeightedHeads = BTreeMap<FactKey, WeightedHead>;
@@ -385,17 +388,11 @@ impl IncrementalSession {
             }
 
             let next_snapshot = distinct(&adjusted_raw);
-            for (&id, witnesses) in &interned.witnesses {
+            for (&id, witness) in &interned.witnesses {
                 if next_snapshot.contains(&id)
                     && !old_fixed.contains(&id)
                     && !next_edb.contains(&id)
-                    && let Some(witness) = witnesses.iter().find(|witness| {
-                        witness.premises.iter().all(|premise| {
-                            self.arena
-                                .row_index(&premise.key())
-                                .is_some_and(|premise_id| next_snapshot.contains(&premise_id))
-                        })
-                    })
+                    && self.witness_survives(witness, &next_snapshot)
                 {
                     added_derivations
                         .entry(id)
@@ -412,12 +409,18 @@ impl IncrementalSession {
                 candidates.sort_by_key(|id| self.arena.facts()[*id].key());
                 for id in candidates {
                     if governor.spent() {
+                        let derivations = self.complete_derivations(
+                            &old_fixed,
+                            &partial_closure,
+                            &next_edb,
+                            &added_derivations,
+                        )?;
                         let delta = self.delta_between(
                             &old_fixed,
                             &partial_closure,
                             iteration + 1,
                             joined_rows,
-                            &added_derivations,
+                            &derivations,
                         )?;
                         return Ok(BudgetedIncrementalDelta {
                             delta,
@@ -448,12 +451,14 @@ impl IncrementalSession {
             .expect("a settled history always has a final snapshot")
             .clone();
         let inner_iterations = next_raw.len();
+        let derivations =
+            self.complete_derivations(&old_fixed, &new_fixed, &next_edb, &added_derivations)?;
         let delta = self.delta_between(
             &old_fixed,
             &new_fixed,
             inner_iterations,
             joined_rows,
-            &added_derivations,
+            &derivations,
         )?;
         let closure = self.facts_in(&new_fixed);
         let consumed_steps = governor.as_ref().map_or(0, |governor| governor.consumed);
@@ -512,6 +517,109 @@ impl IncrementalSession {
         self.snapshots
             .last()
             .expect("a session always carries its fixed snapshot")
+    }
+
+    fn witness_survives(&self, witness: &IncrementalDerivation, snapshot: &Snapshot) -> bool {
+        witness.premises.iter().all(|premise| {
+            self.arena
+                .row_index(&premise.key())
+                .is_some_and(|premise_id| snapshot.contains(&premise_id))
+        })
+    }
+
+    /// Finish the one-witness-per-new-fact contract without retaining every proof
+    /// produced by a many-to-one join. Canonical candidates gathered during the
+    /// differentiated pass are reused when their premises survive. Any missing or
+    /// cancelled candidate is reconstructed once from the settled snapshot.
+    fn complete_derivations(
+        &self,
+        old: &Snapshot,
+        new: &Snapshot,
+        edb: &Snapshot,
+        candidates: &BTreeMap<usize, IncrementalDerivation>,
+    ) -> gmeow_errors::Result<BTreeMap<usize, IncrementalDerivation>> {
+        let targets: BTreeSet<usize> = new
+            .difference(old)
+            .filter(|id| !edb.contains(id))
+            .copied()
+            .collect();
+        let mut derivations = BTreeMap::new();
+        for &id in &targets {
+            if let Some(candidate) = candidates.get(&id)
+                && self.witness_survives(candidate, new)
+            {
+                derivations.insert(id, candidate.clone());
+            }
+        }
+
+        let witnessed: BTreeSet<usize> = derivations.keys().copied().collect();
+        let missing: BTreeSet<usize> = targets.difference(&witnessed).copied().collect();
+        if !missing.is_empty() {
+            derivations.extend(self.reconstruct_derivations(new, &missing)?);
+        }
+        if derivations.len() != targets.len() {
+            let witnessed: BTreeSet<usize> = derivations.keys().copied().collect();
+            let missing_keys: Vec<FactKey> = targets
+                .difference(&witnessed)
+                .map(|&id| self.arena.facts()[id].key())
+                .collect();
+            return Err(incremental_err(format!(
+                "settled incremental facts have no surviving proof witnesses: {missing_keys:?}"
+            )));
+        }
+        Ok(derivations)
+    }
+
+    /// Re-descend the settled snapshot only for facts whose transient canonical
+    /// candidate was cancelled. The output remains bounded to one witness per target.
+    fn reconstruct_derivations(
+        &self,
+        snapshot: &Snapshot,
+        targets: &BTreeSet<usize>,
+    ) -> gmeow_errors::Result<BTreeMap<usize, IncrementalDerivation>> {
+        let target_ids: BTreeMap<FactKey, usize> = targets
+            .iter()
+            .map(|&id| (self.arena.facts()[id].key(), id))
+            .collect();
+        let mut derivations = BTreeMap::new();
+
+        for rule in self.rules.iter() {
+            let mut partial = vec![WeightedSolution {
+                solution: Solution {
+                    bindings: Vec::new(),
+                    source_facts: Vec::new(),
+                },
+                weight: 1,
+            }];
+            for atom in &rule.body {
+                partial = self.extend_from_snapshot(atom, snapshot, &partial, None)?;
+                if partial.is_empty() {
+                    break;
+                }
+            }
+            for weighted in partial {
+                if !distinct_pairs_satisfied(&rule.distinct_pairs, &weighted.solution)? {
+                    continue;
+                }
+                let head = ground_head(&rule.head, &weighted.solution)?;
+                let Some(&id) = target_ids.get(&head.key()) else {
+                    continue;
+                };
+                let candidate = IncrementalDerivation {
+                    rule_iri: rule.rule_iri.clone(),
+                    premises: weighted.solution.source_facts,
+                };
+                match derivations.entry(id) {
+                    std::collections::btree_map::Entry::Vacant(slot) => {
+                        slot.insert(candidate);
+                    }
+                    std::collections::btree_map::Entry::Occupied(mut slot) => {
+                        retain_canonical_witness(slot.get_mut(), candidate);
+                    }
+                }
+            }
+        }
+        Ok(derivations)
     }
 
     fn settle_from_scratch(&mut self) -> gmeow_errors::Result<()> {
@@ -667,8 +775,10 @@ impl IncrementalSession {
                     .expect("a missing weighted head must intern exactly once"),
             };
             add_id_weight(&mut weights, id, head.weight)?;
-            if head.weight > 0 && !head.witnesses.is_empty() {
-                witnesses.insert(id, head.witnesses.into_values().collect());
+            if head.weight > 0
+                && let Some(witness) = head.witness
+            {
+                witnesses.insert(id, witness);
             }
         }
         Ok(InternedWeights { weights, witnesses })
@@ -770,19 +880,18 @@ fn add_head(
     let key = fact.key();
     match output.entry(key) {
         std::collections::btree_map::Entry::Vacant(slot) => {
-            let mut witnesses = BTreeMap::new();
-            if let Some(witness) = witness {
-                witnesses.insert(witness.key(), witness);
-            }
             slot.insert(WeightedHead {
                 fact,
                 weight,
-                witnesses,
+                witness,
             });
         }
         std::collections::btree_map::Entry::Occupied(mut slot) => {
             if let Some(witness) = witness {
-                slot.get_mut().witnesses.insert(witness.key(), witness);
+                match &mut slot.get_mut().witness {
+                    Some(current) => retain_canonical_witness(current, witness),
+                    missing @ None => *missing = Some(witness),
+                }
             }
             let combined = ZWeightSemiring.add(slot.get().weight, weight)?;
             if combined == 0 {
@@ -793,6 +902,12 @@ fn add_head(
         }
     }
     Ok(())
+}
+
+fn retain_canonical_witness(current: &mut IncrementalDerivation, candidate: IncrementalDerivation) {
+    if candidate.key() < current.key() {
+        *current = candidate;
+    }
 }
 
 fn add_id_weight(output: &mut Weights, id: usize, weight: i64) -> gmeow_errors::Result<()> {
@@ -1122,6 +1237,34 @@ mod tests {
         assert!(premise_keys.contains(&gate.key()));
         assert!(!premise_keys.contains(&left.key()));
         assert_scratch_parity(&session, &[right, gate], &rules);
+    }
+
+    #[test]
+    fn weighted_head_retains_one_canonical_witness_for_many_supports() {
+        let answer = fact("answer", "a", "b");
+        let mut output = WeightedHeads::new();
+        for index in (0..128).rev() {
+            add_head(
+                &mut output,
+                answer.clone(),
+                1,
+                Some(IncrementalDerivation {
+                    rule_iri: format!("{NS}rule/{index:03}"),
+                    premises: vec![fact("support", "a", &format!("p{index:03}"))],
+                }),
+            )
+            .unwrap();
+        }
+
+        let head = output
+            .get(&answer.key())
+            .expect("all supports consolidate under one derived fact");
+        assert_eq!(head.weight, 128, "signed support count remains exact");
+        let witness = head
+            .witness
+            .as_ref()
+            .expect("one canonical proof candidate is retained");
+        assert_eq!(witness.rule_iri, format!("{NS}rule/000"));
     }
 
     #[test]
