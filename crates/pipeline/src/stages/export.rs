@@ -1844,7 +1844,6 @@ mod consumer {
         if needle.is_empty() {
             return ConsumerResolution::NotFound;
         }
-        let lower = needle.to_lowercase();
         let mut exact: Vec<&Term> = Vec::new();
         let mut exact_ci: Vec<&Term> = Vec::new();
         let mut prefix: Vec<&Term> = Vec::new();
@@ -1863,13 +1862,15 @@ mod consumer {
             }
             if candidates
                 .iter()
-                .any(|c| !c.is_empty() && c.to_lowercase() == lower)
+                .any(|c| !c.is_empty() && c.eq_ignore_ascii_case(needle))
             {
                 exact_ci.push(term);
             }
-            if term.curie.to_lowercase().starts_with(&lower)
-                || term.label.to_lowercase().starts_with(&lower)
-            {
+            let starts_with_ci = |s: &str| {
+                s.get(..needle.len())
+                    .is_some_and(|head| head.eq_ignore_ascii_case(needle))
+            };
+            if starts_with_ci(&term.curie) || starts_with_ci(&term.label) {
                 prefix.push(term);
             }
         }
