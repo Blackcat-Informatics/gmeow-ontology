@@ -738,22 +738,30 @@ pub(crate) fn render_cost_ledger(
             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
         );
         for case in grounding_cases {
+            let evidence_error = |missing: &str| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!(
+                        "cost baseline case `{}/{}` carries incremental-grounding evidence but is missing {missing}",
+                        case.corpus, case.case
+                    ),
+                })
+            };
             let grounding = case
                 .native
                 .grounding
                 .as_ref()
-                .expect("filtered to incremental-grounding cases");
+                .ok_or_else(|| evidence_error("the grounding record"))?;
             let scratch = case
                 .native
                 .scratch
                 .as_ref()
-                .expect("incremental grounding always carries its scratch comparator");
+                .ok_or_else(|| evidence_error("the scratch comparator"))?;
             let scratch_probes = scratch
                 .ground_rule_probe_rows
-                .expect("incremental grounding scratch carries probe rows");
+                .ok_or_else(|| evidence_error("scratch ground_rule_probe_rows"))?;
             let scratch_rules = scratch
                 .active_ground_rules
-                .expect("incremental grounding scratch carries active rules");
+                .ok_or_else(|| evidence_error("scratch active_ground_rules"))?;
             lines.push(format!(
                 "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
                 case.corpus,
@@ -1129,6 +1137,35 @@ mod tests {
             built.len(),
             committed.len()
         );
+    }
+
+    #[test]
+    fn cost_ledger_returns_contextual_error_for_incomplete_grounding_evidence() {
+        let root = repo_root();
+        let bytes = fs::read(root.join(COST_BASELINE_PATH)).expect("read committed baseline");
+        let mut artifact: serde_json::Value =
+            serde_json::from_slice(&bytes).expect("parse committed baseline");
+        let broken = artifact["cases"]
+            .as_array_mut()
+            .expect("cases array")
+            .iter_mut()
+            .find(|case| !case["native"]["grounding"].is_null())
+            .expect("committed baseline has incremental-grounding evidence");
+        let corpus = broken["corpus"].as_str().unwrap().to_owned();
+        let case = broken["case"].as_str().unwrap().to_owned();
+        broken["native"].as_object_mut().unwrap().remove("scratch");
+
+        let tmp = tempdir().expect("temp root");
+        fs::create_dir(tmp.path().join("bench")).expect("bench dir");
+        fs::write(
+            tmp.path().join(COST_BASELINE_PATH),
+            serde_json::to_vec(&artifact).unwrap(),
+        )
+        .expect("write malformed baseline");
+        let error = render_cost_ledger(tmp.path())
+            .expect_err("incomplete grounding evidence must return a diagnostic");
+        assert!(error.message().contains(&format!("{corpus}/{case}")));
+        assert!(error.message().contains("scratch comparator"));
     }
 
     #[test]
