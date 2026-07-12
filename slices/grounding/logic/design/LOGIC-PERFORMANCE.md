@@ -118,9 +118,9 @@ engine, two directions.
   variant-based magic sets and is the reason a native SLG resolution engine — suspended goals,
   answer tables, delay lists — is **explicitly rejected**: it would duplicate the fixpoint core
   to recover behavior the rewrite already provides.
-- Procedural control (cut and its relatives) stays outside the native core. Programs that need
-  it are rewritten declaratively at authoring time or confined to the procedural preset; the
-  native engine never simulates control flow inside a fixpoint.
+- Procedural control (cut and its relatives) is retired. Programs are rewritten
+  declaratively at authoring time; the native engine rejects cut and never simulates
+  control flow inside a fixpoint.
 - Budgets transfer unchanged: the demand-transformed program is charged through the same
   committed-derivation counting point, so a backward query's budget semantics are identical to a
   forward materialization's.
@@ -142,11 +142,58 @@ re-enter the engine with small deltas over large stable worlds.
 - The **contract identity remains the invalidation key**: an incremental result is only valid
   under an unchanged contract hash, rule-set hash, and solver version. Incrementality
   accelerates re-evaluation under a fixed contract; it never blurs cache identity.
-- Honesty about the frontier: incremental maintenance of the existential chase and of
-  well-founded/stable-model semantics are open research areas, not engineering backlog. The
-  doctrine commits to incremental grounding for the non-monotonic fragments and flags the
-  solving step non-incremental until the theory exists; a flagged non-incremental fragment is a
-  ledger entry, never a silent slow path.
+- Honesty about the frontier: incremental maintenance of the existential chase and incremental
+  **solving** for well-founded/stable-model semantics are open research areas, not engineering
+  backlog. Grounding for the non-monotonic fragments is incremental; the solving step remains
+  flagged non-incremental until the theory exists. A flagged non-incremental fragment is a ledger
+  entry, never a silent slow path.
+
+The native implementation covers the fixed-contract, finite positive binary-Datalog fragment.
+It stores the recursive inner-iteration history, differentiates every rule join by the same
+telescoping product law, and settles signed insertions and retractions to the new least fixed
+point. Ground IRI-or-literal conjecture candidates use an insert-only governed transaction;
+literal objects remain typed opaque facts for the fixed class/property rule program and still
+feed the literal-aware DL post-pass. Unbounded positive counterfactual branches fork a cached
+base session and apply their functional-slot
+`-1/+1` revision. Rule-program-changing conjectures, bounded retractions, and counterfactual
+programs carrying NAF, builtins, or rule facts stay on named native fallbacks and appear in the
+performance ledger. This boundary is an identity boundary too: the session pins the contract
+hash, rendered rule-set hash, and native incremental-solver version.
+
+The non-monotone sibling (`physical/incremental_grounding.rs`) keeps the ground-and-solve
+boundary literal. It removes NAF literals to maintain the finite positive candidate universe
+with the same recursive signed session, then differentiates every source rule's grounding join
+with `new[..p] × delta[p] × old[p+1..]`. Fully-ground rule instances carry checked integer support
+weights; only a `0 ↔ positive` crossing changes the active program. The exact solver slice is the
+asserted EDB plus those active rules, so asserting a fact already present in the candidate
+universe still invalidates the solver. Every head, NAF, and inequality variable must be bound by
+a positive body atom; builtins, positive-body-free rules, and blank-node constants hard-fail at
+this seam rather than silently falling back.
+
+`IncrementalWellFoundedSession` and `IncrementalStableModelSession` cache the last answer only
+when that complete slice is unchanged. A changed slice reruns the existing alternating-fixpoint
+or cautious stable-model evaluator from scratch and emits a per-shot
+`FlaggedNonIncremental` run row naming that fact. This follows the ground-and-solve separation in
+[Calimeri et al., *ASP-Based Multi-Shot Reasoning via DLV2 with Incremental Grounding*](https://doi.org/10.1017/S1471068425000067):
+grounding state persists across shots while the solver remains non-incremental. It does **not**
+claim incremental WFS or answer-set solving.
+
+Loop forks share the immutable rule plan, fact arena, EDB, and cached inner-iteration histories
+by reference; a branch installs new roots only when its signed transaction commits. The committed
+`relational-core-mini/incremental-transitive-closure` cost lane prepares that base outside the
+measurement boundary, then proves insert and retract closure fingerprints against clean native
+rebuilds. Its deterministic observation is 13 charged incremental derivations versus 91 for the
+clean rebuild, with `peak_live_bytes` 130246 versus 231822; these raw counts are projected into
+`generated/bench/cost-ledger.md`. Wall-clock is not part of the claim.
+
+The committed `relational-core-mini/incremental-wfs-grounding` lane makes the second boundary
+equally falsifiable. It measures a signed ground-program insertion against a clean ground+WFS
+rebuild, checks the full result fingerprint, retracts the batch back to the base fingerprint,
+and records ground-rule commits, candidate probes, signed join rows, and exact peak-live bytes.
+The deterministic observation is 1 active ground-rule commit versus 13 on rebuild, 28 candidate
+probes versus 195, and `peak_live_bytes` 238187 versus 239714. The ledger also records
+`solver_status = flagged-non-incremental` and `solver_reran = true`; the measured win is grounding
+work only. Wall-clock remains advisory.
 
 ## Chase doctrine
 
@@ -193,15 +240,23 @@ cheapest differentiator: the subsumed forward substrate is single-threaded.
 Provenance is bounded-cost and in-band, never an afterthought pass.
 
 - **Record mode** carries a **minimal-proof-height annotation** per derived fact through the
-  semi-naive loop — a single small integer per fact, maintained under a min-semiring — and
-  reconstructs full proof trees lazily on demand by re-descending only the queried fact. This
-  keeps materialization overhead to a small constant factor while making every derived fact
-  explainable.
+  semi-naive loop — a single small integer per fact, maintained over the bounded
+  `(N ∪ {∞}, min, max)` semiring with a checked one-level rule lift, so a firing is annotated
+  `1 + max(body heights)` and alternatives select `min`. The selected annotation is carried on
+  the native row/oracle provenance seam; asserted leaves carry height zero. A reusable lazy
+  explanation index stores only row identity up front and reconstructs a proof by descending the
+  selected antecedents of the queried fact. An unrelated malformed proof component is not
+  traversed; querying that component still hard-fails. This is the bounded annotation/backward-
+  search design evaluated by [Zhao, Subotić, and Scholz](https://doi.org/10.1145/3379446), not an
+  eager proof-tree forest.
 - Full symbolic how-provenance (polynomial lineage) over recursive programs is **banned as a
   materialization target**: it has no polynomial-size representation in general. Where algebraic
   provenance is required, absorptive semirings — which do admit compact circuits — are the
   sanctioned form, and the integer-weighted Z-sets of the incremental layer double as counting
-  provenance for free.
+  provenance for free. Both carriers implement the same checked provenance-semiring plug point;
+  the Z carrier additionally exposes additive inverse, and the production incremental circuit
+  routes weight sum, product, and retraction through it. Overflow is a hard diagnostic, never
+  saturation or wrapping.
 - The Record/Skip capability boundary is unchanged: Skip mode commits the identical fact set in
   the identical order under the identical budget, minus the annotations. Provenance remains a
   capability, not a correctness fork.
@@ -260,6 +315,22 @@ std Rust" is not a neutral default on a hot path, it is a measured cost.
   zero-allocation borrowed-iterator doctrine extended into the engine.
 - **Type-state plan pipeline**: parsed → stratified → planned → executable as distinct types, so
   an unstratified or unplanned program is unrepresentable at the executor boundary.
+- **Content-addressed owned plans**: the terminal executable owns its immutable rule IR behind an
+  `Arc` and is cached under `(contract_hash, canonical_rule_hash, solver_version)` in a bounded
+  LRU. The rule digest length-prefixes every execution-relevant term, atom, guard, builtin, and
+  authored ordering; non-stratifiable results are negative-cached as declared gaps. Cache locking
+  ends before evaluation, and eviction drops only the cache reference, never an in-flight plan.
+  Both native forward materialization and demand-transformed backward evaluation consume this one
+  executable type.
+- **Flat binding frames**: every rule assigns variables stable authored-first-occurrence slots and
+  lowers acyclic positive atoms into a deterministic binding-aware SIPS order, recording the
+  guaranteed `Any`/subject/object/both index shape at each step, then selects one of four
+  variable/constant operator shapes. Provenance sources are restored to authored body order after
+  physical execution. Binary and certified-
+  cyclic kernels read those slots directly and copy the interner's cached display surface only when
+  first binding a slot; they do not interpret `EvalTerm` or search `(name, value)` pairs per tuple.
+  The shared named solution form is reconstructed once after the positive join for builtin, NAF,
+  head, and provenance semantics.
 - **SIMD only on dense ID or rational/vector columns with a measured win**, per the standing
   optimization rules; layout for autovectorization first, explicit portable SIMD second.
 - All of it under the standing order of operations: **data shape, ownership shape, dispatch
@@ -284,12 +355,15 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
     bytes / allocation count**. The count and peak-live are byte-reproducible and gate **on-gate**
     by exact drift-match; externally-instrumented retired-instruction counts corroborate them in a
     maintainer lane. The two total-allocation scalars are NOT byte-reproducible — the native core
-    emits a small quantized run-to-run allocation transient (measured at ~0.06% on the most-recursive
-    corpus case, and empirically irreducible: it survives a process-global total, an inline
+    emits a small quantized run-to-run allocation transient (allocation counts move in a
+    14-allocation quantum; after flat-slot kernels lowered small-query totals, a 12-process
+    `ancestor-query` soak observed a maximum 42-allocation span; the transient is empirically
+    irreducible: it survives a process-global total, an inline
     single-thread parallel pool, and a fully serial engine, so it is genuine per-run engine jitter,
     not a threading artifact). Rather than leave them advisory, they gate through a **one-sided
-    tolerance band** `fresh ≤ baseline·(1+ε)` with **ε = 1%** (set ~17× above the measured 0.06%
-    jitter floor), folded through the SAME divergence ledger as the exact signals: a within-band run
+    tolerance band**: bytes use `fresh ≤ baseline·1.01`; counts use
+    `fresh_count ≤ baseline_count + max(ceil(baseline_count × 0.01), 42)`. It is folded through the SAME divergence ledger
+    as the exact signals: a within-band run
     is a non-blocking `Agree`, a breach a blocking `CorpusOnly` cost-regression finding. The band is a
     deterministic verdict (a pure function of `(fresh, baseline, ε)`) that never flakes yet still bites
     the gross allocation regression the doctrine targets — a "fewer clones / fewer owned-key
@@ -305,6 +379,24 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
   bytes/count, and peak-live bytes are its scalar projections. A regression therefore attributes
   to a rule family, not merely to a benchmark group — which is exactly what a fragment-by-fragment
   performance-lever program needs to state "this change reduced the cost of *this* fragment".
+- **Plan reuse is measured as repeat evaluation, not a cache microbenchmark.** Every committed
+  forward mini-corpus case runs two complete materializations over identical EDB and rules with
+  parsing, EDB loading, and certification outside both measured regions. The cold run must report
+  one plan build and nonzero planning units; the warm run must report a cache hit, the identical
+  immutable executable, zero builds, and zero planning units. Closure digest, committed steps, and
+  the full `(rule, predicate, stratum)` vector must match exactly, while allocation count and
+  peak-live bytes must both strictly fall. These integer/boolean observations are projected into
+  `generated/bench/cost-ledger.md`; wall-clock is absent from the claim.
+- **Provenance overhead is measured Record-versus-Skip over the same warm plan.** After the
+  cold/warm plan-cache evidence, every forward mini-corpus case performs a separate fair pair:
+  one complete bounded-Record evaluation and one complete facts-only Skip evaluation. Both
+  projections do the same fact-only hash/count post-work; Record alone reads its two annotation
+  scalars.
+  The fact-only closure hash and committed-step count must match exactly, Record must carry one
+  height annotation per closure fact, and Skip carries zero. Per-mode peak-live bytes and the
+  resulting Record overhead are exact drift-gated integers; total allocation-count deltas are
+  retained as advisory corroboration under the allocator-noise doctrine. The committed table is
+  `generated/bench/cost-ledger.md`; it contains no wall-clock percentage.
 - **The engine-vs-engine lanes on external corpora remain** — the standard chase benchmark
   scenarios, the subsumed forward engine's own published evaluation sets for the existential and
   materialization fragments, and the transitive-closure/points-to program families the
@@ -373,6 +465,7 @@ keeps "not yet fast" or "not yet reachable" honest instead of silently reading a
   genuine residual ~0.059% per-run allocation jitter (a single quantized ±14-alloc event deep in
   the forward core; the engine already fixed-seeds its hashers) that neither process-global
   counting nor fully-serial execution eliminates. `alloc_bytes`/`alloc_count` therefore gate
-  through a one-sided band (`fresh ≤ baseline·(1+ε)`, ε = 1%, ~17× the measured floor);
+  through one-sided bands (bytes: 1%; counts:
+  `fresh_count ≤ baseline_count + max(ceil(baseline_count × 0.01), 42)`);
   `peak_live_bytes` gates by exact drift-match. Forward path: de-randomize the residual
   allocating structure in the forward core to restore exact-match allocation gating.

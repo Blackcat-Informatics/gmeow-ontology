@@ -1,0 +1,5 @@
+#[name("https://example.org/bench/rules/wf-win")]
+<https://example.org/bench/win>(?x, ?x, ?w) :-
+    <https://example.org/bench/move>(?x, ?y, ?w),
+    <https://example.org/bench/node>(?y, ?y, ?w),
+    ~<https://example.org/bench/win>(?y, ?y, ?w) .

@@ -60,15 +60,23 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 /// shipped `graph/reasoning` verdict can refuse one minted under a different
 /// contract than the engine it is about to trust it against.
 pub fn native_contract_hash() -> String {
-    let contract = format!(
-        "{dl_rules}\n{el_rules}\n{rl_rules}\n{dl_src}\n{mod_src}",
-        dl_rules = dl::dl_rules(),
-        el_rules = el::EL_RULES,
-        rl_rules = rl::RL_RULES,
-        dl_src = include_str!("dl.rs"),
-        mod_src = include_str!("mod.rs"),
-    );
-    crate::provenance::sha1_hex(&contract)
+    static HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    HASH.get_or_init(|| {
+        // Contract source is immutable for the lifetime of a compiled binary. Build
+        // and hash the large concatenated surface once; plan-cache lookups then clone
+        // only the 40-byte digest instead of rematerializing the whole rules/source
+        // corpus on every evaluation.
+        let contract = format!(
+            "{dl_rules}\n{el_rules}\n{rl_rules}\n{dl_src}\n{mod_src}",
+            dl_rules = dl::dl_rules(),
+            el_rules = el::EL_RULES,
+            rl_rules = rl::RL_RULES,
+            dl_src = include_str!("dl.rs"),
+            mod_src = include_str!("mod.rs"),
+        );
+        crate::provenance::sha1_hex(&contract)
+    })
+    .clone()
 }
 
 /// Run the native single-chase pipeline and return the shared
@@ -138,6 +146,265 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
 pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
     let (inferred, verdict) = reason_closure(edb)?;
     Ok(typed_result(inferred, &verdict))
+}
+
+/// Result of applying one ground conjecture candidate to a cached fixed-rule
+/// reasoning state.
+pub(crate) struct IncrementalReasoningResult {
+    pub(crate) result: ReasoningResult,
+    pub(crate) status: crate::seam::BudgetStatus,
+    pub(crate) consumed_steps: u64,
+}
+
+/// Inputs to one fixed-calculus ground-fact incremental reasoning transaction.
+pub(crate) struct GroundFactIncrementalRequest<'a> {
+    pub(crate) base_edb: &'a RdfDataset,
+    pub(crate) with_candidate_edb: &'a RdfDataset,
+    pub(crate) base: &'a ReasoningResult,
+    pub(crate) scenario_world: &'a str,
+    pub(crate) subject: &'a str,
+    pub(crate) predicate: &'a str,
+    pub(crate) object: &'a RdfTerm,
+    pub(crate) max_steps: Option<u64>,
+}
+
+/// Incrementally reason over `base_edb + candidate` for one scenario world.
+///
+/// The stable base result is reused byte-for-byte outside `scenario_world`. Inside
+/// that world the fixed DL rule program is maintained by the signed nested-iteration
+/// circuit, with newly derived facts carrying a real firing rule and immediate
+/// premises. The finite DL post-pass then runs over the sound adjusted closure.
+///
+/// The fixed rule text only inspects resource-valued class/property axioms, but the
+/// physical fact carrier is fully typed. A ground literal candidate is therefore kept
+/// as an opaque asserted object in the signed session: it can make redundancy false and
+/// can feed the literal-aware finite DL post-pass without fabricating a rule firing.
+pub(crate) fn reason_ground_fact_insert_incremental(
+    request: GroundFactIncrementalRequest<'_>,
+) -> gmeow_errors::Result<IncrementalReasoningResult> {
+    let GroundFactIncrementalRequest {
+        base_edb,
+        with_candidate_edb,
+        base,
+        scenario_world,
+        subject,
+        predicate,
+        object,
+        max_steps,
+    } = request;
+    let typed_edb = build_edb_facts(base_edb)?;
+    let interner = typed_edb.interner();
+    let mut world_edb = Vec::new();
+    for typed in typed_edb.facts() {
+        if typed.args.len() != 3 {
+            return Err(reason_err(format!(
+                "incremental fixed-calculus EDB row has arity {} (expected 3)",
+                typed.args.len()
+            )));
+        }
+        if world_string(interner.resolve(typed.args[2]))? != scenario_world {
+            continue;
+        }
+        world_edb.push(crate::rule_ir::Fact {
+            subject: interner.resolve(typed.args[0]).clone(),
+            predicate: typed.predicate.clone(),
+            object: interner.resolve(typed.args[1]).clone(),
+        });
+    }
+
+    let candidate_object = ground_object_value(object)?;
+    let candidate = crate::rule_ir::Fact {
+        subject: TermValue::iri(subject.to_owned()),
+        predicate: predicate.to_owned(),
+        object: candidate_object,
+    };
+    let candidate_key = candidate.key();
+    let candidate_axiom_key = (
+        subject.to_owned(),
+        predicate.to_owned(),
+        crate::provenance::term_display(&candidate.object),
+        scenario_world.to_owned(),
+    );
+    if world_edb.iter().any(|fact| fact.key() == candidate_key)
+        || dataset_contains_ground_fact(
+            base_edb,
+            scenario_world,
+            subject,
+            predicate,
+            &candidate.object,
+        )
+    {
+        return Ok(IncrementalReasoningResult {
+            result: base.clone(),
+            status: crate::seam::BudgetStatus::Ok,
+            consumed_steps: 0,
+        });
+    }
+
+    let rules = crate::rule_ir::parse_eval_rules(&dl::dl_rules())?;
+    let mut session =
+        crate::physical::IncrementalSession::new(native_contract_hash(), world_edb, &rules)?;
+    let adjusted = session.apply_insert_budgeted(
+        [crate::physical::SignedFact {
+            fact: candidate,
+            weight: 1,
+        }],
+        max_steps,
+    )?;
+
+    type AxiomKey = (String, String, String, String);
+    let base_by_key: std::collections::BTreeMap<AxiomKey, InferredAxiom> = base
+        .inferred()
+        .iter()
+        .map(|axiom| {
+            (
+                (
+                    axiom.subject.clone(),
+                    axiom.predicate.clone(),
+                    axiom.object.clone(),
+                    axiom.world.clone(),
+                ),
+                axiom.clone(),
+            )
+        })
+        .collect();
+
+    // Worlds untouched by the candidate retain their existing axioms/provenance.
+    let mut inferred: Vec<InferredAxiom> = base
+        .inferred()
+        .iter()
+        .filter(|axiom| axiom.world != scenario_world)
+        .cloned()
+        .collect();
+    for fact in adjusted.closure {
+        let subject = subject_iri(&fact.subject)?;
+        let object = crate::provenance::term_display(&fact.object);
+        let key = (
+            subject.clone(),
+            fact.predicate.clone(),
+            object.clone(),
+            scenario_world.to_owned(),
+        );
+        let fact_key = fact.key();
+        if fact_key == candidate_key {
+            inferred.push(InferredAxiom {
+                subject,
+                predicate: fact.predicate,
+                object,
+                world: scenario_world.to_owned(),
+                is_edb: true,
+                rule_name: None,
+                premises: Vec::new(),
+            });
+            continue;
+        }
+        if let Some(base_axiom) = base_by_key.get(&key) {
+            inferred.push(base_axiom.clone());
+            continue;
+        }
+
+        let witness = adjusted.delta.derivations.get(&fact_key).ok_or_else(|| {
+            reason_err(format!(
+                "incremental reasoning produced new derived fact {fact_key:?} without a firing witness"
+            ))
+        })?;
+        let premises = witness
+            .premises
+            .iter()
+            .map(|premise| {
+                Ok((
+                    subject_iri(&premise.subject)?,
+                    premise.predicate.clone(),
+                    crate::provenance::term_display(&premise.object),
+                ))
+            })
+            .collect::<gmeow_errors::Result<Vec<_>>>()?;
+        inferred.push(InferredAxiom {
+            subject,
+            predicate: fact.predicate,
+            object,
+            world: scenario_world.to_owned(),
+            is_edb: false,
+            rule_name: Some(witness.rule_iri.clone()),
+            premises,
+        });
+    }
+
+    // The DL-only post-pass is monotone, so every base consequence remains valid and
+    // is free cached state. Only run the post-pass for NEW consequences when the
+    // governed recursive transaction reached its natural fixed point; doing so after a
+    // cut would smuggle uncharged derivations into the partial closure.
+    inferred.extend(
+        base.inferred()
+            .iter()
+            .filter(|axiom| axiom.world == scenario_world)
+            .cloned(),
+    );
+    if adjusted.status == crate::seam::BudgetStatus::Ok {
+        dl::augment_inferred_with_dl(&mut inferred, with_candidate_edb)?;
+    }
+    inferred.retain(|axiom| {
+        let key = (
+            axiom.subject.clone(),
+            axiom.predicate.clone(),
+            axiom.object.clone(),
+            axiom.world.clone(),
+        );
+        key != candidate_axiom_key || axiom.is_edb
+    });
+    for axiom in &mut inferred {
+        axiom.premises.sort();
+        axiom.premises.dedup();
+    }
+    inferred.sort();
+    inferred.dedup();
+    let verdict = dl::verdict_from_inferred(&inferred, with_candidate_edb)?;
+    Ok(IncrementalReasoningResult {
+        result: typed_result(inferred, &verdict),
+        status: adjusted.status,
+        consumed_steps: adjusted.consumed_steps,
+    })
+}
+
+/// Convert the ground candidate's RDF object into the physical engine's typed term.
+fn ground_object_value(object: &RdfTerm) -> gmeow_errors::Result<TermValue> {
+    match object {
+        RdfTerm::Iri(iri) => Ok(TermValue::iri(iri.clone())),
+        RdfTerm::Literal(literal) => Ok(match literal.language.as_deref() {
+            Some(language) => TermValue::lang_literal(literal.lexical_form.clone(), language),
+            None => match literal.datatype.as_deref() {
+                Some(datatype) => {
+                    TermValue::typed_literal(literal.lexical_form.clone(), datatype.to_owned())
+                }
+                None => TermValue::simple_literal(literal.lexical_form.clone()),
+            },
+        }),
+        other => Err(reason_err(format!(
+            "incremental ground candidate object must be an IRI or literal, got {other:?}"
+        ))),
+    }
+}
+
+/// Whether the exact ground candidate is already asserted in its scenario world.
+///
+/// [`build_edb_facts`] intentionally omits literal objects from the fixed-calculus
+/// input, so physical-session membership alone cannot recognize an already-asserted
+/// literal. The source dataset remains the authority for that zero-delta case.
+fn dataset_contains_ground_fact(
+    edb: &RdfDataset,
+    world: &str,
+    subject: &str,
+    predicate: &str,
+    object: &TermValue,
+) -> bool {
+    edb.owned_quads().any(|quad| {
+        matches!(&quad.subject, RdfTerm::Iri(iri) if iri == subject)
+            && quad.predicate == predicate
+            && ground_object_value(&quad.object)
+                .ok()
+                .is_some_and(|value| &value == object)
+            && matches!(&quad.graph_name, Some(RdfTerm::Iri(iri)) if iri == world)
+    })
 }
 
 /// Reason over a canonical [`gmeow_logic_compile::ir::LogicProgram`]'s rules AND full-FOL formulas against `edb`,

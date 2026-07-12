@@ -167,7 +167,7 @@ before anything else runs:
 - the stratified-negation preset = fragment:Horn · model-semantics:least-model · negation operators:{default} (stratified);
 - the well-founded preset = model-semantics:well-founded · negation operators:{default};
 - the stable-model preset = model-semantics:stable-model · negation operators:{default};
-- the procedural preset = fragment:Horn · with cut and builtins · resource:budget-bounded (operational, not declarative);
+- the procedural preset = fragment:Horn · native derivational builtins · resource:budget-bounded (cut is retired);
 - the probabilistic preset = uncertainty:{probabilistic} over a declared dependency model — a measure carried alongside the chosen model semantics, not a model semantics of its own.
 
 Presets are sugar. An author references a preset *or* assembles a contract from facets directly;

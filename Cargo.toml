@@ -49,7 +49,7 @@ members = [
     "crates/logic",
     # The pure, wasm-able logic compiler (#664/#732): the parse(RDF 1.2)→IR→project
     # half of the logic stack, split out of crates/logic with zero reasoning-runtime
-    # deps (no Nemo/Scryer/tokio/PyO3/oxigraph). gmeow-logic depends on it.
+    # deps (no Nemo/tokio/PyO3/oxigraph). gmeow-logic depends on it.
     "crates/logic-compile",
     # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
     "crates/lsp",
@@ -125,30 +125,8 @@ members = [
 ]
 resolver = "2"
 
-# G6: pin the whole purrdf-* family to a single git rev carrying the
-# JSON-Schema $defs cross-namespace local-name-twin collision fix
-# (purrdf-shapes crossns-localname-defkey), rebased onto rust-v0.4.1 (the
-# version gmeow otherwise resolves from crates.io) so this patch carries
-# ONLY that fix — no unrelated 0.4.2/0.4.3 SPARQL/RIF/npm/wasm drift. Same
-# rev for every purrdf-* crate keeps a single consistent git source (no
-# version skew between family members). Drop this patch once the fix ships
-# in a released purrdf-* version gmeow depends on.
-[patch.crates-io]
-purrdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-core = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-entail = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-events = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-gts = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-iri = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-rdf = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-shapes = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-shex = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-slice = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-sparql-algebra = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-sparql-eval = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-sparql-results = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-validate = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
-purrdf-xsd = { git = "https://github.com/Blackcat-Informatics/purrdf.git", rev = "81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2" }
+[workspace.dependencies]
+purrdf = "0.5"
 
 [workspace.package]
 version = "0.1.0"
@@ -275,7 +253,7 @@ codegen-units = 256
 # This is scoped to FIRST-PARTY crates via per-package overrides on purpose:
 #   * nemo / nemo-physical keep their 256-unit caps (their build-RAM budget,
 #     historically ~64 GB, is the reason the overrides above exist);
-#   * third-party deps (oxigraph, scryer, regex, …) keep the default 16 units,
+#   * third-party deps (oxigraph, regex, …) keep the default 16 units,
 #     so neither their build RAM nor build time regresses.
 # Net effect: only the crates we actually wrote get the tighter codegen, so the
 # CI nemo build budget is untouched.

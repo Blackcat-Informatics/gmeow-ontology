@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native stable-model / answer-set evaluator (Phase A).
+//! Native stable-model / answer-set evaluator.
 //!
 //! Nemo rejects non-stratifiable programs, so the stable models are enumerated
 //! here directly, on top of the reduct least model in [`crate::rule_ir`].  Per
@@ -24,15 +24,21 @@
 //! `{candidate, inSet}` and `{candidate, outSet}` intersect to EMPTY (modulo EDB),
 //! so only the asserted `candidate(x,x)` quad is emitted.
 //!
-//! Phase-A note: [`stable_models`] / [`cautious_materialize`] are the entry points
-//! `py.rs` will call in Phase B; until that routing lands they are consumed
-//! only by this module's tests, hence the crate-internal `dead_code` allowance.
+//! [`IncrementalStableModelSession`] is the production multi-shot boundary used by
+//! [`crate::materialize::NonmonotoneMaterializationSession`]. The low-level model
+//! enumerator and scratch materializer remain crate-internal comparators for parity
+//! tests, hence the crate-internal `dead_code` allowance.
 #![allow(dead_code)]
 
 use std::collections::BTreeSet;
+use std::sync::Arc;
 
 use crate::rule_ir::{
     DerivedRow, EvalRule, Fact, FactStore, echo_asserted, least_model_of_reduct, world_edb_facts,
+};
+use crate::{
+    physical::{GroundingUpdate, IncrementalGroundProgram, SignedFact},
+    reason::perf_ledger::{NonmonotoneSolveRun, NonmonotoneSolver, nonmonotone_solve_run},
 };
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
@@ -46,6 +52,95 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 pub(crate) struct StableModel {
     /// The model's atoms, sorted by key.
     pub(crate) atoms: Vec<Fact>,
+}
+
+/// One multi-shot cautious-stable-model update.
+#[derive(Debug, Clone)]
+pub(crate) struct IncrementalStableModelShot {
+    pub(crate) grounding: GroundingUpdate,
+    pub(crate) solve: NonmonotoneSolveRun,
+    pub(crate) rows: Arc<[DerivedRow]>,
+}
+
+/// Stateful cautious stable-model facade over an incrementally maintained ground
+/// program.  Solving itself remains the existing from-scratch enumeration.
+#[derive(Debug, Clone)]
+pub(crate) struct IncrementalStableModelSession {
+    world: String,
+    ground: IncrementalGroundProgram,
+    rows: Arc<[DerivedRow]>,
+}
+
+impl IncrementalStableModelSession {
+    /// Build the initial ground program and solve it once from scratch.
+    pub(crate) fn new(
+        contract_hash: impl Into<String>,
+        world: impl Into<String>,
+        edb: impl IntoIterator<Item = Fact>,
+        rules: &[EvalRule],
+    ) -> gmeow_errors::Result<Self> {
+        let world = world.into();
+        let ground = IncrementalGroundProgram::new(contract_hash, edb, rules)?;
+        let snapshot = ground.snapshot();
+        let rows = Arc::from(cautious_ground_slice(
+            &world,
+            &snapshot.edb,
+            &snapshot.rules,
+        )?);
+        Ok(Self {
+            world,
+            ground,
+            rows,
+        })
+    }
+
+    /// Current cached cautious rows.
+    pub(crate) fn rows(&self) -> &[DerivedRow] {
+        &self.rows
+    }
+
+    /// Active fully-ground rules in the current solver slice.
+    pub(crate) fn active_ground_rule_count(&self) -> usize {
+        self.ground.active_ground_rule_count()
+    }
+
+    /// Falsifiable maintenance oracle for tests / deterministic benchmark lanes.
+    pub(crate) fn check_grounding_scratch_parity(&self) -> gmeow_errors::Result<()> {
+        self.ground.check_scratch_parity()
+    }
+
+    /// Apply one signed EDB shot, reusing the cached answer only when the complete
+    /// asserted-EDB + active-ground-rule slice is unchanged.
+    pub(crate) fn apply(
+        &mut self,
+        changes: impl IntoIterator<Item = SignedFact>,
+    ) -> gmeow_errors::Result<IncrementalStableModelShot> {
+        let mut next_ground = self.ground.clone();
+        let grounding = next_ground.apply(changes)?;
+        let solve = nonmonotone_solve_run(
+            NonmonotoneSolver::StableModel,
+            grounding.slice_changed,
+            grounding.edb_changes.len(),
+            grounding.rule_changes.len(),
+        );
+        let next_rows = if solve.solver_reran() {
+            let snapshot = next_ground.snapshot();
+            Arc::from(cautious_ground_slice(
+                &self.world,
+                &snapshot.edb,
+                &snapshot.rules,
+            )?)
+        } else {
+            self.rows.clone()
+        };
+        self.ground = next_ground;
+        self.rows = next_rows.clone();
+        Ok(IncrementalStableModelShot {
+            grounding,
+            solve,
+            rows: next_rows,
+        })
+    }
 }
 
 /// Enumerate the stable models of `rules` over every world in `store`.
@@ -79,8 +174,17 @@ fn stable_models_in_world(
     rules: &[EvalRule],
 ) -> gmeow_errors::Result<Vec<StableModel>> {
     let edb_facts = world_edb_facts(store, world)?;
+    stable_models_for_slice(&edb_facts, rules)
+}
+
+/// Deliberately from-scratch stable-model enumeration over one complete solver
+/// slice. `rules` may be the source program or its maintained fully-ground form.
+fn stable_models_for_slice(
+    edb_facts: &[Fact],
+    rules: &[EvalRule],
+) -> gmeow_errors::Result<Vec<StableModel>> {
     let mut edb = FactStore::new();
-    for f in &edb_facts {
+    for f in edb_facts {
         edb.insert(f.clone());
     }
     let edb_keys: BTreeSet<_> = edb.key_set().into_iter().collect();
@@ -116,7 +220,7 @@ fn stable_models_in_world(
     for mask in 0u64..(1u64 << n) {
         // Build candidate model M = EDB ∪ subset(mask).
         let mut m = FactStore::new();
-        for f in &edb_facts {
+        for f in edb_facts {
             m.insert(f.clone());
         }
         for (i, cand) in candidates.iter().enumerate() {
@@ -166,92 +270,91 @@ pub(crate) fn cautious_materialize(
     let mut out: Vec<DerivedRow> = Vec::new();
     for world in &worlds {
         let edb_facts = world_edb_facts(store, world)?;
-        out.extend(echo_asserted(world, &edb_facts)?);
+        out.extend(cautious_ground_slice(world, &edb_facts, rules)?);
+    }
 
-        let mut edb = FactStore::new();
-        for f in &edb_facts {
-            edb.insert(f.clone());
-        }
-        let edb_keys: BTreeSet<_> = edb.key_set().into_iter().collect();
+    crate::rule_ir::sort_rows(&mut out);
+    Ok(out)
+}
 
-        let models = stable_models_in_world(store, world, rules)?;
+/// Cautious materialization over one complete solver slice.
+fn cautious_ground_slice(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[EvalRule],
+) -> gmeow_errors::Result<Vec<DerivedRow>> {
+    let mut out = echo_asserted(world, edb_facts)?;
+    let mut edb = FactStore::new();
+    for f in edb_facts {
+        edb.insert(f.clone());
+    }
+    let edb_keys: BTreeSet<_> = edb.key_set().into_iter().collect();
+    let models = stable_models_for_slice(edb_facts, rules)?;
 
-        // Cautious set = intersection of all models' atom keys, minus the EDB.
-        // No models (inconsistent program) → empty cautious set (only asserted).
-        let cautious_keys: BTreeSet<(String, String, String)> = match models.first() {
-            None => BTreeSet::new(),
-            Some(first) => {
-                let mut acc: BTreeSet<_> = first.atoms.iter().map(Fact::key).collect();
-                for m in &models[1..] {
-                    let mk: BTreeSet<_> = m.atoms.iter().map(Fact::key).collect();
-                    acc = acc.intersection(&mk).cloned().collect();
-                }
-                acc.into_iter().filter(|k| !edb_keys.contains(k)).collect()
+    // Cautious set = intersection of all models' atom keys, minus the EDB.
+    // No models (inconsistent program) → empty cautious set (only asserted).
+    let cautious_keys: BTreeSet<(String, String, String)> = match models.first() {
+        None => BTreeSet::new(),
+        Some(first) => {
+            let mut acc: BTreeSet<_> = first.atoms.iter().map(Fact::key).collect();
+            for model in &models[1..] {
+                let keys: BTreeSet<_> = model.atoms.iter().map(Fact::key).collect();
+                acc = acc.intersection(&keys).cloned().collect();
             }
-        };
-
-        if cautious_keys.is_empty() {
-            continue; // only the asserted rows for this world
+            acc.into_iter()
+                .filter(|key| !edb_keys.contains(key))
+                .collect()
         }
+    };
 
-        // Non-empty cautious set: take provenance from the FIRST model's reduct
-        // derivations, requiring every positive antecedent of a cautious atom to be
-        // cautious itself (hard error otherwise — no corpus case reaches here).
-        let first = models.first().expect("non-empty checked above");
-        let mut first_model = FactStore::new();
-        for f in &first.atoms {
-            first_model.insert(f.clone());
-        }
+    if cautious_keys.is_empty() {
+        return Ok(out);
+    }
 
-        // A cautious derivation may cite only antecedents that are themselves in the
-        // cautious materialization — the asserted EDB or another cautious head.
-        // Otherwise its source quad is absent from the emitted set and the provenance
-        // would dangle.  Precompute the admissible source reifiers so the loop below
-        // can hard-fail (rather than silently emit) on a non-cautious antecedent.
-        let mut allowed_reifiers: BTreeSet<String> = BTreeSet::new();
-        for f in &edb_facts {
-            allowed_reifiers.insert(f.reifier()?);
-        }
-        for f in &first.atoms {
-            if cautious_keys.contains(&f.key()) {
-                allowed_reifiers.insert(f.reifier()?);
-            }
-        }
+    let first = models.first().expect("non-empty checked above");
+    let mut first_model = FactStore::new();
+    for fact in &first.atoms {
+        first_model.insert(fact.clone());
+    }
 
-        let derivations = least_model_of_reduct(&edb, rules, &first_model)?.derivations;
-
-        for row in derivations {
-            let key = (
-                crate::provenance::term_display(&row.subject),
-                row.predicate.as_str().to_owned(),
-                crate::provenance::term_display(&row.object),
-            );
-            if !cautious_keys.contains(&key) {
-                continue;
-            }
-            // Hard error (no-optionality): a cautious atom whose firing rests on a
-            // non-cautious positive antecedent cannot be soundly stamped.  This branch
-            // is never reached by the Phase-A corpus (its cautious set is empty); it is
-            // the documented v1 limitation made real, NOT a silent skip.
-            for src in &row.source_quad_ids {
-                if !allowed_reifiers.contains(src) {
-                    return Err(reason_err(format!(
-                        "stablemodel: cautious atom <{}> <{}> {} cites non-cautious \
-                         antecedent {src} — unsound provenance (gmeow-logic v1 does not \
-                         materialize cautious consequences with non-cautious support)",
-                        crate::provenance::term_display(&row.subject),
-                        row.predicate.as_str(),
-                        crate::provenance::term_display(&row.object)
-                    )));
-                }
-            }
-            out.push(DerivedRow {
-                graph: world.clone(),
-                ..row
-            });
+    let mut allowed_reifiers: BTreeSet<String> = BTreeSet::new();
+    for fact in edb_facts {
+        allowed_reifiers.insert(fact.reifier()?);
+    }
+    for fact in &first.atoms {
+        if cautious_keys.contains(&fact.key()) {
+            allowed_reifiers.insert(fact.reifier()?);
         }
     }
 
+    let derivations = least_model_of_reduct(&edb, rules, &first_model)?.derivations;
+
+    for row in derivations {
+        let key = (
+            crate::provenance::term_display(&row.subject),
+            row.predicate.as_str().to_owned(),
+            crate::provenance::term_display(&row.object),
+        );
+        if !cautious_keys.contains(&key) {
+            continue;
+        }
+        for source in &row.source_quad_ids {
+            if !allowed_reifiers.contains(source) {
+                return Err(reason_err(format!(
+                    "stablemodel: cautious atom <{}> <{}> {} cites non-cautious \
+                     antecedent {source} — unsound provenance (gmeow-logic v1 does not \
+                     materialize cautious consequences with non-cautious support)",
+                    crate::provenance::term_display(&row.subject),
+                    row.predicate.as_str(),
+                    crate::provenance::term_display(&row.object)
+                )));
+            }
+        }
+        out.push(DerivedRow {
+            graph: world.to_owned(),
+            ..row
+        });
+    }
     crate::rule_ir::sort_rows(&mut out);
     Ok(out)
 }
@@ -262,6 +365,7 @@ mod tests {
     use crate::provenance::ASSERT_RULE_IRI;
     use crate::rule_ir::parse_eval_rules;
     use crate::store::WorldStore;
+    use purrdf::TermValue;
 
     const SM: &str = "https://example.org/profiles/stable-model/";
 
@@ -288,6 +392,24 @@ mod tests {
             &format!("{SM}x"),
         );
         store
+    }
+
+    fn sm_fact(name: &str) -> Fact {
+        Fact {
+            subject: TermValue::iri(format!("{SM}{name}")),
+            predicate: format!("{SM}candidate"),
+            object: TermValue::iri(format!("{SM}{name}")),
+        }
+    }
+
+    fn row_key(row: &DerivedRow) -> (String, String, String, String, String) {
+        (
+            row.graph.clone(),
+            crate::provenance::term_display(&row.subject),
+            row.predicate.clone(),
+            crate::provenance::term_display(&row.object),
+            row.rule_iri.clone(),
+        )
     }
 
     #[test]
@@ -355,5 +477,64 @@ mod tests {
             !rows.iter().any(|r| r.rule_iri != ASSERT_RULE_IRI),
             "no derived rows in the cautious materialization"
         );
+    }
+
+    #[test]
+    fn incremental_grounding_reruns_stable_solver_only_for_changed_slice() {
+        let world = format!("{SM}world-choice");
+        let rules = sm_rules();
+        let mut session =
+            IncrementalStableModelSession::new("contract", &world, [sm_fact("x")], &rules)
+                .expect("initial incremental stable-model session");
+        let direct = cautious_materialize(&sm_store(), &rules).expect("direct cautious solve");
+        assert_eq!(
+            session.rows().iter().map(row_key).collect::<Vec<_>>(),
+            direct.iter().map(row_key).collect::<Vec<_>>(),
+            "ground-program solve preserves direct cautious rows"
+        );
+
+        let initial_rows = session.rows.clone();
+        let cancelled = session
+            .apply([
+                SignedFact {
+                    fact: sm_fact("y"),
+                    weight: 1,
+                },
+                SignedFact {
+                    fact: sm_fact("y"),
+                    weight: -1,
+                },
+            ])
+            .expect("cancelled stable-model shot");
+        assert!(!cancelled.grounding.slice_changed);
+        assert!(!cancelled.solve.solver_reran());
+        assert!(Arc::ptr_eq(&initial_rows, &cancelled.rows));
+        assert!(Arc::ptr_eq(&cancelled.rows, &session.rows));
+
+        let changed = session
+            .apply([SignedFact {
+                fact: sm_fact("y"),
+                weight: 1,
+            }])
+            .expect("changed stable-model shot");
+        assert!(changed.grounding.slice_changed);
+        assert!(changed.solve.solver_reran());
+        assert!(!Arc::ptr_eq(&cancelled.rows, &changed.rows));
+        assert_eq!(
+            changed.solve.solver.as_str(),
+            "stable-model cautious enumeration"
+        );
+        assert_eq!(
+            changed
+                .rows
+                .iter()
+                .filter(|row| row.rule_iri == ASSERT_RULE_IRI)
+                .count(),
+            2,
+            "both candidates are asserted while the choice atoms remain non-cautious"
+        );
+        session
+            .check_grounding_scratch_parity()
+            .expect("changed stable-model grounding matches scratch");
     }
 }
