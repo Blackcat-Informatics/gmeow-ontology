@@ -1,0 +1,2 @@
+#[name("https://example.org/bench/rules/triangle")]
+<https://example.org/bench/triangle>(?x, ?z, ?w) :- <https://example.org/bench/r>(?x, ?y, ?w), <https://example.org/bench/s>(?y, ?z, ?w), <https://example.org/bench/t>(?z, ?x, ?w) .

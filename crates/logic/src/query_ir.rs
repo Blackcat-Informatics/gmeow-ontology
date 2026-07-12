@@ -59,7 +59,7 @@ pub enum QTerm {
     /// An integer literal term (arithmetic operand), e.g. `0`, `1` (G2a).
     ///
     /// Distinct from `Const("\"0\"^^<…#integer>")`: a `Num` is a *bare* arithmetic
-    /// operand that Scryer's native `is`/comparison evaluates, never a quoted atom.
+    /// operand that the native builtin evaluator consumes, never a quoted atom.
     Num(i64),
 }
 
@@ -92,21 +92,19 @@ pub enum QBodyLit {
     /// must be range-restricted by a positive body atom — an unbound variable under
     /// negation flounders (an unsound NAF goal) and is a declared native gap.
     Neg(QAtom),
-    /// The Prolog cut `!`. Procedural — not supported by the declarative oracle.
+    /// Retired cut syntax `!`, retained only for a typed rejection diagnostic.
     Cut,
     /// An arithmetic (`X is Y op Z`) or comparison (`L cmp R`) builtin.
     ///
-    /// Gated to `ProceduralPrologProfile` (per `slices/grounding/logic/module.ttl`) and
-    /// evaluated SOLELY by the Scryer engine (the declarative oracle rejects it, as
-    /// it does cut). Used to compute over `rdf:first`/`rdf:rest` chains.
+    /// Gated to `ProceduralPrologProfile` and evaluated by the native physical
+    /// core. Used to compute over `rdf:first`/`rdf:rest` chains.
     Builtin(QBuiltin),
 }
 
 /// An arithmetic or comparison builtin (bounded — no recursive expression AST).
 ///
 /// Operands are `QTerm` (`Var` or `Num`; a `Const` IRI is invalid in arithmetic
-/// but is serialized verbatim — Scryer raises an error only if it is ever reached,
-/// which never happens for well-formed list programs).
+/// and becomes a native filter failure if reached).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QBuiltin {
     /// `target is lhs op rhs` — arithmetic evaluation (op ∈ `+ - * //`).
@@ -329,8 +327,8 @@ pub type Binding = BTreeMap<String, String>;
 /// names the predicates whose extension is settled.  A consumer reads this to tell a
 /// budget-cut partial result (`completed < total`) from a genuinely complete one.
 ///
-/// Paths that never run the native governor (the Nemo/Scryer fallback, the fast-path
-/// EDB projection, the ungoverned well-founded / cautious-stable / echo materializers)
+/// Paths that never run the native governor (the ungoverned well-founded,
+/// cautious-stable, and echo materializers)
 /// carry the empty frontier ([`Self::empty`]) so the field is *always present* — a
 /// consumer never has to assume "no frontier ⇒ complete".
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -366,16 +364,14 @@ pub struct AnswerSet {
     /// Whether resolution completed within budget.
     pub status: BudgetStatus,
     /// The preservation judgment disclosing any formulas the evaluation could not
-    /// carry (downstream disclosure). The backward-goal / Scryer dispatch is a
-    /// faithful evaluator, so this is `{exact}` with an empty unsupported set;
+    /// carry (downstream disclosure). Native backward dispatch is a faithful
+    /// evaluator, so this is `{exact}` with an empty unsupported set;
     /// budget-incompleteness is carried on [`Self::status`], not here. The field is
     /// always present so a consumer can uniformly read the disclosure on every
     /// answer surface, never having to assume "no lowering ⇒ nothing dropped".
     pub preservation: crate::result::PreservationClaim,
     /// The completion frontier of the native evaluation: which strata / predicates the
-    /// governor settled and how many derivations it committed.  Empty
-    /// ([`CompletionFrontier::empty`]) on the fast-path / Scryer-fallback surfaces that
-    /// never run the native governor, so the field is always present.
+    /// governor settled and how many derivations it committed.
     pub frontier: CompletionFrontier,
 }
 
