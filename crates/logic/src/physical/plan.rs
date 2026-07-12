@@ -44,7 +44,12 @@
 //! that does not yet exist at plan time.  The plan is store-independent; resolving ids
 //! here would be unsound, not an optimization.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+
+use petgraph::algo::bridges;
+use petgraph::graph::{EdgeIndex, UnGraph};
+use petgraph::unionfind::UnionFind;
+use petgraph::visit::EdgeRef;
 
 use crate::rule_ir::EvalRule;
 
@@ -60,16 +65,75 @@ use super::seminaive::stratify;
 /// every round.  That is hoisted here once.
 pub(crate) struct RulePlan {
     /// Body indices of the POSITIVE atoms, in body order (the join drivers).
-    positive: Vec<usize>,
+    positive: Box<[usize]>,
     /// Body indices of the NEGATED atoms, in body order (the NAF filters).
-    negated: Vec<usize>,
+    negated: Box<[usize]>,
+    /// Present only for a structurally-certified cyclic rule. Acyclic rules retain
+    /// exactly two immutable slices and allocate no physical-group sidecar.
+    hybrid: Option<Box<HybridPlan>>,
+}
+
+/// The cyclic-only physical sidecar. Boxing it keeps the common acyclic `RulePlan`
+/// smaller than the former two-`Vec` representation (`Box<[usize]>` is two words), so
+/// selective WCOJ does not tax the binary majority's resident plan footprint.
+struct HybridPlan {
+    join_groups: Box<[JoinGroup]>,
+    source_order_swaps: Box<[(usize, usize)]>,
+}
+
+/// One positive atom together with both of its stable coordinates.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct PlannedAtom {
+    /// Index into [`EvalRule::body`].
+    body_index: usize,
+    /// Index within [`RulePlan::positive`].
+    positive_position: usize,
+}
+
+impl PlannedAtom {
+    pub(crate) fn body_index(self) -> usize {
+        self.body_index
+    }
+
+    pub(crate) fn positive_position(self) -> usize {
+        self.positive_position
+    }
+}
+
+/// A planner-certified cyclic component lowered to the multiway kernel.
+#[derive(Debug)]
+pub(crate) struct CyclicPlan {
+    /// Component atoms in authored positive-body order.
+    atoms: Vec<PlannedAtom>,
+    /// Deterministic LFTJ variable order: structural degree descending, then first
+    /// authored occurrence, then lexical name.
+    variables: Vec<String>,
+}
+
+impl CyclicPlan {
+    pub(crate) fn atoms(&self) -> &[PlannedAtom] {
+        &self.atoms
+    }
+
+    pub(crate) fn variables(&self) -> &[String] {
+        &self.variables
+    }
+}
+
+/// One physical group in a rule's positive join.
+#[derive(Debug)]
+pub(crate) enum JoinGroup {
+    /// The existing indexed binary operator for one atom.
+    Binary(PlannedAtom),
+    /// One certified cyclic component evaluated as a multiway leapfrog triejoin.
+    Leapfrog(CyclicPlan),
 }
 
 impl RulePlan {
     /// The static partition of `rule`'s body into positive (join) and negated (NAF)
     /// atoms, preserving body order — byte-identical to the per-round
     /// `filter(|a| !a.negated)` / `filter(|a| a.negated)` it replaces.
-    fn for_rule(rule: &EvalRule) -> Self {
+    pub(super) fn for_rule(rule: &EvalRule) -> Self {
         let mut positive = Vec::new();
         let mut negated = Vec::new();
         for (i, atom) in rule.body.iter().enumerate() {
@@ -79,7 +143,66 @@ impl RulePlan {
                 positive.push(i);
             }
         }
-        Self { positive, negated }
+        // A simple undirected cycle requires at least three positive edges. Avoid all
+        // graph/planned-atom scratch for the overwhelmingly-common 0/1/2-atom rules.
+        let cyclic = if positive.len() < 3 {
+            Vec::new()
+        } else {
+            certified_cyclic_components(rule, &positive)
+        };
+
+        if cyclic.is_empty() {
+            return Self {
+                positive: positive.into_boxed_slice(),
+                negated: negated.into_boxed_slice(),
+                hybrid: None,
+            };
+        }
+
+        // Map every promoted atom to its owning cycle component. Components are
+        // edge-disjoint after bridge removal; one atom can therefore belong to at most
+        // one component.
+        let mut component_of: Vec<Option<usize>> = vec![None; rule.body.len()];
+        for (component, plan) in cyclic.iter().enumerate() {
+            for atom in &plan.atoms {
+                component_of[atom.body_index] = Some(component);
+            }
+        }
+
+        // Emit a cycle component at its first authored atom and skip its later atoms.
+        // Any non-cycle atom remains a binary group at its own authored position.
+        let mut cyclic: Vec<Option<CyclicPlan>> = cyclic.into_iter().map(Some).collect();
+        let mut join_groups = Vec::new();
+        let mut execution_source_order = Vec::with_capacity(positive.len());
+        for (positive_position, &body_index) in positive.iter().enumerate() {
+            let atom = PlannedAtom {
+                body_index,
+                positive_position,
+            };
+            match component_of[atom.body_index] {
+                Some(component) => {
+                    if let Some(plan) = cyclic[component].take() {
+                        execution_source_order
+                            .extend(plan.atoms.iter().map(|a| a.positive_position));
+                        join_groups.push(JoinGroup::Leapfrog(plan));
+                    }
+                }
+                None => {
+                    execution_source_order.push(atom.positive_position);
+                    join_groups.push(JoinGroup::Binary(atom));
+                }
+            }
+        }
+
+        let source_order_swaps = restore_body_order_swaps(&execution_source_order);
+        Self {
+            positive: positive.into_boxed_slice(),
+            negated: negated.into_boxed_slice(),
+            hybrid: Some(Box::new(HybridPlan {
+                join_groups: join_groups.into_boxed_slice(),
+                source_order_swaps: source_order_swaps.into_boxed_slice(),
+            })),
+        }
     }
 
     /// The positive body-atom indices, in body order.
@@ -91,6 +214,174 @@ impl RulePlan {
     pub(crate) fn negated(&self) -> &[usize] {
         &self.negated
     }
+
+    /// Whether this rule has a planner-certified cyclic positive subplan.
+    pub(crate) fn has_cyclic_subplan(&self) -> bool {
+        self.hybrid.is_some()
+    }
+
+    /// Physical positive-join groups in deterministic execution order.
+    pub(crate) fn join_groups(&self) -> &[JoinGroup] {
+        &self
+            .hybrid
+            .as_ref()
+            .expect("join groups exist only for a certified cyclic plan")
+            .join_groups
+    }
+
+    /// In-place swaps restoring physical source order to authored body order.
+    pub(crate) fn source_order_swaps(&self) -> &[(usize, usize)] {
+        &self
+            .hybrid
+            .as_ref()
+            .expect("source swaps exist only for a certified cyclic plan")
+            .source_order_swaps
+    }
+}
+
+/// Certify the positive-body cycle components eligible for WCOJ.
+///
+/// Each atom with two DISTINCT variable positions contributes one undirected variable
+/// edge. Duplicate pairs are collapsed before graph analysis: two relations over the
+/// same `(X,Y)` edge are an acyclic intersection, not a two-edge cycle. Removing every
+/// graph bridge leaves exactly the edges participating in a simple cycle; their
+/// connected components are the subplans safe to promote. Constants, repeated
+/// variables, unary atoms, trees, and bridge atoms consequently remain binary.
+fn certified_cyclic_components(rule: &EvalRule, positive: &[usize]) -> Vec<CyclicPlan> {
+    use crate::rule_ir::EvalTerm;
+
+    let mut edge_atoms: BTreeMap<(String, String), Vec<PlannedAtom>> = BTreeMap::new();
+    let mut first_occurrence: BTreeMap<String, usize> = BTreeMap::new();
+    let mut occurrence = 0usize;
+
+    for (positive_position, &body_index) in positive.iter().enumerate() {
+        let planned = PlannedAtom {
+            body_index,
+            positive_position,
+        };
+        let atom = &rule.body[body_index];
+        for term in [&atom.subject, &atom.object] {
+            if let EvalTerm::Var(var) = term {
+                first_occurrence.entry(var.clone()).or_insert(occurrence);
+                occurrence += 1;
+            }
+        }
+        let (EvalTerm::Var(left), EvalTerm::Var(right)) = (&atom.subject, &atom.object) else {
+            continue;
+        };
+        if left == right {
+            continue;
+        }
+        let edge = if left < right {
+            (left.clone(), right.clone())
+        } else {
+            (right.clone(), left.clone())
+        };
+        edge_atoms.entry(edge).or_default().push(planned);
+    }
+
+    if edge_atoms.len() < 3 {
+        return Vec::new();
+    }
+
+    let variable_names: Vec<String> = edge_atoms
+        .keys()
+        .flat_map(|(left, right)| [left.clone(), right.clone()])
+        .collect::<BTreeSet<_>>()
+        .into_iter()
+        .collect();
+    let variable_id: BTreeMap<&str, usize> = variable_names
+        .iter()
+        .enumerate()
+        .map(|(id, name)| (name.as_str(), id))
+        .collect();
+
+    let mut graph: UnGraph<(), ()> = UnGraph::default();
+    let nodes: Vec<_> = (0..variable_names.len())
+        .map(|_| graph.add_node(()))
+        .collect();
+    let mut edge_keys = Vec::with_capacity(edge_atoms.len());
+    for edge @ (left, right) in edge_atoms.keys() {
+        graph.add_edge(
+            nodes[variable_id[left.as_str()]],
+            nodes[variable_id[right.as_str()]],
+            (),
+        );
+        edge_keys.push(edge.clone());
+    }
+
+    let bridge_ids: BTreeSet<EdgeIndex> = bridges(&graph).map(|edge| edge.id()).collect();
+    let mut union = UnionFind::new(variable_names.len());
+    for edge in graph.edge_indices() {
+        if bridge_ids.contains(&edge) {
+            continue;
+        }
+        let (left, right) = graph
+            .edge_endpoints(edge)
+            .expect("an indexed undirected edge has endpoints");
+        union.union(left.index(), right.index());
+    }
+
+    let mut component_edges: BTreeMap<usize, Vec<EdgeIndex>> = BTreeMap::new();
+    for edge in graph.edge_indices() {
+        if bridge_ids.contains(&edge) {
+            continue;
+        }
+        let (left, _) = graph
+            .edge_endpoints(edge)
+            .expect("an indexed undirected edge has endpoints");
+        component_edges
+            .entry(union.find(left.index()))
+            .or_default()
+            .push(edge);
+    }
+
+    let mut plans = Vec::new();
+    for edges in component_edges.into_values() {
+        // A simple undirected cycle has at least three unique edges. This also makes
+        // the duplicate-pair non-cycle exclusion explicit at the promotion boundary.
+        if edges.len() < 3 {
+            continue;
+        }
+        let mut atoms = Vec::new();
+        let mut degree: BTreeMap<String, usize> = BTreeMap::new();
+        for edge in edges {
+            let key = &edge_keys[edge.index()];
+            atoms.extend(edge_atoms[key].iter().copied());
+            *degree.entry(key.0.clone()).or_default() += 1;
+            *degree.entry(key.1.clone()).or_default() += 1;
+        }
+        atoms.sort_by_key(|atom| atom.positive_position);
+        let mut variables: Vec<String> = degree.keys().cloned().collect();
+        variables.sort_by(|left, right| {
+            degree[right]
+                .cmp(&degree[left])
+                .then_with(|| first_occurrence[left].cmp(&first_occurrence[right]))
+                .then_with(|| left.cmp(right))
+        });
+        plans.push(CyclicPlan { atoms, variables });
+    }
+    plans
+}
+
+/// Precompute a minimal deterministic swap program from physical source order to
+/// authored positive-body order. The executor applies these swaps directly to each
+/// completed hybrid solution, with no per-solution permutation allocation.
+fn restore_body_order_swaps(execution_order: &[usize]) -> Vec<(usize, usize)> {
+    let mut current = execution_order.to_vec();
+    let mut swaps = Vec::new();
+    for wanted in 0..current.len() {
+        let position = current
+            .iter()
+            .position(|&value| value == wanted)
+            .expect("physical groups cover every positive atom exactly once");
+        if position != wanted {
+            current.swap(wanted, position);
+            swaps.push((wanted, position));
+        }
+    }
+    debug_assert!(current.iter().copied().eq(0..current.len()));
+    swaps
 }
 
 /// Stage 1: a parsed rule program, not yet stratified.
@@ -354,5 +645,100 @@ mod tests {
         // Ascending body order (insertion-order preservation).
         assert!(plan.positive().windows(2).all(|w| w[0] < w[1]));
         assert!(plan.negated().windows(2).all(|w| w[0] < w[1]));
+    }
+
+    fn one_rule(body: &str) -> Vec<EvalRule> {
+        let rls = format!(
+            "#[name(\"{NS}cycle-test\")]\n\
+             <{NS}h>(?X, ?Z, ?W) :- {body} .\n"
+        );
+        parse_eval_rules(&rls).expect("parse cycle-plan rule")
+    }
+
+    fn cyclic_atoms(plan: &RulePlan) -> Vec<Vec<usize>> {
+        if !plan.has_cyclic_subplan() {
+            return Vec::new();
+        }
+        plan.join_groups()
+            .iter()
+            .filter_map(|group| match group {
+                JoinGroup::Binary(_) => None,
+                JoinGroup::Leapfrog(cycle) => {
+                    Some(cycle.atoms().iter().map(|atom| atom.body_index()).collect())
+                }
+            })
+            .collect()
+    }
+
+    /// Triangle and clique bodies are certified structurally, with deterministic
+    /// variable and atom order independent of runtime relation cardinalities.
+    #[test]
+    fn planner_certifies_triangle_and_clique() {
+        let triangle = one_rule(&format!(
+            "<{NS}r>(?X, ?Y, ?W), <{NS}s>(?Y, ?Z, ?W), <{NS}t>(?Z, ?X, ?W)"
+        ));
+        let plan = RulePlan::for_rule(&triangle[0]);
+        assert_eq!(cyclic_atoms(&plan), vec![vec![0, 1, 2]]);
+        let JoinGroup::Leapfrog(cycle) = &plan.join_groups()[0] else {
+            panic!("a triangle must lower to one leapfrog group");
+        };
+        assert_eq!(cycle.variables(), &["?X", "?Y", "?Z"]);
+
+        let clique = one_rule(&format!(
+            "<{NS}ab>(?A, ?B, ?W), <{NS}ac>(?A, ?C, ?W), \
+             <{NS}ad>(?A, ?D, ?W), <{NS}bc>(?B, ?C, ?W), \
+             <{NS}bd>(?B, ?D, ?W), <{NS}cd>(?C, ?D, ?W)"
+        ));
+        let clique_plan = RulePlan::for_rule(&clique[0]);
+        assert_eq!(cyclic_atoms(&clique_plan), vec![vec![0, 1, 2, 3, 4, 5]]);
+        let JoinGroup::Leapfrog(cycle) = &clique_plan.join_groups()[0] else {
+            panic!("a K4 body must lower to one leapfrog group");
+        };
+        assert_eq!(cycle.variables(), &["?A", "?B", "?C", "?D"]);
+    }
+
+    /// Bridge removal promotes only the cycle, even when an acyclic atom is authored
+    /// between cycle atoms. The precomputed swaps restore provenance to body order.
+    #[test]
+    fn planner_extracts_cycle_subplan_and_keeps_bridge_binary() {
+        let rules = one_rule(&format!(
+            "<{NS}r>(?X, ?Y, ?W), <{NS}leaf>(?X, ?Q, ?W), \
+             <{NS}s>(?Y, ?Z, ?W), <{NS}t>(?Z, ?X, ?W)"
+        ));
+        let plan = RulePlan::for_rule(&rules[0]);
+        assert_eq!(cyclic_atoms(&plan), vec![vec![0, 2, 3]]);
+        assert_eq!(plan.join_groups().len(), 2);
+        let JoinGroup::Binary(atom) = plan.join_groups()[1] else {
+            panic!("the leaf bridge must remain binary");
+        };
+        assert_eq!(atom.body_index(), 1);
+        assert!(
+            !plan.source_order_swaps().is_empty(),
+            "interleaved physical groups need a body-order restoration program"
+        );
+    }
+
+    /// The conservative certificate rejects every non-cycle shape, including the
+    /// duplicate-edge false positive that a multigraph cycle detector would promote.
+    #[test]
+    fn planner_keeps_non_cycles_binary() {
+        let bodies = [
+            format!("<{NS}a>(?X, ?Y, ?W), <{NS}b>(?Y, ?Z, ?W), <{NS}c>(?Z, ?Q, ?W)"),
+            format!("<{NS}a>(?X, ?Y, ?W), <{NS}b>(?X, ?Z, ?W), <{NS}c>(?X, ?Q, ?W)"),
+            format!("<{NS}a>(?X, ?Y, ?W), <{NS}b>(?X, ?Y, ?W), <{NS}c>(?X, ?Y, ?W)"),
+            format!("<{NS}a>(?X, ?X, ?W), <{NS}b>(?X, ?Y, ?W), <{NS}c>(?Y, ?Z, ?W)"),
+            format!(
+                "<{NS}a>(?X, ?Y, ?W), <{NS}b>(?Y, ?Z, ?W), \
+                 <{NS}c>(?Z, <{NS}constant>, ?W)"
+            ),
+        ];
+        for body in bodies {
+            let rules = one_rule(&body);
+            let plan = RulePlan::for_rule(&rules[0]);
+            assert!(
+                !plan.has_cyclic_subplan(),
+                "non-cycle body was falsely promoted: {body}"
+            );
+        }
     }
 }

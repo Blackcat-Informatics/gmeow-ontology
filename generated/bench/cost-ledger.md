@@ -23,17 +23,18 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | nary-mini | co-witness | nary-existential | 16 | 6 | 564567 | 5680 | 96687 | true | true |
 | nary-mini | split-null | nary-existential | 14 | 6 | 458334 | 4686 | 83962 | true | true |
 | nary-mini | stb-like | nary-existential | 24 | 10 | 765537 | 7881 | 89129 | true | true |
-| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 275612 | 3510 | 27813 | true | true |
-| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 161265 | 2039 | 22336 | true | true |
-| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3910099 | 33177 | 37822 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6244068 | 54274 | 58473 | true | true |
-| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3988993 | 34421 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3950479 | 33926 | 42113 | true | true |
-| relational-core-mini | reachability | forward | 2 | 2 | 3709771 | 31264 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5456719 | 47620 | 53474 | true | true |
-| relational-core-mini | scc | forward | 8 | 8 | 6166985 | 52873 | 53796 | true | true |
-| relational-core-mini | transitive-closure | forward | 3 | 3 | 3910270 | 33201 | 37785 | true | true |
-| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5646331 | 60943 | 217523 | true | true |
+| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 277384 | 3541 | 27749 | true | true |
+| nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 162621 | 2056 | 22272 | true | true |
+| nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3910107 | 33179 | 37822 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6244084 | 54277 | 58473 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3989001 | 34423 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3950915 | 33942 | 42113 | true | true |
+| relational-core-mini | reachability | forward | 2 | 2 | 3709779 | 31266 | 36685 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5459715 | 47668 | 53474 | true | true |
+| relational-core-mini | scc | forward | 8 | 8 | 6167001 | 52876 | 53796 | true | true |
+| relational-core-mini | transitive-closure | forward | 3 | 3 | 3910278 | 33203 | 37785 | true | true |
+| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5640788 | 60763 | 217467 | true | true |
+| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7911059 | 108764 | 626530 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
@@ -59,6 +60,7 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | relational-core-mini | transitive-closure | https://example.org/bench/rules/tc-step | https://example.org/bench/path | 1 | 1 |
 | relational-core-mini | transitive-closure-scaled | https://example.org/bench/rules/tc-base | https://example.org/bench/path | 1 | 12 |
 | relational-core-mini | transitive-closure-scaled | https://example.org/bench/rules/tc-step | https://example.org/bench/path | 1 | 66 |
+| relational-core-mini | triangle-heavy | https://example.org/bench/rules/triangle | https://example.org/bench/triangle | 1 | 64 |
 
 ## Per-corpus divergence-ledger tally
 
@@ -67,6 +69,6 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | chasebench-mini | 6 | 6 | 0 | 0 | 6 | 7e3b2cd6c21f854f97f6ea48cbb652374161227cad90affd984a08a2792cf680 |
 | nary-mini | 6 | 6 | 0 | 0 | 6 | 37c8169a51b2e49f54342cfb4eca9469ba0fb8c981981441a6dcef290953188c |
 | nemo-kr2024-mini | 6 | 6 | 0 | 0 | 6 | c3d339d0a17be2a42e9cceea34e815395af1d903cb2063da4a4e61f9abb5ac29 |
-| relational-core-mini | 16 | 16 | 0 | 0 | 16 | 373432f800b2aef07ba7a8b88da91f999b471d983fb7bb0b552b127fe8ee8b21 |
+| relational-core-mini | 18 | 18 | 0 | 0 | 18 | fc7bf4fa285e2cfdc0124b8a0884f40bdf223fcc0a7b4c9eec8ac3d5e4441f8a |
 
-17 case(s) across 4 corpora in the committed cost baseline.
+18 case(s) across 4 corpora in the committed cost baseline.

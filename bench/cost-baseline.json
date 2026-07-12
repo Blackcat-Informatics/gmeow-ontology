@@ -1,5 +1,5 @@
 {
-  "case_count": 17,
+  "case_count": 18,
   "cases": [
     {
       "agreement": {
@@ -189,14 +189,14 @@
       "fragment": "backward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 275612,
-        "alloc_count": 3510,
+        "alloc_bytes": 277384,
+        "alloc_count": 3541,
         "answer_count": 3,
         "answers_fingerprint": "68917dd0ed0fc7c5ddb9a5273dcf7fa6183b277b2dd47a7bb79d8b060112446f",
         "consumed_steps": 9,
         "cost_vector": [],
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 27813
+        "peak_live_bytes": 27749
       },
       "oracle": {
         "answer_count": 3,
@@ -219,14 +219,14 @@
       "fragment": "backward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 161265,
-        "alloc_count": 2039,
+        "alloc_bytes": 162621,
+        "alloc_count": 2056,
         "answer_count": 2,
         "answers_fingerprint": "405626611e7d61ab7226bd2c2a297ea4e0e8d9c18b7de00857938b7d99e2e3b4",
         "consumed_steps": 5,
         "cost_vector": [],
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 22336
+        "peak_live_bytes": 22272
       },
       "oracle": {
         "answer_count": 2,
@@ -249,8 +249,8 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3910099,
-        "alloc_count": 33177,
+        "alloc_bytes": 3910107,
+        "alloc_count": 33179,
         "consumed_steps": 3,
         "cost_vector": [
           [
@@ -292,8 +292,8 @@
       "fragment": "forward",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 6244068,
-        "alloc_count": 54274,
+        "alloc_bytes": 6244084,
+        "alloc_count": 54277,
         "consumed_steps": 10,
         "cost_vector": [
           [
@@ -341,8 +341,8 @@
       "fragment": "forward",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 3988993,
-        "alloc_count": 34421,
+        "alloc_bytes": 3989001,
+        "alloc_count": 34423,
         "consumed_steps": 6,
         "cost_vector": [
           [
@@ -384,8 +384,8 @@
       "fragment": "forward",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3950479,
-        "alloc_count": 33926,
+        "alloc_bytes": 3950915,
+        "alloc_count": 33942,
         "consumed_steps": 4,
         "cost_vector": [
           [
@@ -427,8 +427,8 @@
       "fragment": "forward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 3709771,
-        "alloc_count": 31264,
+        "alloc_bytes": 3709779,
+        "alloc_count": 31266,
         "consumed_steps": 2,
         "cost_vector": [
           [
@@ -470,8 +470,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5456719,
-        "alloc_count": 47620,
+        "alloc_bytes": 5459715,
+        "alloc_count": 47668,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -513,8 +513,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 6166985,
-        "alloc_count": 52873,
+        "alloc_bytes": 6167001,
+        "alloc_count": 52876,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -562,8 +562,8 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3910270,
-        "alloc_count": 33201,
+        "alloc_bytes": 3910278,
+        "alloc_count": 33203,
         "consumed_steps": 3,
         "cost_vector": [
           [
@@ -605,8 +605,8 @@
       "fragment": "forward",
       "golden_rows": 78,
       "native": {
-        "alloc_bytes": 5646331,
-        "alloc_count": 60943,
+        "alloc_bytes": 5640788,
+        "alloc_count": 60763,
         "consumed_steps": 78,
         "cost_vector": [
           [
@@ -624,13 +624,50 @@
         ],
         "derived_count": 78,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 217523,
+        "peak_live_bytes": 217467,
         "rows_fingerprint": "1f86ea6e7e1310abd38056e988333fb87abed91d3626c48d6ae39bc190841ae7"
       },
       "oracle": {
         "engine": "nemo",
         "row_count": 90,
         "rows_fingerprint": "1f86ea6e7e1310abd38056e988333fb87abed91d3626c48d6ae39bc190841ae7"
+      },
+      "world": "https://example.org/bench/world"
+    },
+    {
+      "agreement": {
+        "golden_token": "derived=64",
+        "native_golden_token": "derived=64",
+        "native_oracle_token": "514c3c29b7468bd1868ff276d4ae3897d538658049d67936be10174a66883c19",
+        "native_vs_golden": true,
+        "native_vs_oracle": true,
+        "oracle_token": "514c3c29b7468bd1868ff276d4ae3897d538658049d67936be10174a66883c19"
+      },
+      "case": "triangle-heavy",
+      "corpus": "relational-core-mini",
+      "fragment": "forward",
+      "golden_rows": 64,
+      "native": {
+        "alloc_bytes": 7911059,
+        "alloc_count": 108764,
+        "consumed_steps": 64,
+        "cost_vector": [
+          [
+            "https://example.org/bench/rules/triangle",
+            "https://example.org/bench/triangle",
+            1,
+            64
+          ]
+        ],
+        "derived_count": 64,
+        "engine": "gmeow-logic/0.1.0+native",
+        "peak_live_bytes": 626530,
+        "rows_fingerprint": "514c3c29b7468bd1868ff276d4ae3897d538658049d67936be10174a66883c19"
+      },
+      "oracle": {
+        "engine": "nemo",
+        "row_count": 256,
+        "rows_fingerprint": "514c3c29b7468bd1868ff276d4ae3897d538658049d67936be10174a66883c19"
       },
       "world": "https://example.org/bench/world"
     }
@@ -780,12 +817,12 @@
       ]
     },
     "relational-core-mini": {
-      "agree": 16,
-      "cases": 16,
+      "agree": 18,
+      "cases": 18,
       "corpus_only": 0,
       "dl_gap": 0,
-      "finding_count": 16,
-      "finding_graph_blake3": "373432f800b2aef07ba7a8b88da91f999b471d983fb7bb0b552b127fe8ee8b21",
+      "finding_count": 18,
+      "finding_graph_blake3": "fc7bf4fa285e2cfdc0124b8a0884f40bdf223fcc0a7b4c9eec8ac3d5e4441f8a",
       "findings": [
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d7f9dad000434c585e2cd30caa3a6420",
@@ -840,6 +877,18 @@
           "antecedents": [],
           "code": "reason.divergence.agreement",
           "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/aa68777c51cd3942d3df361daea78f51"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/df262dc83facac60f3505c763aa6adc8",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/b40a5952544ef9d9b3b85c799fa38ee3"
+        },
+        {
+          "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/b1a43b0c6e5822bbc5f5a7feccd7b1c6",
+          "antecedents": [],
+          "code": "reason.divergence.agreement",
+          "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/b44f20658632ffe87dde5fc276fc12b4"
         },
         {
           "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/bf9c924ffb31380dbab530ae70391451",

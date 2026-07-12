@@ -208,6 +208,245 @@ impl LendingIterator for RowCursor<'_> {
     }
 }
 
+// ── Value-ordered trie cursor (WCOJ substrate) ─────────────────────────────────
+
+/// Const-generic trie adornments. The column choice is resolved at monomorphization,
+/// never re-branched per tuple.
+pub(crate) const VALUE_SUBJECT: u8 = 0;
+pub(crate) const VALUE_OBJECT: u8 = 1;
+
+/// One sorted arrangement run viewed in the requested trie orientation.
+enum OrderedSource<'a, const COLUMN: u8> {
+    /// A contiguous primary-column range: whole subject-major batch, or one
+    /// subject-bound object run.
+    Range {
+        batch: &'a Batch,
+        pos: usize,
+        end: usize,
+    },
+    /// A secondary-order permutation: whole object-major batch, or one object-bound
+    /// subject run.
+    Perm {
+        batch: &'a Batch,
+        positions: &'a [u32],
+        pos: usize,
+    },
+    /// The mutable tail is bounded below the seal threshold. Its matching positions
+    /// are sorted once per cursor, never copied as rows.
+    Tail {
+        tail: &'a [(TermId, TermId, RowId)],
+        positions: Box<[u32]>,
+        pos: usize,
+    },
+}
+
+impl<const COLUMN: u8> OrderedSource<'_, COLUMN> {
+    #[inline(always)]
+    fn project(subject: TermId, object: TermId) -> TermId {
+        match COLUMN {
+            VALUE_SUBJECT => subject,
+            VALUE_OBJECT => object,
+            _ => unreachable!("COLUMN is VALUE_SUBJECT or VALUE_OBJECT"),
+        }
+    }
+
+    #[inline(always)]
+    fn other_matches(other: TermId, subject: TermId, object: TermId) -> bool {
+        match COLUMN {
+            VALUE_SUBJECT => object == other,
+            VALUE_OBJECT => subject == other,
+            _ => unreachable!("COLUMN is VALUE_SUBJECT or VALUE_OBJECT"),
+        }
+    }
+
+    #[inline]
+    fn batch_row(batch: &Batch, position: usize) -> (TermId, RowId) {
+        let (subject, object, row) = batch.row_at(position);
+        (Self::project(subject, object), row)
+    }
+
+    #[inline]
+    fn tail_row(tail: &[(TermId, TermId, RowId)], position: usize) -> (TermId, RowId) {
+        let (subject, object, row) = tail[position];
+        (Self::project(subject, object), row)
+    }
+
+    fn peek(&self) -> Option<(TermId, RowId)> {
+        match self {
+            Self::Range { batch, pos, end } => (*pos < *end).then(|| Self::batch_row(batch, *pos)),
+            Self::Perm {
+                batch,
+                positions,
+                pos,
+            } => positions
+                .get(*pos)
+                .map(|&position| Self::batch_row(batch, position as usize)),
+            Self::Tail {
+                tail,
+                positions,
+                pos,
+            } => positions
+                .get(*pos)
+                .map(|&position| Self::tail_row(tail, position as usize)),
+        }
+    }
+
+    fn pop(&mut self) -> Option<(TermId, RowId)> {
+        let row = self.peek()?;
+        match self {
+            Self::Range { pos, .. } | Self::Perm { pos, .. } | Self::Tail { pos, .. } => {
+                *pos += 1;
+            }
+        }
+        Some(row)
+    }
+
+    /// Seek this sorted run to its first projected value `>= target`.
+    fn seek(&mut self, target: TermId) {
+        match self {
+            Self::Range { batch, pos, end } => {
+                let (mut lo, mut hi) = (*pos, *end);
+                while lo < hi {
+                    let mid = lo + (hi - lo) / 2;
+                    if Self::batch_row(batch, mid).0 < target {
+                        lo = mid + 1;
+                    } else {
+                        hi = mid;
+                    }
+                }
+                *pos = lo;
+            }
+            Self::Perm {
+                batch,
+                positions,
+                pos,
+            } => {
+                let offset = positions[*pos..].partition_point(|&position| {
+                    Self::batch_row(batch, position as usize).0 < target
+                });
+                *pos += offset;
+            }
+            Self::Tail {
+                tail,
+                positions,
+                pos,
+            } => {
+                let offset = positions[*pos..].partition_point(|&position| {
+                    Self::tail_row(tail, position as usize).0 < target
+                });
+                *pos += offset;
+            }
+        }
+    }
+}
+
+/// A globally value-ordered cursor over one relation trie level.
+///
+/// Immutable batches already carry the two required orders: `(subject, object)` in
+/// their primary columns and `(object, subject)` in the lazy permutation. This cursor
+/// k-way merges those sorted runs plus the at-most-63-row tail. It yields projected
+/// `(TermId, RowId)` pairs without materializing or sorting relation rows, and supports
+/// the seek operation used by leapfrog intersection.
+pub(crate) struct ValueCursor<'a, const COLUMN: u8> {
+    sources: Vec<OrderedSource<'a, COLUMN>>,
+}
+
+impl<'a, const COLUMN: u8> ValueCursor<'a, COLUMN> {
+    pub(crate) fn new(rel: &'a Relation, other: Option<TermId>) -> Self {
+        let mut sources = Vec::with_capacity(rel.batches().len() + 1);
+        for batch in rel.batches() {
+            let source = match (COLUMN, other) {
+                (VALUE_SUBJECT, None) => OrderedSource::Range {
+                    batch,
+                    pos: 0,
+                    end: batch.len(),
+                },
+                (VALUE_SUBJECT, Some(object)) => OrderedSource::Perm {
+                    batch,
+                    positions: batch.object_positions(object),
+                    pos: 0,
+                },
+                (VALUE_OBJECT, None) => OrderedSource::Perm {
+                    batch,
+                    positions: batch.object_order(),
+                    pos: 0,
+                },
+                (VALUE_OBJECT, Some(subject)) => {
+                    let (lo, hi) = batch.subject_run(subject);
+                    OrderedSource::Range {
+                        batch,
+                        pos: lo,
+                        end: hi,
+                    }
+                }
+                _ => unreachable!("COLUMN is VALUE_SUBJECT or VALUE_OBJECT"),
+            };
+            if source.peek().is_some() {
+                sources.push(source);
+            }
+        }
+
+        if !rel.tail().is_empty() {
+            let mut positions: Vec<u32> = rel
+                .tail()
+                .iter()
+                .enumerate()
+                .filter_map(|(position, &(subject, object, _))| {
+                    other
+                        .is_none_or(|bound| Self::other_matches(bound, subject, object))
+                        .then_some(position as u32)
+                })
+                .collect();
+            positions.sort_unstable_by_key(|&position| {
+                let (subject, object, row) = rel.tail()[position as usize];
+                (Self::project(subject, object), row)
+            });
+            if !positions.is_empty() {
+                sources.push(OrderedSource::Tail {
+                    tail: rel.tail(),
+                    positions: positions.into_boxed_slice(),
+                    pos: 0,
+                });
+            }
+        }
+
+        Self { sources }
+    }
+
+    #[inline(always)]
+    fn project(subject: TermId, object: TermId) -> TermId {
+        OrderedSource::<COLUMN>::project(subject, object)
+    }
+
+    #[inline(always)]
+    fn other_matches(other: TermId, subject: TermId, object: TermId) -> bool {
+        OrderedSource::<COLUMN>::other_matches(other, subject, object)
+    }
+
+    /// Seek every sorted run, positioning the merged cursor at its first value
+    /// `>= target`.
+    pub(crate) fn seek(&mut self, target: TermId) {
+        for source in &mut self.sources {
+            source.seek(target);
+        }
+    }
+
+    /// Yield the globally-smallest remaining `(value, row)` pair and advance its run.
+    pub(crate) fn next(&mut self) -> Option<(TermId, RowId)> {
+        let mut choice: Option<(usize, (TermId, RowId))> = None;
+        for (index, source) in self.sources.iter().enumerate() {
+            let Some(row) = source.peek() else {
+                continue;
+            };
+            if choice.is_none_or(|(_, current)| row < current) {
+                choice = Some((index, row));
+            }
+        }
+        let (index, _) = choice?;
+        self.sources[index].pop()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -221,6 +460,14 @@ mod tests {
     /// Drain a cursor into a `Vec` — a `#[cfg(test)]`-only convenience for asserting a
     /// cursor's full row set (the production hot path never collects).
     fn drain(mut c: RowCursor<'_>) -> Vec<(TermId, TermId, RowId)> {
+        let mut out = Vec::new();
+        while let Some(row) = c.next() {
+            out.push(row);
+        }
+        out
+    }
+
+    fn drain_values<const COLUMN: u8>(mut c: ValueCursor<'_, COLUMN>) -> Vec<(TermId, RowId)> {
         let mut out = Vec::new();
         while let Some(row) = c.next() {
             out.push(row);
@@ -373,5 +620,44 @@ mod tests {
             s.select("http://ex/p", Bound::Both(missing, none_obj))
                 .any_remaining()
         );
+    }
+
+    /// The trie cursor globally merges several immutable batches plus the tail in
+    /// either orientation, and fixing the opposite column narrows the sorted stream.
+    #[test]
+    fn value_cursor_is_globally_sorted_in_both_orientations() {
+        let s = big_store();
+
+        let subject_rows = drain_values(s.values_subject("http://ex/p", None));
+        assert_eq!(subject_rows.len(), 201);
+        assert!(subject_rows.windows(2).all(|rows| rows[0].0 <= rows[1].0));
+
+        let object_rows = drain_values(s.values_object("http://ex/p", None));
+        assert_eq!(object_rows.len(), 201);
+        assert!(object_rows.windows(2).all(|rows| rows[0].0 <= rows[1].0));
+
+        let o0 = s.term_id("<http://ex/o000>").expect("o000 interned");
+        let subjects_at_o0 = drain_values(s.values_subject("http://ex/p", Some(o0)));
+        assert_eq!(subjects_at_o0.len(), 2, "a and z point at o000");
+        assert!(subjects_at_o0.windows(2).all(|rows| rows[0].0 <= rows[1].0));
+
+        let a = s.term_id("<http://ex/a>").expect("a interned");
+        let objects_at_a = drain_values(s.values_object("http://ex/p", Some(a)));
+        assert_eq!(objects_at_a.len(), 200);
+        assert!(objects_at_a.windows(2).all(|rows| rows[0].0 <= rows[1].0));
+    }
+
+    /// Seek applies to every sorted run before the k-way merge, so no value below the
+    /// requested trie frontier can reappear from an older batch or the mutable tail.
+    #[test]
+    fn value_cursor_seek_advances_all_runs() {
+        let s = big_store();
+        let target = s.term_id("<http://ex/o150>").expect("o150 interned");
+        let mut cursor = s.values_object("http://ex/p", None);
+        cursor.seek(target);
+        let rows = drain_values(cursor);
+        assert!(!rows.is_empty());
+        assert!(rows.iter().all(|&(value, _)| value >= target));
+        assert_eq!(rows[0].0, target);
     }
 }

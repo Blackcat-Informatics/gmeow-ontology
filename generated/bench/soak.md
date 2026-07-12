@@ -20,8 +20,8 @@ Soak window: 3 runs.
 | chasebench-mini | 6 | 6 | 0 | 0 | true | 7e3b2cd6c21f854f97f6ea48cbb652374161227cad90affd984a08a2792cf680 |
 | nary-mini | 6 | 6 | 0 | 0 | true | 37c8169a51b2e49f54342cfb4eca9469ba0fb8c981981441a6dcef290953188c |
 | nemo-kr2024-mini | 6 | 6 | 0 | 0 | true | c3d339d0a17be2a42e9cceea34e815395af1d903cb2063da4a4e61f9abb5ac29 |
-| relational-core-mini | 16 | 16 | 0 | 0 | true | 373432f800b2aef07ba7a8b88da91f999b471d983fb7bb0b552b127fe8ee8b21 |
+| relational-core-mini | 18 | 18 | 0 | 0 | true | fc7bf4fa285e2cfdc0124b8a0884f40bdf223fcc0a7b4c9eec8ac3d5e4441f8a |
 
-Combined soak digest (blake3 over the sorted per-corpus finding-graph digests): `cb8ea0dfdff0a024011429054e903871c38a63899074d3621e77a1200175e61f`.
+Combined soak digest (blake3 over the sorted per-corpus finding-graph digests): `74589961e7a5ad3d4d9d4151779965e67a37af59da527874b6ff6bdaf217ccce`.
 
 Gap-zero HELD across 4 corpora at soak window 3; pins native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33a7a4b98ddc41be9914b7584e`, backward reference `captured-sld-goldens/v1`.
