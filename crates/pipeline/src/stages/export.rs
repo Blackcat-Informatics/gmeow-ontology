@@ -1681,7 +1681,8 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
         version,
         "The OWL source is canonical; this is a self-contained vocabulary index.",
     );
-    let sections = llms_sections(terms, None);
+    let mut sections = llms_sections(terms, None);
+    sections.push(gmeow_docs::llms::standing_reference_section());
     gmeow_docs::llms::render_index(title, &prose, &sections).into_bytes()
 }
 
@@ -1739,6 +1740,13 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
             ordered.len()
         ));
     }
+    // The standing reference pages + offline-snippet-corpus note, built from the
+    // SAME shared list the docs-site `llms_full_txt` and both `llms.txt`-family
+    // consumer surfaces render, so this surface cannot silently omit them again.
+    out.push('\n');
+    out.push_str(&gmeow_docs::llms::render_section(
+        &gmeow_docs::llms::standing_reference_section(),
+    ));
     out
 }
 
@@ -1858,7 +1866,11 @@ mod consumer {
             version,
             "The OWL source is canonical; this index links into the published documentation.",
         );
-        let sections = llms_sections(terms, Some(doc_urls));
+        let mut sections = llms_sections(terms, Some(doc_urls));
+        // The standing reference pages + offline-snippet-corpus note, built from
+        // the SAME shared list the docs-site `llms_txt`/`llms_full_txt` render —
+        // the MCP consumer surface previously omitted these entirely.
+        sections.push(gmeow_docs::llms::standing_reference_section());
         gmeow_docs::llms::render_index(title, &prose, &sections)
     }
 
@@ -2966,6 +2978,67 @@ mod tests {
                 <= gmeow_docs::llms::LLMS_FULL_TOKEN_BUDGET * 2,
             "llms-full must stay within a small multiple of the token budget"
         );
+    }
+
+    /// The MCP/consumer `llms_txt` and `llms_full` surfaces must each carry the
+    /// standing-page `## Reference` expansion (Competency questions, Conformance
+    /// fixtures, Notation grammars, Glossary, Build pipeline) plus the offline
+    /// snippet-corpus note — the same expansion the docs-site `llms_txt`/
+    /// `llms_full_txt` render. This had previously landed ONLY on the docs site;
+    /// the native `gmeow mcp` binary's `llms_txt`/`llms_full` tool output carried
+    /// zero occurrences of any of these. Falsifiable per page name so a future
+    /// dropped page fails loudly instead of a vague substring match.
+    #[test]
+    fn consumer_llms_surfaces_carry_the_standing_reference_pages() {
+        let (terms, title, version) = english_terms();
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+        let doc_urls = doc_url_map(&FoldView::new(&graph));
+
+        let txt = consumer_llms_txt(&terms, &title, &version, &doc_urls);
+        let full = consumer_llms_full(&terms, &title, &version);
+
+        assert!(
+            txt.contains("## Reference\n"),
+            "consumer llms_txt must carry a '## Reference' section"
+        );
+        assert!(
+            full.contains("## Reference\n"),
+            "consumer llms_full must carry a '## Reference' section"
+        );
+
+        for page in gmeow_docs::llms::STANDING_REFERENCE_PAGES {
+            assert!(
+                txt.contains(page),
+                "consumer llms_txt must name the standing reference page {page:?}"
+            );
+            assert!(
+                full.contains(page),
+                "consumer llms_full must name the standing reference page {page:?}"
+            );
+        }
+
+        let note = gmeow_docs::llms::SNIPPETS_CORPUS_NOTE;
+        assert!(
+            txt.contains(note),
+            "consumer llms_txt must carry the offline snippet-corpus note"
+        );
+        assert!(
+            full.contains(note),
+            "consumer llms_full must carry the offline snippet-corpus note"
+        );
+
+        // The write_llms_txt (dist/llms.txt tarball) surface shares the same
+        // section-append path — it must not silently regress either.
+        let dist_txt = String::from_utf8(write_llms_txt(&terms, &title, &version)).unwrap();
+        assert!(dist_txt.contains("## Reference\n"));
+        for page in gmeow_docs::llms::STANDING_REFERENCE_PAGES {
+            assert!(
+                dist_txt.contains(page),
+                "dist llms.txt must name the standing reference page {page:?}"
+            );
+        }
+        assert!(dist_txt.contains(note));
     }
 
     /// The twin-contract lock (§19 one-path): the MCP card and the

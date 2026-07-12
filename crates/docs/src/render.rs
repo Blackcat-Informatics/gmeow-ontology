@@ -6292,22 +6292,30 @@ pub fn llms_txt(model: &DocsModel) -> String {
         });
     }
 
-    // ── Reference: the standing index pages (always present). ──
+    // ── Reference: the standing index pages (always present) plus the
+    // offline-corpus affordance. The five titled by
+    // `llms::STANDING_REFERENCE_PAGES` are the SAME ones the MCP/consumer
+    // surfaces name (linkless there, via `llms::standing_reference_section`);
+    // this site rendering links each into its published page so wording/order
+    // cannot drift between the two while the site keeps real URLs. ──
+    let standing = standing_reference_site_pages();
     let mut reference_bullets = vec![
         reference_bullet("Slice index", &Page::SliceIndex),
         reference_bullet("Linkages", &Page::LinkageIndex),
-        reference_bullet("Competency questions", &Page::CompetencyIndex),
-        reference_bullet("Conformance fixtures", &Page::FixtureIndex),
-        reference_bullet("Notation grammars", &Page::NotationIndex),
-        reference_bullet("Glossary", &Page::Glossary),
+    ];
+    for (title, page) in &standing[..4] {
+        reference_bullets.push(reference_bullet(title, page));
+    }
+    reference_bullets.extend([
         reference_bullet("External ontologies", &Page::ExternalIndex),
         reference_bullet("Integrity constraints", &Page::IntegrityIndex),
         reference_bullet("Logic & reasoning", &Page::Logic),
-    ];
+    ]);
     // The build-pipeline DAG page is emitted only when a pipeline was discovered
     // (honest absence for a bare model); link it only when it is actually rendered.
     if model.pipeline.is_some() {
-        reference_bullets.push(reference_bullet("Build pipeline", &Page::PipelineDag));
+        let (title, page) = &standing[4];
+        reference_bullets.push(reference_bullet(title, page));
     }
     // The offline, agent-ingestible corpus: a flattened per-term card projection
     // written by the docs-export snippets affordance (linkless — it names a
@@ -6316,7 +6324,7 @@ pub fn llms_txt(model: &DocsModel) -> String {
         text: "Offline snippet corpus".to_string(),
         url: None,
         signature: String::new(),
-        note: SNIPPETS_CORPUS_NOTE.to_string(),
+        note: llms::SNIPPETS_CORPUS_NOTE.to_string(),
     });
     sections.push(LlmsSection {
         heading: "Reference".to_string(),
@@ -6326,10 +6334,26 @@ pub fn llms_txt(model: &DocsModel) -> String {
     llms::render_index(&model.title, &prose, &sections)
 }
 
-/// The one-line description of the offline snippet corpus — the flattened
-/// prompt-ready per-term cards written by `gmeow-dev export-docs --format
-/// snippets`. Shared verbatim by both `llms.txt` surfaces so they cannot drift.
-pub const SNIPPETS_CORPUS_NOTE: &str = "`gmeow-dev export-docs --format snippets` writes one prompt-ready Markdown card per term to `terms/<slug>.md` — the offline, agent-ingestible projection of these docs.";
+/// The one-line description of the offline snippet corpus. Re-exported from the
+/// shared [`llms`] module (the single definition both the docs site and the
+/// MCP/consumer surfaces reference) so this crate's existing
+/// `render::SNIPPETS_CORPUS_NOTE` path keeps working.
+pub use crate::llms::SNIPPETS_CORPUS_NOTE;
+
+/// Map each of `llms::STANDING_REFERENCE_PAGES` (title, same order) to its
+/// docs-site page. The docs-site rendering of the shared standing-page list;
+/// the MCP/consumer surfaces render the same titles linkless via
+/// `llms::standing_reference_section` instead.
+fn standing_reference_site_pages() -> [(&'static str, Page); 5] {
+    let titles = llms::STANDING_REFERENCE_PAGES;
+    [
+        (titles[0], Page::CompetencyIndex),
+        (titles[1], Page::FixtureIndex),
+        (titles[2], Page::NotationIndex),
+        (titles[3], Page::Glossary),
+        (titles[4], Page::PipelineDag),
+    ]
+}
 
 /// A single Reference-section bullet linking to a standing index page.
 fn reference_bullet(text: &str, page: &Page) -> LlmsBullet {
@@ -6384,20 +6408,21 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
 
     // ── Reference: the standing index pages an agent should know exist, plus the
     // offline-corpus affordance. This surface is self-contained (linkless), so the
-    // pages are named rather than linked; kept in sync with the same standing
-    // pages listed in the `llms_txt` Reference section so the two cannot drift. ──
-    out.push_str("## Reference\n\n");
-    out.push_str("- Competency questions\n");
-    out.push_str("- Conformance fixtures\n");
-    out.push_str("- Notation grammars\n");
-    out.push_str("- Glossary\n");
-    if model.pipeline.is_some() {
-        out.push_str("- Build pipeline\n");
+    // pages are named rather than linked; built from the SAME
+    // `llms::standing_reference_section` the MCP/consumer surfaces render, so the
+    // two genuinely cannot drift (this was previously a hand-duplicated list). ──
+    let mut reference_section = llms::standing_reference_section();
+    if model.pipeline.is_none() {
+        // Honest absence for a bare model: the build-pipeline DAG page is only
+        // ever rendered when a pipeline was actually discovered.
+        let pipeline_title = *llms::STANDING_REFERENCE_PAGES
+            .last()
+            .expect("standing reference pages is non-empty");
+        reference_section
+            .bullets
+            .retain(|b| b.text != pipeline_title);
     }
-    out.push_str("- Offline snippet corpus: ");
-    out.push_str(SNIPPETS_CORPUS_NOTE);
-    out.push('\n');
-    out.push('\n');
+    out.push_str(&llms::render_section(&reference_section));
 
     out
 }
