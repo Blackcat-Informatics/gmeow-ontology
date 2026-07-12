@@ -29,9 +29,18 @@ ex:treatmentEffectEstimate a math:Estimate ;
 ex:olsEstimator a math:Estimator .
 ex:averageTreatmentEffect a math:Estimand .
 
-# The fitted model over the same data, carrying its stated assumption.
+# The fitted model over the same data, specified by its formula and carrying its
+# stated assumption.
 ex:trialFittedModel a math:FittedModel ;
     math:fittedToData ex:trialData ;
+    math:modelFormula ex:trialFormula ;
     math:modelAssumption ex:normalErrors .
+
+ex:trialFormula a math:ModelFormula ;
+    math:argumentSlot ex:trialSlot0 .
+ex:trialSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:trialResponse .
+ex:trialResponse a math:VariableExpression .
 
 ex:normalErrors a math:ModelAssumption .
