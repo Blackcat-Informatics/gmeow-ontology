@@ -35,8 +35,8 @@ use std::sync::Arc;
 use super::seminaive::StepGovernor;
 use crate::provenance::{ProvenanceRing, ProvenanceSemiring, ZWeightSemiring};
 use crate::rule_ir::{
-    EvalRule, Fact, FactKey, FactStore, Solution, distinct_pairs_satisfied, eval_rules_to_rls,
-    ground_head, match_atom,
+    EvalRule, EvalTerm, Fact, FactKey, FactStore, Solution, distinct_pairs_satisfied,
+    eval_rules_to_rls, ground_head, match_atom,
 };
 use crate::seam::BudgetStatus;
 
@@ -695,6 +695,35 @@ fn validate_fragment(rules: &[EvalRule]) -> gmeow_errors::Result<()> {
                 rule.rule_iri
             )));
         }
+
+        let mut positively_bound = BTreeSet::new();
+        for atom in &rule.body {
+            for term in [&atom.subject, &atom.object] {
+                if let EvalTerm::Var(variable) = term {
+                    positively_bound.insert(variable.as_str());
+                }
+            }
+        }
+        for term in [&rule.head.subject, &rule.head.object] {
+            if let EvalTerm::Var(variable) = term
+                && !positively_bound.contains(variable.as_str())
+            {
+                return Err(incremental_err(format!(
+                    "incremental circuit rule <{}> is unsafe: head variable {variable} is not bound by a positive body atom",
+                    rule.rule_iri
+                )));
+            }
+        }
+        for (left, right) in &rule.distinct_pairs {
+            for variable in [left, right] {
+                if !positively_bound.contains(variable.as_str()) {
+                    return Err(incremental_err(format!(
+                        "incremental circuit rule <{}> is unsafe: inequality variable {variable} is not bound by a positive body atom",
+                        rule.rule_iri
+                    )));
+                }
+            }
+        }
     }
     Ok(())
 }
@@ -1250,6 +1279,30 @@ mod tests {
                 .unwrap_err()
                 .message()
                 .contains("builtins")
+        );
+
+        let head_unbound = rule(
+            "head-unbound",
+            atom("p", var("X"), var("Z")),
+            vec![atom("q", var("X"), var("Y"))],
+        );
+        let error = IncrementalSession::new("contract", [], &[head_unbound])
+            .expect_err("a head-only variable must be refused at construction");
+        assert!(error.message().contains("head variable ?Z"), "{error}");
+
+        let mut inequality_unbound = rule(
+            "inequality-unbound",
+            atom("p", var("X"), var("Y")),
+            vec![atom("q", var("X"), var("Y"))],
+        );
+        inequality_unbound
+            .distinct_pairs
+            .push(("?X".to_owned(), "?Z".to_owned()));
+        let error = IncrementalSession::new("contract", [], &[inequality_unbound])
+            .expect_err("an inequality-only variable must be refused at construction");
+        assert!(
+            error.message().contains("inequality variable ?Z"),
+            "{error}"
         );
     }
 
