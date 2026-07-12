@@ -148,7 +148,7 @@ pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
     Ok(typed_result(inferred, &verdict))
 }
 
-/// Result of applying one ground-IRI conjecture candidate to a cached fixed-rule
+/// Result of applying one ground conjecture candidate to a cached fixed-rule
 /// reasoning state.
 pub(crate) struct IncrementalReasoningResult {
     pub(crate) result: ReasoningResult,
@@ -156,15 +156,15 @@ pub(crate) struct IncrementalReasoningResult {
     pub(crate) consumed_steps: u64,
 }
 
-/// Inputs to one fixed-calculus ground-IRI incremental reasoning transaction.
-pub(crate) struct GroundIriIncrementalRequest<'a> {
+/// Inputs to one fixed-calculus ground-fact incremental reasoning transaction.
+pub(crate) struct GroundFactIncrementalRequest<'a> {
     pub(crate) base_edb: &'a RdfDataset,
     pub(crate) with_candidate_edb: &'a RdfDataset,
     pub(crate) base: &'a ReasoningResult,
     pub(crate) scenario_world: &'a str,
     pub(crate) subject: &'a str,
     pub(crate) predicate: &'a str,
-    pub(crate) object: &'a str,
+    pub(crate) object: &'a RdfTerm,
     pub(crate) max_steps: Option<u64>,
 }
 
@@ -175,13 +175,14 @@ pub(crate) struct GroundIriIncrementalRequest<'a> {
 /// circuit, with newly derived facts carrying a real firing rule and immediate
 /// premises. The finite DL post-pass then runs over the sound adjusted closure.
 ///
-/// This entry accepts an IRI object only, matching [`build_edb_facts`]'s fixed-calculus
-/// EDB filter. Literal candidates remain on [`reason_all`] until the fixed rules admit
-/// literal objects directly.
-pub(crate) fn reason_ground_iri_insert_incremental(
-    request: GroundIriIncrementalRequest<'_>,
+/// The fixed rule text only inspects resource-valued class/property axioms, but the
+/// physical fact carrier is fully typed. A ground literal candidate is therefore kept
+/// as an opaque asserted object in the signed session: it can make redundancy false and
+/// can feed the literal-aware finite DL post-pass without fabricating a rule firing.
+pub(crate) fn reason_ground_fact_insert_incremental(
+    request: GroundFactIncrementalRequest<'_>,
 ) -> gmeow_errors::Result<IncrementalReasoningResult> {
-    let GroundIriIncrementalRequest {
+    let GroundFactIncrementalRequest {
         base_edb,
         with_candidate_edb,
         base,
@@ -211,10 +212,11 @@ pub(crate) fn reason_ground_iri_insert_incremental(
         });
     }
 
+    let candidate_object = ground_object_value(object)?;
     let candidate = crate::rule_ir::Fact {
         subject: TermValue::iri(subject.to_owned()),
         predicate: predicate.to_owned(),
-        object: TermValue::iri(object.to_owned()),
+        object: candidate_object,
     };
     let candidate_key = candidate.key();
     let candidate_axiom_key = (
@@ -223,7 +225,15 @@ pub(crate) fn reason_ground_iri_insert_incremental(
         crate::provenance::term_display(&candidate.object),
         scenario_world.to_owned(),
     );
-    if world_edb.iter().any(|fact| fact.key() == candidate_key) {
+    if world_edb.iter().any(|fact| fact.key() == candidate_key)
+        || dataset_contains_ground_fact(
+            base_edb,
+            scenario_world,
+            subject,
+            predicate,
+            &candidate.object,
+        )
+    {
         return Ok(IncrementalReasoningResult {
             result: base.clone(),
             status: crate::seam::BudgetStatus::Ok,
@@ -353,6 +363,47 @@ pub(crate) fn reason_ground_iri_insert_incremental(
         result: typed_result(inferred, &verdict),
         status: adjusted.status,
         consumed_steps: adjusted.consumed_steps,
+    })
+}
+
+/// Convert the ground candidate's RDF object into the physical engine's typed term.
+fn ground_object_value(object: &RdfTerm) -> gmeow_errors::Result<TermValue> {
+    match object {
+        RdfTerm::Iri(iri) => Ok(TermValue::iri(iri.clone())),
+        RdfTerm::Literal(literal) => Ok(match literal.language.as_deref() {
+            Some(language) => TermValue::lang_literal(literal.lexical_form.clone(), language),
+            None => match literal.datatype.as_deref() {
+                Some(datatype) => {
+                    TermValue::typed_literal(literal.lexical_form.clone(), datatype.to_owned())
+                }
+                None => TermValue::simple_literal(literal.lexical_form.clone()),
+            },
+        }),
+        other => Err(reason_err(format!(
+            "incremental ground candidate object must be an IRI or literal, got {other:?}"
+        ))),
+    }
+}
+
+/// Whether the exact ground candidate is already asserted in its scenario world.
+///
+/// [`build_edb_facts`] intentionally omits literal objects from the fixed-calculus
+/// input, so physical-session membership alone cannot recognize an already-asserted
+/// literal. The source dataset remains the authority for that zero-delta case.
+fn dataset_contains_ground_fact(
+    edb: &RdfDataset,
+    world: &str,
+    subject: &str,
+    predicate: &str,
+    object: &TermValue,
+) -> bool {
+    edb.owned_quads().any(|quad| {
+        matches!(&quad.subject, RdfTerm::Iri(iri) if iri == subject)
+            && quad.predicate == predicate
+            && ground_object_value(&quad.object)
+                .ok()
+                .is_some_and(|value| &value == object)
+            && matches!(&quad.graph_name, Some(RdfTerm::Iri(iri)) if iri == world)
     })
 }
 
