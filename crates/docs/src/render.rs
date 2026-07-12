@@ -6339,7 +6339,10 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
 /// precomputed alignment facets so a caller emitting every term pays the linkage
 /// scan ONCE (not O(N²)).
 fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
-    crate::card::render_card_body(&doc_term_card(term, alignment_facets))
+    crate::card::render_card_body(
+        &doc_term_card(term, alignment_facets),
+        crate::card::CardDetail::Standard,
+    )
 }
 
 /// Build the neutral [`crate::card::Card`] from a docs-site [`DocTerm`], resolving
@@ -6376,6 +6379,8 @@ fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::c
             .get(term.iri.as_str())
             .cloned()
             .unwrap_or_default(),
+        // Full-tier rich panels: never populated on the docs-site path.
+        ..crate::card::Card::default()
     }
 }
 

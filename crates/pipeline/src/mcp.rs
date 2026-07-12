@@ -162,6 +162,112 @@ SELECT ?e ?rule ?conclusion ?premise WHERE {{
     )
 }
 
+/// SELECT the diagnostics evidence documenting one specific term, for the
+/// full-tier `doc_card` panel: each grounded finding code and the evidence claim.
+/// The `gmeow:docEvidenceKindDiagnostics` evidence node is projected into the
+/// documentation graph per term that a finding structurally concerns. See
+/// [`fixtures_by_term_query`] on the embedded IRI.
+fn diagnostics_by_term_query(term_iri: &str) -> String {
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+SELECT ?claim ?code WHERE {{
+  ?e a gm:DocEvidence ;
+     gm:docEvidenceKind gm:docEvidenceKindDiagnostics ;
+     gm:documents <{term_iri}> ;
+     gm:docClaim ?claim ;
+     gm:docGroundedBy ?code .
+}}"
+    )
+}
+
+/// SELECT the projection-loss evidence documenting one specific term, for the
+/// full-tier `doc_card` panel: each grounded loss target and the preservation
+/// judgment (`gmeow:docJudgment`). The `gmeow:docEvidenceKindLoss` evidence node
+/// is projected per term that degrades under one or more projections. See
+/// [`fixtures_by_term_query`] on the embedded IRI.
+fn loss_by_term_query(term_iri: &str) -> String {
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+SELECT ?target ?judgment WHERE {{
+  ?e a gm:DocEvidence ;
+     gm:docEvidenceKind gm:docEvidenceKindLoss ;
+     gm:documents <{term_iri}> ;
+     gm:docGroundedBy ?target ;
+     gm:docJudgment ?judgment .
+}}"
+    )
+}
+
+/// The output format of the `doc_card` tool: rendered Markdown or the neutral
+/// [`gmeow_docs::card::Card`] serialized to JSON.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum CardFormat {
+    /// The card rendered through the single shared Markdown renderer.
+    Markdown,
+    /// The card serialized as a JSON object (deterministic field order).
+    Json,
+}
+
+impl CardFormat {
+    /// Parse the `format` argument — an UNKNOWN value is a HARD FAIL listing the
+    /// valid values (never a silent default).
+    fn parse(raw: Option<&str>) -> gmeow_errors::Result<Self> {
+        match raw.unwrap_or("markdown") {
+            "markdown" => Ok(Self::Markdown),
+            "json" => Ok(Self::Json),
+            other => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "doc_card: unknown format `{other}`; valid values: markdown, json"
+                ),
+            })),
+        }
+    }
+
+    /// The canonical label echoed back in the response envelope.
+    fn label(self) -> &'static str {
+        match self {
+            Self::Markdown => "markdown",
+            Self::Json => "json",
+        }
+    }
+}
+
+/// Parse the `detail` argument into a [`gmeow_docs::card::CardDetail`] tier — an
+/// UNKNOWN value is a HARD FAIL listing the valid values (never a silent default).
+fn parse_card_detail(raw: Option<&str>) -> gmeow_errors::Result<gmeow_docs::card::CardDetail> {
+    use gmeow_docs::card::CardDetail;
+    match raw.unwrap_or("standard") {
+        "summary" => Ok(CardDetail::Summary),
+        "standard" => Ok(CardDetail::Standard),
+        "full" => Ok(CardDetail::Full),
+        other => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "doc_card: unknown detail `{other}`; valid values: summary, standard, full"
+            ),
+        })),
+    }
+}
+
+/// The canonical `detail` label echoed back in the response envelope.
+fn card_detail_label(detail: gmeow_docs::card::CardDetail) -> &'static str {
+    use gmeow_docs::card::CardDetail;
+    match detail {
+        CardDetail::Summary => "summary",
+        CardDetail::Standard => "standard",
+        CardDetail::Full => "full",
+    }
+}
+
+/// One-line and cap a fixture Turtle body to a short snippet for the full-tier
+/// `doc_card` Do / Don't panels (the card is token-budgeted; the full body is
+/// available through the `counter_examples` tool).
+fn fixture_body_snippet(text: &str) -> String {
+    let one_line = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    gmeow_docs::llms::cap_note(&one_line)
+}
+
 /// SELECT the documented competency questions for the `competency_questions` tool:
 /// every `gmeow:DocumentedCompetency` carrying a runnable `gmeow:cqQueryText`, or —
 /// when `term_iri` is `Some` — only those documenting that term. `cqQueryText` is a
@@ -418,6 +524,33 @@ fn select_rows(value: &Value) -> Vec<BTreeMap<String, String>> {
         .unwrap_or_default()
 }
 
+/// The string value of `key` in a JSON object, or `""` when absent / non-string.
+/// A small adapter so the full-tier `doc_card` panels can reuse the Task-4
+/// `term_entailments` / `term_fixtures` JSON records without re-querying the graph.
+fn value_str(value: &Value, key: &str) -> String {
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .to_string()
+}
+
+/// The string members of the `key` array in a JSON object, in order; empty when
+/// absent or not an array. (Values are already deterministically ordered upstream.)
+fn value_str_array(value: &Value, key: &str) -> Vec<String> {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
 /// Render one fixture record as the tool's JSON object. The advisory fields are
 /// emitted as `null` when the slice authored none (a stable shape callers can read
 /// without probing for key presence).
@@ -656,9 +789,164 @@ impl McpView {
         })
     }
 
-    /// A prompt-ready Markdown card for one term.
-    fn doc_card_text(&self, term: &str, requested: Vec<String>) -> String {
-        self.with_terms(requested, |terms| export::doc_card_md(terms, term))
+    /// A prompt-ready term card for one term at the requested detail tier and
+    /// output format, wrapped in the cost-metadata envelope
+    /// (`{"ok":true,"detail","format","bytes","tokens","card"}`).
+    ///
+    /// The card is built through the SINGLE shared builder + renderer
+    /// (`export::doc_card_build` → `gmeow_docs::card`). For
+    /// [`CardDetail::Full`](gmeow_docs::card::CardDetail::Full) the rich oracle
+    /// panels (entailments, Do / Don't fixtures, diagnostics, projection loss) are
+    /// populated by querying the `gmeow:graph/documentation` projection for the
+    /// resolved term IRI. An UNKNOWN term is a HARD FAIL (`Err`).
+    ///
+    /// `format=markdown` renders through `render_card` (tier-gated); `format=json`
+    /// serializes the tier-projected `Card`. `bytes`/`tokens` measure the returned
+    /// card payload so callers can budget by tier.
+    fn doc_card(
+        &self,
+        term: &str,
+        detail: gmeow_docs::card::CardDetail,
+        format: CardFormat,
+        requested: Vec<String>,
+    ) -> gmeow_errors::Result<String> {
+        use gmeow_docs::card::CardDetail;
+        let built = self.with_terms(requested, |terms| export::doc_card_build(terms, term));
+        let Some((title, mut card)) = built else {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "unknown term `{term}`: does not resolve to a bundled GMEOW term \
+                     (expected a CURIE, local name, IRI, or label)"
+                ),
+            }));
+        };
+        // The full tier is the oracle card: enrich the compact card with the rich
+        // panels queried from the documentation graph by the resolved term IRI.
+        if detail == CardDetail::Full {
+            let iri = card.iri.clone();
+            let (fixtures_do, fixtures_dont) = self.card_fixtures(&iri)?;
+            card.entailments = self.card_entailments(&iri)?;
+            card.fixtures_do = fixtures_do;
+            card.fixtures_dont = fixtures_dont;
+            card.diagnostics = self.card_diagnostics(&iri)?;
+            card.loss = self.card_loss(&iri)?;
+        }
+        let (rendered, card_value) = match format {
+            CardFormat::Markdown => {
+                let md = gmeow_docs::card::render_card(&title, &card, detail);
+                let value = Value::String(md.clone());
+                (md, value)
+            }
+            CardFormat::Json => {
+                let projected = card.projected(detail);
+                let js = serde_json::to_string(&projected).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                        message: format!("doc_card: serialize card to JSON: {e}"),
+                    })
+                })?;
+                let value = serde_json::to_value(&projected).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                        message: format!("doc_card: card to JSON value: {e}"),
+                    })
+                })?;
+                (js, value)
+            }
+        };
+        Ok(json!({
+            "ok": true,
+            "detail": card_detail_label(detail),
+            "format": format.label(),
+            "bytes": rendered.len(),
+            "tokens": gmeow_docs::llms::estimate_tokens(&rendered),
+            "card": card_value,
+        })
+        .to_string())
+    }
+
+    /// The full-tier entailment panel for `term_iri`: the reasoner derivations
+    /// documenting the term, mapped from the SAME `term_entailments` query the
+    /// `entailments` tool serves. Empty for a term with no derivations.
+    fn card_entailments(
+        &self,
+        term_iri: &str,
+    ) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardEntailment>> {
+        Ok(self
+            .term_entailments(term_iri)?
+            .iter()
+            .map(|v| gmeow_docs::card::CardEntailment {
+                rule: value_str(v, "rule"),
+                conclusion: value_str(v, "conclusion"),
+                premises: value_str_array(v, "premises"),
+            })
+            .collect())
+    }
+
+    /// The full-tier Do / Don't fixture panels for `term_iri`: the well-formed
+    /// exemplars and the counter-examples, mapped from the SAME `term_fixtures`
+    /// query the `counter_examples` tool serves. Each fixture body is one-lined and
+    /// capped to a short snippet (the full body stays available via
+    /// `counter_examples`). Both empty for a term documenting no fixtures.
+    fn card_fixtures(
+        &self,
+        term_iri: &str,
+    ) -> gmeow_errors::Result<(
+        Vec<gmeow_docs::card::CardFixture>,
+        Vec<gmeow_docs::card::CardFixture>,
+    )> {
+        let to_card = |v: &Value| gmeow_docs::card::CardFixture {
+            title: value_str(v, "title"),
+            body: fixture_body_snippet(&value_str(v, "text")),
+        };
+        let (wellformed, counter_examples) = self.term_fixtures(term_iri)?;
+        Ok((
+            wellformed.iter().map(&to_card).collect(),
+            counter_examples.iter().map(&to_card).collect(),
+        ))
+    }
+
+    /// The full-tier diagnostics panel for `term_iri`: the finding codes the term
+    /// may hit, read from the `gmeow:docEvidenceKindDiagnostics` evidence in the
+    /// documentation graph. Rows are ordered by finding code, so the panel is
+    /// deterministic. Empty for a term no finding concerns.
+    fn card_diagnostics(
+        &self,
+        term_iri: &str,
+    ) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardDiagnostic>> {
+        let mut by_code: BTreeMap<String, String> = BTreeMap::new();
+        for row in self.docs_select_rows(&diagnostics_by_term_query(term_iri))? {
+            let (Some(code), Some(claim)) = (row.get("code"), row.get("claim")) else {
+                continue;
+            };
+            by_code.entry(code.clone()).or_insert_with(|| claim.clone());
+        }
+        Ok(by_code
+            .into_iter()
+            .map(|(code, note)| gmeow_docs::card::CardDiagnostic { code, note })
+            .collect())
+    }
+
+    /// The full-tier projection-loss panel for `term_iri`: the targets the term
+    /// degrades into and each degradation's preservation judgment, read from the
+    /// `gmeow:docEvidenceKindLoss` evidence in the documentation graph. Rows are
+    /// ordered by target, so the panel is deterministic. Empty for a term that
+    /// degrades under no projection.
+    fn card_loss(&self, term_iri: &str) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardLoss>> {
+        let mut by_target: BTreeMap<String, String> = BTreeMap::new();
+        for row in self.docs_select_rows(&loss_by_term_query(term_iri))? {
+            let (Some(target), Some(judgment)) = (row.get("target"), row.get("judgment")) else {
+                continue;
+            };
+            by_target
+                .entry(target.clone())
+                .or_insert_with(|| judgment.clone());
+        }
+        Ok(by_target
+            .into_iter()
+            .map(|(target, preservation)| gmeow_docs::card::CardLoss {
+                target,
+                preservation,
+            })
+            .collect())
     }
 
     /// The OKF manifest JSON envelope for `requested`.
@@ -1196,8 +1484,20 @@ impl McpServer {
             ),
             tool(
                 "doc_card",
-                "Return a prompt-ready Markdown card for a bundled term.",
-                &[("term", "string"), ("lang", "string")],
+                "Return a prompt-ready term card for a bundled term, wrapped in a \
+                 cost-metadata envelope ({ok, detail, format, bytes, tokens, card}). \
+                 `detail` selects a token-budgeted tier: `summary` (title + definition \
+                 only), `standard` (the compact card — default), or `full` (the oracle \
+                 card: compact card plus entailments, Do / Don't fixtures, diagnostics, \
+                 and projection-loss panels, queried from gmeow:graph/documentation). \
+                 `format` is `markdown` (default) or `json` (the neutral Card object). \
+                 An unknown detail/format is a hard error.",
+                &[
+                    ("term", "string"),
+                    ("detail", "string"),
+                    ("format", "string"),
+                    ("lang", "string"),
+                ],
             ),
             tool(
                 "okf_index",
@@ -1540,8 +1840,10 @@ impl McpServer {
 
     fn tool_doc_card(&self, args: &Value) -> gmeow_errors::Result<String> {
         let term = required_str(args, "term")?;
+        let detail = parse_card_detail(optional_str(args, "detail"))?;
+        let format = CardFormat::parse(optional_str(args, "format"))?;
         let requested = self.requested_from_args(args)?;
-        Ok(self.view.doc_card_text(term, requested))
+        self.view.doc_card(term, detail, format, requested)
     }
 
     fn tool_okf_index(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -5267,6 +5569,302 @@ mod tests {
         assert_eq!(
             unknown["ok"], false,
             "unknown term is a hard error: {unknown}"
+        );
+    }
+
+    /// Select the RICHEST-surface term in the shipped bundle for the tier tests:
+    /// the term (a) grounding at least one reasoner entailment AND (b) documenting at
+    /// least one conformance fixture, maximizing the total panel count (entailments +
+    /// fixtures), tie-broken by IRI so the choice is deterministic. Panics (a real
+    /// blocker, never a soft skip) if the bundle documents no such term.
+    ///
+    /// Uses exactly TWO bulk queries (the entailment map + a single fixture-by-term
+    /// scan) and intersects them — never a per-term query per candidate.
+    fn richest_card_term(server: &McpServer) -> String {
+        let entailments = server
+            .view
+            .entailment_map()
+            .expect("entailment map from the shipped documentation graph");
+        // One bulk scan: fixture count per documented term.
+        let fixtures_query = format!(
+            "PREFIX gm: <{GMEOW_NS}>\nSELECT ?term ?f WHERE {{ ?f a gm:DocFixture ; \
+             gm:documents ?term . }}"
+        );
+        let mut fixtures_per_term: BTreeMap<String, usize> = BTreeMap::new();
+        for row in server
+            .view
+            .docs_select_rows(&fixtures_query)
+            .expect("fixture-by-term scan over graph/documentation")
+        {
+            if let Some(term) = row.get("term") {
+                *fixtures_per_term.entry(term.clone()).or_default() += 1;
+            }
+        }
+        let mut candidates: Vec<(usize, String)> = entailments
+            .iter()
+            .filter_map(|(iri, ents)| {
+                fixtures_per_term
+                    .get(iri)
+                    .map(|&fx| (ents.len() + fx, iri.clone()))
+            })
+            .collect();
+        // Most panels first, then lexicographically-first IRI (deterministic).
+        candidates.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+        candidates
+            .into_iter()
+            .next()
+            .map(|(_, iri)| iri)
+            .expect("the shipped bundle documents a term with entailments AND fixtures")
+    }
+
+    /// `doc_card` tiers: `summary` is the leanest surface (title + definition only,
+    /// under a pinned byte ceiling, none of the advisory / panel sections); `full`
+    /// is strictly larger and carries the rich oracle panels (Entailments / Do /
+    /// Don't headers).
+    #[test]
+    fn tool_doc_card_tier_byte_ceiling() {
+        const SUMMARY_CEILING: usize = 1500;
+        let server = consumer_server();
+        let term = richest_card_term(&server);
+
+        let summary = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "summary"})),
+        );
+        let full = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "full"})),
+        );
+        let s_card = summary["card"].as_str().expect("summary markdown card");
+        let f_card = full["card"].as_str().expect("full markdown card");
+
+        // Summary is title + definition ONLY, under the ceiling.
+        assert!(
+            s_card.len() < SUMMARY_CEILING,
+            "summary card ({} bytes) must be under {SUMMARY_CEILING}: {s_card}",
+            s_card.len()
+        );
+        assert!(
+            s_card.starts_with("# "),
+            "summary carries the H1 title: {s_card}"
+        );
+        let summary_body = s_card
+            .strip_prefix("# ")
+            .and_then(|s| s.split_once("\n\n"))
+            .map_or("", |(_, rest)| rest);
+        assert!(
+            !summary_body.trim().is_empty(),
+            "summary carries a definition after the title: {s_card}"
+        );
+        // NONE of the advisory / metadata / panel surface at the summary tier.
+        assert!(
+            !s_card.contains("- category:"),
+            "no metadata header: {s_card}"
+        );
+        assert!(
+            !s_card.contains("**Use when:**"),
+            "no advisory fields: {s_card}"
+        );
+        assert!(
+            !s_card.contains("## Entailments"),
+            "no rich panels: {s_card}"
+        );
+
+        // Full is strictly larger and carries the panel section headers.
+        assert!(
+            f_card.len() > s_card.len(),
+            "full ({}) must exceed summary ({})",
+            f_card.len(),
+            s_card.len()
+        );
+        assert!(
+            f_card.contains("## Entailments"),
+            "full carries Entailments: {f_card}"
+        );
+        assert!(
+            f_card.contains("## Do") || f_card.contains("## Don't"),
+            "full carries a Do / Don't fixture panel: {f_card}"
+        );
+    }
+
+    /// Single-renderer authority: `doc_card` at `detail=standard` is BYTE-IDENTICAL
+    /// to rendering the shared compact `Card` through `render_card` at `Standard` —
+    /// the tier gating never perturbs the docs-site card the standard tier mirrors.
+    #[test]
+    fn tool_doc_card_standard_is_byte_identical_to_compact_render() {
+        let server = consumer_server();
+        let term = "gmeow:EntityExistence";
+
+        let envelope = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "standard"})),
+        );
+        let card_md = envelope["card"].as_str().expect("standard markdown card");
+
+        // Independent expected: the SAME shared builder + renderer at Standard.
+        let requested = server.startup_requested.clone();
+        let expected = server.view.with_terms(requested, |terms| {
+            let (title, card) = export::doc_card_build(terms, term).expect("known term resolves");
+            gmeow_docs::card::render_card(&title, &card, gmeow_docs::card::CardDetail::Standard)
+        });
+        assert_eq!(
+            card_md, expected,
+            "standard tier must be byte-identical to the compact single-renderer output"
+        );
+        // Default (no `detail`) is Standard.
+        let defaulted = text_payload(server.call_tool_result("doc_card", &json!({"term": term})));
+        assert_eq!(defaulted["detail"], "standard");
+        assert_eq!(defaulted["card"].as_str().expect("card"), expected);
+    }
+
+    /// `doc_card` `format=json`: byte-stable across calls; standard-tier JSON omits
+    /// the full-tier rich fields; full-tier JSON carries them.
+    #[test]
+    fn tool_doc_card_json_determinism_and_tier_fields() {
+        let server = consumer_server();
+        let term = richest_card_term(&server);
+
+        // Byte-identical raw tool text across two identical calls.
+        let call = || {
+            server.call_tool_result(
+                "doc_card",
+                &json!({"term": term, "detail": "full", "format": "json"}),
+            )["content"][0]["text"]
+                .as_str()
+                .expect("json tool text")
+                .to_string()
+        };
+        assert_eq!(call(), call(), "json card is byte-stable across calls");
+
+        // Standard-tier JSON: a Card object WITHOUT the full-tier rich fields.
+        let std_json = text_payload(server.call_tool_result(
+            "doc_card",
+            &json!({"term": term, "detail": "standard", "format": "json"}),
+        ));
+        assert_eq!(std_json["format"], "json");
+        let std_card = &std_json["card"];
+        assert!(std_card.is_object(), "json card is an object: {std_card}");
+        assert!(
+            std_card.get("entailments").is_none(),
+            "no entailments at standard"
+        );
+        assert!(
+            std_card.get("fixtures_do").is_none(),
+            "no fixtures_do at standard"
+        );
+        assert!(
+            std_card.get("fixtures_dont").is_none(),
+            "no fixtures_dont at standard"
+        );
+        assert!(
+            std_card.get("diagnostics").is_none(),
+            "no diagnostics at standard"
+        );
+        assert!(std_card.get("loss").is_none(), "no loss at standard");
+
+        // Full-tier JSON DOES carry the rich panels.
+        let full_json = text_payload(server.call_tool_result(
+            "doc_card",
+            &json!({"term": term, "detail": "full", "format": "json"}),
+        ));
+        assert!(
+            full_json["card"].get("entailments").is_some(),
+            "full json carries entailments: {}",
+            &full_json.to_string()[..full_json.to_string().len().min(400)]
+        );
+    }
+
+    /// `doc_card` cost metadata: every envelope carries positive `bytes`/`tokens`,
+    /// monotonically non-decreasing across summary ≤ standard ≤ full for one term.
+    #[test]
+    fn tool_doc_card_cost_metadata_is_monotone() {
+        let server = consumer_server();
+        let term = richest_card_term(&server);
+
+        let tier = |detail: &str| {
+            text_payload(
+                server.call_tool_result("doc_card", &json!({"term": term, "detail": detail})),
+            )
+        };
+        let summary = tier("summary");
+        let standard = tier("standard");
+        let full = tier("full");
+
+        for env in [&summary, &standard, &full] {
+            assert!(
+                env["bytes"].as_u64().expect("bytes") > 0,
+                "bytes > 0: {env}"
+            );
+            assert!(
+                env["tokens"].as_u64().expect("tokens") > 0,
+                "tokens > 0: {env}"
+            );
+        }
+        let bytes = |e: &Value| e["bytes"].as_u64().unwrap();
+        let tokens = |e: &Value| e["tokens"].as_u64().unwrap();
+        assert!(
+            bytes(&summary) <= bytes(&standard),
+            "bytes summary ≤ standard"
+        );
+        assert!(bytes(&standard) <= bytes(&full), "bytes standard ≤ full");
+        assert!(
+            tokens(&summary) <= tokens(&standard),
+            "tokens summary ≤ standard"
+        );
+        assert!(tokens(&standard) <= tokens(&full), "tokens standard ≤ full");
+
+        // Unknown detail / format is a hard error listing the valid values.
+        let bad_detail = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "verbose"})),
+        );
+        assert_eq!(
+            bad_detail["ok"], false,
+            "unknown detail hard-fails: {bad_detail}"
+        );
+        let bad_format = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "format": "yaml"})),
+        );
+        assert_eq!(
+            bad_format["ok"], false,
+            "unknown format hard-fails: {bad_format}"
+        );
+    }
+
+    /// `doc_card` full tier populates the rich panels FROM the documentation graph:
+    /// the full markdown inlines an actual entailment conclusion and a fixture title
+    /// the sibling `entailments` / `counter_examples` tools report for the term.
+    #[test]
+    fn tool_doc_card_full_inlines_graph_panels() {
+        let server = consumer_server();
+        let term = richest_card_term(&server);
+
+        let full = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "full"})),
+        );
+        let f_card = full["card"].as_str().expect("full markdown card");
+
+        // An entailment's conclusion (from the SAME graph the `entailments` tool reads).
+        let ents = text_payload(server.call_tool_result("entailments", &json!({"term": term})));
+        let conclusion = ents["entailments"][0]["conclusion"]
+            .as_str()
+            .expect("the richest term grounds an entailment with a conclusion");
+        assert!(
+            f_card.contains(conclusion),
+            "full card inlines the entailment conclusion {conclusion:?}"
+        );
+
+        // A fixture title (from the SAME graph the `counter_examples` tool reads).
+        let fixtures =
+            text_payload(server.call_tool_result("counter_examples", &json!({"term": term})));
+        let title = fixtures["counter_examples"]
+            .get(0)
+            .and_then(|f| f["title"].as_str())
+            .or_else(|| {
+                fixtures["wellformed"]
+                    .get(0)
+                    .and_then(|f| f["title"].as_str())
+            })
+            .expect("the richest term documents a fixture with a title");
+        assert!(
+            f_card.contains(title),
+            "full card inlines the fixture title {title:?}"
         );
     }
 
