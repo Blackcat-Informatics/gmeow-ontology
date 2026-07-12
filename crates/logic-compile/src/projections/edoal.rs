@@ -453,6 +453,94 @@ fn resolve_entity_kind(
     }))
 }
 
+/// The `gmeow:opIri` expression operator: the sole GMEOW construct that mints a fresh
+/// IRI. A `gmeow:mint`/`gmeow:bind` whose expression is NOT this operator (nor a bare
+/// constant IRI) produces a literal, not an individual — e.g. `gedcom.ttl`'s
+/// `gmeow:mint [ gmeow:bindVar "gsexmVal" ; gmeow:bindExpr "M" ]` mints a bare status
+/// LETTER, not an IRI.
+const GM_OP_IRI: &str = "https://blackcatinformatics.ca/gmeow/opIri";
+
+/// Whether a `gmeow:bind`/`gmeow:mint` expression manifestly produces an IRI (an
+/// individual), as opposed to a literal.
+fn expr_mints_iri(expr: &crate::projections::get_leg::Expr) -> bool {
+    use crate::projections::get_leg::Expr;
+    matches!(expr, Expr::ConstIri(_)) || matches!(expr, Expr::Op { op, .. } if op == GM_OP_IRI)
+}
+
+/// Derive entity2's (the EDOAL target's) kind from the correspondence's own TEMPLATE —
+/// never from the GMEOW source predicate's OWL character, and never from a guess at the
+/// external vocabulary's semantics. EDOAL is a lossy projection OF the `logic:`/GMEOW
+/// core (Principle 17): the target predicate's kind is fully determined by GMEOW's own
+/// `gmeow:templateAtoms`, the correspondence's authored construction of the target
+/// triples (never the SOURCE predicate's character, which is what the historical bug
+/// conflated: `gmeow:startedAtTime` is a `owl:DatatypeProperty`, but the TEMPLATE shows
+/// `time:hasBeginning` points at a minted `time:Instant` individual, not a literal).
+/// `None` when the binding names no `to_predicate`, no template atom names that
+/// predicate, or the atom's object position is genuinely indeterminate from the template
+/// (and the GMEOW source pattern that feeds it) — the caller then requires an explicit
+/// `gmeow:edoalTargetKind` override or hard-fails (never silently guesses).
+///
+/// Classification of the matched atom's object position:
+/// - a fixed literal (`gmeow:objectLiteral`) → `property` (a datatype edge).
+/// - a fixed IRI value (`gmeow:tObjValue`) → `relation` (an object edge to a known term).
+/// - a variable (`gmeow:tObj`):
+///   - bound by a `gmeow:mint`/`gmeow:bind` → the bind expression decides: an IRI-minting
+///     expression ([`expr_mints_iri`]) → `relation`; any other (e.g. a literal status
+///     code) → `property`.
+///   - used as the SUBJECT of some other atom — in the template (e.g. a `rdf:type` atom
+///     declaring its class) OR in the GMEOW source pattern — → `relation`. Only an
+///     individual can ever be an RDF subject, so a variable the model predicates further
+///     facts about is structurally an individual, proven by the model's own shape.
+///   - otherwise a pure leaf: traced to the GMEOW source atom that binds it, and
+///     classified by THAT edge's OWL character in the GMEOW ontology
+///     ([`gmeow_entity_kind`]) — an object property produces an individual (`relation`),
+///     a datatype/annotation property a literal (`property`). This reads GMEOW's own
+///     declared character of the SOURCE edge that fills the variable, never the
+///     EXTERNAL target predicate's assumed semantics.
+fn template_target_kind(
+    onto: &DslView,
+    binding: &ProfileBinding,
+    pattern: &MappingPattern,
+) -> Option<&'static str> {
+    let to_pred = binding.to_predicate.as_deref()?;
+    let atom = binding
+        .template_atoms
+        .iter()
+        .find(|a| a.predicate.as_deref() == Some(to_pred))?;
+    if atom.object_literal.is_some() {
+        return Some("property");
+    }
+    if atom.object_value.is_some() {
+        return Some("relation");
+    }
+    let var = atom.object_var.as_deref()?;
+
+    if let Some(bind) = pattern.mints.iter().find(|m| m.var == var) {
+        return Some(if expr_mints_iri(&bind.expr) {
+            "relation"
+        } else {
+            "property"
+        });
+    }
+
+    let is_subject_somewhere = binding.template_atoms.iter().any(|a| a.subject_var == var)
+        || pattern.flat_atoms().iter().any(|a| a.subject_var == var);
+    if is_subject_somewhere {
+        return Some("relation");
+    }
+
+    let source_pred = pattern
+        .flat_atoms()
+        .into_iter()
+        .find(|a| a.object_var.as_deref() == Some(var))
+        .and_then(|a| a.predicate)?;
+    match gmeow_entity_kind(onto, &source_pred) {
+        Some("property") => Some("property"),
+        Some(_) => Some("relation"),
+        None => None,
+    }
+}
+
 fn edoal_entity(nt: &mut Nt, term: &str, kind: &str) -> gmeow_errors::Result<String> {
     let node = nt.fresh_bnode();
     nt.add_iri(&node, RDF_TYPE, &format!("{EDOAL}{}", edoal_kind(kind)?));
@@ -552,14 +640,35 @@ fn edoal_cells(
         return Ok(cells);
     };
 
-    // entity2 (the external target): a class target is unambiguously `edoal:Class`; a
-    // predicate target's kind is DERIVED from the GMEOW value-producing predicate (or an
-    // explicit override), never the old silent `"property"` guess.
+    // entity2 (the external target): a class target is unambiguously `edoal:Class`. A
+    // predicate target whose correspondence is authored with a TEMPLATE
+    // (`b.template_atoms` non-empty — a multi-triple target shape, e.g. the owl-time
+    // minted-Instant idiom) derives its kind from that template (or an explicit
+    // override) — NEVER from the GMEOW source predicate's OWL character, which
+    // characterizes the SOURCE, not the target (the historical bug: `time:hasBeginning`
+    // mistyped as `edoal:Property` from `gmeow:startedAtTime`'s DatatypeProperty
+    // character, when the template shows it is an object edge to a minted `time:Instant`
+    // individual). A direct 1:1 predicate target (no template) still derives from the
+    // GMEOW source's OWL character, since there is no template to consult.
     let target_kind: &'static str = match sort {
         TargetSort::Class => match b.edoal_target_kind.as_deref() {
             Some(k) => valid_kind(k)?,
             None => "class",
         },
+        TargetSort::Predicate if !b.template_atoms.is_empty() => {
+            match b.edoal_target_kind.as_deref() {
+                Some(k) => valid_kind(k)?,
+                None => template_target_kind(onto, b, pattern).ok_or_else(|| {
+                    Diag::of_kind(crate::error::Edoal {
+                        detail: format!(
+                            "{}: EDOAL target entity kind indeterminate from correspondence \
+                         template and no gmeow:edoalTargetKind override",
+                            cell.iri
+                        ),
+                    })
+                })?,
+            }
+        }
         TargetSort::Predicate => resolve_entity_kind(
             onto,
             value_pred.as_deref(),
@@ -1067,5 +1176,188 @@ mod tests {
         assert_eq!(edoal_kind("class").unwrap(), "Class");
         assert!(edoal_kind("relaton").is_err());
         assert!(valid_kind("relaton").is_err());
+    }
+
+    // ── Template-derived target kind (G1: EDOAL target kind must come from the
+    // correspondence TEMPLATE, never the GMEOW source predicate's OWL character) ──────
+
+    use crate::projections::get_leg::{Bind, Expr, Item};
+
+    fn plain_atom(subject_var: &str, predicate: &str, object_var: &str) -> Atom {
+        Atom {
+            subject_var: subject_var.to_owned(),
+            predicate: Some(predicate.to_owned()),
+            predicate_var: None,
+            path: None,
+            path_alts: Vec::new(),
+            object_var: Some(object_var.to_owned()),
+            object_value: None,
+            object_literal: None,
+            optional: false,
+        }
+    }
+
+    fn typed_atom(subject_var: &str, class_iri: &str) -> Atom {
+        Atom {
+            subject_var: subject_var.to_owned(),
+            predicate: Some(RDF_TYPE.to_owned()),
+            predicate_var: None,
+            path: None,
+            path_alts: Vec::new(),
+            object_var: None,
+            object_value: Some(class_iri.to_owned()),
+            object_literal: None,
+            optional: false,
+        }
+    }
+
+    /// A `toPredicate` binding whose target is built from a TEMPLATE (`templateAtoms`),
+    /// not a direct 1:1 predicate — the shape `owl-time`'s `mapTimeHasBeginning` and
+    /// friends use.
+    fn templated_cell(
+        source_pred: &str,
+        source_kind_decl: &str,
+        mints: Vec<Bind>,
+        template_atoms: Vec<Atom>,
+        to_predicate: &str,
+    ) -> (ProjectionCell, std::sync::Arc<purrdf::RdfDataset>) {
+        let onto_ds = ds(&format!(
+            "{OWL_PREFIX} gm:{source_pred} a owl:{source_kind_decl} ."
+        ));
+        let cell = ProjectionCell {
+            iri: format!("{GM}cellTemplated"),
+            label: String::new(),
+            pattern: MappingPattern {
+                anchor: "s".to_owned(),
+                value: None,
+                atoms: vec![Item::Atom(plain_atom(
+                    "s",
+                    &format!("{GM}{source_pred}"),
+                    "v",
+                ))],
+                suppress_when: Vec::new(),
+                project_when: Vec::new(),
+                exclude_when: Vec::new(),
+                filters: Vec::new(),
+                binds: Vec::new(),
+                mints,
+                edoal_source: Some(format!("{GM}{source_pred}")),
+                edoal_source_kind: None,
+                edoal_path: false,
+            },
+            bindings: vec![ProfileBinding {
+                profile: "owl-time".to_owned(),
+                to_predicate: Some(to_predicate.to_owned()),
+                to_class: None,
+                template_atoms,
+                value_class_map: Vec::new(),
+                relation: "<=".to_owned(),
+                transform: None,
+                confidence: None,
+                lossy_drops: Vec::new(),
+                edoal_target: None,
+                edoal_target_kind: None,
+                morphism_class: None,
+                ingest_claim: None,
+                ingest_residue: Vec::new(),
+                mnemomorphic: false,
+                emit_sssom: false,
+                sssom_predicate: None,
+                sssom_file: None,
+            }],
+        };
+        (cell, onto_ds)
+    }
+
+    #[test]
+    fn template_minted_iri_object_derives_relation_even_though_source_is_a_datatype_property() {
+        // The `owl-time` shape: `gm:startedAtTime` (source, DatatypeProperty) feeds the
+        // pattern's plain value var "v", but the TEMPLATE's `time:hasBeginning` atom
+        // points at a MINTED "inst" var (a fresh IRI, via `opIri`), then types it
+        // `time:Instant`. The target is manifestly an individual — `relation` — even
+        // though the source predicate carries a literal (DatatypeProperty) character.
+        // This is the exact G1 regression: the old code derived entity2 from the
+        // source's OWL character and got `Property`, not `Relation`.
+        let ex_beginning = "http://example.org/hasBeginning";
+        let ex_instant = "http://example.org/Instant";
+        let (cell, onto_ds) = templated_cell(
+            "startedAtTime",
+            "DatatypeProperty",
+            vec![Bind {
+                var: "inst".to_owned(),
+                expr: Expr::Op {
+                    op: GM_OP_IRI.to_owned(),
+                    args: Vec::new(),
+                },
+            }],
+            vec![
+                plain_atom("s", ex_beginning, "inst"),
+                typed_atom("inst", ex_instant),
+            ],
+            ex_beginning,
+        );
+        let onto = DslView::new(&onto_ds);
+        let b = &cell.bindings[0];
+        assert_eq!(
+            template_target_kind(&onto, b, &cell.pattern),
+            Some("relation"),
+            "a minted-IRI template object is an individual, not a literal"
+        );
+        let nt = emit_kind_nt(&onto, &cell).expect("template derivation succeeds");
+        // entity1 (source `gm:startedAtTime`) still derives its OWN kind from ITS OWN
+        // OWL character (`Property`, DatatypeProperty) — entity1 resolution is
+        // untouched by this fix. entity2 (target) derives `Relation` from the
+        // template. The cross-kind pairing is legal under `<=` (subsumption).
+        assert!(nt.contains(&format!("{EDOAL}Property")), "{nt}");
+        assert!(nt.contains(&format!("{EDOAL}Relation")), "{nt}");
+    }
+
+    #[test]
+    fn template_literal_var_derives_property_even_though_no_mint_or_subject_use() {
+        // The `spdx:checksumValue` shape (dcat.ttl's `mapDcatChecksum`): the template's
+        // `spdx:checksumValue` atom points at "digest", a var that is never minted and
+        // never a template/source SUBJECT — a pure leaf. It traces back to the GMEOW
+        // source atom `gm:contentDigest` (a DatatypeProperty), so it is a literal.
+        let ex_checksum_value = "http://example.org/checksumValue";
+        let (cell, onto_ds) = templated_cell(
+            "contentDigest",
+            "DatatypeProperty",
+            Vec::new(),
+            vec![plain_atom("chk", ex_checksum_value, "v")],
+            ex_checksum_value,
+        );
+        let onto = DslView::new(&onto_ds);
+        let b = &cell.bindings[0];
+        assert_eq!(
+            template_target_kind(&onto, b, &cell.pattern),
+            Some("property")
+        );
+        let nt = emit_kind_nt(&onto, &cell).expect("template derivation succeeds");
+        assert!(nt.contains(&format!("{EDOAL}Property")), "{nt}");
+        assert!(!nt.contains(&format!("{EDOAL}Relation")), "{nt}");
+    }
+
+    #[test]
+    fn template_atoms_present_but_no_atom_names_to_predicate_is_a_hard_fail_without_override() {
+        // `template_atoms` is non-empty (so the direct source-derived fallback must NOT
+        // silently kick in — Constitution no-optionality) but NO template atom names
+        // `to_predicate`: `template_target_kind` returns `None`, and with no authored
+        // `gmeow:edoalTargetKind` override, `edoal_cells` must hard-fail rather than
+        // guess from the source (the historical bug).
+        let ex_target = "http://example.org/unrelatedTarget";
+        let (cell, onto_ds) = templated_cell(
+            "startedAtTime",
+            "DatatypeProperty",
+            Vec::new(),
+            vec![plain_atom("s", "http://example.org/somethingElse", "v")],
+            ex_target,
+        );
+        let onto = DslView::new(&onto_ds);
+        let b = &cell.bindings[0];
+        assert_eq!(template_target_kind(&onto, b, &cell.pattern), None);
+        let err = emit_kind_nt(&onto, &cell)
+            .expect_err("an indeterminate template target with no override must hard-fail");
+        assert!(err.message().contains("indeterminate"), "{err}");
+        assert!(err.message().contains("template"), "{err}");
     }
 }
