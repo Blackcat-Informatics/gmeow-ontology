@@ -272,7 +272,7 @@ gmeow:mapDoapGitRepository a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "dgit" ; gmeow:predicate gmeow:repositoryType ; gmeow:objectValue gmeow:repoTypeGit ] ) ;
         gmeow:edoalSource gmeow:repositoryType ] ;
     gmeow:hasBinding [
-        gmeow:profile "doap" ; gmeow:toClass doap:GitRepository ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+        gmeow:profile "doap" ; gmeow:toClass doap:GitRepository ; gmeow:relation "<=" ; gmeow:confidence 0.95 ] .
 
 
 gmeow:mapDoapCategory a gmeow:ProjectionMapping ;

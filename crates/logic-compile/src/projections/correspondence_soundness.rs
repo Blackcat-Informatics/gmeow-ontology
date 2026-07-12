@@ -145,6 +145,7 @@ const RDFS_SEE_ALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 
 const OWL_OBJECT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ObjectProperty";
 const OWL_DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
 const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricProperty";
 const OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
@@ -170,7 +171,14 @@ const FNO_PREDICATE: &str = "https://w3id.org/function/ontology#predicate";
 const FNO_TYPE: &str = "https://w3id.org/function/ontology#type";
 
 const ALIGN_CELL: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#Cell";
+const ALIGN_ENTITY1: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity1";
+const ALIGN_ENTITY2: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#entity2";
+const ALIGN_RELATION: &str = "http://knowledgeweb.semanticweb.org/heterogeneity/alignment#relation";
 const EDOAL_TRANSFORMATION: &str = "http://ns.inria.org/edoal/1.0/#transformation";
+const EDOAL_URI: &str = "http://ns.inria.org/edoal/1.0/#uri";
+const EDOAL_RELATION_T: &str = "http://ns.inria.org/edoal/1.0/#Relation";
+const EDOAL_PROPERTY_T: &str = "http://ns.inria.org/edoal/1.0/#Property";
+const EDOAL_CLASS_T: &str = "http://ns.inria.org/edoal/1.0/#Class";
 
 /// Known alignment-target prefixes (the keys of the historical `ALIGNMENT_TARGETS`).
 const ALIGNMENT_TARGETS: &[&str] = &[
@@ -416,9 +424,158 @@ pub fn run_soundness(inputs: &SoundnessInputs<'_>) -> Vec<ProjectionDiagnostic> 
     let mut out: Vec<ProjectionDiagnostic> = Vec::new();
     out.extend(fno_type_mismatches(inputs.ontology, inputs.fno));
     out.extend(fno_reference_integrity(inputs.fno, inputs.edoal));
+    out.extend(check_edoal_entity_kind(
+        inputs.ontology,
+        inputs.target_graphs,
+        inputs.edoal,
+    ));
     out.extend(lint_alignment_directions(inputs));
     out.sort_by(ProjectionDiagnostic::cmp_severity_check_instance);
     out
+}
+
+/// Cross-check the committed EDOAL cells' entity kinds for coherence. Emission DERIVES
+/// each kind from the GMEOW source term's OWL character, so a finding here is a genuine
+/// drift, never a guess:
+/// * **A** — a direct-URI cell must align same-kind entities (`entity1` kind = `entity2`).
+/// * **C** — `entity1` (the GMEOW source) must match its own OWL character in the ontology
+///   (an authored `gmeow:edoalSourceKind` override that contradicts GMEOW is rejected).
+/// * **B** — an equivalence (`=`) cell's external target (`entity2`) must match the target
+///   vocabulary's OWL kind where a committed snapshot declares it (best-effort: skipped
+///   when no axioms exist, and only for `=` since a `<=` collapse may cross kinds lossily).
+fn check_edoal_entity_kind(
+    onto: &DslView<'_>,
+    target_graphs: &BTreeMap<String, DslView<'_>>,
+    edoal: &[(String, DslView<'_>)],
+) -> Vec<ProjectionDiagnostic> {
+    let mut out: Vec<ProjectionDiagnostic> = Vec::new();
+    for (name, view) in edoal {
+        for cell in subject_terms_of_type(view, ALIGN_CELL) {
+            let (Some(n1), Some(n2)) = (
+                view.objects_of_term(&cell, ALIGN_ENTITY1)
+                    .into_iter()
+                    .next(),
+                view.objects_of_term(&cell, ALIGN_ENTITY2)
+                    .into_iter()
+                    .next(),
+            ) else {
+                continue;
+            };
+            let (Some((k1, uri1)), Some((k2, uri2))) = (
+                edoal_node_kind_uri(view, &n1),
+                edoal_node_kind_uri(view, &n2),
+            ) else {
+                continue;
+            };
+
+            // A — an EQUIVALENCE (`=`) direct-URI cell must align same-kind entities. A
+            // lossy `<=` collapse may legitimately cross kinds (e.g. a GMEOW relation
+            // projected onto a target literal or class), documented by its lossyDrop.
+            if let (Some(u1), Some(u2)) = (&uri1, &uri2)
+                && k1 != k2
+                && cell_is_equivalence(view, &cell)
+            {
+                out.push(ProjectionDiagnostic::error(
+                    "edoal-entity-kind",
+                    format!(
+                        "{name}: equivalence cell aligns edoal:{k1} ({u1}) with edoal:{k2} ({u2}) \
+                         — entity1/entity2 kind mismatch"
+                    ),
+                    Some(u2.clone()),
+                ));
+            }
+
+            // C — an equivalence cell's entity1 (GMEOW source) must match its ontology OWL
+            // character; a lossy `<=` projection may carry a deliberately coarsened kind.
+            if let Some(u1) = &uri1
+                && cell_is_equivalence(view, &cell)
+                && let Some(expected) = owl_kind_edoal(onto, u1)
+                && expected != k1
+            {
+                out.push(ProjectionDiagnostic::error(
+                    "edoal-entity-kind",
+                    format!(
+                        "{name}: equivalence cell entity1 emitted edoal:{k1} but GMEOW {u1} is an \
+                         owl:{expected} term"
+                    ),
+                    Some(u1.clone()),
+                ));
+            }
+
+            // B — an equivalence cell's external target must match the target vocabulary.
+            if let Some(u2) = &uri2
+                && cell_is_equivalence(view, &cell)
+                && let Some(expected) = target_owl_kind_edoal(target_graphs, u2)
+                && expected != k2
+            {
+                out.push(ProjectionDiagnostic::error(
+                    "edoal-entity-kind",
+                    format!(
+                        "{name}: entity2 emitted edoal:{k2} but target {u2} is an owl:{expected} \
+                         in its vocabulary (equivalence must not cross kinds)"
+                    ),
+                    Some(u2.clone()),
+                ));
+            }
+        }
+    }
+    out
+}
+
+/// The EDOAL kind (`Relation`/`Property`/`Class`) an entity blank node is typed as, plus
+/// its `edoal:uri` when it is a direct term reference (`None` for a compose/restriction).
+fn edoal_node_kind_uri(
+    view: &DslView<'_>,
+    node: &DslTerm,
+) -> Option<(&'static str, Option<String>)> {
+    let kind = view
+        .objects_of_term(node, RDF_TYPE)
+        .into_iter()
+        .find_map(|t| match t.as_iri()? {
+            EDOAL_RELATION_T => Some("Relation"),
+            EDOAL_PROPERTY_T => Some("Property"),
+            EDOAL_CLASS_T => Some("Class"),
+            _ => None,
+        })?;
+    Some((kind, view.object_iri_of_term(node, EDOAL_URI)))
+}
+
+/// The EDOAL kind implied by a GMEOW term's OWL character in the ontology, or `None`.
+fn owl_kind_edoal(onto: &DslView<'_>, iri: &str) -> Option<&'static str> {
+    if has_type(onto, iri, OWL_OBJECT_PROPERTY) {
+        Some("Relation")
+    } else if has_type(onto, iri, OWL_DATATYPE_PROPERTY) {
+        Some("Property")
+    } else if has_type(onto, iri, OWL_CLASS) {
+        Some("Class")
+    } else {
+        None
+    }
+}
+
+/// The EDOAL kind a target vocabulary declares for `iri` (scanning every committed target
+/// graph), or `None` when no snapshot types it as an object/datatype property.
+fn target_owl_kind_edoal(
+    target_graphs: &BTreeMap<String, DslView<'_>>,
+    iri: &str,
+) -> Option<&'static str> {
+    for graph in target_graphs.values() {
+        let types = objects_iri(graph, iri, RDF_TYPE);
+        if types.iter().any(|t| t == OWL_OBJECT_PROPERTY) {
+            return Some("Relation");
+        }
+        if types.iter().any(|t| t == OWL_DATATYPE_PROPERTY) {
+            return Some("Property");
+        }
+    }
+    None
+}
+
+/// Whether an `align:Cell` carries the equivalence relation token `=`.
+fn cell_is_equivalence(view: &DslView<'_>, cell: &DslTerm) -> bool {
+    view.objects_of_term(cell, ALIGN_RELATION)
+        .iter()
+        .any(|t| t.as_literal() == Some("="))
 }
 
 /// Run only the five alignment-direction checks (the historical

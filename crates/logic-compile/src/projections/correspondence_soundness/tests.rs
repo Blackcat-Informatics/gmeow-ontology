@@ -548,3 +548,75 @@ fn run_soundness_combines_and_sorts() {
         );
     }
 }
+
+const EDOAL_PREFIXES: &str = "@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .\n\
+     @prefix edoal: <http://ns.inria.org/edoal/1.0/#> .\n\
+     @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+     @prefix ex: <http://example.org/> .\n\
+     @prefix gm: <https://blackcatinformatics.ca/gmeow/> .\n";
+
+/// An equivalence cell aligning a datatype `edoal:Property` with an object `edoal:Relation`
+/// is rejected — the exact recurrence of the silent-mistyping bug this gate guards.
+#[test]
+fn edoal_entity_kind_flags_equivalence_mismatch() {
+    let onto_ds = ds("");
+    let onto = DslView::new(&onto_ds);
+    let targets: BTreeMap<String, DslView<'_>> = BTreeMap::new();
+    let edoal_ds = ds(&format!(
+        "{EDOAL_PREFIXES}\
+         [] a align:Cell ; align:relation \"=\" ;\n\
+            align:entity1 [ a edoal:Property ; edoal:uri ex:src ] ;\n\
+            align:entity2 [ a edoal:Relation ; edoal:uri ex:tgt ] .\n",
+    ));
+    let edoal = vec![("t.edoal.ttl".to_owned(), DslView::new(&edoal_ds))];
+    let findings = check_edoal_entity_kind(&onto, &targets, &edoal);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.check == "edoal-entity-kind" && f.severity == "ERROR"),
+        "expected an entity1/entity2 mismatch finding, got {findings:?}"
+    );
+}
+
+/// The gate accepts a coherent equivalence, tolerates a lossy `<=` cross-kind collapse,
+/// and flags an equivalence whose entity1 contradicts its GMEOW OWL character.
+#[test]
+fn edoal_entity_kind_scopes_to_equivalence_and_gmeow() {
+    let onto_ds = ds("@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix gm: <https://blackcatinformatics.ca/gmeow/> .\n\
+         gm:rel a owl:ObjectProperty .\n\
+         gm:dat a owl:DatatypeProperty .\n");
+    let onto = DslView::new(&onto_ds);
+    let targets: BTreeMap<String, DslView<'_>> = BTreeMap::new();
+
+    // Coherent equivalence (both Relation) + a lossy `<=` that crosses kinds → clean.
+    let clean_ds = ds(&format!(
+        "{EDOAL_PREFIXES}\
+         [] a align:Cell ; align:relation \"=\" ;\n\
+            align:entity1 [ a edoal:Relation ; edoal:uri gm:rel ] ;\n\
+            align:entity2 [ a edoal:Relation ; edoal:uri ex:b ] .\n\
+         [] a align:Cell ; align:relation \"<=\" ;\n\
+            align:entity1 [ a edoal:Relation ; edoal:uri gm:rel ] ;\n\
+            align:entity2 [ a edoal:Property ; edoal:uri ex:d ] .\n",
+    ));
+    let clean = vec![("c.edoal.ttl".to_owned(), DslView::new(&clean_ds))];
+    assert!(
+        check_edoal_entity_kind(&onto, &targets, &clean).is_empty(),
+        "coherent + lossy cells must not be flagged"
+    );
+
+    // An equivalence emitting a datatype GMEOW term as edoal:Relation is rejected (Check C).
+    let bad_ds = ds(&format!(
+        "{EDOAL_PREFIXES}\
+         [] a align:Cell ; align:relation \"=\" ;\n\
+            align:entity1 [ a edoal:Relation ; edoal:uri gm:dat ] ;\n\
+            align:entity2 [ a edoal:Relation ; edoal:uri ex:b ] .\n",
+    ));
+    let bad = vec![("b.edoal.ttl".to_owned(), DslView::new(&bad_ds))];
+    assert!(
+        check_edoal_entity_kind(&onto, &targets, &bad)
+            .iter()
+            .any(|f| f.message.contains("owl:Property")),
+        "entity1 lying about a datatype GMEOW term must be flagged"
+    );
+}
