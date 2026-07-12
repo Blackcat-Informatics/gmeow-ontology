@@ -1937,3 +1937,98 @@ math:AlternativeSidednessValueShape
         sh:severity sh:Violation ;
         sh:message "A math:PValue's math:alternativeSidedness must be one of the six lawful math:Sidedness values (one-sided, two-sided, greater, less, exact, mid-p); a value outside them is not a lawful sidedness and marks the p-value ill-framed (math:IllFramedPValue)." ;
     ] .
+
+# =========================================================================== #
+# Interval, region, and effect-size gates — the rest of the "Inference and
+# results" charter section. A confidence interval carries its bounds and level;
+# a credible interval carries its posterior and mass; a node typed both a
+# confidence and a credible interval conflates frequentist coverage with
+# posterior mass (paired SHACL over the entailed paradigm disjointness); an
+# effect size identifies its contrast, scale, and frame.
+# =========================================================================== #
+
+# Rule I3 — a confidence interval is never also a credible interval. The OWL
+# disjointness is ENTAILED by the paradigm parents (math:ConfidenceInterval ⊑
+# math:FrequentistResult, math:CredibleInterval ⊑ math:BayesianResult,
+# math:FrequentistResult owl:disjointWith math:BayesianResult); this paired SHACL
+# surfaces the same conflation as a finding so a both-typed node trips
+# shacl.NotConstraintComponent instead of resting only on the DL gate.
+math:IntervalKindConflationShape
+    a sh:NodeShape ;
+    rdfs:label "Interval-kind conflation shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ConfidenceInterval: it is NOT also typed math:CredibleInterval. A confidence interval's level is frequentist coverage under a sampling procedure; a credible interval's mass is a Bayesian posterior probability — they share the word 'interval' and nothing else, held owl:disjointWith THROUGH their paradigm parents (math:ConfidenceInterval ⊑ math:FrequentistResult, math:CredibleInterval ⊑ math:BayesianResult, math:FrequentistResult owl:disjointWith math:BayesianResult). This paired SHACL surfaces the same conflation as a finding so a node typed both trips shacl.NotConstraintComponent instead of resting only on the DL gate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IntervalKindConflation ;
+    sh:targetClass math:ConfidenceInterval ;
+    sh:not [ sh:class math:CredibleInterval ] ;
+    sh:severity sh:Violation ;
+    sh:message "A math:ConfidenceInterval must not also be a math:CredibleInterval — frequentist coverage and Bayesian posterior mass are different result kinds held disjoint through their paradigm parents; typing one node as both conflates them (math:IntervalKindConflation)." .
+
+# Rule I4 — a confidence interval carries its bounds and its confidence level.
+math:IncompleteConfidenceIntervalShape
+    a sh:NodeShape ;
+    rdfs:label "Confidence-interval completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ConfidenceInterval: it names its two bounds through math:hasIntervalBound (a two-sided interval carries its lower AND its upper endpoint, so min two) and its coverage through math:confidenceLevel (a framed math:ProbabilityValue over the sampling procedure, min one). The bound cardinality is authored as sh:minCount 2 — the cleanest expression of 'a lower and an upper endpoint' — so a one-endpoint or endpoint-less interval trips shacl.MinCountConstraintComponent, and an interval naming no level trips it too. A confidence interval missing its bounds or its level is a bare pair of numbers, not a coverage statement (math:IncompleteConfidenceInterval)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IncompleteConfidenceInterval ;
+    sh:targetClass math:ConfidenceInterval ;
+    sh:property [
+        sh:path math:hasIntervalBound ;
+        sh:minCount 2 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ConfidenceInterval must name its two bounds through math:hasIntervalBound — its lower AND its upper endpoint (sh:minCount 2); an interval missing a bound is ill-formed (math:IncompleteConfidenceInterval)." ;
+    ] ;
+    sh:property [
+        sh:path math:confidenceLevel ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ConfidenceInterval must name its coverage through math:confidenceLevel — a framed math:ProbabilityValue over the sampling procedure (sh:minCount 1); an interval with no confidence level is not a coverage statement (math:IncompleteConfidenceInterval)." ;
+    ] .
+
+# Rule I5 — a credible interval carries its posterior context and its credible mass.
+math:IncompleteCredibleIntervalShape
+    a sh:NodeShape ;
+    rdfs:label "Credible-interval completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:CredibleInterval: it names its posterior context through math:hasPosterior (the math:PosteriorDistribution it summarizes, min one) and its posterior mass through math:credibleMass (a framed math:ProbabilityValue over that posterior, min one). A credible interval's mass is a probability OVER a posterior, so both the posterior and the mass are required; an interval missing either trips shacl.MinCountConstraintComponent. A credible interval with no posterior or no credible mass cannot state a posterior probability that the parameter lies within it (math:IncompleteCredibleInterval)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IncompleteCredibleInterval ;
+    sh:targetClass math:CredibleInterval ;
+    sh:property [
+        sh:path math:hasPosterior ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:CredibleInterval must name its posterior context through math:hasPosterior — the math:PosteriorDistribution it summarizes (sh:minCount 1); an interval with no posterior cannot carry a posterior mass (math:IncompleteCredibleInterval)." ;
+    ] ;
+    sh:property [
+        sh:path math:credibleMass ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:CredibleInterval must name its posterior mass through math:credibleMass — a framed math:ProbabilityValue over its posterior (sh:minCount 1); an interval with no credible mass is not a posterior-probability statement (math:IncompleteCredibleInterval)." ;
+    ] .
+
+# Rule I6 — an effect size identifies its contrast, its scale, and its frame.
+math:UnframedEffectSizeShape
+    a sh:NodeShape ;
+    rdfs:label "Effect-size framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:EffectSize: it identifies all three of the frame that makes its magnitude interpretable — the comparison it measures through math:effectSizeContrast (the SAME shared math:StatisticalContrast an estimand targets, min one), the scale it is expressed on through math:effectSizeScale (a math:MeasurementScale, min one), and its reference frame through gmeow:hasReferenceFrame (the house frame predicate, the same edge a math:ProbabilityValue is framed by, min one). Any of the three absent trips shacl.MinCountConstraintComponent; an effect size missing its contrast, scale, or frame is an uninterpretable bare number (math:UnframedEffectSize)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnframedEffectSize ;
+    sh:targetClass math:EffectSize ;
+    sh:property [
+        sh:path math:effectSizeContrast ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:EffectSize must name the comparison it measures through math:effectSizeContrast — the shared math:StatisticalContrast (sh:minCount 1); an effect size with no contrast has no comparison it is the magnitude of (math:UnframedEffectSize)." ;
+    ] ;
+    sh:property [
+        sh:path math:effectSizeScale ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:EffectSize must name the scale it is expressed on through math:effectSizeScale — a math:MeasurementScale (sh:minCount 1); an effect size with no scale is a magnitude with no units of comparison (math:UnframedEffectSize)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasReferenceFrame ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:EffectSize must name its reference frame through gmeow:hasReferenceFrame — the house frame predicate the value is expressed in (sh:minCount 1); an effect size with no frame is an unframed bare number (math:UnframedEffectSize)." ;
+    ] .

@@ -696,6 +696,58 @@ ex:ecPValueMissingSidednessBad a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is the SAME math:PValue fully framed — a math:testStatistic, a math:nullHypothesis, a parameterized math:nullDistribution, and a framed math:ProbabilityValue magnitude — EXCEPT it omits BOTH math:tailDefinition AND math:alternativeSidedness, so the tail-or-sidedness arm of math:IllFramedPValueShape fires. math:AlternativeSidednessValueShape's sh:in is satisfied vacuously (no math:alternativeSidedness value to check), the framed value still satisfies the probability-value shapes, and the null distribution keeps the distribution gates silent, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:IllFramedPValue)." .
 
+# === Inference and results: a confidence interval carries its bounds and level (Rule I4) === #
+
+ex:ecConfidenceIntervalComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/confidence-interval-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ConfidenceInterval naming its two bounds through math:hasIntervalBound (satisfying sh:minCount 2) and its coverage through math:confidenceLevel — a framed math:ProbabilityValue, exact 95/100 in [0, 1] — satisfies math:IncompleteConfidenceIntervalShape; being no math:CredibleInterval it satisfies math:IntervalKindConflationShape's sh:not, and its framed rational level satisfies the probability-value shapes, so validation emits no findings." .
+
+ex:ecConfidenceIntervalIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/confidence-interval-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ConfidenceInterval carrying its two math:hasIntervalBound endpoints but omitting math:confidenceLevel (sh:minCount 1 on math:IncompleteConfidenceIntervalShape); its two bounds keep the bound arm satisfied and it is not a math:CredibleInterval so math:IntervalKindConflationShape stays satisfied, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteConfidenceInterval)." .
+
+# === Inference and results: a credible interval carries its posterior and mass (Rule I5) === #
+
+ex:ecCredibleIntervalComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/credible-interval-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:CredibleInterval naming its posterior context through math:hasPosterior (a family-named math:PosteriorDistribution, so the distribution gates stay silent) and its posterior mass through math:credibleMass — a framed math:ProbabilityValue, exact 95/100 in [0, 1] — satisfies math:IncompleteCredibleIntervalShape; being a math:BayesianResult and no math:ConfidenceInterval, no confidence-interval or conflation shape targets it, so validation emits no findings." .
+
+ex:ecCredibleIntervalIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/credible-interval-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:CredibleInterval naming its math:hasPosterior context but omitting math:credibleMass (sh:minCount 1 on math:IncompleteCredibleIntervalShape); its posterior arm stays satisfied, its posterior is a well-formed family-named math:PosteriorDistribution so no distribution gate fires, and it is no math:ConfidenceInterval, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteCredibleInterval)." .
+
+# === Inference and results: a confidence interval is never a credible interval (Rule I3) === #
+
+ex:ecIntervalKindsDistinct a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/interval-kinds-distinct.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ConfidenceInterval and a SEPARATE math:CredibleInterval, each on its own node and each complete for its own kind (the CI with bounds and a framed math:confidenceLevel, the credible interval with a posterior and a framed math:credibleMass), keep math:IntervalKindConflationShape's sh:not satisfied (neither node is typed both) and satisfy their respective completeness shapes, so validation emits no findings." .
+
+ex:ecIntervalKindConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/interval-kind-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is ONE node typed BOTH math:ConfidenceInterval and math:CredibleInterval, tripping the sh:not [ sh:class math:CredibleInterval ] of math:IntervalKindConflationShape. It is COMPLETE for both kinds — its two math:hasIntervalBound endpoints and framed math:confidenceLevel satisfy math:IncompleteConfidenceIntervalShape, and its math:hasPosterior and framed math:credibleMass satisfy math:IncompleteCredibleIntervalShape — so ONLY the sh:not fires: validation MUST emit shacl.NotConstraintComponent and NO other finding (math:IntervalKindConflation)." .
+
+# === Inference and results: an effect size identifies its contrast, scale, and frame (Rule I6) === #
+
+ex:ecEffectSizeFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/effect-size-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:EffectSize naming its comparison through math:effectSizeContrast (a math:StatisticalContrast), its scale through math:effectSizeScale (a math:MeasurementScale), and its reference frame through gmeow:hasReferenceFrame satisfies all three arms of math:UnframedEffectSizeShape, so validation emits no findings." .
+
+ex:ecEffectSizeUnframed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/effect-size-unframed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:EffectSize naming its math:effectSizeContrast and math:effectSizeScale but omitting gmeow:hasReferenceFrame (sh:minCount 1 on math:UnframedEffectSizeShape); the contrast and scale arms stay satisfied, so ONLY the frame arm fires: validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedEffectSize)." .
+
 # === Bridges: verification-result grounding ================================= #
 
 ex:ecVerificationResultGrounded a gmeow:ExampleConformance ;
