@@ -1030,12 +1030,19 @@ impl Executable {
         &self.head_predicates
     }
 
-    /// The `(rule, plan)` entries of stratum `k`, in program order — the executor's
-    /// per-round rule iteration, paired with each rule's precomputed join plan.
-    pub(crate) fn stratum_entries(&self, k: usize) -> impl Iterator<Item = (&EvalRule, &RulePlan)> {
-        self.strata[k]
-            .iter()
-            .map(move |&i| (&self.rules[i], &self.plans[i]))
+    /// The program-order rule indices assigned to stratum `k`.
+    ///
+    /// Exposing the immutable index slice lets the executor use Rayon's indexed
+    /// parallel iterator while preserving program order at the deterministic merge
+    /// boundary. The indices remain an implementation detail of this executable;
+    /// callers resolve them through [`rule_entry`](Self::rule_entry).
+    pub(crate) fn stratum_rule_indices(&self, k: usize) -> &[usize] {
+        &self.strata[k]
+    }
+
+    /// Resolve one executable rule index to its immutable rule and precomputed plan.
+    pub(crate) fn rule_entry(&self, index: usize) -> (&EvalRule, &RulePlan) {
+        (&self.rules[index], &self.plans[index])
     }
 
     /// The head predicates of stratum `k`'s rules — recorded into the settled frontier

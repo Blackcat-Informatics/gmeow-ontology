@@ -23,20 +23,20 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | nary-mini | co-witness | nary-existential | 16 | 6 | 565335 | 5680 | 97071 | true | true |
 | nary-mini | split-null | nary-existential | 14 | 6 | 458974 | 4686 | 84282 | true | true |
 | nary-mini | stb-like | nary-existential | 24 | 10 | 766049 | 7881 | 89385 | true | true |
-| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 184434 | 1729 | 22188 | true | true |
+| nemo-kr2024-mini | ancestor-query | backward | 9 | 3 | 183591 | 1701 | 22188 | true | true |
 | nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 110880 | 1072 | 16884 | true | true |
 | nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3901583 | 32984 | 37950 | true | true |
 | relational-core-mini | incremental-transitive-closure | incremental | 13 | 91 | 2411313 | 54874 | 130246 | true | true |
 | relational-core-mini | incremental-wfs-grounding | incremental-grounding | 1 | 7 | 7938051 | 190135 | 238187 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208440 | 53445 | 58601 | true | true |
-| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3969435 | 33972 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3942034 | 33688 | 42113 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6208028 | 53431 | 58601 | true | true |
+| relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3969023 | 33958 | 44101 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3941606 | 33674 | 42113 | true | true |
 | relational-core-mini | reachability | forward | 2 | 2 | 3702215 | 31095 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5406439 | 46486 | 53602 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5406020 | 46472 | 53602 | true | true |
 | relational-core-mini | scc | forward | 8 | 8 | 6142905 | 52303 | 53924 | true | true |
 | relational-core-mini | transitive-closure | forward | 3 | 3 | 3901828 | 33008 | 37913 | true | true |
-| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5476055 | 56964 | 213558 | true | true |
-| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7884439 | 107344 | 626039 | true | true |
+| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5475628 | 56950 | 213558 | true | true |
+| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7894694 | 107652 | 626039 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 
@@ -92,8 +92,8 @@ Each row is two complete materializations over identical inputs; parsing/EDB loa
 | nemo-kr2024-mini | transitive-connection | gmeow-native-plan-v1 | a77437b7834189200cb51b5b5e9f118c2b03e222241e222aca1415543ee67aee | false | true | 1 | 0 | 5 | 0 | 3 | 3 | 15941 | 13315 | 2626 | true | true | true | true |
 | relational-core-mini | mutual-recursion | gmeow-native-plan-v1 | 8625b5773c9fd37b151f8fd8aab0d2d6dfda6587b9918555ba42a8f1d7cf1047 | false | true | 1 | 0 | 8 | 0 | 10 | 10 | 37654 | 33856 | 3798 | true | true | true | true |
 | relational-core-mini | non-linear-transitive-closure | gmeow-native-plan-v1 | dd3e53e57eb1170b56d04302c32188208809460cb28952b0c4a0ea96098acd81 | false | true | 1 | 0 | 5 | 0 | 6 | 6 | 27700 | 25050 | 2650 | true | true | true | true |
-| relational-core-mini | points-to | gmeow-native-plan-v1 | 86af6d4aa41766e3c00b66b308daf047751a9ba4212e2b7feb42cda3ef5b8d01 | false | true | 1 | 0 | 5 | 0 | 4 | 4 | 21308 | 18679 | 2629 | true | true | true | true |
-| relational-core-mini | reachability | gmeow-native-plan-v1 | e046827c8a3d2c0341b8fc89a49422295bdb92da92691bb042bfefea80d55354 | false | true | 1 | 0 | 5 | 0 | 2 | 2 | 14862 | 12080 | 2782 | true | true | true | true |
+| relational-core-mini | points-to | gmeow-native-plan-v1 | 86af6d4aa41766e3c00b66b308daf047751a9ba4212e2b7feb42cda3ef5b8d01 | false | true | 1 | 0 | 5 | 0 | 4 | 4 | 21276 | 18647 | 2629 | true | true | true | true |
+| relational-core-mini | reachability | gmeow-native-plan-v1 | e046827c8a3d2c0341b8fc89a49422295bdb92da92691bb042bfefea80d55354 | false | true | 1 | 0 | 5 | 0 | 2 | 2 | 14830 | 12048 | 2782 | true | true | true | true |
 | relational-core-mini | same-generation | gmeow-native-plan-v1 | 74233e47e2e0af222e3d81165dcec62f686683df3f5e81dc8477279dd53c9d4d | false | true | 1 | 0 | 7 | 0 | 8 | 8 | 39033 | 35727 | 3306 | true | true | true | true |
 | relational-core-mini | scc | gmeow-native-plan-v1 | 33fc141eeda9d1a28700734213ac0b95583229f08bdeb18130a64b2756115001 | false | true | 1 | 0 | 8 | 0 | 8 | 8 | 28314 | 24534 | 3780 | true | true | true | true |
 | relational-core-mini | transitive-closure | gmeow-native-plan-v1 | 61dc4d342e01e2d8254f2d43dfb9a5db0625ca44331ca1e82c1e816192ebf616 | false | true | 1 | 0 | 5 | 0 | 3 | 3 | 15868 | 13244 | 2624 | true | true | true | true |
@@ -109,13 +109,13 @@ Each row executes the same warm physical plan over identical EDB/rules. Fact-clo
 | nemo-kr2024-mini | transitive-connection | 5 | 5 | 2 | 3 | 3 | 13315 | 9379 | 3936 | 639 | 577 | 62 | true | true | true |
 | relational-core-mini | mutual-recursion | 14 | 14 | 4 | 10 | 10 | 33856 | 20245 | 13611 | 1966 | 2134 | -168 | true | true | true |
 | relational-core-mini | non-linear-transitive-closure | 9 | 9 | 3 | 6 | 6 | 25050 | 16701 | 8349 | 1282 | 1143 | 139 | true | true | true |
-| relational-core-mini | points-to | 8 | 8 | 3 | 4 | 4 | 18679 | 13077 | 5602 | 988 | 902 | 86 | true | true | true |
-| relational-core-mini | reachability | 4 | 4 | 2 | 2 | 2 | 12080 | 8610 | 3470 | 515 | 443 | 72 | true | true | true |
-| relational-core-mini | same-generation | 12 | 12 | 2 | 8 | 8 | 35727 | 26005 | 9722 | 2096 | 1787 | 309 | true | true | true |
+| relational-core-mini | points-to | 8 | 8 | 3 | 4 | 4 | 18647 | 13077 | 5570 | 1002 | 916 | 86 | true | true | true |
+| relational-core-mini | reachability | 4 | 4 | 2 | 2 | 2 | 12048 | 8610 | 3438 | 515 | 443 | 72 | true | true | true |
+| relational-core-mini | same-generation | 12 | 12 | 2 | 8 | 8 | 35727 | 26005 | 9722 | 2068 | 1759 | 309 | true | true | true |
 | relational-core-mini | scc | 10 | 10 | 3 | 8 | 8 | 24534 | 14235 | 10299 | 1463 | 1201 | 262 | true | true | true |
 | relational-core-mini | transitive-closure | 5 | 5 | 2 | 3 | 3 | 13244 | 9325 | 3919 | 639 | 549 | 90 | true | true | true |
-| relational-core-mini | transitive-closure-scaled | 90 | 90 | 12 | 78 | 78 | 198794 | 92812 | 105982 | 12153 | 16320 | -4167 | true | true | true |
-| relational-core-mini | triangle-heavy | 256 | 256 | 1 | 64 | 64 | 514700 | 344443 | 170257 | 49536 | 48770 | 766 | true | true | true |
+| relational-core-mini | transitive-closure-scaled | 90 | 90 | 12 | 78 | 78 | 198794 | 92812 | 105982 | 12223 | 16390 | -4167 | true | true | true |
+| relational-core-mini | triangle-heavy | 256 | 256 | 1 | 64 | 64 | 514700 | 344443 | 170257 | 49354 | 48588 | 766 | true | true | true |
 
 ## Per-corpus divergence-ledger tally
 

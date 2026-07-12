@@ -152,6 +152,13 @@ are consumed through its public Rust API:
   projection with the same telescoping product law. The WFS/stable-model wrappers
   cache an answer only for an unchanged EDB+ground-rule slice; a changed slice
   explicitly records and runs the still-non-incremental solver from scratch.
+- Deterministic intra-world parallelism:
+  `crates/logic/src/physical/seminaive.rs` evaluates the immutable per-rule work of
+  a semi-naive round into independent Rayon task buffers, consumes task results in
+  executable program order, quality-merges duplicate heads, and mutates the stores
+  only at the existing lexical `FactKey` commit. Budgeted and unbounded runs therefore
+  observe the identical committed prefix, provenance, and completion frontier; one-rule
+  strata and the one-worker deterministic measurement pool retain the direct path.
 - SIMD: `purrdf-iri` uses safe portable SIMD only for dense ASCII delimiter scans;
   semantic validation remains scalar and byte-exact.
 - Sealed traits: `purrdf::DatasetView` and `DatasetMut` are sealed to the purrdf
