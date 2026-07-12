@@ -33,6 +33,9 @@
 //! unique per relation, so a `Both` bound yields at most one row across the whole
 //! arrangement.
 
+use std::cmp::Reverse;
+use std::collections::BinaryHeap;
+
 use super::id::{RowId, TermId};
 use super::store::{Batch, Bound, Relation};
 
@@ -349,6 +352,9 @@ impl<const COLUMN: u8> OrderedSource<'_, COLUMN> {
 /// the seek operation used by leapfrog intersection.
 pub(crate) struct ValueCursor<'a, const COLUMN: u8> {
     sources: Vec<OrderedSource<'a, COLUMN>>,
+    /// One current row from every non-exhausted source. `Reverse` turns the
+    /// standard max-heap into a deterministic min-frontier.
+    frontier: BinaryHeap<Reverse<(TermId, RowId, usize)>>,
 }
 
 impl<'a, const COLUMN: u8> ValueCursor<'a, COLUMN> {
@@ -410,7 +416,12 @@ impl<'a, const COLUMN: u8> ValueCursor<'a, COLUMN> {
             }
         }
 
-        Self { sources }
+        let mut cursor = Self {
+            sources,
+            frontier: BinaryHeap::new(),
+        };
+        cursor.rebuild_frontier();
+        cursor
     }
 
     #[inline(always)]
@@ -423,27 +434,35 @@ impl<'a, const COLUMN: u8> ValueCursor<'a, COLUMN> {
         OrderedSource::<COLUMN>::other_matches(other, subject, object)
     }
 
+    fn rebuild_frontier(&mut self) {
+        self.frontier.clear();
+        for (source, run) in self.sources.iter().enumerate() {
+            if let Some((value, row)) = run.peek() {
+                self.frontier.push(Reverse((value, row, source)));
+            }
+        }
+    }
+
     /// Seek every sorted run, positioning the merged cursor at its first value
     /// `>= target`.
     pub(crate) fn seek(&mut self, target: TermId) {
         for source in &mut self.sources {
             source.seek(target);
         }
+        self.rebuild_frontier();
     }
 
     /// Yield the globally-smallest remaining `(value, row)` pair and advance its run.
     pub(crate) fn next(&mut self) -> Option<(TermId, RowId)> {
-        let mut choice: Option<(usize, (TermId, RowId))> = None;
-        for (index, source) in self.sources.iter().enumerate() {
-            let Some(row) = source.peek() else {
-                continue;
-            };
-            if choice.is_none_or(|(_, current)| row < current) {
-                choice = Some((index, row));
-            }
+        let Reverse((expected_value, expected_row, source)) = self.frontier.pop()?;
+        let row = self.sources[source]
+            .pop()
+            .expect("a frontier entry always names a live source row");
+        debug_assert_eq!(row, (expected_value, expected_row));
+        if let Some((value, row)) = self.sources[source].peek() {
+            self.frontier.push(Reverse((value, row, source)));
         }
-        let (index, _) = choice?;
-        self.sources[index].pop()
+        Some(row)
     }
 }
 
@@ -659,5 +678,28 @@ mod tests {
         assert!(!rows.is_empty());
         assert!(rows.iter().all(|&(value, _)| value >= target));
         assert_eq!(rows[0].0, target);
+    }
+
+    #[test]
+    fn value_cursor_frontier_removes_exhausted_batch_runs() {
+        let s = big_store();
+        let mut cursor = s.values_object("http://ex/p", None);
+        let source_count = cursor.sources.len();
+        assert!(source_count > 1, "fixture must span multiple sorted runs");
+
+        let mut previous = None;
+        let mut count = 0;
+        while let Some((value, _row)) = cursor.next() {
+            if let Some(previous) = previous {
+                assert!(previous <= value);
+            }
+            previous = Some(value);
+            count += 1;
+            assert!(cursor.frontier.len() <= source_count);
+        }
+
+        assert_eq!(count, 201);
+        assert!(cursor.frontier.is_empty());
+        assert!(cursor.sources.iter().all(|source| source.peek().is_none()));
     }
 }
