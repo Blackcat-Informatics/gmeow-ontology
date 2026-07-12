@@ -42,6 +42,8 @@ cost-baseline.json:generic-api-key:506
 cost-baseline.json:generic-api-key:509
 cost-baseline.json:generic-api-key:555
 cost-baseline.json:generic-api-key:558
+cost-baseline.json:generic-api-key:598
+cost-baseline.json:generic-api-key:601
 bench/cost-baseline.json:generic-api-key:92
 bench/cost-baseline.json:generic-api-key:95
 bench/cost-baseline.json:generic-api-key:122
@@ -66,3 +68,5 @@ bench/cost-baseline.json:generic-api-key:506
 bench/cost-baseline.json:generic-api-key:509
 bench/cost-baseline.json:generic-api-key:555
 bench/cost-baseline.json:generic-api-key:558
+bench/cost-baseline.json:generic-api-key:598
+bench/cost-baseline.json:generic-api-key:601
