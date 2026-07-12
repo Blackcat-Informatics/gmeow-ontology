@@ -478,7 +478,7 @@ gmeow:docFixtureKind
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc fixture kind"@x-gmeow-english ;
     rdfs:range gmeow:DocFixtureKind ;
-    skos:definition "Classifies a gmeow:DocFixture by exactly one gmeow:DocFixtureKind value — well-formed or counter-example. An instance-level owl:ObjectProperty from the fixture record to an enumerated kind individual."@x-gmeow-english ;
+    skos:definition "Classifies a gmeow:DocFixture by exactly one gmeow:DocFixtureKind value — well-formed or counter-example. An instance-level owl:ObjectProperty from the fixture record to an enumerated kind individual, never a plain string tag."@x-gmeow-english ;
     skos:example "ex:fixtureCatOk gmeow:docFixtureKind gmeow:docFixtureKindWellformed ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing it at a string literal (the kind is a first-class individual) and avoid asserting more than one kind per fixture."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -508,7 +508,7 @@ gmeow:docExpectedOutcome
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc expected outcome"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The authored expected outcome of a conformance fixture — \"conforms\" or \"violates\" — from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record. Absent when the fixture carries no authored binding (an honest absence)."@x-gmeow-english ;
+    skos:definition "The authored expected outcome of a conformance fixture — \"conforms\" or \"violates\" — from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record: one of exactly two enumerated tokens, never a free-text explanation (that is gmeow:conformanceRationale). Absent when the fixture carries no authored binding (an honest absence)."@x-gmeow-english ;
     skos:example "ex:fixtureCatOk gmeow:docExpectedOutcome \"conforms\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid fabricating it for an unbound fixture (leave it absent) and avoid values outside the \"conforms\"/\"violates\" pair."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -523,7 +523,7 @@ gmeow:docViolationCode
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc violation code"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The authored expected violation code of a counter-example fixture (e.g. \"shacl.MinCountConstraintComponent\"), carried on its gmeow:DocFixture record. Absent for a well-formed fixture or an unbound counter-example."@x-gmeow-english ;
+    skos:definition "The authored expected violation code of a counter-example fixture (e.g. \"shacl.MinCountConstraintComponent\"), carried on its gmeow:DocFixture record — the machine constraint identifier, never the human explanation of it (that is gmeow:conformanceRationale). Absent for a well-formed fixture or an unbound counter-example."@x-gmeow-english ;
     skos:example "ex:fixtureCatBad gmeow:docViolationCode \"shacl.MinCountConstraintComponent\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it on a well-formed fixture, and avoid inventing a code for an unbound counter-example (leave it absent)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -538,7 +538,7 @@ gmeow:conformanceRationale
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "conformance rationale"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The human-readable \"why\" a conformance fixture conforms or violates, from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record. Absent when the fixture carries no authored binding."@x-gmeow-english ;
+    skos:definition "The human-readable \"why\" a conformance fixture conforms or violates, from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record — the prose explanation, never the machine violation code sitting beside it (that is gmeow:docViolationCode). Absent when the fixture carries no authored binding."@x-gmeow-english ;
     skos:example "ex:fixtureCatBad gmeow:conformanceRationale \"A cat must declare an owner.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid fabricating a rationale for an unbound fixture (leave it absent) and avoid overloading it with the violation code — that is gmeow:docViolationCode."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -620,7 +620,7 @@ gmeow:cqExactRows
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq exact rows"@x-gmeow-english ;
     rdfs:range xsd:boolean ;
-    skos:definition "Whether a competency question's enumerated expected rows are the CLOSED result set (true) or a floor/subset the result must contain (false), carried on its gmeow:DocumentedCompetency record. Absent when the question declares neither."@x-gmeow-english ;
+    skos:definition "Whether a competency question's enumerated expected rows are the CLOSED result set (true) or a floor/subset the result must contain (false), carried on its gmeow:DocumentedCompetency record. Its absence is not a default of false — it means the question declares neither mode."@x-gmeow-english ;
     skos:example "ex:cqCatsRecord gmeow:cqExactRows true ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading its absence as false (absent means the question declared neither) and avoid asserting it without any enumerated expected rows to qualify."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -635,7 +635,7 @@ gmeow:cqRationale
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq rationale"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The human-readable \"why the ontology must answer this\" of a competency question, carried on its gmeow:DocumentedCompetency record. Absent when the question authors none."@x-gmeow-english ;
+    skos:definition "The human-readable \"why the ontology must answer this\" of a competency question, carried on its gmeow:DocumentedCompetency record — never the query mechanics it motivates (that is gmeow:cqQueryText). Absent when the question authors none."@x-gmeow-english ;
     skos:example "ex:cqCatsRecord gmeow:cqRationale \"Every cat must classify as an animal.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid fabricating a rationale where the question authors none (leave it absent) and avoid overloading it with the query text — that is gmeow:cqQueryText."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -650,7 +650,7 @@ gmeow:cqExpectedRow
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq expected row"@x-gmeow-english ;
     rdfs:range gmeow:CompetencyExpectedRow ;
-    skos:definition "Links a gmeow:DocumentedCompetency to one of its enumerated expected result rows (a gmeow:CompetencyExpectedRow). One edge per expected row, in the question's deterministic row order."@x-gmeow-english ;
+    skos:definition "Links a gmeow:DocumentedCompetency to one of its enumerated expected result rows (a gmeow:CompetencyExpectedRow). One edge per expected row, in the question's deterministic row order — it enumerates the actual expected content rather than pinning a bare cardinality (that is gmeow:cqExpectRowCount)."@x-gmeow-english ;
     skos:example "ex:cqCatsRecord gmeow:cqExpectedRow ex:cqCatsRow0 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid pointing it at anything but a gmeow:CompetencyExpectedRow node, and avoid using it where only a cardinality is known — that is gmeow:cqExpectRowCount."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -665,7 +665,7 @@ gmeow:cqCellVar
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq cell var"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The SPARQL projection variable an expected-row cell binds (the bare variable name, without the leading \"?\"), carried on the gmeow:CompetencyExpectedRow node beside its bound value."@x-gmeow-english ;
+    skos:definition "The SPARQL projection variable an expected-row cell binds — the bare variable name, not the full \"?\"-prefixed SPARQL syntax — carried on the gmeow:CompetencyExpectedRow node beside its bound value."@x-gmeow-english ;
     skos:example "ex:cqCatsRow0 gmeow:cqCellVar \"c\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid including the leading \"?\" (carry the bare name) and avoid asserting a var without a paired gmeow:cqCellValueIri or gmeow:cqCellValueLiteral."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -678,7 +678,7 @@ gmeow:cqCellValueIri
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq cell value iri"@x-gmeow-english ;
-    skos:definition "The expected IRI binding of an expected-row cell, carried on the gmeow:CompetencyExpectedRow node when the variable binds a resource. An owl:AnnotationProperty (Principle 3) because its object is frequently a TBox class or property, which a logical object property would pun as an individual."@x-gmeow-english ;
+    skos:definition "The expected IRI binding of an expected-row cell, carried on the gmeow:CompetencyExpectedRow node when the variable binds a resource — distinct from gmeow:cqCellValueLiteral, which carries a literal lexical form instead of a resource IRI. An owl:AnnotationProperty (Principle 3) because its object is frequently a TBox class or property, which a logical object property would pun as an individual."@x-gmeow-english ;
     skos:example "ex:cqCatsRow0 gmeow:cqCellValueIri gmeow:Cat ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it alongside gmeow:cqCellValueLiteral on the same cell (a cell binds either a resource or a literal) and avoid using it as a logical object property."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -693,7 +693,7 @@ gmeow:cqCellValueLiteral
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq cell value literal"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The expected literal lexical form of an expected-row cell, carried on the gmeow:CompetencyExpectedRow node when the variable binds a literal."@x-gmeow-english ;
+    skos:definition "The expected literal lexical form of an expected-row cell, carried on the gmeow:CompetencyExpectedRow node when the variable binds a literal — distinct from gmeow:cqCellValueIri, which carries a resource binding rather than a literal lexical form."@x-gmeow-english ;
     skos:example "ex:cqCountRow0 gmeow:cqCellValueLiteral \"3\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it alongside gmeow:cqCellValueIri on the same cell (a cell binds either a resource or a literal)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -744,7 +744,7 @@ gmeow:entailmentConclusion
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "entailment conclusion"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The concluded triple of a gmeow:Entailment derivation, as a compact deterministic \"s p o\" display (CURIE-compacted) — the fact the reasoner derived about the documented term."@x-gmeow-english ;
+    skos:definition "The concluded triple of a gmeow:Entailment derivation, as a compact deterministic \"s p o\" display (CURIE-compacted) — the fact the reasoner derived about the documented term, never one of the premises supporting it (that distinction belongs to gmeow:entailmentPremise)."@x-gmeow-english ;
     skos:example "ex:entCat0 gmeow:entailmentConclusion \"gmeow:Cat rdfs:subClassOf gmeow:Animal\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid packing more than one triple into it (one conclusion per derivation) and avoid a lossy paraphrase — carry the compact s p o display."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1166,7 +1166,7 @@ gmeow:docSearchAlignment
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc search alignment"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "One crosswalk alignment token of a gmeow:DocumentedTerm — a `tag:object` string (the alignment predicate's short tag plus the aligned resource's local name), carried repeatably as a searchable facet so an offline docs_search matches on external-vocabulary correspondences. The SAME sorted, deduped alignment facet the site search-index.json indexes (crates/docs render precompute_alignment_facets). Emitted once per token in sorted order; absent for a term with no linkages."@x-gmeow-english ;
+    skos:definition "One crosswalk alignment token of a gmeow:DocumentedTerm — a `tag:object` string (the alignment predicate's short tag plus the aligned resource's local name), carried repeatably as a searchable facet so an offline docs_search matches on external-vocabulary correspondences, distinct from gmeow:docSearchAdvice, which carries usage prose rather than an external crosswalk token. The SAME sorted, deduped alignment facet the site search-index.json indexes (crates/docs render precompute_alignment_facets). Emitted once per token in sorted order; absent for a term with no linkages."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docSearchAlignment \"exact:Q146\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid re-deriving the tokens differently from precompute_alignment_facets (the offline and online alignment facets must be identical) and avoid emitting it for a term with no linkages (leave it absent)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
