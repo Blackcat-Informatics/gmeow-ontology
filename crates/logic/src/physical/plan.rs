@@ -144,17 +144,7 @@ impl PlanCache {
         rules: Vec<EvalRule>,
     ) -> PlanLookup {
         let identity = PlanIdentity::new(contract_hash, &rules);
-        if let Some(position) = self
-            .entries
-            .iter()
-            .position(|entry| entry.identity == identity)
-        {
-            let entry = self
-                .entries
-                .remove(position)
-                .expect("located cache entry still exists");
-            let executable = entry.executable.clone();
-            self.entries.push_back(entry);
+        if let Some(executable) = self.lookup(&identity) {
             return PlanLookup {
                 executable,
                 cache_hit: true,
@@ -164,22 +154,40 @@ impl PlanCache {
         }
 
         let planning_units = static_planning_units(&rules);
-        let executable = Parsed::from_owned(identity.clone(), rules)
-            .stratify()
-            .map(|stratified| Arc::new(stratified.plan().into_executable()));
-        if self.entries.len() == self.capacity {
-            self.entries.pop_front();
-        }
-        self.entries.push_back(CachedPlan {
-            identity,
-            executable: executable.clone(),
-        });
+        let executable = compile_executable(identity.clone(), rules);
+        self.insert(identity, executable.clone());
         PlanLookup {
             executable,
             cache_hit: false,
             plan_builds: 1,
             planning_units,
         }
+    }
+
+    /// LRU lookup. The outer `Option` distinguishes a miss from a cached negative
+    /// result (`Some(None)`).
+    fn lookup(&mut self, identity: &PlanIdentity) -> Option<Option<Arc<Executable>>> {
+        let position = self
+            .entries
+            .iter()
+            .position(|entry| &entry.identity == identity)?;
+        let entry = self
+            .entries
+            .remove(position)
+            .expect("located cache entry still exists");
+        let executable = entry.executable.clone();
+        self.entries.push_back(entry);
+        Some(executable)
+    }
+
+    fn insert(&mut self, identity: PlanIdentity, executable: Option<Arc<Executable>>) {
+        if self.entries.len() == self.capacity {
+            self.entries.pop_front();
+        }
+        self.entries.push_back(CachedPlan {
+            identity,
+            executable,
+        });
     }
 }
 
@@ -188,10 +196,59 @@ static PLAN_CACHE: OnceLock<Mutex<PlanCache>> = OnceLock::new();
 /// Compile through the process-wide bounded plan cache.
 pub(crate) fn compile_cached(contract_hash: impl Into<String>, rules: Vec<EvalRule>) -> PlanLookup {
     let cache = PLAN_CACHE.get_or_init(|| Mutex::new(PlanCache::new(PLAN_CACHE_CAPACITY)));
-    cache
+    let identity = PlanIdentity::new(contract_hash, &rules);
+    let planning_units = static_planning_units(&rules);
+    let compile_identity = identity.clone();
+    compile_with_cache(cache, identity, planning_units, || {
+        compile_executable(compile_identity, rules)
+    })
+}
+
+fn compile_executable(identity: PlanIdentity, rules: Vec<EvalRule>) -> Option<Arc<Executable>> {
+    Parsed::from_owned(identity, rules)
+        .stratify()
+        .map(|stratified| Arc::new(stratified.plan().into_executable()))
+}
+
+/// Process-cache protocol: lookup under the mutex, compile without it, then
+/// re-lock and reuse a racing insertion or install this result.
+fn compile_with_cache(
+    cache: &Mutex<PlanCache>,
+    identity: PlanIdentity,
+    planning_units: u64,
+    compile: impl FnOnce() -> Option<Arc<Executable>>,
+) -> PlanLookup {
+    if let Some(executable) = cache
         .lock()
         .unwrap_or_else(std::sync::PoisonError::into_inner)
-        .get_or_compile(contract_hash, rules)
+        .lookup(&identity)
+    {
+        return PlanLookup {
+            executable,
+            cache_hit: true,
+            plan_builds: 0,
+            planning_units: 0,
+        };
+    }
+
+    let compiled = compile();
+    let executable = {
+        let mut cache = cache
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(existing) = cache.lookup(&identity) {
+            existing
+        } else {
+            cache.insert(identity, compiled.clone());
+            compiled
+        }
+    };
+    PlanLookup {
+        executable,
+        cache_hit: false,
+        plan_builds: 1,
+        planning_units,
+    }
 }
 
 fn static_planning_units(rules: &[EvalRule]) -> u64 {
@@ -1299,6 +1356,59 @@ mod tests {
             !cache.get_or_compile("contract-a", rules).cache_hit,
             "evicted identity must compile again"
         );
+    }
+
+    #[test]
+    fn process_cache_compiles_outside_lock_and_reuses_racing_same_key() {
+        let cache = Arc::new(Mutex::new(PlanCache::new(2)));
+        let barrier = Arc::new(std::sync::Barrier::new(2));
+        let rules = tc_rules();
+        let identity = PlanIdentity::new("racing-contract", &rules);
+        let units = static_planning_units(&rules);
+
+        let mut handles = Vec::new();
+        for _ in 0..2 {
+            let cache = cache.clone();
+            let barrier = barrier.clone();
+            let rules = rules.clone();
+            let identity = identity.clone();
+            handles.push(std::thread::spawn(move || {
+                let compile_identity = identity.clone();
+                compile_with_cache(&cache, identity, units, || {
+                    // Both builders can reach this barrier only if compilation runs
+                    // without the process-cache mutex held.
+                    barrier.wait();
+                    compile_executable(compile_identity, rules)
+                })
+            }));
+        }
+
+        let a = handles.remove(0).join().expect("first compiler joins");
+        let b = handles.remove(0).join().expect("second compiler joins");
+        assert!(!a.cache_hit && !b.cache_hit);
+        assert_eq!((a.plan_builds, b.plan_builds), (1, 1));
+        assert_eq!((a.planning_units, b.planning_units), (units, units));
+        let a = a.executable.expect("first executable");
+        let b = b.executable.expect("second executable");
+        assert!(
+            Arc::ptr_eq(&a, &b),
+            "the racing insert reuses one cached Arc"
+        );
+        assert_eq!(
+            cache
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .entries
+                .len(),
+            1,
+        );
+
+        let warm = compile_with_cache(&cache, identity, units, || {
+            panic!("a warm lookup must not compile")
+        });
+        assert!(warm.cache_hit);
+        assert_eq!((warm.plan_builds, warm.planning_units), (0, 0));
+        assert!(Arc::ptr_eq(&a, &warm.executable.expect("warm executable")));
     }
 
     #[test]
