@@ -497,7 +497,12 @@ fn expr_mints_iri(expr: &crate::projections::get_leg::Expr) -> bool {
 ///     a datatype/annotation property a literal (`property`). This reads GMEOW's own
 ///     declared character of the SOURCE edge that fills the variable, never the
 ///     EXTERNAL target predicate's assumed semantics.
-fn template_target_kind(
+///
+/// `pub(crate)` so [`crate::projections::correspondence_soundness`]'s entity2 coherence
+/// check can re-run this SAME derivation against the committed EDOAL bytes instead of
+/// duplicating it (or, worse, validating entity2 against the external target vocabulary —
+/// EDOAL is DERIVED FROM GMEOW's own templates, never validated against the target).
+pub(crate) fn template_target_kind(
     onto: &DslView,
     binding: &ProfileBinding,
     pattern: &MappingPattern,
