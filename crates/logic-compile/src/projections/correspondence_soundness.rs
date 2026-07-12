@@ -542,7 +542,8 @@ fn check_edoal_entity_kind(
             // in this profile targets `u2` via `to_predicate` — a direct 1:1 predicate
             // mapping has no template to check coherence against, so no claim is made.
             if let Some(u2) = &uri2
-                && let Some(expected) = expected_entity2_kind(cells, onto, profile, u2)
+                && let Some(expected) =
+                    expected_entity2_kind(cells, onto, profile, u2, uri1.as_deref())
                 && expected != k2
             {
                 out.push(ProjectionDiagnostic::error(
@@ -562,17 +563,34 @@ fn check_edoal_entity_kind(
 /// The `edoal:Relation`/`edoal:Property` capitalized token the correspondence TEMPLATE
 /// derives for `to_predicate` (== the committed cell's `entity2` `edoal:uri`, `u2`) in
 /// `profile`, by re-running [`template_target_kind`] — the SAME derivation the EDOAL
-/// lowering itself used to emit the committed bytes — over every parsed
-/// `gmeow:ProjectionMapping` cell/binding pair. `None` when no binding in this profile
-/// targets `u2` via a correspondence template (a direct 1:1 predicate target with no
-/// `gmeow:templateAtoms` naming it carries no template-derived expectation).
+/// lowering itself used to emit the committed bytes — over the cell that produced this
+/// committed row. `None` when no matching binding targets `u2` via a correspondence
+/// template (a direct 1:1 predicate target with no `gmeow:templateAtoms` naming it carries
+/// no template-derived expectation).
+///
+/// `source_uri` is the committed cell's `entity1` `edoal:uri` (the GMEOW source term) when
+/// it is a direct term reference. It disambiguates a POLYMORPHIC target predicate — one
+/// `to_predicate` legitimately reused by two mappings with different source kinds (e.g.
+/// `bf:title` carrying a flat literal from `gmeow:title` in one cell and a structured
+/// `bf:Title` node from `gmeow:hasTitle` in another): the expectation must come from the
+/// cell whose OWN source matches this committed row, never from a sibling cell that merely
+/// shares the target predicate. A compose/restriction `entity1` (`source_uri` `None`, e.g.
+/// a path source) cannot be matched by source, so it falls back to `to_predicate` alone.
 fn expected_entity2_kind(
     cells: &[ProjectionCell],
     onto: &DslView<'_>,
     profile: &str,
     to_predicate: &str,
+    source_uri: Option<&str>,
 ) -> Option<&'static str> {
     let lower = cells.iter().find_map(|cell| {
+        // Correlate to the committed row's OWN source: when entity1 is a direct term, only
+        // the mapping whose `edoalSource` matches it may supply this row's expectation.
+        if let Some(src) = source_uri
+            && cell.pattern.edoal_source.as_deref() != Some(src)
+        {
+            return None;
+        }
         cell.bindings
             .iter()
             .filter(|b| b.profile == profile && b.to_predicate.as_deref() == Some(to_predicate))
