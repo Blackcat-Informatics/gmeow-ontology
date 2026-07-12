@@ -87,7 +87,8 @@ Vendored corpora (crates/lang-bridge/tests/vendored/)
     the Universal Dependencies English Web Treebank (UD_English-EWT), reproduced
     verbatim. Copyright the Universal Dependencies project and the EWT treebank
     authors, licensed CC BY-SA 4.0. Source:
-      https://raw.githubusercontent.com/UniversalDependencies/UD_English-EWT/master/en_ewt-ud-dev.conllu
-    Upstream ref: master. The fragment exercises the lang: CoNLL-U byte round-trip
+      https://raw.githubusercontent.com/UniversalDependencies/UD_English-EWT/b7711cce01cdd4f5fcc0a8199b8a50d951b16c0c/en_ewt-ud-dev.conllu
+    Upstream ref: release r2.18 (commit b7711cce01cdd4f5fcc0a8199b8a50d951b16c0c).
+    The fragment exercises the lang: CoNLL-U byte round-trip
     (Gate 2); the exact sentences vendored are declared by sent_id in its
     corpus.json.

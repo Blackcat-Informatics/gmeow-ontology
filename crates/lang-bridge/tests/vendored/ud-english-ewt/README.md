@@ -8,8 +8,8 @@ correctness fixture for the `lang:` CoNLL-U byte round-trip (Gate 2).
 - **Treebank:** UD_English-EWT (Universal Dependencies — English Web Treebank)
 - **Authors / credit:** the Universal Dependencies project and the EWT treebank authors
 - **License:** CC BY-SA 4.0 (`CC-BY-SA-4.0`)
-- **Source:** <https://raw.githubusercontent.com/UniversalDependencies/UD_English-EWT/master/en_ewt-ud-dev.conllu>
-- **Upstream ref:** `master` (fetched 2026-07-11)
+- **Source:** <https://raw.githubusercontent.com/UniversalDependencies/UD_English-EWT/b7711cce01cdd4f5fcc0a8199b8a50d951b16c0c/en_ewt-ud-dev.conllu>
+- **Upstream ref:** release `r2.18` (commit `b7711cce01cdd4f5fcc0a8199b8a50d951b16c0c`), fetched 2026-07-11
 
 This fragment is NOT part of the CC BY 4.0 GMEOW vocabulary and is never merged into it: it is
 a clearly-separated, fully-attributed vendored corpus under its own CC BY-SA 4.0 terms. The
