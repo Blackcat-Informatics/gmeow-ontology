@@ -99,7 +99,7 @@ fn native_soundness_pass_matches_committed_corpus() {
     insta::assert_snapshot!("committed_corpus_findings", lines.join("\n"));
 }
 
-/// Whether `check` is one of the eight canonical correspondence-soundness check tokens.
+/// Whether `check` is one of the nine canonical correspondence-soundness check tokens.
 fn is_known_check(check: &str) -> bool {
     matches!(
         check,
@@ -111,5 +111,6 @@ fn is_known_check(check: &str) -> bool {
             | "equivalence-collapse"
             | "dc-refinement"
             | "dc-hand-authored"
+            | "edoal-entity-kind"
     )
 }

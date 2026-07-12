@@ -15,7 +15,7 @@
             edoal:uri gmeow:mentions ;
         ] ;
         align:entity2 [
-            a edoal:Property ;
+            a edoal:Relation ;
             edoal:uri gmeow:hasWikilink ;
         ] ;
         align:relation "<=" ;

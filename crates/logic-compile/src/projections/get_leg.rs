@@ -217,7 +217,10 @@ pub struct MappingPattern {
     pub binds: Vec<Bind>,
     pub mints: Vec<Bind>,
     pub edoal_source: Option<String>,
-    pub edoal_source_kind: String,
+    /// The authored `gmeow:edoalSourceKind` override, if any. Absent means the
+    /// EDOAL entity kind is DERIVED from the source term's OWL character in the
+    /// GMEOW ontology (never silently defaulted).
+    pub edoal_source_kind: Option<String>,
     pub edoal_path: bool,
 }
 
@@ -444,9 +447,7 @@ fn parse_pattern(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<Mapping
         binds,
         mints,
         edoal_source: view.object_iri_of_term(node, GM_EDOAL_SOURCE),
-        edoal_source_kind: view
-            .object_literal_of_term(node, GM_EDOAL_SOURCE_KIND)
-            .unwrap_or_else(|| "relation".to_owned()),
+        edoal_source_kind: view.object_literal_of_term(node, GM_EDOAL_SOURCE_KIND),
         edoal_path: view.object_bool_of_term(node, GM_EDOAL_PATH),
     })
 }

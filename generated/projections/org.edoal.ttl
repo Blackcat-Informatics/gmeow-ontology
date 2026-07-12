@@ -58,7 +58,7 @@
                 edoal:uri gmeow:hasMember ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri org:member ;
             ] ;
             align:relation "=" ;
@@ -72,7 +72,7 @@
                 edoal:uri gmeow:memberOf ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri org:memberOf ;
             ] ;
             align:relation "=" ;
@@ -86,7 +86,7 @@
                 edoal:uri gmeow:subOrganizationOf ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri org:subOrganizationOf ;
             ] ;
             align:relation "=" ;

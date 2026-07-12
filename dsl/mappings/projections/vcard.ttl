@@ -153,7 +153,7 @@ gmeow:mapVcardTitle a gmeow:ProjectionMapping ;
               gmeow:objectVar "title" ] ) ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
-        gmeow:profile "vcard" ; gmeow:toPredicate vcard:title ; gmeow:relation "<=" ;
+        gmeow:profile "vcard" ; gmeow:toPredicate vcard:title ; gmeow:edoalTargetKind "property" ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnMembershipToJobTitle ; gmeow:confidence 0.9 ;
         gmeow:lossyDrop "the Membership relator (organization, period, role, confidence, standpoint) collapses to a flat vcard:title literal; contested membership claims are not distinguished" ] .
 

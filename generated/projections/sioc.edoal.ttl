@@ -54,7 +54,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:accountName ;
             ] ;
             align:entity2 [
@@ -72,7 +72,7 @@
                 edoal:uri gmeow:from ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sioc:has_creator ;
             ] ;
             align:relation "<=" ;
@@ -86,7 +86,7 @@
                 edoal:uri gmeow:holdsAccount ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sioc:account_of ;
             ] ;
             align:relation "<=" ;
@@ -100,7 +100,7 @@
                 edoal:uri gmeow:inReplyTo ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sioc:reply_of ;
             ] ;
             align:relation "=" ;
@@ -114,7 +114,7 @@
                 edoal:uri gmeow:isAbout ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sioc:topic ;
             ] ;
             align:relation "=" ;
@@ -128,7 +128,7 @@
                 edoal:uri gmeow:partOfThread ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sioc:has_container ;
             ] ;
             align:relation "=" ;
@@ -142,7 +142,7 @@
                 edoal:uri gmeow:sharesContent ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri sioc:links_to ;
             ] ;
             align:relation "<=" ;
@@ -152,7 +152,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:sourceLocation ;
             ] ;
             align:entity2 [

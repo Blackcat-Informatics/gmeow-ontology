@@ -11,7 +11,7 @@
     align:map [
         a align:Cell ;
         align:entity1 [
-            a edoal:Relation ;
+            a edoal:Property ;
             edoal:uri gmeow:abstract ;
         ] ;
         align:entity2 [
@@ -29,7 +29,7 @@
                 edoal:uri gmeow:audience ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:audience ;
             ] ;
             align:relation "=" ;
@@ -39,7 +39,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:bibliographicCitation ;
             ] ;
             align:entity2 [
@@ -53,11 +53,11 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:conditionsOfAccess ;
             ] ;
             align:entity2 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri dcterms:accessRights ;
             ] ;
             align:relation "=" ;
@@ -71,7 +71,7 @@
                 edoal:uri gmeow:conformsTo ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:conformsTo ;
             ] ;
             align:relation "=" ;
@@ -95,7 +95,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:copyrightNotice ;
             ] ;
             align:entity2 [
@@ -109,7 +109,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:copyrightYear ;
             ] ;
             align:entity2 [
@@ -123,7 +123,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:dateAccepted ;
             ] ;
             align:entity2 [
@@ -137,7 +137,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:dateAvailable ;
             ] ;
             align:entity2 [
@@ -151,7 +151,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:dateCreated ;
             ] ;
             align:entity2 [
@@ -165,7 +165,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:dateModified ;
             ] ;
             align:entity2 [
@@ -179,7 +179,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:datePublished ;
             ] ;
             align:entity2 [
@@ -193,7 +193,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:dateSubmitted ;
             ] ;
             align:entity2 [
@@ -207,7 +207,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:description ;
             ] ;
             align:entity2 [
@@ -221,7 +221,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:extent ;
             ] ;
             align:entity2 [
@@ -239,7 +239,7 @@
                 edoal:uri gmeow:hasAuthor ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:creator ;
             ] ;
             align:relation "=" ;
@@ -253,7 +253,7 @@
                 edoal:uri gmeow:hasContributor ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:contributor ;
             ] ;
             align:relation "=" ;
@@ -281,7 +281,7 @@
                 edoal:uri gmeow:hasPart ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:hasPart ;
             ] ;
             align:relation "=" ;
@@ -295,7 +295,7 @@
                 edoal:uri gmeow:hasVersion ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:hasVersion ;
             ] ;
             align:relation "=" ;
@@ -305,7 +305,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:identifier ;
             ] ;
             align:entity2 [
@@ -323,7 +323,7 @@
                 edoal:uri gmeow:isAbout ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:subject ;
             ] ;
             align:relation "=" ;
@@ -337,7 +337,7 @@
                 edoal:uri gmeow:isReferencedBy ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:isReferencedBy ;
             ] ;
             align:relation "=" ;
@@ -351,7 +351,7 @@
                 edoal:uri gmeow:isRequiredBy ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:isRequiredBy ;
             ] ;
             align:relation "=" ;
@@ -365,7 +365,7 @@
                 edoal:uri gmeow:medium ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:medium ;
             ] ;
             align:relation "=" ;
@@ -379,7 +379,7 @@
                 edoal:uri gmeow:nameLanguage ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:language ;
             ] ;
             align:relation "=" ;
@@ -393,7 +393,7 @@
                 edoal:uri gmeow:partOf ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:isPartOf ;
             ] ;
             align:relation "=" ;
@@ -403,7 +403,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:provenance ;
             ] ;
             align:entity2 [
@@ -421,7 +421,7 @@
                 edoal:uri gmeow:references ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:references ;
             ] ;
             align:relation "=" ;
@@ -435,7 +435,7 @@
                 edoal:uri gmeow:requires ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:requires ;
             ] ;
             align:relation "=" ;
@@ -445,7 +445,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:sourceLocation ;
             ] ;
             align:entity2 [
@@ -463,7 +463,7 @@
                 edoal:uri gmeow:spatialCoverage ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:spatial ;
             ] ;
             align:relation "=" ;
@@ -477,7 +477,7 @@
                 edoal:uri gmeow:supersededBy ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:isReplacedBy ;
             ] ;
             align:relation "=" ;
@@ -491,7 +491,7 @@
                 edoal:uri gmeow:supersedes ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:replaces ;
             ] ;
             align:relation "=" ;
@@ -501,7 +501,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:tableOfContents ;
             ] ;
             align:entity2 [
@@ -519,7 +519,7 @@
                 edoal:uri gmeow:temporalCoverage ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:temporal ;
             ] ;
             align:relation "=" ;
@@ -529,7 +529,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:title ;
             ] ;
             align:entity2 [
@@ -547,7 +547,7 @@
                 edoal:uri gmeow:versionOf ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri dcterms:isVersionOf ;
             ] ;
             align:relation "=" ;

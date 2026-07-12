@@ -58,7 +58,7 @@
                 edoal:uri gmeow:hasChild ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri gedcom:child ;
             ] ;
             align:relation "<=" ;
@@ -72,7 +72,7 @@
                 edoal:uri gmeow:hasPartner ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri gedcom:husband ;
             ] ;
             align:relation "<=" ;
@@ -82,7 +82,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:intersexVariation ;
             ] ;
             align:entity2 [
@@ -170,7 +170,7 @@
                 edoal:uri gmeow:withinFamily ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri gedcom:childIn ;
             ] ;
             align:relation "<=" ;
@@ -184,7 +184,7 @@
                 edoal:uri gmeow:withinFamily ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri gedcom:marriage ;
             ] ;
             align:relation "<=" ;

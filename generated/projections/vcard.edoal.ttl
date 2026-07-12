@@ -93,7 +93,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:description ;
             ] ;
             align:entity2 [
@@ -107,7 +107,7 @@
         [
             a align:Cell ;
             align:entity1 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gmeow:fullName ;
             ] ;
             align:entity2 [
@@ -128,7 +128,7 @@
                 edoal:uri gmeow:hasContactPoint ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri vcard:hasEmail ;
             ] ;
             align:relation "<=" ;
@@ -142,7 +142,7 @@
                 edoal:uri gmeow:hasContactPoint ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri vcard:hasInstantMessage ;
             ] ;
             align:relation "<=" ;
@@ -156,7 +156,7 @@
                 edoal:uri gmeow:hasContactPoint ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri vcard:hasTelephone ;
             ] ;
             align:relation "<=" ;
@@ -170,7 +170,7 @@
                 edoal:uri gmeow:hasName ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri vcard:nickname ;
             ] ;
             align:relation "<=" ;
@@ -187,7 +187,7 @@
                 edoal:uri gmeow:hasPronounSet ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri vcardx:pronouns ;
             ] ;
             align:relation "<=" ;
@@ -204,7 +204,7 @@
                 edoal:uri gmeow:hasWebPage ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri vcard:hasURL ;
             ] ;
             align:relation "<=" ;
