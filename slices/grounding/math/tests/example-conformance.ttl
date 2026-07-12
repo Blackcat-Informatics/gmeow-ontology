@@ -748,6 +748,32 @@ ex:ecEffectSizeUnframed a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a math:EffectSize naming its math:effectSizeContrast and math:effectSizeScale but omitting gmeow:hasReferenceFrame (sh:minCount 1 on math:UnframedEffectSizeShape); the contrast and scale arms stay satisfied, so ONLY the frame arm fires: validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedEffectSize)." .
 
+# === Model comparison and calibration: a diagnostic anchors to its fit and method (Rule D1) === #
+
+ex:ecDiagnosticAnchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/diagnostic-anchored.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ModelDiagnostic naming the math:FittedModel it evaluates through math:diagnosticFor and the method it applies through math:diagnosticMethod satisfies both arms of math:UnanchoredDiagnosticShape; the fitted model it points at is bound to its data through math:fittedToData and specified through math:modelFormula so math:UnfittedModel stays silent, so validation emits no findings." .
+
+ex:ecDiagnosticUnanchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/diagnostic-unanchored.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ModelDiagnostic naming the math:FittedModel it evaluates through math:diagnosticFor but omitting math:diagnosticMethod (sh:minCount 1 on math:UnanchoredDiagnosticShape); its fitted-model arm stays satisfied and the fit it points at is a well-formed math:FittedModel so math:UnfittedModel stays silent, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnanchoredDiagnostic)." .
+
+# === Model comparison and calibration: the two calibration senses are distinct (Rule D2) === #
+
+ex:ecCalibrationSensesDistinct a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/calibration-senses-distinct.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:CalibrationDiagnostic (the statistical sense, naming its math:diagnosticFor fit and its math:diagnosticMethod so math:UnanchoredDiagnosticShape is satisfied) and a SEPARATE math:StabilityCalibrationRecord (the topological sense, naming its math:calibrationEvidence — a well-formed essential math:PersistenceLifetime over a math:Filtration — its math:credenceDerivationKind, and its math:stabilityGuarantee so math:StabilityCalibrationRecordShape is satisfied) keep math:CalibrationSenseConflationShape's sh:not satisfied (neither node is typed both), so validation emits no findings." .
+
+ex:ecCalibrationSenseConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/calibration-sense-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is ONE node typed BOTH math:CalibrationDiagnostic and math:StabilityCalibrationRecord, tripping the sh:not [ sh:class math:StabilityCalibrationRecord ] of math:CalibrationSenseConflationShape. It is COMPLETE for both kinds — its math:diagnosticFor and math:diagnosticMethod satisfy math:UnanchoredDiagnosticShape, and its math:calibrationEvidence, math:credenceDerivationKind, and math:stabilityGuarantee satisfy math:StabilityCalibrationRecordShape — so ONLY the sh:not fires: validation MUST emit shacl.NotConstraintComponent and NO other finding (math:CalibrationSenseConflation)." .
+
 # === Bridges: verification-result grounding ================================= #
 
 ex:ecVerificationResultGrounded a gmeow:ExampleConformance ;

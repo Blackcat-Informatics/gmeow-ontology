@@ -2032,3 +2032,48 @@ math:UnframedEffectSizeShape
         sh:severity sh:Violation ;
         sh:message "A math:EffectSize must name its reference frame through gmeow:hasReferenceFrame — the house frame predicate the value is expressed in (sh:minCount 1); an effect size with no frame is an unframed bare number (math:UnframedEffectSize)." ;
     ] .
+
+# =========================================================================== #
+# Diagnostics, model comparison, and calibration — the model-evaluation layer  #
+# (STATISTICS-charter "Model comparison and calibration")                      #
+# =========================================================================== #
+
+# Rule D1 — a model diagnostic anchors itself to its fitted model and its method.
+math:UnanchoredDiagnosticShape
+    a sh:NodeShape ;
+    rdfs:label "Model-diagnostic anchoring shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ModelDiagnostic: it names the math:FittedModel it evaluates through math:diagnosticFor (min one) AND the method it applies through math:diagnosticMethod (min one). A diagnostic is an evaluation OF a fit BY a method; either absent trips shacl.MinCountConstraintComponent. A diagnostic missing its fitted model or its method is a floating number rather than a checked property of a model (math:UnanchoredDiagnostic)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnanchoredDiagnostic ;
+    sh:targetClass math:ModelDiagnostic ;
+    sh:property [
+        sh:path math:diagnosticFor ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ModelDiagnostic must name the math:FittedModel it evaluates through math:diagnosticFor (sh:minCount 1); a diagnostic anchored to no fit is ill-formed (math:UnanchoredDiagnostic)." ;
+    ] ;
+    sh:property [
+        sh:path math:diagnosticMethod ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ModelDiagnostic must name the method it applies through math:diagnosticMethod (sh:minCount 1); a diagnostic with no method is ill-formed (math:UnanchoredDiagnostic)." ;
+    ] .
+
+# Rule D2 — a statistical calibration diagnostic is never a topological stability
+# calibration record. The two senses of "calibration" share the word and nothing
+# else; because math:CalibrationDiagnostic ⊑ math:ModelDiagnostic and
+# math:StabilityCalibrationRecord both descend from math:MathematicalObject, the
+# disjointness is NOT entailed by their parents and is asserted DIRECTLY
+# (math:CalibrationDiagnostic owl:disjointWith math:StabilityCalibrationRecord);
+# this paired SHACL surfaces the same conflation as a finding so a both-typed node
+# trips shacl.NotConstraintComponent instead of resting only on the DL gate.
+math:CalibrationSenseConflationShape
+    a sh:NodeShape ;
+    rdfs:label "Calibration-sense conflation shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:CalibrationDiagnostic: it is NOT also typed math:StabilityCalibrationRecord. A math:CalibrationDiagnostic is the STATISTICAL sense (a model's predicted probabilities against observed frequencies); a math:StabilityCalibrationRecord is the TOPOLOGICAL sense (a credence calibrated against a bottleneck stability bound over a math:PersistenceLifetime) — they share the word 'calibration' and nothing else, held owl:disjointWith by a DIRECT axiom (both descend from math:MathematicalObject, so the disjointness is not entailed by their parents). This paired SHACL surfaces the same conflation as a finding so a node typed both trips shacl.NotConstraintComponent instead of resting only on the DL gate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:CalibrationSenseConflation ;
+    sh:targetClass math:CalibrationDiagnostic ;
+    sh:not [ sh:class math:StabilityCalibrationRecord ] ;
+    sh:severity sh:Violation ;
+    sh:message "A math:CalibrationDiagnostic must not also be a math:StabilityCalibrationRecord — the statistical calibration sense and the topological stability-calibration sense share the word 'calibration' and nothing else, held disjoint by a direct axiom; typing one node as both conflates them (math:CalibrationSenseConflation)." .
