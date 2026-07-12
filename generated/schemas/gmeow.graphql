@@ -1428,6 +1428,11 @@ enum DocEvidenceKindEnum {
   docEvidenceKindProvenance
 }
 
+enum DocFixtureKindEnum {
+  docFixtureKindCounterExample
+  docFixtureKindWellformed
+}
+
 enum DocMaturityEnum {
   docMaturityBasic
   docMaturityFull
@@ -4909,6 +4914,13 @@ type CommunitySummary {
   summarizesCommunity: Community
 }
 
+type CompetencyExpectedRow {
+  id: String
+  iri: String
+  cqCellValueLiteral: [String!]
+  cqCellVar: [String!]
+}
+
 type ComplianceAssessment {
   id: String
   iri: String
@@ -5520,6 +5532,21 @@ type DocEvidenceKind {
   iri: String
 }
 
+type DocFixture {
+  id: String
+  iri: String
+  conformanceRationale: [String!]
+  docExpectedOutcome: [String!]
+  docFixtureKind: [DocFixtureKind!]
+  docFixtureText: [String!]
+  docViolationCode: [String!]
+}
+
+type DocFixtureKind {
+  id: String
+  iri: String
+}
+
 type DocMaturity {
   id: String
   iri: String
@@ -5534,6 +5561,16 @@ type Document {
 type DocumentationConcern {
   id: String
   iri: String
+}
+
+type DocumentedCompetency {
+  id: String
+  iri: String
+  cqExactRows: [Boolean!]
+  cqExpectRowCount: [Int!]
+  cqExpectedRow: [CompetencyExpectedRow!]
+  cqQueryText: [String!]
+  cqRationale: [String!]
 }
 
 type DocumentedConcern {
@@ -5557,6 +5594,8 @@ type DocumentedTerm {
   docCategory: [String!]
   docHasDefinition: [Boolean!]
   docReasoningStatus: [String!]
+  docSearchAdvice: [String!]
+  docSearchAlignment: [String!]
 }
 
 type DoxasticStandpointClaim {
@@ -5707,6 +5746,14 @@ type Employment {
 type EmploymentType {
   id: String
   iri: String
+}
+
+type Entailment {
+  id: String
+  iri: String
+  entailmentConclusion: [String!]
+  entailmentPremise: [String!]
+  entailmentRule: [String!]
 }
 
 type Entity {

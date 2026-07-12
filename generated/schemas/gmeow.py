@@ -1452,6 +1452,11 @@ class DocEvidenceKindEnum(str, Enum):
     docEvidenceKindProvenance = "docEvidenceKindProvenance"
 
 
+class DocFixtureKindEnum(str, Enum):
+    docFixtureKindCounterExample = "docFixtureKindCounterExample"
+    docFixtureKindWellformed = "docFixtureKindWellformed"
+
+
 class DocMaturityEnum(str, Enum):
     docMaturityBasic = "docMaturityBasic"
     docMaturityFull = "docMaturityFull"
@@ -5299,6 +5304,13 @@ class CommunitySummary(Summary):
     summarizesCommunity: Community | None = Field(default=None)
 
 
+class CompetencyExpectedRow(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/CompetencyExpectedRow"
+    is_a: ClassVar[str] = "InformationObject"
+    cqCellValueLiteral: list[str] | None = Field(default=None)
+    cqCellVar: list[str] | None = Field(default=None)
+
+
 class ComplianceAssessment(Observation):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/ComplianceAssessment"
     is_a: ClassVar[str] = "Observation"
@@ -5945,6 +5957,21 @@ class DocEvidenceKind(ConfiguredBaseModel):
     pass
 
 
+class DocFixture(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocFixture"
+    is_a: ClassVar[str] = "InformationObject"
+    conformanceRationale: list[str] | None = Field(default=None)
+    docExpectedOutcome: list[str] | None = Field(default=None)
+    docFixtureKind: list[DocFixtureKind] | None = Field(default=None)
+    docFixtureText: list[str] | None = Field(default=None)
+    docViolationCode: list[str] | None = Field(default=None)
+
+
+class DocFixtureKind(ConfiguredBaseModel):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocFixtureKind"
+    pass
+
+
 class DocMaturity(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocMaturity"
     maturityRequiresDimension: list[DocCoverageDimension] | None = Field(default=None)
@@ -5959,6 +5986,16 @@ class Document(Work):
 class DocumentationConcern(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocumentationConcern"
     pass
+
+
+class DocumentedCompetency(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/DocumentedCompetency"
+    is_a: ClassVar[str] = "InformationObject"
+    cqExactRows: list[bool] | None = Field(default=None)
+    cqExpectRowCount: list[int] | None = Field(default=None)
+    cqExpectedRow: list[CompetencyExpectedRow] | None = Field(default=None)
+    cqQueryText: list[str] | None = Field(default=None)
+    cqRationale: list[str] | None = Field(default=None)
 
 
 class DocumentedConcern(InformationObject):
@@ -5985,6 +6022,8 @@ class DocumentedTerm(InformationObject):
     docCategory: list[str] | None = Field(default=None)
     docHasDefinition: list[bool] | None = Field(default=None)
     docReasoningStatus: list[str] | None = Field(default=None)
+    docSearchAdvice: list[str] | None = Field(default=None)
+    docSearchAlignment: list[str] | None = Field(default=None)
 
 
 class DoxasticStandpointClaim(StandpointClaim):
@@ -6182,6 +6221,14 @@ class Employment(Membership):
 class EmploymentType(ConfiguredBaseModel):
     class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/EmploymentType"
     pass
+
+
+class Entailment(InformationObject):
+    class_uri: ClassVar[str] = "https://blackcatinformatics.ca/gmeow/Entailment"
+    is_a: ClassVar[str] = "InformationObject"
+    entailmentConclusion: list[str] | None = Field(default=None)
+    entailmentPremise: list[str] | None = Field(default=None)
+    entailmentRule: list[str] | None = Field(default=None)
 
 
 class EntityExistence(TimeScopedRelation):

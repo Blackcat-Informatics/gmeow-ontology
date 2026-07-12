@@ -266,6 +266,23 @@
 #     leaves the gate: mapping/product/docs artifacts remain byte-drift-gated by
 #     `make check-generated`, focused mapping and language-rendering tests stay
 #     on-gate, and these two exhaustive sweeps run on `maint-heavy`.
+#   - gmeow-pipeline stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle
+#     (27.1 s) and gmeow-pipeline mcp::tests::json_rpc_protocol_conformance_round_trip
+#     (25.3 s): both drive the WHOLE committed `gmeow.gts`. The governance-floor test
+#     reconstructs every axis floor from the bundle alone — irreducibly O(bundle size),
+#     the same whole-committed-bundle class as the superset/reconstruction siblings
+#     above. The MCP conformance round-trip dispatches EVERY advertised tool over the
+#     bundle; the AI-agent docs surface added five consumer tools (validate_local runs
+#     the full SHACL surface, and counter_examples/entailments/docs_search/
+#     competency_questions each query the whole `graph/documentation` projection), and
+#     the graph/documentation teaching-content projection grew the bundle — so both
+#     rode past the 25 s cliff on bundle-size / tool-surface growth, not fixture cost.
+#     Coverage stays: the axis-floor bytes are drift-gated on every `make check` via
+#     `make check-generated`; each new MCP tool keeps its own focused on-gate test
+#     (validate_local parity+correspondence, counter_examples/entailments/
+#     competency_questions/docs_search surface tests, and the tools/list mode-gating
+#     golden), so every tool is still exercised on-gate; and both whole-bundle sweeps
+#     stay on-gate on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -295,6 +312,8 @@ default-filter = '''
     | (package(gmeow-docs) & binary(mdbook_render) & test(book_bodies_are_rewrite_of_single_authority))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(english_carrier_tree_matches_render_site))
     | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
+    | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
+    | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
