@@ -266,13 +266,6 @@
 #     leaves the gate: mapping/product/docs artifacts remain byte-drift-gated by
 #     `make check-generated`, focused mapping and language-rendering tests stay
 #     on-gate, and these two exhaustive sweeps run on `maint-heavy`.
-#   - gmeow-pipeline lang_docs_rendering::every_page_has_one_rendering_and_a_rollup_translation
-#     and governance_floors::generated_axis_floors_are_byte_reconstructible_from_the_bundle:
-#     28.4 s and 25.1 s respectively in an isolated `make check NPROC=1` after the math
-#     slice gained complete fr-CA/zh-Hans carriers and a Maximal 13-axis floor record. Each
-#     reconstructs a WHOLE-site or WHOLE-bundle projection and is irreducibly O(site/bundle
-#     size). The same products remain byte-drift-gated by `make check-generated`; focused
-#     language/floor tests stay on-gate, and both exhaustive sweeps run on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -295,8 +288,6 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::docs_render::tests::term_loss_digest_is_non_vacuous_on_the_real_repo/))
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & test(/stages::lang_docs_rendering::tests::rollup_targets_are_real_translation_units/))
-    | (package(gmeow-pipeline) & test(/stages::lang_docs_rendering::tests::every_page_has_one_rendering_and_a_rollup_translation/))
-    | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
     | (package(gmeow-slicetest) & test(/run_structural_file::core\/slice-quality-rubric\/tests\/structural\.ttl/))
     | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
     | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode) | test(describe_wheel_mode_equals_repo_mode)))
