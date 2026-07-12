@@ -2285,10 +2285,12 @@ version = "0.1.0"
 dependencies = [
  "gmeow-errors",
  "gmeow-lang-form",
+ "gmeow-license",
  "gmeow-logic-compile",
  "insta",
  "proptest",
  "purrdf",
+ "serde_json",
  "sha2",
  "tiktoken-rs",
  "unicode-normalization",
