@@ -1480,23 +1480,31 @@ fn lex_sigil_record(line: &str) -> Result<LexedRecord, Gmn1Error> {
 }
 
 /// Lex the `@claims[...]` column schema, resolving each column to its canonical key — an
-/// unknown column is `lang:GmnNonDecodableGrammar`.
+/// unknown column is `lang:GmnNonDecodableGrammar`, and so is a REPEATED canonical column:
+/// [`lex_tabular_row`] zips columns positionally against row values, and pass-5 assembly
+/// (`record.pairs.iter().cloned().collect()` into a `BTreeMap`) would otherwise silently keep
+/// only the LAST occurrence's value and drop every earlier one with no error — a quad lost
+/// with no signal, mirroring [`lex_sigil_record`]'s duplicate-key guard for the sigil form.
 fn lex_columns(cols_str: &str) -> Result<Vec<&'static str>, Gmn1Error> {
-    cols_str
-        .split(' ')
-        .filter(|s| !s.is_empty())
-        .map(|col| {
-            KEY_ORDER
-                .iter()
-                .copied()
-                .find(|candidate| *candidate == col)
-                .ok_or_else(|| {
-                    non_decodable(format!(
-                        "tabular column '{col}' is outside the canonical key set"
-                    ))
-                })
-        })
-        .collect()
+    let mut cols: Vec<&'static str> = Vec::new();
+    for col in cols_str.split(' ').filter(|s| !s.is_empty()) {
+        let key = KEY_ORDER
+            .iter()
+            .copied()
+            .find(|candidate| *candidate == col)
+            .ok_or_else(|| {
+                non_decodable(format!(
+                    "tabular column '{col}' is outside the canonical key set"
+                ))
+            })?;
+        if cols.contains(&key) {
+            return Err(non_decodable(format!(
+                "tabular column '{key}' appears more than once in the schema"
+            )));
+        }
+        cols.push(key);
+    }
+    Ok(cols)
 }
 
 /// Lex one bare tabular row against the pending `@claims[...]` column schema — a value count
@@ -2115,5 +2123,30 @@ mod tests {
         )
         .expect_err("a duplicate key is non-decodable grammar");
         assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
+    }
+
+    /// A tabular `@claims[...]` schema that repeats a column (e.g. `o` twice) must
+    /// hard-fail as `GmnNonDecodableGrammar`, mirroring `lex_sigil_record`'s duplicate-key
+    /// guard. Without this guard, `lex_tabular_row` zips the repeated column against two
+    /// DIFFERENT row values, and pass-5 assembly's `.collect()` into a `BTreeMap` silently
+    /// keeps only the last one — a quad is dropped with no error.
+    #[test]
+    fn tabular_schema_with_duplicate_column_is_non_decodable_grammar() {
+        let dict = empty_dict();
+        let text = concat!(
+            "@gmn{v: 1, aliases: dict-v1}\n",
+            "@claims[s p o o]\n",
+            "gmeow__gate1 gmeow__hasState gmeow__doorGate1 gmeow__doorGate2\n",
+        );
+        let err = gmn1_read(
+            &Gmn1Document {
+                text: text.to_owned(),
+                refs: BTreeMap::new(),
+            },
+            &dict,
+        )
+        .expect_err("a duplicate tabular column must not silently drop a quad");
+        assert_eq!(err.failure_class(), Gmn1Error::CLASS_NON_DECODABLE_GRAMMAR);
+        assert!(matches!(err, Gmn1Error::NonDecodableGrammar { .. }));
     }
 }
