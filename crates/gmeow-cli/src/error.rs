@@ -44,6 +44,26 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+define_diag_kind! {
+    /// `gmeow describe` could not resolve the query to any bundle term (across all
+    /// registered namespaces). The `detail` carries the backend's message, which
+    /// includes any near-miss suggestions.
+    pub struct DescribeUnresolved { detail: String }
+    code = "gmeow-cli.describe.unresolved";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
+define_diag_kind! {
+    /// `gmeow describe` matched a bare local name in more than one namespace — a
+    /// HARD fail (no silent `gmeow:` precedence). The `detail` lists the candidate
+    /// CURIEs the caller must disambiguate between.
+    pub struct DescribeAmbiguous { detail: String }
+    code = "gmeow-cli.describe.ambiguous";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
 /// The complete shippable-CLI diagnostic-code catalog, in registration order —
 /// the kinds minted here plus the `explain`-command kinds defined beside their
 /// use site. (Consumed by the collision test; the running CLI reaches its kinds
@@ -54,6 +74,8 @@ pub const GMEOW_CLI_DIAG_CODES: &[&str] = &[
     BundleReadFailed::CODE,
     SourceReadFailed::CODE,
     OutputEncodingFailed::CODE,
+    DescribeUnresolved::CODE,
+    DescribeAmbiguous::CODE,
     crate::commands::UnknownExplainTarget::CODE,
     crate::commands::ExplainWalkFailed::CODE,
 ];
@@ -67,6 +89,8 @@ pub fn register_all() -> Vec<Code> {
         BundleReadFailed::register(),
         SourceReadFailed::register(),
         OutputEncodingFailed::register(),
+        DescribeUnresolved::register(),
+        DescribeAmbiguous::register(),
         crate::commands::UnknownExplainTarget::register(),
         crate::commands::ExplainWalkFailed::register(),
     ]

@@ -94,6 +94,124 @@ fn describe_env_language_rejected_if_unknown() {
         .stderr(predicate::str::contains("unknown language tag"));
 }
 
+#[test]
+fn describe_resolves_grounding_curies() {
+    // The headline: grounding-namespace terms resolve from the embedded bundle via
+    // their registered CURIE, on the shipped binary.
+    for (term, needle) in [
+        ("lang:Denotation", "lang:Denotation"),
+        ("math:Function", "math:Function"),
+        ("logic:Formula", "logic:Formula"),
+    ] {
+        gmeow()
+            .args(["describe", term])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains(needle));
+    }
+}
+
+#[test]
+fn describe_resolves_grounding_full_iris() {
+    for iri in [
+        "https://blackcatinformatics.ca/lang/Denotation",
+        "https://blackcatinformatics.ca/math/Function",
+    ] {
+        gmeow()
+            .args(["describe", iri])
+            .assert()
+            .success()
+            .stdout(predicate::str::contains("category: Class"));
+    }
+}
+
+#[test]
+fn describe_json_format_is_valid_card_json() {
+    let out = gmeow()
+        .args(["describe", "lang:Denotation", "--format", "json"])
+        .assert()
+        .success()
+        .get_output()
+        .stdout
+        .clone();
+    let value: serde_json::Value =
+        serde_json::from_slice(&out).expect("--format json must emit valid JSON");
+    assert_eq!(
+        value["iri"], "https://blackcatinformatics.ca/lang/Denotation",
+        "the card JSON must carry the term IRI: {value}"
+    );
+    assert_eq!(value["category"], "Class");
+    assert!(
+        value["definition"].is_string(),
+        "definition present: {value}"
+    );
+}
+
+#[test]
+fn describe_toon_format_emits_toon() {
+    // TOON carries the same fields in the compact token-oriented form (the IRI value
+    // contains `:` so it is quoted).
+    gmeow()
+        .args(["describe", "math:Function", "-f", "toon"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("iri: \"https://blackcatinformatics.ca/math/Function\"")
+                .and(predicate::str::contains("category: Class")),
+        );
+}
+
+#[test]
+fn describe_help_documents_curie_prefixes() {
+    gmeow()
+        .args(["describe", "--help"])
+        .assert()
+        .success()
+        .stdout(
+            predicate::str::contains("logic:")
+                .and(predicate::str::contains("math:"))
+                .and(predicate::str::contains("lang:")),
+        );
+}
+
+#[test]
+fn describe_ambiguous_bare_name_emits_typed_code() {
+    // A bare local name present in more than one namespace HARD-FAILS with the typed
+    // `gmeow-cli.describe.ambiguous` code and the candidate CURIEs — no silent pick.
+    // Driven through the shipped binary via the supported `--gts` flag on a real,
+    // deterministic collision bundle.
+    let dir = tempfile::TempDir::new().expect("temp dir");
+    let path = dir.path().join("collision.gts");
+    let mut nt = String::new();
+    for prefix in ["math", "logic"] {
+        let iri = format!("https://blackcatinformatics.ca/{prefix}/Widget");
+        nt.push_str(&format!(
+            "<{iri}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> .\n"
+        ));
+        nt.push_str(&format!(
+            "<{iri}> <http://www.w3.org/2000/01/rdf-schema#label> \"Widget\"@x-gmeow-english .\n"
+        ));
+        nt.push_str(&format!(
+            "<{iri}> <http://www.w3.org/2000/01/rdf-schema#isDefinedBy> <https://blackcatinformatics.ca/gmeow/slices/{prefix}> .\n"
+        ));
+    }
+    let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .expect("collision fixture parses");
+    let bytes = purrdf::gts_write::to_gts(&ds, &purrdf::RdfLookaside::default(), "purrdf-test")
+        .expect("collision fixture serializes");
+    std::fs::write(&path, bytes).expect("write collision fixture");
+
+    gmeow()
+        .args(["describe", "--gts", path.to_str().unwrap(), "Widget"])
+        .assert()
+        .failure()
+        .stderr(
+            predicate::str::contains("gmeow-cli.describe.ambiguous")
+                .and(predicate::str::contains("logic:Widget"))
+                .and(predicate::str::contains("math:Widget")),
+        );
+}
+
 // ── validate (test_validate_rdf.py) ──────────────────────────────────────────
 
 #[test]
