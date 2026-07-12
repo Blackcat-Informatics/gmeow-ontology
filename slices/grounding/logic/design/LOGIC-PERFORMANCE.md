@@ -359,8 +359,8 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
     irreducible: it survives a process-global total, an inline
     single-thread parallel pool, and a fully serial engine, so it is genuine per-run engine jitter,
     not a threading artifact). Rather than leave them advisory, they gate through a **one-sided
-    tolerance band**: bytes use `fresh ≤ baseline·1.01`; counts use the greater of that ceiling
-    and the measured 42-allocation absolute floor. It is folded through the SAME divergence ledger
+    tolerance band**: bytes use `fresh ≤ baseline·1.01`; counts use
+    `fresh_count ≤ baseline_count + max(ceil(baseline_count × 0.01), 42)`. It is folded through the SAME divergence ledger
     as the exact signals: a within-band run
     is a non-blocking `Agree`, a breach a blocking `CorpusOnly` cost-regression finding. The band is a
     deterministic verdict (a pure function of `(fresh, baseline, ε)`) that never flakes yet still bites
@@ -463,6 +463,7 @@ keeps "not yet fast" or "not yet reachable" honest instead of silently reading a
   genuine residual ~0.059% per-run allocation jitter (a single quantized ±14-alloc event deep in
   the forward core; the engine already fixed-seeds its hashers) that neither process-global
   counting nor fully-serial execution eliminates. `alloc_bytes`/`alloc_count` therefore gate
-  through one-sided bands (bytes: 1%; counts: greater of 1% and the measured 42-allocation floor);
+  through one-sided bands (bytes: 1%; counts:
+  `fresh_count ≤ baseline_count + max(ceil(baseline_count × 0.01), 42)`);
   `peak_live_bytes` gates by exact drift-match. Forward path: de-randomize the residual
   allocating structure in the forward core to restore exact-match allocation gating.
