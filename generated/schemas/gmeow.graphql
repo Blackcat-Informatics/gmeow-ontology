@@ -648,15 +648,11 @@ enum AxisFloorCommitmentEnum {
   afc_logic_axisFlagshipCounterExampleDepth
   afc_logic_axisGmn1Coverage
   afc_logic_axisMaximalGrounding
-  afc_logic_axisMaximalInformation
   afc_logic_axisMaximalLinkage
   afc_logic_axisMaximalProjection
-  afc_logic_axisOptimalTesting
-  afc_logic_axisProseQuality
   afc_logic_axisProvenanceHonesty
   afc_logic_axisReasonerDerived
   afc_logic_axisShapeMigration
-  afc_logic_axisTranslationCoverage
   afc_math_axisDocMaturity
   afc_math_axisDocumentation
   afc_math_axisGmn1Coverage
@@ -1426,6 +1422,11 @@ enum DocEvidenceKindEnum {
   docEvidenceKindFixture
   docEvidenceKindLoss
   docEvidenceKindProvenance
+}
+
+enum DocFixtureKindEnum {
+  docFixtureKindCounterExample
+  docFixtureKindWellformed
 }
 
 enum DocMaturityEnum {
@@ -4909,6 +4910,13 @@ type CommunitySummary {
   summarizesCommunity: Community
 }
 
+type CompetencyExpectedRow {
+  id: String
+  iri: String
+  cqCellValueLiteral: [String!]
+  cqCellVar: [String!]
+}
+
 type ComplianceAssessment {
   id: String
   iri: String
@@ -5520,6 +5528,21 @@ type DocEvidenceKind {
   iri: String
 }
 
+type DocFixture {
+  id: String
+  iri: String
+  conformanceRationale: [String!]
+  docExpectedOutcome: [String!]
+  docFixtureKind: [DocFixtureKind!]
+  docFixtureText: [String!]
+  docViolationCode: [String!]
+}
+
+type DocFixtureKind {
+  id: String
+  iri: String
+}
+
 type DocMaturity {
   id: String
   iri: String
@@ -5534,6 +5557,16 @@ type Document {
 type DocumentationConcern {
   id: String
   iri: String
+}
+
+type DocumentedCompetency {
+  id: String
+  iri: String
+  cqExactRows: [Boolean!]
+  cqExpectRowCount: [Int!]
+  cqExpectedRow: [CompetencyExpectedRow!]
+  cqQueryText: [String!]
+  cqRationale: [String!]
 }
 
 type DocumentedConcern {
@@ -5557,6 +5590,8 @@ type DocumentedTerm {
   docCategory: [String!]
   docHasDefinition: [Boolean!]
   docReasoningStatus: [String!]
+  docSearchAdvice: [String!]
+  docSearchAlignment: [String!]
 }
 
 type DoxasticStandpointClaim {
@@ -5707,6 +5742,14 @@ type Employment {
 type EmploymentType {
   id: String
   iri: String
+}
+
+type Entailment {
+  id: String
+  iri: String
+  entailmentConclusion: [String!]
+  entailmentPremise: [String!]
+  entailmentRule: [String!]
 }
 
 type Entity {

@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:ParameterRoleCardinalityConstraint (Rule P7): a
+# math:Distribution (a Poisson) whose math:distributionParameterization
+# math:requiresParameterRole a single rate role, supplied EXACTLY ONCE by one
+# math:DistributionParameter. The aggregate per-required-role count is exactly 1, so the
+# role-cardinality SHACL-SPARQL gate stays silent; it also names its math:distributionFamily
+# (P6a) and its parameterization (P6b). It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/distribution-role-cardinality.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecDistributionRoleExact).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:poissonDistribution a math:Distribution ;
+    math:distributionFamily ex:poissonFamily ;
+    math:distributionParameterization ex:rateParameterization ;
+    math:hasDistributionParameter ex:rateParam .
+
+ex:poissonFamily a math:DistributionFamily .
+
+ex:rateParameterization a math:DistributionParameterization ;
+    math:requiresParameterRole ex:rateRole .
+
+ex:rateRole a math:DistributionParameterRole .
+
+ex:rateParam a math:DistributionParameter ;
+    math:parameterRole ex:rateRole .

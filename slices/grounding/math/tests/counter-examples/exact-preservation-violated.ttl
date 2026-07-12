@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:ExactPreservationViolated gate: a
+# math:JointProbabilityTable (which declares logic:ExactPreservation at the TBox level)
+# tabulates two logic:jointOutcome rows whose logic:jointProbability values (0.5 and
+# 0.4) sum to 0.9 ≠ 1. The native gate sums the mass by exact-rational arithmetic and
+# MUST emit math:ExactPreservationViolated (and no other probability failure class).
+# The table has outcomes, so math:IncompleteDependencyModel does NOT also fire.
+# Back-reference: math:JointProbabilityTable / math:ExactPreservationViolated (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:overclaimedTable a math:JointProbabilityTable ;
+    logic:jointOutcome ex:outcomeA , ex:outcomeB .
+
+ex:outcomeA logic:jointProbability 0.5 .
+ex:outcomeB logic:jointProbability 0.4 .

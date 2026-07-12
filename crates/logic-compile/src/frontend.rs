@@ -28,7 +28,7 @@
 //! 4. **Rules** — `logic:Rule` nodes with `logic:head` / `logic:body` /
 //!    `logic:negatedBody` / `logic:distinctBody` links.
 
-use std::collections::{BTreeMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::fmt;
 #[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
@@ -2289,22 +2289,16 @@ pub fn derive_validation_shapes(
         let mut shape = ValidationShapeIr::new(iri, target.clone(), properties, None)?
             .with_node_components(node_components)?;
         // Failure metadata belongs to the canonical target term, never to a hand-authored SHACL
-        // node. Preserve exactly one value into the projected shape and hard-fail duplicates.
+        // node. Collapse repeated identical values; hard-fail distinct values.
         if let ShapeTarget::Class(class) = &target {
-            let failure_classes = objects(
-                store,
-                &Subject::Iri(class.clone()),
-                &nn("https://blackcatinformatics.ca/gmeow/enforcesFailureClass"),
-            );
+            let failure_classes = distinct_failure_classes(store, &Subject::Iri(class.clone()))?;
             if failure_classes.len() > 1 {
                 return Err(Diag::of_kind(crate::error::Frontend {
-                    detail: format!(
-                        "class {class} has duplicate gmeow:enforcesFailureClass values"
-                    ),
+                    detail: format!("class {class} has distinct gmeow:enforcesFailureClass values"),
                 }));
             }
             if let Some(failure_class) = failure_classes.first() {
-                shape = shape.with_failure_class(term_str(failure_class))?;
+                shape = shape.with_failure_class(failure_class)?;
             }
         }
         shapes.push(shape);
@@ -2733,6 +2727,33 @@ fn sugar_err(detail: impl Into<String>) -> Diag {
     })
 }
 
+const GMEOW_ENFORCES_FAILURE_CLASS: &str =
+    "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
+
+/// The distinct failure-class IRIs on one canonical source node. RDF datasets
+/// may carry the same assertion more than once; repeated identical values are
+/// one set member, while non-IRI objects are malformed metadata.
+fn distinct_failure_classes(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<BTreeSet<String>> {
+    let mut classes = BTreeSet::new();
+    for value in objects(store, node, &nn(GMEOW_ENFORCES_FAILURE_CLASS)) {
+        match value {
+            Node::Iri(iri) => {
+                classes.insert(iri);
+            }
+            _ => {
+                return Err(sugar_err(format!(
+                    "{} gmeow:enforcesFailureClass value must be an IRI",
+                    subject_str(node)
+                )));
+            }
+        }
+    }
+    Ok(classes)
+}
+
 /// Reconstruct one [`ConstraintIr`] rooted at a `logic:Constraint` node, or return a
 /// human-readable reason the constraint is malformed (surfaced as one `MALFORMED_CONSTRAINT`
 /// warning by [`extract_constraints`]).
@@ -2761,18 +2782,14 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
     if let Some(formalizes) = value(store, node, &nn(&logic_iri("formalizes"))) {
         constraint = constraint.with_formalizes(term_str(&formalizes))?;
     }
-    let failure_classes = objects(
-        store,
-        node,
-        &nn("https://blackcatinformatics.ca/gmeow/enforcesFailureClass"),
-    );
+    let failure_classes = distinct_failure_classes(store, node)?;
     if failure_classes.len() > 1 {
         return Err(sugar_err(format!(
-            "logic:Constraint {iri} has duplicate gmeow:enforcesFailureClass values"
+            "logic:Constraint {iri} has distinct gmeow:enforcesFailureClass values"
         )));
     }
     if let Some(failure_class) = failure_classes.first() {
-        constraint = constraint.with_failure_class(term_str(failure_class))?;
+        constraint = constraint.with_failure_class(failure_class)?;
     }
     Ok(constraint)
 }
@@ -2881,19 +2898,15 @@ fn finalize_sugar(
         })?;
     let mut constraint = ConstraintIr::new(subject_str(node), integrity, severity, message)?
         .with_formalizes(formalizes)?;
-    let failure_classes = objects(
-        store,
-        node,
-        &nn("https://blackcatinformatics.ca/gmeow/enforcesFailureClass"),
-    );
+    let failure_classes = distinct_failure_classes(store, node)?;
     if failure_classes.len() > 1 {
         return Err(sugar_err(format!(
-            "constraint-sugar record {} has duplicate gmeow:enforcesFailureClass values",
+            "constraint-sugar record {} has distinct gmeow:enforcesFailureClass values",
             subject_str(node)
         )));
     }
     if let Some(failure_class) = failure_classes.first() {
-        constraint = constraint.with_failure_class(term_str(failure_class))?;
+        constraint = constraint.with_failure_class(failure_class)?;
     }
     Ok(constraint)
 }

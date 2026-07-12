@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:IncompleteDependencyModel gate: a
+# math:FactorGraph declares no math:dependencyGraph, so its bipartite
+# variable/factor structure is absent and it cannot fix a joint distribution. The
+# native gate MUST emit math:IncompleteDependencyModel (and no other probability
+# failure class). Every other probability-layer completeness gate stays satisfied:
+# no math:MarkovKernel, math:BayesianNetwork, or math:JointProbabilityTable is
+# present to trip Gate 4's other arms, and no probability-model lowering or
+# preservation-kind claim is declared to trip Gates 3 or 5.
+# Back-reference: math:FactorGraph / math:IncompleteDependencyModel
+# (slices/grounding/math/module.ttl).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:incompleteFactorGraph a math:FactorGraph .

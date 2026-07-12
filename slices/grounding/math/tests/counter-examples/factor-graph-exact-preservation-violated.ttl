@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:ExactPreservationViolated gate (FactorGraph arm): a
+# math:FactorGraph declares logic:preservationKind logic:ExactPreservation DIRECTLY on
+# itself but declares no math:dependencyGraph, so its completeness gate (finite factors,
+# normalized or declared unnormalized) cannot hold — the honest-when-complete exactness
+# claim made explicit for a model that cannot honor it. The native gate MUST emit
+# math:ExactPreservationViolated (and no other probability failure class); in particular
+# math:IncompleteDependencyModel MUST stay silent — an instance that is structurally
+# incomplete AND itself declares logic:ExactPreservation is Gate 5's overclaim, not Gate
+# 4's plain structural-incompleteness report, so the two gates never co-fire on the same
+# instance.
+# Back-reference: math:FactorGraph / math:ExactPreservationViolated
+# (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:overclaimedFactorGraph a math:FactorGraph ;
+    logic:preservationKind logic:ExactPreservation .
