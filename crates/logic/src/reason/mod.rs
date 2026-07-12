@@ -217,6 +217,12 @@ pub(crate) fn reason_ground_iri_insert_incremental(
         object: TermValue::iri(object.to_owned()),
     };
     let candidate_key = candidate.key();
+    let candidate_axiom_key = (
+        subject.to_owned(),
+        predicate.to_owned(),
+        crate::provenance::term_display(&candidate.object),
+        scenario_world.to_owned(),
+    );
     if world_edb.iter().any(|fact| fact.key() == candidate_key) {
         return Ok(IncrementalReasoningResult {
             result: base.clone(),
@@ -269,11 +275,6 @@ pub(crate) fn reason_ground_iri_insert_incremental(
             object.clone(),
             scenario_world.to_owned(),
         );
-        if let Some(base_axiom) = base_by_key.get(&key) {
-            inferred.push(base_axiom.clone());
-            continue;
-        }
-
         let fact_key = fact.key();
         if fact_key == candidate_key {
             inferred.push(InferredAxiom {
@@ -285,6 +286,10 @@ pub(crate) fn reason_ground_iri_insert_incremental(
                 rule_name: None,
                 premises: Vec::new(),
             });
+            continue;
+        }
+        if let Some(base_axiom) = base_by_key.get(&key) {
+            inferred.push(base_axiom.clone());
             continue;
         }
 
@@ -328,6 +333,15 @@ pub(crate) fn reason_ground_iri_insert_incremental(
     if adjusted.status == crate::seam::BudgetStatus::Ok {
         dl::augment_inferred_with_dl(&mut inferred, with_candidate_edb)?;
     }
+    inferred.retain(|axiom| {
+        let key = (
+            axiom.subject.clone(),
+            axiom.predicate.clone(),
+            axiom.object.clone(),
+            axiom.world.clone(),
+        );
+        key != candidate_axiom_key || axiom.is_edb
+    });
     for axiom in &mut inferred {
         axiom.premises.sort();
         axiom.premises.dedup();
