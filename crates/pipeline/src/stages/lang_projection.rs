@@ -314,6 +314,17 @@ fn no_source_row(target: &str, loss: &mut LossLedger) -> ProjectionResult {
     }
 }
 
+/// The lang-model sources the GMN-1 (and OntoLex/CoNLL-U/…) targets lower FROM — the exact
+/// `lang_models` set [`collect_input`] feeds the registry. Exposed so the on-gate
+/// shipped-projection lint (`crates/pipeline/src/stages/gmn1_gate.rs`) reconstructs each
+/// shipped `gmn1/*.gmn` document from the SAME sources the projection stage projected, never a
+/// second, drift-prone source enumeration.
+pub(crate) fn lang_model_sources(
+    catalog: Option<&SliceCatalog>,
+) -> Result<Vec<NamedSource>, gmeow_errors::Diag> {
+    Ok(collect_input(catalog)?.lang_models)
+}
+
 /// Collect the projection input aBox from the shared source catalog: every authored
 /// `*.ebnf` grammar surface (the grammar SOURCE surface), and every lang-bearing
 /// `examples/*.ttl` (the `lang:` A-box the OntoLex/CoNLL-U/TEI/NIF/SemAF targets lower FROM,

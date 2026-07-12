@@ -34,3 +34,8 @@ tiktoken-rs = "0.12"
 [dev-dependencies]
 insta = { version = "1.48", features = ["json"] }
 proptest = "1"
+# The Gate-2 vendored-treebank round-trip test dogfoods the real corpus.json descriptor
+# against the native license CATEGORY (ring-fenced + attributed CC BY-SA ⇒ IMPORT_OK) — the
+# same classifier the conformance vendoring audit uses, keyed off the descriptor not a path.
+gmeow-license = { path = "../license" }
+serde_json = "1"

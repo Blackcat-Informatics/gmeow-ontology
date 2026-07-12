@@ -39,28 +39,16 @@
 //! grounding sources. Both audits run in `run.rs`'s reconcile phase; both are total,
 //! hard-fail gates over the same source domain.
 
+use std::collections::BTreeMap;
 use std::path::Path;
 
+use gmeow_lang_bridge::registry::NamedSource;
 use gmeow_lang_bridge::{
     ConstructCoverageTally, Gmn0Model, Gmn1ConstructCategory, Gmn1Error, GmnDictionary,
-    gmn0_canonically_equal, gmn1_read, gmn1_write,
+    gmn0_canonically_equal, gmn1_read, gmn1_write, round_trip_check,
 };
 use purrdf::parse_dataset;
-
-/// Which failure surface a grounding source hit — the distinction the L3 ledger-identity
-/// requirement bites on: an uncovered GMN-0 construct is `lang:GmnUncoveredTerm` (interned
-/// through [`gmeow_lang_bridge::error::attach_gmn_uncovered`], the dedicated DiagLedger
-/// identity), never folded into the generic round-trip-mismatch code the way a canonical
-/// mismatch or a malformed-text parse defect is.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Gmn1FailureKind {
-    /// A GMN-0 construct this codec cannot losslessly encode/decode (`Gmn1Error::Uncovered`) —
-    /// the `lang:GmnUncoveredTerm` hard fail.
-    Uncovered,
-    /// A parse defect, canonical mismatch, or Turtle-ingest failure that is not an
-    /// uncovered-term hard fail.
-    RoundTripDefect,
-}
+use purrdf::slice::SliceCatalog;
 
 /// The grounding slice directories this gate is total over (mirrors the
 /// `axisGmn1Coverage` axis's own `slices/grounding/` scope, minus `kernel`: the kernel
@@ -70,17 +58,27 @@ pub enum Gmn1FailureKind {
 /// grounding modules named in the carrier declaration and Task 6's own text).
 const GROUNDING_SLICES: [&str; 3] = ["logic", "lang", "math"];
 
-/// One grounding-slice source file's round-trip outcome.
+/// One grounding-slice source file's round-trip outcome, carrying the ONE typed
+/// [`gmeow_lang_bridge::Gmn1Error`] the codec's canonical classifier produced — the gate
+/// makes no second classification of its own (the deleted `Gmn1FailureKind` duplicate is
+/// gone). `run.rs` routes the ledger split off [`Self::failure_class`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Gmn1RoundTripFailure {
     /// The repo-relative source path (`slices/grounding/lang/module.ttl`, an
     /// `examples/*.ttl` fixture, …).
     pub path: String,
-    /// The failure detail (an uncovered construct or a canonical mismatch), from
-    /// [`gmeow_lang_bridge::Gmn1Error`]'s `Display`.
-    pub detail: String,
-    /// Which failure surface this is — see [`Gmn1FailureKind`].
-    pub kind: Gmn1FailureKind,
+    /// The typed codec failure — the single source of both the human detail
+    /// ([`Gmn1Error`]'s `Display`) and the canonical `lang:` class
+    /// ([`Gmn1Error::failure_class`]).
+    pub error: Gmn1Error,
+}
+
+impl Gmn1RoundTripFailure {
+    /// The full `lang:` failure-class IRI, straight from the codec's one classifier.
+    #[must_use]
+    pub fn failure_class(&self) -> &'static str {
+        self.error.failure_class()
+    }
 }
 
 /// The gate's outcome: every grounding source that failed to round-trip losslessly.
@@ -169,38 +167,26 @@ pub fn check_gmn1_roundtrip(root: &Path) -> Result<Gmn1RoundTripReport, gmeow_er
         let ds = match parse_dataset(&bytes, "text/turtle", None) {
             Ok(ds) => ds,
             Err(e) => {
+                // A grounding source that will not parse as Turtle cannot be lifted at all —
+                // the residual `lang:GmnNonDecodableGrammar`.
                 failures.push(Gmn1RoundTripFailure {
                     path: source.clone(),
-                    detail: format!("failed to parse as Turtle: {e}"),
-                    kind: Gmn1FailureKind::RoundTripDefect,
+                    error: Gmn1Error::NonDecodableGrammar {
+                        detail: format!("failed to parse as Turtle: {e}"),
+                    },
                 });
                 continue;
             }
         };
         let model = Gmn0Model::from_dataset(&ds);
-        match gmn1_write(&model, &dict) {
-            Ok(doc) => match gmn1_read(&doc, &dict) {
-                Ok(reconstructed) => {
-                    if !gmn0_canonically_equal(&model, &reconstructed) {
-                        failures.push(Gmn1RoundTripFailure {
-                            path: source.clone(),
-                            detail: "round-trip canonical mismatch (gmn1_read(gmn1_write(x)) != x)"
-                                .to_owned(),
-                            kind: Gmn1FailureKind::RoundTripDefect,
-                        });
-                    }
-                }
-                Err(e) => failures.push(Gmn1RoundTripFailure {
-                    path: source.clone(),
-                    kind: failure_kind(&e),
-                    detail: e.to_string(),
-                }),
-            },
-            Err(e) => failures.push(Gmn1RoundTripFailure {
+        // The codec's OWN round-trip primitive is the single classifier: write, read,
+        // canonically compare, and surface the ONE typed `Gmn1Error` (uncovered construct,
+        // parse defect, or canonical mismatch) — the gate never re-derives a class of its own.
+        if let Err(e) = round_trip_check(&model, &dict) {
+            failures.push(Gmn1RoundTripFailure {
                 path: source.clone(),
-                kind: failure_kind(&e),
-                detail: e.to_string(),
-            }),
+                error: e,
+            });
         }
     }
 
@@ -272,14 +258,152 @@ impl Gmn1ConstructCoverageReport {
     }
 }
 
-/// Classify a codec-level [`Gmn1Error`] into the gate's own [`Gmn1FailureKind`] — the
-/// only place this distinction is made, so `run.rs`'s ledger-interning call and this
-/// gate's own tests agree by construction.
-fn failure_kind(e: &Gmn1Error) -> Gmn1FailureKind {
-    match e {
-        Gmn1Error::Uncovered(_) => Gmn1FailureKind::Uncovered,
-        Gmn1Error::Malformed(_) => Gmn1FailureKind::RoundTripDefect,
+// ── The shipped-projection lint: a production caller of the codec's classifier ─────────
+
+/// One shipped GMN-1 projection artifact that failed to read back cleanly through the
+/// production `gmn1_read` codec.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Gmn1ShippedFailure {
+    /// The committed artifact path (`generated/projections/lang/gmn1/<name>.gmn`).
+    pub path: String,
+    /// The typed codec failure carrying the canonical `lang:` class
+    /// ([`Gmn1Error::failure_class`]).
+    pub error: Gmn1Error,
+}
+
+impl Gmn1ShippedFailure {
+    /// The full `lang:` failure-class IRI, straight from the codec's one classifier.
+    #[must_use]
+    pub fn failure_class(&self) -> &'static str {
+        self.error.failure_class()
     }
+}
+
+/// [`check_gmn1_shipped_projections`]'s outcome: every shipped GMN-1 projection that failed
+/// to read cleanly. Empty ⇒ every shipped `generated/projections/lang/gmn1/*.gmn` reads back
+/// through the production codec with `failure_class()` clean.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Gmn1ShippedReport {
+    /// Every failing shipped artifact, in a stable (sorted-path) order.
+    pub failures: Vec<Gmn1ShippedFailure>,
+    /// How many shipped artifacts were verified to read cleanly (the lint's positive count —
+    /// a zero here over a non-empty projection dir is itself a wiring smell the caller checks).
+    pub verified: usize,
+}
+
+impl Gmn1ShippedReport {
+    /// The lint passes when every shipped GMN-1 projection read cleanly.
+    #[must_use]
+    pub fn is_clean(&self) -> bool {
+        self.failures.is_empty()
+    }
+}
+
+/// PRODUCTION consumer of the codec's canonical classifier over SHIPPED artifacts: read every
+/// committed `generated/projections/lang/gmn1/*.gmn` back through the production
+/// [`gmeow_lang_bridge::gmn1_read`] and assert `failure_class()` is clean.
+///
+/// The shipped `.gmn` text carries `r_<hash>` by-reference tokens whose reference table is the
+/// codec's out-of-band resolution store (it does not live inside the `.gmn` bytes), so the
+/// lint reconstructs each source's full [`Gmn1Document`] EXACTLY the way the projection stage
+/// does (parse the lang-model source → [`Gmn0Model`] → [`gmn1_write`]), ASSERTS the shipped
+/// bytes equal that document's text (so a stale artifact is a hard fail, tying the read to the
+/// committed bytes), then reads the document back. A shipped projection that fails to read is a
+/// hard fail naming the file and the `lang:` class — mirroring the source enumeration of
+/// [`collect_grounding_sources`] but over the shipped projection directory.
+pub fn check_gmn1_shipped_projections(
+    root: &Path,
+) -> Result<Gmn1ShippedReport, gmeow_errors::Diag> {
+    let gmn1_dir = root
+        .join(crate::stages::lang_projection::LANG_PROJECTION_DIR)
+        .join("gmn1");
+    if !gmn1_dir.is_dir() {
+        // No shipped GMN-1 projections (e.g. a source checkout with no generated tree yet):
+        // vacuously clean, nothing to lint.
+        return Ok(Gmn1ShippedReport::default());
+    }
+
+    // The shipped artifacts, keyed by their `<name>` stem.
+    let mut shipped: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    for entry in std::fs::read_dir(&gmn1_dir)
+        .map_err(|e| stage_err(&format!("read dir {}: {e}", gmn1_dir.display())))?
+    {
+        let entry = entry.map_err(|e| stage_err(&format!("dir entry in gmn1 projections: {e}")))?;
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) == Some("gmn") {
+            let stem = path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .ok_or_else(|| stage_err(&format!("non-UTF-8 gmn artifact: {}", path.display())))?
+                .to_owned();
+            let bytes = std::fs::read(&path)
+                .map_err(|e| stage_err(&format!("read {}: {e}", path.display())))?;
+            shipped.insert(stem, bytes);
+        }
+    }
+
+    // Rebuild the projection's lang-model sources EXACTLY as the projection stage does, so the
+    // reconstructed documents (text + out-of-band refs) match the shipped artifacts byte-for-byte.
+    let catalog =
+        SliceCatalog::discover(&root.join("slices"), crate::gmeow_ns::gmeow_slice_vocab())
+            .map_err(|e| stage_err(&format!("discover slice catalog: {e}")))?;
+    let sources: Vec<NamedSource> =
+        crate::stages::lang_projection::lang_model_sources(Some(&catalog))?;
+    let by_name: BTreeMap<&str, &NamedSource> =
+        sources.iter().map(|s| (s.name.as_str(), s)).collect();
+
+    let mut failures = Vec::new();
+    let mut verified = 0usize;
+    for (name, bytes) in &shipped {
+        let path = format!(
+            "{}/gmn1/{name}.gmn",
+            crate::stages::lang_projection::LANG_PROJECTION_DIR
+        );
+        let source = by_name.get(name.as_str()).ok_or_else(|| {
+            stage_err(&format!(
+                "shipped GMN-1 projection {path} has no lang-model source — an orphan artifact"
+            ))
+        })?;
+        let ds = parse_dataset(&source.bytes, "text/turtle", None)
+            .map_err(|e| stage_err(&format!("parse lang-model source for {path}: {e}")))?;
+        let model = Gmn0Model::from_dataset(&ds);
+        // The projection stage builds the per-source dictionary from the source dataset itself.
+        let source_dict = GmnDictionary::from_dataset(&ds).unwrap_or_default();
+        let doc = gmn1_write(&model, &source_dict).map_err(|e| {
+            stage_err(&format!(
+                "shipped GMN-1 projection {path} no longer writes from its source: {e}"
+            ))
+        })?;
+        if doc.text.as_bytes() != bytes.as_slice() {
+            return Err(stage_err(&format!(
+                "shipped GMN-1 projection {path} is stale — its bytes differ from the current \
+                 projection of its source (run `make regenerate`)"
+            )));
+        }
+        // The production classifier over the shipped artifact (its full document, whose text
+        // we just proved equals the committed bytes; the reference table is the codec's
+        // out-of-band store): clean ⇒ Ok.
+        match gmn1_read(&doc, &source_dict) {
+            Ok(back) => {
+                if gmn0_canonically_equal(&model, &back) {
+                    verified += 1;
+                } else {
+                    failures.push(Gmn1ShippedFailure {
+                        path,
+                        error: Gmn1Error::NonDecodableGrammar {
+                            detail: "shipped projection reads back to a different GMN-0 model \
+                                     (round-trip canonical mismatch)"
+                                .to_owned(),
+                        },
+                    });
+                }
+            }
+            Err(e) => failures.push(Gmn1ShippedFailure { path, error: e }),
+        }
+    }
+
+    failures.sort_by(|a, b| a.path.cmp(&b.path));
+    Ok(Gmn1ShippedReport { failures, verified })
 }
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
@@ -363,10 +487,10 @@ mod tests {
                 .failures
                 .iter()
                 .any(|f| f.path == "slices/grounding/math/module.ttl"
-                    && f.kind == Gmn1FailureKind::Uncovered),
-            "the failure must name the offending source path AND classify as Uncovered \
-             (so run.rs routes it through lang:GmnUncoveredTerm, not the generic \
-             round-trip-mismatch code): {:#?}",
+                    && f.failure_class() == Gmn1Error::CLASS_UNCOVERED_TERM),
+            "the failure must name the offending source path AND classify as \
+             lang:GmnUncoveredTerm (so run.rs routes it through the dedicated DiagLedger \
+             identity, not the generic round-trip-mismatch code): {:#?}",
             report.failures
         );
     }
@@ -406,7 +530,7 @@ mod tests {
         let roundtrip_uncovered = roundtrip
             .failures
             .iter()
-            .filter(|f| f.kind == Gmn1FailureKind::Uncovered)
+            .filter(|f| f.failure_class() == Gmn1Error::CLASS_UNCOVERED_TERM)
             .count();
         assert_eq!(
             roundtrip_uncovered, 0,
@@ -503,10 +627,33 @@ mod tests {
         let dirty = Gmn1RoundTripReport {
             failures: vec![Gmn1RoundTripFailure {
                 path: "x".to_owned(),
-                detail: "y".to_owned(),
-                kind: Gmn1FailureKind::RoundTripDefect,
+                error: Gmn1Error::NonDecodableGrammar {
+                    detail: "y".to_owned(),
+                },
             }],
         };
         assert!(!dirty.is_clean());
+    }
+
+    /// The production shipped-projection lint reads every committed
+    /// `generated/projections/lang/gmn1/*.gmn` back through the production codec and asserts
+    /// `failure_class()` is clean — a genuine production caller of the canonical classifier
+    /// over shipped artifacts (not merely a test-only round-trip).
+    #[test]
+    fn shipped_gmn1_projections_all_read_clean() {
+        let root = repo_root();
+        let report = check_gmn1_shipped_projections(&root)
+            .expect("shipped-projection lint runs without a hard I/O error");
+        assert!(
+            report.is_clean(),
+            "every shipped GMN-1 projection must read back clean through the production codec, \
+             but these failed: {:#?}",
+            report.failures
+        );
+        assert!(
+            report.verified > 0,
+            "the lint must actually have exercised shipped projections (the repo ships \
+             generated/projections/lang/gmn1/*.gmn), not vacuously pass on an empty set"
+        );
     }
 }
