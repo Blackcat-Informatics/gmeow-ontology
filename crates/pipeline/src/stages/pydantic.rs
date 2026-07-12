@@ -1843,4 +1843,22 @@ mod tests {
 
         insta::assert_snapshot!("models_python_synthetic_demo", demo);
     }
+
+    /// Size-budget gate (req 31): the rendered `models-python` surface stays under a
+    /// generous uncompressed ceiling. The package is ~text, which compresses
+    /// extremely well in the zstd-framed bundle blob, so the ceiling bounds the
+    /// uncompressed render; inflating the package past it hard-fails HERE (a
+    /// falsifiable ceiling, not a rubber stamp).
+    #[test]
+    fn models_python_stays_under_size_budget() {
+        // 16 MiB uncompressed: comfortably above the current corpus render with
+        // headroom for growth, far below any bundle concern once zstd-compressed.
+        const CEILING_BYTES: usize = 16 * 1024 * 1024;
+        let out = render_models_python(&repo_root()).expect("render models");
+        let total: usize = out.artifacts.values().map(Vec::len).sum();
+        assert!(
+            total < CEILING_BYTES,
+            "models-python render is {total} bytes, exceeding the {CEILING_BYTES}-byte budget ceiling"
+        );
+    }
 }
