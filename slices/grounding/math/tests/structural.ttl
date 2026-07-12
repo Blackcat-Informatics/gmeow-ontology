@@ -544,10 +544,28 @@ ex:saProcessNotObservation a gmeow:StructuralAssertion ;
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    math:IngestRun   owl:disjointWith gmeow:Observation .
-    math:PCAAnalysis owl:disjointWith gmeow:Observation .
+    math:IngestRun    owl:disjointWith gmeow:Observation .
+    math:PCAAnalysis  owl:disjointWith gmeow:Observation .
+    math:InferenceRun owl:disjointWith gmeow:Observation .
 }""" ;
-    gmeow:saRationale "An inference or analysis process is a gmeow:Activity, never the claim about its results, so the math process classes MUST be owl:disjointWith gmeow:Observation — the OWL-axiom gate backing math:ProcessObservationConflation, mirroring lang:InterpretationAct owl:disjointWith gmeow:Observation." .
+    gmeow:saRationale "An inference or analysis process is a gmeow:Activity, never the claim about its results, so the math process classes MUST be owl:disjointWith gmeow:Observation — the OWL-axiom gate backing math:ProcessObservationConflation, mirroring lang:InterpretationAct owl:disjointWith gmeow:Observation. A math:InferenceRun is the statistics-layer analysis process (the charter's hard rule: an inference run is a gmeow:Activity, not a gmeow:Observation), so it is gated alongside the math:IngestRun and math:PCAAnalysis process classes — a node typed both an inference run and an observation is forced to owl:Nothing by the native DL coherence gate." .
+
+# --- A statistical result object is never an observation (MUST) ------------- #
+ex:saResultObjectNotObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:FrequentistResult        owl:disjointWith gmeow:Observation .
+    math:BayesianResult           owl:disjointWith gmeow:Observation .
+    math:Estimate                 owl:disjointWith gmeow:Observation .
+    math:EffectSize               owl:disjointWith gmeow:Observation .
+    math:Estimand                 owl:disjointWith gmeow:Observation .
+    math:FormalVerificationResult owl:disjointWith gmeow:Observation .
+}""" ;
+    gmeow:saRationale "The structured result object — an estimate, a p-value, a posterior — is the result half of the process / result / claim separation, never the held claim about it, so the statistical result-object families MUST be owl:disjointWith gmeow:Observation — the OWL-axiom gate backing math:ResultRoleConflation, alongside the math:FormalVerificationResult axiom it mirrors. The two inference-paradigm families (math:FrequentistResult over p-values, confidence intervals and regions, statistical power, the Type I/II error rates; math:BayesianResult over credible intervals and regions, Bayes factors, posterior probabilities) and the paradigm-neutral result objects (math:Estimate, math:EffectSize, math:Estimand) each carry the axiom at leaf/family level — never on the math:MathematicalObject root, because math:ResidualInterpretationClaim is a legitimate math-namespaced gmeow:Observation. The native DL coherence gate reads the disjointness directly, forcing any individual typed both a statistical result object and an observation to owl:Nothing, mirroring lang:InterpretationAct owl:disjointWith gmeow:Observation." .
 
 # --- The process/result/claim separation failures are typed (MUST) ---------- #
 ex:saSeparationFailureHierarchy a gmeow:StructuralAssertion ;
@@ -714,3 +732,141 @@ ASK {
     math:CalibrationSenseConflation rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "Both diagnostic hard-rule failures MUST be subclasses of math:MathConformanceFailure, so a diagnostic anchored to neither its fitted model nor its method (math:UnanchoredDiagnostic) and a node conflating the statistical and topological senses of calibration (math:CalibrationSenseConflation) are each typed, queryable objects — first-class failure classes, not log lines. math:CalibrationSenseConflation is the failure identity of the DIRECTLY-asserted math:CalibrationDiagnostic ⊥ math:StabilityCalibrationRecord disjointness." .
+
+# --- Statistics: every charter construct is actually minted (MUST) ----------- #
+ex:saStatisticsConstructCoverage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    FILTER NOT EXISTS {
+        VALUES ?c {
+            math:StatisticalPopulation
+            math:SamplingFrame
+            math:Sample
+            math:ObservationUnit
+            math:StatisticalVariable
+            math:DatasetMatrix
+            math:VariableRole
+            math:MeasurementScale
+            math:UnitPolicy
+            math:MissingValueCode
+            math:MissingnessIndicator
+            math:SamplingWeight
+            math:Stratum
+            math:Cluster
+            math:SurveyDesign
+            math:DataTransformation
+            math:DerivedVariable
+            math:StatisticalModel
+            math:ModelFormula
+            math:ModelAssumption
+            math:Estimand
+            math:Estimator
+            math:Statistic
+            math:Estimate
+            math:FittedModel
+            math:InferenceRun
+            math:Hypothesis
+            math:NullHypothesis
+            math:AlternativeHypothesis
+            math:HypothesisTest
+            math:PValue
+            math:ConfidenceInterval
+            math:CredibleInterval
+            math:PredictionInterval
+            math:ToleranceInterval
+            math:ConfidenceRegion
+            math:CredibleRegion
+            math:EffectSize
+            math:Prediction
+            math:Residual
+            math:ModelDiagnostic
+            math:ModelComparison
+            math:InformationCriterion
+            math:CrossValidationResult
+            math:CalibrationDiagnostic
+            math:ExperimentalDesign
+            math:RandomizationScheme
+            math:MissingnessMechanism
+            math:AnalysisPlan
+            math:FrequentistResult
+            math:BayesianResult
+            math:SamplingDistribution
+            math:StatisticalPower
+            math:TypeIErrorRate
+            math:TypeIIErrorRate
+            math:BayesFactor
+            math:PosteriorProbability
+        }
+        FILTER NOT EXISTS { ?c a owl:Class . }
+    }
+    FILTER NOT EXISTS {
+        VALUES ?p {
+            math:population
+            math:samplingFrame
+            math:sampleOf
+            math:observationUnit
+            math:statisticalVariable
+            math:modelFormula
+            math:modelAssumption
+            math:fittedToData
+            math:estimatesEstimand
+            math:estimatedParameter
+            math:estimator
+            math:estimateValue
+            math:targetPopulation
+            math:targetOutcome
+            math:targetContrast
+            math:targetTime
+            math:interventionCondition
+            math:missingDataPolicy
+            math:nullHypothesis
+            math:alternativeHypothesis
+            math:testStatistic
+            math:nullDistribution
+            math:tailDefinition
+            math:alternativeSidedness
+            math:pValueAdjustment
+            math:multipleComparisonFamily
+            math:pValue
+            math:effectSize
+            math:hasIntervalBound
+            math:confidenceLevel
+            math:credibleMass
+            math:predictionTarget
+            math:residualOf
+            math:diagnosticFor
+            math:analysisPlanVersion
+            math:usedAnalysisPlan
+        }
+        FILTER NOT EXISTS { ?p a ?pk . FILTER(?pk IN (owl:ObjectProperty, rdf:Property)) }
+    }
+}""" ;
+    gmeow:saRationale "The charter-coverage gate: every construct the statistics charter (MATHEMATICS-STATISTICS.md) names as first-class vocabulary MUST actually be minted in module.ttl — each enumerated class as an owl:Class and each enumerated property as an owl:ObjectProperty or rdf:Property. The class arm spans all charter sections — the study/data spine (population, frame, sample, observation unit, variable, dataset matrix, and the variable-integrity kinds), models and estimation (model, formula, assumption, estimand, estimator, statistic, estimate, fitted model, inference run), inference and results (hypotheses, test, p-value, the interval and region kinds, effect size, prediction, residual, diagnostic), model comparison and calibration (comparison, information criterion, cross-validation, calibration diagnostic), design and integrity (experimental design, randomization, missingness mechanism, analysis plan), and the frequentist/Bayesian parity result kinds (the two families with the sampling distribution, power, Type I / Type II error rates, Bayes factor, and posterior probability). The property arm spans the study, estimation, estimand-framing, inference, and design edges. The ASK is a for-all over the two VALUES lists (it finds NO enumerated construct that fails to be typed), so a charter construct minted nowhere makes the assertion FAIL (the inner FILTER NOT EXISTS surfaces the un-minted term as an offender, the outer FILTER NOT EXISTS then fails, and the ASK returns false); the reviewer's prose 'charter coverage is green' becomes a real make check failure. math:MathematicalObject, math:MathematicalExpression, math:PersistenceLifetime, and math:StabilityCalibrationRecord are referenced by the charter but are object/expression-core and linear-algebra-and-learning vocabulary from other charters, not statistics constructs it defines, so they are covered by their own slices' gates and excluded here." .
+
+# --- Statistics: every statistics hard-rule failure is typed (MUST) --------- #
+ex:saStatisticsFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    FILTER NOT EXISTS {
+        VALUES ?fc {
+            math:UnderspecifiedEstimate
+            math:IllFramedPValue
+            math:IncompleteConfidenceInterval
+            math:IncompleteCredibleInterval
+            math:IntervalKindConflation
+            math:UnframedEffectSize
+            math:UnanchoredDiagnostic
+            math:ImplicitMissingness
+            math:CalibrationSenseConflation
+        }
+        FILTER NOT EXISTS { ?fc rdfs:subClassOf+ math:MathConformanceFailure . }
+    }
+}""" ;
+    gmeow:saRationale "Each of the statistics-layer hard-rule failures MUST be a subclass of math:MathConformanceFailure, so every violation — an estimate naming neither estimand/parameter nor estimator (math:UnderspecifiedEstimate), a p-value missing its test/null/distribution/tail frame (math:IllFramedPValue), an incomplete confidence interval (math:IncompleteConfidenceInterval), an incomplete credible interval (math:IncompleteCredibleInterval), a confidence/credible interval conflation (math:IntervalKindConflation), an unframed effect size (math:UnframedEffectSize), a diagnostic anchored to neither its fitted model nor its method (math:UnanchoredDiagnostic), a variable whose values encode absence with no declared missingness mechanism (math:ImplicitMissingness), and a node conflating the statistical and topological senses of calibration (math:CalibrationSenseConflation) — is a typed, queryable object. The first eight are the statistics CONFORMANCE rows; math:CalibrationSenseConflation is added because a calibration diagnostic is a statistical model diagnostic, so its sense-conflation is a statistics failure. The ASK is a for-all over a VALUES list (it finds NO enumerated failure that fails to subclass the parent), mirroring math:saProbabilityFailureHierarchy — a new statistics failure joins the audit by being added to the list." .

@@ -5377,6 +5377,26 @@ math:PCAAnalysis owl:disjointWith gmeow:Observation .
 math:ProofCheckActivity owl:disjointWith gmeow:Observation .
 math:InferenceRun owl:disjointWith gmeow:Observation .
 
+# --- Result-object / observation disjointness (result object is never the claim) - #
+# The OWL-axiom gate backing math:ResultRoleConflation for the statistical result
+# object families: an estimate, a p-value, a posterior is the structured RESULT
+# OBJECT an inference process returns, NEVER the held claim about it — the result
+# half of the process / result / claim separation. math:FormalVerificationResult
+# carries the same axiom inline on its own class; here it is placed on the two
+# inference-paradigm families (covering p-values, confidence/credible intervals and
+# regions, statistical power, the Type I/II error rates, Bayes factors, posterior
+# probabilities) and on the paradigm-neutral result objects (math:Estimate — the
+# charter's named flagship result object — math:EffectSize, and math:Estimand). The
+# axiom is leaf/family-level, NEVER on the math:MathematicalObject root, because
+# math:ResidualInterpretationClaim is a legitimate math-namespaced gmeow:Observation;
+# the native DL coherence gate reads the disjointness directly, forcing any individual
+# typed both a result object and an observation to owl:Nothing.
+math:FrequentistResult owl:disjointWith gmeow:Observation .
+math:BayesianResult owl:disjointWith gmeow:Observation .
+math:Estimate owl:disjointWith gmeow:Observation .
+math:EffectSize owl:disjointWith gmeow:Observation .
+math:Estimand owl:disjointWith gmeow:Observation .
+
 # --- Bridge failure classes -------------------------------------------------- #
 
 math:UnliftableIngest
