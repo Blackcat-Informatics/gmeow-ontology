@@ -97,15 +97,15 @@ fn run_counterexample(
         "math::producers::proof_ingest" => {
             let result_pred = "https://blackcatinformatics.ca/gmeow/observationResult";
             let vantage_pred = "https://blackcatinformatics.ca/gmeow/vantage";
-            let result_subjects: std::collections::BTreeSet<_> = ds
+            let result_subjects: std::collections::HashSet<_> = ds
                 .owned_quads()
                 .filter(|q| q.predicate == result_pred)
-                .map(|q| format!("{:?}", q.subject))
+                .map(|q| q.subject)
                 .collect();
-            let vantage_subjects: std::collections::BTreeSet<_> = ds
+            let vantage_subjects: std::collections::HashSet<_> = ds
                 .owned_quads()
                 .filter(|q| q.predicate == vantage_pred)
-                .map(|q| format!("{:?}", q.subject))
+                .map(|q| q.subject)
                 .collect();
             producers::verify_proof_result(!result_subjects.is_disjoint(&vantage_subjects))
         }
