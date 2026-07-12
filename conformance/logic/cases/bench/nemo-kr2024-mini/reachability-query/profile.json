@@ -1,1 +1,1 @@
-{ "fragment": "backward", "engines": ["native", "scryer"] }
+{ "fragment": "backward", "engines": ["native"] }

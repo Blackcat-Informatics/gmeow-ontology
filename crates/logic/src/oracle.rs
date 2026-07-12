@@ -3,32 +3,27 @@
 
 //! The reasoning-oracle boundary.
 //!
-//! A *reasoner* is a partial decision procedure over a fragment of the logic:
-//! the native physical core (`crate::physical`) is the primary path, and an
-//! external engine is consulted only for the fragment the native core does not
-//! yet decide.  This module makes that boundary a typed seam so the external
-//! engines are **swappable adapters** rather than concretely-named call targets.
+//! A *reasoner* is a partial decision procedure over a fragment of the logic.
+//! The native physical core (`crate::physical`) is the production authority;
+//! retained external engines are test-only comparison adapters.
 //!
 //! Two dual traits mirror the forward/backward duality of Datalog±:
-//! materialization (least-fixpoint `T_P` closure) and goal resolution (SLD).
+//! materialization (least-fixpoint `T_P` closure) and reference goal resolution.
 //!
 //! - [`ForwardOracle`] — materialize the deductive closure of a typed EDB under
 //!   a rule program.  The PRODUCTION implementer is the native stratified core
 //!   ([`NativeForwardOracle`], returned by [`forward_oracle`]); the Nemo bridge
 //!   ([`NemoForwardOracle`], reached only via [`nemo_forward_oracle`]) is
 //!   retained solely as the bootstrap/parity oracle off the primary path.
-//! - [`BackwardOracle`] — resolve a goal against a world's facts, returning an
-//!   answer set.  Implemented by the Scryer engine ([`ScryerBackwardOracle`])
-//!   and by the declarative SLD reference resolver (`ReferenceBackwardOracle`,
-//!   the parity oracle the native magic-sets engine is checked against).
+//! - [`BackwardOracle`] — test-only seam for the declarative SLD reference
+//!   resolver (`ReferenceBackwardOracle`), used to check the native demand-
+//!   transformed engine against an independent evaluation strategy.
 //!
 //! # Neutral vocabulary
 //!
 //! The closure vocabulary ([`TypedRow`], [`TypedProvenance`], [`TypedChaseResult`])
 //! lives here, not inside any adapter, so the trait does not depend on the
-//! engine that happens to produce it — this is what lets an engine's *solver
-//! adapter* be deleted.  For Scryer that solver adapter is the whole engine
-//! (retiring it is removing its adapter + its Cargo line).  Nemo also carries a
+//! engine that happens to produce it. Nemo also carries a
 //! separate rule/term codec (`NemoParsedRules` / `decode_nemo_term`), a
 //! wire-format concern distinct from solver invocation, so fully retiring Nemo
 //! additionally requires neutralizing that codec (see *Single naming site*).
@@ -43,10 +38,8 @@
 //!
 //! # Single naming site
 //!
-//! [`forward_oracle`] and [`backward_oracle`] are the *only* places a solver is
-//! invoked.  Every call site depends on the trait via these providers, so
-//! swapping the backing solver (or deleting the Scryer adapter outright) is a
-//! one-line change here.  Nemo's rule/term *codec* (`NemoParsedRules` /
+//! [`forward_oracle`] is the production materialization provider. Nemo's
+//! rule/term *codec* (`NemoParsedRules` /
 //! `decode_nemo_term`) is a distinct wire-format subsystem — the neutral rule-IR
 //! carrier — named outside this seam in production code, so retiring Nemo
 //! *entirely* additionally requires neutralizing that codec; it is not covered
@@ -56,7 +49,7 @@ use purrdf::TermValue;
 use purrdf::provenance::Attribution;
 
 use crate::query_ir::{AnswerSet, Budget, QProgram};
-use crate::seam::ScryerForeign;
+use crate::seam::WorldFactSource;
 
 /// Wrap a reasoning-oracle condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -94,6 +87,10 @@ pub(crate) struct TypedProvenance {
     pub rule_name: Option<String>,
     /// Immediate antecedent facts (premises) that the rule consumed, decoded.
     pub antecedents: Vec<TypedRow>,
+    /// Selected minimal proof-tree height from the native Record lane (`0` for
+    /// asserted input). Oracles/evaluators that do not carry the annotation report
+    /// `None`; absence is never fabricated as zero.
+    pub proof_height: Option<crate::provenance::ProofHeight>,
     /// Structured slice attributions (§9 / S5) — carried through unchanged.
     /// Populated at the validation boundary when slice context is available;
     /// no in-crate consumer reads it yet.
@@ -286,6 +283,7 @@ impl ForwardOracle for NemoFactsOracle {
                             is_edb: false,
                             rule_name: None,
                             antecedents: Vec::new(),
+                            proof_height: None,
                             attributions: Vec::new(),
                         },
                     )
@@ -479,10 +477,12 @@ pub(crate) fn native_forward_with_frontier(
     // least-fixpoint closure UNBOUNDED (`None` max_steps — the governor never
     // cuts, so the full least model is produced).
     let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
-    // Enter the type-state plan pipeline: a non-stratifiable program is a DECLARED
-    // gap (`stratify()` → `None`) the native engine does not decide — never
-    // approximate it into a fabricated closure.
-    let Some(stratified) = crate::physical::Parsed::new(&eval_rules).stratify() else {
+    // Compile once per reasoning-contract + canonical-rule identity. A cache hit skips
+    // both stratification and physical planning and returns an immutable plan shared by
+    // forward and backward execution. Non-stratifiable programs are negative-cached as
+    // `None`, preserving the declared-gap behavior without repeating the analysis.
+    let lookup = crate::physical::compile_cached(crate::reason::native_contract_hash(), eval_rules);
+    let Some(executable) = lookup.executable else {
         return Err(oracle_err(
             "NativeForwardOracle: the native chase does not decide this rule set \
                  (non-stratifiable: a negative dependency-graph edge inside a cycle); it \
@@ -490,24 +490,24 @@ pub(crate) fn native_forward_with_frontier(
                 .to_owned(),
         ));
     };
-    let executable = stratified.plan().into_executable();
     // Capture the governor's completion frontier alongside the rows: its
     // `consumed_steps` is the committed-derivation count the benchmark seam reads
     // as a scalar projection of the cost semiring.
-    let (rows, frontier) = match crate::physical::materialize_native(&store, &executable, None)? {
-        crate::physical::NativeOutcome::Decided(budgeted) => {
-            let frontier = budgeted.frontier();
-            (budgeted.rows, frontier)
-        }
-        // Any other declared native gap the forward executor might raise — never
-        // approximate it into a fabricated closure.
-        crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(oracle_err(format!(
-                "NativeForwardOracle: the native chase does not decide this rule set \
+    let (rows, frontier) =
+        match crate::physical::materialize_native(&store, executable.as_ref(), None)? {
+            crate::physical::NativeOutcome::Decided(budgeted) => {
+                let frontier = budgeted.frontier();
+                (budgeted.rows, frontier)
+            }
+            // Any other declared native gap the forward executor might raise — never
+            // approximate it into a fabricated closure.
+            crate::physical::NativeOutcome::Unsupported(kind) => {
+                return Err(oracle_err(format!(
+                    "NativeForwardOracle: the native chase does not decide this rule set \
                      (Unsupported({kind:?})); it must not approximate an undecided fragment"
-            )));
-        }
-    };
+                )));
+            }
+        };
 
     // Re-expose each native `DerivedRow` as a ternary `TypedRow`
     // `predicate(subject, object, world)` — the shape `run_reasoning`'s decoder
@@ -524,6 +524,7 @@ pub(crate) fn native_forward_with_frontier(
         .into_iter()
         .map(|row| {
             let is_edb = row.rule_iri == crate::provenance::ASSERT_RULE_IRI;
+            let proof_height = row.proof_height;
             let rule_name = if is_edb { None } else { Some(row.rule_iri) };
             // Re-expose each matched body fact as a ternary antecedent
             // `predicate(subject, object, world)` — the exact shape
@@ -559,6 +560,7 @@ pub(crate) fn native_forward_with_frontier(
                     is_edb,
                     rule_name,
                     antecedents,
+                    proof_height: Some(proof_height),
                     attributions: Vec::new(),
                 },
             )
@@ -648,9 +650,9 @@ fn world_lexical(term: &TermValue) -> gmeow_errors::Result<String> {
 
 // ── Backward oracle ───────────────────────────────────────────────────────────
 
-/// A backward reasoner: resolve `program`'s goal against `world`'s facts.
+/// A test-only backward reference reasoner.
 pub(crate) trait BackwardOracle {
-    /// Stable label for ledgers and diagnostics (e.g. `"scryer"`).
+    /// Stable label for ledgers and diagnostics.
     fn name(&self) -> &'static str;
 
     /// Resolve the goal, returning a canonical answer set plus budget status.
@@ -662,7 +664,7 @@ pub(crate) trait BackwardOracle {
     /// the contract while dropping `tabling` is not an LSP violation.
     fn solve(
         &self,
-        foreign: &dyn ScryerForeign,
+        foreign: &dyn WorldFactSource,
         world: &str,
         program: &QProgram,
         tabling: &[String],
@@ -670,34 +672,12 @@ pub(crate) trait BackwardOracle {
     ) -> gmeow_errors::Result<AnswerSet>;
 }
 
-/// The Scryer backward adapter.  Wraps `scryer_engine::run_scryer` verbatim; the
-/// process-global `SCRYER_LOCK` stays inside that call.
-pub(crate) struct ScryerBackwardOracle;
-
-impl BackwardOracle for ScryerBackwardOracle {
-    fn name(&self) -> &'static str {
-        "scryer"
-    }
-
-    fn solve(
-        &self,
-        foreign: &dyn ScryerForeign,
-        world: &str,
-        program: &QProgram,
-        tabling: &[String],
-        budget: &Budget,
-    ) -> gmeow_errors::Result<AnswerSet> {
-        crate::scryer_engine::run_scryer(foreign, world, program, tabling, budget)
-    }
-}
-
 /// The declarative SLD reference resolver as a backward oracle — the parity
 /// oracle the native magic-sets engine is checked against.  SLD needs no memo
 /// table, so `tabling` is ignored (answer-preserving, per the trait contract).
 ///
-/// This is a conformance/parity oracle, not a production engine (the production
-/// backward oracle is [`ScryerBackwardOracle`]); it exists solely so the parity
-/// gate can be generic over [`BackwardOracle`], hence `#[cfg(test)]`.
+/// This is a conformance/parity oracle, not a production engine; it exists solely
+/// so the parity gate can be generic over [`BackwardOracle`].
 #[cfg(test)]
 pub(crate) struct ReferenceBackwardOracle;
 
@@ -709,7 +689,7 @@ impl BackwardOracle for ReferenceBackwardOracle {
 
     fn solve(
         &self,
-        foreign: &dyn ScryerForeign,
+        foreign: &dyn WorldFactSource,
         world: &str,
         program: &QProgram,
         _tabling: &[String],
@@ -717,11 +697,6 @@ impl BackwardOracle for ReferenceBackwardOracle {
     ) -> gmeow_errors::Result<AnswerSet> {
         crate::reference_resolver::resolve(foreign, world, program, budget)
     }
-}
-
-/// The default backward oracle — the sole engine-naming site for resolution.
-pub(crate) fn backward_oracle() -> impl BackwardOracle {
-    ScryerBackwardOracle
 }
 
 #[cfg(test)]
@@ -794,13 +769,6 @@ mod tests {
             err.message().contains("cannot honor a forward budget"),
             "got: {err}"
         );
-    }
-
-    /// The default backward oracle is the Scryer adapter.
-    #[test]
-    fn backward_oracle_default_is_scryer() {
-        assert_eq!(backward_oracle().name(), "scryer");
-        assert_eq!(ReferenceBackwardOracle.name(), "reference-sld");
     }
 
     // ── Dispatch predicate: `rules_are_pure_ternary` (Task 5) ──────────────────
@@ -922,6 +890,16 @@ mod tests {
             "derived subClassOf(A, C) must cite NON-EMPTY antecedents (the empty-antecedents \
              bug fails here); got {prov:?}"
         );
+        assert!(
+            prov.proof_height.is_some_and(|height| height.get() > 0),
+            "binary Record provenance must carry a positive minimal proof height"
+        );
+        assert!(
+            result.rows.iter().filter(|(_, prov)| prov.is_edb).all(
+                |(_, prov)| prov.proof_height == Some(crate::provenance::ProofHeight::ASSERTED)
+            ),
+            "every binary asserted leaf must carry height zero"
+        );
     }
 
     /// GENERIC n-ary branch: the OWL 2 RL/RDF rules carry the arity-4
@@ -970,6 +948,13 @@ mod tests {
             "at least one derived row on the generic path must cite NON-EMPTY antecedents \
              (the empty-antecedents bug fails here); got {:?}",
             result.rows
+        );
+        assert!(
+            result
+                .rows
+                .iter()
+                .all(|(_, prov)| prov.proof_height.is_none()),
+            "the generic evaluator must report the absent annotation honestly"
         );
     }
 }

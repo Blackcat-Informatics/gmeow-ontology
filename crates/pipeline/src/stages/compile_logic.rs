@@ -25,7 +25,7 @@
 //!
 //! ## Engine lock
 //!
-//! Compilation is pure (parse + projection); it never drives Nemo/Scryer, so it
+//! Compilation is pure (parse + projection); it never drives a reasoning engine, so it
 //! declares no resource and holds no capability — a parallel-eligible stage with no
 //! engine lock.
 

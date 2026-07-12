@@ -51,18 +51,22 @@
 //! # The single oxigraph → columnar bridge
 //!
 //! [`extract_edb`] is the SOLE place the forward and backward engine paths cross from
-//! the oxigraph blackboard ([`crate::seam::ScryerForeign`]) into the columnar form.
+//! the oxigraph blackboard ([`crate::seam::WorldFactSource`]) into the columnar form.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::convert::Infallible;
 use std::sync::OnceLock;
 
 use purrdf::TermValue;
 
 use crate::facts::{PredId, PredInterner, TermId, TermInterner, skolem_iri};
-use crate::physical::cursor::RowCursor;
+use crate::physical::cursor::{
+    LendingIterator, RowCursor, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor,
+};
 use crate::physical::id::RowId;
-use crate::provenance::term_display;
-use crate::seam::ScryerForeign;
+use crate::provenance::{ProvenanceSemiring, ZWeightSemiring, term_display};
+use crate::rule_ir::Fact;
+use crate::seam::WorldFactSource;
 
 // ── Chase-invented nulls: recipe-carrying Skolem terms ──────────────────────────
 //
@@ -265,19 +269,25 @@ pub(crate) enum Bound {
 
 /// An abelian weight monoid over relation rows (the Z-set seam).
 pub(crate) trait Weight: Copy {
+    /// Structured failure type for consolidation. Set weights are infallible;
+    /// signed weights report checked-ring overflow.
+    type Error;
     /// The multiplicity of a freshly inserted row.
     const UNIT: Self;
     /// The abelian combine applied when two runs carry the SAME `(subject, object)` key
     /// during consolidation (associative + commutative).
-    fn combine(self, rhs: Self) -> Self;
+    fn combine(self, rhs: Self) -> Result<Self, Self::Error>;
     /// Whether a combined weight annihilates the row, so consolidation drops it.
     fn is_annihilated(self) -> bool;
 }
 
 impl Weight for () {
+    type Error = Infallible;
     const UNIT: Self = ();
     #[inline]
-    fn combine(self, _rhs: Self) -> Self {}
+    fn combine(self, _rhs: Self) -> Result<Self, Self::Error> {
+        Ok(())
+    }
     #[inline]
     fn is_annihilated(self) -> bool {
         // Set semantics: every live row has unit weight and never consolidates away.
@@ -286,10 +296,11 @@ impl Weight for () {
 }
 
 impl Weight for i64 {
+    type Error = gmeow_errors::Diag;
     const UNIT: Self = 1;
     #[inline]
-    fn combine(self, rhs: Self) -> Self {
-        self.saturating_add(rhs)
+    fn combine(self, rhs: Self) -> Result<Self, Self::Error> {
+        ZWeightSemiring.add(self, rhs)
     }
     #[inline]
     fn is_annihilated(self) -> bool {
@@ -438,25 +449,34 @@ impl<W: Weight> Batch<W> {
     /// The batch positions whose object is `o`, via the lazily-built [`ObjectIndex`]
     /// (built on first demand).  A subslice of the `(object, subject)`-sorted permutation.
     pub(crate) fn object_positions(&self, o: TermId) -> &[u32] {
-        let idx = self.object_index.get_or_init(|| {
-            let mut perm: Vec<u32> = (0..self.len() as u32).collect();
-            // Sort positions by (object_id, subject_id) — the secondary access order.
-            // `(object, subject)` keys are unique within a batch (the primary sort is
-            // key-disjoint), so no equal elements exist to preserve order for: the
-            // unstable sort is a pure win (no scratch allocation, lower constants),
-            // matching `seal()`'s `sort_unstable_by_key`.
-            perm.sort_unstable_by(|&a, &b| {
-                let (a, b) = (a as usize, b as usize);
-                (self.obj[a], self.subj[a]).cmp(&(self.obj[b], self.subj[b]))
-            });
-            ObjectIndex {
-                perm: perm.into_boxed_slice(),
-            }
-        });
-        let perm = &idx.perm;
+        let perm = self.object_order();
         let lo = perm.partition_point(|&p| self.obj[p as usize] < o);
         let hi = perm.partition_point(|&p| self.obj[p as usize] <= o);
         &perm[lo..hi]
+    }
+
+    /// Every batch position in `(object_id, subject_id)` order. The same lazy,
+    /// memoized permutation backs object-bound binary probes and object-major LFTJ
+    /// trie levels; it is built once and shared by both operators.
+    pub(crate) fn object_order(&self) -> &[u32] {
+        &self
+            .object_index
+            .get_or_init(|| {
+                let mut perm: Vec<u32> = (0..self.len() as u32).collect();
+                // Sort positions by (object_id, subject_id) — the secondary access order.
+                // `(object, subject)` keys are unique within a batch (the primary sort is
+                // key-disjoint), so no equal elements exist to preserve order for: the
+                // unstable sort is a pure win (no scratch allocation, lower constants),
+                // matching `seal()`'s `sort_unstable_by_key`.
+                perm.sort_unstable_by(|&a, &b| {
+                    let (a, b) = (a as usize, b as usize);
+                    (self.obj[a], self.subj[a]).cmp(&(self.obj[b], self.subj[b]))
+                });
+                ObjectIndex {
+                    perm: perm.into_boxed_slice(),
+                }
+            })
+            .perm
     }
 }
 
@@ -556,7 +576,11 @@ impl Relation {
             }
             let right = self.batches.pop().expect("len >= 2");
             let left = self.batches.pop().expect("len >= 2");
-            self.batches.push(merge_batches(&left, &right));
+            let merged = match merge_batches(&left, &right) {
+                Ok(batch) => batch,
+                Err(never) => match never {},
+            };
+            self.batches.push(merged);
         }
     }
 
@@ -602,7 +626,7 @@ impl Relation {
 /// keeps the LOWER [`RowId`] (deterministic, run-order independent); an annihilated
 /// weight drops the row.  For `W = ()` the collision arm is dead and this is a plain
 /// interleave.
-fn merge_batches<W: Weight>(left: &Batch<W>, right: &Batch<W>) -> Batch<W> {
+fn merge_batches<W: Weight>(left: &Batch<W>, right: &Batch<W>) -> Result<Batch<W>, W::Error> {
     let cap = left.len() + right.len();
     let mut subj = Vec::with_capacity(cap);
     let mut obj = Vec::with_capacity(cap);
@@ -635,7 +659,7 @@ fn merge_batches<W: Weight>(left: &Batch<W>, right: &Batch<W>) -> Batch<W> {
             std::cmp::Ordering::Equal => {
                 // Key collision (signed-weight only): combine, keep the lower RowId, drop
                 // if annihilated.  Never reached under set-semantics `W = ()`.
-                let w = left.weight[i].combine(right.weight[j]);
+                let w = left.weight[i].combine(right.weight[j])?;
                 if !w.is_annihilated() {
                     subj.push(left.subj[i]);
                     obj.push(left.obj[i]);
@@ -655,13 +679,13 @@ fn merge_batches<W: Weight>(left: &Batch<W>, right: &Batch<W>) -> Batch<W> {
         push(&mut subj, &mut obj, &mut row_id, &mut weight, right, j);
         j += 1;
     }
-    Batch {
+    Ok(Batch {
         subj,
         obj,
         row_id,
         weight,
         object_index: OnceLock::new(),
-    }
+    })
 }
 
 /// A columnar set of binary relations keyed by predicate IRI (`NamedNode::as_str()`).
@@ -800,6 +824,28 @@ impl RelationStore {
             .select(bound)
     }
 
+    /// A globally subject-value-ordered trie-level cursor over one predicate relation.
+    ///
+    /// `other` optionally fixes the object position. Unknown predicates use the
+    /// permanent empty relation, matching [`Self::select`]'s probe-miss semantics.
+    pub(crate) fn values_subject(
+        &self,
+        predicate: &str,
+        other: Option<TermId>,
+    ) -> ValueCursor<'_, VALUE_SUBJECT> {
+        ValueCursor::new(self.relation(predicate).unwrap_or(&self.empty), other)
+    }
+
+    /// Object-value-ordered sibling of [`Self::values_subject`]; `other` optionally
+    /// fixes the subject position.
+    pub(crate) fn values_object(
+        &self,
+        predicate: &str,
+        other: Option<TermId>,
+    ) -> ValueCursor<'_, VALUE_OBJECT> {
+        ValueCursor::new(self.relation(predicate).unwrap_or(&self.empty), other)
+    }
+
     /// The number of distinct tuples stored under `predicate` (0 if unknown).
     pub(crate) fn len_for(&self, predicate: &str) -> usize {
         self.relation(predicate).map_or(0, Relation::row_count)
@@ -827,16 +873,40 @@ impl RelationStore {
             .collect::<BTreeSet<_>>()
             .into_iter()
     }
+
+    /// Project every live row back to the shared ternary [`Fact`] IR in lexical
+    /// [`Fact::key`] order.
+    ///
+    /// This is the single columnar-to-logical bridge used by the scratch backward
+    /// evaluator and by the stateful incremental session bootstrap.  Keeping it here
+    /// prevents those two consumers from growing subtly different seed ordering or
+    /// term-resolution rules.
+    pub(crate) fn facts_sorted(&self) -> Vec<Fact> {
+        let mut facts = Vec::with_capacity(self.row_count);
+        for pred in self.predicates() {
+            let predicate = pred.to_owned();
+            let mut cursor = self.select(pred, Bound::Any);
+            while let Some((s_id, o_id, _row)) = cursor.next() {
+                facts.push(Fact {
+                    subject: self.interner.resolve(s_id).clone(),
+                    predicate: predicate.clone(),
+                    object: self.interner.resolve(o_id).clone(),
+                });
+            }
+        }
+        facts.sort_by_key(Fact::key);
+        facts
+    }
 }
 
 /// Extract the EDB of `world` from the blackboard into columnar form.
 ///
 /// This is the SINGLE oxigraph → columnar bridge used by both the forward and
 /// backward native engine paths.  It scans every quad in `world` via
-/// [`ScryerForeign::in_world`] and inserts each `(subject, predicate, object)` as a
+/// [`WorldFactSource::in_world`] and inserts each `(subject, predicate, object)` as a
 /// binary tuple.  Insertion order follows `in_world`'s iteration order; dedup and
 /// index maintenance are handled by [`RelationStore::insert`].
-pub(crate) fn extract_edb(foreign: &dyn ScryerForeign, world: &str) -> RelationStore {
+pub(crate) fn extract_edb(foreign: &dyn WorldFactSource, world: &str) -> RelationStore {
     let mut store = RelationStore::new();
     for dq in foreign.in_world(world, None, None, None) {
         store.insert(&dq.predicate, &dq.subject, &dq.object);
@@ -1191,9 +1261,9 @@ mod tests {
         assert_eq!(preds, p2);
     }
 
-    // ── extract_edb round-trip via a minimal ScryerForeign test double ───────────
+    // ── extract_edb round-trip via a minimal WorldFactSource test double ───────────
 
-    /// A hand-rolled `ScryerForeign` yielding a fixed list of `DerivedQuad`s in
+    /// A hand-rolled `WorldFactSource` yielding a fixed list of `DerivedQuad`s in
     /// `world`. Only `in_world` is exercised by `extract_edb`; the other legs are
     /// vacuous (and unused) for this test.
     struct FakeForeign {
@@ -1226,7 +1296,7 @@ mod tests {
         }
     }
 
-    impl ScryerForeign for FakeForeign {
+    impl WorldFactSource for FakeForeign {
         fn in_world<'a>(
             &'a self,
             world: &str,
@@ -1320,7 +1390,7 @@ mod tests {
         // (+1) + (-1) = 0 ⇒ the row annihilates and is dropped (retraction).
         let plus = weighted_row(s, o, RowId::from_index(5), 1);
         let minus = weighted_row(s, o, RowId::from_index(2), -1);
-        let retracted = merge_batches(&plus, &minus);
+        let retracted = merge_batches(&plus, &minus).expect("signed retraction combines");
         assert_eq!(
             retracted.len(),
             0,
@@ -1329,7 +1399,7 @@ mod tests {
 
         // (+1) + (+2) = 3 ⇒ one surviving row, weights summed, LOWER RowId kept (R4).
         let two = weighted_row(s, o, RowId::from_index(2), 2);
-        let summed = merge_batches(&plus, &two);
+        let summed = merge_batches(&plus, &two).expect("signed addition combines");
         assert_eq!(summed.len(), 1, "a non-annihilating combine keeps one row");
         assert_eq!(summed.weight[0], 3, "weights sum: 1 + 2 = 3");
         assert_eq!(
@@ -1342,12 +1412,23 @@ mod tests {
         let o2 = TermId::from_index(2);
         let a = weighted_row(s, o, RowId::from_index(0), 1);
         let b = weighted_row(s, o2, RowId::from_index(1), 1);
-        let disjoint = merge_batches(&a, &b);
+        let disjoint = merge_batches(&a, &b).expect("disjoint signed batches interleave");
         assert_eq!(
             disjoint.len(),
             2,
             "disjoint keys interleave, no combine fires"
         );
+    }
+
+    /// Saturation is not a ring operation (and is not associative across mixed-sign
+    /// updates), so overflow must hard-fail instead of silently changing the Z-set.
+    #[test]
+    fn signed_weight_overflow_never_saturates() {
+        let err = i64::MAX
+            .combine(1)
+            .expect_err("signed overflow must be a structured failure");
+        assert!(err.message().contains("overflow"), "{err}");
+        assert!(err.message().contains("addition"), "{err}");
     }
 
     // ── Chase-invented Skolem-term nulls ─────────────────────────────────────────

@@ -19,6 +19,7 @@
 //! default), [`materialize_core`] produces the exact same `DerivedQuad` sequence
 //! the inlined FFI path did, preserving the oracle≡engine parity guarantee.
 
+use std::collections::BTreeMap;
 use std::time::Instant;
 
 use purrdf::{TermValue, parse_dataset};
@@ -599,6 +600,321 @@ pub struct Materialization {
     /// [`ChaseAdmission::to_finding`], the first-class `gmeow:Finding` certificate — so a
     /// caller never has to re-run the certifier to learn whether the chase terminated.
     pub chase_admission: Option<ChaseAdmission>,
+    /// Per-world solver ledger rows for a well-founded or cautious-stable run.
+    /// Empty for every other routing arm.  Each row states whether the maintained
+    /// ground slice was unchanged (and the cached solution reused) or changed (and
+    /// the deliberately non-incremental solver reran from scratch).
+    pub nonmonotone_solve_runs: Vec<WorldNonmonotoneSolveRun>,
+}
+
+/// One publicly observable non-monotone solver decision for one named-graph world.
+///
+/// The nested [`crate::reason::perf_ledger::NonmonotoneSolveRun`] is deliberately
+/// machine-readable: consumers do not have to infer a solver rerun from elapsed time
+/// or from whether the output happened to change.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WorldNonmonotoneSolveRun {
+    /// Named graph whose complete asserted-EDB + active-ground-rule slice was tested.
+    pub world: String,
+    /// Explicit reuse-versus-rerun ledger row for this world.
+    pub run: crate::reason::perf_ledger::NonmonotoneSolveRun,
+}
+
+#[derive(Debug, Clone)]
+enum NonmonotoneWorldSession {
+    WellFounded(crate::wellfounded::IncrementalWellFoundedSession),
+    StableModel(crate::stablemodel::IncrementalStableModelSession),
+}
+
+impl NonmonotoneWorldSession {
+    fn prepare(
+        profile: gmeow_logic_compile::ir::SemanticProfileId,
+        contract_hash: &str,
+        world: &str,
+        edb: impl IntoIterator<Item = crate::rule_ir::Fact>,
+        rules: &[crate::rule_ir::EvalRule],
+    ) -> Result<Self, MaterializeError> {
+        let result = match profile {
+            gmeow_logic_compile::ir::SemanticProfileId::WellFounded => {
+                crate::wellfounded::IncrementalWellFoundedSession::new(
+                    contract_hash,
+                    world,
+                    edb,
+                    rules,
+                )
+                .map(Self::WellFounded)
+            }
+            gmeow_logic_compile::ir::SemanticProfileId::StableModel => {
+                crate::stablemodel::IncrementalStableModelSession::new(
+                    contract_hash,
+                    world,
+                    edb,
+                    rules,
+                )
+                .map(Self::StableModel)
+            }
+            other => {
+                return Err(MaterializeError::Chase(format!(
+                    "incremental non-monotone materialization requires WellFoundedProfile or \
+                     StableModelProfile, got {other}"
+                )));
+            }
+        };
+        result.map_err(|error| MaterializeError::Chase(error.message().to_owned()))
+    }
+
+    fn rows(&self) -> &[crate::rule_ir::DerivedRow] {
+        match self {
+            Self::WellFounded(session) => session.rows(),
+            Self::StableModel(session) => session.rows(),
+        }
+    }
+
+    fn active_ground_rule_count(&self) -> usize {
+        match self {
+            Self::WellFounded(session) => session.active_ground_rule_count(),
+            Self::StableModel(session) => session.active_ground_rule_count(),
+        }
+    }
+
+    fn apply(
+        &mut self,
+        changes: impl IntoIterator<Item = crate::physical::SignedFact>,
+    ) -> Result<crate::reason::perf_ledger::NonmonotoneSolveRun, MaterializeError> {
+        match self {
+            Self::WellFounded(session) => session
+                .apply(changes)
+                .map(|shot| shot.solve)
+                .map_err(|error| MaterializeError::Chase(error.message().to_owned())),
+            Self::StableModel(session) => session
+                .apply(changes)
+                .map(|shot| shot.solve)
+                .map_err(|error| MaterializeError::Chase(error.message().to_owned())),
+        }
+    }
+
+    fn check_grounding_scratch_parity(&self) -> Result<(), MaterializeError> {
+        let result = match self {
+            Self::WellFounded(session) => session.check_grounding_scratch_parity(),
+            Self::StableModel(session) => session.check_grounding_scratch_parity(),
+        };
+        result.map_err(|error| MaterializeError::Chase(error.message().to_owned()))
+    }
+}
+
+/// Stateful production materializer for the non-monotone profiles.
+///
+/// The session owns one fixed rule program and one maintained ground program per
+/// named graph. [`Self::apply`] accepts an atomic signed N-Quads transaction. Grounding
+/// is maintained incrementally; well-founded alternating-fixpoint and cautious stable-
+/// model solving remain explicitly from-scratch and rerun only for worlds whose complete
+/// solver slice changed. [`materialize_routed`] uses this same path for its initial
+/// non-monotone materialization, so the multi-shot implementation is not a benchmark-
+/// only or test-only side door.
+#[derive(Debug, Clone)]
+pub struct NonmonotoneMaterializationSession {
+    profile: gmeow_logic_compile::ir::SemanticProfileId,
+    contract_hash: String,
+    rules: Vec<crate::rule_ir::EvalRule>,
+    worlds: BTreeMap<String, NonmonotoneWorldSession>,
+    preservation: PreservationClaim,
+    last_solve_runs: Vec<WorldNonmonotoneSolveRun>,
+}
+
+impl NonmonotoneMaterializationSession {
+    /// Parse and solve the initial named-graph dataset under a fixed non-monotone
+    /// profile and rule program.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for malformed N-Quads/rules, a profile other than
+    /// `WellFoundedProfile`/`StableModelProfile`, or a grounding/solver failure.
+    pub fn prepare(
+        rules: &str,
+        input: &str,
+        profile: gmeow_logic_compile::ir::SemanticProfileId,
+    ) -> Result<Self, MaterializeError> {
+        if !matches!(
+            profile,
+            gmeow_logic_compile::ir::SemanticProfileId::WellFounded
+                | gmeow_logic_compile::ir::SemanticProfileId::StableModel
+        ) {
+            return Err(MaterializeError::Chase(format!(
+                "incremental non-monotone materialization requires WellFoundedProfile or \
+                 StableModelProfile, got {profile}"
+            )));
+        }
+
+        let parsed_rules = crate::rule_ir::parse_eval_rules(rules)
+            .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+        let preservation = routed_preservation(rules, Some(profile.as_str()))?;
+        let contract_hash = format!(
+            "gmeow-native-nonmonotone-materialize-v1:{}:{}",
+            profile.as_str(),
+            blake3::hash(rules.as_bytes()).to_hex()
+        );
+        let mut worlds = BTreeMap::new();
+        let mut last_solve_runs = Vec::new();
+        for (world, facts) in world_facts_from_nquads(input)? {
+            let edb_changes = facts.len();
+            let session = NonmonotoneWorldSession::prepare(
+                profile,
+                &contract_hash,
+                &world,
+                facts,
+                &parsed_rules,
+            )?;
+            let run = crate::reason::perf_ledger::nonmonotone_solve_run(
+                nonmonotone_solver(profile)?,
+                true,
+                edb_changes,
+                session.active_ground_rule_count(),
+            );
+            last_solve_runs.push(WorldNonmonotoneSolveRun {
+                world: world.clone(),
+                run,
+            });
+            worlds.insert(world, session);
+        }
+        Ok(Self {
+            profile,
+            contract_hash,
+            rules: parsed_rules,
+            worlds,
+            preservation,
+            last_solve_runs,
+        })
+    }
+
+    /// Current materialized snapshot and the most recent per-world solver ledger rows.
+    pub fn materialization(&self) -> Result<Materialization, MaterializeError> {
+        let rows = self
+            .worlds
+            .values()
+            .flat_map(|session| session.rows().iter().cloned());
+        nonmonotone_materialization(
+            rows,
+            self.preservation.clone(),
+            self.last_solve_runs.clone(),
+        )
+    }
+
+    /// Apply one atomic signed N-Quads transaction.
+    ///
+    /// Insertions and retractions are consolidated by the signed grounder. If any
+    /// world fails, no world's session state is installed. The returned materialization
+    /// carries one ledger row per affected world, including an explicit unchanged-slice
+    /// reuse row for a net-cancelled transaction.
+    pub fn apply(
+        &mut self,
+        insertions: &str,
+        retractions: &str,
+    ) -> Result<Materialization, MaterializeError> {
+        let mut changes: BTreeMap<String, Vec<crate::physical::SignedFact>> = BTreeMap::new();
+        for (world, facts) in world_facts_from_nquads(insertions)? {
+            changes.entry(world).or_default().extend(
+                facts
+                    .into_iter()
+                    .map(|fact| crate::physical::SignedFact { fact, weight: 1 }),
+            );
+        }
+        for (world, facts) in world_facts_from_nquads(retractions)? {
+            changes.entry(world).or_default().extend(
+                facts
+                    .into_iter()
+                    .map(|fact| crate::physical::SignedFact { fact, weight: -1 }),
+            );
+        }
+
+        // Clone only affected worlds. Each low-level session applies atomically on its
+        // own clone; installing the prepared vector after every world succeeds makes
+        // the multi-world transaction atomic without copying unrelated worlds.
+        let mut prepared = Vec::with_capacity(changes.len());
+        for (world, signed) in changes {
+            let mut session = match self.worlds.get(&world) {
+                Some(existing) => existing.clone(),
+                None => NonmonotoneWorldSession::prepare(
+                    self.profile,
+                    &self.contract_hash,
+                    &world,
+                    std::iter::empty(),
+                    &self.rules,
+                )?,
+            };
+            let run = session.apply(signed)?;
+            prepared.push((world, session, run));
+        }
+
+        self.last_solve_runs.clear();
+        self.last_solve_runs.reserve(prepared.len());
+        for (world, session, run) in prepared {
+            self.worlds.insert(world.clone(), session);
+            self.last_solve_runs
+                .push(WorldNonmonotoneSolveRun { world, run });
+        }
+        self.materialization()
+    }
+
+    /// Hard-fail if any maintained ground program differs from a clean reconstruction.
+    pub fn check_grounding_scratch_parity(&self) -> Result<(), MaterializeError> {
+        for session in self.worlds.values() {
+            session.check_grounding_scratch_parity()?;
+        }
+        Ok(())
+    }
+}
+
+fn nonmonotone_solver(
+    profile: gmeow_logic_compile::ir::SemanticProfileId,
+) -> Result<crate::reason::perf_ledger::NonmonotoneSolver, MaterializeError> {
+    Ok(match profile {
+        gmeow_logic_compile::ir::SemanticProfileId::WellFounded => {
+            crate::reason::perf_ledger::NonmonotoneSolver::WellFounded
+        }
+        gmeow_logic_compile::ir::SemanticProfileId::StableModel => {
+            crate::reason::perf_ledger::NonmonotoneSolver::StableModel
+        }
+        other => {
+            return Err(MaterializeError::Chase(format!(
+                "non-monotone solver lookup received unsupported profile {other}"
+            )));
+        }
+    })
+}
+
+fn world_facts_from_nquads(
+    input: &str,
+) -> Result<BTreeMap<String, Vec<crate::rule_ir::Fact>>, MaterializeError> {
+    let store = crate::store::WorldStore::new();
+    store
+        .load_nquads(input)
+        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
+    let mut worlds = BTreeMap::new();
+    for world in store.worlds() {
+        let facts = crate::rule_ir::world_edb_facts(&store, &world)
+            .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
+        worlds.insert(world, facts);
+    }
+    Ok(worlds)
+}
+
+fn nonmonotone_materialization(
+    rows: impl IntoIterator<Item = crate::rule_ir::DerivedRow>,
+    preservation: PreservationClaim,
+    nonmonotone_solve_runs: Vec<WorldNonmonotoneSolveRun>,
+) -> Result<Materialization, MaterializeError> {
+    let quads = rows
+        .into_iter()
+        .map(derived_row_to_quad)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(Materialization {
+        quads,
+        non_quad_rows: Vec::new(),
+        preservation,
+        frontier: crate::query_ir::CompletionFrontier::empty(),
+        chase_admission: None,
+        nonmonotone_solve_runs,
+    })
 }
 
 /// The rule IRIs of a non-stratifiable rule set — the derivation rules the EDB-echo
@@ -697,7 +1013,25 @@ pub fn materialize_routed(
             preservation,
             frontier: crate::query_ir::CompletionFrontier::empty(),
             chase_admission: None,
+            nonmonotone_solve_runs: Vec::new(),
         });
+    }
+
+    // The one-shot public router and the stateful production surface deliberately
+    // share this path.  Construction performs the initial maintained grounding and
+    // records the required from-scratch non-monotone solve row; subsequent callers
+    // that retain the session can apply signed N-Quads transactions without rebuilding
+    // the ground program.
+    if let Some(profile_id) =
+        profile.and_then(gmeow_logic_compile::ir::SemanticProfileId::from_local)
+        && matches!(
+            profile_id,
+            gmeow_logic_compile::ir::SemanticProfileId::WellFounded
+                | gmeow_logic_compile::ir::SemanticProfileId::StableModel
+        )
+    {
+        return NonmonotoneMaterializationSession::prepare(rules, input, profile_id)?
+            .materialization();
     }
 
     // The chase termination certificate, threaded out of the existential arm below and
@@ -722,33 +1056,13 @@ pub fn materialize_routed(
         crate::query_ir::CompletionFrontier,
     );
     let routed: Option<RoutedRows> = match profile {
-        Some("WellFoundedProfile") => {
-            let store = crate::store::WorldStore::new();
-            store
-                .load_nquads(input)
-                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
-            let eval_rules = crate::rule_ir::parse_eval_rules(rules)
-                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
-            Some((
-                crate::wellfounded::materialize(&store, &eval_rules)
-                    .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?,
-                BudgetStatus::Ok,
-                crate::query_ir::CompletionFrontier::empty(),
-            ))
-        }
-        Some("StableModelProfile") => {
-            let store = crate::store::WorldStore::new();
-            store
-                .load_nquads(input)
-                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
-            let eval_rules = crate::rule_ir::parse_eval_rules(rules)
-                .map_err(|e| MaterializeError::Parse(e.message().to_owned()))?;
-            Some((
-                crate::stablemodel::cautious_materialize(&store, &eval_rules)
-                    .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?,
-                BudgetStatus::Ok,
-                crate::query_ir::CompletionFrontier::empty(),
-            ))
+        // These arms returned through `NonmonotoneMaterializationSession` above.
+        // Keep the exhaustive match defensive without leaving a second scratch
+        // implementation behind the production router.
+        Some("WellFoundedProfile") | Some("StableModelProfile") => {
+            return Err(MaterializeError::Chase(
+                "non-monotone profile bypassed its maintained-grounding route".to_owned(),
+            ));
         }
         _ => {
             // PositiveHorn / declared StratifiedNAF / Probabilistic / Procedural / None.
@@ -867,17 +1181,24 @@ pub fn materialize_routed(
                     (None, Some(b)) => Some(b),
                     (None, None) => None,
                 };
-                // Enter the type-state plan pipeline: stratify ONCE (a non-stratifiable
-                // program is `None` here — a declared native gap that falls through to the
-                // Nemo fallback / conformance oracle, exactly as the old
-                // `Unsupported(NonStratifiable)` did), then join-plan and seal into the
-                // `Executable` the native forward executor requires.
-                match crate::physical::Parsed::new(&eval_rules).stratify() {
+                // Compile/cache under the declared profile contract. The canonical rule
+                // hash is the other plan-key coordinate, so two programs under the same
+                // profile cannot alias. A negative-cached non-stratifiable result falls
+                // through to the declared oracle path exactly as before.
+                let contract_hash = format!(
+                    "gmeow-materialize-native-v1:{}",
+                    profile.unwrap_or("undeclared")
+                );
+                let lookup = crate::physical::compile_cached(contract_hash, eval_rules);
+                match lookup.executable {
                     None => None,
-                    Some(stratified) => {
-                        let executable = stratified.plan().into_executable();
-                        match crate::physical::materialize_native(&store, &executable, max_steps)
-                            .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?
+                    Some(executable) => {
+                        match crate::physical::materialize_native(
+                            &store,
+                            executable.as_ref(),
+                            max_steps,
+                        )
+                        .map_err(|e| MaterializeError::Chase(e.message().to_owned()))?
                         {
                             crate::physical::NativeOutcome::Decided(budgeted) => {
                                 // Surface the forward governor's completion frontier instead
@@ -936,6 +1257,7 @@ pub fn materialize_routed(
             preservation,
             frontier,
             chase_admission,
+            nonmonotone_solve_runs: Vec::new(),
         });
     }
 
@@ -951,6 +1273,7 @@ pub fn materialize_routed(
         frontier: crate::query_ir::CompletionFrontier::empty(),
         // This is a Datalog (non-existential) route, so there is no chase certificate.
         chase_admission: None,
+        nonmonotone_solve_runs: Vec::new(),
     })
 }
 
@@ -998,6 +1321,7 @@ fn demote_existential_to_facts_only(
         // The (Uncertified) chase certificate that demoted this program, so the caller
         // still learns why the native chase refused it.
         chase_admission,
+        nonmonotone_solve_runs: Vec::new(),
     })
 }
 
@@ -1614,6 +1938,138 @@ mod tests {
         "<https://example.org/ns/p1> <https://example.org/ns/move> ",
         "<https://example.org/ns/p2> <https://example.org/world/game> .\n",
     );
+
+    const WFS_RULES: &str = concat!(
+        "#[name(\"https://example.org/ns/ruleWin\")]\n",
+        "<https://example.org/ns/win>(?X, ?X, ?W) :-\n",
+        "    <https://example.org/ns/move>(?X, ?Y, ?W),\n",
+        "    ~<https://example.org/ns/win>(?Y, ?Y, ?W) .\n",
+    );
+
+    const WFS_CHANGE_NQUADS: &str = concat!(
+        "<https://example.org/ns/p2> <https://example.org/ns/move> ",
+        "<https://example.org/ns/p3> <https://example.org/world/game> .\n",
+    );
+
+    const STABLE_RULES: &str = concat!(
+        "#[name(\"https://example.org/ns/ruleIn\")]\n",
+        "<https://example.org/ns/inSet>(?X, ?X, ?W) :-\n",
+        "    <https://example.org/ns/candidate>(?X, ?X, ?W),\n",
+        "    ~<https://example.org/ns/outSet>(?X, ?X, ?W) .\n",
+        "#[name(\"https://example.org/ns/ruleOut\")]\n",
+        "<https://example.org/ns/outSet>(?X, ?X, ?W) :-\n",
+        "    <https://example.org/ns/candidate>(?X, ?X, ?W),\n",
+        "    ~<https://example.org/ns/inSet>(?X, ?X, ?W) .\n",
+    );
+
+    const STABLE_BASE_NQUADS: &str = concat!(
+        "<https://example.org/ns/x> <https://example.org/ns/candidate> ",
+        "<https://example.org/ns/x> <https://example.org/world/choice> .\n",
+    );
+
+    const STABLE_CHANGE_NQUADS: &str = concat!(
+        "<https://example.org/ns/y> <https://example.org/ns/candidate> ",
+        "<https://example.org/ns/y> <https://example.org/world/choice> .\n",
+    );
+
+    fn assert_nonmonotone_session_route(
+        profile: gmeow_logic_compile::ir::SemanticProfileId,
+        rules: &str,
+        base: &str,
+        change: &str,
+    ) {
+        use crate::reason::perf_ledger::{NonmonotoneSolver, PerfStatus, SolveDisposition};
+
+        let initial = materialize_routed(rules, base, None, None, None, Some(profile.as_str()))
+            .expect("one-shot production router must use the maintained-grounding session");
+        assert_eq!(initial.nonmonotone_solve_runs.len(), 1);
+        let initial_run = initial.nonmonotone_solve_runs[0].run;
+        assert_eq!(initial_run.status, PerfStatus::FlaggedNonIncremental);
+        assert_eq!(initial_run.disposition, SolveDisposition::ReranFromScratch);
+        assert!(initial_run.solver_reran());
+        assert_eq!(
+            initial_run.solver,
+            match profile {
+                gmeow_logic_compile::ir::SemanticProfileId::WellFounded => {
+                    NonmonotoneSolver::WellFounded
+                }
+                gmeow_logic_compile::ir::SemanticProfileId::StableModel => {
+                    NonmonotoneSolver::StableModel
+                }
+                _ => unreachable!("test helper receives only a non-monotone profile"),
+            }
+        );
+
+        let mut session = NonmonotoneMaterializationSession::prepare(rules, base, profile)
+            .expect("prepare production multi-shot session");
+        assert_eq!(session.materialization().unwrap().quads, initial.quads);
+
+        let cancelled = session
+            .apply(change, change)
+            .expect("a net-cancelled signed transaction must be accepted");
+        assert_eq!(cancelled.quads, initial.quads);
+        assert_eq!(cancelled.nonmonotone_solve_runs.len(), 1);
+        let cancelled_run = cancelled.nonmonotone_solve_runs[0].run;
+        assert_eq!(
+            cancelled_run.disposition,
+            SolveDisposition::ReusedUnchangedGroundSlice
+        );
+        assert!(!cancelled_run.solver_reran());
+        assert_eq!(cancelled_run.edb_changes, 0);
+        assert_eq!(cancelled_run.ground_rule_changes, 0);
+
+        let changed = session
+            .apply(change, "")
+            .expect("insertion must maintain grounding then rerun the solver");
+        assert_eq!(changed.nonmonotone_solve_runs.len(), 1);
+        assert!(changed.nonmonotone_solve_runs[0].run.solver_reran());
+        assert_eq!(
+            changed.nonmonotone_solve_runs[0].run.disposition,
+            SolveDisposition::ReranFromScratch
+        );
+        let scratch = materialize_routed(
+            rules,
+            &format!("{base}{change}"),
+            None,
+            None,
+            None,
+            Some(profile.as_str()),
+        )
+        .expect("fresh comparator materialization");
+        assert_eq!(changed.quads, scratch.quads);
+        session
+            .check_grounding_scratch_parity()
+            .expect("maintained ground program must match scratch after insertion");
+
+        let retracted = session
+            .apply("", change)
+            .expect("retraction must maintain grounding then rerun the solver");
+        assert!(retracted.nonmonotone_solve_runs[0].run.solver_reran());
+        assert_eq!(retracted.quads, initial.quads);
+        session
+            .check_grounding_scratch_parity()
+            .expect("maintained ground program must match scratch after retraction");
+    }
+
+    #[test]
+    fn well_founded_production_route_uses_incremental_grounding_session() {
+        assert_nonmonotone_session_route(
+            gmeow_logic_compile::ir::SemanticProfileId::WellFounded,
+            WFS_RULES,
+            GAME_NQUADS,
+            WFS_CHANGE_NQUADS,
+        );
+    }
+
+    #[test]
+    fn stable_model_production_route_uses_incremental_grounding_session() {
+        assert_nonmonotone_session_route(
+            gmeow_logic_compile::ir::SemanticProfileId::StableModel,
+            STABLE_RULES,
+            STABLE_BASE_NQUADS,
+            STABLE_CHANGE_NQUADS,
+        );
+    }
 
     /// Disclosure: the non-stratifiable EDB-echo path MUST disclose the dropped
     /// derivation rules as a sound under-approximation — never silently return a bare

@@ -30,7 +30,7 @@
 //! engine sees a byte-identical fact set and any measured difference is the engine's
 //! alone.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::{RdfDataset, TermValue};
 
@@ -129,6 +129,92 @@ impl CostVector {
                 .or_insert(0) += 1;
         }
         Ok(CostVector {
+            counts,
+            alloc_bytes: 0,
+            alloc_count: 0,
+            peak_live_bytes: 0,
+        })
+    }
+
+    fn from_derived_rows(
+        rows: &[crate::rule_ir::DerivedRow],
+        strata: &BTreeMap<String, u32>,
+    ) -> gmeow_errors::Result<Self> {
+        let mut counts = BTreeMap::new();
+        for row in rows {
+            if row.rule_iri == crate::provenance::ASSERT_RULE_IRI {
+                continue;
+            }
+            let Some(&stratum) = strata.get(&row.predicate) else {
+                return Err(cost_err(format!(
+                    "repeat-evaluation derived predicate {:?} has no certified stratum",
+                    row.predicate
+                )));
+            };
+            *counts
+                .entry(CostKey {
+                    rule: row.rule_iri.clone(),
+                    predicate: row.predicate.clone(),
+                    stratum,
+                })
+                .or_insert(0) += 1;
+        }
+        Ok(Self {
+            counts,
+            alloc_bytes: 0,
+            alloc_count: 0,
+            peak_live_bytes: 0,
+        })
+    }
+
+    /// Attribute the newly-present derived rows in one signed incremental
+    /// transaction to their concrete `(rule, predicate, stratum)` witnesses.
+    /// Asserted insertions carry no derivation witness and are deliberately omitted;
+    /// negative closure changes likewise carry no fabricated reverse attribution.
+    fn from_incremental_delta(
+        delta: &crate::physical::IncrementalDelta,
+        strata: &BTreeMap<String, u32>,
+        asserted_changes: &BTreeSet<crate::rule_ir::FactKey>,
+    ) -> gmeow_errors::Result<Self> {
+        let mut counts: BTreeMap<CostKey, u64> = BTreeMap::new();
+        for change in &delta.changes {
+            if change.weight <= 0 {
+                continue;
+            }
+            let key = change.fact.key();
+            let Some(witness) = delta.derivations.get(&key) else {
+                if asserted_changes.contains(&key) {
+                    continue;
+                }
+                return Err(cost_err(format!(
+                    "incremental positive derived row {key:?} carries no firing witness"
+                )));
+            };
+            let predicate = change.fact.predicate.clone();
+            let Some(&stratum) = strata.get(&predicate) else {
+                return Err(cost_err(format!(
+                    "incrementally-derived predicate {predicate:?} has no stratum in the \
+                     certifier's stratification"
+                )));
+            };
+            let count = u64::try_from(change.weight).map_err(|_| {
+                cost_err(format!(
+                    "positive incremental distinct weight {} cannot be represented as u64",
+                    change.weight
+                ))
+            })?;
+            let slot = counts
+                .entry(CostKey {
+                    rule: witness.rule_iri.clone(),
+                    predicate,
+                    stratum,
+                })
+                .or_insert(0);
+            *slot = slot.checked_add(count).ok_or_else(|| {
+                cost_err("incremental cost-vector coordinate overflow".to_owned())
+            })?;
+        }
+        Ok(Self {
             counts,
             alloc_bytes: 0,
             alloc_count: 0,
@@ -285,6 +371,869 @@ pub struct NativeForwardRun {
     pub engine: EngineId,
 }
 
+/// One cold/warm observation from [`RepeatForwardSession`].
+///
+/// Every field is deterministic: no wall-clock enters this surface. Allocation count
+/// and peak-live are attached by the dedicated benchmark allocator outside this crate.
+pub struct RepeatForwardObservation {
+    /// Whether the bounded cache supplied the executable.
+    pub cache_hit: bool,
+    /// Physical plans built during this evaluation (`1` cold, `0` warm).
+    pub plan_builds: u64,
+    /// Static rule/atom/guard/builtin nodes inspected by planning (`N` cold, `0` warm).
+    pub planning_units: u64,
+    /// Whether this evaluation consumed the exact same immutable `Arc<Executable>` as
+    /// the session's first evaluation.
+    pub same_executable_as_first: bool,
+    /// Canonical rule-program hash from the executable identity.
+    pub rule_hash: [u8; 32],
+    /// Physical solver/planner ABI version from the executable identity.
+    pub solver_version: &'static str,
+    /// Governor committed-derivation count.
+    pub consumed_steps: u64,
+    /// Decomposable `(rule, predicate, stratum)` derivation vector.
+    pub cost: CostVector,
+    /// Byte-stable BLAKE3 digest of the complete sorted materialized row set.
+    pub closure_hash: [u8; 32],
+    /// Byte-stable BLAKE3 digest of only `(world, subject, predicate, object)`, used
+    /// to prove Record and Skip commit the identical fact closure.
+    pub fact_closure_hash: [u8; 32],
+    /// Number of bounded proof-height annotations retained by Record mode (one per
+    /// asserted or derived row in this complete closure).
+    pub annotation_count: u64,
+    /// Maximum selected minimal-proof height in the closure.
+    pub max_proof_height: u32,
+}
+
+/// Facts-only observation over the same EDB/rules/executable as a Record run.
+///
+/// Skip retains no proof annotations. This public benchmark projection records only
+/// the exact fact closure and committed-step count needed for the Record/Skip law.
+pub struct SkipForwardObservation {
+    /// Governor committed-derivation count.
+    pub consumed_steps: u64,
+    /// Byte-stable fact-only closure digest.
+    pub fact_closure_hash: [u8; 32],
+    /// Asserted plus derived fact count.
+    pub fact_count: u64,
+}
+
+/// Record-mode half of the fair bounded-provenance overhead probe.
+///
+/// Unlike [`RepeatForwardObservation`], this projection performs no plan-cache cost
+/// attribution or provenance-sensitive closure hash after evaluation. Its post-work
+/// exactly mirrors [`SkipForwardObservation`]: fact-only hash, steps, and row count,
+/// plus the two bounded annotation scalars Record alone owns.
+pub struct RecordForwardObservation {
+    /// Governor committed-derivation count.
+    pub consumed_steps: u64,
+    /// Byte-stable fact-only closure digest.
+    pub fact_closure_hash: [u8; 32],
+    /// Number of retained proof-height annotations.
+    pub annotation_count: u64,
+    /// Maximum selected minimal-proof height.
+    pub max_proof_height: u32,
+}
+
+/// Fixed-EDB/rule session proving a second evaluation reuses one immutable physical
+/// plan while executing the same forward core from scratch.
+///
+/// Parsing, EDB loading, and certified-stratum construction happen in [`Self::prepare`]
+/// outside the measured region. Each [`Self::evaluate`] still performs a complete
+/// materialization; only stratification and physical planning are cacheable.
+pub struct RepeatForwardSession {
+    store: crate::store::WorldStore,
+    rules: Vec<crate::rule_ir::EvalRule>,
+    strata: BTreeMap<String, u32>,
+    contract_hash: String,
+    cache: crate::physical::PlanCache,
+    first_executable: Option<std::sync::Arc<crate::physical::Executable>>,
+}
+
+impl RepeatForwardSession {
+    /// Prepare a binary named-ternary forward session.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for malformed/non-ternary rules, EDB loading failure, or a
+    /// certification/lowering failure.
+    pub fn prepare(
+        edb: &RdfDataset,
+        rules: &str,
+        contract_hash: impl Into<String>,
+    ) -> gmeow_errors::Result<Self> {
+        let program = crate::nemo_engine::NemoParsedRules::parse_unvalidated(rules)?.into_program();
+        if !crate::oracle::program_is_pure_ternary(&program) {
+            return Err(cost_err(
+                "repeat-forward plan probe requires a pure named-ternary rule program".to_owned(),
+            ));
+        }
+        let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
+        let strata = crate::certify::predicate_strata(rules)?;
+        let store = crate::store::WorldStore::new();
+        store.load_dataset(edb)?;
+        Ok(Self {
+            store,
+            rules: eval_rules,
+            strata,
+            contract_hash: contract_hash.into(),
+            cache: crate::physical::PlanCache::new(2),
+            first_executable: None,
+        })
+    }
+
+    /// Execute one complete materialization through the session-local plan cache.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the program is non-stratifiable, execution reports a
+    /// declared native gap, or a derived row cannot be attributed to its stratum.
+    pub fn evaluate(&mut self) -> gmeow_errors::Result<RepeatForwardObservation> {
+        let lookup = self
+            .cache
+            .get_or_compile(self.contract_hash.clone(), self.rules.clone());
+        let executable = lookup.executable.ok_or_else(|| {
+            cost_err("repeat-forward plan probe program is non-stratifiable".to_owned())
+        })?;
+        let same_executable_as_first = self
+            .first_executable
+            .as_ref()
+            .is_none_or(|first| std::sync::Arc::ptr_eq(first, &executable));
+        if self.first_executable.is_none() {
+            self.first_executable = Some(executable.clone());
+        }
+        let identity = executable.identity();
+        let rule_hash = *identity.rule_hash();
+        let solver_version = identity.solver_version();
+
+        let budgeted =
+            match crate::physical::materialize_native(&self.store, executable.as_ref(), None)? {
+                crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
+                crate::physical::NativeOutcome::Unsupported(kind) => {
+                    return Err(cost_err(format!(
+                        "repeat-forward plan probe hit declared native gap {kind:?}"
+                    )));
+                }
+            };
+        let closure_hash = derived_rows_hash(&budgeted.rows);
+        let fact_closure_hash = derived_fact_rows_hash(&budgeted.rows);
+        let annotation_count = budgeted.rows.len() as u64;
+        let max_proof_height = budgeted
+            .rows
+            .iter()
+            .map(|row| row.proof_height.get())
+            .max()
+            .unwrap_or(0);
+        let cost = CostVector::from_derived_rows(&budgeted.rows, &self.strata)?;
+        Ok(RepeatForwardObservation {
+            cache_hit: lookup.cache_hit,
+            plan_builds: lookup.plan_builds,
+            planning_units: lookup.planning_units,
+            same_executable_as_first,
+            rule_hash,
+            solver_version,
+            consumed_steps: budgeted.consumed_steps,
+            cost,
+            closure_hash,
+            fact_closure_hash,
+            annotation_count,
+            max_proof_height,
+        })
+    }
+
+    /// Execute the same complete binary plan in facts-only Skip mode.
+    ///
+    /// The session cache must already contain the executable (normally after the
+    /// paired cold/warm Record observations). The method deliberately records no
+    /// provenance and returns no cost vector that would require rule attribution.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a non-stratifiable program or a declared execution gap.
+    pub fn evaluate_skip(&mut self) -> gmeow_errors::Result<SkipForwardObservation> {
+        let lookup = self
+            .cache
+            .get_or_compile(self.contract_hash.clone(), self.rules.clone());
+        if !lookup.cache_hit {
+            return Err(cost_err(
+                "repeat-forward Skip provenance probe requires a warm plan cache".to_owned(),
+            ));
+        }
+        let executable = lookup.executable.ok_or_else(|| {
+            cost_err("repeat-forward Skip probe program is non-stratifiable".to_owned())
+        })?;
+
+        let mut worlds = self.store.worlds();
+        worlds.sort();
+        let mut rows = Vec::new();
+        let mut consumed_steps = 0u64;
+        for world in worlds {
+            let edb = crate::rule_ir::world_edb_facts(&self.store, &world)?;
+            let mut relation = crate::physical::RelationStore::new();
+            for fact in edb {
+                relation.insert(&fact.predicate, &fact.subject, &fact.object);
+            }
+            let budgeted = match crate::physical::evaluate(relation, executable.as_ref(), None)? {
+                crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
+                crate::physical::NativeOutcome::Unsupported(kind) => {
+                    return Err(cost_err(format!(
+                        "repeat-forward Skip probe hit declared native gap {kind:?}"
+                    )));
+                }
+            };
+            consumed_steps = consumed_steps
+                .checked_add(budgeted.consumed_steps)
+                .ok_or_else(|| cost_err("Skip committed-step count overflow".to_owned()))?;
+            rows.extend(budgeted.rows.into_iter().map(|fact| (world.clone(), fact)));
+        }
+        rows.sort_by(|(world_a, fact_a), (world_b, fact_b)| {
+            world_a
+                .cmp(world_b)
+                .then_with(|| fact_a.key().cmp(&fact_b.key()))
+        });
+        Ok(SkipForwardObservation {
+            consumed_steps,
+            fact_closure_hash: skipped_fact_rows_hash(&rows),
+            fact_count: rows.len() as u64,
+        })
+    }
+
+    /// Execute one complete warm-plan Record evaluation for the fair provenance
+    /// overhead pair.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a non-stratifiable program or a declared execution gap.
+    pub fn evaluate_record_provenance(&mut self) -> gmeow_errors::Result<RecordForwardObservation> {
+        let lookup = self
+            .cache
+            .get_or_compile(self.contract_hash.clone(), self.rules.clone());
+        if !lookup.cache_hit {
+            return Err(cost_err(
+                "repeat-forward Record provenance probe requires a warm plan cache".to_owned(),
+            ));
+        }
+        let executable = lookup.executable.ok_or_else(|| {
+            cost_err("repeat-forward Record probe program is non-stratifiable".to_owned())
+        })?;
+        let budgeted =
+            match crate::physical::materialize_native(&self.store, executable.as_ref(), None)? {
+                crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
+                crate::physical::NativeOutcome::Unsupported(kind) => {
+                    return Err(cost_err(format!(
+                        "repeat-forward Record probe hit declared native gap {kind:?}"
+                    )));
+                }
+            };
+        Ok(RecordForwardObservation {
+            consumed_steps: budgeted.consumed_steps,
+            fact_closure_hash: derived_fact_rows_hash(&budgeted.rows),
+            annotation_count: budgeted.rows.len() as u64,
+            max_proof_height: budgeted
+                .rows
+                .iter()
+                .map(|row| row.proof_height.get())
+                .max()
+                .unwrap_or(0),
+        })
+    }
+}
+
+fn derived_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
+    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    frame(&mut hasher, "gmeow-repeat-forward-closure-v1");
+    hasher.update(&(rows.len() as u64).to_le_bytes());
+    for row in rows {
+        frame(&mut hasher, &row.graph);
+        frame(&mut hasher, &crate::provenance::term_display(&row.subject));
+        frame(&mut hasher, &row.predicate);
+        frame(&mut hasher, &crate::provenance::term_display(&row.object));
+        frame(&mut hasher, &row.rule_iri);
+        hasher.update(&row.proof_height.get().to_le_bytes());
+    }
+    *hasher.finalize().as_bytes()
+}
+
+fn derived_fact_rows_hash(rows: &[crate::rule_ir::DerivedRow]) -> [u8; 32] {
+    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    frame(&mut hasher, "gmeow-record-skip-fact-closure-v1");
+    hasher.update(&(rows.len() as u64).to_le_bytes());
+    for row in rows {
+        frame(&mut hasher, &row.graph);
+        frame(&mut hasher, &crate::provenance::term_display(&row.subject));
+        frame(&mut hasher, &row.predicate);
+        frame(&mut hasher, &crate::provenance::term_display(&row.object));
+    }
+    *hasher.finalize().as_bytes()
+}
+
+fn skipped_fact_rows_hash(rows: &[(String, crate::rule_ir::Fact)]) -> [u8; 32] {
+    fn frame(hasher: &mut blake3::Hasher, value: &str) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    frame(&mut hasher, "gmeow-record-skip-fact-closure-v1");
+    hasher.update(&(rows.len() as u64).to_le_bytes());
+    for (world, fact) in rows {
+        frame(&mut hasher, world);
+        frame(&mut hasher, &crate::provenance::term_display(&fact.subject));
+        frame(&mut hasher, &fact.predicate);
+        frame(&mut hasher, &crate::provenance::term_display(&fact.object));
+    }
+    *hasher.finalize().as_bytes()
+}
+
+/// One signed row emitted by the public incremental benchmark seam.
+#[derive(Debug, Clone, PartialEq)]
+pub struct SignedForwardRow {
+    /// The world-scoped row whose set membership changed.
+    pub row: ForwardRow,
+    /// `+1` for insertion into the closure, `-1` for retraction.
+    pub weight: i64,
+}
+
+/// The deterministic result of one incremental forward transaction.
+#[derive(Debug, Clone)]
+pub struct NativeIncrementalRun {
+    /// The sound closure after the transaction (or at an inline budget cut).
+    pub rows: ForwardRows,
+    /// Signed closure changes in lexical fact order.
+    pub changes: Vec<SignedForwardRow>,
+    /// Number of derived rows currently present beyond the asserted EDB set.
+    pub derived_count: u64,
+    /// Genuinely-new derived rows charged by the inline governor.
+    pub consumed_steps: u64,
+    /// Signed-delta rows admitted at mechanically differentiated join positions.
+    pub joined_rows: u64,
+    /// Adjusted nested fixed-point iterations run by this transaction.
+    pub inner_iterations: usize,
+    /// The positive derived-change cost vector. Retractions never receive a
+    /// fabricated reverse-rule attribution.
+    pub cost: CostVector,
+    /// Whether an inline step bound completed or cut the transaction.
+    pub status: crate::seam::BudgetStatus,
+    /// Native engine identity.
+    pub engine: EngineId,
+}
+
+/// A fixed-program, single-world incremental forward session for deterministic
+/// benchmark and parity lanes.
+///
+/// Construction performs the initial materialization. Callers therefore create the
+/// session outside a measured region and measure only [`Self::insert`] or
+/// [`Self::retract`], matching the stable-world/small-delta loop this path optimizes.
+#[derive(Debug, Clone)]
+pub struct IncrementalForwardSession {
+    world: String,
+    inner: crate::physical::IncrementalSession,
+    edb: BTreeSet<crate::rule_ir::FactKey>,
+    strata: BTreeMap<String, u32>,
+}
+
+/// Deterministic observation for one maintained non-monotone ground-program shot.
+#[derive(Debug, Clone)]
+pub struct NativeIncrementalGroundingRun {
+    /// Byte-stable fact-only fingerprint of the WFS result after this shot.
+    pub rows_fingerprint: [u8; 32],
+    /// Asserted plus well-founded-derived row count.
+    pub row_count: u64,
+    /// Consolidated asserted-fact changes in the solver slice.
+    pub edb_changes: usize,
+    /// Active ground-rule zero-crossings in the solver slice.
+    pub ground_rule_changes: usize,
+    /// Candidate-universe fact zero-crossings.
+    pub universe_changes: usize,
+    /// Signed rows admitted across both differentiated layers.
+    pub joined_rows: u64,
+    /// Signed rows admitted by recursive positive-universe maintenance.
+    pub universe_joined_rows: u64,
+    /// Signed rows admitted by the differentiated ground-rule projection.
+    pub ground_rule_joined_rows: u64,
+    /// Every candidate row inspected by the differentiated ground-rule projection.
+    pub ground_rule_probe_rows: u64,
+    /// Active fully-ground rules after the transaction.
+    pub active_ground_rules: usize,
+    /// Whether the explicitly non-incremental WFS solver reran from scratch.
+    pub solver_reran: bool,
+    /// Stable name of the solver boundary reported by the per-shot ledger row.
+    pub solver: &'static str,
+    /// Stable perf status; always `flagged-non-incremental`, never an incremental-
+    /// solving claim.
+    pub solver_status: &'static str,
+}
+
+/// Deterministic observation for a clean ground-program + WFS rebuild.
+#[derive(Debug, Clone)]
+pub struct NativeGroundingScratchRun {
+    /// Byte-stable fact-only result fingerprint.
+    pub rows_fingerprint: [u8; 32],
+    /// Asserted plus well-founded-derived row count.
+    pub row_count: u64,
+    /// Candidate-row probes paid by the full ground-rule projection.
+    pub ground_rule_probe_rows: u64,
+    /// Active fully-ground rules in the rebuilt solver slice.
+    pub active_ground_rules: usize,
+}
+
+/// Deterministic structural evidence for one real four-worker rule-parallel run.
+///
+/// `serial_candidate_rows` is the sum of rule-local winner buffers across rounds;
+/// `critical_path_candidate_rows` is the sum of the largest task buffer in each
+/// round. Their strict delta is the scheduler-independent parallel work signal.
+/// `max_buffered_candidate_rows` is the exact maximum number of rule-local rows
+/// retained at the merge barrier, a deterministic memory-bound carrier in row units.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RuleParallelEvidence {
+    /// Rayon workers in the local evidence pool.
+    pub worker_count: usize,
+    /// Rules in the permanent balanced fixture.
+    pub rule_count: usize,
+    /// Asserted seed rows supplied to the fixture.
+    pub seed_rows: usize,
+    /// Rows derived at the complete fixpoint.
+    pub derived_rows: usize,
+    /// Governor steps consumed by the complete run.
+    pub consumed_steps: u64,
+    /// Semi-naive rounds that entered the rule-parallel path.
+    pub parallel_rounds: u64,
+    /// Rule-local tasks evaluated across those rounds.
+    pub rule_tasks: u64,
+    /// Sum of every rule-local candidate buffer across sequential rounds.
+    pub serial_candidate_rows: u64,
+    /// Sum of each round's largest rule-local candidate buffer.
+    pub critical_path_candidate_rows: u64,
+    /// Largest total candidate-row buffer retained at one merge barrier.
+    pub max_buffered_candidate_rows: u64,
+    /// Largest candidate-row buffer produced by one rule task.
+    pub max_task_candidate_rows: u64,
+    /// Step-budget cut points checked against forced-sequential execution.
+    pub budget_cases: usize,
+    /// Whether complete rows and provenance match forced-sequential execution.
+    pub output_parity: bool,
+    /// Whether every budget cut matches forced-sequential execution.
+    pub budget_parity: bool,
+    /// Whether execution actually entered the multi-worker rule path.
+    pub parallel_path_entered: bool,
+    /// Whether structural critical-path work is strictly below serial work.
+    pub critical_path_strictly_lower: bool,
+    /// Deterministic digest of the complete derived rows and provenance.
+    pub closure_hash: [u8; 32],
+}
+
+/// Run the permanent balanced rule-parallel fixture in a real four-worker pool.
+///
+/// # Errors
+///
+/// Returns an error if the fixture cannot execute, if the multi-worker path is not
+/// entered, if full output/provenance or any budget cut differs from forced sequential
+/// execution, or if the structural critical path is not strictly smaller than serial
+/// buffered work.
+pub fn run_rule_parallel_evidence() -> gmeow_errors::Result<RuleParallelEvidence> {
+    let probe = crate::physical::rule_parallel_probe()?;
+    if !(probe.parallel_path_entered
+        && probe.output_parity
+        && probe.budget_parity
+        && probe.critical_path_strictly_lower)
+    {
+        return Err(cost_err(format!(
+            "rule-parallel evidence failed: entered={} output_parity={} budget_parity={} \
+             critical_path_strictly_lower={} workers={} parallel_rounds={} serial_rows={} \
+             critical_rows={}",
+            probe.parallel_path_entered,
+            probe.output_parity,
+            probe.budget_parity,
+            probe.critical_path_strictly_lower,
+            probe.worker_count,
+            probe.parallel_rounds,
+            probe.serial_candidate_rows,
+            probe.critical_path_candidate_rows,
+        )));
+    }
+    Ok(RuleParallelEvidence {
+        worker_count: probe.worker_count,
+        rule_count: probe.rule_count,
+        seed_rows: probe.seed_rows,
+        derived_rows: probe.derived_rows,
+        consumed_steps: probe.consumed_steps,
+        parallel_rounds: probe.parallel_rounds,
+        rule_tasks: probe.rule_tasks,
+        serial_candidate_rows: probe.serial_candidate_rows,
+        critical_path_candidate_rows: probe.critical_path_candidate_rows,
+        max_buffered_candidate_rows: probe.max_buffered_candidate_rows,
+        max_task_candidate_rows: probe.max_task_candidate_rows,
+        budget_cases: probe.budget_cases,
+        output_parity: probe.output_parity,
+        budget_parity: probe.budget_parity,
+        parallel_path_entered: probe.parallel_path_entered,
+        critical_path_strictly_lower: probe.critical_path_strictly_lower,
+        closure_hash: probe.closure_hash,
+    })
+}
+
+/// Public deterministic-cost seam for incremental WFS grounding.
+///
+/// Construction settles and solves the base shot. [`Self::insert`] and
+/// [`Self::retract`] maintain only the ground program before deliberately rerunning
+/// WFS when its complete slice changes. [`Self::scratch_rebuild`] is the semantic
+/// and cost comparator: fresh grounding plus the same from-scratch WFS solve.
+#[derive(Debug, Clone)]
+pub struct IncrementalGroundingCostSession {
+    world: String,
+    contract_hash: String,
+    rules: Vec<crate::rule_ir::EvalRule>,
+    edb: BTreeMap<crate::rule_ir::FactKey, crate::rule_ir::Fact>,
+    inner: crate::wellfounded::IncrementalWellFoundedSession,
+}
+
+impl IncrementalGroundingCostSession {
+    /// Prepare a fixed-rule, single-world incremental WFS-grounding session.
+    pub fn prepare(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<Self> {
+        let (world, facts) = incremental_dataset_facts(edb, None)?;
+        let eval_rules = crate::rule_ir::parse_eval_rules(rules)?;
+        let contract_hash = format!(
+            "gmeow-native-incremental-wfs-grounding-v1:{}",
+            blake3::hash(world.as_bytes()).to_hex()
+        );
+        let keyed_edb = facts
+            .iter()
+            .cloned()
+            .map(|fact| (fact.key(), fact))
+            .collect();
+        let inner = crate::wellfounded::IncrementalWellFoundedSession::new(
+            contract_hash.clone(),
+            world.clone(),
+            facts,
+            &eval_rules,
+        )?;
+        Ok(Self {
+            world,
+            contract_hash,
+            rules: eval_rules,
+            edb: keyed_edb,
+            inner,
+        })
+    }
+
+    /// Fingerprint of the current cached WFS rows.
+    #[must_use]
+    pub fn current_rows_fingerprint(&self) -> [u8; 32] {
+        derived_fact_rows_hash(self.inner.rows())
+    }
+
+    /// Apply an insert-only EDB shot.
+    pub fn insert(
+        &mut self,
+        changes: &RdfDataset,
+    ) -> gmeow_errors::Result<NativeIncrementalGroundingRun> {
+        let (_world, facts) = incremental_dataset_facts(changes, Some(&self.world))?;
+        let shot = self.inner.apply(
+            facts
+                .iter()
+                .cloned()
+                .map(|fact| crate::physical::SignedFact { fact, weight: 1 }),
+        )?;
+        for fact in facts {
+            self.edb.insert(fact.key(), fact);
+        }
+        Ok(incremental_grounding_run(&self.inner, shot))
+    }
+
+    /// Apply an unbounded retract-only EDB shot.
+    pub fn retract(
+        &mut self,
+        changes: &RdfDataset,
+    ) -> gmeow_errors::Result<NativeIncrementalGroundingRun> {
+        let (_world, facts) = incremental_dataset_facts(changes, Some(&self.world))?;
+        let shot = self.inner.apply(
+            facts
+                .iter()
+                .cloned()
+                .map(|fact| crate::physical::SignedFact { fact, weight: -1 }),
+        )?;
+        for fact in facts {
+            self.edb.remove(&fact.key());
+        }
+        Ok(incremental_grounding_run(&self.inner, shot))
+    }
+
+    /// Rebuild the current EDB's ground program and WFS result from scratch.
+    pub fn scratch_rebuild(&self) -> gmeow_errors::Result<NativeGroundingScratchRun> {
+        let scratch = crate::wellfounded::IncrementalWellFoundedSession::new(
+            self.contract_hash.clone(),
+            self.world.clone(),
+            self.edb.values().cloned(),
+            &self.rules,
+        )?;
+        Ok(NativeGroundingScratchRun {
+            rows_fingerprint: derived_fact_rows_hash(scratch.rows()),
+            row_count: scratch.rows().len() as u64,
+            ground_rule_probe_rows: scratch.scratch_ground_rule_probe_rows()?,
+            active_ground_rules: scratch.active_ground_rule_count(),
+        })
+    }
+
+    /// Hard-fail if the maintained ground program differs from clean reconstruction.
+    pub fn check_grounding_scratch_parity(&self) -> gmeow_errors::Result<()> {
+        self.inner.check_grounding_scratch_parity()
+    }
+}
+
+fn incremental_grounding_run(
+    session: &crate::wellfounded::IncrementalWellFoundedSession,
+    shot: crate::wellfounded::IncrementalWellFoundedShot,
+) -> NativeIncrementalGroundingRun {
+    NativeIncrementalGroundingRun {
+        rows_fingerprint: derived_fact_rows_hash(&shot.rows),
+        row_count: shot.rows.len() as u64,
+        edb_changes: shot.grounding.edb_changes.len(),
+        ground_rule_changes: shot.grounding.rule_changes.len(),
+        universe_changes: shot.grounding.universe_changes,
+        joined_rows: shot.grounding.joined_rows,
+        universe_joined_rows: shot.grounding.universe_joined_rows,
+        ground_rule_joined_rows: shot.grounding.ground_rule_joined_rows,
+        ground_rule_probe_rows: shot.grounding.ground_rule_probe_rows,
+        active_ground_rules: session.active_ground_rule_count(),
+        solver_reran: shot.solve.solver_reran(),
+        solver: shot.solve.solver.as_str(),
+        solver_status: "flagged-non-incremental",
+    }
+}
+
+impl IncrementalForwardSession {
+    /// Prepare a fixed-rule incremental session from a single named-graph world.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the EDB is not exactly one named world, the rule text
+    /// is outside finite positive binary Datalog, or the rules cannot be stratified.
+    pub fn prepare(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<Self> {
+        let (world, facts) = incremental_dataset_facts(edb, None)?;
+        let eval_rules = crate::rule_ir::parse_eval_rules(rules)?;
+        let strata = crate::certify::predicate_strata(rules)?;
+        let edb_keys = facts.iter().map(crate::rule_ir::Fact::key).collect();
+        let contract_hash = format!(
+            "gmeow-native-incremental-forward-v1:{}",
+            blake3::hash(world.as_bytes()).to_hex()
+        );
+        let inner = crate::physical::IncrementalSession::new(contract_hash, facts, &eval_rules)?;
+        Ok(Self {
+            world,
+            inner,
+            edb: edb_keys,
+            strata,
+        })
+    }
+
+    /// Apply an insert-only dataset under the inline governor.
+    ///
+    /// `max_steps = None` is unbounded but still counts committed derived rows. An
+    /// exhausted transaction leaves the cached session unchanged and returns its
+    /// sound partial closure.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a different/default world, duplicate insertion, or an
+    /// invalid/overflowing signed transaction.
+    pub fn insert(
+        &mut self,
+        changes: &RdfDataset,
+        max_steps: Option<u64>,
+    ) -> gmeow_errors::Result<NativeIncrementalRun> {
+        let (_world, facts) = incremental_dataset_facts(changes, Some(&self.world))?;
+        let asserted_changes: BTreeSet<crate::rule_ir::FactKey> =
+            facts.iter().map(crate::rule_ir::Fact::key).collect();
+        let next_edb_count = self.edb.len().checked_add(facts.len()).ok_or_else(|| {
+            cost_err("incremental EDB row-count overflow during insertion".to_owned())
+        })?;
+        let signed = facts
+            .iter()
+            .cloned()
+            .map(|fact| crate::physical::SignedFact { fact, weight: 1 });
+        let budgeted = self.inner.apply_insert_budgeted(signed, max_steps)?;
+        let run = incremental_run(
+            &self.world,
+            &self.strata,
+            next_edb_count,
+            budgeted,
+            &asserted_changes,
+        )?;
+        if run.status == crate::seam::BudgetStatus::Ok {
+            self.edb.extend(facts.iter().map(crate::rule_ir::Fact::key));
+        }
+        Ok(run)
+    }
+
+    /// Apply an unbounded retract-only dataset.
+    ///
+    /// Bounded deletion deliberately remains outside this seam until a sound partial
+    /// delete frontier is defined; unbounded retraction still uses the signed nested
+    /// circuit and returns the exact new least model.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error for a different/default world, absent retraction, or an
+    /// invalid/overflowing signed transaction.
+    pub fn retract(&mut self, changes: &RdfDataset) -> gmeow_errors::Result<NativeIncrementalRun> {
+        let (_world, facts) = incremental_dataset_facts(changes, Some(&self.world))?;
+        let asserted_changes: BTreeSet<crate::rule_ir::FactKey> =
+            facts.iter().map(crate::rule_ir::Fact::key).collect();
+        let next_edb_count = self.edb.len().checked_sub(facts.len()).ok_or_else(|| {
+            cost_err("incremental EDB row-count underflow during retraction".to_owned())
+        })?;
+        let signed = facts
+            .iter()
+            .cloned()
+            .map(|fact| crate::physical::SignedFact { fact, weight: -1 });
+        let delta = self.inner.apply(signed)?;
+        let closure = self.inner.closure();
+        let run = incremental_run(
+            &self.world,
+            &self.strata,
+            next_edb_count,
+            crate::physical::BudgetedIncrementalDelta {
+                delta,
+                closure,
+                status: crate::seam::BudgetStatus::Ok,
+                consumed_steps: 0,
+            },
+            &asserted_changes,
+        )?;
+        for fact in facts {
+            self.edb.remove(&fact.key());
+        }
+        Ok(run)
+    }
+}
+
+fn incremental_run(
+    world: &str,
+    strata: &BTreeMap<String, u32>,
+    edb_count: usize,
+    budgeted: crate::physical::BudgetedIncrementalDelta,
+    asserted_changes: &BTreeSet<crate::rule_ir::FactKey>,
+) -> gmeow_errors::Result<NativeIncrementalRun> {
+    let crate::physical::BudgetedIncrementalDelta {
+        delta,
+        closure,
+        status,
+        consumed_steps,
+    } = budgeted;
+    let derived_count = closure.len().checked_sub(edb_count).ok_or_else(|| {
+        cost_err(format!(
+            "incremental closure has {} rows but the asserted EDB has {edb_count}",
+            closure.len()
+        ))
+    })? as u64;
+    let cost = CostVector::from_incremental_delta(&delta, strata, asserted_changes)?;
+    let rows = forward_rows_from_facts(&closure, world);
+    let changes = delta
+        .changes
+        .into_iter()
+        .map(|change| SignedForwardRow {
+            row: forward_row_from_fact(change.fact, world),
+            weight: change.weight,
+        })
+        .collect();
+    Ok(NativeIncrementalRun {
+        rows,
+        changes,
+        derived_count,
+        consumed_steps,
+        joined_rows: delta.joined_rows,
+        inner_iterations: delta.inner_iterations,
+        cost,
+        status,
+        engine: EngineId::native(),
+    })
+}
+
+fn forward_rows_from_facts(facts: &[crate::rule_ir::Fact], world: &str) -> ForwardRows {
+    let mut rows: Vec<ForwardRow> = facts
+        .iter()
+        .cloned()
+        .map(|fact| forward_row_from_fact(fact, world))
+        .collect();
+    rows.sort_by_key(row_sort_key);
+    ForwardRows { rows }
+}
+
+fn forward_row_from_fact(fact: crate::rule_ir::Fact, world: &str) -> ForwardRow {
+    ForwardRow {
+        predicate: fact.predicate,
+        args: vec![fact.subject, fact.object, TermValue::simple_literal(world)],
+    }
+}
+
+/// Coerce a dataset through the production typed-EDB bridge and then drop the
+/// validated single world column into the binary incremental fact shape.
+fn incremental_dataset_facts(
+    dataset: &RdfDataset,
+    expected_world: Option<&str>,
+) -> gmeow_errors::Result<(String, Vec<crate::rule_ir::Fact>)> {
+    let typed = crate::reason::build_edb_facts(dataset)?;
+    if typed.is_empty() {
+        return Err(cost_err(
+            "incremental dataset must contain at least one named-world IRI-object fact".to_owned(),
+        ));
+    }
+    let interner = typed.interner();
+    let mut world: Option<String> = None;
+    let mut facts = Vec::new();
+    for fact in typed.facts() {
+        if fact.args.len() != 3 {
+            return Err(cost_err(format!(
+                "incremental binary fact {:?} has arity {}, expected 3",
+                fact.predicate,
+                fact.args.len()
+            )));
+        }
+        let row_world = match interner.resolve(fact.args[2]) {
+            TermValue::Literal { lexical_form, .. } => lexical_form.clone(),
+            other => {
+                return Err(cost_err(format!(
+                    "incremental world column must be a simple literal, got {other:?}"
+                )));
+            }
+        };
+        if let Some(expected) = expected_world
+            && row_world != expected
+        {
+            return Err(cost_err(format!(
+                "incremental transaction world {row_world:?} differs from session world {expected:?}"
+            )));
+        }
+        if let Some(first) = &world {
+            if first != &row_world {
+                return Err(cost_err(format!(
+                    "incremental dataset spans multiple worlds ({first:?}, {row_world:?}); \
+                     prepare one fixed session per world"
+                )));
+            }
+        } else {
+            world = Some(row_world);
+        }
+        facts.push(crate::rule_ir::Fact {
+            subject: interner.resolve(fact.args[0]).clone(),
+            predicate: fact.predicate.clone(),
+            object: interner.resolve(fact.args[1]).clone(),
+        });
+    }
+    facts.sort_by_key(crate::rule_ir::Fact::key);
+    Ok((world.expect("non-empty typed EDB has a world"), facts))
+}
+
 /// Drive the NATIVE stratified forward core over `edb` under `rules`, returning the
 /// decomposable [`NativeForwardRun`].
 ///
@@ -380,6 +1329,34 @@ mod tests {
     const B: &str = "http://example.org/b";
     const C: &str = "http://example.org/c";
 
+    #[test]
+    fn four_worker_rule_parallel_evidence_is_non_vacuous_and_deterministic() {
+        let evidence = run_rule_parallel_evidence().expect("four-worker evidence run");
+        assert_eq!(
+            (
+                evidence.worker_count,
+                evidence.rule_count,
+                evidence.seed_rows,
+                evidence.derived_rows,
+                evidence.consumed_steps,
+                evidence.parallel_rounds,
+                evidence.rule_tasks,
+                evidence.serial_candidate_rows,
+                evidence.critical_path_candidate_rows,
+                evidence.max_buffered_candidate_rows,
+                evidence.max_task_candidate_rows,
+                evidence.budget_cases,
+            ),
+            (4, 6, 24, 120, 120, 3, 18, 144, 48, 96, 24, 8),
+            "the committed fixture's structural work vector must stay exact: {evidence:?}"
+        );
+        assert!(evidence.output_parity);
+        assert!(evidence.budget_parity);
+        assert!(evidence.parallel_path_entered);
+        assert!(evidence.critical_path_strictly_lower);
+        assert_ne!(evidence.closure_hash, [0; 32]);
+    }
+
     /// A tiny 2-stratum pure-ternary Datalog program (binary-eligible, so the
     /// governed semi-naive core runs and `consumed_steps` is populated):
     ///
@@ -474,6 +1451,75 @@ mod tests {
             !nemo.is_empty(),
             "the Nemo seam must materialize a non-empty row set for the same program"
         );
+    }
+
+    #[test]
+    fn repeat_forward_session_reuses_plan_with_identical_cost_and_closure() {
+        let edb = two_edge_edb();
+        let rules = two_stratum_rules();
+        let mut session =
+            RepeatForwardSession::prepare(edb.as_ref(), &rules, "repeat-forward-test")
+                .expect("prepare repeat-forward session");
+
+        let cold = session.evaluate().expect("cold evaluation");
+        let warm = session.evaluate().expect("warm evaluation");
+        assert!(!cold.cache_hit);
+        assert_eq!(cold.plan_builds, 1);
+        assert!(cold.planning_units > 0);
+        assert!(warm.cache_hit);
+        assert_eq!((warm.plan_builds, warm.planning_units), (0, 0));
+        assert!(warm.same_executable_as_first);
+        assert_eq!(cold.rule_hash, warm.rule_hash);
+        assert_eq!(cold.solver_version, warm.solver_version);
+        assert_eq!(cold.closure_hash, warm.closure_hash);
+        assert_eq!(cold.fact_closure_hash, warm.fact_closure_hash);
+        assert_eq!(cold.consumed_steps, warm.consumed_steps);
+        assert_eq!(cold.cost, warm.cost);
+        assert_eq!(warm.annotation_count, 8, "one height per closure fact");
+        assert_eq!(
+            warm.max_proof_height, 3,
+            "reach(a,c) is one level above the two-edge path proof"
+        );
+        assert!(
+            cold.cost.attributed_coordinates() >= 2,
+            "repeat evidence retains per-(rule,predicate,stratum) attribution"
+        );
+
+        let record = session
+            .evaluate_record_provenance()
+            .expect("bounded-provenance evaluation");
+        let skip = session.evaluate_skip().expect("facts-only evaluation");
+        assert_eq!(record.annotation_count, warm.annotation_count);
+        assert_eq!(record.max_proof_height, warm.max_proof_height);
+        assert_eq!(skip.fact_count, record.annotation_count);
+        assert_eq!(skip.fact_closure_hash, record.fact_closure_hash);
+        assert_eq!(skip.consumed_steps, record.consumed_steps);
+    }
+
+    #[test]
+    fn provenance_probes_refuse_cold_plan_cache_measurements() {
+        let edb = two_edge_edb();
+        let rules = two_stratum_rules();
+
+        let mut record_session =
+            RepeatForwardSession::prepare(edb.as_ref(), &rules, "cold-record-test")
+                .expect("prepare Record session");
+        let record_err = record_session
+            .evaluate_record_provenance()
+            .err()
+            .expect("a cold Record probe must be refused");
+        assert!(record_err.message().contains("Record"));
+        assert!(record_err.message().contains("warm plan cache"));
+
+        let mut skip_session =
+            RepeatForwardSession::prepare(edb.as_ref(), &rules, "cold-skip-test")
+                .expect("prepare Skip session");
+        let skip_err = skip_session
+            .evaluate_skip()
+            .err()
+            .expect("a cold Skip probe must be refused");
+        assert!(skip_err.message().contains("Skip"));
+        assert!(skip_err.message().contains("warm plan cache"));
     }
 
     /// The facts-only Nemo seam materializes a value-inventing (existential-rule)
