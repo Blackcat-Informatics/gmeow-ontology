@@ -29,9 +29,10 @@ mod binding_pattern;
 pub(crate) mod bitset;
 mod builtin_eval;
 mod chase;
-// The arrangement's native galloping lending cursor: a sealed
-// GAT `LendingIterator` over row-id-ordered runs, replacing the materialized per-stage
-// `Vec<(TermId, TermId, RowId)>` on the semi-naive join hot path (`seminaive`, `chase`).
+// The arrangement's native galloping lending cursor: a sealed GAT `LendingIterator`
+// that concatenates each sorted batch's galloped bound-run with a tail scan, replacing
+// the materialized per-stage `Vec<(TermId, TermId, RowId)>` on the semi-naive join hot
+// path (`seminaive`, `chase`).
 mod cursor;
 mod generic;
 // Branded niche IDs for every engine entity class (`TermId`/`PredId`/`RuleId`/
