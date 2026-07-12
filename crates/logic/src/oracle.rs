@@ -87,6 +87,10 @@ pub(crate) struct TypedProvenance {
     pub rule_name: Option<String>,
     /// Immediate antecedent facts (premises) that the rule consumed, decoded.
     pub antecedents: Vec<TypedRow>,
+    /// Selected minimal proof-tree height from the native Record lane (`0` for
+    /// asserted input). Oracles/evaluators that do not carry the annotation report
+    /// `None`; absence is never fabricated as zero.
+    pub proof_height: Option<crate::provenance::ProofHeight>,
     /// Structured slice attributions (§9 / S5) — carried through unchanged.
     /// Populated at the validation boundary when slice context is available;
     /// no in-crate consumer reads it yet.
@@ -279,6 +283,7 @@ impl ForwardOracle for NemoFactsOracle {
                             is_edb: false,
                             rule_name: None,
                             antecedents: Vec::new(),
+                            proof_height: None,
                             attributions: Vec::new(),
                         },
                     )
@@ -519,6 +524,7 @@ pub(crate) fn native_forward_with_frontier(
         .into_iter()
         .map(|row| {
             let is_edb = row.rule_iri == crate::provenance::ASSERT_RULE_IRI;
+            let proof_height = row.proof_height;
             let rule_name = if is_edb { None } else { Some(row.rule_iri) };
             // Re-expose each matched body fact as a ternary antecedent
             // `predicate(subject, object, world)` — the exact shape
@@ -554,6 +560,7 @@ pub(crate) fn native_forward_with_frontier(
                     is_edb,
                     rule_name,
                     antecedents,
+                    proof_height: Some(proof_height),
                     attributions: Vec::new(),
                 },
             )
@@ -883,6 +890,16 @@ mod tests {
             "derived subClassOf(A, C) must cite NON-EMPTY antecedents (the empty-antecedents \
              bug fails here); got {prov:?}"
         );
+        assert!(
+            prov.proof_height.is_some_and(|height| height.get() > 0),
+            "binary Record provenance must carry a positive minimal proof height"
+        );
+        assert!(
+            result.rows.iter().filter(|(_, prov)| prov.is_edb).all(
+                |(_, prov)| prov.proof_height == Some(crate::provenance::ProofHeight::ASSERTED)
+            ),
+            "every binary asserted leaf must carry height zero"
+        );
     }
 
     /// GENERIC n-ary branch: the OWL 2 RL/RDF rules carry the arity-4
@@ -931,6 +948,13 @@ mod tests {
             "at least one derived row on the generic path must cite NON-EMPTY antecedents \
              (the empty-antecedents bug fails here); got {:?}",
             result.rows
+        );
+        assert!(
+            result
+                .rows
+                .iter()
+                .all(|(_, prov)| prov.proof_height.is_none()),
+            "the generic evaluator must report the absent annotation honestly"
         );
     }
 }

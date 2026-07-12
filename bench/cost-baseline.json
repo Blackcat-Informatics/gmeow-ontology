@@ -15,7 +15,7 @@
       "fragment": "existential",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 4750742,
+        "alloc_bytes": 4750782,
         "alloc_count": 40112,
         "consumed_steps": 3,
         "cost_vector": [],
@@ -43,7 +43,7 @@
       "fragment": "existential",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3277814,
+        "alloc_bytes": 3277926,
         "alloc_count": 27798,
         "consumed_steps": 4,
         "cost_vector": [],
@@ -71,7 +71,7 @@
       "fragment": "existential",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 4742305,
+        "alloc_bytes": 4742345,
         "alloc_count": 40037,
         "consumed_steps": 3,
         "cost_vector": [],
@@ -99,14 +99,14 @@
       "fragment": "nary-existential",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 564567,
+        "alloc_bytes": 565335,
         "alloc_count": 5680,
         "closure_fingerprint": "6bca53ca2d002eb66547f256edda3da1a1cddaf6",
         "consumed_steps": 16,
         "cost_vector": [],
         "derived_count": 6,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 96687
+        "peak_live_bytes": 97071
       },
       "oracle": {
         "closure_count": 6,
@@ -129,14 +129,14 @@
       "fragment": "nary-existential",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 458334,
+        "alloc_bytes": 458974,
         "alloc_count": 4686,
         "closure_fingerprint": "587f5ae95392df97b9693fe3ec70e200daad86c8",
         "consumed_steps": 14,
         "cost_vector": [],
         "derived_count": 6,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 83962
+        "peak_live_bytes": 84282
       },
       "oracle": {
         "closure_count": 6,
@@ -159,14 +159,14 @@
       "fragment": "nary-existential",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 765537,
+        "alloc_bytes": 766049,
         "alloc_count": 7881,
         "closure_fingerprint": "87b46808860fb0c1eb6079fc7367358183837876",
         "consumed_steps": 24,
         "cost_vector": [],
         "derived_count": 10,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 89129
+        "peak_live_bytes": 89385
       },
       "oracle": {
         "closure_count": 10,
@@ -249,7 +249,7 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3901271,
+        "alloc_bytes": 3901583,
         "alloc_count": 32984,
         "consumed_steps": 3,
         "cost_vector": [
@@ -268,11 +268,11 @@
         ],
         "derived_count": 3,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 37822,
+        "peak_live_bytes": 37950,
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "494c9961ed972bb21af687f16881cd432640860ebda86126dd5c121deeeaa88c",
+            "closure_blake3": "f63a612a8aa7be3f8248e108f0a8bd45205388dbdeb6709c4a80408a4b39715f",
             "consumed_steps": 3,
             "cost_vector": [
               [
@@ -288,7 +288,7 @@
                 1
               ]
             ],
-            "peak_live_bytes": 15893,
+            "peak_live_bytes": 15941,
             "plan_builds": 1,
             "planning_units": 5
           },
@@ -298,7 +298,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "494c9961ed972bb21af687f16881cd432640860ebda86126dd5c121deeeaa88c",
+            "closure_blake3": "f63a612a8aa7be3f8248e108f0a8bd45205388dbdeb6709c4a80408a4b39715f",
             "consumed_steps": 3,
             "cost_vector": [
               [
@@ -314,12 +314,36 @@
                 1
               ]
             ],
-            "peak_live_bytes": 13267,
+            "peak_live_bytes": 13315,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 639,
+            "annotation_count": 5,
+            "consumed_steps": 3,
+            "fact_closure_blake3": "db6cbeb1b1fd1ae211d7d0698818b18e3ee7721139b16044a11ed64a008cd862",
+            "fact_count": 5,
+            "max_proof_height": 2,
+            "peak_live_bytes": 13315
+          },
+          "record_alloc_count_overhead": 62,
+          "record_peak_overhead_bytes": 3936,
+          "skip": {
+            "alloc_count": 577,
+            "annotation_count": 0,
+            "consumed_steps": 3,
+            "fact_closure_blake3": "db6cbeb1b1fd1ae211d7d0698818b18e3ee7721139b16044a11ed64a008cd862",
+            "fact_count": 5,
+            "peak_live_bytes": 9379
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "51cd1fc8691b307c9a429b7afa4ef6ddbcb5c91f8d89bd45f3c676cb5aaa9447"
       },
@@ -397,7 +421,7 @@
           ],
           "derived_count": 91,
           "engine": "gmeow-logic/0.1.0+native",
-          "peak_live_bytes": 230694,
+          "peak_live_bytes": 231822,
           "rows_fingerprint": "e158535c2dff2e613af8a28ed2f481ddb485368d04041983b88d2acf4e0dd3d0"
         },
         "signed_change_count": 14,
@@ -425,7 +449,7 @@
       "fragment": "forward",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 6208164,
+        "alloc_bytes": 6208852,
         "alloc_count": 53459,
         "consumed_steps": 10,
         "cost_vector": [
@@ -450,11 +474,11 @@
         ],
         "derived_count": 10,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 58473,
+        "peak_live_bytes": 58601,
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "d7b9057c14552727b9e5172a2c0a7ee9647668aaf764c5b21ca3e7e24f5aaa96",
+            "closure_blake3": "d3665edcf010ce0e12f04210771061bc323c351f8360fb263601792e24b36125",
             "consumed_steps": 10,
             "cost_vector": [
               [
@@ -476,7 +500,7 @@
                 2
               ]
             ],
-            "peak_live_bytes": 37494,
+            "peak_live_bytes": 37654,
             "plan_builds": 1,
             "planning_units": 8
           },
@@ -486,7 +510,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "d7b9057c14552727b9e5172a2c0a7ee9647668aaf764c5b21ca3e7e24f5aaa96",
+            "closure_blake3": "d3665edcf010ce0e12f04210771061bc323c351f8360fb263601792e24b36125",
             "consumed_steps": 10,
             "cost_vector": [
               [
@@ -508,12 +532,36 @@
                 2
               ]
             ],
-            "peak_live_bytes": 33696,
+            "peak_live_bytes": 33856,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 1966,
+            "annotation_count": 14,
+            "consumed_steps": 10,
+            "fact_closure_blake3": "a1bc9dba2ac451d23d5ea1e2f29ba9f2b184faee8b54921f9a194dedd0e3e5b9",
+            "fact_count": 14,
+            "max_proof_height": 4,
+            "peak_live_bytes": 33856
+          },
+          "record_alloc_count_overhead": -168,
+          "record_peak_overhead_bytes": 13611,
+          "skip": {
+            "alloc_count": 2134,
+            "annotation_count": 0,
+            "consumed_steps": 10,
+            "fact_closure_blake3": "a1bc9dba2ac451d23d5ea1e2f29ba9f2b184faee8b54921f9a194dedd0e3e5b9",
+            "fact_count": 14,
+            "peak_live_bytes": 20245
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "0d84466554d296a5a509495191251472f1c83cfca18ef74ffe262d7d201d379a"
       },
@@ -538,7 +586,7 @@
       "fragment": "forward",
       "golden_rows": 6,
       "native": {
-        "alloc_bytes": 3968687,
+        "alloc_bytes": 3969023,
         "alloc_count": 33958,
         "consumed_steps": 6,
         "cost_vector": [
@@ -561,7 +609,7 @@
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "78564e425380af018dd49e90d11798301c55c4c238531b7912c2a06e7ea30b08",
+            "closure_blake3": "48774512bc4fe7cbb31506823aa1e6cd54a94b888826fb88e513bf58ff7426c8",
             "consumed_steps": 6,
             "cost_vector": [
               [
@@ -577,7 +625,7 @@
                 3
               ]
             ],
-            "peak_live_bytes": 27612,
+            "peak_live_bytes": 27700,
             "plan_builds": 1,
             "planning_units": 5
           },
@@ -587,7 +635,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "78564e425380af018dd49e90d11798301c55c4c238531b7912c2a06e7ea30b08",
+            "closure_blake3": "48774512bc4fe7cbb31506823aa1e6cd54a94b888826fb88e513bf58ff7426c8",
             "consumed_steps": 6,
             "cost_vector": [
               [
@@ -603,12 +651,36 @@
                 3
               ]
             ],
-            "peak_live_bytes": 24962,
+            "peak_live_bytes": 25050,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 1282,
+            "annotation_count": 9,
+            "consumed_steps": 6,
+            "fact_closure_blake3": "523a4b9c5699bf2df1a554023bc6f6d1d56941229f3b48ad2b39afb136cc6fd2",
+            "fact_count": 9,
+            "max_proof_height": 3,
+            "peak_live_bytes": 25050
+          },
+          "record_alloc_count_overhead": 139,
+          "record_peak_overhead_bytes": 8349,
+          "skip": {
+            "alloc_count": 1143,
+            "annotation_count": 0,
+            "consumed_steps": 6,
+            "fact_closure_blake3": "523a4b9c5699bf2df1a554023bc6f6d1d56941229f3b48ad2b39afb136cc6fd2",
+            "fact_count": 9,
+            "peak_live_bytes": 16701
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "5447f838db015f827b8d62343f77931f7d9c676602bb0da83646834bdaa65a98"
       },
@@ -633,8 +705,8 @@
       "fragment": "forward",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3939838,
-        "alloc_count": 33701,
+        "alloc_bytes": 3942462,
+        "alloc_count": 33702,
         "consumed_steps": 4,
         "cost_vector": [
           [
@@ -656,7 +728,7 @@
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "83038cbbb2d85d8100b5c940e760ca7b99d3ea3f7147d6ef4fb1b8554c407d58",
+            "closure_blake3": "ae785adb733fe91c65cb4912bd1ee97e80bbd4800cc0a27a25cd3722932bf0cb",
             "consumed_steps": 4,
             "cost_vector": [
               [
@@ -672,7 +744,7 @@
                 2
               ]
             ],
-            "peak_live_bytes": 21244,
+            "peak_live_bytes": 21308,
             "plan_builds": 1,
             "planning_units": 5
           },
@@ -682,7 +754,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "83038cbbb2d85d8100b5c940e760ca7b99d3ea3f7147d6ef4fb1b8554c407d58",
+            "closure_blake3": "ae785adb733fe91c65cb4912bd1ee97e80bbd4800cc0a27a25cd3722932bf0cb",
             "consumed_steps": 4,
             "cost_vector": [
               [
@@ -698,12 +770,36 @@
                 2
               ]
             ],
-            "peak_live_bytes": 18615,
+            "peak_live_bytes": 18679,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 988,
+            "annotation_count": 8,
+            "consumed_steps": 4,
+            "fact_closure_blake3": "5353351b029dcfc461244479341da0d1803fda00a892d77561876f3619fd8bdd",
+            "fact_count": 8,
+            "max_proof_height": 3,
+            "peak_live_bytes": 18679
+          },
+          "record_alloc_count_overhead": 86,
+          "record_peak_overhead_bytes": 5602,
+          "skip": {
+            "alloc_count": 902,
+            "annotation_count": 0,
+            "consumed_steps": 4,
+            "fact_closure_blake3": "5353351b029dcfc461244479341da0d1803fda00a892d77561876f3619fd8bdd",
+            "fact_count": 8,
+            "peak_live_bytes": 13077
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "b082266a94784f35afdb0dd05d3197ab6ec425d54d1c4bbc589ae80101c8f80d"
       },
@@ -728,7 +824,7 @@
       "fragment": "forward",
       "golden_rows": 2,
       "native": {
-        "alloc_bytes": 3702103,
+        "alloc_bytes": 3702215,
         "alloc_count": 31095,
         "consumed_steps": 2,
         "cost_vector": [
@@ -751,7 +847,7 @@
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "92925c08e95e6c5bbc95fa9af9fc5babb692b5adb89b1f9240a391cd95d29f96",
+            "closure_blake3": "dfae6af25a519aaafddcbbf8f719195ee29e2725888f7c2ea5d48c3c462f9be4",
             "consumed_steps": 2,
             "cost_vector": [
               [
@@ -767,7 +863,7 @@
                 1
               ]
             ],
-            "peak_live_bytes": 14814,
+            "peak_live_bytes": 14862,
             "plan_builds": 1,
             "planning_units": 5
           },
@@ -777,7 +873,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "92925c08e95e6c5bbc95fa9af9fc5babb692b5adb89b1f9240a391cd95d29f96",
+            "closure_blake3": "dfae6af25a519aaafddcbbf8f719195ee29e2725888f7c2ea5d48c3c462f9be4",
             "consumed_steps": 2,
             "cost_vector": [
               [
@@ -793,12 +889,36 @@
                 1
               ]
             ],
-            "peak_live_bytes": 12032,
+            "peak_live_bytes": 12080,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 515,
+            "annotation_count": 4,
+            "consumed_steps": 2,
+            "fact_closure_blake3": "1278711050812cda88eb79343e17b324833264226d63611c1d4b34aecb7001f4",
+            "fact_count": 4,
+            "max_proof_height": 2,
+            "peak_live_bytes": 12080
+          },
+          "record_alloc_count_overhead": 72,
+          "record_peak_overhead_bytes": 3470,
+          "skip": {
+            "alloc_count": 443,
+            "annotation_count": 0,
+            "consumed_steps": 2,
+            "fact_closure_blake3": "1278711050812cda88eb79343e17b324833264226d63611c1d4b34aecb7001f4",
+            "fact_count": 4,
+            "peak_live_bytes": 8610
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "62f716d024cd5c0ae67195157d008fc9bcccab7ecb0df10117bd617b27d4d494"
       },
@@ -823,7 +943,7 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5405476,
+        "alloc_bytes": 5406020,
         "alloc_count": 46472,
         "consumed_steps": 8,
         "cost_vector": [
@@ -842,11 +962,11 @@
         ],
         "derived_count": 8,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 53474,
+        "peak_live_bytes": 53602,
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "38ab0391cf1bc4ef239aaa1948376d59e3584ec5a375efd921feb9f29b87c2f0",
+            "closure_blake3": "32ac11272615bdfd957f7c043bb798b717a2f6421de9d53ea29f387321107586",
             "consumed_steps": 8,
             "cost_vector": [
               [
@@ -862,7 +982,7 @@
                 2
               ]
             ],
-            "peak_live_bytes": 38937,
+            "peak_live_bytes": 39033,
             "plan_builds": 1,
             "planning_units": 7
           },
@@ -872,7 +992,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "38ab0391cf1bc4ef239aaa1948376d59e3584ec5a375efd921feb9f29b87c2f0",
+            "closure_blake3": "32ac11272615bdfd957f7c043bb798b717a2f6421de9d53ea29f387321107586",
             "consumed_steps": 8,
             "cost_vector": [
               [
@@ -888,12 +1008,36 @@
                 2
               ]
             ],
-            "peak_live_bytes": 35631,
+            "peak_live_bytes": 35727,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 2082,
+            "annotation_count": 12,
+            "consumed_steps": 8,
+            "fact_closure_blake3": "e673e2b2c93f25f42b1069025d4e431430186915a37c6cec0f667470142bd59b",
+            "fact_count": 12,
+            "max_proof_height": 2,
+            "peak_live_bytes": 35727
+          },
+          "record_alloc_count_overhead": 309,
+          "record_peak_overhead_bytes": 9722,
+          "skip": {
+            "alloc_count": 1773,
+            "annotation_count": 0,
+            "consumed_steps": 8,
+            "fact_closure_blake3": "e673e2b2c93f25f42b1069025d4e431430186915a37c6cec0f667470142bd59b",
+            "fact_count": 12,
+            "peak_live_bytes": 26005
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "1fbc5a74847284527461ac58d15ba951d3c4c41330019eef0441a08465d5d308"
       },
@@ -918,7 +1062,7 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 6142361,
+        "alloc_bytes": 6142905,
         "alloc_count": 52303,
         "consumed_steps": 8,
         "cost_vector": [
@@ -943,11 +1087,11 @@
         ],
         "derived_count": 8,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 53796,
+        "peak_live_bytes": 53924,
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "f8b8fd81a77306a46900dc56c2752047f21bfdc341d46325b6e3b814eb423ee3",
+            "closure_blake3": "1dc62a82a32b47296bbc079ff0fd161bfab72c3d90b762b8b3d7500cdae1bb42",
             "consumed_steps": 8,
             "cost_vector": [
               [
@@ -969,7 +1113,7 @@
                 4
               ]
             ],
-            "peak_live_bytes": 28234,
+            "peak_live_bytes": 28314,
             "plan_builds": 1,
             "planning_units": 8
           },
@@ -979,7 +1123,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "f8b8fd81a77306a46900dc56c2752047f21bfdc341d46325b6e3b814eb423ee3",
+            "closure_blake3": "1dc62a82a32b47296bbc079ff0fd161bfab72c3d90b762b8b3d7500cdae1bb42",
             "consumed_steps": 8,
             "cost_vector": [
               [
@@ -1001,12 +1145,36 @@
                 4
               ]
             ],
-            "peak_live_bytes": 24454,
+            "peak_live_bytes": 24534,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 1463,
+            "annotation_count": 10,
+            "consumed_steps": 8,
+            "fact_closure_blake3": "2a5d3ed8f7ed57c6fc37a3e6a992bd2a31f85d78cafe42f90dafc4c9d3a6f648",
+            "fact_count": 10,
+            "max_proof_height": 3,
+            "peak_live_bytes": 24534
+          },
+          "record_alloc_count_overhead": 262,
+          "record_peak_overhead_bytes": 10299,
+          "skip": {
+            "alloc_count": 1201,
+            "annotation_count": 0,
+            "consumed_steps": 8,
+            "fact_closure_blake3": "2a5d3ed8f7ed57c6fc37a3e6a992bd2a31f85d78cafe42f90dafc4c9d3a6f648",
+            "fact_count": 10,
+            "peak_live_bytes": 14235
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "8de03a4728f4bc62d04f3288454b73ef3e883beee6dd0660690f81b84aa4cd28"
       },
@@ -1031,7 +1199,7 @@
       "fragment": "forward",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 3901516,
+        "alloc_bytes": 3901828,
         "alloc_count": 33008,
         "consumed_steps": 3,
         "cost_vector": [
@@ -1050,11 +1218,11 @@
         ],
         "derived_count": 3,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 37785,
+        "peak_live_bytes": 37913,
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "dceb28938ae98273f63e698024d0a9b81a61bbff67dcb5feb9c13fe2d32dd950",
+            "closure_blake3": "ec68f4b2015ca0bb0e23ebf2be34c42edbcaa8664f54b916bbdab2a9aecaae4d",
             "consumed_steps": 3,
             "cost_vector": [
               [
@@ -1070,7 +1238,7 @@
                 1
               ]
             ],
-            "peak_live_bytes": 15820,
+            "peak_live_bytes": 15868,
             "plan_builds": 1,
             "planning_units": 5
           },
@@ -1080,7 +1248,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "dceb28938ae98273f63e698024d0a9b81a61bbff67dcb5feb9c13fe2d32dd950",
+            "closure_blake3": "ec68f4b2015ca0bb0e23ebf2be34c42edbcaa8664f54b916bbdab2a9aecaae4d",
             "consumed_steps": 3,
             "cost_vector": [
               [
@@ -1096,12 +1264,36 @@
                 1
               ]
             ],
-            "peak_live_bytes": 13196,
+            "peak_live_bytes": 13244,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 639,
+            "annotation_count": 5,
+            "consumed_steps": 3,
+            "fact_closure_blake3": "c03c3835373db3a578eb452a71770d08429ade4a16dc5f13ead26c13903c6e50",
+            "fact_count": 5,
+            "max_proof_height": 2,
+            "peak_live_bytes": 13244
+          },
+          "record_alloc_count_overhead": 90,
+          "record_peak_overhead_bytes": 3919,
+          "skip": {
+            "alloc_count": 549,
+            "annotation_count": 0,
+            "consumed_steps": 3,
+            "fact_closure_blake3": "c03c3835373db3a578eb452a71770d08429ade4a16dc5f13ead26c13903c6e50",
+            "fact_count": 5,
+            "peak_live_bytes": 9325
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "cf8d6fe43b6165e0fa972fb1546426dcb381c541a0f53c77a2ab2d654bdba22b"
       },
@@ -1126,8 +1318,8 @@
       "fragment": "forward",
       "golden_rows": 78,
       "native": {
-        "alloc_bytes": 5471953,
-        "alloc_count": 56992,
+        "alloc_bytes": 5472212,
+        "alloc_count": 56838,
         "consumed_steps": 78,
         "cost_vector": [
           [
@@ -1145,11 +1337,11 @@
         ],
         "derived_count": 78,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 212438,
+        "peak_live_bytes": 213558,
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "24094e1ab19040400add75d1aabcb497d9e5abdcaef8a688653536b772b236dc",
+            "closure_blake3": "4dbad35aac871b344ca185c7bee9017298f8b7f3f1466dfafd0ff3b8972c52e6",
             "consumed_steps": 78,
             "cost_vector": [
               [
@@ -1165,7 +1357,7 @@
                 66
               ]
             ],
-            "peak_live_bytes": 200312,
+            "peak_live_bytes": 201432,
             "plan_builds": 1,
             "planning_units": 5
           },
@@ -1175,7 +1367,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "24094e1ab19040400add75d1aabcb497d9e5abdcaef8a688653536b772b236dc",
+            "closure_blake3": "4dbad35aac871b344ca185c7bee9017298f8b7f3f1466dfafd0ff3b8972c52e6",
             "consumed_steps": 78,
             "cost_vector": [
               [
@@ -1191,12 +1383,36 @@
                 66
               ]
             ],
-            "peak_live_bytes": 197674,
+            "peak_live_bytes": 198794,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 12237,
+            "annotation_count": 90,
+            "consumed_steps": 78,
+            "fact_closure_blake3": "c43fd032019b21d55b3867ca50dc685f2c1906fe90888ad2760d5cb286d03024",
+            "fact_count": 90,
+            "max_proof_height": 12,
+            "peak_live_bytes": 198794
+          },
+          "record_alloc_count_overhead": -4167,
+          "record_peak_overhead_bytes": 105982,
+          "skip": {
+            "alloc_count": 16404,
+            "annotation_count": 0,
+            "consumed_steps": 78,
+            "fact_closure_blake3": "c43fd032019b21d55b3867ca50dc685f2c1906fe90888ad2760d5cb286d03024",
+            "fact_count": 90,
+            "peak_live_bytes": 92812
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "1f86ea6e7e1310abd38056e988333fb87abed91d3626c48d6ae39bc190841ae7"
       },
@@ -1221,8 +1437,8 @@
       "fragment": "forward",
       "golden_rows": 64,
       "native": {
-        "alloc_bytes": 7894128,
-        "alloc_count": 107890,
+        "alloc_bytes": 7856606,
+        "alloc_count": 106392,
         "consumed_steps": 64,
         "cost_vector": [
           [
@@ -1234,11 +1450,11 @@
         ],
         "derived_count": 64,
         "engine": "gmeow-logic/0.1.0+native",
-        "peak_live_bytes": 623735,
+        "peak_live_bytes": 626039,
         "plan_cache": {
           "cold": {
             "cache_hit": false,
-            "closure_blake3": "1cc46b56034bc4560ad10adae133939f63977be3fa12d65c8d92a84f79eb8e5b",
+            "closure_blake3": "80ee5b0e45041eecf6ed2710ce9d88685f71cd21b54cf894586aba0a359e3adf",
             "consumed_steps": 64,
             "cost_vector": [
               [
@@ -1248,7 +1464,7 @@
                 64
               ]
             ],
-            "peak_live_bytes": 514781,
+            "peak_live_bytes": 517085,
             "plan_builds": 1,
             "planning_units": 4
           },
@@ -1258,7 +1474,7 @@
           "solver_version": "gmeow-native-plan-v1",
           "warm": {
             "cache_hit": true,
-            "closure_blake3": "1cc46b56034bc4560ad10adae133939f63977be3fa12d65c8d92a84f79eb8e5b",
+            "closure_blake3": "80ee5b0e45041eecf6ed2710ce9d88685f71cd21b54cf894586aba0a359e3adf",
             "consumed_steps": 64,
             "cost_vector": [
               [
@@ -1268,12 +1484,36 @@
                 64
               ]
             ],
-            "peak_live_bytes": 512396,
+            "peak_live_bytes": 514700,
             "plan_builds": 0,
             "planning_units": 0
           },
           "warm_alloc_count_strictly_lower": true,
           "warm_peak_live_strictly_lower": true
+        },
+        "provenance": {
+          "annotation_complete": true,
+          "closure_parity": true,
+          "record": {
+            "alloc_count": 49214,
+            "annotation_count": 256,
+            "consumed_steps": 64,
+            "fact_closure_blake3": "a586b01ef07f206678063a4b2d2c28ee65b23647b4e58035aeb9771e9a1f0186",
+            "fact_count": 256,
+            "max_proof_height": 1,
+            "peak_live_bytes": 514700
+          },
+          "record_alloc_count_overhead": 766,
+          "record_peak_overhead_bytes": 170257,
+          "skip": {
+            "alloc_count": 48448,
+            "annotation_count": 0,
+            "consumed_steps": 64,
+            "fact_closure_blake3": "a586b01ef07f206678063a4b2d2c28ee65b23647b4e58035aeb9771e9a1f0186",
+            "fact_count": 256,
+            "peak_live_bytes": 344443
+          },
+          "step_parity": true
         },
         "rows_fingerprint": "514c3c29b7468bd1868ff276d4ae3897d538658049d67936be10174a66883c19"
       },

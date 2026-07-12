@@ -73,14 +73,15 @@ pub struct PerfRow {
 /// content-stable run to run.
 #[derive(Debug, Clone)]
 pub struct PerfLedger {
-    /// The seven canonical rows in their fixed order.
+    /// The canonical deferred rows in their fixed order.
     pub rows: Vec<PerfRow>,
 }
 
 /// Build the canonical performance ledger.
 ///
-/// Seven rows, fixed order: five `flagged-non-incremental` boundaries followed
-/// by two `declared-p1` advanced levers. This is the single source of the
+/// Five rows, fixed order: the remaining `flagged-non-incremental` boundaries.
+/// Selective WCOJ, compile-don't-interpret, and bounded provenance annotations are
+/// built and therefore absent. This is the single source of the
 /// ledger content — both the Turtle emitter and any structured consumer fold from
 /// it, so they can never disagree.
 pub fn perf_ledger() -> PerfLedger {
@@ -123,22 +124,6 @@ pub fn perf_ledger() -> PerfLedger {
                        builtins, or rule facts retain a native fallback but are not yet \
                        incremental",
             },
-            // ── The two advanced levers, intentionally out of P0 scope (NOT
-            //    defects, NOT yet built — a declared later stage). ──
-            PerfRow {
-                construct: "provenance semirings",
-                status: PerfStatus::DeclaredP1,
-                note: "provenance semirings computing world/standpoint and the quantitative \
-                       axes in one pass, where the semiring is the axis algebra — an advanced \
-                       lever declared out of the current scope, not yet built",
-            },
-            PerfRow {
-                construct: "compile-don't-interpret (specialize per content-addressed contract hash)",
-                status: PerfStatus::DeclaredP1,
-                note: "compile-don't-interpret, specialized per content-addressed contract \
-                       hash — an advanced lever declared out of the current scope, not yet \
-                       built",
-            },
         ],
     }
 }
@@ -151,7 +136,8 @@ const PERF_HEADER: &str = "\
 # A first-class reasoning artifact flagging the deferred / non-incremental parts
 # of the seven-lever execution stack. The built P0 levers (the relational core —
 # semi-naive + stratified negation + index selection, selective worst-case-optimal
-# joins, magic-sets, and positive-Datalog signed incrementality — are NOT
+# joins, magic-sets, positive-Datalog signed incrementality, cached compiled plans,
+# and bounded min-height / Z-weight provenance) are NOT
 # rows here; this ledger records ONLY the deferred items, so a row is never
 # misread as a shipped feature. Two honest statuses:
 #   gmeow:FlaggedNonIncremental — a canonical hard part: a native fallback EXISTS,
@@ -225,13 +211,12 @@ impl PerfLedger {
 mod tests {
     use super::*;
 
-    /// The ledger carries exactly seven canonical rows, five incremental boundaries
-    /// and two declared levers,
-    /// in the fixed `flagged-non-incremental`-then-`declared-p1` order.
+    /// The ledger carries exactly the five still-live incremental boundaries. Built
+    /// optimization levers are removed rather than left behind as stale declarations.
     #[test]
-    fn ledger_has_seven_rows_five_flagged_two_declared() {
+    fn ledger_has_five_live_flagged_rows_and_no_stale_declared_levers() {
         let ledger = perf_ledger();
-        assert_eq!(ledger.rows.len(), 7, "exactly seven deferred rows");
+        assert_eq!(ledger.rows.len(), 5, "exactly five deferred rows remain");
         let flagged = ledger
             .rows
             .iter()
@@ -243,27 +228,20 @@ mod tests {
             .filter(|r| r.status == PerfStatus::DeclaredP1)
             .count();
         assert_eq!(flagged, 5, "five flagged-non-incremental boundaries");
-        assert_eq!(p1, 2, "two declared-p1 advanced levers");
-        // Fixed order: every incremental boundary precedes the two levers.
+        assert_eq!(p1, 0, "no already-built lever remains declared-p1");
         assert!(
-            ledger.rows[..5]
+            ledger
+                .rows
                 .iter()
                 .all(|r| r.status == PerfStatus::FlaggedNonIncremental),
-            "the first five rows are the flagged-non-incremental boundaries"
-        );
-        assert!(
-            ledger.rows[5..]
-                .iter()
-                .all(|r| r.status == PerfStatus::DeclaredP1),
-            "the last two rows are the declared-p1 levers"
+            "all remaining rows are real non-incremental boundaries"
         );
     }
 
-    /// The emitted Turtle pins the exact canonical content: the banner, the two
-    /// status individuals, all three hard parts, and all three P1 levers. This is
-    /// the in-crate golden.
+    /// The emitted Turtle pins the exact canonical content and proves completed
+    /// levers are absent from the deferred ledger.
     #[test]
-    fn turtle_golden_pins_the_seven_rows_and_two_statuses() {
+    fn turtle_golden_pins_five_rows_and_excludes_built_levers() {
         let ttl = perf_ledger().to_turtle();
 
         // Banner + the two status individuals are explained.
@@ -284,7 +262,7 @@ mod tests {
 
         // The ledger header individual + entry count.
         assert!(ttl.contains("#type> <https://blackcatinformatics.ca/gmeow/PerfLedger>"));
-        assert!(ttl.contains("gmeow/entryCount> 7"));
+        assert!(ttl.contains("gmeow/entryCount> 5"));
 
         // The three FlaggedNonIncremental hard parts (canon wording).
         for construct in [
@@ -299,33 +277,32 @@ mod tests {
                 "the flagged-non-incremental hard part must appear verbatim: {construct}"
             );
         }
-        // The two DeclaredP1 advanced levers (canon wording). Selective WCOJ is built,
-        // so it must no longer be misrepresented as deferred.
+        // These three levers are built, so none may be misrepresented as deferred.
         for lever in [
             "provenance semirings",
             "compile-don't-interpret (specialize per content-addressed contract hash)",
+            "worst-case-optimal joins",
         ] {
             assert!(
-                ttl.contains(lever),
-                "the declared-p1 advanced lever must appear verbatim: {lever}"
+                !ttl.contains(&format!("construct> \"{lever}")),
+                "a built lever must not remain a deferred construct: {lever}"
             );
         }
-        assert!(!ttl.contains("construct> \"worst-case-optimal joins\""));
 
-        // Both status individuals are emitted as objects.
+        // Only the status used by a live row is emitted as an object.
         assert!(ttl.contains(
             "gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental>"
         ));
         assert!(
-            ttl.contains("gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1>")
+            !ttl.contains("gmeow/perfStatus> <https://blackcatinformatics.ca/gmeow/DeclaredP1>")
         );
 
-        // Seven entries of type gmeow:PerfLedgerEntry.
+        // Five entries of type gmeow:PerfLedgerEntry.
         assert_eq!(
             ttl.matches("#type> <https://blackcatinformatics.ca/gmeow/PerfLedgerEntry>")
                 .count(),
-            7,
-            "exactly seven PerfLedgerEntry rows are emitted"
+            5,
+            "exactly five PerfLedgerEntry rows are emitted"
         );
 
         // NO process tokens: no `#NNNN` issue/PR references, no `F3`/`T6` ticket

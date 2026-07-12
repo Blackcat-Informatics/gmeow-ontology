@@ -263,6 +263,7 @@ pub(crate) fn run_chase_typed(
                 is_edb: rwp.provenance.is_edb,
                 rule_name: rwp.provenance.rule_name.clone(),
                 antecedents,
+                proof_height: None,
                 attributions: rwp.provenance.attributions.clone(),
             },
         ));

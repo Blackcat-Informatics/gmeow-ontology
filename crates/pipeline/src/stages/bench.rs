@@ -436,6 +436,10 @@ struct NativeCost {
     /// plan cache.
     #[serde(default)]
     plan_cache: Option<PlanCacheCost>,
+    /// Forward-only bounded-provenance Record/Skip evidence over the same physical
+    /// plan and fact closure.
+    #[serde(default)]
+    provenance: Option<ProvenanceCost>,
 }
 
 #[derive(Deserialize)]
@@ -459,6 +463,29 @@ struct PlanEvaluationCost {
     peak_live_bytes: u64,
     closure_blake3: String,
     cost_vector: Vec<(String, String, u32, u64)>,
+}
+
+#[derive(Deserialize)]
+struct ProvenanceCost {
+    record: ProvenanceModeCost,
+    skip: ProvenanceModeCost,
+    closure_parity: bool,
+    step_parity: bool,
+    annotation_complete: bool,
+    record_peak_overhead_bytes: i128,
+    record_alloc_count_overhead: i128,
+}
+
+#[derive(Deserialize)]
+struct ProvenanceModeCost {
+    annotation_count: u64,
+    #[serde(default)]
+    max_proof_height: Option<u32>,
+    consumed_steps: u64,
+    fact_count: u64,
+    fact_closure_blake3: String,
+    alloc_count: u64,
+    peak_live_bytes: u64,
 }
 
 /// The clean native rebuild paired with an incremental transaction.
@@ -726,6 +753,60 @@ pub(crate) fn render_cost_ledger(
         }
     }
 
+    // Bounded provenance overhead: Record and Skip execute the same complete plan.
+    // The fact digest and steps are exact laws; peak-live is the deterministic
+    // overhead signal. Total allocation counts are retained as advisory corroboration
+    // and excluded from the harness's exact descriptor.
+    let provenance_cases: Vec<&&CaseRecord> = cases
+        .iter()
+        .filter(|case| case.native.provenance.is_some())
+        .collect();
+    if !provenance_cases.is_empty() {
+        lines.push(String::new());
+        lines.push("## Record vs Skip bounded-provenance overhead".to_string());
+        lines.push(String::new());
+        lines.push(
+            "Each row executes the same warm physical plan over identical EDB/rules. Fact-closure and committed-step parity are hard laws; peak-live is exact, while allocation-count deltas are advisory."
+                .to_string(),
+        );
+        lines.push(String::new());
+        lines.push(
+            "| corpus | case | facts | annotations | max proof height | Record steps | Skip steps | Record peak_live_bytes | Skip peak_live_bytes | Record peak overhead | Record alloc_count | Skip alloc_count | alloc-count overhead (advisory) | fact-closure parity | step parity | annotation complete |"
+                .to_string(),
+        );
+        lines.push("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|".to_string());
+        for case in provenance_cases {
+            let provenance = case
+                .native
+                .provenance
+                .as_ref()
+                .expect("filtered to provenance cases");
+            let closure_parity = provenance.closure_parity
+                && provenance.record.fact_closure_blake3 == provenance.skip.fact_closure_blake3;
+            lines.push(format!(
+                "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+                case.corpus,
+                case.case,
+                provenance.record.fact_count,
+                provenance.record.annotation_count,
+                provenance.record.max_proof_height.unwrap_or(0),
+                provenance.record.consumed_steps,
+                provenance.skip.consumed_steps,
+                provenance.record.peak_live_bytes,
+                provenance.skip.peak_live_bytes,
+                provenance.record_peak_overhead_bytes,
+                provenance.record.alloc_count,
+                provenance.skip.alloc_count,
+                provenance.record_alloc_count_overhead,
+                closure_parity,
+                provenance.step_parity,
+                provenance.annotation_complete
+                    && provenance.skip.annotation_count == 0
+                    && provenance.record.annotation_count == provenance.skip.fact_count,
+            ));
+        }
+    }
+
     // Per-corpus divergence-ledger tally (the content-addressed agreement fold): the
     // finding graph blake3 is a pure function of the comparisons, so it is a stable
     // drift signal.
@@ -890,7 +971,7 @@ impl Stage for CostLedgerStage {
     }
     fn impl_version(&self) -> &str {
         // v3: surface the incremental-vs-scratch deterministic delta in the ledger.
-        "cost-ledger.v3"
+        "cost-ledger.v4"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // The committed cost/agreement baseline is the only input; a baseline refresh

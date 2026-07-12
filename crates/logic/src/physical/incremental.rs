@@ -33,6 +33,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use super::seminaive::StepGovernor;
+use crate::provenance::{ProvenanceRing, ProvenanceSemiring, ZWeightSemiring};
 use crate::rule_ir::{
     EvalRule, Fact, FactKey, FactStore, Solution, distinct_pairs_satisfied, eval_rules_to_rls,
     ground_head, match_atom,
@@ -291,7 +292,7 @@ impl IncrementalSession {
                 .arena
                 .row_index(key)
                 .is_some_and(|id| self.edb.contains(&id));
-            let next = i64::from(present) + change.weight;
+            let next = ZWeightSemiring.add(i64::from(present), change.weight)?;
             if !(0..=1).contains(&next) {
                 return Err(incremental_err(format!(
                     "incremental set transaction changes fact {key:?} from membership {} by {} \
@@ -341,7 +342,7 @@ impl IncrementalSession {
             let old_snapshot = self.snapshots[iteration.min(old_last_snapshot)].clone();
             let old_raw = self.raw[iteration.min(old_last_raw)].clone();
             let new_snapshot = next_snapshots[iteration].clone();
-            let snapshot_delta = diff_snapshots(&old_snapshot, &new_snapshot);
+            let snapshot_delta = diff_snapshots(&old_snapshot, &new_snapshot)?;
 
             let weighted_delta = self.differentiate_operator(
                 &old_snapshot,
@@ -390,7 +391,7 @@ impl IncrementalSession {
                             iteration + 1,
                             joined_rows,
                             &added_derivations,
-                        );
+                        )?;
                         return Ok(BudgetedIncrementalDelta {
                             delta,
                             closure: self.facts_in(&partial_closure),
@@ -426,7 +427,7 @@ impl IncrementalSession {
             inner_iterations,
             joined_rows,
             &added_derivations,
-        );
+        )?;
         let closure = self.facts_in(&new_fixed);
         let consumed_steps = governor.as_ref().map_or(0, |governor| governor.consumed);
         self.edb = Arc::new(next_edb);
@@ -457,8 +458,8 @@ impl IncrementalSession {
         inner_iterations: usize,
         joined_rows: u64,
         derivations: &BTreeMap<usize, IncrementalDerivation>,
-    ) -> IncrementalDelta {
-        let mut output_ids: Vec<(usize, i64)> = diff_snapshots(old, new).into_iter().collect();
+    ) -> gmeow_errors::Result<IncrementalDelta> {
+        let mut output_ids: Vec<(usize, i64)> = diff_snapshots(old, new)?.into_iter().collect();
         output_ids.sort_by_key(|(id, _)| self.arena.facts()[*id].key());
         let changes = output_ids
             .into_iter()
@@ -472,12 +473,12 @@ impl IncrementalSession {
             .filter(|(id, _)| new.contains(id) && !old.contains(id))
             .map(|(&id, witness)| (self.arena.facts()[id].key(), witness.clone()))
             .collect();
-        IncrementalDelta {
+        Ok(IncrementalDelta {
             changes,
             inner_iterations,
             joined_rows,
             derivations,
-        }
+        })
     }
 
     fn fixed_snapshot(&self) -> &Snapshot {
@@ -611,12 +612,7 @@ impl IncrementalSession {
                 let fact = &self.arena.facts()[id];
                 if let Some(mut solution) = match_atom(atom, fact, &base.solution) {
                     solution.source_facts.push(fact.clone());
-                    let weight = base.weight.checked_mul(row_weight).ok_or_else(|| {
-                        incremental_err(format!(
-                            "incremental join weight overflow: {} * {row_weight}",
-                            base.weight
-                        ))
-                    })?;
+                    let weight = ZWeightSemiring.multiply(base.weight, row_weight)?;
                     if weight != 0 {
                         out.push(WeightedSolution { solution, weight });
                     }
@@ -736,11 +732,7 @@ fn add_head(
             {
                 slot.get_mut().witness = Some(witness);
             }
-            let combined = slot
-                .get()
-                .weight
-                .checked_add(weight)
-                .ok_or_else(|| incremental_err("incremental fact weight overflow"))?;
+            let combined = ZWeightSemiring.add(slot.get().weight, weight)?;
             if combined == 0 {
                 slot.remove();
             } else {
@@ -760,10 +752,7 @@ fn add_id_weight(output: &mut Weights, id: usize, weight: i64) -> gmeow_errors::
             slot.insert(weight);
         }
         std::collections::btree_map::Entry::Occupied(mut slot) => {
-            let combined = slot
-                .get()
-                .checked_add(weight)
-                .ok_or_else(|| incremental_err("incremental dense weight overflow"))?;
+            let combined = ZWeightSemiring.add(*slot.get(), weight)?;
             if combined == 0 {
                 slot.remove();
             } else {
@@ -780,15 +769,16 @@ fn distinct(raw: &Weights) -> Snapshot {
         .collect()
 }
 
-fn diff_snapshots(old: &Snapshot, new: &Snapshot) -> Weights {
+fn diff_snapshots(old: &Snapshot, new: &Snapshot) -> gmeow_errors::Result<Weights> {
     let mut delta = Weights::new();
     for &id in new.difference(old) {
-        delta.insert(id, 1);
+        delta.insert(id, ZWeightSemiring.one());
     }
+    let retraction = ZWeightSemiring.negate(ZWeightSemiring.one())?;
     for &id in old.difference(new) {
-        delta.insert(id, -1);
+        delta.insert(id, retraction);
     }
-    delta
+    Ok(delta)
 }
 
 #[cfg(test)]

@@ -140,6 +140,12 @@ are consumed through its public Rust API:
   binding-aware SIPS order, a guaranteed index shape, and a preselected
   variable/constant kernel shape, while scan mode dispatch enters a const-generic
   kernel once per operator rather than branching per tuple.
+- Bounded provenance algebra: `crates/logic/src/provenance.rs` defines the checked
+  semiring seam used by the native Record lane's minimal-proof-height carrier and
+  the incremental core's signed Z-weight counting carrier. Record stores one typed
+  height per fact; Skip stores none. `crates/logic/src/explain.rs` indexes row
+  identity once and descends only a queried witness subtree, so no eager proof-tree
+  forest is materialized.
 - SIMD: `purrdf-iri` uses safe portable SIMD only for dense ASCII delimiter scans;
   semantic validation remains scalar and byte-exact.
 - Sealed traits: `purrdf::DatasetView` and `DatasetMut` are sealed to the purrdf

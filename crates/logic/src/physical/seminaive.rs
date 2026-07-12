@@ -27,7 +27,7 @@
 //! The round loop here is a structural copy of `least_model_of_reduct`'s loop:
 //! same EDB-seeded delta, same per-round canonical-winner map keyed by head fact,
 //! the SAME quality tiebreak
-//! ([`RuleRoundCandidate`]'s total order `(max_src_depth, sum_src_depth,
+//! ([`RuleRoundCandidate`]'s total order `(proof_height, sum_src_depth,
 //! sorted_sources, rule_iri, sources)`), same per-fact depth map (EDB depth 0; derived
 //! depth = 1 + max source depth), and the same body-order `source_quad_ids`.  The ONLY
 //! substitution is the join: `join_body`'s full-bucket scan becomes
@@ -69,7 +69,7 @@ use crate::physical::plan::{
     AtomKernel, AtomOperator, CyclicPlan, Executable, IndexChoice, JoinGroup, RulePlan,
 };
 use crate::physical::store::{Bound, RelationStore};
-use crate::provenance::mint_derivation_id;
+use crate::provenance::{MinProofHeightSemiring, ProofHeight, mint_derivation_id};
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
@@ -77,6 +77,12 @@ use crate::rule_ir::{
     match_atom, sort_rows, world_edb_facts,
 };
 use crate::seam::BudgetStatus;
+
+fn seminaive_err(detail: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical {
+        detail: detail.into(),
+    })
+}
 
 /// A native-execution combination the forward core cannot decide.
 ///
@@ -1735,7 +1741,7 @@ fn eval_world_stratified(
     // Per-fact derivation-depth column, indexed by `store`'s insertion-order row (pushed
     // in lockstep with `store.insert`).  Depth feeds ONLY the Record-mode tiebreak; the
     // Skip lane never writes it, so it stays empty there (asserted below in `evaluate`).
-    let mut depth: Vec<u32> = Vec::new();
+    let mut depth: Vec<ProofHeight> = Vec::new();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a predicate that
     // is also a rule head is settled only when its stratum completes (below), so exclude
@@ -1755,7 +1761,7 @@ fn eval_world_stratified(
             rel.insert(&f.predicate, &f.subject, &f.object);
             if let ProvenanceMode::Record = mode {
                 debug_assert_eq!(idx, depth.len(), "depth/store lockstep on the EDB seed");
-                depth.push(0); // EDB facts have depth 0
+                depth.push(ProofHeight::ASSERTED); // EDB facts have height 0
             }
         }
     }
@@ -1827,7 +1833,7 @@ fn eval_world_stratified(
 struct FixpointState<'a> {
     store: &'a mut FactStore,
     rel: &'a mut RelationStore,
-    depth: &'a mut Vec<u32>,
+    depth: &'a mut Vec<ProofHeight>,
     derivations: &'a mut Vec<DerivedRow>,
     builtin_gap: &'a mut bool,
 }
@@ -1898,18 +1904,26 @@ fn eval_stratum_fixpoint(
                     ProvenanceMode::Record => {
                         // Provenance: reifiers of matched POSITIVE body facts in body order.
                         let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
-                        let mut max_sd: u32 = 0;
+                        let mut max_sd = ProofHeight::ASSERTED;
                         let mut sum_sd: u64 = 0;
                         for sf in &sol.source_facts {
                             sources.push(sf.reifier()?);
-                            let d = store
-                                .row_index(&sf.key())
-                                .and_then(|i| depth.get(i))
-                                .copied()
-                                .unwrap_or(0);
+                            let source_key = sf.key();
+                            let row = store.row_index(&source_key).ok_or_else(|| {
+                                seminaive_err(format!(
+                                    "provenance source {source_key:?} is absent from the physical fact store"
+                                ))
+                            })?;
+                            drop(source_key);
+                            let d = depth.get(row).copied().ok_or_else(|| {
+                                seminaive_err(format!(
+                                    "provenance source row {row} has no proof-height annotation"
+                                ))
+                            })?;
                             max_sd = max_sd.max(d);
-                            sum_sd = sum_sd.saturating_add(u64::from(d));
+                            sum_sd = sum_sd.saturating_add(u64::from(d.get()));
                         }
+                        let proof_height = MinProofHeightSemiring.derive([max_sd])?;
                         let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                         let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
                         let mut sorted_sources = sources.clone();
@@ -1923,14 +1937,14 @@ fn eval_stratum_fixpoint(
                                 source_facts: sol.source_facts.clone(),
                                 deriv,
                                 rule_iri: rule.rule_iri.clone(),
-                                max_src_depth: max_sd,
+                                proof_height,
                                 sum_src_depth: sum_sd,
                             }),
                         };
                         let hash = fact_key_hash(&key);
                         match round_index.find(hash, |&i| round_entries[i].0 == key) {
                             Some(&i) => {
-                                if candidate.tiebreak_key() < round_entries[i].1.tiebreak_key() {
+                                if candidate.preferred_over(&round_entries[i].1)? {
                                     round_entries[i].1 = candidate;
                                 }
                             }
@@ -2021,7 +2035,7 @@ fn eval_stratum_fixpoint(
             // release builds too).  Pushed in lockstep with the store row just added, so
             // `depth[i]` stays the depth of the store's row `i`.
             if let (Some(idx), Some(prov)) = (store_idx, winner.prov.as_ref()) {
-                let winner_depth = prov.max_src_depth.saturating_add(1);
+                let winner_depth = prov.proof_height;
                 assert_eq!(
                     idx,
                     depth.len(),
@@ -2044,6 +2058,7 @@ fn eval_stratum_fixpoint(
                     rule_iri: prov.rule_iri,
                     source_quad_ids: prov.sources, // body-order, NEVER the sorted copy
                     derivation_id: prov.deriv,
+                    proof_height: prov.proof_height,
                     antecedents: prov.source_facts,
                 });
             }
@@ -2100,7 +2115,7 @@ pub(crate) fn evaluate(
     let mut rel = RelationStore::new();
     // Depth column (row-indexed, like the forward leg).  This Skip-mode leg never records
     // provenance, so it is never written — it stays empty, asserted below.
-    let mut depth: Vec<u32> = Vec::new();
+    let mut depth: Vec<ProofHeight> = Vec::new();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a self-recursive
     // or otherwise IDB-derived predicate becomes settled only when its stratum completes

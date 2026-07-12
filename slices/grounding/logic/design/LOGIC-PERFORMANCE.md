@@ -211,15 +211,23 @@ cheapest differentiator: the subsumed forward substrate is single-threaded.
 Provenance is bounded-cost and in-band, never an afterthought pass.
 
 - **Record mode** carries a **minimal-proof-height annotation** per derived fact through the
-  semi-naive loop — a single small integer per fact, maintained under a min-semiring — and
-  reconstructs full proof trees lazily on demand by re-descending only the queried fact. This
-  keeps materialization overhead to a small constant factor while making every derived fact
-  explainable.
+  semi-naive loop — a single small integer per fact, maintained over the bounded
+  `(N ∪ {∞}, min, max)` semiring with a checked one-level rule lift, so a firing is annotated
+  `1 + max(body heights)` and alternatives select `min`. The selected annotation is carried on
+  the native row/oracle provenance seam; asserted leaves carry height zero. A reusable lazy
+  explanation index stores only row identity up front and reconstructs a proof by descending the
+  selected antecedents of the queried fact. An unrelated malformed proof component is not
+  traversed; querying that component still hard-fails. This is the bounded annotation/backward-
+  search design evaluated by [Zhao, Subotić, and Scholz](https://doi.org/10.1145/3379446), not an
+  eager proof-tree forest.
 - Full symbolic how-provenance (polynomial lineage) over recursive programs is **banned as a
   materialization target**: it has no polynomial-size representation in general. Where algebraic
   provenance is required, absorptive semirings — which do admit compact circuits — are the
   sanctioned form, and the integer-weighted Z-sets of the incremental layer double as counting
-  provenance for free.
+  provenance for free. Both carriers implement the same checked provenance-semiring plug point;
+  the Z carrier additionally exposes additive inverse, and the production incremental circuit
+  routes weight sum, product, and retraction through it. Overflow is a hard diagnostic, never
+  saturation or wrapping.
 - The Record/Skip capability boundary is unchanged: Skip mode commits the identical fact set in
   the identical order under the identical budget, minus the annotations. Provenance remains a
   capability, not a correctness fork.
@@ -350,6 +358,16 @@ corpus)`: bit-for-bit reproducible, immune to the scheduler.
   the full `(rule, predicate, stratum)` vector must match exactly, while allocation count and
   peak-live bytes must both strictly fall. These integer/boolean observations are projected into
   `generated/bench/cost-ledger.md`; wall-clock is absent from the claim.
+- **Provenance overhead is measured Record-versus-Skip over the same warm plan.** After the
+  cold/warm plan-cache evidence, every forward mini-corpus case performs a separate fair pair:
+  one complete bounded-Record evaluation and one complete facts-only Skip evaluation. Both
+  projections do the same fact-only hash/count post-work; Record alone reads its two annotation
+  scalars.
+  The fact-only closure hash and committed-step count must match exactly, Record must carry one
+  height annotation per closure fact, and Skip carries zero. Per-mode peak-live bytes and the
+  resulting Record overhead are exact drift-gated integers; total allocation-count deltas are
+  retained as advisory corroboration under the allocator-noise doctrine. The committed table is
+  `generated/bench/cost-ledger.md`; it contains no wall-clock percentage.
 - **The engine-vs-engine lanes on external corpora remain** — the standard chase benchmark
   scenarios, the subsumed forward engine's own published evaluation sets for the existential and
   materialization fragments, and the transitive-closure/points-to program families the
