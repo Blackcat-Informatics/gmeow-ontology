@@ -371,8 +371,22 @@ mod tests {
         let references =
             StageProduct::from_artifacts("stage-export-references", references_artifacts);
 
+        // The Pydantic model package product: a minimal non-empty member so the
+        // models-python blob fold clears its fail-closed guard (the carrier folds
+        // this run's fresh package, never a stale disk read).
+        let mut pydantic_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        pydantic_artifacts.insert(
+            format!(
+                "{}gmeow_models/__init__.py",
+                crate::stages::pydantic::PACKAGE_DISK_PREFIX
+            ),
+            b"# gmeow_models\n".to_vec(),
+        );
+        let pydantic = StageProduct::from_artifacts("stage-export-pydantic", pydantic_artifacts);
+
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert("stage-export-references".to_string(), references);
+        upstream.insert("stage-export-pydantic".to_string(), pydantic);
         upstream.insert("stage-compile-logic".to_string(), compile);
         upstream.insert("stage-export-json-schema".to_string(), json_schema);
         upstream.insert("stage-mappings".to_string(), mappings);
