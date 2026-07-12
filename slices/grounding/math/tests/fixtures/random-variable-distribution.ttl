@@ -7,6 +7,14 @@
 # (mean) parameter's quantity carries the SAME dimension — so the dimensional-
 # consistency flag the query computes is "true". Unioned onto the merged ontology by
 # gmeow:cqDataFile.
+#
+# Both the random variable and the location parameter's quantity carry the RESOLVABLE
+# base dimension math:lengthDimension (a math:BaseDimension) rather than a bare
+# math:Dimension individual, so this fixture also doubles as the positive fixture for
+# the native math:DistributionParameterConstraint gate's RELATIONAL dimension arm
+# (math:sameAsRandomVariableDimension): dimension_vector resolves both ends, the
+# ℚ⁷ exact-rational comparison actually EVALUATES, and it correctly asserts no
+# violation because the two dimensions agree.
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <http://example.org/math/> .
@@ -15,7 +23,7 @@ ex:heightRV a math:RandomVariable ;
     math:randomVariableDomain ex:popSpace ;
     math:randomVariableCodomain ex:realCodomain ;
     math:hasDistribution ex:heightDist ;
-    math:hasDimension ex:lengthDim .
+    math:hasDimension math:lengthDimension .
 ex:popSpace a math:ProbabilitySpace ;
     math:sampleSpace ex:popOutcomes ;
     math:eventSigmaAlgebra ex:popAlg ;
@@ -39,5 +47,4 @@ ex:meanRole a math:DistributionParameterRole ;
     math:quantityDimension math:sameAsRandomVariableDimension .
 # The location parameter's quantity carries the SAME dimension as the random variable.
 ex:muQty a gmeow:Quantity ;
-    math:hasDimension ex:lengthDim .
-ex:lengthDim a math:Dimension .
+    math:hasDimension math:lengthDimension .
