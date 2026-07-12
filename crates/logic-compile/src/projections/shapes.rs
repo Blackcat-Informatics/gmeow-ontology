@@ -3043,6 +3043,41 @@ mod procedural_tests {
     }
 
     #[test]
+    fn sugar_failure_class_dedupes_identical_values() {
+        let block = project_sugar(
+            "ex:fc a logic:ChoiceGroupConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:choicePredicate ex:hasA , ex:hasB ;\n\
+             logic:choiceMode \"exactly-one\" ;\n\
+             logic:formalizes ex:Widget ;\n\
+             <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ex:Failure, ex:Failure .",
+        );
+        assert_eq!(
+            block.matches("gmeow:enforcesFailureClass").count(),
+            1,
+            "{block}"
+        );
+    }
+
+    #[test]
+    fn sugar_failure_class_rejects_distinct_values() {
+        let src = format!(
+            "{SUGAR_PREFIXES}ex:fc_bad a logic:ChoiceGroupConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:choicePredicate ex:hasA , ex:hasB ;\n\
+             logic:choiceMode \"exactly-one\" ;\n\
+             logic:formalizes ex:Widget ;\n\
+             <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> ex:FailureA, ex:FailureB ."
+        );
+        let (program, diagnostics) =
+            crate::frontend::parse_logic_str(&src, None).expect("fixture parses");
+        assert!(program.constraints.is_empty());
+        assert!(diagnostics.iter().any(|diagnostic| {
+            diagnostic.code == "MALFORMED_CONSTRAINT" && diagnostic.message.contains("distinct")
+        }));
+    }
+
+    #[test]
     fn p1_at_most_one_sugar_projects() {
         let b = project_sugar(
             "ex:c1b a logic:ChoiceGroupConstraint ;\n\

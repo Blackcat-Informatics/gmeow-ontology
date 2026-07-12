@@ -13,6 +13,7 @@
 //! owns the stdio JSON-RPC loop, startup language validation, resource routing,
 //! and grounded-memory triad; the native `gmeow`/`gmeow-dev` CLI is the launcher.
 
+use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::env;
 use std::fs;
@@ -31,6 +32,7 @@ use gmeow_logic::result_rdf::{
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term as IrTerm};
+use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
 use purrdf::gts::examples::agent_memory::{
     Memory, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions,
 };
@@ -49,12 +51,547 @@ const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/lang/LanguageVariet
 const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
 const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// The `gmeow:` vocabulary namespace — the base of the documentation-graph
+/// predicate and enumeration IRIs (`gmeow:docFixtureKind…`, etc.).
+const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const TOOL_AGENT_NS: &str = "urn:gmeow:tool:";
 /// The distinct external-provenance named graph the read-only local overlay is
 /// re-homed into (the origin marker). Overlay triples are visible to reads
 /// (`bundle ∪ overlay`) but quarantined under this graph — NEVER unioned into the
 /// signed `gmeow:` canon and NEVER written back.
 const EXTERNAL_OVERLAY_GRAPH: &str = "urn:gmeow:mcp:overlay:external";
+
+/// The GMEOW namespace the native validation surface reasons in — the SAME
+/// namespace the CLI `gmeow validate` passes to `gmeow_validate::data_validate`, so
+/// `validate_local` never diverges from the shipped validator.
+const MCP_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The origin marker stamped on every `validate_local` finding's primary location —
+/// the transient, inline data has no file path, so this synthetic origin identifies
+/// the tool that produced the finding.
+const VALIDATE_LOCAL_ORIGIN: &str = "mcp:validate_local";
+
+/// A generous ceiling on the inline `data` payload `validate_local` accepts (8 MiB).
+/// A larger payload is a HARD FAIL with a finding-style error — never silently
+/// truncated (a truncated RDF graph would mis-parse and mislead).
+const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
+
+/// SELECT the counter-example conformance fixtures from the documentation graph: the
+/// fixture IRI, its authored violation code, the full Turtle body, its label, the
+/// authored outcome/rationale, and each referenced documented term (repeatable).
+const COUNTER_EXAMPLE_FIXTURE_QUERY: &str = "\
+PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?f ?code ?text ?label ?outcome ?rationale ?term WHERE {
+  ?f a gm:DocFixture ;
+     gm:docFixtureKind gm:docFixtureKindCounterExample ;
+     gm:docViolationCode ?code ;
+     gm:docFixtureText ?text .
+  OPTIONAL { ?f rdfs:label ?label }
+  OPTIONAL { ?f gm:docExpectedOutcome ?outcome }
+  OPTIONAL { ?f gm:conformanceRationale ?rationale }
+  OPTIONAL { ?f gm:documents ?term }
+}";
+
+/// SELECT the well-formed conformance fixtures (positive exemplars) from the
+/// documentation graph: the fixture IRI, the full Turtle body, its label, the
+/// authored outcome, and each referenced documented term (the well-formed↔term join
+/// key). A well-formed fixture carries no violation code.
+const WELLFORMED_FIXTURE_QUERY: &str = "\
+PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?f ?text ?label ?outcome ?term WHERE {
+  ?f a gm:DocFixture ;
+     gm:docFixtureKind gm:docFixtureKindWellformed ;
+     gm:docFixtureText ?text .
+  OPTIONAL { ?f rdfs:label ?label }
+  OPTIONAL { ?f gm:docExpectedOutcome ?outcome }
+  OPTIONAL { ?f gm:documents ?term }
+}";
+
+/// SELECT the entailment records from the documentation graph: the entailment IRI,
+/// the documented term it grounds on, the rule, the conclusion, and each premise
+/// (repeatable).
+const ENTAILMENT_QUERY: &str = "\
+PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?e ?term ?rule ?conclusion ?premise WHERE {
+  ?e a gm:Entailment ;
+     gm:documents ?term ;
+     gm:entailmentRule ?rule ;
+     gm:entailmentConclusion ?conclusion .
+  OPTIONAL { ?e gm:entailmentPremise ?premise }
+}";
+
+/// SELECT the conformance fixtures documenting one specific term (both kinds), for
+/// the `counter_examples` tool: the fixture IRI, its enumerated
+/// `gmeow:docFixtureKind`, the full Turtle body, its label, and the authored
+/// advisory fields. `term_iri` is a canonical term IRI already resolved from the
+/// bundle's own term set, so embedding it as an IRI ref is not a caller-injected
+/// value.
+fn fixtures_by_term_query(term_iri: &str) -> String {
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?f ?kind ?text ?label ?outcome ?code ?rationale WHERE {{
+  ?f a gm:DocFixture ;
+     gm:documents <{term_iri}> ;
+     gm:docFixtureKind ?kind ;
+     gm:docFixtureText ?text .
+  OPTIONAL {{ ?f rdfs:label ?label }}
+  OPTIONAL {{ ?f gm:docExpectedOutcome ?outcome }}
+  OPTIONAL {{ ?f gm:docViolationCode ?code }}
+  OPTIONAL {{ ?f gm:conformanceRationale ?rationale }}
+}}"
+    )
+}
+
+/// SELECT the entailment records documenting one specific term, for the
+/// `entailments` tool: the entailment IRI, its rule, its conclusion, and each
+/// premise (repeatable). See [`fixtures_by_term_query`] on the embedded IRI.
+fn entailments_by_term_query(term_iri: &str) -> String {
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+SELECT ?e ?rule ?conclusion ?premise WHERE {{
+  ?e a gm:Entailment ;
+     gm:documents <{term_iri}> ;
+     gm:entailmentRule ?rule ;
+     gm:entailmentConclusion ?conclusion .
+  OPTIONAL {{ ?e gm:entailmentPremise ?premise }}
+}}"
+    )
+}
+
+/// SELECT the diagnostics evidence documenting one specific term, for the
+/// full-tier `doc_card` panel: each grounded finding code and the evidence claim.
+/// The `gmeow:docEvidenceKindDiagnostics` evidence node is projected into the
+/// documentation graph per term that a finding structurally concerns. See
+/// [`fixtures_by_term_query`] on the embedded IRI.
+fn diagnostics_by_term_query(term_iri: &str) -> String {
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+SELECT ?claim ?code WHERE {{
+  ?e a gm:DocEvidence ;
+     gm:docEvidenceKind gm:docEvidenceKindDiagnostics ;
+     gm:documents <{term_iri}> ;
+     gm:docClaim ?claim ;
+     gm:docGroundedBy ?code .
+}}"
+    )
+}
+
+/// SELECT the projection-loss evidence documenting one specific term, for the
+/// full-tier `doc_card` panel: each grounded loss target and the preservation
+/// judgment (`gmeow:docJudgment`). The `gmeow:docEvidenceKindLoss` evidence node
+/// is projected per term that degrades under one or more projections. See
+/// [`fixtures_by_term_query`] on the embedded IRI.
+fn loss_by_term_query(term_iri: &str) -> String {
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+SELECT ?target ?judgment WHERE {{
+  ?e a gm:DocEvidence ;
+     gm:docEvidenceKind gm:docEvidenceKindLoss ;
+     gm:documents <{term_iri}> ;
+     gm:docGroundedBy ?target ;
+     gm:docJudgment ?judgment .
+}}"
+    )
+}
+
+/// The output format of the `doc_card` tool: rendered Markdown or the neutral
+/// [`gmeow_docs::card::Card`] serialized to JSON.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum CardFormat {
+    /// The card rendered through the single shared Markdown renderer.
+    Markdown,
+    /// The card serialized as a JSON object (deterministic field order).
+    Json,
+}
+
+impl CardFormat {
+    /// Parse the `format` argument — an UNKNOWN value is a HARD FAIL listing the
+    /// valid values (never a silent default).
+    fn parse(raw: Option<&str>) -> gmeow_errors::Result<Self> {
+        match raw.unwrap_or("markdown") {
+            "markdown" => Ok(Self::Markdown),
+            "json" => Ok(Self::Json),
+            other => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "doc_card: unknown format `{other}`; valid values: markdown, json"
+                ),
+            })),
+        }
+    }
+
+    /// The canonical label echoed back in the response envelope.
+    fn label(self) -> &'static str {
+        match self {
+            Self::Markdown => "markdown",
+            Self::Json => "json",
+        }
+    }
+}
+
+/// Parse the `detail` argument into a [`gmeow_docs::card::CardDetail`] tier — an
+/// UNKNOWN value is a HARD FAIL listing the valid values (never a silent default).
+fn parse_card_detail(raw: Option<&str>) -> gmeow_errors::Result<gmeow_docs::card::CardDetail> {
+    use gmeow_docs::card::CardDetail;
+    match raw.unwrap_or("standard") {
+        "summary" => Ok(CardDetail::Summary),
+        "standard" => Ok(CardDetail::Standard),
+        "full" => Ok(CardDetail::Full),
+        other => Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "doc_card: unknown detail `{other}`; valid values: summary, standard, full"
+            ),
+        })),
+    }
+}
+
+/// The canonical `detail` label echoed back in the response envelope.
+fn card_detail_label(detail: gmeow_docs::card::CardDetail) -> &'static str {
+    use gmeow_docs::card::CardDetail;
+    match detail {
+        CardDetail::Summary => "summary",
+        CardDetail::Standard => "standard",
+        CardDetail::Full => "full",
+    }
+}
+
+/// One-line and cap a fixture Turtle body to a short snippet for the full-tier
+/// `doc_card` Do / Don't panels (the card is token-budgeted; the full body is
+/// available through the `counter_examples` tool).
+fn fixture_body_snippet(text: &str) -> String {
+    let one_line = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    gmeow_docs::llms::cap_note(&one_line)
+}
+
+/// SELECT the documented competency questions for the `competency_questions` tool:
+/// every `gmeow:DocumentedCompetency` carrying a runnable `gmeow:cqQueryText`, or —
+/// when `term_iri` is `Some` — only those documenting that term. `cqQueryText` is a
+/// required pattern (not OPTIONAL), so every returned record is a runnable question.
+fn competency_query(term_iri: Option<&str>) -> String {
+    let documents = term_iri
+        .map(|iri| format!("     gm:documents <{iri}> ;\n"))
+        .unwrap_or_default();
+    format!(
+        "\
+PREFIX gm: <{GMEOW_NS}>
+SELECT ?c ?q ?rationale ?count ?exact WHERE {{
+  ?c a gm:DocumentedCompetency ;
+{documents}     gm:cqQueryText ?q .
+  OPTIONAL {{ ?c gm:cqRationale ?rationale }}
+  OPTIONAL {{ ?c gm:cqExpectRowCount ?count }}
+  OPTIONAL {{ ?c gm:cqExactRows ?exact }}
+}}"
+    )
+}
+
+/// SELECT the searchable documentation-entry records from the documentation graph:
+/// each entry subject, its `rdf:type`, the REAL display label, the optional
+/// definition, the site URL, the documented real IRI, and the repeatable advisory /
+/// alignment / missing-coverage facets. The `docSearchLabel` pattern is required (not
+/// OPTIONAL), so only genuine documentation-entry records (gmeow:DocumentedTerm /
+/// DocumentedSlice / DocumentedConcern) match — never a bare evidence node.
+const DOC_SEARCH_QUERY: &str = "\
+PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?s ?type ?label ?definition ?url ?documents ?advice ?alignment ?missing WHERE {
+  ?s rdf:type ?type ;
+     gm:docSearchLabel ?label .
+  OPTIONAL { ?s gm:docSearchDefinition ?definition }
+  OPTIONAL { ?s gm:docUrl ?url }
+  OPTIONAL { ?s gm:documents ?documents }
+  OPTIONAL { ?s gm:docSearchAdvice ?advice }
+  OPTIONAL { ?s gm:docSearchAlignment ?alignment }
+  OPTIONAL { ?s gm:docMissesDimension ?missing }
+}";
+
+/// One ranked documentation search hit the `docs_search` tool returns. Carries the
+/// same facet shape the site `search-index.json` record does (`kind`, `id`, `label`,
+/// `definition`, `url`, `advice`, `alignments`, `missing_coverage`) plus a private
+/// match `rank` used only for the deterministic ordering.
+#[derive(Debug)]
+struct SearchHit {
+    /// The record kind (`term`, `slice`, `concern`) from its `rdf:type` local name.
+    kind: String,
+    /// The documented real IRI (`gmeow:documents`) — a value a caller can pass back to
+    /// `lookup_term` / `doc_card`.
+    id: String,
+    /// The REAL display label (`gmeow:docSearchLabel`).
+    label: String,
+    /// The definition prose (`gmeow:docSearchDefinition`), absent when the record
+    /// carries none.
+    definition: Option<String>,
+    /// The site-relative page URL (`gmeow:docUrl`), absent when the record carries none.
+    url: Option<String>,
+    /// The advisory-prose facet (`gmeow:docSearchAdvice`), sorted+deduped; empty when
+    /// none.
+    advice: Vec<String>,
+    /// The crosswalk alignment facet (`gmeow:docSearchAlignment`), sorted+deduped;
+    /// empty when none.
+    alignments: Vec<String>,
+    /// The missing-dimension facet — the local names of `gmeow:docMissesDimension`,
+    /// sorted+deduped; empty when the record misses no dimension.
+    missing_coverage: Vec<String>,
+    /// The match rank (lower is better): 0 label, 1 definition, 2 advice. Not
+    /// serialized — the tie-break beside the id gives a stable, reproducible order.
+    rank: u8,
+}
+
+impl SearchHit {
+    fn to_json(&self) -> Value {
+        json!({
+            "kind": self.kind,
+            "id": self.id,
+            "label": self.label,
+            "definition": self.definition,
+            "url": self.url,
+            "advice": self.advice,
+            "alignments": self.alignments,
+            "missing_coverage": self.missing_coverage,
+        })
+    }
+}
+
+/// Whether a lowercased searchable field matches the query: a substring hit on the
+/// whole lowercased query, OR (token mode) every whitespace-split query token appears
+/// somewhere in the field. Case-insensitive by construction (both sides lowercased).
+fn field_matches(field_lc: &str, query_lc: &str, tokens: &[&str]) -> bool {
+    field_lc.contains(query_lc)
+        || (!tokens.is_empty() && tokens.iter().all(|t| field_lc.contains(t)))
+}
+
+/// The local name of an IRI: the tail after the last `/` or `#` (the whole string when
+/// neither is present).
+fn iri_local_name(iri: &str) -> &str {
+    match iri.rfind(['/', '#']) {
+        Some(i) => &iri[i + 1..],
+        None => iri,
+    }
+}
+
+/// Search the bundle's `gmeow:graph/documentation` projection for documentation-entry
+/// records whose label / definition / advisory prose match `query`, returning up to
+/// `limit` ranked [`SearchHit`]s.
+///
+/// The tool queries the documentation NAMED GRAPH — always present in every bundle —
+/// NOT any packed `search-index.json` archive member (the lean `gmeow.gts` carries
+/// none). An ABSENT/EMPTY documentation graph is therefore a HARD FAIL (a real defect,
+/// never a silent empty result); a query that legitimately matches nothing returns an
+/// empty vector (empty-but-ok is the caller's `{"ok":true,"results":[]}`).
+///
+/// Ranking is deterministic: records are ordered by match quality (a label match
+/// outranks a definition match, which outranks an advice-only match) then by `id`
+/// (the documented IRI), so the same query twice yields the same order.
+fn search_documentation(
+    dataset: &purrdf::RdfDataset,
+    query: &str,
+    limit: usize,
+) -> gmeow_errors::Result<Vec<SearchHit>> {
+    let docs = Arc::new(dataset.project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION));
+    // HARD FAIL: the documentation graph is absent/empty in this bundle. docs_search
+    // serves the documentation graph, so a missing graph is a genuine defect.
+    if docs.quad_count() == 0 {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: "docs_search: the gmeow:graph/documentation named graph is absent or empty \
+                      in this bundle — the searchable documentation projection is missing"
+                .to_string(),
+        }));
+    }
+    let value =
+        sparql_result_to_json(crate::stages::native_query::query(&docs, DOC_SEARCH_QUERY)?)?;
+
+    // Aggregate the (repeatable advice/alignment/missing) rows back per entry subject.
+    #[derive(Default)]
+    struct Acc {
+        kind: String,
+        id: String,
+        label: String,
+        definition: Option<String>,
+        url: Option<String>,
+        advice: BTreeSet<String>,
+        alignments: BTreeSet<String>,
+        missing: BTreeSet<String>,
+    }
+    let mut by_subject: BTreeMap<String, Acc> = BTreeMap::new();
+    for row in select_rows(&value) {
+        let (Some(subject), Some(ty), Some(label)) =
+            (row.get("s"), row.get("type"), row.get("label"))
+        else {
+            continue;
+        };
+        let kind = match iri_local_name(ty) {
+            "DocumentedTerm" => "term",
+            "DocumentedSlice" => "slice",
+            "DocumentedConcern" => "concern",
+            // Any other typed subject is not a searchable documentation-entry record.
+            _ => continue,
+        };
+        let acc = by_subject.entry(subject.clone()).or_default();
+        acc.kind = kind.to_string();
+        acc.label = label.clone();
+        acc.id = row
+            .get("documents")
+            .cloned()
+            .unwrap_or_else(|| subject.clone());
+        if let Some(def) = row.get("definition") {
+            acc.definition = Some(def.clone());
+        }
+        if let Some(url) = row.get("url") {
+            acc.url = Some(url.clone());
+        }
+        if let Some(advice) = row.get("advice") {
+            acc.advice.insert(advice.clone());
+        }
+        if let Some(alignment) = row.get("alignment") {
+            acc.alignments.insert(alignment.clone());
+        }
+        if let Some(missing) = row.get("missing") {
+            acc.missing.insert(iri_local_name(missing).to_string());
+        }
+    }
+
+    let query_lc = query.to_lowercase();
+    let tokens: Vec<&str> = query_lc.split_whitespace().collect();
+
+    let mut hits: Vec<SearchHit> = Vec::new();
+    for acc in by_subject.into_values() {
+        let label_lc = acc.label.to_lowercase();
+        let def_lc = acc.definition.as_deref().unwrap_or("").to_lowercase();
+        let advice_lc = acc
+            .advice
+            .iter()
+            .map(|a| a.to_lowercase())
+            .collect::<Vec<_>>()
+            .join("\n");
+        // Rank by the strongest matching field (label > definition > advice); a record
+        // matching none is not a hit.
+        let rank = if field_matches(&label_lc, &query_lc, &tokens) {
+            0
+        } else if field_matches(&def_lc, &query_lc, &tokens) {
+            1
+        } else if field_matches(&advice_lc, &query_lc, &tokens) {
+            2
+        } else {
+            continue;
+        };
+        hits.push(SearchHit {
+            kind: acc.kind,
+            id: acc.id,
+            label: acc.label,
+            definition: acc.definition,
+            url: acc.url,
+            advice: acc.advice.into_iter().collect(),
+            alignments: acc.alignments.into_iter().collect(),
+            missing_coverage: acc.missing.into_iter().collect(),
+            rank,
+        });
+    }
+    // Deterministic order: best match first, then by documented IRI as a stable
+    // tie-break.
+    hits.sort_by(|a, b| a.rank.cmp(&b.rank).then_with(|| a.id.cmp(&b.id)));
+    hits.truncate(limit);
+    Ok(hits)
+}
+
+/// Extract the `results.bindings` of a SPARQL-1.1 JSON envelope into flat
+/// `var → lexical-value` rows (each binding's `"value"`). Shared by
+/// [`McpView::docs_select_rows`] and [`search_documentation`].
+fn select_rows(value: &Value) -> Vec<BTreeMap<String, String>> {
+    value
+        .get("results")
+        .and_then(|r| r.get("bindings"))
+        .and_then(Value::as_array)
+        .map(|bindings| {
+            bindings
+                .iter()
+                .filter_map(Value::as_object)
+                .map(|binding| {
+                    binding
+                        .iter()
+                        .filter_map(|(var, cell)| {
+                            cell.get("value")
+                                .and_then(Value::as_str)
+                                .map(|v| (var.clone(), v.to_owned()))
+                        })
+                        .collect::<BTreeMap<String, String>>()
+                })
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// The string value of `key` in a JSON object, or `""` when absent / non-string.
+/// A small adapter so the full-tier `doc_card` panels can reuse the Task-4
+/// `term_entailments` / `term_fixtures` JSON records without re-querying the graph.
+fn value_str(value: &Value, key: &str) -> String {
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .to_string()
+}
+
+/// The string members of the `key` array in a JSON object, in order; empty when
+/// absent or not an array. (Values are already deterministically ordered upstream.)
+fn value_str_array(value: &Value, key: &str) -> Vec<String> {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(Value::as_str)
+                .map(str::to_string)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// Render one fixture record as the tool's JSON object. The advisory fields are
+/// emitted as `null` when the slice authored none (a stable shape callers can read
+/// without probing for key presence).
+fn fixture_json(view: &FixtureView) -> Value {
+    json!({
+        "title": view.title,
+        "text": view.text,
+        "expected_outcome": view.expected_outcome,
+        "violation_code": view.violation_code,
+        "rationale": view.rationale,
+    })
+}
+
+/// Render one competency-question record as the tool's JSON object. The optional
+/// expectations are included only when authored; the row-count and exact-flag are
+/// typed back to a JSON number / boolean from their `xsd:integer` / `xsd:boolean`
+/// lexical forms (the raw lexeme is kept only if it is somehow not well-typed).
+fn competency_json(query_text: &str, row: &BTreeMap<String, String>) -> Value {
+    let mut obj = serde_json::Map::new();
+    obj.insert("query_text".to_string(), json!(query_text));
+    if let Some(rationale) = row.get("rationale") {
+        obj.insert("rationale".to_string(), json!(rationale));
+    }
+    if let Some(count) = row.get("count") {
+        let value = count
+            .parse::<i64>()
+            .map(|n| json!(n))
+            .unwrap_or_else(|_| json!(count));
+        obj.insert("expected_row_count".to_string(), value);
+    }
+    if let Some(exact) = row.get("exact") {
+        let value = match exact.as_str() {
+            "true" | "1" => json!(true),
+            "false" | "0" => json!(false),
+            other => json!(other),
+        };
+        obj.insert("exact_rows".to_string(), value);
+    }
+    Value::Object(obj)
+}
 
 /// A loaded, bundle-backed view over the GMEOW snapshot for the MCP consumer.
 pub struct McpView {
@@ -78,10 +615,21 @@ pub struct McpView {
     /// across all `requested` lists. Empty when the doc graph is absent (then the
     /// `llms.txt` index renders linkless).
     doc_urls: OnceLock<Arc<HashMap<String, String>>>,
+    /// The raw `gmeow.gts` snapshot bytes this view was imported from, retained
+    /// verbatim. `from_snapshot` parses the bundle to the carrier dataset and
+    /// then DISCARDS the bytes; the native validation surface
+    /// (`validate_local`) needs them back — `gmeow_validate::data_validate` reads
+    /// the folded `shapes-archive` blob directly from the raw GTS, not from the
+    /// parsed dataset. Held behind an `Arc<[u8]>` so cloning the view is cheap
+    /// and the (potentially large) bundle is never copied.
+    gts: Arc<[u8]>,
 }
 
 impl McpView {
-    fn from_dataset(dataset: Arc<purrdf::RdfDataset>) -> gmeow_errors::Result<Self> {
+    fn from_dataset(
+        dataset: Arc<purrdf::RdfDataset>,
+        gts: Arc<[u8]>,
+    ) -> gmeow_errors::Result<Self> {
         let (title, version) = {
             let view = FoldView::new(dataset.as_ref());
             export::fold_meta(&view)?
@@ -92,13 +640,140 @@ impl McpView {
             version,
             cache: Mutex::new(HashMap::new()),
             doc_urls: OnceLock::new(),
+            gts,
         })
+    }
+
+    /// The raw `gmeow.gts` snapshot bytes this view serves, for the native
+    /// validation surface that reads the folded `shapes-archive` blob directly.
+    fn gts_bytes(&self) -> &[u8] {
+        &self.gts
     }
 
     /// Resolve a CURIE / local name / IRI / unambiguous prefix to its public
     /// metadata record (JSON envelope with `"ok"`), or a not-found envelope.
     fn lookup_term_json(&self, term: &str, requested: Vec<String>) -> String {
         self.with_terms(requested, |terms| export::lookup_envelope(terms, term))
+    }
+
+    /// Resolve a CURIE / local name / IRI / label (or unambiguous prefix) to its
+    /// canonical term IRI, via the SAME resolution path `lookup_term` / `doc_card`
+    /// use. `None` when the query does not resolve to exactly one term — the caller
+    /// HARD-FAILS an unknown term rather than returning a fabricated empty result.
+    /// `export::resolve_term_iri` itself borrows zero-copy; this wrapper must
+    /// allocate ONE owned `String` here because the resolved IRI has to outlive
+    /// the cached `terms` slice that `with_terms` only lends for the closure's
+    /// duration.
+    fn resolve_term_iri(&self, term: &str, requested: Vec<String>) -> Option<String> {
+        self.with_terms(requested, |terms| {
+            export::resolve_term_iri(terms, term).map(str::to_owned)
+        })
+    }
+
+    /// The counter-example / well-formed conformance fixtures documenting `term_iri`,
+    /// read from the `gmeow:graph/documentation` projection and split by
+    /// `gmeow:docFixtureKind`. Each fixture is one record carrying its title, full
+    /// Turtle body, and the authored advisory fields (expected outcome, violation
+    /// code, conformance rationale) — `null` when the slice authored none. Both lists
+    /// are ordered by fixture IRI, so the surface is deterministic. A term that
+    /// documents no fixtures yields two empty lists (honest empty-but-ok).
+    fn term_fixtures(&self, term_iri: &str) -> gmeow_errors::Result<(Vec<Value>, Vec<Value>)> {
+        let query = fixtures_by_term_query(term_iri);
+        // One record per fixture IRI: the fixture-scoped columns are single-valued,
+        // so first-row-wins is the whole record. BTreeMap → fixture-IRI order.
+        let mut by_fixture: BTreeMap<String, (String, FixtureView)> = BTreeMap::new();
+        for row in self.docs_select_rows(&query)? {
+            let (Some(fixture), Some(kind), Some(text)) =
+                (row.get("f"), row.get("kind"), row.get("text"))
+            else {
+                continue;
+            };
+            by_fixture.entry(fixture.clone()).or_insert_with(|| {
+                (
+                    kind.clone(),
+                    FixtureView {
+                        title: row.get("label").cloned().unwrap_or_else(|| fixture.clone()),
+                        text: text.clone(),
+                        expected_outcome: row.get("outcome").cloned(),
+                        violation_code: row.get("code").cloned(),
+                        rationale: row.get("rationale").cloned(),
+                    },
+                )
+            });
+        }
+
+        let wellformed_kind = format!("{GMEOW_NS}docFixtureKindWellformed");
+        let counter_kind = format!("{GMEOW_NS}docFixtureKindCounterExample");
+        let mut wellformed = Vec::new();
+        let mut counter_examples = Vec::new();
+        for (kind, view) in by_fixture.into_values() {
+            let record = fixture_json(&view);
+            if kind == counter_kind {
+                counter_examples.push(record);
+            } else if kind == wellformed_kind {
+                wellformed.push(record);
+            }
+        }
+        Ok((wellformed, counter_examples))
+    }
+
+    /// The reasoner entailments documenting `term_iri`, read from the
+    /// `gmeow:graph/documentation` projection. Each `gmeow:Entailment` node is one
+    /// record — its rule, its conclusion, and ALL its premises (every
+    /// `gmeow:entailmentPremise`, sorted). Records are ordered by entailment IRI, so
+    /// the surface is deterministic. A term with no entailments yields an empty list.
+    fn term_entailments(&self, term_iri: &str) -> gmeow_errors::Result<Vec<Value>> {
+        let query = entailments_by_term_query(term_iri);
+        // Aggregate the (repeatable-premise) rows back per entailment IRI.
+        let mut by_entailment: BTreeMap<String, (String, String, BTreeSet<String>)> =
+            BTreeMap::new();
+        for row in self.docs_select_rows(&query)? {
+            let (Some(entailment), Some(rule), Some(conclusion)) =
+                (row.get("e"), row.get("rule"), row.get("conclusion"))
+            else {
+                continue;
+            };
+            let entry = by_entailment
+                .entry(entailment.clone())
+                .or_insert_with(|| (rule.clone(), conclusion.clone(), BTreeSet::new()));
+            if let Some(premise) = row.get("premise") {
+                entry.2.insert(premise.clone());
+            }
+        }
+        let out = by_entailment
+            .into_values()
+            .map(|(rule, conclusion, premises)| {
+                json!({
+                    "rule": rule,
+                    "conclusion": conclusion,
+                    "premises": premises.into_iter().collect::<Vec<_>>(),
+                })
+            })
+            .collect();
+        Ok(out)
+    }
+
+    /// The runnable competency questions from the `gmeow:graph/documentation`
+    /// projection: every `gmeow:DocumentedCompetency` carrying a `gmeow:cqQueryText`,
+    /// or — when `term_iri` is `Some` — only those documenting that term. Each record
+    /// carries the runnable query text and the authored expectations
+    /// (`gmeow:cqRationale`, `gmeow:cqExpectRowCount`, `gmeow:cqExactRows`) when
+    /// present. Records are ordered by competency IRI, so the surface is
+    /// deterministic.
+    fn competency_questions(&self, term_iri: Option<&str>) -> gmeow_errors::Result<Vec<Value>> {
+        let query = competency_query(term_iri);
+        // One record per competency IRI (all columns single-valued). BTreeMap →
+        // competency-IRI order.
+        let mut by_competency: BTreeMap<String, Value> = BTreeMap::new();
+        for row in self.docs_select_rows(&query)? {
+            let (Some(competency), Some(query_text)) = (row.get("c"), row.get("q")) else {
+                continue;
+            };
+            by_competency
+                .entry(competency.clone())
+                .or_insert_with(|| competency_json(query_text, &row));
+        }
+        Ok(by_competency.into_values().collect())
     }
 
     /// The standard llmstxt.org vocabulary index (`llms.txt`) for `requested`,
@@ -121,9 +796,164 @@ impl McpView {
         })
     }
 
-    /// A prompt-ready Markdown card for one term.
-    fn doc_card_text(&self, term: &str, requested: Vec<String>) -> String {
-        self.with_terms(requested, |terms| export::doc_card_md(terms, term))
+    /// A prompt-ready term card for one term at the requested detail tier and
+    /// output format, wrapped in the cost-metadata envelope
+    /// (`{"ok":true,"detail","format","bytes","tokens","card"}`).
+    ///
+    /// The card is built through the SINGLE shared builder + renderer
+    /// (`export::doc_card_build` → `gmeow_docs::card`). For
+    /// [`CardDetail::Full`](gmeow_docs::card::CardDetail::Full) the rich oracle
+    /// panels (entailments, Do / Don't fixtures, diagnostics, projection loss) are
+    /// populated by querying the `gmeow:graph/documentation` projection for the
+    /// resolved term IRI. An UNKNOWN term is a HARD FAIL (`Err`).
+    ///
+    /// `format=markdown` renders through `render_card` (tier-gated); `format=json`
+    /// serializes the tier-projected `Card`. `bytes`/`tokens` measure the returned
+    /// card payload so callers can budget by tier.
+    fn doc_card(
+        &self,
+        term: &str,
+        detail: gmeow_docs::card::CardDetail,
+        format: CardFormat,
+        requested: Vec<String>,
+    ) -> gmeow_errors::Result<String> {
+        use gmeow_docs::card::CardDetail;
+        let built = self.with_terms(requested, |terms| export::doc_card_build(terms, term));
+        let Some((title, mut card)) = built else {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "unknown term `{term}`: does not resolve to a bundled GMEOW term \
+                     (expected a CURIE, local name, IRI, or label)"
+                ),
+            }));
+        };
+        // The full tier is the oracle card: enrich the compact card with the rich
+        // panels queried from the documentation graph by the resolved term IRI.
+        if detail == CardDetail::Full {
+            let iri = card.iri.clone();
+            let (fixtures_do, fixtures_dont) = self.card_fixtures(&iri)?;
+            card.entailments = self.card_entailments(&iri)?;
+            card.fixtures_do = fixtures_do;
+            card.fixtures_dont = fixtures_dont;
+            card.diagnostics = self.card_diagnostics(&iri)?;
+            card.loss = self.card_loss(&iri)?;
+        }
+        let (rendered, card_value) = match format {
+            CardFormat::Markdown => {
+                let md = gmeow_docs::card::render_card(&title, &card, detail);
+                let value = Value::String(md.clone());
+                (md, value)
+            }
+            CardFormat::Json => {
+                let projected = card.projected(detail);
+                let js = serde_json::to_string(&projected).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                        message: format!("doc_card: serialize card to JSON: {e}"),
+                    })
+                })?;
+                let value = serde_json::to_value(&projected).map_err(|e| {
+                    gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                        message: format!("doc_card: card to JSON value: {e}"),
+                    })
+                })?;
+                (js, value)
+            }
+        };
+        Ok(json!({
+            "ok": true,
+            "detail": card_detail_label(detail),
+            "format": format.label(),
+            "bytes": rendered.len(),
+            "tokens": gmeow_docs::llms::estimate_tokens(&rendered),
+            "card": card_value,
+        })
+        .to_string())
+    }
+
+    /// The full-tier entailment panel for `term_iri`: the reasoner derivations
+    /// documenting the term, mapped from the SAME `term_entailments` query the
+    /// `entailments` tool serves. Empty for a term with no derivations.
+    fn card_entailments(
+        &self,
+        term_iri: &str,
+    ) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardEntailment>> {
+        Ok(self
+            .term_entailments(term_iri)?
+            .iter()
+            .map(|v| gmeow_docs::card::CardEntailment {
+                rule: value_str(v, "rule"),
+                conclusion: value_str(v, "conclusion"),
+                premises: value_str_array(v, "premises"),
+            })
+            .collect())
+    }
+
+    /// The full-tier Do / Don't fixture panels for `term_iri`: the well-formed
+    /// exemplars and the counter-examples, mapped from the SAME `term_fixtures`
+    /// query the `counter_examples` tool serves. Each fixture body is one-lined and
+    /// capped to a short snippet (the full body stays available via
+    /// `counter_examples`). Both empty for a term documenting no fixtures.
+    fn card_fixtures(
+        &self,
+        term_iri: &str,
+    ) -> gmeow_errors::Result<(
+        Vec<gmeow_docs::card::CardFixture>,
+        Vec<gmeow_docs::card::CardFixture>,
+    )> {
+        let to_card = |v: &Value| gmeow_docs::card::CardFixture {
+            title: value_str(v, "title"),
+            body: fixture_body_snippet(&value_str(v, "text")),
+        };
+        let (wellformed, counter_examples) = self.term_fixtures(term_iri)?;
+        Ok((
+            wellformed.iter().map(&to_card).collect(),
+            counter_examples.iter().map(&to_card).collect(),
+        ))
+    }
+
+    /// The full-tier diagnostics panel for `term_iri`: the finding codes the term
+    /// may hit, read from the `gmeow:docEvidenceKindDiagnostics` evidence in the
+    /// documentation graph. Rows are ordered by finding code, so the panel is
+    /// deterministic. Empty for a term no finding concerns.
+    fn card_diagnostics(
+        &self,
+        term_iri: &str,
+    ) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardDiagnostic>> {
+        let mut by_code: BTreeMap<String, String> = BTreeMap::new();
+        for row in self.docs_select_rows(&diagnostics_by_term_query(term_iri))? {
+            let (Some(code), Some(claim)) = (row.get("code"), row.get("claim")) else {
+                continue;
+            };
+            by_code.entry(code.clone()).or_insert_with(|| claim.clone());
+        }
+        Ok(by_code
+            .into_iter()
+            .map(|(code, note)| gmeow_docs::card::CardDiagnostic { code, note })
+            .collect())
+    }
+
+    /// The full-tier projection-loss panel for `term_iri`: the targets the term
+    /// degrades into and each degradation's preservation judgment, read from the
+    /// `gmeow:docEvidenceKindLoss` evidence in the documentation graph. Rows are
+    /// ordered by target, so the panel is deterministic. Empty for a term that
+    /// degrades under no projection.
+    fn card_loss(&self, term_iri: &str) -> gmeow_errors::Result<Vec<gmeow_docs::card::CardLoss>> {
+        let mut by_target: BTreeMap<String, String> = BTreeMap::new();
+        for row in self.docs_select_rows(&loss_by_term_query(term_iri))? {
+            let (Some(target), Some(judgment)) = (row.get("target"), row.get("judgment")) else {
+                continue;
+            };
+            by_target
+                .entry(target.clone())
+                .or_insert_with(|| judgment.clone());
+        }
+        Ok(by_target
+            .into_iter()
+            .map(|(target, preservation)| gmeow_docs::card::CardLoss {
+                target,
+                preservation,
+            })
+            .collect())
     }
 
     /// The OKF manifest JSON envelope for `requested`.
@@ -150,6 +980,167 @@ impl McpView {
         );
         let result = crate::stages::native_query::query(&docs, sparql)?;
         sparql_result_to_json(result)
+    }
+
+    /// Run a SELECT over the documentation graph and return its rows as flat
+    /// `var → lexical-value` maps (the `results.bindings` of the SPARQL-1.1 JSON
+    /// envelope, with each binding's `"value"` extracted). A missing/optional
+    /// variable is simply absent from a row's map.
+    fn docs_select_rows(
+        &self,
+        sparql: &str,
+    ) -> gmeow_errors::Result<Vec<BTreeMap<String, String>>> {
+        let value = self.run_docs_query(sparql)?;
+        Ok(select_rows(&value))
+    }
+
+    /// Build the two fixture correspondence maps from the `gmeow:graph/documentation`
+    /// projection: `finding-code → counter-example` (keyed on the authored
+    /// `gmeow:docViolationCode`) and `finding-code → positive exemplar` (the
+    /// well-formed sibling joined through a shared referenced term). Both are
+    /// deterministic: a code that repeats across fixtures resolves to the
+    /// lexicographically-first fixture IRI, and the well-formed sibling is the
+    /// lexicographically-first well-formed fixture sharing a referenced term.
+    fn fixture_maps(
+        &self,
+    ) -> gmeow_errors::Result<(BTreeMap<String, FixtureView>, BTreeMap<String, FixtureView>)> {
+        // Counter-example fixtures: aggregate the (possibly multi-`documents`) rows
+        // back per fixture IRI so a fixture is one record with its full referenced-term
+        // set. BTreeMap keeps the fixture IRIs sorted → deterministic first-wins.
+        let mut counter_by_fixture: BTreeMap<String, (FixtureView, BTreeSet<String>)> =
+            BTreeMap::new();
+        for row in self.docs_select_rows(COUNTER_EXAMPLE_FIXTURE_QUERY)? {
+            let (Some(fixture), Some(code), Some(text)) =
+                (row.get("f"), row.get("code"), row.get("text"))
+            else {
+                continue;
+            };
+            let entry = counter_by_fixture
+                .entry(fixture.clone())
+                .or_insert_with(|| {
+                    (
+                        FixtureView {
+                            title: row.get("label").cloned().unwrap_or_else(|| fixture.clone()),
+                            text: text.clone(),
+                            expected_outcome: row.get("outcome").cloned(),
+                            violation_code: Some(code.clone()),
+                            rationale: row.get("rationale").cloned(),
+                        },
+                        BTreeSet::new(),
+                    )
+                });
+            if let Some(term) = row.get("term") {
+                entry.1.insert(term.clone());
+            }
+        }
+
+        // Well-formed fixtures: same aggregation, no violation code (they violate
+        // nothing).
+        let mut wellformed_by_fixture: BTreeMap<String, (FixtureView, BTreeSet<String>)> =
+            BTreeMap::new();
+        for row in self.docs_select_rows(WELLFORMED_FIXTURE_QUERY)? {
+            let (Some(fixture), Some(text)) = (row.get("f"), row.get("text")) else {
+                continue;
+            };
+            let entry = wellformed_by_fixture
+                .entry(fixture.clone())
+                .or_insert_with(|| {
+                    (
+                        FixtureView {
+                            title: row.get("label").cloned().unwrap_or_else(|| fixture.clone()),
+                            text: text.clone(),
+                            expected_outcome: row.get("outcome").cloned(),
+                            violation_code: None,
+                            rationale: row.get("rationale").cloned(),
+                        },
+                        BTreeSet::new(),
+                    )
+                });
+            if let Some(term) = row.get("term") {
+                entry.1.insert(term.clone());
+            }
+        }
+
+        // code → counter-example (first fixture IRI wins) + the code's referenced terms.
+        let mut counter_examples_by_code: BTreeMap<String, FixtureView> = BTreeMap::new();
+        let mut terms_by_code: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        for (view, terms) in counter_by_fixture.values() {
+            let Some(code) = view.violation_code.clone() else {
+                continue;
+            };
+            counter_examples_by_code
+                .entry(code.clone())
+                .or_insert_with(|| view.clone());
+            // Terms of the CHOSEN (first) counter-example anchor the well-formed join.
+            terms_by_code.entry(code).or_insert_with(|| terms.clone());
+        }
+
+        // code → well-formed sibling with the largest referenced-term overlap
+        // (most specific/relevant exemplar); ties broken deterministically by
+        // the lexicographically smallest fixture IRI. `min_by_key` is used
+        // (rather than `max_by_key`, which returns the LAST maximal element on
+        // ties) with a key of `(Reverse(overlap), fixture_iri)` — since fixture
+        // IRIs are unique, this always has a single minimum, so the choice is
+        // fully deterministic and stable across runs.
+        let mut wellformed_by_code: BTreeMap<String, FixtureView> = BTreeMap::new();
+        for (code, ce_terms) in &terms_by_code {
+            let best = wellformed_by_fixture
+                .iter()
+                .filter_map(|(fixture, (view, wf_terms))| {
+                    let overlap = wf_terms.intersection(ce_terms).count();
+                    (overlap > 0).then_some((overlap, fixture, view))
+                })
+                .min_by_key(|(overlap, fixture, _)| (Reverse(*overlap), (*fixture).clone()));
+            if let Some((_overlap, _fixture, view)) = best {
+                wellformed_by_code.insert(code.clone(), view.clone());
+            }
+        }
+
+        Ok((counter_examples_by_code, wellformed_by_code))
+    }
+
+    /// Build `term-IRI → entailments` from the documentation graph's entailment
+    /// records (`gmeow:Entailment`), aggregating each record's premises and grouping
+    /// by the `gmeow:documents` term. Entailment records are iterated in sorted IRI
+    /// order and each entailment's premises are sorted, so the map is deterministic.
+    fn entailment_map(&self) -> gmeow_errors::Result<BTreeMap<String, Vec<EntailmentView>>> {
+        // Aggregate the (possibly multi-premise) rows back per entailment IRI.
+        let mut by_entailment: BTreeMap<String, (String, String, String, BTreeSet<String>)> =
+            BTreeMap::new();
+        for row in self.docs_select_rows(ENTAILMENT_QUERY)? {
+            let (Some(entailment), Some(term), Some(rule), Some(conclusion)) = (
+                row.get("e"),
+                row.get("term"),
+                row.get("rule"),
+                row.get("conclusion"),
+            ) else {
+                continue;
+            };
+            let entry = by_entailment.entry(entailment.clone()).or_insert_with(|| {
+                (
+                    term.clone(),
+                    rule.clone(),
+                    conclusion.clone(),
+                    BTreeSet::new(),
+                )
+            });
+            if let Some(premise) = row.get("premise") {
+                entry.3.insert(premise.clone());
+            }
+        }
+
+        let mut entailments_by_term: BTreeMap<String, Vec<EntailmentView>> = BTreeMap::new();
+        for (term, rule, conclusion, premises) in by_entailment.into_values() {
+            entailments_by_term
+                .entry(term)
+                .or_default()
+                .push(EntailmentView {
+                    rule,
+                    conclusion,
+                    premises: premises.into_iter().collect(),
+                });
+        }
+        Ok(entailments_by_term)
     }
 
     /// Run a SELECT / ASK SPARQL query over the bundle canon UNIONED with a
@@ -474,7 +1465,7 @@ impl McpServer {
         let startup_requested =
             resolve_lang(env::var("GMEOW_LANG").ok().as_deref(), &tag_map, &available)?;
         Ok(Self {
-            view: McpView::from_dataset(dataset)?,
+            view: McpView::from_dataset(dataset, Arc::from(snapshot))?,
             mode,
             root,
             tag_map,
@@ -509,8 +1500,20 @@ impl McpServer {
             ),
             tool(
                 "doc_card",
-                "Return a prompt-ready Markdown card for a bundled term.",
-                &[("term", "string"), ("lang", "string")],
+                "Return a prompt-ready term card for a bundled term, wrapped in a \
+                 cost-metadata envelope ({ok, detail, format, bytes, tokens, card}). \
+                 `detail` selects a token-budgeted tier: `summary` (title + definition \
+                 only), `standard` (the compact card — default), or `full` (the oracle \
+                 card: compact card plus entailments, Do / Don't fixtures, diagnostics, \
+                 and projection-loss panels, queried from gmeow:graph/documentation). \
+                 `format` is `markdown` (default) or `json` (the neutral Card object). \
+                 An unknown detail/format is a hard error.",
+                &[
+                    ("term", "string"),
+                    ("detail", "string"),
+                    ("format", "string"),
+                    ("lang", "string"),
+                ],
             ),
             tool(
                 "okf_index",
@@ -524,6 +1527,18 @@ impl McpServer {
                 &[("query", "string")],
             ),
             tool(
+                "docs_search",
+                "Full-text search the bundled documentation graph (gmeow:graph/documentation) \
+                 for terms, slices, and concerns whose label, definition, or advisory prose \
+                 match `query` (case-insensitive substring / token match). Returns ranked \
+                 records — a label match outranks a definition match outranks an advice match, \
+                 tie-broken by IRI — each with its kind, documented IRI (id), label, definition, \
+                 site URL, and the same advice / alignments / missing_coverage facets the site \
+                 search index carries. Pass an optional `limit` (default 20). A query that \
+                 matches nothing returns an empty result list.",
+                &[("query", "string"), ("limit", "integer")],
+            ),
+            tool(
                 "query_local",
                 "Run a SELECT or ASK SPARQL query over the bundle UNIONED with a READ-ONLY \
                  local overlay graph file (path). The overlay is loaded as an EXTERNAL, \
@@ -532,6 +1547,25 @@ impl McpServer {
                  into the signed gmeow: canon and NEVER written back to disk. Accepts Turtle / \
                  TriG / N-Triples / N-Quads / RDF-XML by file extension.",
                 &[("path", "string"), ("query", "string")],
+            ),
+            tool(
+                "validate_local",
+                "Validate an inline RDF graph against the bundled GMEOW shapes and disciplines \
+                 (the same core as `gmeow validate`), then CLOSE THE LOOP: every finding is \
+                 returned with its rule catalog helpUri, the CORRESPONDING counter-example fixture \
+                 (matched by violation code), a positive well-formed exemplar, and the entailments \
+                 of the term it concerns. `data` is the RDF text; `format` is one of \
+                 turtle|ttl|text/turtle, ntriples|nt|n-triples, nquads|nq|n-quads, trig, \
+                 rdfxml|rdf+xml|xml, jsonld|json-ld. Set `deep` true to ALSO run the Tier-2 \
+                 semantic pass (reasons over your data unioned with the whole bundle's axioms, \
+                 like `gmeow validate --deep` — powerful but multiple minutes; default false). \
+                 Nothing is written (the data is validated in-memory and discarded); an unknown \
+                 format or an oversized payload is a hard error.",
+                &[
+                    ("data", "string"),
+                    ("format", "string"),
+                    ("deep", "boolean"),
+                ],
             ),
             tool(
                 "explain_finding",
@@ -598,6 +1632,30 @@ impl McpServer {
                     ("superseded_by", "string"),
                     ("dry_run", "boolean"),
                 ],
+            ),
+            tool(
+                "counter_examples",
+                "Return the conformance fixtures documenting a bundled term, split into \
+                 well-formed exemplars and counter-examples, each with its full Turtle body and \
+                 the authored expected outcome / violation code / conformance rationale (read from \
+                 gmeow:graph/documentation). A term with no fixtures returns empty lists; an \
+                 unknown term is a hard error.",
+                &[("term", "string")],
+            ),
+            tool(
+                "entailments",
+                "Return the reasoner entailments documenting a bundled term — each derivation's \
+                 rule, conclusion, and every premise (read from gmeow:graph/documentation). A term \
+                 with no entailments returns an empty list; an unknown term is a hard error.",
+                &[("term", "string")],
+            ),
+            tool(
+                "competency_questions",
+                "Return the runnable competency questions from gmeow:graph/documentation, each with \
+                 its SPARQL query text and the authored rationale / expected row count / exact-rows \
+                 flag. With the OPTIONAL `term`, only that term's questions (an unknown term is a \
+                 hard error); without `term`, the whole index.",
+                &[("term", "string")],
             ),
         ];
         if self.mode.includes_dev_tools() {
@@ -671,12 +1729,17 @@ impl McpServer {
             "doc_card" => self.tool_doc_card(args),
             "okf_index" => self.tool_okf_index(args),
             "query_docs" => self.tool_query_docs(args),
+            "docs_search" => self.tool_docs_search(args),
             "query_local" => self.tool_query_local(args),
+            "validate_local" => self.tool_validate_local(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
             "conjecture_test" => self.tool_conjecture_test(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
+            "counter_examples" => self.tool_counter_examples(args),
+            "entailments" => self.tool_entailments(args),
+            "competency_questions" => self.tool_competency_questions(args),
             "validate" if self.mode.includes_dev_tools() => self.tool_validate(),
             "reason" if self.mode.includes_dev_tools() => self.tool_reason(),
             "regenerate" if self.mode.includes_dev_tools() => self.tool_regenerate(),
@@ -793,8 +1856,10 @@ impl McpServer {
 
     fn tool_doc_card(&self, args: &Value) -> gmeow_errors::Result<String> {
         let term = required_str(args, "term")?;
+        let detail = parse_card_detail(optional_str(args, "detail"))?;
+        let format = CardFormat::parse(optional_str(args, "format"))?;
         let requested = self.requested_from_args(args)?;
-        Ok(self.view.doc_card_text(term, requested))
+        self.view.doc_card(term, detail, format, requested)
     }
 
     fn tool_okf_index(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -802,15 +1867,153 @@ impl McpServer {
         Ok(self.view.okf_index_json(requested))
     }
 
+    /// `counter_examples`: the conformance fixtures documenting a term, split into
+    /// the well-formed exemplars and the counter-examples. An UNKNOWN term is a HARD
+    /// FAIL (`Err` → error envelope); a KNOWN term that simply documents no fixtures
+    /// is an honest empty-but-ok result (both lists empty).
+    fn tool_counter_examples(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let term = required_str(args, "term")?;
+        let iri = self.resolve_term_or_err(term, args)?;
+        let (wellformed, counter_examples) = self.view.term_fixtures(&iri)?;
+        Ok(json!({
+            "ok": true,
+            "term": term,
+            "wellformed": wellformed,
+            "counter_examples": counter_examples,
+        })
+        .to_string())
+    }
+
+    /// `entailments`: the reasoner derivations documenting a term, each with its
+    /// rule, conclusion, and every premise. Unknown term → hard error; a known term
+    /// with no derivations → empty-but-ok.
+    fn tool_entailments(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let term = required_str(args, "term")?;
+        let iri = self.resolve_term_or_err(term, args)?;
+        let entailments = self.view.term_entailments(&iri)?;
+        Ok(json!({
+            "ok": true,
+            "term": term,
+            "entailments": entailments,
+        })
+        .to_string())
+    }
+
+    /// `competency_questions`: the runnable competency questions. With a `term`, only
+    /// that term's questions (unknown term → hard error); without a `term`, the whole
+    /// index of documented competency questions.
+    fn tool_competency_questions(&self, args: &Value) -> gmeow_errors::Result<String> {
+        match optional_str(args, "term") {
+            Some(term) => {
+                let iri = self.resolve_term_or_err(term, args)?;
+                let questions = self.view.competency_questions(Some(&iri))?;
+                Ok(json!({"ok": true, "term": term, "questions": questions}).to_string())
+            }
+            None => {
+                let questions = self.view.competency_questions(None)?;
+                Ok(json!({"ok": true, "questions": questions}).to_string())
+            }
+        }
+    }
+
+    /// Resolve a term string to its canonical IRI, HARD-FAILING (`Err`) on an unknown
+    /// term — the shared unknown-term guard for the documentation-surface tools.
+    fn resolve_term_or_err(&self, term: &str, args: &Value) -> gmeow_errors::Result<String> {
+        let requested = self.requested_from_args(args)?;
+        self.view.resolve_term_iri(term, requested).ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "unknown term `{term}`: does not resolve to a bundled GMEOW term \
+                     (expected a CURIE, local name, IRI, or label)"
+                ),
+            })
+        })
+    }
+
     fn tool_query_docs(&self, args: &Value) -> gmeow_errors::Result<String> {
         let query = required_str(args, "query")?;
         Ok(self.view.query_docs_json(query))
+    }
+
+    /// `docs_search`: rank the documented terms / slices / concerns whose searchable
+    /// facets match `query` over the `gmeow:graph/documentation` projection. An
+    /// absent/empty documentation graph is a HARD FAIL; a query matching nothing is an
+    /// honest empty-but-ok result.
+    fn tool_docs_search(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let query = required_str(args, "query")?;
+        let limit = optional_limit(args, "limit")?.unwrap_or(20);
+        let hits = search_documentation(self.view.dataset.as_ref(), query, limit)?;
+        let results: Vec<Value> = hits.iter().map(SearchHit::to_json).collect();
+        Ok(json!({"ok": true, "query": query, "results": results}).to_string())
     }
 
     fn tool_query_local(&self, args: &Value) -> gmeow_errors::Result<String> {
         let path = required_str(args, "path")?;
         let query = required_str(args, "query")?;
         Ok(self.view.query_local_json(path, query))
+    }
+
+    /// Validate an inline RDF `data` graph (in `format`) against the bundle's own
+    /// shapes + disciplines through the DEEP (`--deep`) semantic pass — the SAME
+    /// `gmeow_validate::data_validate::run` core the CLI `gmeow validate --deep`
+    /// drives — then CLOSE THE LOOP by enriching each finding with the bundle's
+    /// teaching surface: the rule's catalog help URI, the CORRESPONDING
+    /// counter-example (matched by violation code), a positive exemplar, and the
+    /// term's entailments.
+    ///
+    /// Transient discipline: nothing is written. The data arrives inline as a string
+    /// arg (unlike `query_local`, which reads a file), is validated against the
+    /// retained snapshot bytes, and is discarded. An unrecognized `format` or an
+    /// oversized payload is a HARD FAIL, never a silent mis-parse or truncation.
+    fn tool_validate_local(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let data = required_str(args, "data")?;
+        let format = required_str(args, "format")?;
+        let canonical = canonical_rdf_format(format)?;
+
+        if data.len() > MAX_VALIDATE_DATA_BYTES {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "validate_local: data payload is {} bytes, exceeding the {} byte ceiling; \
+                     split the graph and validate the parts (no silent truncation)",
+                    data.len(),
+                    MAX_VALIDATE_DATA_BYTES
+                ),
+            }));
+        }
+
+        // Tier-1 SHACL + disciplines always run (fast, ~1s). The Tier-2 semantic
+        // pass — reasoning over the user data unioned with the whole bundle's
+        // axioms — is opt-in via `deep` (default false), exactly like
+        // `gmeow validate --deep`: it is powerful but reasons over the entire
+        // bundle (multiple minutes), so an interactive agent requests it only when
+        // structural conformance is not enough. When enabled, a contract-invalid
+        // input is emitted by the engine as a hard Error finding — surfaced here
+        // verbatim, never post-processed away.
+        let deep = optional_bool(args, "deep").unwrap_or(false);
+        let report = gmeow_validate::data_validate::run(
+            data.as_bytes(),
+            canonical,
+            self.view.gts_bytes(),
+            MCP_NAMESPACE,
+            VALIDATE_LOCAL_ORIGIN,
+            deep,
+        )?;
+
+        // Loop closure: extract the correspondence maps from the documentation graph
+        // and enrich each finding through the wasm-clean pure join.
+        let (counter_examples_by_code, wellformed_by_code) = self.view.fixture_maps()?;
+        let entailments_by_term = self.view.entailment_map()?;
+        let enriched = local_oracle::enrich_report(
+            &report,
+            &counter_examples_by_code,
+            &wellformed_by_code,
+            &entailments_by_term,
+        );
+        serde_json::to_string(&enriched).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("validate_local: serialize enriched report: {e}"),
+            })
+        })
     }
 
     fn tool_explain_finding(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -1619,8 +2822,19 @@ impl ExpandHome for PathBuf {
 fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
-        .filter_map(|(name, _)| {
-            matches!(*name, "term" | "text" | "claim_id" | "path" | "target_iri").then_some(*name)
+        .filter_map(|(prop, _)| {
+            let required_by_name = matches!(
+                *prop,
+                "term" | "text" | "claim_id" | "path" | "target_iri" | "data" | "format" | "query"
+            );
+            // Carve-outs: an arg whose shared name is required everywhere else is
+            // OPTIONAL for a specific tool, so marking it required THERE would advertise
+            // a dishonest schema. `competency_questions` accepts an optional `term` (the
+            // whole-index form omits it); `recall` accepts an optional `query` (an empty
+            // query recalls everything).
+            let optional_here = (name == "competency_questions" && *prop == "term")
+                || (name == "recall" && *prop == "query");
+            (required_by_name && !optional_here).then_some(*prop)
         })
         .collect();
     let props = properties
@@ -1636,6 +2850,32 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
             "required": required,
         },
     })
+}
+
+/// Canonicalize a caller-supplied RDF `format` token to the exact id
+/// `gmeow_validate::data_validate` accepts. Accepts the common aliases per family;
+/// an UNRECOGNIZED format is a HARD FAIL (the accepted set is listed in the error)
+/// so a mistyped format can never silently mis-parse.
+fn canonical_rdf_format(format: &str) -> gmeow_errors::Result<&'static str> {
+    let normalized = format.trim().to_ascii_lowercase();
+    let token = match normalized.as_str() {
+        "turtle" | "ttl" | "text/turtle" => "turtle",
+        "ntriples" | "nt" | "n-triples" => "n-triples",
+        "nquads" | "nq" | "n-quads" => "n-quads",
+        "trig" => "trig",
+        "rdfxml" | "rdf+xml" | "xml" | "rdf" => "rdf+xml",
+        "jsonld" | "json-ld" => "json-ld",
+        other => {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "validate_local: unrecognized RDF format `{other}`; accepted: \
+                     turtle|ttl|text/turtle, ntriples|nt|n-triples, nquads|nq|n-quads, trig, \
+                     rdfxml|rdf+xml|xml|rdf, jsonld|json-ld"
+                ),
+            }));
+        }
+    };
+    Ok(token)
 }
 
 fn resource(uri: &str, name: &str, description: &str, mime: &str) -> Value {
@@ -2378,6 +3618,37 @@ mod tests {
     }
 
     #[test]
+    fn consumer_view_retains_raw_snapshot_and_reaches_shapes_archive() {
+        // The native validation surface (`validate_local`) needs the raw GTS bytes
+        // back so `gmeow_validate` can read the folded `shapes-archive` blob — the
+        // parsed carrier dataset does not carry it. Prove the bytes are retained
+        // verbatim and that the shapes archive is reachable from them, so the
+        // consumer server (the shippable `gmeow mcp`) can validate agent data.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        assert_eq!(
+            server.view.gts_bytes(),
+            bytes.as_slice(),
+            "the view must retain the snapshot bytes verbatim",
+        );
+        let shapes = crate::bundle_blobs::Bundle::from_snapshot(server.view.gts_bytes())
+            .expect("bundle parses from retained bytes")
+            .shapes()
+            .expect("shapes-archive readable from retained bytes");
+        assert!(
+            !shapes.is_empty(),
+            "the shapes-archive blob must be reachable from the retained snapshot \
+             bytes — it is the SHACL surface validate_local checks agent data against",
+        );
+    }
+
+    #[test]
     fn modes_advertise_consumer_and_dev_surfaces() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
@@ -2394,6 +3665,14 @@ mod tests {
         assert!(consumer_tools.contains("\"okf_index\""));
         assert!(consumer_tools.contains("\"query_docs\""));
         assert!(consumer_tools.contains("\"store_claim\""));
+        // The AI-agent docs surface: all five new tools are CONSUMER-visible
+        // (served by the shippable `gmeow mcp` off the bundle alone), never
+        // dev-gated. `validate_local` is distinct from the dev-only `validate`.
+        assert!(consumer_tools.contains("\"validate_local\""));
+        assert!(consumer_tools.contains("\"docs_search\""));
+        assert!(consumer_tools.contains("\"counter_examples\""));
+        assert!(consumer_tools.contains("\"entailments\""));
+        assert!(consumer_tools.contains("\"competency_questions\""));
         assert!(!consumer_tools.contains("\"validate\""));
         assert!(!consumer_tools.contains("\"slice_quality\""));
         assert!(
@@ -3113,9 +4392,17 @@ mod tests {
         call_args.insert("lookup_term", json!({"term": "gmeow:Entity"}));
         call_args.insert("doc_card", json!({"term": "gmeow:Entity"}));
         call_args.insert("query_docs", json!({"query": "ASK { ?s ?p ?o }"}));
+        call_args.insert("docs_search", json!({"query": "entity"}));
         call_args.insert(
             "query_local",
             json!({"path": overlay_path.to_str().unwrap(), "query": "ASK { ?s ?p ?o }"}),
+        );
+        // The default (Tier-1) `validate_local` path is fast, so a valid tiny graph
+        // dispatches and returns a well-formed EnrichedReport. (Tier-2 `deep` is opt-in
+        // and reasons over the whole bundle, minutes — never exercised in this loop.)
+        call_args.insert(
+            "validate_local",
+            json!({"data": "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n", "format": "turtle"}),
         );
         call_args.insert("store_claim", json!({"text": "probe", "dry_run": true}));
         call_args.insert(
@@ -3132,6 +4419,12 @@ mod tests {
             "revise_belief",
             json!({"claim_id": "urn:gmeow:assertion:none", "dry_run": true}),
         );
+        // Documentation-surface tools: real terms that carry live data in the shipped
+        // bundle (gmeow:Activity documents fixtures, gmeow:Entity grounds
+        // entailments); competency_questions dispatches in its whole-index form.
+        call_args.insert("counter_examples", json!({"term": "gmeow:Activity"}));
+        call_args.insert("entailments", json!({"term": "gmeow:Entity"}));
+        call_args.insert("competency_questions", json!({}));
         for name in &tool_names {
             let args = call_args
                 .get(name.as_str())
@@ -3145,6 +4438,400 @@ mod tests {
             );
         }
         drop(overlay_dir);
+    }
+
+    /// Build a consumer server over the shipped bundle with a clean language env.
+    fn consumer_server() -> McpServer {
+        let bytes = snapshot();
+        McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap()
+    }
+
+    /// The sorted finding-code multiset of a report.
+    fn codes_of(report: &gmeow_errors::Report) -> Vec<String> {
+        let mut codes: Vec<String> = report.findings.iter().map(|f| f.code.clone()).collect();
+        codes.sort();
+        codes
+    }
+
+    /// Select a REAL counter-example fixture from the SHIPPED bundle's
+    /// `gmeow:graph/documentation` projection whose authored `gmeow:docViolationCode`
+    /// is actually REPRODUCED by the Tier-1 SHACL engine on its own `gmeow:docFixtureText`
+    /// body — the honest correspondence anchor (never weakened to "non-empty").
+    ///
+    /// The candidate for each code is the SAME one the enrichment join attaches:
+    /// `fixture_maps` keys a code to the lexicographically-first fixture IRI carrying
+    /// it, so selecting by `code → (first-fixture IRI, its text)` guarantees the
+    /// attached counter-example's text equals the payload we validate. Returns
+    /// `(fixture_iri, code, text)`. Panics with the observed codes if NONE reproduces
+    /// (a real blocker, not a soft skip).
+    fn select_reproducing_counter_example(server: &McpServer) -> (String, String, String) {
+        let rows = server
+            .view
+            .docs_select_rows(COUNTER_EXAMPLE_FIXTURE_QUERY)
+            .expect("query counter-example fixtures from graph/documentation");
+        // First row per fixture IRI (the fixture's code + full body).
+        let mut by_fixture: BTreeMap<String, (String, String)> = BTreeMap::new();
+        for row in &rows {
+            if let (Some(f), Some(code), Some(text)) =
+                (row.get("f"), row.get("code"), row.get("text"))
+            {
+                by_fixture
+                    .entry(f.clone())
+                    .or_insert_with(|| (code.clone(), text.clone()));
+            }
+        }
+        // code → (first-fixture IRI, its text) — matches `fixture_maps`' first-wins,
+        // so the attached counter-example is exactly this fixture.
+        let mut by_code: BTreeMap<String, (String, String)> = BTreeMap::new();
+        for (iri, (code, text)) in &by_fixture {
+            by_code
+                .entry(code.clone())
+                .or_insert_with(|| (iri.clone(), text.clone()));
+        }
+        assert!(
+            !by_code.is_empty(),
+            "the shipped bundle carries NO bound counter-example fixtures"
+        );
+        for (code, (iri, text)) in &by_code {
+            let report = gmeow_validate::data_validate::run_tier1(
+                text.as_bytes(),
+                "turtle",
+                server.view.gts_bytes(),
+                MCP_NAMESPACE,
+                VALIDATE_LOCAL_ORIGIN,
+            )
+            .expect("tier-1 validate the fixture body");
+            if report.findings.iter().any(|f| &f.code == code) {
+                return (iri.clone(), code.clone(), text.clone());
+            }
+        }
+        panic!(
+            "no bound counter-example fixture reproduced its authored violation code under \
+             Tier-1 validation — observed candidate codes: {:?}",
+            by_code.keys().collect::<Vec<_>>()
+        );
+    }
+
+    /// PARITY + CORRESPONDENCE (end-to-end, production surface): drive the REAL
+    /// `validate_local` tool (default fast Tier-1 path) over a REAL counter-example
+    /// fixture from the shipped bundle, and assert (a) PARITY — the enriched finding
+    /// codes EQUAL `run_tier1` (the `gmeow validate` core); and (b) CORRESPONDENCE —
+    /// at least one finding carries a counter-example, EVERY attached counter-example
+    /// corresponds by violation code + rule help URI, and the finding whose code is
+    /// the chosen fixture's `docViolationCode` gets that fixture's exact body back.
+    #[test]
+    fn validate_local_enrichment_parity_and_correspondence() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (fixture_iri, code, text) = select_reproducing_counter_example(&server);
+        eprintln!("validate_local test selected fixture={fixture_iri} code={code}");
+        let help_uri = gmeow_validate::rule_catalog::help_uri_for(&code);
+
+        // The CLI core: Tier-1 (the same `run_tier1` `gmeow validate` drives).
+        let tier1 = gmeow_validate::data_validate::run_tier1(
+            text.as_bytes(),
+            "turtle",
+            server.view.gts_bytes(),
+            MCP_NAMESPACE,
+            VALIDATE_LOCAL_ORIGIN,
+        )
+        .expect("tier-1 validate");
+        let tier1_codes = codes_of(&tier1);
+
+        // Drive the REAL tool by DISPATCH BY NAME (deep defaults to false → fast).
+        let enriched = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+        );
+        assert_ne!(
+            enriched["ok"],
+            Value::Null,
+            "the tool returned an EnrichedReport: {enriched}"
+        );
+        let findings = enriched["findings"].as_array().expect("findings array");
+
+        // PARITY: with deep off, the tool's finding codes EQUAL the `gmeow validate`
+        // (`run_tier1`) codes exactly — validate_local drops/adds/mutates nothing.
+        let mut local_codes: Vec<String> = findings
+            .iter()
+            .map(|f| f["code"].as_str().unwrap().to_string())
+            .collect();
+        local_codes.sort();
+        assert_eq!(
+            local_codes, tier1_codes,
+            "validate_local must reproduce the gmeow-validate Tier-1 finding codes exactly"
+        );
+
+        // CORRESPONDENCE (BINDING): the finding whose code == the fixture's violation
+        // code carries THAT fixture's body back, with the corresponding help URI.
+        let matched: Vec<&Value> = findings
+            .iter()
+            .filter(|f| f["code"].as_str() == Some(code.as_str()))
+            .collect();
+        assert!(
+            !matched.is_empty(),
+            "the chosen fixture's code {code} must appear among the findings: {enriched}"
+        );
+        let with_ce = matched
+            .iter()
+            .find(|f| !f["counter_example"].is_null())
+            .unwrap_or_else(|| {
+                panic!("the matched finding {code} must carry a counter-example: {enriched}")
+            });
+        assert_eq!(
+            with_ce["counter_example"]["violation_code"].as_str(),
+            Some(code.as_str()),
+            "the attached counter-example corresponds by violation code"
+        );
+        assert_eq!(
+            with_ce["counter_example"]["text"].as_str(),
+            Some(text.as_str()),
+            "the finding whose code is the fixture's violation code gets that fixture's body back"
+        );
+        assert_eq!(
+            with_ce["help_uri"].as_str(),
+            Some(help_uri.as_str()),
+            "the finding carries the rule catalog help URI for its code"
+        );
+
+        // NON-VACUITY + the CORRESPONDENCE INVARIANT across the whole report: at least
+        // one finding got a counter-example, and EVERY attached counter-example's
+        // violation code equals its OWN finding's code (by-code, never blanket).
+        let attached = findings
+            .iter()
+            .filter(|f| !f["counter_example"].is_null())
+            .count();
+        assert!(
+            attached >= 1,
+            "at least one finding must carry a counter-example (non-vacuous): {enriched}"
+        );
+        for f in findings {
+            if !f["counter_example"].is_null() {
+                assert_eq!(
+                    f["counter_example"]["violation_code"].as_str(),
+                    f["code"].as_str(),
+                    "every attached counter-example corresponds to ITS finding's code \
+                     (correspondence, never blanket): {f}"
+                );
+                assert_eq!(
+                    f["help_uri"].as_str(),
+                    Some(
+                        gmeow_validate::rule_catalog::help_uri_for(f["code"].as_str().unwrap())
+                            .as_str()
+                    ),
+                    "every enriched finding carries its rule catalog help URI: {f}"
+                );
+            }
+        }
+    }
+
+    /// Compile a hand-authored draft-2020-12 schema and assert `instance` CONFORMS,
+    /// surfacing every validation error verbatim on failure (a real payload the
+    /// schema rejects is a schema bug to FIX, never to weaken).
+    fn assert_conforms(schema: &Value, instance: &Value, what: &str) {
+        let validator = jsonschema::options()
+            .with_draft(jsonschema::Draft::Draft202012)
+            .build(schema)
+            .unwrap_or_else(|e| panic!("{what}: schema does not compile: {e}"));
+        let errors: Vec<String> = validator
+            .iter_errors(instance)
+            .map(|e| e.to_string())
+            .collect();
+        assert!(
+            errors.is_empty(),
+            "{what}: real payload does not conform to its schema:\n{}\ninstance: {instance}",
+            errors.join("\n")
+        );
+    }
+
+    /// SELF-DESCRIBING SURFACE (card): a REAL `doc_card format=json` payload — the
+    /// exact bytes the packed `terms/{slug}/card.json` member carries — CONFORMS to
+    /// the hand-authored `card.schema.json` (`gmeow_docs::card::card_json_schema`).
+    /// Both the STANDARD tier (the `card.json` shape) and the FULL tier (every rich
+    /// panel, exercising the `$defs`) are checked against the SAME schema.
+    #[test]
+    fn card_json_conforms_to_card_schema() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let schema = gmeow_docs::card::card_json_schema();
+
+        // STANDARD tier — the `card.json` shape. `gmeow:Entity` is a real bundled term.
+        let standard = text_payload(server.call_tool_result(
+            "doc_card",
+            &json!({"term": "gmeow:Entity", "format": "json", "detail": "standard"}),
+        ));
+        assert_eq!(standard["ok"], true, "doc_card standard: {standard}");
+        assert_conforms(&schema, &standard["card"], "card.json (standard tier)");
+
+        // FULL tier — exercises the rich panels ($defs). `gmeow:Activity` documents
+        // conformance fixtures and `gmeow:Entity` grounds entailments in the shipped
+        // bundle, so at least one full card carries populated panels.
+        for term in ["gmeow:Activity", "gmeow:Entity"] {
+            let full = text_payload(server.call_tool_result(
+                "doc_card",
+                &json!({"term": term, "format": "json", "detail": "full"}),
+            ));
+            assert_eq!(full["ok"], true, "doc_card full for {term}: {full}");
+            assert_conforms(&schema, &full["card"], "card.json (full tier)");
+        }
+    }
+
+    /// SELF-DESCRIBING SURFACE (finding): a REAL `validate_local` envelope — produced
+    /// by driving the tool over a REAL counter-example from the shipped bundle —
+    /// CONFORMS to the hand-authored `validate-finding.schema.json`
+    /// (`gmeow_validate::local_oracle::finding_json_schema`), exercising the finding /
+    /// fixture / entailment `$defs` on a payload that carries an attached
+    /// counter-example.
+    #[test]
+    fn enriched_report_conforms_to_finding_schema() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (_fixture_iri, _code, text) = select_reproducing_counter_example(&server);
+        let enriched = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+        );
+        // The chosen fixture reproduces its violation, so the envelope is non-vacuous:
+        // at least one finding, and at least one attached counter-example fixture.
+        let findings = enriched["findings"].as_array().expect("findings array");
+        assert!(!findings.is_empty(), "expected findings: {enriched}");
+        assert!(
+            findings.iter().any(|f| !f["counter_example"].is_null()),
+            "expected an attached counter-example (exercises the fixture $def): {enriched}"
+        );
+        let schema = gmeow_validate::local_oracle::finding_json_schema();
+        assert_conforms(&schema, &enriched, "validate_local EnrichedReport");
+    }
+
+    /// DEEP PASS (heavy): drive the tool end-to-end with `deep = true` over a REAL
+    /// counter-example from the shipped bundle and assert the Tier-2 semantic pass ran
+    /// (a `validate.deep.*` finding is present) AND that the Tier-1 surface is
+    /// preserved (true tool-vs-`gmeow validate` parity). `#[ignore]`d because the
+    /// native deep reasoner over the whole bundle runs well past the 120 s on-gate
+    /// nextest cliff; run in the heavy lane / manually
+    /// (`cargo nextest run -E 'test(validate_local_deep)' --run-ignored all`).
+    /// `validate.deep.contract-invalid` is engine-enforced (it fires only on a bundle
+    /// carrying a garbled `logic:admissibleValuation`, which the shipped bundle does
+    /// not) and is regression-covered by
+    /// `gmeow_validate::data_validate` `deep_pass_garbled_contract_produces_error_not_advisory`.
+    #[test]
+    #[ignore = "runs the full-bundle native deep reasoner (>120s); heavy lane only"]
+    fn validate_local_deep_pass_surfaces_deep_finding() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (_iri, _code, text) = select_reproducing_counter_example(&server);
+
+        // The CLI Tier-1 surface the deep run must preserve.
+        let tier1 = gmeow_validate::data_validate::run_tier1(
+            text.as_bytes(),
+            "turtle",
+            server.view.gts_bytes(),
+            MCP_NAMESPACE,
+            VALIDATE_LOCAL_ORIGIN,
+        )
+        .expect("tier-1 validate");
+        let tier1_codes = codes_of(&tier1);
+
+        // Explicitly request the Tier-2 pass via the `deep` arg.
+        let enriched = text_payload(server.call_tool_result(
+            "validate_local",
+            &json!({"data": text, "format": "turtle", "deep": true}),
+        ));
+        let findings = enriched["findings"].as_array().expect("findings array");
+
+        assert!(
+            findings
+                .iter()
+                .any(|f| f["code"].as_str().unwrap().starts_with("validate.deep.")),
+            "the deep pass must run (a validate.deep.* finding must appear): {enriched}"
+        );
+        let mut tier1_surface: Vec<String> = findings
+            .iter()
+            .map(|f| f["code"].as_str().unwrap().to_string())
+            .filter(|c| !c.starts_with("validate.deep."))
+            .collect();
+        tier1_surface.sort();
+        assert_eq!(
+            tier1_surface, tier1_codes,
+            "the deep run must preserve the Tier-1 surface (parity with gmeow validate)"
+        );
+    }
+
+    /// ROBUSTNESS: an unknown `format`, an oversized `data` payload, and malformed
+    /// RDF each return a well-formed error envelope (`ok:false`) — never a panic, and
+    /// a malformed graph surfaces as an Error, not a silent success.
+    #[test]
+    fn validate_local_hard_fails_bad_format_oversize_and_malformed() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+
+        // Unknown format → error envelope listing the accepted tokens.
+        let bad_format = text_payload(server.call_tool_result(
+            "validate_local",
+            &json!({"data": "<urn:s> <urn:p> <urn:o> .", "format": "bogus"}),
+        ));
+        assert_eq!(
+            bad_format["ok"], false,
+            "unknown format must be a hard fail"
+        );
+        assert!(
+            bad_format["error"]
+                .as_str()
+                .unwrap()
+                .contains("unrecognized RDF format"),
+            "the error must name the offending format: {bad_format}"
+        );
+
+        // Oversized payload → error envelope, no truncation.
+        let huge = format!(
+            "<urn:s> <urn:p> \"{}\" .",
+            "x".repeat(MAX_VALIDATE_DATA_BYTES + 1)
+        );
+        let oversize = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": huge, "format": "turtle"})),
+        );
+        assert_eq!(
+            oversize["ok"], false,
+            "oversized payload must be a hard fail"
+        );
+        assert!(
+            oversize["error"].as_str().unwrap().contains("ceiling"),
+            "the error must explain the size ceiling: {oversize}"
+        );
+
+        // Malformed Turtle → error envelope (the parse hard-fails; never a silent
+        // empty-but-ok report).
+        let malformed = text_payload(server.call_tool_result(
+            "validate_local",
+            &json!({"data": "<urn:s> <urn:p> <urn:o>  # unterminated, no dot", "format": "turtle"}),
+        ));
+        assert_eq!(
+            malformed["ok"], false,
+            "malformed RDF must surface as an error, not a silent success: {malformed}"
+        );
     }
 
     /// The `explain_finding` tool, driven by DISPATCH BY NAME over a server built
@@ -3855,5 +5542,723 @@ mod tests {
             witness_premises(&dataset).len() >= 2,
             "each refutation persists recoverable witness premises"
         );
+    }
+
+    /// `counter_examples` over the live bundle: a term documenting fixtures yields
+    /// the real, split fixture bodies; a resolvable term documenting none yields the
+    /// honest empty-but-ok shape; an unknown term is a hard error envelope.
+    ///
+    /// `gmeow:Activity` documents BOTH a well-formed exemplar and a counter-example
+    /// in the shipped `gmeow:graph/documentation` graph (verified by the projection
+    /// query in Task 1); `gmeow:AboutnessMode` is a documented term that authors no
+    /// fixtures.
+    #[test]
+    fn tool_counter_examples_surface() {
+        let server = consumer_server();
+
+        // A term with fixtures → real, non-empty split bodies.
+        let hit = text_payload(
+            server.call_tool_result("counter_examples", &json!({"term": "gmeow:Activity"})),
+        );
+        assert_eq!(hit["ok"], true);
+        assert_eq!(hit["term"], "gmeow:Activity");
+        let counter = hit["counter_examples"]
+            .as_array()
+            .expect("counter_examples is an array");
+        let wellformed = hit["wellformed"]
+            .as_array()
+            .expect("wellformed is an array");
+        assert!(
+            !counter.is_empty(),
+            "gmeow:Activity documents at least one counter-example: {hit}"
+        );
+        assert!(
+            !wellformed.is_empty(),
+            "gmeow:Activity documents at least one well-formed exemplar: {hit}"
+        );
+        // The counter-example carries a real Turtle body AND a violation code.
+        let ce = &counter[0];
+        assert!(
+            ce["text"].as_str().is_some_and(|t| t.contains(':')),
+            "counter-example carries a real Turtle body: {ce}"
+        );
+        assert!(
+            ce["violation_code"].as_str().is_some_and(|c| !c.is_empty()),
+            "counter-example carries an authored violation code: {ce}"
+        );
+        // The well-formed exemplar has a real body and NO violation code.
+        let wf = &wellformed[0];
+        assert!(
+            wf["text"].as_str().is_some_and(|t| t.contains(':')),
+            "well-formed exemplar carries a real Turtle body: {wf}"
+        );
+        assert!(
+            wf["violation_code"].is_null(),
+            "well-formed exemplar has no violation code: {wf}"
+        );
+        // Deterministic: a second call is byte-identical.
+        let again = text_payload(
+            server.call_tool_result("counter_examples", &json!({"term": "gmeow:Activity"})),
+        );
+        assert_eq!(hit, again, "counter_examples output is deterministic");
+
+        // A resolvable term with NO fixtures → empty-but-ok (NOT an error).
+        let empty = text_payload(
+            server.call_tool_result("counter_examples", &json!({"term": "gmeow:AboutnessMode"})),
+        );
+        assert_eq!(
+            empty["ok"], true,
+            "no-fixture term is empty-but-ok: {empty}"
+        );
+        assert_eq!(empty["wellformed"], json!([]));
+        assert_eq!(empty["counter_examples"], json!([]));
+
+        // An unknown term → hard error envelope.
+        let unknown = text_payload(server.call_tool_result(
+            "counter_examples",
+            &json!({"term": "gmeow:DefinitelyNotARealTerm42"}),
+        ));
+        assert_eq!(
+            unknown["ok"], false,
+            "unknown term is a hard error: {unknown}"
+        );
+        assert!(
+            unknown["error"]
+                .as_str()
+                .is_some_and(|e| e.contains("unknown term")),
+            "unknown-term error names the failure: {unknown}"
+        );
+    }
+
+    /// `entailments` over the live bundle: a term with derivations yields every
+    /// entailment's rule/conclusion with its premises preserved; an unknown term is a
+    /// hard error. `gmeow:Entity` grounds >1000 entailment records in the shipped
+    /// documentation graph.
+    #[test]
+    fn tool_entailments_surface() {
+        let server = consumer_server();
+
+        let hit =
+            text_payload(server.call_tool_result("entailments", &json!({"term": "gmeow:Entity"})));
+        assert_eq!(hit["ok"], true);
+        assert_eq!(hit["term"], "gmeow:Entity");
+        let entailments = hit["entailments"]
+            .as_array()
+            .expect("entailments is an array");
+        assert!(
+            !entailments.is_empty(),
+            "gmeow:Entity grounds at least one entailment: {}",
+            &hit.to_string()[..hit.to_string().len().min(400)]
+        );
+        // Every record carries a non-empty rule and conclusion.
+        for e in entailments {
+            assert!(
+                e["rule"].as_str().is_some_and(|r| !r.is_empty()),
+                "entailment carries a rule: {e}"
+            );
+            assert!(
+                e["conclusion"].as_str().is_some_and(|c| !c.is_empty()),
+                "entailment carries a conclusion: {e}"
+            );
+            assert!(e["premises"].is_array(), "premises is an array: {e}");
+        }
+        // Premises are preserved: at least one derivation carries premises.
+        let total_premises: usize = entailments
+            .iter()
+            .map(|e| e["premises"].as_array().map_or(0, Vec::len))
+            .sum();
+        assert!(
+            total_premises > 0,
+            "at least one gmeow:Entity entailment preserves its premises"
+        );
+
+        // Unknown term → hard error envelope.
+        let unknown = text_payload(server.call_tool_result(
+            "entailments",
+            &json!({"term": "gmeow:DefinitelyNotARealTerm42"}),
+        ));
+        assert_eq!(
+            unknown["ok"], false,
+            "unknown term is a hard error: {unknown}"
+        );
+    }
+
+    /// Select the RICHEST-surface term in the shipped bundle for the tier tests:
+    /// the term (a) grounding at least one reasoner entailment AND (b) documenting at
+    /// least one conformance fixture, maximizing the total panel count (entailments +
+    /// fixtures), tie-broken by IRI so the choice is deterministic. Panics (a real
+    /// blocker, never a soft skip) if the bundle documents no such term.
+    ///
+    /// Uses exactly TWO bulk queries (the entailment map + a single fixture-by-term
+    /// scan) and intersects them — never a per-term query per candidate.
+    fn richest_card_term(server: &McpServer) -> String {
+        let entailments = server
+            .view
+            .entailment_map()
+            .expect("entailment map from the shipped documentation graph");
+        // One bulk scan: fixture count per documented term.
+        let fixtures_query = format!(
+            "PREFIX gm: <{GMEOW_NS}>\nSELECT ?term ?f WHERE {{ ?f a gm:DocFixture ; \
+             gm:documents ?term . }}"
+        );
+        let mut fixtures_per_term: BTreeMap<String, usize> = BTreeMap::new();
+        for row in server
+            .view
+            .docs_select_rows(&fixtures_query)
+            .expect("fixture-by-term scan over graph/documentation")
+        {
+            if let Some(term) = row.get("term") {
+                *fixtures_per_term.entry(term.clone()).or_default() += 1;
+            }
+        }
+        let mut candidates: Vec<(usize, String)> = entailments
+            .iter()
+            .filter_map(|(iri, ents)| {
+                fixtures_per_term
+                    .get(iri)
+                    .map(|&fx| (ents.len() + fx, iri.clone()))
+            })
+            .collect();
+        // Most panels first, then lexicographically-first IRI (deterministic).
+        candidates.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+        candidates
+            .into_iter()
+            .next()
+            .map(|(_, iri)| iri)
+            .expect("the shipped bundle documents a term with entailments AND fixtures")
+    }
+
+    /// A documented term that still carries full-tier panels (≥1 entailment AND ≥1
+    /// fixture) but the FEWEST of them — the cheapest term whose `full` card exercises
+    /// every rich-panel path. Tier/determinism assertions that render the full card
+    /// several times use this instead of [`richest_card_term`] (whose ~1000-entailment
+    /// surface is only needed for the byte-ceiling proof), so they render fast.
+    fn modest_panel_card_term(server: &McpServer) -> String {
+        let entailments = server
+            .view
+            .entailment_map()
+            .expect("entailment map from the shipped documentation graph");
+        let fixtures_query = format!(
+            "PREFIX gm: <{GMEOW_NS}>\nSELECT ?term ?f WHERE {{ ?f a gm:DocFixture ; \
+             gm:documents ?term . }}"
+        );
+        let mut fixtures_per_term: BTreeMap<String, usize> = BTreeMap::new();
+        for row in server
+            .view
+            .docs_select_rows(&fixtures_query)
+            .expect("fixture-by-term scan over graph/documentation")
+        {
+            if let Some(term) = row.get("term") {
+                *fixtures_per_term.entry(term.clone()).or_default() += 1;
+            }
+        }
+        let mut candidates: Vec<(usize, String)> = entailments
+            .iter()
+            .filter_map(|(iri, ents)| {
+                fixtures_per_term
+                    .get(iri)
+                    .map(|&fx| (ents.len() + fx, iri.clone()))
+            })
+            .collect();
+        // FEWEST panels first, then lexicographically-first IRI (deterministic).
+        candidates.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+        candidates
+            .into_iter()
+            .next()
+            .map(|(_, iri)| iri)
+            .expect("the shipped bundle documents a term with entailments AND fixtures")
+    }
+
+    /// `doc_card` tiers: `summary` is the leanest surface (title + definition only,
+    /// under a pinned byte ceiling, none of the advisory / panel sections); `full`
+    /// is strictly larger and carries the rich oracle panels (Entailments / Do /
+    /// Don't headers).
+    #[test]
+    fn tool_doc_card_tier_byte_ceiling() {
+        const SUMMARY_CEILING: usize = 1500;
+        let server = consumer_server();
+        let term = richest_card_term(&server);
+
+        let summary = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "summary"})),
+        );
+        let full = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "full"})),
+        );
+        let s_card = summary["card"].as_str().expect("summary markdown card");
+        let f_card = full["card"].as_str().expect("full markdown card");
+
+        // Summary is title + definition ONLY, under the ceiling.
+        assert!(
+            s_card.len() < SUMMARY_CEILING,
+            "summary card ({} bytes) must be under {SUMMARY_CEILING}: {s_card}",
+            s_card.len()
+        );
+        assert!(
+            s_card.starts_with("# "),
+            "summary carries the H1 title: {s_card}"
+        );
+        let summary_body = s_card
+            .strip_prefix("# ")
+            .and_then(|s| s.split_once("\n\n"))
+            .map_or("", |(_, rest)| rest);
+        assert!(
+            !summary_body.trim().is_empty(),
+            "summary carries a definition after the title: {s_card}"
+        );
+        // NONE of the advisory / metadata / panel surface at the summary tier.
+        assert!(
+            !s_card.contains("- category:"),
+            "no metadata header: {s_card}"
+        );
+        assert!(
+            !s_card.contains("**Use when:**"),
+            "no advisory fields: {s_card}"
+        );
+        assert!(
+            !s_card.contains("## Entailments"),
+            "no rich panels: {s_card}"
+        );
+
+        // Full is strictly larger and carries the panel section headers.
+        assert!(
+            f_card.len() > s_card.len(),
+            "full ({}) must exceed summary ({})",
+            f_card.len(),
+            s_card.len()
+        );
+        assert!(
+            f_card.contains("## Entailments"),
+            "full carries Entailments: {f_card}"
+        );
+        assert!(
+            f_card.contains("## Do") || f_card.contains("## Don't"),
+            "full carries a Do / Don't fixture panel: {f_card}"
+        );
+    }
+
+    /// Single-renderer authority: `doc_card` at `detail=standard` is BYTE-IDENTICAL
+    /// to rendering the shared compact `Card` through `render_card` at `Standard` —
+    /// the tier gating never perturbs the docs-site card the standard tier mirrors.
+    #[test]
+    fn tool_doc_card_standard_is_byte_identical_to_compact_render() {
+        let server = consumer_server();
+        let term = "gmeow:EntityExistence";
+
+        let envelope = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "standard"})),
+        );
+        let card_md = envelope["card"].as_str().expect("standard markdown card");
+
+        // Independent expected: the SAME shared builder + renderer at Standard.
+        let requested = server.startup_requested.clone();
+        let expected = server.view.with_terms(requested, |terms| {
+            let (title, card) = export::doc_card_build(terms, term).expect("known term resolves");
+            gmeow_docs::card::render_card(&title, &card, gmeow_docs::card::CardDetail::Standard)
+        });
+        assert_eq!(
+            card_md, expected,
+            "standard tier must be byte-identical to the compact single-renderer output"
+        );
+        // Default (no `detail`) is Standard.
+        let defaulted = text_payload(server.call_tool_result("doc_card", &json!({"term": term})));
+        assert_eq!(defaulted["detail"], "standard");
+        assert_eq!(defaulted["card"].as_str().expect("card"), expected);
+    }
+
+    /// `doc_card` `format=json`: byte-stable across calls; standard-tier JSON omits
+    /// the full-tier rich fields; full-tier JSON carries them.
+    #[test]
+    fn tool_doc_card_json_determinism_and_tier_fields() {
+        let server = consumer_server();
+        // Determinism + tier-field presence hold for ANY term that carries panels,
+        // so use the cheapest such term (not the ~1000-entailment richest term) —
+        // this test renders the full card three times, so a lean term keeps it fast.
+        let term = modest_panel_card_term(&server);
+
+        // Byte-identical raw tool text across two identical calls.
+        let call = || {
+            server.call_tool_result(
+                "doc_card",
+                &json!({"term": term, "detail": "full", "format": "json"}),
+            )["content"][0]["text"]
+                .as_str()
+                .expect("json tool text")
+                .to_string()
+        };
+        assert_eq!(call(), call(), "json card is byte-stable across calls");
+
+        // Standard-tier JSON: a Card object WITHOUT the full-tier rich fields.
+        let std_json = text_payload(server.call_tool_result(
+            "doc_card",
+            &json!({"term": term, "detail": "standard", "format": "json"}),
+        ));
+        assert_eq!(std_json["format"], "json");
+        let std_card = &std_json["card"];
+        assert!(std_card.is_object(), "json card is an object: {std_card}");
+        assert!(
+            std_card.get("entailments").is_none(),
+            "no entailments at standard"
+        );
+        assert!(
+            std_card.get("fixtures_do").is_none(),
+            "no fixtures_do at standard"
+        );
+        assert!(
+            std_card.get("fixtures_dont").is_none(),
+            "no fixtures_dont at standard"
+        );
+        assert!(
+            std_card.get("diagnostics").is_none(),
+            "no diagnostics at standard"
+        );
+        assert!(std_card.get("loss").is_none(), "no loss at standard");
+
+        // Full-tier JSON DOES carry the rich panels.
+        let full_json = text_payload(server.call_tool_result(
+            "doc_card",
+            &json!({"term": term, "detail": "full", "format": "json"}),
+        ));
+        assert!(
+            full_json["card"].get("entailments").is_some(),
+            "full json carries entailments: {}",
+            &full_json.to_string()[..full_json.to_string().len().min(400)]
+        );
+    }
+
+    /// `doc_card` cost metadata: every envelope carries positive `bytes`/`tokens`,
+    /// monotonically non-decreasing across summary ≤ standard ≤ full for one term.
+    #[test]
+    fn tool_doc_card_cost_metadata_is_monotone() {
+        let server = consumer_server();
+        let term = richest_card_term(&server);
+
+        let tier = |detail: &str| {
+            text_payload(
+                server.call_tool_result("doc_card", &json!({"term": term, "detail": detail})),
+            )
+        };
+        let summary = tier("summary");
+        let standard = tier("standard");
+        let full = tier("full");
+
+        for env in [&summary, &standard, &full] {
+            assert!(
+                env["bytes"].as_u64().expect("bytes") > 0,
+                "bytes > 0: {env}"
+            );
+            assert!(
+                env["tokens"].as_u64().expect("tokens") > 0,
+                "tokens > 0: {env}"
+            );
+        }
+        let bytes = |e: &Value| e["bytes"].as_u64().unwrap();
+        let tokens = |e: &Value| e["tokens"].as_u64().unwrap();
+        assert!(
+            bytes(&summary) <= bytes(&standard),
+            "bytes summary ≤ standard"
+        );
+        assert!(bytes(&standard) <= bytes(&full), "bytes standard ≤ full");
+        assert!(
+            tokens(&summary) <= tokens(&standard),
+            "tokens summary ≤ standard"
+        );
+        assert!(tokens(&standard) <= tokens(&full), "tokens standard ≤ full");
+
+        // Unknown detail / format is a hard error listing the valid values.
+        let bad_detail = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "verbose"})),
+        );
+        assert_eq!(
+            bad_detail["ok"], false,
+            "unknown detail hard-fails: {bad_detail}"
+        );
+        let bad_format = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "format": "yaml"})),
+        );
+        assert_eq!(
+            bad_format["ok"], false,
+            "unknown format hard-fails: {bad_format}"
+        );
+    }
+
+    /// `doc_card` full tier populates the rich panels FROM the documentation graph:
+    /// the full markdown inlines an actual entailment conclusion and a fixture title
+    /// the sibling `entailments` / `counter_examples` tools report for the term.
+    #[test]
+    fn tool_doc_card_full_inlines_graph_panels() {
+        let server = consumer_server();
+        let term = richest_card_term(&server);
+
+        let full = text_payload(
+            server.call_tool_result("doc_card", &json!({"term": term, "detail": "full"})),
+        );
+        let f_card = full["card"].as_str().expect("full markdown card");
+
+        // An entailment's conclusion (from the SAME graph the `entailments` tool reads).
+        let ents = text_payload(server.call_tool_result("entailments", &json!({"term": term})));
+        let conclusion = ents["entailments"][0]["conclusion"]
+            .as_str()
+            .expect("the richest term grounds an entailment with a conclusion");
+        assert!(
+            f_card.contains(conclusion),
+            "full card inlines the entailment conclusion {conclusion:?}"
+        );
+
+        // A fixture title (from the SAME graph the `counter_examples` tool reads).
+        let fixtures =
+            text_payload(server.call_tool_result("counter_examples", &json!({"term": term})));
+        let title = fixtures["counter_examples"]
+            .get(0)
+            .and_then(|f| f["title"].as_str())
+            .or_else(|| {
+                fixtures["wellformed"]
+                    .get(0)
+                    .and_then(|f| f["title"].as_str())
+            })
+            .expect("the richest term documents a fixture with a title");
+        assert!(
+            f_card.contains(title),
+            "full card inlines the fixture title {title:?}"
+        );
+    }
+
+    /// `competency_questions` over the live bundle: the index form (no `term`) returns
+    /// every runnable question, each carrying a `query_text` that PARSES as a valid
+    /// SPARQL SELECT; the per-term form returns that term's subset. `gmeow:Agent`
+    /// documents competency questions in the shipped documentation graph.
+    #[test]
+    fn tool_competency_questions_surface() {
+        let server = consumer_server();
+
+        // Index form: no `term`.
+        let index = text_payload(server.call_tool_result("competency_questions", &json!({})));
+        assert_eq!(index["ok"], true);
+        assert!(
+            index.get("term").is_none(),
+            "index form carries no term key: {}",
+            &index.to_string()[..index.to_string().len().min(200)]
+        );
+        let questions = index["questions"]
+            .as_array()
+            .expect("questions is an array");
+        assert!(!questions.is_empty(), "the competency index is non-empty");
+        for q in questions {
+            assert!(
+                q["query_text"].as_str().is_some_and(|t| !t.is_empty()),
+                "every competency question carries a runnable query_text: {q}"
+            );
+        }
+
+        // The first question's query_text round-trips through the native SPARQL
+        // parser as an executable SELECT (over an empty dataset — parse+plan only).
+        let first_query = questions[0]["query_text"].as_str().expect("query_text");
+        let empty = std::sync::Arc::new(
+            purrdf::RdfDatasetBuilder::new()
+                .freeze()
+                .expect("empty dataset"),
+        );
+        let parsed = crate::stages::native_query::query(&empty, first_query)
+            .expect("competency query_text is a valid SPARQL query");
+        assert!(
+            matches!(parsed, purrdf::SparqlResult::Solutions { .. }),
+            "competency query_text is a SPARQL SELECT: {first_query}"
+        );
+
+        // Deterministic index.
+        let index_again = text_payload(server.call_tool_result("competency_questions", &json!({})));
+        assert_eq!(index, index_again, "competency index is deterministic");
+
+        // Per-term form: gmeow:Agent's subset — non-empty, each with a query_text.
+        let per_term = text_payload(
+            server.call_tool_result("competency_questions", &json!({"term": "gmeow:Agent"})),
+        );
+        assert_eq!(per_term["ok"], true);
+        assert_eq!(per_term["term"], "gmeow:Agent");
+        let agent_questions = per_term["questions"]
+            .as_array()
+            .expect("questions is an array");
+        assert!(
+            !agent_questions.is_empty(),
+            "gmeow:Agent documents at least one competency question: {per_term}"
+        );
+        for q in agent_questions {
+            assert!(
+                q["query_text"].as_str().is_some_and(|t| !t.is_empty()),
+                "per-term competency question carries a query_text: {q}"
+            );
+        }
+        assert!(
+            agent_questions.len() <= questions.len(),
+            "a term's competency subset is no larger than the whole index"
+        );
+
+        // Unknown term (per-term form) → hard error envelope.
+        let unknown = text_payload(server.call_tool_result(
+            "competency_questions",
+            &json!({"term": "gmeow:DefinitelyNotARealTerm42"}),
+        ));
+        assert_eq!(
+            unknown["ok"], false,
+            "unknown term is a hard error: {unknown}"
+        );
+    }
+
+    /// A tiny synthetic documentation dataset for the `search_documentation` unit
+    /// tests: two class terms whose `to_gmeow_rdf` projection carries the new
+    /// `docSearch*` facets, parsed back into an [`purrdf::RdfDataset`] exactly the way
+    /// the production carrier holds the bundle's documentation graph. This does NOT
+    /// depend on the committed bundle (which only gains the facets after regenerate) —
+    /// it exercises the projection + search end to end from the model.
+    fn synthetic_docs_dataset() -> Arc<purrdf::RdfDataset> {
+        use gmeow_docs::{DocLinkage, DocTerm, DocTermCategory};
+        let ns = "https://blackcatinformatics.ca/gmeow/";
+        let model = gmeow_docs::DocsModel {
+            terms: vec![
+                DocTerm {
+                    iri: format!("{ns}Cat"),
+                    curie: "gmeow:Cat".to_string(),
+                    label: Some("Cat".to_string()),
+                    definition: Some("A small domesticated feline.".to_string()),
+                    category: DocTermCategory::Class,
+                    owner_slice: format!("{ns}slice/zoo"),
+                    scope_notes: vec![
+                        "Prefer for a domestic cat; avoid for a wildcat.".to_string(),
+                    ],
+                    ..Default::default()
+                },
+                DocTerm {
+                    iri: format!("{ns}Feline"),
+                    curie: "gmeow:Feline".to_string(),
+                    label: Some("Feline".to_string()),
+                    definition: Some("The cat family of mammals.".to_string()),
+                    category: DocTermCategory::Class,
+                    owner_slice: format!("{ns}slice/zoo"),
+                    ..Default::default()
+                },
+            ],
+            // A crosswalk linkage on Cat → the alignment facet token `exactMatch:Q146`.
+            linkages: vec![DocLinkage {
+                mapping_set: None,
+                subject: format!("{ns}Cat"),
+                subject_curie: "gmeow:Cat".to_string(),
+                predicate: "http://www.w3.org/2004/02/skos/core#exactMatch".to_string(),
+                object: "http://www.wikidata.org/entity/Q146".to_string(),
+                justification: None,
+                confidence: None,
+                owner_slice: format!("{ns}slice/zoo"),
+            }],
+            ..Default::default()
+        };
+        let nquads = gmeow_docs::to_gmeow_rdf(&model, &BTreeMap::new());
+        purrdf::parse_dataset(nquads.as_bytes(), "application/n-quads", None)
+            .expect("to_gmeow_rdf emits valid N-Quads")
+    }
+
+    /// `search_documentation` over the synthetic dataset: matches on label /
+    /// definition / advice, attaches the advice + alignment + missing-coverage facets,
+    /// ranks a label match above a definition match, returns empty for a non-match, and
+    /// is deterministic.
+    #[test]
+    fn search_documentation_matches_facets_ranks_and_is_deterministic() {
+        let dataset_arc = synthetic_docs_dataset();
+        let dataset = dataset_arc.as_ref();
+        let cat_iri = "https://blackcatinformatics.ca/gmeow/Cat";
+        let feline_iri = "https://blackcatinformatics.ca/gmeow/Feline";
+
+        // "cat": Cat matches by LABEL (rank 0); Feline matches by DEFINITION ("the cat
+        // family …", rank 1) — so Cat sorts first.
+        let hits = search_documentation(dataset, "cat", 20).expect("search ok");
+        let ids: Vec<&str> = hits.iter().map(|h| h.id.as_str()).collect();
+        assert_eq!(
+            ids,
+            vec![cat_iri, feline_iri],
+            "label match outranks definition match"
+        );
+        let cat = &hits[0];
+        assert_eq!(cat.kind, "term");
+        assert_eq!(cat.label, "Cat");
+        assert_eq!(
+            cat.definition.as_deref(),
+            Some("A small domesticated feline.")
+        );
+        assert_eq!(
+            cat.advice,
+            vec!["Prefer for a domestic cat; avoid for a wildcat.".to_string()],
+            "the advice facet is attached"
+        );
+        assert_eq!(
+            cat.alignments,
+            vec!["exactMatch:Q146".to_string()],
+            "the alignment facet is attached"
+        );
+        assert!(
+            !cat.missing_coverage.is_empty(),
+            "an under-documented term carries missing-coverage dimensions: {:?}",
+            cat.missing_coverage
+        );
+
+        // An advice-only match: "wildcat" appears only in Cat's advice prose.
+        let advice_hits = search_documentation(dataset, "wildcat", 20).expect("search ok");
+        let advice_ids: Vec<&str> = advice_hits.iter().map(|h| h.id.as_str()).collect();
+        assert_eq!(advice_ids, vec![cat_iri], "advice prose is searchable");
+
+        // A definition-only match: "mammals" appears only in Feline's definition.
+        let def_hits = search_documentation(dataset, "mammals", 20).expect("search ok");
+        let def_ids: Vec<&str> = def_hits.iter().map(|h| h.id.as_str()).collect();
+        assert_eq!(def_ids, vec![feline_iri], "definition prose is searchable");
+
+        // A non-matching query is empty-but-ok (never a hard fail on a populated graph).
+        let none = search_documentation(dataset, "xylophone", 20).expect("search ok");
+        assert!(none.is_empty(), "a non-matching query returns no hits");
+
+        // Determinism: the same query twice yields the same order.
+        let a = search_documentation(dataset, "cat", 20).expect("search ok");
+        let b = search_documentation(dataset, "cat", 20).expect("search ok");
+        assert_eq!(
+            a.iter().map(|h| &h.id).collect::<Vec<_>>(),
+            b.iter().map(|h| &h.id).collect::<Vec<_>>(),
+            "search order is reproducible"
+        );
+
+        // The limit is honored.
+        let limited = search_documentation(dataset, "cat", 1).expect("search ok");
+        assert_eq!(limited.len(), 1, "limit caps the result count");
+    }
+
+    /// `search_documentation` HARD-FAILS when the documentation graph is absent/empty
+    /// — docs_search serves the documentation graph, so a missing graph is a defect,
+    /// never a silent empty result.
+    #[test]
+    fn search_documentation_hard_fails_on_absent_documentation_graph() {
+        let empty = purrdf::RdfDatasetBuilder::new()
+            .freeze()
+            .expect("empty dataset");
+        let err = search_documentation(&empty, "cat", 20)
+            .expect_err("an absent documentation graph is a hard fail");
+        assert!(
+            err.to_string().contains("graph/documentation"),
+            "the hard-fail error names the missing documentation graph: {err}"
+        );
+    }
+
+    /// `docs_search` dispatches over the shipped bundle and returns an OK envelope with
+    /// a `results` array. (The committed bundle carries the documentation graph but not
+    /// yet the `docSearch*` facets — those land after regenerate — so the live match
+    /// set is validated by the synthetic unit test above; here we prove the tool wires
+    /// through, never hard-fails on the populated graph, and is deterministic.)
+    #[test]
+    fn docs_search_tool_dispatches_over_the_bundle() {
+        let server = consumer_server();
+        let hit = text_payload(server.call_tool_result("docs_search", &json!({"query": "entity"})));
+        assert_eq!(
+            hit["ok"], true,
+            "docs_search returns ok over the bundle: {hit}"
+        );
+        assert_eq!(hit["query"], "entity");
+        assert!(hit["results"].is_array(), "results is an array: {hit}");
+        let again =
+            text_payload(server.call_tool_result("docs_search", &json!({"query": "entity"})));
+        assert_eq!(hit, again, "docs_search output is deterministic");
     }
 }

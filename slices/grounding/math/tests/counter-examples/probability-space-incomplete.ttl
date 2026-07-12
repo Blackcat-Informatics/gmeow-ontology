@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ProbabilitySpaceCompleteShape (Rule P4): a math:ProbabilitySpace
+# that names its sample space Ω (math:sampleSpace) and its event σ-algebra ℱ
+# (math:eventSigmaAlgebra) but OMITS its probability measure P (math:probabilityMeasure),
+# so the third component's sh:minCount 1 fires — shacl.MinCountConstraintComponent
+# (math:IncompleteProbabilitySpace).
+# Single violation: the other two Kolmogorov-triple components are present as IRIs so their
+# minCount/nodeKind arms stay SATISFIED; no math:ProbabilityMeasure node is present so
+# math:ProbabilityMeasureShape / math:MeasureCompletenessShape do not fire — EXACTLY ONE finding.
+# Back-reference: math:ProbabilitySpace / math:IncompleteProbabilitySpace (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecProbabilitySpaceIncompleteBad).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:incompleteSpace a math:ProbabilitySpace ;
+    math:sampleSpace ex:omega ;
+    math:eventSigmaAlgebra ex:borelAlgebra .
+
+ex:omega a math:SymbolicSampleSpace .
+ex:borelAlgebra a math:BorelSigmaAlgebra .

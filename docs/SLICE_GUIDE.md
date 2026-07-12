@@ -548,7 +548,8 @@ from §9's hard gates — it *measures and holds*, it never asserts a bit right 
   For example, `axisTranslationCoverage` measures the fraction of **every localizable literal**
   the slice authors — each `(term, predicate)` over the localizable predicates (labels,
   comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions,
-  names) — that carries a real (non-empty) translation, averaged over English (authored),
+  names) — that carries a non-empty translation accepted by the deterministic
+  translation-integrity guard, averaged over English (authored),
   French, and Mandarin (`cmn`), reaching `1.0` iff every localizable literal is fully
   translated in both fr and cmn. Tiers rise **only by genuine uplift**; the floors above exist
   precisely so a score cannot quietly slide back after a ladder claims it — and lowering one is a

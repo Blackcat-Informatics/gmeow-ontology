@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for the native math:DistributionParameterConstraint gate's
+# RELATIONAL dimension arm (as opposed to the ABSOLUTE-dimension arm covered by
+# distribution-parameter-wrong-dimension.ttl): a math:RandomVariable carries a
+# RESOLVABLE ℚ⁷ dimension (math:lengthDimension, a math:BaseDimension), and its
+# distribution's variance-role parameter declares math:quantityDimension
+# math:squareOfRandomVariableDimension — i.e. its quantity must carry length²
+# (dimProduct of the random variable's exponent vector with itself). The supplied
+# parameter quantity instead carries the LINEAR math:lengthDimension. The native
+# gate resolves the random variable's dimension via the param → distribution →
+# random-variable traversal (math:hasDistributionParameter / math:hasDistribution),
+# computes the required square by exact ℚ⁷ addition, finds it unequal to the
+# actual (linear) dimension, and MUST emit math:DistributionParameterConstraint
+# (and no other probability failure class). The role declares no
+# math:requiresPositiveValue, so only the relational dimension arm fires.
+# Back-reference: math:squareOfRandomVariableDimension / math:DistributionParameterConstraint
+# (slices/grounding/math/module.ttl).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:weightRV a math:RandomVariable ;
+    math:hasDistribution ex:weightDist ;
+    math:hasDimension math:lengthDimension .
+
+ex:weightDist a math:Distribution ;
+    math:hasDistributionParameter ex:varParam .
+
+ex:varianceRole a math:DistributionParameterRole ;
+    math:quantityDimension math:squareOfRandomVariableDimension .
+
+ex:linearVarianceQuantity a gmeow:Quantity ;
+    math:hasDimension math:lengthDimension .
+
+ex:varParam a math:DistributionParameter ;
+    math:parameterRole ex:varianceRole ;
+    math:parameterQuantity ex:linearVarianceQuantity .

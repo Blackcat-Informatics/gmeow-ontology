@@ -19,13 +19,91 @@
 //! [`render_card`]. The canonical convention is the SITE card's: **bold**
 //! labels, `; ` value delimiters, NO per-item backticks, and a metadata header.
 //!
-//! Pure / std-only so it has no I/O or graph dependency.
+//! Pure / std-only so it has no I/O or graph dependency (the `serde` derive is
+//! data-only, no I/O).
+
+use serde::Serialize;
+
+/// How much of a [`Card`] to surface — the token-budgeted detail tiers the live
+/// `doc_card` MCP tool exposes. The DEFAULT is [`CardDetail::Standard`], whose
+/// rendered body is byte-identical to the historical unconditional render (the
+/// published docs-site `card.md`); the single-renderer authority is preserved.
+///
+/// * [`CardDetail::Summary`] — the leanest surface: title + definition ONLY, no
+///   metadata header, no advisory fields, no rich panels. The cheapest card.
+/// * [`CardDetail::Standard`] — EXACTLY the compact card (metadata header +
+///   definition + every advisory field), NONE of the full-tier rich panels.
+/// * [`CardDetail::Full`] — the oracle card: `Standard` plus the rich panels
+///   (entailments, Do / Don't fixtures, diagnostics, projection loss) appended as
+///   clearly-headed sections.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum CardDetail {
+    /// Title + definition only.
+    Summary,
+    /// The compact card — the default, byte-identical to the historical render.
+    #[default]
+    Standard,
+    /// The compact card plus the full-tier rich panels.
+    Full,
+}
+
+/// One reasoner entailment documenting the term (full tier): the rule that fires,
+/// its conclusion, and every premise the derivation rests on. Field order is fixed
+/// for deterministic serialization.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+pub struct CardEntailment {
+    /// The entailment rule name.
+    pub rule: String,
+    /// The derived conclusion.
+    pub conclusion: String,
+    /// Every premise the derivation rests on, sorted for determinism.
+    pub premises: Vec<String>,
+}
+
+/// One conformance fixture documenting the term (full tier): its human title and a
+/// short body (the fixture Turtle, capped). Both the well-formed (Do) and the
+/// counter-example (Don't) panels are lists of these. Field order is fixed for
+/// deterministic serialization.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+pub struct CardFixture {
+    /// The fixture's human label / title.
+    pub title: String,
+    /// A short body (the fixture body, one-lined and capped) or a reference.
+    pub body: String,
+}
+
+/// One diagnostic finding the term may hit (full tier): the finding code and a
+/// short note. Field order is fixed for deterministic serialization.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+pub struct CardDiagnostic {
+    /// The finding code (the stable identifier of the diagnostic).
+    pub code: String,
+    /// A short note describing the diagnostic incidence.
+    pub note: String,
+}
+
+/// One projection-loss row for the term (full tier): the projection target the
+/// term degrades into and the preservation judgment for that degradation. Field
+/// order is fixed for deterministic serialization.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
+pub struct CardLoss {
+    /// The projection target (the lossy projection this term degrades into).
+    pub target: String,
+    /// The preservation judgment (`logic:preservationKind` local name(s)).
+    pub preservation: String,
+}
 
 /// The full UNION of fields both the docs-site `DocTerm` and the folded `Term`
 /// can carry for one term. Every value is a pre-resolved DISPLAY string (the
 /// caller resolves IRIs to local names / CURIEs); the renderer never touches
 /// IRIs. Empty `Vec`s / empty `String`s / `None`s are omitted from the output.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+///
+/// `#[derive(Serialize)]` gives `format=json` a byte-stable projection: the fixed
+/// struct field order is the serialization order, and every field is a `String` /
+/// `Option` / `Vec` whose contents the caller has already deterministically
+/// ordered. Empty optional / vector fields are skipped, so a leaner tier
+/// serializes to a strictly smaller object than a richer one.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
 pub struct Card {
     /// The vocabulary category, singular and human-cased (`"Class"`,
     /// `"Property"`, `"Individual"`, `"Datatype"`, `"Term"`).
@@ -33,52 +111,144 @@ pub struct Card {
     /// The full term IRI.
     pub iri: String,
     /// `rdfs:label`, omitted from the header when it equals the title/CURIE.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
     /// The defining slice as a display string (the owning module's local name).
     /// Both sources carry it: the docs side from `DocTerm::owner_slice`, the
     /// folded/MCP side from the documentation graph's `gmeow:docOwnerSlice`.
     /// `None` only when the source genuinely has no slice for this term, and is
     /// rendered as no `slice:` header line — NEVER a blank value.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub slice: Option<String>,
     /// `gmeow:graphBoxRole` four-boxes role display names (e.g. `boxTBox`).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub box_roles: Vec<String>,
     /// `skos:definition` (falling back to `rdfs:comment`), one-lined.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub definition: Option<String>,
     /// `rdfs:subClassOf` / `rdfs:subPropertyOf` parent display names.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub parents: Vec<String>,
     /// `rdfs:domain` display names.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub domain: Vec<String>,
     /// `rdfs:range` display names.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub range: Vec<String>,
     /// `gmeow:useWhen` prose.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub use_when: Vec<String>,
     /// `gmeow:avoidWhen` prose.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub avoid_when: Vec<String>,
     /// `gmeow:howToUse` prose.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub how_to_use: Vec<String>,
     /// `skos:scopeNote` prose.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub scope_notes: Vec<String>,
     /// `skos:example` prose.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub examples: Vec<String>,
     /// `logic:*` stereotype CURIEs.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub logic_stereotypes: Vec<String>,
     /// Related-term display names (`skos:related` ∪ `gmeow:pairsWith` ∪
     /// `rdfs:seeAlso`).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub related_terms: Vec<String>,
     /// `gmeow:useForConsumer` profile display names.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub use_for_consumer: Vec<String>,
     /// `gmeow:avoidForConsumer` profile display names.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub avoid_for_consumer: Vec<String>,
     /// Alignment facets, each a pre-formatted `predicate=object` display string.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub aligns: Vec<String>,
+    // ── Full-tier rich panels (populated ONLY for [`CardDetail::Full`]) ─────────
+    /// The reasoner entailments documenting the term. Empty for a term with no
+    /// entailments, and for every tier below `Full` (never queried there).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub entailments: Vec<CardEntailment>,
+    /// The well-formed conformance exemplars (the "Do" panel).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub fixtures_do: Vec<CardFixture>,
+    /// The counter-example conformance fixtures (the "Don't" panel).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub fixtures_dont: Vec<CardFixture>,
+    /// The diagnostic findings the term may hit.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub diagnostics: Vec<CardDiagnostic>,
+    /// The projection-loss rows: the targets the term degrades into.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub loss: Vec<CardLoss>,
+}
+
+impl Card {
+    /// Project this card down to `detail`, clearing the fields a leaner tier does
+    /// not carry, so `format=json` serializes strictly less at a lower tier:
+    ///
+    /// * `Full` — the whole card, unchanged.
+    /// * `Standard` — the compact card with the rich panels cleared.
+    /// * `Summary` — identity (category / IRI / label / slice) plus the
+    ///   definition only; every advisory field and rich panel cleared.
+    ///
+    /// Deterministic (a pure field projection), so the JSON is byte-stable.
+    #[must_use]
+    pub fn projected(&self, detail: CardDetail) -> Card {
+        match detail {
+            CardDetail::Full => self.clone(),
+            CardDetail::Standard => Card {
+                entailments: Vec::new(),
+                fixtures_do: Vec::new(),
+                fixtures_dont: Vec::new(),
+                diagnostics: Vec::new(),
+                loss: Vec::new(),
+                ..self.clone()
+            },
+            CardDetail::Summary => Card {
+                category: self.category.clone(),
+                iri: self.iri.clone(),
+                label: self.label.clone(),
+                slice: self.slice.clone(),
+                definition: self.definition.clone(),
+                ..Card::default()
+            },
+        }
+    }
 }
 
 /// Render the card BODY (metadata header + definition + every advisory field, NO
-/// heading) — the shared core of the per-term `card.md` and the inlined
-/// `llms-full.txt` block. Deterministic field order; a field is emitted only
-/// when non-empty.
-pub fn render_card_body(card: &Card) -> String {
+/// heading) at `detail` — the shared core of the per-term `card.md` and the
+/// inlined `llms-full.txt` block. Deterministic field order; a field is emitted
+/// only when non-empty.
+///
+/// Tier gating (the SINGLE renderer; a leaner tier is a strict prefix-in-spirit
+/// of a richer one):
+///
+/// * [`CardDetail::Summary`] — the definition ONLY (no metadata header, no
+///   advisory fields, no rich panels). The `# {title}` from [`render_card`]
+///   supplies the title.
+/// * [`CardDetail::Standard`] — EXACTLY the historical body: metadata header +
+///   definition + every advisory field. Byte-identical to the pre-tier render, so
+///   the published docs-site `card.md` is unchanged.
+/// * [`CardDetail::Full`] — `Standard` followed by the rich panels (entailments,
+///   Do / Don't fixtures, diagnostics, projection loss), each a clearly-headed
+///   `## ` section, emitted only when its panel is non-empty.
+pub fn render_card_body(card: &Card, detail: CardDetail) -> String {
     let mut out = String::new();
+
+    // ── Summary: the definition ONLY (title supplied by `render_card`). ───────
+    if detail == CardDetail::Summary {
+        if let Some(def) = &card.definition
+            && !def.is_empty()
+        {
+            out.push_str(def);
+            out.push_str("\n\n");
+        }
+        return out;
+    }
 
     // ── Metadata header ──────────────────────────────────────────────────────
     out.push_str(&format!(
@@ -125,14 +295,160 @@ pub fn render_card_body(card: &Card) -> String {
     field("Related", &card.related_terms);
     field("Aligns", &card.aligns);
 
+    // ── Full-tier rich panels — appended after the compact body. ─────────────
+    if detail == CardDetail::Full {
+        render_full_panels(&mut out, card);
+    }
+
     out
 }
 
+/// Append the full-tier oracle panels to `out`, each a clearly-headed `## `
+/// section emitted only when its panel is non-empty (an empty panel is an honest
+/// omission, never a fabricated section).
+fn render_full_panels(out: &mut String, card: &Card) {
+    if !card.entailments.is_empty() {
+        out.push_str("## Entailments\n\n");
+        for e in &card.entailments {
+            out.push_str(&format!("- **{}** ⊢ {}\n", e.rule, e.conclusion));
+            if !e.premises.is_empty() {
+                out.push_str(&format!("  - premises: {}\n", e.premises.join("; ")));
+            }
+        }
+        out.push('\n');
+    }
+    let fixtures = |out: &mut String, heading: &str, items: &[CardFixture]| {
+        if !items.is_empty() {
+            out.push_str(&format!("## {heading}\n\n"));
+            for f in items {
+                out.push_str(&format!("- **{}**", f.title));
+                if !f.body.is_empty() {
+                    out.push_str(&format!(" — {}", f.body));
+                }
+                out.push('\n');
+            }
+            out.push('\n');
+        }
+    };
+    fixtures(out, "Do", &card.fixtures_do);
+    fixtures(out, "Don't", &card.fixtures_dont);
+    if !card.diagnostics.is_empty() {
+        out.push_str("## Diagnostics\n\n");
+        for d in &card.diagnostics {
+            out.push_str(&format!("- **{}** — {}\n", d.code, d.note));
+        }
+        out.push('\n');
+    }
+    if !card.loss.is_empty() {
+        out.push_str("## Degrades under projection\n\n");
+        for l in &card.loss {
+            out.push_str(&format!("- {} — {}\n", l.target, l.preservation));
+        }
+        out.push('\n');
+    }
+}
+
 /// Render a complete, standalone card: `# {title}\n\n` followed by
-/// [`render_card_body`]. Used for the per-term `card.md` file and the live MCP
-/// `doc_card`.
-pub fn render_card(title: &str, card: &Card) -> String {
-    format!("# {title}\n\n{}", render_card_body(card))
+/// [`render_card_body`] at `detail`. Used for the per-term `card.md` file and the
+/// live MCP `doc_card`.
+pub fn render_card(title: &str, card: &Card, detail: CardDetail) -> String {
+    format!("# {title}\n\n{}", render_card_body(card, detail))
+}
+
+/// The hand-authored JSON Schema (draft 2020-12) describing the serialized term
+/// [`Card`] — the exact shape of the packed `terms/{slug}/card.json` member and the
+/// live MCP `doc_card format=json` payload.
+///
+/// It is co-located WITH the [`Card`] type on purpose (drift-resistance /
+/// dogfooding): the `properties` mirror the struct's serialized fields, the two
+/// unconditional fields (`category`, `iri`) are `required`, and every
+/// `#[serde(skip_serializing_if)]` field is optional (absent when empty). The rich
+/// panels reference `$defs` matching [`CardEntailment`], [`CardFixture`],
+/// [`CardDiagnostic`], and [`CardLoss`] (whose subfields carry no skip attribute, so
+/// each is `required`). Keeping this beside the type means a field added to `Card`
+/// that is not mirrored here is caught by the conformance test that validates a REAL
+/// rendered card against this schema.
+#[must_use]
+pub fn card_json_schema() -> serde_json::Value {
+    let string_array = || serde_json::json!({ "type": "array", "items": { "type": "string" } });
+    serde_json::json!({
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://blackcatinformatics.ca/gmeow/schemas/card.schema.json",
+        "title": "GMEOW term card",
+        "description": "The neutral, pre-resolved term card the docs `card.json` member \
+                        and the live MCP `doc_card format=json` tool serialize.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category", "iri"],
+        "properties": {
+            "category": {
+                "type": "string",
+                "description": "The vocabulary category (Class, Property, Individual, Datatype, Term)."
+            },
+            "iri": { "type": "string", "description": "The full term IRI." },
+            "label": { "type": "string" },
+            "slice": { "type": "string" },
+            "box_roles": string_array(),
+            "definition": { "type": "string" },
+            "parents": string_array(),
+            "domain": string_array(),
+            "range": string_array(),
+            "use_when": string_array(),
+            "avoid_when": string_array(),
+            "how_to_use": string_array(),
+            "scope_notes": string_array(),
+            "examples": string_array(),
+            "logic_stereotypes": string_array(),
+            "related_terms": string_array(),
+            "use_for_consumer": string_array(),
+            "avoid_for_consumer": string_array(),
+            "aligns": string_array(),
+            "entailments": { "type": "array", "items": { "$ref": "#/$defs/entailment" } },
+            "fixtures_do": { "type": "array", "items": { "$ref": "#/$defs/fixture" } },
+            "fixtures_dont": { "type": "array", "items": { "$ref": "#/$defs/fixture" } },
+            "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+            "loss": { "type": "array", "items": { "$ref": "#/$defs/loss" } }
+        },
+        "$defs": {
+            "entailment": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["rule", "conclusion", "premises"],
+                "properties": {
+                    "rule": { "type": "string" },
+                    "conclusion": { "type": "string" },
+                    "premises": { "type": "array", "items": { "type": "string" } }
+                }
+            },
+            "fixture": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["title", "body"],
+                "properties": {
+                    "title": { "type": "string" },
+                    "body": { "type": "string" }
+                }
+            },
+            "diagnostic": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["code", "note"],
+                "properties": {
+                    "code": { "type": "string" },
+                    "note": { "type": "string" }
+                }
+            },
+            "loss": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["target", "preservation"],
+                "properties": {
+                    "target": { "type": "string" },
+                    "preservation": { "type": "string" }
+                }
+            }
+        }
+    })
 }
 
 #[cfg(test)]
@@ -157,7 +473,7 @@ mod tests {
 
     #[test]
     fn body_emits_metadata_header_then_definition_then_advisories() {
-        let body = render_card_body(&sample());
+        let body = render_card_body(&sample(), CardDetail::Standard);
         // Header lines, in canonical order.
         assert!(body.starts_with(
             "- category: Class\n- iri: https://blackcatinformatics.ca/gmeow/Foo\n- slice: demo\n- label: Foo\n- box: boxTBox\n\n"
@@ -189,7 +505,7 @@ mod tests {
             iri: "https://blackcatinformatics.ca/gmeow/Bar".to_string(),
             ..Default::default()
         };
-        let body = render_card_body(&card);
+        let body = render_card_body(&card, CardDetail::Standard);
         assert_eq!(
             body,
             "- category: Individual\n- iri: https://blackcatinformatics.ca/gmeow/Bar\n\n"
@@ -208,7 +524,7 @@ mod tests {
             slice: None,
             ..Default::default()
         };
-        let body = render_card_body(&card);
+        let body = render_card_body(&card, CardDetail::Standard);
         assert!(
             !body.contains("- slice:"),
             "None slice must omit the line, not blank it"
@@ -218,12 +534,117 @@ mod tests {
     #[test]
     fn render_card_prepends_h1_title() {
         let card = sample();
-        let full = render_card("gmeow:Foo (⊑ Bar)", &card);
+        let full = render_card("gmeow:Foo (⊑ Bar)", &card, CardDetail::Standard);
         assert!(full.starts_with("# gmeow:Foo (⊑ Bar)\n\n"));
         assert!(full.contains("- category: Class\n"));
         assert_eq!(
             full,
-            format!("# gmeow:Foo (⊑ Bar)\n\n{}", render_card_body(&card))
+            format!(
+                "# gmeow:Foo (⊑ Bar)\n\n{}",
+                render_card_body(&card, CardDetail::Standard)
+            )
         );
+    }
+
+    /// A card carrying every rich panel, for the tier-gating tests.
+    fn full_sample() -> Card {
+        Card {
+            entailments: vec![CardEntailment {
+                rule: "subClassOf-transitivity".to_string(),
+                conclusion: "Foo ⊑ Qux".to_string(),
+                premises: vec!["Foo ⊑ Bar".to_string(), "Bar ⊑ Qux".to_string()],
+            }],
+            fixtures_do: vec![CardFixture {
+                title: "Well-formed Foo".to_string(),
+                body: "a valid foo shape".to_string(),
+            }],
+            fixtures_dont: vec![CardFixture {
+                title: "Foo missing range".to_string(),
+                body: "violates the range requirement".to_string(),
+            }],
+            diagnostics: vec![CardDiagnostic {
+                code: "gmeow-range-missing".to_string(),
+                note: "has 1 diagnostic finding(s)".to_string(),
+            }],
+            loss: vec![CardLoss {
+                target: "owl".to_string(),
+                preservation: "Weakened".to_string(),
+            }],
+            ..sample()
+        }
+    }
+
+    #[test]
+    fn summary_is_definition_only_and_smaller_than_standard() {
+        let card = full_sample();
+        let summary = render_card_body(&card, CardDetail::Summary);
+        // Definition present…
+        assert!(summary.contains("A foo."));
+        // …but NONE of the header / advisory / panel surface.
+        assert!(!summary.contains("- category:"));
+        assert!(!summary.contains("**Parents:**"));
+        assert!(!summary.contains("## Entailments"));
+        let standard = render_card_body(&card, CardDetail::Standard);
+        assert!(summary.len() < standard.len());
+    }
+
+    #[test]
+    fn standard_carries_no_full_panels_but_full_does() {
+        let card = full_sample();
+        let standard = render_card_body(&card, CardDetail::Standard);
+        // Standard is EXACTLY the compact card: no rich-panel headers.
+        assert!(!standard.contains("## Entailments"));
+        assert!(!standard.contains("## Do"));
+        assert!(!standard.contains("## Don't"));
+        assert!(!standard.contains("## Diagnostics"));
+        assert!(!standard.contains("## Degrades under projection"));
+
+        let full = render_card_body(&card, CardDetail::Full);
+        // Full is a superset: the whole compact body PLUS every panel.
+        assert!(full.starts_with(&standard));
+        assert!(full.len() > standard.len());
+        assert!(full.contains("## Entailments\n\n- **subClassOf-transitivity** ⊢ Foo ⊑ Qux\n"));
+        assert!(full.contains("  - premises: Foo ⊑ Bar; Bar ⊑ Qux\n"));
+        assert!(full.contains("## Do\n\n- **Well-formed Foo** — a valid foo shape\n"));
+        assert!(full.contains("## Don't\n\n- **Foo missing range**"));
+        assert!(full.contains("## Diagnostics\n\n- **gmeow-range-missing**"));
+        assert!(full.contains("## Degrades under projection\n\n- owl — Weakened\n"));
+    }
+
+    #[test]
+    fn empty_panels_are_omitted_at_full_tier() {
+        // A card with NO rich panels renders identically at Full and Standard —
+        // honest empty sections are omitted, never fabricated.
+        let card = sample();
+        assert_eq!(
+            render_card_body(&card, CardDetail::Full),
+            render_card_body(&card, CardDetail::Standard)
+        );
+    }
+
+    #[test]
+    fn projected_json_tiers_are_strictly_nested() {
+        let card = full_sample();
+        let summary = serde_json::to_string(&card.projected(CardDetail::Summary)).unwrap();
+        let standard = serde_json::to_string(&card.projected(CardDetail::Standard)).unwrap();
+        let full = serde_json::to_string(&card.projected(CardDetail::Full)).unwrap();
+        // Standard JSON MUST NOT carry any full-tier rich key.
+        assert!(!standard.contains("entailments"));
+        assert!(!standard.contains("fixtures_do"));
+        assert!(!standard.contains("diagnostics"));
+        // Summary carries identity + definition but no advisory field.
+        assert!(summary.contains("\"definition\":\"A foo.\""));
+        assert!(!summary.contains("use_when"));
+        // Full carries the rich panels.
+        assert!(full.contains("\"entailments\""));
+        assert!(full.contains("\"loss\""));
+        // Byte-stable across two serializations.
+        assert_eq!(
+            full,
+            serde_json::to_string(&card.projected(CardDetail::Full)).unwrap()
+        );
+        // Monotone by size.
+        assert!(summary.len() <= standard.len());
+        assert!(standard.len() < full.len());
     }
 }

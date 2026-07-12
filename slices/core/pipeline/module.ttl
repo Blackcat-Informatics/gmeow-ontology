@@ -983,6 +983,7 @@ gmeow:stage-math-producers
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> .
 

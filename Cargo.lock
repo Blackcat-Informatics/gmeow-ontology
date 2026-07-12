@@ -4346,8 +4346,7 @@ checksum = "007d8adb5ddab6f8e3f491ac63566a7d5002cc7ed73901f72057943fa71ae1ae"
 [[package]]
 name = "purrdf"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00b8098935c49298c88ecd35e538dcb6563865d7dbc38fdc65f44df9df4b0c49"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "purrdf-entail",
  "purrdf-events",
@@ -4367,8 +4366,7 @@ dependencies = [
 [[package]]
 name = "purrdf-core"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e55c21b2183e8b4f38eb80a19ba05a95af39a3d2a26ae08236a38d01359244a"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "ahash",
  "csv",
@@ -4381,8 +4379,7 @@ dependencies = [
 [[package]]
 name = "purrdf-entail"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57b0fd6246036e7e9a43872ab210748729a1a6e70595fea3d8f285ff1e61bb5f"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "purrdf-core",
  "roxmltree",
@@ -4391,14 +4388,12 @@ dependencies = [
 [[package]]
 name = "purrdf-events"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0b481700375b074d08438ffa4524ba140e6ccbfcc78cd281076a3aa7acda536"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 
 [[package]]
 name = "purrdf-gts"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f0b9700ad62ead71c9581bad33165eeceb5889c04b37e89817e7a31da9cab5bd"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "aes-gcm",
  "blake3",
@@ -4416,14 +4411,12 @@ dependencies = [
 [[package]]
 name = "purrdf-iri"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb9d9632d13aacc1b6a2181f12d77a64bb56b4d4f5ab64e59f9dd4bc0dfb685e"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 
 [[package]]
 name = "purrdf-rdf"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d01f88f80ade17c8ee1a7939d719e961bd61f72d03b964386c2b97258cdd3109"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "ahash",
  "ciborium",
@@ -4447,8 +4440,7 @@ dependencies = [
 [[package]]
 name = "purrdf-shapes"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a34b2e6b854905d3f0534f1cec3b00ac5bccef3eb7a37add9fc72e1e08bb541"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "purrdf-rdf",
  "purrdf-sparql-algebra",
@@ -4462,8 +4454,7 @@ dependencies = [
 [[package]]
 name = "purrdf-shex"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d67e6fa13a09ae6953ab4d3ea58ec663efc9da2b3f5ca8ffcc53d09bd0663124"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "purrdf-core",
  "purrdf-iri",
@@ -4476,8 +4467,7 @@ dependencies = [
 [[package]]
 name = "purrdf-slice"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4d0185d3902c17d9a5d8c9171240b87b4aa26c811c4fde6bfaa1b20af59993f"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "hex",
  "petgraph",
@@ -4492,8 +4482,7 @@ dependencies = [
 [[package]]
 name = "purrdf-sparql-algebra"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81f5d1fb1460e33268b398c2a10bca5e7c24ed88d80b1531c6b5eb04aa546e75"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "memchr",
  "purrdf-iri",
@@ -4504,8 +4493,7 @@ dependencies = [
 [[package]]
 name = "purrdf-sparql-eval"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86af5d07c55abb5400e20241b33244cb4689be0db57ffaaebf582b4d4eede054"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "ahash",
  "getrandom 0.3.4",
@@ -4526,8 +4514,7 @@ dependencies = [
 [[package]]
 name = "purrdf-sparql-results"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c567bb27ac5b854fe132203e92b091e3cd9c3cc7c4572328e63cfb2590bae0c5"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "purrdf-core",
 ]
@@ -4535,8 +4522,7 @@ dependencies = [
 [[package]]
 name = "purrdf-validate"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddcee892e1ab33f236994198b33cf0fe6fdc545a432f5ed8e8024001145e4e09"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 dependencies = [
  "purrdf-core",
  "purrdf-iri",
@@ -4549,8 +4535,7 @@ dependencies = [
 [[package]]
 name = "purrdf-xsd"
 version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d65ba450be8e1ce68b60f2c1efe8b972d650fb6c83ad9cad00aac88bbd0b727f"
+source = "git+https://github.com/Blackcat-Informatics/purrdf.git?rev=81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2#81e4799a2d9cadea513c5a5e4cea2d3732ee7cd2"
 
 [[package]]
 name = "pxfm"

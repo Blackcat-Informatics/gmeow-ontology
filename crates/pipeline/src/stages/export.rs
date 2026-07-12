@@ -1065,6 +1065,9 @@ pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
         use_for_consumer: t.use_for_consumer.clone(),
         avoid_for_consumer: t.avoid_for_consumer.clone(),
         aligns: t.alignments.clone(),
+        // Full-tier rich panels: the folded builder has no documentation-graph
+        // access; the MCP `doc_card` full tier populates them from the graph.
+        ..gmeow_docs::card::Card::default()
     }
 }
 
@@ -1678,7 +1681,8 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
         version,
         "The OWL source is canonical; this is a self-contained vocabulary index.",
     );
-    let sections = llms_sections(terms, None);
+    let mut sections = llms_sections(terms, None);
+    sections.push(gmeow_docs::llms::standing_reference_section());
     gmeow_docs::llms::render_index(title, &prose, &sections).into_bytes()
 }
 
@@ -1710,7 +1714,10 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
             "### {}{}\n\n{}\n",
             t.curie,
             llms_signature(t),
-            gmeow_docs::card::render_card_body(&term_to_card(t))
+            gmeow_docs::card::render_card_body(
+                &term_to_card(t),
+                gmeow_docs::card::CardDetail::Standard,
+            )
         );
         let cost = gmeow_docs::llms::estimate_tokens(&block);
         // Always emit at least one block; otherwise stop before the budget is
@@ -1733,6 +1740,13 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
             ordered.len()
         ));
     }
+    // The standing reference pages + offline-snippet-corpus note, built from the
+    // SAME shared list the docs-site `llms_full_txt` and both `llms.txt`-family
+    // consumer surfaces render, so this surface cannot silently omit them again.
+    out.push('\n');
+    out.push_str(&gmeow_docs::llms::render_section(
+        &gmeow_docs::llms::standing_reference_section(),
+    ));
     out
 }
 
@@ -1752,7 +1766,8 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
 // gated behind `python`) and by the byte-format goldens under `test`.
 
 pub(crate) use consumer::{
-    consumer_llms_txt, doc_card_md, doc_url_map, lookup_envelope, okf_index_envelope,
+    consumer_llms_txt, doc_card_build, doc_url_map, lookup_envelope, okf_index_envelope,
+    resolve_term_iri,
 };
 
 mod consumer {
@@ -1794,6 +1809,17 @@ mod consumer {
         } else {
             None
         }
+    }
+
+    /// Resolve a CURIE / local name / IRI / label (or unambiguous prefix) to its
+    /// canonical term IRI, via the SAME [`resolve_term`] path `lookup_term` and
+    /// `doc_card` use. `None` when the query does not resolve to exactly one term —
+    /// the caller HARD-FAILS an unknown term rather than fabricating an empty result.
+    /// Borrows the IRI from `terms` — zero-copy on this path; callers that must
+    /// escape the borrow (e.g. past the cache lock the terms slice is borrowed
+    /// from) own the ONE necessary allocation at their boundary instead.
+    pub(crate) fn resolve_term_iri<'a>(terms: &'a [Term], query: &str) -> Option<&'a str> {
+        resolve_term(terms, query).map(|term| term.iri.as_str())
     }
 
     /// `lookup_term`: resolve a query to its `as_record()` JSON with
@@ -1843,22 +1869,32 @@ mod consumer {
             version,
             "The OWL source is canonical; this index links into the published documentation.",
         );
-        let sections = llms_sections(terms, Some(doc_urls));
+        let mut sections = llms_sections(terms, Some(doc_urls));
+        // The standing reference pages + offline-snippet-corpus note, built from
+        // the SAME shared list the docs-site `llms_txt`/`llms_full_txt` render —
+        // the MCP consumer surface previously omitted these entirely.
+        sections.push(gmeow_docs::llms::standing_reference_section());
         gmeow_docs::llms::render_index(title, &prose, &sections)
     }
 
-    /// `doc_card`: a prompt-ready Markdown card for one term — the
-    /// live MCP twin of the docs-site `terms/{slug}/card.md`. Resolves the query,
-    /// then renders a `# {curie}{signature}` card with the definition and every
-    /// advisory field, through the ONE shared `gmeow_docs::card` renderer the
-    /// docs-site card uses (§19 one-path). Returns a plain not-found line when the
-    /// query does not resolve to exactly one term.
-    pub(crate) fn doc_card_md(terms: &[Term], query: &str) -> String {
-        let Some(t) = resolve_term(terms, query) else {
-            return format!("Term not found: {query}\n");
-        };
+    /// `doc_card`: resolve `query` to a term and build its `# {curie}{signature}`
+    /// title and the COMPACT shared [`gmeow_docs::card::Card`] — the live MCP twin
+    /// of the docs-site `terms/{slug}/card.md`, through the ONE shared
+    /// `gmeow_docs::card` builder + renderer (§19 one-path). `None` when the query
+    /// does not resolve to exactly one term.
+    ///
+    /// This builds the COMPACT card only (no full-tier rich panels) — it has just
+    /// the folded `Term` set, not the documentation graph. The MCP `doc_card` tool
+    /// populates the rich panels for [`gmeow_docs::card::CardDetail::Full`] from the
+    /// documentation graph, then renders through the SAME `render_card`; the site
+    /// path renders this compact card at `Standard`.
+    pub(crate) fn doc_card_build(
+        terms: &[Term],
+        query: &str,
+    ) -> Option<(String, gmeow_docs::card::Card)> {
+        let t = resolve_term(terms, query)?;
         let title = format!("{}{}", t.curie, llms_signature(t));
-        gmeow_docs::card::render_card(&title, &super::term_to_card(t))
+        Some((title, super::term_to_card(t)))
     }
 
     /// Build a `term-IRI → site URL` map from the `gmeow:graph/documentation`
@@ -2865,11 +2901,15 @@ mod tests {
     }
 
     /// `doc_card`: resolves a term and renders a `# {curie}` card with the
-    /// metadata + definition; an unresolved query yields the plain not-found line.
+    /// metadata + definition through the shared builder + renderer; an unresolved
+    /// query yields `None` (the caller supplies the not-found envelope).
     #[test]
-    fn doc_card_md_renders_card_and_not_found() {
+    fn doc_card_build_renders_card_and_not_found() {
         let (terms, _t, _v) = english_terms();
-        let card = doc_card_md(&terms, "gmeow:EntityExistence");
+        let (title, built) =
+            doc_card_build(&terms, "gmeow:EntityExistence").expect("known term resolves");
+        let card =
+            gmeow_docs::card::render_card(&title, &built, gmeow_docs::card::CardDetail::Standard);
         assert!(
             card.starts_with("# gmeow:EntityExistence"),
             "card head:\n{card}"
@@ -2890,8 +2930,10 @@ mod tests {
         );
         assert!(card.ends_with('\n'));
 
-        let miss = doc_card_md(&terms, "gmeow:NoSuchTerm");
-        assert_eq!(miss, "Term not found: gmeow:NoSuchTerm\n");
+        assert!(
+            doc_card_build(&terms, "gmeow:NoSuchTerm").is_none(),
+            "an unresolved query yields None"
+        );
     }
 
     /// `llms_full` / `llms-full.txt`: the standard header then `### ` term blocks
@@ -2939,6 +2981,67 @@ mod tests {
                 <= gmeow_docs::llms::LLMS_FULL_TOKEN_BUDGET * 2,
             "llms-full must stay within a small multiple of the token budget"
         );
+    }
+
+    /// The MCP/consumer `llms_txt` and `llms_full` surfaces must each carry the
+    /// standing-page `## Reference` expansion (Competency questions, Conformance
+    /// fixtures, Notation grammars, Glossary, Build pipeline) plus the offline
+    /// snippet-corpus note — the same expansion the docs-site `llms_txt`/
+    /// `llms_full_txt` render. This had previously landed ONLY on the docs site;
+    /// the native `gmeow mcp` binary's `llms_txt`/`llms_full` tool output carried
+    /// zero occurrences of any of these. Falsifiable per page name so a future
+    /// dropped page fails loudly instead of a vague substring match.
+    #[test]
+    fn consumer_llms_surfaces_carry_the_standing_reference_pages() {
+        let (terms, title, version) = english_terms();
+        let root = repo_root();
+        let graph = read_fold(&root).expect("read fold");
+        let doc_urls = doc_url_map(&FoldView::new(&graph));
+
+        let txt = consumer_llms_txt(&terms, &title, &version, &doc_urls);
+        let full = consumer_llms_full(&terms, &title, &version);
+
+        assert!(
+            txt.contains("## Reference\n"),
+            "consumer llms_txt must carry a '## Reference' section"
+        );
+        assert!(
+            full.contains("## Reference\n"),
+            "consumer llms_full must carry a '## Reference' section"
+        );
+
+        for page in gmeow_docs::llms::STANDING_REFERENCE_PAGES {
+            assert!(
+                txt.contains(page),
+                "consumer llms_txt must name the standing reference page {page:?}"
+            );
+            assert!(
+                full.contains(page),
+                "consumer llms_full must name the standing reference page {page:?}"
+            );
+        }
+
+        let note = gmeow_docs::llms::SNIPPETS_CORPUS_NOTE;
+        assert!(
+            txt.contains(note),
+            "consumer llms_txt must carry the offline snippet-corpus note"
+        );
+        assert!(
+            full.contains(note),
+            "consumer llms_full must carry the offline snippet-corpus note"
+        );
+
+        // The write_llms_txt (dist/llms.txt tarball) surface shares the same
+        // section-append path — it must not silently regress either.
+        let dist_txt = String::from_utf8(write_llms_txt(&terms, &title, &version)).unwrap();
+        assert!(dist_txt.contains("## Reference\n"));
+        for page in gmeow_docs::llms::STANDING_REFERENCE_PAGES {
+            assert!(
+                dist_txt.contains(page),
+                "dist llms.txt must name the standing reference page {page:?}"
+            );
+        }
+        assert!(dist_txt.contains(note));
     }
 
     /// The twin-contract lock (§19 one-path): the MCP card and the
@@ -3004,6 +3107,7 @@ mod tests {
             use_for_consumer: vec!["gmeow:profileMemory".to_string()],
             avoid_for_consumer: vec!["gmeow:profileNarrative".to_string()],
             aligns: vec!["exactMatch=ex:hasFoo".to_string()],
+            ..gmeow_docs::card::Card::default()
         };
 
         // The folded builder must produce exactly that Card (field-for-field).
@@ -3014,8 +3118,12 @@ mod tests {
         );
 
         // …and both render IDENTICALLY through the SOLE body renderer.
-        let from_folded = gmeow_docs::card::render_card_body(&term_to_card(&folded));
-        let from_expected = gmeow_docs::card::render_card_body(&expected);
+        let from_folded = gmeow_docs::card::render_card_body(
+            &term_to_card(&folded),
+            gmeow_docs::card::CardDetail::Standard,
+        );
+        let from_expected =
+            gmeow_docs::card::render_card_body(&expected, gmeow_docs::card::CardDetail::Standard);
         assert_eq!(
             from_folded, from_expected,
             "shared renderer must agree byte-for-byte"
@@ -3045,8 +3153,11 @@ mod tests {
         };
         assert_eq!(term_to_card(&with_slice).slice, Some("zoo".to_string()));
         assert!(
-            gmeow_docs::card::render_card_body(&term_to_card(&with_slice))
-                .contains("- slice: zoo\n")
+            gmeow_docs::card::render_card_body(
+                &term_to_card(&with_slice),
+                gmeow_docs::card::CardDetail::Standard,
+            )
+            .contains("- slice: zoo\n")
         );
 
         let no_slice = Term {
@@ -3056,7 +3167,13 @@ mod tests {
             ..Term::default()
         };
         assert_eq!(term_to_card(&no_slice).slice, None);
-        assert!(!gmeow_docs::card::render_card_body(&term_to_card(&no_slice)).contains("- slice:"));
+        assert!(
+            !gmeow_docs::card::render_card_body(
+                &term_to_card(&no_slice),
+                gmeow_docs::card::CardDetail::Standard,
+            )
+            .contains("- slice:")
+        );
     }
 
     /// `okf_index`: the manifest envelope wraps `ok`/`format`/`lossy`/`count`

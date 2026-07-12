@@ -5347,6 +5347,837 @@ math:FlagshipScenario rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:enforcesFailureClass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 # =========================================================================== #
+# PROBABILITY LAYER — Kolmogorov spine, distributions, dependency models,      #
+# the logic: lowering seam, and the probability conformance-failure vocabulary #
+# (realizes design/MATHEMATICS-PROBABILITY.md).                                #
+# =========================================================================== #
+
+# --- Probability-space classes (the Kolmogorov triple, specialized) --------- #
+
+math:ProbabilitySpace
+    a owl:Class ;
+    rdfs:subClassOf math:MeasurableSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability Space"@x-gmeow-english ;
+    skos:definition "A probability space: the Kolmogorov triple (Ω, ℱ, P) made explicit as one object — a sample space Ω named through math:sampleSpace (a math:SampleSpace), an event σ-algebra ℱ named through math:eventSigmaAlgebra (a math:SigmaAlgebra), and a probability measure P named through math:probabilityMeasure (a math:ProbabilityMeasure). A subclass of math:MeasurableSpace carrying a probability measure — the probability charter SPECIALIZES the measure-theoretic bedrock rather than re-minting it. Each of the three components must be present, but any of them may be symbolic or generative (a math:SymbolicSampleSpace, a math:BorelSigmaAlgebra, a math:MeasureDefinitionExpression) rather than extensionally enumerated; a probability space missing any of the three components is ill-formed (math:IncompleteProbabilitySpace). The gate requires presence and structural completeness, never impossible enumeration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SampleSpace
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sample Space"@x-gmeow-english ;
+    skos:definition "A sample space Ω: the set of all possible outcomes of a probabilistic experiment — the underlying set of a math:ProbabilitySpace, named through math:sampleSpace. A subclass of math:Set; because a σ-algebra is rarely extensionally enumerable, a sample space may be given generatively (math:GeneratedSampleSpace) or symbolically (math:SymbolicSampleSpace) rather than by listing its members. An outcome is a point of Ω; a measurable set of outcomes is a math:ProbabilityEvent, not a point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:GeneratedSampleSpace
+    a owl:Class ;
+    rdfs:subClassOf math:SampleSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Generated Sample Space"@x-gmeow-english ;
+    skos:definition "A sample space whose outcomes are produced by a generative rule rather than enumerated — the outcomes of an unbounded sequence of coin flips, the paths of a process. A subclass of math:SampleSpace realizing the charter's allowance that the components of a probability space may be generative rather than extensional; presence of the generative description satisfies the completeness gate, and no impossible enumeration is demanded."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SymbolicSampleSpace
+    a owl:Class ;
+    rdfs:subClassOf math:SampleSpace ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Symbolic Sample Space"@x-gmeow-english ;
+    skos:definition "A sample space named symbolically — ℝ, ℝⁿ, a manifold, a function space — rather than by listing its outcomes. A subclass of math:SampleSpace realizing the charter's allowance that a probability space's components may be symbolic; a continuous sample space such as the real line is a math:SymbolicSampleSpace carrying a math:BorelSigmaAlgebra and a measure given by a math:MeasureDefinitionExpression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProbabilityEvent
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability Event"@x-gmeow-english ;
+    skos:definition "A probability event: a measurable subset of a sample space — a MEASURABLE SET OF OUTCOMES, in the measure-theoretic sense, situated in a space through math:eventInSpace and assigned a framed probability through math:probabilityOfEvent. A subclass of math:Set. It is held owl:disjointWith logic:Event because a logic:Event is an occurrent (something that happens in time) whereas a probability event is a set of outcomes: a rain occurrence and the rain event-set in a forecast space are never conflated. Membership of an event in the space's algebra is math:eventInSpace against the space's math:eventSigmaAlgebra; there is NO separate EventSet class — the σ-algebra is the sole event algebra."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BorelSigmaAlgebra
+    a owl:Class ;
+    rdfs:subClassOf math:SigmaAlgebra ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Borel σ-Algebra"@x-gmeow-english ;
+    skos:definition "The Borel σ-algebra of a topological space: the σ-algebra generated by its open sets. A subclass of math:SigmaAlgebra given symbolically by its generator rather than by enumerating its measurable sets — the canonical event algebra of a continuous math:SymbolicSampleSpace such as the real line, over which a math:LebesgueMeasure or a density-defined measure acts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PowerSetSigmaAlgebra
+    a owl:Class ;
+    rdfs:subClassOf math:SigmaAlgebra ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Power-Set σ-Algebra"@x-gmeow-english ;
+    skos:definition "The discrete (power-set) σ-algebra: the σ-algebra of ALL subsets of a set, 2^Ω. A subclass of math:SigmaAlgebra — the event algebra of a discrete or countable sample space, where every subset is measurable, over which a math:CountingMeasure-derived probability mass function acts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProductSigmaAlgebra
+    a owl:Class ;
+    rdfs:subClassOf math:SigmaAlgebra ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Product σ-Algebra"@x-gmeow-english ;
+    skos:definition "The product σ-algebra on a product space: the σ-algebra generated by the measurable rectangles of a product of measurable spaces. A subclass of math:SigmaAlgebra given symbolically by its factors rather than enumerated — the event algebra of a joint sample space, the measure-theoretic ground of a math:JointProbabilityTable and of the independence factorization a math:FullIndependenceModel asserts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MeasureDefinitionExpression
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalExpression ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Measure Definition Expression"@x-gmeow-english ;
+    skos:definition "An expression that DEFINES a measure rather than tabulating it: a density or mass function, a Radon–Nikodym derivative, an integral expression from the expression layer that gives the measure of a set. A subclass of math:MathematicalExpression (an AST, never a display string) — the symbolic carrier of the probability measure of a math:SymbolicSampleSpace, satisfying the presence requirement of a probability space without demanding an impossible enumeration of P over every measurable set."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Probability-space properties ------------------------------------------- #
+
+math:sampleSpace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "sample space"@x-gmeow-english ;
+    skos:definition "Names the sample space Ω of a probability space. Domain math:ProbabilitySpace, range math:SampleSpace (stated in prose). Every math:ProbabilitySpace names one; the sample space may be symbolic or generative but never absent — a space missing it is ill-formed (math:IncompleteProbabilitySpace)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:eventSigmaAlgebra
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "event σ-algebra"@x-gmeow-english ;
+    skos:definition "Names the event σ-algebra ℱ of a probability space — the algebra of measurable sets against which event membership is decided. Domain math:ProbabilitySpace, range math:SigmaAlgebra (stated in prose). Every math:ProbabilitySpace names one (extensional or symbolic, e.g. a math:BorelSigmaAlgebra); a space missing it is ill-formed (math:IncompleteProbabilitySpace). The σ-algebra is the sole event algebra — there is no separate EventSet class."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:probabilityMeasure
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "probability measure"@x-gmeow-english ;
+    skos:definition "Names the probability measure P of a probability space — the math:ProbabilityMeasure of total mass one assigning probabilities to the events of its σ-algebra. Domain math:ProbabilitySpace, range math:ProbabilityMeasure (stated in prose). Every math:ProbabilitySpace names one, possibly given by a math:MeasureDefinitionExpression; a space missing it is ill-formed (math:IncompleteProbabilitySpace)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:eventInSpace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "event in space"@x-gmeow-english ;
+    skos:definition "Situates a probability event in the probability space it is a measurable set of outcomes of. Domain math:ProbabilityEvent, range math:ProbabilitySpace (stated in prose). Membership of the event in the algebra is decided against the space's math:eventSigmaAlgebra; the event is a set of outcomes, not an occurrent (it is disjoint from logic:Event)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:probabilityOfEvent
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "probability of event"@x-gmeow-english ;
+    skos:definition "Relates a probability event to the framed probability value P(A) assigned to it. Domain math:ProbabilityEvent, range math:ProbabilityValue (stated in prose). The probability is a framed quantity object naming its probability frame or model, never a bare literal (math:UnframedProbabilityValue) and never inferred from a confidence score without a declared mapping (math:ConfidenceAsProbability)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Probability-value scale kinds (the [0,1] gate and its lawful scales) ---- #
+
+math:ProbabilityValue
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability Value"@x-gmeow-english ;
+    skos:definition "A probability value: a quantity/result object that is ALWAYS in the closed unit interval [0, 1], carrying its magnitude and naming its probability frame or model. A subclass of gmeow:Quantity (a probability is math:dimensionless). Where exact, it is carried as a math:RationalValue with math:isExact true (the exact/approximate split — 1/3, not 0.333); where empirical it may be an approximate value. The [0, 1] bound is a genuine hard fail enforced by SHACL and a native numeric check (math:ProbabilityOutOfBounds); odds and log-odds are NOT probabilities and are their own kinds (math:OddsValue, math:LogOddsValue), held disjoint from this class so a consumer seeing a math:ProbabilityValue may correctly assume a closed unit interval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:OddsValue
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Odds Value"@x-gmeow-english ;
+    skos:definition "An odds value: p/(1−p), a quantity in the open interval (0, ∞). A subclass of gmeow:Quantity and a probability-scale transform of a probability, NOT a probability — held owl:disjointWith math:ProbabilityValue so it can never be read as one (math:ProbabilityScaleConflation). It links back to the probability it transforms through a math:ProbabilityScaleTransform."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LogOddsValue
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Quantity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Log-Odds Value"@x-gmeow-english ;
+    skos:definition "A log-odds (logit) value: log(p/(1−p)), a quantity on the whole real line (−∞, ∞). A subclass of gmeow:Quantity and a probability-scale transform of a probability, NOT a probability — held owl:disjointWith math:ProbabilityValue so a log-odds handed to a consumer expecting [0, 1] is a caught error (math:ProbabilityScaleConflation), not a silent one. It links back to the probability it transforms through a math:ProbabilityScaleTransform."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProbabilityScaleTransform
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability Scale Transform"@x-gmeow-english ;
+    skos:definition "A probability-scale transform: the object linking a lawful probability-scale value (a math:OddsValue or math:LogOddsValue) back to the math:ProbabilityValue it re-expresses, through math:transformsToProbabilityValue. A subclass of math:MathematicalObject. It is what keeps the [0, 1] gate a genuine hard fail while still admitting odds and log-odds: the scales are related to their probability by a declared transform, never conflated with it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:transformsToProbabilityValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "transforms to probability value"@x-gmeow-english ;
+    skos:definition "Relates a math:ProbabilityScaleTransform to the math:ProbabilityValue it re-expresses. Domain math:ProbabilityScaleTransform, range math:ProbabilityValue (stated in prose). The seam by which a math:OddsValue or math:LogOddsValue recovers its probability without being typed as one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Random variables, distributions, factored parameterization, moments ---- #
+
+math:RandomVariable
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Random Variable"@x-gmeow-english ;
+    skos:definition "A random variable: a measurable map from a probability space's sample space into a measurable codomain, with a declared domain (math:randomVariableDomain) and codomain (math:randomVariableCodomain) and a probability-space or distribution context (math:hasDistribution). A subclass of math:MathematicalObject. Its dimensional constraints are CARRIED, not assumed — a random variable over height and its distribution's location parameter share height units — so a mis-dimensioned parameter is a caught error. A random variable without its domain, codomain, and a space or distribution context is ill-formed (math:UnscopedRandomVariable)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DistributionFamily
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution Family"@x-gmeow-english ;
+    skos:definition "A distribution family: the named parametric family a math:Distribution belongs to — normal, binomial, Poisson, gamma, and the rest — carried by math:distributionFamily. A subclass of math:MathematicalObject. A family fixes the functional form but NOT the convention: many families have several conventional parameterizations (mean/stddev vs mean/variance vs mean/precision), so a bare family label is insufficient and a distribution must also name a math:DistributionParameterization. A distribution without a family is ill-formed (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DistributionParameterization
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution Parameterization"@x-gmeow-english ;
+    skos:definition "A distribution parameterization: the explicit, mandatory convention that fixes WHICH parametric form of a family is meant, declaring the roles it requires through math:requiresParameterRole (e.g. a normal mean/stddev parameterization requires a mean role and a stddev role). A subclass of math:MathematicalObject. Roles are SCOPED by the parameterization, so 'scale' cannot silently mean standard deviation in one family and rate in another. Linking two parameterization conventions of the same family (mean/variance to mean/stddev) is a DECLARED transform — a math:MathematicalExpression such as σ = √(σ²) — never a string relabel; a silent default parameterization is forbidden (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DistributionParameter
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution Parameter"@x-gmeow-english ;
+    skos:definition "A distribution parameter: one supplied parameter of a math:Distribution, carrying its role in the parameterization (math:parameterRole, a math:DistributionParameterRole) and its value as EITHER a numeric quantity (math:parameterQuantity, a gmeow:Quantity) OR a symbolic expression (math:parameterExpression, a math:MathematicalExpression). A subclass of math:MathematicalObject. The earlier single overloaded parameterValue property is REMOVED (greenfield): the role, the numeric value, and the symbolic value are three distinct properties, never one. Each required role is supplied by exactly one parameter (math:DistributionParameterRoleCardinality otherwise), whose quantity satisfies the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DistributionParameterRole
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution Parameter Role"@x-gmeow-english ;
+    skos:definition "A distribution parameter role: the SCOPED slot a parameter fills within a parameterization — the mean role, the stddev role, the rate role — named as a first-class object so 'scale' cannot silently mean different things across families. A subclass of math:MathematicalObject. It declares the parameterization it belongs to (math:roleWithinParameterization), whether its parameter's value must be positive (math:requiresPositiveValue, a boolean), and the dimension its parameter's quantity must carry (math:quantityDimension) — so a variance role carrying squared units and a correlation role being dimensionless are stated, not assumed, and a mis-dimensioned parameter is caught (math:DistributionParameterConstraint)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DistributionSupport
+    a owl:Class ;
+    rdfs:subClassOf math:Set ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution Support"@x-gmeow-english ;
+    skos:definition "The support of a distribution: the set of outcomes over which a math:Distribution places positive probability — the real line for a normal, the non-negative integers for a Poisson, [0, 1] for a beta — named by math:hasSupport. A subclass of math:Set, possibly symbolic. A distribution carries its support so that a parameter or a moment can be checked for consistency with the values the distribution actually ranges over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Moment
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Moment"@x-gmeow-english ;
+    skos:definition "A moment of a distribution or random variable: a quantity-valued summary — an expectation, a variance, a covariance, a correlation — named through math:hasMoment. A subclass of math:MathematicalObject and the parent of math:ExpectedValue, math:Variance, math:Covariance, and math:Correlation. A moment is a QUANTITY-valued result object carrying its dimension, never a bare literal: an expectation over height carries height units, a variance squared units, a correlation is dimensionless."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ExpectedValue
+    a owl:Class ;
+    rdfs:subClassOf math:Moment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Expected Value"@x-gmeow-english ;
+    skos:definition "The expected value E[X]: the first moment of a random variable, the integral of the variable against its probability measure (a math:Integral against a math:ProbabilityMeasure). A subclass of math:Moment. It carries the same dimension as the random variable it is taken over."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Variance
+    a owl:Class ;
+    rdfs:subClassOf math:Moment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Variance"@x-gmeow-english ;
+    skos:definition "The variance Var(X) = E[(X − E[X])²]: the second central moment of a random variable. A subclass of math:Moment. It carries the SQUARED dimension of the random variable — a variance of a height carries length², which is why a variance-parameterized family and a stddev-parameterized family carry different dimensions on their scale role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Covariance
+    a owl:Class ;
+    rdfs:subClassOf math:Moment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Covariance"@x-gmeow-english ;
+    skos:definition "The covariance Cov(X, Y) = E[(X − E[X])(Y − E[Y])]: the joint second central moment of two random variables. A subclass of math:Moment. It carries the product of the dimensions of its two variables."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:Correlation
+    a owl:Class ;
+    rdfs:subClassOf math:Moment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Correlation"@x-gmeow-english ;
+    skos:definition "The correlation ρ(X, Y) = Cov(X, Y) / (σ_X σ_Y): the covariance normalized by the product of standard deviations, a math:dimensionless quantity in [−1, 1]. A subclass of math:Moment. Being dimensionless is a stated dimensional fact, not an assumption."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:randomVariableDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "random variable domain"@x-gmeow-english ;
+    skos:definition "Names the domain of a random variable — the measurable space (typically the sample space of a probability space) it is defined on. Domain math:RandomVariable, range math:MeasurableSpace or math:ProbabilitySpace (stated in prose). A random variable without its domain is ill-formed (math:UnscopedRandomVariable)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:randomVariableCodomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "random variable codomain"@x-gmeow-english ;
+    skos:definition "Names the codomain of a random variable — the measurable space it maps into (the real line with its Borel algebra for a real-valued variable). Domain math:RandomVariable, range math:MeasurableSpace (stated in prose). A random variable without its codomain is ill-formed (math:UnscopedRandomVariable)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasDistribution
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has distribution"@x-gmeow-english ;
+    skos:definition "Relates a random variable to the math:Distribution it follows. Domain math:RandomVariable, range math:Distribution (stated in prose). One of the ways a random variable declares its probability context (the other being a probability-space domain); a variable with neither is unscoped (math:UnscopedRandomVariable)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasSupport
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has support"@x-gmeow-english ;
+    skos:definition "Relates a math:Distribution to its math:DistributionSupport — the set of outcomes it places positive probability on. Domain math:Distribution, range math:DistributionSupport (stated in prose). The support may be symbolic (the real line, the non-negative integers)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasMoment
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has moment"@x-gmeow-english ;
+    skos:definition "Relates a math:Distribution or math:RandomVariable to a math:Moment of it — an expectation, variance, covariance, or correlation. Domain a math:Distribution or math:RandomVariable, range math:Moment (stated in prose). Moments are quantity-valued result objects carrying their dimension, never bare literals."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:distributionParameterization
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "distribution parameterization"@x-gmeow-english ;
+    skos:definition "Relates a math:Distribution to the math:DistributionParameterization it uses — the explicit convention fixing which parametric form of its family is meant. Domain math:Distribution, range math:DistributionParameterization (stated in prose). Mandatory for a parametric distribution: a parametric distribution without a parameterization is ill-formed (math:MissingDistributionParameterization), and a silent default is forbidden. Linking one parameterization convention to another of the same family is a declared math:MathematicalExpression transform, never a string relabel."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasDistributionParameter
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has distribution parameter"@x-gmeow-english ;
+    skos:definition "Relates a math:Distribution to one of its supplied math:DistributionParameter objects. Domain math:Distribution, range math:DistributionParameter (stated in prose). A distribution supplies each role required by its parameterization exactly once (math:DistributionParameterRoleCardinality otherwise)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:parameterQuantity
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "parameter quantity"@x-gmeow-english ;
+    skos:definition "Relates a math:DistributionParameter to its numeric value as a dimensioned quantity. Domain math:DistributionParameter, range gmeow:Quantity (stated in prose). One of the two mutually exclusive value carriers of a parameter (the other being math:parameterExpression for a symbolic value); it replaces the removed overloaded parameterValue property, and its quantity must satisfy the role's positivity and dimension constraints (math:DistributionParameterConstraint otherwise)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:parameterExpression
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "parameter expression"@x-gmeow-english ;
+    skos:definition "Relates a math:DistributionParameter to its value as a symbolic expression — a math:MathematicalExpression AST for a parameter given by a formula (a hierarchical prior's hyperparameter, a reparameterization σ = √(σ²)). Domain math:DistributionParameter, range math:MathematicalExpression (stated in prose). The symbolic counterpart of math:parameterQuantity; a reparameterization is carried here as a declared transform, never a string relabel."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:parameterRole
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "parameter role"@x-gmeow-english ;
+    skos:definition "Relates a math:DistributionParameter to the math:DistributionParameterRole it fills within its distribution's parameterization. Domain math:DistributionParameter, range math:DistributionParameterRole (stated in prose). The role is scoped by the parameterization, so the same parameter object never silently means different things across families."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:requiresParameterRole
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "requires parameter role"@x-gmeow-english ;
+    skos:definition "Relates a math:DistributionParameterization to a math:DistributionParameterRole it requires — the roles a conforming distribution must supply exactly once each. Domain math:DistributionParameterization, range math:DistributionParameterRole (stated in prose). A distribution that fails to supply a required role exactly once is ill-formed (math:DistributionParameterRoleCardinality)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:roleWithinParameterization
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "role within parameterization"@x-gmeow-english ;
+    skos:definition "Relates a math:DistributionParameterRole to the math:DistributionParameterization that scopes it. Domain math:DistributionParameterRole, range math:DistributionParameterization (stated in prose). The scoping edge that makes a role's meaning local to its parameterization rather than global."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:requiresPositiveValue
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "requires positive value"@x-gmeow-english ;
+    skos:definition "Declares whether the parameter filling a role must be strictly positive — true for a standard-deviation, variance, rate, or precision role. Domain math:DistributionParameterRole, range xsd:boolean (stated in prose). A parameter whose quantity violates its role's declared positivity is ill-formed (math:DistributionParameterConstraint)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:quantityDimension
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "quantity dimension"@x-gmeow-english ;
+    skos:definition "Names the dimension the quantity of a parameter filling a role must carry — the same dimension as the random variable for a location role, the squared dimension for a variance role, math:dimensionless for a correlation role. Domain math:DistributionParameterRole, range math:Dimension or a math:RoleDimensionRelation (stated in prose; a dimension may be given absolutely, or by reference to the random variable's dimension). It carries the parameter's dimensional constraint so a mis-dimensioned parameter is caught (math:DistributionParameterConstraint), not silently accepted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:RoleDimensionRelation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Role Dimension Relation"@x-gmeow-english ;
+    skos:definition "A relational specification of a parameter role's required dimension, stated RELATIVE to the random variable's dimension rather than as an absolute math:Dimension. The canonical relations are math:sameAsRandomVariableDimension (a location parameter shares the random variable's dimension), math:squareOfRandomVariableDimension (a variance parameter carries the squared dimension), and — for a dimensionless parameter such as a correlation — the absolute math:dimensionless. The native math:DistributionParameterConstraint validator resolves a role's math:quantityDimension against the actual random-variable dimension by exact ℚ⁷ arithmetic (dimEqual for same, dimProduct of the vector with itself for square), so a variance parameter given linear units is a caught error."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:sameAsRandomVariableDimension
+    a owl:NamedIndividual , math:RoleDimensionRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "same as random-variable dimension"@x-gmeow-english ;
+    skos:definition "The role-dimension relation for a location-like parameter whose quantity must carry the SAME dimension as the random variable it parameterizes (dimEqual): a location parameter of a distribution over height carries height units. Resolved by the native math:DistributionParameterConstraint validator against the random variable's math:hasDimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:squareOfRandomVariableDimension
+    a owl:NamedIndividual , math:RoleDimensionRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "square of random-variable dimension"@x-gmeow-english ;
+    skos:definition "The role-dimension relation for a variance-like parameter whose quantity must carry the SQUARED dimension of the random variable (the exact-rational sum of the random variable's exponent vector with itself, dimProduct): a variance parameter of a distribution over height carries height² units. Resolved by the native math:DistributionParameterConstraint validator; a variance parameter given the linear (un-squared) dimension is a caught error."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Conditioning and three-state independence ------------------------------ #
+
+math:ConditionalProbability
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Conditional Probability"@x-gmeow-english ;
+    skos:definition "A conditional probability P(A | B): a probability object naming BOTH the event it is about and the conditioning event or context it is conditioned on (math:conditionalOn). A subclass of math:MathematicalObject. A conditional with an unnamed conditioning context is ill-formed (math:UnconditionedAssertion) — the conditioning context is never left implicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IndependenceAssertion
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Independence Assertion"@x-gmeow-english ;
+    skos:definition "A marginal-independence assertion: a modeler's claim that A and B (or a set of facts) are independent, naming its subject (math:independenceSubject) and what it is independent of (math:independentOf, or math:mutuallyIndependentSet for a joint set). A subclass of math:MathematicalObject. Independence is a STANDPOINT-SCOPED claim, not a fact of the graph: the assertion is held by whoever asserted the model and names the model it holds in (math:independenceHoldsInModel, held by a gmeow:vantage), so 'who claimed these independent, and in which model' is always answerable. The ABSENCE of any independence assertion is 'not modeled' — a real, distinct third state that a reasoning engine must NEVER read as independence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ConditionalIndependenceAssertion
+    a owl:Class ;
+    rdfs:subClassOf math:IndependenceAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Conditional Independence Assertion"@x-gmeow-english ;
+    skos:definition "A conditional-independence assertion A ⫫ B | C: an independence assertion that additionally names the conditioning set it is relative to (math:independentGiven). A subclass of math:IndependenceAssertion. Like marginal independence it is a standpoint-scoped modeler's claim naming its model; distinct from marginal independence (a different, weaker-or-stronger relation), and distinct again from 'not modeled'. A conditional-independence assertion that fails to name its conditioning set is ill-formed (math:UnconditionedAssertion)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:conditionalOn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "conditional on"@x-gmeow-english ;
+    skos:definition "Names the conditioning event or context of a conditional probability — the B in P(A | B). Domain math:ConditionalProbability, range a math:ProbabilityEvent or conditioning context (stated in prose). A conditional probability names one; a conditional with an unnamed conditioning context is ill-formed (math:UnconditionedAssertion)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:independenceSubject
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "independence subject"@x-gmeow-english ;
+    skos:definition "Names the subject of an independence assertion — the A whose independence is claimed. Domain math:IndependenceAssertion, range a math:ProbabilityEvent or math:RandomVariable (stated in prose)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:independentOf
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "independent of"@x-gmeow-english ;
+    skos:definition "Names the event or variable an independence subject is asserted independent of — the B in A ⫫ B. Domain math:IndependenceAssertion, range a math:ProbabilityEvent or math:RandomVariable (stated in prose). Used for pairwise marginal independence; a set of mutually independent facts uses math:mutuallyIndependentSet instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:independentGiven
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "independent given"@x-gmeow-english ;
+    skos:definition "Names the conditioning set of a conditional-independence assertion — the C in A ⫫ B | C. Domain math:ConditionalIndependenceAssertion, range the conditioning set (stated in prose). A conditional-independence assertion that fails to name its conditioning set is ill-formed (math:UnconditionedAssertion)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:mutuallyIndependentSet
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "mutually independent set"@x-gmeow-english ;
+    skos:definition "Names the set of facts an independence assertion claims MUTUALLY independent — a stronger claim than pairwise independence over the same facts. Domain math:IndependenceAssertion, range the set of mutually independent events or variables (stated in prose). The joint-set form of math:independentOf."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:independenceHoldsInModel
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "independence holds in model"@x-gmeow-english ;
+    skos:definition "Names the model an independence assertion holds in — the dependency model, probability model, or standpoint within which the claimed independence is asserted. Domain math:IndependenceAssertion, range the model it holds in (stated in prose). Independence is a modeler's claim from a vantage (the assertion is held by a gmeow:vantage), not a fact of the graph, so an independence claim always names the model it holds in and never floats free of one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Dependency models, the Bayesian update chain, and MCMC diagnostics ------ #
+
+math:FullIndependenceModel
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Full Independence Model"@x-gmeow-english ;
+    skos:definition "A full-independence dependency model: the model under which every probabilistic fact is an independent variable and the joint factorizes as a product. A subclass of math:MathematicalObject. It lowers into logic:FullIndependence (math:probabilityModelLowering) with logic:ExactPreservation, exact precisely when its completeness gate holds — all probabilistic facts named. Made explicit rather than assumed: a reasoning engine never treats silence as full independence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:JointProbabilityTable
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Joint Probability Table"@x-gmeow-english ;
+    skos:definition "A joint probability table: an explicit tabulation of the joint distribution over a correlated set of facts. A subclass of math:MathematicalObject. It lowers into logic:DependencyModel together with a set of logic:JointOutcome rows (math:probabilityModelLowering) with logic:ExactPreservation, exact if and only if its completeness gate holds — the outcomes are present (exhaustive) and their mass sums to one. An incompletely-tabulated table is structurally incomplete (math:IncompleteDependencyModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BayesianNetwork
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Bayesian Network"@x-gmeow-english ;
+    skos:definition "A Bayesian network: a directed acyclic graph of random variables with conditional probability tables, factoring a joint distribution as a product of local conditionals. A subclass of math:MathematicalObject naming its graph through math:dependencyGraph. It lowers into logic:DependencyModel (a weighted-model-counting factorization) via math:probabilityModelLowering; its declared logic:ExactPreservation is honest only when its completeness gate holds — the graph is a DAG and the conditional probability tables are complete — and is otherwise structurally incomplete (math:IncompleteDependencyModel). Declaring exactness while the gate fails is the overclaim math:ExactPreservationViolated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FactorGraph
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Factor Graph"@x-gmeow-english ;
+    skos:definition "A factor graph: a bipartite graph of variables and factors representing the factorization of a joint distribution as a product of factors. A subclass of math:MathematicalObject naming its structure through math:dependencyGraph. It lowers into logic:DependencyModel (a weighted factor product) via math:probabilityModelLowering; its declared logic:ExactPreservation is honest only when its completeness gate holds — finitely many factors, and the product either normalized or declared unnormalized — and is otherwise structurally incomplete (math:IncompleteDependencyModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MarkovKernel
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Markov Kernel"@x-gmeow-english ;
+    skos:definition "A Markov kernel: a measurable map assigning to each point of a source space a probability measure on a target space — the general-theory counterpart of a transition matrix. A subclass of math:MathematicalObject. It lowers into logic:GenericDependence (a stochastic transition) via math:probabilityModelLowering; its declared logic:ExactPreservation is honest only when its completeness gate holds — a declared domain and codomain, and kernel totality (each source point maps to a genuine probability measure) — and is otherwise structurally incomplete (math:IncompleteDependencyModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:StochasticProcess
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Stochastic Process"@x-gmeow-english ;
+    skos:definition "A stochastic process: an indexed family of random variables {X_t} over a common probability space — a Markov chain, a Poisson process, Brownian motion. A subclass of math:MathematicalObject. Its transition structure is often carried by a math:MarkovKernel, and its dependency structure feeds the logic: probability-model seam like the other dependency models."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PriorDistribution
+    a owl:Class ;
+    rdfs:subClassOf math:Distribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Prior Distribution"@x-gmeow-english ;
+    skos:definition "A prior distribution: the distribution over a parameter BEFORE data is taken into account, the input of a Bayesian update. A subclass of math:Distribution. It is a distinct first-class object linked into the update chain through math:hasPrior, so a posterior always answers 'from what prior'."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LikelihoodFunction
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Likelihood Function"@x-gmeow-english ;
+    skos:definition "A likelihood function L(θ) = P(data | θ): the probability of the observed data as a function of the parameter, the evidence term of a Bayesian update. A subclass of math:MathematicalObject (it is a function of the parameter, not itself a normalized distribution over it). It is linked into the update chain through math:hasLikelihood, so a posterior always answers 'under what likelihood, over what data'."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PosteriorDistribution
+    a owl:Class ;
+    rdfs:subClassOf math:Distribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Posterior Distribution"@x-gmeow-english ;
+    skos:definition "A posterior distribution: the distribution over a parameter AFTER data, proportional to prior times likelihood, the output of a Bayesian update. A subclass of math:Distribution. It is linked to the prior and likelihood it derives from through math:hasPrior and math:hasLikelihood, so a posterior always answers 'from what prior, under what likelihood, over what data'. Where it is sampled rather than closed-form, its trustworthiness is answerable through math:PosteriorSample and the chain diagnostics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:PosteriorSample
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Posterior Sample"@x-gmeow-english ;
+    skos:definition "A posterior sample: the set of draws approximating a math:PosteriorDistribution when the posterior is sampled rather than computed in closed form — the output of a math:MCMCRun. A subclass of math:MathematicalObject. Its trustworthiness is not assumed but answerable through the math:ChainDiagnostic objects (effective sample size, R-hat, divergences) attached to its run."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MCMCRun
+    a owl:Class ;
+    rdfs:subClassOf gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "MCMC Run"@x-gmeow-english ;
+    skos:definition "A Markov-chain Monte Carlo run: the sampling PROCESS that draws a math:PosteriorSample from a posterior. A subclass of gmeow:Activity (the run is a process, distinct from its result sample and from any claim about the posterior). It produces the chain diagnostics by which 'is this posterior trustworthy' is answered rather than assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ChainDiagnostic
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Chain Diagnostic"@x-gmeow-english ;
+    skos:definition "A chain diagnostic: a computed measure of the health of a math:MCMCRun's sampling — the parent of math:EffectiveSampleSize, math:RHat, and math:DivergenceDiagnostic. A subclass of math:MathematicalObject. Diagnostics make the trustworthiness of a sampled posterior answerable structurally rather than assumed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:EffectiveSampleSize
+    a owl:Class ;
+    rdfs:subClassOf math:ChainDiagnostic ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Effective Sample Size"@x-gmeow-english ;
+    skos:definition "The effective sample size: the number of effectively independent draws in a correlated MCMC chain, discounting autocorrelation. A subclass of math:ChainDiagnostic. A low effective sample size warns that a posterior summary rests on far fewer independent draws than the raw sample count suggests."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:RHat
+    a owl:Class ;
+    rdfs:subClassOf math:ChainDiagnostic ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "R-hat"@x-gmeow-english ;
+    skos:definition "The potential-scale-reduction factor R̂: the between-chain versus within-chain variance ratio diagnosing whether multiple MCMC chains have converged to the same distribution. A subclass of math:ChainDiagnostic. An R̂ far from one warns that the chains have not mixed and the sampled posterior is not trustworthy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DivergenceDiagnostic
+    a owl:Class ;
+    rdfs:subClassOf math:ChainDiagnostic ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Divergence Diagnostic"@x-gmeow-english ;
+    skos:definition "A divergence diagnostic: the count or record of divergent transitions in a Hamiltonian/NUTS MCMC run, flagging regions of the posterior the sampler could not explore reliably. A subclass of math:ChainDiagnostic. Divergences warn of bias the raw sample would otherwise hide."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hasPrior
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has prior"@x-gmeow-english ;
+    skos:definition "Relates a Bayesian update (or its math:PosteriorDistribution) to the math:PriorDistribution it starts from. Domain a math:PosteriorDistribution or Bayesian update, range math:PriorDistribution (stated in prose). Names the prior a posterior derives from, so the update chain is always traceable to its input."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasLikelihood
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has likelihood"@x-gmeow-english ;
+    skos:definition "Relates a Bayesian update (or its math:PosteriorDistribution) to the math:LikelihoodFunction weighting the prior by the data. Domain a math:PosteriorDistribution or Bayesian update, range math:LikelihoodFunction (stated in prose). Names the likelihood under which the update was performed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasPosterior
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has posterior"@x-gmeow-english ;
+    skos:definition "Relates a Bayesian update to the math:PosteriorDistribution it produces. Domain a Bayesian update, range math:PosteriorDistribution (stated in prose). Names the posterior resulting from combining the prior and likelihood."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:dependencyGraph
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "dependency graph"@x-gmeow-english ;
+    skos:definition "Relates a dependency model to the graph structure carrying its dependencies — the DAG of a math:BayesianNetwork, the bipartite graph of a math:FactorGraph. Domain a dependency model (math:BayesianNetwork, math:FactorGraph, and kin), range its graph structure (stated in prose). Structural completeness of this graph (a DAG, finite factors) is part of the model's completeness gate; an incomplete one is ill-formed (math:IncompleteDependencyModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:kernelDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "kernel domain"@x-gmeow-english ;
+    skos:definition "Names the source (domain) measurable space of a math:MarkovKernel — the space whose points the kernel assigns a transition measure to. Domain math:MarkovKernel, range a measurable space (stated in prose). A Markov kernel declares both a math:kernelDomain and a math:kernelCodomain; one missing either is structurally incomplete (math:IncompleteDependencyModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:kernelCodomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "kernel codomain"@x-gmeow-english ;
+    skos:definition "Names the target (codomain) measurable space of a math:MarkovKernel — the space on which each source point's transition probability measure lives. Domain math:MarkovKernel, range a measurable space (stated in prose). A Markov kernel declares both a math:kernelCodomain and a math:kernelDomain; one missing either is structurally incomplete (math:IncompleteDependencyModel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:probabilityModelLowering
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "probability model lowering"@x-gmeow-english ;
+    skos:definition "Relates a reasoning-facing math: dependency model (a class or individual — a math:FullIndependenceModel, math:JointProbabilityTable, math:BayesianNetwork, math:FactorGraph, or math:MarkovKernel) to the logic: probability-model target it formally lowers into (logic:FullIndependence, logic:DependencyModel, logic:JointOutcome, or logic:GenericDependence). Domain a reasoning-facing math: dependency model, range a logic: probability-model target (stated in prose). The lowering is a formal, preservation-judged map, not a soft 'satisfy or project into': its preservation polarity is carried ALONGSIDE it by logic:preservationKind, reused verbatim from the logic: loss-ledger vocabulary rather than a math: near-synonym (Principle 17). A reasoning-facing model that references probabilistic facts without a declared lowering is unsupported/not-evaluated, never assumed independent (math:MissingProbabilityModelLowering)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- The logic: lowering table as first-class data -------------------------- #
+# Each reasoning-facing dependency-model class declares its logic: target
+# (math:probabilityModelLowering) and its preservation polarity
+# (logic:preservationKind, reused verbatim — Principle 17, no math: near-synonym).
+# The "conditional" rows of the charter's lowering table declare
+# logic:ExactPreservation because their lowering IS exact once their completeness
+# gate holds; a class declaring logic:ExactPreservation while that gate does not
+# hold is the overclaim math:ExactPreservationViolated. The completeness-gate
+# obligation of each is stated in the class's own skos:definition above.
+
+math:FullIndependenceModel
+    math:probabilityModelLowering logic:FullIndependence ;
+    logic:preservationKind logic:ExactPreservation .
+
+math:JointProbabilityTable
+    math:probabilityModelLowering logic:DependencyModel , logic:JointOutcome ;
+    logic:preservationKind logic:ExactPreservation .
+
+math:BayesianNetwork
+    math:probabilityModelLowering logic:DependencyModel ;
+    logic:preservationKind logic:ExactPreservation .
+
+math:FactorGraph
+    math:probabilityModelLowering logic:DependencyModel ;
+    logic:preservationKind logic:ExactPreservation .
+
+math:MarkovKernel
+    math:probabilityModelLowering logic:GenericDependence ;
+    logic:preservationKind logic:ExactPreservation .
+
+# --- Disjointness axioms ---------------------------------------------------- #
+
+math:ProbabilityEvent owl:disjointWith logic:Event .
+math:OddsValue owl:disjointWith math:ProbabilityValue .
+math:LogOddsValue owl:disjointWith math:ProbabilityValue .
+
+# --- Structural restriction axioms (presence gates) ------------------------- #
+# A math:ProbabilitySpace requires a sample-space, a σ-algebra, and a measure
+# object (each possibly symbolic → presence only, min-qualified as math:Measure
+# does). A math:Distribution requires a math:DistributionFamily (the family is a
+# hard restriction; the parameterization/role cardinality gates are SHACL/native
+# so a non-parametric distribution is not rejected here).
+
+math:ProbabilitySpace rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:sampleSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:SampleSpace ] ,
+    [ a owl:Restriction ; owl:onProperty math:eventSigmaAlgebra ; owl:minQualifiedCardinality 1 ; owl:onClass math:SigmaAlgebra ] ,
+    [ a owl:Restriction ; owl:onProperty math:probabilityMeasure ; owl:minQualifiedCardinality 1 ; owl:onClass math:ProbabilityMeasure ] .
+
+math:Distribution rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:distributionFamily ; owl:minQualifiedCardinality 1 ; owl:onClass math:DistributionFamily ] .
+
+# --- Probability conformance-failure classes -------------------------------- #
+
+math:ProbabilityOutOfBounds
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability Out Of Bounds"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProbabilityValue carries a magnitude outside the closed unit interval [0, 1]. A probability is always in [0, 1]; a value outside it is either ill-formed or a mis-typed odds/log-odds. Enforced by a SHACL range check and a native numeric check."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProbabilityScaleConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability Scale Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when an odds or log-odds value is modeled as a math:ProbabilityValue rather than as its own scale kind (math:OddsValue / math:LogOddsValue). Odds and log-odds are probability-scale transforms, not probabilities, and are held disjoint from math:ProbabilityValue by an OWL axiom; typing one as a probability conflates a lawful scale with the closed unit interval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProbabilityEventOccurrentConflation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Probability-Event Occurrent Conflation"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProbabilityEvent (a measurable set of outcomes, the measure-theoretic sense) is also typed as a logic:Event (an occurrent — something that happens in time). The two are held disjoint by an OWL axiom, so a rain occurrence and the rain event-set in a forecast space are never conflated; a node carrying both types conflates the set-of-outcomes with the occurrence. Enforced by the OWL disjointness axiom and its paired SHACL shape (math:ProbabilityEventOccurrentDisjointShape) so the conflation is a queryable typed failure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnframedProbabilityValue
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unframed Probability Value"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProbabilityValue does not name its probability frame or model. A probability value is a framed quantity object, never a bare literal; one that does not name the frame or model it is a probability under is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ConfidenceAsProbability
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Confidence As Probability"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProbabilityValue is inferred from a confidence score (logic:confidence) without an explicit declared mapping. The logic: probability/confidence boundary is enforced here, not eroded: a confidence annotation is never silently read as a probability, so a probability derived from confidence without a declared mapping is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteProbabilitySpace
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Probability Space"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ProbabilitySpace does not name all three components of the Kolmogorov triple — its sample space (math:sampleSpace), its event σ-algebra (math:eventSigmaAlgebra), and its probability measure (math:probabilityMeasure). Each component may be symbolic or generative, but none may be absent; the gate requires presence and structural completeness, never impossible enumeration."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnscopedRandomVariable
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unscoped Random Variable"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:RandomVariable does not declare its domain (math:randomVariableDomain) and codomain (math:randomVariableCodomain) together with a probability-space or distribution context (math:hasDistribution). A random variable is a scoped measurable map; one missing its frame or its context is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MissingDistributionParameterization
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Missing Distribution Parameterization"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Distribution does not name its family (math:distributionFamily, a math:DistributionFamily) or, being parametric, does not name its parameterization (math:distributionParameterization). Distribution parameterization is explicit and mandatory because many families have several conventional forms; a bare family label or a silent default parameterization is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DistributionParameterRoleCardinality
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution Parameter Role Cardinality"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Distribution does not supply each role required by its parameterization (math:requiresParameterRole) EXACTLY ONCE — a role left unfilled, or a role filled by two parameters. Each required role is supplied exactly once through math:parameterRole; any other cardinality is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:DistributionParameterConstraint
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Distribution Parameter Constraint"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:DistributionParameter's quantity violates the positivity (math:requiresPositiveValue) or dimensional (math:quantityDimension) constraint its role declares — a negative standard deviation, a variance carrying unsquared units. The parameter constraints are carried on the role and checked, so a mis-constrained parameter is a caught error, not a silent one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnconditionedAssertion
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unconditioned Assertion"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:ConditionalProbability does not name its conditioning context (math:conditionalOn) or a math:ConditionalIndependenceAssertion does not name its conditioning set (math:independentGiven). A conditional or conditional-independence assertion always names what it is conditioned on; one that leaves its conditioning context implicit is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MissingProbabilityModelLowering
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Missing Probability Model Lowering"@x-gmeow-english ;
+    skos:definition "The failure raised when a reasoning-facing dependency model referenced by a probabilistic reasoning request does not declare its logic: lowering (math:probabilityModelLowering into a logic: probability-model target with a logic:preservationKind). Absent a declared lowering the engine reports unsupported / not-evaluated rather than assuming independence; a reasoning-facing model with an undeclared lowering is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:IncompleteDependencyModel
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Incomplete Dependency Model"@x-gmeow-english ;
+    skos:definition "The failure raised when a dependency-model declaration is not structurally complete — a math:BayesianNetwork whose graph is not a DAG or whose conditional probability tables are incomplete, a math:JointProbabilityTable whose outcomes are not exhaustive or whose mass does not sum to one, a math:FactorGraph with infinitely many factors, a math:MarkovKernel lacking domain/codomain or kernel totality. A structurally incomplete model cannot fix a joint distribution and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ExactPreservationViolated
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Exact Preservation Violated"@x-gmeow-english ;
+    skos:definition "The failure raised when a probability-model lowering declares logic:ExactPreservation while its completeness gate does NOT hold — the preservation↔completeness overclaim. A 'conditional' lowering (a math:BayesianNetwork, math:FactorGraph, math:MarkovKernel, or math:JointProbabilityTable) is exact only when its completeness gate holds (DAG and CPT completeness; finite normalized factors; kernel totality; exhaustive outcomes summing to one); declaring exact preservation without that gate holding is this failure. It is DISTINCT from math:IncompleteDependencyModel (which reports the structural incompleteness itself, independent of any preservation claim) and from math:MissingProbabilityModelLowering (which reports the ABSENCE of a declared lowering, not a false exactness claim on a present one)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProjectionConfidenceAsProbability
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Projection Confidence As Probability"@x-gmeow-english ;
+    skos:definition "The failure raised when a projection silently converts a confidence score to a probability. No projection may erode the logic: probability/confidence boundary: a projection that emits a confidence annotation as a probability without a declared mapping is ill-formed. The projection-side counterpart of math:ConfidenceAsProbability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ProjectionDroppedParameterization
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Projection Dropped Parameterization"@x-gmeow-english ;
+    skos:definition "The failure raised when a projection silently drops a math:Distribution's parameterization — emitting a bare family label without its math:DistributionParameterization and roles, so which conventional form was meant is lost. A projection must declare such a drop as recorded loss rather than perform it silently; a silent drop is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Projection loss carrier ------------------------------------------------ #
+# The bundle-data carrier for a math: projection's lowering into an external target,
+# reusing the logic: loss-ledger vocabulary VERBATIM (logic:preservationKind,
+# logic:unsupportedConstruct — Principle 17, no math: near-synonym). The two
+# projection-side failure classes above are join-requiring NATIVE gates over these
+# records; the carrier deliberately takes no sh:targetClass shape and is referenced by
+# no sh:class, exactly like the four lang: native projection gates.
+
+math:ProjectionRecord
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Projection Record"@x-gmeow-english ;
+    skos:definition "A record of a math: projection's lowering into an external target — the bundle-data carrier of its honest per-projection preservation judgment. It names the math: object it projects through math:projectionSource, the external target it lowers to through math:projectionTargetName, its logic:preservationKind, and — where lossy — the constructs it cannot carry through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary VERBATIM (Principle 17, no math: near-synonym). A projection that converts a source confidence into a math:ProbabilityValue declares that conversion through math:projectsConfidenceAsProbability and licenses it with a math:declaredConfidenceMapping; a lossy projection that drops a math:Distribution's parameterization enumerates it as recorded loss rather than performing the drop silently. The projection-side gates (math:ProjectionConfidenceAsProbability, math:ProjectionDroppedParameterization) are join-requiring native checks over these records, carrying no SHACL target shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:projectionSource
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "projection source"@x-gmeow-english ;
+    skos:definition "Relates a math:ProjectionRecord to the math: object it projects into an external target — a math:Distribution, a math:ProbabilityValue, or another math: object. Domain math:ProjectionRecord, range a math: object (stated in prose). The projection's honesty is judged against what this source carries: a parameterization on a source math:Distribution that the target cannot hold must be enumerated as dropped through logic:unsupportedConstruct."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:projectionTargetName
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "projection target name"@x-gmeow-english ;
+    skos:definition "Names the external target a math:ProjectionRecord lowers to — the OWL annotation surface, the SciPy/Stan parameter form, and the like. Domain math:ProjectionRecord, range xsd:string (stated in prose). The target is the addressee of the loss judgment: what preservation kind and unsupported constructs mean is fixed relative to it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:projectsConfidenceAsProbability
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "projects confidence as probability"@x-gmeow-english ;
+    skos:definition "Declares that a math:ProjectionRecord converts a source confidence score (logic:confidence) into a math:ProbabilityValue in its target. Domain math:ProjectionRecord, range xsd:boolean (stated in prose). A projection declaring this conversion must license it with an explicit math:declaredConfidenceMapping; converting confidence to probability without one erodes the logic: probability/confidence boundary at the projection seam (math:ProjectionConfidenceAsProbability), the projection-side counterpart of math:ConfidenceAsProbability."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:declaredConfidenceMapping
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "declared confidence mapping"@x-gmeow-english ;
+    skos:definition "Relates a math:ProjectionRecord to the explicit declared mapping that licenses its confidence→probability conversion. Domain math:ProjectionRecord, range the declared mapping object (stated in prose). A projection converting a confidence into a math:ProbabilityValue names one; a confidence-to-probability conversion with no declared mapping is ill-formed (math:ProjectionConfidenceAsProbability)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
 # Procedural constraints — projected to sh:SPARQLConstraint (the validation    #
 # twin of the derivation surface). Each is a compact logic: constraint-sugar   #
 # record carrying logic:formalizes, expanded by the frontend to a canonical    #

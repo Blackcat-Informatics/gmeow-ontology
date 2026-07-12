@@ -74,7 +74,7 @@ const RDFS_ISDEFINEDBY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy
 const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 /// Typed conformance-failure metadata. It does not alter the accepted graph, but the reader
 /// preserves it so migration tooling can verify that a projected replacement raises the same
-/// failure class and can reject ambiguous duplicate declarations.
+/// failure class and can reject ambiguous distinct declarations.
 const GMEOW_ENFORCES_FAILURE_CLASS: &str =
     "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
 /// The SKOS namespace — every `skos:*` annotation is skipped silently.
@@ -950,7 +950,7 @@ pub fn read_shacl_shape(
     let mut properties: Vec<PropertyConstraintIr> = Vec::new();
     let mut node_acc = CompAcc::new();
     let mut unsupported: Vec<String> = Vec::new();
-    let mut failure_class: Option<String> = None;
+    let mut failure_classes = BTreeSet::new();
 
     let set_target = |t: ShapeTarget, cur: &mut Option<ShapeTarget>| -> gmeow_errors::Result<()> {
         if cur.is_some() {
@@ -975,12 +975,7 @@ pub fn read_shacl_shape(
             continue;
         }
         if pred == GMEOW_ENFORCES_FAILURE_CLASS {
-            if failure_class.is_some() {
-                return Err(parse_err(format!(
-                    "read_shacl_shape: <{node_shape_iri}> carries duplicate gmeow:enforcesFailureClass metadata"
-                )));
-            }
-            failure_class = Some(obj_iri(graph, obj, node_shape_iri)?);
+            failure_classes.insert(obj_iri(graph, obj, node_shape_iri)?);
             continue;
         }
         match shacl_local(&pred) {
@@ -1024,6 +1019,11 @@ pub fn read_shacl_shape(
             "read_shacl_shape: <{node_shape_iri}> is not typed sh:NodeShape"
         )));
     }
+    if failure_classes.len() > 1 {
+        return Err(parse_err(format!(
+            "read_shacl_shape: <{node_shape_iri}> carries distinct gmeow:enforcesFailureClass values: {failure_classes:?}"
+        )));
+    }
     // A targetless inline / `sh:node` / property-only helper shape (e.g. one referenced by an
     // owning node shape's `sh:node`) adopts the owning node shape's target by walking the inverse
     // `sh:node` / `sh:property` edge. Only a genuinely orphan top-level targetless node shape (no
@@ -1040,7 +1040,7 @@ pub fn read_shacl_shape(
     let node_components = node_acc.finish(node_shape_iri)?;
     let mut ir = ValidationShapeIr::new(node_shape_iri, target, properties, None)?
         .with_node_components(node_components)?;
-    if let Some(failure_class) = failure_class {
+    if let Some(failure_class) = failure_classes.first() {
         ir = ir.with_failure_class(failure_class)?;
     }
 
@@ -1566,8 +1566,20 @@ mod tests {
         let err = read_shacl_shape(&ds, "https://ex/Shape").unwrap_err();
         assert!(
             err.message()
-                .contains("duplicate gmeow:enforcesFailureClass")
+                .contains("distinct gmeow:enforcesFailureClass")
         );
+    }
+
+    #[test]
+    fn repeated_identical_typed_failure_metadata_is_one_value() {
+        let ttl = format!(
+            "{HEADER}<https://ex/Shape> a sh:NodeShape ;\n\
+             sh:targetClass <https://ex/C> ;\n\
+             <{GMEOW_ENFORCES_FAILURE_CLASS}> <https://ex/Failure>, <https://ex/Failure> .\n"
+        );
+        let ds = parse_ttl(&ttl);
+        let read = read_shacl_shape(&ds, "https://ex/Shape").expect("identical values dedupe");
+        assert_eq!(read.ir.failure_class.as_deref(), Some("https://ex/Failure"));
     }
 
     #[test]
