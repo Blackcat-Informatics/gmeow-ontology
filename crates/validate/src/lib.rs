@@ -36,9 +36,19 @@ pub mod data_validate;
 pub mod error;
 pub mod findings;
 pub mod gufo;
+// The loop-closure enrichment join (correspondence of a validation Report against
+// the documentation projection). Pure serde over the wasm-clean Finding/Report model
+// and `rule_catalog::help_uri_for` — no RDF store, pipeline carrier, or reasoner — so
+// the WASM-interactive-docs sibling reuses it verbatim.
+pub mod local_oracle;
 pub mod model;
 pub mod projection_profiles;
 pub mod report_bridge;
+// The rule-identity registry's anchor transform (`help_uri_for` / `slugify`) is pure
+// string work over `crate::codes` + the `gmeow_errors` model — wasm-clean — so it is
+// compiled on every target for `local_oracle` (and the wasm docs sibling) to resolve
+// a finding code to its catalog help URI.
+pub mod rule_catalog;
 pub mod store;
 
 // Native-only: the slice-authoring dev gate, repo-lint guards, DSL phases, and the
@@ -76,8 +86,6 @@ pub mod mapping_eval;
 pub mod remediation;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod repo_static;
-#[cfg(not(target_arch = "wasm32"))]
-pub mod rule_catalog;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod self_desc;
 #[cfg(not(target_arch = "wasm32"))]

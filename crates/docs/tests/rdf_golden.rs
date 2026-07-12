@@ -171,14 +171,17 @@ fn small_model() -> DocsModel {
 
 #[test]
 fn gmeow_rdf_projection_golden() {
-    let nq = to_gmeow_rdf(&small_model());
+    let nq = to_gmeow_rdf(&small_model(), &std::collections::BTreeMap::new());
     insta::assert_snapshot!("gmeow_rdf_small", nq);
 }
 
 #[test]
 fn gmeow_rdf_projection_is_deterministic() {
     let model = small_model();
-    assert_eq!(to_gmeow_rdf(&model), to_gmeow_rdf(&model));
+    assert_eq!(
+        to_gmeow_rdf(&model, &std::collections::BTreeMap::new()),
+        to_gmeow_rdf(&model, &std::collections::BTreeMap::new())
+    );
 }
 
 // ── R5: vocabulary-shape + round-trip-valid RDF (beyond the golden) ──────
@@ -187,7 +190,7 @@ const DOCUMENTATION_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/do
 
 #[test]
 fn gmeow_rdf_carries_the_documentation_vocabulary_in_the_named_graph() {
-    let nq = to_gmeow_rdf(&small_model());
+    let nq = to_gmeow_rdf(&small_model(), &std::collections::BTreeMap::new());
 
     // Every non-empty quad lands in the documentation named graph.
     for line in nq.lines().filter(|l| !l.trim().is_empty()) {
@@ -227,7 +230,7 @@ fn gmeow_rdf_carries_the_documentation_vocabulary_in_the_named_graph() {
 
 #[test]
 fn gmeow_rdf_types_the_definition_flag_as_xsd_boolean() {
-    let nq = to_gmeow_rdf(&small_model());
+    let nq = to_gmeow_rdf(&small_model(), &std::collections::BTreeMap::new());
     // Cat has a definition (true); hasOwner has none (false). Both ride as typed
     // xsd:boolean literals.
     assert!(
@@ -252,7 +255,7 @@ fn gmeow_rdf_types_the_definition_flag_as_xsd_boolean() {
 fn gmeow_rdf_reparses_through_native_codec() {
     use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
 
-    let nq = to_gmeow_rdf(&small_model());
+    let nq = to_gmeow_rdf(&small_model(), &std::collections::BTreeMap::new());
     let dataset = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
         .expect("to_gmeow_rdf must emit valid, round-trippable N-Quads");
 
