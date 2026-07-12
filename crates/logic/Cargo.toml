@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # Shared RDF 1.2 adapter boundary for loading GTS/sidecar-aware datasets into
 # world-indexed logic stores (#648, supports #630/#667). The world-store now holds
 # the native `MutableDataset`/`RdfDataset` IR directly — oxigraph-free (EPIC #906).
-purrdf = "0.4"
+purrdf = "0.5"
 # The native SPARQL engine over `Arc<RdfDataset>` (#906): the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (rdf-core/sparql-algebra/xsd

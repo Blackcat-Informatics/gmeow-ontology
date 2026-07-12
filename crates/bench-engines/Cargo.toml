@@ -42,7 +42,7 @@ gmeow-errors = { path = "../errors" }
 gmeow-cost-measure = { path = "../cost-measure" }
 # Native RDF text codecs: parse the world-scoped EDB N-Quads into the frozen
 # `RdfDataset` IR (`purrdf::parse_dataset`) the forward/existential seams consume.
-purrdf = "0.4"
+purrdf = "0.5"
 # Canonical JSON (sorted BTreeMap keys — NO `preserve_order`) for the deterministic
 # cost/agreement artifact: identical inputs ⇒ identical bytes, the drift-gate form.
 serde_json = "1"

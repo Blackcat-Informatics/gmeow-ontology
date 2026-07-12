@@ -22,7 +22,7 @@ gmeow-errors = { path = "../errors" }
 # canonical native codec (`gmeow_rdf::parse_dataset`) into a frozen `RdfDataset`
 # (`gmeow-rdf-core`), then run the competency/structural/RDFS-closure SPARQL through
 # the native `NativeSparqlEngine` (`gmeow-sparql-eval`) — no oxigraph Store anywhere.
-purrdf = "0.4"
+purrdf = "0.5"
 # The SHACL Finding bridge (finding_from_shacl -> shacl.<LocalName>) for the
 # example-conformance executor.
 gmeow-validate = { path = "../validate" }
@@ -47,7 +47,7 @@ datatest-stable = "0.3"
 # The flagship acceptance-manifest cross-check names the frozen dataset and
 # term types directly to walk the manifest ⋈ competency union; the same native codec
 # the harness already depends on.
-purrdf = "0.4"
+purrdf = "0.5"
 
 [[test]]
 name = "slice_specs"

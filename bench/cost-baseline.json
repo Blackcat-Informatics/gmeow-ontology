@@ -15,8 +15,8 @@
       "fragment": "existential",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 4750814,
-        "alloc_count": 40114,
+        "alloc_bytes": 4750742,
+        "alloc_count": 40112,
         "consumed_steps": 3,
         "cost_vector": [],
         "derived_count": 3,
@@ -43,8 +43,8 @@
       "fragment": "existential",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3277906,
-        "alloc_count": 27800,
+        "alloc_bytes": 3277814,
+        "alloc_count": 27798,
         "consumed_steps": 4,
         "cost_vector": [],
         "derived_count": 4,
@@ -71,8 +71,8 @@
       "fragment": "existential",
       "golden_rows": 3,
       "native": {
-        "alloc_bytes": 4742377,
-        "alloc_count": 40039,
+        "alloc_bytes": 4742305,
+        "alloc_count": 40037,
         "consumed_steps": 3,
         "cost_vector": [],
         "derived_count": 3,
@@ -373,8 +373,8 @@
       "fragment": "forward",
       "golden_rows": 10,
       "native": {
-        "alloc_bytes": 6243260,
-        "alloc_count": 54249,
+        "alloc_bytes": 6244084,
+        "alloc_count": 54277,
         "consumed_steps": 10,
         "cost_vector": [
           [
@@ -465,8 +465,8 @@
       "fragment": "forward",
       "golden_rows": 4,
       "native": {
-        "alloc_bytes": 3950915,
-        "alloc_count": 33942,
+        "alloc_bytes": 3950487,
+        "alloc_count": 33928,
         "consumed_steps": 4,
         "cost_vector": [
           [
@@ -551,8 +551,8 @@
       "fragment": "forward",
       "golden_rows": 8,
       "native": {
-        "alloc_bytes": 5459296,
-        "alloc_count": 47654,
+        "alloc_bytes": 5458877,
+        "alloc_count": 47640,
         "consumed_steps": 8,
         "cost_vector": [
           [
@@ -686,8 +686,8 @@
       "fragment": "forward",
       "golden_rows": 78,
       "native": {
-        "alloc_bytes": 5642926,
-        "alloc_count": 60833,
+        "alloc_bytes": 5645488,
+        "alloc_count": 60917,
         "consumed_steps": 78,
         "cost_vector": [
           [
@@ -729,8 +729,8 @@
       "fragment": "forward",
       "golden_rows": 64,
       "native": {
-        "alloc_bytes": 7933285,
-        "alloc_count": 109464,
+        "alloc_bytes": 7921793,
+        "alloc_count": 109100,
         "consumed_steps": 64,
         "cost_vector": [
           [
