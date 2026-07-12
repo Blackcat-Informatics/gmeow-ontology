@@ -16,7 +16,7 @@
             edoal:uri gmeow:endedAtTime ;
         ] ;
         align:entity2 [
-            a edoal:Property ;
+            a edoal:Relation ;
             edoal:uri time:hasEnd ;
         ] ;
         align:relation "<=" ;
@@ -30,7 +30,7 @@
                 edoal:uri gmeow:eventTime ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri time:hasTime ;
             ] ;
             align:relation "<=" ;
@@ -44,7 +44,7 @@
                 edoal:uri gmeow:startedAtTime ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri time:hasBeginning ;
             ] ;
             align:relation "<=" ;

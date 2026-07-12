@@ -100,7 +100,7 @@
                 edoal:uri gmeow:sexAssignedAtBirth ;
             ] ;
             align:entity2 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gedcom:sex ;
             ] ;
             align:relation "<=" ;
@@ -114,7 +114,7 @@
                 edoal:uri gmeow:sexAssignedAtBirth ;
             ] ;
             align:entity2 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gedcom:sex ;
             ] ;
             align:relation "<=" ;
@@ -128,7 +128,7 @@
                 edoal:uri gmeow:sexAssignedAtBirth ;
             ] ;
             align:entity2 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gedcom:sex ;
             ] ;
             align:relation "<=" ;
@@ -142,7 +142,7 @@
                 edoal:uri gmeow:sexAssignedAtBirth ;
             ] ;
             align:entity2 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gedcom:sex ;
             ] ;
             align:relation "<=" ;
@@ -156,7 +156,7 @@
                 edoal:uri gmeow:sexAssignedAtBirth ;
             ] ;
             align:entity2 [
-                a edoal:Relation ;
+                a edoal:Property ;
                 edoal:uri gedcom:sex ;
             ] ;
             align:relation "<=" ;

@@ -44,7 +44,7 @@
                 edoal:uri gmeow:identifier ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bibframe:identifiedBy ;
             ] ;
             align:relation "<=" ;
@@ -58,7 +58,7 @@
                 edoal:uri gmeow:identifier ;
             ] ;
             align:entity2 [
-                a edoal:Property ;
+                a edoal:Relation ;
                 edoal:uri bibframe:identifiedBy ;
             ] ;
             align:relation "<=" ;
