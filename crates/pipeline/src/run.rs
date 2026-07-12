@@ -284,6 +284,10 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-governance-floors", "governance_floors"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-json-schema", "json_schema"),
+        // The Pydantic model package (functional documentation surface): a
+        // source-reading leaf like json-schema (reads the shape union + docs
+        // model), folded into REP_MODELS_PYTHON by the sink.
+        ("stage-export-pydantic", "pydantic"),
         ("stage-export-matrix", "matrix"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
@@ -348,6 +352,10 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-json-schema",
             "stage-export-matrix",
             "stage-export-metadata",
+            // THIS run's freshly-rendered Pydantic model package, folded into
+            // REP_MODELS_PYTHON by build_archive_blobs (sorted position:
+            // metadata < pydantic < references).
+            "stage-export-pydantic",
             "stage-export-references",
             "stage-export-research-objects",
             // THIS run's freshly-projected result-shapes.ttl, folded into REP_SHAPES so a

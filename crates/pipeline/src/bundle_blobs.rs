@@ -48,6 +48,12 @@ pub const REP_OKF: &str = "okf-export";
 pub const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
 /// tar of `gmeow.schema.json` + `gmeow.openapi.json`.
 pub const REP_SCHEMAS: &str = "schemas-archive";
+/// tar of the generated Pydantic v2 model package (`gmeow_models/<slice>.py`,
+/// `__init__.py`, `_base.py`, `_envelope.py`, `py.typed`, `README.md`), keyed by
+/// package-relative member path (`gmeow_models/...`). The functional documentation
+/// surface: co-derived from the SAME shape compilation as [`REP_SCHEMAS`], so a
+/// model's `model_json_schema()` agrees with the packed JSON Schema.
+pub const REP_MODELS_PYTHON: &str = "models-python";
 /// tar of `gmeow.jsonld` + `gmeow.yamlld` (the RDF 1.2-star serializations).
 pub const REP_YAMLLD: &str = "yaml-ld-archive";
 /// tar of the FULL SHACL shape surface, keyed by repo-relative path.
@@ -305,6 +311,13 @@ impl Bundle {
     /// shape — or `None` if absent.
     pub fn card_schema(&self) -> Result<Option<Vec<u8>>, gmeow_errors::Diag> {
         Ok(self.schemas()?.remove("card.schema.json"))
+    }
+
+    /// The folded Pydantic v2 model package as `{member-path: bytes}`
+    /// ([`REP_MODELS_PYTHON`], keyed `gmeow_models/...`). Empty on a wheel-only
+    /// install where the rep is absent.
+    pub fn models_python(&self) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+        self.archive(REP_MODELS_PYTHON)
     }
 
     /// The bundled `validate_local` envelope JSON Schema
@@ -726,6 +739,13 @@ pub fn bundled_schema(snapshot: &[u8]) -> Result<Option<Vec<u8>>, gmeow_errors::
     Bundle::from_snapshot(snapshot)?.schema()
 }
 
+/// The bundled Pydantic model package (one-shot; see [`Bundle::models_python`]).
+pub fn bundled_models_python(
+    snapshot: &[u8],
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+    Bundle::from_snapshot(snapshot)?.models_python()
+}
+
 /// The folded JSON-LD-star + YAML-LD-star serializations (one-shot; see
 /// [`Bundle::yaml_ld`]).
 pub fn bundled_yaml_ld(snapshot: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
@@ -810,6 +830,15 @@ mod tests {
         assert!(
             !bundle.reasoning().unwrap().is_empty(),
             "reasoning-archive blob missing from gmeow.gts"
+        );
+        let models = bundle.models_python().unwrap();
+        assert!(
+            !models.is_empty(),
+            "models-python blob missing from gmeow.gts"
+        );
+        assert!(
+            models.contains_key("gmeow_models/__init__.py"),
+            "models-python blob is missing the package __init__.py member"
         );
     }
 

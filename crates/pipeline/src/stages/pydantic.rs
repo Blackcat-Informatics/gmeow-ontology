@@ -43,12 +43,10 @@
 //! Anything else (a class in no documented slice, no gmeow path, and no authored
 //! ecosystem namespace) is a HARD FAIL.
 //!
-//! The public entry point [`render_models_python`] is exercised by this module's
-//! own golden tests but is not yet called from a production `Stage` (the
-//! `stage-export-pydantic` leaf lands in a follow-up task), so the emitter is dead
-//! code in a non-test build until then — hence the module-scoped `dead_code`
-//! allowance, removed when the stage is wired.
-#![allow(dead_code)]
+//! The public entry point [`render_models_python`] is invoked by the
+//! [`PydanticStage`] production leaf (`stage-export-pydantic`); the carrier folds
+//! its output into the `models-python` blob and writes the package tree to
+//! [`PACKAGE_DISK_PREFIX`] on disk.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -59,6 +57,7 @@ use gmeow_docs::model::{DocSlice, DocsModel};
 use purrdf::shapes::shapes::Target;
 
 use crate::gmeow_ns::{GMEOW_NS, LANG_NS, LOGIC_NS, MATH_NS, gmeow_json_schema_namespaces};
+use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::schema_ident::{
     class_render_order, finish_text, local_name, py_string, sanitize_identifier, sanitize_type,
 };
@@ -72,6 +71,10 @@ const BASE_MODULE: &str = "_base";
 const SPEC_MODULE: &str = "_spec";
 /// The package directory prefix every artifact key carries.
 const PKG: &str = "gmeow_models";
+/// The on-disk directory the shipped package lives under (the source tree the
+/// `gmeow-ontology` wheel builds from). Blob members are package-relative
+/// (`gmeow_models/...`); on disk they live under this prefix.
+pub const PACKAGE_DISK_PREFIX: &str = "packages/python/";
 
 /// JSON-Schema `format` strings the emitter is EXPLICITLY allowed to widen to
 /// `str` (recording a declared datatype loss) rather than hard-failing. A format
@@ -111,11 +114,14 @@ pub(crate) struct DeclaredDatatypeLoss {
 pub(crate) struct ModelsPython {
     /// Logical path → file bytes (`gmeow_models/__init__.py`, `<slice>.py`, …).
     pub artifacts: BTreeMap<String, Vec<u8>>,
-    /// The allowlisted datatype widenings (empty in the current corpus).
+    /// The allowlisted datatype widenings (empty in the current corpus). Read by
+    /// the honesty surface (the notation-profile `declaredLoss` builder).
+    #[allow(dead_code)]
     pub declared_datatype_losses: Vec<DeclaredDatatypeLoss>,
     /// Class IRI → the model's importable dotted path
-    /// (`gmeow_models.<module>.<Class>`), for the term→model doc link (a later
-    /// docs task consumes this to link a term page to its model).
+    /// (`gmeow_models.<module>.<Class>`). Read by the docs surface to link a term
+    /// page to its model (the term↔model bidirectional link).
+    #[allow(dead_code)]
     pub dotted_paths: BTreeMap<String, String>,
 }
 
@@ -830,8 +836,6 @@ struct PyField {
 struct PyModel {
     class_name: String,
     parent: String,
-    /// The class IRI for the docstring (empty for the synthetic envelope).
-    iri: String,
     /// The fully-rendered class docstring body (already triple-quoted).
     docstring: String,
     extra: &'static str,
@@ -950,7 +954,6 @@ fn build_model(
     Ok(PyModel {
         class_name: route.class_name.clone(),
         parent,
-        iri: route.iri.clone(),
         docstring,
         extra,
         jse,
@@ -1499,6 +1502,85 @@ fn render_readme(modules: &[RenderedModule]) -> Vec<u8> {
         modules.len()
     ));
     finish_text(out)
+}
+
+// ── Pipeline stage ───────────────────────────────────────────────────────────
+
+/// The committed on-disk root of the shipped package (the wheel source tree).
+pub const PACKAGE_ROOT: &str = "packages/python/gmeow_models";
+
+/// The `stage-export-pydantic` export-leaf stage: a source-reading leaf (like
+/// `stage-export-json-schema`) that renders the Pydantic model package from the
+/// shape union + docs model. Its artifacts are written to disk under
+/// [`PACKAGE_DISK_PREFIX`] (the wheel source) and folded into the `models-python`
+/// blob by the carrier.
+pub struct PydanticStage;
+
+impl Stage for PydanticStage {
+    fn id(&self) -> &str {
+        "stage-export-pydantic"
+    }
+    fn consumes(&self) -> &[String] {
+        &[]
+    }
+    fn impl_version(&self) -> &str {
+        "pydantic.v1"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
+        // The emitter reads BOTH the shape union (constraints) and the docs model
+        // (prose/digests/slice routing), so both source sets bust this leaf's cache.
+        let mut files = purrdf::shapes::shape_union::shape_files(root)
+            .map_err(|m| err(format!("shape files: {m}")))?;
+        files.extend(docs_source_files(root));
+        files.sort();
+        files.dedup();
+        Ok(files)
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let rendered = render_models_python(input.root)?;
+        // Key every member at its on-disk package path (the wheel source tree); the
+        // carrier strips the prefix back to the package-relative blob member key.
+        let artifacts: BTreeMap<String, Vec<u8>> = rendered
+            .artifacts
+            .into_iter()
+            .map(|(k, v)| (format!("{PACKAGE_DISK_PREFIX}{k}"), v))
+            .collect();
+        Ok(StageOutput::new(StageProduct::from_artifacts(
+            self.id(),
+            artifacts,
+        )))
+    }
+}
+
+/// The docs-model source files whose edits must bust this leaf's cache: every
+/// slice `module.ttl` (definitions/prose) plus the committed term-content
+/// manifest (digests). A superset is fine — over-declaring only busts the cache
+/// more often; under-declaring would risk a stale render.
+fn docs_source_files(root: &Path) -> Vec<std::path::PathBuf> {
+    let mut files = Vec::new();
+    let manifest = root.join("generated/catalog/term-content-manifest.nq");
+    if manifest.is_file() {
+        files.push(manifest);
+    }
+    let slices = root.join("slices");
+    collect_named(&slices, "module.ttl", &mut files);
+    files
+}
+
+/// Recursively collect every file named `name` under `dir`.
+fn collect_named(dir: &Path, name: &str, out: &mut Vec<std::path::PathBuf>) {
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
+    let mut entries: Vec<_> = entries.flatten().map(|e| e.path()).collect();
+    entries.sort();
+    for path in entries {
+        if path.is_dir() {
+            collect_named(&path, name, out);
+        } else if path.file_name().and_then(|n| n.to_str()) == Some(name) {
+            out.push(path);
+        }
+    }
 }
 
 #[cfg(test)]
