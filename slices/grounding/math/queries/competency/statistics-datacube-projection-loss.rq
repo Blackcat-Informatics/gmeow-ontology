@@ -1,0 +1,25 @@
+# Competency question: "What projection loss occurs when this statistical result is exported
+# to RDF Data Cube?" The projection-side loss ledger made queryable for the Data-Cube target:
+# a math:ProjectionRecord projects a math: statistical result (math:projectionSource) into the
+# RDF Data Cube (math:projectionTargetName), declares its preservation polarity
+# (logic:preservationKind — SoundUnderApproximation: the cube is sound but incomplete), and
+# enumerates EACH construct it cannot carry (logic:unsupportedConstruct), reusing the logic:
+# loss-ledger vocabulary verbatim (Principle 17). The query returns one row per dropped
+# construct — model assumptions, inference method, distribution parameterization, and
+# proof/provenance — so "what is lost, and is the loss recorded" is answerable rather than
+# silent. The target is projected as its string form (STR(...)) so its cell is a plain
+# literal. Scoped to the fixture namespace so the answer is exactly the Data-Cube export's
+# recorded drops.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?projection ?target ?preservation ?dropped WHERE {
+    ?projection a math:ProjectionRecord ;
+                math:projectionSource ?source ;
+                math:projectionTargetName ?targetRaw ;
+                logic:preservationKind ?preservation ;
+                logic:unsupportedConstruct ?dropped .
+    BIND(STR(?targetRaw) AS ?target)
+    FILTER(STRSTARTS(STR(?projection), "http://example.org/math/"))
+}
+ORDER BY ?projection ?dropped

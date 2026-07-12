@@ -944,6 +944,47 @@ ex:rowProjectionConfidenceLoss a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "OWL annotation (probability literal)" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "issue" ; gmeow:cellValueLiteral "confidence-as-probability" ] .
 
+# === Projection Q6 — what is lost exporting a result to RDF Data Cube ======== #
+ex:cqStatisticsDataCubeProjectionLoss a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-datacube-projection-loss.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-datacube-projection-loss.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The Data-Cube projection-loss ledger made queryable: a math:ProjectionRecord exporting a math: statistical result to the RDF Data Cube names its logic:preservationKind (logic:SoundUnderApproximation — sound but incomplete) and enumerates EACH construct the cube cannot carry through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary verbatim (Principle 17). Over the fixture the answer is exactly the four recorded drops of the p-value's Data-Cube export {pvalueCubeProjection → 'RDF Data Cube' → SoundUnderApproximation → each of droppedInferenceMethod, droppedModelAssumptions, droppedNullDistributionParameterization, droppedProofProvenance}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsDataCubeProjectionLossShape ;
+    gmeow:cqExpectRow
+        ex:rowDataCubeDropInferenceMethod ,
+        ex:rowDataCubeDropModelAssumptions ,
+        ex:rowDataCubeDropNullDistributionParameterization ,
+        ex:rowDataCubeDropProofProvenance .
+ex:cqStatisticsDataCubeProjectionLossShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "projection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dropped" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ex:rowDataCubeDropInferenceMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:pvalueCubeProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "RDF Data Cube" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueIri exf:droppedInferenceMethod ] .
+ex:rowDataCubeDropModelAssumptions a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:pvalueCubeProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "RDF Data Cube" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueIri exf:droppedModelAssumptions ] .
+ex:rowDataCubeDropNullDistributionParameterization a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:pvalueCubeProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "RDF Data Cube" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueIri exf:droppedNullDistributionParameterization ] .
+ex:rowDataCubeDropProofProvenance a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:pvalueCubeProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "RDF Data Cube" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueIri exf:droppedProofProvenance ] .
+
 # =========================================================================== #
 # PROBABILITY LAYER — the seven probability-charter competency questions.      #
 # Each runs over the merged ontology unioned with its own fixture; expected    #

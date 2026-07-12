@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `math_producers` stage: fold the six `math:` producers' output into the carrier
+//! The `math_producers` stage: fold the seven `math:` producers' output into the carrier
 //! (Design A).
 //!
 //! Each flagship-acceptance scenario in
@@ -11,9 +11,11 @@
 //! RDF graph fragment (Turtle) built from constants + formatted exact integers/rationals. A
 //! SIXTH producer, [`gmeow_math::producers::probability_model_seam`], folds the same way but
 //! is NOT bound to a flagship scenario — it exists solely to carry the probability layer's
-//! live `logic:probabilityModel` A-box crossing triple inside `gmeow.gts`.
+//! live `logic:probabilityModel` A-box crossing triple inside `gmeow.gts`. A SEVENTH producer,
+//! [`gmeow_math::producers::pvalue_tri_slice`], likewise non-flagship, carries the signature
+//! `lang:` → `logic:` → `math:` p-value round-trip inside `gmeow.gts`.
 //!
-//! This stage RUNS all six and parses each producer's `.turtle` into its own named carrier
+//! This stage RUNS all seven and parses each producer's `.turtle` into its own named carrier
 //! graph ([`crate::stages::carrier::MATH_PRODUCER_GRAPHS`], in producer order). The snapshot
 //! presenter reads those graphs back via `producer_graph` and folds them into `gmeow.gts`, so
 //! the producer output ships in the bundle — the shippable deliverable, maximal dogfooding —
@@ -29,10 +31,10 @@ use std::path::Path;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{MATH_PRODUCER_GRAPHS, parse_into_graph};
 
-/// Run the six producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
+/// Run the seven producers in the pinned [`MATH_PRODUCER_GRAPHS`] order and pair each with its
 /// target graph IRI. The order is the SINGLE source of the producer→graph mapping shared with
 /// the snapshot presenter (both index into `MATH_PRODUCER_GRAPHS`).
-fn producer_turtles() -> [(&'static str, String); 6] {
+fn producer_turtles() -> [(&'static str, String); 7] {
     [
         (
             MATH_PRODUCER_GRAPHS[0],
@@ -58,11 +60,15 @@ fn producer_turtles() -> [(&'static str, String); 6] {
             MATH_PRODUCER_GRAPHS[5],
             gmeow_math::producers::probability_model_seam().turtle,
         ),
+        (
+            MATH_PRODUCER_GRAPHS[6],
+            gmeow_math::producers::pvalue_tri_slice().turtle,
+        ),
     ]
 }
 
 /// The `math_producers` pipeline stage — a leaf compute node. It consumes no upstream product
-/// (the producers are self-contained native functions) and attaches the six producer graphs to
+/// (the producers are self-contained native functions) and attaches the seven producer graphs to
 /// its carrier dataset.
 pub struct MathProducersStage {
     consumes: Vec<String>,
@@ -106,7 +112,9 @@ impl Stage for MathProducersStage {
         // v1: fold the five math flagship producers' graphs into the carrier.
         // v2: additionally fold the probability-model seam producer's graph (a sixth,
         // non-flagship producer carrying the live logic:probabilityModel crossing triple).
-        "math_producers.v2"
+        // v3: additionally fold the p-value tri-slice producer's graph (a seventh,
+        // non-flagship producer carrying the signature lang: -> logic: -> math: round-trip).
+        "math_producers.v3"
     }
     fn input_files(&self, _root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // No source files: the producers are self-contained native functions whose bytes ride
@@ -141,11 +149,11 @@ impl Stage for MathProducersStage {
 mod tests {
     use super::*;
 
-    /// The stage attaches EXACTLY the six producer graphs, each non-empty and carrying its
+    /// The stage attaches EXACTLY the seven producer graphs, each non-empty and carrying its
     /// producer's pinned content — the proof the producer output reaches the carrier (and thence
     /// `gmeow.gts`), not merely a test.
     #[test]
-    fn run_attaches_the_six_producer_graphs() {
+    fn run_attaches_the_seven_producer_graphs() {
         let stage = MathProducersStage::new();
         let upstream = BTreeMap::new();
         let out = stage

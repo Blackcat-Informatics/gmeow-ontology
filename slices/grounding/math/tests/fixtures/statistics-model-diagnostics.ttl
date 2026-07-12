@@ -22,7 +22,12 @@ ex:trialFit a math:FittedModel ;
     math:modelFormula ex:trialFormula .
 
 ex:trialData a math:DatasetMatrix .
-ex:trialFormula a math:ModelFormula .
+ex:trialFormula a math:ModelFormula ;
+    math:argumentSlot ex:trialSlot0 .
+ex:trialSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:trialResponse .
+ex:trialResponse a math:VariableExpression .
 
 # A model diagnostic: a residual analysis over the fit, naming its method.
 ex:residualDiagnostic a math:ModelDiagnostic ;

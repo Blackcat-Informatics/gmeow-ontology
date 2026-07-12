@@ -39,7 +39,12 @@ ex:classifierFit a math:FittedModel ;
     math:modelFormula ex:classifierFormula .
 
 ex:heldOutData a math:DatasetMatrix .
-ex:classifierFormula a math:ModelFormula .
+ex:classifierFormula a math:ModelFormula ;
+    math:argumentSlot ex:classifierSlot0 .
+ex:classifierSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:classifierResponse .
+ex:classifierResponse a math:VariableExpression .
 
 # The record evidence: an essential H0 component that never dies within the filtration.
 ex:essentialLifetime a math:PersistenceLifetime ;
