@@ -501,7 +501,7 @@ gmeow:qualityDimensionTranslationCoverage
     a gmeow:QualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "translation coverage"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for translation coverage — the fraction of a slice's label and definition literals carrying audited translations, measured per language, with full coverage requiring English, French, and Mandarin."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for translation coverage — the fraction of every localizable literal the slice authors (each (term, predicate) over the localizable predicates: labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names) carrying audited translations, measured per language, with full coverage requiring English, French, and Mandarin."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionCounterExampleDepth
