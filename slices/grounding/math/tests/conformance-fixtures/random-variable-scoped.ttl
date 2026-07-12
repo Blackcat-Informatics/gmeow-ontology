@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:RandomVariableScopedShape (Rule P5): a
+# math:RandomVariable that declares its math:randomVariableDomain and
+# math:randomVariableCodomain AND carries a probability context through a
+# math:hasDistribution. The distribution names its math:distributionFamily so
+# math:DistributionFamilyShape (P6a) is satisfied and supplies no parameters so the
+# parametric gates (P6b, P7) stay silent. It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/random-variable-unscoped.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecRandomVariableScoped).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:heightVariable a math:RandomVariable ;
+    math:randomVariableDomain ex:sampleDomain ;
+    math:randomVariableCodomain ex:realLine ;
+    math:hasDistribution ex:heightDistribution .
+
+ex:sampleDomain a math:MeasurableSpace .
+ex:realLine a math:MeasurableSpace .
+
+ex:heightDistribution a math:Distribution ;
+    math:distributionFamily ex:normalFamily .
+
+ex:normalFamily a math:DistributionFamily .

@@ -561,3 +561,70 @@ ASK {
     math:ResultRoleConflation         rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "The process / result / claim separation names three typed failures — conflating the process with the claim (math:ProcessObservationConflation), leaving a result claim ungrounded by a vantage (math:UngroundedResultClaim), and roling the result object as the claim (math:ResultRoleConflation) — so each MUST subclass math:MathConformanceFailure as a first-class, queryable object." .
+
+# --- Probability: the event-set is disjoint from the occurrent (MUST) -------- #
+ex:saProbabilityEventDisjointOccurrent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:ProbabilityEvent owl:disjointWith logic:Event .
+}""" ;
+    gmeow:saRationale "A math:ProbabilityEvent is the measure-theoretic sense — a measurable SET OF OUTCOMES — whereas a logic:Event is an occurrent (something that happens in time), so the two MUST be held owl:disjointWith: a rain occurrence and the rain event-set in a forecast space are never conflated. The OWL-axiom gate backing math:ProbabilityEventOccurrentConflation, whose paired SHACL (Rule P11) surfaces the same conflation as a finding." .
+
+# --- Probability: a probability value is disjoint from odds and log-odds (MUST) --- #
+ex:saProbabilityValueDisjointScales a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:OddsValue    owl:disjointWith math:ProbabilityValue .
+    math:LogOddsValue owl:disjointWith math:ProbabilityValue .
+}""" ;
+    gmeow:saRationale "A math:ProbabilityValue is ALWAYS in the closed unit interval [0, 1]; math:OddsValue (0, ∞) and math:LogOddsValue (−∞, ∞) are lawful probability-SCALE transforms, NOT probabilities, so each MUST be held owl:disjointWith math:ProbabilityValue — a consumer seeing a math:ProbabilityValue may correctly assume [0, 1], and handing it an odds/log-odds is the caught math:ProbabilityScaleConflation (paired SHACL Rule P2), never a silent one." .
+
+# --- Probability: every probability + projection failure is typed (MUST) ----- #
+ex:saProbabilityFailureHierarchy a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    FILTER NOT EXISTS {
+        VALUES ?fc {
+            math:ProbabilityOutOfBounds
+            math:ProbabilityScaleConflation
+            math:ProbabilityEventOccurrentConflation
+            math:UnframedProbabilityValue
+            math:ConfidenceAsProbability
+            math:IncompleteProbabilitySpace
+            math:UnscopedRandomVariable
+            math:MissingDistributionParameterization
+            math:DistributionParameterRoleCardinality
+            math:DistributionParameterConstraint
+            math:UnconditionedAssertion
+            math:MissingProbabilityModelLowering
+            math:IncompleteDependencyModel
+            math:ExactPreservationViolated
+            math:ProjectionConfidenceAsProbability
+            math:ProjectionDroppedParameterization
+        }
+        FILTER NOT EXISTS { ?fc rdfs:subClassOf+ math:MathConformanceFailure . }
+    }
+}""" ;
+    gmeow:saRationale "Each of the sixteen probability-layer and projection-side hard-rule failures MUST be a subclass of math:MathConformanceFailure, so every violation — an out-of-bounds probability, a conflated scale, an event/occurrent conflation, an unframed value, a confidence read as probability, an incomplete space, an unscoped random variable, a missing/miscardinalitied/mis-constrained parameterization, an unconditioned assertion, a missing lowering, an incomplete dependency model, an exactness overclaim, or a silent confidence/parameterization drop at the projection seam — is a typed, queryable object. The ASK is a for-all over a VALUES list (it finds NO enumerated failure that fails to subclass the parent), so a new probability failure joins the audit by being added to the list." .
+
+# --- Probability: an MCMC run is a process (an Activity), not a claim (MUST) -- #
+ex:saMcmcRunIsActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:MCMCRun rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "A math:MCMCRun is the sampling PROCESS that draws a math:PosteriorSample from a posterior — an occurrent, distinct from its result sample and from any claim about the posterior — so it MUST be a subclass of gmeow:Activity, carrying the process/result/claim separation of the observations spine and letting 'which run produced these draws and diagnostics' be answered through gmeow:wasGeneratedBy." .

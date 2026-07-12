@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:ProbabilityValueRangeShape (Rule P1): a framed exact
+# math:ProbabilityValue in the closed unit interval [0, 1]. Following the exact-rational
+# discipline (AC#6), the exact magnitude 0.72 is carried as a math:RationalValue 18/25
+# (math:numerator/math:denominator) rather than a decimal, so it also satisfies
+# math:RationalValueShape (integer numerator, non-zero integer denominator). It names its
+# gmeow:hasReferenceFrame (P3), is not typed math:OddsValue / math:LogOddsValue (P2), and
+# carries no logic:confidence (P10). It MUST raise NO probability failure class.
+# Positive counterpart of counter-examples/probability-value-above-unit.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecProbabilityValueInUnit).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:inUnitProbability a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 18 ;        # 18/25 = 0.72, within the closed unit interval [0, 1]
+    math:denominator 25 ;
+    gmeow:hasReferenceFrame ex:forecastFrame .
+
+ex:forecastFrame a gmeow:ReferenceFrame .

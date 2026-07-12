@@ -1,0 +1,23 @@
+# Competency question: "What distribution does this random variable follow, and is it
+# dimensionally consistent with that distribution's location parameter?" Exercises the
+# carried-not-assumed dimensional constraint: a math:RandomVariable declares its
+# math:hasDistribution and its math:hasDimension, and its location (mean) parameter's
+# quantity carries the SAME dimension — so a computed consistency flag ("true" when the
+# random-variable dimension equals the location parameter's quantity dimension) is
+# projected rather than assumed. Scoped to the fixture namespace so the answer is
+# exactly {heightRV → heightDist, dimensionally consistent "true"}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?randomVariable ?distribution ?dimConsistent WHERE {
+    ?randomVariable a math:RandomVariable ;
+                    math:hasDistribution ?distribution ;
+                    math:hasDimension ?rvDim .
+    ?distribution math:hasDistributionParameter ?param .
+    ?param math:parameterRole ?role ;
+           math:parameterQuantity ?quantity .
+    ?role a math:DistributionParameterRole .
+    ?quantity math:hasDimension ?paramDim .
+    FILTER(STRSTARTS(STR(?randomVariable), "http://example.org/math/"))
+    BIND(IF(sameTerm(?rvDim, ?paramDim), "true", "false") AS ?dimConsistent)
+}
+ORDER BY ?randomVariable

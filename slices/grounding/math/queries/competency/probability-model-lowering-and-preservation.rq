@@ -1,0 +1,21 @@
+# Competency question: "For this reasoning request, what probability model governs it,
+# what logic: target does that model lower into, and with what preservation kind?"
+# Exercises the LIVE logic: seam end-to-end: a request declares its probability model
+# through the real A-box predicate logic:probabilityModel; the model (a math:
+# dependency model such as a math:BayesianNetwork) declares its formal lowering into a
+# logic: probability-model target (math:probabilityModelLowering) carrying its
+# preservation polarity ALONGSIDE it (logic:preservationKind, reused verbatim from the
+# logic: loss-ledger vocabulary — Principle 17). Scoped to the fixture namespace so the
+# answer is exactly {bnQuery → sprinklerNet → logic:DependencyModel,
+# logic:ExactPreservation}.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+
+SELECT ?request ?model ?logicTarget ?preservationKind WHERE {
+    ?request logic:probabilityModel ?model .
+    ?model a ?modelClass .
+    ?modelClass math:probabilityModelLowering ?logicTarget ;
+                logic:preservationKind ?preservationKind .
+    FILTER(STRSTARTS(STR(?request), "http://example.org/math/"))
+}
+ORDER BY ?request ?model ?logicTarget ?preservationKind

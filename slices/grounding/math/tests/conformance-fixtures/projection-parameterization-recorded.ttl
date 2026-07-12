@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the native math:ProjectionDroppedParameterization gate: a
+# LOSSY math:ProjectionRecord (logic:preservationKind logic:SoundUnderApproximation)
+# projects a source math:Distribution carrying a math:distributionParameterization AND
+# enumerates that parameterization among its logic:unsupportedConstruct drops (a literal
+# naming the meanStddev parameterization). It MUST raise NO projection failure class.
+# Positive counterpart of counter-examples/projection-dropped-parameterization.ttl.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:normalDistribution a math:Distribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddev .
+
+ex:normalFamily a math:DistributionFamily .
+ex:meanStddev a math:DistributionParameterization .
+
+ex:recordedProjection a math:ProjectionRecord ;
+    math:projectionSource ex:normalDistribution ;
+    math:projectionTargetName "SciPy stats (family label only)" ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:unsupportedConstruct "dropped the meanStddev distribution parameterization" .
