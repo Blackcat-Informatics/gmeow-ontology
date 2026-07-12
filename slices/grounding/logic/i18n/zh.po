@@ -1200,6 +1200,10 @@ msgctxt "https://blackcatinformatics.ca/logic/EngineCapability|skos:definition"
 msgid "A declared capability of a reasoning engine — the executional ability an actor must hold to execute a logic:ActionSchema, named as the object of logic:capability. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:EngineCapability only under the stated identity and validation conditions."
 msgstr "一个declared capability的a reasoning engine — the executional ability an actor必须hold到execute a logic:ActionSchema, named as the object的logic:capability."
 
+msgctxt "https://blackcatinformatics.ca/logic/EngineCapability|skos:example"
+msgid "logic:EngineCapability rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."
+msgstr "logic:EngineCapability rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."
+
 msgctxt "https://blackcatinformatics.ca/logic/EntrenchmentRevision|rdfs:label"
 msgid "Entrenchment Revision"
 msgstr "EntrenchmentRevision"
@@ -1648,6 +1652,10 @@ msgstr "GenericDependence"
 msgctxt "https://blackcatinformatics.ca/logic/GenericDependence|skos:definition"
 msgid "A probability model for a GENERIC (unstructured) stochastic dependence between random variables: the lowering target for a math:MarkovKernel via math:probabilityModelLowering, whose conditional structure is not further factored into an explicit joint table (logic:DependencyModel) or a full-independence product (logic:FullIndependence). It records that a dependence exists without committing to its internal structure. It is not an interchangeable alias for a broader, narrower, or merely related construct; use logic:GenericDependence only under the stated identity and validation conditions."
 msgstr "一个probability 模型用于a GENERIC (unstructured) stochastic dependence between random variables: the lowering target用于a math:MarkovKernel via math:probabilityModelLowering, whose conditional structure是not further factored into an explicit joint table (logic:DependencyModel)或a full-independence product (logic:FullIndependence)."
+
+msgctxt "https://blackcatinformatics.ca/logic/GenericDependence|skos:example"
+msgid "logic:GenericDependence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."
+msgstr "logic:GenericDependence rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ."
 
 msgctxt "https://blackcatinformatics.ca/logic/GetPut|rdfs:label"
 msgid "GetPut"
