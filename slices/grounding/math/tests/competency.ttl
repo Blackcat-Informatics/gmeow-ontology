@@ -1185,3 +1185,32 @@ ex:rowEstimateProvenance a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimator" ; gmeow:cellValueIri exf:olsEstimator ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimand" ; gmeow:cellValueIri exf:averageTreatmentEffect ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri exf:normalErrors ] .
+
+# === SQ3 — inference and results: p-value framing and multiplicity ========= #
+
+ex:cqStatisticsPValueFraming a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-pvalue-framing.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-pvalue-framing.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:PValue names the math:NullHypothesis it is computed under (math:nullHypothesis), the math:Distribution it is measured against (math:nullDistribution, a math:SamplingDistribution) and its math:Sidedness (math:alternativeSidedness) — the frame that makes P(T ≥ t | H0) unambiguous — and its multiplicity handling is LEFT-JOINed (math:pValueAdjustment / math:multipleComparisonFamily, BindingOptional), so 'what null, distribution, and tail/sidedness produced this p-value, and was it adjusted for multiplicity' is answerable. Over the fixture the answer is exactly {geneExpressionPValue → null noDifferenceNull, distribution tNullDistribution, sidedness twoSidedAlternative, adjustment benjaminiHochberg, family geneFamily}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsPValueFramingShape ;
+    gmeow:cqExpectRow ex:rowPValueFraming .
+
+ex:cqStatisticsPValueFramingShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "pvalue" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "nullHypothesis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "nullDistribution" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sidedness" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "adjustment" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ,
+        [ logic:columnVariable "family" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPValueFraming a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pvalue" ; gmeow:cellValueIri exf:geneExpressionPValue ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "nullHypothesis" ; gmeow:cellValueIri exf:noDifferenceNull ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "nullDistribution" ; gmeow:cellValueIri exf:tNullDistribution ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:twoSidedAlternative ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "adjustment" ; gmeow:cellValueIri exf:benjaminiHochberg ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri exf:geneFamily ] .

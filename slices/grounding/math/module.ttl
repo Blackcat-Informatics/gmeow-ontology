@@ -6330,6 +6330,7 @@ math:MarkovKernel
 math:ProbabilityEvent owl:disjointWith logic:Event .
 math:OddsValue owl:disjointWith math:ProbabilityValue .
 math:LogOddsValue owl:disjointWith math:ProbabilityValue .
+math:FrequentistResult owl:disjointWith math:BayesianResult .
 
 # --- Structural restriction axioms (presence gates) ------------------------- #
 # A math:ProbabilitySpace requires a sample-space, a σ-algebra, and a measure
@@ -6519,6 +6520,237 @@ math:declaredConfidenceMapping
     rdfs:label "declared confidence mapping"@x-gmeow-english ;
     skos:definition "Relates a math:ProjectionRecord to the explicit declared mapping that licenses its confidence→probability conversion. Domain math:ProjectionRecord, range the declared mapping object (stated in prose). A projection converting a confidence into a math:ProbabilityValue names one; a confidence-to-probability conversion with no declared mapping is ill-formed (math:ProjectionConfidenceAsProbability)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# Statistical inference — hypotheses, tests, p-values, and the paradigm result #
+# families (STATISTICS-charter "Inference and results" + "Frequentist and      #
+# Bayesian parity")                                                            #
+#                                                                              #
+# The two inference-paradigm result families (math:FrequentistResult,          #
+# math:BayesianResult) are first-class and neither is privileged; they are held #
+# disjoint (a result is not both frequentist and Bayesian) and the paradigm    #
+# axis is a PARTIAL classification — only paradigm-exclusive kinds are placed   #
+# under them, so a paradigm-neutral result object (an estimate, a residual) is  #
+# never forced into either. A p-value is the worked frequentist result: an      #
+# unambiguous object only when it carries its test, null hypothesis, test       #
+# statistic, null distribution, and tail/sidedness.                            #
+# =========================================================================== #
+
+# --- The two inference-paradigm result families (held disjoint, partial) ---- #
+
+math:FrequentistResult
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Frequentist Result"@x-gmeow-english ;
+    skos:definition "A frequentist inference result: the family of result objects whose semantics rest on the behaviour of a procedure under repeated sampling — a p-value, a sampling distribution, a confidence interval, statistical power, and the Type I / Type II error rates. A subclass of math:MathematicalObject and one of the two inference-paradigm result families, held owl:disjointWith math:BayesianResult so a single result is never read as both frequentist and Bayesian. The paradigm axis is a PARTIAL classification: only paradigm-exclusive kinds are placed under it, so a paradigm-neutral object (a math:Estimate, a math:Residual) is left free of either family rather than forced into one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BayesianResult
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Bayesian Result"@x-gmeow-english ;
+    skos:definition "A Bayesian inference result: the family of result objects whose semantics rest on a posterior obtained by updating a prior with a likelihood — a posterior distribution, a credible interval, a Bayes factor, a posterior probability, and the operational MCMC diagnostics. A subclass of math:MathematicalObject and one of the two inference-paradigm result families, held owl:disjointWith math:FrequentistResult so a single result is never read as both Bayesian and frequentist. The paradigm axis is a PARTIAL classification: only paradigm-exclusive kinds are placed under it, so a paradigm-neutral object (a math:Estimate, a math:Residual) is left free of either family rather than forced into one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Hypotheses, the test object, and the sampling distribution ------------- #
+
+math:Hypothesis
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hypothesis"@x-gmeow-english ;
+    skos:definition "A statistical hypothesis: a first-class claim about a population, a parameter, or a data-generating process that a math:HypothesisTest weighs — the object that makes 'what is being tested' inspectable rather than folded into a method name. A subclass of math:MathematicalObject; its two testing roles, the tested default (math:NullHypothesis) and its complement (math:AlternativeHypothesis), are its principal subclasses."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:NullHypothesis
+    a owl:Class ;
+    rdfs:subClassOf math:Hypothesis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Null Hypothesis"@x-gmeow-english ;
+    skos:definition "A null hypothesis (H0): the tested default a math:HypothesisTest presumes and a p-value is computed under — the no-effect or no-difference claim whose sampling behaviour frames the test statistic. A subclass of math:Hypothesis, named by a test through math:nullHypothesis and by a math:PValue as the hypothesis its P(T ≥ t | H0) is conditioned on."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:AlternativeHypothesis
+    a owl:Class ;
+    rdfs:subClassOf math:Hypothesis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Alternative Hypothesis"@x-gmeow-english ;
+    skos:definition "An alternative hypothesis (H1): the complement of the null a math:HypothesisTest weighs the evidence toward — the effect-present claim whose direction fixes the test's math:alternativeSidedness. A subclass of math:Hypothesis, named by a test through math:alternativeHypothesis; its directionality (one-sided, two-sided, …) is carried on the p-value as sidedness, not left implicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:HypothesisTest
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Hypothesis Test"@x-gmeow-english ;
+    skos:definition "A hypothesis test: the object that binds a math:NullHypothesis (math:nullHypothesis) and a math:AlternativeHypothesis (math:alternativeHypothesis) and a test statistic (math:testStatistic), and PRODUCES a math:PValue (math:pValue) — the structured frame within which a p-value's P(T ≥ t | H0) is well-defined. A subclass of math:MathematicalObject; naming its null, its alternative, and its statistic as first-class objects is what keeps a test's meaning inspectable rather than folded into a procedure name."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:SamplingDistribution
+    a owl:Class ;
+    rdfs:subClassOf math:Distribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sampling Distribution"@x-gmeow-english ;
+    skos:definition "A sampling distribution: the distribution of a statistic under repeated sampling — the law the value of a test statistic would follow across replications of the study. A subclass of math:Distribution, so it names its math:distributionFamily and math:distributionParameterization like any distribution; it is the natural range of a p-value's math:nullDistribution, the distribution of the statistic UNDER the null against which the observed value is placed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- The p-value: the worked frequentist result ----------------------------- #
+
+math:PValue
+    a owl:Class ;
+    rdfs:subClassOf math:FrequentistResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "P-Value"@x-gmeow-english ;
+    skos:definition "A p-value: P(T ≥ t | H0), the probability — framed by a null or sampling distribution — of a test statistic as or more extreme than the one observed, computed under the null hypothesis. A subclass of math:FrequentistResult; its magnitude is carried through math:pValue as a framed math:ProbabilityValue, never a bare literal. To be unambiguous it carries its test (its math:testStatistic, and/or the math:HypothesisTest whose math:pValue it is), its null hypothesis (math:nullHypothesis), its test statistic (math:testStatistic), its null distribution (math:nullDistribution), and its tail definition or sidedness (math:tailDefinition / math:alternativeSidedness). A p-value with a null and a statistic but no tail or sidedness is still ambiguous and ill-formed (math:IllFramedPValue), because whether the extremity is one-tailed, two-tailed, or a mid-p correction changes the value."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Frequentist operating characteristics ---------------------------------- #
+
+math:StatisticalPower
+    a owl:Class ;
+    rdfs:subClassOf math:FrequentistResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Statistical Power"@x-gmeow-english ;
+    skos:definition "Statistical power: 1 − β, the probability that a test correctly rejects the null when a specified alternative holds — the operating characteristic answering 'how likely is this test to detect the effect it is designed for'. A subclass of math:FrequentistResult; a frequentist quantity defined against the sampling behaviour of the test under the alternative, the complement of its math:TypeIIErrorRate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:TypeIErrorRate
+    a owl:Class ;
+    rdfs:subClassOf math:FrequentistResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Type I Error Rate"@x-gmeow-english ;
+    skos:definition "The Type I error rate: α, the probability that a test rejects a true null — the false-positive rate a significance threshold controls. A subclass of math:FrequentistResult; a frequentist operating characteristic defined against the sampling behaviour of the test under the null, distinct from the observed p-value it bounds."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:TypeIIErrorRate
+    a owl:Class ;
+    rdfs:subClassOf math:FrequentistResult ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Type II Error Rate"@x-gmeow-english ;
+    skos:definition "The Type II error rate: β, the probability that a test fails to reject a false null under a specified alternative — the false-negative rate. A subclass of math:FrequentistResult; a frequentist operating characteristic defined against the sampling behaviour of the test under the alternative, the complement of math:StatisticalPower (1 − β)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# --- Sidedness: the enumerated alternative-sidedness value type ------------- #
+
+math:Sidedness
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Sidedness"@x-gmeow-english ;
+    skos:definition "The sidedness of a p-value's alternative and tail: the enumerated value fixing HOW the extremity of the test statistic is measured — one of math:oneSidedAlternative, math:twoSidedAlternative, math:greaterAlternative, math:lessAlternative, math:exactTail, or math:midPTail. A closed value type carried through math:alternativeSidedness; the sidedness is part of what makes a p-value unambiguous, because the same statistic and null yield different values one-tailed, two-tailed, or under a mid-p correction. A value outside the six is not a lawful sidedness and marks the p-value ill-framed (math:IllFramedPValue)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:oneSidedAlternative
+    a owl:NamedIndividual , math:Sidedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "one-sided"@x-gmeow-english ;
+    skos:definition "A one-sided alternative: the extremity is measured in a single, unspecified-here direction of the sampling distribution's tail."@x-gmeow-english .
+
+math:twoSidedAlternative
+    a owl:NamedIndividual , math:Sidedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "two-sided"@x-gmeow-english ;
+    skos:definition "A two-sided alternative: the extremity is measured in both tails, so a departure in either direction counts against the null."@x-gmeow-english .
+
+math:greaterAlternative
+    a owl:NamedIndividual , math:Sidedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "greater"@x-gmeow-english ;
+    skos:definition "A one-sided 'greater' alternative: the extremity is measured in the upper tail (the parameter exceeds its null value)."@x-gmeow-english .
+
+math:lessAlternative
+    a owl:NamedIndividual , math:Sidedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "less"@x-gmeow-english ;
+    skos:definition "A one-sided 'less' alternative: the extremity is measured in the lower tail (the parameter falls below its null value)."@x-gmeow-english .
+
+math:exactTail
+    a owl:NamedIndividual , math:Sidedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "exact"@x-gmeow-english ;
+    skos:definition "An exact tail: the p-value uses the exact (typically discrete) tail probability rather than a continuous approximation."@x-gmeow-english .
+
+math:midPTail
+    a owl:NamedIndividual , math:Sidedness ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "mid-p"@x-gmeow-english ;
+    skos:definition "A mid-p tail: the p-value uses the mid-p correction, counting half the probability of the observed value in the tail to reduce the conservativeness of an exact discrete test."@x-gmeow-english .
+
+# --- Inference object properties -------------------------------------------- #
+
+math:nullHypothesis
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "null hypothesis"@x-gmeow-english ;
+    skos:definition "Relates a math:HypothesisTest or a math:PValue to the math:NullHypothesis it presumes. Domain a math:HypothesisTest or math:PValue, range math:NullHypothesis (stated in prose). The tested default H0 a p-value is computed under; a p-value naming no null hypothesis is ill-framed (math:IllFramedPValue)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:alternativeHypothesis
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "alternative hypothesis"@x-gmeow-english ;
+    skos:definition "Relates a math:HypothesisTest to the math:AlternativeHypothesis it weighs the evidence toward. Domain math:HypothesisTest, range math:AlternativeHypothesis (stated in prose). The complement of the null; its directionality is carried on the p-value through math:alternativeSidedness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:testStatistic
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "test statistic"@x-gmeow-english ;
+    skos:definition "Relates a math:HypothesisTest or a math:PValue to the math:Statistic (a function of the data) whose observed value drives the test. Domain a math:HypothesisTest or math:PValue, range math:Statistic (stated in prose). The statistic t whose extremity under the null gives P(T ≥ t | H0); a p-value naming no test statistic is ill-framed (math:IllFramedPValue)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:nullDistribution
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "null distribution"@x-gmeow-english ;
+    skos:definition "Relates a math:PValue to the distribution of its test statistic UNDER the null — the frame against which the observed value's extremity is measured. Domain math:PValue, range a math:Distribution, typically a math:SamplingDistribution (stated in prose). A p-value naming no null distribution is ill-framed (math:IllFramedPValue)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:tailDefinition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "tail definition"@x-gmeow-english ;
+    skos:definition "Relates a math:PValue to the object defining which tail (or tails) of its null distribution the extremity is measured over. Domain math:PValue, range the tail-definition object (stated in prose). Together with math:alternativeSidedness it fixes how the extremity is counted; a p-value declaring neither a tail definition nor a sidedness is ill-framed (math:IllFramedPValue)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:alternativeSidedness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "alternative sidedness"@x-gmeow-english ;
+    skos:definition "Relates a math:PValue to its math:Sidedness — the enumerated value (one of the six math:Sidedness individuals) fixing whether the extremity is one-sided, two-sided, greater, less, exact, or mid-p. Domain math:PValue, range math:Sidedness (stated in prose). A closed value carried by sh:in; a p-value declaring neither a sidedness nor a math:tailDefinition is ill-framed (math:IllFramedPValue), and a value outside the six is not a lawful sidedness."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:pValueAdjustment
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "p-value adjustment"@x-gmeow-english ;
+    skos:definition "Relates a math:PValue to the multiplicity adjustment applied to it — a Bonferroni, Holm, or Benjamini–Hochberg correction. Domain math:PValue, range the adjustment object (stated in prose). Naming the adjustment as an object is what makes 'was this p-value corrected for multiplicity, and how' answerable rather than implicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:multipleComparisonFamily
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "multiple-comparison family"@x-gmeow-english ;
+    skos:definition "Relates a math:PValue to the family of comparisons its multiplicity adjustment is taken over — the set of tests within which its error rate is controlled. Domain math:PValue, range the comparison-family object (stated in prose). The family scopes the adjustment: a correction is only meaningful relative to the family of comparisons it controls the error rate across."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:pValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "p-value"@x-gmeow-english ;
+    skos:definition "Relates a math:HypothesisTest or a math:PValue to the framed math:ProbabilityValue carrying its magnitude. Domain a math:HypothesisTest or math:PValue, range math:ProbabilityValue (stated in prose). The p-value's magnitude is a framed probability object in [0, 1] naming its frame or model, never a bare literal; a test names the p-value it produces through this edge, and a math:PValue carries its own magnitude through it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Inference conformance-failure class ------------------------------------ #
+
+math:IllFramedPValue
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Ill-Framed P-Value"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:PValue is ambiguous because it does not carry the frame that makes P(T ≥ t | H0) well-defined: it names no test (neither a math:testStatistic nor the math:HypothesisTest whose math:pValue it is), or no math:nullHypothesis, or no math:testStatistic, or no math:nullDistribution, or neither a math:tailDefinition nor a math:alternativeSidedness — or it carries an math:alternativeSidedness outside the six lawful math:Sidedness values. A p-value with a null and a statistic but no tail or sidedness is still ambiguous, because whether the extremity is one-tailed, two-tailed, or mid-p changes the value; such a p-value is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
 # Procedural constraints — projected to sh:SPARQLConstraint (the validation    #

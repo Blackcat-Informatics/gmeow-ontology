@@ -628,3 +628,14 @@ ASK {
     math:MCMCRun rdfs:subClassOf gmeow:Activity .
 }""" ;
     gmeow:saRationale "A math:MCMCRun is the sampling PROCESS that draws a math:PosteriorSample from a posterior — an occurrent, distinct from its result sample and from any claim about the posterior — so it MUST be a subclass of gmeow:Activity, carrying the process/result/claim separation of the observations spine and letting 'which run produced these draws and diagnostics' be answered through gmeow:wasGeneratedBy." .
+
+# --- Inference: a frequentist result is disjoint from a Bayesian result (MUST) --- #
+ex:saFrequentistBayesianDisjoint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:FrequentistResult owl:disjointWith math:BayesianResult .
+}""" ;
+    gmeow:saRationale "The two inference-paradigm result families are first-class and neither is privileged, but a single result is NEVER both — a p-value is not a posterior probability, a confidence interval is not a credible interval — so math:FrequentistResult MUST be held owl:disjointWith math:BayesianResult. The paradigm axis is a PARTIAL classification (only paradigm-exclusive kinds are placed under the two families, a paradigm-neutral math:Estimate or math:Residual under neither), and this disjointness is the OWL-axiom gate the native DL coherence check reads to force any individual typed both a frequentist and a Bayesian result to owl:Nothing." .

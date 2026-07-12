@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IllFramedPValueShape (Rule I1): the SAME math:PValue as
+# conformance-fixtures/pvalue-well-framed.ttl — a math:testStatistic, a
+# math:nullHypothesis, and a parameterized math:nullDistribution, with its magnitude a
+# framed math:ProbabilityValue — EXCEPT it omits BOTH math:tailDefinition AND
+# math:alternativeSidedness. A p-value with a null and a statistic but no tail or
+# sidedness is still AMBIGUOUS (one-tailed, two-tailed, and mid-p give different values),
+# so the tail-or-sidedness arm of the SHACL-SPARQL frame gate fires —
+# shacl.SPARQLConstraintComponent (math:IllFramedPValue).
+# Single violation: the test, null-hypothesis, test-statistic, and null-distribution arms
+# are all satisfied so only the tail/sidedness arm bites; math:AlternativeSidednessValueShape
+# (the sh:in gate) is SATISFIED VACUOUSLY because math:alternativeSidedness is absent (no
+# value to check); the framed math:ProbabilityValue still satisfies
+# math:ProbabilityValueRangeShape, math:ProbabilityValueFramedShape,
+# math:ProbabilityScaleDisjointShape and math:RationalValueShape; and the well-formed null
+# distribution keeps the P6a/P6b/P7 gates silent — EXACTLY ONE finding.
+# Back-reference: math:PValue / math:IllFramedPValue (slices/grounding/math/module.ttl).
+# Bound by tests/example-conformance.ttl (ex:ecPValueMissingSidednessBad).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:tTestPValue a math:PValue ;
+    math:testStatistic ex:tStatistic ;
+    math:nullHypothesis ex:noEffectNull ;
+    math:nullDistribution ex:tNullDistribution ;
+    # NO math:tailDefinition and NO math:alternativeSidedness — the p-value is ambiguous.
+    math:pValue ex:pValueMagnitude .
+
+ex:tStatistic a math:Statistic .
+ex:noEffectNull a math:NullHypothesis .
+
+ex:tNullDistribution a math:SamplingDistribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParameterization ;
+    math:hasDistributionParameter ex:meanParam , ex:stddevParam .
+
+ex:normalFamily a math:DistributionFamily .
+
+ex:meanStddevParameterization a math:DistributionParameterization ;
+    math:requiresParameterRole ex:meanRole , ex:stddevRole .
+
+ex:meanRole a math:DistributionParameterRole .
+ex:stddevRole a math:DistributionParameterRole .
+
+ex:meanParam a math:DistributionParameter ;
+    math:parameterRole ex:meanRole .
+
+ex:stddevParam a math:DistributionParameter ;
+    math:parameterRole ex:stddevRole .
+
+ex:pValueMagnitude a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 3 ;         # 3/100 = 0.03, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+
+ex:samplingFrame a gmeow:ReferenceFrame .

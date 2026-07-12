@@ -1877,3 +1877,63 @@ math:ProbabilityEventOccurrentDisjointShape
     sh:not [ sh:class logic:Event ] ;
     sh:severity sh:Violation ;
     sh:message "A math:ProbabilityEvent (a measurable set of outcomes) must not also be a logic:Event (an occurrent); typing one node as both conflates the event-set with the occurrence (math:ProbabilityEventOccurrentConflation)." .
+
+# =========================================================================== #
+# Statistical-inference gates — the p-value framing rules (shapes for the
+# "Inference and results" charter section). A math:PValue is unambiguous only
+# when it carries its test, null hypothesis, test statistic, null distribution,
+# and a tail/sidedness; a bogus sidedness value is also an ill-framed p-value.
+# =========================================================================== #
+
+# Rule I1 — a p-value carries its full frame (test, null hypothesis, test
+# statistic, null distribution, and a tail-or-sidedness). Authored as SHACL-SPARQL
+# because the "test" and "tail-or-sidedness" arms are disjunctions over distinct
+# paths (a missing arm fires, so a p-value with a null and a statistic but no tail
+# or sidedness is still caught).
+math:IllFramedPValueShape
+    a sh:NodeShape ;
+    rdfs:label "Ill-framed p-value shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:PValue: a p-value carries the whole frame that makes P(T ≥ t | H0) well-defined — a test (a math:testStatistic, and/or the math:HypothesisTest whose math:pValue it is), a math:nullHypothesis, a math:testStatistic, a math:nullDistribution, and a tail-or-sidedness (a math:tailDefinition OR a math:alternativeSidedness). The select fires when ANY arm is missing, so a p-value with a null and a statistic but no tail or sidedness is still caught as ambiguous — because whether the extremity is one-tailed, two-tailed, or mid-p changes the value. A missing arm trips shacl.SPARQLConstraintComponent (math:IllFramedPValue)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IllFramedPValue ;
+    sh:targetClass math:PValue ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:PValue must carry its test (a math:testStatistic or the math:HypothesisTest whose math:pValue it is), its math:nullHypothesis, its math:testStatistic, its math:nullDistribution, and a math:tailDefinition or math:alternativeSidedness; a p-value missing any of these is ambiguous and ill-formed (math:IllFramedPValue)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this a <https://blackcatinformatics.ca/math/PValue> .
+                FILTER (
+                    (
+                        NOT EXISTS { $this <https://blackcatinformatics.ca/math/testStatistic> ?anyTestStat . }
+                        && NOT EXISTS { ?test a <https://blackcatinformatics.ca/math/HypothesisTest> ; <https://blackcatinformatics.ca/math/pValue> $this . }
+                    )
+                    || NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullHypothesis> ?nullHyp . }
+                    || NOT EXISTS { $this <https://blackcatinformatics.ca/math/testStatistic> ?testStat . }
+                    || NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullDistribution> ?nullDist . }
+                    || (
+                        NOT EXISTS { $this <https://blackcatinformatics.ca/math/tailDefinition> ?tailDef . }
+                        && NOT EXISTS { $this <https://blackcatinformatics.ca/math/alternativeSidedness> ?sidedness . }
+                    )
+                )
+            }
+        """ ;
+    ] .
+
+# Rule I2 — a p-value's math:alternativeSidedness, when present, is one of the six
+# lawful math:Sidedness individuals. SHACL-Core sh:in, so a bogus sidedness value
+# trips shacl.InConstraintComponent; the constraint is vacuously satisfied when the
+# property is absent (the SPARQL gate above handles a missing tail/sidedness).
+math:AlternativeSidednessValueShape
+    a sh:NodeShape ;
+    rdfs:label "Alternative-sidedness value shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:PValue: any math:alternativeSidedness it carries is one of the six closed math:Sidedness values (math:oneSidedAlternative, math:twoSidedAlternative, math:greaterAlternative, math:lessAlternative, math:exactTail, math:midPTail). Authored as a pure sh:property shape with sh:in, so a bogus sidedness value trips shacl.InConstraintComponent; a p-value that omits math:alternativeSidedness altogether satisfies this shape vacuously (the missing-tail/sidedness case is caught by math:IllFramedPValueShape). A sidedness outside the six is also an ill-framed p-value (math:IllFramedPValue)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IllFramedPValue ;
+    sh:targetClass math:PValue ;
+    sh:property [
+        sh:path math:alternativeSidedness ;
+        sh:in ( math:oneSidedAlternative math:twoSidedAlternative math:greaterAlternative math:lessAlternative math:exactTail math:midPTail ) ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PValue's math:alternativeSidedness must be one of the six lawful math:Sidedness values (one-sided, two-sided, greater, less, exact, mid-p); a value outside them is not a lawful sidedness and marks the p-value ill-framed (math:IllFramedPValue)." ;
+    ] .
