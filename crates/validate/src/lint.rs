@@ -2168,8 +2168,9 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
 
     // Gate 4 — math:IncompleteDependencyModel: structural presence. A math:MarkovKernel
     // declares BOTH its domain and codomain; a math:BayesianNetwork declares its dependency
-    // graph; a math:JointProbabilityTable tabulates at least one outcome. A model missing
-    // any of these cannot fix a joint distribution.
+    // graph; a math:FactorGraph declares its dependency graph (the bipartite variable/factor
+    // structure); a math:JointProbabilityTable tabulates at least one outcome. A model
+    // missing any of these cannot fix a joint distribution.
     for k in ds_subjects_of_type(ds, &math_iri("MarkovKernel")) {
         let has_domain = ds_has_predicate(ds, &k, &math_iri("kernelDomain"));
         let has_codomain = ds_has_predicate(ds, &k, &math_iri("kernelCodomain"));
@@ -2194,6 +2195,18 @@ fn check_math_probability_invariants(ds: &RdfDataset, report: &mut LintReport) {
                 bn.clone(),
                 format!(
                     "math:IncompleteDependencyModel: Bayesian network {bn} declares no \
+                     math:dependencyGraph"
+                ),
+            );
+        }
+    }
+    for fg in ds_subjects_of_type(ds, &math_iri("FactorGraph")) {
+        if !ds_has_predicate(ds, &fg, &math_iri("dependencyGraph")) {
+            report.push_error(
+                codes::MATH_PROBABILITY_INCOMPLETE_DEPENDENCY_MODEL,
+                fg.clone(),
+                format!(
+                    "math:IncompleteDependencyModel: factor graph {fg} declares no \
                      math:dependencyGraph"
                 ),
             );
@@ -3645,7 +3658,7 @@ mod tests {
         // class (and none of the other four probability classes), so each (fixture, class)
         // pair is load-bearing. Both distribution-parameter counter-examples fire the shared
         // math:DistributionParameterConstraint class (positivity arm vs dimension arm).
-        let cases: [(&str, &str); 6] = [
+        let cases: [(&str, &str); 7] = [
             (
                 include_str!(
                     "../../../slices/grounding/math/tests/counter-examples/probability-out-of-bounds.ttl"
@@ -3673,6 +3686,12 @@ mod tests {
             (
                 include_str!(
                     "../../../slices/grounding/math/tests/counter-examples/incomplete-dependency-model.ttl"
+                ),
+                "math:IncompleteDependencyModel",
+            ),
+            (
+                include_str!(
+                    "../../../slices/grounding/math/tests/counter-examples/factor-graph-incomplete.ttl"
                 ),
                 "math:IncompleteDependencyModel",
             ),
@@ -3707,7 +3726,7 @@ mod tests {
     fn math_probability_clean_fixtures_fire_no_probability_class() {
         // Each clean conformance fixture is the positive counterpart of one counter-example
         // and MUST raise none of the five native probability failure classes.
-        let clean: [&str; 6] = [
+        let clean: [&str; 7] = [
             include_str!(
                 "../../../slices/grounding/math/tests/conformance-fixtures/probability-in-bounds.ttl"
             ),
@@ -3722,6 +3741,9 @@ mod tests {
             ),
             include_str!(
                 "../../../slices/grounding/math/tests/conformance-fixtures/dependency-model-complete.ttl"
+            ),
+            include_str!(
+                "../../../slices/grounding/math/tests/conformance-fixtures/factor-graph-complete.ttl"
             ),
             include_str!(
                 "../../../slices/grounding/math/tests/conformance-fixtures/joint-table-mass-one.ttl"
