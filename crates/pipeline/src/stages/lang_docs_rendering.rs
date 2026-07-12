@@ -617,41 +617,56 @@ mod tests {
             "the docs language trees must carry non-English pages"
         );
 
+        // Index the corpus once. The previous per-page `contains` and line scan made this
+        // coverage proof O(pages × corpus-lines), which crossed the hard test budget as the
+        // translated math surface grew. Exact triples and roll-up subjects are set membership
+        // checks over the same production corpus, preserving the assertions in linear time.
+        let lines: std::collections::HashSet<&str> = nt.lines().collect();
+        let rollup_predicate = format!("<{}rollsUpFrom>", LANG_NS);
+        let rollup_subjects: std::collections::HashSet<&str> = lines
+            .iter()
+            .filter(|line| line.contains(&rollup_predicate))
+            .filter_map(|line| line.split_once(' ').map(|(subject, _)| subject))
+            .collect();
+
         for (lang, term) in &pages {
             let rendering = docs_rendering_iri(lang, term);
             let translation = docs_translation_iri(lang, term);
             // Exactly one renderingDocsPage rendering per non-English page.
             assert!(
-                nt.contains(&triple(
-                    &rendering,
-                    &iri(LANG_NS, "renderingKind"),
-                    &iri(LANG_NS, "renderingDocsPage")
-                )),
+                lines.contains(
+                    triple(
+                        &rendering,
+                        &iri(LANG_NS, "renderingKind"),
+                        &iri(LANG_NS, "renderingDocsPage")
+                    )
+                    .as_str()
+                ),
                 "page ({lang}, {term}) has no lang:Rendering renderingDocsPage"
             );
             // Its paired Translation rolls up at least one real translation unit.
             assert!(
-                nt.contains(&triple(
-                    &translation,
-                    RDF_TYPE,
-                    &iri(LANG_NS, "Translation")
-                )),
+                lines.contains(
+                    triple(&translation, RDF_TYPE, &iri(LANG_NS, "Translation")).as_str()
+                ),
                 "page ({lang}, {term}) has no paired lang:Translation"
             );
-            let rolls = nt
-                .lines()
-                .filter(|l| l.starts_with(&format!("<{translation}> <{}rollsUpFrom>", LANG_NS)))
-                .count();
-            assert!(rolls >= 1, "translation ({lang}, {term}) rolls up no units");
+            let translation_subject = format!("<{translation}>");
+            assert!(
+                rollup_subjects.contains(translation_subject.as_str()),
+                "translation ({lang}, {term}) rolls up no units"
+            );
         }
 
         // Every renderingDocsPage edge is exactly the count of distinct pages — total, not
         // partial (one rendering per non-English page, never more).
-        let docs_page_edges = nt
-            .matches(&format!(
-                " <{}renderingKind> <{}renderingDocsPage> .",
-                LANG_NS, LANG_NS
-            ))
+        let docs_page_suffix = format!(
+            " <{}renderingKind> <{}renderingDocsPage> .",
+            LANG_NS, LANG_NS
+        );
+        let docs_page_edges = lines
+            .iter()
+            .filter(|line| line.ends_with(&docs_page_suffix))
             .count();
         assert_eq!(
             docs_page_edges,

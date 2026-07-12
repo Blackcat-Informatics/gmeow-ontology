@@ -267,14 +267,19 @@ mod tests {
         // and the reconstruction equals THIS stage's fresh projection.
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("read bundle");
-        let projection = crate::stages::superset::project_bundle(&gts).expect("project bundle");
+        // These projections are opaque archive members, so inspect the bundle's blob-member
+        // reconstruction authority directly. Running the full superset projector also parses and
+        // folds every named RDF graph, work unrelated to these two byte members and already proven
+        // by the whole-tree superset gate.
+        let blob_members =
+            crate::stages::superset::read_blob_members(&gts).expect("read bundle blob members");
 
         let rubric = gmeow_slice_quality::load_repo_rubric(&root).expect("load rubric");
         for (path, fresh) in [
             (AXIS_FLOORS_PATH, render_axis_floors(&rubric)),
             (TIER_FLOORS_PATH, render_tier_floors(&rubric)),
         ] {
-            let reconstructed = projection.files.get(path).unwrap_or_else(|| {
+            let reconstructed = blob_members.get(path).unwrap_or_else(|| {
                 panic!("{path} must reconstruct from gmeow.gts as a blob member")
             });
             assert_eq!(

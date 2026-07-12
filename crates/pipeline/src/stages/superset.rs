@@ -668,7 +668,9 @@ fn read_dataset(gts_bytes: &[u8]) -> Result<std::sync::Arc<RdfDataset>, gmeow_er
 /// [`crate::stages::carrier::committed_path_for_archive_member`] (the inverse of the
 /// rep's member-naming convention), so the caller resolves a member to its
 /// `generated/` path with no basename guessing.
-fn read_blob_members(gts_bytes: &[u8]) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
+pub(crate) fn read_blob_members(
+    gts_bytes: &[u8],
+) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let graph = purrdf::gts::read_graph(gts_bytes, true)
         .map_err(|e| stage_err(&format!("read gmeow.gts blobs: {e}")))?;
     let lookaside = purrdf::gts::lookaside_from_graph(&graph);
