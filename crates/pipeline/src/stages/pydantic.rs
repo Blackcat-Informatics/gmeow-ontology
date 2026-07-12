@@ -113,6 +113,52 @@ pub(crate) struct ModelsPython {
     pub artifacts: BTreeMap<String, Vec<u8>>,
     /// The allowlisted datatype widenings (empty in the current corpus).
     pub declared_datatype_losses: Vec<DeclaredDatatypeLoss>,
+    /// Class IRI → the model's importable dotted path
+    /// (`gmeow_models.<module>.<Class>`), for the term→model doc link (a later
+    /// docs task consumes this to link a term page to its model).
+    pub dotted_paths: BTreeMap<String, String>,
+}
+
+/// The docstring wrap column (deterministic, char-boundary safe).
+const WRAP_COLUMN: usize = 88;
+
+/// The canonical docs-site base for a term page (`documentation/term/<slug>`).
+const DOCS_TERM_BASE: &str = "https://blackcatinformatics.ca/gmeow/documentation/term/";
+
+/// Word-wrap `text` to `WRAP_COLUMN` columns on whitespace boundaries, counting
+/// Unicode scalar values (the prose corpus carries non-ASCII), so wrapping is a
+/// pure function of the content and never platform-dependent. Blank input → no
+/// lines.
+fn wrap_prose(text: &str) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut cur = String::new();
+    let mut cur_len = 0usize;
+    for word in text.split_whitespace() {
+        let wlen = word.chars().count();
+        if cur.is_empty() {
+            cur.push_str(word);
+            cur_len = wlen;
+        } else if cur_len + 1 + wlen <= WRAP_COLUMN {
+            cur.push(' ');
+            cur.push_str(word);
+            cur_len += 1 + wlen;
+        } else {
+            lines.push(std::mem::take(&mut cur));
+            cur.push_str(word);
+            cur_len = wlen;
+        }
+    }
+    if !cur.is_empty() {
+        lines.push(cur);
+    }
+    lines
+}
+
+/// Make `s` safe to embed inside a Python triple-quoted docstring: escape
+/// backslashes, then escape any `"""` run so it cannot terminate the string
+/// (Python reads `\"` as `"`). Content is preserved, never elided.
+fn doc_escape(s: &str) -> String {
+    s.replace('\\', "\\\\").replace("\"\"\"", "\\\"\\\"\\\"")
 }
 
 fn err(message: impl Into<String>) -> gmeow_errors::Diag {
@@ -198,6 +244,13 @@ fn build_package(
         .iter()
         .map(|(k, v)| (v.as_str(), k.as_str()))
         .collect();
+    // CURIE → term, so a field (whose alias is the property CURIE) can pull its
+    // `skos:definition` for the `Field(description=...)`.
+    let curie_index: BTreeMap<&str, &gmeow_docs::model::DocTerm> = term_index
+        .values()
+        .filter(|t| !t.curie.is_empty())
+        .map(|t| (t.curie.as_str(), *t))
+        .collect();
 
     let mut routes: BTreeMap<String, ClassRoute> = BTreeMap::new();
     for key in defs.keys() {
@@ -221,6 +274,7 @@ fn build_package(
     }
 
     let mut losses: Vec<DeclaredDatatypeLoss> = Vec::new();
+    let mut dotted_paths: BTreeMap<String, String> = BTreeMap::new();
     let mut modules: Vec<RenderedModule> = Vec::new();
     for (module, keys) in &module_keys {
         // Parent link per class (same module + single emitted gmeow superclass).
@@ -251,16 +305,29 @@ fn build_package(
                 .cloned()
                 .flatten()
                 .unwrap_or_else(|| "ConfiguredBaseModel".to_owned());
+            let class_term = if route.iri.is_empty() {
+                None
+            } else {
+                term_index.get(route.iri.as_str()).copied()
+            };
             let model = build_model(
                 route,
                 def,
                 parent,
                 &defkey_to_class,
                 module,
+                class_term,
+                &curie_index,
                 &mut enums,
                 &mut needs,
                 &mut losses,
             )?;
+            if !route.iri.is_empty() {
+                dotted_paths.insert(
+                    route.iri.clone(),
+                    format!("{PKG}.{module}.{}", route.class_name),
+                );
+            }
             models.push(model);
         }
 
@@ -281,10 +348,12 @@ fn build_package(
         artifacts.insert(format!("{PKG}/{}.py", module.slug), module.text.clone());
     }
     artifacts.insert(format!("{PKG}/__init__.py"), render_init(&modules));
+    artifacts.insert(format!("{PKG}/README.md"), render_readme(&modules));
 
     Ok(ModelsPython {
         artifacts,
         declared_datatype_losses: losses,
+        dotted_paths,
     })
 }
 
@@ -749,6 +818,12 @@ struct PyField {
     type_expr: String,
     alias: String,
     required: bool,
+    /// The property's `skos:definition` for `Field(description=...)`, when the
+    /// property is documented.
+    description: Option<String>,
+    /// SHACL-derived `Field(...)` constraint kwargs (`kwarg`, `python-literal`),
+    /// e.g. `("pattern", "\"^x\"")`, `("ge", "0")`, `("min_length", "1")`.
+    constraints: Vec<(String, String)>,
 }
 
 /// A resolved model ready to render.
@@ -757,6 +832,8 @@ struct PyModel {
     parent: String,
     /// The class IRI for the docstring (empty for the synthetic envelope).
     iri: String,
+    /// The fully-rendered class docstring body (already triple-quoted).
+    docstring: String,
     extra: &'static str,
     /// `json_schema_extra` identity.
     jse: JsonSchemaExtra,
@@ -781,6 +858,8 @@ fn build_model(
     parent: String,
     defkey_to_class: &BTreeMap<String, String>,
     module: &str,
+    class_term: Option<&gmeow_docs::model::DocTerm>,
+    curie_index: &BTreeMap<&str, &gmeow_docs::model::DocTerm>,
     enums: &mut BTreeMap<String, PyEnum>,
     needs: &mut ModuleNeeds,
     losses: &mut Vec<DeclaredDatatypeLoss>,
@@ -831,11 +910,27 @@ fn build_model(
                 py_name.push('_');
             }
             let is_envelope = matches!(key.as_str(), "@id" | "@type" | "@annotation");
+            // The property's definition (its alias is the property CURIE) and its
+            // SHACL-derived Field constraints (pattern/min/max/length/items).
+            let description = if is_envelope {
+                None
+            } else {
+                curie_index
+                    .get(key.as_str())
+                    .and_then(|t| t.definition.clone())
+            };
+            let constraints = if is_envelope {
+                Vec::new()
+            } else {
+                extract_constraints(pv)
+            };
             fields.push(PyField {
                 py_name,
                 type_expr,
                 alias: key.clone(),
                 required: !is_envelope && required.contains(key.as_str()),
+                description,
+                constraints,
             });
         }
     }
@@ -850,14 +945,198 @@ fn build_model(
         }
     };
 
+    let docstring = build_class_docstring(route, class_term, module);
+
     Ok(PyModel {
         class_name: route.class_name.clone(),
         parent,
         iri: route.iri.clone(),
+        docstring,
         extra,
         jse,
         fields,
     })
+}
+
+/// Extract the SHACL-derived JSON-Schema constraints from a property value
+/// schema into Pydantic `Field(...)` kwargs. Scans the top-level object and any
+/// `anyOf` alternative (the multivalued shape carries the element constraints on
+/// the array alt's `items` and the cardinality on the array alt itself). First
+/// writer wins per kwarg; the result is sorted for determinism.
+fn extract_constraints(pv: &Value) -> Vec<(String, String)> {
+    fn num_lit(v: &Value) -> Option<String> {
+        v.as_i64()
+            .map(|n| n.to_string())
+            .or_else(|| v.as_f64().map(|n| n.to_string()))
+    }
+    fn scan(v: &Value, out: &mut BTreeMap<String, String>) {
+        let Some(obj) = v.as_object() else {
+            return;
+        };
+        let mut put = |k: &str, lit: String| {
+            out.entry(k.to_owned()).or_insert(lit);
+        };
+        if let Some(p) = obj.get("pattern").and_then(Value::as_str) {
+            put("pattern", py_string(p));
+        }
+        if let Some(n) = obj.get("minimum").and_then(num_lit) {
+            put("ge", n);
+        }
+        if let Some(n) = obj.get("maximum").and_then(num_lit) {
+            put("le", n);
+        }
+        if let Some(n) = obj.get("exclusiveMinimum").and_then(num_lit) {
+            put("gt", n);
+        }
+        if let Some(n) = obj.get("exclusiveMaximum").and_then(num_lit) {
+            put("lt", n);
+        }
+        if let Some(n) = obj.get("minLength").and_then(num_lit) {
+            put("min_length", n);
+        }
+        if let Some(n) = obj.get("maxLength").and_then(num_lit) {
+            put("max_length", n);
+        }
+        // Array cardinality maps to the list's length bounds.
+        if let Some(n) = obj.get("minItems").and_then(num_lit) {
+            put("min_length", n);
+        }
+        if let Some(n) = obj.get("maxItems").and_then(num_lit) {
+            put("max_length", n);
+        }
+        if let Some(alts) = obj.get("anyOf").and_then(Value::as_array) {
+            for a in alts {
+                scan(a, out);
+            }
+        }
+        if let Some(items) = obj.get("items") {
+            scan(items, out);
+        }
+    }
+    let mut collected: BTreeMap<String, String> = BTreeMap::new();
+    scan(pv, &mut collected);
+    collected.into_iter().collect()
+}
+
+/// Build the full, indented, triple-quoted class docstring — the *documentation
+/// surface*: definition + when-to-use / avoid / how-to-use + examples + a runnable
+/// usage doctest + the IRI/CURIE/docs back-link. A documented class draws its
+/// prose from the term; a generated/undocumented class (openEHR archetype, spec)
+/// gets an honest structural docstring naming its IRI — never a silent empty one.
+/// Append `text`, doc-escaped and word-wrapped, into a docstring `body`. A bullet
+/// item prefixes the first wrapped line with `- ` and continuations with two
+/// spaces (both under a 4-space section indent).
+fn wrap_into(body: &mut Vec<String>, text: &str, bullet: bool) {
+    for (i, line) in wrap_prose(&doc_escape(text)).into_iter().enumerate() {
+        if bullet {
+            body.push(format!("    {}{line}", if i == 0 { "- " } else { "  " }));
+        } else {
+            body.push(line);
+        }
+    }
+}
+
+fn build_class_docstring(
+    route: &ClassRoute,
+    term: Option<&gmeow_docs::model::DocTerm>,
+    module: &str,
+) -> String {
+    // A content line, indented 4 spaces (the class-body column); a blank string
+    // becomes a truly blank line (no trailing whitespace).
+    let mut body: Vec<String> = Vec::new();
+
+    let summary = term
+        .and_then(|t| t.label.clone())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| route.class_name.clone());
+
+    if let Some(term) = term {
+        if let Some(def) = term.definition.as_deref().filter(|s| !s.is_empty()) {
+            wrap_into(&mut body, def, false);
+        }
+        let sections: [(&str, &Vec<String>); 3] = [
+            ("When to use", &term.use_when),
+            ("When to avoid", &term.avoid_when),
+            ("How to use", &term.how_to_use),
+        ];
+        for (heading, items) in sections {
+            let items: Vec<&String> = items.iter().filter(|s| !s.is_empty()).collect();
+            if items.is_empty() {
+                continue;
+            }
+            body.push(String::new());
+            body.push(format!("{heading}:"));
+            for item in items {
+                wrap_into(&mut body, item, true);
+            }
+        }
+        let examples: Vec<&String> = term.examples.iter().filter(|s| !s.is_empty()).collect();
+        if !examples.is_empty() {
+            body.push(String::new());
+            body.push("Examples:".to_owned());
+            for ex in examples {
+                wrap_into(&mut body, ex, true);
+            }
+        }
+    } else if route.synthetic {
+        body.push("Synthetic JSON-LD envelope type (not an authored ontology class).".to_owned());
+    } else {
+        body.push(format!(
+            "Generated class projected from shapes; no authored definition ({}).",
+            route.iri
+        ));
+    }
+
+    // A runnable usage doctest (construct-then-inspect): importing IS using the
+    // ontology. Skipped for the synthetic envelope (no CURIE identity).
+    if !route.synthetic && !route.curie.is_empty() {
+        body.push(String::new());
+        body.push("Usage:".to_owned());
+        body.push(format!(
+            "    >>> from {PKG}.{module} import {}",
+            route.class_name
+        ));
+        body.push(format!(
+            "    >>> {}.model_config[\"json_schema_extra\"][\"curie\"]",
+            route.class_name
+        ));
+        body.push(format!("    '{}'", route.curie));
+    }
+
+    // Identity + bidirectional docs back-link.
+    if !route.iri.is_empty() {
+        body.push(String::new());
+        body.push(format!("IRI:    {}", route.iri));
+    }
+    if !route.curie.is_empty() {
+        body.push(format!("CURIE:  {}", route.curie));
+    }
+    if let Some(term) = term
+        && !term.slug.is_empty()
+    {
+        body.push(format!("Docs:   {DOCS_TERM_BASE}{}", term.slug));
+    }
+
+    // Assemble: summary on the opening line, body indented under it.
+    let mut out = String::from("    \"\"\"");
+    out.push_str(&doc_escape(&summary));
+    out.push_str(".\n");
+    if !body.is_empty() {
+        out.push('\n');
+        for line in &body {
+            if line.is_empty() {
+                out.push('\n');
+            } else {
+                out.push_str("    ");
+                out.push_str(line);
+                out.push('\n');
+            }
+        }
+    }
+    out.push('\n');
+    out.push_str("    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.\n");
+    out.push_str("    \"\"\"\n");
+    out
 }
 
 /// The local part of a property key: the segment after the first `:` (dropping a
@@ -1030,12 +1309,8 @@ fn render_module(
 
 fn render_model(out: &mut String, model: &PyModel) {
     out.push_str(&format!("class {}({}):\n", model.class_name, model.parent));
-    let summary = if model.iri.is_empty() {
-        model.class_name.clone()
-    } else {
-        format!("{} — {}", model.class_name, model.iri)
-    };
-    out.push_str(&format!("    \"\"\"{summary}.\"\"\"\n\n"));
+    out.push_str(&model.docstring);
+    out.push('\n');
     out.push_str("    model_config = ConfigDict(\n");
     out.push_str(&format!("        extra={},\n", py_string(model.extra)));
     out.push_str(&format!(
@@ -1047,21 +1322,30 @@ fn render_model(out: &mut String, model: &PyModel) {
     if !model.fields.is_empty() {
         out.push('\n');
         for field in &model.fields {
-            if field.required {
-                out.push_str(&format!(
-                    "    {}: {} = Field(alias={})\n",
-                    field.py_name,
-                    field.type_expr,
-                    py_string(&field.alias)
-                ));
-            } else {
-                out.push_str(&format!(
-                    "    {}: {} | None = Field(default=None, alias={})\n",
-                    field.py_name,
-                    field.type_expr,
-                    py_string(&field.alias)
-                ));
+            // Field kwargs, in a fixed order: default → constraints → description
+            // → alias.
+            let mut kwargs: Vec<String> = Vec::new();
+            if !field.required {
+                kwargs.push("default=None".to_owned());
             }
+            for (kw, lit) in &field.constraints {
+                kwargs.push(format!("{kw}={lit}"));
+            }
+            if let Some(desc) = &field.description {
+                kwargs.push(format!("description={}", py_string(desc)));
+            }
+            kwargs.push(format!("alias={}", py_string(&field.alias)));
+            let ty = if field.required {
+                field.type_expr.clone()
+            } else {
+                format!("{} | None", field.type_expr)
+            };
+            out.push_str(&format!(
+                "    {}: {} = Field({})\n",
+                field.py_name,
+                ty,
+                kwargs.join(", ")
+            ));
         }
     }
     out.push_str("\n\n");
@@ -1111,11 +1395,26 @@ struct RenderedModule {
 fn render_init(modules: &[RenderedModule]) -> Vec<u8> {
     let mut out = String::new();
     out.push_str(&render_docstring(
-        "GMEOW Pydantic model package",
+        "GMEOW Pydantic v2 model package — a functional documentation surface",
         &[
+            "Reading these models IS reading the GMEOW ontology, and validating data".to_owned(),
+            "with them IS using it. One Pydantic model per documented class, carrying".to_owned(),
+            "its full definition, usage guidance, and worked examples in the docstring;".to_owned(),
+            "SHACL-derived Field constraints; StrEnum value vocabularies; and a".to_owned(),
+            "content-addressed IRI/CURIE/definitionDigest in each model's".to_owned(),
+            "json_schema_extra.".to_owned(),
+            String::new(),
+            "Loss stance (Principle 17): this is a closed-record VALIDATION projection".to_owned(),
+            "of the open-world ontology — it validates instance shape, it does not".to_owned(),
+            "reason. See the per-term projection-fidelity table in the GMEOW docs.".to_owned(),
+            String::new(),
+            "Usage:".to_owned(),
+            "    from gmeow_models.<slice> import <Class>".to_owned(),
+            "    obj = <Class>.model_validate(payload)  # closed-world validation".to_owned(),
+            String::new(),
             "Every model is re-exported here; after all imports a single".to_owned(),
-            "`model_rebuild()` sweep resolves the deferred cross-slice type".to_owned(),
-            "references, so per-slice modules never import one another.".to_owned(),
+            "model_rebuild() sweep resolves the deferred cross-slice type references,".to_owned(),
+            "so per-slice modules never import one another (no import cycle).".to_owned(),
         ],
     ));
     out.push_str("from __future__ import annotations\n\n");
@@ -1154,6 +1453,51 @@ fn render_init(modules: &[RenderedModule]) -> Vec<u8> {
     out.push_str("    _rebuild = getattr(_obj, \"model_rebuild\", None)\n");
     out.push_str("    if callable(_rebuild):\n");
     out.push_str("        _rebuild(force=True, _types_namespace=_REBUILD_NS)\n");
+    finish_text(out)
+}
+
+/// The package README — a self-explaining orientation shipped alongside the code
+/// so the extracted package documents itself.
+fn render_readme(modules: &[RenderedModule]) -> Vec<u8> {
+    let model_total: usize = modules.iter().map(|m| m.model_names.len()).sum();
+    let mut out = String::new();
+    out.push_str("# gmeow_models — the GMEOW ontology as a Pydantic v2 package\n\n");
+    out.push_str(
+        "This package is a GENERATED, deterministic projection of the GMEOW ontology.\n\
+         Reading these models is reading the ontology; validating data with them is\n\
+         using it. It is emitted from the SAME SHACL shape compilation as the GMEOW\n\
+         JSON Schema, so a model's `model_json_schema()` agrees with the packed schema.\n\n",
+    );
+    out.push_str("## What each model carries\n\n");
+    out.push_str(
+        "- A docstring = the term's definition, when-to-use / avoid / how-to-use guidance,\n\
+         \x20 worked examples, and a docs back-link.\n\
+         - SHACL-derived `Field(...)` constraints (cardinality, min/max, length, pattern).\n\
+         - `StrEnum` value vocabularies for the ontology's value families.\n\
+         - `json_schema_extra` with the class `iri`, `curie`, and content-addressed\n\
+         \x20 `definitionDigest` for traceability back to the canonical term.\n\n",
+    );
+    out.push_str("## Loss stance (Principle 17)\n\n");
+    out.push_str(
+        "This is a closed-record VALIDATION projection of an open-world ontology: it\n\
+         validates instance shape, it does not reason. The per-term projection-fidelity\n\
+         table in the GMEOW documentation records exactly what this surface preserves\n\
+         and drops relative to the canonical `logic:` core.\n\n",
+    );
+    out.push_str("## Usage\n\n");
+    out.push_str(
+        "```python\n\
+         from gmeow_models.<slice> import <Class>\n\n\
+         obj = <Class>.model_validate(payload)  # closed-world validation\n\
+         schema = <Class>.model_json_schema()   # agrees with the packed GMEOW JSON Schema\n\
+         ```\n\n",
+    );
+    out.push_str(&format!(
+        "The package ships {model_total} models across {} modules (one module per slice,\n\
+         plus the shared `_base`/`_envelope` scaffolding). Do not edit by hand — it is\n\
+         regenerated from the ontology.\n",
+        modules.len()
+    ));
     finish_text(out)
 }
 
@@ -1264,10 +1608,12 @@ mod tests {
             all_text.contains(" = Field(default=None, alias="),
             "expected an optional field"
         );
+        // A required field = a `Field(...)` with NO `default=None` (may now carry a
+        // description / constraint kwargs).
         let has_required = a.values().any(|b| {
             String::from_utf8_lossy(b).lines().any(|l| {
                 let l = l.trim_start();
-                l.contains(": ") && l.ends_with(')') && l.contains(" = Field(alias=")
+                l.contains(": ") && l.contains(" = Field(") && !l.contains("default=None")
             })
         });
         assert!(has_required, "expected a required field (no default)");
@@ -1278,6 +1624,46 @@ mod tests {
             "json_schema_extra={\"$id\": \"https://blackcatinformatics.ca/gmeow/AccessibilityAssertion\", \
              \"curie\": \"gmeow:AccessibilityAssertion\", \"definitionDigest\": \"blake3:"
         ), "AccessibilityAssertion must carry a full json_schema_extra identity with a digest");
+
+        // Task 2 — the package is EXEMPLARY documentation.
+        // A documented class docstring carries structured guidance, a runnable usage
+        // doctest, and a bidirectional docs back-link.
+        assert!(
+            all_text.contains("When to use:"),
+            "expected at least one documented class with a 'When to use' section"
+        );
+        assert!(
+            all_text.contains("    >>> from gmeow_models."),
+            "expected a runnable usage doctest in class docstrings"
+        );
+        assert!(
+            all_text.contains("Docs:   https://blackcatinformatics.ca/gmeow/documentation/term/"),
+            "expected a docs back-link in documented class docstrings"
+        );
+        // Field-level documentation: a documented property carries a description.
+        assert!(
+            all_text.contains(", description=\""),
+            "expected Field(description=...) from property definitions"
+        );
+        // Package README + enriched __init__ docstring are self-explaining.
+        let readme = utf8(a, "gmeow_models/README.md");
+        assert!(
+            readme.contains("# gmeow_models") && readme.contains("Principle 17"),
+            "README.md must orient the reader and state the loss stance"
+        );
+        assert!(
+            utf8(a, "gmeow_models/__init__.py").contains("functional documentation surface"),
+            "__init__ docstring frames the package as a functional documentation surface"
+        );
+
+        // The class → dotted-path map links a term IRI to its importable model.
+        assert_eq!(
+            first
+                .dotted_paths
+                .get("https://blackcatinformatics.ca/gmeow/AccessibilityAssertion"),
+            Some(&"gmeow_models.accessibility.AccessibilityAssertion".to_owned()),
+            "dotted-path map must link a class IRI to its importable model path"
+        );
 
         insta::assert_snapshot!("models_python_tags_module", utf8(a, "gmeow_models/tags.py"));
         insta::assert_snapshot!("models_python_init", utf8(a, "gmeow_models/__init__.py"));
