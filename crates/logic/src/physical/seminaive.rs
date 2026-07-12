@@ -63,11 +63,11 @@ use hashbrown::HashTable;
 use rayon::prelude::*;
 
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
-use crate::physical::cursor::LendingIterator;
-use crate::physical::id::RowId;
-use crate::physical::plan::{Executable, RulePlan};
+use crate::physical::cursor::{LendingIterator, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
+use crate::physical::id::{RowId, TermId};
+use crate::physical::plan::{CyclicPlan, Executable, JoinGroup, RulePlan};
 use crate::physical::store::{Bound, RelationStore};
-use crate::provenance::mint_derivation_id;
+use crate::provenance::{mint_derivation_id, term_display};
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
@@ -448,6 +448,423 @@ enum Scan {
     OldOnly,
 }
 
+/// Runtime scan selection at operator construction; each variant contains a
+/// const-generic filtered cursor, so the per-row delta predicate remains
+/// monomorphized exactly like the binary kernel.
+enum LeapfrogValueCursor<'a> {
+    DeltaSubject(FilteredValueCursor<'a, SCAN_DELTA, VALUE_SUBJECT>),
+    FullSubject(FilteredValueCursor<'a, SCAN_FULL, VALUE_SUBJECT>),
+    OldOnlySubject(FilteredValueCursor<'a, SCAN_OLD_ONLY, VALUE_SUBJECT>),
+    DeltaObject(FilteredValueCursor<'a, SCAN_DELTA, VALUE_OBJECT>),
+    FullObject(FilteredValueCursor<'a, SCAN_FULL, VALUE_OBJECT>),
+    OldOnlyObject(FilteredValueCursor<'a, SCAN_OLD_ONLY, VALUE_OBJECT>),
+}
+
+impl<'a> LeapfrogValueCursor<'a> {
+    fn subject(rows: ValueCursor<'a, VALUE_SUBJECT>, scan: Scan, delta: Delta) -> Self {
+        match scan {
+            Scan::Delta => Self::DeltaSubject(FilteredValueCursor::new(rows, delta)),
+            Scan::Full => Self::FullSubject(FilteredValueCursor::new(rows, delta)),
+            Scan::OldOnly => Self::OldOnlySubject(FilteredValueCursor::new(rows, delta)),
+        }
+    }
+
+    fn object(rows: ValueCursor<'a, VALUE_OBJECT>, scan: Scan, delta: Delta) -> Self {
+        match scan {
+            Scan::Delta => Self::DeltaObject(FilteredValueCursor::new(rows, delta)),
+            Scan::Full => Self::FullObject(FilteredValueCursor::new(rows, delta)),
+            Scan::OldOnly => Self::OldOnlyObject(FilteredValueCursor::new(rows, delta)),
+        }
+    }
+
+    fn current(&self) -> Option<TermId> {
+        match self {
+            Self::DeltaSubject(cursor) => cursor.current,
+            Self::FullSubject(cursor) => cursor.current,
+            Self::OldOnlySubject(cursor) => cursor.current,
+            Self::DeltaObject(cursor) => cursor.current,
+            Self::FullObject(cursor) => cursor.current,
+            Self::OldOnlyObject(cursor) => cursor.current,
+        }
+    }
+
+    fn seek(&mut self, target: TermId) -> Option<TermId> {
+        match self {
+            Self::DeltaSubject(cursor) => cursor.seek(target),
+            Self::FullSubject(cursor) => cursor.seek(target),
+            Self::OldOnlySubject(cursor) => cursor.seek(target),
+            Self::DeltaObject(cursor) => cursor.seek(target),
+            Self::FullObject(cursor) => cursor.seek(target),
+            Self::OldOnlyObject(cursor) => cursor.seek(target),
+        }
+    }
+
+    fn advance(&mut self) -> Option<TermId> {
+        match self {
+            Self::DeltaSubject(cursor) => cursor.advance(),
+            Self::FullSubject(cursor) => cursor.advance(),
+            Self::OldOnlySubject(cursor) => cursor.advance(),
+            Self::DeltaObject(cursor) => cursor.advance(),
+            Self::FullObject(cursor) => cursor.advance(),
+            Self::OldOnlyObject(cursor) => cursor.advance(),
+        }
+    }
+}
+
+/// One relation's distinct, sorted trie-level values under a fixed semi-naive scan.
+struct FilteredValueCursor<'a, const SCAN: u8, const COLUMN: u8> {
+    rows: ValueCursor<'a, COLUMN>,
+    delta: Delta,
+    current: Option<TermId>,
+}
+
+impl<'a, const SCAN: u8, const COLUMN: u8> FilteredValueCursor<'a, SCAN, COLUMN> {
+    fn new(rows: ValueCursor<'a, COLUMN>, delta: Delta) -> Self {
+        let mut cursor = Self {
+            rows,
+            delta,
+            current: None,
+        };
+        cursor.fill(None);
+        cursor
+    }
+
+    /// Fill `current` with the next distinct scan-admitted value, skipping `prior`.
+    fn fill(&mut self, prior: Option<TermId>) -> Option<TermId> {
+        self.current = None;
+        while let Some((value, row)) = self.rows.next() {
+            if keep_row::<SCAN>(self.delta, row) && Some(value) != prior {
+                self.current = Some(value);
+                break;
+            }
+        }
+        self.current
+    }
+
+    fn seek(&mut self, target: TermId) -> Option<TermId> {
+        if self.current.is_some_and(|value| value >= target) {
+            return self.current;
+        }
+        self.rows.seek(target);
+        self.fill(None)
+    }
+
+    fn advance(&mut self) -> Option<TermId> {
+        let prior = self.current;
+        self.fill(prior)
+    }
+}
+
+/// A standard leapfrog intersection across sorted distinct value cursors.
+struct LeapfrogIntersection<'a> {
+    cursors: Vec<LeapfrogValueCursor<'a>>,
+}
+
+impl<'a> LeapfrogIntersection<'a> {
+    fn new(cursors: Vec<LeapfrogValueCursor<'a>>) -> Self {
+        Self { cursors }
+    }
+
+    /// Return the next value present in every cursor. The first cursor advances past
+    /// the returned value before control returns, so repeated calls enumerate the
+    /// intersection without duplicates.
+    fn next(&mut self) -> Option<TermId> {
+        let mut target = self
+            .cursors
+            .iter()
+            .filter_map(|cursor| cursor.current())
+            .max()?;
+        loop {
+            let mut aligned = true;
+            for cursor in &mut self.cursors {
+                let value = cursor.seek(target)?;
+                if value > target {
+                    target = value;
+                    aligned = false;
+                }
+            }
+            if aligned {
+                self.cursors[0].advance();
+                return Some(target);
+            }
+        }
+    }
+
+    /// Whether the exact externally-bound value occurs in every relation cursor.
+    fn contains(&mut self, wanted: TermId) -> bool {
+        for cursor in &mut self.cursors {
+            if cursor.seek(wanted) != Some(wanted) {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+#[inline]
+fn scan_for(positive_position: usize, delta_position: usize) -> Scan {
+    if positive_position < delta_position {
+        Scan::Full
+    } else if positive_position == delta_position {
+        Scan::Delta
+    } else {
+        Scan::OldOnly
+    }
+}
+
+#[inline]
+fn keep_row_for_scan(scan: Scan, delta: Delta, row: RowId) -> bool {
+    match scan {
+        Scan::Delta => keep_row::<SCAN_DELTA>(delta, row),
+        Scan::Full => keep_row::<SCAN_FULL>(delta, row),
+        Scan::OldOnly => keep_row::<SCAN_OLD_ONLY>(delta, row),
+    }
+}
+
+/// Build one cycle atom's trie cursor for `variable`, constrained by any binding of
+/// its other variable. Cycle certification guarantees two distinct variable terms.
+fn cycle_atom_cursor<'a>(
+    atom: &EvalAtom,
+    variable: &str,
+    solution: &Solution,
+    rel: &'a RelationStore,
+    scan: Scan,
+    delta: Delta,
+) -> Option<LeapfrogValueCursor<'a>> {
+    use crate::rule_ir::EvalTerm;
+
+    let (EvalTerm::Var(subject), EvalTerm::Var(object)) = (&atom.subject, &atom.object) else {
+        return None;
+    };
+    if subject == variable {
+        let other = match solution.get(object) {
+            Some(surface) => Some(rel.term_id(surface)?),
+            None => None,
+        };
+        Some(LeapfrogValueCursor::subject(
+            rel.values_subject(atom.predicate.as_str(), other),
+            scan,
+            delta,
+        ))
+    } else if object == variable {
+        let other = match solution.get(subject) {
+            Some(surface) => Some(rel.term_id(surface)?),
+            None => None,
+        };
+        Some(LeapfrogValueCursor::object(
+            rel.values_object(atom.predicate.as_str(), other),
+            scan,
+            delta,
+        ))
+    } else {
+        None
+    }
+}
+
+/// Capture the unique fully-ground row for every cycle atom, in the cycle plan's
+/// authored atom order. Returns false if a scan-mode constraint excludes any row.
+fn append_cycle_sources(
+    rule: &EvalRule,
+    cycle: &CyclicPlan,
+    delta_position: usize,
+    rel: &RelationStore,
+    delta: Delta,
+    solution: &mut Solution,
+) -> bool {
+    let original_len = solution.source_facts.len();
+    for &planned in cycle.atoms() {
+        let atom = &rule.body[planned.body_index()];
+        let (Some(subject), Some(object)) = (
+            ground(&atom.subject, solution),
+            ground(&atom.object, solution),
+        ) else {
+            solution.source_facts.truncate(original_len);
+            return false;
+        };
+        let (Some(subject_id), Some(object_id)) = (rel.term_id(&subject), rel.term_id(&object))
+        else {
+            solution.source_facts.truncate(original_len);
+            return false;
+        };
+        let scan = scan_for(planned.positive_position(), delta_position);
+        let mut rows = rel.select(atom.predicate.as_str(), Bound::Both(subject_id, object_id));
+        let mut matched = None;
+        while let Some((subject_id, object_id, row)) = rows.next() {
+            if keep_row_for_scan(scan, delta, row) {
+                matched = Some(Fact {
+                    subject: rel.interner().resolve(subject_id).clone(),
+                    predicate: atom.predicate.clone(),
+                    object: rel.interner().resolve(object_id).clone(),
+                });
+                break;
+            }
+        }
+        let Some(fact) = matched else {
+            solution.source_facts.truncate(original_len);
+            return false;
+        };
+        solution.source_facts.push(fact);
+    }
+    true
+}
+
+/// Immutable state shared by every recursive variable level of one LFTJ component.
+struct LeapfrogRun<'a> {
+    rule: &'a EvalRule,
+    cycle: &'a CyclicPlan,
+    delta_position: usize,
+    rel: &'a RelationStore,
+    delta: Delta,
+}
+
+impl LeapfrogRun<'_> {
+    /// Recursive LFTJ variable descent for one certified cycle component.
+    fn recurse(&self, variable_position: usize, solution: &mut Solution, out: &mut Vec<Solution>) {
+        if variable_position == self.cycle.variables().len() {
+            if append_cycle_sources(
+                self.rule,
+                self.cycle,
+                self.delta_position,
+                self.rel,
+                self.delta,
+                solution,
+            ) {
+                out.push(solution.clone());
+                solution
+                    .source_facts
+                    .truncate(solution.source_facts.len() - self.cycle.atoms().len());
+            }
+            return;
+        }
+
+        let variable = self.cycle.variables()[variable_position].as_str();
+        let externally_bound = match solution.get(variable) {
+            Some(surface) => match self.rel.term_id(surface) {
+                Some(value) => Some(value),
+                None => return,
+            },
+            None => None,
+        };
+        let mut cursors = Vec::new();
+        for &planned in self.cycle.atoms() {
+            let atom = &self.rule.body[planned.body_index()];
+            let contains_variable = matches!(&atom.subject, crate::rule_ir::EvalTerm::Var(name) if name == variable)
+                || matches!(&atom.object, crate::rule_ir::EvalTerm::Var(name) if name == variable);
+            if !contains_variable {
+                continue;
+            }
+            let scan = scan_for(planned.positive_position(), self.delta_position);
+            let Some(cursor) =
+                cycle_atom_cursor(atom, variable, solution, self.rel, scan, self.delta)
+            else {
+                return;
+            };
+            cursors.push(cursor);
+        }
+        if cursors.is_empty() {
+            return;
+        }
+        let mut intersection = LeapfrogIntersection::new(cursors);
+
+        if let Some(value) = externally_bound {
+            if intersection.contains(value) {
+                self.recurse(variable_position + 1, solution, out);
+            }
+            return;
+        }
+
+        while let Some(value) = intersection.next() {
+            solution.bindings.push((
+                variable.to_owned(),
+                term_display(self.rel.interner().resolve(value)),
+            ));
+            self.recurse(variable_position + 1, solution, out);
+            let popped = solution.bindings.pop();
+            debug_assert!(popped.is_some_and(|(name, _)| name == variable));
+        }
+    }
+}
+
+/// Extend every partial solution through one certified cyclic component without
+/// materializing any binary intermediate relation.
+fn extend_solutions_leapfrog(
+    rule: &EvalRule,
+    cycle: &CyclicPlan,
+    delta_position: usize,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[Solution],
+) -> Vec<Solution> {
+    let mut out = Vec::new();
+    let run = LeapfrogRun {
+        rule,
+        cycle,
+        delta_position,
+        rel,
+        delta,
+    };
+    for solution in solutions {
+        let mut working = solution.clone();
+        run.recurse(0, &mut working, &mut out);
+    }
+    out
+}
+
+/// Hybrid positive join for a rule with at least one certified cyclic subplan.
+fn join_body_leapfrog(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    rel: &RelationStore,
+    accumulated: &RelationStore,
+    delta: Delta,
+    gap: &mut bool,
+) -> Vec<Solution> {
+    let empty = Solution {
+        bindings: Vec::new(),
+        source_facts: Vec::new(),
+    };
+    let mut solutions = Vec::new();
+    for delta_position in 0..plan.positive().len() {
+        let mut partial = vec![empty.clone()];
+        for group in plan.join_groups() {
+            partial = match group {
+                JoinGroup::Binary(planned) => extend_solutions_indexed(
+                    &rule.body[planned.body_index()],
+                    rel,
+                    delta,
+                    scan_for(planned.positive_position(), delta_position),
+                    &partial,
+                ),
+                JoinGroup::Leapfrog(cycle) => {
+                    extend_solutions_leapfrog(rule, cycle, delta_position, rel, delta, &partial)
+                }
+            };
+            if partial.is_empty() {
+                break;
+            }
+        }
+        for solution in &mut partial {
+            for &(left, right) in plan.source_order_swaps() {
+                solution.source_facts.swap(left, right);
+            }
+        }
+        solutions.extend(partial);
+    }
+
+    if !rule.builtins.is_empty() {
+        solutions = apply_builtins(&rule.builtins, solutions, gap);
+    }
+    if !plan.negated().is_empty() {
+        solutions.retain(|solution| {
+            !plan
+                .negated()
+                .iter()
+                .any(|&index| negated_atom_satisfied(&rule.body[index], solution, accumulated))
+        });
+    }
+    solutions
+}
+
 /// Join all body atoms against `rel`, evaluating NAF against the accumulated store.
 ///
 /// The index-selected twin of `rule_ir::join_body`: the positive join is the SAME
@@ -457,6 +874,22 @@ enum Scan {
 /// after the positive join via membership in `accumulated` (the frozen-below store),
 /// which is exactly the stratified-negation reference.
 fn join_body_indexed(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    rel: &RelationStore,
+    accumulated: &RelationStore,
+    delta: Delta,
+    gap: &mut bool,
+) -> Vec<Solution> {
+    if plan.has_cyclic_subplan() {
+        return join_body_leapfrog(rule, plan, rel, accumulated, delta, gap);
+    }
+    join_body_binary(rule, plan, rel, accumulated, delta, gap)
+}
+
+/// The retained indexed-binary reference. It remains the production fast path for
+/// every acyclic rule and the focused parity oracle for promoted cyclic rules.
+fn join_body_binary(
     rule: &EvalRule,
     plan: &RulePlan,
     rel: &RelationStore,
@@ -1523,6 +1956,169 @@ mod tests {
             !native_rows.is_empty(),
             "transitive closure must derive at least one path"
         );
+    }
+
+    fn triangle_rule(with_interleaved_leaf: bool) -> Vec<EvalRule> {
+        let body = if with_interleaved_leaf {
+            format!(
+                "<{NS}r>(?X, ?Y, ?W), <{NS}leaf>(?X, ?Q, ?W), \
+                 <{NS}s>(?Y, ?Z, ?W), <{NS}t>(?Z, ?X, ?W)"
+            )
+        } else {
+            format!(
+                "<{NS}r>(?X, ?Y, ?W), <{NS}s>(?Y, ?Z, ?W), \
+                 <{NS}t>(?Z, ?X, ?W)"
+            )
+        };
+        parse_eval_rules(&format!(
+            "#[name(\"{NS}triangle-rule\")]\n\
+             <{NS}triangle>(?X, ?Z, ?W) :- {body} .\n"
+        ))
+        .expect("parse triangle rule")
+    }
+
+    fn triangle_relation(with_leaf: bool) -> RelationStore {
+        let mut rel = RelationStore::new();
+        for (s, p, o) in [
+            ("x0", "r", "y"),
+            ("x1", "r", "y"),
+            ("y", "s", "z0"),
+            ("y", "s", "z1"),
+            ("z0", "t", "x0"),
+            ("z1", "t", "x1"),
+        ] {
+            assert!(rel.insert(&nn(p), &term(s), &term(o)).is_some());
+        }
+        if with_leaf {
+            assert!(rel.insert(&nn("leaf"), &term("x0"), &term("q0")).is_some());
+            assert!(rel.insert(&nn("leaf"), &term("x1"), &term("q1")).is_some());
+        }
+        rel
+    }
+
+    type CanonicalSolution = (Vec<(String, String)>, Vec<FactKey>);
+
+    fn canonical_solutions(solutions: Vec<Solution>) -> Vec<CanonicalSolution> {
+        let mut rows: Vec<_> = solutions
+            .into_iter()
+            .map(|solution| {
+                let mut bindings = solution.bindings;
+                bindings.sort();
+                let sources = solution.source_facts.iter().map(Fact::key).collect();
+                (bindings, sources)
+            })
+            .collect();
+        rows.sort();
+        rows
+    }
+
+    /// The promoted multiway path dual-runs byte-for-byte against the retained binary
+    /// reference under both seed and proper-round delta spans. The interleaved leaf
+    /// variant additionally proves source facts are restored to authored body order.
+    #[test]
+    fn leapfrog_join_matches_binary_bindings_and_body_ordered_sources() {
+        for with_leaf in [false, true] {
+            let rules = triangle_rule(with_leaf);
+            let rule = &rules[0];
+            let plan = RulePlan::for_rule(rule);
+            assert!(plan.has_cyclic_subplan());
+            let rel = triangle_relation(with_leaf);
+            let deltas = [
+                Delta::all(rel.row_count()),
+                // Only the two `t` rows are new in this proper semi-naive round.
+                Delta { lo: 4, hi: 6 },
+            ];
+            for delta in deltas {
+                let mut binary_gap = false;
+                let binary = canonical_solutions(join_body_binary(
+                    rule,
+                    &plan,
+                    &rel,
+                    &rel,
+                    delta,
+                    &mut binary_gap,
+                ));
+                let mut leapfrog_gap = false;
+                let leapfrog = canonical_solutions(join_body_leapfrog(
+                    rule,
+                    &plan,
+                    &rel,
+                    &rel,
+                    delta,
+                    &mut leapfrog_gap,
+                ));
+                assert!(!binary_gap && !leapfrog_gap);
+                assert_eq!(leapfrog, binary, "delta={:?}", (delta.lo, delta.hi));
+                let want_predicates: Vec<String> = if with_leaf {
+                    ["r", "leaf", "s", "t"].into_iter().map(nn).collect()
+                } else {
+                    ["r", "s", "t"].into_iter().map(nn).collect()
+                };
+                assert!(leapfrog.iter().all(|(_, sources)| {
+                    sources
+                        .iter()
+                        .map(|source| source.1.clone())
+                        .eq(want_predicates.iter().cloned())
+                }));
+            }
+        }
+    }
+
+    /// Whole-engine oracle parity for the promoted rule: exact derived provenance and
+    /// the committed-derivation budget remain identical to the retained reduct engine.
+    #[test]
+    fn leapfrog_materialization_matches_binary_reference_and_budget() {
+        let rules = triangle_rule(false);
+        let facts = [
+            fact("x0", "r", "y"),
+            fact("x1", "r", "y"),
+            fact("y", "s", "z0"),
+            fact("y", "s", "z1"),
+            fact("z0", "t", "x0"),
+            fact("z1", "t", "x1"),
+        ];
+
+        let mut sorted_facts = facts.to_vec();
+        sorted_facts.sort_by_key(Fact::key);
+        let mut edb = FactStore::new();
+        for fact in &sorted_facts {
+            edb.insert(fact.clone());
+        }
+        let reference = least_model_of_reduct(&edb, &rules, &FactStore::new())
+            .expect("binary reduct reference");
+        let mut reference_rows: Vec<_> = reference.derivations.iter().map(row_key).collect();
+        reference_rows.sort();
+
+        let world = WorldStore::new();
+        for fact in facts {
+            world.insert_quad(
+                WORLD,
+                fact.subject.as_iri().expect("IRI subject"),
+                &fact.predicate,
+                fact.object.as_iri().expect("IRI object"),
+            );
+        }
+        let NativeOutcome::Decided(full) =
+            materialize_native(&world, &exe(&rules), None).expect("leapfrog materialization")
+        else {
+            panic!("triangle is native-decidable");
+        };
+        let mut native_rows: Vec<_> = derived_only(&full.rows)
+            .iter()
+            .map(|row| row_key(row))
+            .collect();
+        native_rows.sort();
+        assert_eq!(native_rows, reference_rows);
+        assert_eq!(full.consumed_steps, 2);
+
+        let NativeOutcome::Decided(cut) = materialize_native(&world, &exe(&rules), Some(1))
+            .expect("budgeted leapfrog materialization")
+        else {
+            panic!("triangle is native-decidable");
+        };
+        assert_eq!(cut.consumed_steps, 1);
+        assert_eq!(derived_only(&cut.rows).len(), 1);
+        assert_eq!(cut.status, BudgetStatus::Exhausted);
     }
 
     /// FULL-SCAN COMPLETENESS GATE.

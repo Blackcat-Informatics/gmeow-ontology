@@ -59,7 +59,7 @@ use std::sync::OnceLock;
 use purrdf::TermValue;
 
 use crate::facts::{PredId, PredInterner, TermId, TermInterner, skolem_iri};
-use crate::physical::cursor::RowCursor;
+use crate::physical::cursor::{RowCursor, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
 use crate::physical::id::RowId;
 use crate::provenance::term_display;
 use crate::seam::WorldFactSource;
@@ -438,25 +438,34 @@ impl<W: Weight> Batch<W> {
     /// The batch positions whose object is `o`, via the lazily-built [`ObjectIndex`]
     /// (built on first demand).  A subslice of the `(object, subject)`-sorted permutation.
     pub(crate) fn object_positions(&self, o: TermId) -> &[u32] {
-        let idx = self.object_index.get_or_init(|| {
-            let mut perm: Vec<u32> = (0..self.len() as u32).collect();
-            // Sort positions by (object_id, subject_id) — the secondary access order.
-            // `(object, subject)` keys are unique within a batch (the primary sort is
-            // key-disjoint), so no equal elements exist to preserve order for: the
-            // unstable sort is a pure win (no scratch allocation, lower constants),
-            // matching `seal()`'s `sort_unstable_by_key`.
-            perm.sort_unstable_by(|&a, &b| {
-                let (a, b) = (a as usize, b as usize);
-                (self.obj[a], self.subj[a]).cmp(&(self.obj[b], self.subj[b]))
-            });
-            ObjectIndex {
-                perm: perm.into_boxed_slice(),
-            }
-        });
-        let perm = &idx.perm;
+        let perm = self.object_order();
         let lo = perm.partition_point(|&p| self.obj[p as usize] < o);
         let hi = perm.partition_point(|&p| self.obj[p as usize] <= o);
         &perm[lo..hi]
+    }
+
+    /// Every batch position in `(object_id, subject_id)` order. The same lazy,
+    /// memoized permutation backs object-bound binary probes and object-major LFTJ
+    /// trie levels; it is built once and shared by both operators.
+    pub(crate) fn object_order(&self) -> &[u32] {
+        &self
+            .object_index
+            .get_or_init(|| {
+                let mut perm: Vec<u32> = (0..self.len() as u32).collect();
+                // Sort positions by (object_id, subject_id) — the secondary access order.
+                // `(object, subject)` keys are unique within a batch (the primary sort is
+                // key-disjoint), so no equal elements exist to preserve order for: the
+                // unstable sort is a pure win (no scratch allocation, lower constants),
+                // matching `seal()`'s `sort_unstable_by_key`.
+                perm.sort_unstable_by(|&a, &b| {
+                    let (a, b) = (a as usize, b as usize);
+                    (self.obj[a], self.subj[a]).cmp(&(self.obj[b], self.subj[b]))
+                });
+                ObjectIndex {
+                    perm: perm.into_boxed_slice(),
+                }
+            })
+            .perm
     }
 }
 
@@ -798,6 +807,28 @@ impl RelationStore {
         self.relation(predicate)
             .unwrap_or(&self.empty)
             .select(bound)
+    }
+
+    /// A globally subject-value-ordered trie-level cursor over one predicate relation.
+    ///
+    /// `other` optionally fixes the object position. Unknown predicates use the
+    /// permanent empty relation, matching [`Self::select`]'s probe-miss semantics.
+    pub(crate) fn values_subject(
+        &self,
+        predicate: &str,
+        other: Option<TermId>,
+    ) -> ValueCursor<'_, VALUE_SUBJECT> {
+        ValueCursor::new(self.relation(predicate).unwrap_or(&self.empty), other)
+    }
+
+    /// Object-value-ordered sibling of [`Self::values_subject`]; `other` optionally
+    /// fixes the subject position.
+    pub(crate) fn values_object(
+        &self,
+        predicate: &str,
+        other: Option<TermId>,
+    ) -> ValueCursor<'_, VALUE_OBJECT> {
+        ValueCursor::new(self.relation(predicate).unwrap_or(&self.empty), other)
     }
 
     /// The number of distinct tuples stored under `predicate` (0 if unknown).
