@@ -13,6 +13,7 @@
 //! owns the stdio JSON-RPC loop, startup language validation, resource routing,
 //! and grounded-memory triad; the native `gmeow`/`gmeow-dev` CLI is the launcher.
 
+use std::cmp::Reverse;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::env;
 use std::fs;
@@ -1068,14 +1069,23 @@ impl McpView {
             terms_by_code.entry(code).or_insert_with(|| terms.clone());
         }
 
-        // code → well-formed sibling sharing a referenced term (first well-formed
-        // fixture IRI wins).
+        // code → well-formed sibling with the largest referenced-term overlap
+        // (most specific/relevant exemplar); ties broken deterministically by
+        // the lexicographically smallest fixture IRI. `min_by_key` is used
+        // (rather than `max_by_key`, which returns the LAST maximal element on
+        // ties) with a key of `(Reverse(overlap), fixture_iri)` — since fixture
+        // IRIs are unique, this always has a single minimum, so the choice is
+        // fully deterministic and stable across runs.
         let mut wellformed_by_code: BTreeMap<String, FixtureView> = BTreeMap::new();
         for (code, ce_terms) in &terms_by_code {
-            if let Some((_fixture, (view, _terms))) = wellformed_by_fixture
+            let best = wellformed_by_fixture
                 .iter()
-                .find(|(_f, (_v, wf_terms))| !wf_terms.is_disjoint(ce_terms))
-            {
+                .filter_map(|(fixture, (view, wf_terms))| {
+                    let overlap = wf_terms.intersection(ce_terms).count();
+                    (overlap > 0).then_some((overlap, fixture, view))
+                })
+                .min_by_key(|(overlap, fixture, _)| (Reverse(*overlap), (*fixture).clone()));
+            if let Some((_overlap, _fixture, view)) = best {
                 wellformed_by_code.insert(code.clone(), view.clone());
             }
         }
