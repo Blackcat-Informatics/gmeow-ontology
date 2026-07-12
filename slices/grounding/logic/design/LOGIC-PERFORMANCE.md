@@ -77,8 +77,13 @@ ingestion, diagnostic, and serialization edges.
   merges batches geometrically. Sorted batches make merge joins, galloping search, delta
   extraction, and byte-stable emission all fall out of one representation — and they are the
   common substrate the join and incrementality doctrines below both require.
-- **Membership tests on the hot path are dense**: delta membership over row indexes is a bitset
-  word test, not a hash probe of a composite key.
+- **Membership tests on the hot path are dense**: delta membership over row indexes is a bounded
+  index test, not a hash probe of a composite key. Because row ids are minted densely in
+  FactKey-sorted commit order, a semi-naive round's committed rows are always a contiguous row-id
+  span, so the native engine specializes dense delta membership to a single `[lo, hi)` range
+  compare — the round batch IS the delta, with no per-round bitset or arena round-trip. (The
+  reference reduct engine retains the equivalent dense bitset; the range is its byte-identical
+  contiguous-span specialization.)
 
 ## Join doctrine
 

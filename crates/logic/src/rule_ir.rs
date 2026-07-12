@@ -821,11 +821,13 @@ fn join_body(
 /// for `source_quad_ids`; the sorted copy never appears in output.
 ///
 /// Winner selection uses a **quality-ordered total-order** over same-head candidates:
-/// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri)` — smaller wins.  This
-/// prefers the most-direct (shallowest) derivation, tiebreaks toward asserted-rooted
-/// proofs (lower depth sum), uses lex-min sorted reifiers as a content-addressed
-/// tiebreaker, and finally uses `rule_iri` as a total-order backstop (since rule IRIs
-/// vary per rule, unlike `foundation.rs` where a single anonymous IRI is used).
+/// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri, sources)` — smaller wins.
+/// This prefers the most-direct (shallowest) derivation, tiebreaks toward
+/// asserted-rooted proofs (lower depth sum), uses lex-min sorted reifiers as a
+/// content-addressed tiebreaker, uses `rule_iri` as a backstop (since rule IRIs vary
+/// per rule, unlike `foundation.rs` where a single anonymous IRI is used), and finally
+/// the body-order `sources` as the **total-order closer** so selection is independent
+/// of candidate enumeration order (the columnar store enumerates rows in value order).
 /// The per-derived-tuple provenance of a candidate: the rule that fired and the
 /// premise (source) reifiers, plus the derivation-depth scalars used for winner
 /// selection.  Recording this is the memory the closure-only lane must NOT pay, so it
@@ -865,20 +867,36 @@ pub(crate) struct RuleRoundCandidate {
     pub(crate) prov: Option<Provenance>,
 }
 
+/// The quality-ordered **total-order** tiebreak key produced by
+/// [`RuleRoundCandidate::tiebreak_key`]:
+/// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri, sources)`, smaller wins.
+/// The trailing body-order `sources` is the total-order closer (see `tiebreak_key`).
+type TiebreakKey<'a> = (u32, u64, &'a [String], &'a str, &'a [String]);
+
 impl RuleRoundCandidate {
-    /// The quality-ordered total-order tiebreak key —
-    /// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri)`, smaller wins.
+    /// The quality-ordered **total-order** tiebreak key —
+    /// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri, sources)`, smaller wins.
     /// `None` (the facts-only lane, which never tiebreaks — it only `or_insert`s a
     /// first-seen winner) sorts below any `Some` and never participates in a compare.
-    /// Because every provenance-recording construction site yields `Some`, this
-    /// reproduces the pre-`Option` tuple comparison byte for byte.
-    pub(crate) fn tiebreak_key(&self) -> Option<(u32, u64, &[String], &str)> {
+    ///
+    /// The final `sources` (body-order reifiers) component makes the key **total over
+    /// observable provenance**: two same-head candidates whose earlier components tie
+    /// (a symmetric body such as `co(?z) :- rel(?x,?z), rel(?y,?z)` yields the same
+    /// `sorted_sources` from different body orders) still differ in body-order `sources`
+    /// — which drives `source_quad_ids` and the minted derivation id. Comparing it makes
+    /// winner selection independent of candidate *enumeration order*, so the columnar
+    /// store may enumerate rows in value order (not insertion order) without perturbing
+    /// which provenance wins. Two candidates that agree on `sources` are the identical
+    /// derivation (same premises, same order, same rule) and are byte-identical, so the
+    /// key is decisive exactly when output would otherwise differ.
+    pub(crate) fn tiebreak_key(&self) -> Option<TiebreakKey<'_>> {
         self.prov.as_ref().map(|p| {
             (
                 p.max_src_depth,
                 p.sum_src_depth,
                 p.sorted_sources.as_slice(),
                 p.rule_iri.as_str(),
+                p.sources.as_slice(),
             )
         })
     }
@@ -899,8 +917,15 @@ impl RuleRoundCandidate {
 /// 3. **Lex-min sorted source reifiers** (`sorted_sources`) — content-addressed tiebreaker.
 /// 4. **Rule IRI** (`rule_iri`) — total-order backstop (rule IRIs vary per rule here,
 ///    unlike the single anonymous IRI in `foundation.rs`).
+/// 5. **Body-order sources** (`sources`) — total-order closer over observable
+///    provenance: a symmetric body (`co(?z) :- rel(?x,?z), rel(?y,?z)`) yields equal
+///    `sorted_sources` from different body orders, so the body-order reifiers (which
+///    drive `source_quad_ids` and the derivation id) are the decisive final key.
 ///
-/// The comparison is **independent of firing-enumeration order** by construction.
+/// The comparison is **independent of firing-enumeration order** by construction — the
+/// key is a total order over every candidate that differs in any output byte, so the
+/// columnar store may enumerate rows in value order without changing which winner is
+/// selected.
 ///
 /// # Errors
 ///
@@ -1478,44 +1503,64 @@ mod tests {
     // ── Determinism / quality-ordered tiebreak test ───────────────────────────
     //
     // Mirrors `foundation/tests.rs::first_wins_tiebreak_prefers_most_direct_derivation_order_independent`
-    // but uses `RuleRoundCandidate`'s four-field tiebreak key, which adds `rule_iri`
-    // as a total-order backstop (since rule IRIs vary per rule in rule_ir, unlike
-    // foundation.rs where a single anonymous IRI is used for all rules).
+    // but uses `RuleRoundCandidate`'s five-field tiebreak key, which adds `rule_iri` as a
+    // total-order backstop (since rule IRIs vary per rule in rule_ir, unlike foundation.rs
+    // where a single anonymous IRI is used for all rules) AND body-order `sources` as the
+    // final total-order closer (so a symmetric body, which yields equal `sorted_sources`
+    // from different body orders, is still resolved deterministically).
     //
     // Proves:
     //   1. Depth dominates lex order — shallower wins over lex-smaller deeper candidate.
     //   2. Sum-depth tiebreaks at equal max-depth.
-    //   3. Lex-min sorted_sources as final content-addressed tiebreaker (all depths equal).
-    //   4. All three levels are enumeration-order-independent (forward, reverse, permuted).
-    //   5. `rule_iri` provides a total-order backstop when all other fields are equal.
+    //   3. Lex-min sorted_sources as content-addressed tiebreaker (all depths equal).
+    //   4. `rule_iri` provides a total-order backstop when all other fields are equal.
+    //   5. Body-order `sources` is the total-order closer: two candidates with equal
+    //      `sorted_sources` but different body orders resolve to lex-min `sources`.
+    //   All levels are enumeration-order-independent (forward, reverse, permuted).
     /// Verify that the per-round winner-selection tiebreak in `least_model_of_reduct` is
     /// quality-ordered and independent of the order in which candidates are folded into
     /// the round map.
     ///
-    /// The total order is `(max_src_depth, sum_src_depth, sorted_sources, rule_iri)` —
-    /// smaller wins.  Self-contained; no external store or rule parsing required.
+    /// The total order is `(max_src_depth, sum_src_depth, sorted_sources, rule_iri,
+    /// sources)` — smaller wins.  Self-contained; no external store or rule parsing.
     #[test]
     fn first_wins_tiebreak_prefers_most_direct_derivation_order_independent() {
-        /// A minimal stand-in for [`RuleRoundCandidate`]'s comparison key.
+        /// A minimal stand-in for [`RuleRoundCandidate`]'s comparison key — its fields
+        /// mirror [`RuleRoundCandidate::tiebreak_key`] exactly (including the body-order
+        /// `sources` closer).
         #[derive(Clone, Debug, PartialEq, Eq)]
         struct FakeCand {
             max_depth: u32,
             sum_depth: u64,
             sorted_sources: Vec<String>,
             rule_iri: String,
-            label: &'static str, // for assertion messages only
+            sources: Vec<String>, // body-order reifiers — the total-order closer
+            label: &'static str,  // for assertion messages only
         }
 
         /// Fold a slice of candidates using the same `and_modify` logic as
-        /// `least_model_of_reduct`, returning a clone of the winning candidate.
+        /// `least_model_of_reduct`, returning a clone of the winning candidate.  The key
+        /// is the full five-tuple, matching [`RuleRoundCandidate::tiebreak_key`].
         fn fold(cands: &[FakeCand]) -> FakeCand {
             let mut winner: Option<FakeCand> = None;
             for c in cands {
                 match &winner {
                     None => winner = Some(c.clone()),
                     Some(w) => {
-                        let c_key = (c.max_depth, c.sum_depth, &c.sorted_sources, &c.rule_iri);
-                        let w_key = (w.max_depth, w.sum_depth, &w.sorted_sources, &w.rule_iri);
+                        let c_key = (
+                            c.max_depth,
+                            c.sum_depth,
+                            &c.sorted_sources,
+                            &c.rule_iri,
+                            &c.sources,
+                        );
+                        let w_key = (
+                            w.max_depth,
+                            w.sum_depth,
+                            &w.sorted_sources,
+                            &w.rule_iri,
+                            &w.sources,
+                        );
                         if c_key < w_key {
                             winner = Some(c.clone());
                         }
@@ -1534,6 +1579,7 @@ mod tests {
             sum_depth: 1,
             sorted_sources: vec!["urn:z".to_owned()], // lex-larger
             rule_iri: "urn:rule/b".to_owned(),
+            sources: vec!["urn:z".to_owned()],
             label: "shallow",
         };
         let deep = FakeCand {
@@ -1541,6 +1587,7 @@ mod tests {
             sum_depth: 2,
             sorted_sources: vec!["urn:a".to_owned()], // lex-smaller — but loses on depth
             rule_iri: "urn:rule/a".to_owned(),
+            sources: vec!["urn:a".to_owned()],
             label: "deep",
         };
         let pool1 = vec![shallow.clone(), deep.clone()];
@@ -1561,6 +1608,7 @@ mod tests {
             sum_depth: 1,
             sorted_sources: vec!["urn:m".to_owned()], // lex-larger
             rule_iri: "urn:rule/b".to_owned(),
+            sources: vec!["urn:m".to_owned()],
             label: "asserted_rooted",
         };
         let chain_rooted = FakeCand {
@@ -1568,6 +1616,7 @@ mod tests {
             sum_depth: 3,
             sorted_sources: vec!["urn:a".to_owned()], // lex-smaller — but loses on sum
             rule_iri: "urn:rule/a".to_owned(),
+            sources: vec!["urn:a".to_owned()],
             label: "chain_rooted",
         };
         let pool2 = vec![asserted_rooted.clone(), chain_rooted.clone()];
@@ -1593,6 +1642,7 @@ mod tests {
                 sum_depth: 0,
                 sorted_sources: vec!["urn:a".to_owned(), "urn:c".to_owned()],
                 rule_iri: "urn:rule/x".to_owned(),
+                sources: vec!["urn:a".to_owned(), "urn:c".to_owned()],
                 label: "ac",
             },
             FakeCand {
@@ -1600,6 +1650,7 @@ mod tests {
                 sum_depth: 0,
                 sorted_sources: vec!["urn:a".to_owned(), "urn:b".to_owned()], // ← lex smallest
                 rule_iri: "urn:rule/x".to_owned(),
+                sources: vec!["urn:a".to_owned(), "urn:b".to_owned()],
                 label: "ab",
             },
             FakeCand {
@@ -1607,6 +1658,7 @@ mod tests {
                 sum_depth: 0,
                 sorted_sources: vec!["urn:b".to_owned(), "urn:d".to_owned()],
                 rule_iri: "urn:rule/x".to_owned(),
+                sources: vec!["urn:b".to_owned(), "urn:d".to_owned()],
                 label: "bd",
             },
         ];
@@ -1637,6 +1689,7 @@ mod tests {
             sum_depth: 0,
             sorted_sources: vec!["urn:s".to_owned()],
             rule_iri: "urn:rule/a".to_owned(), // ← lex smallest
+            sources: vec!["urn:s".to_owned()],
             label: "rule_a",
         };
         let rule_b = FakeCand {
@@ -1644,6 +1697,7 @@ mod tests {
             sum_depth: 0,
             sorted_sources: vec!["urn:s".to_owned()],
             rule_iri: "urn:rule/b".to_owned(),
+            sources: vec!["urn:s".to_owned()],
             label: "rule_b",
         };
         let pool4 = vec![rule_b.clone(), rule_a.clone()];
@@ -1657,6 +1711,43 @@ mod tests {
             fold(&pool4_rev).label,
             "rule_a",
             "rev: lex-min rule_iri must win when all other fields equal"
+        );
+
+        // ── Level 5: body-order `sources` closer (the symmetric-body case) ───
+        //
+        // The exact hazard the columnar store introduces: a symmetric body
+        // `co(?z) :- rel(?x,?z), rel(?y,?z)` derives the same head with the SAME
+        // `sorted_sources` from DIFFERENT body orders, so every earlier key component
+        // ties.  Only the body-order `sources` decides, and it must decide
+        // deterministically (lex-min wins) regardless of enumeration order — otherwise
+        // value-order row enumeration would flip which provenance wins.
+        let src_ab = FakeCand {
+            max_depth: 1,
+            sum_depth: 2,
+            sorted_sources: vec!["urn:a".to_owned(), "urn:b".to_owned()],
+            rule_iri: "urn:rule/co".to_owned(),
+            sources: vec!["urn:a".to_owned(), "urn:b".to_owned()], // ← body order (x,z),(y,z)
+            label: "src_ab",
+        };
+        let src_ba = FakeCand {
+            max_depth: 1,
+            sum_depth: 2,
+            sorted_sources: vec!["urn:a".to_owned(), "urn:b".to_owned()], // identical sorted
+            rule_iri: "urn:rule/co".to_owned(),
+            sources: vec!["urn:b".to_owned(), "urn:a".to_owned()], // ← body order (y,z),(x,z)
+            label: "src_ba",
+        };
+        let pool5 = vec![src_ba.clone(), src_ab.clone()];
+        let pool5_rev = vec![src_ab.clone(), src_ba.clone()];
+        assert_eq!(
+            fold(&pool5).label,
+            "src_ab",
+            "fwd: lex-min body-order sources must win when sorted_sources tie"
+        );
+        assert_eq!(
+            fold(&pool5_rev).label,
+            "src_ab",
+            "rev: lex-min body-order sources must win when sorted_sources tie"
         );
     }
 }
