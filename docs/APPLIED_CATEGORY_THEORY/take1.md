@@ -475,8 +475,8 @@ Routing every query to Scryer (SLD) and Nemo (chase) was a **bootstrap, not an a
 black-box whole-program engines cannot be planned across, specialized, parallelized, or made
 incremental, and each boundary pays re-serialization (Nemo even materializes the full chase, then
 truncates). The long-term design extends §10.1's progressive lowering *downward* — past the
-projection lowerings (§11) — to a **single native physical engine** in Rust, with Scryer/Nemo
-demoted to conformance oracles, fallbacks for not-yet-native facets, and capability stand-ins
+projection lowerings (§11) — to a **single native physical engine** in Rust, with external engines
+demoted to conformance evidence while fragments are promoted
 (§10). The substrate is subsumed **fragment-by-fragment, oracle-gated** by the differential ledger
 — the same retirement discipline already applied to the Python oracle.
 
@@ -486,8 +486,8 @@ bundle-borne `logic:Correspondence` (relation `logic:Subsumes`, morphism `logic:
 preservation `logic:CompleteOverApproximation`) in `generated/logic/subsumption-correspondence.ttl`,
 bound to `native_contract_hash()` so it is content-addressed to the exact native core it certifies,
 and enforced by an on-gate drift-gate. The correspondence *is* the subsumption claim, carried in the
-ontology and re-checked every gate; Scryer/Nemo now ride only the differential parity lane behind that
-gate, no longer the forward reasoning path.
+ontology and re-checked every gate. Scryer is now deleted; Nemo rides only the forward differential
+parity lane behind that gate.
 
 The execution lowering stack (the physical continuation of §10):
 
@@ -540,8 +540,8 @@ cleanly later: every execution strategy, the incremental layer, and the semiring
 target *it*. The other two prerequisites already hold — the four axes are semiring-annotatable
 first-class structure (§7), and the IR is content-addressed (§3).
 
-**Staging & honest risk.** Native subsumption is fragment-by-fragment, oracle-gated (Scryer/Nemo as
-parity oracle under a growing native core). The Nemo-track — the forward-chase OWL profiles (EL, RL,
+**Staging & honest risk.** Native subsumption is fragment-by-fragment and evidence-gated. The
+backward substrate is retired; Nemo remains the forward parity oracle. The Nemo-track — the forward-chase OWL profiles (EL, RL,
 DL Horn) — is realized and in production; the remaining hard parts stay ahead of it. Name them now,
 do not promise them early:
 **well-founded / stable-model semantics *incrementally*** (non-monotonic + differential is
@@ -871,8 +871,8 @@ subsumption — and naming it honestly is worth more than papering over it.
   unit-independent true quantity) grounds the data axis; the event refinements (process ≠ event,
   action-open/event-closed, causal-vs-temporal parts) ground the process axis.
 - **Execution** (§10.2): the long-term engine is a single native physical core the IR lowers to
-  (relational-core dialect → physical plan → semi-naive/incremental/compiled), with Scryer/Nemo
-  demoted to oracles + fallbacks and subsumed fragment-by-fragment, oracle-gated. Seven levers
+  (relational-core dialect → physical plan → semi-naive/incremental/compiled), with Scryer retired
+  and Nemo retained temporarily as forward comparison evidence. Seven levers
   (one core, magic-sets, incremental differential/DBSP, WCOJ, provenance-semirings = the axis
   algebra, compile-don't-interpret, fragment-routing). One IR commitment to lock in now: a
   first-class **relational-core dialect** as the logical↔physical lowering waist.

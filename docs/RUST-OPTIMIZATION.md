@@ -35,6 +35,16 @@ Optimization work needs evidence. Before changing a hot path, capture the curren
 behavior with the narrowest useful command, then rerun the same command after the
 change.
 
+The dependency lock is part of that measurement identity. The current baseline is
+the lockstep `purrdf` **0.5.0** family; do not present a measurement taken against a
+0.4.x build as current evidence. The 0.5.0 release already supplies ownership and
+allocation reductions in the RDF IR, SPARQL/XSD, reasoning, SHACL/ShEx, GTS, slice,
+and binding layers, so GMEOW benchmarks should measure on top of those gains rather
+than claim them again. Its owned `QuadPatternCursor` and borrowed dataset-term
+writers are additional cross-crate seams: prefer them when a GMEOW boundary would
+otherwise collect a result-sized quad vector or materialize owned term trees. See
+the [purrdf 0.5.0 release notes](https://github.com/Blackcat-Informatics/purrdf/releases/tag/rust-v0.5.0).
+
 Useful lanes:
 
 ```bash
@@ -108,24 +118,55 @@ more than downstream implementability.
 ## Current In-Tree Examples
 
 Use these as the reference points before adding a new advanced-language-feature
-optimization:
+optimization. The RDF examples live in the external lockstep `purrdf` family and
+are consumed through its public Rust API:
 
-- Static iterator seams: `DatasetView` in `crates/rdf-core/src/dataset_view.rs`
-  returns `impl Iterator` over borrowed quad views instead of boxed iterator
-  objects.
-- Dense typed IDs: `TermId`, `QuadIds`, and the quad indexes in
-  `crates/rdf-core/src/ir/dataset.rs` keep hot joins on compact local IDs.
-- Const generics: `AxisOrder<const N>` in
-  `crates/rdf-core/src/ir/dataset.rs` carries the fixed quad-axis arity in the
-  helper type instead of spreading parallel `[T; 4]` conventions through the
-  index code.
-- Type-state: `ValidatedRdfDatasetBuilder` in
-  `crates/rdf-core/src/ir/builder.rs` makes validated -> frozen an explicit
-  phase boundary while preserving the one-shot `RdfDatasetBuilder::freeze()` API.
-- SIMD: `crates/iri/src/parse.rs` uses safe portable SIMD only for dense ASCII
-  delimiter scans; semantic validation remains scalar and byte-exact.
-- Sealed traits: `DatasetView` and `DatasetMut` are sealed to the in-tree RDF
-  dataset types so external crates cannot invent invalid storage contracts.
+- Static iterator seams: `purrdf::DatasetView` returns `impl Iterator` over
+  borrowed quad views instead of boxed iterator objects; `QuadPatternCursor`
+  provides the owned, lazy equivalent when a cursor must pin an `Arc<RdfDataset>`.
+- Dense typed IDs: `purrdf::{TermId, QuadIds}` and the dataset's quad indexes keep
+  hot joins on compact local IDs.
+- Const generics: purrdf's internal `AxisOrder<const N>` carries fixed quad-axis
+  arity in the helper type instead of spreading parallel `[T; 4]` conventions
+  through the index code.
+- Type-state: `purrdf::ValidatedRdfDatasetBuilder` makes validated -> frozen an
+  explicit phase boundary while preserving the one-shot
+  `RdfDatasetBuilder::freeze()` API.
+- Compile-don't-interpret: `crates/logic/src/physical/plan.rs` lowers rules through
+  parsed -> stratified -> planned -> executable type states into an immutable owned
+  plan. Its identity is `(contract_hash, canonical_rule_hash, solver_version)`;
+  forward and demand-transformed evaluation share the same plan type through a
+  bounded cache. Positive atoms carry stable variable slots, a deterministic
+  binding-aware SIPS order, a guaranteed index shape, and a preselected
+  variable/constant kernel shape, while scan mode dispatch enters a const-generic
+  kernel once per operator rather than branching per tuple.
+- Bounded provenance algebra: `crates/logic/src/provenance.rs` defines the checked
+  semiring seam used by the native Record lane's minimal-proof-height carrier and
+  the incremental core's signed Z-weight counting carrier. Record stores one typed
+  height per fact; Skip stores none. `crates/logic/src/explain.rs` indexes row
+  identity once and descends only a queried witness subtree, so no eager proof-tree
+  forest is materialized.
+- Incremental non-monotone grounding:
+  `crates/logic/src/physical/incremental_grounding.rs` reuses the signed recursive
+  session for the positive candidate universe and differentiates the ground-rule
+  projection with the same telescoping product law. The WFS/stable-model wrappers
+  cache an answer only for an unchanged EDB+ground-rule slice; a changed slice
+  explicitly records and runs the still-non-incremental solver from scratch.
+- Deterministic intra-world parallelism:
+  `crates/logic/src/physical/seminaive.rs` evaluates the immutable per-rule work of
+  a semi-naive round into independent Rayon task buffers, consumes task results in
+  executable program order, quality-merges duplicate heads, and mutates the stores
+  only at the existing lexical `FactKey` commit. Budgeted and unbounded runs therefore
+  observe the identical committed prefix, provenance, and completion frontier; one-rule
+  strata and the one-worker allocation-measurement pool retain the direct path. The
+  permanent balanced evidence fixture separately enters the real four-worker path and
+  drift-gates its output/provenance and budget-cut parity, candidate-row critical path,
+  and merge-buffer row bound. Those are scheduler-independent structural counts, not a
+  wall-time speedup or byte-level memory claim.
+- SIMD: `purrdf-iri` uses safe portable SIMD only for dense ASCII delimiter scans;
+  semantic validation remains scalar and byte-exact.
+- Sealed traits: `purrdf::DatasetView` and `DatasetMut` are sealed to the purrdf
+  dataset types so downstream crates cannot invent invalid storage contracts.
 
 ## Determinism Doctrine
 

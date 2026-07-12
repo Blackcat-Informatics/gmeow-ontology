@@ -11,13 +11,6 @@ TARGET ?= foaf
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= chore: regenerate checked-in artifacts
 GMEOW_DEV ?= cargo run -q -p gmeow-dev-cli --
-NPROC ?= $(shell nproc 2>/dev/null || echo 4)
-# check-generated reproduces every committed artifact through the gmeow-pipeline DAG;
-# its stages mix CPU work with artifact IO, so oversubscribing jobs past the core
-# count overlaps the IO and measurably cuts wall-time (≈25% on a 2-core runner),
-# keeping the ontology-generated CI lane under the 5-minute target. Bounded in
-# practice by the DAG width per level.
-CHECK_GENERATED_JOBS ?= $(shell echo $$(( $(NPROC) * 2 )))
 CARGO_TARGET_DIR ?= target
 SIGN_KEY ?=
 PUBLIC_KEY ?= keys/gmeow-release-key.asc
@@ -169,12 +162,7 @@ diagnostics-rust-sarif: ## Emit the user-facing rust diagnostics SARIF via gmeow
 	$(CARGO_TARGET_DIR)/release/gmeow-lsp sarif --out dist/diagnostics/rust --category rust ontology/gmeow.ttl $(shell find conformance -name '*.logic')
 
 check: ## Run the full Docker-free local quality gate.
-	# check-generated is one of CHECK_TARGETS, so it already runs as one of the
-	# -j$(NPROC) outer jobs here; cap its inner pipeline pool to the outer count
-	# (a command-line assignment overrides the CHECK_GENERATED_JOBS ?= NPROC*2
-	# default) so the nested pools don't oversubscribe a small box. The standalone
-	# `make check-generated` CI lane keeps the wider NPROC*2 IO-overlap pool.
-	$(MAKE) -j$(NPROC) CHECK_GENERATED_JOBS=$(NPROC) $(CHECK_TARGETS)
+	$(MAKE) $(CHECK_TARGETS)
 	$(MAKE) compliance-report
 	@echo "all checks passed (Docker-free, Java-free)"
 
@@ -184,13 +172,13 @@ i18n-lint: ## Reject malformed or mechanically corrupted committed translations.
 ##@ Generated Artifacts And Outputs
 
 regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.
-	$(GMEOW_DEV) regenerate -j $(NPROC)
+	$(GMEOW_DEV) regenerate
 
 fanout: ## Project the flat consumer tree back out of gmeow.gts (PIPELINE_SPINE §6).
-	$(GMEOW_DEV) fanout -j $(NPROC)
+	$(GMEOW_DEV) fanout
 
 check-generated: ## Drift + orphan check for all registered generators.
-	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS)
+	$(GMEOW_DEV) check-generated
 
 commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and commit.
 	@REGENERATED_PATHS=$$(GMEOW_CONSOLE=silent $(GMEOW_DEV) regenerate --list-paths); \
@@ -465,16 +453,16 @@ bench: ## Run criterion benchmarks with host-tuned codegen.
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
 
-bench-golden-gate: ## On-gate native-vs-golden agreement gate: run the NATIVE engine over the committed mini corpora and hard-fail on any golden divergence (no Nemo/Scryer — cheap).
+bench-golden-gate: ## On-gate native-vs-golden agreement gate: run the native engine over the committed mini corpora and hard-fail on any golden divergence (no live oracle — cheap).
 	cargo run -q -p gmeow-bench-engines -- --check-golden
 
-bench-soak: ## On-gate divergence-ledger soak window: run the DETERMINISTIC native-vs-golden check 3× over the committed mini corpora and hard-fail unless every run is gap-zero with a byte-identical finding-graph digest (no Nemo/Scryer — cheap; the checkable form of the gap-zero-over-a-soak-window claim in generated/bench/soak.md).
+bench-soak: ## On-gate divergence-ledger soak window: run the deterministic native-vs-golden check 3× and require gap-zero with a byte-identical digest (no live oracle).
 	cargo run -q -p gmeow-bench-engines -- --soak 3
 
 perf-gate: ## Report-only timings for validate, generated drift, reason, and verify.
 	mkdir -p $(PERF_DIR)
 	$(GMEOW_DEV) validate --timings --timings-json $(PERF_DIR)/validate.json
-	$(GMEOW_DEV) check-generated -j $(CHECK_GENERATED_JOBS) --timings-json $(PERF_DIR)/check-generated.json
+	$(GMEOW_DEV) check-generated --timings-json $(PERF_DIR)/check-generated.json
 	$(GMEOW_DEV) reason-verify --timings-json $(PERF_DIR)/reason-verify.json
 	cargo run -q -p gmeow-pipeline --bin perf_gate_merge -- $(PERF_DIR)
 	@echo "perf gate timings written to $(PERF_DIR)/gate-timings.json"
@@ -561,56 +549,63 @@ maint-bench-instructions: ## (maintainer) Deterministic retired-instruction coun
 	@# Needs NO Valgrind — the counts are host-independent — so it always runs.
 	cargo bench -p gmeow-validate --bench conformance_union_cost_alloc
 
-maint-bench-engines: ## (maintainer) Engine-vs-engine benchmark over the committed mini corpora: emit the DETERMINISTIC cost/agreement artifact + the REPORT-ONLY wall/RSS advisory table (offline; NOT wired into `make check`).
+maint-bench-engines: ## (maintainer) Engine/reference benchmark over the committed mini corpora: emit deterministic cost/agreement + report-only wall/RSS evidence.
 	@# The `bench-engines` harness drives every committed mini bench case through the
-	@# native engine and the applicable oracle (Nemo forward/existential, Scryer
-	@# backward), IN-PROCESS with a fresh EDB per case. This is sound because each
-	@# oracle rebuilds a FRESH engine per call (Nemo `load_string` under CHASE_LOCK,
-	@# Scryer a fresh Machine under SCRYER_LOCK), exactly as the production
+	@# native engine and the applicable live or captured reference (Nemo for the
+	@# forward/existential lanes, captured SLD answer digests for backward),
+	@# IN-PROCESS with a fresh EDB per case. Nemo rebuilds a fresh engine per call
+	@# under CHASE_LOCK, exactly as the production
 	@# native↔Nemo crosscheck already dual-runs many cases in one process. Offline:
 	@# no network, no Valgrind.
 	@#
-	@# It produces TWO strictly-separated outputs: (2a) a DETERMINISTIC, gate-eligible
-	@# cost/agreement artifact (integer cost vectors, consumed_steps, derived_count,
-	@# the deterministic peak-live bytes, and verdict-agreement tokens; NO wall-clock,
-	@# NO peak-RSS, NO total-allocation scalars), and (2b) a REPORT-ONLY advisory table
-	@# on stderr carrying the non-deterministic wall/RSS AND the total-allocation
-	@# bytes/count. The committed baseline + drift gate over (2a) is a downstream task;
-	@# this lane only PRODUCES the artifact and prints the advisory table.
+	@# It produces TWO strictly-separated outputs: (2a) a gate-eligible cost/agreement
+	@# artifact (integer cost vectors, consumed_steps, derived_count, deterministic
+	@# peak-live bytes, verdict tokens, and the band-gated total-allocation scalars;
+	@# NO wall-clock / peak-RSS), and (2b) a REPORT-ONLY advisory table on stderr
+	@# carrying non-deterministic wall/RSS.
 	@#
 	@# R1 pool-quiesce: `main` pins the process-GLOBAL Rayon pool to a single thread
-	@# (`ThreadPoolBuilder::new().num_threads(1).build_global()`) before any engine
-	@# call — good hygiene that makes peak-live-bytes rock-solid. The TOTAL allocation
+	@# (`ThreadPoolBuilder::new().num_threads(1).build_global()`) before any measured
+	@# engine case — good hygiene that makes peak-live-bytes rock-solid. After every
+	@# allocation-measured case, a dedicated local four-worker pool runs the permanent
+	@# rule-parallel fixture and records scheduler-independent candidate-row work,
+	@# merge-buffer bounds, full output/provenance parity, and budget-cut parity. It
+	@# records no wall-time claim. The TOTAL allocation
 	@# bytes/count still carry a small irreducible transient (rayon/allocator scratch,
 	@# ~0.008% on the most-recursive case, proven by differing back-to-back in-process
-	@# measures), so they are advisory-only; peak simultaneously-live bytes nets that
-	@# scratch to zero and is the deterministic, gate-eligible allocation metric in (2a).
+	@# measures), so they use the documented one-sided tolerance bands; peak
+	@# simultaneously-live bytes nets that scratch to zero and remains exact in (2a).
 	@#
-	@# Determinism assertion: emit the artifact TWICE and diff — a byte difference
-	@# FAILS the lane (the artifact must be a pure function of engine version + corpus).
+	@# Replay assertion: the second run uses the harness's OWN `--check-cost` contract.
+	@# Every deterministic descriptor field (including peak-live) must match exactly;
+	@# alloc_bytes must remain inside its one-sided 1% band; alloc_count uses the greater
+	@# of 1% and the measured 42-allocation quantized floor. A raw whole-
+	@# artifact diff would contradict the documented allocation-jitter contract.
 	@set -e; \
 	  tmpdir="$$(mktemp -d)"; \
 	  trap 'rm -rf "$$tmpdir"' EXIT; \
 	  echo "→ bench-engines run 1 (artifact + advisory table on stderr)"; \
 	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-1.json"; \
-	  echo "→ bench-engines run 2 (determinism replay)"; \
-	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost "$$tmpdir/cost-2.json" 2>/dev/null; \
-	  if ! diff -u "$$tmpdir/cost-1.json" "$$tmpdir/cost-2.json"; then \
-	    echo "ERROR: the deterministic cost/agreement artifact DIFFERED across two runs — it must be byte-identical."; \
+	  echo "→ bench-engines run 2 (exact-descriptor + allocation-band replay)"; \
+	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost "$$tmpdir/cost-1.json" >"$$tmpdir/replay.log" 2>&1; then \
+	    cat "$$tmpdir/replay.log"; \
+	    echo "ERROR: replay diverged in an exact descriptor or breached the allocation tolerance band."; \
 	    exit 1; \
 	  fi; \
-	  echo "✓ deterministic cost/agreement artifact is byte-identical across two runs ($$(wc -c < "$$tmpdir/cost-1.json") bytes)"
+	  echo "✓ deterministic descriptors are byte-identical and total allocations remain in band ($$(wc -c < "$$tmpdir/cost-1.json")-byte artifact)"
 
-maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh engine-vs-engine run (offline; the drift-gated cost-ledger source).
+maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from a fresh engine/reference run (offline; the drift-gated cost-ledger source).
 	@# The SINGLE producer of the committed deterministic cost/agreement baseline:
 	@# `gmeow-bench-engines --emit-cost` over the committed mini corpora (offline; no
 	@# `--corpus-dir`, so the Nemo-fetch full corpora are NOT included). Mirrors
 	@# `maint-bench-baseline`: a deliberate, hand-committed refresh — never auto-drift.
 	@# The deterministic part of the artifact (integer cost vectors, consumed_steps,
-	@# derived counts, peak-live bytes, verdict-agreement tokens, the per-corpus
-	@# divergence-ledger tally) is a pure function of engine version + corpus. The two
-	@# TOTAL-allocation scalars (alloc_bytes / alloc_count) are NOT byte-reproducible (a
-	@# ~0.06% quantized per-run engine transient), so instead of a raw two-run byte-diff
+	@# derived counts, peak-live bytes, verdict-agreement tokens, the four-worker
+	@# structural evidence record, and the per-corpus divergence-ledger tally) is a pure
+	@# function of engine version + corpus. The two
+	@# TOTAL-allocation scalars (alloc_bytes / alloc_count) are NOT byte-reproducible
+	@# (allocation counts move in a measured 14-allocation quantum across a 42-count
+	@# span on small cases), so instead of a raw two-run byte-diff
 	@# the fresh baseline is re-verified with the harness's OWN band-aware `--check-cost`:
 	@# it hard-fails on ANY exact-descriptor divergence AND on an alloc total outside the
 	@# one-sided tolerance band, so a passing self-check proves the deterministic part is
@@ -618,8 +613,11 @@ maint-bench-cost-baseline: ## (maintainer) Refresh bench/cost-baseline.json from
 	@# is the drift-gated projection (the `stage-export-cost-ledger` leaf), regenerated +
 	@# committed alongside.
 	@set -e; \
+	  replay_log="$$(mktemp)"; \
+	  trap 'rm -f "$$replay_log"' EXIT; \
 	  cargo run -q -p gmeow-bench-engines --bin bench-engines -- --emit-cost bench/cost-baseline.json; \
-	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost bench/cost-baseline.json >/dev/null 2>&1; then \
+	  if ! cargo run -q -p gmeow-bench-engines --bin bench-engines -- --check-cost bench/cost-baseline.json >"$$replay_log" 2>&1; then \
+	    cat "$$replay_log"; \
 	    echo "ERROR: a fresh run diverged from the just-written bench/cost-baseline.json (exact descriptor drift, or an alloc total outside the tolerance band)."; \
 	    exit 1; \
 	  fi; \

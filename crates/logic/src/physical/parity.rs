@@ -57,7 +57,7 @@ use crate::provenance::term_display;
 use crate::query_ir::{AnswerSet, Budget, QProgram};
 use crate::reason::ledger::{DivergenceKind, LedgerRow, LedgerVerdict};
 use crate::rule_ir::DerivedRow;
-use crate::seam::ScryerForeign;
+use crate::seam::WorldFactSource;
 
 /// The native↔oracle parity ledger over one corpus program: every classified row plus the
 /// per-kind tallies the verdict keys on.
@@ -476,12 +476,11 @@ fn binding_key(binding: &crate::query_ir::Binding) -> String {
 /// so the ledger is engine-agnostic. The comparison is on the binding SET; rows are emitted in
 /// sorted-key order.
 ///
-/// `tabling` is empty here: the parity corpus is compared without tabling hints (the reference
-/// SLD oracle ignores them and native/Scryer must agree without them on this corpus).
+/// `tabling` is empty because the retained reference resolver ignores hints.
 fn compare_answers(
     native: &AnswerSet,
     oracle: &dyn BackwardOracle,
-    foreign: &dyn ScryerForeign,
+    foreign: &dyn WorldFactSource,
     world: &str,
     program: &QProgram,
     budget: &Budget,
@@ -534,10 +533,10 @@ mod tests {
     //!
     //! `materialize_parity_*` drive the Nemo forward oracle and so MUST run in the `engine`
     //! nextest group (the `materialize` token in the test-fn name matches the engine-group
-    //! regex `nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|...` in
+    //! regex `nemo_engine|materialize|reason|verify|certify|dispatch|...` in
     //! `.config/nextest.toml`). `dispatch_parity_*` (the `dispatch` token) likewise match.
     //! The floor test `native_coverage_floor` drives ONLY the native engines
-    //! (`materialize_native` / `resolve_native`) — no Nemo/Scryer subprocess — so it has no
+    //! (`materialize_native` / `resolve_native`) — no external subprocess — so it has no
     //! multi-GB footprint and does not need the engine group; it is intentionally left
     //! ungrouped. Any NEW parity test that drives a real engine must keep a group token
     //! (`materialize`/`dispatch`) in its fn name.
@@ -555,7 +554,7 @@ mod tests {
         Budget, QAtom, QBodyLit, QGoal, QProgram, QRule, QTerm, parse_query_program,
     };
     use crate::rule_ir::{EvalAtom, EvalTerm, Fact, parse_eval_rules};
-    use crate::seam::{BudgetStatus, WorldStoreForeign};
+    use crate::seam::{BudgetStatus, WorldFactSnapshot};
     use crate::store::WorldStore;
     use purrdf::TermValue;
 
@@ -678,6 +677,7 @@ mod tests {
             rule_iri: "http://ex/rule/svf".to_owned(),
             source_quad_ids: vec![],
             derivation_id: format!("http://ex/deriv/{subject}/{predicate}/{object}"),
+            proof_height: crate::provenance::ProofHeight::new(1).unwrap(),
             antecedents: vec![],
         }
     }
@@ -695,6 +695,7 @@ mod tests {
                 is_edb: false,
                 rule_name: Some("http://ex/rule/svf".to_owned()),
                 antecedents: vec![],
+                proof_height: None,
                 attributions: vec![],
             },
         )
@@ -1263,7 +1264,7 @@ mod tests {
         // trips: the returned status is always `Ok` and the full least model is produced.
         // The corpus program is stratifiable by construction, so the type-state pipeline's
         // `stratify()` always yields the `Executable` the executor requires.
-        let executable = Parsed::new(&rules)
+        let executable = Parsed::uncached(&rules)
             .stratify()
             .unwrap_or_else(|| panic!("[{}] corpus program must be stratifiable", p.label))
             .plan()
@@ -1477,8 +1478,8 @@ mod tests {
     /// (d) a binary ARITHMETIC program: recursive list length via `N is M + 1`.
     /// Native magic and the reference SLD oracle both evaluate the builtin (via the
     /// shared moded evaluator), so this proves engine INTEGRATION (both decide and
-    /// agree) — the per-operator SEMANTIC anchor is the hand-verified `builtin_eval`
-    /// golden and the native-vs-Scryer anchor below.
+    /// agree) — the per-operator semantic anchor is the hand-verified
+    /// `builtin_eval` golden.
     fn backward_arithmetic_length() -> BackwardProgram {
         let rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
         let src = format!(
@@ -1509,7 +1510,7 @@ mod tests {
         ]
     }
 
-    /// Build a `WorldStoreForeign` from a backward program's EDB triples, returning it with the
+    /// Build a `WorldFactSnapshot` from a backward program's EDB triples, returning it with the
     /// world IRI.
     fn backward_world(b: &BackwardProgram) -> (WorldStore, String) {
         const W: &str = "http://logic.test/world/parity";
@@ -1525,7 +1526,7 @@ mod tests {
         let (store, world_nn) = backward_world(b);
         const W: &str = "http://logic.test/world/parity";
         let foreign =
-            WorldStoreForeign::from_world(&store, W, PROFILE).expect("from_world must succeed");
+            WorldFactSnapshot::from_world(&store, W, PROFILE).expect("from_world must succeed");
         match resolve_native(&foreign, &world_nn, &b.program, &Budget::default())
             .unwrap_or_else(|e| panic!("[{}] resolve_native errored: {e}", b.label))
         {
@@ -1548,7 +1549,7 @@ mod tests {
             // Drive the oracle through the BackwardOracle seam over the SAME world snapshot,
             // program, and budget native used.
             let (store, world_nn) = backward_world(&b);
-            let foreign = WorldStoreForeign::from_world(&store, &world_nn, PROFILE)
+            let foreign = WorldFactSnapshot::from_world(&store, &world_nn, PROFILE)
                 .expect("from_world must succeed");
 
             let ledger = compare_answers(
@@ -1640,104 +1641,14 @@ mod tests {
         );
     }
 
-    // ── Independent per-operator anchor: native ≡ Scryer (the subsumed engine) ─────────
-    //
-    // Native-magic-vs-native-reference parity proves INTEGRATION but is tautological
-    // for builtin SEMANTICS (both share the moded evaluator).  Scryer is an
-    // INDEPENDENT arithmetic engine, so agreeing with it anchors every operator's
-    // meaning end-to-end.  The `dispatch` token keeps this in the `engine` nextest
-    // group (it drives a Scryer subprocess).
-
-    /// Run a binary arithmetic program through the native core (asserting `Decided`)
-    /// and through Scryer, returning both canonicalized answer sets.
-    fn native_and_scryer(
-        src: &str,
-        triples: &[(String, String, String)],
-    ) -> (AnswerSet, AnswerSet) {
-        const W: &str = "http://logic.test/world/arith-parity";
-        let store = WorldStore::new();
-        for (s, pr, o) in triples {
-            store.insert_quad(W, s, pr, o);
-        }
-        let prof = "https://blackcatinformatics.ca/logic/ProceduralPrologProfile";
-        let foreign = WorldStoreForeign::from_world(&store, W, prof).expect("from_world");
-        let prog = parse_query_program(src).expect("parse arithmetic program");
-
-        let native = match resolve_native(&foreign, W, &prog, &Budget::default())
-            .expect("resolve_native must not error")
-        {
-            NativeOutcome::Decided(a) => a,
-            NativeOutcome::Unsupported(k) => {
-                panic!("native must decide this binary arithmetic program, got Unsupported({k:?})")
-            }
-        };
-        let scryer = crate::scryer_engine::run_scryer(&foreign, W, &prog, &[], &Budget::default())
-            .expect("run_scryer");
-        (native, scryer)
-    }
-
-    #[test]
-    fn dispatch_parity_arithmetic_native_agrees_with_scryer() {
-        let base = BASE;
-        let triples = vec![(p("a"), p("node"), p("b"))];
-
-        // calc covers Add, Sub, Mul, Div: P=2*3=6, Q=6//4=1, D=6-1=5, R=5+1=6.
-        let calc_src = format!(
-            ":- prefix(ex, '{base}').\n\
-             ex:calc(X, R) :- ex:node(X, Y), P is 2 * 3, Q is P // 4, D is P - Q, R is D + 1.\n\
-             ?- ex:calc(ex:a, R).\n"
-        );
-        let (n_calc, s_calc) = native_and_scryer(&calc_src, &triples);
-        assert_eq!(
-            n_calc.bindings, s_calc.bindings,
-            "native ≠ Scryer on Add/Sub/Mul/Div: native={n_calc:?} scryer={s_calc:?}"
-        );
-        assert_eq!(
-            n_calc.bindings[0]["R"],
-            "\"6\"^^<http://www.w3.org/2001/XMLSchema#integer>"
-        );
-
-        // cmp covers Gt, Lt, Ge, Le, Eq: N=3 satisfies every comparison.
-        let cmp_src = format!(
-            ":- prefix(ex, '{base}').\n\
-             ex:cmp(X, N) :- ex:node(X, Y), N is 1 + 2, N > 2, N < 5, N >= 3, N =< 3, N =:= 3.\n\
-             ?- ex:cmp(ex:a, N).\n"
-        );
-        let (n_cmp, s_cmp) = native_and_scryer(&cmp_src, &triples);
-        assert_eq!(
-            n_cmp.bindings, s_cmp.bindings,
-            "native ≠ Scryer on comparisons: native={n_cmp:?} scryer={s_cmp:?}"
-        );
-        assert_eq!(n_cmp.bindings.len(), 1, "N=3 passes every comparison");
-
-        // A comparison that fails prunes the branch on BOTH engines (empty answer).
-        let none_src = format!(
-            ":- prefix(ex, '{base}').\n\
-             ex:cmp(X, N) :- ex:node(X, Y), N is 1 + 1, N =:= 3.\n\
-             ?- ex:cmp(ex:a, N).\n"
-        );
-        let (n_none, s_none) = native_and_scryer(&none_src, &triples);
-        assert_eq!(
-            n_none.bindings, s_none.bindings,
-            "native ≠ Scryer on a failing filter"
-        );
-        assert!(n_none.bindings.is_empty(), "2 =:= 3 prunes the only answer");
-    }
-
-    // ── Termination parity: native ≡ Scryer's tabling contract on CYCLIC IDB ──────────
+    // ── Termination parity against the retained SLD reference ──────────────────
     //
     // The reference SLD oracle is a path-memo resolver: complete + terminating for
     // RIGHT-recursive (EDB-first) programs, but it UNDER-PRODUCES on LEFT-recursion — an
-    // on-stack re-entry of the recursive goal returns no fresh binding. Native magic-sets
-    // saturates the finite Herbrand base and is complete for BOTH recursion shapes; Scryer
-    // with `:- table P/2` (SLG resolution) is likewise complete and terminating. The two
-    // tests below drive a GENUINELY CYCLIC edge graph (a→b→c→a) so any SLD resolver MUST
-    // detect re-entry to terminate, and pin:
-    //   * right-recursive: native ≡ reference-SLD ≡ Scryer, all gap-zero (three-way);
-    //   * left-recursive:  native ≡ Scryer gap-zero, plus the reference oracle's
-    //     empirically-observed behaviour (it under-produces — native subsumes it).
-    // Both native and Scryer TERMINATE: the test completing IS the termination proof
-    // (magic-sets saturates; Scryer's tabling closes the cycle).
+    // on-stack re-entry of the recursive goal returns no fresh binding. Native demand
+    // transformation saturates the finite Herbrand base and is complete for both
+    // recursion shapes. These tests pin equality for right recursion and strict native
+    // subsumption for the reference resolver's documented left-recursion limitation.
 
     /// The three cyclic edge triples shared by both termination-parity tests: a→b, b→c,
     /// c→a — a genuine 3-cycle, so a path-memo MUST cut a back-edge to terminate and an
@@ -1748,33 +1659,6 @@ mod tests {
             (p("b"), p("edge"), p("c")),
             (p("c"), p("edge"), p("a")),
         ]
-    }
-
-    /// A Scryer backward oracle that supplies `:- table P/2` directives for the program's
-    /// cyclic IDB predicates (via [`crate::dispatch::cyclic_predicates`]), mirroring the
-    /// production dispatch path. `compare_answers` passes an empty `tabling` slice (the
-    /// acyclic parity corpus needs none); a CYCLIC program requires tabling for Scryer to
-    /// terminate, so this oracle self-derives it. Semantically it IS the
-    /// [`crate::oracle::ScryerBackwardOracle`] (name "scryer", delegating to `run_scryer`)
-    /// carrying the tabling contract the cyclic fragment demands.
-    struct TablingScryerOracle;
-
-    impl BackwardOracle for TablingScryerOracle {
-        fn name(&self) -> &'static str {
-            "scryer"
-        }
-
-        fn solve(
-            &self,
-            foreign: &dyn ScryerForeign,
-            world: &str,
-            program: &QProgram,
-            _tabling: &[String],
-            budget: &Budget,
-        ) -> gmeow_errors::Result<AnswerSet> {
-            let table_preds = crate::dispatch::cyclic_predicates(program);
-            crate::scryer_engine::run_scryer(foreign, world, program, &table_preds, budget)
-        }
     }
 
     /// Seed the cyclic edge world, parse `src`, and resolve it natively (asserting a
@@ -1788,7 +1672,7 @@ mod tests {
             store.insert_quad(W, &s, &pr, &o);
         }
         let program = parse_query_program(src).expect("parse cyclic program");
-        let foreign = WorldStoreForeign::from_world(&store, W, PROFILE).expect("from_world");
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).expect("from_world");
         let native = match resolve_native(&foreign, W, &program, &Budget::default())
             .expect("resolve_native must not error on the cyclic termination corpus")
         {
@@ -1802,10 +1686,9 @@ mod tests {
     }
 
     #[test]
-    fn dispatch_termination_parity_right_recursive_three_way() {
+    fn dispatch_termination_parity_right_recursive_matches_reference() {
         // Right-recursive transitive closure over the cyclic edge graph. The body is
-        // EDB-first, so the path-memo reference resolver is complete + terminating here:
-        // three-way gap-zero agreement (native ≡ reference-SLD ≡ Scryer) is the assertion.
+        // EDB-first, so the path-memo reference resolver is complete and terminating here.
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:path(X, Y) :- ex:edge(X, Y).\n\
@@ -1818,7 +1701,7 @@ mod tests {
             "native produced ZERO answers on the cyclic right-recursive closure — a cyclic \
              transitive closure must decide a non-empty answer set"
         );
-        let foreign = WorldStoreForeign::from_world(&store, &world, PROFILE).expect("from_world");
+        let foreign = WorldFactSnapshot::from_world(&store, &world, PROFILE).expect("from_world");
 
         // Native ≡ reference-SLD, gap-zero (the path-memo is complete for right recursion).
         let ref_ledger = compare_answers(
@@ -1837,32 +1720,13 @@ mod tests {
              oracle-only): {:?}",
             ref_ledger.native_only, ref_ledger.oracle_only, ref_verdict.reasons
         );
-
-        // Native ≡ Scryer (with `:- table`), gap-zero — the tabling termination contract.
-        let scryer_ledger = compare_answers(
-            &native,
-            &TablingScryerOracle,
-            &foreign,
-            &world,
-            &program,
-            &Budget::default(),
-        )
-        .expect("Scryer oracle solve");
-        let scryer_verdict = scryer_ledger.enforce();
-        assert!(
-            scryer_verdict.passed,
-            "native↔Scryer DIVERGED on cyclic right recursion ({} native-only, {} oracle-only): \
-             {:?}",
-            scryer_ledger.native_only, scryer_ledger.oracle_only, scryer_verdict.reasons
-        );
     }
 
     #[test]
-    fn dispatch_termination_parity_left_recursive_native_matches_scryer() {
+    fn dispatch_termination_left_recursive_native_subsumes_reference() {
         // Left-recursive transitive closure over the SAME cyclic edge graph. The recursive
         // goal is leftmost, so an un-tabled SLD engine loops immediately; the path-memo
-        // reference resolver terminates but UNDER-PRODUCES. Native magic-sets and tabled
-        // Scryer are both complete + terminating: native ≡ Scryer gap-zero is the anchor.
+        // reference resolver terminates but under-produces; native remains complete.
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:path(X, Y) :- ex:edge(X, Y).\n\
@@ -1874,27 +1738,7 @@ mod tests {
             !native.bindings.is_empty(),
             "native produced ZERO answers on the cyclic left-recursive closure"
         );
-        let foreign = WorldStoreForeign::from_world(&store, &world, PROFILE).expect("from_world");
-
-        // Native ≡ Scryer (with `:- table`), gap-zero — both complete + terminating on left
-        // recursion (the load-bearing invariant for this task).
-        let scryer_ledger = compare_answers(
-            &native,
-            &TablingScryerOracle,
-            &foreign,
-            &world,
-            &program,
-            &Budget::default(),
-        )
-        .expect("Scryer oracle solve");
-        let scryer_verdict = scryer_ledger.enforce();
-        assert!(
-            scryer_verdict.passed,
-            "native↔Scryer DIVERGED on cyclic LEFT recursion ({} native-only, {} oracle-only): \
-             {:?}",
-            scryer_ledger.native_only, scryer_ledger.oracle_only, scryer_verdict.reasons
-        );
-
+        let foreign = WorldFactSnapshot::from_world(&store, &world, PROFILE).expect("from_world");
         // Now EMPIRICALLY observe the path-memo reference oracle on LEFT recursion. Native is
         // complete, so it can never lack an answer the incomplete path-memo produced: the
         // reference answer set is a SUBSET of native's — `oracle_only` must be zero.
@@ -1926,25 +1770,17 @@ mod tests {
         );
     }
 
-    // ── Per-consumer gate: counterfactual per-world resolution native ≡ Scryer ────────
+    // ── Per-consumer gate: counterfactual per-world native resolution ──────────
     //
     // `crate::counterfactual::resolve_in_world` resolves each closest world's goal via
-    // `crate::dispatch::dispatch_query`, which runs `resolve_native` (native magic-sets)
-    // FIRST and demotes only the declared `Unsupported` residual (cut / procedural) to the
-    // Scryer oracle. So the non-cut counterfactual fragment already resolves natively; a
-    // cut-bearing counterfactual honestly demotes. This gate proves that promotion is
-    // gap-zero over a corpus representative of what counterfactual resolves per world:
+    // `crate::dispatch::dispatch_query`, whose sole engine is `resolve_native`. This gate
+    // covers the representative counterfactual fragments:
     //   * a RECURSIVE closure (reachability over a cyclic a→b→c→a graph) — native
-    //     magic-sets decides completely, Scryer tables the cyclic IDB; native ≡ Scryer
-    //     gap-zero (`edge`, the referenced EDB predicate, is present so the Scryer
-    //     comparand is well-defined);
+    //     native demand transformation agrees with the retained reference resolver;
     //   * an N-ARY (world-carrying generic-triple `triple/4`) sub-property program —
-    //     native decides the predicate-as-data goal a binary store cannot express. This is
-    //     a native-only capability: the world snapshot Scryer loads is keyed by the ACTUAL
-    //     predicate IRI, so the generic `triple` relation has no Scryer comparand; the gate
-    //     asserts native `Decided`;
-    //   * a CUT program — `resolve_native` returns `Unsupported(Cut)`, the honest demotion
-    //     to the procedural oracle, NOT a native cut simulation.
+    //     native decides the predicate-as-data goal a binary store cannot express;
+    //   * a CUT program — `resolve_native` returns `Unsupported(Cut)` and production
+    //     dispatch rejects it rather than simulating procedural control.
 
     /// The n-ary (world-carrying generic-triple `triple/4`) sub-property program:
     /// `triple(?s,<p2>,?o,?w) :- triple(?s,<p1>,?o,?w)` with the arity-4 backward goal
@@ -1976,10 +1812,9 @@ mod tests {
     }
 
     #[test]
-    fn dispatch_parity_counterfactual_fragment_native_matches_scryer() {
+    fn dispatch_parity_counterfactual_fragment_is_native() {
         // (1) RECURSIVE closure — reachability over the cyclic edge graph a→b→c→a. Native
-        // saturates the finite Herbrand base (magic-sets); Scryer tables the cyclic IDB.
-        // native ≡ Scryer gap-zero — the promotion the counterfactual consumer relies on.
+        // saturates the finite Herbrand base and matches the retained reference resolver.
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:reach(X, Y) :- ex:edge(X, Y).\n\
@@ -1991,31 +1826,30 @@ mod tests {
             !native.bindings.is_empty(),
             "cyclic reachability must decide a non-empty answer set"
         );
-        let foreign = WorldStoreForeign::from_world(&store, &world, PROFILE).expect("from_world");
+        let foreign = WorldFactSnapshot::from_world(&store, &world, PROFILE).expect("from_world");
         let ledger = compare_answers(
             &native,
-            &TablingScryerOracle,
+            &ReferenceBackwardOracle,
             &foreign,
             &world,
             &program,
             &Budget::default(),
         )
-        .expect("Scryer oracle solve");
+        .expect("reference resolver solve");
         let verdict = ledger.enforce();
         assert!(
             verdict.passed,
-            "counterfactual recursive fragment: native↔Scryer DIVERGED ({} native-only, {} \
+            "counterfactual recursive fragment: native↔reference DIVERGED ({} native-only, {} \
              oracle-only): {:?}",
             ledger.native_only, ledger.oracle_only, verdict.reasons
         );
 
-        // (2) N-ARY generic-triple sub-property — native-only capability (no Scryer
-        // comparand, since Scryer's world snapshot is keyed by the actual predicate IRI,
-        // not a generic `triple` relation). Assert native `Decided` with the derived edge.
+        // (2) N-ARY generic-triple sub-property — assert native `Decided` with the
+        // derived edge.
         const NW: &str = "http://logic.test/world/cf-nary";
         let nstore = WorldStore::new();
         nstore.insert_quad(NW, "http://ex/x", "http://ex/p1", "http://ex/y");
-        let nforeign = WorldStoreForeign::from_world(&nstore, NW, PROFILE).expect("from_world");
+        let nforeign = WorldFactSnapshot::from_world(&nstore, NW, PROFILE).expect("from_world");
         let nprog = cf_nary_subproperty_program();
         assert_eq!(
             nprog.goal.atoms[0].args.len(),
@@ -2039,13 +1873,12 @@ mod tests {
         assert_eq!(nanswer.bindings[0]["s"], "<http://ex/x>", "subject binding");
         assert_eq!(nanswer.bindings[0]["o"], "<http://ex/y>", "object binding");
 
-        // (3) CUT — a declared native gap: `resolve_native` returns `Unsupported(Cut)`, the
-        // honest demotion to the procedural Scryer oracle, NOT a native cut simulation.
+        // (3) CUT — a declared native gap, never a native cut simulation.
         const CW: &str = "http://logic.test/world/cf-cut";
         let cstore = WorldStore::new();
         cstore.insert_quad(CW, &p("a"), &p("edge"), &p("b"));
         cstore.insert_quad(CW, &p("a"), &p("edge"), &p("c"));
-        let cforeign = WorldStoreForeign::from_world(&cstore, CW, PROFILE).expect("from_world");
+        let cforeign = WorldFactSnapshot::from_world(&cstore, CW, PROFILE).expect("from_world");
         let cut_src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:first(X, Y) :- ex:edge(X, Y), !.\n\
@@ -2059,139 +1892,20 @@ mod tests {
                 cut_outcome,
                 NativeOutcome::Unsupported(crate::physical::seminaive::UnsupportedKind::Cut)
             ),
-            "a cut-bearing counterfactual goal must be a DECLARED native gap (honest demotion \
-             to the procedural oracle), never a native cut simulation: {cut_outcome:?}"
-        );
-    }
-
-    // ── Per-consumer cut-confinement parity: native DECLINES, Scryer DECIDES ──────────
-    //
-    // The profile_gate is a pre-engine gate, not a resolver: cut-confinement is decided
-    // BEFORE any engine runs. This test pins the per-consumer confinement contract as the
-    // dispatch consumers flip to the native core:
-    //   * native honestly DECLINES a cut program (`Unsupported(Cut)`), recording the
-    //     demotion reason — it NEVER simulates cut or returns a soft-cut answer;
-    //   * the Scryer oracle (procedural profile) DECIDES the cut fragment, returning the
-    //     correct cut-pruned answer (cut is oracle-only);
-    //   * the engine-agnostic `check_cut_profile` gate transfers UNCHANGED — it hard-fails
-    //     a cut program under a non-procedural profile and passes under the procedural one,
-    //     unaffected by which engine the consumer routes to;
-    //   * only cut demotes: a non-cut program over the SAME world resolves natively.
-    // The `scryer` token keeps this in the `engine` nextest group (it drives a Scryer
-    // subprocess).
-    #[test]
-    fn dispatch_cut_confinement_parity_native_declines_scryer_decides() {
-        use crate::profile_gate::{PROCEDURAL_PROLOG_PROFILE, check_cut_profile};
-
-        const W: &str = "http://logic.test/world/cut-confinement";
-        let store = WorldStore::new();
-        store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
-        store.insert_quad(W, &p("a"), &p("edge"), &p("c"));
-
-        // Head-level cut program: commit to the first edge.
-        let cut_src = format!(
-            ":- prefix(ex, '{BASE}').\n\
-             ex:first(X, Y) :- ex:edge(X, Y), !.\n\
-             ?- ex:first(ex:a, Y).\n"
-        );
-        let cut_prog = parse_query_program(&cut_src).expect("parse cut program");
-
-        // (1) NATIVE DECLINES — `Unsupported(Cut)`, the recorded demotion reason. The native
-        // core never simulates cut; it honestly declines so the fragment routes to the oracle.
-        let native_foreign = WorldStoreForeign::from_world(&store, W, PROFILE).expect("from_world");
-        let cut_outcome = resolve_native(&native_foreign, W, &cut_prog, &Budget::default())
-            .expect("resolve_native must not error on a cut program");
-        assert!(
-            matches!(
-                cut_outcome,
-                NativeOutcome::Unsupported(crate::physical::seminaive::UnsupportedKind::Cut)
-            ),
-            "native must DECLINE cut with Unsupported(Cut) (the demotion reason), never a \
+            "a cut-bearing counterfactual goal must be a declared native gap, never a \
              native cut simulation: {cut_outcome:?}"
-        );
-
-        // (2) NO-SOFT-CUT — the outcome is Unsupported, NOT a partial/pruned Decided. Native
-        // therefore never returns a cut-influenced answer. The STORE-side firewall is proven in
-        // `profile_gate::no_write_firewall_cut_program_leaves_store_unchanged`; this is the
-        // complementary ANSWER-side invariant.
-        assert!(
-            !matches!(cut_outcome, NativeOutcome::Decided(_)),
-            "native must never Decide a cut program (no soft-cut / pruned-answer leak): \
-             {cut_outcome:?}"
-        );
-
-        // (3) SCRYER DECIDES — the procedural oracle serves the cut fragment. The graph is
-        // acyclic, so `cyclic_predicates` is empty and no `:- table` is emitted; the oracle
-        // returns the correct cut-pruned answer (cut commits to exactly one edge).
-        let proc_foreign = WorldStoreForeign::from_world(&store, W, PROCEDURAL_PROLOG_PROFILE)
-            .expect("from_world");
-        let scryer = crate::scryer_engine::run_scryer(
-            &proc_foreign,
-            W,
-            &cut_prog,
-            &crate::dispatch::cyclic_predicates(&cut_prog),
-            &Budget::default(),
-        )
-        .expect("Scryer must DECIDE the cut program under the procedural profile");
-        assert_eq!(
-            scryer.bindings.len(),
-            1,
-            "cut commits to the first answer: Scryer must return exactly one binding: {scryer:?}"
-        );
-        let y = scryer.bindings[0]["Y"].as_str();
-        assert!(
-            y == format!("<{}>", p("b")) || y == format!("<{}>", p("c")),
-            "the cut-pruned answer must be a real edge target (b or c), got {y:?}"
-        );
-
-        // (4) GATE TRANSFERS UNCHANGED — engine-agnostic confinement. `check_cut_profile`
-        // hard-fails cut under a non-procedural profile and passes under the procedural one,
-        // regardless of which engine a consumer routes to.
-        assert!(
-            check_cut_profile(&cut_prog, PROFILE).is_err(),
-            "the cut-confinement gate must hard-fail cut under the (non-procedural) PositiveHorn \
-             profile"
-        );
-        assert!(
-            check_cut_profile(&cut_prog, PROCEDURAL_PROLOG_PROFILE).is_ok(),
-            "the cut-confinement gate must pass cut under the procedural profile"
-        );
-
-        // (5) ONLY CUT DEMOTES — a non-cut program over the SAME world resolves natively, so it
-        // is cut (not the whole profile) that demotes.
-        let no_cut_src = format!(
-            ":- prefix(ex, '{BASE}').\n\
-             ex:reach(X, Y) :- ex:edge(X, Y).\n\
-             ?- ex:reach(ex:a, Y).\n"
-        );
-        let no_cut_prog = parse_query_program(&no_cut_src).expect("parse non-cut program");
-        assert!(
-            check_cut_profile(&no_cut_prog, PROFILE).is_ok(),
-            "a non-cut program passes the gate under any profile"
-        );
-        let no_cut_outcome = resolve_native(&native_foreign, W, &no_cut_prog, &Budget::default())
-            .expect("resolve_native must not error on the non-cut program");
-        let NativeOutcome::Decided(answer) = no_cut_outcome else {
-            panic!(
-                "a non-cut program must resolve natively to Decided, not demote: {no_cut_outcome:?}"
-            );
-        };
-        assert_eq!(
-            answer.bindings.len(),
-            2,
-            "the non-cut program must derive both edge targets (b and c): {answer:?}"
         );
     }
 
     #[test]
     fn arithmetic_division_by_zero_is_declared_gap() {
         // A ÷0 in a supported binary program is a declared native gap
-        // (`Unsupported(Arithmetic)`), routed to the oracle — never a wrong answer.
+        // (`Unsupported(Arithmetic)`), surfaced as a production refusal — never a wrong answer.
         const W: &str = "http://logic.test/world/arith-gap";
         let store = WorldStore::new();
         store.insert_quad(W, &p("a"), &p("node"), &p("b"));
         let prof = "https://blackcatinformatics.ca/logic/ProceduralPrologProfile";
-        let foreign = WorldStoreForeign::from_world(&store, W, prof).expect("from_world");
+        let foreign = WorldFactSnapshot::from_world(&store, W, prof).expect("from_world");
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
              ex:bad(X, R) :- ex:node(X, Y), R is 1 // 0.\n\
@@ -2214,7 +1928,7 @@ mod tests {
     /// Run the native backward engine at `budget`, asserting a `Decided` outcome.
     fn run_native_backward_budget(b: &BackwardProgram, budget: &Budget) -> AnswerSet {
         let (store, world_nn) = backward_world(b);
-        let foreign = WorldStoreForeign::from_world(&store, &world_nn, PROFILE)
+        let foreign = WorldFactSnapshot::from_world(&store, &world_nn, PROFILE)
             .expect("from_world must succeed");
         match resolve_native(&foreign, &world_nn, &b.program, budget)
             .unwrap_or_else(|e| panic!("[{}] resolve_native errored: {e}", b.label))
@@ -2251,7 +1965,7 @@ mod tests {
         for b in backward_corpus() {
             // The reference oracle's UNBOUNDED answer set = the full sound model.
             let (store, world_nn) = backward_world(&b);
-            let foreign = WorldStoreForeign::from_world(&store, &world_nn, PROFILE)
+            let foreign = WorldFactSnapshot::from_world(&store, &world_nn, PROFILE)
                 .expect("from_world must succeed");
             let full = ReferenceBackwardOracle
                 .solve(&foreign, &world_nn, &b.program, &[], &Budget::default())
@@ -2313,7 +2027,7 @@ mod tests {
             program: parse_query_program(&src).expect("parse pure-edb"),
         };
         let (store, world_nn) = backward_world(&b);
-        let foreign = WorldStoreForeign::from_world(&store, &world_nn, PROFILE)
+        let foreign = WorldFactSnapshot::from_world(&store, &world_nn, PROFILE)
             .expect("from_world must succeed");
         let zero = Budget {
             max_steps: Some(0),

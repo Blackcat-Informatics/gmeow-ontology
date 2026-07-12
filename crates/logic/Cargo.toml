@@ -20,7 +20,7 @@ path = "src/lib.rs"
 # Shared RDF 1.2 adapter boundary for loading GTS/sidecar-aware datasets into
 # world-indexed logic stores (#648, supports #630/#667). The world-store now holds
 # the native `MutableDataset`/`RdfDataset` IR directly — oxigraph-free (EPIC #906).
-purrdf = "0.4"
+purrdf.workspace = true
 # The native SPARQL engine over `Arc<RdfDataset>` (#906): the world-store's `select`
 # and the reasoned-graph governance/verify queries evaluate here, replacing the
 # retired oxigraph `SparqlEvaluator`. A leaf-ish crate (rdf-core/sparql-algebra/xsd
@@ -95,13 +95,6 @@ nemo = { git = "https://github.com/knowsys/nemo", rev = "4415bc2e180adf33a7a4b98
 # (1.52.x series) to avoid a duplicate tokio in the tree.  current_thread
 # flavour is used (same as nemo-cli's #[tokio::main(flavor = "current_thread")]).
 tokio = { version = "1", features = ["rt", "macros"] }
-
-# scryer-prolog: embedded Prolog (SLD + tabling) for v4 backward goal
-# resolution over the materialized EDB (facts-as-DB). Hard dependency — HARD
-# FAIL if absent; no degraded fallback. Upstream master makes ring-backed
-# crypto optional; default-features = false keeps the embedding surface to the
-# core machine plus library(tabling)/library(iso_ext) without pulling ring.
-scryer-prolog = { git = "https://github.com/mthom/scryer-prolog", branch = "master", default-features = false }
 
 [dev-dependencies]
 # Also a dev-dependency so the integration tests (tests/never_panic.rs,

@@ -27,7 +27,7 @@
 //! The round loop here is a structural copy of `least_model_of_reduct`'s loop:
 //! same EDB-seeded delta, same per-round canonical-winner map keyed by head fact,
 //! the SAME quality tiebreak
-//! ([`RuleRoundCandidate`]'s total order `(max_src_depth, sum_src_depth,
+//! ([`RuleRoundCandidate`]'s total order `(proof_height, sum_src_depth,
 //! sorted_sources, rule_iri, sources)`), same per-fact depth map (EDB depth 0; derived
 //! depth = 1 + max source depth), and the same body-order `source_quad_ids`.  The ONLY
 //! substitution is the join: `join_body`'s full-bucket scan becomes
@@ -63,11 +63,13 @@ use hashbrown::HashTable;
 use rayon::prelude::*;
 
 use crate::physical::builtin_eval::{BuiltinOutcome, emit_integer_surface, eval as eval_builtin};
-use crate::physical::cursor::LendingIterator;
-use crate::physical::id::RowId;
-use crate::physical::plan::{Executable, RulePlan};
+use crate::physical::cursor::{LendingIterator, VALUE_OBJECT, VALUE_SUBJECT, ValueCursor};
+use crate::physical::id::{RowId, TermId};
+use crate::physical::plan::{
+    AtomKernel, AtomOperator, CyclicPlan, Executable, IndexChoice, JoinGroup, RulePlan,
+};
 use crate::physical::store::{Bound, RelationStore};
-use crate::provenance::mint_derivation_id;
+use crate::provenance::{MinProofHeightSemiring, ProofHeight, mint_derivation_id};
 use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
@@ -75,6 +77,12 @@ use crate::rule_ir::{
     match_atom, sort_rows, world_edb_facts,
 };
 use crate::seam::BudgetStatus;
+
+fn seminaive_err(detail: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Physical {
+        detail: detail.into(),
+    })
+}
 
 /// A native-execution combination the forward core cannot decide.
 ///
@@ -219,6 +227,29 @@ pub(crate) enum ProvenanceMode {
     Skip,
 }
 
+/// How one semi-naive round schedules its immutable per-rule candidate work.
+///
+/// Production selects [`Parallel`](Self::Parallel). [`Sequential`](Self::Sequential)
+/// remains an internal parity oracle: both policies feed the SAME lexical winner merge
+/// and sorted commit, so scheduling can never affect bytes or budget observations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RoundExecution {
+    /// Evaluate every rule directly into one round buffer in program order.
+    Sequential,
+    /// Evaluate rules into independent buffers, then merge them in program order.
+    Parallel,
+}
+
+impl RoundExecution {
+    /// Whether this round has enough independent work and workers to use Rayon.
+    ///
+    /// Single-rule strata and one-worker deterministic measurement pools stay on the
+    /// allocation-minimal direct path; there is no parallelism to recover in either case.
+    fn should_parallelize(self, rule_count: usize) -> bool {
+        self == Self::Parallel && rule_count > 1 && rayon::current_num_threads() > 1
+    }
+}
+
 /// Governs the step/derivation budget for the native fixpoint.
 ///
 /// A native "step" is **one committed derivation** — a winner inserted in the
@@ -280,6 +311,391 @@ fn atom_bound(rel: &RelationStore, subj: Option<&str>, obj: Option<&str>) -> Opt
         (None, Some(o)) => Bound::Object(rel.term_id(o)?),
         (None, None) => Bound::Any,
     })
+}
+
+/// Flat physical binding frame for the acyclic binary join.
+///
+/// Slots are assigned once by [`RulePlan`]. A row probe is therefore two direct indexed
+/// reads instead of repeated linear searches over `(variable_name, value)` pairs. The
+/// legacy named [`Solution`] is reconstructed once after the positive join because the
+/// post-join builtin/NAF/head helpers remain the shared semantic authority.
+#[derive(Clone)]
+struct SlotSolution {
+    bindings: Vec<Option<String>>,
+    source_facts: Vec<Fact>,
+}
+
+impl SlotSolution {
+    fn empty(slot_count: usize) -> Self {
+        Self {
+            bindings: vec![None; slot_count],
+            source_facts: Vec::new(),
+        }
+    }
+
+    fn get(&self, slot: usize) -> Option<&str> {
+        self.bindings[slot].as_deref()
+    }
+
+    fn into_named(self, variables: &[String]) -> Solution {
+        debug_assert_eq!(self.bindings.len(), variables.len());
+        let bindings = variables
+            .iter()
+            .zip(self.bindings)
+            .filter_map(|(name, value)| value.map(|value| (name.clone(), value)))
+            .collect();
+        Solution {
+            bindings,
+            source_facts: self.source_facts,
+        }
+    }
+}
+
+fn selected_fact(atom: &EvalAtom, rel: &RelationStore, subject: TermId, object: TermId) -> Fact {
+    Fact {
+        subject: rel.interner().resolve(subject).clone(),
+        predicate: atom.predicate.clone(),
+        object: rel.interner().resolve(object).clone(),
+    }
+}
+
+/// One enum dispatch per atom invocation selects a statically-shaped kernel. The
+/// const-generic scan selection remains outside the tuple loop as well.
+fn extend_slot_solutions_indexed(
+    operator: &AtomOperator,
+    atom: &EvalAtom,
+    rel: &RelationStore,
+    delta: Delta,
+    scan: Scan,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    match scan {
+        Scan::Delta => extend_slot_operator::<SCAN_DELTA>(operator, atom, rel, delta, solutions),
+        Scan::Full => extend_slot_operator::<SCAN_FULL>(operator, atom, rel, delta, solutions),
+        Scan::OldOnly => {
+            extend_slot_operator::<SCAN_OLD_ONLY>(operator, atom, rel, delta, solutions)
+        }
+    }
+}
+
+fn extend_slot_operator<const SCAN: u8>(
+    operator: &AtomOperator,
+    atom: &EvalAtom,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    match (operator.kernel(), operator.index()) {
+        (
+            AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            },
+            IndexChoice::Any,
+        ) => extend_slot_vars::<SCAN, INDEX_ANY>(
+            atom,
+            *subject_slot,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            },
+            IndexChoice::Subject,
+        ) => extend_slot_vars::<SCAN, INDEX_SUBJECT>(
+            atom,
+            *subject_slot,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            },
+            IndexChoice::Object,
+        ) => extend_slot_vars::<SCAN, INDEX_OBJECT>(
+            atom,
+            *subject_slot,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            },
+            IndexChoice::Both,
+        ) => extend_slot_vars::<SCAN, INDEX_BOTH>(
+            atom,
+            *subject_slot,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::VarConst {
+                subject_slot,
+                object,
+            },
+            IndexChoice::Object,
+        ) => extend_slot_var_const::<SCAN, INDEX_OBJECT>(
+            atom,
+            *subject_slot,
+            object,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::VarConst {
+                subject_slot,
+                object,
+            },
+            IndexChoice::Both,
+        ) => extend_slot_var_const::<SCAN, INDEX_BOTH>(
+            atom,
+            *subject_slot,
+            object,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::ConstVar {
+                subject,
+                object_slot,
+            },
+            IndexChoice::Subject,
+        ) => extend_slot_const_var::<SCAN, INDEX_SUBJECT>(
+            atom,
+            subject,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (
+            AtomKernel::ConstVar {
+                subject,
+                object_slot,
+            },
+            IndexChoice::Both,
+        ) => extend_slot_const_var::<SCAN, INDEX_BOTH>(
+            atom,
+            subject,
+            *object_slot,
+            rel,
+            delta,
+            solutions,
+        ),
+        (AtomKernel::Consts { subject, object }, IndexChoice::Both) => {
+            extend_slot_consts::<SCAN>(atom, subject, object, rel, delta, solutions)
+        }
+        _ => unreachable!("planner emits a term-shape-compatible index choice"),
+    }
+}
+
+const INDEX_ANY: u8 = 0;
+const INDEX_SUBJECT: u8 = 1;
+const INDEX_OBJECT: u8 = 2;
+const INDEX_BOTH: u8 = 3;
+
+fn extend_slot_vars<const SCAN: u8, const INDEX: u8>(
+    atom: &EvalAtom,
+    subject_slot: usize,
+    object_slot: usize,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let mut next = Vec::new();
+    for solution in solutions {
+        let bound = match INDEX {
+            INDEX_ANY => Bound::Any,
+            INDEX_SUBJECT => {
+                let Some(subject) = solution
+                    .get(subject_slot)
+                    .and_then(|value| rel.term_id(value))
+                else {
+                    continue;
+                };
+                Bound::Subject(subject)
+            }
+            INDEX_OBJECT => {
+                let Some(object) = solution
+                    .get(object_slot)
+                    .and_then(|value| rel.term_id(value))
+                else {
+                    continue;
+                };
+                Bound::Object(object)
+            }
+            INDEX_BOTH => {
+                let (Some(subject), Some(object)) = (
+                    solution
+                        .get(subject_slot)
+                        .and_then(|value| rel.term_id(value)),
+                    solution
+                        .get(object_slot)
+                        .and_then(|value| rel.term_id(value)),
+                ) else {
+                    continue;
+                };
+                Bound::Both(subject, object)
+            }
+            _ => unreachable!("INDEX is a planned index code"),
+        };
+        let mut cursor = rel.select(atom.predicate.as_str(), bound);
+        while let Some((subject_id, object_id, row_id)) = cursor.next() {
+            if !keep_row::<SCAN>(delta, row_id)
+                || (subject_slot == object_slot && subject_id != object_id)
+            {
+                continue;
+            }
+            let mut merged = solution.clone();
+            if INDEX == INDEX_ANY || INDEX == INDEX_OBJECT {
+                merged.bindings[subject_slot] =
+                    Some(rel.interner().display_of(subject_id).to_owned());
+            }
+            if (INDEX == INDEX_ANY || INDEX == INDEX_SUBJECT) && object_slot != subject_slot {
+                merged.bindings[object_slot] =
+                    Some(rel.interner().display_of(object_id).to_owned());
+            }
+            merged
+                .source_facts
+                .push(selected_fact(atom, rel, subject_id, object_id));
+            next.push(merged);
+        }
+    }
+    next
+}
+
+fn extend_slot_var_const<const SCAN: u8, const INDEX: u8>(
+    atom: &EvalAtom,
+    subject_slot: usize,
+    object: &str,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let Some(object_id) = rel.term_id(object) else {
+        return Vec::new();
+    };
+    let mut next = Vec::new();
+    for solution in solutions {
+        let bound = match INDEX {
+            INDEX_OBJECT => Bound::Object(object_id),
+            INDEX_BOTH => {
+                let Some(subject_id) = solution
+                    .get(subject_slot)
+                    .and_then(|value| rel.term_id(value))
+                else {
+                    continue;
+                };
+                Bound::Both(subject_id, object_id)
+            }
+            _ => unreachable!("VarConst uses Object or Both index"),
+        };
+        let mut cursor = rel.select(atom.predicate.as_str(), bound);
+        while let Some((subject_id, selected_object, row_id)) = cursor.next() {
+            if !keep_row::<SCAN>(delta, row_id) {
+                continue;
+            }
+            let mut merged = solution.clone();
+            if INDEX == INDEX_OBJECT {
+                merged.bindings[subject_slot] =
+                    Some(rel.interner().display_of(subject_id).to_owned());
+            }
+            merged
+                .source_facts
+                .push(selected_fact(atom, rel, subject_id, selected_object));
+            next.push(merged);
+        }
+    }
+    next
+}
+
+fn extend_slot_const_var<const SCAN: u8, const INDEX: u8>(
+    atom: &EvalAtom,
+    subject: &str,
+    object_slot: usize,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let Some(subject_id) = rel.term_id(subject) else {
+        return Vec::new();
+    };
+    let mut next = Vec::new();
+    for solution in solutions {
+        let bound = match INDEX {
+            INDEX_SUBJECT => Bound::Subject(subject_id),
+            INDEX_BOTH => {
+                let Some(object_id) = solution
+                    .get(object_slot)
+                    .and_then(|value| rel.term_id(value))
+                else {
+                    continue;
+                };
+                Bound::Both(subject_id, object_id)
+            }
+            _ => unreachable!("ConstVar uses Subject or Both index"),
+        };
+        let mut cursor = rel.select(atom.predicate.as_str(), bound);
+        while let Some((selected_subject, object_id, row_id)) = cursor.next() {
+            if !keep_row::<SCAN>(delta, row_id) {
+                continue;
+            }
+            let mut merged = solution.clone();
+            if INDEX == INDEX_SUBJECT {
+                merged.bindings[object_slot] =
+                    Some(rel.interner().display_of(object_id).to_owned());
+            }
+            merged
+                .source_facts
+                .push(selected_fact(atom, rel, selected_subject, object_id));
+            next.push(merged);
+        }
+    }
+    next
+}
+
+fn extend_slot_consts<const SCAN: u8>(
+    atom: &EvalAtom,
+    subject: &str,
+    object: &str,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let (Some(subject_id), Some(object_id)) = (rel.term_id(subject), rel.term_id(object)) else {
+        return Vec::new();
+    };
+    let mut next = Vec::new();
+    for solution in solutions {
+        let mut cursor = rel.select(atom.predicate.as_str(), Bound::Both(subject_id, object_id));
+        while let Some((selected_subject, selected_object, row_id)) = cursor.next() {
+            if !keep_row::<SCAN>(delta, row_id) {
+                continue;
+            }
+            let mut merged = solution.clone();
+            merged
+                .source_facts
+                .push(selected_fact(atom, rel, selected_subject, selected_object));
+            next.push(merged);
+        }
+    }
+    next
 }
 
 /// Extend each partial solution by index-selecting `atom`'s matching rows under `scan`.
@@ -448,15 +864,488 @@ enum Scan {
     OldOnly,
 }
 
+/// Runtime scan selection at operator construction; each variant contains a
+/// const-generic filtered cursor, so the per-row delta predicate remains
+/// monomorphized exactly like the binary kernel.
+enum LeapfrogValueCursor<'a> {
+    DeltaSubject(FilteredValueCursor<'a, SCAN_DELTA, VALUE_SUBJECT>),
+    FullSubject(FilteredValueCursor<'a, SCAN_FULL, VALUE_SUBJECT>),
+    OldOnlySubject(FilteredValueCursor<'a, SCAN_OLD_ONLY, VALUE_SUBJECT>),
+    DeltaObject(FilteredValueCursor<'a, SCAN_DELTA, VALUE_OBJECT>),
+    FullObject(FilteredValueCursor<'a, SCAN_FULL, VALUE_OBJECT>),
+    OldOnlyObject(FilteredValueCursor<'a, SCAN_OLD_ONLY, VALUE_OBJECT>),
+}
+
+impl<'a> LeapfrogValueCursor<'a> {
+    fn subject(rows: ValueCursor<'a, VALUE_SUBJECT>, scan: Scan, delta: Delta) -> Self {
+        match scan {
+            Scan::Delta => Self::DeltaSubject(FilteredValueCursor::new(rows, delta)),
+            Scan::Full => Self::FullSubject(FilteredValueCursor::new(rows, delta)),
+            Scan::OldOnly => Self::OldOnlySubject(FilteredValueCursor::new(rows, delta)),
+        }
+    }
+
+    fn object(rows: ValueCursor<'a, VALUE_OBJECT>, scan: Scan, delta: Delta) -> Self {
+        match scan {
+            Scan::Delta => Self::DeltaObject(FilteredValueCursor::new(rows, delta)),
+            Scan::Full => Self::FullObject(FilteredValueCursor::new(rows, delta)),
+            Scan::OldOnly => Self::OldOnlyObject(FilteredValueCursor::new(rows, delta)),
+        }
+    }
+
+    fn current(&self) -> Option<TermId> {
+        match self {
+            Self::DeltaSubject(cursor) => cursor.current,
+            Self::FullSubject(cursor) => cursor.current,
+            Self::OldOnlySubject(cursor) => cursor.current,
+            Self::DeltaObject(cursor) => cursor.current,
+            Self::FullObject(cursor) => cursor.current,
+            Self::OldOnlyObject(cursor) => cursor.current,
+        }
+    }
+
+    fn seek(&mut self, target: TermId) -> Option<TermId> {
+        match self {
+            Self::DeltaSubject(cursor) => cursor.seek(target),
+            Self::FullSubject(cursor) => cursor.seek(target),
+            Self::OldOnlySubject(cursor) => cursor.seek(target),
+            Self::DeltaObject(cursor) => cursor.seek(target),
+            Self::FullObject(cursor) => cursor.seek(target),
+            Self::OldOnlyObject(cursor) => cursor.seek(target),
+        }
+    }
+
+    fn advance(&mut self) -> Option<TermId> {
+        match self {
+            Self::DeltaSubject(cursor) => cursor.advance(),
+            Self::FullSubject(cursor) => cursor.advance(),
+            Self::OldOnlySubject(cursor) => cursor.advance(),
+            Self::DeltaObject(cursor) => cursor.advance(),
+            Self::FullObject(cursor) => cursor.advance(),
+            Self::OldOnlyObject(cursor) => cursor.advance(),
+        }
+    }
+}
+
+/// One relation's distinct, sorted trie-level values under a fixed semi-naive scan.
+struct FilteredValueCursor<'a, const SCAN: u8, const COLUMN: u8> {
+    rows: ValueCursor<'a, COLUMN>,
+    delta: Delta,
+    current: Option<TermId>,
+}
+
+impl<'a, const SCAN: u8, const COLUMN: u8> FilteredValueCursor<'a, SCAN, COLUMN> {
+    fn new(rows: ValueCursor<'a, COLUMN>, delta: Delta) -> Self {
+        let mut cursor = Self {
+            rows,
+            delta,
+            current: None,
+        };
+        cursor.fill(None);
+        cursor
+    }
+
+    /// Fill `current` with the next distinct scan-admitted value, skipping `prior`.
+    fn fill(&mut self, prior: Option<TermId>) -> Option<TermId> {
+        self.current = None;
+        while let Some((value, row)) = self.rows.next() {
+            if keep_row::<SCAN>(self.delta, row) && Some(value) != prior {
+                self.current = Some(value);
+                break;
+            }
+        }
+        self.current
+    }
+
+    fn seek(&mut self, target: TermId) -> Option<TermId> {
+        if self.current.is_some_and(|value| value >= target) {
+            return self.current;
+        }
+        self.rows.seek(target);
+        self.fill(None)
+    }
+
+    fn advance(&mut self) -> Option<TermId> {
+        let prior = self.current;
+        self.fill(prior)
+    }
+}
+
+/// A standard leapfrog intersection across sorted distinct value cursors.
+struct LeapfrogIntersection<'a> {
+    cursors: Vec<LeapfrogValueCursor<'a>>,
+}
+
+impl<'a> LeapfrogIntersection<'a> {
+    fn new(cursors: Vec<LeapfrogValueCursor<'a>>) -> Self {
+        Self { cursors }
+    }
+
+    /// Return the next value present in every cursor. The first cursor advances past
+    /// the returned value before control returns, so repeated calls enumerate the
+    /// intersection without duplicates.
+    fn next(&mut self) -> Option<TermId> {
+        let mut target = self
+            .cursors
+            .iter()
+            .filter_map(|cursor| cursor.current())
+            .max()?;
+        loop {
+            let mut aligned = true;
+            for cursor in &mut self.cursors {
+                let value = cursor.seek(target)?;
+                if value > target {
+                    target = value;
+                    aligned = false;
+                }
+            }
+            if aligned {
+                self.cursors[0].advance();
+                return Some(target);
+            }
+        }
+    }
+
+    /// Whether the exact externally-bound value occurs in every relation cursor.
+    fn contains(&mut self, wanted: TermId) -> bool {
+        for cursor in &mut self.cursors {
+            if cursor.seek(wanted) != Some(wanted) {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+#[inline]
+fn scan_for(positive_position: usize, delta_position: usize) -> Scan {
+    if positive_position < delta_position {
+        Scan::Full
+    } else if positive_position == delta_position {
+        Scan::Delta
+    } else {
+        Scan::OldOnly
+    }
+}
+
+#[inline]
+fn keep_row_for_scan(scan: Scan, delta: Delta, row: RowId) -> bool {
+    match scan {
+        Scan::Delta => keep_row::<SCAN_DELTA>(delta, row),
+        Scan::Full => keep_row::<SCAN_FULL>(delta, row),
+        Scan::OldOnly => keep_row::<SCAN_OLD_ONLY>(delta, row),
+    }
+}
+
+/// Build one cycle atom's trie cursor for `variable`, constrained by any binding of
+/// its other variable. Cycle certification guarantees two distinct variable terms.
+fn cycle_atom_cursor<'a>(
+    atom: &EvalAtom,
+    operator: &AtomOperator,
+    variable_slot: usize,
+    solution: &SlotSolution,
+    rel: &'a RelationStore,
+    scan: Scan,
+    delta: Delta,
+) -> Option<LeapfrogValueCursor<'a>> {
+    let AtomKernel::Vars {
+        subject_slot,
+        object_slot,
+    } = operator.kernel()
+    else {
+        return None;
+    };
+    if *subject_slot == variable_slot {
+        let other = match solution.get(*object_slot) {
+            Some(surface) => Some(rel.term_id(surface)?),
+            None => None,
+        };
+        Some(LeapfrogValueCursor::subject(
+            rel.values_subject(atom.predicate.as_str(), other),
+            scan,
+            delta,
+        ))
+    } else if *object_slot == variable_slot {
+        let other = match solution.get(*subject_slot) {
+            Some(surface) => Some(rel.term_id(surface)?),
+            None => None,
+        };
+        Some(LeapfrogValueCursor::object(
+            rel.values_object(atom.predicate.as_str(), other),
+            scan,
+            delta,
+        ))
+    } else {
+        None
+    }
+}
+
+/// Capture the unique fully-ground row for every cycle atom, in the cycle plan's
+/// authored atom order. Returns false if a scan-mode constraint excludes any row.
+fn append_cycle_sources(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    cycle: &CyclicPlan,
+    delta_position: usize,
+    rel: &RelationStore,
+    delta: Delta,
+    solution: &mut SlotSolution,
+) -> bool {
+    let original_len = solution.source_facts.len();
+    for &planned in cycle.atoms() {
+        let atom = &rule.body[planned.body_index()];
+        let operator = plan.operator_at(planned.positive_position());
+        let AtomKernel::Vars {
+            subject_slot,
+            object_slot,
+        } = operator.kernel()
+        else {
+            unreachable!("cycle certification admits only distinct variable-variable atoms")
+        };
+        let (Some(subject), Some(object)) =
+            (solution.get(*subject_slot), solution.get(*object_slot))
+        else {
+            solution.source_facts.truncate(original_len);
+            return false;
+        };
+        let (Some(subject_id), Some(object_id)) = (rel.term_id(subject), rel.term_id(object))
+        else {
+            solution.source_facts.truncate(original_len);
+            return false;
+        };
+        let scan = scan_for(planned.positive_position(), delta_position);
+        let mut rows = rel.select(atom.predicate.as_str(), Bound::Both(subject_id, object_id));
+        let mut matched = None;
+        while let Some((subject_id, object_id, row)) = rows.next() {
+            if keep_row_for_scan(scan, delta, row) {
+                matched = Some(Fact {
+                    subject: rel.interner().resolve(subject_id).clone(),
+                    predicate: atom.predicate.clone(),
+                    object: rel.interner().resolve(object_id).clone(),
+                });
+                break;
+            }
+        }
+        let Some(fact) = matched else {
+            solution.source_facts.truncate(original_len);
+            return false;
+        };
+        solution.source_facts.push(fact);
+    }
+    true
+}
+
+/// Immutable state shared by every recursive variable level of one LFTJ component.
+struct LeapfrogRun<'a> {
+    rule: &'a EvalRule,
+    plan: &'a RulePlan,
+    cycle: &'a CyclicPlan,
+    delta_position: usize,
+    rel: &'a RelationStore,
+    delta: Delta,
+}
+
+impl LeapfrogRun<'_> {
+    /// Recursive LFTJ variable descent for one certified cycle component.
+    fn recurse(
+        &self,
+        variable_position: usize,
+        solution: &mut SlotSolution,
+        out: &mut Vec<SlotSolution>,
+    ) {
+        if variable_position == self.cycle.variable_slots().len() {
+            if append_cycle_sources(
+                self.rule,
+                self.plan,
+                self.cycle,
+                self.delta_position,
+                self.rel,
+                self.delta,
+                solution,
+            ) {
+                out.push(solution.clone());
+                solution
+                    .source_facts
+                    .truncate(solution.source_facts.len() - self.cycle.atoms().len());
+            }
+            return;
+        }
+
+        let variable_slot = self.cycle.variable_slots()[variable_position];
+        let externally_bound = match solution.get(variable_slot) {
+            Some(surface) => match self.rel.term_id(surface) {
+                Some(value) => Some(value),
+                None => return,
+            },
+            None => None,
+        };
+        let mut cursors = Vec::new();
+        for &planned in self.cycle.atoms() {
+            let atom = &self.rule.body[planned.body_index()];
+            let operator = self.plan.operator_at(planned.positive_position());
+            let AtomKernel::Vars {
+                subject_slot,
+                object_slot,
+            } = operator.kernel()
+            else {
+                unreachable!("cycle certification admits only variable-variable atoms")
+            };
+            let contains_variable = *subject_slot == variable_slot || *object_slot == variable_slot;
+            if !contains_variable {
+                continue;
+            }
+            let scan = scan_for(planned.positive_position(), self.delta_position);
+            let Some(cursor) = cycle_atom_cursor(
+                atom,
+                operator,
+                variable_slot,
+                solution,
+                self.rel,
+                scan,
+                self.delta,
+            ) else {
+                return;
+            };
+            cursors.push(cursor);
+        }
+        if cursors.is_empty() {
+            return;
+        }
+        let mut intersection = LeapfrogIntersection::new(cursors);
+
+        if let Some(value) = externally_bound {
+            if intersection.contains(value) {
+                self.recurse(variable_position + 1, solution, out);
+            }
+            return;
+        }
+
+        while let Some(value) = intersection.next() {
+            debug_assert!(solution.bindings[variable_slot].is_none());
+            solution.bindings[variable_slot] =
+                Some(self.rel.interner().display_of(value).to_owned());
+            self.recurse(variable_position + 1, solution, out);
+            solution.bindings[variable_slot] = None;
+        }
+    }
+}
+
+/// Extend every partial solution through one certified cyclic component without
+/// materializing any binary intermediate relation.
+fn extend_solutions_leapfrog(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    cycle: &CyclicPlan,
+    delta_position: usize,
+    rel: &RelationStore,
+    delta: Delta,
+    solutions: &[SlotSolution],
+) -> Vec<SlotSolution> {
+    let mut out = Vec::new();
+    let run = LeapfrogRun {
+        rule,
+        plan,
+        cycle,
+        delta_position,
+        rel,
+        delta,
+    };
+    for solution in solutions {
+        let mut working = solution.clone();
+        run.recurse(0, &mut working, &mut out);
+    }
+    out
+}
+
+/// Hybrid positive join for a rule with at least one certified cyclic subplan.
+fn join_body_leapfrog(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    rel: &RelationStore,
+    accumulated: &RelationStore,
+    delta: Delta,
+    gap: &mut bool,
+) -> Vec<Solution> {
+    let mut slot_solutions = Vec::new();
+    for delta_position in 0..plan.positive().len() {
+        let mut partial = vec![SlotSolution::empty(plan.variables().len())];
+        for group in plan.join_groups() {
+            partial = match group {
+                JoinGroup::Binary(planned) => extend_slot_solutions_indexed(
+                    plan.operator_at(planned.positive_position()),
+                    &rule.body[planned.body_index()],
+                    rel,
+                    delta,
+                    scan_for(planned.positive_position(), delta_position),
+                    &partial,
+                ),
+                JoinGroup::Leapfrog(cycle) => extend_solutions_leapfrog(
+                    rule,
+                    plan,
+                    cycle,
+                    delta_position,
+                    rel,
+                    delta,
+                    &partial,
+                ),
+            };
+            if partial.is_empty() {
+                break;
+            }
+        }
+        for solution in &mut partial {
+            for &(left, right) in plan.hybrid_source_order_swaps() {
+                solution.source_facts.swap(left, right);
+            }
+        }
+        slot_solutions.extend(partial);
+    }
+
+    let mut solutions: Vec<Solution> = slot_solutions
+        .into_iter()
+        .map(|solution| solution.into_named(plan.variables()))
+        .collect();
+
+    if !rule.builtins.is_empty() {
+        solutions = apply_builtins(&rule.builtins, solutions, gap);
+    }
+    if !plan.negated().is_empty() {
+        solutions.retain(|solution| {
+            !plan
+                .negated()
+                .iter()
+                .any(|&index| negated_atom_satisfied(&rule.body[index], solution, accumulated))
+        });
+    }
+    solutions
+}
+
 /// Join all body atoms against `rel`, evaluating NAF against the accumulated store.
 ///
 /// The index-selected twin of `rule_ir::join_body`: the positive join is the SAME
 /// semi-naive delta×full position decomposition (union over each delta position `p`
 /// of `{ a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta }`), with each per-atom
-/// scan performed by [`extend_solutions_indexed`].  NAF body atoms are filtered
+/// scan performed by the planned slot/index kernels (or the certified LFTJ group).
+/// NAF body atoms are filtered
 /// after the positive join via membership in `accumulated` (the frozen-below store),
 /// which is exactly the stratified-negation reference.
 fn join_body_indexed(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    rel: &RelationStore,
+    accumulated: &RelationStore,
+    delta: Delta,
+    gap: &mut bool,
+) -> Vec<Solution> {
+    if plan.has_cyclic_subplan() {
+        return join_body_leapfrog(rule, plan, rel, accumulated, delta, gap);
+    }
+    join_body_binary(rule, plan, rel, accumulated, delta, gap)
+}
+
+/// The retained indexed-binary reference. It remains the production fast path for
+/// every acyclic rule and the focused parity oracle for promoted cyclic rules.
+fn join_body_binary(
     rule: &EvalRule,
     plan: &RulePlan,
     rel: &RelationStore,
@@ -471,22 +1360,18 @@ fn join_body_indexed(
     let positive = plan.positive();
     let negated = plan.negated();
 
-    let empty = Solution {
-        bindings: Vec::new(),
-        source_facts: Vec::new(),
-    };
-
     let mut solutions: Vec<Solution> = if positive.is_empty() {
         // Zero positive atoms never touch delta, so they never fire in a semi-naive
         // round — matches `join_body`'s empty-positive branch exactly.
         Vec::new()
     } else {
         let k = positive.len();
-        let mut all: Vec<Solution> = Vec::new();
+        debug_assert_eq!(plan.operators().len(), k);
+        let mut all: Vec<SlotSolution> = Vec::new();
         for p in 0..k {
-            let mut partial: Vec<Solution> = vec![empty.clone()];
-            for (j, &atom_idx) in positive.iter().enumerate() {
-                let atom = &rule.body[atom_idx];
+            let mut partial = vec![SlotSolution::empty(plan.variables().len())];
+            for (j, operator) in plan.operators().iter().enumerate() {
+                let atom = &rule.body[operator.body_index()];
                 let scan = if j < p {
                     Scan::Full
                 } else if j == p {
@@ -494,14 +1379,21 @@ fn join_body_indexed(
                 } else {
                     Scan::OldOnly
                 };
-                partial = extend_solutions_indexed(atom, rel, delta, scan, &partial);
+                partial = extend_slot_solutions_indexed(operator, atom, rel, delta, scan, &partial);
                 if partial.is_empty() {
                     break;
                 }
             }
             all.extend(partial);
         }
-        all
+        for solution in &mut all {
+            for &(left, right) in plan.operator_source_order_swaps() {
+                solution.source_facts.swap(left, right);
+            }
+        }
+        all.into_iter()
+            .map(|solution| solution.into_named(plan.variables()))
+            .collect()
     };
 
     // Post-join constraint stage: evaluate the rule's arithmetic/comparison
@@ -683,8 +1575,21 @@ pub(super) fn stratify(rules: &[EvalRule]) -> Option<HashMap<String, usize>> {
 /// provenance-recipe failure (propagated from the shared `rule_ir` helpers).
 pub(crate) fn materialize_native(
     store: &crate::store::WorldStore,
-    exe: &Executable<'_>,
+    exe: &Executable,
     max_steps: Option<u64>,
+) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>> {
+    materialize_native_with_round_execution(store, exe, max_steps, RoundExecution::Parallel)
+}
+
+/// Policy-selectable implementation behind [`materialize_native`].
+///
+/// The policy is private because callers may not weaken production execution; focused
+/// tests use it to prove forced sequential and forced parallel rounds are identical.
+fn materialize_native_with_round_execution(
+    store: &crate::store::WorldStore,
+    exe: &Executable,
+    max_steps: Option<u64>,
+    round_execution: RoundExecution,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<DerivedRow>>>> {
     // Stratification and per-rule join planning are properties of the rules alone; the
     // caller computed them ONCE through the `Parsed → Stratified → Planned → Executable`
@@ -700,9 +1605,9 @@ pub(crate) fn materialize_native(
     // `status` is always `Ok`, no world is left untouched, and the worlds are fully
     // independent (each reads only the shared `store` + `exe`, both `&`-
     // shared/read-only).  That independence is what makes per-world rayon parallelism
-    // deterministic and byte-identical to the sequential fold.  A SHARED step budget,
-    // by contrast, is inherently order-serial and cannot be parallelized deterministically
-    // — so the budgeted arm keeps the sequential loop below, untouched.
+    // deterministic and byte-identical to the sequential fold. A SHARED step budget keeps
+    // the OUTER sorted-world loop order-serial, but each world's immutable per-rule round
+    // work still uses `round_execution`; only the lexical commit mutates shared state.
     if max_steps.is_none() {
         // `WorldStore` holds a `RefCell` and is therefore NOT `Sync`, so the store read
         // (`world_edb_facts`) is hoisted out of the parallel region and run sequentially
@@ -733,6 +1638,7 @@ pub(crate) fn materialize_native(
                         exe,
                         &mut governor,
                         ProvenanceMode::Record,
+                        round_execution,
                     )?;
                     // Derived rows AFTER the echo rows (same order as the sequential body).
                     for mut row in budgeted.rows {
@@ -801,8 +1707,13 @@ pub(crate) fn materialize_native(
         // Asserted-EDB echo (identical to wellfounded::materialize).
         out.extend(echo_asserted(world, &edb_facts)?);
 
-        let budgeted =
-            eval_world_stratified(&edb_facts, exe, &mut governor, ProvenanceMode::Record)?;
+        let budgeted = eval_world_stratified(
+            &edb_facts,
+            exe,
+            &mut governor,
+            ProvenanceMode::Record,
+            round_execution,
+        )?;
         for mut row in budgeted.rows {
             row.graph = world.clone();
             out.push(row);
@@ -861,9 +1772,21 @@ pub(crate) fn materialize_native(
 /// strictly-lower strata fully materialized and frozen.
 fn eval_world_stratified(
     edb_facts: &[Fact],
-    exe: &Executable<'_>,
+    exe: &Executable,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
+    round_execution: RoundExecution,
+) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
+    eval_world_stratified_with_trace(edb_facts, exe, governor, mode, round_execution, None)
+}
+
+fn eval_world_stratified_with_trace(
+    edb_facts: &[Fact],
+    exe: &Executable,
+    governor: &mut StepGovernor,
+    mode: ProvenanceMode,
+    round_execution: RoundExecution,
+    mut parallel_trace: Option<&mut RuleParallelTrace>,
 ) -> gmeow_errors::Result<Budgeted<Vec<DerivedRow>>> {
     // Shared accumulated store (both forms), seeded from the EDB in sorted-key order
     // (world_edb_facts already sorted), so seeding matches the reference.
@@ -872,7 +1795,7 @@ fn eval_world_stratified(
     // Per-fact derivation-depth column, indexed by `store`'s insertion-order row (pushed
     // in lockstep with `store.insert`).  Depth feeds ONLY the Record-mode tiebreak; the
     // Skip lane never writes it, so it stays empty there (asserted below in `evaluate`).
-    let mut depth: Vec<u32> = Vec::new();
+    let mut depth: Vec<ProofHeight> = Vec::new();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a predicate that
     // is also a rule head is settled only when its stratum completes (below), so exclude
@@ -892,7 +1815,7 @@ fn eval_world_stratified(
             rel.insert(&f.predicate, &f.subject, &f.object);
             if let ProvenanceMode::Record = mode {
                 debug_assert_eq!(idx, depth.len(), "depth/store lockstep on the EDB seed");
-                depth.push(0); // EDB facts have depth 0
+                depth.push(ProofHeight::ASSERTED); // EDB facts have height 0
             }
         }
     }
@@ -922,6 +1845,8 @@ fn eval_world_stratified(
             },
             governor,
             mode,
+            round_execution,
+            parallel_trace.as_deref_mut(),
         )? {
             FixpointStatus::Complete => {
                 // This stratum reached its natural fixpoint: its head predicates are now
@@ -964,9 +1889,248 @@ fn eval_world_stratified(
 struct FixpointState<'a> {
     store: &'a mut FactStore,
     rel: &'a mut RelationStore,
-    depth: &'a mut Vec<u32>,
+    depth: &'a mut Vec<ProofHeight>,
     derivations: &'a mut Vec<DerivedRow>,
     builtin_gap: &'a mut bool,
+}
+
+/// The immutable snapshot every rule task reads during one semi-naive round.
+///
+/// No task may mutate these structures. The single sorted commit begins only after all
+/// task buffers have been collected and deterministically merged.
+#[derive(Clone, Copy)]
+struct RoundSnapshot<'a> {
+    store: &'a FactStore,
+    rel: &'a RelationStore,
+    depth: &'a [ProofHeight],
+    delta: Delta,
+    mode: ProvenanceMode,
+}
+
+/// One rule task's round-local winners and arithmetic-gap observation.
+///
+/// The borrowed-key index points into `entries`, so keys are owned exactly once. Parallel
+/// tasks own independent instances; after task completion they are merged serially in
+/// executable program order using the same total provenance winner relation.
+struct RoundCandidateBuffer {
+    entries: Vec<(FactKey, RuleRoundCandidate)>,
+    index: HashTable<usize>,
+    builtin_gap: bool,
+}
+
+/// Deterministic structural work observed on the rule-parallel path.
+///
+/// Candidate rows are counted after each rule-local winner dedup and before the
+/// scheduling-erasing merge. For one round, serial buffered work is the sum of
+/// every task's rows while the ideal rule-task critical path is the maximum. Summing
+/// those quantities across the necessarily sequential semi-naive rounds produces a
+/// scheduler-independent comparison; no wall clock or worker-arrival order enters it.
+#[derive(Debug, Default, Clone, Copy)]
+pub(super) struct RuleParallelTrace {
+    pub(super) parallel_rounds: u64,
+    pub(super) rule_tasks: u64,
+    pub(super) serial_candidate_rows: u64,
+    pub(super) critical_path_candidate_rows: u64,
+    pub(super) max_buffered_candidate_rows: u64,
+    pub(super) max_task_candidate_rows: u64,
+}
+
+impl RuleParallelTrace {
+    fn record_round(&mut self, task_rows: &[usize]) {
+        let serial = task_rows.iter().map(|&rows| rows as u64).sum::<u64>();
+        let critical = task_rows
+            .iter()
+            .copied()
+            .max()
+            .map_or(0, |rows| rows as u64);
+        self.parallel_rounds += 1;
+        self.rule_tasks += task_rows.len() as u64;
+        self.serial_candidate_rows += serial;
+        self.critical_path_candidate_rows += critical;
+        self.max_buffered_candidate_rows = self.max_buffered_candidate_rows.max(serial);
+        self.max_task_candidate_rows = self.max_task_candidate_rows.max(critical);
+    }
+}
+
+impl RoundCandidateBuffer {
+    fn new() -> Self {
+        Self {
+            entries: Vec::new(),
+            index: HashTable::new(),
+            builtin_gap: false,
+        }
+    }
+
+    /// Insert or quality-merge one candidate under its cached fact key.
+    fn insert(
+        &mut self,
+        key: FactKey,
+        candidate: RuleRoundCandidate,
+        mode: ProvenanceMode,
+    ) -> gmeow_errors::Result<()> {
+        let hash = fact_key_hash(&key);
+        match self.index.find(hash, |&i| self.entries[i].0 == key) {
+            Some(&i) => {
+                if mode == ProvenanceMode::Record && candidate.preferred_over(&self.entries[i].1)? {
+                    self.entries[i].1 = candidate;
+                }
+            }
+            None => {
+                let index = self.entries.len();
+                self.entries.push((key, candidate));
+                let entries = &self.entries;
+                self.index
+                    .insert_unique(hash, index, |&i| fact_key_hash(&entries[i].0));
+            }
+        }
+        Ok(())
+    }
+
+    /// Merge a completed rule-local buffer at the scheduling-erasing serial boundary.
+    fn merge_from(&mut self, other: Self, mode: ProvenanceMode) -> gmeow_errors::Result<()> {
+        self.builtin_gap |= other.builtin_gap;
+        for (key, candidate) in other.entries {
+            self.insert(key, candidate, mode)?;
+        }
+        Ok(())
+    }
+}
+
+/// Evaluate one rule against the frozen round snapshot into `round`.
+///
+/// The sequential policy calls this directly on one shared round buffer (preserving the
+/// allocation-minimal one-worker baseline). The parallel policy gives every invocation a
+/// private buffer and merges those buffers after all joins finish.
+fn evaluate_rule_into_round(
+    rule: &EvalRule,
+    plan: &RulePlan,
+    snapshot: RoundSnapshot<'_>,
+    round: &mut RoundCandidateBuffer,
+) -> gmeow_errors::Result<()> {
+    for sol in join_body_indexed(
+        rule,
+        plan,
+        snapshot.rel,
+        snapshot.rel,
+        snapshot.delta,
+        &mut round.builtin_gap,
+    ) {
+        if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
+            continue;
+        }
+        let head = ground_head(&rule.head, &sol)?;
+        let key = head.key();
+        if snapshot.store.contains_key(&key) {
+            continue; // a prior round/stratum already derived it; earlier wins
+        }
+
+        let candidate = match snapshot.mode {
+            ProvenanceMode::Record => {
+                // Provenance: reifiers of matched POSITIVE body facts in body order.
+                let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
+                let mut max_sd = ProofHeight::ASSERTED;
+                let mut sum_sd: u64 = 0;
+                for sf in &sol.source_facts {
+                    sources.push(sf.reifier()?);
+                    let source_key = sf.key();
+                    let row = snapshot.store.row_index(&source_key).ok_or_else(|| {
+                        seminaive_err(format!(
+                            "provenance source {source_key:?} is absent from the physical fact store"
+                        ))
+                    })?;
+                    drop(source_key);
+                    let d = snapshot.depth.get(row).copied().ok_or_else(|| {
+                        seminaive_err(format!(
+                            "provenance source row {row} has no proof-height annotation"
+                        ))
+                    })?;
+                    max_sd = max_sd.max(d);
+                    sum_sd = sum_sd.saturating_add(u64::from(d.get()));
+                }
+                let proof_height = MinProofHeightSemiring.derive([max_sd])?;
+                let source_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+                let deriv = mint_derivation_id(&rule.rule_iri, &source_refs);
+                let mut sorted_sources = sources.clone();
+                sorted_sources.sort();
+
+                RuleRoundCandidate {
+                    head,
+                    prov: Some(Provenance {
+                        sources,
+                        sorted_sources,
+                        source_facts: sol.source_facts.clone(),
+                        deriv,
+                        rule_iri: rule.rule_iri.clone(),
+                        proof_height,
+                        sum_src_depth: sum_sd,
+                    }),
+                }
+            }
+            ProvenanceMode::Skip => {
+                // Facts-only: every candidate under `key` has the same content-derived head,
+                // so first-seen is sufficient and no provenance work is performed.
+                RuleRoundCandidate { head, prov: None }
+            }
+        };
+        round.insert(key, candidate, snapshot.mode)?;
+    }
+    Ok(())
+}
+
+/// Evaluate all rules in a stratum, optionally in parallel, and erase scheduling order.
+fn evaluate_round_candidates(
+    exe: &Executable,
+    stratum: usize,
+    snapshot: RoundSnapshot<'_>,
+    execution: RoundExecution,
+    trace: Option<&mut RuleParallelTrace>,
+) -> gmeow_errors::Result<RoundCandidateBuffer> {
+    let rule_indices = exe.stratum_rule_indices(stratum);
+    if !execution.should_parallelize(rule_indices.len()) {
+        let mut round = RoundCandidateBuffer::new();
+        for &rule_index in rule_indices {
+            let (rule, plan) = exe.rule_entry(rule_index);
+            evaluate_rule_into_round(rule, plan, snapshot, &mut round)?;
+        }
+        return Ok(round);
+    }
+
+    // `par_iter` over a slice is indexed: `collect::<Vec<_>>()` preserves input program
+    // order regardless of completion order. Keep each task result wrapped until the serial
+    // loop so, if multiple rules fail, the observable diagnostic is also the first one in
+    // program order rather than whichever worker happened to finish first.
+    let rule_results: Vec<gmeow_errors::Result<RoundCandidateBuffer>> = rule_indices
+        .par_iter()
+        .map(|&rule_index| {
+            let (rule, plan) = exe.rule_entry(rule_index);
+            let mut round = RoundCandidateBuffer::new();
+            evaluate_rule_into_round(rule, plan, snapshot, &mut round)?;
+            Ok(round)
+        })
+        .collect();
+
+    if let Some(trace) = trace {
+        // Do not inspect or reorder diagnostics here. Evidence is recorded only when
+        // every task succeeded; otherwise the program-order merge below returns the
+        // same first error it always did.
+        let task_rows = rule_results
+            .iter()
+            .map(|result| result.as_ref().ok().map(|buffer| buffer.entries.len()))
+            .collect::<Option<Vec<_>>>();
+        if let Some(task_rows) = task_rows {
+            trace.record_round(&task_rows);
+        }
+    }
+
+    let mut buffers = rule_results.into_iter();
+    let Some(first) = buffers.next() else {
+        return Ok(RoundCandidateBuffer::new());
+    };
+    let mut merged = first?;
+    for buffer in buffers {
+        merged.merge_from(buffer?, snapshot.mode)?;
+    }
+    Ok(merged)
 }
 
 /// Run the semi-naive fixpoint for the rules of ONE stratum into the shared stores.
@@ -985,16 +2149,18 @@ struct FixpointState<'a> {
 ///
 /// This is the semi-naive executor entry point, and it is **unrepresentable without an
 /// [`Executable`]**: the rules of stratum `stratum` are read from `exe`, whose only
-/// constructor chain is `Parsed::new(..).stratify()?.plan().into_executable()` (see
+/// constructor chain is `Parsed::uncached(..).stratify()?.plan().into_executable()` (see
 /// [`super::plan`]).  There is no overload taking `&[EvalRule]`, a `Parsed`, a
 /// `Stratified`, or a `Planned`; the compiler — not a doc comment — rejects any attempt
 /// to execute a program that has not been stratified AND join-planned.
 fn eval_stratum_fixpoint(
-    exe: &Executable<'_>,
+    exe: &Executable,
     stratum: usize,
     state: &mut FixpointState<'_>,
     governor: &mut StepGovernor,
     mode: ProvenanceMode,
+    round_execution: RoundExecution,
+    mut parallel_trace: Option<&mut RuleParallelTrace>,
 ) -> gmeow_errors::Result<FixpointStatus> {
     // Reborrow each accumulator into a single `&mut` local so the loop body below is a verbatim
     // copy of `least_model_of_reduct`'s — the `FixpointState` bundle exists only to keep the
@@ -1012,94 +2178,24 @@ fn eval_stratum_fixpoint(
     let mut delta = Delta::all(rel.row_count());
 
     loop {
-        // Per-round canonical-winner map: a borrowed-key `HashTable<usize>` into a side
-        // `Vec<(FactKey, RuleRoundCandidate)>` (mirrors `FactStore`'s cached-surface
-        // probe) — no owned-key clone per candidate, and the cached `FactKey` is reused
-        // at commit for the sort.  Identical selection semantics to
-        // `least_model_of_reduct`'s round map.
-        let mut round_entries: Vec<(FactKey, RuleRoundCandidate)> = Vec::new();
-        let mut round_index: HashTable<usize> = HashTable::new();
-
-        for (rule, plan) in exe.stratum_entries(stratum) {
-            for sol in join_body_indexed(rule, plan, rel, rel, delta, builtin_gap) {
-                if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
-                    continue;
-                }
-                let head = ground_head(&rule.head, &sol)?;
-                let key = head.key();
-                if store.contains_key(&key) {
-                    continue; // a prior round/stratum already derived it; earlier wins
-                }
-
-                match mode {
-                    ProvenanceMode::Record => {
-                        // Provenance: reifiers of matched POSITIVE body facts in body order.
-                        let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
-                        let mut max_sd: u32 = 0;
-                        let mut sum_sd: u64 = 0;
-                        for sf in &sol.source_facts {
-                            sources.push(sf.reifier()?);
-                            let d = store
-                                .row_index(&sf.key())
-                                .and_then(|i| depth.get(i))
-                                .copied()
-                                .unwrap_or(0);
-                            max_sd = max_sd.max(d);
-                            sum_sd = sum_sd.saturating_add(u64::from(d));
-                        }
-                        let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
-                        let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
-                        let mut sorted_sources = sources.clone();
-                        sorted_sources.sort();
-
-                        let candidate = RuleRoundCandidate {
-                            head,
-                            prov: Some(Provenance {
-                                sources,
-                                sorted_sources,
-                                source_facts: sol.source_facts.clone(),
-                                deriv,
-                                rule_iri: rule.rule_iri.clone(),
-                                max_src_depth: max_sd,
-                                sum_src_depth: sum_sd,
-                            }),
-                        };
-                        let hash = fact_key_hash(&key);
-                        match round_index.find(hash, |&i| round_entries[i].0 == key) {
-                            Some(&i) => {
-                                if candidate.tiebreak_key() < round_entries[i].1.tiebreak_key() {
-                                    round_entries[i].1 = candidate;
-                                }
-                            }
-                            None => {
-                                let idx = round_entries.len();
-                                round_entries.push((key, candidate));
-                                let entries = &round_entries;
-                                round_index
-                                    .insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
-                            }
-                        }
-                    }
-                    ProvenanceMode::Skip => {
-                        // Facts-only: no `reifier()` minting, no derivation id, no depth read,
-                        // no tiebreak.  Every candidate under `key` shares an identical `head`
-                        // (the key is content-derived from the head), so first-seen wins and the
-                        // committed fact is invariant to the choice.  `prov: None` makes the
-                        // absence of provenance a type-enforced fact, not a sentinel-filled struct.
-                        let hash = fact_key_hash(&key);
-                        if round_index
-                            .find(hash, |&i| round_entries[i].0 == key)
-                            .is_none()
-                        {
-                            let idx = round_entries.len();
-                            round_entries.push((key, RuleRoundCandidate { head, prov: None }));
-                            let entries = &round_entries;
-                            round_index.insert_unique(hash, idx, |&i| fact_key_hash(&entries[i].0));
-                        }
-                    }
-                }
-            }
-        }
+        // Every rule reads this immutable snapshot. Parallel tasks produce independent
+        // borrowed-key winner buffers; their program-order merge erases scheduling before
+        // the single lexical commit mutates either store or charges the governor.
+        let round = evaluate_round_candidates(
+            exe,
+            stratum,
+            RoundSnapshot {
+                store,
+                rel,
+                depth,
+                delta,
+                mode,
+            },
+            round_execution,
+            parallel_trace.as_deref_mut(),
+        )?;
+        *builtin_gap |= round.builtin_gap;
+        let round_entries = round.entries;
 
         if round_entries.is_empty() {
             break; // stratum fixpoint
@@ -1158,7 +2254,7 @@ fn eval_stratum_fixpoint(
             // release builds too).  Pushed in lockstep with the store row just added, so
             // `depth[i]` stays the depth of the store's row `i`.
             if let (Some(idx), Some(prov)) = (store_idx, winner.prov.as_ref()) {
-                let winner_depth = prov.max_src_depth.saturating_add(1);
+                let winner_depth = prov.proof_height;
                 assert_eq!(
                     idx,
                     depth.len(),
@@ -1181,6 +2277,7 @@ fn eval_stratum_fixpoint(
                     rule_iri: prov.rule_iri,
                     source_quad_ids: prov.sources, // body-order, NEVER the sorted copy
                     derivation_id: prov.deriv,
+                    proof_height: prov.proof_height,
                     antecedents: prov.source_facts,
                 });
             }
@@ -1225,37 +2322,19 @@ fn eval_stratum_fixpoint(
 /// `Unsupported` this leg raises is [`UnsupportedKind::Arithmetic`] (a builtin gap).
 pub(crate) fn evaluate(
     edb: RelationStore,
-    exe: &Executable<'_>,
+    exe: &Executable,
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<NativeOutcome<Budgeted<Vec<Fact>>>> {
-    // Lower the columnar EDB into the ternary `Fact` seed in sorted-key order so the
-    // semi-naive seed order is deterministic (mirrors `world_edb_facts`).
-    let mut edb_facts: Vec<Fact> = Vec::new();
-    let interner = edb.interner();
-    for pred in edb.predicates() {
-        // `pred` is a predicate IRI surface already validated by the seam; carry it directly.
-        let predicate = pred.to_owned();
-        // Drive the lending cursor directly (no eager `Vec`): each `next()` yields one
-        // id row (plus a delta-probe RowId unused when seeding) in row-id order.
-        let mut cursor = edb.select(pred, Bound::Any);
-        while let Some((s_id, o_id, _row)) = cursor.next() {
-            // Resolve each term id to its `TermValue` surface here, at the point the
-            // `Fact` seed actually needs them.
-            edb_facts.push(Fact {
-                subject: interner.resolve(s_id).clone(),
-                predicate: predicate.clone(),
-                object: interner.resolve(o_id).clone(),
-            });
-        }
-    }
-    edb_facts.sort_by_key(Fact::key);
+    // Lower the columnar EDB through the single shared projection used by both the
+    // scratch and incremental evaluators.  It returns lexical FactKey order.
+    let edb_facts = edb.facts_sorted();
 
     // Run the stratified fixpoint, accumulating into a shared FactStore/RelationStore.
     let mut store = FactStore::new();
     let mut rel = RelationStore::new();
     // Depth column (row-indexed, like the forward leg).  This Skip-mode leg never records
     // provenance, so it is never written — it stays empty, asserted below.
-    let mut depth: Vec<u32> = Vec::new();
+    let mut depth: Vec<ProofHeight> = Vec::new();
 
     // A PURE-EDB predicate (never a rule head) is settled from the seed; a self-recursive
     // or otherwise IDB-derived predicate becomes settled only when its stratum completes
@@ -1288,8 +2367,8 @@ pub(crate) fn evaluate(
     let mut derivations: Vec<DerivedRow> = Vec::new();
     // Set iff a builtin could not be evaluated in its binding mode, or hit a
     // domain/precision error (÷0, overflow).  Such a program is a declared native
-    // gap: the whole query re-demotes to the oracle rather than present an
-    // incomplete answer set — never a wrong answer.
+    // gap: the whole query is refused rather than presenting an incomplete
+    // answer set — never a wrong answer.
     let mut builtin_gap = false;
     for k in 0..total {
         if exe.stratum_is_empty(k) {
@@ -1308,6 +2387,8 @@ pub(crate) fn evaluate(
             },
             &mut governor,
             ProvenanceMode::Skip,
+            RoundExecution::Parallel,
+            None,
         )? {
             FixpointStatus::Complete => {
                 for pred in exe.stratum_head_predicates(k) {
@@ -1351,6 +2432,181 @@ pub(crate) fn evaluate(
     }))
 }
 
+/// Deterministic evidence from the four-worker rule-parallel production path.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct RuleParallelProbe {
+    pub(crate) worker_count: usize,
+    pub(crate) rule_count: usize,
+    pub(crate) seed_rows: usize,
+    pub(crate) derived_rows: usize,
+    pub(crate) consumed_steps: u64,
+    pub(crate) parallel_rounds: u64,
+    pub(crate) rule_tasks: u64,
+    pub(crate) serial_candidate_rows: u64,
+    pub(crate) critical_path_candidate_rows: u64,
+    pub(crate) max_buffered_candidate_rows: u64,
+    pub(crate) max_task_candidate_rows: u64,
+    pub(crate) budget_cases: usize,
+    pub(crate) output_parity: bool,
+    pub(crate) budget_parity: bool,
+    pub(crate) parallel_path_entered: bool,
+    pub(crate) critical_path_strictly_lower: bool,
+    pub(crate) closure_hash: [u8; 32],
+}
+
+fn same_derived_rows(left: &[DerivedRow], right: &[DerivedRow]) -> bool {
+    left.len() == right.len()
+        && left.iter().zip(right).all(|(left, right)| {
+            left.graph == right.graph
+                && left.subject == right.subject
+                && left.predicate == right.predicate
+                && left.object == right.object
+                && left.rule_iri == right.rule_iri
+                && left.source_quad_ids == right.source_quad_ids
+                && left.derivation_id == right.derivation_id
+                && left.proof_height == right.proof_height
+                && left
+                    .antecedents
+                    .iter()
+                    .map(Fact::key)
+                    .eq(right.antecedents.iter().map(Fact::key))
+        })
+}
+
+fn same_budgeted_rows(left: &Budgeted<Vec<DerivedRow>>, right: &Budgeted<Vec<DerivedRow>>) -> bool {
+    left.status == right.status
+        && left.progress == right.progress
+        && left.consumed_steps == right.consumed_steps
+        && same_derived_rows(&left.rows, &right.rows)
+}
+
+fn derived_rows_hash(rows: &[DerivedRow]) -> [u8; 32] {
+    fn feed(hasher: &mut blake3::Hasher, value: &str) {
+        hasher.update(&(value.len() as u64).to_le_bytes());
+        hasher.update(value.as_bytes());
+    }
+
+    let mut hasher = blake3::Hasher::new();
+    hasher.update(b"gmeow-rule-parallel-derived-rows-v1\0");
+    hasher.update(&(rows.len() as u64).to_le_bytes());
+    for row in rows {
+        feed(&mut hasher, &row.graph);
+        feed(&mut hasher, &crate::provenance::term_display(&row.subject));
+        feed(&mut hasher, &row.predicate);
+        feed(&mut hasher, &crate::provenance::term_display(&row.object));
+        feed(&mut hasher, &row.rule_iri);
+        hasher.update(&(row.source_quad_ids.len() as u64).to_le_bytes());
+        for source in &row.source_quad_ids {
+            feed(&mut hasher, source);
+        }
+        feed(&mut hasher, &row.derivation_id);
+        hasher.update(&row.proof_height.get().to_le_bytes());
+        hasher.update(&(row.antecedents.len() as u64).to_le_bytes());
+        for antecedent in &row.antecedents {
+            let key = antecedent.key();
+            feed(&mut hasher, &key.0);
+            feed(&mut hasher, &key.1);
+            feed(&mut hasher, &key.2);
+        }
+    }
+    *hasher.finalize().as_bytes()
+}
+
+/// Run the permanent balanced rule-parallel fixture under a real four-worker pool.
+///
+/// The returned work comparison is structural, not timed: the serial work is the
+/// sum of rule-local candidate buffers, while the parallel critical path is the sum
+/// of each round's largest task. Full output/provenance and a budget sweep are also
+/// compared against the forced-sequential policy.
+pub(crate) fn rule_parallel_probe() -> gmeow_errors::Result<RuleParallelProbe> {
+    const NS: &str = "https://example.org/parallel/";
+    const WORLD: &str = "https://example.org/parallel/world";
+    let iri = |local: &str| format!("{NS}{local}");
+    let rule_text = format!(
+        "#[name(\"{NS}rule/z-duplicate\")]\n\
+         <{NS}shared>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/a-duplicate\")]\n\
+         <{NS}shared>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/alpha\")]\n\
+         <{NS}alpha>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/omega\")]\n\
+         <{NS}omega>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/left\")]\n\
+         <{NS}left>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n\
+         #[name(\"{NS}rule/right\")]\n\
+         <{NS}right>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n"
+    );
+    let rules = crate::rule_ir::parse_eval_rules(&rule_text)?;
+    let executable = super::plan::Parsed::uncached(&rules)
+        .stratify()
+        .ok_or_else(|| seminaive_err("rule-parallel evidence fixture is non-stratifiable"))?
+        .plan()
+        .into_executable();
+    let store = crate::store::WorldStore::new();
+    const SEED_ROWS: usize = 24;
+    for index in 0..SEED_ROWS {
+        let node = iri(&format!("node-{index:02}"));
+        store.insert_quad(WORLD, &node, &iri("seed"), &node);
+    }
+    let edb = world_edb_facts(&store, WORLD)?;
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(4)
+        .build()
+        .map_err(|error| seminaive_err(format!("build four-worker evidence pool: {error}")))?;
+
+    pool.install(move || {
+        let run = |max_steps: Option<u64>,
+                   execution: RoundExecution,
+                   trace: Option<&mut RuleParallelTrace>| {
+            let mut governor = StepGovernor::new(max_steps);
+            eval_world_stratified_with_trace(
+                &edb,
+                &executable,
+                &mut governor,
+                ProvenanceMode::Record,
+                execution,
+                trace,
+            )
+        };
+
+        let sequential = run(None, RoundExecution::Sequential, None)?;
+        let mut trace = RuleParallelTrace::default();
+        let parallel = run(None, RoundExecution::Parallel, Some(&mut trace))?;
+        let output_parity = same_budgeted_rows(&parallel, &sequential);
+        const BUDGETS: [u64; 8] = [0, 1, 23, 72, 73, 119, 120, 121];
+        let mut budget_parity = true;
+        for budget in BUDGETS {
+            let sequential_cut = run(Some(budget), RoundExecution::Sequential, None)?;
+            let parallel_cut = run(Some(budget), RoundExecution::Parallel, None)?;
+            budget_parity &= same_budgeted_rows(&parallel_cut, &sequential_cut);
+        }
+
+        let worker_count = rayon::current_num_threads();
+        let parallel_path_entered = worker_count == 4 && trace.parallel_rounds > 0;
+        let critical_path_strictly_lower = trace.critical_path_candidate_rows > 0
+            && trace.critical_path_candidate_rows < trace.serial_candidate_rows;
+        Ok(RuleParallelProbe {
+            worker_count,
+            rule_count: rules.len(),
+            seed_rows: SEED_ROWS,
+            derived_rows: parallel.rows.len(),
+            consumed_steps: parallel.consumed_steps,
+            parallel_rounds: trace.parallel_rounds,
+            rule_tasks: trace.rule_tasks,
+            serial_candidate_rows: trace.serial_candidate_rows,
+            critical_path_candidate_rows: trace.critical_path_candidate_rows,
+            max_buffered_candidate_rows: trace.max_buffered_candidate_rows,
+            max_task_candidate_rows: trace.max_task_candidate_rows,
+            budget_cases: BUDGETS.len(),
+            output_parity,
+            budget_parity,
+            parallel_path_entered,
+            critical_path_strictly_lower,
+            closure_hash: derived_rows_hash(&parallel.rows),
+        })
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1363,11 +2619,22 @@ mod tests {
 
     use crate::physical::plan::Parsed;
 
+    /// Named shape for the compile-time executor entry gate below.
+    type StratumExecutorGate<'state> = fn(
+        &Executable,
+        usize,
+        &mut FixpointState<'state>,
+        &mut StepGovernor,
+        ProvenanceMode,
+        RoundExecution,
+        Option<&mut RuleParallelTrace>,
+    ) -> gmeow_errors::Result<FixpointStatus>;
+
     /// Drive the type-state plan pipeline for a stratifiable test program: the only path
     /// to the `Executable` the forward/backward executors accept.  A non-stratifiable
     /// program has no place in these tests (it is a caller-side declared gap), so `expect`.
-    fn exe(rules: &[EvalRule]) -> Executable<'_> {
-        Parsed::new(rules)
+    fn exe(rules: &[EvalRule]) -> Executable {
+        Parsed::uncached(rules)
             .stratify()
             .expect("stratifiable test program")
             .plan()
@@ -1382,13 +2649,7 @@ mod tests {
     /// is enforced by the type system here, not by a doc comment.
     #[test]
     fn executor_entry_accepts_only_executable() {
-        let _executor_gate: fn(
-            &Executable<'_>,
-            usize,
-            &mut FixpointState<'_>,
-            &mut StepGovernor,
-            ProvenanceMode,
-        ) -> gmeow_errors::Result<FixpointStatus> = eval_stratum_fixpoint;
+        let _executor_gate: StratumExecutorGate<'_> = eval_stratum_fixpoint;
     }
 
     fn nn(local: &str) -> String {
@@ -1523,6 +2784,169 @@ mod tests {
             !native_rows.is_empty(),
             "transitive closure must derive at least one path"
         );
+    }
+
+    fn triangle_rule(with_interleaved_leaf: bool) -> Vec<EvalRule> {
+        let body = if with_interleaved_leaf {
+            format!(
+                "<{NS}r>(?X, ?Y, ?W), <{NS}leaf>(?X, ?Q, ?W), \
+                 <{NS}s>(?Y, ?Z, ?W), <{NS}t>(?Z, ?X, ?W)"
+            )
+        } else {
+            format!(
+                "<{NS}r>(?X, ?Y, ?W), <{NS}s>(?Y, ?Z, ?W), \
+                 <{NS}t>(?Z, ?X, ?W)"
+            )
+        };
+        parse_eval_rules(&format!(
+            "#[name(\"{NS}triangle-rule\")]\n\
+             <{NS}triangle>(?X, ?Z, ?W) :- {body} .\n"
+        ))
+        .expect("parse triangle rule")
+    }
+
+    fn triangle_relation(with_leaf: bool) -> RelationStore {
+        let mut rel = RelationStore::new();
+        for (s, p, o) in [
+            ("x0", "r", "y"),
+            ("x1", "r", "y"),
+            ("y", "s", "z0"),
+            ("y", "s", "z1"),
+            ("z0", "t", "x0"),
+            ("z1", "t", "x1"),
+        ] {
+            assert!(rel.insert(&nn(p), &term(s), &term(o)).is_some());
+        }
+        if with_leaf {
+            assert!(rel.insert(&nn("leaf"), &term("x0"), &term("q0")).is_some());
+            assert!(rel.insert(&nn("leaf"), &term("x1"), &term("q1")).is_some());
+        }
+        rel
+    }
+
+    type CanonicalSolution = (Vec<(String, String)>, Vec<FactKey>);
+
+    fn canonical_solutions(solutions: Vec<Solution>) -> Vec<CanonicalSolution> {
+        let mut rows: Vec<_> = solutions
+            .into_iter()
+            .map(|solution| {
+                let mut bindings = solution.bindings;
+                bindings.sort();
+                let sources = solution.source_facts.iter().map(Fact::key).collect();
+                (bindings, sources)
+            })
+            .collect();
+        rows.sort();
+        rows
+    }
+
+    /// The promoted multiway path dual-runs byte-for-byte against the retained binary
+    /// reference under both seed and proper-round delta spans. The interleaved leaf
+    /// variant additionally proves source facts are restored to authored body order.
+    #[test]
+    fn leapfrog_join_matches_binary_bindings_and_body_ordered_sources() {
+        for with_leaf in [false, true] {
+            let rules = triangle_rule(with_leaf);
+            let rule = &rules[0];
+            let plan = RulePlan::for_rule(rule);
+            assert!(plan.has_cyclic_subplan());
+            let rel = triangle_relation(with_leaf);
+            let deltas = [
+                Delta::all(rel.row_count()),
+                // Only the two `t` rows are new in this proper semi-naive round.
+                Delta { lo: 4, hi: 6 },
+            ];
+            for delta in deltas {
+                let mut binary_gap = false;
+                let binary = canonical_solutions(join_body_binary(
+                    rule,
+                    &plan,
+                    &rel,
+                    &rel,
+                    delta,
+                    &mut binary_gap,
+                ));
+                let mut leapfrog_gap = false;
+                let leapfrog = canonical_solutions(join_body_leapfrog(
+                    rule,
+                    &plan,
+                    &rel,
+                    &rel,
+                    delta,
+                    &mut leapfrog_gap,
+                ));
+                assert!(!binary_gap && !leapfrog_gap);
+                assert_eq!(leapfrog, binary, "delta={:?}", (delta.lo, delta.hi));
+                let want_predicates: Vec<String> = if with_leaf {
+                    ["r", "leaf", "s", "t"].into_iter().map(nn).collect()
+                } else {
+                    ["r", "s", "t"].into_iter().map(nn).collect()
+                };
+                assert!(leapfrog.iter().all(|(_, sources)| {
+                    sources
+                        .iter()
+                        .map(|source| source.1.clone())
+                        .eq(want_predicates.iter().cloned())
+                }));
+            }
+        }
+    }
+
+    /// Whole-engine oracle parity for the promoted rule: exact derived provenance and
+    /// the committed-derivation budget remain identical to the retained reduct engine.
+    #[test]
+    fn leapfrog_materialization_matches_binary_reference_and_budget() {
+        let rules = triangle_rule(false);
+        let facts = [
+            fact("x0", "r", "y"),
+            fact("x1", "r", "y"),
+            fact("y", "s", "z0"),
+            fact("y", "s", "z1"),
+            fact("z0", "t", "x0"),
+            fact("z1", "t", "x1"),
+        ];
+
+        let mut sorted_facts = facts.to_vec();
+        sorted_facts.sort_by_key(Fact::key);
+        let mut edb = FactStore::new();
+        for fact in &sorted_facts {
+            edb.insert(fact.clone());
+        }
+        let reference = least_model_of_reduct(&edb, &rules, &FactStore::new())
+            .expect("binary reduct reference");
+        let mut reference_rows: Vec<_> = reference.derivations.iter().map(row_key).collect();
+        reference_rows.sort();
+
+        let world = WorldStore::new();
+        for fact in facts {
+            world.insert_quad(
+                WORLD,
+                fact.subject.as_iri().expect("IRI subject"),
+                &fact.predicate,
+                fact.object.as_iri().expect("IRI object"),
+            );
+        }
+        let NativeOutcome::Decided(full) =
+            materialize_native(&world, &exe(&rules), None).expect("leapfrog materialization")
+        else {
+            panic!("triangle is native-decidable");
+        };
+        let mut native_rows: Vec<_> = derived_only(&full.rows)
+            .iter()
+            .map(|row| row_key(row))
+            .collect();
+        native_rows.sort();
+        assert_eq!(native_rows, reference_rows);
+        assert_eq!(full.consumed_steps, 2);
+
+        let NativeOutcome::Decided(cut) = materialize_native(&world, &exe(&rules), Some(1))
+            .expect("budgeted leapfrog materialization")
+        else {
+            panic!("triangle is native-decidable");
+        };
+        assert_eq!(cut.consumed_steps, 1);
+        assert_eq!(derived_only(&cut.rows).len(), 1);
+        assert_eq!(cut.status, BudgetStatus::Exhausted);
     }
 
     /// FULL-SCAN COMPLETENESS GATE.
@@ -1807,7 +3231,7 @@ mod tests {
         let rules = parse_eval_rules(&rls).expect("parse cyclic-negation rules");
 
         assert!(
-            Parsed::new(&rules).stratify().is_none(),
+            Parsed::uncached(&rules).stratify().is_none(),
             "p↔q via mutual negation must be reported non-stratifiable (no Executable)"
         );
     }
@@ -2114,6 +3538,124 @@ mod tests {
                  never the MINT/RowId order (zzz first) — RowId assignment is purely additive"
             );
         }
+    }
+
+    /// INTRA-WORLD RULE-PARALLELISM DETERMINISM + BUDGET GATE.
+    ///
+    /// Six same-stratum rules produce two rounds of work over one world. Two rules derive
+    /// every `shared` head with DIFFERENT observable provenance, and the lexically smaller
+    /// rule IRI is deliberately authored second, so the rule-local-buffer merge must apply
+    /// the total winner relation rather than arrival order or first-buffer wins. The
+    /// remaining rules create disjoint heads on both sides of that shared predicate.
+    ///
+    /// A private forced-sequential run is compared against a forced-parallel run inside a
+    /// four-worker Rayon pool for the unbounded closure and cuts before, inside, and exactly
+    /// at round boundaries. Equality covers the entire `Budgeted<Vec<DerivedRow>>`: rows,
+    /// full provenance, status, completion frontier, and consumed-step count.
+    #[test]
+    fn physical_intra_world_parallel_matches_sequential_under_budget_sweep() {
+        let rule_text = format!(
+            "#[name(\"{NS}rule/z-duplicate\")]\n\
+             <{NS}shared>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/a-duplicate\")]\n\
+             <{NS}shared>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/alpha\")]\n\
+             <{NS}alpha>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/omega\")]\n\
+             <{NS}omega>(?X, ?X, ?W) :- <{NS}seed>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/left\")]\n\
+             <{NS}left>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n\
+             #[name(\"{NS}rule/right\")]\n\
+             <{NS}right>(?X, ?X, ?W) :- <{NS}shared>(?X, ?X, ?W) .\n"
+        );
+        let rules = parse_eval_rules(&rule_text).expect("parse rule-parallel fixture");
+        let store = WorldStore::new();
+        for index in 0..24 {
+            let node = nn(&format!("node-{index:02}"));
+            store.insert_quad(WORLD, &node, &nn("seed"), &node);
+        }
+
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .expect("build four-worker parity pool");
+        pool.install(move || {
+            assert!(
+                RoundExecution::Parallel.should_parallelize(rules.len()),
+                "the forced-parallel leg must genuinely enter the multi-worker rule path"
+            );
+            let executable = exe(&rules);
+            let run = |max_steps, execution| match materialize_native_with_round_execution(
+                &store,
+                &executable,
+                max_steps,
+                execution,
+            )
+            .expect("policy-selectable materialization")
+            {
+                NativeOutcome::Decided(budgeted) => budgeted,
+                other => panic!("expected Decided, got {other:?}"),
+            };
+            let full_rows = |budgeted: &Budgeted<Vec<DerivedRow>>| {
+                budgeted
+                    .rows
+                    .iter()
+                    .map(|row| {
+                        (
+                            row.graph.clone(),
+                            term_display(&row.subject),
+                            row.predicate.clone(),
+                            term_display(&row.object),
+                            row.rule_iri.clone(),
+                            row.source_quad_ids.clone(),
+                            row.derivation_id.clone(),
+                            row.proof_height,
+                            row.antecedents.iter().map(Fact::key).collect::<Vec<_>>(),
+                        )
+                    })
+                    .collect::<Vec<_>>()
+            };
+            let assert_same = |parallel: &Budgeted<Vec<DerivedRow>>,
+                               sequential: &Budgeted<Vec<DerivedRow>>,
+                               label: &str| {
+                assert_eq!(parallel.status, sequential.status, "{label}: status");
+                assert_eq!(
+                    parallel.progress, sequential.progress,
+                    "{label}: completion frontier"
+                );
+                assert_eq!(
+                    parallel.consumed_steps, sequential.consumed_steps,
+                    "{label}: consumed steps"
+                );
+                assert_eq!(
+                    full_rows(parallel),
+                    full_rows(sequential),
+                    "{label}: rows and full provenance"
+                );
+            };
+
+            let sequential_full = run(None, RoundExecution::Sequential);
+            let parallel_full = run(None, RoundExecution::Parallel);
+            assert_same(&parallel_full, &sequential_full, "unbounded closure");
+            assert_eq!(
+                derived_only(&sequential_full.rows).len(),
+                120,
+                "24 seeds × five unique derived predicates"
+            );
+            assert!(
+                derived_only(&sequential_full.rows)
+                    .iter()
+                    .filter(|row| row.predicate.as_str() == nn("shared"))
+                    .all(|row| row.rule_iri == nn("rule/a-duplicate")),
+                "cross-rule duplicate heads must choose the total-order provenance winner"
+            );
+
+            for budget in [0, 1, 23, 72, 73, 119, 120, 121] {
+                let sequential = run(Some(budget), RoundExecution::Sequential);
+                let parallel = run(Some(budget), RoundExecution::Parallel);
+                assert_same(&parallel, &sequential, &format!("budget {budget}"));
+            }
+        });
     }
 
     /// PER-WORLD PARALLELISM DETERMINISM GATE.
@@ -2659,7 +4201,7 @@ mod tests {
             },
         ];
         assert!(
-            Parsed::new(&rules).stratify().is_none(),
+            Parsed::uncached(&rules).stratify().is_none(),
             "the pipeline must refuse a non-stratifiable program before either lane runs"
         );
     }

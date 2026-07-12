@@ -750,6 +750,9 @@ pub(crate) fn materialize_generic_budgeted(
                     is_edb,
                     rule_name: entry.rule_iri.clone(),
                     antecedents,
+                    // The bounded min-height annotation currently belongs to the
+                    // binary stratified semi-naive Record lane.
+                    proof_height: None,
                     attributions: Vec::new(),
                 },
             )
