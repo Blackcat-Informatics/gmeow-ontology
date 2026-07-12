@@ -12465,7 +12465,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:26ba4d55e6adddfa>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-rendering:26ba4d55e6adddfa" ;
-    gmeow:lossyDrop "actual: docs page rendering (fr-CA, https://blackcatinformatics.ca/logic/GenericDependence): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr-CA, https://blackcatinformatics.ca/logic/GenericDependence): 3 target surface(s); derived preservation = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -19095,7 +19095,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:727bbd9f52a5614f>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-rendering:727bbd9f52a5614f" ;
-    gmeow:lossyDrop "actual: docs page rendering (zh-Hans, https://blackcatinformatics.ca/logic/EngineCapability): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh-Hans, https://blackcatinformatics.ca/logic/EngineCapability): 3 target surface(s); derived preservation = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -22467,7 +22467,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:97cfbf5d593271e9>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-rendering:97cfbf5d593271e9" ;
-    gmeow:lossyDrop "actual: docs page rendering (fr-CA, https://blackcatinformatics.ca/logic/EngineCapability): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr-CA, https://blackcatinformatics.ca/logic/EngineCapability): 3 target surface(s); derived preservation = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -29762,7 +29762,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:e9f3dd1dcc5cd079>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-rendering:e9f3dd1dcc5cd079" ;
-    gmeow:lossyDrop "actual: docs page rendering (zh-Hans, https://blackcatinformatics.ca/logic/GenericDependence): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: docs page rendering (zh-Hans, https://blackcatinformatics.ca/logic/GenericDependence): 3 target surface(s); derived preservation = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -35471,7 +35471,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:26ba4d55e6adddfa>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-translation:26ba4d55e6adddfa" ;
-    gmeow:lossyDrop "actual: docs page translation roll-up (fr-CA, https://blackcatinformatics.ca/logic/GenericDependence) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr-CA, https://blackcatinformatics.ca/logic/GenericDependence) over 3 unit(s); weakest-dominates join = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -42101,7 +42101,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:727bbd9f52a5614f>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-translation:727bbd9f52a5614f" ;
-    gmeow:lossyDrop "actual: docs page translation roll-up (zh-Hans, https://blackcatinformatics.ca/logic/EngineCapability) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh-Hans, https://blackcatinformatics.ca/logic/EngineCapability) over 3 unit(s); weakest-dominates join = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -45473,7 +45473,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:97cfbf5d593271e9>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-translation:97cfbf5d593271e9" ;
-    gmeow:lossyDrop "actual: docs page translation roll-up (fr-CA, https://blackcatinformatics.ca/logic/EngineCapability) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr-CA, https://blackcatinformatics.ca/logic/EngineCapability) over 3 unit(s); weakest-dominates join = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -52768,7 +52768,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:e9f3dd1dcc5cd079>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-translation:e9f3dd1dcc5cd079" ;
-    gmeow:lossyDrop "actual: docs page translation roll-up (zh-Hans, https://blackcatinformatics.ca/logic/GenericDependence) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (zh-Hans, https://blackcatinformatics.ca/logic/GenericDependence) over 3 unit(s); weakest-dominates join = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -54975,7 +54975,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr-CA>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation-doc:fr-CA" ;
-    gmeow:lossyDrop "actual: document roll-up over 2100 translation unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: document roll-up over 2102 translation unit(s); weakest-dominates join = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -54989,7 +54989,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-translation-doc:zh-Hans>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation-doc:zh-Hans" ;
-    gmeow:lossyDrop "actual: document roll-up over 2100 translation unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: document roll-up over 2102 translation unit(s); weakest-dominates join = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -62937,6 +62937,13 @@
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:3451b10ef10fe6ce" ;
     gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr-CA, https://blackcatinformatics.ca/logic/Unsupported|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:34679b5adc4bb506>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:34679b5adc4bb506" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr-CA, https://blackcatinformatics.ca/logic/EngineCapability|skos:example)" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -75737,6 +75744,13 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:86b7b9de834cc0e8>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:86b7b9de834cc0e8" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh-Hans, https://blackcatinformatics.ca/logic/EngineCapability|skos:example)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:86b7cadc47bf772d>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:86b7cadc47bf772d" ;
@@ -86737,6 +86751,13 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:ced404c34fd0eb4e>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:ced404c34fd0eb4e" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr-CA, https://blackcatinformatics.ca/logic/GenericDependence|skos:example)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:ced89ddfa080cd9a>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:ced89ddfa080cd9a" ;
@@ -91119,6 +91140,13 @@
     gmeow:lossySourceTerm gmeow:thrGroundingExemplified ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:eb2866f4049595c1> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:eb3392eaba275244>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:eb3392eaba275244" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh-Hans, https://blackcatinformatics.ca/logic/GenericDependence|skos:example)" ;
+    logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:eb54e5bc8fb0fbd2>
@@ -152071,6 +152099,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:341d270485bc1462> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:344ce94b65103aaa> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:3451b10ef10fe6ce> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:34679b5adc4bb506> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:348598755a086d8e> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:34873901a24d2895> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:34939812dac557a0> ,
@@ -153651,6 +153680,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:86823274467b671d> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:8686f59df9de2737> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:86a58ca00f5c522a> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:86b7b9de834cc0e8> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:86b7cadc47bf772d> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:86c666394c3c2d34> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:86ccd9fab56b1caf> ,
@@ -154991,6 +155021,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:ce9b034b587a4079> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:cea373259a83f1d4> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:cebe2b19947118f2> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:ced404c34fd0eb4e> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:ced89ddfa080cd9a> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:cefe863e9d503baf> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:cf01ab43d32c8983> ,
@@ -155526,6 +155557,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:eaccce270df3fcea> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:ead201bac7caccbc> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:eb2866f4049595c1> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:eb3392eaba275244> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:eb54e5bc8fb0fbd2> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:eb7621403b3d2f02> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:eb7cde032f3b5f84> ,
