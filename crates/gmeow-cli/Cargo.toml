@@ -41,7 +41,7 @@ gmeow-docs = { path = "../docs" }
 # The RDF-1.2 / GTS substrate the consumer commands read and serialize through
 # (`gts::read`, `flattened_dataset_from_bytes`, `serialize_dataset`). A published
 # runtime dependency, never a repo-maintenance one.
-purrdf = "0.4"
+purrdf = "0.5"
 # TOCTOU/symlink-safe staging of the embedded bundle to a temp path for the
 # external `gts` passthrough (atomic create + remove-on-drop).
 tempfile = "3"

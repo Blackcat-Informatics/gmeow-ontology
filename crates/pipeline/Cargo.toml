@@ -19,7 +19,7 @@ path = "src/lib.rs"
 [dependencies]
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
-purrdf = "0.4"
+purrdf = "0.5"
 # The native, zero-dependency XSD value space (#906): the snapshot carrier
 # canonicalizes typed-literal lexical forms (`415.0`→`415.0`, `0.90`→`0.9`,
 # `+00:00`→`Z`) to the W3C-canonical mapping via `gmeow_xsd::parse_by_iri` +
@@ -188,7 +188,7 @@ gmeow-lang-bridge = { path = "../lang-bridge" }
 gmeow-logic-compile = { path = "../logic-compile" }
 #   * purrdf — the frozen RdfDataset carrier (DatasetView), the parsed SHACL Shapes, the
 #     ValidationReport terms, and the SliceCatalog the FS2/FS4/FS5 producers ingest.
-purrdf = "0.4"
+purrdf = "0.5"
 #   * gmeow-math — the five native math producers (gmeow_math::producers) the math
 #     execution-discharge harness (tests/math_flagship_discharge.rs) RUNS and pins. It is
 #     now a NORMAL [dependencies] entry (the `math_producers` stage folds the producer

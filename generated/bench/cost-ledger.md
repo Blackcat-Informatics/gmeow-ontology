@@ -17,9 +17,9 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 
 | corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden | native_vs_oracle |
 |---|---|---|---|---|---|---|---|---|---|
-| chasebench-mini | deep-linear | existential | 3 | 3 | 4750814 | 40114 | 34937 | true | true |
-| chasebench-mini | doctors-like | existential | 4 | 4 | 3277906 | 27800 | 29729 | true | true |
-| chasebench-mini | lubm-like | existential | 3 | 3 | 4742377 | 40039 | 34989 | true | true |
+| chasebench-mini | deep-linear | existential | 3 | 3 | 4750742 | 40112 | 34937 | true | true |
+| chasebench-mini | doctors-like | existential | 4 | 4 | 3277814 | 27798 | 29729 | true | true |
+| chasebench-mini | lubm-like | existential | 3 | 3 | 4742305 | 40037 | 34989 | true | true |
 | nary-mini | co-witness | nary-existential | 16 | 6 | 564567 | 5680 | 96687 | true | true |
 | nary-mini | split-null | nary-existential | 14 | 6 | 458334 | 4686 | 83962 | true | true |
 | nary-mini | stb-like | nary-existential | 24 | 10 | 765537 | 7881 | 89129 | true | true |
@@ -27,15 +27,15 @@ Engine/reference pins: native `gmeow-logic/0.1.0+native`, nemo `4415bc2e180adf33
 | nemo-kr2024-mini | reachability-query | backward | 5 | 2 | 162437 | 2056 | 22088 | true | true |
 | nemo-kr2024-mini | transitive-connection | forward | 3 | 3 | 3910107 | 33179 | 37822 | true | true |
 | relational-core-mini | incremental-transitive-closure | incremental | 13 | 91 | 2411313 | 54874 | 130246 | true | true |
-| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6243260 | 54249 | 58473 | true | true |
+| relational-core-mini | mutual-recursion | forward | 10 | 10 | 6244084 | 54277 | 58473 | true | true |
 | relational-core-mini | non-linear-transitive-closure | forward | 6 | 6 | 3989001 | 34423 | 44101 | true | true |
-| relational-core-mini | points-to | forward | 4 | 4 | 3950915 | 33942 | 42113 | true | true |
+| relational-core-mini | points-to | forward | 4 | 4 | 3950487 | 33928 | 42113 | true | true |
 | relational-core-mini | reachability | forward | 2 | 2 | 3709779 | 31266 | 36685 | true | true |
-| relational-core-mini | same-generation | forward | 8 | 8 | 5459296 | 47654 | 53474 | true | true |
+| relational-core-mini | same-generation | forward | 8 | 8 | 5458877 | 47640 | 53474 | true | true |
 | relational-core-mini | scc | forward | 8 | 8 | 6167001 | 52876 | 53796 | true | true |
 | relational-core-mini | transitive-closure | forward | 3 | 3 | 3910278 | 33203 | 37785 | true | true |
-| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5642926 | 60833 | 217467 | true | true |
-| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7933285 | 109464 | 626530 | true | true |
+| relational-core-mini | transitive-closure-scaled | forward | 78 | 78 | 5645488 | 60917 | 217467 | true | true |
+| relational-core-mini | triangle-heavy | forward | 64 | 64 | 7921793 | 109100 | 626530 | true | true |
 
 ## Decomposable cost vectors (rule × predicate × stratum)
 

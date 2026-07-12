@@ -20,5 +20,5 @@ default = []
 
 [dependencies]
 gmeow-errors = { path = "../errors" }
-purrdf = "0.4"
+purrdf = "0.5"
 roxmltree = "0.20"
