@@ -1796,24 +1796,58 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
 // gated behind `python`) and by the byte-format goldens under `test`.
 
 pub(crate) use consumer::{
-    consumer_llms_txt, doc_card_build, doc_url_map, lookup_envelope, okf_index_envelope,
-    resolve_term_iri,
+    ConsumerResolution, consumer_llms_txt, doc_card_build, doc_url_map, lookup_envelope,
+    okf_index_envelope, resolve_term_iri,
 };
 
 mod consumer {
     use super::*;
 
+    /// The outcome of resolving a consumer query against the folded term set — the
+    /// MCP-surface twin of [`gmeow_docs::describe::Resolution`]. A bare local name
+    /// that exactly matches terms in more than one namespace HARD-FAILS with the
+    /// sorted candidate CURIEs rather than silently picking one (`.goals` NO
+    /// OPTIONALITY); the `gmeow describe` CLI enforces the identical contract.
+    /// Generic over the resolved payload so the IRI path (`&str`) and the owned-IRI
+    /// MCP wrapper (`String`) share one taxonomy.
+    pub(crate) enum ConsumerResolution<T> {
+        /// A unique term (or its unique IRI).
+        Resolved(T),
+        /// A bare local name matched terms in more than one namespace: the sorted,
+        /// deduped candidate display CURIEs the caller must disambiguate between.
+        Ambiguous { candidates: Vec<String> },
+        /// No term matches the query.
+        NotFound,
+    }
+
+    #[cfg(test)]
+    impl<T> ConsumerResolution<T> {
+        /// The resolved payload, or `None` for `Ambiguous`/`NotFound` — for the tests
+        /// that only exercise the unique-resolution path.
+        pub(crate) fn resolved(self) -> Option<T> {
+            match self {
+                ConsumerResolution::Resolved(v) => Some(v),
+                _ => None,
+            }
+        }
+    }
+
     /// Resolve a CURIE / local name / IRI / case-insensitive label — or a single
-    /// unambiguous CURIE/label prefix — to a term. Exact matches win immediately;
-    /// a prefix resolves only when it matches exactly one term. Shared by
+    /// unambiguous CURIE/label prefix — to a term. Mirrors the `describe` precedence:
+    /// case-SENSITIVE exact matches win first; only when the same query exactly names
+    /// terms in more than one namespace do we HARD-FAIL [`ConsumerResolution::Ambiguous`]
+    /// rather than silently pick the first (`.goals` NO OPTIONALITY). When no exact
+    /// match exists a unique case-insensitive prefix still resolves. Shared by
     /// `lookup_term` and the `doc_card` surface.
-    fn resolve_term<'a>(terms: &'a [Term], query: &str) -> Option<&'a Term> {
+    fn resolve_term<'a>(terms: &'a [Term], query: &str) -> ConsumerResolution<&'a Term> {
         let needle = query.trim();
         if needle.is_empty() {
-            return None;
+            return ConsumerResolution::NotFound;
         }
         let lower = needle.to_lowercase();
-        let mut matches: Vec<&Term> = Vec::new();
+        let mut exact: Vec<&Term> = Vec::new();
+        let mut exact_ci: Vec<&Term> = Vec::new();
+        let mut prefix: Vec<&Term> = Vec::new();
         for term in terms {
             // Bare local-name matching spans every registered namespace (not only
             // `gmeow:`), so `lang:Denotation`'s bare `Denotation` resolves too.
@@ -1824,42 +1858,82 @@ mod consumer {
                 local,
                 term.label.as_str(),
             ];
-            let exact = candidates
+            if candidates.iter().any(|c| !c.is_empty() && *c == needle) {
+                exact.push(term);
+            }
+            if candidates
                 .iter()
-                .any(|c| !c.is_empty() && c.to_lowercase() == lower);
-            if exact {
-                return Some(term);
+                .any(|c| !c.is_empty() && c.to_lowercase() == lower)
+            {
+                exact_ci.push(term);
             }
             if term.curie.to_lowercase().starts_with(&lower)
                 || term.label.to_lowercase().starts_with(&lower)
             {
-                matches.push(term);
+                prefix.push(term);
             }
         }
-        if matches.len() == 1 {
-            Some(matches[0])
+        // Case-sensitive exact wins first; fall to case-insensitive exact only when no
+        // case-sensitive exact matched (mirrors `describe`).
+        let matched = if !exact.is_empty() { exact } else { exact_ci };
+        // Distinct by term IRI: a single term can match via curie AND local name.
+        let mut distinct: Vec<&Term> = Vec::new();
+        for term in matched {
+            if !distinct.iter().any(|t| t.iri == term.iri) {
+                distinct.push(term);
+            }
+        }
+        match distinct.as_slice() {
+            [only] => return ConsumerResolution::Resolved(only),
+            [] => {}
+            _ => {
+                let mut candidates: Vec<String> =
+                    distinct.iter().map(|t| t.curie.clone()).collect();
+                candidates.sort();
+                candidates.dedup();
+                return ConsumerResolution::Ambiguous { candidates };
+            }
+        }
+        // No exact match: a unique case-insensitive prefix resolves (the fuzzy-
+        // completion UX); anything else is NotFound.
+        if let [only] = prefix.as_slice() {
+            ConsumerResolution::Resolved(only)
         } else {
-            None
+            ConsumerResolution::NotFound
         }
     }
 
     /// Resolve a CURIE / local name / IRI / label (or unambiguous prefix) to its
     /// canonical term IRI, via the SAME [`resolve_term`] path `lookup_term` and
-    /// `doc_card` use. `None` when the query does not resolve to exactly one term —
-    /// the caller HARD-FAILS an unknown term rather than fabricating an empty result.
-    /// Borrows the IRI from `terms` — zero-copy on this path; callers that must
-    /// escape the borrow (e.g. past the cache lock the terms slice is borrowed
-    /// from) own the ONE necessary allocation at their boundary instead.
-    pub(crate) fn resolve_term_iri<'a>(terms: &'a [Term], query: &str) -> Option<&'a str> {
-        resolve_term(terms, query).map(|term| term.iri.as_str())
+    /// `doc_card` use. Propagates ambiguity (never collapses it to NotFound) so the
+    /// caller HARD-FAILS a cross-namespace collision with a typed diagnostic rather
+    /// than fabricating a silent pick. Borrows the IRI from `terms` — zero-copy on
+    /// this path; callers that must escape the borrow (e.g. past the cache lock the
+    /// terms slice is borrowed from) own the ONE necessary allocation at their
+    /// boundary instead.
+    pub(crate) fn resolve_term_iri<'a>(
+        terms: &'a [Term],
+        query: &str,
+    ) -> ConsumerResolution<&'a str> {
+        match resolve_term(terms, query) {
+            ConsumerResolution::Resolved(term) => ConsumerResolution::Resolved(term.iri.as_str()),
+            ConsumerResolution::Ambiguous { candidates } => {
+                ConsumerResolution::Ambiguous { candidates }
+            }
+            ConsumerResolution::NotFound => ConsumerResolution::NotFound,
+        }
     }
 
     /// `lookup_term`: resolve a query to its `as_record()` JSON with
     /// `"ok": true` appended, or the
     /// `{"ok": false, "error": "Term not found: <query>"}` envelope.
     pub(crate) fn lookup_envelope(terms: &[Term], query: &str) -> String {
-        let Some(term) = resolve_term(terms, query) else {
-            return lookup_not_found(query);
+        let term = match resolve_term(terms, query) {
+            ConsumerResolution::Resolved(term) => term,
+            ConsumerResolution::Ambiguous { candidates } => {
+                return lookup_ambiguous(query, &candidates);
+            }
+            ConsumerResolution::NotFound => return lookup_not_found(query),
         };
         // `result = term.as_record(); result["ok"] = True` — `ok` is appended LAST.
         let J::Obj(mut rec) = term_record(term) else {
@@ -1879,6 +1953,25 @@ mod consumer {
             (
                 "error".to_string(),
                 J::Str(format!("Term not found: {query}")),
+            ),
+        ])
+        .compact_ascii(&mut out);
+        out
+    }
+
+    /// The `lookup_term` envelope for a bare local name that collides across
+    /// namespaces: a distinct `{"ok": false, "error": "ambiguous term '<q>': <c1>,
+    /// <c2>, ..."}` (candidates already sorted) — a HARD FAIL, never a silent pick.
+    fn lookup_ambiguous(query: &str, candidates: &[String]) -> String {
+        let mut out = String::new();
+        J::Obj(vec![
+            ("ok".to_string(), J::Bool(false)),
+            (
+                "error".to_string(),
+                J::Str(format!(
+                    "ambiguous term '{query}': {}",
+                    candidates.join(", ")
+                )),
             ),
         ])
         .compact_ascii(&mut out);
@@ -1920,13 +2013,24 @@ mod consumer {
     /// populates the rich panels for [`gmeow_docs::card::CardDetail::Full`] from the
     /// documentation graph, then renders through the SAME `render_card`; the site
     /// path renders this compact card at `Standard`.
+    ///
+    /// Distinguishes [`ConsumerResolution::Ambiguous`] from
+    /// [`ConsumerResolution::NotFound`] so the MCP `doc_card` tool can surface a
+    /// cross-namespace collision as a typed ambiguity error, never a silent pick.
     pub(crate) fn doc_card_build(
         terms: &[Term],
         query: &str,
-    ) -> Option<(String, gmeow_docs::card::Card)> {
-        let t = resolve_term(terms, query)?;
-        let title = format!("{}{}", t.curie, llms_signature(t));
-        Some((title, super::term_to_card(t)))
+    ) -> ConsumerResolution<(String, gmeow_docs::card::Card)> {
+        match resolve_term(terms, query) {
+            ConsumerResolution::Resolved(t) => {
+                let title = format!("{}{}", t.curie, llms_signature(t));
+                ConsumerResolution::Resolved((title, super::term_to_card(t)))
+            }
+            ConsumerResolution::Ambiguous { candidates } => {
+                ConsumerResolution::Ambiguous { candidates }
+            }
+            ConsumerResolution::NotFound => ConsumerResolution::NotFound,
+        }
     }
 
     /// Build a `term-IRI → site URL` map from the `gmeow:graph/documentation`
@@ -2829,21 +2933,21 @@ mod tests {
     fn resolve_term_iri_spans_grounding_namespaces() {
         let (terms, _t, _v) = english_terms();
         assert_eq!(
-            resolve_term_iri(&terms, "lang:Denotation"),
+            resolve_term_iri(&terms, "lang:Denotation").resolved(),
             Some("https://blackcatinformatics.ca/lang/Denotation")
         );
         assert_eq!(
-            resolve_term_iri(&terms, "math:Function"),
+            resolve_term_iri(&terms, "math:Function").resolved(),
             Some("https://blackcatinformatics.ca/math/Function")
         );
         // Full IRI.
         assert_eq!(
-            resolve_term_iri(&terms, "https://blackcatinformatics.ca/logic/Formula"),
+            resolve_term_iri(&terms, "https://blackcatinformatics.ca/logic/Formula").resolved(),
             Some("https://blackcatinformatics.ca/logic/Formula")
         );
-        // Bare local name (namespace-agnostic).
+        // Bare local name (namespace-agnostic), unambiguous → resolves.
         assert_eq!(
-            resolve_term_iri(&terms, "Denotation"),
+            resolve_term_iri(&terms, "Denotation").resolved(),
             Some("https://blackcatinformatics.ca/lang/Denotation")
         );
         // A grounding term carries a real CURIE (proving the `lang` prefix fix).
@@ -2975,8 +3079,9 @@ mod tests {
     #[test]
     fn doc_card_build_renders_card_and_not_found() {
         let (terms, _t, _v) = english_terms();
-        let (title, built) =
-            doc_card_build(&terms, "gmeow:EntityExistence").expect("known term resolves");
+        let (title, built) = doc_card_build(&terms, "gmeow:EntityExistence")
+            .resolved()
+            .expect("known term resolves");
         let card =
             gmeow_docs::card::render_card(&title, &built, gmeow_docs::card::CardDetail::Standard);
         assert!(
@@ -3000,8 +3105,11 @@ mod tests {
         assert!(card.ends_with('\n'));
 
         assert!(
-            doc_card_build(&terms, "gmeow:NoSuchTerm").is_none(),
-            "an unresolved query yields None"
+            matches!(
+                doc_card_build(&terms, "gmeow:NoSuchTerm"),
+                ConsumerResolution::NotFound
+            ),
+            "an unresolved query yields NotFound"
         );
     }
 
