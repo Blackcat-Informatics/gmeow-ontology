@@ -355,6 +355,102 @@ pub fn render_card(title: &str, card: &Card, detail: CardDetail) -> String {
     format!("# {title}\n\n{}", render_card_body(card, detail))
 }
 
+/// The hand-authored JSON Schema (draft 2020-12) describing the serialized term
+/// [`Card`] — the exact shape of the packed `terms/{slug}/card.json` member and the
+/// live MCP `doc_card format=json` payload.
+///
+/// It is co-located WITH the [`Card`] type on purpose (drift-resistance /
+/// dogfooding): the `properties` mirror the struct's serialized fields, the two
+/// unconditional fields (`category`, `iri`) are `required`, and every
+/// `#[serde(skip_serializing_if)]` field is optional (absent when empty). The rich
+/// panels reference `$defs` matching [`CardEntailment`], [`CardFixture`],
+/// [`CardDiagnostic`], and [`CardLoss`] (whose subfields carry no skip attribute, so
+/// each is `required`). Keeping this beside the type means a field added to `Card`
+/// that is not mirrored here is caught by the conformance test that validates a REAL
+/// rendered card against this schema.
+#[must_use]
+pub fn card_json_schema() -> serde_json::Value {
+    let string_array = || serde_json::json!({ "type": "array", "items": { "type": "string" } });
+    serde_json::json!({
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://blackcatinformatics.ca/gmeow/schemas/card.schema.json",
+        "title": "GMEOW term card",
+        "description": "The neutral, pre-resolved term card the docs `card.json` member \
+                        and the live MCP `doc_card format=json` tool serialize.",
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["category", "iri"],
+        "properties": {
+            "category": {
+                "type": "string",
+                "description": "The vocabulary category (Class, Property, Individual, Datatype, Term)."
+            },
+            "iri": { "type": "string", "description": "The full term IRI." },
+            "label": { "type": "string" },
+            "slice": { "type": "string" },
+            "box_roles": string_array(),
+            "definition": { "type": "string" },
+            "parents": string_array(),
+            "domain": string_array(),
+            "range": string_array(),
+            "use_when": string_array(),
+            "avoid_when": string_array(),
+            "how_to_use": string_array(),
+            "scope_notes": string_array(),
+            "examples": string_array(),
+            "logic_stereotypes": string_array(),
+            "related_terms": string_array(),
+            "use_for_consumer": string_array(),
+            "avoid_for_consumer": string_array(),
+            "aligns": string_array(),
+            "entailments": { "type": "array", "items": { "$ref": "#/$defs/entailment" } },
+            "fixtures_do": { "type": "array", "items": { "$ref": "#/$defs/fixture" } },
+            "fixtures_dont": { "type": "array", "items": { "$ref": "#/$defs/fixture" } },
+            "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+            "loss": { "type": "array", "items": { "$ref": "#/$defs/loss" } }
+        },
+        "$defs": {
+            "entailment": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["rule", "conclusion", "premises"],
+                "properties": {
+                    "rule": { "type": "string" },
+                    "conclusion": { "type": "string" },
+                    "premises": { "type": "array", "items": { "type": "string" } }
+                }
+            },
+            "fixture": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["title", "body"],
+                "properties": {
+                    "title": { "type": "string" },
+                    "body": { "type": "string" }
+                }
+            },
+            "diagnostic": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["code", "note"],
+                "properties": {
+                    "code": { "type": "string" },
+                    "note": { "type": "string" }
+                }
+            },
+            "loss": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["target", "preservation"],
+                "properties": {
+                    "target": { "type": "string" },
+                    "preservation": { "type": "string" }
+                }
+            }
+        }
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
