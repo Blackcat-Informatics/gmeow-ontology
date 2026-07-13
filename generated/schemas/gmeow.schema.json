@@ -38149,22 +38149,12 @@
     "QualityDimensionEnum": {
       "enum": [
         "gmeow:qualityDimensionCompleteness",
-        "gmeow:qualityDimensionCounterExampleDepth",
-        "gmeow:qualityDimensionDocumentation",
-        "gmeow:qualityDimensionGrounding",
-        "gmeow:qualityDimensionInferentialDensity",
         "gmeow:qualityDimensionLineage",
-        "gmeow:qualityDimensionLinkage",
         "gmeow:qualityDimensionLogicalConsistency",
         "gmeow:qualityDimensionPositionalAccuracy",
-        "gmeow:qualityDimensionProjection",
-        "gmeow:qualityDimensionProseQuality",
-        "gmeow:qualityDimensionProvenanceHonesty",
         "gmeow:qualityDimensionTemporalAccuracy",
-        "gmeow:qualityDimensionTesting",
         "gmeow:qualityDimensionThematicAccuracy",
-        "gmeow:qualityDimensionTopologicalConsistency",
-        "gmeow:qualityDimensionTranslationCoverage"
+        "gmeow:qualityDimensionTopologicalConsistency"
       ],
       "type": "string"
     },
@@ -40869,6 +40859,21 @@
         }
       },
       "type": "object"
+    },
+    "SliceQualityDimensionEnum": {
+      "enum": [
+        "gmeow:qualityDimensionCounterExampleDepth",
+        "gmeow:qualityDimensionDocumentation",
+        "gmeow:qualityDimensionGrounding",
+        "gmeow:qualityDimensionInferentialDensity",
+        "gmeow:qualityDimensionLinkage",
+        "gmeow:qualityDimensionProjection",
+        "gmeow:qualityDimensionProseQuality",
+        "gmeow:qualityDimensionProvenanceHonesty",
+        "gmeow:qualityDimensionTesting",
+        "gmeow:qualityDimensionTranslationCoverage"
+      ],
+      "type": "string"
     },
     "SmartContract": {
       "properties": {
