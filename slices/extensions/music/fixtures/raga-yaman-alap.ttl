@@ -28,7 +28,7 @@ gmeow:fixtureRagaYamanAlapExpression
     skos:definition "A slow, unmetered ālāp Expression of Raga Yaman, realized through oral tradition without a required score."@x-gmeow-english ;
     gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
     gmeow:realizationMode gmeow:realizationModeOral ;
-    gmeow:hasReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 ;
     gmeow:wasGeneratedBy gmeow:fixtureRagaYamanAlapProcess ;
     gmeow:authorityLink <https://en.wikipedia.org/wiki/Yaman_(raga)> ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
@@ -42,7 +42,7 @@ gmeow:fixtureRagaYamanAlapVoice
     rdfs:label "Raga Yaman ālāp voice"@x-gmeow-english ;
     skos:definition "The single melodic voice performing the Raga Yaman ālāp."@x-gmeow-english ;
     gmeow:voiceTimeFrame gmeow:fixtureRagaYamanAlapTimeFrame ;
-    gmeow:voiceTuningFrame gmeow:tuningSystem12EDO ;
+    gmeow:voiceTuningFrame gmeow:tuningSystemShruti22 ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
 gmeow:fixtureRagaYamanAlapTimeFrame
@@ -65,7 +65,7 @@ gmeow:fixtureRagaYamanAlapOrnamentProfile
     skos:definition "The ornament profile governing gamaka execution for the Raga Yaman ālāp voice."@x-gmeow-english ;
     gmeow:ornamentProfileKind gmeow:ornamentProfileKindGamaka ;
     gmeow:appliesToVoice gmeow:fixtureRagaYamanAlapVoice ;
-    gmeow:ornamentReferenceFrame gmeow:tuningSystem12EDO ;
+    gmeow:ornamentReferenceFrame gmeow:tuningSystemShruti22 ;
     gmeow:ornamentDescription "Sliding oscillations around characteristic tones of Yaman, realized without fixed notation."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> .
 
