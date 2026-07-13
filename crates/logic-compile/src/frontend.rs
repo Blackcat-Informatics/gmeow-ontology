@@ -2486,7 +2486,12 @@ const FORMULA_SUBLINKS: [&str; 8] = [
 /// ordinary triple) — the caller ([`parse_logic_dataset`]) partitions those out to
 /// [`LogicProgram::axioms`] via [`Formula::as_horn_axiom`] so the `with_formulas` invariant
 /// is enforced by routing, not by assuming the projection never authors one.
-fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<Formula> {
+struct FormulaExtraction {
+    formulas: Vec<Formula>,
+    malformed: BTreeSet<String>,
+}
+
+fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> FormulaExtraction {
     let formula_ty = Node::iri(logic_iri("Formula"));
     let subjects = subjects_with(store, &nn(RDF_TYPE), &formula_ty);
 
@@ -2514,24 +2519,44 @@ fn extract_formulas(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Ve
     // Validate every declared formula, not only roots. This catches a cycle whose every node is
     // referenced (and therefore has no root), as well as malformed constraint-owned subtrees.
     let mut parsed: HashMap<String, Formula> = HashMap::new();
+    let mut malformed: BTreeMap<String, String> = BTreeMap::new();
     for subj in &subjects {
         match parse_formula(store, subj) {
             Ok(f) => {
                 parsed.insert(subject_str(subj), f);
             }
-            Err(error) => diagnostics.push(Diagnostic::error(
-                "MALFORMED_FORMULA",
-                error.message().to_owned(),
-                Some(subject_str(subj)),
-            )),
+            Err(error) => {
+                let focus = error
+                    .inner()
+                    .source_ctx
+                    .focus
+                    .as_ref()
+                    .map(|focus| focus.0.clone())
+                    .unwrap_or_else(|| subject_str(subj));
+                malformed
+                    .entry(focus)
+                    .or_insert_with(|| error.message().to_owned());
+            }
         }
     }
 
-    subjects
+    for (focus, message) in &malformed {
+        diagnostics.push(Diagnostic::error(
+            "MALFORMED_FORMULA",
+            message,
+            Some(focus.clone()),
+        ));
+    }
+
+    let formulas = subjects
         .iter()
         .filter(|subj| !referenced.contains(&subject_str(subj)))
         .filter_map(|subj| parsed.remove(&subject_str(subj)))
-        .collect()
+        .collect();
+    FormulaExtraction {
+        formulas,
+        malformed: malformed.into_keys().collect(),
+    }
 }
 
 /// Every object of a `logic:<link>` property.
@@ -2540,10 +2565,15 @@ fn formula_objects(store: &RdfDataset, node: &Subject, link: &str) -> Vec<Node> 
 }
 
 /// The exactly-one child formula reached by `link` from `node`.
-fn formula_err(detail: impl Into<String>) -> Diag {
+fn formula_err_for(focus: impl Into<String>, detail: impl Into<String>) -> Diag {
     Diag::of_kind(crate::error::Frontend {
         detail: detail.into(),
     })
+    .with_focus(focus)
+}
+
+fn formula_err(node: &Subject, detail: impl Into<String>) -> Diag {
+    formula_err_for(subject_str(node), detail)
 }
 
 fn one_child_subject(
@@ -2553,17 +2583,23 @@ fn one_child_subject(
 ) -> gmeow_errors::Result<Subject> {
     let children = formula_objects(store, node, link);
     if children.len() != 1 {
-        return Err(formula_err(format!(
-            "logic:Formula {} requires exactly one logic:{link} object; found {}",
-            subject_str(node),
-            children.len()
-        )));
+        return Err(formula_err(
+            node,
+            format!(
+                "logic:Formula {} requires exactly one logic:{link} object; found {}",
+                subject_str(node),
+                children.len()
+            ),
+        ));
     }
     term_as_subject(&children[0]).ok_or_else(|| {
-        formula_err(format!(
-            "logic:Formula {} has a non-resource logic:{link} object",
-            subject_str(node)
-        ))
+        formula_err(
+            node,
+            format!(
+                "logic:Formula {} has a non-resource logic:{link} object",
+                subject_str(node)
+            ),
+        )
     })
 }
 
@@ -2573,20 +2609,29 @@ fn one_child_subject(
 /// constructors have exactly one child; `and`/`or` have at least two children; `iff` has exactly
 /// two; implication has one antecedent and one consequent; and recursive cycles are rejected.
 fn parse_formula(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Formula> {
-    parse_formula_inner(store, node, &mut HashSet::new())
+    parse_formula_inner(store, node, &mut Vec::new())
 }
 
 fn parse_formula_inner(
     store: &RdfDataset,
     node: &Subject,
-    active: &mut HashSet<String>,
+    active: &mut Vec<String>,
 ) -> gmeow_errors::Result<Formula> {
     let node_id = subject_str(node);
-    if !active.insert(node_id.clone()) {
-        return Err(formula_err(format!(
-            "logic:Formula {node_id} participates in a recursive constructor cycle"
-        )));
+    if let Some(cycle_start) = active.iter().position(|member| member == &node_id) {
+        let mut members = active[cycle_start..].to_vec();
+        members.sort();
+        members.dedup();
+        let focus = members.first().cloned().unwrap_or_else(|| node_id.clone());
+        return Err(formula_err_for(
+            focus,
+            format!(
+                "logic:Formula recursive constructor cycle among {}",
+                members.join(", ")
+            ),
+        ));
     }
+    active.push(node_id.clone());
 
     let result = (|| {
         let relation = formula_objects(store, node, "relation");
@@ -2617,35 +2662,45 @@ fn parse_formula_inner(
             .filter_map(|(name, is_present)| is_present.then_some(*name))
             .collect();
         if present.len() != 1 {
-            return Err(formula_err(format!(
-                "logic:Formula {node_id} requires exactly one constructor family; found {} ({})",
-                present.len(),
-                present.join(", ")
-            )));
+            return Err(formula_err(
+                node,
+                format!(
+                    "logic:Formula {node_id} requires exactly one constructor family; found {} ({})",
+                    present.len(),
+                    present.join(", ")
+                ),
+            ));
         }
 
         match present[0] {
             "relation" => {
                 if relation.len() != 1 {
-                    return Err(formula_err(format!(
-                        "logic:Formula {node_id} requires exactly one logic:relation; found {}",
-                        relation.len()
-                    )));
+                    return Err(formula_err(
+                        node,
+                        format!(
+                            "logic:Formula {node_id} requires exactly one logic:relation; found {}",
+                            relation.len()
+                        ),
+                    ));
                 }
                 let Node::Iri(relation_iri) = &relation[0] else {
-                    return Err(formula_err(format!(
-                        "logic:Formula {node_id} requires an IRI-valued logic:relation"
-                    )));
+                    return Err(formula_err(
+                        node,
+                        format!("logic:Formula {node_id} requires an IRI-valued logic:relation"),
+                    ));
                 };
                 let relation =
-                    Term::iri(relation_iri.clone()).map_err(|e| formula_err(e.message()))?;
+                    Term::iri(relation_iri.clone()).map_err(|e| formula_err(node, e.message()))?;
                 let args = parse_term_carriers(store, node, "argument")?;
                 if args.is_empty() {
-                    return Err(formula_err(format!(
-                        "logic:Formula {node_id} atomic predication requires at least one logic:argument"
-                    )));
+                    return Err(formula_err(
+                        node,
+                        format!(
+                            "logic:Formula {node_id} atomic predication requires at least one logic:argument"
+                        ),
+                    ));
                 }
-                Formula::atom(relation, args).map_err(|e| formula_err(e.message()))
+                Formula::atom(relation, args).map_err(|e| formula_err(node, e.message()))
             }
             "not" => {
                 let child = one_child_subject(store, node, "not")?;
@@ -2657,17 +2712,23 @@ fn parse_formula_inner(
                 let link = present[0];
                 let child_terms = if link == "and" { &and } else { &or };
                 if child_terms.len() < 2 {
-                    return Err(formula_err(format!(
-                        "logic:Formula {node_id} logic:{link} requires at least two operands; found {}",
-                        child_terms.len()
-                    )));
+                    return Err(formula_err(
+                        node,
+                        format!(
+                            "logic:Formula {node_id} logic:{link} requires at least two operands; found {}",
+                            child_terms.len()
+                        ),
+                    ));
                 }
                 let mut parsed = Vec::with_capacity(child_terms.len());
                 for child in child_terms {
                     let child = term_as_subject(child).ok_or_else(|| {
-                        formula_err(format!(
-                            "logic:Formula {node_id} has a non-resource logic:{link} operand"
-                        ))
+                        formula_err(
+                            node,
+                            format!(
+                                "logic:Formula {node_id} has a non-resource logic:{link} operand"
+                            ),
+                        )
                     })?;
                     parsed.push(parse_formula_inner(store, &child, active)?);
                 }
@@ -2679,20 +2740,25 @@ fn parse_formula_inner(
             }
             "iff" => {
                 if iff.len() != 2 {
-                    return Err(formula_err(format!(
-                        "logic:Formula {node_id} logic:iff requires exactly two operands; found {}",
-                        iff.len()
-                    )));
+                    return Err(formula_err(
+                        node,
+                        format!(
+                            "logic:Formula {node_id} logic:iff requires exactly two operands; found {}",
+                            iff.len()
+                        ),
+                    ));
                 }
                 let a = term_as_subject(&iff[0]).ok_or_else(|| {
-                    formula_err(format!(
-                        "logic:Formula {node_id} has a non-resource logic:iff operand"
-                    ))
+                    formula_err(
+                        node,
+                        format!("logic:Formula {node_id} has a non-resource logic:iff operand"),
+                    )
                 })?;
                 let b = term_as_subject(&iff[1]).ok_or_else(|| {
-                    formula_err(format!(
-                        "logic:Formula {node_id} has a non-resource logic:iff operand"
-                    ))
+                    formula_err(
+                        node,
+                        format!("logic:Formula {node_id} has a non-resource logic:iff operand"),
+                    )
                 })?;
                 Ok(Formula::Iff(
                     Box::new(parse_formula_inner(store, &a, active)?),
@@ -2722,7 +2788,8 @@ fn parse_formula_inner(
         }
     })();
 
-    active.remove(&node_id);
+    let popped = active.pop();
+    debug_assert_eq!(popped.as_deref(), Some(node_id.as_str()));
     result
 }
 
@@ -2737,13 +2804,16 @@ fn parse_term_carriers(
     let mut indexed: Vec<(usize, Term)> = Vec::new();
     for carrier_term in formula_objects(store, node, link) {
         let carrier = term_as_subject(&carrier_term).ok_or_else(|| {
-            formula_err(format!(
-                "logic:Formula {} has a non-resource logic:{link} carrier",
-                subject_str(node)
-            ))
+            formula_err(
+                node,
+                format!(
+                    "logic:Formula {} has a non-resource logic:{link} carrier",
+                    subject_str(node)
+                ),
+            )
         })?;
-        let idx = parse_term_index(store, &carrier)?;
-        indexed.push((idx, parse_term(store, &carrier)?));
+        let idx = parse_term_index(store, node, &carrier)?;
+        indexed.push((idx, parse_term(store, node, &carrier)?));
     }
     indexed.sort_by_key(|(i, _)| *i);
     validate_contiguous_indices(&indexed, node, link)?;
@@ -2760,27 +2830,36 @@ fn parse_bound_vars(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
     let mut indexed: Vec<(usize, String)> = Vec::new();
     for carrier_term in formula_objects(store, node, "quantifiedVariable") {
         let carrier = term_as_subject(&carrier_term).ok_or_else(|| {
-            formula_err(format!(
-                "logic:Formula {} has a non-resource logic:quantifiedVariable carrier",
-                subject_str(node)
-            ))
+            formula_err(
+                node,
+                format!(
+                    "logic:Formula {} has a non-resource logic:quantifiedVariable carrier",
+                    subject_str(node)
+                ),
+            )
         })?;
-        let idx = parse_term_index(store, &carrier)?;
-        let term = parse_term(store, &carrier)?;
+        let idx = parse_term_index(store, node, &carrier)?;
+        let term = parse_term(store, node, &carrier)?;
         let Term::Var(name) = term else {
-            return Err(formula_err(format!(
-                "logic:Formula {} bound-variable carrier {} must contain exactly one logic:termVariable",
-                subject_str(node),
-                subject_str(&carrier)
-            )));
+            return Err(formula_err(
+                node,
+                format!(
+                    "logic:Formula {} bound-variable carrier {} must contain exactly one logic:termVariable",
+                    subject_str(node),
+                    subject_str(&carrier)
+                ),
+            ));
         };
         indexed.push((idx, name));
     }
     if indexed.is_empty() {
-        return Err(formula_err(format!(
-            "logic:Formula {} quantifier requires at least one logic:quantifiedVariable",
-            subject_str(node)
-        )));
+        return Err(formula_err(
+            node,
+            format!(
+                "logic:Formula {} quantifier requires at least one logic:quantifiedVariable",
+                subject_str(node)
+            ),
+        ));
     }
     indexed.sort_by_key(|(i, _)| *i);
     validate_contiguous_indices(&indexed, node, "quantifiedVariable")?;
@@ -2788,7 +2867,11 @@ fn parse_bound_vars(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<
 }
 
 /// Reconstruct a [`Term`] from a term-carrier node by its single term-value property.
-fn parse_term(store: &RdfDataset, carrier: &Subject) -> gmeow_errors::Result<Term> {
+fn parse_term(
+    store: &RdfDataset,
+    formula: &Subject,
+    carrier: &Subject,
+) -> gmeow_errors::Result<Term> {
     let fields = [
         "termIri",
         "termVariable",
@@ -2801,104 +2884,149 @@ fn parse_term(store: &RdfDataset, carrier: &Subject) -> gmeow_errors::Result<Ter
         .filter(|(_, values)| !values.is_empty())
         .collect();
     if present.len() != 1 {
-        return Err(formula_err(format!(
-            "logic:TermCarrier {} requires exactly one term-value property; found {} ({})",
-            subject_str(carrier),
-            present.len(),
-            present
-                .iter()
-                .map(|(field, _)| format!("logic:{field}"))
-                .collect::<Vec<_>>()
-                .join(", ")
-        )));
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:TermCarrier {} requires exactly one term-value property; found {} ({})",
+                subject_str(formula),
+                subject_str(carrier),
+                present.len(),
+                present
+                    .iter()
+                    .map(|(field, _)| format!("logic:{field}"))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+        ));
     }
     let (field, values) = &present[0];
     if values.len() != 1 {
-        return Err(formula_err(format!(
-            "logic:TermCarrier {} requires exactly one logic:{field} value; found {}",
-            subject_str(carrier),
-            values.len()
-        )));
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:TermCarrier {} requires exactly one logic:{field} value; found {}",
+                subject_str(formula),
+                subject_str(carrier),
+                values.len()
+            ),
+        ));
     }
     let datatype_values = formula_objects(store, carrier, "termLiteralDatatype");
     if *field != "termLiteral" && !datatype_values.is_empty() {
-        return Err(formula_err(format!(
-            "logic:TermCarrier {} may carry logic:termLiteralDatatype only with logic:termLiteral",
-            subject_str(carrier)
-        )));
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:TermCarrier {} may carry logic:termLiteralDatatype only with logic:termLiteral",
+                subject_str(formula),
+                subject_str(carrier)
+            ),
+        ));
     }
 
     let value = &values[0];
     match *field {
         "termIri" => {
             let Node::Iri(iri) = value else {
-                return Err(formula_err(format!(
-                    "logic:TermCarrier {} requires an IRI-valued logic:termIri",
-                    subject_str(carrier)
-                )));
+                return Err(formula_err(
+                    formula,
+                    format!(
+                        "logic:Formula {} logic:TermCarrier {} requires an IRI-valued logic:termIri",
+                        subject_str(formula),
+                        subject_str(carrier)
+                    ),
+                ));
             };
-            Term::iri(iri.clone()).map_err(|e| formula_err(e.message()))
+            Term::iri(iri.clone()).map_err(|e| formula_err(formula, e.message()))
         }
         "termVariable" => {
             if !term_is_literal(value) {
-                return Err(formula_err(format!(
-                    "logic:TermCarrier {} requires a literal logic:termVariable name",
-                    subject_str(carrier)
-                )));
+                return Err(formula_err(
+                    formula,
+                    format!(
+                        "logic:Formula {} logic:TermCarrier {} requires a literal logic:termVariable name",
+                        subject_str(formula),
+                        subject_str(carrier)
+                    ),
+                ));
             }
-            Term::var(term_str(value)).map_err(|e| formula_err(e.message()))
+            Term::var(term_str(value)).map_err(|e| formula_err(formula, e.message()))
         }
         "termLiteral" => {
             if !term_is_literal(value) {
-                return Err(formula_err(format!(
-                    "logic:TermCarrier {} requires a literal logic:termLiteral value",
-                    subject_str(carrier)
-                )));
+                return Err(formula_err(
+                    formula,
+                    format!(
+                        "logic:Formula {} logic:TermCarrier {} requires a literal logic:termLiteral value",
+                        subject_str(formula),
+                        subject_str(carrier)
+                    ),
+                ));
             }
             if datatype_values.len() > 1 {
-                return Err(formula_err(format!(
-                    "logic:TermCarrier {} permits at most one logic:termLiteralDatatype; found {}",
-                    subject_str(carrier),
-                    datatype_values.len()
-                )));
+                return Err(formula_err(
+                    formula,
+                    format!(
+                        "logic:Formula {} logic:TermCarrier {} permits at most one logic:termLiteralDatatype; found {}",
+                        subject_str(formula),
+                        subject_str(carrier),
+                        datatype_values.len()
+                    ),
+                ));
             }
             let datatype = match datatype_values.first() {
                 Some(Node::Iri(iri)) => Some(iri.clone()),
                 Some(_) => {
-                    return Err(formula_err(format!(
-                        "logic:TermCarrier {} requires an IRI-valued logic:termLiteralDatatype",
-                        subject_str(carrier)
-                    )));
+                    return Err(formula_err(
+                        formula,
+                        format!(
+                            "logic:Formula {} logic:TermCarrier {} requires an IRI-valued logic:termLiteralDatatype",
+                            subject_str(formula),
+                            subject_str(carrier)
+                        ),
+                    ));
                 }
                 None => None,
             };
-            Term::literal(term_str(value), datatype).map_err(|e| formula_err(e.message()))
+            Term::literal(term_str(value), datatype).map_err(|e| formula_err(formula, e.message()))
         }
         "termSequenceMarker" => {
             if !term_is_literal(value) {
-                return Err(formula_err(format!(
-                    "logic:TermCarrier {} requires a literal logic:termSequenceMarker name",
-                    subject_str(carrier)
-                )));
+                return Err(formula_err(
+                    formula,
+                    format!(
+                        "logic:Formula {} logic:TermCarrier {} requires a literal logic:termSequenceMarker name",
+                        subject_str(formula),
+                        subject_str(carrier)
+                    ),
+                ));
             }
-            Term::sequence_marker(term_str(value)).map_err(|e| formula_err(e.message()))
+            Term::sequence_marker(term_str(value)).map_err(|e| formula_err(formula, e.message()))
         }
         _ => unreachable!("term value property was selected from a closed local array"),
     }
 }
 
-fn parse_term_index(store: &RdfDataset, carrier: &Subject) -> gmeow_errors::Result<usize> {
+fn parse_term_index(
+    store: &RdfDataset,
+    formula: &Subject,
+    carrier: &Subject,
+) -> gmeow_errors::Result<usize> {
     let values = formula_objects(store, carrier, "termIndex");
     if values.len() != 1 {
-        return Err(formula_err(format!(
-            "logic:TermCarrier {} requires exactly one logic:termIndex; found {}",
-            subject_str(carrier),
-            values.len()
-        )));
+        return Err(formula_err(
+            formula,
+            format!(
+                "logic:Formula {} logic:TermCarrier {} requires exactly one logic:termIndex; found {}",
+                subject_str(formula),
+                subject_str(carrier),
+                values.len()
+            ),
+        ));
     }
     term_str(&values[0]).parse::<usize>().map_err(|_| {
-        formula_err(format!(
-            "logic:TermCarrier {} has an invalid non-negative integer logic:termIndex {:?}",
+        formula_err(formula, format!(
+            "logic:Formula {} logic:TermCarrier {} has an invalid non-negative integer logic:termIndex {:?}",
+            subject_str(formula),
             subject_str(carrier),
             term_str(&values[0])
         ))
@@ -2912,10 +3040,13 @@ fn validate_contiguous_indices<T>(
 ) -> gmeow_errors::Result<()> {
     for (expected, (actual, _)) in indexed.iter().enumerate() {
         if *actual != expected {
-            return Err(formula_err(format!(
-                "logic:Formula {} logic:{link} indices must be unique and contiguous from zero; expected {expected}, found {actual}",
-                subject_str(node)
-            )));
+            return Err(formula_err(
+                node,
+                format!(
+                    "logic:Formula {} logic:{link} indices must be unique and contiguous from zero; expected {expected}, found {actual}",
+                    subject_str(node)
+                ),
+            ));
         }
     }
     Ok(())
@@ -2961,17 +3092,32 @@ fn extract_correspondences(
 /// A constraint-free source yields an empty vector, and `with_constraints(vec![])` is a no-op
 /// in [`LogicProgram::canonical_key`] (the segment is append-only) — so adding this stage to
 /// every parse leaves every existing artifact byte-identical.
-fn extract_constraints(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) -> Vec<ConstraintIr> {
+fn extract_constraints(
+    store: &RdfDataset,
+    diagnostics: &mut Vec<Diagnostic>,
+    malformed_formulas: &BTreeSet<String>,
+) -> Vec<ConstraintIr> {
     let constraint_ty = Node::iri(logic_iri("Constraint"));
     let mut constraints: Vec<ConstraintIr> = Vec::new();
     for subj in subjects_with(store, &nn(RDF_TYPE), &constraint_ty) {
         match read_constraint(store, &subj) {
             Ok(c) => constraints.push(c),
-            Err(err) => diagnostics.push(Diagnostic::warning(
-                "MALFORMED_CONSTRAINT",
-                err.message().to_owned(),
-                Some(subject_str(&subj)),
-            )),
+            Err(err) => {
+                let focus = err
+                    .inner()
+                    .source_ctx
+                    .focus
+                    .as_ref()
+                    .map(|focus| focus.0.as_str());
+                if focus.is_some_and(|focus| malformed_formulas.contains(focus)) {
+                    continue;
+                }
+                diagnostics.push(Diagnostic::warning(
+                    "MALFORMED_CONSTRAINT",
+                    err.message().to_owned(),
+                    Some(subject_str(&subj)),
+                ));
+            }
         }
     }
     constraints
@@ -2987,7 +3133,8 @@ fn extract_constraints(store: &RdfDataset, diagnostics: &mut Vec<Diagnostic>) ->
 /// unsorted; [`LogicProgram::with_constraints`] canonicalizes it.
 pub fn extract_all_constraints(store: &RdfDataset) -> (Vec<ConstraintIr>, Vec<Diagnostic>) {
     let mut diagnostics = Vec::new();
-    let mut constraints = extract_constraints(store, &mut diagnostics);
+    let malformed_formulas = extract_formulas(store, &mut diagnostics).malformed;
+    let mut constraints = extract_constraints(store, &mut diagnostics, &malformed_formulas);
     constraints.extend(extract_sugar_constraints(store, &mut diagnostics));
     (constraints, diagnostics)
 }
@@ -3034,16 +3181,9 @@ fn distinct_failure_classes(
 /// warning by [`extract_constraints`]).
 fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let iri = subject_str(node);
-    let integrity_node = one_child_subject(store, node, "integrity").map_err(|message| {
-        sugar_err(format!(
-            "logic:Constraint requires exactly one resource-valued logic:integrity formula: {message}"
-        ))
-    })?;
-    let integrity = parse_formula(store, &integrity_node).map_err(|message| {
-        sugar_err(format!(
-            "logic:Constraint integrity formula could not be reconstructed: {message}"
-        ))
-    })?;
+    // Validate constraint-owned metadata before parsing the integrity tree. If both the formula
+    // and an independent constraint annotation are malformed, each receives its own authoritative
+    // diagnostic instead of the formula failure masking the constraint defect.
     // Absent severity ⇒ the SHACL default `Violation`; an unrecognized token is a hard error.
     let severity = match value(store, node, &nn(&logic_iri("severity"))) {
         Some(t) => {
@@ -3052,23 +3192,54 @@ fn read_constraint(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<C
                 sugar_err(format!(
                     "logic:severity '{token}' is not one of Violation/Warning/Info"
                 ))
+                .with_focus(iri.clone())
             })?
         }
         None => ShaclSeverity::Violation,
     };
     let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
-    let mut constraint = ConstraintIr::new(&iri, integrity, severity, message)?;
-    if let Some(formalizes) = value(store, node, &nn(&logic_iri("formalizes"))) {
-        constraint = constraint.with_formalizes(term_str(&formalizes))?;
-    }
-    let failure_classes = distinct_failure_classes(store, node)?;
+    let formalizes = value(store, node, &nn(&logic_iri("formalizes"))).map(|t| term_str(&t));
+    let failure_classes =
+        distinct_failure_classes(store, node).map_err(|err| err.with_focus(iri.clone()))?;
     if failure_classes.len() > 1 {
         return Err(sugar_err(format!(
             "logic:Constraint {iri} has distinct gmeow:enforcesFailureClass values"
-        )));
+        ))
+        .with_focus(iri));
+    }
+
+    let integrity_values = formula_objects(store, node, "integrity");
+    if integrity_values.len() != 1 {
+        return Err(sugar_err(format!(
+            "logic:Constraint {} requires exactly one logic:integrity formula; found {}",
+            subject_str(node),
+            integrity_values.len()
+        ))
+        .with_focus(subject_str(node)));
+    }
+    let integrity_node = term_as_subject(&integrity_values[0]).ok_or_else(|| {
+        sugar_err(format!(
+            "logic:Constraint {} requires a resource-valued logic:integrity formula",
+            subject_str(node)
+        ))
+        .with_focus(subject_str(node))
+    })?;
+    // Preserve the malformed formula's own focus through the constraint reader. The formula
+    // extractor has already emitted MALFORMED_FORMULA for that identity, so the caller can
+    // suppress only the redundant constraint wrapper while retaining independent defects.
+    let integrity = parse_formula(store, &integrity_node)?;
+
+    let mut constraint = ConstraintIr::new(&iri, integrity, severity, message)
+        .map_err(|err| err.with_focus(iri.clone()))?;
+    if let Some(formalizes) = formalizes {
+        constraint = constraint
+            .with_formalizes(formalizes)
+            .map_err(|err| err.with_focus(iri.clone()))?;
     }
     if let Some(failure_class) = failure_classes.first() {
-        constraint = constraint.with_failure_class(failure_class)?;
+        constraint = constraint
+            .with_failure_class(failure_class)
+            .map_err(|err| err.with_focus(iri.clone()))?;
     }
     Ok(constraint)
 }
@@ -3995,9 +4166,13 @@ pub fn parse_logic_dataset(
     // emit one, and now becomes a fact (ground) or a rule-shaped axiom (variable) instead of
     // panicking. A degenerate binary atom with a literal / sequence-marker subject cannot be a
     // triple subject, so it is neither a formula nor an axiom: emit `MALFORMED_FORMULA`.
+    let FormulaExtraction {
+        formulas: extracted_formulas,
+        malformed: malformed_formulas,
+    } = extract_formulas(store, &mut diagnostics);
     let mut formulas: Vec<Formula> = Vec::new();
     let mut horn_axioms: Vec<LogicAxiom> = Vec::new();
-    for f in extract_formulas(store, &mut diagnostics) {
+    for f in extracted_formulas {
         if f.is_trivially_horn() {
             match f.as_horn_axiom() {
                 Some(ax) => horn_axioms.push(ax),
@@ -4041,7 +4216,7 @@ pub fn parse_logic_dataset(
     // Authored `logic:Constraint` individuals PLUS the compact constraint-sugar records (P1–P5,
     // P7, and the aggregate P6), each expanded to one canonical `ConstraintIr`. Both feed the same
     // `LogicProgram::constraints` home (which sorts + content-keys them canonically).
-    let mut constraints = extract_constraints(store, &mut diagnostics);
+    let mut constraints = extract_constraints(store, &mut diagnostics, &malformed_formulas);
     constraints.extend(extract_sugar_constraints(store, &mut diagnostics));
 
     let program = LogicProgram::new(all_axioms, rules, contracts, source_iri)
