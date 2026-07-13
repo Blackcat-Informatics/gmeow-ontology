@@ -58,9 +58,11 @@ use purrdf::shapes::shapes::Target;
 
 use crate::gmeow_ns::{GMEOW_NS, LANG_NS, LOGIC_NS, MATH_NS, gmeow_json_schema_namespaces};
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::stages::export::FoldView;
 use crate::stages::schema_ident::{
     class_render_order, finish_text, local_name, py_string, sanitize_identifier, sanitize_type,
 };
+use crate::stages::value_vocab::{self, ValueVocab, enum_member_idents};
 
 /// The synthetic JSON-LD-envelope module (`Node`) — not a slice.
 const ENVELOPE_MODULE: &str = "_envelope";
@@ -197,8 +199,17 @@ pub(crate) fn render_models_python(root: &Path) -> Result<ModelsPython, gmeow_er
         .map_err(|m| err(format!("load shape union: {m}")))?;
     let ns = gmeow_json_schema_namespaces();
     let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns);
-    let schema: Value = serde_json::from_str(&compiled.schema_json)
+    let mut schema: Value = serde_json::from_str(&compiled.schema_json)
         .map_err(|e| err(format!("parse compiled JSON Schema: {e}")))?;
+
+    // Enrich the compiled `$defs` with the ontology's open value vocabularies (the
+    // `logic:AbstractIndividualType` enums the SHACL shapes cannot carry) — the SAME
+    // enrichment the JSON-Schema export leaf and the agreement gate apply, so all three
+    // surfaces read one enriched `$defs`.
+    let onto = value_vocab::load_ontology_store(root)?;
+    let onto_view = FoldView::new(&onto);
+    let value_vocabs = value_vocab::enrich_value_vocab_enums(&mut schema, &ns, &onto_view);
+
     let defs = schema
         .get("$defs")
         .and_then(Value::as_object)
@@ -226,7 +237,14 @@ pub(crate) fn render_models_python(root: &Path) -> Result<ModelsPython, gmeow_er
     let slice_by_iri: BTreeMap<&str, &DocSlice> =
         docs.slices.iter().map(|s| (s.iri.as_str(), s)).collect();
 
-    build_package(defs, &defkey_to_iri, &ns, &term_index, &slice_by_iri)
+    build_package(
+        defs,
+        &defkey_to_iri,
+        &ns,
+        &term_index,
+        &slice_by_iri,
+        &value_vocabs,
+    )
 }
 
 /// Transliterate one compiled `$defs` map into the Pydantic package. Split from
@@ -238,11 +256,33 @@ fn build_package(
     ns: &purrdf::Namespaces,
     term_index: &BTreeMap<&str, &gmeow_docs::model::DocTerm>,
     slice_by_iri: &BTreeMap<&str, &DocSlice>,
+    value_vocabs: &[ValueVocab],
 ) -> Result<ModelsPython, gmeow_errors::Diag> {
-    // 4. PASS 1 — route every def to a module and resolve its identity.
+    // The standalone value-vocabulary enums: their `(ident, value)` StrEnum members
+    // (read once, deterministically) and the module each owns. A field repointed at an
+    // enum registers it in the FIELD's module (via `resolve`); the owner module hosts it
+    // even when NO property references it. Per-slice modules never import one another, so
+    // an enum used across modules is emitted in each — harmless (identical StrEnum text).
+    let value_enum_members: BTreeMap<String, Vec<(String, String)>> = value_vocabs
+        .iter()
+        .map(|v| (v.enum_key.clone(), enum_member_idents(&v.members)))
+        .collect();
+    let mut enum_owner_module: BTreeMap<String, String> = BTreeMap::new();
+    for v in value_vocabs {
+        let owner = route_class(&v.class_local, Some(&v.class_iri), ns, term_index)?;
+        enum_owner_module.insert(v.enum_key.clone(), owner.module);
+    }
+
+    // The model `$defs` are every entry that is NOT a standalone value-vocabulary enum.
+    let is_model_def = |key: &str, def: &Value| {
+        !value_enum_members.contains_key(key) && !value_vocab::is_enum_def(def)
+    };
+
+    // 4. PASS 1 — route every model def to a module and resolve its identity.
     let defkey_to_class: BTreeMap<String, String> = defs
-        .keys()
-        .map(|k| (k.clone(), py_type_name(k, "GmeowModel")))
+        .iter()
+        .filter(|(k, v)| is_model_def(k, v))
+        .map(|(k, _)| (k.clone(), py_type_name(k, "GmeowModel")))
         .collect();
     // Model-name collision guard: two distinct `$defs` keys must not sanitize to
     // one class name (would silently clobber a model).
@@ -269,7 +309,10 @@ fn build_package(
         .collect();
 
     let mut routes: BTreeMap<String, ClassRoute> = BTreeMap::new();
-    for key in defs.keys() {
+    for (key, def) in defs {
+        if !is_model_def(key, def) {
+            continue;
+        }
         let route = route_class(
             key,
             defkey_to_iri.get(key).map(String::as_str),
@@ -287,6 +330,12 @@ fn build_package(
             .entry(route.module.clone())
             .or_default()
             .push(key.clone());
+    }
+    // A value vocabulary's OWNING module hosts its enum even when the module carries no
+    // model class (a slice whose only gmeow terms are value vocabularies) — seed it so
+    // the enum is never dropped.
+    for module in enum_owner_module.values() {
+        module_keys.entry(module.clone()).or_default();
     }
 
     let mut losses: Vec<DeclaredDatatypeLoss> = Vec::new();
@@ -334,6 +383,7 @@ fn build_package(
                 module,
                 class_term,
                 &curie_index,
+                &value_enum_members,
                 &mut enums,
                 &mut needs,
                 &mut losses,
@@ -347,7 +397,21 @@ fn build_package(
             models.push(model);
         }
 
-        let header = module_header(module, keys, &routes, slice_by_iri);
+        // Seed the value-vocabulary enums this module OWNS (reached even when no field
+        // in the module references them — the annotation-only vocabulary case).
+        for (enum_key, owner) in &enum_owner_module {
+            if owner == module && !enums.contains_key(enum_key) {
+                enums.insert(
+                    enum_key.clone(),
+                    PyEnum {
+                        name: enum_key.clone(),
+                        members: value_enum_members[enum_key].clone(),
+                    },
+                );
+            }
+        }
+
+        let header = module_header(module, slice_by_iri);
         modules.push(RenderedModule {
             slug: module.clone(),
             text: render_module(&header, &needs, &enums, &models),
@@ -583,9 +647,32 @@ struct FieldCtx<'a> {
     field_local: &'a str,
     module: &'a str,
     defkey_to_class: &'a BTreeMap<String, String>,
+    /// The standalone value-vocabulary enums (`enum_key → members`); a field whose
+    /// `$ref` targets one registers that `StrEnum` into the current module's [`enums`].
+    ///
+    /// [`enums`]: FieldCtx::enums
+    value_enums: &'a BTreeMap<String, Vec<(String, String)>>,
     enums: &'a mut BTreeMap<String, PyEnum>,
     needs: &'a mut ModuleNeeds,
     losses: &'a mut Vec<DeclaredDatatypeLoss>,
+}
+
+/// Resolve a `#/$defs/…` `$ref`. When it targets a standalone value-vocabulary enum,
+/// register that `StrEnum` into the current module (so the field's module carries the
+/// type it references — modules never import one another) and return the enum name;
+/// otherwise resolve it to the referenced model class name.
+fn resolve_ref(reference: &str, ctx: &mut FieldCtx<'_>) -> String {
+    let target = reference.strip_prefix("#/$defs/").unwrap_or(reference);
+    if let Some(members) = ctx.value_enums.get(target) {
+        ctx.enums
+            .entry(target.to_owned())
+            .or_insert_with(|| PyEnum {
+                name: target.to_owned(),
+                members: members.clone(),
+            });
+        return target.to_owned();
+    }
+    ref_to_name(reference, ctx.defkey_to_class)
 }
 
 /// Resolve a property value schema into a Python field type.
@@ -601,10 +688,7 @@ fn resolve(schema: &Value, ctx: &mut FieldCtx<'_>) -> Result<Resolved, gmeow_err
         return Ok(Resolved::scalar("Any"));
     }
     if let Some(reference) = obj.get("$ref").and_then(Value::as_str) {
-        return Ok(Resolved::scalar(ref_to_name(
-            reference,
-            ctx.defkey_to_class,
-        )));
+        return Ok(Resolved::scalar(resolve_ref(reference, ctx)));
     }
     if obj.contains_key("enum") {
         return Ok(Resolved::scalar(register_enum(obj, ctx)?));
@@ -665,7 +749,7 @@ fn resolve_union(alts: &[Value], ctx: &mut FieldCtx<'_>) -> Result<Resolved, gme
     }
     for a in alts {
         if let Some(r) = a.get("$ref").and_then(Value::as_str) {
-            return Ok(Resolved::scalar(ref_to_name(r, ctx.defkey_to_class)));
+            return Ok(Resolved::scalar(resolve_ref(r, ctx)));
         }
     }
     for a in alts {
@@ -874,6 +958,7 @@ fn build_model(
     module: &str,
     class_term: Option<&gmeow_docs::model::DocTerm>,
     curie_index: &BTreeMap<&str, &gmeow_docs::model::DocTerm>,
+    value_enums: &BTreeMap<String, Vec<(String, String)>>,
     enums: &mut BTreeMap<String, PyEnum>,
     needs: &mut ModuleNeeds,
     losses: &mut Vec<DeclaredDatatypeLoss>,
@@ -906,6 +991,7 @@ fn build_model(
                         field_local: &field_local,
                         module,
                         defkey_to_class,
+                        value_enums,
                         enums,
                         needs,
                         losses,
@@ -1193,12 +1279,7 @@ struct ModuleHeader {
     lines: Vec<String>,
 }
 
-fn module_header(
-    module: &str,
-    keys: &[String],
-    routes: &BTreeMap<String, ClassRoute>,
-    slice_by_iri: &BTreeMap<&str, &DocSlice>,
-) -> ModuleHeader {
+fn module_header(module: &str, slice_by_iri: &BTreeMap<&str, &DocSlice>) -> ModuleHeader {
     if module == ENVELOPE_MODULE {
         return ModuleHeader {
             title: "JSON-LD envelope types".to_owned(),
@@ -1217,20 +1298,13 @@ fn module_header(
             ],
         };
     }
-    // A documented module: recover the owning slice from any of its classes.
-    let slice = keys.iter().find_map(|k| {
-        let iri = &routes[k].iri;
-        if iri.is_empty() {
-            None
-        } else {
-            // Match by owner-slice via the term's slice; the route stored the
-            // module, so locate the DocSlice whose module_slug equals this module.
-            slice_by_iri
-                .values()
-                .find(|s| module_slug(local_name(&s.iri)) == module)
-                .copied()
-        }
-    });
+    // A documented module: recover the owning slice by matching its module name (the
+    // route stored the module as `module_slug(local_name(slice.iri))`). Independent of
+    // the class list, so a value-vocabulary-only module still recovers its slice header.
+    let slice = slice_by_iri
+        .values()
+        .find(|s| module_slug(local_name(&s.iri)) == module)
+        .copied();
     if let Some(slice) = slice {
         let name = slice
             .title
@@ -1320,10 +1394,16 @@ fn render_module(
         }
         out.push('\n');
     }
-    out.push_str("from pydantic import ConfigDict, Field\n\n");
-    out.push_str(&format!(
-        "from .{BASE_MODULE} import ConfiguredBaseModel\n\n\n"
-    ));
+    // The Pydantic / shared-base imports are used ONLY by models; a value-vocabulary-only
+    // module (StrEnums, no model classes) omits them so it carries no unused import.
+    if models.is_empty() {
+        out.push('\n');
+    } else {
+        out.push_str("from pydantic import ConfigDict, Field\n\n");
+        out.push_str(&format!(
+            "from .{BASE_MODULE} import ConfiguredBaseModel\n\n\n"
+        ));
+    }
 
     for py_enum in enums.values() {
         out.push_str(&format!("class {}(StrEnum):\n", py_enum.name));
@@ -1688,11 +1768,18 @@ mod tests {
             &std::fs::read(root.join("generated/schemas/gmeow.schema.json")).unwrap(),
         )
         .unwrap();
-        let defs_count = schema["$defs"].as_object().unwrap().len();
+        // Count only MODEL `$defs`; the standalone value-vocabulary enums render as
+        // `StrEnum` classes (excluded from `model_class_count`), not models.
+        let defs_count = schema["$defs"]
+            .as_object()
+            .unwrap()
+            .values()
+            .filter(|v| !value_vocab::is_enum_def(v))
+            .count();
         assert_eq!(
             model_class_count(a),
             defs_count,
-            "expected exactly one model per $def"
+            "expected exactly one model per model $def"
         );
 
         // A StrEnum with an IRI/CURIE-valued member (the openEHR defining-code
@@ -1842,7 +1929,7 @@ mod tests {
             terms.iter().map(|t| (t.iri.as_str(), t)).collect();
         let slice_by_iri: BTreeMap<&str, &DocSlice> = BTreeMap::new();
 
-        let out = build_package(defs, &defkey_to_iri, &ns, &term_index, &slice_by_iri)
+        let out = build_package(defs, &defkey_to_iri, &ns, &term_index, &slice_by_iri, &[])
             .expect("build synthetic package");
         let demo = utf8(&out.artifacts, "gmeow_models/demo.py");
 
@@ -1903,7 +1990,7 @@ mod tests {
         let term_index: BTreeMap<&str, &gmeow_docs::model::DocTerm> =
             terms.iter().map(|t| (t.iri.as_str(), t)).collect();
         let slice_by_iri: BTreeMap<&str, &DocSlice> = BTreeMap::new();
-        let out = build_package(defs, &defkey_to_iri, &ns, &term_index, &slice_by_iri)
+        let out = build_package(defs, &defkey_to_iri, &ns, &term_index, &slice_by_iri, &[])
             .expect("build package");
         let demo = utf8(&out.artifacts, "gmeow_models/demo.py");
         assert!(
@@ -2010,7 +2097,12 @@ mod tests {
             purrdf::shapes::shape_union::load_shapes(&root).expect("load shapes");
         let ns = gmeow_json_schema_namespaces();
         let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns);
-        let schema: Value = serde_json::from_str(&compiled.schema_json).unwrap();
+        let mut schema: Value = serde_json::from_str(&compiled.schema_json).unwrap();
+        // Apply the SAME value-vocabulary enrichment the render path applies, so both
+        // sides read one enriched `$defs` and agreement holds by construction.
+        let onto = value_vocab::load_ontology_store(&root).expect("load ontology store");
+        let onto_view = FoldView::new(&onto);
+        value_vocab::enrich_value_vocab_enums(&mut schema, &ns, &onto_view);
         let defs = schema["$defs"].as_object().unwrap();
 
         let artifacts = render_models_python(&root).expect("render").artifacts;
@@ -2018,6 +2110,11 @@ mod tests {
 
         let mut mismatches: Vec<String> = Vec::new();
         for (key, body) in defs {
+            // The standalone value-vocabulary enums are StrEnums, not models — the
+            // constraint-core agreement is about model `$defs`.
+            if value_vocab::is_enum_def(body) {
+                continue;
+            }
             let class = py_type_name(key, "GmeowModel");
             let Some(core) = cores.get(&class) else {
                 mismatches.push(format!("$def {key}: no emitted model {class}"));

@@ -394,17 +394,11 @@ fn emit_linkml_model(dataset: &RdfDataset) -> LinkmlSchema {
         schema.slots.insert(local.to_string(), slot);
     }
 
-    let mut individuals_by_class: BTreeMap<String, BTreeSet<usize>> = BTreeMap::new();
-    for (cls_local, cls_iri) in &class_iris {
-        for ind in view.subjects_by_type(cls_iri, DEFAULT_SCOPE) {
-            if is_gmeow_iri(&view, ind) {
-                individuals_by_class
-                    .entry(cls_local.clone())
-                    .or_default()
-                    .insert(ind);
-            }
-        }
-    }
+    // The class→individuals enumeration shared with the JSON-Schema/Pydantic value-
+    // vocabulary enums, so both surfaces read the same `gmeow:` individuals off the
+    // same store (individuals arrive sorted by lexical IRI).
+    let individuals_by_class =
+        crate::stages::value_vocab::gmeow_individuals_by_class(&view, &class_iris);
 
     for (cls_local, inds) in individuals_by_class {
         if inds.is_empty() {
@@ -417,8 +411,6 @@ fn emit_linkml_model(dataset: &RdfDataset) -> LinkmlSchema {
             enum_uri: enum_uri.clone(),
             permissible_values: BTreeMap::new(),
         };
-        let mut inds: Vec<usize> = inds.into_iter().collect();
-        inds.sort_by(|&a, &b| view.lex(a).cmp(view.lex(b)));
         for ind in inds {
             let ind_iri = view.lex(ind);
             let ind_local = local_name(ind_iri);

@@ -86,9 +86,11 @@ pub mod schemas;
 pub(crate) mod schema_ident;
 pub mod source_load;
 pub mod statements;
+// Shared value-vocabulary enum enrichment for the SHACL→JSON-Schema/Pydantic surfaces.
 pub mod superset;
 pub mod term_manifest;
 pub mod validate;
+pub(crate) mod value_vocab;
 pub mod yaml_ld;
 
 /// Register every production stage into `registry` under its `gmeow:stageImpl`
