@@ -1,0 +1,17 @@
+# Competency question: "Which properties frame an estimand — what fixes the target quantity a
+# study estimates before any data is seen?" Exercises the estimand-definition object
+# properties (the ICH E9(R1) estimand attributes): a math:Estimand names the population it
+# targets (math:targetPopulation), the outcome it is defined on (math:targetOutcome), the
+# contrast it measures (math:targetContrast), the intervention it conditions on
+# (math:interventionCondition), the time horizon it is evaluated at (math:targetTime), and the
+# missing-data / intercurrent-event policy it assumes (math:missingDataPolicy). The query
+# projects each PREDICATE on the estimand, scoped to the math: namespace. Over the fixture the
+# answer is exactly the six estimand-framing property edges.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <http://example.org/math/>
+
+SELECT ?prop ?object WHERE {
+    ex:estimand ?prop ?object .
+    FILTER(STRSTARTS(STR(?prop), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?prop ?object

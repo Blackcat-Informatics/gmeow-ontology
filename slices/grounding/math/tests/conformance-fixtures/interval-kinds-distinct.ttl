@@ -1,0 +1,52 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:IntervalKindConflationShape (Rule I3): a
+# math:ConfidenceInterval and a SEPARATE math:CredibleInterval, each on its own node and
+# each complete for its own kind. The confidence interval carries its two bounds and its
+# framed math:confidenceLevel (satisfying math:IncompleteConfidenceIntervalShape) and is
+# not a credible interval, so math:IntervalKindConflationShape's sh:not stays satisfied;
+# the credible interval carries its posterior and its framed math:credibleMass (satisfying
+# math:IncompleteCredibleIntervalShape). Two distinct interval kinds, held apart, both
+# well-formed — it MUST raise NO failure class.
+# Positive counterpart of counter-examples/interval-kind-conflation.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecIntervalKindsDistinct).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The frequentist interval: coverage under a sampling procedure.
+ex:frequentistCI a math:ConfidenceInterval ;
+    math:hasIntervalBound ex:ciLower , ex:ciUpper ;
+    math:confidenceLevel ex:ciLevel .
+
+ex:ciLower a math:MathematicalObject .
+ex:ciUpper a math:MathematicalObject .
+
+ex:ciLevel a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+
+ex:samplingFrame a gmeow:ReferenceFrame .
+
+# The Bayesian interval: posterior mass over a posterior. A DISTINCT node.
+ex:bayesianCredible a math:CredibleInterval ;
+    math:hasIntervalBound ex:credLower , ex:credUpper ;
+    math:hasPosterior ex:paramPosterior ;
+    math:credibleMass ex:credMass .
+
+ex:credLower a math:MathematicalObject .
+ex:credUpper a math:MathematicalObject .
+
+ex:paramPosterior a math:PosteriorDistribution ;
+    math:distributionFamily ex:betaFamily .
+
+ex:betaFamily a math:DistributionFamily .
+
+ex:credMass a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:posteriorFrame .
+
+ex:posteriorFrame a gmeow:ReferenceFrame .

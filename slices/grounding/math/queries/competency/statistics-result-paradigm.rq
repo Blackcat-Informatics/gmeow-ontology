@@ -1,0 +1,20 @@
+# Competency question: "Which inference paradigm (frequentist or Bayesian) does this result
+# belong to?" Exercises the paradigm axis: each result is typed a paradigm-exclusive kind
+# (a math:ConfidenceInterval, a math:CredibleInterval, ...) and its family is resolved by
+# walking the ASSERTED subclass taxonomy math:ConfidenceInterval ⊑ math:FrequentistResult /
+# math:CredibleInterval ⊑ math:BayesianResult held in module.ttl — an rdfs:subClassOf* path
+# that resolves WITHOUT reasoning because those edges are asserted, exactly as the embedding
+# question walks subClassOf* to math:Embedding. The two families are enumerated with VALUES
+# so a result reaches exactly one (they are held owl:disjointWith). Scoped to the fixture
+# namespace so the answer is exactly {bayesianResult → math:BayesianResult, frequentistResult
+# → math:FrequentistResult}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?result ?paradigm WHERE {
+    VALUES ?paradigm { math:FrequentistResult math:BayesianResult }
+    ?result a ?resultType .
+    ?resultType rdfs:subClassOf* ?paradigm .
+    FILTER(STRSTARTS(STR(?result), "http://example.org/math/"))
+}
+ORDER BY ?result ?paradigm

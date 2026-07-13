@@ -1,0 +1,122 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for the signature lang: -> logic: -> math: p-value round-trip.
+# The sentence "the p-value was 0.03" is grounded as a lang:SurfaceForm that lang:realizes an
+# analyzed lang:ComposedForm; a lang:Denotation (lang:denotesLogicFormula) whose
+# lang:denotationTarget is a specific logic:Formula carries the meaning; and that formula's
+# first argument (logic:termIri) IS the math:PValue — one connected chain. The math:PValue
+# carries its WHOLE frame: a math:testStatistic, a math:nullHypothesis, a parameterized
+# math:nullDistribution (a math:SamplingDistribution), a math:alternativeSidedness that is one
+# of the six lawful math:Sidedness individuals (math:twoSidedAlternative), and math:pValue ->
+# a framed math:ProbabilityValue (exact 3/100 in [0, 1]). Every arm of math:IllFramedPValueShape
+# is present so its SPARQL stays SILENT; the lawful sidedness satisfies
+# math:AlternativeSidednessValueShape's sh:in; the framed value satisfies
+# math:ProbabilityValueRangeShape / math:ProbabilityValueFramedShape /
+# math:ProbabilityScaleDisjointShape / math:RationalValueShape; and the well-formed null
+# distribution keeps the P6a/P6b/P7 gates silent. It MUST raise NO failure class.
+# Counter-example: counter-examples/pvalue-tri-slice-illframed.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecPValueTriSlice).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix ex:    <http://example.org/math/> .
+
+# lang: the surface realizing the analyzed composed form.
+ex:english a lang:SignSystem ;
+    lang:signSystemKind lang:naturalLanguageKind ;
+    lang:modality lang:writtenModality .
+ex:latinScript a lang:Script .
+
+ex:wfThe       a lang:WordForm ; lang:inSignSystem ex:english .
+ex:wfPValue    a lang:WordForm ; lang:inSignSystem ex:english .
+ex:wfWas       a lang:WordForm ; lang:inSignSystem ex:english .
+ex:wfMagnitude a lang:WordForm ; lang:inSignSystem ex:english .
+
+ex:pvalueAnalysis a lang:Analysis .
+ex:pvalueSentence a lang:ComposedForm ;
+    lang:inSignSystem ex:english ;
+    lang:compositionLevel lang:sentenceLevel ;
+    lang:inAnalysis ex:pvalueAnalysis ;
+    lang:formHead ex:wfWas ;
+    lang:formSlot ex:slot0 , ex:slot1 , ex:slot2 , ex:slot3 .
+
+ex:slot0 a lang:FormSlot ; lang:inAnalysis ex:pvalueAnalysis ; lang:slotIndex 0 ;
+    lang:slotForm ex:wfThe ; lang:slotRole lang:subjectRole ; lang:dependsOn ex:slot1 .
+ex:slot1 a lang:FormSlot ; lang:inAnalysis ex:pvalueAnalysis ; lang:slotIndex 1 ;
+    lang:slotForm ex:wfPValue ; lang:slotRole lang:subjectRole ; lang:dependsOn ex:slot2 .
+ex:slot2 a lang:FormSlot ; lang:inAnalysis ex:pvalueAnalysis ; lang:slotIndex 2 ;
+    lang:slotForm ex:wfWas ; lang:slotRole lang:predicateRole .
+ex:slot3 a lang:FormSlot ; lang:inAnalysis ex:pvalueAnalysis ; lang:slotIndex 3 ;
+    lang:slotForm ex:wfMagnitude ; lang:slotRole lang:objectRole ; lang:dependsOn ex:slot2 .
+
+ex:pvalueSurface a lang:SurfaceForm ;
+    lang:inSignSystem ex:english ;
+    lang:surfaceText "the p-value was 0.03" ;
+    lang:inScript ex:latinScript ;
+    lang:encoding "UTF-8" ;
+    lang:unicodeNormalization "NFC" ;
+    lang:collationLocale "en" ;
+    lang:analysisLevel lang:parsedLevel ;
+    lang:realizes ex:pvalueSentence .
+
+# lang -> logic: the denotation whose target IS the logic:Formula.
+ex:pvalueDenotation a lang:Denotation ;
+    lang:denotedForm ex:pvalueSentence ;
+    lang:denotationKind lang:denotesLogicFormula ;
+    lang:denotationTarget ex:pvalueFormula ;
+    lang:denotationContext ex:samplingReportContext ;
+    lang:isIndexical false ;
+    logic:preservationKind logic:ExactPreservation .
+
+# logic -> math: the atomic predication whose first argument IS the p-value.
+ex:pvalueFormula a logic:Formula ;
+    logic:relation ex:pValueMagnitudeOfRelation ;
+    logic:argument ex:argPValue , ex:argMagnitude .
+ex:pValueMagnitudeOfRelation a logic:Type .
+ex:argPValue logic:termIndex 0 ; logic:termIri ex:tTestPValue .
+ex:argMagnitude logic:termIndex 1 ; logic:termIri ex:pValueMagnitude .
+
+# math: the well-framed p-value.
+ex:tTestPValue a math:PValue ;
+    math:testStatistic ex:tStatistic ;
+    math:nullHypothesis ex:noEffectNull ;
+    math:nullDistribution ex:tNullDistribution ;
+    math:alternativeSidedness math:twoSidedAlternative ;
+    math:pValue ex:pValueMagnitude ;
+    gmeow:wasGeneratedBy ex:inferenceRun .
+
+ex:tStatistic a math:Statistic .
+ex:noEffectNull a math:NullHypothesis .
+
+ex:tNullDistribution a math:SamplingDistribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParameterization ;
+    math:hasDistributionParameter ex:meanParam , ex:stddevParam .
+
+ex:normalFamily a math:DistributionFamily .
+ex:meanStddevParameterization a math:DistributionParameterization ;
+    math:requiresParameterRole ex:meanRole , ex:stddevRole .
+ex:meanRole a math:DistributionParameterRole .
+ex:stddevRole a math:DistributionParameterRole .
+ex:meanParam a math:DistributionParameter ; math:parameterRole ex:meanRole .
+ex:stddevParam a math:DistributionParameter ; math:parameterRole ex:stddevRole .
+
+# The p-value magnitude: a framed probability value, exact 3/100 = 0.03 in [0, 1].
+ex:pValueMagnitude a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 3 ;
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+ex:samplingFrame a gmeow:ReferenceFrame .
+
+# The process / result / claim spine.
+ex:inferenceRun a math:InferenceRun , gmeow:Activity ;
+    math:fittedToData ex:sampleData .
+ex:sampleData a math:DatasetMatrix .
+ex:pvalueObservation a gmeow:Observation ;
+    gmeow:vantage ex:analystStandpoint ;
+    gmeow:observedFeature ex:tTestPValue ;
+    gmeow:observationResult ex:tTestPValue ;
+    gmeow:wasGeneratedBy ex:inferenceRun .
+ex:analystStandpoint a gmeow:Standpoint .

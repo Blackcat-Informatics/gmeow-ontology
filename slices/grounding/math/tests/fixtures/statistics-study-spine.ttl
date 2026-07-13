@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the two study-and-data competency questions — the class inventory ("what
+# object kinds make up a study & data design") and the linking spine ("how are population,
+# frame, sample, unit, variable, and missingness wired together"). A single worked survey
+# scene: a math:StatisticalPopulation operationalized by a math:SamplingFrame
+# (math:samplingFrame); a math:Sample drawn from that frame (math:sampleOf), referring to the
+# population (math:population), denoting a math:ObservationUnit (math:observationUnit) and
+# recording a math:StatisticalVariable (math:statisticalVariable); the variable's absences
+# carried by a math:MissingnessIndicator (math:hasMissingnessIndicator) resting on a
+# math:MissingnessMechanism (math:missingnessMechanism); plus the design apparatus every real
+# survey carries — a variable role, a measurement scale, a unit policy, a missing-value code,
+# a sampling weight, a stratum, a cluster, a survey design, a data transformation, and a
+# derived variable. Every individual carries exactly ONE asserted type, so the reasoning-free
+# class-inventory query returns one row per object and the spine query returns one edge per
+# link. Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+# The target of inference and its operational stand-in.
+ex:pop a math:StatisticalPopulation ;
+    math:samplingFrame ex:frame .
+ex:frame a math:SamplingFrame .
+
+# The units actually selected and measured, and what each row denotes and records.
+ex:sample a math:Sample ;
+    math:sampleOf ex:frame ;
+    math:population ex:pop ;
+    math:observationUnit ex:unit ;
+    math:statisticalVariable ex:var .
+ex:unit a math:ObservationUnit .
+
+# The measured column, its absence bookkeeping resting on a declared mechanism.
+ex:var a math:StatisticalVariable ;
+    math:hasMissingnessIndicator ex:mi ;
+    math:missingnessMechanism ex:mech .
+ex:mi a math:MissingnessIndicator .
+ex:mech a math:MissingnessMechanism .
+
+# Variable metadata: the role it plays, the scale it is measured on, its unit policy,
+# and the code standing for an absent value.
+ex:role a math:VariableRole .
+ex:scale a math:MeasurementScale .
+ex:unitPolicy a math:UnitPolicy .
+ex:mvc a math:MissingValueCode .
+
+# Complex-survey design apparatus: inclusion weight, stratum, cluster, and the survey design.
+ex:weight a math:SamplingWeight .
+ex:stratum a math:Stratum .
+ex:cluster a math:Cluster .
+ex:survey a math:SurveyDesign .
+
+# Feature engineering: a transformation and the derived variable it produces.
+ex:transform a math:DataTransformation .
+ex:derived a math:DerivedVariable .
