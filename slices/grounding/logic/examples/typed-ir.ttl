@@ -1,0 +1,190 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Module membership is an independent context coordinate: the rule remains in the same
+# epistemic standpoint while its named theory imports the base vocabulary.
+ex:peopleTheory
+    a logic:Module ;
+    logic:imports ex:baseTheory .
+
+ex:adultRule
+    a logic:Rule ;
+    logic:body [
+        rdf:object ex:Person ;
+        rdf:predicate rdf:type ;
+        rdf:subject "?person"
+    ] , [
+        rdf:object "18" ;
+        rdf:predicate ex:minimumAge ;
+        rdf:subject "?person"
+    ] ;
+    logic:head [
+        rdf:object ex:Adult ;
+        rdf:predicate rdf:type ;
+        rdf:subject "?person"
+    ] ;
+    logic:inModule ex:peopleTheory .
+
+# ∀x. Person(x) → ((∃y. knows(x,y) ∧ Active(y)) ∨ ¬banned(x))
+ex:personClassification
+    a logic:Formula ;
+    logic:forall ex:personClassificationImplication ;
+    logic:quantifiedVariable [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] .
+
+ex:personClassificationImplication
+    a logic:Formula ;
+    logic:antecedent ex:personAtom ;
+    logic:consequent ex:knownOrNotBanned .
+
+ex:personAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] ;
+    logic:relation ex:Person .
+
+ex:knownOrNotBanned
+    a logic:Formula ;
+    logic:or ex:knownActivePerson ,
+        ex:notBanned .
+
+ex:knownActivePerson
+    a logic:Formula ;
+    logic:exists ex:knownActiveConjunction ;
+    logic:quantifiedVariable [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "y"
+    ] .
+
+ex:knownActiveConjunction
+    a logic:Formula ;
+    logic:and ex:activeAtom ,
+        ex:knowsAtom .
+
+ex:knowsAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 1 ;
+        logic:termVariable "y"
+    ] ;
+    logic:relation ex:knows .
+
+ex:activeAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "y"
+    ] ;
+    logic:relation ex:Active .
+
+ex:notBanned
+    a logic:Formula ;
+    logic:not ex:bannedAtom .
+
+ex:bannedAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] ;
+    logic:relation ex:banned .
+
+# eligible(x) ↔ (age(x, 18) ∧ taggedWith(x, ...tags)). This second tree exercises a typed
+# literal, a sequence marker, and the commutative binary biconditional constructor.
+ex:eligibilityDefinition
+    a logic:Formula ;
+    logic:iff ex:eligibleAtom ,
+        ex:eligibilityConditions .
+
+ex:eligibleAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] ;
+    logic:relation ex:eligible .
+
+ex:eligibilityConditions
+    a logic:Formula ;
+    logic:and ex:ageAtom ,
+        ex:tagsAtom .
+
+ex:ageAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 1 ;
+        logic:termLiteral "18" ;
+        logic:termLiteralDatatype xsd:integer
+    ] ;
+    logic:relation ex:age .
+
+ex:tagsAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termIri ex:Alice
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 1 ;
+        logic:termSequenceMarker "tags"
+    ] ;
+    logic:relation ex:taggedWith .
+
+# The same fixed ternary tuple after legalization to the flat relational-core waist.
+ex:betweenTuple
+    logic:instanceOf ex:between ;
+    logic:naryArg0 ex:Alice ;
+    logic:naryArg1 ex:Bob ;
+    logic:naryArg2 ex:Carol .
+
+ex:between a logic:Type .
+
+ex:irContract
+    a logic:ReasoningContract ;
+    logic:contextAxis logic:ModuleContextAxis ;
+    logic:projectionTarget logic:CanonicalProjection ,
+        logic:CommonLogicProjection .
+
+ex:roundTripLens
+    a logic:Lens ;
+    logic:getLeg ex:downProjection ;
+    logic:putLeg ex:upProjection .
+
+ex:roundTripWitness
+    logic:loadBearing true .
+
+ex:absenceCheck
+    a logic:NonEntailmentObligation ;
+    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/examples/logic/minorEligibleForAdultOnlyBenefit"^^xsd:anyURI ;
+    logic:obligationDischargeCondition logic:DischargeFiniteClosure ;
+    logic:obligationDischargeVerdict logic:ObligationDischarged .
+
+# The example is validated as a self-contained data graph, so the referenced closed-value
+# individual carries its range type here rather than relying on an ontology-union inference.
+logic:DischargeFiniteClosure a logic:DischargeCondition .

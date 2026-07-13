@@ -9,20 +9,6 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
-<https://example.org/deception/held-projected-no-intent/deceptionHeldProjectedDivergence> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdAnte> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdBody> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdCons> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdConsBody> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdDivergent> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdHeld> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdHeldDox> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdHeldModality> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdProjected> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdProjectedDox> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdProjectedModality> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdShared> a <https://blackcatinformatics.ca/logic/Formula> .
-<https://example.org/deception/held-projected-no-intent/dhpdSharedBody> a <https://blackcatinformatics.ca/logic/Formula> .
 <https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness> a <https://blackcatinformatics.ca/logic/Rule> .
 <https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness> <https://blackcatinformatics.ca/logic/body> <c14n0> .
 <https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness> <https://blackcatinformatics.ca/logic/body> <c14n1> .

@@ -194,7 +194,7 @@ per-node verifiers, progressive lowering; **not** LLVM IR's substrate (an impera
 represent open-world entailment, paraconsistency, or modal scope). Patterns and tooling cross over;
 the substrate does not.
 
-- **Lowering is legalization (`logic:ConversionTarget`).** A lowering to a target is a legalization
+- **Lowering is legalization (`logic:ProjectionTarget`).** A lowering to a target is a legalization
   against a declared target — statically, or *dynamically legal* iff a construct falls in the target's
   certified fragment. **Partial conversion** leaves an illegal construct in place, flagged: this *is*
   the "unsupported carried and flagged, never dropped" rule above. Every lowering is therefore a total
