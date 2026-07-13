@@ -580,7 +580,7 @@ impl EngineContract {
         if self.descriptor_hash == pinned_descriptor_hash {
             Ok(())
         } else {
-            Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+            Err(gmeow_errors::Diag::of_kind(crate::error::ContractDrift {
                 detail: format!(
                     "runtime EngineContract drift: answer pinned to descriptor {pinned} but this \
                      engine is {current}; answers minted under the pinned contract must not be \
@@ -829,9 +829,13 @@ mod tests {
     fn assert_matches_accepts_self_and_rejects_drift() {
         let c = EngineContract::current();
         assert!(c.assert_matches(&c.descriptor_hash).is_ok());
-        assert!(
-            c.assert_matches("deadbeef").is_err(),
-            "a mismatched pin must be a typed hard failure, not silently accepted"
+        let err = c
+            .assert_matches("deadbeef")
+            .expect_err("a mismatched pin must be a typed hard failure, not silently accepted");
+        assert_eq!(
+            gmeow_errors::code::code_str(err.code()),
+            crate::error::ContractDrift::CODE,
+            "engine-contract drift must surface as the dedicated logic.contract-drift kind"
         );
     }
 
