@@ -74447,7 +74447,7 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/AlternativeHypothesis> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/AlternativeHypothesis> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/AlternativeHypothesis> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -74525,7 +74525,7 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/BayesFactor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/BayesFactor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/BayesFactor> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -74561,7 +74561,7 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/CalibrationDiagnostic> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/CalibrationDiagnostic> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/CalibrationDiagnostic> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -74657,13 +74657,13 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/ConfidenceInterval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/ConfidenceInterval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/ConfidenceInterval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/ConfidenceRegion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/ConfidenceRegion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/ConfidenceRegion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -74783,13 +74783,13 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/CredibleInterval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/CredibleInterval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/CredibleInterval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/CredibleRegion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/CredibleRegion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/CredibleRegion> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -75173,13 +75173,13 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/InferenceRun> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Event> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/InferenceRun> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Event> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/InferenceRun> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Event> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/InferenceRun> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Event> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/InferenceRun> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Event> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/InferenceRun> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/logic/Event> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -75791,7 +75791,7 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/NullHypothesis> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/NullHypothesis> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/NullHypothesis> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -75899,7 +75899,7 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/PValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/PValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/PValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -76061,7 +76061,7 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/PosteriorProbability> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/PosteriorProbability> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/PosteriorProbability> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -76391,13 +76391,13 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/SamplingDistribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/e9ff74f08f2738eb10c19f86a0182a1e6effb399> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/SamplingDistribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/e9ff74f08f2738eb10c19f86a0182a1e6effb399> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/SamplingDistribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/skolem/e9ff74f08f2738eb10c19f86a0182a1e6effb399> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/SamplingDistribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/SamplingDistribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/SamplingDistribution> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -76553,7 +76553,7 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/StatisticalPower> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/StatisticalPower> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/StatisticalPower> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
@@ -76709,13 +76709,13 @@
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/TypeIErrorRate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/TypeIErrorRate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/TypeIErrorRate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/rl-default> .
 <https://blackcatinformatics.ca/math/TypeIIErrorRate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << <https://blackcatinformatics.ca/math/TypeIIErrorRate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> >> ;
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/math/TypeIIErrorRate> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/math/MathematicalObject> )>> ;
    <http://www.w3.org/ns/prov#wasDerivedBy> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/dl%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
