@@ -27,12 +27,13 @@ use std::sync::Arc;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermId, TermRef, TermValue};
 
 use gmeow_errors::{Diag, Result};
+use gmeow_logic_compile::ingest::{ns_to_prefix, registry_iri, sssom_id};
 use gmeow_validate::language_tags::{
     LangSelector, LitDesc, filter_literals, load_tag_map, marked, resolve_lang_input,
     select_literal,
 };
 
-use crate::card::{Card, CardDetail, render_card};
+use crate::card::{Card, CardDetail, CardFormat, card_json, card_toon, render_card};
 use crate::error::GtsRead;
 
 /// The GMEOW namespace prefix for term IRIs.
@@ -243,15 +244,28 @@ enum OwnedObject {
     Other,
 }
 
-/// Shorten an IRI to its display CURIE (`gmeow:` / `gufo:`), else return it whole.
+/// Shorten an IRI to its display CURIE via the canonical prefix registry — every
+/// registered namespace (`gmeow:`/`logic:`/`math:`/`lang:` and every external
+/// vocabulary in `PREFIX_REGISTRY`, `gufo:` among them), falling back to the bare
+/// IRI when no registered namespace prefixes it. This is the single source of
+/// truth for CURIE shortening (the same `sssom_id` the canonical-Turtle renderer
+/// uses), so a describe card and a projection agree by construction.
 fn short(iri: &str) -> String {
-    if let Some(rest) = iri.strip_prefix(NAMESPACE) {
-        format!("gmeow:{rest}")
-    } else if let Some(rest) = iri.strip_prefix(GUFO) {
-        format!("gufo:{rest}")
-    } else {
-        iri.to_owned()
+    sssom_id(iri, ns_to_prefix())
+}
+
+/// The local name of a term IRI: the remainder after stripping the longest
+/// registered namespace (`ns_to_prefix()` is sorted longest-namespace-first, so
+/// the most specific CURIE wins). Returns the whole IRI when no registered
+/// namespace prefixes it (which always contains `/`, so such IRIs are excluded
+/// from the resolvable term set — see [`term_iris`]).
+fn local_name(iri: &str) -> &str {
+    for (ns, _prefix) in ns_to_prefix() {
+        if let Some(local) = iri.strip_prefix(ns) {
+            return local;
+        }
     }
+    iri
 }
 
 /// The set of public BCP-47 tags that actually carry literals in the snapshot,
@@ -279,62 +293,135 @@ fn available_languages(
     set.into_iter().collect()
 }
 
-/// Resolve a user query to a `gmeow:` term IRI.
+/// The resolvable term set: every default-graph subject that carries a Tier-1
+/// describable predicate (`rdfs:isDefinedBy`, `rdfs:label`, or `skos:definition`)
+/// and whose registry-local name is a simple local (no nested `/` path segment).
 ///
-/// Accepts `gmeow:X`, a full IRI, a bare local name, or a case-insensitive
-/// prefix; returns `(Some(iri), [])` on a unique match, else `(None, candidates)`
-/// where `candidates` (bare local names, capped at 10) is non-empty on ambiguity
-/// or a no-match-with-suggestions.
-pub fn resolve_term(graph: &DescribeGraph, query: &str) -> (Option<String>, Vec<String>) {
-    let mut text = query.trim();
-    if let Some(rest) = text.strip_prefix("gmeow:") {
-        text = rest;
+/// The set is NAMESPACE-AGNOSTIC — a term in ANY registered namespace
+/// (`gmeow:`/`logic:`/`math:`/`lang:` and beyond) is describable — so a new
+/// grounding namespace needs no change here. Using the union of Tier-1 predicates
+/// (not `isDefinedBy` alone) means a term authored with a label/definition but no
+/// owning-slice link is still resolvable.
+fn term_iris(graph: &DescribeGraph) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    for pred in [RDFS_IS_DEFINED_BY, RDFS_LABEL, SKOS_DEFINITION] {
+        for subject in graph.subjects_with_predicate(pred) {
+            if !local_name(&subject).contains('/') {
+                out.insert(subject);
+            }
+        }
     }
-    if let Some(rest) = text.strip_prefix(NAMESPACE) {
-        text = rest;
-    }
+    out
+}
+
+/// The outcome of resolving a user query against the bundle's term set.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Resolution {
+    /// A unique term IRI.
+    Resolved(String),
+    /// A bare local name matches terms in more than one namespace. Carries the
+    /// candidate display CURIEs (sorted, deduped) — resolution HARD-FAILS rather
+    /// than silently pick one (`.goals` NO OPTIONALITY).
+    Ambiguous { candidates: Vec<String> },
+    /// No term matches. Carries up to ten prefix-match display-CURIE suggestions
+    /// (empty when there is nothing close).
+    NotFound { suggestions: Vec<String> },
+}
+
+/// Resolve a user query to a bundle term IRI, driven by the canonical prefix
+/// registry and the bundle's own term set (see [`term_iris`]).
+///
+/// Accepts a full IRI, a registered CURIE (`gmeow:X`, `logic:X`, `math:X`,
+/// `lang:X`, and any other `PREFIX_REGISTRY` prefix), or a bare local name. A bare
+/// local name is matched across ALL bundled namespaces — case-sensitive exact,
+/// then case-insensitive exact, then a unique case-insensitive prefix. A name that
+/// exactly matches terms in more than one namespace is [`Resolution::Ambiguous`]:
+/// there is NO silent `gmeow:` precedence. A unique case-insensitive prefix still
+/// resolves (the intended fuzzy-completion UX); multiple prefix matches yield
+/// [`Resolution::NotFound`] with candidate suggestions (a prefix is a fuzzy query,
+/// not a claimed exact name).
+pub fn resolve_term(graph: &DescribeGraph, query: &str) -> Resolution {
+    let text = query.trim();
     if text.is_empty() {
-        // An empty query would prefix-match everything.
-        return (None, Vec::new());
+        return Resolution::NotFound {
+            suggestions: Vec::new(),
+        };
+    }
+    let terms = term_iris(graph);
+
+    // 1. Full IRI — a direct membership test.
+    if text.starts_with("http://") || text.starts_with("https://") {
+        return if terms.contains(text) {
+            Resolution::Resolved(text.to_owned())
+        } else {
+            Resolution::NotFound {
+                suggestions: Vec::new(),
+            }
+        };
     }
 
-    // The bare local names of every term that declares an owning slice — the
-    // authored `gmeow:` vocabulary surface (no nested `/` path segments).
-    let mut locals: Vec<String> = graph
-        .subjects_with_predicate(RDFS_IS_DEFINED_BY)
-        .into_iter()
-        .filter_map(|s| s.strip_prefix(NAMESPACE).map(str::to_owned))
-        .filter(|local| !local.contains('/'))
-        .collect();
-    locals.sort();
-    locals.dedup();
-
-    if locals.iter().any(|name| name == text) {
-        return (Some(format!("{NAMESPACE}{text}")), Vec::new());
+    // 2. Registered CURIE `prefix:local` — expand via the registry, then test
+    // membership. A known prefix whose expansion is absent is NotFound (not a bare
+    // local-name search): the user named a namespace explicitly.
+    if let Some((prefix, local)) = text.split_once(':')
+        && let Some(ns) = registry_iri(prefix)
+    {
+        let iri = format!("{ns}{local}");
+        return if terms.contains(&iri) {
+            Resolution::Resolved(iri)
+        } else {
+            Resolution::NotFound {
+                suggestions: Vec::new(),
+            }
+        };
     }
-    let lower = text.to_lowercase();
-    let exact_ci: Vec<String> = locals
-        .iter()
-        .filter(|name| name.to_lowercase() == lower)
-        .cloned()
-        .collect();
+
+    // 3. Bare local name across all bundled namespaces.
+    let mut exact: Vec<String> = Vec::new();
+    let mut exact_ci: Vec<String> = Vec::new();
+    for iri in &terms {
+        let local = local_name(iri);
+        if local == text {
+            exact.push(iri.clone());
+        }
+        if local.eq_ignore_ascii_case(text) {
+            exact_ci.push(iri.clone());
+        }
+    }
+    // Case-sensitive exact wins first; a cross-namespace collision hard-fails.
+    if let [only] = exact.as_slice() {
+        return Resolution::Resolved(only.clone());
+    }
+    if exact.len() > 1 {
+        return Resolution::Ambiguous {
+            candidates: sorted_curies(exact),
+        };
+    }
+    // Then case-insensitive exact.
     if let [only] = exact_ci.as_slice() {
-        return (Some(format!("{NAMESPACE}{only}")), Vec::new());
+        return Resolution::Resolved(only.clone());
     }
-    let prefix: Vec<String> = locals
+    if exact_ci.len() > 1 {
+        return Resolution::Ambiguous {
+            candidates: sorted_curies(exact_ci),
+        };
+    }
+    // Finally, a unique case-insensitive prefix resolves; multiple are suggestions.
+    let prefix_matches: Vec<String> = terms
         .iter()
-        .filter(|name| name.to_lowercase().starts_with(&lower))
+        .filter(|iri| {
+            local_name(iri)
+                .get(..text.len())
+                .is_some_and(|head| head.eq_ignore_ascii_case(text))
+        })
         .cloned()
         .collect();
-    if let [only] = prefix.as_slice() {
-        return (Some(format!("{NAMESPACE}{only}")), Vec::new());
+    if let [only] = prefix_matches.as_slice() {
+        return Resolution::Resolved(only.clone());
     }
-    let candidates = if exact_ci.is_empty() {
-        prefix
-    } else {
-        exact_ci
-    };
-    (None, candidates.into_iter().take(10).collect())
+    let mut suggestions = sorted_curies(prefix_matches);
+    suggestions.truncate(10);
+    Resolution::NotFound { suggestions }
 }
 
 /// The language-selected string values for a multi-valued annotation predicate
@@ -422,7 +509,7 @@ pub fn build_card(
     tag_map: &std::collections::HashMap<String, String>,
     modeled_defs: &BTreeSet<String>,
 ) -> Card {
-    let local = term.strip_prefix(NAMESPACE).unwrap_or(term).to_owned();
+    let local = local_name(term).to_owned();
 
     // Vocabulary category + gUFO stereotype from rdf:type.
     let types = graph.named_objects(term, RDF_TYPE);
@@ -569,15 +656,49 @@ fn category_for(types: &[String]) -> String {
     }
 }
 
+/// The classified outcome of a [`describe`] call. Lets the CLI map each failure to
+/// its OWN typed diagnostic code — rather than lumping load / unknown-language /
+/// unresolved / ambiguous failures under a single code — and pick the process exit
+/// code.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DescribeStatus {
+    /// A term card was rendered.
+    Ok,
+    /// The query matched no bundle term.
+    Unresolved,
+    /// A bare local name matched terms in more than one namespace (no silent pick).
+    Ambiguous,
+    /// The `--lang` request named a tag the bundle does not carry.
+    UnknownLanguage,
+    /// The GTS bundle could not be loaded, folded, or projected.
+    LoadFailed,
+}
+
+impl DescribeStatus {
+    /// The process exit code: `0` on success, `1` on any failure. The greppable
+    /// distinction between failure kinds is the CLI's typed diagnostic CODE, not
+    /// the exit integer, so all failures share a single non-zero exit.
+    pub fn exit_code(self) -> i32 {
+        match self {
+            DescribeStatus::Ok => 0,
+            _ => 1,
+        }
+    }
+}
+
 /// The `gmeow describe` entry point: resolve, assemble, and render one term card
 /// from a GTS bundle's bytes.
 ///
-/// * `query` — the user's term request (`gmeow:X`, an IRI, a local name, or a
-///   case-insensitive prefix).
+/// * `query` — the user's term request (a registered CURIE `gmeow:X`/`logic:X`/
+///   `math:X`/`lang:X`, a full IRI, a bare local name, or a case-insensitive
+///   prefix).
 /// * `gts_bytes` — a GTS bundle (the offline `gmeow.gts`, or a user `--gts`).
 /// * `lang` — the already-resolved language request (`None` → the English
 ///   carrier); the env/`--lang` precedence is the caller's (the consumer bin's)
 ///   concern.
+/// * `format` — the output serialization ([`CardFormat::Prose`] Markdown,
+///   [`CardFormat::Json`], or [`CardFormat::Toon`]). The format governs only a
+///   successful card render; every failure keeps its diagnostic text and status.
 /// * `modeled_defs` — the JSON Schema `$defs` key set for THIS bundle (e.g.
 ///   `gmeow_pipeline::bundle_blobs::Bundle::modeled_def_keys`), the
 ///   model-existence signal [`build_card`] gates a class's `python_model` link
@@ -585,34 +706,53 @@ fn category_for(types: &[String]) -> String {
 ///   JSON-Schema surface as queryable RDF triples), so the caller — which reads
 ///   the SAME bundle bytes — computes and threads it in.
 ///
-/// Returns `(text, exit_code)`: the rendered Markdown card with code `0`, or a
-/// diagnostic message with a non-zero code on a load / unknown-term /
-/// unknown-language failure.
+/// Returns `(text, status)`: the rendered card with [`DescribeStatus::Ok`], or a
+/// diagnostic message with the classifying [`DescribeStatus`] on a load /
+/// unresolved / ambiguous / unknown-language failure.
 pub fn describe(
     query: &str,
     gts_bytes: &[u8],
     lang: Option<&str>,
+    format: CardFormat,
     modeled_defs: &BTreeSet<String>,
-) -> (String, i32) {
+) -> (String, DescribeStatus) {
     let graph = match DescribeGraph::from_gts_bytes(gts_bytes) {
         Ok(graph) => graph,
-        Err(e) => return (e.to_string(), 1),
+        Err(e) => return (e.to_string(), DescribeStatus::LoadFailed),
     };
 
-    let (term, candidates) = resolve_term(&graph, query);
-    let Some(term) = term else {
-        if candidates.is_empty() {
-            return (format!("no GMEOW term matches '{query}'"), 1);
+    let term = match resolve_term(&graph, query) {
+        Resolution::Resolved(iri) => iri,
+        Resolution::Ambiguous { candidates } => {
+            let options = candidates
+                .iter()
+                .map(|c| format!("  {c}"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            return (
+                format!(
+                    "ambiguous term '{query}' — it names terms in multiple namespaces:\n{options}"
+                ),
+                DescribeStatus::Ambiguous,
+            );
         }
-        let options = candidates
-            .iter()
-            .map(|c| format!("  gmeow:{c}"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        return (
-            format!("ambiguous or unknown term '{query}' — candidates:\n{options}"),
-            1,
-        );
+        Resolution::NotFound { suggestions } => {
+            if suggestions.is_empty() {
+                return (
+                    format!("no GMEOW term matches '{query}'"),
+                    DescribeStatus::Unresolved,
+                );
+            }
+            let options = suggestions
+                .iter()
+                .map(|c| format!("  {c}"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            return (
+                format!("no exact GMEOW term matches '{query}' — did you mean:\n{options}"),
+                DescribeStatus::Unresolved,
+            );
+        }
     };
 
     // The tag map + available-language set drive language resolution. The carrier
@@ -623,7 +763,12 @@ pub fn describe(
     // This mirrors the consumer bin's `bundle_tag_map`.
     let flat = match purrdf::gts::flattened_dataset_from_bytes(gts_bytes) {
         Ok(ds) => ds,
-        Err(e) => return (format!("cannot fold bundle for language map: {e}"), 1),
+        Err(e) => {
+            return (
+                format!("cannot fold bundle for language map: {e}"),
+                DescribeStatus::LoadFailed,
+            );
+        }
     };
     let nt = match purrdf::serialize_dataset(
         &flat,
@@ -631,11 +776,21 @@ pub fn describe(
         purrdf::SerializeGraph::DefaultGraph,
     ) {
         Ok(bytes) => bytes,
-        Err(e) => return (format!("cannot project bundle for language map: {e}"), 1),
+        Err(e) => {
+            return (
+                format!("cannot project bundle for language map: {e}"),
+                DescribeStatus::LoadFailed,
+            );
+        }
     };
     let tag_map = match load_tag_map(&nt, "n-triples") {
         Ok(map) => map,
-        Err(e) => return (format!("cannot build language tag map: {e}"), 1),
+        Err(e) => {
+            return (
+                format!("cannot build language tag map: {e}"),
+                DescribeStatus::LoadFailed,
+            );
+        }
     };
     // The requestable set is the UNION of (a) the known carrier public tags — the
     // framework's shippable translation targets (en/fr/zh), always requestable so a
@@ -658,17 +813,21 @@ pub fn describe(
                     unknown.tag,
                     unknown.available.join(", ")
                 ),
-                1,
+                DescribeStatus::UnknownLanguage,
             );
         }
     };
 
     let card = build_card(&graph, &term, &selector, &tag_map, modeled_defs);
-    let local = term.strip_prefix(NAMESPACE).unwrap_or(&term);
-    (
-        render_card(&format!("gmeow:{local}"), &card, CardDetail::Standard),
-        0,
-    )
+    // The prose card header is the term's own display CURIE (`gmeow:Entity`,
+    // `lang:Denotation`, …), shortened through the canonical registry. The
+    // structured formats carry the full IRI (and every card field) directly.
+    let text = match format {
+        CardFormat::Prose => render_card(&short(&term), &card, CardDetail::Standard),
+        CardFormat::Json => card_json(&card),
+        CardFormat::Toon => card_toon(&card),
+    };
+    (text, DescribeStatus::Ok)
 }
 
 #[cfg(test)]
@@ -678,6 +837,12 @@ mod tests {
 
     /// The GTS write profile for test fixtures (arbitrary, deterministic).
     const TEST_PROFILE: &str = "purrdf-test";
+
+    /// Prose-format `describe` — the default used by every language/resolution test
+    /// (the JSON/TOON formats are exercised by the CLI live-binary suite).
+    fn describe_prose(query: &str, gts: &[u8], lang: Option<&str>) -> (String, DescribeStatus) {
+        describe(query, gts, lang, CardFormat::Prose, &BTreeSet::new())
+    }
 
     /// The controlled multilingual fixture, mirroring `_multilingual_gts` in
     /// `tests/test_cli.py`: a `gmeow:SampleTerm` class with English (always) and
@@ -783,8 +948,8 @@ mod tests {
     #[test]
     fn describe_known_term_returns_prose_and_zero() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, None, &BTreeSet::new());
-        assert_eq!(code, 0, "{text}");
+        let (text, code) = describe_prose("SampleTerm", &gts, None);
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("gmeow:SampleTerm"), "{text}");
         assert!(text.contains("English definition text."), "{text}");
         assert!(text.contains("category: Class"), "{text}");
@@ -802,8 +967,14 @@ mod tests {
         let gts = multilingual_gts(true, true);
 
         // Empty `$defs` set: SampleTerm is a documented Class, but unmodeled.
-        let (text, code) = describe("SampleTerm", &gts, None, &BTreeSet::new());
-        assert_eq!(code, 0, "{text}");
+        let (text, code) = describe(
+            "SampleTerm",
+            &gts,
+            None,
+            CardFormat::Prose,
+            &BTreeSet::new(),
+        );
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(
             !text.to_lowercase().contains("python model"),
             "an unmodeled class must never carry a python_model line:\n{text}"
@@ -813,8 +984,8 @@ mod tests {
         // namespace, so this membership set says "SampleTerm has a model".
         let mut modeled = BTreeSet::new();
         modeled.insert("SampleTerm".to_string());
-        let (text, code) = describe("SampleTerm", &gts, None, &modeled);
-        assert_eq!(code, 0, "{text}");
+        let (text, code) = describe("SampleTerm", &gts, None, CardFormat::Prose, &modeled);
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(
             text.contains("**Python model:** `gmeow_models.lifecycle.SampleTerm`"),
             "a modeled class must carry the python_model line:\n{text}"
@@ -824,8 +995,8 @@ mod tests {
     #[test]
     fn describe_renders_french_without_fallback() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some("fr"), &BTreeSet::new());
-        assert_eq!(code, 0, "{text}");
+        let (text, code) = describe_prose("SampleTerm", &gts, Some("fr"));
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("Définition en français."), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
     }
@@ -833,8 +1004,8 @@ mod tests {
     #[test]
     fn describe_renders_mandarin_without_fallback() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some("zh"), &BTreeSet::new());
-        assert_eq!(code, 0, "{text}");
+        let (text, code) = describe_prose("SampleTerm", &gts, Some("zh"));
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("中文定义。"), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
     }
@@ -843,8 +1014,8 @@ mod tests {
     fn describe_falls_back_to_english_when_language_absent() {
         // English-only fixture, French requested → the carrier fallback marker.
         let gts = multilingual_gts(false, false);
-        let (text, code) = describe("SampleTerm", &gts, Some("fr"), &BTreeSet::new());
-        assert_eq!(code, 0, "{text}");
+        let (text, code) = describe_prose("SampleTerm", &gts, Some("fr"));
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("English definition text."), "{text}");
         assert!(text.contains("fallback: en"), "{text}");
     }
@@ -856,8 +1027,8 @@ mod tests {
         // English rather than hard-failing, and every carrier is listed. A
         // truly-unknown tag still hard-fails.
         let gts = multilingual_gts(true, false);
-        let (text, code) = describe("SampleTerm", &gts, Some("notatag"), &BTreeSet::new());
-        assert_ne!(code, 0, "{text}");
+        let (text, code) = describe_prose("SampleTerm", &gts, Some("notatag"));
+        assert_ne!(code, DescribeStatus::Ok, "{text}");
         assert!(
             text.to_lowercase().contains("unknown language tag"),
             "{text}"
@@ -867,9 +1038,10 @@ mod tests {
 
         // The contentless zh carrier resolves with the English fallback marker,
         // never an "unknown language" hard-fail.
-        let (zh_text, zh_code) = describe("SampleTerm", &gts, Some("zh"), &BTreeSet::new());
+        let (zh_text, zh_code) = describe_prose("SampleTerm", &gts, Some("zh"));
         assert_eq!(
-            zh_code, 0,
+            zh_code,
+            DescribeStatus::Ok,
             "a contentless carrier must fall back: {zh_text}"
         );
         assert!(zh_text.contains("fallback: en"), "{zh_text}");
@@ -879,8 +1051,8 @@ mod tests {
     fn describe_empty_lang_selects_english_carrier() {
         // An explicit empty request maps to the default English carrier.
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some(""), &BTreeSet::new());
-        assert_eq!(code, 0, "{text}");
+        let (text, code) = describe_prose("SampleTerm", &gts, Some(""));
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
         assert!(text.contains("English definition text."), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
     }
@@ -888,8 +1060,8 @@ mod tests {
     #[test]
     fn describe_unknown_term_returns_nonzero() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("NoSuchTermAtAll", &gts, None, &BTreeSet::new());
-        assert_ne!(code, 0);
+        let (text, code) = describe_prose("NoSuchTermAtAll", &gts, None);
+        assert_eq!(code, DescribeStatus::Unresolved);
         assert!(text.contains("NoSuchTermAtAll"), "{text}");
     }
 
@@ -899,33 +1071,311 @@ mod tests {
         // resolves; a shorter, colliding query would list candidates. Here we prove
         // the case-insensitive exact-name path works for the mixed-case query.
         let gts = multilingual_gts(true, true);
-        let (_, code) = describe("sampleterm", &gts, None, &BTreeSet::new());
-        assert_eq!(code, 0);
+        let (_, code) = describe_prose("sampleterm", &gts, None);
+        assert_eq!(code, DescribeStatus::Ok);
+    }
+
+    /// The resolved IRI of a [`Resolution::Resolved`], else `None`.
+    fn resolved_iri(r: Resolution) -> Option<String> {
+        match r {
+            Resolution::Resolved(iri) => Some(iri),
+            _ => None,
+        }
     }
 
     #[test]
     fn resolve_term_handles_prefix_and_curie_forms() {
         let gts = multilingual_gts(true, true);
         let graph = DescribeGraph::from_gts_bytes(&gts).expect("load");
-        let (curie, _) = resolve_term(&graph, "gmeow:SampleTerm");
         assert_eq!(
-            curie.as_deref(),
+            resolved_iri(resolve_term(&graph, "gmeow:SampleTerm")).as_deref(),
             Some("https://blackcatinformatics.ca/gmeow/SampleTerm")
         );
-        let (prefix, _) = resolve_term(&graph, "Sample");
+        // Full-IRI form resolves directly.
         assert_eq!(
-            prefix.as_deref(),
+            resolved_iri(resolve_term(
+                &graph,
+                "https://blackcatinformatics.ca/gmeow/SampleTerm"
+            ))
+            .as_deref(),
             Some("https://blackcatinformatics.ca/gmeow/SampleTerm")
         );
-        let (empty, cands) = resolve_term(&graph, "   ");
-        assert!(empty.is_none());
-        assert!(cands.is_empty());
+        // A unique case-insensitive prefix resolves.
+        assert_eq!(
+            resolved_iri(resolve_term(&graph, "Sample")).as_deref(),
+            Some("https://blackcatinformatics.ca/gmeow/SampleTerm")
+        );
+        // An empty query is NotFound with no suggestions.
+        match resolve_term(&graph, "   ") {
+            Resolution::NotFound { suggestions } => assert!(suggestions.is_empty()),
+            other => panic!("empty query must be NotFound, got {other:?}"),
+        }
     }
 
     #[test]
     fn describe_invalid_gts_bytes_is_nonzero() {
-        let (text, code) = describe("SampleTerm", b"not a gts bundle", None, &BTreeSet::new());
-        assert_ne!(code, 0);
+        let (text, code) = describe_prose("SampleTerm", b"not a gts bundle", None);
+        assert_ne!(code, DescribeStatus::Ok);
+        assert_eq!(code, DescribeStatus::LoadFailed);
         assert!(!text.is_empty());
+    }
+
+    /// A fixture spanning the grounding namespaces: `math:Function` and
+    /// `logic:Function` (a cross-namespace bare-name COLLISION on `Function`) plus a
+    /// unique `lang:Denotation`. Each carries the full describable predicate shape,
+    /// and an English carrier seeds the tag map so cards render.
+    fn grounding_gts() -> Vec<u8> {
+        let mut nt = String::new();
+        for (prefix, local) in [
+            ("math", "Function"),
+            ("logic", "Function"),
+            ("lang", "Denotation"),
+        ] {
+            let iri = format!("https://blackcatinformatics.ca/{prefix}/{local}");
+            nt.push_str(&format!("<{iri}> <{RDF_TYPE}> <{OWL_CLASS}> .\n"));
+            nt.push_str(&format!(
+                "<{iri}> <{RDFS_LABEL}> \"{local}\"@x-gmeow-english .\n"
+            ));
+            nt.push_str(&format!(
+                "<{iri}> <{SKOS_DEFINITION}> \"Definition of {prefix}:{local}.\"@x-gmeow-english .\n"
+            ));
+            nt.push_str(&format!(
+                "<{iri}> <{RDFS_IS_DEFINED_BY}> <{NAMESPACE}slices/{prefix}> .\n"
+            ));
+        }
+        // English carrier so the tag map resolves `x-gmeow-english`.
+        const LANG_VARIETY: &str = "https://blackcatinformatics.ca/lang/LanguageVariety";
+        const CARRIER_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
+        let carrier = "https://blackcatinformatics.ca/lang/gmeowEnglish";
+        nt.push_str(&format!("<{carrier}> <{RDF_TYPE}> <{LANG_VARIETY}> .\n"));
+        nt.push_str(&format!(
+            "<{carrier}> <{CARRIER_TAG}> \"x-gmeow-english\" .\n"
+        ));
+        nt.push_str(&format!("<{carrier}> <{NAMESPACE}bcp47Tag> \"en\" .\n"));
+
+        let ds = purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+            .expect("fixture N-Triples must parse");
+        purrdf::gts_write::to_gts(&ds, &RdfLookaside::default(), TEST_PROFILE)
+            .expect("fixture must serialize to GTS")
+    }
+
+    #[test]
+    fn resolve_term_spans_grounding_namespaces() {
+        let gts = grounding_gts();
+        let graph = DescribeGraph::from_gts_bytes(&gts).expect("load");
+
+        // Registered CURIE across each grounding namespace.
+        assert_eq!(
+            resolved_iri(resolve_term(&graph, "math:Function")).as_deref(),
+            Some("https://blackcatinformatics.ca/math/Function")
+        );
+        // Full IRI.
+        assert_eq!(
+            resolved_iri(resolve_term(
+                &graph,
+                "https://blackcatinformatics.ca/lang/Denotation"
+            ))
+            .as_deref(),
+            Some("https://blackcatinformatics.ca/lang/Denotation")
+        );
+        // Bare local name unique to one namespace.
+        assert_eq!(
+            resolved_iri(resolve_term(&graph, "Denotation")).as_deref(),
+            Some("https://blackcatinformatics.ca/lang/Denotation")
+        );
+        // Bare local name colliding across namespaces → Ambiguous, sorted CURIEs, no
+        // silent gmeow: precedence.
+        match resolve_term(&graph, "Function") {
+            Resolution::Ambiguous { candidates } => assert_eq!(
+                candidates,
+                vec!["logic:Function".to_string(), "math:Function".to_string()]
+            ),
+            other => panic!("colliding bare name must be Ambiguous, got {other:?}"),
+        }
+        // A registered prefix whose term is absent → NotFound (not a bare search).
+        match resolve_term(&graph, "math:Nonexistent") {
+            Resolution::NotFound { .. } => {}
+            other => panic!("absent CURIE must be NotFound, got {other:?}"),
+        }
+        // Wholly unknown.
+        match resolve_term(&graph, "Nonexistent") {
+            Resolution::NotFound { .. } => {}
+            other => panic!("unknown must be NotFound, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn describe_renders_grounding_term_card() {
+        let gts = grounding_gts();
+        let (text, code) = describe_prose("lang:Denotation", &gts, None);
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
+        assert!(text.starts_with("# lang:Denotation"), "{text}");
+        assert!(text.contains("category: Class"), "{text}");
+        assert!(text.contains("slice: lang"), "{text}");
+        assert!(text.contains("Definition of lang:Denotation."), "{text}");
+    }
+
+    #[test]
+    fn describe_ambiguous_grounding_name_is_typed() {
+        let gts = grounding_gts();
+        let (text, code) = describe_prose("Function", &gts, None);
+        assert_eq!(code, DescribeStatus::Ambiguous, "{text}");
+        assert!(text.contains("logic:Function"), "{text}");
+        assert!(text.contains("math:Function"), "{text}");
+    }
+
+    #[test]
+    fn prefix_query_yields_deterministic_sorted_candidates() {
+        let gts = grounding_gts();
+        let graph = DescribeGraph::from_gts_bytes(&gts).expect("load");
+        // `Fun` prefix-matches `math:Function` and `logic:Function` → NotFound with a
+        // deterministic, CURIE-sorted suggestion list.
+        match resolve_term(&graph, "Fun") {
+            Resolution::NotFound { suggestions } => assert_eq!(
+                suggestions,
+                vec!["logic:Function".to_string(), "math:Function".to_string()]
+            ),
+            other => panic!("multi-prefix query must be NotFound with suggestions, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn short_uses_canonical_registry_and_gufo_matches() {
+        // The local GUFO constant must equal the registry's `gufo` namespace, so
+        // stereotype detection and CURIE-shortening never diverge.
+        assert_eq!(registry_iri("gufo"), Some(GUFO));
+        assert_eq!(
+            short("https://blackcatinformatics.ca/lang/Denotation"),
+            "lang:Denotation"
+        );
+        assert_eq!(short(&format!("{GUFO}Kind")), "gufo:Kind");
+    }
+
+    #[test]
+    fn every_grounding_namespace_has_describable_terms_that_render() {
+        // Bundle-wide sweep: prove the REQUIREMENT ("every bundled term"), not an
+        // example — each grounding namespace has >0 describable terms and a
+        // deterministic sample renders on the production entry point.
+        let bytes = shipped_bundle_bytes();
+        let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load shipped bundle");
+        let terms = term_iris(&graph);
+        for prefix in ["gmeow", "logic", "math", "lang"] {
+            let ns = registry_iri(prefix).expect("grounding prefix registered");
+            let in_ns: Vec<&String> = terms.iter().filter(|t| t.starts_with(ns)).collect();
+            assert!(
+                !in_ns.is_empty(),
+                "no describable terms in the `{prefix}:` namespace — the feature is dark there"
+            );
+            // `terms` is a BTreeSet, so the sample is deterministic. One render per
+            // namespace proves the surface is live end-to-end (breadth is covered by
+            // the coherence gate and the resolver tests); `describe` re-folds the
+            // whole bundle per call, so the sample is kept small.
+            let iri = in_ns[0];
+            let (text, code) = describe_prose(iri, &bytes, None);
+            assert_eq!(code, DescribeStatus::Ok, "`{prefix}:` term {iri}: {text}");
+        }
+    }
+
+    #[test]
+    fn grounding_term_grounding_references_are_themselves_describable() {
+        // Navigability closure: a card renders parents/domain/range as CURIEs; every
+        // GMEOW-local (grounding) reference must ITSELF be describable, or the
+        // "self-describing" ontology has dead links.
+        let bytes = shipped_bundle_bytes();
+        let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load shipped bundle");
+        let terms = term_iris(&graph);
+        let grounding_ns: [&str; 4] = ["gmeow", "logic", "math", "lang"]
+            .map(|p| registry_iri(p).expect("grounding prefix registered"));
+        let is_grounding = |iri: &str| grounding_ns.iter().any(|ns| iri.starts_with(ns));
+
+        let mut checked = 0usize;
+        for term in terms.iter().filter(|t| is_grounding(t)).take(200) {
+            for reference in graph
+                .named_objects(term, RDFS_SUBCLASS_OF)
+                .into_iter()
+                .chain(graph.named_objects(term, RDFS_DOMAIN))
+                .chain(graph.named_objects(term, RDFS_RANGE))
+            {
+                if is_grounding(&reference) {
+                    assert!(
+                        terms.contains(&reference),
+                        "term {term} references grounding term {reference} that is not itself describable"
+                    );
+                    checked += 1;
+                }
+            }
+        }
+        assert!(
+            checked > 0,
+            "navigability closure asserted nothing — no grounding references found in the sample"
+        );
+    }
+
+    /// The committed, shipped bundle bytes (`generated/dist/gmeow.gts`) — the exact
+    /// bytes `gmeow-cli` embeds. Used by the coherence gate.
+    fn shipped_bundle_bytes() -> Vec<u8> {
+        let path =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../generated/dist/gmeow.gts");
+        std::fs::read(&path).unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()))
+    }
+
+    /// The namespace of an IRI: everything up to and including its last `/` or `#`.
+    fn namespace_of(iri: &str) -> &str {
+        match iri.rfind(['#', '/']) {
+            Some(i) => &iri[..=i],
+            None => iri,
+        }
+    }
+
+    /// COHERENCE GATE: every vocabulary term (OWL class/property) in the shipped
+    /// bundle must live in a namespace the canonical `PREFIX_REGISTRY` knows. A
+    /// describable term in an UNREGISTERED namespace can neither be resolved by CURIE
+    /// nor shortened for display — it would be silently undescribable. This turns
+    /// "every bundled term resolves" into a machine-checked invariant: add a fifth
+    /// grounding slice to the bundle without registering its prefix, and this HARD
+    /// FAILS (rather than the term silently vanishing from `describe`/MCP).
+    #[test]
+    fn every_bundled_term_namespace_is_registered() {
+        use gmeow_logic_compile::ingest::PREFIX_REGISTRY;
+
+        let bytes = shipped_bundle_bytes();
+        let graph = DescribeGraph::from_gts_bytes(&bytes).expect("load shipped bundle");
+
+        let mut term_subjects: BTreeSet<String> = BTreeSet::new();
+        for ty in [
+            OWL_CLASS,
+            OWL_OBJECT_PROPERTY,
+            OWL_DATATYPE_PROPERTY,
+            OWL_ANNOTATION_PROPERTY,
+        ] {
+            term_subjects.extend(graph.subjects_with_object(RDF_TYPE, ty));
+        }
+        assert!(
+            !term_subjects.is_empty(),
+            "the shipped bundle declared no OWL terms — the gate would be vacuous"
+        );
+
+        let registered: BTreeSet<&str> = PREFIX_REGISTRY.iter().map(|(_, ns)| *ns).collect();
+        let unregistered: BTreeSet<&str> = term_subjects
+            .iter()
+            .map(|s| namespace_of(s))
+            .filter(|ns| !registered.contains(ns))
+            .collect();
+        assert!(
+            unregistered.is_empty(),
+            "describable OWL terms live in namespaces absent from the canonical PREFIX_REGISTRY \
+             (they can neither resolve by CURIE nor shorten — register their prefixes): {unregistered:?}"
+        );
+
+        // Positive guard: the four grounding namespaces are actually present as term
+        // subjects (else the gate is vacuously green for a namespace that silently
+        // dropped out of the bundle).
+        for prefix in ["gmeow", "logic", "math", "lang"] {
+            let ns = registry_iri(prefix).expect("grounding prefix registered");
+            assert!(
+                term_subjects.iter().any(|s| s.starts_with(ns)),
+                "no describable OWL term found in the `{prefix}:` grounding namespace"
+            );
+        }
     }
 }

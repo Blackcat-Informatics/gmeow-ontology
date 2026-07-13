@@ -211,11 +211,13 @@ pub(crate) const CORRESPONDENCE_LAWS_PATH: &str = "generated/logic/gmeow.corresp
 pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
     "https://blackcatinformatics.ca/gmeow/graph/authored-default";
 
-/// The six `math:` producer graphs, one per native producer entrypoint — five bound to the
+/// The seven `math:` producer graphs, one per native producer entrypoint — five bound to the
 /// flagship-acceptance manifest's `gmeow:FlagshipScenario` individuals, plus
 /// `probability-model` ([`gmeow_math::producers::probability_model_seam`]), the probability
-/// layer's live `logic:probabilityModel` seam producer (NOT flagship-bound; the manifest's
-/// "five, not adjectives" depth-bar contract stays exactly five). The `stage-math-producers`
+/// layer's live `logic:probabilityModel` seam producer, and `pvalue-tri-slice`
+/// ([`gmeow_math::producers::pvalue_tri_slice`]), the signature `lang:` → `logic:` → `math:`
+/// p-value round-trip (both NOT flagship-bound; the manifest's "five, not adjectives"
+/// depth-bar contract stays exactly five). The `stage-math-producers`
 /// stage RUNS each `gmeow_math::producers::*` function and parses its deterministic `.turtle`
 /// into the matching named graph here; the snapshot presenter reads each back via
 /// `producer_graph` and folds it into `gmeow.gts` (Design A — the producer output ships in
@@ -224,13 +226,14 @@ pub(crate) const GRAPH_AUTHORED_DEFAULT: &str =
 /// and NOT a `generated/` file, so they map to no committed path — the superset gate's orphan
 /// sweep only considers `graph/fanout/…` / `graph/projections/…` reps. The array order pins
 /// the producer→graph pairing shared by the stage and the presenter.
-pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 6] = [
+pub(crate) const MATH_PRODUCER_GRAPHS: [&str; 7] = [
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/e8-weyl",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/additive-he",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual",
     "https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model",
+    "https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice",
 ];
 const REP_SHACL_SARIF: &str = "gmeow:report/shacl/sarif";
 const REP_SHACL_FINDINGS: &str = "gmeow:report/shacl/findings";
@@ -802,8 +805,9 @@ fn assemble_carrier(
         quality_assessment,
         quality_assessment_fanout,
     ];
-    // graph/math-producers/<name> — the six `math:` producers' (five flagship producers
-    // plus the probability-model seam producer) deterministic RDF graphs, each read off the
+    // graph/math-producers/<name> — the seven `math:` producers' (five flagship producers,
+    // the probability-model seam producer, and the p-value tri-slice producer) deterministic
+    // RDF graphs, each read off the
     // `stage-math-producers` product's attached named graph (a pure keyed fold,
     // PIPELINE_SPINE §4) and folded into gmeow.gts (Design A — the producer output ships in
     // the bundle). Bundle-internal, like the `lang:` corpus graphs: they carry no
@@ -2852,9 +2856,10 @@ impl SnapshotStage {
                 // The mappings product carries the FINAL projection-report loss ledger
                 // (logic rows ∪ correspondence rows), folded into graph/projection-ledger.
                 "stage-mappings".to_string(),
-                // The six math producer graphs (five flagship producers plus the
-                // probability-model seam producer), folded into gmeow.gts as their own
-                // bundle-internal named graphs (Design A — the producer output ships).
+                // The seven math producer graphs (five flagship producers plus the
+                // probability-model seam producer and the p-value tri-slice producer), folded
+                // into gmeow.gts as their own bundle-internal named graphs (Design A — the
+                // producer output ships).
                 "stage-math-producers".to_string(),
                 // The SHACL→JSON-Schema export leaf: its in-memory product
                 // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
@@ -2977,7 +2982,14 @@ impl Stage for SnapshotStage {
         // `logic:probabilityModel` A-box crossing triple now ships inside
         // `gmeow.gts` itself (Design A), not only in the illustrative
         // `examples/probability.ttl` fixture validated on disk.
-        "snapshot.v26-probability-model-seam-producer"
+        // v27 additionally folds `stage-math-producers`' SEVENTH graph
+        // (graph/math-producers/pvalue-tri-slice, `gmeow_math::producers::
+        // pvalue_tri_slice`) — the charter's signature lang: -> logic: -> math:
+        // round-trip ("the p-value was 0.03" grounded as a lang:SurfaceForm
+        // denoting a logic:Formula that predicates over a well-framed math:PValue)
+        // now ships inside `gmeow.gts` itself (Design A), not only in the
+        // illustrative `examples/pvalue-tri-slice.ttl` fixture validated on disk.
+        "snapshot.v27-pvalue-tri-slice-producer"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         let mut files = Vec::new();

@@ -1,0 +1,16 @@
+# Competency question: "What are the first-class object kinds of the study & data-design
+# vocabulary?" Exercises the STATISTICS-charter "Study and data" surface: over a worked survey
+# scene the reasoning-free query reads back the asserted kind of each object making up the
+# design — the target-of-inference and measurement spine (population, frame, sample, unit,
+# variable), the variable metadata (role, scale, unit policy, missing-value code, missingness
+# indicator/mechanism), and the design apparatus (sampling weight, stratum, cluster, survey
+# design, data transformation, derived variable). Scoped so items are fixture-local and kinds
+# are math:. Over the fixture the answer is exactly the seventeen study & data-design classes.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?item ?kind WHERE {
+    ?item a ?kind .
+    FILTER(STRSTARTS(STR(?item), "http://example.org/math/"))
+    FILTER(STRSTARTS(STR(?kind), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?item

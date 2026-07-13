@@ -43,13 +43,18 @@ fn describe_resolves_carrier_tags_against_shipped_bundle() {
     // `describe_rejects_unknown_tag_but_lists_the_carriers` (which folds once and
     // reads the available set), and the internal `x-gmeow-*` path by the
     // describe.rs unit tests.
-    let (text, code) = gmeow_docs::describe(
+    let (text, status) = gmeow_docs::describe(
         "gmeow:Language",
         &bytes,
         Some("fr"),
+        gmeow_docs::card::CardFormat::Prose,
         &std::collections::BTreeSet::new(),
     );
-    assert_eq!(code, 0, "--lang fr must resolve, got: {text}");
+    assert_eq!(
+        status,
+        gmeow_docs::DescribeStatus::Ok,
+        "--lang fr must resolve, got: {text}"
+    );
     assert!(
         text.contains("gmeow:Language"),
         "--lang fr must render the term card, got: {text}"
@@ -59,13 +64,18 @@ fn describe_resolves_carrier_tags_against_shipped_bundle() {
 #[test]
 fn describe_rejects_unknown_tag_but_lists_the_carriers() {
     let bytes = bundle_bytes();
-    let (text, code) = gmeow_docs::describe(
+    let (text, status) = gmeow_docs::describe(
         "gmeow:Language",
         &bytes,
         Some("zz-nonsense"),
+        gmeow_docs::card::CardFormat::Prose,
         &std::collections::BTreeSet::new(),
     );
-    assert_eq!(code, 1, "a truly-unknown tag must hard-fail, got: {text}");
+    assert_eq!(
+        status,
+        gmeow_docs::DescribeStatus::UnknownLanguage,
+        "a truly-unknown tag must hard-fail, got: {text}"
+    );
     // The known carriers are always requestable, so the diagnostic lists them.
     // Parse the "Available languages: a, b, c" tail into a token set.
     let listed: std::collections::BTreeSet<&str> = text

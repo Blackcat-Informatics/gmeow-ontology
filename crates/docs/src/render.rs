@@ -5487,6 +5487,15 @@ fn localize_model(model: &DocsModel, lang: &str) -> DocsModel {
     };
 
     for term in &mut out.terms {
+        // Stash the authored ENGLISH label/definition before overwriting the display
+        // fields with translations. Documentation-COMPLETENESS is a property of the
+        // canonical source, not the render language (see `DocTerm::coverage_label`):
+        // the completeness badge and its scored dimensions must be identical across
+        // languages, so coverage keeps reading the English text via these fields even
+        // as the page prose is localized. Unconditional so the canonical text is
+        // preserved even when only one of the two carriers has a translation.
+        term.canonical_label = term.label.clone();
+        term.canonical_definition = term.definition.clone();
         if let Some(v) = tr_one(&term.iri, RDFS_LABEL) {
             term.label = Some(v);
         }

@@ -42,13 +42,26 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
             ));
         }
     };
-    let (text, code) = gmeow_docs::describe(term, &bytes, resolved.as_deref(), &modeled_defs);
-    if code == 0 {
-        println!("{text}");
-    } else {
-        emit_error("gmeow-dev.describe.error", text);
+    let (text, status) = gmeow_docs::describe(
+        term,
+        &bytes,
+        resolved.as_deref(),
+        gmeow_docs::card::CardFormat::Prose,
+        &modeled_defs,
+    );
+    // Map each backend failure kind to its OWN typed diagnostic code — a
+    // resolution miss, a cross-namespace ambiguity, an unknown language, and a
+    // bundle-load failure are distinct, greppable codes (mirrors the shipped
+    // `gmeow describe` mapping in `gmeow-cli::commands::describe`).
+    use gmeow_docs::DescribeStatus;
+    match status {
+        DescribeStatus::Ok => println!("{text}"),
+        DescribeStatus::Unresolved => emit_error("gmeow-dev.describe.unresolved", text),
+        DescribeStatus::Ambiguous => emit_error("gmeow-dev.describe.ambiguous", text),
+        DescribeStatus::UnknownLanguage => emit_error("gmeow-dev.lang.unknown", text),
+        DescribeStatus::LoadFailed => emit_error("gmeow-dev.describe.load-failed", text),
     }
-    code
+    status.exit_code()
 }
 
 /// `gmeow-dev export-docs --format F -d DIR [--force --lang]` — render from
