@@ -93,3 +93,36 @@ now 387/404). The remaining honest boundaries, recorded verbatim:
   session to add native AbstractIndividualType→enum support; when it lands, the
   in-repo enrichment should be retired. Fully functional today; noted as a
   bridge, not a shortfall.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-13 — issue #1358 / PR #1521 — off-gate OWL-Direct consistency differential
+
+- GREEN-PATH PRODUCTION-SURFACE RUN NOT DEMONSTRATED IN STAGE 1. The acceptance
+  criterion "`gmeow-dev reason-consistency-crosscheck` exits 0 on the committed
+  bundle" was NOT executed to completion. The whole-bundle per-world OWL-Direct
+  tableau does not finish within a ~10-minute window (killed at SIGKILL, no
+  output): the large worlds (e.g. graph/reasoning) hit the 120s/world budget.
+  The feature is FULLY built and wired (not stubbed); the end-to-end bundle run
+  is assigned to stage2/stage3 per the plan, but it has not yet been observed to
+  exit 0 on real data. Do not claim the green path is demonstrated until stage2/3
+  runs it.
+
+- EMPIRICAL VALUE DENSITY UNCHARACTERIZED / LIKELY LIMITED. Because the large,
+  clash-bearing worlds probably exceed the 120s budget, they become non-failing
+  `oracle-undecided` rows. The lane is correct and honest (green today; fails only
+  on OracleOnly among worlds the oracle DID decide), but its real differential
+  bite likely concentrates on the tractable worlds. The decided/supplement/
+  undecided distribution on the committed bundle is unknown. The 120s default
+  budget may be mistuned for a lane intended to complete; revisit in stage2/3.
+
+- OracleOnly FAIL PATH HAS NO NATURAL END-TO-END TRIGGER. A sound native engine
+  produces no OracleOnly on real data, so the fail path is exercised only by
+  feeding the production `classify_consistency` seam a crafted regression pair —
+  not through `run_consistency_crosscheck(bundle)`. By design (anti-regression
+  tripwire), but the top-level function's fail branch is not covered end-to-end.
+
+- LEAKED WORKER THREADS ON TIMEOUT. `materialize_dl` is uninterruptible; a
+  budget-exceeded world's worker runs to completion and dies only at process
+  exit. Bounded to one live at a time (sequential), but finished-not-joined
+  thread memory accumulates across a full sweep. Acceptable for a one-shot maint
+  lane; a hazard if ever looped.
