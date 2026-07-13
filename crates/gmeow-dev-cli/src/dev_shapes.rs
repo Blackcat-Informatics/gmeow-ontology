@@ -697,9 +697,6 @@ fn class_owner_modules(root: &Path) -> BTreeMap<String, PathBuf> {
 
 const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
 const RDFS_LITERAL: &str = "http://www.w3.org/2000/01/rdf-schema#Literal";
-/// The GMEOW authoring namespace the derive dogfoods (mirrors `frontend.rs` `GMEOW_NS`): only a
-/// class in this namespace owns a projected validation shape.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// The reasoner-safe OWL a shape lowers to: class-level `rdfs:subClassOf` restriction / node axioms
 /// (routed to the target class's owner module) and per-property `owl:FunctionalProperty` declarations
@@ -1332,11 +1329,12 @@ pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
                 skipped += 1;
                 continue;
             };
-            // The derive only emits validation shapes for GMEOW-namespace classes
-            // (frontend.rs `GMEOW_NS` dogfooding guard). A shape targeting a math:/lang:/logic:
-            // class can never be reproduced by the projector, so injecting OWL for it is inert —
-            // skip it (it needs a derive dogfooding extension or a logic: backing instead).
-            if !k.starts_with(GMEOW_NS) {
+            // The derive only emits validation shapes for classes/properties in an authoring
+            // namespace (`gmeow_logic_compile::frontend::AUTHORING_NAMESPACES` — the single
+            // dogfooding-boundary authority, covering `gmeow:`/`math:`/`lang:`/`logic:`). A shape
+            // targeting a genuinely external namespace (imported ontologies such as gUFO/FOAF)
+            // can never be reproduced by the projector, so injecting OWL for it is inert — skip it.
+            if !gmeow_logic_compile::frontend::is_authoring_namespace(k) {
                 println!(
                     "  [SKIP non-dogfooded-namespace] {} ({})",
                     short_iri(iri),

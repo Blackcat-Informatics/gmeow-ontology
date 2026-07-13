@@ -1371,6 +1371,27 @@ fn merge_same_path_properties(
     Ok(out)
 }
 
+/// THE single authoring-namespace authority: the four namespaces GMEOW dogfoods —
+/// the core `gmeow:` vocabulary plus the grounding slices `math:`, `lang:`, `logic:`.
+/// This is the dogfooding boundary [`derive_validation_shapes`] uses to decide which
+/// classes/properties own a *derived* validation shape, and it is also the eligibility
+/// test the `shape-migrate` injector (`gmeow-dev-cli`) consumes to decide which
+/// hand-authored legacy shapes can be retired in favor of the derived projection. Any
+/// other namespace (imported ontologies such as gUFO/FOAF, or anything external) is
+/// linked, not validated/injected, by our surface. There is exactly one copy of this
+/// set in the codebase; do not redeclare it elsewhere.
+pub const AUTHORING_NAMESPACES: [&str; 4] = [
+    "https://blackcatinformatics.ca/gmeow/",
+    "https://blackcatinformatics.ca/math/",
+    "https://blackcatinformatics.ca/lang/",
+    "https://blackcatinformatics.ca/logic/",
+];
+
+/// Whether `iri` falls in an authoring namespace — see [`AUTHORING_NAMESPACES`].
+pub fn is_authoring_namespace(iri: &str) -> bool {
+    AUTHORING_NAMESPACES.iter().any(|ns| iri.starts_with(ns))
+}
+
 pub fn derive_validation_shapes(
     store: &RdfDataset,
 ) -> gmeow_errors::Result<Vec<ValidationShapeIr>> {
@@ -1419,16 +1440,9 @@ pub fn derive_validation_shapes(
     // ontologies (gUFO, FOAF, …) are linked, not validated by our surface — and their
     // namespaces are not registered in the downstream JSON-Schema discriminator. The TARGET of
     // an `sh:class` may live in any namespace; only the SHAPE-owning class / property must be
-    // authoring-NS.
-    fn is_authoring_ns(iri: &str) -> bool {
-        const AUTHORING_NS: [&str; 4] = [
-            "https://blackcatinformatics.ca/gmeow/",
-            "https://blackcatinformatics.ca/math/",
-            "https://blackcatinformatics.ca/lang/",
-            "https://blackcatinformatics.ca/logic/",
-        ];
-        AUTHORING_NS.iter().any(|ns| iri.starts_with(ns))
-    }
+    // authoring-NS. `is_authoring_ns` here is a thin local alias of the module-level
+    // authority ([`is_authoring_namespace`]) kept for call-site brevity in this function.
+    let is_authoring_ns = is_authoring_namespace;
 
     // A range target is a DATATYPE (→ sh:datatype) rather than a class (→ sh:class) when it is
     // in the XSD space, is rdfs:Literal, or is declared `a rdfs:Datatype`.
