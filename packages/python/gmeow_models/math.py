@@ -55,16 +55,19 @@ class Math_AlgebraicStructure(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     satisfiesAxiom: list[str] = Field(min_length=1, description="Relates an algebraic structure to a math:Axiom it obeys — associativity, commutativity, distributivity. Domain math:AlgebraicStructure, range math:Axiom (stated in prose). The axiom denotes a logic: formula the logic: reasoner owns: math: declares that the structure satisfies the law, logic: reasons over it.", alias="math:satisfiesAxiom")
     structureOperation: list[str] = Field(min_length=1, description="Names a binary (or n-ary) operation of an algebraic structure — the group operation, or a ring's addition and multiplication. Domain math:AlgebraicStructure, range math:Operation (stated in prose). A ring carries two such operations; a structure with none is ill-formed.", alias="math:structureOperation")
-    underlyingSet: list[Math_Set] = Field(min_length=1, description="Names the carrier set of an algebraic structure — the elements the operations act on. Domain math:AlgebraicStructure, range math:Set (stated in prose). Every math:AlgebraicStructure declares one; a structure without a carrier is ill-formed.", alias="math:underlyingSet")
+    underlyingSet: Math_Set = Field(description="Names the carrier set of an algebraic structure — the elements the operations act on. Domain math:AlgebraicStructure, range math:Set (stated in prose). Every math:AlgebraicStructure declares one; a structure without a carrier is ill-formed.", alias="math:underlyingSet")
 
 
 class Math_ApplicationExpression(ConfiguredBaseModel):
     """Application Expression.
 
     The application of an operator to operands: the expression node an arithmetic operation
-    lowers to. Its single operator is named through math:operator; the indexed argument-slot
-    machinery that fixes operand order belongs to the mathematical-core surface this bedrock
-    builds on, and is deliberately not minted here.
+    lowers to. It applies exactly one math:operator — zero operators leave the application
+    undefined and two or more make it ambiguous which operator is applied
+    (math:ApplicationOperatorCardinality); the sibling binder AST (math:BindingExpression)
+    is not a subclass, so the obligation targets only true applications, never the binders.
+    The indexed argument-slot machinery that fixes operand order belongs to the
+    mathematical-core surface this bedrock builds on, and is deliberately not minted here.
 
     Usage:
         >>> from gmeow_models.math import Math_ApplicationExpression
@@ -118,7 +121,7 @@ class Math_ApproximateValue(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    approximates: list[Any] | None = Field(default=None, description="Names the exact number that an approximation stands in for. Domain math:ApproximateValue, range math:Number (stated in prose). The approximation and the exact number are distinct objects and are never conflated.", alias="math:approximates")
+    approximates: Math_Number = Field(description="Names the exact number that an approximation stands in for. Domain math:ApproximateValue, range math:Number (stated in prose). The approximation and the exact number are distinct objects and are never conflated.", alias="math:approximates")
     approximationError: list[Any] = Field(min_length=1, description="The magnitude by which an approximation may deviate from the exact value it approximates — an absolute error bound. Domain math:ApproximateValue, range a numeric literal (stated in prose).", alias="math:approximationError")
 
 
@@ -155,7 +158,7 @@ class Math_ArgumentSlot(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     slotExpression: str = Field(description="The math:MathematicalExpression filling one math:ArgumentSlot — the operand, or the body of a binder. Domain math:ArgumentSlot, range math:MathematicalExpression (stated in prose). Every slot names exactly one; a slot without an expression is ill-formed (math:MalformedArgumentSlot).", alias="math:slotExpression")
-    slotIndex: int = Field(description="The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Unique within one application; strict canonical mode requires the indexes zero-based and contiguous. A slot without exactly one index is ill-formed (math:MalformedArgumentSlot).", alias="math:slotIndex")
+    slotIndex: int = Field(ge=0, description="The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Unique within one application; strict canonical mode requires the indexes zero-based and contiguous. A slot without exactly one index is ill-formed (math:MalformedArgumentSlot).", alias="math:slotIndex")
 
 
 class Math_AutomorphismGroup(ConfiguredBaseModel):
@@ -164,7 +167,11 @@ class Math_AutomorphismGroup(ConfiguredBaseModel):
     The group of all automorphisms of a structure under composition — the symmetries of that
     structure. A subclass of math:Group: a symmetry group IS an automorphism group, the
     identity that makes E8's math:WeylGroup and every symmetry expressible with the same
-    machinery as det and a homomorphic-encryption scheme.
+    machinery as det and a homomorphic-encryption scheme. Every automorphism group is the
+    symmetry group OF some structure, so it declares that structure through
+    math:automorphismGroupOf (a math:WeylGroup anchors to its root system — E8's Weyl group
+    is the symmetry of the E8 root system); a free-floating automorphism group is ill-formed
+    (math:UnanchoredAutomorphismGroup).
 
     Usage:
         >>> from gmeow_models.math import Math_AutomorphismGroup
@@ -432,7 +439,7 @@ class Math_Complement(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     ambientSpace: str = Field(description="Names the ambient space a math:Complement is taken relative to (the U in a complement of S within U). Domain math:Complement, range a math:Set, math:VectorSpace, math:TopologicalSpace, or math:FunctionSpace (stated in prose) — the ambient space generalizes the set-theoretic case to the orthogonal, complex-linear, topological, and quotient cases the math:complementSemantics distinguishes. A complement without an ambient space is ill-formed (math:UnqualifiedComplement). Generalizes the earlier set-only complement predicate: a complement is relative to an ambient space, and which space and which semantics must both be named.", alias="math:ambientSpace")
-    complementSemantics: list[str] = Field(min_length=1, description="Names which notion of complement a math:Complement uses: a math:ComplementSemantics individual — set-theoretic (U ∖ S), orthogonal (S⊥ in an inner-product space), complex-linear (a complementary subspace), topological (the closed complement of an open set), or quotient/cokernel. Domain math:Complement, range math:ComplementSemantics (stated in prose). 'The complement of X' without a named semantics is ambiguous and ill-formed (math:UnqualifiedComplement) — the flagship-adjacent 'complex complement' hazard the charter forbids.", alias="math:complementSemantics")
+    complementSemantics: str = Field(description="Names which notion of complement a math:Complement uses: a math:ComplementSemantics individual — set-theoretic (U ∖ S), orthogonal (S⊥ in an inner-product space), complex-linear (a complementary subspace), topological (the closed complement of an open set), or quotient/cokernel. Domain math:Complement, range math:ComplementSemantics (stated in prose). 'The complement of X' without a named semantics is ambiguous and ill-formed (math:UnqualifiedComplement) — the flagship-adjacent 'complex complement' hazard the charter forbids.", alias="math:complementSemantics")
 
 
 class Math_ConditionalIndependenceAssertion(ConfiguredBaseModel):
@@ -551,7 +558,7 @@ class Math_ConfidenceInterval(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     confidenceLevel: list[str] = Field(min_length=1, description="Relates a math:ConfidenceInterval (or math:ConfidenceRegion) to its coverage level — a framed math:ProbabilityValue (a 0.95, a 0.99) that is the proportion of such intervals, under repeated sampling, containing the true parameter. Domain a confidence interval or region, range math:ProbabilityValue (stated in prose). The coverage is a property of the PROCEDURE, never a posterior mass; a confidence interval naming no confidence level is ill-formed (math:IncompleteConfidenceInterval). Its counterpart on the Bayesian side is math:credibleMass, which the two must never be collapsed onto one another.", alias="math:confidenceLevel")
-    hasIntervalBound: list[str] = Field(min_length=1, description="Relates an interval (a math:ConfidenceInterval, math:CredibleInterval, math:PredictionInterval, or math:ToleranceInterval) to one of its bounds — a lower or an upper endpoint of the interval. Domain an interval kind, range the bound object (stated in prose). A two-sided interval names its lower AND its upper bound (two math:hasIntervalBound edges); a confidence interval that does not name its bounds is ill-formed (math:IncompleteConfidenceInterval).", alias="math:hasIntervalBound")
+    hasIntervalBound: list[str] = Field(min_length=2, description="Relates an interval (a math:ConfidenceInterval, math:CredibleInterval, math:PredictionInterval, or math:ToleranceInterval) to one of its bounds — a lower or an upper endpoint of the interval. Domain an interval kind, range the bound object (stated in prose). A two-sided interval names its lower AND its upper bound (two math:hasIntervalBound edges); a confidence interval that does not name its bounds is ill-formed (math:IncompleteConfidenceInterval).", alias="math:hasIntervalBound")
 
 
 class Math_ConnectedSpace(ConfiguredBaseModel):
@@ -650,7 +657,7 @@ class Math_Convergence(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    convergenceMode: list[str] = Field(min_length=1, description="Relates a math:Convergence to its math:ConvergenceMode — pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution. Domain math:Convergence, range math:ConvergenceMode (stated in prose). The mode is required; convergence without a declared mode is ill-formed (math:UnderspecifiedConvergence).", alias="math:convergenceMode")
+    convergenceMode: str = Field(description="Relates a math:Convergence to its math:ConvergenceMode — pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution. Domain math:Convergence, range math:ConvergenceMode (stated in prose). The mode is required; convergence without a declared mode is ill-formed (math:UnderspecifiedConvergence).", alias="math:convergenceMode")
     convergesTo: list[str] = Field(min_length=1, description="Relates a math:Convergence to the value or expression its sequence/series converges to — a math:Number, a limit function, or a distribution. Domain math:Convergence, range a math:MathematicalObject or value (stated in prose). Every convergence names what it converges to.", alias="math:convergesTo")
 
 
@@ -740,7 +747,7 @@ class Math_Derivative(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     derivativeOf: str = Field(description="Relates a math:Derivative to the math:MathematicalExpression (or math:Function) it differentiates. Domain math:Derivative, range math:MathematicalExpression (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative).", alias="math:derivativeOf")
-    derivativeOrder: int = Field(description="The order of a math:Derivative — 1 for f′, 2 for f″, and so on. Domain math:Derivative, range xsd:positiveInteger (stated in prose). Every derivative names exactly one; a derivative without an order is ill-formed (math:UnderspecifiedDerivative).", alias="math:derivativeOrder")
+    derivativeOrder: int = Field(ge=1, description="The order of a math:Derivative — 1 for f′, 2 for f″, and so on. Domain math:Derivative, range xsd:positiveInteger (stated in prose). Every derivative names exactly one; a derivative without an order is ill-formed (math:UnderspecifiedDerivative).", alias="math:derivativeOrder")
     withRespectToVariable: str = Field(description="Relates a math:Derivative to the math:VariableDeclaration it differentiates with respect to — the bound variable of the differentiation binder. Domain math:Derivative, range math:VariableDeclaration (stated in prose). Every derivative names exactly one; a derivative without it is ill-formed (math:UnderspecifiedDerivative).", alias="math:withRespectToVariable")
 
 
@@ -784,9 +791,12 @@ class Math_DimensionExponent(ConfiguredBaseModel):
     One (base dimension, exact-rational power) cell of a derived dimension's product form:
     it names the math:BaseDimension it raises (math:exponentOfDimension) and the power, as
     an exact rational, through math:exponentNumerator over math:exponentDenominator
-    (denominator non-zero). The cells named by a math:DerivedDimension's
-    math:baseDimensionExponent edges together give its exponent vector over the seven base
-    dimensions. Rational, not decimal, so equality of dimensions is exact.
+    (denominator non-zero). The raised dimension is a base dimension only, never a derived
+    one, so the exponent vector is well-defined and acyclic; a zero denominator is not a
+    rational power and is rejected here (math:MalformedDimension), not silently dropped
+    downstream. The cells named by a math:DerivedDimension's math:baseDimensionExponent
+    edges together give its exponent vector over the seven base dimensions. Rational, not
+    decimal, so equality of dimensions is exact.
 
     Usage:
         >>> from gmeow_models.math import Math_DimensionExponent
@@ -809,7 +819,7 @@ class Math_DimensionExponent(ConfiguredBaseModel):
     type_: str | list[str] | None = Field(default=None, alias="@type")
     exponentDenominator: int = Field(description="The denominator of the exact-rational power a math:DimensionExponent raises its base dimension to. Domain math:DimensionExponent, range xsd:integer (stated in prose), non-zero. Together with math:exponentNumerator it gives an exact math:RationalNumber power; a whole-number exponent uses denominator one.", alias="math:exponentDenominator")
     exponentNumerator: int = Field(description="The numerator of the exact-rational power a math:DimensionExponent raises its base dimension to. Domain math:DimensionExponent, range xsd:integer (stated in prose). Together with math:exponentDenominator it gives an exact math:RationalNumber power — ℚ, admitting fractional dimensions such as T^(−1/2) — never a floating-point or decimal approximation.", alias="math:exponentNumerator")
-    exponentOfDimension: list[Any] | None = Field(default=None, description="Names the math:BaseDimension that a math:DimensionExponent cell raises to a power. Domain math:DimensionExponent, range math:BaseDimension only (stated in prose) — never a derived dimension, so the exponent vector is well-defined and acyclic by construction.", alias="math:exponentOfDimension")
+    exponentOfDimension: Any | None = Field(default=None, description="Names the math:BaseDimension that a math:DimensionExponent cell raises to a power. Domain math:DimensionExponent, range math:BaseDimension only (stated in prose) — never a derived dimension, so the exponent vector is well-defined and acyclic by construction.", alias="math:exponentOfDimension")
 
 
 class Math_DimensionalExpression(ConfiguredBaseModel):
@@ -817,11 +827,13 @@ class Math_DimensionalExpression(ConfiguredBaseModel):
 
     An expression whose operands must be dimensionally homogeneous — an addition, a
     subtraction, an equation, or a comparison, where every operand must share one dimension.
-    Names its operands through math:homogeneousOperand (at least two). The homogeneity gate
-    collects the dimensions of the operands and raises math:DimensionalInhomogeneity if they
-    are not all equal. This is the first-class carrier of the homogeneity invariant; the
-    full expression grammar (indexed argument slots) belongs to the mathematical-core
-    surface this bedrock builds on, which will refine this class.
+    Names its operands through math:homogeneousOperand (at least two — dimensional
+    homogeneity is vacuous for zero or one operand, math:MalformedDimension). The
+    homogeneity gate collects the dimensions of the operands and raises
+    math:DimensionalInhomogeneity if they are not all equal. This is the first-class carrier
+    of the homogeneity invariant; the full expression grammar (indexed argument slots)
+    belongs to the mathematical-core surface this bedrock builds on, which will refine this
+    class.
 
     Usage:
         >>> from gmeow_models.math import Math_DimensionalExpression
@@ -850,9 +862,16 @@ class Math_Distribution(ConfiguredBaseModel):
 
     A probability distribution: a law assigning probabilities over outcomes, named by its
     family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized.
-    A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object
-    with its family and parameterization, distinct from the math:ProbabilityMeasure it
-    induces.
+    A distribution missing its family is underspecified
+    (math:MissingDistributionParameterization). Parametricity is detected by the presence of
+    supplied parameters, never by a marker class: a distribution that supplies a
+    math:hasDistributionParameter also names its math:distributionParameterization (the
+    explicit convention fixing which parametric form of its family is meant), and fills each
+    math:DistributionParameterRole that parameterization requires exactly once
+    (math:DistributionParameterRoleCardinality), while a non-parametric distribution (no
+    supplied parameters) is not rejected. A subclass of math:MathematicalObject; an R
+    rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct
+    from the math:ProbabilityMeasure it induces.
 
     Usage:
         >>> from gmeow_models.math import Math_Distribution
@@ -1032,8 +1051,11 @@ class Math_Estimate(ConfiguredBaseModel):
     where relevant, a model parameter (math:estimatedParameter), carrying its value
     (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of
     math:MathematicalObject and the structured result object of the process / result / claim
-    separation — neither the analysis activity nor the held claim. The R broom tidy triple
-    lifts model coefficients onto these objects.
+    separation — neither the analysis activity nor the held claim, and never a bare number:
+    it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW
+    (the estimator that produced it), and one naming neither its target quantity nor a model
+    parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The
+    R broom tidy triple lifts model coefficients onto these objects.
 
     When to use:
         - Use to record a produced value that estimates an estimand — the structured result object
@@ -1145,8 +1167,8 @@ class Math_FiltrationStage(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    filtrationThreshold: list[str] = Field(min_length=1, description="Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range gmeow:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold.", alias="math:filtrationThreshold")
-    stageStructure: list[str] = Field(min_length=1, description="Relates a math:FiltrationStage to the substructure present at its threshold — the sub-space Kε of the filtered object at ε. Domain math:FiltrationStage, range math:TopologicalSpace (stated in prose). Every stage names exactly one; a stage without its structure is ill-formed (math:UnderspecifiedFiltration). The structure at a lower threshold is a math:subsetOf the structure at a higher one (math:filtrationMonotonicityLaw).", alias="math:stageStructure")
+    filtrationThreshold: str = Field(description="Relates a math:FiltrationStage to the real-valued threshold ε it sits at — the index value of the stage in the filtration. Domain math:FiltrationStage, range gmeow:Quantity (stated in prose). Every stage names exactly one; a stage without its threshold is ill-formed (math:UnderspecifiedFiltration). The monotonicity law math:filtrationMonotonicityLaw orders stages by this threshold.", alias="math:filtrationThreshold")
+    stageStructure: str = Field(description="Relates a math:FiltrationStage to the substructure present at its threshold — the sub-space Kε of the filtered object at ε. Domain math:FiltrationStage, range math:TopologicalSpace (stated in prose). Every stage names exactly one; a stage without its structure is ill-formed (math:UnderspecifiedFiltration). The structure at a lower threshold is a math:subsetOf the structure at a higher one (math:filtrationMonotonicityLaw).", alias="math:stageStructure")
 
 
 class Math_FittedModel(ConfiguredBaseModel):
@@ -1319,8 +1341,8 @@ class Math_Function(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    codomain: list[Any] | None = Field(default=None, description="The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained.", alias="math:codomain")
-    domain: list[Any] | None = Field(default=None, description="The source set of a function or relation — the set its inputs are drawn from. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a domain is ill-formed.", alias="math:domain")
+    codomain: Math_Set = Field(description="The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained.", alias="math:codomain")
+    domain: Math_Set = Field(description="The source set of a function or relation — the set its inputs are drawn from. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a domain is ill-formed.", alias="math:domain")
 
 
 class Math_GramMatrix(ConfiguredBaseModel):
@@ -1329,9 +1351,13 @@ class Math_GramMatrix(ConfiguredBaseModel):
     A Gram matrix G: the math:SymmetricMatrix of a math:SymmetricBilinearForm in a
     math:Basis, Gᵢⱼ = B(eᵢ, eⱼ). A subclass of math:SymmetricMatrix that names the form it
     represents through math:representsForm and the basis it is taken in through
-    math:inBasis. When the form is positive-definite the Gram matrix is positive-definite
-    and the quadratic form xᵀGx is a squared norm; the affect-intensity norm √(xᵀGx) is
-    grounded on such a Gram matrix of exact math:RationalValue entries.
+    math:inBasis. A Gram matrix is the matrix of a symmetric form, and its symmetry is
+    checked entry-wise — every math:MatrixEntry at (row, column) has a transpose entry at
+    (column, row) carrying the same math:entryValue; a missing or mismatched transpose entry
+    is ill-formed (math:AsymmetricGramMatrix). When the form is positive-definite the Gram
+    matrix is positive-definite and the quadratic form xᵀGx is a squared norm; the
+    affect-intensity norm √(xᵀGx) is grounded on such a Gram matrix of exact
+    math:RationalValue entries.
 
     Usage:
         >>> from gmeow_models.math import Math_GramMatrix
@@ -1352,8 +1378,8 @@ class Math_GramMatrix(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    inBasis: list[str] = Field(min_length=1, description="Relates a math:GramMatrix or a math:Vector to the math:Basis its entries or coordinates are taken relative to. Domain a math:GramMatrix or math:Vector, range math:Basis (stated in prose). Coordinates and matrix entries are basis-relative; naming the basis makes the representation unambiguous.", alias="math:inBasis")
-    representsForm: list[str] = Field(min_length=1, description="Relates a math:GramMatrix to the math:SymmetricBilinearForm it is the matrix of in a basis (Gᵢⱼ = B(eᵢ, eⱼ)). Domain math:GramMatrix, range math:SymmetricBilinearForm (stated in prose). Paired with math:inBasis — the matrix represents THIS form in THAT basis.", alias="math:representsForm")
+    inBasis: str = Field(description="Relates a math:GramMatrix or a math:Vector to the math:Basis its entries or coordinates are taken relative to. Domain a math:GramMatrix or math:Vector, range math:Basis (stated in prose). Coordinates and matrix entries are basis-relative; naming the basis makes the representation unambiguous.", alias="math:inBasis")
+    representsForm: str = Field(description="Relates a math:GramMatrix to the math:SymmetricBilinearForm it is the matrix of in a basis (Gᵢⱼ = B(eᵢ, eⱼ)). Domain math:GramMatrix, range math:SymmetricBilinearForm (stated in prose). Paired with math:inBasis — the matrix represents THIS form in THAT basis.", alias="math:representsForm")
 
 
 class Math_HomomorphicEncryptionScheme(ConfiguredBaseModel):
@@ -1484,9 +1510,13 @@ class Math_IngestRun(ConfiguredBaseModel):
     math:ProofIngestRun). It retains its source as a math:parseSource witness (the in-band
     mnemomorphic complement, marked logic:loadBearing, that discharges put after get equals
     identity), carries the process-layer in-band witness through logic:instantiatesSchema
-    and logic:instantiatesPlan, and ties each produced math: object back through
-    gmeow:wasGeneratedBy. A run that retains a source but lifts no structured math: codomain
-    and enumerates no residue is ill-formed (math:UnliftableIngest).
+    and logic:instantiatesPlan, carries its lift's law-spine on a logic:Correspondence
+    through math:ingestCorrespondence (where its rung, preservation, and loss are recorded),
+    and ties each produced math: object back through gmeow:wasGeneratedBy. A bridge run
+    without its retained source and schema/plan witness cannot support the lawful put leg
+    and is ill-formed (math:UngroundedIngestRun); a run that retains a source but lifts no
+    structured math: codomain and enumerates no residue is ill-formed
+    (math:UnliftableIngest).
 
     Usage:
         >>> from gmeow_models.math import Math_IngestRun
@@ -1544,9 +1574,9 @@ class Math_Integral(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    integrand: list[str] = Field(min_length=1, description="Names the math:MeasurableFunction a math:Integral integrates — the f in ∫_D f dμ. Domain math:Integral, range math:MeasurableFunction (stated in prose). Every integral names one.", alias="math:integrand")
+    integrand: str = Field(description="Names the math:MeasurableFunction a math:Integral integrates — the f in ∫_D f dμ. Domain math:Integral, range math:MeasurableFunction (stated in prose). Every integral names one.", alias="math:integrand")
     integrationDomain: str = Field(description="Names the domain a math:Integral integrates over — the D in ∫_D f dμ, a math:MeasurableSpace or measurable set. Domain math:Integral, range math:MeasurableSpace or math:Set (stated in prose). Every integral names one.", alias="math:integrationDomain")
-    withRespectTo: list[Any] | None = Field(default=None, description="Names the math:Measure a math:Integral integrates against — the μ in ∫_D f dμ. Domain math:Integral, range math:Measure (stated in prose). Every integral names exactly one; it is the single measure property of an integral (an expectation integrates against a probability measure). The homogeneity gate combines the integrand's dimension with this measure's to check the integral's declared result dimension.", alias="math:withRespectTo")
+    withRespectTo: Math_Measure = Field(description="Names the math:Measure a math:Integral integrates against — the μ in ∫_D f dμ. Domain math:Integral, range math:Measure (stated in prose). Every integral names exactly one; it is the single measure property of an integral (an expectation integrates against a probability measure). The homogeneity gate combines the integrand's dimension with this measure's to check the integral's declared result dimension.", alias="math:withRespectTo")
 
 
 class Math_LieGroup(ConfiguredBaseModel):
@@ -1554,8 +1584,10 @@ class Math_LieGroup(ConfiguredBaseModel):
 
     A group that is also a smooth manifold, with smooth group operations (its group-ness
     stated in prose to keep the profile clean). It carries a math:RootSystem through
-    math:hasRootSystem and a math:LieAlgebra as its infinitesimal structure. E8 is the
-    248-dimensional exceptional simple Lie group.
+    math:hasRootSystem and a math:LieAlgebra as its infinitesimal structure. The root system
+    is what makes a semisimple Lie group expressible, so a Lie group without one is
+    ill-formed (math:IncompleteLieStructure). E8 is the 248-dimensional exceptional simple
+    Lie group.
 
     Usage:
         >>> from gmeow_models.math import Math_LieGroup
@@ -1673,8 +1705,8 @@ class Math_Manifold(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    manifoldDimension: int = Field(description="The dimension of a math:Manifold — the n such that it is locally homeomorphic to ℝⁿ. Domain math:Manifold, range xsd:nonNegativeInteger (stated in prose). Every manifold declares exactly one; a manifold without a dimension is ill-formed (math:UnderspecifiedManifold). A chart's target space and a tangent space must match it (math:DimensionMismatch).", alias="math:manifoldDimension")
-    manifoldStructureKind: list[str] = Field(min_length=1, description="Relates a math:Manifold to the math:ManifoldStructureKind it carries — topological, smooth, complex, Riemannian, or Lorentzian. Domain math:Manifold, range math:ManifoldStructureKind (stated in prose). Every manifold declares exactly one; a manifold without a structure kind is ill-formed (math:UnderspecifiedManifold).", alias="math:manifoldStructureKind")
+    manifoldDimension: int = Field(ge=0, description="The dimension of a math:Manifold — the n such that it is locally homeomorphic to ℝⁿ. Domain math:Manifold, range xsd:nonNegativeInteger (stated in prose). Every manifold declares exactly one; a manifold without a dimension is ill-formed (math:UnderspecifiedManifold). A chart's target space and a tangent space must match it (math:DimensionMismatch).", alias="math:manifoldDimension")
+    manifoldStructureKind: str = Field(description="Relates a math:Manifold to the math:ManifoldStructureKind it carries — topological, smooth, complex, Riemannian, or Lorentzian. Domain math:Manifold, range math:ManifoldStructureKind (stated in prose). Every manifold declares exactly one; a manifold without a structure kind is ill-formed (math:UnderspecifiedManifold).", alias="math:manifoldStructureKind")
 
 
 class Math_MathematicalConstant(ConfiguredBaseModel):
@@ -1706,7 +1738,7 @@ class Math_MathematicalConstant(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    isExact: list[str] | None = Field(default=None, description="Declares whether a number is an exact value (true) or the abstract value a math:ApproximateValue approximates. Domain math:Number, range xsd:boolean (stated in prose). A math:MathematicalConstant is always exact.", alias="math:isExact")
+    isExact: list[bool] = Field(min_length=1, description="Declares whether a number is an exact value (true) or the abstract value a math:ApproximateValue approximates. Domain math:Number, range xsd:boolean (stated in prose). A math:MathematicalConstant is always exact.", alias="math:isExact")
     quantityValue: list[Any] | None = Field(default=None, max_length=0, description="The concrete numeric literal a value carries — the floating-point or decimal expansion of a math:ApproximateValue, or the finite count of a cardinality. Domain math:ApproximateValue or math:Cardinality, range a numeric literal (stated in prose). A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue.", alias="math:quantityValue")
 
 
@@ -1741,7 +1773,7 @@ class Math_Measure(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    measureOn: list[str] = Field(min_length=1, description="Names the math:MeasurableSpace a measure assigns mass over. Domain math:Measure, range math:MeasurableSpace (stated in prose). Every math:Measure declares one; a measure without its space is ill-formed.", alias="math:measureOn")
+    measureOn: str = Field(description="Names the math:MeasurableSpace a measure assigns mass over. Domain math:Measure, range math:MeasurableSpace (stated in prose). Every math:Measure declares one; a measure without its space is ill-formed.", alias="math:measureOn")
     totalMass: Any = Field(description="The total mass a measure assigns to its whole space — a finite non-negative number or the extended-real math:PositiveInfinity. Domain math:Measure, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. A math:ProbabilityMeasure has total mass one.", alias="math:totalMass")
 
 
@@ -1919,7 +1951,7 @@ class Math_Number(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    inNumberSystem: list[str] = Field(min_length=1, description="Situates a number in the system it belongs to. Domain math:Number, range math:NumberSystem (stated in prose). Every math:Number declares exactly one — an unsituated number is ill-formed.", alias="math:inNumberSystem")
+    inNumberSystem: str = Field(description="Situates a number in the system it belongs to. Domain math:Number, range math:NumberSystem (stated in prose). Every math:Number declares exactly one — an unsituated number is ill-formed.", alias="math:inNumberSystem")
 
 
 class Math_OddsValue(ConfiguredBaseModel):
@@ -2019,14 +2051,14 @@ class Math_PCAAnalysis(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     analysisInput: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to the object it decomposes — a data matrix, a subspace, or a residual subspace. Domain math:PCAAnalysis, range a math:MathematicalObject (a matrix, math:Subspace, or math:OrthogonalComplement) (stated in prose). The declared input of the analysis; an analysis without its input is ill-formed (math:IncompletePCAAnalysis).", alias="math:analysisInput")
-    centeringPolicy: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to its math:CenteringPolicy. Domain math:PCAAnalysis, range math:CenteringPolicy (stated in prose). Every PCA declares exactly one; the covariance it decomposes depends on it.", alias="math:centeringPolicy")
+    centeringPolicy: str = Field(description="Relates a math:PCAAnalysis to its math:CenteringPolicy. Domain math:PCAAnalysis, range math:CenteringPolicy (stated in prose). Every PCA declares exactly one; the covariance it decomposes depends on it.", alias="math:centeringPolicy")
     covarianceOperator: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to the math:CovarianceOperator it decomposes. Domain math:PCAAnalysis, range math:CovarianceOperator (stated in prose). The operator whose spectral decomposition yields the principal components; a PCA without it is ill-formed (math:IncompletePCAAnalysis).", alias="math:covarianceOperator")
     eigensolver: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to the solver used to compute the decomposition — for example a full eigendecomposition or a randomized math:SingularValueDecomposition. Domain math:PCAAnalysis, range a math:Eigendecomposition, math:SingularValueDecomposition, or named solver (stated in prose). The declared method; an analysis without it is ill-formed (math:IncompletePCAAnalysis).", alias="math:eigensolver")
     explainedVarianceRatio: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to a math:ExplainedVariance it produces — the share of total variance a component accounts for. Domain math:PCAAnalysis, range math:ExplainedVariance (stated in prose). A declared output of the analysis.", alias="math:explainedVarianceRatio")
     loadingVector: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to a math:LoadingVector it produces — the coefficients of a component in the original features. Domain math:PCAAnalysis, range math:LoadingVector (stated in prose). A declared output of the analysis.", alias="math:loadingVector")
     principalComponent: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to one of the math:PrincipalComponent directions it produces. Domain math:PCAAnalysis, range math:PrincipalComponent (stated in prose). The declared component outputs; a PCA producing none is ill-formed (math:IncompletePCAAnalysis).", alias="math:principalComponent")
     residualSubspace: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to its math:ProjectionResidual or the residual subspace left after retaining the leading components — often a math:OrthogonalComplement. Domain math:PCAAnalysis, range a math:ProjectionResidual, math:Subspace, or math:OrthogonalComplement (stated in prose). A declared output; what the residual MEANS is a math:ResidualInterpretationClaim, not a property of the subspace.", alias="math:residualSubspace")
-    scalingPolicy: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to its math:ScalingPolicy. Domain math:PCAAnalysis, range math:ScalingPolicy (stated in prose). Every PCA declares exactly one; standardizing to unit variance changes which directions carry the variance.", alias="math:scalingPolicy")
+    scalingPolicy: str = Field(description="Relates a math:PCAAnalysis to its math:ScalingPolicy. Domain math:PCAAnalysis, range math:ScalingPolicy (stated in prose). Every PCA declares exactly one; standardizing to unit variance changes which directions carry the variance.", alias="math:scalingPolicy")
     scoreVector: list[str] = Field(min_length=1, description="Relates a math:PCAAnalysis to a math:ScoreVector it produces — a data point's coordinates in the principal-component basis. Domain math:PCAAnalysis, range math:ScoreVector (stated in prose). A declared output of the analysis.", alias="math:scoreVector")
 
 
@@ -2187,7 +2219,7 @@ class Math_ProbabilityMeasure(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    totalMass: list[str] | None = Field(default=None, description="The total mass a measure assigns to its whole space — a finite non-negative number or the extended-real math:PositiveInfinity. Domain math:Measure, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. A math:ProbabilityMeasure has total mass one.", alias="math:totalMass")
+    totalMass: str | None = Field(default=None, description="The total mass a measure assigns to its whole space — a finite non-negative number or the extended-real math:PositiveInfinity. Domain math:Measure, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). It is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. A math:ProbabilityMeasure has total mass one.", alias="math:totalMass")
 
 
 class Math_ProbabilitySpace(ConfiguredBaseModel):
@@ -2327,7 +2359,7 @@ class Math_Quantity(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    hasDimension: list[Any] | None = Field(default=None, description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
+    hasDimension: str = Field(description="Names the math:Dimension a quantity, integral, or dimensioned object carries. Domain math:Quantity (or another dimensioned object such as a math:Integral), range math:Dimension (stated in prose). Every math:Quantity declares exactly one — an undimensioned quantity is ill-formed.", alias="math:hasDimension")
 
 
 class Math_RandomVariable(ConfiguredBaseModel):
@@ -2438,9 +2470,14 @@ class Math_Ring(ConfiguredBaseModel):
 
     A set with two operations — an abelian additive group and an associative multiplication
     that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two
-    math:structureOperation with the distributivity axiom through math:satisfiesAxiom. A
-    subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose
-    multiplication commutes.
+    math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It
+    also names that law through math:satisfiesDistributivity, which refines
+    math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the
+    reasoner entails the general property); the validation gate reads asserted triples, so a
+    well-formed ring asserts both. Distributivity is what makes a two-operation structure a
+    ring rather than two unrelated groups; a ring declared without it is ill-formed
+    (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a
+    math:CommutativeRing is a ring whose multiplication commutes.
 
     Usage:
         >>> from gmeow_models.math import Math_Ring
@@ -2471,7 +2508,13 @@ class Math_RootSystem(ConfiguredBaseModel):
     root-system axioms — the combinatorial heart of a semisimple Lie group. It declares its
     math:rootSystemRank, a math:CartanMatrix, a math:DynkinDiagram, and a math:WeylGroup
     (the symmetry group of the roots), and may carry its math:hasSimpleRoot base and
-    math:rootCount. E8's root system has 240 roots in rank 8.
+    math:rootCount. The Cartan matrix, Weyl group, and rank are what make E8's symmetry an
+    automorphism group; a root system missing them is ill-formed
+    (math:IncompleteLieStructure). E8's root system has 240 roots in rank 8, and a root
+    system carrying that E8 fingerprint MUST declare a math:weylGroup whose math:groupOrder
+    is 696,729,600 — the true order of W(E8) — so the flagship's numbers are a validatable
+    invariant: a corrupted Weyl order on data claiming to be E8 is rejected by value, not
+    trusted (math:WrongE8WeylOrder).
 
     Usage:
         >>> from gmeow_models.math import Math_RootSystem
@@ -2656,8 +2699,8 @@ class Math_StabilityCalibrationRecord(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     calibrationEvidence: list[Math_PersistenceLifetime] = Field(min_length=1, description="Relates a math:StabilityCalibrationRecord to the math:PersistenceLifetime whose persistence (death − birth) produced the calibrated credence — the evidence the confidence rests on. Domain math:StabilityCalibrationRecord, range math:PersistenceLifetime (stated in prose). Every record names at least one; a record with no evidence is an unwarranted number and is ill-formed (math:UngroundedStabilityCalibration).", alias="math:calibrationEvidence")
-    credenceDerivationKind: list[str] = Field(min_length=1, description="Relates a math:StabilityCalibrationRecord to the math:CredenceDerivationKind it produces — math:similarityDerivedCredence or math:persistenceDerivedCredence. Domain math:StabilityCalibrationRecord, range math:CredenceDerivationKind (stated in prose). Every record names exactly one, so which signal a calibrated logic:confidence rests on is queryable; a record without it is ill-formed (math:UngroundedStabilityCalibration).", alias="math:credenceDerivationKind")
-    stabilityGuarantee: list[Math_Theorem] = Field(min_length=1, description="Relates a math:StabilityCalibrationRecord to the math:Theorem underwriting its calibration — the stability result bounding how far the persistence, and hence the derived credence, can move under a perturbation of the underlying function (math:bottleneckStabilityTheorem, the 1-Lipschitz bottleneck bound). Domain math:StabilityCalibrationRecord, range math:Theorem (stated in prose). The warrant that turns a persistence-derived credence from a heuristic into a bounded quantity; a record without it is ill-formed (math:UngroundedStabilityCalibration).", alias="math:stabilityGuarantee")
+    credenceDerivationKind: str = Field(description="Relates a math:StabilityCalibrationRecord to the math:CredenceDerivationKind it produces — math:similarityDerivedCredence or math:persistenceDerivedCredence. Domain math:StabilityCalibrationRecord, range math:CredenceDerivationKind (stated in prose). Every record names exactly one, so which signal a calibrated logic:confidence rests on is queryable; a record without it is ill-formed (math:UngroundedStabilityCalibration).", alias="math:credenceDerivationKind")
+    stabilityGuarantee: Math_Theorem = Field(description="Relates a math:StabilityCalibrationRecord to the math:Theorem underwriting its calibration — the stability result bounding how far the persistence, and hence the derived credence, can move under a perturbation of the underlying function (math:bottleneckStabilityTheorem, the 1-Lipschitz bottleneck bound). Domain math:StabilityCalibrationRecord, range math:Theorem (stated in prose). The warrant that turns a persistence-derived credence from a heuristic into a bounded quantity; a record without it is ill-formed (math:UngroundedStabilityCalibration).", alias="math:stabilityGuarantee")
 
 
 class Math_StatisticalVariable(ConfiguredBaseModel):
@@ -2871,4 +2914,4 @@ class Math_WeightTensor(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
-    inParameterSpace: list[str] = Field(min_length=1, description="Relates a math:WeightTensor to the math:ParameterSpace it lives in. Domain math:WeightTensor, range math:ParameterSpace (stated in prose). Weights live in a declared parameter space; a weight tensor without one is ill-formed (math:UnframedWeightTensor).", alias="math:inParameterSpace")
+    inParameterSpace: str = Field(description="Relates a math:WeightTensor to the math:ParameterSpace it lives in. Domain math:WeightTensor, range math:ParameterSpace (stated in prose). Weights live in a declared parameter space; a weight tensor without one is ill-formed (math:UnframedWeightTensor).", alias="math:inParameterSpace")
