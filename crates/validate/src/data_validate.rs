@@ -252,6 +252,11 @@ pub fn run(
         run_deep_pass(gts_bytes, data_bytes, data_format, origin, &mut report);
     }
 
+    // The single proof-carrying enrichment pass: rule identity (catalog help URIs)
+    // + DSL-authored remediation on every finding, so the CLI consumer report
+    // carries the same enrichment as the pipeline validate stage.
+    crate::enrich::enrich_findings(&mut report);
+
     Ok(report)
 }
 

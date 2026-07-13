@@ -203,12 +203,15 @@ impl Stage for ValidateStage {
             })?
             .span_index()?;
         crate::ingest::enrich_findings_with_spans(&mut report, &spans);
-        // Attach the DSL-authored remediation prose onto each finding through the
-        // annotate-by-fingerprint seam (D1): resolve each finding's code to the rule
-        // catalogue's remediation guidance and hang it on the finding via
-        // `DiagLedger::annotate`, so the RENDERED SARIF `fixes` (and CLI/HTML "how to
-        // fix" lines) are the genuine product of the annotate API, not a bypass.
-        gmeow_validate::remediation::attach_remediations(&mut report);
+        // The single proof-carrying enrichment pass (Part 1): populate rule identity
+        // (catalog help URIs) onto `report.rules`, then attach the DSL-authored
+        // remediation prose onto each finding through the annotate-by-fingerprint seam
+        // (D1) — resolve each finding's code to the rule catalogue's remediation
+        // guidance and hang it on the finding via `DiagLedger::annotate`, so the
+        // RENDERED SARIF `fixes` (and CLI/HTML "how to fix" lines) are the genuine
+        // product of the annotate API, not a bypass. Shared with the CLI consumer path
+        // (`gmeow_validate::data_validate::run`) so the two surfaces cannot drift.
+        gmeow_validate::enrich::enrich_findings(&mut report);
         // Build the reasoner-derived gate-verdict program ONCE from the authored source
         // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
