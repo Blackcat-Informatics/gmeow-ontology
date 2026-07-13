@@ -499,13 +499,13 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
             let slug = term_slug(term);
             files.insert(
                 format!("terms/{slug}/card.md"),
-                term_card_md_inner(term, &alignment_facets).into_bytes(),
+                term_card_md_inner(term, &alignment_facets, model).into_bytes(),
             );
             // card.json — the standard-tier neutral card, deterministically
             // serialized (the `Card` derives `Serialize` with a fixed field
             // order and every internal collection is already ordered).
-            let standard =
-                doc_term_card(term, &alignment_facets).projected(crate::card::CardDetail::Standard);
+            let standard = doc_term_card(term, &alignment_facets, model)
+                .projected(crate::card::CardDetail::Standard);
             let json = serde_json::to_vec(&standard).unwrap_or_else(|e| {
                 // A pure-data `Card` of `String`/`Vec`/`Option` fields cannot fail
                 // to serialize; a failure here is a genuine invariant break.
@@ -6583,7 +6583,7 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
     let alignment_facets = precompute_alignment_facets(model);
     out.push_str("## Terms\n\n");
     for term in &model.terms {
-        out.push_str(&term_full_block(term, &alignment_facets));
+        out.push_str(&term_full_block(term, &alignment_facets, model));
     }
 
     if !model.concerns.is_empty() {
@@ -6635,10 +6635,11 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
 /// shared core of both the per-term card and the `llms-full.txt` inlined block.
 /// Pure markdown text (no links), so it is safe to inline anywhere. Takes the
 /// precomputed alignment facets so a caller emitting every term pays the linkage
-/// scan ONCE (not O(N²)).
-fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
+/// scan ONCE (not O(N²)), and `model` so the term→model link can be gated on the
+/// schema-fragment digest (see [`doc_term_card`]).
+fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets, model: &DocsModel) -> String {
     crate::card::render_card_body(
-        &doc_term_card(term, alignment_facets),
+        &doc_term_card(term, alignment_facets, model),
         crate::card::CardDetail::Standard,
     )
 }
@@ -6647,10 +6648,37 @@ fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
 /// every IRI-bearing field to its display (local-name) form. The shared
 /// [`crate::card::render_card_body`] then renders it — the SAME renderer the
 /// folded-snapshot MCP card uses, so the two never diverge (§19 one-path).
-fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::card::Card {
+fn doc_term_card(
+    term: &DocTerm,
+    alignment_facets: &AlignmentFacets,
+    model: &DocsModel,
+) -> crate::card::Card {
     let label = match &term.label {
         Some(l) if l != &term.curie => Some(l.clone()),
         _ => None,
+    };
+    // The explicit term→model link (§19): a modeled class carries the importable
+    // dotted path of its generated Pydantic model plus a compact construct/validate
+    // snippet, from the SAME emitter routing the Python example tab uses (never
+    // duplicated). Gated on the SAME schema-fragment digest as
+    // [`python_syntax_tab`] — only a class with an actually-generated model has a
+    // schema fragment to route to.
+    let is_modeled = term.category == DocTermCategory::Class
+        && model
+            .schema_fragments
+            .as_ref()
+            .is_some_and(|digest| digest.schema_by_term.contains_key(&term.iri));
+    let (python_model, python_snippet) = if is_modeled {
+        (
+            Some(crate::card::python_model_path(&term.owner_slice, &term.iri)),
+            Some(crate::card::python_model_snippet(
+                &term.owner_slice,
+                &term.iri,
+                &term.curie,
+            )),
+        )
+    } else {
+        (None, None)
     };
     crate::card::Card {
         category: category_singular(term.category).to_string(),
@@ -6677,6 +6705,8 @@ fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::c
             .get(term.iri.as_str())
             .cloned()
             .unwrap_or_default(),
+        python_model,
+        python_snippet,
         // Full-tier rich panels: never populated on the docs-site path.
         ..crate::card::Card::default()
     }
@@ -6708,7 +6738,7 @@ fn full_card_for(
     alignment_facets: &AlignmentFacets,
     fixtures_by_curie: &FixturesByCurie<'_>,
 ) -> crate::card::Card {
-    let mut card = doc_term_card(term, alignment_facets);
+    let mut card = doc_term_card(term, alignment_facets, model);
 
     // Entailments — the reasoner "why" derivations documenting the term.
     if let Some(entailments) = exec.term_entailments.get(&term.iri) {
@@ -6784,12 +6814,16 @@ fn full_card_for(
 
 /// The full inlined block for one term in `llms-full.txt`: a `### {curie}{signature}`
 /// heading followed by the shared [`term_body`].
-fn term_full_block(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
+fn term_full_block(
+    term: &DocTerm,
+    alignment_facets: &AlignmentFacets,
+    model: &DocsModel,
+) -> String {
     format!(
         "### {}{}\n\n{}",
         term.curie,
         term_signature(term),
-        term_body(term, alignment_facets)
+        term_body(term, alignment_facets, model)
     )
 }
 
@@ -6799,17 +6833,21 @@ fn term_full_block(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String
 /// injection. Emitted at `terms/{slug}/card.md` and served live over MCP.
 pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
     let alignment_facets = precompute_alignment_facets(model);
-    term_card_md_inner(term, &alignment_facets)
+    term_card_md_inner(term, &alignment_facets, model)
 }
 
 /// [`term_card_md`] with the alignment facets supplied — lets `render_site_lang`
 /// emit every card while paying the linkage scan once.
-fn term_card_md_inner(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
+fn term_card_md_inner(
+    term: &DocTerm,
+    alignment_facets: &AlignmentFacets,
+    model: &DocsModel,
+) -> String {
     format!(
         "# {}{}\n\n{}",
         term.curie,
         term_signature(term),
-        term_body(term, alignment_facets)
+        term_body(term, alignment_facets, model)
     )
 }
 
@@ -7296,7 +7334,8 @@ mod tests {
         // The standard tier carries NO rich-panel keys.
         assert!(parsed.get("entailments").is_none(), "standard omits panels");
         let facets = precompute_alignment_facets(&model);
-        let expected = doc_term_card(foo, &facets).projected(crate::card::CardDetail::Standard);
+        let expected =
+            doc_term_card(foo, &facets, &model).projected(crate::card::CardDetail::Standard);
         let expected_bytes = serde_json::to_vec(&expected).expect("serialize standard card");
         assert_eq!(
             bytes, &expected_bytes,
@@ -7320,7 +7359,7 @@ mod tests {
         );
         // The full body is a strict superset of the standard body (single renderer).
         let standard_body = crate::card::render_card_body(
-            &doc_term_card(foo, &facets),
+            &doc_term_card(foo, &facets, &model),
             crate::card::CardDetail::Standard,
         );
         assert!(

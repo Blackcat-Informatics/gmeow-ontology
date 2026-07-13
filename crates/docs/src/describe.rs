@@ -372,12 +372,55 @@ fn selected_single(
     Some(marked(&descs[sel.index].lexical, sel.is_fallback, "en"))
 }
 
+/// The SHACL→JSON-Schema keying namespaces (the `gmeow` primary prefix plus the
+/// authored `logic`/`lang`/`math` prefixes) [`purrdf::shapes::json_schema::
+/// Namespaces::def_key`] needs to compute a class's `$defs` key — the SAME table
+/// `gmeow-pipeline`'s (private) `crate::gmeow_ns::gmeow_json_schema_namespaces`
+/// builds. Declared here rather than imported because `gmeow-pipeline` depends on
+/// `gmeow-docs` (importing it back would be circular); the four namespace
+/// literals are already independently declared in both crates (mirrors
+/// `crates/docs/src/model.rs`'s own `LOGIC_NS`/`LANG_NS`/`MATH_NS`). Construction
+/// cannot fail: `gmeow` is always declared.
+fn json_schema_namespaces() -> purrdf::Namespaces {
+    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+    const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+    purrdf::Namespaces::new(
+        "gmeow",
+        &[
+            ("gmeow".to_owned(), NAMESPACE.to_owned()),
+            ("logic".to_owned(), LOGIC_NS.to_owned()),
+            ("lang".to_owned(), LANG_NS.to_owned()),
+            ("math".to_owned(), MATH_NS.to_owned()),
+        ],
+    )
+    .expect("gmeow primary prefix is always declared")
+}
+
+/// Whether `term` (a documented CLASS IRI) names a `$defs` entry in
+/// `modeled_defs` — the "this class has a generated Pydantic model" existence
+/// signal EVERY term→model gate must share (§19 one-path): the docs-site card
+/// (`crate::render::doc_term_card`) and the folded/MCP card
+/// (`gmeow_pipeline::stages::export::term_to_card`) key `$defs` the SAME way, so
+/// a term never disagrees on whether it carries a `python_model` link (issue:
+/// Pydantic model surface, finding F3).
+fn class_is_modeled(term: &str, modeled_defs: &BTreeSet<String>) -> bool {
+    modeled_defs.contains(&json_schema_namespaces().def_key(term))
+}
+
 /// Compose the canonical [`Card`] for `term` from the graph.
+///
+/// `modeled_defs` is the JSON Schema `$defs` key set (the caller's
+/// model-existence signal, e.g. `gmeow_pipeline::bundle_blobs::Bundle::
+/// modeled_def_keys` over the same GTS bundle) — `describe`/`build_card` cannot
+/// reach it on their own (a GTS bundle carries no SHACL/JSON-Schema surface as
+/// queryable RDF triples), so the caller threads it in explicitly.
 pub fn build_card(
     graph: &DescribeGraph,
     term: &str,
     selector: &LangSelector,
     tag_map: &std::collections::HashMap<String, String>,
+    modeled_defs: &BTreeSet<String>,
 ) -> Card {
     let local = term.strip_prefix(NAMESPACE).unwrap_or(term).to_owned();
 
@@ -453,19 +496,28 @@ pub fn build_card(
 
     // The explicit term→model link: a modeled class carries the importable dotted
     // path of its generated Pydantic model plus a compact construct/validate
-    // snippet, computed via the SAME emitter routing (never duplicated). Only a
-    // class with an owning slice has a generated model to route to.
-    let (python_model, python_snippet) = match (category.as_str(), defined_by.as_deref()) {
-        ("Class", Some(slice_iri)) => (
-            Some(crate::card::python_model_path(slice_iri, term)),
-            Some(crate::card::python_model_snippet(
-                slice_iri,
-                term,
-                &short(term),
-            )),
-        ),
-        _ => (None, None),
-    };
+    // snippet, computed via the SAME emitter routing (never duplicated). Gated on
+    // `class_is_modeled` (the class actually names a `$defs` entry) — an abstract
+    // class with no SHACL NodeShape has NO generated model, and unconditionally
+    // emitting the link (the pre-fix gate: `category == "Class" && defined_by.
+    // is_some()`) fabricated an ImportError for a user who copied it (issue:
+    // Pydantic model surface, finding F3). The slice defaults to "" (matching
+    // `crate::render::doc_term_card`'s `DocTerm::owner_slice: String`) so the two
+    // builders never disagree over a modeled class with no recovered slice.
+    let (python_model, python_snippet) =
+        if category == "Class" && class_is_modeled(term, modeled_defs) {
+            let slice_iri = defined_by.as_deref().unwrap_or("");
+            (
+                Some(crate::card::python_model_path(slice_iri, term)),
+                Some(crate::card::python_model_snippet(
+                    slice_iri,
+                    term,
+                    &short(term),
+                )),
+            )
+        } else {
+            (None, None)
+        };
 
     Card {
         category,
@@ -526,11 +578,22 @@ fn category_for(types: &[String]) -> String {
 /// * `lang` — the already-resolved language request (`None` → the English
 ///   carrier); the env/`--lang` precedence is the caller's (the consumer bin's)
 ///   concern.
+/// * `modeled_defs` — the JSON Schema `$defs` key set for THIS bundle (e.g.
+///   `gmeow_pipeline::bundle_blobs::Bundle::modeled_def_keys`), the
+///   model-existence signal [`build_card`] gates a class's `python_model` link
+///   on. `describe` cannot derive this itself (a GTS bundle carries no SHACL/
+///   JSON-Schema surface as queryable RDF triples), so the caller — which reads
+///   the SAME bundle bytes — computes and threads it in.
 ///
 /// Returns `(text, exit_code)`: the rendered Markdown card with code `0`, or a
 /// diagnostic message with a non-zero code on a load / unknown-term /
 /// unknown-language failure.
-pub fn describe(query: &str, gts_bytes: &[u8], lang: Option<&str>) -> (String, i32) {
+pub fn describe(
+    query: &str,
+    gts_bytes: &[u8],
+    lang: Option<&str>,
+    modeled_defs: &BTreeSet<String>,
+) -> (String, i32) {
     let graph = match DescribeGraph::from_gts_bytes(gts_bytes) {
         Ok(graph) => graph,
         Err(e) => return (e.to_string(), 1),
@@ -600,7 +663,7 @@ pub fn describe(query: &str, gts_bytes: &[u8], lang: Option<&str>) -> (String, i
         }
     };
 
-    let card = build_card(&graph, &term, &selector, &tag_map);
+    let card = build_card(&graph, &term, &selector, &tag_map, modeled_defs);
     let local = term.strip_prefix(NAMESPACE).unwrap_or(&term);
     (
         render_card(&format!("gmeow:{local}"), &card, CardDetail::Standard),
@@ -720,7 +783,7 @@ mod tests {
     #[test]
     fn describe_known_term_returns_prose_and_zero() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, None);
+        let (text, code) = describe("SampleTerm", &gts, None, &BTreeSet::new());
         assert_eq!(code, 0, "{text}");
         assert!(text.contains("gmeow:SampleTerm"), "{text}");
         assert!(text.contains("English definition text."), "{text}");
@@ -728,10 +791,40 @@ mod tests {
         assert!(text.contains("slice: lifecycle"), "{text}");
     }
 
+    /// `class_is_modeled` gate (issue: Pydantic model surface, finding F3): a
+    /// Class with NO `$defs` entry for its `def_key` must never carry a
+    /// `python_model` line, even though the pre-fix gate (`category == "Class" &&
+    /// defined_by.is_some()`) would have fabricated one for every documented
+    /// class regardless of whether a generated model actually exists. A class
+    /// whose `def_key` IS in `modeled_defs` gets the link.
+    #[test]
+    fn describe_gates_python_model_on_schema_defs_membership() {
+        let gts = multilingual_gts(true, true);
+
+        // Empty `$defs` set: SampleTerm is a documented Class, but unmodeled.
+        let (text, code) = describe("SampleTerm", &gts, None, &BTreeSet::new());
+        assert_eq!(code, 0, "{text}");
+        assert!(
+            !text.to_lowercase().contains("python model"),
+            "an unmodeled class must never carry a python_model line:\n{text}"
+        );
+
+        // SampleTerm's bare local name IS its `def_key` in the primary `gmeow`
+        // namespace, so this membership set says "SampleTerm has a model".
+        let mut modeled = BTreeSet::new();
+        modeled.insert("SampleTerm".to_string());
+        let (text, code) = describe("SampleTerm", &gts, None, &modeled);
+        assert_eq!(code, 0, "{text}");
+        assert!(
+            text.contains("**Python model:** `gmeow_models.lifecycle.SampleTerm`"),
+            "a modeled class must carry the python_model line:\n{text}"
+        );
+    }
+
     #[test]
     fn describe_renders_french_without_fallback() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some("fr"));
+        let (text, code) = describe("SampleTerm", &gts, Some("fr"), &BTreeSet::new());
         assert_eq!(code, 0, "{text}");
         assert!(text.contains("Définition en français."), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
@@ -740,7 +833,7 @@ mod tests {
     #[test]
     fn describe_renders_mandarin_without_fallback() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some("zh"));
+        let (text, code) = describe("SampleTerm", &gts, Some("zh"), &BTreeSet::new());
         assert_eq!(code, 0, "{text}");
         assert!(text.contains("中文定义。"), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
@@ -750,7 +843,7 @@ mod tests {
     fn describe_falls_back_to_english_when_language_absent() {
         // English-only fixture, French requested → the carrier fallback marker.
         let gts = multilingual_gts(false, false);
-        let (text, code) = describe("SampleTerm", &gts, Some("fr"));
+        let (text, code) = describe("SampleTerm", &gts, Some("fr"), &BTreeSet::new());
         assert_eq!(code, 0, "{text}");
         assert!(text.contains("English definition text."), "{text}");
         assert!(text.contains("fallback: en"), "{text}");
@@ -763,7 +856,7 @@ mod tests {
         // English rather than hard-failing, and every carrier is listed. A
         // truly-unknown tag still hard-fails.
         let gts = multilingual_gts(true, false);
-        let (text, code) = describe("SampleTerm", &gts, Some("notatag"));
+        let (text, code) = describe("SampleTerm", &gts, Some("notatag"), &BTreeSet::new());
         assert_ne!(code, 0, "{text}");
         assert!(
             text.to_lowercase().contains("unknown language tag"),
@@ -774,7 +867,7 @@ mod tests {
 
         // The contentless zh carrier resolves with the English fallback marker,
         // never an "unknown language" hard-fail.
-        let (zh_text, zh_code) = describe("SampleTerm", &gts, Some("zh"));
+        let (zh_text, zh_code) = describe("SampleTerm", &gts, Some("zh"), &BTreeSet::new());
         assert_eq!(
             zh_code, 0,
             "a contentless carrier must fall back: {zh_text}"
@@ -786,7 +879,7 @@ mod tests {
     fn describe_empty_lang_selects_english_carrier() {
         // An explicit empty request maps to the default English carrier.
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("SampleTerm", &gts, Some(""));
+        let (text, code) = describe("SampleTerm", &gts, Some(""), &BTreeSet::new());
         assert_eq!(code, 0, "{text}");
         assert!(text.contains("English definition text."), "{text}");
         assert!(!text.contains("fallback: en"), "{text}");
@@ -795,7 +888,7 @@ mod tests {
     #[test]
     fn describe_unknown_term_returns_nonzero() {
         let gts = multilingual_gts(true, true);
-        let (text, code) = describe("NoSuchTermAtAll", &gts, None);
+        let (text, code) = describe("NoSuchTermAtAll", &gts, None, &BTreeSet::new());
         assert_ne!(code, 0);
         assert!(text.contains("NoSuchTermAtAll"), "{text}");
     }
@@ -806,7 +899,7 @@ mod tests {
         // resolves; a shorter, colliding query would list candidates. Here we prove
         // the case-insensitive exact-name path works for the mixed-case query.
         let gts = multilingual_gts(true, true);
-        let (_, code) = describe("sampleterm", &gts, None);
+        let (_, code) = describe("sampleterm", &gts, None, &BTreeSet::new());
         assert_eq!(code, 0);
     }
 
@@ -831,7 +924,7 @@ mod tests {
 
     #[test]
     fn describe_invalid_gts_bytes_is_nonzero() {
-        let (text, code) = describe("SampleTerm", b"not a gts bundle", None);
+        let (text, code) = describe("SampleTerm", b"not a gts bundle", None, &BTreeSet::new());
         assert_ne!(code, 0);
         assert!(!text.is_empty());
     }

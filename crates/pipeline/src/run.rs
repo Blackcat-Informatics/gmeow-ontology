@@ -266,12 +266,21 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-lpg", "lpg"),
         ("stage-export-yaml-ld", "yaml_ld"),
         ("stage-export-metadata", "metadata"),
-        ("stage-export-export", "export"),
         ("stage-export-okf", "okf"),
         ("stage-export-parquet", "parquet"),
     ] {
         stages.push(st(id, impl_key, &["stage-snapshot"]));
     }
+    // `stage-export-export` additionally consumes THIS run's fresh
+    // `stage-export-json-schema` product: its `llms-full.txt` inlined cards gate
+    // their `python_model` link on the JSON Schema `$defs` key set (a class with
+    // no `$defs` entry has no generated Pydantic model), so it needs the schema
+    // in hand, not only the snapshot fold.
+    stages.push(st(
+        "stage-export-export",
+        "export",
+        &["stage-export-json-schema", "stage-snapshot"],
+    ));
 
     // ── source-reading export leaves (independent; read slices/metadata/evals) ──
     for (id, impl_key) in [
