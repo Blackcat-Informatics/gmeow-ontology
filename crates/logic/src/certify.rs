@@ -47,7 +47,7 @@
 //!   Python `_predicate_key` fold over `terms()[1]` reproduces the Python key
 //!   byte-for-byte.
 //!
-//! Therefore [`predicate_key`] re-implements Python's `_predicate_key`:
+//! Therefore `eval_predicate_key` re-implements Python's `_predicate_key`:
 //! `predicate IRI` from `Atom::predicate()`, and — when the predicate is
 //! `rdf:type` and the object term is **not** a variable — the bare object IRI
 //! in the canonical IR. The rendered cycle string `[P -> Q -> P]` is thus
@@ -173,7 +173,7 @@ struct PosTerm {
 /// body predicate keys, and negative (negation-as-failure) body predicate keys,
 /// plus the S/O position lists the weak-acyclicity analysis consumes.
 ///
-/// The keys are computed by [`predicate_key`] so they match the Python IR's
+/// The keys are computed by [`eval_predicate_key`] so they match the Python IR's
 /// `_predicate_key` byte-for-byte (see the module docs).
 struct RuleView {
     head_keys: Vec<String>,
@@ -549,7 +549,7 @@ fn is_stratified(graph: &DepGraph) -> bool {
 /// `py.rs` materialize routing phase can dispatch stratifiable
 /// programs to the stratified chase and non-stratifiable ones to the native
 /// well-founded / stable-model evaluators.  Additive; reuses
-/// [`parse_rule_views`], [`DepGraph`], and [`is_stratified`] verbatim.
+/// [`eval_rule_views`], [`DepGraph`], and [`is_stratified`] verbatim.
 ///
 /// # Errors
 ///
@@ -569,7 +569,7 @@ pub(crate) fn is_stratifiable(rules: &[crate::rule_ir::EvalRule]) -> bool {
 /// `(rule, predicate, stratum)` coordinate the deterministic cost vector
 /// ([`crate::cost::CostVector`]) buckets committed derivations by.
 ///
-/// Reuses the existing SCC/stratification machinery verbatim: [`parse_rule_views`]
+/// Reuses the existing SCC/stratification machinery verbatim: [`eval_rule_views`]
 /// → [`DepGraph`] → [`DepGraph::sccs`] (the same Tarjan condensation the
 /// stratifiability check runs). A predicate's stratum is the length of the longest
 /// chain of cross-SCC dependency edges (head → body) from it down to a predicate it
@@ -579,14 +579,14 @@ pub(crate) fn is_stratifiable(rules: &[crate::rule_ir::EvalRule]) -> bool {
 /// DAG, so the longest-chain depth is well-defined and terminating even for a
 /// non-stratifiable program (a negative cycle collapses into one SCC).
 ///
-/// **rdf:type fold collapse.** [`predicate_key`] folds a ground `rdf:type` object
+/// **rdf:type fold collapse.** [`eval_predicate_key`] folds a ground `rdf:type` object
 /// into the SCC node key (`"{rdf:type} {class}"`) for finer recursion analysis; the
 /// cost vector keys on the BARE predicate of a materialized row, so several
 /// class-folded keys collapse onto the bare `rdf:type` predicate here, taking the
 /// MAX (deepest) stratum among them. For every non-`rdf:type` predicate the key IS
 /// the bare IRI, so the projection is exact.
 ///
-/// Deterministic: `parse_rule_views`, `DepGraph` (`BTreeSet`/`BTreeMap`), and
+/// Deterministic: `eval_rule_views`, `DepGraph` (`BTreeSet`/`BTreeMap`), and
 /// `sccs()` are all order-stable, and the result is a sorted [`BTreeMap`].
 ///
 /// # Errors
@@ -744,7 +744,7 @@ fn certify_dl_safe(views: &[RuleView]) -> Vec<String> {
 ///
 /// Positions are `(predicate_key, slot)` with slot ∈ {`"S"`,`"O"`} — the logical
 /// subject/object slots (the world slot and the constant predicate are excluded,
-/// see [`logical_terms`]); this matches Python, where the predicate term is never
+/// see `logical terms`); this matches Python, where the predicate term is never
 /// a variable so no `"P"` position is ever emitted.
 fn certify_weak_acyclicity(views: &[RuleView]) -> Vec<String> {
     type Pos = (String, &'static str);

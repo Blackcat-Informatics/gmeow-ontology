@@ -6,14 +6,13 @@
 //! The bench corpus is a NEW sibling of the OWL-consistency `cases/external/` tree.
 //! Each `cases/bench/<corpus>/` directory carries a `corpus.json`
 //! ([`crate::external::corpus::CorpusMeta`]) whose declared SPDX license is audited
-//! with the SAME [`audit_vendorable`] gate the external corpora use — a
+//! with the SAME `audit_vendorable` gate the external corpora use — a
 //! non-vendorable (REFERENCE_ONLY / unknown) license is a HARD FAIL, never a
 //! silently-loaded case. Each `<corpus>/<case>/` directory carries the four
 //! benchmark artifacts:
 //!
-//! * `program.rules` — engine rule text. For `forward`/`existential` cases this is
-//!   the world-scoped ternary `#[name(...)]` surface
-//!   accepted by the native benchmark adapters; for `backward` cases it is the
+//! * `program.rules` — corpus-local fixture text. Forward and existential cases are
+//!   parsed here into typed engine inputs before evaluation; backward cases use the
 //!   goal-directed `.logic` query surface
 //!   [`gmeow_logic::query_ir::parse_query_program`] parses and
 //!   [`gmeow_logic::dispatch::dispatch_query`] consumes (the EDB is supplied
@@ -128,6 +127,254 @@ pub struct BenchCase {
     pub delta_nq: String,
     /// The hand-derived golden, keyed by world IRI (sorted).
     pub golden: std::collections::BTreeMap<String, GoldenWorld>,
+}
+
+impl BenchCase {
+    /// Parse this corpus fixture into the canonical typed logic program consumed by
+    /// the native forward, incremental, and grounding seams.
+    ///
+    /// The compact `program.rules` syntax is a storage format local to the benchmark
+    /// corpus. It never crosses into the engine API.
+    pub fn canonical_program(&self) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicProgram> {
+        use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
+
+        let rules = parse_fixture_rules(&self.rules)?;
+        let mut canonical = Vec::with_capacity(rules.len());
+        for rule in rules {
+            if rule.head.subject.existential
+                || rule.head.object.existential
+                || rule
+                    .body
+                    .iter()
+                    .any(|atom| atom.subject.existential || atom.object.existential)
+            {
+                return Err(fixture_err(format!(
+                    "{}/{}: existential variable found where a finite canonical program was required",
+                    self.corpus, self.name
+                )));
+            }
+            let head = fixture_axiom(&rule.head)?;
+            let body = rule
+                .body
+                .iter()
+                .map(fixture_axiom)
+                .collect::<gmeow_errors::Result<Vec<LogicAxiom>>>()?;
+            let scope = ContextualScope {
+                provenance: Some(rule.rule_iri),
+                ..ContextualScope::default()
+            };
+            canonical.push(LogicRule::new(head, body, Vec::new(), scope));
+        }
+        Ok(LogicProgram::new(Vec::new(), canonical, Vec::new(), None))
+    }
+
+    /// Parse this existential corpus fixture into structured restricted-chase rules.
+    ///
+    /// The returned rules are the typed public boundary; compact fixture parsing is
+    /// contained in this corpus adapter.
+    pub fn existential_rules(
+        &self,
+    ) -> gmeow_errors::Result<Vec<gmeow_logic::materialize::StructuredExistentialRule>> {
+        use gmeow_logic::materialize::{StructuredAtom, StructuredExistentialRule, StructuredTerm};
+
+        fn term(term: &FixtureTerm) -> StructuredTerm {
+            if term.value.starts_with('?') {
+                StructuredTerm::var(&term.value)
+            } else {
+                StructuredTerm::named(&term.value)
+            }
+        }
+
+        fn atom(atom: &FixtureAtom) -> StructuredAtom {
+            StructuredAtom::new(term(&atom.subject), &atom.predicate, term(&atom.object))
+        }
+
+        parse_fixture_rules(&self.rules)?
+            .into_iter()
+            .map(|rule| {
+                if rule
+                    .body
+                    .iter()
+                    .any(|body| body.negated || body.subject.existential || body.object.existential)
+                {
+                    return Err(fixture_err(format!(
+                        "{}/{}: existential benchmark bodies must be positive and frontier-bound",
+                        self.corpus, self.name
+                    )));
+                }
+                Ok(StructuredExistentialRule {
+                    rule_iri: rule.rule_iri,
+                    body: rule.body.iter().map(atom).collect(),
+                    head: vec![atom(&rule.head)],
+                    distinct: Vec::new(),
+                    witness_frontier: None,
+                })
+            })
+            .collect()
+    }
+}
+
+#[derive(Debug)]
+struct FixtureTerm {
+    value: String,
+    existential: bool,
+}
+
+#[derive(Debug)]
+struct FixtureAtom {
+    subject: FixtureTerm,
+    predicate: String,
+    object: FixtureTerm,
+    negated: bool,
+}
+
+#[derive(Debug)]
+struct FixtureRule {
+    rule_iri: String,
+    head: FixtureAtom,
+    body: Vec<FixtureAtom>,
+}
+
+fn fixture_err(detail: String) -> Diag {
+    Diag::of_kind(CorpusInvalid { detail })
+}
+
+fn fixture_axiom(atom: &FixtureAtom) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicAxiom> {
+    gmeow_logic_compile::ir::LogicAxiom::new(
+        &atom.subject.value,
+        &atom.predicate,
+        &atom.object.value,
+        false,
+        atom.negated,
+        gmeow_logic_compile::ir::ContextualScope::default(),
+    )
+}
+
+fn parse_fixture_rules(source: &str) -> gmeow_errors::Result<Vec<FixtureRule>> {
+    let mut rules = Vec::new();
+    let mut name = None;
+    let mut statement = String::new();
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('%') {
+            continue;
+        }
+        if let Some(inner) = trimmed
+            .strip_prefix("#[name(\"")
+            .and_then(|value| value.strip_suffix("\")]"))
+        {
+            name = Some(inner.to_owned());
+            continue;
+        }
+        if !statement.is_empty() {
+            statement.push(' ');
+        }
+        statement.push_str(trimmed);
+        if !trimmed.ends_with('.') {
+            continue;
+        }
+        let text = statement.trim_end_matches('.').trim();
+        let (head, body) = text
+            .split_once(":-")
+            .ok_or_else(|| fixture_err(format!("benchmark rule lacks ':-': {text}")))?;
+        rules.push(FixtureRule {
+            rule_iri: name
+                .take()
+                .unwrap_or_else(|| format!("urn:gmeow:benchmark-rule:{}", rules.len())),
+            head: parse_fixture_atom(head, false)?,
+            body: split_fixture_atoms(body)
+                .into_iter()
+                .map(|text| {
+                    let negated = text.trim_start().starts_with('~');
+                    parse_fixture_atom(text, negated)
+                })
+                .collect::<gmeow_errors::Result<Vec<_>>>()?,
+        });
+        statement.clear();
+    }
+    if !statement.trim().is_empty() {
+        return Err(fixture_err(format!(
+            "unterminated benchmark rule: {statement}"
+        )));
+    }
+    Ok(rules)
+}
+
+fn split_fixture_atoms(body: &str) -> Vec<&str> {
+    let mut atoms = Vec::new();
+    let mut depth = 0u32;
+    let mut start = 0usize;
+    for (index, byte) in body.bytes().enumerate() {
+        match byte {
+            b'(' => depth += 1,
+            b')' => depth = depth.saturating_sub(1),
+            b',' if depth == 0 => {
+                atoms.push(&body[start..index]);
+                start = index + 1;
+            }
+            _ => {}
+        }
+    }
+    atoms.push(&body[start..]);
+    atoms
+}
+
+fn parse_fixture_atom(text: &str, negated: bool) -> gmeow_errors::Result<FixtureAtom> {
+    let text = text.trim().strip_prefix('~').unwrap_or(text.trim());
+    let open = text
+        .find('(')
+        .ok_or_else(|| fixture_err(format!("invalid benchmark atom: {text}")))?;
+    let close = text
+        .rfind(')')
+        .ok_or_else(|| fixture_err(format!("invalid benchmark atom: {text}")))?;
+    let predicate = parse_fixture_iri(text[..open].trim())?;
+    let args = text[open + 1..close]
+        .split(',')
+        .map(str::trim)
+        .collect::<Vec<_>>();
+    if args.len() != 3 {
+        return Err(fixture_err(format!(
+            "benchmark atom must be named-ternary, got {} arguments: {text}",
+            args.len()
+        )));
+    }
+    if !args[2].starts_with('?') {
+        return Err(fixture_err(format!(
+            "benchmark atom world slot must be a variable: {text}"
+        )));
+    }
+    Ok(FixtureAtom {
+        subject: parse_fixture_term(args[0])?,
+        predicate,
+        object: parse_fixture_term(args[1])?,
+        negated,
+    })
+}
+
+fn parse_fixture_iri(text: &str) -> gmeow_errors::Result<String> {
+    text.strip_prefix('<')
+        .and_then(|value| value.strip_suffix('>'))
+        .map(str::to_owned)
+        .ok_or_else(|| fixture_err(format!("benchmark predicate must be an IRI: {text}")))
+}
+
+fn parse_fixture_term(text: &str) -> gmeow_errors::Result<FixtureTerm> {
+    if let Some(variable) = text.strip_prefix('?') {
+        return Ok(FixtureTerm {
+            value: format!("?{variable}"),
+            existential: false,
+        });
+    }
+    if let Some(variable) = text.strip_prefix('!') {
+        return Ok(FixtureTerm {
+            value: format!("?{variable}"),
+            existential: true,
+        });
+    }
+    Ok(FixtureTerm {
+        value: parse_fixture_iri(text)?,
+        existential: false,
+    })
 }
 
 /// The engine-benchmark corpus root, `conformance/logic/cases/bench/`.
@@ -548,19 +795,43 @@ mod tests {
             });
         }
 
-        // The existential (chasebench) cases parse and RUN through the value-inventing
-        // chase router (confirming the committed TGD text is real engine input — the
-        // golden itself is authored by hand, not echoed from this run).
+        // The existential (chasebench) cases parse into typed rules and RUN through
+        // the value-inventing chase router (the golden itself is authored by hand,
+        // not echoed from this run).
         for c in cases.iter().filter(|c| c.fragment == Fragment::Existential) {
             let dataset = purrdf::parse_dataset(c.edb_nq.as_bytes(), "application/n-quads", None)
                 .unwrap_or_else(|e| panic!("{}/{}: EDB must parse: {e}", c.corpus, c.name));
-            gmeow_logic::materialize::materialize_benchmark_existential(&c.rules, dataset.as_ref())
-                .unwrap_or_else(|e| {
-                    panic!(
-                        "{}/{}: existential TGD text must parse and run: {e}",
-                        c.corpus, c.name
-                    )
-                });
+            let rules = c.existential_rules().unwrap_or_else(|e| {
+                panic!(
+                    "{}/{}: existential TGD fixture must parse: {e}",
+                    c.corpus, c.name
+                )
+            });
+            gmeow_logic::materialize::materialize_existential_rules(
+                dataset.as_ref(),
+                &rules,
+                gmeow_logic::materialize::MaterializationLimits::default(),
+            )
+            .unwrap_or_else(|e| {
+                panic!(
+                    "{}/{}: existential typed rules must run: {e}",
+                    c.corpus, c.name
+                )
+            });
+        }
+
+        for c in cases.iter().filter(|c| {
+            matches!(
+                c.fragment,
+                Fragment::Forward | Fragment::Incremental | Fragment::IncrementalGrounding
+            )
+        }) {
+            c.canonical_program().unwrap_or_else(|e| {
+                panic!(
+                    "{}/{}: forward fixture must lower to canonical IR: {e}",
+                    c.corpus, c.name
+                )
+            });
         }
     }
 }

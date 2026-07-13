@@ -10,7 +10,7 @@
 //! lowering already trusts — never a forked mapping:
 //!
 //! * a `gmeow:TermEquivalence` cell (the SSSOM 1:1 band): its relation + morphism class
-//!   come from [`sssom::sssom_band`] (so the typed node and the rendered SSSOM TSV agree
+//!   come from `sssom::sssom_band` (so the typed node and the rendered SSSOM TSV agree
 //!   by construction), its confidence from `gmeow:confidence`, and its evidence strength
 //!   from the justification band ([`evidence_strength_of_justification`]);
 //! * a `gmeow:ProjectionMapping` per-profile binding (the EDOAL/SPARQL get leg): its

@@ -345,6 +345,7 @@ fn lower_one_rule(rule: &NaryRule, scheme: ArgScheme) -> gmeow_errors::Result<Ex
         // structural distinctness guard is empty here by construction.
         distinct: Vec::new(),
         witness_frontier: None,
+        witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
     })
 }
 

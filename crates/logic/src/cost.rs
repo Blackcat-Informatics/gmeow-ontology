@@ -82,7 +82,7 @@ impl CostVector {
     /// (non-EDB) row by `(firing rule, predicate, stratum)` and counting it.
     ///
     /// `strata` is the certifier's per-predicate stratum map
-    /// ([`crate::certify::predicate_strata`]) over the SAME rule text that produced
+    /// ([`crate::certify::predicate_strata`]) over the same canonical program that produced
     /// `chase`. EDB-echo rows are skipped (they carry no firing rule). A derived row
     /// whose provenance carries no firing rule, or whose predicate the certifier
     /// never stratified, is a genuine engine/certifier inconsistency and a hard
@@ -433,7 +433,7 @@ pub struct RecordForwardObservation {
 /// Fixed-EDB/rule session proving a second evaluation reuses one immutable physical
 /// plan while executing the same forward core from scratch.
 ///
-/// Parsing, EDB loading, and certified-stratum construction happen in [`Self::prepare`]
+/// Typed lowering, EDB loading, and certified-stratum construction happen in [`Self::prepare`]
 /// outside the measured region. Each [`Self::evaluate`] still performs a complete
 /// materialization; only stratification and physical planning are cacheable.
 pub struct RepeatForwardSession {
@@ -450,14 +450,13 @@ impl RepeatForwardSession {
     ///
     /// # Errors
     ///
-    /// Returns an error for malformed/non-ternary rules, EDB loading failure, or a
-    /// certification/lowering failure.
+    /// Returns an error for EDB loading, canonical lowering, or certification failure.
     pub fn prepare(
         edb: &RdfDataset,
-        rules: &str,
+        program: &gmeow_logic_compile::ir::LogicProgram,
         contract_hash: impl Into<String>,
     ) -> gmeow_errors::Result<Self> {
-        let eval_rules = crate::rule_ir::parse_benchmark_rules(rules)?;
+        let eval_rules = crate::lower::lower_eval_rules(program)?;
         let strata = crate::certify::predicate_strata(&eval_rules);
         let store = crate::store::WorldStore::new();
         store.load_dataset(edb)?;
@@ -888,9 +887,12 @@ pub struct IncrementalGroundingCostSession {
 
 impl IncrementalGroundingCostSession {
     /// Prepare a fixed-rule, single-world incremental WFS-grounding session.
-    pub fn prepare(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<Self> {
+    pub fn prepare(
+        edb: &RdfDataset,
+        program: &gmeow_logic_compile::ir::LogicProgram,
+    ) -> gmeow_errors::Result<Self> {
         let (world, facts) = incremental_dataset_facts(edb, None)?;
-        let eval_rules = crate::rule_ir::parse_benchmark_rules(rules)?;
+        let eval_rules = crate::lower::lower_eval_rules(program)?;
         let contract_hash = format!(
             "gmeow-native-incremental-wfs-grounding-v1:{}",
             blake3::hash(world.as_bytes()).to_hex()
@@ -1005,11 +1007,14 @@ impl IncrementalForwardSession {
     ///
     /// # Errors
     ///
-    /// Returns an error when the EDB is not exactly one named world, the rule text
-    /// is outside finite positive binary Datalog, or the rules cannot be stratified.
-    pub fn prepare(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<Self> {
+    /// Returns an error when the EDB is not exactly one named world, the canonical
+    /// program is outside finite positive binary Datalog, or it cannot be stratified.
+    pub fn prepare(
+        edb: &RdfDataset,
+        program: &gmeow_logic_compile::ir::LogicProgram,
+    ) -> gmeow_errors::Result<Self> {
         let (world, facts) = incremental_dataset_facts(edb, None)?;
-        let eval_rules = crate::rule_ir::parse_benchmark_rules(rules)?;
+        let eval_rules = crate::lower::lower_eval_rules(program)?;
         let strata = crate::certify::predicate_strata(&eval_rules);
         let edb_keys = facts.iter().map(crate::rule_ir::Fact::key).collect();
         let contract_hash = format!(
@@ -1228,9 +1233,9 @@ fn incremental_dataset_facts(
 ///
 /// The typed EDB is built through [`crate::reason::build_edb_facts`] (the exact
 /// production construction), then the native evaluation runs through
-/// [`crate::oracle::native_forward_with_frontier`] — the same body the production
-/// [`crate::oracle::NativeForwardOracle`] runs, additionally surfacing the
-/// governor's completion frontier. `consumed_steps` is read from that frontier; the
+/// [`crate::oracle::native_forward_eval_rules_with_frontier`] — the same body the production
+/// native structured materializer runs, additionally surfacing the governor's
+/// completion frontier. `consumed_steps` is read from that frontier; the
 /// [`CostVector`] is aggregated from the result's derived rows + provenance and the
 /// certifier's per-predicate stratification ([`crate::certify::predicate_strata`]).
 ///
@@ -1239,10 +1244,14 @@ fn incremental_dataset_facts(
 /// Returns `Err` if the EDB cannot be built, if the native chase declines the rule
 /// set (a declared gap), if the certifier cannot stratify the rules, or if a derived
 /// row cannot be attributed a `(rule, predicate, stratum)` coordinate.
-pub fn run_native_forward(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<NativeForwardRun> {
+pub fn run_native_forward(
+    edb: &RdfDataset,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+) -> gmeow_errors::Result<NativeForwardRun> {
     let facts = crate::reason::build_edb_facts(edb)?;
-    let (chase, frontier) = crate::oracle::native_forward_with_frontier(&facts, rules)?;
-    let eval_rules = crate::rule_ir::parse_benchmark_rules(rules)?;
+    let eval_rules = crate::lower::lower_eval_rules(program)?;
+    let (chase, frontier) =
+        crate::oracle::native_forward_eval_rules_with_frontier(&facts, eval_rules.clone())?;
     let strata = crate::certify::predicate_strata(&eval_rules);
     let cost = CostVector::from_chase(&chase, &strata)?;
     Ok(NativeForwardRun {

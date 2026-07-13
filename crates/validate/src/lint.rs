@@ -3,12 +3,10 @@
 
 //! PyO3-free engine for the structural and naming lints.
 //!
-//! These two lints — ported byte-exact from `src/gmeow_tools/validate.py`'s
-//! `structural_lint` and `term_naming_lint` — run over
-//! an oxigraph [`Store`] built from the merged ontology sources. The Python
-//! repr-exact language-tag diagnostics (Check 1 / Check 2) are reproduced via
-//! [`py_str_repr`], which mirrors CPython's `str.__repr__` so the rdflib
-//! `Literal` repr framing is preserved on the rare violation paths.
+//! These two lints run over a native [`RdfDataset`] built from the merged ontology
+//! sources. The stable language-tag diagnostics (Check 1 / Check 2) use
+//! [`py_str_repr`] to preserve the established quoted-literal output framing on
+//! the rare violation paths.
 //!
 //! Engine-core separation: this module is pure Rust with no binding surface.
 
@@ -421,8 +419,8 @@ fn ds_rdf_types(ds: &RdfDataset, subject_iri: &str) -> HashSet<String> {
     out
 }
 
-/// Map every GMEOW-namespaced typed term to its primary kind (native twin of
-/// [`collect_typed_terms`]). Keyed by term IRI; `BTreeMap` iterates sorted.
+/// Map every GMEOW-namespaced typed term to its primary kind. Keyed by term IRI;
+/// `BTreeMap` iterates sorted.
 #[must_use]
 pub fn collect_typed_terms_dataset(ds: &RdfDataset, cfg: &LintConfig) -> BTreeMap<String, String> {
     let mut terms: BTreeMap<String, String> = BTreeMap::new();
@@ -511,7 +509,7 @@ fn ds_has_type(ds: &RdfDataset, subject_iri: &str, type_iri: &str) -> bool {
         .is_some()
 }
 
-/// Native twin of [`structural_lint`] over a frozen [`RdfDataset`].
+/// Run the structural lint over a frozen [`RdfDataset`].
 ///
 /// Byte-identical errors/warnings to the `Store` version; reads across all graphs
 /// ([`GraphMatch::Any`]) so a named-graph input is linted exactly as the old

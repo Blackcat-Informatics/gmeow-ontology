@@ -7,7 +7,7 @@
 //! (`gmeow_logic_compile::projections::correspondence_gates`) are architecturally
 //! **execution-free** — they read a per-correspondence *executed verdict* rather than
 //! re-deriving a syntactic path inversion. This module is the executor that produces that
-//! verdict: it lowers a correspondence's resolved `get` / `put` [`LegPath`] bodies to a pair
+//! verdict: it lowers a correspondence's resolved `get` / `put` `LegPath` bodies to a pair
 //! of SPARQL `CONSTRUCT` legs, RUNS them through the native engine
 //! (`purrdf::sparql::NativeSparqlEngine`), and compares the recovered atom set to the source —
 //! a **behavioural** section-law verdict (`put ∘ get = id_S`), never a textual `put ==
@@ -20,7 +20,7 @@
 //!
 //! ## The lowering (why it is faithful, not a disguised syntactic check)
 //!
-//! A realized leg is a pure [`LegPath`] (a property path over predicates, with no data
+//! A realized leg is a pure `LegPath` (a property path over predicates, with no data
 //! filters). Its behavioural identity is its canonical normal form
 //! ([`gmeow_logic_compile::projections::paths::leg_path_canonical`], which cancels double
 //! inverses and flattens `Seq`/`Alt`). The `get` leg's forward relation is

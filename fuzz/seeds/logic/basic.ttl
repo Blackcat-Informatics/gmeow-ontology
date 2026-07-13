@@ -1,0 +1,4 @@
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex: <https://example.org/> .
+
+ex:Cat logic:subClassOf ex:Animal .

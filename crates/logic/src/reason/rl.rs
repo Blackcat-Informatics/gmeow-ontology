@@ -3,10 +3,9 @@
 
 //! Native OWL 2 RL/RDF deductive closure.
 //!
-//! This is the Docker/Java-free **primary** entailment authority that replaces
-//! the `owlrl` deductive-closure baseline the conversion suites used to call.
-//! `owlrl` is relocated to the classic-cross-check lane as the agreement oracle
-//! (it is no longer required for normal use).
+//! This is the Docker/Java-free **primary** entailment authority. The independent
+//! in-process `purrdf::entail` OWL-RL evaluator remains the on-gate agreement
+//! cross-check; it is not a production fallback.
 //!
 //! # Why a predicate-as-DATA encoding (not the [`crate::reason::el`] one)
 //!
@@ -34,7 +33,7 @@
 //! # Rule families implemented
 //!
 //! Driven by the constructs the 8 conversion suites exercise (verified by the
-//! native↔owlrl agreement loop) — a sound subset of OWL 2 RL/RDF:
+//! native↔`purrdf::entail` agreement loop) — a sound subset of OWL 2 RL/RDF:
 //!
 //! * **cax-sco** — class subsumption: `x a C1`, `C1 ⊑ C2` ⟹ `x a C2`.
 //! * **scm-sco** — subclass transitivity: `C1 ⊑ C2`, `C2 ⊑ C3` ⟹ `C1 ⊑ C3`.
@@ -66,8 +65,8 @@
 //! clash rules (`cax-dw`, `prp-irp`, …) are intentionally NOT materialised as
 //! *positive* entailments here: they either derive only `owl:sameAs` edges the
 //! suites never assert, or they detect inconsistency (the [`crate::reason::dl`]
-//! lane's job). The agreement oracle confirms this subset matches `owlrl` on
-//! every fixture the suites use.
+//! lane's job). The independent `purrdf::entail` cross-check confirms this subset
+//! on every fixture the suites use.
 
 use std::collections::HashMap;
 
@@ -87,7 +86,7 @@ const LIT_SURROGATE_PREFIX: &str = "urn:gmeow-rl-lit:";
 /// is `triple(subject, predicate-as-data, object, world)`.
 const TRIPLE_RELATION: &str = "triple";
 
-/// The relation name of the RDF-list membership helper [`RL_RULES`] declares
+/// The relation name of the RDF-list membership helper `structured_rl_rules()` declares
 /// (`list_member(?l, ?x, ?w)`) — internal bookkeeping for the finite
 /// class-expression rules, never a closure fact.
 const LIST_MEMBER_RELATION: &str = "list_member";
@@ -324,16 +323,16 @@ fn rl_iri(term: &TermValue, position: &str) -> gmeow_errors::Result<String> {
 
 /// Compute the native OWL 2 RL/RDF deductive closure of `edb`.
 ///
-/// Loads `edb` into the typed generic-triple encoding, runs the forward oracle
-/// (`forward_oracle`) once over [`RL_RULES`], and coerces every
+/// Loads `edb` into the typed generic-triple encoding, runs the native structured
+/// generic evaluator once over `structured_rl_rules()`, and coerces every
 /// `triple/4` typed row back into an [`RlTriple`] (asserted + derived). The
 /// closure is world-scoped: derived triples carry the world IRI of the facts
 /// they were derived from.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the chase fails to parse/validate/evaluate/decode
-/// or if a materialized row is not one of the two relations [`RL_RULES`]
+/// Returns an error if the chase fails to validate, evaluate, or decode, or if a
+/// materialized row is not one of the two relations `structured_rl_rules()`
 /// declares (`triple/4`, `list_member/3`).
 pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
     let mut interner = Interner::default();
@@ -351,8 +350,8 @@ pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
         // membership helper. The helper is internal bookkeeping — explicitly
         // not a closure fact — and any OTHER row shape indicates a rule-text
         // bug: hard-error, never skip silently (same doctrine as
-        // `crate::reason::run_reasoning`; materialize's non-quad bucket exists
-        // for caller-supplied rule texts, which these are not).
+        // ordinary materialization; its non-quad bucket exists for caller-supplied
+        // structured programs, which these are not).
         match (row.predicate.as_str(), row.args.len()) {
             (TRIPLE_RELATION, 4) => {}
             (LIST_MEMBER_RELATION, 3) => continue,
@@ -367,10 +366,9 @@ pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
         let subject = rl_iri(&row.args[0], "subject")?;
         // A literal surrogate in the SUBJECT position is a derived literal-typing
         // entailment (e.g. `prp-rng` typing an interned literal object) with no
-        // standard-RDF form — a literal can never be a triple subject. owlrl emits
-        // these as literal-subject triples (a non-standard D-entailment); the
-        // native authority drops them (sound: no RL rule depends on a literal's
-        // type, and the suites never assert one).
+        // standard-RDF form — a literal can never be a triple subject. The native
+        // authority drops the non-standard D-entailment row (sound: no supported RL
+        // rule depends on a literal's type, and the suites never assert one).
         if subject.starts_with(LIT_SURROGATE_PREFIX) {
             continue;
         }

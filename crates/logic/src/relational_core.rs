@@ -150,6 +150,7 @@ fn rc_rule_to_existential(rc: &RcRule) -> gmeow_errors::Result<crate::physical::
         head,
         distinct: rc.distinct_pairs.clone(),
         witness_frontier: None,
+        witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
     })
 }
 

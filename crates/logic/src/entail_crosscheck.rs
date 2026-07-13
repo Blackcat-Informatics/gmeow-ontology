@@ -8,7 +8,7 @@
 //! the same world-partitioned chase `reason-verify` runs on-gate) against the
 //! independent [`crate::entail_oracle`] OWL-RL subsumption closure (a 70/70
 //! W3C-entailment-conformance-tested `purrdf::entail` engine) and folds the
-//! comparison into the structured [`DivergenceLedger`]. No Java, no Docker, no
+//! comparison into the structured `DivergenceLedger`. No Java, no Docker, no
 //! network — it runs entirely in-process and is therefore on-gate.
 //!
 //! # Scope: subsumption superset, not consistency
@@ -22,13 +22,13 @@
 //! conformance-tested — empirically intractable swept per-world across the whole
 //! bundle (the same inherent OWL-Direct cost that kept the retired external
 //! consistency oracle off-gate, independent of implementation). Native's own consistency verdict
-//! remains gated on-gate by `reason-verify` ([`crate::reason::ReasoningResult::is_consistent`]);
+//! remains gated on-gate by `reason-verify` (`ReasoningResult::is_consistent`);
 //! the tableau consistency oracle stays a unit-tested capability, not an on-gate
 //! 89-world sweep.
 //!
 //! # World alignment (the load-bearing modelling choice)
 //!
-//! gmeow's native chase ([`crate::reason::run_reasoning`]) is **world-scoped**:
+//! gmeow's native structured chase is **world-scoped**:
 //! every derived subsumption carries the named-graph IRI it was asserted in, and
 //! [`crate::store::WorldStore::worlds`] enumerates ONLY named graphs (default-graph
 //! triples are dropped from the chase). The committed bundle spreads its asserted
@@ -49,11 +49,11 @@
 //!
 //! * the **native** subsumptions come from a single [`crate::reason::reason_all`]
 //!   over the bundle as-is — the production, world-partitioned chase `reason-verify`
-//!   runs on-gate — with each axiom's own world dropped to [`CROSSCHECK_WORLD`] and
+//!   runs on-gate — with each axiom's own world dropped to `CROSSCHECK_WORLD` and
 //!   the result unioned; and
 //! * the **oracle** subsumptions come from running [`entail_oracle`] once per
 //!   world, each world projected into its own default graph via
-//!   [`RdfDataset::project_named_graph`] (the only graph `purrdf::entail` reads),
+//!   `RdfDataset::project_named_graph` (the only graph `purrdf::entail` reads),
 //!   with all worlds' pairs unioned.
 //!
 //! Reasoning per world (rather than collapsing every world into one) is both the

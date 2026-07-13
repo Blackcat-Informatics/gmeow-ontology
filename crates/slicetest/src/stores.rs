@@ -72,7 +72,7 @@ pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>> {
 /// lattice's `gmeow:ruleGmnRingWithinDerive` / `gmeow:ruleGmnRingCompartmentGap` (Horn
 /// `logic:Rule`s, the `logic:ruleProjectIsAwareOf` idiom) and their EDB witness (the ring
 /// individuals' authored `gmeow:gmnRingLevel` / `gmeow:gmnRingCompartment` coordinates).
-/// That graph is compiled to a canonical [`LogicProgram`]
+/// That graph is compiled to a canonical [`gmeow_logic_compile::ir::LogicProgram`]
 /// ([`parse_logic_dataset`](gmeow_logic_compile::frontend::parse_logic_dataset)) and
 /// evaluated over the same graph as its EDB through
 /// [`reason_program_closure_dataset`](gmeow_logic::reason::reason_program_closure_dataset);

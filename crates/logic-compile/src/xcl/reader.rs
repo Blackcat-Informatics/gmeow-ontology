@@ -6,7 +6,7 @@
 //! The inverse of [`project_xcl`](super::writer::project_xcl). See [`crate::xcl`] for the
 //! architecture. The **lossless round-trip carrier** is the [`RDF_META_ELEMENT`] element: its
 //! text is canonical N-Triples, reconstructed into a dataset and lifted through the canonical
-//! RDF frontend ([`parse_logic_dataset`](crate::frontend::parse_logic_dataset)), so the
+//! RDF frontend ([`parse_logic_dataset`]), so the
 //! reconstructed IR — axioms, rules, formulas, contracts, correspondences — is exactly the Exact
 //! `canonical-rdf12` round-trip's. The idiomatic XCL2 sentences are a human-readable VIEW: the
 //! document is parsed by a real XML parser (`roxmltree`, never a hand-rolled scanner) so

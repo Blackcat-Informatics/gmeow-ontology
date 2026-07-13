@@ -1051,7 +1051,11 @@ fn structured_existential_rules(
                     )],
                     head,
                     distinct,
-                    witness_frontier: Some(Vec::new()),
+                    // Let the chase derive the frontier from the rule shape. The
+                    // bound subject occurs in both body and head, so each subject's
+                    // existential obligation receives its own deterministic witness.
+                    witness_frontier: None,
+                    witness_policy: crate::physical::WitnessPolicy::DlAncestorBlocking,
                 });
         }
     }
@@ -1062,7 +1066,9 @@ fn run_structured_existential_chase(
     inferred: &mut Vec<InferredAxiom>,
     facts: &mut BTreeSet<Fact>,
     rules_by_world: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
-) -> gmeow_errors::Result<()> {
+    witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
+) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
+    let mut certificates = Vec::new();
     for (world, rules) in rules_by_world {
         if rules.is_empty() {
             continue;
@@ -1076,7 +1082,9 @@ fn run_structured_existential_chase(
                 object: TermValue::iri(fact.object.clone()),
             })
             .collect::<Vec<_>>();
-        let (admission, outcome) = crate::physical::route_chase(world, &edb, rules, None)?;
+        let registry = witness_registries.entry(world.clone()).or_default();
+        let (admission, outcome) =
+            crate::physical::route_chase_with_registry(world, &edb, rules, None, registry)?;
         let budgeted = match outcome {
             crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
             crate::physical::NativeOutcome::Unsupported(kind) => {
@@ -1088,10 +1096,35 @@ fn run_structured_existential_chase(
                 }));
             }
         };
+        certificates.push(crate::reason::ChaseCertificate {
+            world: world.clone(),
+            admission,
+        });
         for row in budgeted.rows {
             if row.rule_iri == crate::provenance::ASSERT_RULE_IRI {
                 continue;
             }
+            let premises = row
+                .antecedents
+                .iter()
+                .map(|premise| {
+                    let subject = match &premise.subject {
+                        TermValue::Iri(iri) => iri.clone(),
+                        other => {
+                            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                                detail: format!(
+                                    "existential chase premise has non-IRI subject {other:?}"
+                                ),
+                            }));
+                        }
+                    };
+                    Ok((
+                        subject,
+                        premise.predicate.clone(),
+                        crate::provenance::term_display(&premise.object),
+                    ))
+                })
+                .collect::<gmeow_errors::Result<Vec<_>>>()?;
             let subject = match row.subject {
                 TermValue::Iri(iri) => iri,
                 other => {
@@ -1113,11 +1146,11 @@ fn run_structured_existential_chase(
                 facts,
                 Fact::new(subject, row.predicate, object, row.graph),
                 &row.rule_iri,
-                Vec::new(),
+                premises,
             );
         }
     }
-    Ok(())
+    Ok(certificates)
 }
 
 /// Add DL-only finite consistency consequences to the closure.
@@ -1130,11 +1163,22 @@ pub(crate) fn augment_inferred_with_dl(
     inferred: &mut Vec<InferredAxiom>,
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<()> {
+    augment_inferred_with_dl_certificates(inferred, edb).map(|_| ())
+}
+
+/// Add the finite DL consequences and retain every production existential-chase
+/// termination certificate that admitted a real rule program.
+pub(crate) fn augment_inferred_with_dl_certificates(
+    inferred: &mut Vec<InferredAxiom>,
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
     let restrictions = read_restrictions(edb);
     let existential_rules = structured_existential_rules(&restrictions, edb);
     let lists = read_lists(edb);
 
     let mut facts: BTreeSet<Fact> = raw_resource_facts(edb).into_iter().collect();
+    let mut certificates = Vec::new();
+    let mut witness_registries = BTreeMap::new();
     for ax in inferred.iter() {
         if let Some(fact) = fact_from_axiom(ax) {
             facts.insert(fact);
@@ -1945,16 +1989,39 @@ pub(crate) fn augment_inferred_with_dl(
             }
         }
 
-        run_structured_existential_chase(inferred, &mut facts, &existential_rules)?;
+        certificates.extend(run_structured_existential_chase(
+            inferred,
+            &mut facts,
+            &existential_rules,
+            &mut witness_registries,
+        )?);
 
         if facts.len() == before {
             break;
         }
     }
 
-    augment_with_extra_dl_clashes(inferred, &mut facts, &restrictions, edb)?;
+    augment_with_extra_dl_clashes(
+        inferred,
+        &mut facts,
+        &restrictions,
+        edb,
+        &mut certificates,
+        &mut witness_registries,
+    )?;
 
-    Ok(())
+    certificates.sort_by(|left, right| {
+        let left_finding = left.admission.to_finding();
+        let right_finding = right.admission.to_finding();
+        (&left.world, &left_finding.code, &left_finding.message).cmp(&(
+            &right.world,
+            &right_finding.code,
+            &right_finding.message,
+        ))
+    });
+    certificates
+        .dedup_by(|left, right| left.world == right.world && left.admission == right.admission);
+    Ok(certificates)
 }
 
 /// The predicate-quantifying / literal-aware DL clashes the resource-only
@@ -1996,6 +2063,8 @@ fn augment_with_extra_dl_clashes(
     facts: &mut BTreeSet<Fact>,
     restrictions: &BTreeMap<(String, String), Restriction>,
     edb: &RdfDataset,
+    certificates: &mut Vec<crate::reason::ChaseCertificate>,
+    witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
 ) -> gmeow_errors::Result<()> {
     // ── 1. owl:Thing forced into owl:Nothing ──────────────────────────────────
     // owl:Thing ⊑ owl:Nothing (asserted or via equivalentClass) makes the always-
@@ -2032,11 +2101,17 @@ fn augment_with_extra_dl_clashes(
                 )],
                 distinct: Vec::new(),
                 witness_frontier: Some(Vec::new()),
+                witness_policy: crate::physical::WitnessPolicy::DlAncestorBlocking,
             })
             .collect();
         thing_rules.insert(world, rules);
     }
-    run_structured_existential_chase(inferred, facts, &thing_rules)?;
+    certificates.extend(run_structured_existential_chase(
+        inferred,
+        facts,
+        &thing_rules,
+        witness_registries,
+    )?);
 
     // ── 2. Empty bottom property forced to have a value ───────────────────────
     // An individual typed a restriction on owl:bottomObjectProperty /
@@ -2703,8 +2778,8 @@ fn key_values_agree(
 
 /// Decide native DL consistency / unsatisfiability of `edb`.
 ///
-/// Runs the full [`dl_rules`] set through the shared
-/// [`crate::reason::run_reasoning`] machinery, then reads off the clash facts:
+/// Runs the full [`structured_dl_rules`] set through the shared native structured
+/// chase, then reads off the clash facts:
 /// every `type(?i, owl:Nothing, ?w)` is an [`InconsistencyWitness`]; every
 /// `subClassOf(?c, owl:Nothing, ?w)` (with `?c` not `owl:Nothing` itself) is an
 /// [`UnsatClass`]. The verdict is consistent iff no inconsistency witness was
@@ -4351,10 +4426,24 @@ mod tests {
             quad(C, SUBCLASS, R),
             quad(X, TYPE, C),
         ]);
-        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        let (closure, verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("cyclic DL existential reasoning should terminate");
 
         assert!(verdict.consistent, "cyclic but satisfiable ∃ is consistent");
         assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+        let filler = closure
+            .iter()
+            .find(|axiom| axiom.subject == X && axiom.predicate == P)
+            .map(|axiom| unwrap_iri(&axiom.object).to_owned())
+            .expect("the root receives one existential filler");
+        assert!(closure.iter().any(|axiom| {
+            axiom.subject == filler && axiom.predicate == P && unwrap_iri(&axiom.object) == filler
+        }));
+        assert_eq!(
+            closure.iter().filter(|axiom| axiom.predicate == P).count(),
+            2,
+            "ancestor blocking must close the recursive model instead of growing a witness chain"
+        );
     }
 
     #[test]
@@ -4395,6 +4484,76 @@ mod tests {
                 .as_deref()
                 .is_some_and(|name| name.contains("dl-existential"))
         }));
+    }
+
+    #[test]
+    fn existential_witnesses_are_frontier_bound_per_subject_and_deterministic() {
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, SOME_VALUES_FROM, C),
+            quad(X, TYPE, R),
+            quad(Y, TYPE, R),
+        ]);
+        let (first, first_verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("structured native existential chase should decide both obligations");
+        let (second, second_verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("repeated native chase should be deterministic");
+
+        assert!(first_verdict.consistent);
+        assert!(second_verdict.consistent);
+        assert_eq!(first, second, "frontier-addressed witnesses must be stable");
+
+        let fillers = |subject: &str| {
+            first
+                .iter()
+                .filter(|axiom| axiom.subject == subject && axiom.predicate == P)
+                .map(|axiom| unwrap_iri(&axiom.object).to_owned())
+                .collect::<BTreeSet<_>>()
+        };
+        let x_fillers = fillers(X);
+        let y_fillers = fillers(Y);
+        assert_eq!(x_fillers.len(), 1, "x needs exactly one existential filler");
+        assert_eq!(y_fillers.len(), 1, "y needs exactly one existential filler");
+        assert!(
+            x_fillers.is_disjoint(&y_fillers),
+            "different frontier bindings must not share a rule-scoped witness"
+        );
+        for filler in x_fillers.iter().chain(&y_fillers) {
+            assert!(first.iter().any(|axiom| {
+                axiom.subject == *filler
+                    && axiom.predicate == TYPE
+                    && unwrap_iri(&axiom.object) == C
+            }));
+        }
+        for subject in [X, Y] {
+            let link = first
+                .iter()
+                .find(|axiom| axiom.subject == subject && axiom.predicate == P)
+                .expect("each subject must have a derived existential link");
+            assert_eq!(
+                link.premises,
+                vec![(subject.to_owned(), TYPE.to_owned(), format!("<{R}>"))],
+                "the production explanation must cite the matched restriction membership"
+            );
+        }
+
+        let certified = crate::reason::reason_all_certified(store.as_ref())
+            .expect("production reasoning should retain chase certificates");
+        assert_eq!(certified.result.inferred(), first.as_slice());
+        assert_eq!(
+            certified.chase_certificates.len(),
+            1,
+            "the repeated DL fixpoint must deduplicate the same world/program certificate"
+        );
+        let finding = certified.chase_certificates[0].to_finding();
+        assert_eq!(finding.code, "chase.certificate.weakly-acyclic");
+        assert!(
+            finding
+                .message
+                .contains("existential edge(s), none in a cycle")
+                && !finding.message.contains("0 existential edge(s)"),
+            "frontier certification must carry non-vacuous special-edge evidence: {finding:?}"
+        );
     }
 
     #[test]

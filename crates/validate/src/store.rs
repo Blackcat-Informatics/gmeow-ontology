@@ -11,9 +11,7 @@
 //! SHACL engine is itself native ([`shacl_validate_dataset`]).
 //!
 //! This module is fully oxigraph-free: every helper returns or queries the
-//! native [`purrdf::RdfDataset`]. The transitional oxigraph `Store` construction
-//! that still backs the PyO3 `ValidationStore`/`_store_capsule` lives entirely in
-//! [`crate::py`]; the final rdf pass removes it when the rdf `py_store` goes native.
+//! native [`purrdf::RdfDataset`].
 //!
 //! Parsing is **lenient by construction**: the native codecs accept the GMEOW
 //! ontology's private-use `@x-gmeow-*` language tags whose subtag exceeds BCP-47's
@@ -28,7 +26,8 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, parse_dataset};
 
 use crate::model::owl;
 
-/// Validate a native [`RdfDataset`] against parsed SHACL [`Shapes`] over the native
+/// Validate a native [`RdfDataset`] against parsed SHACL
+/// [`purrdf::shapes::shapes::Shapes`] over the native
 /// IR engine.
 ///
 /// The SHACL engine is fully native (it takes an `RdfDataset` directly), so this is a

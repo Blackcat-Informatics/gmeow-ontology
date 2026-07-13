@@ -5,8 +5,8 @@
 //!
 //! CLIF is the ISO/IEC 24707 s-expression (Lisp-like) syntax for full first-order
 //! Common Logic. This module is a **bidirectional, `PreservationKind::Exact`** dialect:
-//! [`project_clif`](writer::project_clif) lowers a [`LogicProgram`](crate::ir::LogicProgram)
-//! to CLIF text and [`parse_clif_str`](reader::parse_clif_str) lifts it back, and the two
+//! [`project_clif`] lowers a [`LogicProgram`](crate::ir::LogicProgram)
+//! to CLIF text and [`parse_clif_str`] lifts it back, and the two
 //! are inverses on the canonical IR (the production round-trip test pins this).
 //!
 //! ## The two-channel split that makes Exact genuine

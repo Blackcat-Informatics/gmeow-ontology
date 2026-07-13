@@ -208,8 +208,8 @@ pub struct StageOutput {
     pub product: StageProduct,
     /// The pre-lowered diagnostic nodes this stage emits (the FORWARD projection of
     /// its `gmeow_errors::Report` findings). Empty for every stage that produces no
-    /// findings; the two diagnostics producers (`stage-validate` /
-    /// `stage-compile-logic`) populate it from their report. The scheduler folds
+    /// findings; the diagnostics producers (`stage-validate`, `stage-compile-logic`,
+    /// and `stage-reason`) populate it from their report. The scheduler folds
     /// these into the run-level `DiagLedger` (fresh run) or reads them back from the
     /// product's `diagnostics:nodes` blob (cache hit), so the ledger is a projection
     /// of the SAME producer findings whether the stage ran or replayed.
@@ -218,7 +218,7 @@ pub struct StageOutput {
 
 impl StageOutput {
     /// A stage output carrying `product` and NO diagnostic nodes — the default for
-    /// every stage that emits no findings. The two diagnostics producers build the
+    /// every stage that emits no findings. Diagnostics producers build the
     /// struct literal directly, threading their forward `diags` in.
     pub fn new(product: StageProduct) -> Self {
         Self {
@@ -283,8 +283,11 @@ pub trait Stage: Send + Sync {
         false
     }
     /// The named-graph IRIs this stage ATTACHES to the carrier — the graphs
-    /// present in its output product bundle but NOT in its assembled input (its
-    /// attach DELTA), sorted and deduplicated. Mirrors the RDF `gmeow:attachesGraph`
+    /// present in its output product bundle but NOT in its effective input (its
+    /// attach DELTA), sorted and deduplicated. For producers narrowed by
+    /// [`Self::consumed_entities`], only the declared named graphs are effective
+    /// inputs; a different graph merely carried by that upstream product does not
+    /// conceal this stage's attachment. Mirrors the RDF `gmeow:attachesGraph`
     /// declarations on the stage individual; the loader HARD-fails if the two
     /// disagree (Rust/RDF agreement) and the scheduler HARD-fails
     /// ([`crate::error::AttachDrift`]) if the stage's actual attach delta at run
@@ -296,8 +299,8 @@ pub trait Stage: Send + Sync {
     }
     /// The blob-representation lane labels this stage ATTACHES to the carrier — the
     /// `representation`-keyed blob records (e.g.
-    /// [`crate::stages::carrier::REP_AXIOMS`],
-    /// [`crate::stages::carrier::REP_DIAG_NODES`]) present in its output product but
+    /// [`crate::bundle_blobs::REP_AXIOMS`],
+    /// [`crate::bundle_blobs::REP_DIAG_NODES`]) present in its output product but
     /// NOT in its assembled input (its attach DELTA), sorted and deduplicated. Mirrors
     /// the RDF `gmeow:attachesBlobRep` declarations; verified against the RDF at load
     /// (Rust/RDF agreement) and against the actual run-time delta by the scheduler

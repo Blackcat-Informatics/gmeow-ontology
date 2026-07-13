@@ -20,7 +20,7 @@
 //! * [`ResultExt`] adds `.ctx`/`.with_ctx`/`.at`/`.for_focus`/`.grade` for the `?`
 //!   path and `.or_collect` for the push-and-continue path (half of all emission
 //!   sites are non-fatal collection, not `?`).
-//! * [`diag!`](crate::diag)/[`bail!`](crate::bail)/[`ensure!`](crate::ensure)
+//! * [`diag!`](macro@crate::diag)/[`bail!`](macro@crate::bail)/[`ensure!`](macro@crate::ensure)
 //!   capture the emit site via `#[track_caller]`.
 
 use std::error::Error as StdError;
