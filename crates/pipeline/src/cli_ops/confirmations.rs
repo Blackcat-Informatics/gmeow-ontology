@@ -143,7 +143,14 @@ pub fn export_views(
     } else {
         languages.to_vec()
     };
-    let artifacts = crate::stages::export::render_all_with_languages(&dataset, &langs)?;
+    // The JSON Schema `$defs` key set folded into THIS bundle's `schemas-archive`
+    // blob — the model-existence signal `llms-full.txt`'s cards gate their
+    // `python_model` link on (see `crate::stages::export::class_is_modeled`), read
+    // straight off the bytes already in hand (never a repo disk read: this path is
+    // repo-free).
+    let modeled_defs = crate::bundle_blobs::Bundle::from_snapshot(gts_bytes)?.modeled_def_keys()?;
+    let artifacts =
+        crate::stages::export::render_all_with_languages(&dataset, &langs, &modeled_defs)?;
     std::fs::create_dir_all(out_dir).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "export".to_string(),

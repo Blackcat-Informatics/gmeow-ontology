@@ -278,6 +278,14 @@ lang:nquads
     lang:signSystemKind lang:formalLanguageKind ;
     lang:modality lang:writtenModality .
 
+lang:pydantic
+    a owl:NamedIndividual , lang:SignSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    rdfs:label "Pydantic v2"@x-gmeow-english ;
+    skos:definition "The Pydantic v2 Python model package (gmeow_models) as a first-class sign system: a lang:SignSystem of lang:formalLanguageKind in the written modality. A functional-documentation rendering of the GMEOW ontology co-derived from the SHACL shape compilation (the same compiled shape surface the JSON Schema sign system encodes), so reading the models is reading the ontology and validating data with them is using it. A closed-record VALIDATION rendering (lang:renderingPreservation logic:ValidationOnly): it validates instance shape, it does not entail."@x-gmeow-english ;
+    lang:signSystemKind lang:formalLanguageKind ;
+    lang:modality lang:writtenModality .
+
 lang:latinScript
     a owl:NamedIndividual , lang:Script ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;

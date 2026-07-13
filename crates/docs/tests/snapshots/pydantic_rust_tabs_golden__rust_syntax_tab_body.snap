@@ -1,0 +1,23 @@
+---
+source: crates/docs/tests/pydantic_rust_tabs_golden.rs
+expression: rust
+---
+// Parse the same worked instance shown in the Turtle tab and validate it
+// with the native GMEOW validator (the shipped Rust surface).
+let turtle = r#"@base <https://blackcatinformatics.ca/gmeow/example/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+<subject> a gmeow:AccessibilityAssertion ;
+    gmeow:assertionFacet <...> ;  # gmeow:AccessibilityFacet
+    gmeow:assertionPolarity <...> ;  # gmeow:AccessibilityPolarity
+    gmeow:assertionSubject <...> .  # gmeow:Entity
+"#;
+let dataset = purrdf::parse_turtle(turtle)?;
+let report = gmeow_validate::validate(&dataset)?;
+assert!(report.conforms());

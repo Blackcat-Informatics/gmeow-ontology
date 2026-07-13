@@ -69,6 +69,10 @@ pub mod okf;
 pub mod parquet;
 pub mod profiles;
 pub mod provenance_graph;
+// The SHACL-derived Pydantic v2 package emitter (`gmeow_models/<slice>.py`),
+// co-derived from the SAME shape compilation as the JSON-Schema stage so the two
+// surfaces agree (Task 8).
+pub mod pydantic;
 pub mod reason;
 pub mod references;
 pub mod release;
@@ -77,11 +81,16 @@ pub mod result_shape_composition;
 pub mod result_shapes;
 pub mod rule_severity;
 pub mod schemas;
+// Shared identifier / text helpers lifted out of `schemas` so the LinkML/TS/GraphQL
+// renderer and the Pydantic package emitter share ONE copy of each rule.
+pub(crate) mod schema_ident;
 pub mod source_load;
 pub mod statements;
+// Shared value-vocabulary enum enrichment for the SHACL→JSON-Schema/Pydantic surfaces.
 pub mod superset;
 pub mod term_manifest;
 pub mod validate;
+pub(crate) mod value_vocab;
 pub mod yaml_ld;
 
 /// Register every production stage into `registry` under its `gmeow:stageImpl`
@@ -131,6 +140,7 @@ pub fn register_default(registry: &mut StageRegistry) {
         Arc::new(result_shape_composition::ResultShapeCompositionStage),
     );
     registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage));
+    registry.register("pydantic", Arc::new(pydantic::PydanticStage));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));

@@ -296,6 +296,9 @@ pub enum ExportFormat {
     Pdf,
     /// The flattened prompt-ready per-term card snippets (`terms/<slug>.md`).
     Snippets,
+    /// The generated Pydantic v2 model package (`gmeow_models/…`) — the functional
+    /// documentation surface (importing the models IS reading the ontology).
+    Pydantic,
     /// Every projection, each under its own subdirectory of the output directory.
     All,
 }

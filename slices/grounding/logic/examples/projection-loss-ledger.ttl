@@ -18,6 +18,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix nex:   <https://blackcatinformatics.ca/gmeow/examples/notation/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
@@ -73,3 +74,21 @@ ex:shaclJsonSchemaReport a gmeow:InformationObject ;
     rdfs:label "SHACL → JSON Schema (closed-world) projection of the GMEOW shapes"@x-gmeow-english ;
     logic:preservationKind logic:ValidationOnly ;
     logic:complexityClass "closed-world structural validation; sh:sparql constraints dropped" .
+
+# --- The SHACL → Pydantic v2 model package (gmeow_models) projection: a
+#     functional documentation surface CO-DERIVED from the SAME shape compilation as
+#     the JSON Schema above (both parse the one compiled $defs), so a model's
+#     model_json_schema() agrees with the packed JSON Schema. It validates instance
+#     shape as a closed RECORD but does NOT entail — validation-only. rdfs:subClassOf
+#     is flattened to single Python inheritance and sh:sparql constraints are dropped,
+#     exactly as its JSON Schema sibling drops them (Principle 17).
+#     The full structured honesty surface this coarse row summarizes — the
+#     gmeow:NotationProjectionProfile with its per-parameter declared-loss ledger, the
+#     lang:Rendering that realizes the crossing, and the logic:Correspondence carrying
+#     the honest SHACL/JSON-Schema ↔ Pydantic preservation verdict — is authored in
+#     slices/core/notation/examples/pydantic-projection-profile.ttl and linked here.
+ex:pydanticModelsReport a gmeow:InformationObject ;
+    rdfs:label "SHACL → Pydantic v2 model package (gmeow_models) projection of the GMEOW shapes"@x-gmeow-english ;
+    rdfs:seeAlso nex:pydanticProfile , nex:corrPydanticSurface ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:complexityClass "closed-record instance validation; co-derived with the JSON Schema; no reasoning, rdfs:subClassOf flattened to single inheritance, sh:sparql constraints dropped" .
