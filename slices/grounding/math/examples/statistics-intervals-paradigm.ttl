@@ -25,6 +25,7 @@
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statistics/intervals/> .
 
 # --- Frequentist: the confidence interval and its multivariate region --------- #
@@ -109,5 +110,22 @@ ex:mass95 a math:ProbabilityValue , math:RationalValue ;
     rdfs:label "0.95 posterior mass (a posterior probability)"@x-gmeow-english ;
     math:numerator 95 ; math:denominator 100 ;
     gmeow:hasReferenceFrame ex:intervalFrame .
+# A self-contained FrameProfile: the frame declares its full profile (a scalar
+# measurement realm, one scalar axis, crisp determinacy, requires no host), so
+# gmeow:FrameProfileShape is satisfied standalone — no shared frame individuals.
 ex:intervalFrame a gmeow:ReferenceFrame ;
-    rdfs:label "The interval-estimation reference frame"@x-gmeow-english .
+    rdfs:label "The interval-estimation reference frame"@x-gmeow-english ;
+    gmeow:frameRealm ex:measurementRealm ;
+    gmeow:frameKind ex:scalarFrameKind ;
+    gmeow:determinacyModel ex:crispDeterminacy ;
+    gmeow:hasAxis ex:probabilityAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false .
+ex:measurementRealm a gmeow:FrameRealm ;
+    rdfs:label "Statistical measurement realm"@x-gmeow-english .
+ex:scalarFrameKind a gmeow:FrameKind ;
+    rdfs:label "Scalar frame kind — a single dimensionless magnitude"@x-gmeow-english .
+ex:crispDeterminacy a gmeow:Determinacy ;
+    rdfs:label "Crisp determinacy — an exact value, not vague or fuzzy"@x-gmeow-english .
+ex:probabilityAxis a gmeow:Axis ;
+    rdfs:label "The scalar probability-magnitude axis in [0, 1]"@x-gmeow-english .

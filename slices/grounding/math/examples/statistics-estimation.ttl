@@ -26,6 +26,7 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statistics/estimation/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # --- The estimand: the target of inference, framed by its six coordinates ----- #
 
@@ -95,8 +96,25 @@ ex:cohensD a math:EffectSize ;
 ex:sdScale a math:MeasurementScale ;
     rdfs:label "Pooled-standard-deviation scale — how a Cohen's d is read"@x-gmeow-english .
 
+# A self-contained FrameProfile: the frame declares its full profile (a scalar
+# measurement realm, one scalar axis, crisp determinacy, requires no host), so
+# gmeow:FrameProfileShape is satisfied standalone — no shared frame individuals.
 ex:analysisFrame a gmeow:ReferenceFrame ;
-    rdfs:label "The trial analysis reference frame"@x-gmeow-english .
+    rdfs:label "The trial analysis reference frame"@x-gmeow-english ;
+    gmeow:frameRealm ex:measurementRealm ;
+    gmeow:frameKind ex:scalarFrameKind ;
+    gmeow:determinacyModel ex:crispDeterminacy ;
+    gmeow:hasAxis ex:effectAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false .
+ex:measurementRealm a gmeow:FrameRealm ;
+    rdfs:label "Statistical measurement realm"@x-gmeow-english .
+ex:scalarFrameKind a gmeow:FrameKind ;
+    rdfs:label "Scalar frame kind — a single dimensionless magnitude"@x-gmeow-english .
+ex:crispDeterminacy a gmeow:Determinacy ;
+    rdfs:label "Crisp determinacy — an exact value, not vague or fuzzy"@x-gmeow-english .
+ex:effectAxis a gmeow:Axis ;
+    rdfs:label "The scalar effect-magnitude axis"@x-gmeow-english .
 
 # --- The model, its assumption, and the process that produced the estimate ---- #
 

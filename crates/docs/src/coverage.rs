@@ -345,10 +345,11 @@ impl<'a> CoverageContext<'a> {
         if self.non_english_langs.is_empty() {
             return true;
         }
-        let label_needed = term.label.as_deref().is_some_and(|s| !s.trim().is_empty());
+        // The authored (canonical) carrier is what needs translating — read it, not
+        // the possibly already-localized display field (see `DocTerm::coverage_label`).
+        let label_needed = term.coverage_label().is_some_and(|s| !s.trim().is_empty());
         let def_needed = term
-            .definition
-            .as_deref()
+            .coverage_definition()
             .is_some_and(|s| !s.trim().is_empty());
         self.non_english_langs.iter().all(|lang| {
             (!label_needed
@@ -725,7 +726,12 @@ pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
     let avoid_when = !term.avoid_when.is_empty();
     let how_to_use = !term.how_to_use.is_empty();
 
-    let definition = term.definition.as_deref().unwrap_or("");
+    // Read the CANONICAL (authored English) definition/label, never the localized
+    // display text: documentation-completeness is a property of the authored source,
+    // so viewing a term in French must not change its score (see
+    // `DocTerm::coverage_label`). On an English/unlocalized model these fall back to
+    // the display fields, so English scoring is unchanged.
+    let definition = term.coverage_definition().unwrap_or("");
     let usage_joined = [
         term.use_when.join(" "),
         term.avoid_when.join(" "),
@@ -739,7 +745,7 @@ pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
     let provenance_honesty = !rationales.iter().any(|r| names_test_artifact(r));
     let rationale_distinct = rationales
         .iter()
-        .any(|r| !r.trim().is_empty() && Some(r.trim()) != term.label.as_deref().map(str::trim));
+        .any(|r| !r.trim().is_empty() && Some(r.trim()) != term.coverage_label().map(str::trim));
     let prose_quality = states_boundary(definition)
         && term.examples.iter().any(|e| is_worked_triple(e))
         && usage_distinct
@@ -762,7 +768,7 @@ pub fn term_coverage(term: &DocTerm, ctx: &CoverageContext) -> TermCoverage {
 
     TermCoverage {
         has_definition: !definition.trim().is_empty(),
-        has_label: !term.label.as_deref().unwrap_or("").trim().is_empty(),
+        has_label: !term.coverage_label().unwrap_or("").trim().is_empty(),
         has_usage_advice: use_when || avoid_when || how_to_use,
         has_example: !term.examples.is_empty(),
         has_scope_note: !term.scope_notes.is_empty(),
