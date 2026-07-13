@@ -6,7 +6,7 @@
 //! The inverse of [`project_cgif`](super::writer::project_cgif). See [`crate::cgif`] for the
 //! architecture. The **lossless round-trip carrier** is the RDF/predication channel after the
 //! sentinel: it is reconstructed into an N-Triples dataset and lifted through the canonical
-//! RDF frontend ([`parse_logic_dataset`](crate::frontend::parse_logic_dataset)), so the
+//! RDF frontend ([`parse_logic_dataset`]), so the
 //! reconstructed IR — axioms, rules, formulas, contracts, correspondences — is exactly the
 //! Exact `canonical-rdf12` round-trip's. The idiomatic conceptual graphs before the sentinel
 //! are a human-readable VIEW; the reader still VALIDATES them (a malformed graph raises a

@@ -1,36 +1,26 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The reasoning-oracle boundary.
+//! Native typed-closure adapters and neutral row vocabulary.
 //!
 //! A *reasoner* is a partial decision procedure over a fragment of the logic.
-//! The native physical core (`crate::physical`) is the production authority;
-//! independent reference evaluators are test-only comparison adapters.
-//!
-//! Two dual traits mirror the forward/backward duality of Datalog±:
-//! materialization (least-fixpoint `T_P` closure) and reference goal resolution.
-//!
-//! - [`ForwardOracle`] — materialize the deductive closure of a typed EDB under
-//!   a rule program. The production implementation is the native stratified core,
-//!   returned by [`forward_oracle`].
-//! - [`BackwardOracle`] — test-only seam for the declarative SLD reference
-//!   resolver (`ReferenceBackwardOracle`), used to check the native demand-
-//!   transformed engine against an independent evaluation strategy.
+//! The native physical core (`crate::physical`) is the sole production authority.
+//! This module carries the neutral typed rows used by the structured native
+//! materialization adapters.
+//! The independent backward resolver and the `purrdf::entail` cross-check remain
+//! comparison surfaces only; neither is a production fallback.
 //!
 //! # Neutral vocabulary
 //!
 //! The closure vocabulary ([`TypedRow`], [`TypedProvenance`], [`TypedChaseResult`])
-//! lives here, not inside any adapter, so the trait does not depend on the
-//! engine that happens to produce it.
+//! lives here rather than inside a parser or evaluator, so consumers share one
+//! engine-neutral result shape.
 //!
 //! # Provenance as a capability
 //!
-//! Provenance is a *queried capability*
-//! ([`ForwardOracle::provides_provenance`]), never a mandatory method — an
-//! oracle that cannot attribute derivations reports `false` and its consumers
-//! hard-fail rather than fabricate attribution.
-//!
-//! [`forward_oracle`] is the production materialization provider.
+//! Native Record-mode evaluation populates provenance. Comparison adapters that do
+//! not carry a proof-height annotation use `None`; consumers must never fabricate an
+//! attribution or silently reinterpret absence as zero.
 
 use purrdf::TermValue;
 use purrdf::provenance::Attribution;
@@ -60,9 +50,9 @@ pub(crate) struct TypedRow {
 
 /// Provenance metadata for a typed row.
 ///
-/// An oracle that reports [`ForwardOracle::provides_provenance`] `== false` must
-/// never emit a populated `TypedProvenance` (fabricated attribution is a hard
-/// error, not a silent default) — the field carries real trace data or nothing.
+/// Every populated field carries real native trace data. An adapter that lacks an
+/// annotation leaves the optional field empty; fabricated attribution is a hard
+/// error, never a silent default.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct TypedProvenance {
     /// Whether this fact is an EDB (asserted input) fact.
@@ -172,15 +162,6 @@ pub(crate) fn native_forward_eval_rules_with_frontier(
     Ok((TypedChaseResult { rows: typed }, frontier))
 }
 
-/// Benchmark-corpus adapter for the repo-owned named-ternary fixture language.
-pub(crate) fn native_forward_with_frontier(
-    facts: &crate::facts::TypedFactSet,
-    source: &str,
-) -> gmeow_errors::Result<(TypedChaseResult, crate::query_ir::CompletionFrontier)> {
-    let rules = crate::rule_ir::parse_benchmark_rules(source)?;
-    native_forward_eval_rules_with_frontier(facts, rules)
-}
-
 /// Decode the named world carried by a typed fact.
 fn world_lexical(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
@@ -191,7 +172,7 @@ fn world_lexical(term: &TermValue) -> gmeow_errors::Result<String> {
             ..
         } if datatype == "http://www.w3.org/2001/XMLSchema#string" => Ok(lexical_form.clone()),
         other => Err(oracle_err(format!(
-            "NativeForwardOracle EDB world term must be a plain string literal, got {other:?}"
+            "native structured-rule EDB world term must be a plain string literal, got {other:?}"
         ))),
     }
 }

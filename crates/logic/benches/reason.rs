@@ -21,6 +21,7 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_logic::cost::run_native_forward;
 use gmeow_logic::reason::{el_closure, reason_all};
+use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 use std::sync::Arc;
 
@@ -57,12 +58,34 @@ fn hierarchy_store(num_classes: usize, instances: usize) -> Arc<RdfDataset> {
     builder.freeze().expect("valid benchmark dataset")
 }
 
-/// `logic:subClassOf` transitivity rule in the compact benchmark syntax.
-const TRANSITIVITY_RULES: &str = concat!(
-    "<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-\n",
-    "    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),\n",
-    "    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .\n",
-);
+fn transitivity_program() -> LogicProgram {
+    let atom = |subject, object| {
+        LogicAxiom::new(
+            subject,
+            "https://blackcatinformatics.ca/logic/subClassOf",
+            object,
+            false,
+            false,
+            ContextualScope::default(),
+        )
+        .expect("transitivity benchmark atom")
+    };
+    let scope = ContextualScope {
+        provenance: Some("urn:gmeow:benchmark-rule:transitivity".to_owned()),
+        ..ContextualScope::default()
+    };
+    LogicProgram::new(
+        Vec::new(),
+        vec![LogicRule::new(
+            atom("?X", "?Z"),
+            vec![atom("?X", "?Y"), atom("?Y", "?Z")],
+            Vec::new(),
+            scope,
+        )],
+        Vec::new(),
+        None,
+    )
+}
 
 /// A `C0 → C1 → … → C{n}` `logic:subClassOf` chain as N-Quads (one world); the
 /// transitive chase derives the full O(n^2) closure.
@@ -113,6 +136,7 @@ fn bench_native_forward(c: &mut Criterion) {
     // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
     // `make check`, so the reduced sample_size is a runtime economy, not a gate risk.
     group.sample_size(20);
+    let program = transitivity_program();
     for &n in &[8usize, 40usize] {
         let input = chain_nquads(n);
         let dataset = purrdf::parse_dataset(input.as_bytes(), "application/n-quads", None)
@@ -120,8 +144,7 @@ fn bench_native_forward(c: &mut Criterion) {
         group.bench_function(format!("transitive_chain_{n}"), |b| {
             b.iter(|| {
                 std::hint::black_box(
-                    run_native_forward(dataset.as_ref(), TRANSITIVITY_RULES)
-                        .expect("run_native_forward"),
+                    run_native_forward(dataset.as_ref(), &program).expect("run_native_forward"),
                 )
             });
         });

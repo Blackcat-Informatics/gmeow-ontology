@@ -971,8 +971,9 @@ impl Parsed {
     /// Compute the stratification ONCE and lower it into the per-stratum rule grouping.
     ///
     /// `None` ⇒ the program is non-stratifiable (a negative dependency-graph edge inside
-    /// a cycle): a declared gap the caller routes to its oracle / base-fallback, exactly
-    /// where the evaluators used to return `Unsupported(NonStratifiable)`.
+    /// a cycle): a declared gap. The caller may use the sound native untransformed-base
+    /// path where defined, or surface `Unsupported(NonStratifiable)`; no external engine
+    /// fallback exists.
     pub(crate) fn stratify(self) -> Option<Stratified> {
         let stratum_of = stratify(&self.rules)?;
 

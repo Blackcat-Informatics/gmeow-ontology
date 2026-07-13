@@ -16,7 +16,7 @@
 //!
 //! [`GMN_LANG_AST_COLUMNS`] pins the `@λ` (lang-AST) tabular batch to the **existing** CoNLL-U
 //! column contract rather than inventing a rival: it is the ten Universal-Dependencies columns
-//! in their canonical order, and [`tests::lang_ast_columns_match_conllu_serializer`] asserts
+//! in their canonical order, and `lang_ast_columns_match_conllu_serializer` asserts
 //! that order against the [`crate::conllu`] serializer's own field order, so the two cannot
 //! drift.
 

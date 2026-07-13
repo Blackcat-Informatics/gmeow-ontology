@@ -7,8 +7,8 @@
 //! (Sowa's graph notation — concepts `[Type: referent]`, relations `(rel arc…)`, coreference
 //! `*x` / `?x`, negated contexts `~[…]`, universals `[@every*x]`). This module is a
 //! **bidirectional, `PreservationKind::Exact`** dialect, a sibling of [`crate::clif`]:
-//! [`project_cgif`](writer::project_cgif) lowers a [`LogicProgram`](crate::ir::LogicProgram)
-//! to CGIF text and [`parse_cgif_str`](reader::parse_cgif_str) lifts it back, and the two
+//! [`project_cgif`] lowers a [`LogicProgram`](crate::ir::LogicProgram)
+//! to CGIF text and [`parse_cgif_str`] lifts it back, and the two
 //! are inverses on the canonical IR (the production round-trip test pins this).
 //!
 //! ## The two-channel split that makes Exact genuine

@@ -8,7 +8,7 @@
 //! ([`crate::stages::carrier::assemble_object_level_edb`]: ontology + imports +
 //! statements + alignments + logic/relational-core/correspondence, WITHOUT the
 //! meta/report graphs), canonicalizes it (RDFC-1.0) for transport-independent Skolem
-//! witnesses, runs `gmeow_logic::reason::reason_all`, and serializes the three
+//! witnesses, runs `gmeow_logic::reason::reason_all_certified`, and serializes the
 //! committed artifacts via the `gmeow_logic::reason::artifacts` builders. The single
 //! result also backs the bundle's `graph/reasoning` projection (dual carriage), so
 //! the closure shipped in `gmeow.gts` and the committed files agree by construction —
@@ -23,12 +23,12 @@ use gmeow_logic::reason::artifacts::{
     build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
 };
 use gmeow_logic::reason::perf_ledger::perf_ledger;
-use gmeow_logic::reason::reason_all;
+use gmeow_logic::reason::reason_all_certified;
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_result};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
-use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
+use crate::bundle::PipelineHandle;
 use crate::node::{ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
@@ -62,6 +62,9 @@ pub struct ReasonArtifacts {
     pub perf_ledger: String,
     /// The typed five-axis result (C7 handle payload).
     pub result: ReasoningResult,
+    /// Production existential-chase termination evidence on the shared Finding
+    /// substrate; this is the authority for both graph/diagnostics and run nodes.
+    pub chase_report: gmeow_errors::Report,
 }
 
 /// Reason over a composed dataset (N-Quads bytes) and return the three artifacts plus
@@ -105,12 +108,34 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
             message: format!("re-fold canonical quads: {e}"),
         })
     })?;
-    let result = reason_all(canon.as_ref()).map_err(|e| {
+    let certified = reason_all_certified(canon.as_ref()).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-reason".to_string(),
             message: format!("native reasoning failed: {e}"),
         })
     })?;
+    let result = certified.result;
+    let mut chase_report = gmeow_errors::Report::new("chase");
+    // `stage-reason` declares graph/diagnostics as an unconditional attachment.
+    // RDF has no representation for an empty named graph, so carry the run's
+    // content-addressed native contract as explicit evidence even when this EDB
+    // contains no existential obligations. This is an honest run fact, not a
+    // vacuous chase certificate; real per-world certificates follow below.
+    chase_report.add_finding(
+        gmeow_errors::Finding::new(
+            gmeow_errors::Severity::Info,
+            "reason.native-contract",
+            format!(
+                "native reasoning contract {} produced this stage result",
+                gmeow_logic::reason::native_contract_hash()
+            ),
+        )
+        .with_tool("reason"),
+    );
+    for certificate in certified.chase_certificates {
+        chase_report.add_finding(certificate.to_finding());
+    }
+    chase_report.normalize();
     // Non-merge (the regenerate path): the closure is told-vs-inferred only.
     let closure = build_inferred_closure_ttl(&result, None).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -135,6 +160,7 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
         ledger,
         perf_ledger: perf,
         result,
+        chase_report,
     })
 }
 
@@ -146,6 +172,7 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
 fn reason_dataset(
     closure_ttl: &str,
     result: &ReasoningResult,
+    chase_report: &gmeow_errors::Report,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let closure_ds =
         purrdf::parse_dataset(closure_ttl.as_bytes(), "text/turtle", None).map_err(|e| {
@@ -173,6 +200,13 @@ fn reason_dataset(
         routed.graph_name = Some(graph.clone());
         builder.push_owned_quad(&routed);
     }
+    let diagnostics_nq = gmeow_errors::render::to_gmeow_rdf(chase_report);
+    let diagnostics = crate::stages::carrier::parse_into_graph(
+        diagnostics_nq.as_bytes(),
+        "application/n-quads",
+        crate::stages::carrier::GRAPH_DIAGNOSTICS,
+    )?;
+    builder.push_dataset(diagnostics.as_ref());
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("freeze reason dual-carriage dataset: {e}"),
@@ -253,7 +287,11 @@ impl Stage for ReasonStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "reason.v1"
+        // The native contract changed when the external reasoners were removed and
+        // the structured existential/DL chase became the sole production authority.
+        // Bumping the stage version prevents a pre-removal closure from surviving in
+        // the content-addressed pipeline cache when its RDF inputs are unchanged.
+        "reason.v3"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Reason ONCE over the object-level EDB (ontology + imports + statements +
@@ -272,7 +310,14 @@ impl Stage for ReasonStage {
         // typed five-axis result rides BOTH as the `graph/reasoning` named graph (the
         // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
         // pinned to that graph (C7) — dual carriage.
-        let dataset = reason_dataset(&reasoned.closure, &reasoned.result)?;
+        let dataset = reason_dataset(&reasoned.closure, &reasoned.result, &reasoned.chase_report)?;
+        let nodes = crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
+        let diag_blob = serde_json::to_vec(&nodes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: self.id().to_owned(),
+                message: format!("encode chase certificate diagnostic nodes: {e}"),
+            })
+        })?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(CLOSURE_PATH.to_string(), reasoned.closure.into_bytes());
         artifacts.insert(
@@ -288,10 +333,13 @@ impl Stage for ReasonStage {
         // Attach the typed Reasoning handle, pinned to the `graph/reasoning` named
         // graph's canonical digest. `pin_handle` HARD-fails on a digest mismatch, so a
         // handle that disagrees with its backing graph can never attach (fail-closed).
-        let mut bundle = bundle_from_artifacts_over(
+        let mut bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
             dataset,
             artifacts,
             purrdf::provenance::DatasetProvenance::new(),
+            crate::stages::carrier::REP_DIAG_NODES,
+            "application/json",
+            diag_blob,
         );
         let pinned = bundle.graph_digest(GRAPH_REASONING);
         bundle
@@ -306,16 +354,17 @@ impl Stage for ReasonStage {
                     message: format!("pin Reasoning handle to <{GRAPH_REASONING}>: {e}"),
                 })
             })?;
-        Ok(StageOutput::new(StageProduct::from_bundle(
-            self.id(),
-            Arc::new(bundle),
-        )))
+        Ok(StageOutput {
+            product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
+            diags: nodes,
+        })
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::bundle::bundle_from_artifacts_over;
 
     #[test]
     fn reason_produces_nonempty_artifacts_over_tiny_graph() {
@@ -338,12 +387,60 @@ mod tests {
             assert!(!ttl.trim().is_empty(), "{name} artifact is empty");
         }
         assert!(reasoned.closure.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
+        assert!(reasoned.chase_report.findings.iter().any(|finding| {
+            finding.code == "reason.native-contract"
+                && finding
+                    .message
+                    .contains(&gmeow_logic::reason::native_contract_hash())
+        }));
         // The perf ledger flags the deferred / non-incremental levers (static content).
         assert!(
             reasoned
                 .perf_ledger
                 .contains("https://blackcatinformatics.ca/gmeow/FlaggedNonIncremental"),
             "the perf ledger flags the non-incremental hard parts"
+        );
+    }
+
+    #[test]
+    fn production_chase_certificate_folds_into_diagnostics_graph_and_nodes() {
+        let nq = br#"
+<http://example.org/R> <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/p> <http://gmeow.example/w> .
+<http://example.org/R> <http://www.w3.org/2002/07/owl#someValuesFrom> <http://example.org/C> <http://gmeow.example/w> .
+<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/R> <http://gmeow.example/w> .
+"#;
+        let reasoned = reason_artifacts(nq).expect("production existential reason");
+        let finding = reasoned
+            .chase_report
+            .findings
+            .iter()
+            .find(|finding| finding.code == "chase.certificate.weakly-acyclic")
+            .expect("the production chase certificate is surfaced");
+        assert!(
+            finding
+                .message
+                .contains("existential edge(s), none in a cycle")
+                && !finding.message.contains("0 existential edge(s)"),
+            "production certificate evidence must be non-vacuous: {finding:?}"
+        );
+
+        let dataset = reason_dataset(&reasoned.closure, &reasoned.result, &reasoned.chase_report)
+            .expect("certificate diagnostics dataset");
+        let diagnostics = dataset.project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
+        assert!(diagnostics.owned_quads().any(|quad| {
+            quad.predicate == "https://blackcatinformatics.ca/gmeow/findingCode"
+                && matches!(
+                    quad.object,
+                    RdfTerm::Literal(ref literal)
+                        if literal.lexical_form == "chase.certificate.weakly-acyclic"
+                )
+        }));
+        let nodes =
+            crate::stages::diag_render::finding_nodes(&reasoned.chase_report, "stage-reason");
+        assert_eq!(
+            nodes.len(),
+            2,
+            "the run-ledger projection must retain the native contract and certificate"
         );
     }
 
@@ -356,7 +453,8 @@ mod tests {
 <http://example.org/B> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> <http://gmeow.example/w> .
 "#;
         let reasoned = reason_artifacts(nq).expect("reason");
-        let dataset = reason_dataset(&reasoned.closure, &reasoned.result).expect("dual dataset");
+        let dataset = reason_dataset(&reasoned.closure, &reasoned.result, &reasoned.chase_report)
+            .expect("dual dataset");
         let mut bundle = bundle_from_artifacts_over(
             dataset,
             BTreeMap::new(),
@@ -385,6 +483,11 @@ mod tests {
             bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
             "graph/reasoning carries the projection"
         );
+        assert_ne!(
+            bundle.graph_digest(crate::stages::carrier::GRAPH_DIAGNOSTICS),
+            bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
+            "graph/diagnostics always carries the run's native contract evidence"
+        );
     }
 
     #[test]
@@ -393,7 +496,8 @@ mod tests {
 <http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/B> <http://gmeow.example/w> .
 "#;
         let reasoned = reason_artifacts(nq).expect("reason");
-        let dataset = reason_dataset(&reasoned.closure, &reasoned.result).expect("dual dataset");
+        let dataset = reason_dataset(&reasoned.closure, &reasoned.result, &reasoned.chase_report)
+            .expect("dual dataset");
         let mut bundle = bundle_from_artifacts_over(
             dataset,
             BTreeMap::new(),

@@ -84,7 +84,8 @@ pub struct LangProjectionCorpus {
     pub artifacts: Vec<(String, Vec<u8>)>,
 }
 
-/// Build the projection corpus by driving every registered [`LangProjectionTarget`] over
+/// Build the projection corpus by driving every registered
+/// [`gmeow_lang_bridge::LangProjectionTarget`] over
 /// the sources the shared in-memory [`SliceCatalog`] carries. `None` (no `slices/` tree)
 /// yields the empty-input corpus (every target folds its honest no-source row).
 pub fn build_corpus(

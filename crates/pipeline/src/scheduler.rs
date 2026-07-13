@@ -524,13 +524,17 @@ fn product_blob_reps(product: &StageProduct) -> std::collections::BTreeSet<Strin
 
 /// HARD-fail if a stage's ACTUAL attach delta diverges from its DECLARED attach set,
 /// in either direction. The delta is "what this stage attaches" = the named graphs /
-/// blob-rep lanes present in its OUTPUT product bundle but NOT in its assembled INPUT
-/// (the union over its consumed upstream products) — the cumulative output bundle diffed
-/// against the input, so an upstream graph carried forward is NOT counted as this stage's
-/// attach. Compared against the stage's `attaches_graphs()` / `attaches_blob_reps()`
-/// declaration (Rust/RDF-verified at load). Runs on both the cache-hit and cache-miss
-/// paths (called by [`exec_stage`]) so a cached product with drifted declarations cannot
-/// slip through. No optionality, no fallback.
+/// blob-rep lanes present in its OUTPUT product bundle but NOT in its effective INPUT.
+/// For named graphs, that input honors `consumed_entities()`: a typed producer contributes
+/// only the graph entities this stage actually reads, while an untyped producer contributes
+/// its whole product. Blob representations remain whole-product inputs because there is no
+/// typed blob-consumption declaration. The cumulative output bundle is diffed against those
+/// inputs, so a graph the stage actually consumes and carries forward is NOT counted as its
+/// attach, while a graph merely present elsewhere in an upstream carrier is not allowed to
+/// hide a real attachment. Compared against the stage's `attaches_graphs()` /
+/// `attaches_blob_reps()` declaration (Rust/RDF-verified at load). Runs on both the cache-hit
+/// and cache-miss paths (called by [`exec_stage`]) so a cached product with drifted
+/// declarations cannot slip through. No optionality, no fallback.
 fn verify_attach_drift(
     stage: &dyn Stage,
     upstream: &BTreeMap<String, StageProduct>,
@@ -538,11 +542,27 @@ fn verify_attach_drift(
 ) -> Result<(), gmeow_errors::Diag> {
     use std::collections::BTreeSet;
 
-    // Assembled input sets = union over the consumed upstream products.
+    // Effective input graph set = the same typed-entity narrowing used by the cache key.
+    // A producer absent from the declaration remains a whole-product dependency. Blob
+    // representations have no typed consumption lane, so they remain the union over every
+    // consumed upstream product.
+    let entities: BTreeMap<&str, &[String]> = stage
+        .consumed_entities()
+        .iter()
+        .map(|(producer, ents)| (producer.as_str(), ents.as_slice()))
+        .collect();
     let mut input_graphs: BTreeSet<String> = BTreeSet::new();
     let mut input_blob_reps: BTreeSet<String> = BTreeSet::new();
-    for up in upstream.values() {
-        input_graphs.extend(product_graphs(up));
+    for (producer, up) in upstream {
+        let upstream_graphs = product_graphs(up);
+        match entities.get(producer.as_str()) {
+            Some(ents) if !ents.is_empty() => input_graphs.extend(
+                upstream_graphs
+                    .into_iter()
+                    .filter(|graph| ents.iter().any(|entity| entity == graph)),
+            ),
+            _ => input_graphs.extend(upstream_graphs),
+        }
         input_blob_reps.extend(product_blob_reps(up));
     }
 

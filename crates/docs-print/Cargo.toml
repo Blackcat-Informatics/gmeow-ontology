@@ -31,8 +31,9 @@ gmeow-errors = { path = "../errors" }
 typst = "=0.13.1"
 typst-pdf = "=0.13.1"
 typst-assets = { version = "=0.13.1", features = ["fonts"] }
-# BLAKE3 for the embedded-font-set digest (pinned in a test).
-blake3 = "=1.5.4"
+# BLAKE3 for the embedded-font-set digest; the resulting digest is pinned by the
+# golden test, so compatible 1.x implementation updates do not need a manifest pin.
+blake3 = "1"
 
 [dev-dependencies]
 insta = "1.48"

@@ -16,7 +16,7 @@
 //! sense inventory (`ontolex:sense` → `lang:Sense`, each linked to its lexeme and to the
 //! `lang:LexicalConcept` it `lang:evokes`). It does NOT capture the human-readable sense
 //! GLOSSES (`skos:definition`), which the form AST has no slot for — so those are recorded
-//! HONESTLY as residue in [`ProjectionResult::actual_drops`] rather than silently dropped,
+//! HONESTLY as residue in the projection loss ledger rather than silently dropped,
 //! and the carried correspondence declares [`PreservationKind::SoundUnder`], never `Exact`.
 //!
 //! OntoLex structure the lift cannot represent (an entry with no canonical form, a form with

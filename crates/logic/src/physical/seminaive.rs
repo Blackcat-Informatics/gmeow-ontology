@@ -49,11 +49,11 @@
 //! run in increasing order; within a stratum the predicates being derived never
 //! appear negated, so NAF against the accumulated (frozen-below) store is correct.
 //!
-//! # Phase dead code
+//! # Internal helper coverage
 //!
-//! Like [`crate::rule_ir`], this evaluator lands before the native-first routing
-//! that consumes it, so the not-yet-wired surface allows `dead_code`
-//! module-internally rather than scattering per-item attributes.
+//! The production native paths and focused parity tests exercise different subsets
+//! of this module's kernels. The module-level `dead_code` allowance keeps those
+//! verification helpers together rather than scattering per-item attributes.
 #![allow(dead_code)]
 
 use std::borrow::Cow;
@@ -86,10 +86,9 @@ fn seminaive_err(detail: impl Into<String>) -> gmeow_errors::Diag {
 
 /// A native-execution combination the forward core cannot decide.
 ///
-/// Carried by [`NativeOutcome::Unsupported`].  `NonStratifiable` is the only variant
-/// the forward semi-naive leg can raise; the others name combinations the LATER
-/// magic-sets / backward rungs surface, declared here so the outcome enum is stable
-/// across the rungs that consume it.
+/// Carried by [`NativeOutcome::Unsupported`]. `NonStratifiable` is the only variant
+/// the forward semi-naive leg can raise; the others name combinations surfaced by
+/// the native magic-sets, backward, and existential rungs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum UnsupportedKind {
     /// A negative dependency-graph edge lies inside a cycle — no stratification exists.
@@ -105,12 +104,12 @@ pub(crate) enum UnsupportedKind {
     /// evaluated.  NAF over an unbound goal is unsound (it would test a single partial
     /// grounding rather than the intended universally-quantified absence), so the native
     /// core refuses it as a declared gap rather than return a wrong or empty `Decided`.
-    /// The router sends it to the oracle.
+    /// The caller surfaces that typed refusal; no comparison evaluator is a fallback.
     Floundering,
     /// An existential-rule program whose termination the acyclicity certifier could
-    /// not establish (outside the certified-terminating chase fragment).  The router
-    /// refuses it to the oracle, or runs it budgeted-partial — never a wrong or
-    /// non-terminating native result.
+    /// not establish (outside the certified-terminating chase fragment). The native
+    /// caller refuses it or runs it budgeted-partial — never a wrong or non-terminating
+    /// result.
     NonTerminatingExistential,
     /// A backward program whose only path to divergence is arithmetic self-drive: an
     /// IDB predicate in a dependency cycle carries a value-generating `is` builtin whose
@@ -118,7 +117,7 @@ pub(crate) enum UnsupportedKind {
     /// strictly-lower-stratum) driver bounding the recursion.  Over the finite triple
     /// EDB every other backward Datalog program terminates; only such a value-generator
     /// can invent an unbounded stream of fresh Herbrand terms.  With no `max_steps`
-    /// budget that is an unbounded hang, so the native core refuses it to the oracle
+    /// budget that is an unbounded hang, so the native core returns a typed refusal
     /// (incomplete-never-wrong); with a step budget the [`StepGovernor`] cuts it, so it
     /// is evaluated normally.
     NonTerminatingArithmetic,
@@ -126,9 +125,9 @@ pub(crate) enum UnsupportedKind {
 
 /// The result of a native-execution attempt: a decided value or a declared gap.
 ///
-/// `Unsupported` is a FIRST-CLASS outcome, never a panic or a silent approximation —
-/// the caller routes an unsupported combination to an oracle (no-optionality: the
-/// native core states what it cannot do rather than papering over it).
+/// `Unsupported` is a FIRST-CLASS outcome, never a panic or a silent approximation.
+/// The caller may apply an explicitly defined sound native transformation fallback or
+/// surface the typed refusal; no external engine demotion route remains.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum NativeOutcome<T> {
     /// The native core decided the request, yielding `T`.

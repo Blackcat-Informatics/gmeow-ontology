@@ -20,7 +20,6 @@
 //! * [`scheduler`] — level-parallel execution + per-resource serialization (P2).
 //! * [`provenance`] — per-stage `OriginKind` / `UnitId` stamping (P2).
 //! * [`stages`] — the concrete production stages (P3–P5).
-//! * [`py`] — the PyO3 `run_pipeline` surface (P6, `python` feature).
 //!
 //! Invariants the [`loader`] proves before any stage runs (no-optionality): the
 //! DAG is acyclic and complete, there is exactly one `Sink` (the gts narrow

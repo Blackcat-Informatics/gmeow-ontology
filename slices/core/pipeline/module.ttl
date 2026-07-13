@@ -535,7 +535,7 @@ gmeow:stage-reason
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "reason"@x-gmeow-english ;
-    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (ontology + imports + statements + alignments + logic/relational-core/correspondence, in the bundle's graph layout but WITHOUT the meta/report graphs, which assert no axioms and only perturb the content-addressed Skolem witnesses). The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
+    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (ontology + imports + statements + alignments + logic/relational-core/correspondence, in the bundle's graph layout but WITHOUT the meta/report graphs, which assert no axioms and only perturb the content-addressed Skolem witnesses). The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The run's content-addressed native contract is always projected as a gmeow:Finding into graph/diagnostics and the diagnostics:nodes cache lane, keeping that declared attachment total even when the EDB contains no existential obligation; every production existential program's world-scoped termination certificate joins it from the same reasoning run. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1000,7 +1000,10 @@ gmeow:stage-mappings
         <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
 
 gmeow:stage-reason
-    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ,
+        <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
+    gmeow:attachesBlobRep "diagnostics:nodes" .
 
 gmeow:stage-validate
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;

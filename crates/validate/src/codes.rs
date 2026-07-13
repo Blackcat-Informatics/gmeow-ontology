@@ -8,7 +8,7 @@
 //! totality *by construction*: every literal finding code and every dynamic-code
 //! family base/suffix is declared here exactly once as a `pub const`, every emit
 //! site references the const (never a bare string literal), and
-//! [`rule_catalog::STATIC_RULES`] / `FAMILY_PREFIXES` / `FAMILY_SUFFIXES` are
+//! [`crate::rule_catalog::STATIC_RULES`] / `FAMILY_PREFIXES` / `FAMILY_SUFFIXES` are
 //! built FROM these consts. [`ALL_CODES`] enumerates every static const so a test
 //! can assert each one is classified — so a newly added const that is not wired
 //! into a `STATIC_RULES` row or a family fails the build, not a grep.
@@ -168,9 +168,9 @@ pub const ADVICE_TIER_ACTIVE: &str = "advice.tier.active";
 pub const DSL_NONCONFORMING_SUFFIX: &str = "-dsl.nonconforming";
 
 /// Every statically-declared literal finding code, for the compile-time
-/// totality gate: [`rule_catalog::tests::every_declared_code_is_classified`]
+/// totality gate: `every_declared_code_is_classified`
 /// iterates this array and asserts each is recognised by
-/// [`rule_catalog::is_known`]. A code const added here without a matching
+/// [`crate::rule_catalog::is_known`]. A code const added here without a matching
 /// `STATIC_RULES` row (or family prefix/suffix membership) fails that test.
 pub const ALL_CODES: &[&str] = &[
     DISCIPLINE_STEREOTYPE,
