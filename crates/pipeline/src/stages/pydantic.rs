@@ -68,6 +68,9 @@ use crate::stages::value_vocab::{self, ValueVocab, enum_member_idents};
 const ENVELOPE_MODULE: &str = "_envelope";
 /// The shared-base module (`ConfiguredBaseModel`).
 const BASE_MODULE: &str = "_base";
+/// The single-source wheel-version module (`__version__`), read by
+/// `pyproject.toml`'s `[tool.hatch.version]`.
+const ABOUT_MODULE: &str = "__about__";
 /// The home for gmeow-namespaced shape-bearing classes declared only in the
 /// shared test-DSL vocabulary (`dsl/`) that own no slice.
 const SPEC_MODULE: &str = "_spec";
@@ -176,6 +179,179 @@ fn err(message: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+// ── Wheel version (owl:versionInfo → __about__.py) ──────────────────────────
+
+/// The bare ontology IRI (no trailing slash) — the subject carrying
+/// `owl:versionInfo` in `ontology/gmeow.ttl`'s header. Mirrors the same subject
+/// `crate::stages::term_manifest`/`crate::stages::carrier`/`crate::stages::metadata`
+/// each independently read `owl:versionInfo` off.
+const ONTOLOGY_IRI: &str = "https://blackcatinformatics.ca/gmeow";
+const OWL_VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";
+
+/// Load the authored ontology header (`ontology/gmeow.ttl`) and return its
+/// `owl:versionInfo` literal verbatim — the SINGLE source of the `gmeow-ontology`
+/// wheel version, stamped into the generated `gmeow_models/__about__.py`
+/// (`pyproject.toml`'s `[tool.hatch.version]` reads `__version__` from there). A
+/// hard requirement: never defaulted, and hard-fails when the value is missing or
+/// is not a PEP 440 PUBLIC version identifier (never a local version — PyPI
+/// rejects a `+local` segment, so this policy forbids one outright).
+fn ontology_version_info(root: &Path) -> Result<String, gmeow_errors::Diag> {
+    let path = root.join("ontology").join("gmeow.ttl");
+    let bytes = std::fs::read(&path)
+        .map_err(|e| err(format!("read ontology header {}: {e}", path.display())))?;
+    let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)
+        .map_err(|e| err(format!("parse ontology header {}: {e}", path.display())))?;
+    for quad in dataset.owned_quads() {
+        if quad.graph_name.is_some() {
+            continue; // the ontology header lives in the default graph only.
+        }
+        let purrdf::model::RdfTerm::Iri(subject) = &quad.subject else {
+            continue;
+        };
+        if subject != ONTOLOGY_IRI || quad.predicate != OWL_VERSION_INFO {
+            continue;
+        }
+        let purrdf::model::RdfTerm::Literal(literal) = &quad.object else {
+            continue;
+        };
+        let version = literal.lexical_form.clone();
+        if !is_pep440_public_version(&version) {
+            return Err(err(format!(
+                "ontology {ONTOLOGY_IRI} owl:versionInfo {version:?} is not a PEP 440 public \
+                 version identifier — refusing to stamp a malformed wheel version"
+            )));
+        }
+        return Ok(version);
+    }
+    Err(err(format!(
+        "authored ontology {ONTOLOGY_IRI} has no owl:versionInfo — cannot derive the wheel version"
+    )))
+}
+
+/// Whether `raw` is a PEP 440–compliant PUBLIC version identifier — i.e. it has
+/// NO local-version segment (`+...`), which this emitter forbids outright (PyPI
+/// rejects a local version, so a wheel version can never legitimately carry one).
+/// Hand-rolled (no external regex dependency): mirrors the canonical PEP 440
+/// `VERSION_PATTERN` public-version grammar,
+///
+/// ```text
+/// [v] [N!] N(.N)* [{a|b|c|rc|alpha|beta|pre|preview}[N]] [{.post|-|post|rev|r}[N]] [{.dev}[N]]
+/// ```
+///
+/// case-insensitively, with the documented `-`/`_`/`.` separator flexibility
+/// between segments. Any trailing byte after the matched grammar (in particular a
+/// `+local` segment) fails the match.
+fn is_pep440_public_version(raw: &str) -> bool {
+    if raw.is_empty() || !raw.is_ascii() {
+        return false;
+    }
+    let lower = raw.to_ascii_lowercase();
+    let b = lower.as_bytes();
+    let n = b.len();
+    let mut i = 0usize;
+
+    fn digits(b: &[u8], i: &mut usize) -> bool {
+        let start = *i;
+        while *i < b.len() && b[*i].is_ascii_digit() {
+            *i += 1;
+        }
+        *i > start
+    }
+    fn sep(b: &[u8], i: &mut usize) {
+        if *i < b.len() && matches!(b[*i], b'-' | b'_' | b'.') {
+            *i += 1;
+        }
+    }
+    fn tag(b: &[u8], i: &mut usize, tags: &[&str]) -> bool {
+        for t in tags {
+            if b[*i..].starts_with(t.as_bytes()) {
+                *i += t.len();
+                return true;
+            }
+        }
+        false
+    }
+
+    // Optional leading "v" (PEP 440 permits it, e.g. `v1.0`).
+    if i < n && b[i] == b'v' {
+        i += 1;
+    }
+    // Optional epoch: digits "!".
+    let save = i;
+    if digits(b, &mut i) && i < n && b[i] == b'!' {
+        i += 1;
+    } else {
+        i = save;
+    }
+    // Release segment: digits ("." digits)*  — at least one group, required.
+    if !digits(b, &mut i) {
+        return false;
+    }
+    loop {
+        let save = i;
+        if i < n && b[i] == b'.' {
+            i += 1;
+            if digits(b, &mut i) {
+                continue;
+            }
+        }
+        i = save;
+        break;
+    }
+    // Optional pre-release: [-_.]? (preview|alpha|beta|pre|rc|a|b|c) [-_.]? N?
+    // (tags ordered longest-first so a short alias never shadows a longer one).
+    {
+        let save = i;
+        let mut j = i;
+        sep(b, &mut j);
+        const PRE_TAGS: &[&str] = &["preview", "alpha", "beta", "pre", "rc", "a", "b", "c"];
+        if tag(b, &mut j, PRE_TAGS) {
+            sep(b, &mut j);
+            digits(b, &mut j);
+            i = j;
+        } else {
+            i = save;
+        }
+    }
+    // Optional post-release: ("-" N) | ([-_.]? (post|rev|r) [-_.]? N?).
+    {
+        let save = i;
+        if i < n && b[i] == b'-' {
+            let mut j = i + 1;
+            if digits(b, &mut j) {
+                i = j;
+            }
+        } else {
+            let mut j = i;
+            sep(b, &mut j);
+            const POST_TAGS: &[&str] = &["post", "rev", "r"];
+            if tag(b, &mut j, POST_TAGS) {
+                sep(b, &mut j);
+                digits(b, &mut j);
+                i = j;
+            } else {
+                i = save;
+            }
+        }
+    }
+    // Optional dev-release: [-_.]? "dev" [-_.]? N?
+    {
+        let save = i;
+        let mut j = i;
+        sep(b, &mut j);
+        if b[j..].starts_with(b"dev") {
+            j += 3;
+            sep(b, &mut j);
+            digits(b, &mut j);
+            i = j;
+        } else {
+            i = save;
+        }
+    }
+    // No local-version segment permitted: the whole string must be consumed.
+    i == n
+}
+
 // ── Public entry point ───────────────────────────────────────────────────────
 
 /// Render the `gmeow_models` package as a `{package-relative-path: bytes}` map
@@ -237,6 +413,11 @@ pub(crate) fn render_models_python(root: &Path) -> Result<ModelsPython, gmeow_er
     let slice_by_iri: BTreeMap<&str, &DocSlice> =
         docs.slices.iter().map(|s| (s.iri.as_str(), s)).collect();
 
+    // 3b. The wheel version: the ontology's `owl:versionInfo`, verbatim — the
+    //     single source `gmeow_models/__about__.py` stamps and `pyproject.toml`
+    //     reads through `[tool.hatch.version]`. Hard-fails if absent/malformed.
+    let version = ontology_version_info(root)?;
+
     build_package(
         defs,
         &defkey_to_iri,
@@ -244,12 +425,14 @@ pub(crate) fn render_models_python(root: &Path) -> Result<ModelsPython, gmeow_er
         &term_index,
         &slice_by_iri,
         &value_vocabs,
+        &version,
     )
 }
 
 /// Transliterate one compiled `$defs` map into the Pydantic package. Split from
 /// [`render_models_python`] so it can be exercised over a synthetic `$defs`
 /// (e.g. a closed/`extra="forbid"` class the real corpus does not yet carry).
+#[allow(clippy::too_many_arguments)]
 fn build_package(
     defs: &serde_json::Map<String, Value>,
     defkey_to_iri: &BTreeMap<String, String>,
@@ -257,6 +440,7 @@ fn build_package(
     term_index: &BTreeMap<&str, &gmeow_docs::model::DocTerm>,
     slice_by_iri: &BTreeMap<&str, &DocSlice>,
     value_vocabs: &[ValueVocab],
+    version: &str,
 ) -> Result<ModelsPython, gmeow_errors::Diag> {
     // The standalone value-vocabulary enums: their `(ident, value)` StrEnum members
     // (read once, deterministically) and the module each owns. A field repointed at an
@@ -423,12 +607,13 @@ fn build_package(
     // 6. Assemble the package artifacts.
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     artifacts.insert(format!("{PKG}/{BASE_MODULE}.py"), render_base());
+    artifacts.insert(format!("{PKG}/{ABOUT_MODULE}.py"), render_about(version));
     artifacts.insert(format!("{PKG}/py.typed"), Vec::new());
     for module in &modules {
         artifacts.insert(format!("{PKG}/{}.py", module.slug), module.text.clone());
     }
     artifacts.insert(format!("{PKG}/__init__.py"), render_init(&modules));
-    artifacts.insert(format!("{PKG}/README.md"), render_readme(&modules));
+    artifacts.insert(format!("{PKG}/README.md"), render_readme(&modules, version));
 
     Ok(ModelsPython {
         artifacts,
@@ -1502,6 +1687,32 @@ fn render_base() -> Vec<u8> {
     finish_text(out)
 }
 
+/// Render `gmeow_models/__about__.py` — the SINGLE source of the wheel version,
+/// the ontology's `owl:versionInfo` verbatim. `pyproject.toml`'s
+/// `[tool.hatch.version] path = "gmeow_models/__about__.py"` reads `__version__`
+/// straight from here, so hatchling and the package agree by construction.
+///
+/// # Bump policy
+///
+/// Bump `owl:versionInfo` in `ontology/gmeow.ttl` and `make regenerate` — never
+/// hand-edit this file or set `version` in `pyproject.toml` directly.
+fn render_about(version: &str) -> Vec<u8> {
+    let mut out = String::new();
+    out.push_str(&render_docstring(
+        "The gmeow-ontology wheel version — a single-source projection",
+        &[
+            "This is the ontology's owl:versionInfo (ontology/gmeow.ttl), verbatim.".to_owned(),
+            "pyproject.toml's [tool.hatch.version] reads __version__ from here. To".to_owned(),
+            "release a new wheel version, bump owl:versionInfo in ontology/gmeow.ttl".to_owned(),
+            "and run `make regenerate` — never hand-edit this file or set `version`".to_owned(),
+            "in pyproject.toml directly.".to_owned(),
+        ],
+    ));
+    out.push_str("from __future__ import annotations\n\n");
+    out.push_str(&format!("__version__ = {}\n", py_string(version)));
+    finish_text(out)
+}
+
 struct RenderedModule {
     slug: String,
     text: Vec<u8>,
@@ -1538,6 +1749,9 @@ fn render_init(modules: &[RenderedModule]) -> Vec<u8> {
     out.push_str(&format!(
         "from .{BASE_MODULE} import ConfiguredBaseModel as ConfiguredBaseModel\n"
     ));
+    out.push_str(&format!(
+        "from .{ABOUT_MODULE} import __version__ as __version__\n"
+    ));
     // Slugs arrive sorted (modules built from a BTreeMap key iteration).
     for module in modules {
         out.push_str(&format!(
@@ -1550,6 +1764,7 @@ fn render_init(modules: &[RenderedModule]) -> Vec<u8> {
     // Deterministic public surface.
     let mut all_names: BTreeSet<String> = BTreeSet::new();
     all_names.insert("ConfiguredBaseModel".to_owned());
+    all_names.insert("__version__".to_owned());
     for module in modules {
         all_names.extend(module.model_names.iter().cloned());
         all_names.extend(module.enum_names.iter().cloned());
@@ -1575,7 +1790,7 @@ fn render_init(modules: &[RenderedModule]) -> Vec<u8> {
 
 /// The package README — a self-explaining orientation shipped alongside the code
 /// so the extracted package documents itself.
-fn render_readme(modules: &[RenderedModule]) -> Vec<u8> {
+fn render_readme(modules: &[RenderedModule], version: &str) -> Vec<u8> {
     let model_total: usize = modules.iter().map(|m| m.model_names.len()).sum();
     let mut out = String::new();
     out.push_str("# gmeow_models — the GMEOW ontology as a Pydantic v2 package\n\n");
@@ -1601,6 +1816,14 @@ fn render_readme(modules: &[RenderedModule]) -> Vec<u8> {
          table in the GMEOW documentation records exactly what this surface preserves\n\
          and drops relative to the canonical `logic:` core.\n\n",
     );
+    out.push_str("## Versioning\n\n");
+    out.push_str(&format!(
+        "The wheel version ({version}) is the ontology's `owl:versionInfo`\n\
+         (`ontology/gmeow.ttl`), stamped verbatim into `gmeow_models/__about__.py` and\n\
+         read by `pyproject.toml`'s `[tool.hatch.version]`. To release a new version,\n\
+         bump `owl:versionInfo` and `make regenerate` — never hand-edit `__about__.py`\n\
+         or set `version` in `pyproject.toml` directly.\n\n",
+    ));
     out.push_str("## Usage\n\n");
     out.push_str(
         "```python\n\
@@ -1929,8 +2152,16 @@ mod tests {
             terms.iter().map(|t| (t.iri.as_str(), t)).collect();
         let slice_by_iri: BTreeMap<&str, &DocSlice> = BTreeMap::new();
 
-        let out = build_package(defs, &defkey_to_iri, &ns, &term_index, &slice_by_iri, &[])
-            .expect("build synthetic package");
+        let out = build_package(
+            defs,
+            &defkey_to_iri,
+            &ns,
+            &term_index,
+            &slice_by_iri,
+            &[],
+            "0.0.0",
+        )
+        .expect("build synthetic package");
         let demo = utf8(&out.artifacts, "gmeow_models/demo.py");
 
         assert!(
@@ -1990,8 +2221,16 @@ mod tests {
         let term_index: BTreeMap<&str, &gmeow_docs::model::DocTerm> =
             terms.iter().map(|t| (t.iri.as_str(), t)).collect();
         let slice_by_iri: BTreeMap<&str, &DocSlice> = BTreeMap::new();
-        let out = build_package(defs, &defkey_to_iri, &ns, &term_index, &slice_by_iri, &[])
-            .expect("build package");
+        let out = build_package(
+            defs,
+            &defkey_to_iri,
+            &ns,
+            &term_index,
+            &slice_by_iri,
+            &[],
+            "0.0.0",
+        )
+        .expect("build package");
         let demo = utf8(&out.artifacts, "gmeow_models/demo.py");
         assert!(
             demo.contains("n433 = \"gmeow:openehr/x/433\""),
@@ -2168,6 +2407,78 @@ mod tests {
             "Pydantic ⇄ JSON-Schema constraint-core disagreement ({} classes):\n{}",
             mismatches.len(),
             mismatches.join("\n")
+        );
+    }
+
+    /// PEP 440 validator: known-good public version identifiers accept, and
+    /// malformed / local-version strings are hard-rejected (req: no `+local`
+    /// segment ever reaches the wheel, since PyPI rejects one).
+    #[test]
+    fn pep440_public_version_accepts_known_good_and_rejects_bad() {
+        for good in [
+            "0.1.0",
+            "1.0",
+            "1.0.0",
+            "2026.7.12",
+            "1!1.0",
+            "1.0a1",
+            "1.0b2",
+            "1.0rc1",
+            "1.0.dev0",
+            "1.0.post1",
+            "1.0-1",
+            "1.0.0-alpha",
+            "v1.0",
+        ] {
+            assert!(
+                is_pep440_public_version(good),
+                "expected {good:?} to be a valid PEP 440 public version"
+            );
+        }
+        for bad in [
+            "",
+            "abc",
+            "not-a-version",
+            "1..0",
+            "1.0+local",
+            "1.0.0+local.1",
+            "v1.0.beta.blah.blah",
+        ] {
+            assert!(
+                !is_pep440_public_version(bad),
+                "expected {bad:?} to be rejected as an invalid/local PEP 440 version"
+            );
+        }
+    }
+
+    /// The wheel version is sourced from the ontology header's `owl:versionInfo`
+    /// (`ontology/gmeow.ttl`), verbatim — never a hand-maintained duplicate.
+    #[test]
+    fn ontology_version_info_reads_owl_version_info() {
+        let version = ontology_version_info(&repo_root()).expect("ontology version");
+        assert!(
+            is_pep440_public_version(&version),
+            "ontology owl:versionInfo {version:?} must be PEP 440-valid"
+        );
+    }
+
+    /// The rendered `__about__.py` carries `__version__` set to the ontology's
+    /// `owl:versionInfo` verbatim, and `__init__.py` re-exports it — the single
+    /// source `pyproject.toml`'s `[tool.hatch.version]` reads.
+    #[test]
+    fn about_module_carries_ontology_version() {
+        let root = repo_root();
+        let version = ontology_version_info(&root).expect("ontology version");
+        let out = render_models_python(&root).expect("render models");
+        let about = utf8(&out.artifacts, "gmeow_models/__about__.py");
+        assert!(
+            about.contains(&format!("__version__ = \"{version}\"")),
+            "__about__.py must stamp __version__ = {version:?} verbatim:\n{about}"
+        );
+        let init = utf8(&out.artifacts, "gmeow_models/__init__.py");
+        assert!(
+            init.contains("from .__about__ import __version__ as __version__"),
+            "__init__.py must re-export __version__ from __about__.py"
         );
     }
 }

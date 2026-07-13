@@ -5,13 +5,19 @@
 # generated artifact). This file only PACKAGES that generated tree into the
 # `gmeow-ontology` wheel published to PyPI — reading/importing the models IS
 # reading the ontology, validating data with them IS using it.
+#
+# Version-bump policy: the wheel version is the ontology's `owl:versionInfo`
+# (`ontology/gmeow.ttl`), read by hatchling from the GENERATED
+# `gmeow_models/__about__.py` (see `[tool.hatch.version]` below). To release a
+# new wheel version, bump `owl:versionInfo` in `ontology/gmeow.ttl` and run
+# `make regenerate` — never hand-edit `__about__.py` or set `version` here.
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
 name = "gmeow-ontology"
-version = "0.1.0"
+dynamic = ["version"]
 description = "The GMEOW ontology as a fully-documented, validating Pydantic v2 model package (a functional documentation surface)."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -19,6 +25,11 @@ license = "AGPL-3.0-only"
 authors = [{ name = "Blackcat Informatics® Inc.", email = "paudley@blackcatinformatics.ca" }]
 keywords = ["ontology", "pydantic", "knowledge-graph", "rdf", "shacl", "validation"]
 dependencies = ["pydantic>=2"]
+
+[tool.hatch.version]
+# The single source of the wheel version: the GENERATED module stamping the
+# ontology's owl:versionInfo verbatim (crates/pipeline/src/stages/pydantic.rs).
+path = "gmeow_models/__about__.py"
 
 [project.optional-dependencies]
 # The off-gate conformance harness (`make maint-pydantic-conformance`) deps.
