@@ -85,7 +85,7 @@ pub(crate) use incremental_grounding::{
 // forward/backward evaluators landing on the next rung. Until then the re-export is
 // unused crate-wide, so allow it here rather than dropping the intended API.
 #[allow(unused_imports)]
-pub(crate) use store::{Bound, RelationStore, extract_edb};
+pub(crate) use store::{Bound, RelationStore, SkolemRegistry, extract_edb};
 
 // The arrangement's native lending cursor + its sealed GAT trait: the zero-alloc row
 // scan consumed by the semi-naive join (`seminaive`) and the chase (`chase`).
@@ -118,7 +118,10 @@ pub(crate) use plan::{
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and
 // consumed by `materialize::materialize_routed`.
 #[allow(unused_imports)]
-pub(crate) use chase::{ExistentialRule, chase_materialize, chase_world, route_chase};
+pub(crate) use chase::{
+    ExistentialRule, WitnessPolicy, chase_materialize, chase_world, route_chase,
+    route_chase_with_registry,
+};
 // The termination certificate is surfaced PUBLICLY (re-exported through the public
 // `materialize` module below) so callers can read the chase's weak-acyclicity certificate
 // and its `to_finding()` gmeow:Finding off a `materialize_routed` result.

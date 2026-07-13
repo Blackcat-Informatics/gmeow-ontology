@@ -1055,6 +1055,7 @@ fn structured_existential_rules(
                     // bound subject occurs in both body and head, so each subject's
                     // existential obligation receives its own deterministic witness.
                     witness_frontier: None,
+                    witness_policy: crate::physical::WitnessPolicy::DlAncestorBlocking,
                 });
         }
     }
@@ -1065,6 +1066,7 @@ fn run_structured_existential_chase(
     inferred: &mut Vec<InferredAxiom>,
     facts: &mut BTreeSet<Fact>,
     rules_by_world: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
+    witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
 ) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
     let mut certificates = Vec::new();
     for (world, rules) in rules_by_world {
@@ -1080,7 +1082,9 @@ fn run_structured_existential_chase(
                 object: TermValue::iri(fact.object.clone()),
             })
             .collect::<Vec<_>>();
-        let (admission, outcome) = crate::physical::route_chase(world, &edb, rules, None)?;
+        let registry = witness_registries.entry(world.clone()).or_default();
+        let (admission, outcome) =
+            crate::physical::route_chase_with_registry(world, &edb, rules, None, registry)?;
         let budgeted = match outcome {
             crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
             crate::physical::NativeOutcome::Unsupported(kind) => {
@@ -1174,6 +1178,7 @@ pub(crate) fn augment_inferred_with_dl_certificates(
 
     let mut facts: BTreeSet<Fact> = raw_resource_facts(edb).into_iter().collect();
     let mut certificates = Vec::new();
+    let mut witness_registries = BTreeMap::new();
     for ax in inferred.iter() {
         if let Some(fact) = fact_from_axiom(ax) {
             facts.insert(fact);
@@ -1988,6 +1993,7 @@ pub(crate) fn augment_inferred_with_dl_certificates(
             inferred,
             &mut facts,
             &existential_rules,
+            &mut witness_registries,
         )?);
 
         if facts.len() == before {
@@ -1995,7 +2001,14 @@ pub(crate) fn augment_inferred_with_dl_certificates(
         }
     }
 
-    augment_with_extra_dl_clashes(inferred, &mut facts, &restrictions, edb, &mut certificates)?;
+    augment_with_extra_dl_clashes(
+        inferred,
+        &mut facts,
+        &restrictions,
+        edb,
+        &mut certificates,
+        &mut witness_registries,
+    )?;
 
     certificates.sort_by(|left, right| {
         let left_finding = left.admission.to_finding();
@@ -2051,6 +2064,7 @@ fn augment_with_extra_dl_clashes(
     restrictions: &BTreeMap<(String, String), Restriction>,
     edb: &RdfDataset,
     certificates: &mut Vec<crate::reason::ChaseCertificate>,
+    witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
 ) -> gmeow_errors::Result<()> {
     // ── 1. owl:Thing forced into owl:Nothing ──────────────────────────────────
     // owl:Thing ⊑ owl:Nothing (asserted or via equivalentClass) makes the always-
@@ -2087,6 +2101,7 @@ fn augment_with_extra_dl_clashes(
                 )],
                 distinct: Vec::new(),
                 witness_frontier: Some(Vec::new()),
+                witness_policy: crate::physical::WitnessPolicy::DlAncestorBlocking,
             })
             .collect();
         thing_rules.insert(world, rules);
@@ -2095,6 +2110,7 @@ fn augment_with_extra_dl_clashes(
         inferred,
         facts,
         &thing_rules,
+        witness_registries,
     )?);
 
     // ── 2. Empty bottom property forced to have a value ───────────────────────
@@ -4410,10 +4426,24 @@ mod tests {
             quad(C, SUBCLASS, R),
             quad(X, TYPE, C),
         ]);
-        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        let (closure, verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("cyclic DL existential reasoning should terminate");
 
         assert!(verdict.consistent, "cyclic but satisfiable ∃ is consistent");
         assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+        let filler = closure
+            .iter()
+            .find(|axiom| axiom.subject == X && axiom.predicate == P)
+            .map(|axiom| unwrap_iri(&axiom.object).to_owned())
+            .expect("the root receives one existential filler");
+        assert!(closure.iter().any(|axiom| {
+            axiom.subject == filler && axiom.predicate == P && unwrap_iri(&axiom.object) == filler
+        }));
+        assert_eq!(
+            closure.iter().filter(|axiom| axiom.predicate == P).count(),
+            2,
+            "ancestor blocking must close the recursive model instead of growing a witness chain"
+        );
     }
 
     #[test]

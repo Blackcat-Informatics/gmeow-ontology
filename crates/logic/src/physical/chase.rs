@@ -66,6 +66,16 @@ fn physical_err(detail: String) -> gmeow_errors::Diag {
 /// A chase attempt's outcome: a decided budgeted derivation, or a declared gap.
 pub(crate) type ChaseOutcome = NativeOutcome<Budgeted<Vec<DerivedRow>>>;
 
+/// How an existential rule addresses witnesses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum WitnessPolicy {
+    /// Standard frontier-Skolem witnesses for general existential TGDs.
+    FrontierSkolem,
+    /// DL tableau blocking: preserve a distinct witness per root binding, then
+    /// close recursive same-rule/ordinal obligations on the nearest ancestor.
+    DlAncestorBlocking,
+}
+
 /// One not-yet-committed chase row and the provenance needed to publish it.
 struct PendingRow {
     key: FactKey,
@@ -99,6 +109,8 @@ pub(crate) struct ExistentialRule {
     /// Optional explicit witness-address frontier. `None` derives the standard
     /// head/body intersection; `Some([])` gives a rule-scoped shared witness.
     pub(crate) witness_frontier: Option<Vec<String>>,
+    /// Witness addressing policy for this rule family.
+    pub(crate) witness_policy: WitnessPolicy,
 }
 
 impl ExistentialRule {
@@ -268,32 +280,37 @@ pub(crate) fn chase_world_explained(
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<(ChaseOutcome, SkolemRegistry)> {
-    let mut governor = StepGovernor::new(max_steps);
     let mut registry = SkolemRegistry::new();
+    let outcome = chase_world_with_registry(world, edb_facts, rules, max_steps, &mut registry)?;
+    Ok((outcome, registry))
+}
+
+/// Run one world while retaining witness recipes across repeated outer fixed-point
+/// invocations. The DL reasoner uses this to make ancestor blocking span its
+/// alternating ordinary-rule/chase rounds; general chase entry points use a fresh
+/// registry and therefore keep standard one-shot behavior.
+pub(crate) fn chase_world_with_registry(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[ExistentialRule],
+    max_steps: Option<u64>,
+    registry: &mut SkolemRegistry,
+) -> gmeow_errors::Result<ChaseOutcome> {
+    let mut governor = StepGovernor::new(max_steps);
     let mut out: Vec<DerivedRow> = Vec::new();
-    let status = chase_world_into(
-        world,
-        edb_facts,
-        rules,
-        &mut governor,
-        &mut registry,
-        &mut out,
-    )?;
+    let status = chase_world_into(world, edb_facts, rules, &mut governor, registry, &mut out)?;
     sort_rows(&mut out);
     let progress = StrataProgress {
         completed: usize::from(status == BudgetStatus::Ok),
         total: 1,
         saturated_preds: BTreeSet::new(),
     };
-    Ok((
-        NativeOutcome::Decided(Budgeted {
-            rows: out,
-            status,
-            progress,
-            consumed_steps: governor.consumed,
-        }),
-        registry,
-    ))
+    Ok(NativeOutcome::Decided(Budgeted {
+        rows: out,
+        status,
+        progress,
+        consumed_steps: governor.consumed,
+    }))
 }
 
 /// Chase ONE world into a shared output buffer under a shared step governor.
@@ -389,11 +406,7 @@ fn chase_world_into(
                     // No reified n-ary tuple in the head: every existential is a genuine value
                     // witness (DL `∃p.D`, `≥n p.D`, …), frontier-addressed `SkolemTerm`.
                     for (ordinal, evar) in existentials.iter().enumerate() {
-                        let witness = registry.mint(SkolemTerm {
-                            rule_iri: rule.rule_iri.clone(),
-                            ordinal,
-                            frontier: frontier.clone(),
-                        });
+                        let witness = mint_witness(rule, registry, ordinal, &frontier);
                         extended
                             .bindings
                             .push((evar.clone(), term_display(&witness)));
@@ -413,11 +426,7 @@ fn chase_world_into(
                         if reifier_vars.contains(evar.as_str()) {
                             continue;
                         }
-                        let witness = registry.mint(SkolemTerm {
-                            rule_iri: rule.rule_iri.clone(),
-                            ordinal,
-                            frontier: frontier.clone(),
-                        });
+                        let witness = mint_witness(rule, registry, ordinal, &frontier);
                         extended
                             .bindings
                             .push((evar.clone(), term_display(&witness)));
@@ -598,6 +607,23 @@ fn bound_value(sol: &Solution, var: &str) -> gmeow_errors::Result<purrdf::TermVa
         ))
     })?;
     crate::rule_ir::surface_to_value(surface)
+}
+
+fn mint_witness(
+    rule: &ExistentialRule,
+    registry: &mut SkolemRegistry,
+    ordinal: usize,
+    frontier: &[purrdf::TermValue],
+) -> purrdf::TermValue {
+    let recipe = SkolemTerm {
+        rule_iri: rule.rule_iri.clone(),
+        ordinal,
+        frontier: frontier.to_vec(),
+    };
+    match rule.witness_policy {
+        WitnessPolicy::FrontierSkolem => registry.mint(recipe),
+        WitnessPolicy::DlAncestorBlocking => registry.mint_dl_blocked(recipe),
+    }
 }
 
 /// The reifier IRIs of a solution's matched body facts, in body order.
@@ -1157,6 +1183,24 @@ pub(crate) fn route_chase(
     Ok((admission, outcome))
 }
 
+/// The production-DL sibling of [`route_chase`] that preserves one witness registry
+/// across alternating fixed-point rounds.
+pub(crate) fn route_chase_with_registry(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[ExistentialRule],
+    max_steps: Option<u64>,
+    registry: &mut SkolemRegistry,
+) -> gmeow_errors::Result<(ChaseAdmission, ChaseOutcome)> {
+    let admission = ChaseAdmission::certify(rules);
+    let outcome = if admits_or_budgeted(&admission, max_steps) {
+        chase_world_with_registry(world, edb_facts, rules, max_steps, registry)?
+    } else {
+        NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)
+    };
+    Ok((admission, outcome))
+}
+
 /// Connect wildcard and constant refinements of the same `(predicate, slot)` when BOTH
 /// occur — a conservative over-approximation (a wildcard-typed null could be any class,
 /// and a wildcard consumer reads any class), so reachability is never under-counted.
@@ -1262,6 +1306,7 @@ mod tests {
             ],
             distinct: vec![],
             witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         }
     }
 
@@ -1299,6 +1344,7 @@ mod tests {
             ],
             distinct: vec![],
             witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let (reifier, got_rel, args) = reified_nary_head(&rule).unwrap().unwrap();
         assert_eq!(reifier, "?r");
@@ -1327,6 +1373,7 @@ mod tests {
             ],
             distinct: vec![],
             witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let err = reified_nary_head(&rule).unwrap_err();
         assert!(
@@ -1354,6 +1401,7 @@ mod tests {
             ],
             distinct: vec![],
             witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let err = reified_nary_head(&rule).unwrap_err();
         assert!(
@@ -1439,6 +1487,7 @@ mod tests {
             ],
             distinct: vec![],
             witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let edb = vec![fact("http://ex/a", TYPE, D)];
         let b = decided(chase_world(W, &edb, &[cyclic], Some(3)).unwrap());
@@ -1464,6 +1513,7 @@ mod tests {
             ],
             distinct: vec![("?y1".to_owned(), "?y2".to_owned())],
             witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         // `a` has ONE existing typed witness — short of the two required.
         let edb = vec![
@@ -1531,6 +1581,7 @@ mod tests {
             ],
             distinct: vec![],
             witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         }
     }
 
@@ -1596,6 +1647,7 @@ mod tests {
             head: vec![atom(var("?y"), P, var("?x"))],
             distinct: vec![],
             witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let admission = ChaseAdmission::certify(&[datalog]);
         assert!(admission.admits_native());

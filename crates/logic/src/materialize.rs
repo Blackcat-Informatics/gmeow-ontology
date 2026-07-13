@@ -115,6 +115,7 @@ impl From<&StructuredExistentialRule> for crate::physical::ExistentialRule {
             head: rule.head.iter().map(StructuredAtom::as_eval).collect(),
             distinct: rule.distinct.clone(),
             witness_frontier: rule.witness_frontier.clone(),
+            witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
         }
     }
 }
@@ -632,6 +633,7 @@ pub fn materialize_benchmark_existential(
             head: vec![rule.head],
             distinct: rule.distinct_pairs,
             witness_frontier: None,
+            witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
         })
         .collect::<Vec<_>>();
     let store = crate::store::WorldStore::new();
