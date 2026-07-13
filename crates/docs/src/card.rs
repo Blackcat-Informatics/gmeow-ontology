@@ -167,6 +167,17 @@ pub struct Card {
     /// Alignment facets, each a pre-formatted `predicate=object` display string.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub aligns: Vec<String>,
+    /// The importable dotted path `gmeow_models.<slice>.<Class>` of the generated
+    /// Pydantic model for a MODELED CLASS term — the explicit term→model link
+    /// (§19: importing the model IS reading the term). `None` for non-class terms,
+    /// which have no generated model. Rides the Standard + Full tiers, not Summary.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub python_model: Option<String>,
+    /// A COMPACT, deterministic Pydantic snippet for a modeled class term — the
+    /// model import plus a `model_validate` of a minimal `@type` payload. `None`
+    /// for non-class terms. Token-budgeted (short) so it rides Standard + Full.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub python_snippet: Option<String>,
     // ── Full-tier rich panels (populated ONLY for [`CardDetail::Full`]) ─────────
     /// The reasoner entailments documenting the term. Empty for a term with no
     /// entailments, and for every tier below `Full` (never queried there).
@@ -296,6 +307,17 @@ pub fn render_card_body(card: &Card, detail: CardDetail) -> String {
     field("Related", &card.related_terms);
     field("Aligns", &card.aligns);
 
+    // ── Python model surface — a modeled class links to its generated Pydantic
+    //    model (the explicit term→model link) plus a compact construct/validate
+    //    snippet. Present only for a class term; rides Standard + Full (Summary
+    //    returned early above), so both compact surfaces carry it. ─────────────
+    if let Some(model) = &card.python_model {
+        out.push_str(&format!("**Python model:** `{model}`\n\n"));
+        if let Some(snippet) = &card.python_snippet {
+            out.push_str(&format!("```python\n{snippet}\n```\n\n"));
+        }
+    }
+
     // ── Full-tier rich panels — appended after the compact body. ─────────────
     if detail == CardDetail::Full {
         render_full_panels(&mut out, card);
@@ -356,6 +378,36 @@ pub fn render_card(title: &str, card: &Card, detail: CardDetail) -> String {
     format!("# {title}\n\n{}", render_card_body(card, detail))
 }
 
+/// The importable dotted path `gmeow_models.<slice>.<Class>` of the generated
+/// Pydantic model for a class term — the explicit term→model link ([`Card`]'s
+/// `python_model`). Composed from the SAME routing the Pydantic emitter and the
+/// docs-site Python example tab use ([`crate::render::pydantic_module_slug`] +
+/// [`crate::render::pydantic_class_name`]), so the card link can never drift from
+/// the generated module. Deterministic; callers gate it on a class term.
+#[must_use]
+pub fn python_model_path(slice_iri: &str, term_iri: &str) -> String {
+    format!(
+        "gmeow_models.{}.{}",
+        crate::render::pydantic_module_slug(slice_iri),
+        crate::render::pydantic_class_name(term_iri)
+    )
+}
+
+/// A COMPACT, deterministic Pydantic construct-and-validate snippet for a class
+/// term ([`Card`]'s `python_snippet`): the model import plus a `model_validate`
+/// of a minimal `{"@type": "<curie>"}` payload. Short by design — the card is
+/// token-budgeted — and derived from the SAME emitter routing as
+/// [`python_model_path`], so import + class never drift from the generated model.
+#[must_use]
+pub fn python_model_snippet(slice_iri: &str, term_iri: &str, curie: &str) -> String {
+    let module = crate::render::pydantic_module_slug(slice_iri);
+    let class = crate::render::pydantic_class_name(term_iri);
+    format!(
+        "from gmeow_models.{module} import {class}\n\
+         obj = {class}.model_validate({{\"@type\": \"{curie}\"}})"
+    )
+}
+
 /// The hand-authored JSON Schema (draft 2020-12) describing the serialized term
 /// [`Card`] — the exact shape of the packed `terms/{slug}/card.json` member and the
 /// live MCP `doc_card format=json` payload.
@@ -404,6 +456,15 @@ pub fn card_json_schema() -> serde_json::Value {
             "use_for_consumer": string_array(),
             "avoid_for_consumer": string_array(),
             "aligns": string_array(),
+            "python_model": {
+                "type": "string",
+                "description": "The importable dotted path gmeow_models.<slice>.<Class> of the \
+                                generated Pydantic model for a class term (the term→model link)."
+            },
+            "python_snippet": {
+                "type": "string",
+                "description": "A compact Pydantic import + model_validate snippet for a class term."
+            },
             "entailments": { "type": "array", "items": { "$ref": "#/$defs/entailment" } },
             "fixtures_do": { "type": "array", "items": { "$ref": "#/$defs/fixture" } },
             "fixtures_dont": { "type": "array", "items": { "$ref": "#/$defs/fixture" } },
@@ -846,6 +907,64 @@ mod tests {
         // Monotone by size.
         assert!(summary.len() <= standard.len());
         assert!(standard.len() < full.len());
+    }
+
+    #[test]
+    fn python_model_path_and_snippet_route_through_the_emitter() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/lifecycle";
+        let term = "https://blackcatinformatics.ca/gmeow/Foo";
+        assert_eq!(
+            python_model_path(slice, term),
+            "gmeow_models.lifecycle.Foo",
+            "the dotted path is gmeow_models.<slice>.<Class>"
+        );
+        let snippet = python_model_snippet(slice, term, "gmeow:Foo");
+        assert_eq!(
+            snippet,
+            "from gmeow_models.lifecycle import Foo\n\
+             obj = Foo.model_validate({\"@type\": \"gmeow:Foo\"})"
+        );
+    }
+
+    #[test]
+    fn class_card_carries_python_model_link_and_snippet() {
+        let slice = "https://blackcatinformatics.ca/gmeow/slices/lifecycle";
+        let term = "https://blackcatinformatics.ca/gmeow/Foo";
+        let card = Card {
+            python_model: Some(python_model_path(slice, term)),
+            python_snippet: Some(python_model_snippet(slice, term, "gmeow:Foo")),
+            ..sample()
+        };
+
+        // Standard body renders the explicit link + the fenced snippet.
+        let standard = render_card_body(&card, CardDetail::Standard);
+        assert!(standard.contains("**Python model:** `gmeow_models.lifecycle.Foo`\n\n"));
+        assert!(
+            standard.contains("```python\nfrom gmeow_models.lifecycle import Foo\n"),
+            "the compact card carries the fenced Pydantic snippet"
+        );
+        // Full carries it too (it is a superset of Standard).
+        let full = render_card_body(&card, CardDetail::Full);
+        assert!(full.contains("**Python model:** `gmeow_models.lifecycle.Foo`"));
+
+        // Summary drops the model surface entirely.
+        let summary = render_card_body(&card, CardDetail::Summary);
+        assert!(!summary.contains("Python model"));
+
+        // JSON: Standard carries both fields; Summary drops them.
+        let standard_json = serde_json::to_string(&card.projected(CardDetail::Standard)).unwrap();
+        assert!(standard_json.contains("\"python_model\":\"gmeow_models.lifecycle.Foo\""));
+        assert!(standard_json.contains("\"python_snippet\":"));
+        let summary_json = serde_json::to_string(&card.projected(CardDetail::Summary)).unwrap();
+        assert!(!summary_json.contains("python_model"));
+        assert!(!summary_json.contains("python_snippet"));
+
+        // A non-class card carries neither field, so no Python section renders.
+        let plain = Card {
+            category: "Property".to_string(),
+            ..sample()
+        };
+        assert!(!render_card_body(&plain, CardDetail::Standard).contains("Python model"));
     }
 
     #[test]

@@ -1,0 +1,167 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the FULL structured honesty surface of the Pydantic v2 model
+# package (gmeow_models) projection. The bundled loss ledger already carries the
+# coarse row (ex:pydanticModelsReport: logic:preservationKind logic:ValidationOnly
+# plus a prose complexity class in slices/grounding/logic/examples/projection-loss-ledger.ttl);
+# this example authors the RICHER grounding that row summarizes, using the ONE
+# projection-honesty machinery the ontology already owns (Principles 4, 11, 12, 17, 19):
+#
+#   * a gmeow:NotationProjectionProfile — the per-notation-system ledger that
+#     enumerates the parameters the Pydantic surface carries losslessly
+#     (gmeow:representableParameter) and the ones it drops or approximates
+#     (gmeow:declaredLoss → gmeow:accountsForParameter), so the completeness gate
+#     sees every parameter as represented-or-accounted-for;
+#   * a lang:Rendering — the reified crossing that renders the canonical compiled
+#     shape set into the Pydantic surface form, pointing at the profile through
+#     lang:renderingConvention and carrying its honest logic:PreservationKind
+#     (logic:ValidationOnly) through lang:renderingPreservation (never a local enum);
+#   * a logic:Correspondence — the honest alignment verdict for the
+#     SHACL / JSON-Schema ↔ Pydantic crossing. It is authored WITH its full verdict
+#     (relation, rung, morphism kind, determinacy, mnemomorphism, preservation) so
+#     the native correspondence gates accept it: a closed-record surface that
+#     VALIDATES instance shape but does NOT entail is a commitment-shifting bridge
+#     (logic:BridgeView / logic:CommitmentShiftingBridge) at the logic:ValidationOnly
+#     floor-above-Unsupported, never a satisfaction-preserving equivalence.
+#
+# The Pydantic surface is co-derived with the JSON Schema sibling from the SAME
+# compiled SHACL $defs, so a model's model_json_schema() agrees with the packed
+# JSON Schema (logic:Overlaps → sssom:closeMatch, never a forced equality: the
+# closed record adds a closed-world commitment the open-world source never made,
+# so neither side subsumes the other).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang:  <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/notation/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The Pydantic model surface, viewed as an ENCODING notation system. The
+#     gmeow_models package encodes the ontology's compiled record shapes into a
+#     Python surface — a lang:SignSystem of lang:notationalKind in the written
+#     modality, its domain axis the encoding kind. lang:pydantic (the serialization
+#     sign system of lang:formalLanguageKind) is the same real artifact seen through
+#     the sign-system lens; this NotationSystem is the notation-projection lens that
+#     the profile below anchors, reached by rdfs:seeAlso.
+ex:pydanticNotation a gmeow:NotationSystem ;
+    rdfs:label               "gmeow_models Pydantic v2 model surface (encoding notation)"@x-gmeow-english ;
+    rdfs:seeAlso             lang:pydantic ;
+    lang:signSystemKind      lang:notationalKind ;
+    lang:modality            lang:writtenModality ;
+    gmeow:notationSystemKind gmeow:symbolicKindEncoding .
+
+# --- The projection profile: the per-notation-system loss ledger. It names the
+#     one notation system it describes (gmeow:notationSystemOf, functional), the
+#     canonical parameters the closed-record Pydantic surface carries faithfully
+#     (gmeow:representableParameter), the parameters it drops or approximates
+#     (gmeow:declaredLoss, each reconciled to its parameter by
+#     gmeow:accountsForParameter), the FnO render that performs the projection
+#     (gmeow:projectionFunction, required by Principle 12), and the canonical input
+#     it consumes (gmeow:projectableExpression). rdfs:seeAlso ties it to the honest
+#     crossing verdict below.
+ex:pydanticProfile a gmeow:NotationProjectionProfile ;
+    rdfs:label                   "Pydantic v2 (gmeow_models) projection profile"@x-gmeow-english ;
+    rdfs:seeAlso                 ex:corrPydanticSurface ;
+    gmeow:notationSystemOf       ex:pydanticNotation ;
+    gmeow:representableParameter ex:paramRequiredField ,
+                                 ex:paramEnumConstraint ,
+                                 ex:paramPatternConstraint ,
+                                 ex:paramCardinalityConstraint ,
+                                 ex:paramDatatypeRange ;
+    gmeow:declaredLoss           ex:lossSubclassFlattening ,
+                                 ex:lossShaclAfConstraint ,
+                                 ex:lossOpenWorldClosure ;
+    gmeow:projectionFunction     ex:renderPydanticModels ;
+    gmeow:projectableExpression  ex:gmeowShapeSet .
+
+# --- The parameters the Pydantic closed record carries LOSSLESSLY: the structural
+#     SHACL constraints that survive the compile to a Pydantic model field. Bare
+#     referenced anchors (mirroring ex:pitch in notation-systems.ttl), labelled for
+#     documentation; the profile's representable set, the represented half of the
+#     completeness gate's represented-or-accounted-for reconciliation.
+ex:paramRequiredField
+    rdfs:label "required field (sh:minCount ⇒ Pydantic required field)"@x-gmeow-english .
+ex:paramEnumConstraint
+    rdfs:label "enumerated value (sh:in ⇒ Python StrEnum / Literal)"@x-gmeow-english .
+ex:paramPatternConstraint
+    rdfs:label "lexical pattern (sh:pattern ⇒ Field(pattern=...))"@x-gmeow-english .
+ex:paramCardinalityConstraint
+    rdfs:label "cardinality (sh:minCount/sh:maxCount ⇒ Optional / list field)"@x-gmeow-english .
+ex:paramDatatypeRange
+    rdfs:label "datatype range (sh:datatype ⇒ Python scalar type)"@x-gmeow-english .
+
+# --- The parameters the Pydantic surface DROPS or approximates, each named by a
+#     gmeow:ProjectionLoss whose gmeow:accountsForParameter reconciles it, so the
+#     lossiness is an enumerable, gate-checkable ledger rather than silent drop
+#     (Principle 17). These are the SAME drops the JSON Schema sibling records
+#     (sh:sparql / SHACL-AF dropped), plus the two shape-family losses inherent to a
+#     single-inheritance closed record.
+ex:lossSubclassFlattening a gmeow:ProjectionLoss ;
+    rdfs:label "rdfs:subClassOf multiple-inheritance graph flattened to single Python inheritance"@x-gmeow-english ;
+    gmeow:accountsForParameter ex:paramSubclassGraph .
+ex:lossShaclAfConstraint a gmeow:ProjectionLoss ;
+    rdfs:label "sh:sparql / SHACL-AF constraints dropped (no closed-record equivalent)"@x-gmeow-english ;
+    gmeow:accountsForParameter ex:paramSparqlConstraint .
+ex:lossOpenWorldClosure a gmeow:ProjectionLoss ;
+    rdfs:label "open-world semantics collapsed to closed-record validation (extra fields rejected)"@x-gmeow-english ;
+    gmeow:accountsForParameter ex:paramOpenWorldSemantics .
+
+ex:paramSubclassGraph
+    rdfs:label "rdfs:subClassOf multiple-inheritance graph"@x-gmeow-english .
+ex:paramSparqlConstraint
+    rdfs:label "sh:sparql / SHACL-AF advanced constraint"@x-gmeow-english .
+ex:paramOpenWorldSemantics
+    rdfs:label "open-world assumption (unlisted properties permitted)"@x-gmeow-english .
+
+# --- The FnO function that performs the render (P12): declared here, executed in
+#     the solver/pipeline layer, never hand-encoded in the ontology.
+ex:renderPydanticModels a gmeow:ProjectionFunction ;
+    rdfs:label "render the compiled GMEOW shape set as gmeow_models Pydantic v2 models"@x-gmeow-english .
+
+# --- The canonical content (the compiled SHACL shape set) and the produced surface
+#     (the Pydantic model package) — DISTINCT nodes, so the rendering crossing is
+#     real and the self-identity gate does not fire.
+ex:gmeowShapeSet a lang:Form ;
+    rdfs:label "canonical compiled GMEOW SHACL shape set"@x-gmeow-english .
+ex:pydanticSurface a lang:SurfaceForm ;
+    rdfs:label "gmeow_models Pydantic v2 model package surface"@x-gmeow-english .
+
+# --- The reified render: the canonical shape set realized as the Pydantic surface
+#     through the profile, in the notation rendering kind, carrying the honest
+#     logic:ValidationOnly preservation judgment on its crossing (it validates
+#     instance shape, it does not entail) — reusing the shared lang: rendering
+#     facets, never a notation-local preservation ladder.
+ex:pydanticRendering a lang:Rendering ;
+    rdfs:label                 "rendering of the GMEOW shape set as the gmeow_models Pydantic surface"@x-gmeow-english ;
+    lang:renderedContent       ex:gmeowShapeSet ;
+    lang:renderingForm         ex:pydanticSurface ;
+    lang:renderingKind         lang:renderingNotation ;
+    lang:renderingConvention   ex:pydanticProfile ;
+    lang:renderingPreservation logic:ValidationOnly .
+
+# --- The honest alignment verdict for the SHACL / JSON-Schema ↔ Pydantic crossing,
+#     authored WITH its full preservation verdict so the native correspondence gates
+#     accept it. A closed-record surface that validates but does not entail is:
+#       * logic:ValidationOnly  — it detects ill-formedness, it computes no canonical
+#         consequences (the honest floor-above-Unsupported preservation);
+#       * logic:BridgeView / logic:CommitmentShiftingBridge — it makes NO
+#         satisfaction-preservation claim and shifts the open-world commitment to a
+#         closed record, so the loss ledger refuses owl:equivalentClass for it;
+#       * logic:Overlaps — SHACL and Pydantic share a strong structural core
+#         (co-derived from the one compiled $defs) yet neither subsumes the other
+#         (SHACL carries sh:sparql the record lacks; the record adds a closed-world
+#         commitment SHACL lacks), so the sound relation is sssom:closeMatch;
+#       * logic:Crisp — the record-shape mapping is structurally sharp, not vague;
+#       * logic:mnemomorphic false — a Pydantic instance retains no witness that
+#         recovers the flattened subclass graph or the dropped sh:sparql constraints,
+#         so no section/retraction is claimable.
+ex:corrPydanticSurface a logic:Correspondence ;
+    rdfs:label                   "SHACL / JSON-Schema ↔ Pydantic v2 closed-record crossing"@x-gmeow-english ;
+    rdfs:seeAlso                 ex:pydanticNotation ;
+    logic:preservationKind       logic:ValidationOnly ;
+    logic:correspondenceRelation logic:Overlaps ;
+    logic:morphismClass          logic:BridgeView ;
+    logic:morphismKind           logic:CommitmentShiftingBridge ;
+    logic:hasDeterminacy         logic:Crisp ;
+    logic:mnemomorphic           false .

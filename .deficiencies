@@ -1,0 +1,95 @@
+# Recorded deficiencies (append-only honest skip log)
+
+## 2026-07-12 (stage2 exit) — final `make check` blocked by a full shared disk
+
+The confirming end-of-stage `make check` could NOT be run to completion locally:
+the shared build filesystem (`/dev/nvme0n1p3`, 1.8 TB, mounted at `/home`, `/`,
+`/tmp`, `/var/tmp` — one physical disk) sat at 100% (≈4 GB free), consumed by
+30+ concurrent developer worktrees, and the run died with `No space left on
+device (os error 28)` during the Rust build. Freeing this branch's own
+`target/*/incremental` did not recover enough; other worktrees' caches are not
+this session's to delete.
+
+What IS demonstrated (not skipped, just not re-confirmed in one green run):
+- The PRIOR complete `make check` on this HEAD ran the FULL suite — **5847/5847
+  tests passed** — and cleared validate + native reason + every other gate. Its
+  ONLY failure was the always-on 25 s test-budget: one docs golden took 28.8 s.
+- That test was fixed the same session (`term_card_json` fast per-term helper,
+  28.8 s → 0.05 s, committed) and re-verified passing in isolation.
+So the gate is logically green; the single confirming green run is deferred to
+CI (which builds the PR merged into `main` in a clean environment) — the
+authoritative gate. If CI surfaces anything the prior local run did not, it must
+be fixed before merge (stage3), not waved past.
+
+## 2026-07-12 — Pydantic v2 functional documentation surface (gmeow_models)
+
+Delivered comprehensively (emitter, exemplary docs, stage + models-python blob,
+packages/python wheel + re-created publish workflow, export-docs --format pydantic,
+Principle-17 loss ledger + lang:pydantic, on-gate Rust conformance gate + off-gate
+`make maint-pydantic-conformance`, per-term Python/Rust example tabs). Full
+`make check` is green. Scoped down at a clean, gate-green commit boundary under
+budget pressure:
+
+- **Compact card.md + MCP doc_card Python snippet** — NOT added. The per-term docs
+  PAGE fully delivers the Python surface (a Pydantic construct+validate `Python`
+  example tab paired with a `Rust` tab, generated from the same worked instance),
+  and every shipped model carries a runnable usage doctest in its docstring. The
+  COMPACT `card.md` and the agent-facing MCP `doc_card` do NOT yet carry a Python
+  snippet. Adding it needs a new `Card` field + a drift-checked `card_json_schema()`
+  change + a regenerate cycle. Weaker mechanism than the ask on the compact/agent
+  surface only; the full surface is present on the term page and in the models.
+
+- **Explicit term→model link line** — the bidirectional link is substantially
+  present but not as a dedicated line: each generated model docstring links to its
+  term's docs URL (model→term), and the term page's Python tab names the importable
+  model `from gmeow_models.<slice> import <Class>` (term→model). A dedicated
+  "Model: gmeow_models.<slice>.<Class>" link line on the term page is not added.
+
+### 2026-07-12 (same session) — RESOLVED
+
+Both items above were completed the same session at the user's direction:
+- The compact `card.md` + MCP `doc_card` now carry the term→model link
+  (`gmeow_models.<slice>.<Class>`) and a compact Pydantic construct+validate
+  snippet for modeled class terms (`Card.python_model` / `python_snippet`,
+  rendered in Standard/Full tiers, flowing through `doc_card`).
+- The explicit term→model link is now present (the `python_model` dotted path).
+The `pypi-gmeow` GitHub environment was confirmed to already exist. Net: no
+scoped-down items remain for this work.
+
+### 2026-07-12 (stage2 gap remediation) — honest boundaries after the adversary pass
+
+Stage2 fixed six gaps (render-tab quote-escaping; value-vocabulary StrEnum
+projection; the full logic:Correspondence + NotationProjectionProfile honesty
+surface; a rendered-tab golden; an ontology-derived wheel version policy; and —
+the material find — WIRING the per-term Python/Rust tabs, which were DARK: the
+schema-fragment digest had no production caller, so they rendered on 0 pages;
+now 387/404). The remaining honest boundaries, recorded verbatim:
+
+- **Live-Python conformance is OFF the merge-blocking gate (G2, user sign-off).**
+  The issue's letter asks for a hard-fail gate that compile-checks/imports the
+  generated package AND asserts `model_json_schema()` agreement. On-gate, the
+  hard-fail is the RUST structural agreement check
+  (`emitted_models_agree_with_packed_schema_defs`) — it proves the emitted `.py`
+  agrees with the compiled `$defs`, but it does NOT run a Python interpreter, so a
+  package that structurally agrees yet fails to import would still pass `make
+  check`. The real import + live `model_json_schema()` agreement runs only in
+  `make maint-pydantic-conformance` (off-gate, uv-managed). Grounds: RUST-FIRST /
+  PYTHON-SURFACE — putting a Python interpreter on the pure-Rust merge gate is the
+  thing that doctrine avoids. This is a weaker on-gate proxy than the ask's literal
+  "the build hard-fails if the package doesn't import." User chose off-gate.
+
+- **The PyPI publish leg is validated BY CONSTRUCTION only.** G6 replaced the
+  static `0.1.0` with a deterministic ontology-`owl:versionInfo`-derived version
+  policy, and the workflow + wheel packaging are asserted, but no REAL publish is
+  exercised (OIDC trusted-publishing needs a live `gmeow-ontology-v*` tag + the
+  `pypi-gmeow` environment, outside a PR). The publish path is unexercised end to
+  end.
+
+- **Value-vocabulary enums are an in-repo bridge (G3).** The `logic:AbstractIndividualType`
+  → StrEnum projection is an in-repo enrichment over purrdf's compiled `$defs`
+  (`value_vocab.rs`), because purrdf 0.5.0's `json_schema::compile` only emits
+  enums from `sh:in` and closing the live validator with `sh:in` is forbidden
+  (open-vocabulary doctrine). An upstream purrdf tracking issue was filed this
+  session to add native AbstractIndividualType→enum support; when it lands, the
+  in-repo enrichment should be retired. Fully functional today; noted as a
+  bridge, not a shortfall.
