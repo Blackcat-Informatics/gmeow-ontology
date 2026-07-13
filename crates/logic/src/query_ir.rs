@@ -33,7 +33,7 @@ fn query_err(detail: String) -> gmeow_errors::Diag {
 
 /// The reserved relation name of the arity-4 predicate-as-data encoding
 /// `triple(subject, predicate, object, world)` — the REAL n-ary shape the binary
-/// [`crate::store::RelationStore`] cannot represent (the property rides in a DATA
+/// [`crate::physical::store::RelationStore`] cannot represent (the property rides in a DATA
 /// position).  A goal or rule that names this bare, unqualified relation is routed to
 /// the arity-generic n-ary evaluator, whose generic-triple EDB
 /// ([`crate::physical::magic_generic`]) loads every world fact under this exact

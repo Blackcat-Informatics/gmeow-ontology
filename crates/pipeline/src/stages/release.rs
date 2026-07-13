@@ -29,7 +29,8 @@
 //! The CLI reads every evidence file up front and hard-fails on a missing one;
 //! this core never silently skips. Signing here is unconditional (the release
 //! bundle is, by definition, signed): all three signer fields are passed to
-//! [`emit_gts`], which itself hard-fails any partial signing config.
+//! [`crate::gts_profile::emit_gmeow_gts`], which itself hard-fails any partial
+//! signing config.
 
 use std::collections::BTreeSet;
 

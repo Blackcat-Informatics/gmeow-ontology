@@ -603,7 +603,7 @@ pub struct DocTerm {
     /// `skos:definition` (falling back to `rdfs:comment`).
     pub definition: Option<String>,
     /// The CANONICAL (authored English) `rdfs:label`, stashed by
-    /// [`crate::render::localize_model`] just before it overwrites [`Self::label`]
+    /// `render::localize_model` just before it overwrites [`Self::label`]
     /// with a translation. Documentation-COMPLETENESS is a property of the authored
     /// source, not the display language — viewing a term in French must not change
     /// its completeness score — so [`Self::coverage_label`] reads this in preference

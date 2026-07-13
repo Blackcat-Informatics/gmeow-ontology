@@ -2778,8 +2778,8 @@ fn key_values_agree(
 
 /// Decide native DL consistency / unsatisfiability of `edb`.
 ///
-/// Runs the full [`dl_rules`] set through the shared
-/// [`crate::reason::run_reasoning`] machinery, then reads off the clash facts:
+/// Runs the full [`structured_dl_rules`] set through the shared native structured
+/// chase, then reads off the clash facts:
 /// every `type(?i, owl:Nothing, ?w)` is an [`InconsistencyWitness`]; every
 /// `subClassOf(?c, owl:Nothing, ?w)` (with `?c` not `owl:Nothing` itself) is an
 /// [`UnsatClass`]. The verdict is consistent iff no inconsistency witness was

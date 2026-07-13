@@ -4,7 +4,8 @@
 //! The single per-format capability-loss table.
 //!
 //! Every documentation projection (the static site, the mdbook, the print PDF,
-//! the flat per-term snippets) renders the same underlying [`DocsModel`] but can
+//! the flat per-term snippets) renders the same underlying
+//! [`crate::model::DocsModel`] but can
 //! only carry a subset of the site's live surfaces. This module is the ONE
 //! source of truth for which of the five cross-cutting capabilities each format
 //! preserves and which it declares lost. Both the renderers (the PDF loss

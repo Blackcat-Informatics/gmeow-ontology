@@ -6,7 +6,7 @@
 //! See [`crate::xcl`] for the two-channel architecture. This module emits the idiomatic
 //! sentence channel (`rules` + `formulas`) as readable XCL2 elements and the RDF/predication
 //! channel (everything else) as canonical N-Triples inside the single
-//! [`RDF_META_ELEMENT`](super::RDF_META_ELEMENT) element.
+//! `RDF_META_ELEMENT` element.
 
 use gmeow_errors::Diag;
 

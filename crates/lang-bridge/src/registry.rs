@@ -9,9 +9,9 @@
 //! **CARRIES a [`Correspondence`]** for each emission rather than declaring its own
 //! preservation via a trait method — the trait has **no `preservation()` and no
 //! `round_trip_ok()`**. The preservation judgment is DERIVED from the carried
-//! correspondence by the driver ([`is_exact_correspondence`]), and the round-trip is
+//! correspondence by the driver ([`crate::is_exact_correspondence`]), and the round-trip is
 //! MEASURED by the target (re-parse / byte round-trip) and cross-checked by the driver
-//! against [`exact_round_trip_holds`] over the carried [`LangEmission::leg_pair`]. There
+//! against [`crate::exact_round_trip_holds`] over the carried [`LangEmission::leg_pair`]. There
 //! is one law spine in the system — never a per-target law shadow.
 //!
 //! Each target reuses the EXISTING bridge functions (`grammar_*`, `conllu_*`,
@@ -107,7 +107,7 @@ pub struct LangEmission {
     /// reads each row's residue back through `projection_drops_for`.
     pub loss: LossLedger,
     /// The get/put leg pair whose structural round-trip the driver cross-checks with
-    /// [`exact_round_trip_holds`]; `None` for a lossy target with no exact inverse leg.
+    /// [`crate::exact_round_trip_holds`]; `None` for a lossy target with no exact inverse leg.
     pub leg_pair: Option<(LegPath, LegPath)>,
     /// For a per-reading projection (CoNLL-U), the number of co-resident readings emitted.
     pub emitted_reading_count: Option<u64>,
@@ -119,14 +119,14 @@ pub struct LangEmission {
     /// `lang:roundTripHolds` carries. Computed by the target, never asserted.
     pub round_trip_holds: bool,
     /// The preservation kind to record when the carried correspondence is NOT exact (the
-    /// driver derives `Exact` from [`is_exact_correspondence`], else uses this).
+    /// driver derives `Exact` from [`crate::is_exact_correspondence`], else uses this).
     pub lossy_kind: PreservationKind,
     /// The lifted `lang:` RDF this emission projects into the corpus graph (N-Triples
     /// bytes); empty when the source RDF is already carried by a sibling emission.
     pub source_rdf: Vec<u8>,
 }
 
-/// A registered projection target: the projection peer of [`Bridge`]. It CARRIES a
+/// A registered projection target: the projection peer of [`crate::Bridge`]. It CARRIES a
 /// `logic:Correspondence` per emission and DELIBERATELY has no `preservation()` and no
 /// `round_trip_ok()` — both are decided over the carried correspondence by the driver.
 pub trait LangProjectionTarget {

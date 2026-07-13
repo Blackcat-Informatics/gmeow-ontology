@@ -3,7 +3,7 @@
 
 //! Native OWL-2-EL/RL subsumption closure over the structured chase.
 //!
-//! [`structured_el_rules`] is fixed and ontology-independent: it encodes the
+//! `structured_el_rules` is fixed and ontology-independent: it encodes the
 //! class-level OWL-2-EL/RL entailment calculus (subclass transitivity,
 //! equivalence, type propagation, sub-property transitivity) directly, as a
 //! fixed built-in calculus. We feed the TBox/ABox of any kernel store
@@ -112,16 +112,16 @@ pub struct ElClosure {
 
 /// Compute the native OWL-2-EL/RL subsumption closure of `edb`.
 ///
-/// Runs the fixed [`EL_RULES`] over `edb` through the shared
-/// [`crate::reason::run_reasoning`] chase machinery, then filters the decoded
+/// Runs the fixed `structured_el_rules()` calculus over `edb` through the shared
+/// native structured-rule chase, then filters the decoded
 /// closure to the subsumption predicates and surfaces the EL-profile
 /// predicate-position limitations for callers that use this narrow surface
 /// directly.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the source store cannot be loaded, native evaluation
-/// fails, or a derived row fails to decode.
+/// Returns an error if the source store cannot be loaded, native evaluation fails,
+/// or a derived row fails to decode.
 pub fn el_closure(edb: &RdfDataset) -> gmeow_errors::Result<ElClosure> {
     // 1. Run the fixed EL rule set through the shared chase machinery.
     let all = crate::reason::run_reasoning_rules(edb, structured_el_rules())?;

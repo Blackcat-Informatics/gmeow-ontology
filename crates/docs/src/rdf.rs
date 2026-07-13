@@ -1047,7 +1047,7 @@ pub struct DocSliceFacts {
     pub documents: String,
     /// The `gmeow:DocCoverageDimension` local names the slice COVERS.
     pub covers: BTreeSet<String>,
-    /// The bounded coverage fraction (`gmeow:coverageFraction` ∈ [0,1]).
+    /// The bounded coverage fraction (`gmeow:coverageFraction` from 0 through 1).
     pub coverage_fraction: f64,
     /// The projected earned-maturity anchor local name (`gmeow:docEarnedMaturity`),
     /// absent when the slice earns no anchor.

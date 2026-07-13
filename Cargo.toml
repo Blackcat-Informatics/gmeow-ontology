@@ -49,7 +49,7 @@ members = [
     "crates/logic",
     # The pure, wasm-able logic compiler (#664/#732): the parse(RDF 1.2)→IR→project
     # half of the logic stack, split out of crates/logic with zero reasoning-runtime
-    # runtime deps. gmeow-logic depends on it.
+    # deps. gmeow-logic depends on it.
     "crates/logic-compile",
     # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
     "crates/lsp",
@@ -217,8 +217,10 @@ strip = "symbols"
 # This is scoped to FIRST-PARTY crates via per-package overrides on purpose;
 # third-party dependencies keep the default 16 units, so neither their build RAM
 # nor build time regresses.
-# Net effect: only the crates we actually wrote get the tighter codegen, so the
-#
+# A per-package table inherits every unspecified setting from `[profile.release]`:
+# `gmeow-logic` therefore remains at release `opt-level = 3`; this override changes
+# ONLY `codegen-units`. Net effect: only the crates we actually wrote get the tighter
+# within-crate optimization unit.
 # Workspace-wide thin-LTO IS now enabled (see `[profile.release]` above) — its
 # peak link RSS was measured at 7.37 GB, well within the 16 GB wheel-runner
 # budget (#828 item 3). codegen-units = 1 below still matters: it sets the

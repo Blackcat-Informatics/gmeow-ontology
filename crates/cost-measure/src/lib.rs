@@ -82,7 +82,7 @@
 //! guard) and never itself heap-allocates, so it is re-entrancy-safe and cannot
 //! recurse into the allocator — avoiding the classic "thread-local that allocates
 //! on first access inside the alloc path" footgun. The real allocation is always
-//! delegated to [`System`](std::alloc::System); this wrapper only accounts around
+//! delegated to [`System`]; this wrapper only accounts around
 //! it.
 
 use std::alloc::{GlobalAlloc, Layout, System};
@@ -151,7 +151,7 @@ pub struct AllocSample {
 }
 
 /// A [`GlobalAlloc`] that delegates every real allocation to
-/// [`System`](std::alloc::System) and accounts each call into the process-global
+/// [`System`] and accounts each call into the process-global
 /// [`TOTAL_BYTES`]/[`ALLOC_COUNT`] totals plus the calling thread's net-live
 /// [`LIVE`] counters.
 ///

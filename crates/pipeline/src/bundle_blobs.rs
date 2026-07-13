@@ -76,13 +76,13 @@ pub const REP_SPAN_TABLE: &str = "spans:source-table";
 /// tar of the mdbook `src/` source tree (`book.toml` + `SUMMARY.md` + `src/<page>/index.md`
 /// chapters), every member prefixed with the English internal tag (`x-gmeow-english/…`).
 /// This is the SINGLE definition of the label; the producer side re-exports it as
-/// [`crate::stages::carrier::REP_DOCS_BOOK`], so no drift is possible (a drifted label would
+/// [`REP_DOCS_BOOK`], so no drift is possible (a drifted label would
 /// silently read back an empty archive).
 pub const REP_DOCS_BOOK: &str = "docs-book";
 /// tar of the print documentation projection: the byte-reproducible `gmeow.pdf` and its
 /// deterministic `gmeow.typ` Typst source, both prefixed with the English internal tag
 /// (`x-gmeow-english/gmeow.pdf`, `x-gmeow-english/gmeow.typ`). This is the SINGLE definition
-/// of the label; the producer side re-exports it as [`crate::stages::carrier::REP_DOCS_PRINT`],
+/// of the label; the producer side reuses [`REP_DOCS_PRINT`],
 /// so no drift is possible (a drifted label would silently read back an empty archive).
 pub const REP_DOCS_PRINT: &str = "docs-print";
 

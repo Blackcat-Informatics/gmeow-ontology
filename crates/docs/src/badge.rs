@@ -5,7 +5,7 @@
 //!
 //! The SINGLE authority for the badge category→color map and the badge SVG
 //! shape. Both the per-term page ([`crate::render`], which embeds a badge row)
-//! and the documentation-health legend ([`crate::render::md_health`]) read their
+//! and the documentation-health legend (`render::md_health`) read their
 //! colors from here, so a badge and its legend swatch can never disagree.
 //!
 //! Like [`crate::svg`], every function is a pure, byte-reproducible function of

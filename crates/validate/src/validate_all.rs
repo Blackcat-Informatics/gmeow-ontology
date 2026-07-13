@@ -1,13 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Rust-native validation orchestration that reproduces Python `validate_all()`.
+//! Rust-native validation orchestration.
 //!
-//! The orchestration builds the ontology oxigraph [`Store`] once and parses the
-//! SHACL shapes once, then runs every lint/SHACL phase against the shared store.
-//! Example files are validated in parallel: each rayon worker holds its own private
-//! copy of the base store and overlays one example at a time (inserted, validated,
-//! then removed), so the shared base is never contaminated.
+//! The orchestration builds the ontology [`RdfDataset`] once and parses the SHACL
+//! shapes once, then runs every lint/SHACL phase against the shared immutable
+//! dataset. Example files are validated in parallel from isolated projected
+//! datasets, so the shared base is never contaminated.
 //!
 //! Timing records are collected when [`ValidateOptions::timings`] is true and
 //! can be serialized to JSON alongside the error/warning output.
@@ -815,7 +814,7 @@ impl ValidationRun {
 
     /// Serialize the diagnostic/timing output to JSON.
     ///
-    /// The shared [`Store`] and [`purrdf::shapes::shapes::Shapes`] are not
+    /// The shared [`RdfDataset`] and [`purrdf::shapes::shapes::Shapes`] are not
     /// serializable, so the JSON only carries the derived errors/warnings, the
     /// timings, and the declared-term list.
     pub fn to_json(&self) -> Result<String, serde_json::Error> {

@@ -6,8 +6,8 @@
 //! this score under this label set* — evidence, never inner-state truth. This
 //! crate is the Rust-first producer that turns a **captured** run (a checked-in
 //! JSON envelope, never on-gate inference) into attributed
-//! [`gmeow:ModelInferenceRun`] + [`gmeow:AffectClassifierOutput`]
-//! (+ [`gmeow:AffectiveClaim`]) RDF that passes the affect evidence-spine Stage-4
+//! `gmeow:ModelInferenceRun` + `gmeow:AffectClassifierOutput`
+//! (+ `gmeow:AffectiveClaim`) RDF that passes the affect evidence-spine Stage-4
 //! hard-fail gates (`crates/validate/tests/conformance_affect.rs`).
 //!
 //! ## The put leg — [`produce`]
@@ -530,7 +530,7 @@ impl IngestConfig {
     /// and folds in any closeMatch cells present IN the graph (the authored slice
     /// sources — `module.ttl` + `mappings/equivalences.ttl` — carry them as reified
     /// `gmeow:TermEquivalence` / direct triples). For the compiled bundle,
-    /// supplement with [`add_sssom_correspondences`].
+    /// supplement with [`Self::add_sssom_correspondences`].
     pub fn config_for_label_set(
         index: &TripleIndex,
         label_set_id: &str,

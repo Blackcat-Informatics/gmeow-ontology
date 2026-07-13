@@ -3,11 +3,11 @@
 
 //! Substrate-model diagnostic kinds.
 //!
-//! Parsing a user/tool-supplied [`Severity`](crate::grade::Severity) or
-//! [`FindingCategory`](crate::model::FindingCategory) wire label is a HARD
+//! Parsing a user/tool-supplied [`Severity`] or
+//! [`FindingCategory`] wire label is a HARD
 //! failure surface: an unrecognized token has no silent default (no-optionality),
 //! so a typo cannot degrade to a wrong severity/category. Each defect is a
-//! [`DiagKind`](crate::diag::DiagKind) minted by [`define_diag_kind!`], carrying a
+//! [`DiagKind`](crate::diag::DiagKind) minted by `define_diag_kind!`, carrying a
 //! stable registered [`Code`], a [`Grade`], and staying downcastable off the
 //! [`Diag`](crate::diag::Diag) source.
 

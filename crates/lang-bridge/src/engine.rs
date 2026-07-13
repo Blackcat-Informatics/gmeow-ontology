@@ -5,7 +5,7 @@
 //!
 //! Parsers, taggers, and MT systems are **oracles that produce claims, never
 //! authorities that produce facts**: an external run is a `gmeow:Activity`
-//! ([`lang:InterpretationAct`]) whose outputs enter the graph as vantage-held
+//! (`lang:InterpretationAct`) whose outputs enter the graph as vantage-held
 //! [`Reading`]s carrying the *engine's* vantage and confidence, per the
 //! process/result/claim separation. Two engines that disagree yield co-resident
 //! readings; the disagreement is data, never collapsed.
@@ -35,7 +35,7 @@
 //! emitted reading carries its `gmeow:vantage`, so no engine output is ever folded
 //! as an unattributed assertion, and no `lang:resolvedReading` is emitted (the
 //! seam picks no silent winner among co-resident readings). The
-//! [`r8_engine_output_is_vantage_held_corpus_data`](tests) test enforces this
+//! `r8_engine_output_is_vantage_held_corpus_data` test enforces this
 //! shape on the emitter's output.
 
 use std::collections::BTreeMap;
