@@ -1059,6 +1059,13 @@ pub struct Case {
     /// `sh:sourceConstraintComponent` contains that substring. Used to assert on the
     /// PROJECTED (message-less) cardinality shapes by component + path.
     expected_path_components: Vec<(&'static str, &'static str)>,
+    /// The severity-agnostic twin of [`Self::expected_path_components`]: `(result-path
+    /// IRI, constraint-component substring)` pairs each requiring at least one result
+    /// AT ANY SEVERITY (`sh:Warning` OR `sh:Violation`) on that path with that
+    /// component. Used for a shape whose severity is MID-MIGRATION (Warning→Violation),
+    /// where the regression must hold at BOTH ends because the finding is present at
+    /// either severity — see [`Case::flags_on_path`].
+    expected_flag_path_components: Vec<(&'static str, &'static str)>,
 }
 
 impl Case {
@@ -1077,6 +1084,7 @@ impl Case {
             any_violations_ci: Vec::new(),
             forbidden_warnings: Vec::new(),
             expected_path_components: Vec::new(),
+            expected_flag_path_components: Vec::new(),
         }
     }
 
@@ -1126,6 +1134,23 @@ impl Case {
     /// no `sh:message`.
     pub fn fails_on_path(mut self, path: &'static str, component: &'static str) -> Self {
         self.expected_path_components.push((path, component));
+        self
+    }
+
+    /// The SEVERITY-AGNOSTIC twin of [`Case::fails_on_path`]: require at least one
+    /// result — at `sh:Warning` OR `sh:Violation` — whose `sh:resultPath` is `path`
+    /// AND whose `sh:sourceConstraintComponent` contains `component`.
+    ///
+    /// Use this (not [`Case::fails_on_path`], which filters to `Violation`) when the
+    /// constraint being witnessed lives on a shape whose severity is MID-MIGRATION —
+    /// e.g. a generated frame-relativity shape moving from `sh:Warning` to
+    /// `sh:Violation`. The regression must hold at BOTH ends of that migration: the
+    /// finding is present at either severity, so it is anchored on the (path,
+    /// constraint-component) pair without pinning the severity. Pair it with
+    /// [`Case::fails`] only when a SEPARATE, severity-stable violation makes the graph
+    /// a hard SHACL failure independent of the mid-migration shape.
+    pub fn flags_on_path(mut self, path: &'static str, component: &'static str) -> Self {
+        self.expected_flag_path_components.push((path, component));
         self
     }
 
@@ -1299,6 +1324,33 @@ impl Case {
                 hit,
                 "expected a Violation on path {path:?} with constraint component \
                  containing {component:?}; results: {:?}",
+                report
+                    .results
+                    .iter()
+                    .map(|r| (
+                        r.result_path.as_ref().map(ToString::to_string),
+                        r.source_constraint_component.to_string(),
+                        r.severity.clone(),
+                    ))
+                    .collect::<Vec<_>>()
+            );
+        }
+        for (path, component) in &self.expected_flag_path_components {
+            // Severity-agnostic: match a result at ANY severity (Warning OR Violation),
+            // so a mid-migration frame shape is witnessed at both ends of the
+            // Warning→Violation flip.
+            let hit = report.results.iter().any(|r| {
+                let path_ok = matches!(
+                    r.result_path.as_ref(),
+                    Some(Term::NamedNode(p)) if p.as_str().contains(path)
+                );
+                let component_ok = r.source_constraint_component.as_str().contains(component);
+                path_ok && component_ok
+            });
+            assert!(
+                hit,
+                "expected a result (any severity) on path {path:?} with constraint \
+                 component containing {component:?}; results: {:?}",
                 report
                     .results
                     .iter()
