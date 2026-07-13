@@ -1,19 +1,26 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Deterministic, hand-emitted SVG diagrams for the documentation model.
+//! Deterministic SVG diagrams for the documentation model.
 //!
 //! No JavaScript, no Docker, no network, no PyO3 — every function is a pure,
-//! byte-reproducible function of [`DocsModel`]. Determinism is structural: nodes
-//! are sorted by IRI, and ALL coordinates are derived from that sorted order
-//! (never from randomness or hashing). Every label is XML-escaped.
-//!
-//! - [`slice_dependency_svg`] lays the slice dependency DAG out in a simple grid
-//!   and draws the cross-slice edges.
-//! - [`concern_overview_svg`] draws a horizontal bar chart of concerns by the
-//!   number of terms that declare each.
-//! - [`term_neighbourhood_svg`] draws a single term's 1-hop neighbourhood — the
-//!   per-term analogue of [`slice_local_svg`].
+//! byte-reproducible function of [`DocsModel`]. The node-link *graph* diagrams
+//! ([`slice_dependency_svg`], [`slice_local_svg`], [`term_neighbourhood_svg`]) are
+//! projected into gmeow's own shipped RDF-graph renderer (`purrdf::viz`) over real
+//! ontology predicate IRIs — deterministic across processes by construction
+//! (IRI-sorted input, BTree/FNV ordering, no hashing). The *chart* diagrams, which
+//! are not node-link graphs, stay hand-emitted: [`concern_overview_svg`] is a
+//! horizontal bar chart of concerns by term count, [`coverage_heatmap_svg`] a
+//! per-slice coverage matrix, and [`pipeline_dag_svg`] a capability-coloured build
+//! DAG with flow-entity edge labels. Determinism in those is structural: every
+//! coordinate derives from the sorted index, and every label is XML-escaped.
+
+use std::collections::BTreeSet;
+
+use purrdf::TermValue;
+use purrdf::viz::{
+    VizGraphInput, VizInputQuad, VizRenderOptions, VizSpec, VizSvgOptions, render_graph_input_svg,
+};
 
 use crate::model::{DocTerm, DocsModel};
 
@@ -39,99 +46,110 @@ fn xml_escape(text: &str) -> String {
     out
 }
 
-/// A deterministic placeholder emitted in place of a rendered diagram while
-/// diagram SVG generation is DEFERRED pending purrdf's high-quality SVG graph
-/// library. The hand-rolled renderers above carry a latent cross-process
-/// ordering non-determinism (two renders of the same model can differ byte-wise);
-/// rather than chase it, the emit sites route through this constant-shape
-/// placeholder so the site render is byte-stable. AUTHORIZED DEFERRAL (paudley) —
-/// restore the `*_svg` calls at the emit sites when the purrdf SVG lib lands.
-/// Pure function of its title (which the callers derive from sorted model data).
-pub fn deferred_diagram_svg(title: &str) -> String {
-    format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"480\" height=\"72\" role=\"img\" \
-         aria-label=\"{t}\">\n  \
-         <rect width=\"480\" height=\"72\" fill=\"#f5f6f8\" stroke=\"#d0d5dd\" />\n  \
-         <text x=\"240\" y=\"40\" text-anchor=\"middle\" font-family=\"sans-serif\" \
-         font-size=\"13\" fill=\"#6b7280\">{t} — diagram pending</text>\n</svg>\n",
-        t = xml_escape(title)
-    )
+// Predicate / class IRIs used to project the documentation model's graph diagrams
+// into `purrdf::viz`. These are the real ontology IRIs the model itself reads
+// (`crates/docs/src/model.rs`), so each diagram depicts the same relations the RDF
+// projection ships (dogfooding; single source of truth). `related_terms` is a union
+// of `skos:related` / `gmeow:pairsWith` / `rdfs:seeAlso` in the model, of which
+// `skos:related` is the representative label.
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+const RDFS_DOMAIN: &str = "http://www.w3.org/2000/01/rdf-schema#domain";
+const RDFS_RANGE: &str = "http://www.w3.org/2000/01/rdf-schema#range";
+const RDFS_RESOURCE: &str = "http://www.w3.org/2000/01/rdf-schema#Resource";
+const SKOS_RELATED: &str = "http://www.w3.org/2004/02/skos/core#related";
+const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
+const GMEOW_SLICE_DEPENDS_ON: &str = "https://blackcatinformatics.ca/gmeow/sliceDependsOn";
+const GMEOW_SLICE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Slice";
+
+/// Render a directed node-link graph to a deterministic SVG via `purrdf::viz` — the
+/// shipped, dogfooded RDF-graph renderer.
+///
+/// `edges` are `(subject, predicate, object)` IRI triples; `nodes` are IRIs that
+/// must appear even with no incident edge (each such orphan gets an `rdf:type
+/// <class_iri>` marker quad, since purrdf only materialises terms that occur in a
+/// statement). Determinism is guaranteed across processes: the input is derived from
+/// IRI-sorted model data, orphan detection uses a [`BTreeSet`] (never a `HashSet`,
+/// whose iteration order leaks the per-process hash seed), and purrdf itself orders
+/// by BTree/FNV content hash. `embed_metadata` is off to keep the per-term/per-slice
+/// SVGs lean (no embedded VizExport JSON); `include_styles` is on because the SVGs
+/// are `<img>`-embedded, so the site's external CSS never reaches them. Hard-fails on
+/// a [`purrdf::viz::VizError`] (message names the diagram) — never a placeholder.
+fn graph_svg(
+    edges: &[(String, String, String)],
+    nodes: &[&str],
+    class_iri: &str,
+    title: &str,
+) -> String {
+    let iri = |s: &str| TermValue::Iri(s.to_string());
+    let mut quads: Vec<VizInputQuad> = edges
+        .iter()
+        .map(|(s, p, o)| VizInputQuad {
+            subject: iri(s),
+            predicate: p.clone(),
+            object: iri(o),
+            graph_name: None,
+        })
+        .collect();
+    // Any node not incident to an edge would not be projected — emit an `rdf:type`
+    // marker so it still renders (deterministic: `nodes` is IRI-sorted by callers).
+    let present: BTreeSet<&str> = edges
+        .iter()
+        .flat_map(|(s, _, o)| [s.as_str(), o.as_str()])
+        .collect();
+    for node in nodes {
+        if !present.contains(node) {
+            quads.push(VizInputQuad {
+                subject: iri(node),
+                predicate: RDF_TYPE.to_string(),
+                object: iri(class_iri),
+                graph_name: None,
+            });
+        }
+    }
+
+    let input = VizGraphInput {
+        quads,
+        ..Default::default()
+    };
+    let spec = VizSpec {
+        max_statements: usize::MAX,
+        max_terms: usize::MAX,
+        ..Default::default()
+    };
+    let options = VizRenderOptions {
+        svg: VizSvgOptions {
+            embed_metadata: false,
+            include_styles: true,
+            title: title.to_string(),
+        },
+        ..Default::default()
+    };
+    render_graph_input_svg(&input, &spec, &options)
+        .unwrap_or_else(|e| panic!("purrdf viz render failed for {title}: {e}"))
+        .svg
 }
 
-/// Render the slice dependency DAG as a deterministic grid-layout SVG.
+/// Render the slice dependency DAG as a deterministic `purrdf::viz` node-link graph.
 ///
-/// Nodes are the slices referenced by `model.dependency_edges` (plus every slice
-/// in `model.slices`), sorted by IRI and placed left-to-right, top-to-bottom in a
-/// fixed-width grid. Edges are drawn as straight lines between node centers. A
-/// model with no dependency edges still renders every slice as a node.
+/// Edges are `model.dependency_edges` projected as `from gmeow:sliceDependsOn to`
+/// (self-loops dropped); nodes are every slice in `model.slices` (IRI-sorted), so a
+/// slice with no dependency edges still renders as a node.
 pub fn slice_dependency_svg(model: &DocsModel) -> String {
-    // Node set: all slices, by IRI (already IRI-sorted in the model).
+    let edges: Vec<(String, String, String)> = model
+        .dependency_edges
+        .iter()
+        .filter(|e| e.from != e.to)
+        .map(|e| {
+            (
+                e.from.clone(),
+                GMEOW_SLICE_DEPENDS_ON.to_string(),
+                e.to.clone(),
+            )
+        })
+        .collect();
     let nodes: Vec<&str> = model.slices.iter().map(|s| s.iri.as_str()).collect();
-
-    // Grid geometry.
-    const COLS: usize = 4;
-    const BOX_W: i64 = 220;
-    const BOX_H: i64 = 44;
-    const GAP_X: i64 = 60;
-    const GAP_Y: i64 = 48;
-    const MARGIN: i64 = 24;
-    let cell_w = BOX_W + GAP_X;
-    let cell_h = BOX_H + GAP_Y;
-
-    let pos = |i: usize| -> (i64, i64) {
-        let col = (i % COLS) as i64;
-        let row = (i / COLS) as i64;
-        let x = MARGIN + col * cell_w;
-        let y = MARGIN + row * cell_h;
-        (x, y)
-    };
-    let center = |i: usize| -> (i64, i64) {
-        let (x, y) = pos(i);
-        (x + BOX_W / 2, y + BOX_H / 2)
-    };
-    let index_of = |iri: &str| -> Option<usize> { nodes.iter().position(|n| *n == iri) };
-
-    let rows = nodes.len().div_ceil(COLS).max(1) as i64;
-    let width = MARGIN * 2 + (COLS as i64) * cell_w - GAP_X;
-    let height = MARGIN * 2 + rows * cell_h - GAP_Y;
-
-    let mut out = String::new();
-    svg_open(&mut out, width, height, "Slice dependency graph");
-    arrow_marker(&mut out);
-
-    // Edges first (drawn under the boxes). Deterministic: model edges are sorted.
-    out.push_str("  <g stroke=\"#7a8aa0\" stroke-width=\"1.5\" fill=\"none\">\n");
-    for edge in &model.dependency_edges {
-        let (Some(fi), Some(ti)) = (index_of(&edge.from), index_of(&edge.to)) else {
-            continue;
-        };
-        if fi == ti {
-            continue;
-        }
-        let (x1, y1) = center(fi);
-        let (x2, y2) = center(ti);
-        out.push_str(&format!(
-            "    <line x1=\"{x1}\" y1=\"{y1}\" x2=\"{x2}\" y2=\"{y2}\" marker-end=\"url(#arrow)\" />\n"
-        ));
-    }
-    out.push_str("  </g>\n");
-
-    // Nodes.
-    for (i, iri) in nodes.iter().enumerate() {
-        let (x, y) = pos(i);
-        let label = xml_escape(local_name(iri));
-        out.push_str(&format!(
-            "  <g>\n    <rect x=\"{x}\" y=\"{y}\" width=\"{BOX_W}\" height=\"{BOX_H}\" rx=\"6\" \
-             fill=\"#eef2f8\" stroke=\"#33425b\" stroke-width=\"1\" />\n    \
-             <text x=\"{tx}\" y=\"{ty}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
-             font-size=\"13\" fill=\"#1b2436\">{label}</text>\n  </g>\n",
-            tx = x + BOX_W / 2,
-            ty = y + BOX_H / 2 + 4,
-        ));
-    }
-
-    out.push_str("</svg>\n");
-    out
+    graph_svg(&edges, &nodes, GMEOW_SLICE_CLASS, "Slice dependency graph")
 }
 
 /// Render the dogfooded build-pipeline DAG (`model.pipeline`) as a deterministic
@@ -258,99 +276,35 @@ pub fn pipeline_dag_svg(model: &DocsModel) -> String {
     out
 }
 
-/// Render a per-slice local dependency SVG: the slice and its direct neighbours.
+/// Render a per-slice local dependency SVG: the slice and its direct neighbours, as
+/// a deterministic `purrdf::viz` node-link graph.
+///
+/// Edges are the `gmeow:sliceDependsOn` edges incident to `slice_iri` in either
+/// direction — outgoing (this slice's dependencies) and incoming (its dependents) —
+/// so edge direction carries the dep/dependent distinction the old two-column layout
+/// encoded positionally. The centre slice is a fixed node, so an isolated slice
+/// still renders.
 pub fn slice_local_svg(model: &DocsModel, slice_iri: &str) -> String {
-    // Collect direct dependencies (out) and dependents (in), sorted+deduped.
-    let mut deps: Vec<&str> = model
+    let mut edges: Vec<(String, String, String)> = model
         .dependency_edges
         .iter()
-        .filter(|e| e.from == slice_iri)
-        .map(|e| e.to.as_str())
+        .filter(|e| e.from != e.to && (e.from == slice_iri || e.to == slice_iri))
+        .map(|e| {
+            (
+                e.from.clone(),
+                GMEOW_SLICE_DEPENDS_ON.to_string(),
+                e.to.clone(),
+            )
+        })
         .collect();
-    deps.sort_unstable();
-    deps.dedup();
-    let mut dependents: Vec<&str> = model
-        .dependency_edges
-        .iter()
-        .filter(|e| e.to == slice_iri)
-        .map(|e| e.from.as_str())
-        .collect();
-    dependents.sort_unstable();
-    dependents.dedup();
-
-    const BOX_W: i64 = 220;
-    const BOX_H: i64 = 40;
-    const GAP_Y: i64 = 18;
-    const MARGIN: i64 = 24;
-    const COL_X: [i64; 3] = [MARGIN, MARGIN + 300, MARGIN + 600];
-    let cell = BOX_H + GAP_Y;
-
-    let rows = dependents.len().max(deps.len()).max(1) as i64;
-    let height = MARGIN * 2 + rows * cell;
-    let width = COL_X[2] + BOX_W + MARGIN;
-
-    let mut out = String::new();
-    svg_open(&mut out, width, height, "Local slice dependencies");
-
-    let node = |out: &mut String, x: i64, y: i64, iri: &str, fill: &str| {
-        let label = xml_escape(local_name(iri));
-        out.push_str(&format!(
-            "  <g>\n    <rect x=\"{x}\" y=\"{y}\" width=\"{BOX_W}\" height=\"{BOX_H}\" rx=\"6\" \
-             fill=\"{fill}\" stroke=\"#33425b\" stroke-width=\"1\" />\n    \
-             <text x=\"{tx}\" y=\"{ty}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
-             font-size=\"13\" fill=\"#1b2436\">{label}</text>\n  </g>\n",
-            tx = x + BOX_W / 2,
-            ty = y + BOX_H / 2 + 4,
-        ));
-    };
-
-    // Centre node.
-    let centre_y = MARGIN + (rows - 1) * cell / 2;
-    node(&mut out, COL_X[1], centre_y, slice_iri, "#dfe9ff");
-    for (i, dep) in dependents.iter().enumerate() {
-        node(&mut out, COL_X[0], MARGIN + i as i64 * cell, dep, "#eef2f8");
-    }
-    for (i, dep) in deps.iter().enumerate() {
-        node(&mut out, COL_X[2], MARGIN + i as i64 * cell, dep, "#eef2f8");
-    }
-
-    out.push_str("</svg>\n");
-    out
-}
-
-/// A term's 1-hop neighbourhood, split into two flanks and each sorted+deduped
-/// with the term's own IRI removed.
-///
-/// - `up` — the broader / formalizing side: `parents` (super-classes /
-///   super-properties) and `formalized_by` (logic terms that formalize this one).
-/// - `out` — the associated / typed side: `related_terms`, `domain`, and `range`.
-///
-/// A pure function of the term's own stored fields (already pre-sorted IRI
-/// vectors), so no model lookup or edge walk is needed — this is structurally
-/// simpler than [`slice_local_svg`], which must reverse-filter the edge set.
-pub fn term_neighbours(term: &DocTerm) -> (Vec<&str>, Vec<&str>) {
-    let mut up: Vec<&str> = term
-        .parents
-        .iter()
-        .chain(term.formalized_by.iter())
-        .map(String::as_str)
-        .filter(|n| *n != term.iri)
-        .collect();
-    up.sort_unstable();
-    up.dedup();
-
-    let mut out: Vec<&str> = term
-        .related_terms
-        .iter()
-        .chain(term.domain.iter())
-        .chain(term.range.iter())
-        .map(String::as_str)
-        .filter(|n| *n != term.iri)
-        .collect();
-    out.sort_unstable();
-    out.dedup();
-
-    (up, out)
+    edges.sort();
+    edges.dedup();
+    graph_svg(
+        &edges,
+        &[slice_iri],
+        GMEOW_SLICE_CLASS,
+        &format!("Dependencies for slice {}", local_name(slice_iri)),
+    )
 }
 
 /// Whether the term has at least one neighbour worth drawing.
@@ -368,53 +322,37 @@ pub fn term_has_neighbourhood(term: &DocTerm) -> bool {
         .any(|n| n != &term.iri)
 }
 
-/// Render a per-term neighbourhood SVG: the term (centre column) flanked by its
-/// 1-hop relations — `up` on the left, `out` on the right.
+/// Render a per-term 1-hop neighbourhood as a deterministic `purrdf::viz` node-link
+/// graph, centred on the term.
 ///
-/// Deterministic and structural in exactly the same way as [`slice_local_svg`]:
-/// neighbours are sorted, every coordinate is derived from the sorted index, and
-/// every label is XML-escaped. A pure function of the term.
+/// Each relation projects an edge from the term with its **real** predicate IRI, so
+/// the diagram distinguishes the relation kinds the old two-flank layout collapsed:
+/// `parents` → `rdfs:subClassOf`, `formalized_by` → `logic:formalizes`,
+/// `related_terms` → `skos:related`, `domain` → `rdfs:domain`, `range` →
+/// `rdfs:range`. Self-references are dropped. Emitted only for terms that
+/// [`term_has_neighbourhood`], so the centre term is always incident to an edge.
 pub fn term_neighbourhood_svg(term: &DocTerm) -> String {
-    let (up, out) = term_neighbours(term);
-
-    const BOX_W: i64 = 220;
-    const BOX_H: i64 = 40;
-    const GAP_Y: i64 = 18;
-    const MARGIN: i64 = 24;
-    const COL_X: [i64; 3] = [MARGIN, MARGIN + 300, MARGIN + 600];
-    let cell = BOX_H + GAP_Y;
-
-    let rows = up.len().max(out.len()).max(1) as i64;
-    let height = MARGIN * 2 + rows * cell;
-    let width = COL_X[2] + BOX_W + MARGIN;
-
-    let mut svg = String::new();
-    svg_open(&mut svg, width, height, "Term neighbourhood");
-
-    let node = |out: &mut String, x: i64, y: i64, iri: &str, fill: &str| {
-        let label = xml_escape(local_name(iri));
-        out.push_str(&format!(
-            "  <g>\n    <rect x=\"{x}\" y=\"{y}\" width=\"{BOX_W}\" height=\"{BOX_H}\" rx=\"6\" \
-             fill=\"{fill}\" stroke=\"#33425b\" stroke-width=\"1\" />\n    \
-             <text x=\"{tx}\" y=\"{ty}\" text-anchor=\"middle\" font-family=\"sans-serif\" \
-             font-size=\"13\" fill=\"#1b2436\">{label}</text>\n  </g>\n",
-            tx = x + BOX_W / 2,
-            ty = y + BOX_H / 2 + 4,
-        ));
+    let mut edges: Vec<(String, String, String)> = Vec::new();
+    let mut project = |predicate: &str, targets: &[String]| {
+        for target in targets {
+            if target != &term.iri {
+                edges.push((term.iri.clone(), predicate.to_string(), target.clone()));
+            }
+        }
     };
-
-    // Centre node, vertically centred across the available rows.
-    let centre_y = MARGIN + (rows - 1) * cell / 2;
-    node(&mut svg, COL_X[1], centre_y, &term.iri, "#dfe9ff");
-    for (i, n) in up.iter().enumerate() {
-        node(&mut svg, COL_X[0], MARGIN + i as i64 * cell, n, "#eef2f8");
-    }
-    for (i, n) in out.iter().enumerate() {
-        node(&mut svg, COL_X[2], MARGIN + i as i64 * cell, n, "#eef2f8");
-    }
-
-    svg.push_str("</svg>\n");
-    svg
+    project(RDFS_SUBCLASS_OF, &term.parents);
+    project(LOGIC_FORMALIZES, &term.formalized_by);
+    project(SKOS_RELATED, &term.related_terms);
+    project(RDFS_DOMAIN, &term.domain);
+    project(RDFS_RANGE, &term.range);
+    edges.sort();
+    edges.dedup();
+    graph_svg(
+        &edges,
+        &[term.iri.as_str()],
+        RDFS_RESOURCE,
+        &format!("Neighbourhood for term {}", local_name(&term.iri)),
+    )
 }
 
 /// Render an overview bar chart of concerns by their term count.
@@ -612,12 +550,16 @@ mod tests {
     }
 
     #[test]
-    fn term_neighbours_split_sort_and_drop_self() {
+    fn term_has_neighbourhood_gates_on_any_non_self_relation() {
         let term = term_with_neighbours();
-        let (up, out) = term_neighbours(&term);
-        assert_eq!(up, vec!["https://x/y/Parent"]);
-        assert_eq!(out, vec!["https://x/y/Related"]); // self (domain) dropped
         assert!(term_has_neighbourhood(&term));
+        // A term whose only relation is a self-reference has no neighbourhood.
+        let self_only = DocTerm {
+            iri: "https://x/y/Centre".to_string(),
+            domain: vec!["https://x/y/Centre".to_string()],
+            ..Default::default()
+        };
+        assert!(!term_has_neighbourhood(&self_only));
         assert!(!term_has_neighbourhood(&DocTerm::default()));
     }
 
@@ -625,11 +567,12 @@ mod tests {
     fn term_neighbourhood_svg_is_pure_and_labels_nodes() {
         let term = term_with_neighbours();
         let svg = term_neighbourhood_svg(&term);
-        // Centre and both flank neighbours are present, by local name.
-        assert!(svg.contains(">Centre</text>"));
-        assert!(svg.contains(">Parent</text>"));
-        assert!(svg.contains(">Related</text>"));
-        // Pure: identical bytes across two calls.
+        // Centre and both non-self neighbours are present, by local name (the self
+        // reference in `domain` is dropped). purrdf renders labels as node text.
+        assert!(svg.contains("Centre"));
+        assert!(svg.contains("Parent"));
+        assert!(svg.contains("Related"));
+        // Pure: identical bytes across two calls (no per-process hash-seed drift).
         assert_eq!(svg, term_neighbourhood_svg(&term));
     }
 }
