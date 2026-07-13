@@ -165,7 +165,7 @@ pub use gmeow_logic_compile::ir::PreservationKind;
 
 /// Frozen-dataset construction types, re-exported so a consumer needs no direct
 /// `purrdf` import churn to build the `Arc<RdfDataset>` it folds.
-pub use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
+pub use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
