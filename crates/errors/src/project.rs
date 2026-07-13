@@ -41,6 +41,13 @@ impl DiagNode {
         // The DSL-authored remediations — the "how to fix" payload for SARIF fixes
         // and the CLI/HTML remediation line.
         finding.remediation = self.remediation.clone();
+        // Per-term usage guidance (howToUse/useWhen/avoidWhen), joined from the
+        // bundle documentation graph — never fabricated, honest absence when the
+        // witness's terms author none.
+        finding.guidance = self.guidance.clone();
+        // The explain-skeleton quad-derivation edges — a SEPARATE edge from the
+        // finding-fingerprint antecedents projected just below.
+        finding.derived_from_quads = self.derived_from_quads.clone();
         // The canonical fingerprint IRI: the SAME IRI downstream findings' antecedent
         // edges point at, so the projected diagnostic graph's subject and
         // antecedent-object IRIs close (the join the Task-2 meta-rules match on).
