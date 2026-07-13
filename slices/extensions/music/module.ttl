@@ -4633,6 +4633,7 @@ gmeow:pitchCollectionShruti22
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "22-śruti gamut"@x-gmeow-english ;
     skos:definition "The full 22-śruti gamut of the Hindustani 22-śruti tuning frame, gathering the 22 ordered 5-limit just-intonation śruti pitch values (degrees 0-21) of pitchValueShruti00..pitchValueShruti21."@x-gmeow-english ;
+    gmeow:cites gmeow:workRagasOfNorthernIndianMusic ;
     gmeow:collectionKind gmeow:pitchCollectionKindScale ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -4650,6 +4651,7 @@ gmeow:pitchCollectionYamanRaga
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Raga Yaman"@x-gmeow-english ;
     skos:definition "A simplified Hindustani Raga Yaman (Kalyan) seed in the 22-śruti just-intonation frame, illustrating vādī, samvādī, and member roles."@x-gmeow-english ;
+    gmeow:cites gmeow:workRagsOfNorthIndianMusic ;
     gmeow:collectionKind gmeow:pitchCollectionKindRaga ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -6917,6 +6919,8 @@ gmeow:tuningSystemShruti22
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "22-śruti Hindustani tuning"@x-gmeow-english ;
     skos:definition "The Hindustani 22-śruti reference frame: the octave partitioned into 22 unequal 5-limit just-intonation intervals (śrutis), the pitch space of rāga performance. One TuningSystem among many (Principle 9)."@x-gmeow-english ;
+    gmeow:cites gmeow:workNatyashastra ,
+        gmeow:workSangitaratnakara ;
     gmeow:degreeCount "22"^^xsd:nonNegativeInteger ;
     gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
@@ -6930,6 +6934,86 @@ gmeow:tuningSystemShruti22
     gmeow:primeLimit "5"^^xsd:nonNegativeInteger ;
     gmeow:requiresHost false ;
     gmeow:tuningKind gmeow:tuningSystemKindJustIntonation .
+
+# --- Scholarly grounding for the 22-śruti division and its JI ratios -------- #
+# The 22-śruti division/degree placement and the 5-limit JI ratio interpretation
+# are cited scholarly judgments, not bare assertions.
+# Each cited gmeow:CreativeWork is imported by reference (never re-minted) and
+# wired to the frame it grounds via the flat gmeow:cites edge above, typed by a
+# reified gmeow:CitationAct where the citation's intent must be first-class —
+# mirroring the lang slice's gmeow:ipaChart / gmeow:leipzigGlossingRules pattern.
+
+gmeow:workNatyashastra
+    a gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "the Nāṭyaśāstra"@x-gmeow-english ;
+    skos:definition "The Nāṭyaśāstra, attributed to Bharata Muni (c. 200 BCE – 200 CE): the ancient Sanskrit treatise on dramaturgy and music whose chapter 28 (the jātyadhyāya) sets out the dvāviṃśati-śruti — the 22-śruti division of the octave — and the śruti-svara relationship. The source of the 22-fold division gmeow:tuningSystemShruti22 formalizes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "Nāṭyaśāstra"@x-gmeow-english .
+
+gmeow:workSangitaratnakara
+    a gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "the Saṅgītaratnākara"@x-gmeow-english ;
+    skos:definition "The Saṅgītaratnākara, composed by Śārṅgadeva in the 13th century CE: the classical treatise that systematizes which śruti each svara occupies — the 4-3-2-4-4-3-2 śuddha placement across Sa-Re-Ga-Ma-Pa-Dha-Ni. The source of the śruti-degree assignment gmeow:tuningSystemShruti22's śuddha swaras follow."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "Saṅgītaratnākara"@x-gmeow-english .
+
+gmeow:workRagasOfNorthernIndianMusic
+    a gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "The Ragas of Northern Indian Music"@x-gmeow-english ;
+    skos:definition "Alain Daniélou's The Ragas of Northern Indian Music (1968): a modern authority providing a 5-limit just-intonation ratio interpretation of the 22 śrutis. The source of the numeric gmeow:ratioNumerator/gmeow:ratioDenominator values gmeow:pitchCollectionShruti22's pitchValueShruti00..pitchValueShruti21 members carry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "The Ragas of Northern Indian Music"@x-gmeow-english .
+
+gmeow:workRagsOfNorthIndianMusic
+    a gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "The Rāgs of North Indian Music"@x-gmeow-english ;
+    skos:definition "N. A. Jairazbhoy's The Rāgs of North Indian Music: Their Structure and Evolution (1971): the authority establishing the Kalyan-thaat, tīvra-Ma identity of Raga Yaman that gmeow:pitchCollectionYamanRaga's degree selection (0/4/7/11/13/17/20) follows."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "The Rāgs of North Indian Music: Their Structure and Evolution"@x-gmeow-english .
+
+gmeow:shruti22DivisionCitation
+    a gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti division citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that the 22-śruti tuning frame's division of the octave into 22 śrutis is derived from the Nāṭyaśāstra's dvāviṃśati-śruti chapter."@x-gmeow-english ;
+    gmeow:citationIntent gmeow:intentDerivedFrom ;
+    gmeow:citedEntity gmeow:workNatyashastra ;
+    gmeow:citingEntity gmeow:tuningSystemShruti22 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:shruti22PlacementCitation
+    a gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti śuddha placement citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that the 22-śruti tuning frame's śuddha svara-to-degree placement is derived from the Saṅgītaratnākara's classical systematization."@x-gmeow-english ;
+    gmeow:citationIntent gmeow:intentDerivedFrom ;
+    gmeow:citedEntity gmeow:workSangitaratnakara ;
+    gmeow:citingEntity gmeow:tuningSystemShruti22 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:shruti22RatioCitation
+    a gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti JI ratio citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that the 5-limit just-intonation ratio values of the 22-śruti gamut are drawn from Daniélou's The Ragas of Northern Indian Music as their data source."@x-gmeow-english ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity gmeow:workRagasOfNorthernIndianMusic ;
+    gmeow:citingEntity gmeow:pitchCollectionShruti22 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:yamanRagaCitation
+    a gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "Raga Yaman degree-selection citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that Raga Yaman's Kalyan-thaat, tīvra-Ma degree selection is drawn from Jairazbhoy's The Rāgs of North Indian Music as its data source."@x-gmeow-english ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity gmeow:workRagsOfNorthIndianMusic ;
+    gmeow:citingEntity gmeow:pitchCollectionYamanRaga ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:tuningSystemSlendro
     a gmeow:TuningSystem ;
