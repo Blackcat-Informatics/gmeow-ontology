@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:CalibrationSenseConflationShape (Rule D2): ONE node typed BOTH
+# math:CalibrationDiagnostic AND math:StabilityCalibrationRecord — the STATISTICAL
+# calibration sense (a model's predicted probabilities against observed frequencies)
+# conflated with the TOPOLOGICAL sense (a credence calibrated against a bottleneck stability
+# bound over a math:PersistenceLifetime). They are held owl:disjointWith by a DIRECT axiom
+# (both descend from math:MathematicalObject, so the disjointness is NOT entailed by their
+# parents), so the sh:not [ sh:class math:StabilityCalibrationRecord ] fires —
+# shacl.NotConstraintComponent (math:CalibrationSenseConflation).
+# Single violation: the node is COMPLETE for BOTH kinds — its math:diagnosticFor and
+# math:diagnosticMethod satisfy math:UnanchoredDiagnosticShape (Rule D1), and its
+# math:calibrationEvidence, math:credenceDerivationKind, and math:stabilityGuarantee satisfy
+# math:StabilityCalibrationRecordShape — so ONLY the sh:not fires, EXACTLY ONE finding, no
+# completeness sibling. Every supporting object (the fit, the lifetime, the filtration, the
+# homology group) is well-formed for its own shape.
+# Back-reference: math:CalibrationSenseConflation (slices/grounding/math/module.ttl).
+# Negative counterpart of conformance-fixtures/calibration-senses-distinct.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecCalibrationSenseConflation).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <http://example.org/math/> .
+
+# ONE node typed BOTH calibration senses, complete for each so only the conflation fires.
+ex:conflatedCalibration a math:CalibrationDiagnostic , math:StabilityCalibrationRecord ;
+    math:diagnosticFor ex:classifierFit ;               # completes the diagnostic anchoring
+    math:diagnosticMethod ex:expectedCalibrationError ; # completes the diagnostic method
+    math:calibrationEvidence ex:essentialLifetime ;     # completes the record evidence
+    math:credenceDerivationKind math:persistenceDerivedCredence ;  # completes the derivation kind
+    math:stabilityGuarantee math:bottleneckStabilityTheorem .      # completes the guarantee
+
+ex:expectedCalibrationError a math:MathematicalObject .   # the diagnostic method
+
+# The fit the diagnostic anchors to: a well-formed math:FittedModel.
+ex:classifierFit a math:FittedModel ;
+    math:fittedToData ex:heldOutData ;
+    math:modelFormula ex:classifierFormula .
+
+ex:heldOutData a math:DatasetMatrix .
+ex:classifierFormula a math:ModelFormula ;
+    math:argumentSlot ex:classifierSlot0 .
+ex:classifierSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:classifierResponse .
+ex:classifierResponse a math:VariableExpression .
+
+# The record evidence: an essential H0 component that never dies within the filtration.
+ex:essentialLifetime a math:PersistenceLifetime ;
+    math:overFiltration ex:persistenceFiltration ;
+    math:persistenceFeature ex:h0Component ;
+    math:bornAt ex:eps1 ;
+    math:diesAt math:PositiveInfinity .
+
+ex:h0Component a math:HomologyGroup ;
+    math:underlyingSet ex:h0Carrier ;
+    math:structureOperation ex:h0Addition ;
+    math:satisfiesAxiom ex:h0CommutativityAxiom .
+ex:h0Carrier a math:Set .
+ex:h0Addition a math:Operation .
+
+ex:persistenceFiltration a math:Filtration ;
+    math:filtrationAmbient ex:ambientSpace ;
+    math:filtrationIndexKind math:lengthDimension ;
+    math:hasFiltrationStage ex:stageEps1 .
+
+ex:ambientSpace a math:TopologicalSpace .
+
+ex:stageEps1 a math:FiltrationStage ;
+    math:filtrationThreshold ex:eps1 ;
+    math:stageStructure ex:cx1 .
+
+ex:cx1 a math:TopologicalSpace .
+
+ex:eps1 a gmeow:Quantity ;
+    gmeow:quantityValue "0.10"^^xsd:decimal ;
+    gmeow:unit ex:latentScaleUnit .

@@ -1,0 +1,73 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:IllFramedPValueShape (Rule I1): a math:PValue
+# whose test arm is satisfied via the math:HypothesisTest whose math:pValue it is —
+# NOT via a direct math:testStatistic on the p-value itself. The p-value carries a
+# math:nullHypothesis, a math:nullDistribution that is a PARAMETERIZED
+# math:SamplingDistribution (a math:Distribution: normal family + mean/stddev
+# parameterization, one math:DistributionParameter per required role, matching the
+# probability.ttl idiom), a math:alternativeSidedness that IS one of the six lawful
+# math:Sidedness individuals (math:twoSidedAlternative), and math:pValue → a FRAMED
+# math:ProbabilityValue. The math:Statistic instead lives on ex:theHypothesisTest via
+# math:testStatistic — a lawful placement, since math:testStatistic's domain is a
+# math:HypothesisTest OR a math:PValue (stated in prose in module.ttl). Because the
+# test arm's disjunction ("a direct math:testStatistic, and/or the math:HypothesisTest
+# whose math:pValue it is") is satisfied by the SECOND branch, and every other arm
+# (null hypothesis, null distribution, tail-or-sidedness) is present, the SPARQL frame
+# gate stays SILENT even though the p-value names no direct math:testStatistic; because
+# the sidedness is lawful, the sh:in gate stays SATISFIED. This exercises the
+# HypothesisTest path of the shape's test arm, which a direct-testStatistic-only fixture
+# (conformance-fixtures/pvalue-well-framed.ttl) never reaches. The p-value's magnitude
+# 3/100 is carried, per the exact-rational discipline, as a math:RationalValue with a
+# gmeow:hasReferenceFrame, so its value satisfies math:ProbabilityValueRangeShape
+# (0 ≤ 3/100 ≤ 1), math:ProbabilityValueFramedShape (a reference frame),
+# math:ProbabilityScaleDisjointShape, and math:RationalValueShape. The null distribution
+# is well-formed, so the P6a/P6b/P7 distribution gates stay silent. It MUST raise NO
+# failure class.
+# Bound by tests/example-conformance.ttl (ex:ecPValueHypothesisTestFramed).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:htTestPValue a math:PValue ;
+    math:nullHypothesis ex:noEffectNull ;
+    math:nullDistribution ex:tNullDistribution ;
+    math:alternativeSidedness math:twoSidedAlternative ;
+    math:pValue ex:pValueMagnitude .
+
+ex:theHypothesisTest a math:HypothesisTest ;
+    math:pValue ex:htTestPValue ;
+    math:testStatistic ex:hypTestStatistic .
+
+ex:hypTestStatistic a math:Statistic .
+ex:noEffectNull a math:NullHypothesis .
+
+# The null distribution: the distribution of the statistic UNDER the null, a
+# parameterized sampling distribution (a math:Distribution) with family + convention.
+ex:tNullDistribution a math:SamplingDistribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParameterization ;
+    math:hasDistributionParameter ex:meanParam , ex:stddevParam .
+
+ex:normalFamily a math:DistributionFamily .
+
+ex:meanStddevParameterization a math:DistributionParameterization ;
+    math:requiresParameterRole ex:meanRole , ex:stddevRole .
+
+ex:meanRole a math:DistributionParameterRole .
+ex:stddevRole a math:DistributionParameterRole .
+
+ex:meanParam a math:DistributionParameter ;
+    math:parameterRole ex:meanRole .
+
+ex:stddevParam a math:DistributionParameter ;
+    math:parameterRole ex:stddevRole .
+
+# The p-value magnitude: a FRAMED probability value, exact 3/100 = 0.03 in [0, 1].
+ex:pValueMagnitude a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 3 ;         # 3/100 = 0.03, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+
+ex:samplingFrame a gmeow:ReferenceFrame .

@@ -1,0 +1,16 @@
+# Competency question: "What are the hypothesis kinds a test weighs, and their common parent?"
+# Exercises the hypothesis taxonomy: a math:NullHypothesis and a math:AlternativeHypothesis
+# are both asserted DIRECT subclasses of the abstract math:Hypothesis in module.ttl. The
+# reasoning-free query walks the asserted rdfs:subClassOf edge and binds the shared parent as
+# a constant, so the answer names both leaf kinds AND the math:Hypothesis they specialize.
+# Scoped to the math: namespace. Over the merged ontology the answer is exactly
+# {math:NullHypothesis -> math:Hypothesis, math:AlternativeHypothesis -> math:Hypothesis}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?kind ?parent WHERE {
+    ?kind rdfs:subClassOf math:Hypothesis .
+    FILTER(STRSTARTS(STR(?kind), "https://blackcatinformatics.ca/math/"))
+    BIND(math:Hypothesis AS ?parent)
+}
+ORDER BY ?kind

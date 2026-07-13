@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the paradigm-axis competency question "which inference paradigm a result
+# belongs to". Two well-formed results typed paradigm-exclusive kinds: a frequentist
+# math:ConfidenceInterval (⊑ math:FrequentistResult in module.ttl) and a Bayesian
+# math:CredibleInterval (⊑ math:BayesianResult). The query resolves each result's family by
+# walking the ASSERTED subclass edges in the merged ontology (rdfs:subClassOf*, no reasoning),
+# so the fixture only needs to type the instances and frame them; the paradigm parents come
+# from module.ttl. Each interval's level/mass is a FRAMED math:ProbabilityValue, exact 95/100
+# in [0, 1]. Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+# A frequentist result: a confidence interval (math:ConfidenceInterval ⊑ math:FrequentistResult).
+ex:frequentistResult a math:ConfidenceInterval ;
+    math:hasIntervalBound ex:freqLower , ex:freqUpper ;
+    math:confidenceLevel ex:freqLevel .
+
+ex:freqLower a math:MathematicalObject .
+ex:freqUpper a math:MathematicalObject .
+
+ex:freqLevel a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+
+ex:samplingFrame a gmeow:ReferenceFrame .
+
+# A Bayesian result: a credible interval (math:CredibleInterval ⊑ math:BayesianResult).
+ex:bayesianResult a math:CredibleInterval ;
+    math:hasPosterior ex:bayesPosterior ;
+    math:hasIntervalBound ex:bayesLower , ex:bayesUpper ;
+    math:credibleMass ex:bayesMass .
+
+ex:bayesLower a math:MathematicalObject .
+ex:bayesUpper a math:MathematicalObject .
+
+ex:bayesPosterior a math:PosteriorDistribution ;
+    math:distributionFamily ex:betaFamily .
+
+ex:betaFamily a math:DistributionFamily .
+
+ex:bayesMass a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:posteriorFrame .
+
+ex:posteriorFrame a gmeow:ReferenceFrame .
