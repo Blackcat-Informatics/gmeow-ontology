@@ -283,8 +283,11 @@ pub trait Stage: Send + Sync {
         false
     }
     /// The named-graph IRIs this stage ATTACHES to the carrier — the graphs
-    /// present in its output product bundle but NOT in its assembled input (its
-    /// attach DELTA), sorted and deduplicated. Mirrors the RDF `gmeow:attachesGraph`
+    /// present in its output product bundle but NOT in its effective input (its
+    /// attach DELTA), sorted and deduplicated. For producers narrowed by
+    /// [`Self::consumed_entities`], only the declared named graphs are effective
+    /// inputs; a different graph merely carried by that upstream product does not
+    /// conceal this stage's attachment. Mirrors the RDF `gmeow:attachesGraph`
     /// declarations on the stage individual; the loader HARD-fails if the two
     /// disagree (Rust/RDF agreement) and the scheduler HARD-fails
     /// ([`crate::error::AttachDrift`]) if the stage's actual attach delta at run
