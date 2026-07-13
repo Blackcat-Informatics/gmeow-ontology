@@ -647,6 +647,7 @@ impl Stage for CompileLogicStage {
         Ok(StageOutput {
             product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
             diags: nodes,
+            timings: Vec::new(),
         })
     }
 }

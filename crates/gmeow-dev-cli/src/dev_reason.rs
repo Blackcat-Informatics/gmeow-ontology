@@ -15,6 +15,8 @@
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
+use gmeow_logic::entail_crosscheck::{CrosscheckOutcome, run_entail_crosscheck};
+use gmeow_logic::reason::ledger::DivergenceKind;
 use gmeow_logic::reason::{native_contract_hash, reason_all};
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::verify::{verify as verify_reasoned, verify_with_reasoning_result};
@@ -245,70 +247,115 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     }
 }
 
-/// `gmeow-dev reason-verify [--fresh --merge --timings-json]` — reason + verify in
-/// one pass. By default both halves reuse the shipped closure + verdict
-/// (contract-hash-checked, ONE snapshot import and no chase); `--fresh` recomputes.
-pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
-    let root = project_root();
-    let started = Instant::now();
-    let dataset = match snapshot_dataset(&root) {
-        Ok(d) => d,
-        Err(code) => return code,
-    };
-    let (result, phase) = if fresh {
-        match reason_all(dataset.as_ref()) {
-            Ok(r) => (r, "reason-verify-native"),
-            Err(e) => return fail(format!("native reason+verify failed: {e}")),
-        }
-    } else {
-        match shipped_reasoning_result(dataset.as_ref()) {
-            Ok(r) => (r, "reason-verify-shipped"),
-            Err(e) => return fail(format!("cannot reuse the shipped verdict: {e}")),
-        }
-    };
+struct ReasonVerifyEvaluation {
+    result: ReasoningResult,
+    report: gmeow_errors::Report,
+    result_ms: u128,
+    verify_ms: u128,
+}
+
+/// Obtain one complete reasoning result and verify that exact value.
+///
+/// The producer is `FnOnce` deliberately: the type prevents this orchestration
+/// seam from invoking a fresh reasoner twice. Both the focused fresh command and
+/// the aggregate reason gate use this path.
+fn evaluate_reason_verify_once<F>(
+    dataset: &purrdf::RdfDataset,
+    queries: &[(String, String)],
+    produce_result: F,
+) -> Result<ReasonVerifyEvaluation, String>
+where
+    F: FnOnce(&purrdf::RdfDataset) -> Result<ReasoningResult, String>,
+{
+    let result_started = Instant::now();
+    let result = produce_result(dataset)?;
+    let result_ms = elapsed_ms(result_started);
+
     if !result.is_decided_consistent() {
-        // Refuse to verify unless consistency is DECIDED: a glut is inconsistent,
-        // and an undetermined (out-of-fragment) bundle cannot soundly carry a
-        // verification claim — honest cannot-decide, never a wrong pass.
         return if result.is_consistent() {
-            fail(format!(
+            Err(format!(
                 "cannot decide consistency: {n} out-of-fragment construct(s) the native \
                  path does not decide; refusing to verify",
                 n = result.preservation.unsupported_constructs.len(),
             ))
         } else {
-            fail("inconsistent ontology")
+            Err("inconsistent ontology".to_owned())
         };
     }
+
+    let verify_started = Instant::now();
+    let report = verify_with_reasoning_result(dataset, &result, queries)
+        .map_err(|e| format!("native reason+verify failed: {e}"))?;
+    let verify_ms = elapsed_ms(verify_started);
+
+    Ok(ReasonVerifyEvaluation {
+        result,
+        report,
+        result_ms,
+        verify_ms,
+    })
+}
+
+/// `gmeow-dev reason-verify [--fresh --merge --timings-json]` — reason + verify in
+/// one pass. By default both halves reuse the shipped closure + verdict
+/// (contract-hash-checked, ONE snapshot import and no chase); `--fresh` computes
+/// one complete native closure and verifies that same value.
+pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
+    let root = project_root();
+    let started = Instant::now();
+    let snapshot_started = Instant::now();
+    let dataset = match snapshot_dataset(&root) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    let snapshot_ms = elapsed_ms(snapshot_started);
     let queries = discover_verify_queries(&root);
-    let report = if fresh {
-        match verify_reasoned(dataset.as_ref(), &queries) {
-            Ok(r) => r,
-            Err(e) => return fail(format!("native reason+verify failed: {e}")),
-        }
+    let (evaluation, result_phase) = if fresh {
+        (
+            evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
+                reason_all(edb).map_err(|e| format!("native reason+verify failed: {e}"))
+            }),
+            "reason-native",
+        )
     } else {
-        match verify_with_reasoning_result(dataset.as_ref(), &result, &queries) {
-            Ok(r) => r,
-            Err(e) => return fail(format!("native reason+verify failed: {e}")),
-        }
+        (
+            evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
+                shipped_reasoning_result(edb)
+                    .map_err(|e| format!("cannot reuse the shipped verdict: {e}"))
+            }),
+            "reason-result-shipped",
+        )
+    };
+    let evaluation = match evaluation {
+        Ok(evaluation) => evaluation,
+        Err(message) => return fail(message),
     };
     let elapsed = elapsed_ms(started);
     if let Some(path) = timings_json {
         let payload = serde_json::json!({
             "command": "reason-verify",
             "mode": "native",
-            "ok": report.ok(),
-            "timings": [{ "phase": phase, "elapsed_ms": elapsed, "metadata": null }],
+            "ok": evaluation.report.ok(),
+            "metrics": {
+                "inferred_axioms": evaluation.result.inferred().len(),
+                "verify_errors": evaluation.report.error_count(),
+            },
+            "timings": [
+                { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
+                { "phase": result_phase, "elapsed_ms": evaluation.result_ms, "metadata": null },
+                { "phase": "verify-native", "elapsed_ms": evaluation.verify_ms, "metadata": null },
+                { "phase": "reason-verify-total", "elapsed_ms": elapsed, "metadata": null },
+            ],
         });
         let code = write_timings_json(path, &payload);
         if code != 0 {
             return code;
         }
     }
-    if !report.ok() {
+    if !evaluation.report.ok() {
         return fail(format!(
             "verify: {} violation(s) on the reasoned graph",
-            report.error_count()
+            evaluation.report.error_count()
         ));
     }
     println!("native EL/DL reasoning + reasoned-graph verify (Docker-free)");
@@ -327,29 +374,66 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
 /// NativeOnly rows are gmeow's richer world-scoped closure and are expected, not a
 /// failure. Any real divergence is printed with its classification so a red is a
 /// diagnosable disagreement, never an opaque failure.
-pub fn reason_crosscheck() -> i32 {
-    use gmeow_logic::entail_crosscheck::run_entail_crosscheck;
-    use gmeow_logic::reason::ledger::DivergenceKind;
-
+pub fn reason_crosscheck(timings_json: Option<&Path>) -> i32 {
     let root = project_root();
+    let started = Instant::now();
+    let snapshot_started = Instant::now();
     let dataset = match snapshot_dataset(&root) {
         Ok(d) => d,
         Err(code) => return code,
     };
+    let snapshot_ms = elapsed_ms(snapshot_started);
     // Reason FRESH: the cross-check needs the COMPLETE native subsumption closure.
     // The shipped `graph/reasoning` projection persists a reduced subsumption set
     // (its transitive surface omits ~70 links the OWL-RL oracle still derives), so
     // reusing it would under-report native and false-flag those as OracleOnly. A
     // fresh `reason_all` is the full world-partitioned closure the comparison needs.
+    let reason_started = Instant::now();
     let result = match reason_all(dataset.as_ref()) {
         Ok(r) => r,
         Err(e) => return fail(format!("reason-crosscheck: native reasoning failed: {e}")),
     };
+    let reason_ms = elapsed_ms(reason_started);
+    let oracle_started = Instant::now();
     let outcome = match run_entail_crosscheck(&result, dataset.as_ref()) {
         Ok(o) => o,
         Err(e) => return fail(format!("reason-crosscheck failed: {e}")),
     };
+    let oracle_ms = elapsed_ms(oracle_started);
+    let elapsed = elapsed_ms(started);
 
+    if let Some(path) = timings_json {
+        let payload = serde_json::json!({
+            "command": "reason-crosscheck",
+            "mode": "native",
+            "ok": outcome.verdict.passed,
+            "metrics": {
+                "inferred_axioms": result.inferred().len(),
+                "source_worlds": outcome.source_worlds,
+                "native_subsumptions": outcome.native_subsumptions,
+                "oracle_subsumptions": outcome.oracle_subsumptions,
+                "agree": outcome.ledger.agree,
+                "native_only": outcome.ledger.native_only,
+                "oracle_only": outcome.ledger.oracle_only,
+                "dl_gap": outcome.ledger.dl_gap,
+            },
+            "timings": [
+                { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
+                { "phase": "reason-native", "elapsed_ms": reason_ms, "metadata": null },
+                { "phase": "entail-oracle", "elapsed_ms": oracle_ms, "metadata": format!("worlds={}", outcome.source_worlds) },
+                { "phase": "reason-crosscheck-total", "elapsed_ms": elapsed, "metadata": null },
+            ],
+        });
+        let code = write_timings_json(path, &payload);
+        if code != 0 {
+            return code;
+        }
+    }
+
+    emit_crosscheck_outcome(&outcome)
+}
+
+fn emit_crosscheck_outcome(outcome: &CrosscheckOutcome) -> i32 {
     let ledger = &outcome.ledger;
     println!(
         "native ↔ entail-oracle subsumption cross-check (Docker-free): {worlds} source world(s); \
@@ -399,6 +483,81 @@ pub fn reason_crosscheck() -> i32 {
         }
         fail("reason-crosscheck: native↔oracle divergence")
     }
+}
+
+/// `gmeow-dev reason-gate` — one snapshot import and one complete native closure
+/// feeding both reasoned-graph verification and the independent purrdf oracle.
+pub fn reason_gate(timings_json: Option<&Path>) -> i32 {
+    let root = project_root();
+    let started = Instant::now();
+    let snapshot_started = Instant::now();
+    let dataset = match snapshot_dataset(&root) {
+        Ok(dataset) => dataset,
+        Err(code) => return code,
+    };
+    let snapshot_ms = elapsed_ms(snapshot_started);
+    let queries = discover_verify_queries(&root);
+    let evaluation = match evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
+        reason_all(edb).map_err(|e| format!("native reason gate failed: {e}"))
+    }) {
+        Ok(evaluation) => evaluation,
+        Err(message) => return fail(message),
+    };
+
+    let oracle_started = Instant::now();
+    let outcome = match run_entail_crosscheck(&evaluation.result, dataset.as_ref()) {
+        Ok(outcome) => outcome,
+        Err(e) => return fail(format!("reason gate cross-check failed: {e}")),
+    };
+    let oracle_ms = elapsed_ms(oracle_started);
+    let elapsed = elapsed_ms(started);
+    let ok = evaluation.report.ok() && outcome.verdict.passed;
+
+    if let Some(path) = timings_json {
+        let payload = serde_json::json!({
+            "command": "reason-gate",
+            "mode": "native",
+            "ok": ok,
+            "metrics": {
+                "inferred_axioms": evaluation.result.inferred().len(),
+                "verify_errors": evaluation.report.error_count(),
+                "source_worlds": outcome.source_worlds,
+                "native_subsumptions": outcome.native_subsumptions,
+                "oracle_subsumptions": outcome.oracle_subsumptions,
+                "agree": outcome.ledger.agree,
+                "native_only": outcome.ledger.native_only,
+                "oracle_only": outcome.ledger.oracle_only,
+                "dl_gap": outcome.ledger.dl_gap,
+            },
+            "timings": [
+                { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
+                { "phase": "reason-native", "elapsed_ms": evaluation.result_ms, "metadata": null },
+                { "phase": "verify-native", "elapsed_ms": evaluation.verify_ms, "metadata": null },
+                { "phase": "entail-oracle", "elapsed_ms": oracle_ms, "metadata": format!("worlds={}", outcome.source_worlds) },
+                { "phase": "reason-gate-total", "elapsed_ms": elapsed, "metadata": null },
+            ],
+        });
+        let code = write_timings_json(path, &payload);
+        if code != 0 {
+            return code;
+        }
+    }
+
+    if evaluation.report.ok() {
+        println!("native EL/DL reasoning + reasoned-graph verify (Docker-free)");
+    }
+    let crosscheck_code = emit_crosscheck_outcome(&outcome);
+    if !evaluation.report.ok() {
+        return fail(format!(
+            "verify: {} violation(s) on the reasoned graph",
+            evaluation.report.error_count()
+        ));
+    }
+    if crosscheck_code != 0 {
+        return crosscheck_code;
+    }
+    println!("reason gate: one native closure passed verify + entail-oracle cross-check");
+    0
 }
 
 /// `gmeow-dev explain` — explain unsatisfiable classes / inconsistency.
@@ -528,4 +687,30 @@ fn resolve_profile(input_path: &Path, profile: Option<&str>) -> Result<String, i
         }
     }
     Ok("PositiveHornProfile".to_owned())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::cell::Cell;
+
+    use super::*;
+
+    #[test]
+    fn reason_verify_orchestration_invokes_the_result_producer_once() {
+        let dataset = purrdf::RdfDataset::union(&[]);
+        let calls = Cell::new(0usize);
+        let evaluation = evaluate_reason_verify_once(&dataset, &[], |edb| {
+            calls.set(calls.get() + 1);
+            reason_all(edb).map_err(|e| e.to_string())
+        })
+        .expect("empty dataset reasons and verifies");
+
+        assert_eq!(
+            calls.get(),
+            1,
+            "the complete closure is produced exactly once"
+        );
+        assert!(evaluation.result.is_decided_consistent());
+        assert!(evaluation.report.ok());
+    }
 }

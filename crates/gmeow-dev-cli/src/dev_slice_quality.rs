@@ -14,7 +14,7 @@ use std::path::Path;
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::Report;
 use gmeow_slice_quality::model::{Rubric, SliceAssessment, Tier};
-use gmeow_slice_quality::report::{SliceReport, score_slice, score_slice_with_rubric};
+use gmeow_slice_quality::report::{SliceReport, score_slice};
 
 use crate::dev_common::{emit_error, fail, note, project_root};
 use crate::dev_feedback::{diagnostics_env, write_artifacts};
@@ -232,8 +232,9 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     // deterministic Pareto-frontier + capping-axis prioritization. The assessment
     // (the primary object) and the advisory count (display only) are all it needs.
     let mut profiles: Vec<(SliceAssessment, usize)> = Vec::new();
-    for dir in &dirs {
-        match score_slice_with_rubric(dir, rubric.clone()) {
+    let scored = gmeow_slice_quality::score_slices_with_rubric(root, &dirs, &rubric);
+    for (dir, result) in dirs.iter().zip(scored) {
+        match result {
             Ok(report) => {
                 match format {
                     Format::Text => {
@@ -415,9 +416,10 @@ pub fn slice_quality_gate() -> i32 {
     // Score every discovered slice EXACTLY ONCE, in deterministic dir order, and feed
     // BOTH the roll-up-tier ratchet pass and the per-axis floor pass from these shared
     // reports — a slice is never scored twice.
+    let score_results = gmeow_slice_quality::score_slices_with_rubric(&root, &dirs, &rubric);
     let mut scored: Vec<(&Path, SliceReport)> = Vec::with_capacity(dirs.len());
-    for dir in &dirs {
-        let report = match score_slice_with_rubric(dir, rubric.clone()) {
+    for (dir, result) in dirs.iter().zip(score_results) {
+        let report = match result {
             Ok(r) => r,
             Err(e) => return fail(format!("slice-quality-gate: {}: {e}", dir.display())),
         };
@@ -1036,7 +1038,7 @@ fn collect_seed_lines(
 /// EXACTLY ONE of `--axis <axis-local>` (seed the one named rubric axis) or
 /// `--all-axes` (seed every rubric axis a slice grades that lacks a floor) must be
 /// given — neither nor both is a hard error, never a silent default. The score used
-/// is the SAME single-score pass the gate reads (`score_slice_with_rubric` over every
+/// is the SAME single-score pass the gate reads (`score_slices_with_rubric` over every
 /// discovered slice), so what is seeded is exactly what the gate enforces.
 ///
 /// ONE-SHOT per axis: this seeds a NEW axis's floors ONCE. Re-running to "refresh" an
@@ -1091,9 +1093,10 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
         Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
     };
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
+    let score_results = gmeow_slice_quality::score_slices_with_rubric(&root, &dirs, &rubric);
     let mut assessments: Vec<SliceAssessment> = Vec::with_capacity(dirs.len());
-    for dir in &dirs {
-        match score_slice_with_rubric(dir, rubric.clone()) {
+    for (dir, result) in dirs.iter().zip(score_results) {
+        match result {
             Ok(report) => assessments.push(report.assessment),
             // A slice that cannot be scored is a hard fail — never a silent skip that
             // would seed an incomplete floor set.

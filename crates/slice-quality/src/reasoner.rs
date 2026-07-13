@@ -21,6 +21,7 @@ use std::sync::Arc;
 use gmeow_errors::Finding;
 use gmeow_logic::reason::{InferredAxiom, dl_consistency, reason_all, reason_closure_axioms};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfTerm, TermRef};
+use rayon::prelude::*;
 
 use crate::graph::id;
 use crate::model::GMEOW;
@@ -29,11 +30,6 @@ use crate::score::{AxisScore, ScoreContext, advisory};
 const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 /// The SHACL namespace — the shape vocabulary the disjointness-projection check reads.
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";
-
-/// A canonical `s\tp\to` key for an IRI-object triple.
-fn key(subject: &str, predicate: &str, object: &str) -> String {
-    format!("{subject}\t{predicate}\t{object}")
-}
 
 /// Normalize an inferred axiom's surface object to a bare IRI, or `None` when the
 /// object is a literal / blank (not an IRI surface).
@@ -45,15 +41,22 @@ fn surface_iri(object: &str) -> Option<&str> {
     Some(o.trim_start_matches('<').trim_end_matches('>'))
 }
 
-/// The closure's IRI-object triples, keyed the same way.
-fn closure_iri_keys(inferred: &[InferredAxiom]) -> BTreeSet<String> {
-    let mut out = BTreeSet::new();
-    for ax in inferred {
-        if let Some(o) = surface_iri(&ax.object) {
-            out.insert(key(&ax.subject, &ax.predicate, o));
-        }
-    }
-    out
+/// Whether the closure contains one target IRI-object axiom.
+///
+/// A leave-one-out probe asks exactly one membership question. Borrowing the existing
+/// strings and stopping on the first match avoids constructing a complete
+/// `BTreeSet<String>` for every probe (up to 64 full closure re-indexes per slice).
+fn closure_contains_iri(
+    inferred: &[InferredAxiom],
+    subject: &str,
+    predicate: &str,
+    object: &str,
+) -> bool {
+    inferred.iter().any(|axiom| {
+        axiom.subject == subject
+            && axiom.predicate == predicate
+            && surface_iri(&axiom.object) == Some(object)
+    })
 }
 
 /// The inferential OWL/RDFS predicates whose IRI-object triples are authored TBox
@@ -160,6 +163,42 @@ fn edb_without_triple(
         .unwrap_or_else(|_| Arc::new(RdfDataset::union(&[])))
 }
 
+/// Run the independent leave-one-out probes and retain their sorted input order.
+///
+/// Each probe owns its reduced dataset and closure. The multi-probe path evaluates
+/// those immutable units through Rayon; indexed collection restores authored-axiom
+/// order before findings are folded. A zero/one-probe slice stays direct.
+fn redundancy_probe(
+    ds: &RdfDataset,
+    (subject, predicate, object): &(String, String, String),
+) -> Option<Finding> {
+    let reduced = edb_without_triple(ds, subject, predicate, object);
+    let redundant = reason_closure_axioms(&reduced)
+        .is_ok_and(|closure| closure_contains_iri(&closure, subject, predicate, object));
+    redundant.then(|| {
+        advisory(
+            "slice-quality.reasoner.closure-redundant",
+            format!(
+                "<{subject}> <{predicate}> <{object}> is re-derived by the reasoner without being asserted — it is closure-redundant (dead weight or an asserted derived fact, Principle 12)."
+            ),
+        )
+    })
+}
+
+fn redundancy_probes(ds: &RdfDataset, axioms: &[(String, String, String)]) -> Vec<Option<Finding>> {
+    if axioms.len() <= 1 {
+        axioms
+            .iter()
+            .map(|axiom| redundancy_probe(ds, axiom))
+            .collect()
+    } else {
+        axioms
+            .par_iter()
+            .map(|axiom| redundancy_probe(ds, axiom))
+            .collect()
+    }
+}
+
 /// The reasoner-derived axis primitive.
 ///
 /// The axis dogfoods the native chase in TWO complementary directions, counting the
@@ -201,23 +240,15 @@ pub fn reasoner_axis(ctx: &ScoreContext) -> AxisScore {
     // ── Positive space: leave-one-out redundancy over the authored axioms ──────
     let axioms = authored_axioms(ds);
     let cap = axioms.len().min(REDUNDANCY_CAP);
-    let mut redundant = 0usize;
-    for (s, p, o) in axioms.iter().take(cap) {
-        let reduced = edb_without_triple(ds, s, p, o);
-        // The probe reads only the closure's IRI-object triples, never the DL
-        // verdict, so it takes the verdict-free closure entry point (skipping the
-        // discarded per-reduction consistency/coverage scan) — see
-        // `reason_closure_axioms`.
-        if let Ok(r2) = reason_closure_axioms(&reduced)
-            && closure_iri_keys(&r2).contains(&key(s, p, o))
-        {
-            redundant += 1;
-            findings.push(advisory(
-                "slice-quality.reasoner.closure-redundant",
-                format!("<{s}> <{p}> <{o}> is re-derived by the reasoner without being asserted — it is closure-redundant (dead weight or an asserted derived fact, Principle 12)."),
-            ));
-        }
-    }
+    // The probe reads only the closure's one target IRI-object triple, never the DL
+    // verdict, so it takes the verdict-free closure entry point and performs a borrowed
+    // early-exit scan instead of indexing the complete closure.
+    let probe_findings = redundancy_probes(ds, &axioms[..cap]);
+    let redundant = probe_findings
+        .iter()
+        .filter(|finding| finding.is_some())
+        .count();
+    findings.extend(probe_findings.into_iter().flatten());
     let load_bearing = cap - redundant;
 
     // ── Negative space: counter-example clash verification ─────────────────────
@@ -466,7 +497,7 @@ pub fn closure_redundant_subclasses(
     for (s, o) in named_subclass_triples(ds) {
         let reduced = edb_without_triple(ds, &s, SUBCLASS, &o);
         let r = reason_closure_axioms(&reduced)?;
-        if closure_iri_keys(&r).contains(&key(&s, SUBCLASS, &o)) {
+        if closure_contains_iri(&r, &s, SUBCLASS, &o) {
             out.push((s, o));
         }
     }
@@ -547,5 +578,42 @@ mod tests {
                 && matches!(&q.object, RdfTerm::Iri(o) if o == "https://example.org/B")
         });
         assert!(!a_subclass_b, "the targeted triple is removed");
+    }
+
+    #[test]
+    fn parallel_redundancy_probes_match_serial_findings_and_order() {
+        let ds = parse(
+            r#"
+            @prefix ex:   <https://example.org/> .
+            @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+            ex:A rdfs:subClassOf ex:B, ex:C .
+            ex:B rdfs:subClassOf ex:C .
+            ex:C rdfs:subClassOf ex:D .
+            "#,
+        );
+        let axioms = authored_axioms(&ds);
+        let serial: Vec<Option<Finding>> = axioms
+            .iter()
+            .map(|axiom| redundancy_probe(&ds, axiom))
+            .collect();
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .expect("four-worker pool");
+        for _ in 0..8 {
+            let parallel = pool.install(|| redundancy_probes(&ds, &axioms));
+            let summary = |findings: &[Option<Finding>]| {
+                findings
+                    .iter()
+                    .map(|finding| {
+                        finding
+                            .as_ref()
+                            .map(|finding| (finding.code.clone(), finding.message.clone()))
+                    })
+                    .collect::<Vec<_>>()
+            };
+            assert_eq!(summary(&parallel), summary(&serial));
+        }
     }
 }
