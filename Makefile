@@ -53,7 +53,7 @@ WASM_CARGO := env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS cargo
 # EMPTY to enforce that native floor; set it only to OVERRIDE for a dev measurement
 # (e.g. `make acceptance ACCEPTANCE_MIN_RECALL=0` to measure without a floor).
 ACCEPTANCE_MIN_RECALL ?=
-FUZZ_TARGETS = nquads gts shacl sssom statements
+FUZZ_TARGETS = nquads gts shacl sssom statements logic query clif cgif xcl
 FUZZ_TIME ?= 30
 MUTANTS_ARGS ?=
 
