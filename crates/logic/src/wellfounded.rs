@@ -199,17 +199,13 @@ pub(crate) fn materialize(
     Ok(out)
 }
 
-/// Benchmark-only adapter for the compact repo-owned rule fixtures.
-///
-/// Production materialization receives canonical typed IR through
-/// [`crate::materialize::materialize_program`]. Criterion retains a small textual
-/// fixture so it can measure rule parsing and the reduct fixpoint together.
+/// Benchmark-only adapter for canonical typed rules.
 #[doc(hidden)]
 pub fn bench_wf_materialize(
     store: &crate::store::WorldStore,
-    rules_text: &str,
+    program: &gmeow_logic_compile::ir::LogicProgram,
 ) -> gmeow_errors::Result<usize> {
-    let rules = crate::rule_ir::parse_benchmark_rules(rules_text)?;
+    let rules = crate::lower::lower_eval_rules(program)?;
     materialize(store, &rules).map(|rows| rows.len())
 }
 

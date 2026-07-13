@@ -44,8 +44,7 @@ pub use crate::physical::ChaseAdmission;
 /// A typed conjunctive-head existential rule for the native restricted chase.
 ///
 /// This is the public structured boundary for callers whose canonical model already
-/// contains value-inventing rules. Compact textual fixtures are confined to
-/// [`materialize_benchmark_existential`].
+/// contains value-inventing rules.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum StructuredTerm {
     Var(String),
@@ -900,52 +899,6 @@ fn finish_annotated_materialization<E: Clone>(
         materialization,
         quads,
         certification,
-    })
-}
-
-/// Run the repo-owned existential benchmark fixture language through the native chase.
-/// Production callers use [`materialize_program`]; this adapter exists only so the
-/// committed performance corpus can retain its compact TGD fixtures.
-pub fn materialize_benchmark_existential(
-    source: &str,
-    input: &RdfDataset,
-) -> Result<Materialization, MaterializeError> {
-    let normalized = source.replace('!', "?");
-    let rules = crate::rule_ir::parse_benchmark_rules(&normalized)
-        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?
-        .into_iter()
-        .map(|rule| crate::physical::ExistentialRule {
-            rule_iri: rule.rule_iri,
-            body: rule.body,
-            head: vec![rule.head],
-            distinct: rule.distinct_pairs,
-            witness_frontier: None,
-            witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
-        })
-        .collect::<Vec<_>>();
-    let store = crate::store::WorldStore::new();
-    store
-        .load_dataset(input)
-        .map_err(|error| MaterializeError::Parse(error.message().to_owned()))?;
-    let (admission, outcome) = crate::physical::chase_materialize(&store, &rules, None)
-        .map_err(|error| MaterializeError::Chase(error.message().to_owned()))?;
-    let budgeted = match outcome {
-        crate::physical::NativeOutcome::Decided(result) => result,
-        crate::physical::NativeOutcome::Unsupported(kind) => {
-            return Err(MaterializeError::Chase(format!(
-                "native existential benchmark refused {kind:?}: {:?}",
-                admission.capability_gap_rows()
-            )));
-        }
-    };
-    let frontier = budgeted.frontier();
-    Ok(Materialization {
-        quads: budgeted.rows.into_iter().map(derived_row_to_quad).collect(),
-        non_quad_rows: Vec::new(),
-        preservation: PreservationClaim::exact(),
-        frontier,
-        chase_admission: Some(admission),
-        nonmonotone_solve_runs: Vec::new(),
     })
 }
 

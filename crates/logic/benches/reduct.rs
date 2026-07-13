@@ -7,7 +7,7 @@
 //!
 //! `least_model_of_reduct` is `pub(crate)`, so the bench drives it through the public
 //! entry point [`gmeow_logic::wellfounded::bench_wf_materialize`], which takes a
-//! pre-built `WorldStore` reference and a compact benchmark rule string and returns the
+//! pre-built `WorldStore` reference and a canonical typed program and returns the
 //! materialized row count.
 //! This mirrors the public-path pattern used by `benches/graph.rs` for
 //! `entrenchment::closure`.
@@ -20,13 +20,14 @@
 //! fixpoint converges in one outer iteration (well-founded = least Herbrand model for
 //! stratifiable programs), making the timing dominated by the inner reduct join loop.
 //!
-//! The `WorldStore` is built ONCE outside `b.iter`; `b.iter` runs only rule
-//! parsing + the reduct fixpoint materialize — the code path the SoA index is
-//! designed to accelerate.
+//! The `WorldStore` and typed program are built ONCE outside `b.iter`; `b.iter` runs
+//! only the reduct fixpoint materialization — the code path the SoA index is designed
+//! to accelerate.
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic::wellfounded::bench_wf_materialize;
+use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 
 const NS: &str = "https://example.org/b/";
 const WORLD: &str = "https://example.org/b/world";
@@ -45,31 +46,54 @@ fn build_parent_chain_store(n: usize) -> WorldStore {
     store
 }
 
-/// Build the compact benchmark rule text for transitive ancestor closure.
-///
-/// The world slot (`?W`) is present so the arity-3 gmeow fragment matches; all
-/// nodes and edges are in a single world.
-fn ancestor_rules() -> String {
-    format!(
-        "#[name(\"{NS}ruleAncestorBase\")]\n\
-         <{NS}ancestor>(?X, ?Y, ?W) :-\n\
-             <{NS}parent>(?X, ?Y, ?W) .\n\
-         #[name(\"{NS}ruleAncestorRec\")]\n\
-         <{NS}ancestor>(?X, ?Z, ?W) :-\n\
-             <{NS}parent>(?X, ?Y, ?W),\n\
-             <{NS}ancestor>(?Y, ?Z, ?W) .\n"
+fn ancestor_program() -> LogicProgram {
+    let atom = |subject, predicate, object| {
+        LogicAxiom::new(
+            subject,
+            predicate,
+            object,
+            false,
+            false,
+            ContextualScope::default(),
+        )
+        .expect("ancestor benchmark atom")
+    };
+    let make_rule = |name: &str, head: LogicAxiom, body: Vec<LogicAxiom>| {
+        let scope = ContextualScope {
+            provenance: Some(format!("{NS}{name}")),
+            ..ContextualScope::default()
+        };
+        LogicRule::new(head, body, Vec::new(), scope)
+    };
+    let parent = format!("{NS}parent");
+    let ancestor = format!("{NS}ancestor");
+    LogicProgram::new(
+        Vec::new(),
+        vec![
+            make_rule(
+                "ruleAncestorBase",
+                atom("?X", &ancestor, "?Y"),
+                vec![atom("?X", &parent, "?Y")],
+            ),
+            make_rule(
+                "ruleAncestorRec",
+                atom("?X", &ancestor, "?Z"),
+                vec![atom("?X", &parent, "?Y"), atom("?Y", &ancestor, "?Z")],
+            ),
+        ],
+        Vec::new(),
+        None,
     )
 }
 
 fn bench_reduct(c: &mut Criterion) {
     // 30-node chain: 30 parent edges → 435 ancestor derivations (n*(n-1)/2).
-    // The bench builds the WorldStore once outside `b.iter`; only rule parsing +
-    // the reduct fixpoint materialize run inside the hot loop — the code path the
-    // SoA/predicate-index optimization targets.
+    // The bench builds the WorldStore and typed program once outside `b.iter`; only
+    // the reduct fixpoint materialization runs inside the hot loop.
     const CHAIN_LEN: usize = 30;
 
     let store = build_parent_chain_store(CHAIN_LEN);
-    let rules = ancestor_rules();
+    let program = ancestor_program();
 
     // Closed-form expected row count:
     //   echo_asserted:      CHAIN_LEN rows  (rule_iri = logic:assert, one per parent)
@@ -79,7 +103,7 @@ fn bench_reduct(c: &mut Criterion) {
     const EXPECTED_ROWS: usize = 2 * CHAIN_LEN + CHAIN_LEN * (CHAIN_LEN - 1) / 2;
 
     // Smoke-check once outside criterion to catch correctness regressions early.
-    let actual = bench_wf_materialize(&store, &rules).expect("bench_wf_materialize");
+    let actual = bench_wf_materialize(&store, &program).expect("bench_wf_materialize");
     assert_eq!(
         actual, EXPECTED_ROWS,
         "reduct ancestor closure: expected {EXPECTED_ROWS} rows, got {actual}"
@@ -92,7 +116,7 @@ fn bench_reduct(c: &mut Criterion) {
     group.sample_size(10);
     group.bench_function(format!("chain_{edge_count}edges_ancestor_closure"), |b| {
         b.iter(|| {
-            let n = bench_wf_materialize(&store, &rules).expect("bench_wf_materialize");
+            let n = bench_wf_materialize(&store, &program).expect("bench_wf_materialize");
             std::hint::black_box(n)
         });
     });

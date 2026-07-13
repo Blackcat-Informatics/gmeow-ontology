@@ -120,7 +120,7 @@ use gmeow_logic::cost::{
     SignedForwardRow, run_native_forward, run_rule_parallel_evidence,
 };
 use gmeow_logic::dispatch::dispatch_query;
-use gmeow_logic::materialize::materialize_benchmark_existential;
+use gmeow_logic::materialize::{MaterializationLimits, materialize_existential_rules};
 use gmeow_logic::provenance::{ASSERT_RULE_IRI, term_display};
 use gmeow_logic::query_ir::{AnswerSet, Budget, parse_query_program};
 use gmeow_logic::reason::{
@@ -473,6 +473,9 @@ fn sole_world(case: &BenchCase) -> gmeow_errors::Result<(String, u64)> {
 /// plugged into its cost vector and checked against the hand-derived golden.
 fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
+    let program = case
+        .canonical_program()
+        .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
 
     let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
@@ -481,7 +484,7 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     // EDB loading, and stratum certification are outside both measured regions. Each
     // region performs a complete materialization; only the physical plan may persist.
     let plan_contract = format!("bench-repeat-plan-v1:{}/{}", case.corpus, case.name);
-    let mut repeat = RepeatForwardSession::prepare(edb.as_ref(), &case.rules, plan_contract)
+    let mut repeat = RepeatForwardSession::prepare(edb.as_ref(), &program, plan_contract)
         .map_err(|e| run_err(case, format!("repeat-forward prepare failed: {e}")))?;
     let (cold_res, cold_sample) = measure(|| repeat.evaluate());
     let cold = cold_res.map_err(|e| run_err(case, format!("cold plan evaluation failed: {e}")))?;
@@ -537,14 +540,14 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     // Prime the production process-wide plan cache outside the primary allocation sample.
     // Cold planning remains measured explicitly by the paired local repeat probe above;
     // this sample is the steady-state execution cost, not a cold-start/cache mixture.
-    run_native_forward(edb.as_ref(), &case.rules)
+    run_native_forward(edb.as_ref(), &program)
         .map_err(|e| run_err(case, format!("native forward plan prime failed: {e}")))?;
 
     // Native (measured). The global Rayon pool is the single calling thread (set in
     // `main`), so the engine's parallel work runs inline on the measuring thread; the
     // process-global totals and per-thread peak-live capture it completely — pool-quiesce.
     let native_start = Instant::now();
-    let (native_res, sample) = measure(|| run_native_forward(edb.as_ref(), &case.rules));
+    let (native_res, sample) = measure(|| run_native_forward(edb.as_ref(), &program));
     let native_wall = native_start.elapsed().as_nanos();
     let mut native =
         native_res.map_err(|e| run_err(case, format!("native forward failed: {e}")))?;
@@ -668,6 +671,9 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 /// secondary engine is constructed.
 fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
+    let program = case
+        .canonical_program()
+        .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
     let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
     let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
@@ -676,9 +682,9 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 
     // Bootstrap and base scratch evaluation are intentionally outside the measured
     // transaction. The optimized consumer is a loop over one stable base session.
-    let mut session = IncrementalForwardSession::prepare(base.as_ref(), &case.rules)
+    let mut session = IncrementalForwardSession::prepare(base.as_ref(), &program)
         .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
-    let base_scratch = run_native_forward(base.as_ref(), &case.rules)
+    let base_scratch = run_native_forward(base.as_ref(), &program)
         .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
     let base_fp = fingerprint_rows(&base_scratch.rows);
 
@@ -696,7 +702,7 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let incremental_changes_fp = fingerprint_signed_rows(&incremental.changes);
 
     let scratch_start = Instant::now();
-    let (scratch_res, scratch_sample) = measure(|| run_native_forward(&updated, &case.rules));
+    let (scratch_res, scratch_sample) = measure(|| run_native_forward(&updated, &program));
     let scratch_wall = scratch_start.elapsed().as_nanos();
     let mut scratch =
         scratch_res.map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
@@ -858,6 +864,9 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 /// is grounding only.
 fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
+    let program = case
+        .canonical_program()
+        .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
     let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
     let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
@@ -865,7 +874,7 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
     let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
     let updated_edb_count = updated.quads().count() as u64;
 
-    let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &case.rules)
+    let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &program)
         .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
     let base_fp = session.current_rows_fingerprint();
 
@@ -1128,10 +1137,15 @@ fn changed_solver_shots_are_flagged(
 /// EXISTENTIAL fragment: native value-inventing chase against the hand-derived count.
 fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
+    let rules = case
+        .existential_rules()
+        .map_err(|error| run_err(case, format!("typed existential parse failed: {error}")))?;
     let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|error| run_err(case, format!("EDB parse error: {error}")))?;
     let started = Instant::now();
-    let (native, sample) = measure(|| materialize_benchmark_existential(&case.rules, edb.as_ref()));
+    let (native, sample) = measure(|| {
+        materialize_existential_rules(edb.as_ref(), &rules, MaterializationLimits::default())
+    });
     let wall_ns = started.elapsed().as_nanos();
     let native = native.map_err(|error| run_err(case, format!("native chase failed: {error}")))?;
     let native_derived = native
@@ -1973,9 +1987,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
     match case.fragment {
         Fragment::Forward => {
             let (world, golden_rows) = sole_world(case)?;
+            let program = case
+                .canonical_program()
+                .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
             let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
                 .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
-            let native = run_native_forward(edb.as_ref(), &case.rules)
+            let native = run_native_forward(edb.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("native forward failed: {e}")))?;
             Ok(GoldenObservation {
                 world,
@@ -1986,10 +2003,17 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
         }
         Fragment::Existential => {
             let (world, golden_rows) = sole_world(case)?;
+            let rules = case
+                .existential_rules()
+                .map_err(|e| run_err(case, format!("typed existential parse failed: {e}")))?;
             let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
                 .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
-            let native = materialize_benchmark_existential(&case.rules, edb.as_ref())
-                .map_err(|e| run_err(case, format!("native chase failed: {e}")))?;
+            let native = materialize_existential_rules(
+                edb.as_ref(),
+                &rules,
+                MaterializationLimits::default(),
+            )
+            .map_err(|e| run_err(case, format!("native chase failed: {e}")))?;
             let native_derived = native
                 .quads
                 .iter()
@@ -2004,17 +2028,20 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
         }
         Fragment::Incremental => {
             let (world, golden_rows) = sole_world(case)?;
+            let program = case
+                .canonical_program()
+                .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
             let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
                 .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
             let delta =
                 purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
                     .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
             let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
-            let base_scratch = run_native_forward(base.as_ref(), &case.rules)
+            let base_scratch = run_native_forward(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
-            let updated_scratch = run_native_forward(&updated, &case.rules)
+            let updated_scratch = run_native_forward(&updated, &program)
                 .map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
-            let mut session = IncrementalForwardSession::prepare(base.as_ref(), &case.rules)
+            let mut session = IncrementalForwardSession::prepare(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
             let inserted = session
                 .insert(delta.as_ref(), None)
@@ -2041,6 +2068,9 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
         }
         Fragment::IncrementalGrounding => {
             let (world, golden_rows) = sole_world(case)?;
+            let program = case
+                .canonical_program()
+                .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
             let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
                 .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
             let delta =
@@ -2048,7 +2078,7 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                     .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
             let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
             let updated_edb_count = updated.quads().count() as u64;
-            let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &case.rules)
+            let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
             let base_fp = blake3::Hash::from_bytes(session.current_rows_fingerprint())
                 .to_hex()
