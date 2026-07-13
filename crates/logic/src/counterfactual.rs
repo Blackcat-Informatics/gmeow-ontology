@@ -5,7 +5,7 @@
 //!
 //! This is the **only generative, budgeted, possibly-incomplete** stratum of the
 //! logic engine. When a query carries a [`crate::query_ir::QCounterfactual`]
-//! declaration, [`construct_and_resolve`] performs the Phase-3 protocol from
+//! declaration, `construct_and_resolve` performs the Phase-3 protocol from
 //! `LOGIC-RUNTIME.md`:
 //!
 //! 1. **Minimal AGM revision.** Admit the antecedent `A` into a copy of the base
@@ -15,7 +15,7 @@
 //!    `assume(p(s, ·))` atoms claim different values for one slot — the
 //!    **most-entrenched** value wins (read by [`crate::entrenchment`]); an
 //!    incomparable maximum is a **genuine tie** and the whole construction returns
-//!    [`CfStatus::Unknown`] rather than branching.
+//!    `CfStatus::Unknown` rather than branching.
 //! 2. **Transient, isolated construction.** Seed a *fresh* named graph `W_cf` with
 //!    the revised facts. The base graph is never mutated, so paraconsistency is
 //!    preserved and nothing leaks back into the base store.
@@ -26,7 +26,7 @@
 //!    cached answer instead of reconstructing.
 //!
 //! Nested counterfactuals are bounded by a **depth budget**: a request that would
-//! recurse past the budget degrades to [`CfStatus::Incomplete`] rather than
+//! recurse past the budget degrades to `CfStatus::Incomplete` rather than
 //! constructing without bound.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap};

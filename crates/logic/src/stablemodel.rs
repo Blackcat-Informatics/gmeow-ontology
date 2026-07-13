@@ -25,7 +25,7 @@
 //! so only the asserted `candidate(x,x)` quad is emitted.
 //!
 //! [`IncrementalStableModelSession`] is the production multi-shot boundary used by
-//! [`crate::materialize::NonmonotoneMaterializationSession`]. The low-level model
+//! the production materialization router. The low-level model
 //! enumerator and scratch materializer remain crate-internal comparators for parity
 //! tests, hence the crate-internal `dead_code` allowance.
 #![allow(dead_code)]

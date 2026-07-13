@@ -296,8 +296,8 @@ pub trait Stage: Send + Sync {
     }
     /// The blob-representation lane labels this stage ATTACHES to the carrier — the
     /// `representation`-keyed blob records (e.g.
-    /// [`crate::stages::carrier::REP_AXIOMS`],
-    /// [`crate::stages::carrier::REP_DIAG_NODES`]) present in its output product but
+    /// [`crate::bundle_blobs::REP_AXIOMS`],
+    /// [`crate::bundle_blobs::REP_DIAG_NODES`]) present in its output product but
     /// NOT in its assembled input (its attach DELTA), sorted and deduplicated. Mirrors
     /// the RDF `gmeow:attachesBlobRep` declarations; verified against the RDF at load
     /// (Rust/RDF agreement) and against the actual run-time delta by the scheduler

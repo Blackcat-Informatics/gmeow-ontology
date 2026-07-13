@@ -6,7 +6,7 @@
 //! The bench corpus is a NEW sibling of the OWL-consistency `cases/external/` tree.
 //! Each `cases/bench/<corpus>/` directory carries a `corpus.json`
 //! ([`crate::external::corpus::CorpusMeta`]) whose declared SPDX license is audited
-//! with the SAME [`audit_vendorable`] gate the external corpora use — a
+//! with the SAME `audit_vendorable` gate the external corpora use — a
 //! non-vendorable (REFERENCE_ONLY / unknown) license is a HARD FAIL, never a
 //! silently-loaded case. Each `<corpus>/<case>/` directory carries the four
 //! benchmark artifacts:

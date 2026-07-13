@@ -6,8 +6,8 @@
 //! Every DAG defect is a HARD failure surfaced *before* (or during) stage
 //! execution (no-optionality). Each defect is a [`gmeow_errors::DiagKind`] minted
 //! by [`gmeow_errors::define_diag_kind!`], so a raised diagnostic carries a stable
-//! registered [`Code`](gmeow_errors::Code), a [`Grade`], and stays downcastable to
-//! its typed value off the [`Diag`](gmeow_errors::Diag) source. There is no
+//! registered [`gmeow_errors::Code`], a [`gmeow_errors::Grade`], and stays
+//! downcastable to its typed value off the [`gmeow_errors::Diag`] source. There is no
 //! hand-rolled error `enum`: the substrate is the single content-bound carrier.
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};

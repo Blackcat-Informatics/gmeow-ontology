@@ -14,7 +14,8 @@
 //! diagram, bundle) shares one source of truth. The [`render`] module turns the
 //! model into a deterministic static-site tree (Markdown + self-contained HTML),
 //! and [`svg`] hand-emits deterministic SVG diagrams folded into that tree.
-//! Python bindings are kept in [`py`]; lint/i18n arrive in later tasks.
+//! The crate is native Rust throughout; lint and i18n consumers share the same
+//! typed model directly.
 
 pub mod badge;
 pub mod card;

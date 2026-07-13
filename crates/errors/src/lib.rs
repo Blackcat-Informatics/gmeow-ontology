@@ -5,17 +5,17 @@
 //!
 //! The data model and renderers are Rust-owned so every developer tool can
 //! project the same findings to terminal text, JSON, SARIF, and HTML without
-//! duplicating output logic. Python bindings are kept in [`py`]; the model and
+//! duplicating output logic. Python bindings are kept in the optional `py` module; the model and
 //! render modules are PyO3-free.
 //!
-//! [`grade`] holds the `Grade` bilattice and the single [`gate`](grade::gate)
+//! [`grade`] holds the `Grade` bilattice and the single [`gate`]
 //! policy morphism that decides fatality — two independent orderings (truth and
 //! knowledge) over one carrier, so severity merges by lattice join (order-free)
 //! and contradictory evidence surfaces as a Belnap glut rather than an
 //! overwrite.
 
 /// Render-test snapshot helper (U5): a thin wrapper over
-/// [`insta::assert_snapshot!`] so every renderer golden goes through one
+/// `insta::assert_snapshot!` so every renderer golden goes through one
 /// substrate-owned entry point. The wrapper forwards its tokens verbatim, so
 /// the auto-derived snapshot name and rendered body are byte-identical to a
 /// direct `insta::assert_snapshot!` call.
@@ -38,7 +38,7 @@ pub mod project;
 pub mod rdf;
 pub mod render;
 
-/// The crate result alias: an error defaults to [`Diag`](diag::Diag).
+/// The crate result alias: an error defaults to [`Diag`].
 pub type Result<T, E = diag::Diag> = std::result::Result<T, E>;
 
 pub use code::{Code, CodeRegistry, UnknownCode, intern_code, register_code, seed_codes};

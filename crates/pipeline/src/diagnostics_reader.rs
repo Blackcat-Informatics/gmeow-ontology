@@ -3,7 +3,8 @@
 
 //! The `graph/diagnostics` RDF reader — the projection's right-inverse (section).
 //!
-//! `gmeow_errors::render::to_gmeow_rdf_in_graph` EMITS a [`Report`]'s findings as
+//! `gmeow_errors::render::to_gmeow_rdf_in_graph` EMITS a
+//! [`gmeow_errors::Report`]'s findings as
 //! `gmeow:Finding` N-Quads into the `graph/diagnostics` named graph (subjects are
 //! the ledger's content-addressed fingerprint IRIs, edges are
 //! `gmeow:findingAntecedent`). This module is the READER that turns those quads

@@ -58,7 +58,7 @@ impl SupersetReport {
 /// reconstructed bytes — the pure projection of `gmeow.gts` back onto the flat
 /// consumer tree (PIPELINE_SPINE §6). No disk read, no comparison: this is the
 /// single reconstruction authority. The superset gate ([`check_superset`]) compares
-/// it against the committed tree; the fanout phase ([`crate::fanout`]) writes it.
+/// it against the committed tree; the fanout phase ([`crate::fanout()`]) writes it.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BundleProjection {
     /// Committed repo-relative path -> reconstructed bytes.

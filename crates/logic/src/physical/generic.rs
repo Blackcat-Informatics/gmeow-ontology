@@ -130,7 +130,7 @@ type RoundWinner = (Vec<TermValue>, String, Vec<GenericAntecedent>);
 
 /// One ground antecedent row consumed by a firing: `(relation, row-terms)`.
 ///
-/// The pre-reifier premise the [`crate::oracle::ForwardOracle`] seam re-exposes as a
+/// The pre-reifier premise the [`crate::oracle::NativeForwardOracle`] seam re-exposes as a
 /// [`crate::oracle::TypedRow`] so the materialize consumer can mint reifiers (and,
 /// crucially, HARD-FAIL on a non-ternary antecedent of a ternary head — a binary
 /// helper premise has no world-scoped reifier).

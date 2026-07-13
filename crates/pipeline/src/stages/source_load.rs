@@ -6,12 +6,12 @@
 //!
 //! This is the root of the build DAG. It loads `ontology/gmeow.ttl`, every
 //! `slices/<group>/<name>/module.ttl`, and every `imports/*.ttl` into a single
-//! native [`RdfDataset`](purrdf::RdfDataset) — the RDF 1.1 base graph the Python
-//! build assembled via `load_merged_graph(include_imports=…)`. The dataset is the
+//! native [`purrdf::RdfDataset`] — the RDF 1.1 base graph assembled directly from
+//! canonical sources. The dataset is the
 //! frozen carrier downstream stages union and project from, with the N-Quads byte
 //! lane published alongside so the pre-carrier byte readers parse it from memory
 //! instead of re-reading `gmeow.gts` from disk per generator (the bottleneck
-//! this removes). Oxigraph-free — every parse routes through the native
+//! this removes). Every parse routes through the native
 //! `purrdf::parse_dataset` codecs and merges via `RdfDataset::union`.
 
 use std::collections::BTreeMap;

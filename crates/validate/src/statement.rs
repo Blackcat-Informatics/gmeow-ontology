@@ -383,7 +383,7 @@ fn native_object_n3(obj: &NativeObject) -> String {
     }
 }
 
-/// Native twin of [`check_statement_invariants`]: run every statement invariant over
+/// Run every statement invariant over
 /// the emitted-OWL-unioned-with-ontology dataset, returning a `Finding` per violation.
 ///
 /// `ds` must hold the `emit_owl` output UNIONED with the ontology in the default
@@ -416,7 +416,7 @@ pub fn check_statement_invariants_dataset(ds: &RdfDataset) -> Vec<gmeow_errors::
         .collect()
 }
 
-/// Native twin of [`check_statement_lossless`].
+/// Check statement compilation for losslessness.
 ///
 /// `authored` is the OWL graph emitted from the statement DSL; `normalized` is the
 /// RDF 1.2 lead artifact normalized back to OWL normal form. Both are blank-free

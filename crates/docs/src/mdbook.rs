@@ -21,7 +21,7 @@
 //! set of externalized targets is observable.
 //!
 //! Determinism is structural: [`Site::files`] is a [`BTreeMap`], the page walk
-//! is the fixed [`book_pages`](crate::render::book_pages) order, and the rewrite
+//! is the fixed [`crate::render::book_pages`] order, and the rewrite
 //! is a pure function of the body + page directory + chapter set.
 
 use std::collections::{BTreeMap, BTreeSet};

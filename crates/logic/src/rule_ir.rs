@@ -362,7 +362,7 @@ pub(crate) struct DerivedRow {
     /// the pre-reifier `(subject, predicate, object)` antecedents whose reifiers
     /// are exactly [`source_quad_ids`](Self::source_quad_ids).
     ///
-    /// Carried so the [`crate::oracle::ForwardOracle`] seam can re-expose each
+    /// Carried so the [`crate::oracle::NativeForwardOracle`] seam can re-expose each
     /// antecedent as a decoded [`crate::oracle::TypedRow`] (the production
     /// provenance the reason/explain/materialize consumers require — they cannot
     /// invert a reifier hash back to its triple).  Empty for an echoed EDB row

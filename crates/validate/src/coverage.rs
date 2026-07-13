@@ -3,14 +3,13 @@
 
 //! Coverage graph-analysis over the vendored entity-slice fixtures.
 //!
-//! PyO3-free. Mirrors `gmeow_tools.coverage.analyze` EXACTLY: it loads the merged
-//! fixture graphs into one oxigraph [`oxigraph::store::Store`], collects every distinct class
+//! Native throughout: it loads the merged fixture graphs into one
+//! [`purrdf::RdfDataset`], collects every distinct class
 //! (`rdf:type` object) and predicate IRI, then classifies each as *covered* or a
 //! *gap*. The SSSOM-derived `aligned` set (every external IRI GMEOW links to) is
-//! computed in Python and passed in — the TSV parsing stays on the Python side of
-//! the seam.
+//! computed by the native mapping evaluator and passed in.
 //!
-//! The classification rule is byte-for-byte the Python one:
+//! The classification rule is deterministic:
 //!
 //! * **ignored** — the IRI sits in the RDF / RDFS / OWL / XSD plumbing namespaces;
 //!   it is neither covered nor a gap.
@@ -18,9 +17,8 @@
 //!   GMEOW reuses wholesale (SKOS), or in the `aligned` SSSOM set.
 //! * **gap** — used in the slice but not covered.
 //!
-//! Classes additionally require the IRI to start with `http` (matching the Python
-//! `iri.startswith("http")` guard); predicates do not (a predicate is always an
-//! IRI, so the guard would be a no-op there and Python omits it).
+//! Classes additionally require the IRI to start with `http`; predicates do not
+//! because a predicate is already necessarily an IRI.
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};

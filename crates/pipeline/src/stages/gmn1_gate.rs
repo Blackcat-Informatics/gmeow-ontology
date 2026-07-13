@@ -246,7 +246,7 @@ pub struct Gmn1ConstructCoverageReport {
     pub unexercised: Vec<Gmn1ConstructCategory>,
     /// How many quads the SAME classification pass found uncovered — cross-checked
     /// against [`check_gmn1_roundtrip`]'s own failures by
-    /// [`tests::construct_coverage_agrees_with_the_roundtrip_gate_on_uncovered_count`].
+    /// `construct_coverage_agrees_with_the_roundtrip_gate_on_uncovered_count`.
     pub uncovered_quad_count: usize,
 }
 
@@ -305,7 +305,7 @@ impl Gmn1ShippedReport {
 ///
 /// The shipped `.gmn` text carries `r_<hash>` by-reference tokens whose reference table is the
 /// codec's out-of-band resolution store (it does not live inside the `.gmn` bytes), so the
-/// lint reconstructs each source's full [`Gmn1Document`] EXACTLY the way the projection stage
+/// lint reconstructs each source's full [`gmeow_lang_bridge::Gmn1Document`] EXACTLY the way the projection stage
 /// does (parse the lang-model source → [`Gmn0Model`] → [`gmn1_write`]), ASSERTS the shipped
 /// bytes equal that document's text (so a stale artifact is a hard fail, tying the read to the
 /// committed bytes), then reads the document back. A shipped projection that fails to read is a

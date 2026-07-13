@@ -9,7 +9,7 @@
 //!
 //! - `program` — canonical typed [`gmeow_logic_compile::ir::LogicProgram`] input for
 //!   [`crate::cost::run_native_forward`].
-//! - `edb` — the world-scoped [`RdfDataset`] EDB of `predicate(subject, object, world)`
+//! - `edb` — the world-scoped [`purrdf::RdfDataset`] EDB of `predicate(subject, object, world)`
 //!   facts, built the SAME way `benches/graph.rs` and `benches/foundation.rs`
 //!   construct their synthetic inputs.
 //! - `expected_rows` — the **analytically-known** size of the derived relation(s),
@@ -39,7 +39,7 @@ const BASE: &str = "https://example.org/bench/synth";
 /// One synthetic relational-core workload: canonical rules, its world-scoped EDB,
 /// and the analytically-known count of derived facts.
 ///
-/// Not `Clone` — [`RdfDataset`] owns its frozen tables and is intentionally move-only;
+/// Not `Clone` — [`purrdf::RdfDataset`] owns its frozen tables and is intentionally move-only;
 /// a consumer that needs the workload twice regenerates it (the generators are pure).
 #[derive(Debug)]
 pub struct SynthWorkload {
@@ -88,7 +88,7 @@ fn node(i: usize) -> String {
 }
 
 /// Freeze a set of `(subject, predicate, object)` triples into a world-scoped
-/// [`RdfDataset`] EDB. The triples are pushed in the given order and the frozen
+/// [`purrdf::RdfDataset`] EDB. The triples are pushed in the given order and the frozen
 /// dataset's internal order is deterministic, so the EDB is a pure function of the
 /// triple sequence.
 fn edb_from_triples(triples: &[(String, &str, String)]) -> RdfDataset {

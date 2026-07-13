@@ -31,7 +31,7 @@
 //! `source_quad_ids = [reifier(move(p1,p2))]`.
 //!
 //! [`IncrementalWellFoundedSession`] is the production multi-shot boundary used by
-//! [`crate::materialize::NonmonotoneMaterializationSession`]. The low-level scratch
+//! the production materialization router. The low-level scratch
 //! entry points remain crate-internal comparators for parity tests and benchmarks,
 //! hence the crate-internal `dead_code` allowance.
 #![allow(dead_code)]

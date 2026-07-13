@@ -38,7 +38,7 @@
 //! (`gmeow:accountsForParameter` the dropped capability) per lost one — and the same
 //! capability slugs are folded into the projection loss ledger by
 //! [`fold_docs_format_loss`]. The dropped sets are monotone `site ⊆ mdbook ⊆ pdf ⊆
-//! snippets`; the A3 gate ([`gmeow_validate::docs_loss_lattice`]) proves totality +
+//! snippets`; the A3 gate ([`crate::docs_loss_lattice`]) proves totality +
 //! monotonicity over the same table.
 //!
 //! ## Blob self-description (F4)
