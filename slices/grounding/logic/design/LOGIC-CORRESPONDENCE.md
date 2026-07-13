@@ -300,7 +300,7 @@ function into `⟨ legal output ⊕ flagged residue ⟩`; the loss ledger is the
 
 Three commitments are recorded in [`LOGIC-IR.md`](LOGIC-IR.md) and are load-bearing for this calculus:
 
-1. **Lowering is legalization** (`logic:ConversionTarget`) — partial conversion leaves an illegal
+1. **Lowering is legalization** (`logic:ProjectionTarget`) — partial conversion leaves an illegal
    construct in place, flagged: the "unsupported carried and flagged, never dropped" rule.
 2. **Every annotation is typed `logic:loadBearing` or droppable** — a display hint is droppable; the
    in-band complement and the axes are load-bearing (`put` needs them for `u∘d = id`). *Without this

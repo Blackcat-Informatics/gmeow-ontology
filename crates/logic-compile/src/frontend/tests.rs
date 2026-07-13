@@ -81,6 +81,13 @@ fn reified_trivially_horn_formula_routes_to_axioms_not_panics() {
         "the reified ground atom must be routed to LogicProgram.axioms, got {:?}",
         prog.axioms
     );
+    assert!(
+        !prog.axioms.iter().any(|a| {
+            a.subject.ends_with("/phi") && a.predicate == RDF_TYPE && a.obj == logic_iri("Formula")
+        }),
+        "logic:Formula typing is owned by the formula extractor and must not be duplicated as a generic axiom: {:?}",
+        prog.axioms
+    );
 }
 
 // ── Minimal graph + reasoning contracts ───────────────────────────────
@@ -880,6 +887,115 @@ fn vacuous_quantifier_is_malformed() {
     assert!(
         diags.iter().any(|d| d.code == "MALFORMED_FORMULA"),
         "expected a MALFORMED_FORMULA diagnostic for a vacuous quantifier: {diags:?}"
+    );
+}
+
+fn assert_malformed_formula_error(ttl: &str, expected_detail: &str) {
+    let (prog, diags) = parse(ttl);
+    assert!(
+        prog.formulas.is_empty(),
+        "a malformed formula must never enter the IR: {:?}",
+        prog.formulas
+    );
+    assert!(
+        diags.iter().any(|d| {
+            d.code == "MALFORMED_FORMULA"
+                && d.severity == Severity::Error
+                && d.message.contains(expected_detail)
+        }),
+        "expected an error-grade MALFORMED_FORMULA containing {expected_detail:?}: {diags:?}"
+    );
+}
+
+#[test]
+fn formula_constructor_is_exclusive_and_cardinalities_are_strict() {
+    let cases = [
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ; logic:not ex:child ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .
+             ex:child a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "exactly one constructor family",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:and ex:child .
+             ex:child a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "at least two operands",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:iff ex:child .
+             ex:child a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "exactly two operands",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:antecedent ex:child .
+             ex:child a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "exactly one logic:consequent",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:not ex:left, ex:right .
+             ex:left a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .
+             ex:right a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "exactly one logic:not",
+        ),
+    ];
+
+    for (ttl, expected_detail) in cases {
+        assert_malformed_formula_error(ttl, expected_detail);
+    }
+}
+
+#[test]
+fn term_carrier_values_and_indices_are_total_and_unambiguous() {
+    let cases = [
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ],
+                            [ logic:termIndex 0 ; logic:termIri ex:a ] .",
+            "unique and contiguous",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ],
+                            [ logic:termIndex 2 ; logic:termIri ex:a ] .",
+            "unique and contiguous",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ;
+                              logic:termIri ex:a ] .",
+            "exactly one term-value property",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ;
+                              logic:termLiteralDatatype xsd:string ] .",
+            "only with logic:termLiteral",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termLiteral \"a\" ;
+                              logic:termLiteralDatatype \"xsd:string\" ] .",
+            "IRI-valued logic:termLiteralDatatype",
+        ),
+    ];
+
+    for (ttl, expected_detail) in cases {
+        assert_malformed_formula_error(ttl, expected_detail);
+    }
+}
+
+#[test]
+fn recursive_formula_cycle_is_an_error_even_without_a_top_level_root() {
+    assert_malformed_formula_error(
+        "ex:left a logic:Formula ; logic:not ex:right .
+         ex:right a logic:Formula ; logic:not ex:left .",
+        "recursive constructor cycle",
     );
 }
 

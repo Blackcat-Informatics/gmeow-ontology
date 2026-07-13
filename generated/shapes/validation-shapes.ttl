@@ -4665,6 +4665,10 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/actionResource> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/actionResource> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/logic/antecedent-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/antecedent> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/antecedent> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/logic/candidateCategory-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateCategory> ;
     sh:class <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
@@ -4768,13 +4772,25 @@
     sh:class <https://blackcatinformatics.ca/logic/Conjecture> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/conjectureStandpoint> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/logic/consequent-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/consequent> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/consequent> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/logic/effect-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/effect> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/effect> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/logic/exists-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/exists> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/exists> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/logic/feasibilityStatus-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/feasibilityStatus> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/feasibilityStatus> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/forall-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/forall> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/forall> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/logic/freshnessHorizon-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/freshnessHorizon> ;
@@ -4803,6 +4819,10 @@
 <https://blackcatinformatics.ca/logic/lifecycleStatus-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/lifecycleStatus> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/lifecycleStatus> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/not-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/not> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/not> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/logic/objectiveValue-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/objectiveValue> ;
@@ -4837,6 +4857,10 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/planSuccessMode> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/planSuccessMode> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/logic/relation-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/relation> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/relation> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/logic/satisfactionDegree-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/satisfactionDegree> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/satisfactionDegree> ; sh:maxCount 1 ] .
@@ -4844,6 +4868,30 @@
 <https://blackcatinformatics.ca/logic/satisfactionStatus-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/satisfactionStatus> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/satisfactionStatus> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/termIndex-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/termIndex> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/termIndex> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/termIri-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/termIri> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/termIri> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/termLiteral-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/termLiteral> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/termLiteral> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/termLiteralDatatype-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/termLiteralDatatype> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/termLiteralDatatype> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/termSequenceMarker-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/termSequenceMarker> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/termSequenceMarker> ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/logic/termVariable-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/termVariable> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/termVariable> ; sh:maxCount 1 ] .
 
 <https://blackcatinformatics.ca/logic/utility-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/logic/utility> ;

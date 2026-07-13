@@ -1,0 +1,4 @@
+:- prefix(ex, 'https://example.org/bench/').
+ex:ancestor(X, Y) :- ex:parent(X, Y).
+ex:ancestor(X, Y) :- ex:parent(X, Z), ex:ancestor(Z, Y).
+?- ex:ancestor(ex:a, Y).
