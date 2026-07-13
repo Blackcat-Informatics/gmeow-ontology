@@ -165,13 +165,17 @@ carrier separate from large, easily-derived presentation payloads (Principle 4).
 ```bash
 make reason          # Native Docker-free EL/DL reasoning authority
 make verify          # Native reasoned-graph negative tests
-make reason-verify   # Native reasoning + verify + on-gate purrdf-entail cross-check oracle, one shared closure
+make reason-gate     # One fresh native closure shared by verify + the purrdf-entail oracle
+make reason-verify   # Focused native reasoning + reasoned-graph verify
+make reason-crosscheck # Focused native subsumption cross-check against purrdf-entail
 ```
 
 The reasoning cross-check is native and Docker-free: `gmeow-dev reason-crosscheck`
 runs the in-process `purrdf::entail` engine (OWL-RL subsumption + OWL-Direct-tableau
-consistency, 70/70 W3C-entailment conformance-tested) on-gate as part of
-`make reason-verify` — there is no Java/Docker oracle lane to run separately.
+consistency, 70/70 W3C-entailment conformance-tested). The aggregate
+`make reason-gate` shares one complete native result between verification and that
+oracle comparison; the focused commands remain independently runnable. There is no
+Java/Docker oracle lane to run separately.
 
 ### Testing & Verification
 
