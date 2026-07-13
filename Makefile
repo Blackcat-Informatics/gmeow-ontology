@@ -62,20 +62,19 @@ MUTANTS_ARGS ?=
 RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
 RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
 
-CHECK_TARGETS := lint rust-gate gts-frame-profile-gate validate check-generated constitution-check \
-	crate-check audit wikidata coverage acceptance reason-verify reason-crosscheck \
-	mappings lint-alignment i18n-lint doc-lint coherence-gate-teeth slice-quality-gate \
-	bench-golden-gate bench-soak
+CHECK_TARGETS := check-lint rust-gate gts-frame-profile-gate validate check-generated constitution-check \
+	crate-check audit wikidata coverage acceptance reason-gate lint-alignment i18n-lint \
+	doc-lint coherence-gate-teeth slice-quality-gate bench-soak
 
 .PHONY: help \
-	install fmt lint lint-issue-refs i18n-lint \
-	validate validate-gts gts-frame-profile-gate reason verify reason-verify reason-crosscheck rust-build rust-test rust-docs check \
+	install fmt lint check-lint lint-issue-refs i18n-lint \
+	validate validate-gts gts-frame-profile-gate reason verify reason-verify reason-crosscheck reason-gate rust-build rust-test rust-docs check \
 	regenerate fanout check-generated commit docs normalize build project release release-sign-gts full-release verify-release release-publish clean \
 	mappings wikidata coverage acceptance crossref audit \
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
-	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
+	fuzz-smoke bench bench-entail-oracle-alloc bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
 	maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
@@ -103,8 +102,15 @@ fmt: ## Rewrite Rust formatting with cargo fmt.
 lint-issue-refs: ## Reject issue/PR number references in Rust comments and Markdown docs.
 	./scripts/lint-issue-refs.sh
 
-lint: lint-issue-refs ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets).
+lint: ## Run issue-ref lint and the full pre-commit hygiene suite (Rust fmt/clippy, spelling, YAML, actions, secrets).
 	pre-commit run --all-files --show-diff-on-failure
+
+# `rust-gate` owns the aggregate gate's one full clippy invocation. Keep the
+# standalone `lint` target complete, but skip only that duplicate hook when `check`
+# composes the same pre-commit suite with `rust-gate`. `lint-issue-refs` remains an
+# always-run hook and therefore still executes exactly once in both entry points.
+check-lint:
+	SKIP=cargo-clippy pre-commit run --all-files --show-diff-on-failure
 
 validate: ## Validate syntax, term annotations, SHACL, and DSL SHACL.
 	$(GMEOW_DEV) validate
@@ -123,6 +129,9 @@ reason-verify: ## Run native reasoning + reasoned-graph verify with one closure.
 
 reason-crosscheck: ## Cross-check native subsumptions against the purrdf-entail OWL-RL oracle (native ⊇ oracle).
 	$(GMEOW_DEV) reason-crosscheck
+
+reason-gate: ## Run reasoned-graph verify and the entail oracle from one complete native closure.
+	$(GMEOW_DEV) reason-gate
 
 rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
 
@@ -327,7 +336,7 @@ rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-pur
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
 
-coherence-gate-teeth: rust-build ## Run the whole-ontology coherence + relator-mediation gate teeth proofs on-gate (budget-exempt, ~570s).
+coherence-gate-teeth: rust-build reason-gate ## Run the whole-ontology poisoned-witness + relator-mediation gate teeth proofs (budget-exempt).
 	cargo nextest run $(RUST_TEST_WORKSPACE_ARGS) --ignore-default-filter -E 'package(gmeow-logic) & test(/whole_bundle_.*gate/)'
 
 clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
@@ -449,6 +458,9 @@ fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format fron
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
 	cargo bench -p gmeow-logic -p gmeow-validate
+
+bench-entail-oracle-alloc: ## Run the focused entailment-oracle allocation counter (report-only).
+	cargo bench -p gmeow-logic --bench entail_oracle_alloc
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare

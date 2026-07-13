@@ -193,7 +193,9 @@ Performance changes must not change output order accidentally.
 The existing profile layout is part of the optimization surface:
 
 - `profile.dev` and `profile.test` keep debug assertions and overflow checks on,
-  disable debug symbols, strip residual symbols, and use `opt-level = 1`.
+  disable debug symbols, strip residual symbols, and use `opt-level = 3` for both
+  first-party crates and dependencies. Dependency runtime checks remain off; workspace
+  crates retain them. This is the measured checks-on O3 contract, not release mode.
 - Release builds use thin LTO and first-party `codegen-units = 1`.
 - Bench builds intentionally drop thin LTO to keep iteration and memory costs bounded.
 
@@ -208,8 +210,9 @@ gate:
 
 - Iterator/API shape only: `cargo test -p <crate> ...`, then `make rust-test`.
 - Reasoning behavior: focused `gmeow-logic` tests and relevant conformance tests.
-  Use `make reason-verify` when both native reports are needed; use `make reason`
-  or `make verify` only to isolate one side.
+  Use `make reason-gate` when verification and the entailment-oracle comparison are
+  both needed from one result; use `make reason-verify`, `make reason-crosscheck`,
+  `make reason`, or `make verify` to isolate one side.
 - Validation behavior: focused `gmeow-validate` / `gmeow-shacl` tests, then
   `make validate`.
 - Generated-output behavior: `make regenerate` followed by `make check-generated`.

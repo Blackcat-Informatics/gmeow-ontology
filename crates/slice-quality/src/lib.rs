@@ -30,6 +30,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use purrdf::RdfDataset;
+use rayon::prelude::*;
 
 pub use model::{
     Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, Rubric, SliceAssessment,
@@ -45,6 +46,18 @@ pub struct AssessmentArtifacts {
     pub nquads: String,
     /// Aggregate diagnostics report containing every scored slice's grades and advisories.
     pub report: gmeow_errors::Report,
+    /// Per-slice wall timings in deterministic slice-directory order. Observational
+    /// telemetry only; never serialized into the assessment graph or diagnostics.
+    pub slice_timings: Vec<SliceScoreTiming>,
+}
+
+/// Observed wall time for one independently scored slice.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SliceScoreTiming {
+    /// Repo-relative slice directory.
+    pub slice: String,
+    /// Wall time spent scoring that slice, including its reasoner probes.
+    pub elapsed_ms: u128,
 }
 
 /// Parse one or more Turtle files into a single merged dataset.
@@ -197,8 +210,11 @@ pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<Assessment
 
     let mut nquads = String::new();
     let mut aggregate = gmeow_errors::Report::new("slice-quality");
-    for dir in dirs {
-        let report = report::score_slice_with_rubric(&dir, rubric.clone())?;
+    let scored = score_slices_with_rubric_timed(repo_root, &dirs, &rubric);
+    let mut slice_timings = Vec::with_capacity(scored.len());
+    for (report, timing) in scored {
+        slice_timings.push(timing);
+        let report = report?;
         nquads.push_str(&report.to_gmeow_rdf());
         let diagnostics = report.to_report();
         for finding in diagnostics.findings {
@@ -211,7 +227,62 @@ pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<Assessment
     Ok(AssessmentArtifacts {
         nquads,
         report: aggregate.normalized(),
+        slice_timings,
     })
+}
+
+/// Score a sorted slice set concurrently and return one result per input directory
+/// in that exact order.
+///
+/// Each slice is an independent immutable unit: its dataset, reasoning probes, and
+/// advisories share only the loaded rubric and the read-only documentation facts.
+/// Rayon therefore evaluates slices independently, while indexed collection and the
+/// caller's sequential fold preserve the same first-error choice, assessment order,
+/// diagnostics order, and RDF bytes as the serial implementation. A zero/one-slice
+/// input stays on the direct path to avoid scheduler overhead on fixture-scale calls.
+///
+/// The repo-wide documentation model is primed before workers start. This prevents
+/// every worker from parking behind the first `DocMaturity` cache fill and lets the
+/// model's immutable per-slice facts become an ordinary shared read during scoring.
+#[must_use]
+pub fn score_slices_with_rubric(
+    repo_root: &Path,
+    dirs: &[PathBuf],
+    rubric: &Rubric,
+) -> Vec<gmeow_errors::Result<report::SliceReport>> {
+    score_slices_with_rubric_timed(repo_root, dirs, rubric)
+        .into_iter()
+        .map(|(result, _timing)| result)
+        .collect()
+}
+
+fn score_slices_with_rubric_timed(
+    repo_root: &Path,
+    dirs: &[PathBuf],
+    rubric: &Rubric,
+) -> Vec<(gmeow_errors::Result<report::SliceReport>, SliceScoreTiming)> {
+    doc_maturity::prime_repo_facts(repo_root);
+    let score = |dir: &PathBuf| {
+        let started = std::time::Instant::now();
+        let result = report::score_slice_with_rubric(dir, rubric.clone());
+        let slice = dir
+            .strip_prefix(repo_root)
+            .unwrap_or(dir)
+            .to_string_lossy()
+            .replace('\\', "/");
+        (
+            result,
+            SliceScoreTiming {
+                slice,
+                elapsed_ms: started.elapsed().as_millis(),
+            },
+        )
+    };
+    if dirs.len() <= 1 {
+        dirs.iter().map(score).collect()
+    } else {
+        dirs.par_iter().map(score).collect()
+    }
 }
 
 /// Score every discovered slice against the repo rubric and project the combined
@@ -226,4 +297,43 @@ pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<Assessment
 /// slice cannot be scored.
 pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
     Ok(assessment_artifacts(repo_root)?.nquads)
+}
+
+#[cfg(test)]
+mod parallel_tests {
+    use rayon::prelude::*;
+
+    #[test]
+    fn indexed_parallel_collection_preserves_input_and_error_order() {
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .expect("four-worker pool");
+        let input: Vec<usize> = (0..128).collect();
+        for _ in 0..8 {
+            let output: Vec<Result<usize, usize>> = pool.install(|| {
+                input
+                    .par_iter()
+                    .map(|value| {
+                        if value % 17 == 0 {
+                            Err(*value)
+                        } else {
+                            Ok(value * value)
+                        }
+                    })
+                    .collect()
+            });
+            let serial: Vec<Result<usize, usize>> = input
+                .iter()
+                .map(|value| {
+                    if value % 17 == 0 {
+                        Err(*value)
+                    } else {
+                        Ok(value * value)
+                    }
+                })
+                .collect();
+            assert_eq!(output, serial);
+        }
+    }
 }

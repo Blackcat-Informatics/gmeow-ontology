@@ -100,6 +100,9 @@ insta = { version = "1.48", features = ["json"] }
 # plotters/rayon defaults are off so `make bench` builds fast; the cargo-bench
 # stdout summary is all the baseline needs.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+# Harness-only allocator accounting for the OWL-RL oracle scan. This dependency
+# installs no allocator itself; the dedicated bench binary opts in explicitly.
+gmeow-cost-measure = { path = "../cost-measure" }
 # iai-callgrind: the DETERMINISTIC instruction-count backend for the engine bench
 # (benches/engines_iai.rs). It counts retired instructions under Valgrind Callgrind
 # — a machine-independent, run-to-run stable metric — as external corroboration for
@@ -135,4 +138,8 @@ harness = false
 
 [[bench]]
 name = "engines_iai"
+harness = false
+
+[[bench]]
+name = "entail_oracle_alloc"
 harness = false

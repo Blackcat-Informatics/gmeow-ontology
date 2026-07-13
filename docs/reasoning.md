@@ -46,7 +46,7 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 | Lane | Tool | World | Owns | Where |
 |---|---|---|---|---|
 | **Native EL/DL gate** | `gmeow_logic` | open | Docker-free profile, consistency, and entailment authority | `make reason` |
-| **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane's **subsumption** closure (native ⊇ oracle); consistency is decided by the native lane, off this gate | `gmeow-dev reason-crosscheck`, `make reason-crosscheck` |
+| **Entailment cross-check oracle** | `purrdf::entail` (in-process OWL-RL + OWL-Direct tableau) | open | on-gate cross-check of the native lane's **subsumption** closure (native ⊇ oracle); consistency is decided by the native lane, off this gate | `make reason-gate`; focused: `make reason-crosscheck` |
 | **Entailment tests** | native OWL 2 RL chase (`gmeow_logic::reason::rl_closure`) | open | positive derivations — property chains, transitivity, sub-property closure | `crates/logic/tests/ontology_entailments.rs` |
 | **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
@@ -56,12 +56,14 @@ in-process, Docker-free cross-check oracle, run on-gate.
 
 ### Lane 1–2 — Native reasoner plus the entailment cross-check oracle
 
-`make reason` runs the native Docker-free EL/DL authority. `gmeow-dev reason-crosscheck` (its own
-`make reason-crosscheck` gate) runs the **`purrdf::entail`** engine — an in-process OWL-RL +
+`make reason` runs the native Docker-free EL/DL authority. `make reason-gate` computes one
+complete native result, verifies that value, and gives the same value to the
+**`purrdf::entail`** engine — an in-process OWL-RL +
 OWL-Direct-tableau reasoner, itself 70/70 W3C-entailment conformance-tested — as a Docker-free
 oracle that cross-checks the native lane's **subsumption** closure (native ⊇ oracle). Consistency
-is not part of this on-gate cross-check: the native reasoner decides consistency, checked
-separately by `make reason-verify` / native `is_consistent()`. A contradiction — e.g. an
+is not part of the oracle comparison: the native reasoner decides consistency through
+`is_consistent()`. `make reason-verify` and `make reason-crosscheck` retain the focused halves
+for diagnosis without making the aggregate gate chase the bundle twice. A contradiction — e.g. an
 individual placed in two disjoint identity axes, or two disjoint Kinds (Person ⊓ Organization) —
 makes the native reasoner report an inconsistency. These are the *open-world* gates:
 unsatisfiability and inconsistency, nothing else.
@@ -118,7 +120,7 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
 
   This lane is now on the required path (the `ontology` CI job) and in `make check`, with no
   Docker. The independent cross-check of the native verdicts is likewise Docker-free: the
-  in-process `purrdf::entail` oracle (`gmeow-dev reason-crosscheck`) confirms the native
+  in-process `purrdf::entail` oracle (`gmeow-dev reason-gate`) confirms the native
   **subsumption** closure on-gate (consistency stays with the native reasoner, off this gate).
 
 ## The gUFO grounding reaches outward (foundational bridging)
@@ -144,7 +146,9 @@ enforce that contract on data; consumers MUST honour `false` and never surface t
 ```bash
 make validate   # Rust SHACL + syntax + term-annotation lint (always-on)
 make reason     # native Docker-free EL/DL reasoning authority
-make reason-verify  # native reason + verify + on-gate purrdf-entail cross-check oracle
+make reason-gate    # one native closure shared by verify + purrdf-entail cross-check
+make reason-verify  # focused native reason + verify
+make reason-crosscheck # focused native-vs-oracle subsumption comparison
 make verify     # reasoned-graph SPARQL QC — native EL/DL closure (Java/Docker-free)
 make rust-test  # native OWL 2 RL entailment tests (crates/logic) + conformance tests
 uv run pytest   # SHACL data-shape tests + native verify tests

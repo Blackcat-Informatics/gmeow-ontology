@@ -143,7 +143,7 @@ make slicetest      # the native slice-test harness in isolation
 make rust-test      # the whole Rust workspace (includes the harness)
 make test           # the pytest suite
 make check          # the full local gate (lint, clippy, rust-test, validate,
-                    # reasoning, pytest, compliance report) — Docker/Java-free
+                    # one-closure reasoning gate, compliance report) — Docker/Java-free
 ```
 
 The harness automatically discovers the three fixed spec filenames —
