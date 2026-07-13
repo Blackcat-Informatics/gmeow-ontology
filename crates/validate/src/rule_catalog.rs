@@ -129,6 +129,10 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Severity::Error,
         Enforcement::Shacl,
     ),
+    // A conforming run's informational success record — NOT a violation, so it
+    // must not inherit the `shacl.` family's "repair the data" fix prose (see
+    // REMEDIATION_ABSENT).
+    (codes::SHACL_CLEAN, Severity::Info, Enforcement::Shacl),
     // ── Bundle trust / signature ──
     (
         codes::SIGNATURE_VERIFY,
@@ -584,6 +588,10 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
 pub const REMEDIATION_ABSENT: &[&str] = &[
     // Info: reports the resolved signing key — nothing to fix.
     codes::SIGNATURE_KEY,
+    // Info: a conforming SHACL run's success record — there is no violation to
+    // repair, so it must not receive the `shacl.` family's generic
+    // "repair the data" remediation.
+    codes::SHACL_CLEAN,
     // Note: a consistent, fully-covered verdict — nothing to fix.
     codes::VALIDATE_DEEP_CONSISTENT,
     // Note: the Tier-2 deep pass was unavailable (graceful degradation) — no
