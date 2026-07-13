@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:UnframedEffectSizeShape (Rule I6): a math:EffectSize
+# identifying all three of its frame — the comparison it measures through
+# math:effectSizeContrast (a math:StatisticalContrast), the scale it is expressed on
+# through math:effectSizeScale (a math:MeasurementScale), and its reference frame through
+# gmeow:hasReferenceFrame (the house frame predicate). Every arm's sh:minCount 1 is
+# satisfied, so it MUST raise NO failure class.
+# Positive counterpart of counter-examples/effect-size-unframed.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecEffectSizeFramed).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:cohensD a math:EffectSize ;
+    math:effectSizeContrast ex:treatmentContrast ;
+    math:effectSizeScale ex:standardDeviationScale ;
+    gmeow:hasReferenceFrame ex:effectFrame .
+
+# The SAME shared math:StatisticalContrast an estimand would target through
+# math:targetContrast — one modeled comparison, not a near-synonym.
+ex:treatmentContrast a math:StatisticalContrast .
+
+ex:standardDeviationScale a math:MeasurementScale .
+
+ex:effectFrame a gmeow:ReferenceFrame .

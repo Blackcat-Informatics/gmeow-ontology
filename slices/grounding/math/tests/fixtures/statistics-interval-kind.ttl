@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the interval-estimate competency question "interval kind and its level or
+# mass". Two well-formed interval estimates from the two inference paradigms: a frequentist
+# math:ConfidenceInterval naming its two bounds (math:hasIntervalBound) and its coverage
+# through math:confidenceLevel — a property of the sampling PROCEDURE — and a Bayesian
+# math:CredibleInterval naming its posterior context (math:hasPosterior), its two bounds, and
+# its posterior mass through math:credibleMass — a POSTERIOR probability. Each quantity is a
+# FRAMED math:ProbabilityValue, exact 95/100 in [0, 1] per the exact-rational discipline, so
+# the query returns one row per interval binding its own level/mass and never collapsing the
+# two edges. Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+# A frequentist confidence interval: bounds plus a procedure-coverage level.
+ex:coverageInterval a math:ConfidenceInterval ;
+    math:hasIntervalBound ex:coverageLower , ex:coverageUpper ;
+    math:confidenceLevel ex:coverageLevel .
+
+ex:coverageLower a math:MathematicalObject .
+ex:coverageUpper a math:MathematicalObject .
+
+# The coverage: a FRAMED probability value, exact 95/100 = 0.95 in [0, 1].
+ex:coverageLevel a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+
+ex:samplingFrame a gmeow:ReferenceFrame .
+
+# A Bayesian credible interval: posterior context, bounds, and a posterior mass.
+ex:posteriorInterval a math:CredibleInterval ;
+    math:hasPosterior ex:credPosterior ;
+    math:hasIntervalBound ex:posteriorLower , ex:posteriorUpper ;
+    math:credibleMass ex:posteriorMass .
+
+ex:posteriorLower a math:MathematicalObject .
+ex:posteriorUpper a math:MathematicalObject .
+
+# The posterior the interval summarizes: family named, no supplied parameters.
+ex:credPosterior a math:PosteriorDistribution ;
+    math:distributionFamily ex:betaFamily .
+
+ex:betaFamily a math:DistributionFamily .
+
+# The posterior mass: a FRAMED probability value, exact 95/100 = 0.95 in [0, 1].
+ex:posteriorMass a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:posteriorFrame .
+
+ex:posteriorFrame a gmeow:ReferenceFrame .

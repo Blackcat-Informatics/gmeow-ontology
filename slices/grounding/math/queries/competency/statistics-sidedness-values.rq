@@ -1,0 +1,15 @@
+# Competency question: "What are the lawful sidedness values a p-value may declare?"
+# Exercises the enumerated math:Sidedness code list: the tail/side of a p-value is fixed by
+# one of a closed set of individuals (never a free literal), each asserted a math:Sidedness in
+# module.ttl. The reasoning-free query enumerates the members of the code list and binds the
+# code-list class itself as a constant, so the answer names every lawful value AND the
+# math:Sidedness type that closes them. Over the merged ontology the answer is exactly the six
+# individuals {math:oneSidedAlternative, math:twoSidedAlternative, math:greaterAlternative,
+# math:lessAlternative, math:exactTail, math:midPTail}, each of kind math:Sidedness.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?sidedness ?class WHERE {
+    ?sidedness a math:Sidedness .
+    BIND(math:Sidedness AS ?class)
+}
+ORDER BY ?sidedness

@@ -1,0 +1,21 @@
+# Competency question: "Which properties frame a hypothesis test, an effect size, an interval,
+# a prediction, a diagnostic, a fitted model, and an inference run?" Exercises the remaining
+# result/evaluation object properties across the paradigm-result and model-evaluation layers:
+# a math:HypothesisTest weighs an alternative (math:alternativeHypothesis) and reports an
+# effect size (math:effectSize); a math:EffectSize names its contrast (math:effectSizeContrast)
+# and standardization scale (math:effectSizeScale); an interval names its bounds
+# (math:hasIntervalBound) and coverage/mass (math:confidenceLevel / math:credibleMass); a
+# math:Prediction names its target (math:predictionTarget); a math:ModelDiagnostic anchors to
+# the fit (math:diagnosticFor) via a method (math:diagnosticMethod); a fitted model posits an
+# assumption (math:modelAssumption); and a math:InferenceRun follows a plan
+# (math:usedAnalysisPlan). The query projects each PREDICATE, scoped to the framed subjects and
+# the math: namespace. Over the fixture the answer is exactly the thirteen framing edges.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <http://example.org/math/>
+
+SELECT ?subject ?prop ?object WHERE {
+    VALUES ?subject { ex:test ex:es ex:ci ex:cri ex:pred ex:diag ex:fit ex:run }
+    ?subject ?prop ?object .
+    FILTER(STRSTARTS(STR(?prop), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?subject ?prop ?object

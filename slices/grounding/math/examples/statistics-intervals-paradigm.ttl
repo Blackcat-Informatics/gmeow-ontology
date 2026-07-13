@@ -1,0 +1,131 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked scene — INTERVALS, REGIONS, AND THE FREQUENTIST/BAYESIAN PARADIGM PARITY,
+# dogfooding the rest of the "Inference and results" charter section. Uncertainty is
+# not one scalar kind: the paradigm-EXCLUSIVE interval kinds sit under their families
+# and the paradigm-NEUTRAL ones sit under neither.
+#
+#   * FREQUENTIST (coverage under a sampling procedure): a math:ConfidenceInterval
+#     names two math:hasIntervalBound endpoints AND a math:confidenceLevel (so
+#     math:IncompleteConfidenceIntervalShape stays silent), and is NEVER also a
+#     math:CredibleInterval (so math:IntervalKindConflationShape stays silent); its
+#     multivariate sibling is a math:ConfidenceRegion.
+#   * BAYESIAN (posterior mass): a math:CredibleInterval names its math:hasPosterior
+#     context AND its math:credibleMass (so math:IncompleteCredibleIntervalShape stays
+#     silent); its sibling is a math:CredibleRegion, and the evidence kinds are a
+#     math:BayesFactor and a math:PosteriorProbability. A credible interval is a
+#     math:BayesianResult (its family, a true redundant type).
+#   * PARADIGM-NEUTRAL: a math:PredictionInterval bounds a FUTURE observation
+#     (math:predictionTarget), and a math:ToleranceInterval covers a PROPORTION of the
+#     population — both computed in either paradigm, so left under neither family.
+#
+# The confidence level, the credible mass, and the coverage proportion are each a
+# FRAMED math:ProbabilityValue carried as an exact math:RationalValue in [0, 1].
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statistics/intervals/> .
+
+# --- Frequentist: the confidence interval and its multivariate region --------- #
+
+# Coverage is a property of the PROCEDURE: two bounds + a level, and never a credible
+# interval, so neither the completeness nor the conflation gate fires.
+ex:meanCI a math:ConfidenceInterval ;
+    rdfs:label "95% CI for the mean treatment effect, [0.04, 0.18]"@x-gmeow-english ;
+    math:hasIntervalBound ex:ciLower , ex:ciUpper ;
+    math:confidenceLevel ex:level95 .
+ex:ciLower a math:MathematicalObject ; rdfs:label "Lower endpoint 0.04"@x-gmeow-english .
+ex:ciUpper a math:MathematicalObject ; rdfs:label "Upper endpoint 0.18"@x-gmeow-english .
+
+# The multivariate generalization: a joint region for two coefficients.
+ex:jointCR a math:ConfidenceRegion ;
+    rdfs:label "95% joint confidence region for (beta1, beta2)"@x-gmeow-english ;
+    math:hasIntervalBound ex:crBound1 , ex:crBound2 ;
+    math:confidenceLevel ex:level95 .
+ex:crBound1 a math:MathematicalObject ; rdfs:label "Region boundary facet 1"@x-gmeow-english .
+ex:crBound2 a math:MathematicalObject ; rdfs:label "Region boundary facet 2"@x-gmeow-english .
+
+# --- Bayesian: the credible interval, region, and evidence kinds -------------- #
+
+# Posterior mass over a POSTERIOR: names its posterior context AND its credible mass.
+# Also a math:BayesianResult (its family). It is NOT typed a confidence interval.
+ex:effectCredibleInterval a math:CredibleInterval , math:BayesianResult ;
+    rdfs:label "95% credible interval for the effect, [0.05, 0.19]"@x-gmeow-english ;
+    math:hasPosterior ex:effectPosterior ;
+    math:hasIntervalBound ex:credLower , ex:credUpper ;
+    math:credibleMass ex:mass95 .
+ex:credLower a math:MathematicalObject ; rdfs:label "Posterior 2.5% quantile"@x-gmeow-english .
+ex:credUpper a math:MathematicalObject ; rdfs:label "Posterior 97.5% quantile"@x-gmeow-english .
+
+# The posterior the interval summarizes — a distribution, so it names its family.
+ex:effectPosterior a math:PosteriorDistribution ;
+    rdfs:label "Posterior distribution of the effect parameter"@x-gmeow-english ;
+    math:distributionFamily ex:normalFamily .
+ex:normalFamily a math:DistributionFamily .
+
+# The multivariate Bayesian sibling: a joint highest-posterior-density region.
+ex:jointCredibleRegion a math:CredibleRegion ;
+    rdfs:label "95% joint HPD region for (beta1, beta2)"@x-gmeow-english ;
+    math:hasPosterior ex:effectPosterior ;
+    math:hasIntervalBound ex:hpdBound1 , ex:hpdBound2 ;
+    math:credibleMass ex:mass95 .
+ex:hpdBound1 a math:MathematicalObject ; rdfs:label "HPD boundary facet 1"@x-gmeow-english .
+ex:hpdBound2 a math:MathematicalObject ; rdfs:label "HPD boundary facet 2"@x-gmeow-english .
+
+# The Bayesian evidence kinds.
+ex:modelBayesFactor a math:BayesFactor ;
+    rdfs:label "BF10 = 12.5 — evidence for H1 over H0 (a ratio of marginal likelihoods)"@x-gmeow-english .
+ex:effectPositiveProbability a math:PosteriorProbability ;
+    rdfs:label "P(effect > 0 | data) = 0.985 — a posterior probability of the hypothesis"@x-gmeow-english .
+
+# --- Paradigm-neutral: prediction and tolerance intervals --------------------- #
+
+# Bounds a FUTURE observation (wider than a CI): names its bounds and its target.
+ex:futurePredInterval a math:PredictionInterval ;
+    rdfs:label "95% prediction interval for a new patient's outcome"@x-gmeow-english ;
+    math:hasIntervalBound ex:piLower , ex:piUpper ;
+    math:predictionTarget ex:newObservation .
+ex:piLower a math:MathematicalObject ; rdfs:label "Prediction-interval lower endpoint"@x-gmeow-english .
+ex:piUpper a math:MathematicalObject ; rdfs:label "Prediction-interval upper endpoint"@x-gmeow-english .
+ex:newObservation a math:MathematicalObject ;
+    rdfs:label "The future observation the interval bounds"@x-gmeow-english .
+
+# Covers a PROPORTION of the population with a stated confidence — neither a CI on a
+# parameter nor a PI on a single future value.
+ex:populationTolInterval a math:ToleranceInterval ;
+    rdfs:label "95%/90% tolerance interval — 95% confident it covers 90% of the population"@x-gmeow-english ;
+    math:hasIntervalBound ex:tiLower , ex:tiUpper .
+ex:tiLower a math:MathematicalObject ; rdfs:label "Tolerance-interval lower endpoint"@x-gmeow-english .
+ex:tiUpper a math:MathematicalObject ; rdfs:label "Tolerance-interval upper endpoint"@x-gmeow-english .
+
+# --- The framed probability magnitudes: exact rationals in [0, 1] ------------- #
+
+ex:level95 a math:ProbabilityValue , math:RationalValue ;
+    rdfs:label "0.95 coverage level (a procedure property)"@x-gmeow-english ;
+    math:numerator 95 ; math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:intervalFrame .
+ex:mass95 a math:ProbabilityValue , math:RationalValue ;
+    rdfs:label "0.95 posterior mass (a posterior probability)"@x-gmeow-english ;
+    math:numerator 95 ; math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:intervalFrame .
+# A self-contained FrameProfile: the frame declares its full profile (a scalar
+# measurement realm, one scalar axis, crisp determinacy, requires no host), so
+# gmeow:FrameProfileShape is satisfied standalone — no shared frame individuals.
+ex:intervalFrame a gmeow:ReferenceFrame ;
+    rdfs:label "The interval-estimation reference frame"@x-gmeow-english ;
+    gmeow:frameRealm ex:measurementRealm ;
+    gmeow:frameKind ex:scalarFrameKind ;
+    gmeow:determinacyModel ex:crispDeterminacy ;
+    gmeow:hasAxis ex:probabilityAxis ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false .
+ex:measurementRealm a gmeow:FrameRealm ;
+    rdfs:label "Statistical measurement realm"@x-gmeow-english .
+ex:scalarFrameKind a gmeow:FrameKind ;
+    rdfs:label "Scalar frame kind — a single dimensionless magnitude"@x-gmeow-english .
+ex:crispDeterminacy a gmeow:Determinacy ;
+    rdfs:label "Crisp determinacy — an exact value, not vague or fuzzy"@x-gmeow-english .
+ex:probabilityAxis a gmeow:Axis ;
+    rdfs:label "The scalar probability-magnitude axis in [0, 1]"@x-gmeow-english .

@@ -506,6 +506,25 @@ in-memory channel, `loss_ledger_and_diagnostics_reach_the_shipped_bundle` proves
 routed bundle graphs, focused projection-report units cover report construction, and
 `make check-generated` byte-gates the final committed union; the exhaustive pair runs
 on `maint-heavy`.
+Resolving grounding-namespace terms (`lang:`/`math:`/`logic:`) across the shipped
+`describe` + MCP surfaces added four whole-bundle `describe` tests that ride the same
+25 s cliff on bundle size, not fixture cost —
+`gmeow-cli::cli::describe_resolves_grounding_curies` (40.6 s) and
+`::describe_resolves_grounding_full_iris` (27.4 s) spawn the shipped binary once per
+grounding namespace and each spawn pays the full bundle cold-start (the identical
+whole-committed-bundle O(bundle size) class as the single-spawn sibling
+`describe_env_language_rejected_if_unknown` above, which is 3–5 s standalone but
+27–32 s under CI contention — so splitting into single-spawn tests would not clear the
+cliff either); `gmeow-cli::self_sufficiency::describe_grounding_terms_wheel_mode_equals_repo_mode`
+(59.4 s) runs `gmeow describe` in both the wheel-mode and repo-mode legs (the
+grounding-term twin of `describe_wheel_mode_equals_repo_mode` above); and
+`gmeow-docs::describe::tests::every_grounding_namespace_has_describable_terms_that_render`
+(47.5 s) re-folds the whole bundle once per grounding namespace to prove a term renders
+in each. No coverage class leaves the gate: cross-namespace resolution (CURIE / full-IRI /
+bare-local plus the ambiguity hard-fail) stays on-gate via the fixture-scale resolver unit
+tests in `crates/docs` (`describe.rs`) and `crates/pipeline` (the `export.rs` MCP ambiguity
+test), the registry-vs-`PREFIXES_BY_LEN` coherence stays on-gate via the `lpg_prefixes`
+coherence gate, and all four whole-bundle describe tests stay on-gate on `maint-heavy`.
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards

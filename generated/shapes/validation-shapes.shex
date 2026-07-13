@@ -5775,10 +5775,18 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/automorphismGroupOf> . + ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/BayesianResult> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/BayesianResult-shape> {
+}
+
 # targetClass <https://blackcatinformatics.ca/math/BindingExpression> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/BindingExpression-shape> {
   <https://blackcatinformatics.ca/math/argumentSlot> . + ;
   <https://blackcatinformatics.ca/math/boundVariable> . ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/CalibrationDiagnostic> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/CalibrationDiagnostic-shape> {
 }
 
 # targetClass <https://blackcatinformatics.ca/math/Chart> (associate via ShapeMap)
@@ -5844,12 +5852,24 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/distributionFamily> IRI ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/EffectSize> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/EffectSize-shape> {
+}
+
 # targetClass <https://blackcatinformatics.ca/math/Embedding> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/Embedding-shape> {
   <https://blackcatinformatics.ca/math/targetSpace> . + ;
   <https://blackcatinformatics.ca/math/embeddingModel> . + ;
   <https://blackcatinformatics.ca/math/embeddingSource> . + ;
   <https://blackcatinformatics.ca/math/embeddingFunction> . + ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/Estimand> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/Estimand-shape> {
+}
+
+# targetClass <https://blackcatinformatics.ca/math/Estimate> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/Estimate-shape> {
 }
 
 # targetClass <https://blackcatinformatics.ca/math/FittedModel> (associate via ShapeMap)
@@ -5860,6 +5880,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/math/FormalVerificationResult> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/FormalVerificationResult-shape> {
+}
+
+# targetClass <https://blackcatinformatics.ca/math/FrequentistResult> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/FrequentistResult-shape> {
 }
 
 # targetClass <https://blackcatinformatics.ca/math/Function> (associate via ShapeMap)
@@ -5885,6 +5909,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/math/Homomorphism-shape> {
   <https://blackcatinformatics.ca/math/preservationLaw> . + ;
   <https://blackcatinformatics.ca/math/preservedOperation> IRI ;
+}
+
+# targetClass <https://blackcatinformatics.ca/math/InferenceRun> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/InferenceRun-shape> {
 }
 
 # targetClass <https://blackcatinformatics.ca/math/IngestRun> (associate via ShapeMap)

@@ -1,0 +1,165 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked scene — HYPOTHESES, TESTS, AND P-VALUES, dogfooding the "Inference and results"
+# charter section and the frequentist result family. A math:HypothesisTest binds a
+# math:NullHypothesis (math:nullHypothesis), a math:AlternativeHypothesis
+# (math:alternativeHypothesis), and a test statistic (math:testStatistic), and PRODUCES
+# a math:PValue (math:pValue).
+#
+# Every p-value here carries its WHOLE frame — a test (math:testStatistic and/or the
+# math:HypothesisTest whose math:pValue it is), a math:nullHypothesis, a parameterized
+# math:nullDistribution (a math:SamplingDistribution), and a tail/sidedness — so
+# math:IllFramedPValueShape stays silent; and each math:alternativeSidedness is one of
+# the six lawful math:Sidedness individuals, so math:AlternativeSidednessValueShape's
+# sh:in stays satisfied. The six individuals are each exercised once (two-sided,
+# one-sided, greater, less, exact, mid-p), so the closed value type is fully worked.
+# Each p-value's magnitude is a FRAMED math:ProbabilityValue carried as an exact
+# math:RationalValue in [0, 1] with a gmeow:hasReferenceFrame, per the probability
+# discipline. The test's operating characteristics — math:StatisticalPower and its
+# complement math:TypeIIErrorRate, and the math:TypeIErrorRate the threshold controls —
+# are first-class frequentist result objects; the two-sided p-value additionally
+# records its multiplicity handling (math:pValueAdjustment, math:multipleComparisonFamily).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statistics/inference/> .
+
+# --- The sidedness value type (restated in-band so the closed type is exercised) #
+# The six lawful individuals live in the vocabulary; naming the value type here on the
+# individual actually used keeps math:Sidedness worked in the ABox alongside its values.
+math:twoSidedAlternative a math:Sidedness .
+
+# --- The hypothesis test, its hypotheses, and its statistic ------------------- #
+
+ex:tTest a math:HypothesisTest ;
+    rdfs:label "Two-sample t-test of a treatment effect on the mean"@x-gmeow-english ;
+    math:nullHypothesis ex:noMeanDiff ;
+    math:alternativeHypothesis ex:meanDiffAlt ;
+    math:testStatistic ex:tStatistic ;
+    math:pValue ex:tTestPValue .
+
+# The tested default H0 — also a math:Hypothesis (its parent), worked in-band.
+ex:noMeanDiff a math:NullHypothesis , math:Hypothesis ;
+    rdfs:label "H0: the two group means are equal"@x-gmeow-english .
+
+ex:meanDiffAlt a math:AlternativeHypothesis ;
+    rdfs:label "H1: the two group means differ (two-sided)"@x-gmeow-english .
+
+ex:tStatistic a math:Statistic ;
+    rdfs:label "The Welch t statistic — a function of the data"@x-gmeow-english .
+
+# --- The null sampling distributions -------------------------------------------#
+
+# The distribution of the t statistic UNDER the null: a parameterized sampling
+# distribution (normal family, mean/stddev convention, one parameter per required role).
+ex:tNullDistribution a math:SamplingDistribution ;
+    rdfs:label "Null sampling distribution of the t statistic"@x-gmeow-english ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParameterization ;
+    math:hasDistributionParameter ex:meanParam , ex:stddevParam .
+ex:normalFamily a math:DistributionFamily .
+ex:meanStddevParameterization a math:DistributionParameterization ;
+    math:requiresParameterRole ex:meanRole , ex:stddevRole .
+ex:meanRole a math:DistributionParameterRole .
+ex:stddevRole a math:DistributionParameterRole .
+ex:meanParam a math:DistributionParameter ; math:parameterRole ex:meanRole .
+ex:stddevParam a math:DistributionParameter ; math:parameterRole ex:stddevRole .
+
+# The discrete null of an exact test: a hypergeometric family, no supplied parameters
+# (so the parameterization and parameter-role gates stay vacuously silent).
+ex:hyperNullDistribution a math:SamplingDistribution ;
+    rdfs:label "Hypergeometric null of Fisher's exact test"@x-gmeow-english ;
+    math:distributionFamily ex:hypergeometricFamily .
+ex:hypergeometricFamily a math:DistributionFamily .
+
+# --- The six p-values: one per lawful sidedness, each fully framed ------------- #
+
+# Two-sided: the worked frequentist result. Also a math:FrequentistResult (its family,
+# a true redundant type). Carries a tail definition AND a sidedness, a multiplicity
+# adjustment, and its multiple-comparison family.
+ex:tTestPValue a math:PValue , math:FrequentistResult ;
+    rdfs:label "p = 0.03, two-sided"@x-gmeow-english ;
+    math:testStatistic ex:tStatistic ;
+    math:nullHypothesis ex:noMeanDiff ;
+    math:nullDistribution ex:tNullDistribution ;
+    math:tailDefinition ex:twoTailedDef ;
+    math:alternativeSidedness math:twoSidedAlternative ;
+    math:pValueAdjustment ex:bonferroni ;
+    math:multipleComparisonFamily ex:endpointFamily ;
+    math:pValue ex:pVal003 .
+ex:twoTailedDef a math:MathematicalObject ;
+    rdfs:label "Both tails of the null distribution count against H0"@x-gmeow-english .
+ex:bonferroni a math:MathematicalObject ;
+    rdfs:label "Bonferroni correction across the endpoint family"@x-gmeow-english .
+ex:endpointFamily a math:MathematicalObject ;
+    rdfs:label "The family of three primary-endpoint comparisons"@x-gmeow-english .
+
+# One-sided (direction unspecified here).
+ex:oneSidedPValue a math:PValue ;
+    rdfs:label "p = 0.02, one-sided"@x-gmeow-english ;
+    math:testStatistic ex:tStatistic ;
+    math:nullHypothesis ex:noMeanDiff ;
+    math:nullDistribution ex:tNullDistribution ;
+    math:alternativeSidedness math:oneSidedAlternative ;
+    math:pValue ex:pVal002 .
+
+# Greater: extremity in the upper tail.
+ex:upperPValue a math:PValue ;
+    rdfs:label "p = 0.015, greater (upper tail)"@x-gmeow-english ;
+    math:testStatistic ex:tStatistic ;
+    math:nullHypothesis ex:noMeanDiff ;
+    math:nullDistribution ex:tNullDistribution ;
+    math:alternativeSidedness math:greaterAlternative ;
+    math:pValue ex:pVal0015 .
+
+# Less: extremity in the lower tail.
+ex:lowerPValue a math:PValue ;
+    rdfs:label "p = 0.40, less (lower tail)"@x-gmeow-english ;
+    math:testStatistic ex:tStatistic ;
+    math:nullHypothesis ex:noMeanDiff ;
+    math:nullDistribution ex:tNullDistribution ;
+    math:alternativeSidedness math:lessAlternative ;
+    math:pValue ex:pVal040 .
+
+# Exact tail: Fisher's exact test on a discrete null.
+ex:fisherPValue a math:PValue ;
+    rdfs:label "p = 0.047, exact tail (Fisher)"@x-gmeow-english ;
+    math:testStatistic ex:fisherStatistic ;
+    math:nullHypothesis ex:noAssociationNull ;
+    math:nullDistribution ex:hyperNullDistribution ;
+    math:alternativeSidedness math:exactTail ;
+    math:pValue ex:pVal0047 .
+ex:fisherStatistic a math:Statistic ;
+    rdfs:label "The 2x2 cell count — Fisher's exact test statistic"@x-gmeow-english .
+ex:noAssociationNull a math:NullHypothesis ;
+    rdfs:label "H0: no association in the 2x2 table"@x-gmeow-english .
+
+# Mid-p tail: the mid-p correction of the same exact test.
+ex:midPValue a math:PValue ;
+    rdfs:label "p = 0.038, mid-p corrected"@x-gmeow-english ;
+    math:testStatistic ex:fisherStatistic ;
+    math:nullHypothesis ex:noAssociationNull ;
+    math:nullDistribution ex:hyperNullDistribution ;
+    math:alternativeSidedness math:midPTail ;
+    math:pValue ex:pVal0038 .
+
+# --- The framed magnitudes: exact rationals in [0, 1], each with a frame ------- #
+
+ex:pVal003  a math:ProbabilityValue , math:RationalValue ; math:numerator 3   ; math:denominator 100  ; gmeow:hasReferenceFrame ex:testFrame .
+ex:pVal002  a math:ProbabilityValue , math:RationalValue ; math:numerator 2   ; math:denominator 100  ; gmeow:hasReferenceFrame ex:testFrame .
+ex:pVal0015 a math:ProbabilityValue , math:RationalValue ; math:numerator 15  ; math:denominator 1000 ; gmeow:hasReferenceFrame ex:testFrame .
+ex:pVal040  a math:ProbabilityValue , math:RationalValue ; math:numerator 40  ; math:denominator 100  ; gmeow:hasReferenceFrame ex:testFrame .
+ex:pVal0047 a math:ProbabilityValue , math:RationalValue ; math:numerator 47  ; math:denominator 1000 ; gmeow:hasReferenceFrame ex:testFrame .
+ex:pVal0038 a math:ProbabilityValue , math:RationalValue ; math:numerator 38  ; math:denominator 1000 ; gmeow:hasReferenceFrame ex:testFrame .
+ex:testFrame a gmeow:ReferenceFrame ;
+    rdfs:label "The test's sampling reference frame"@x-gmeow-english .
+
+# --- The test's operating characteristics (frequentist result objects) -------- #
+
+ex:testPower a math:StatisticalPower ;
+    rdfs:label "Power = 0.80 to detect the design effect (1 - beta)"@x-gmeow-english .
+ex:testTypeII a math:TypeIIErrorRate ;
+    rdfs:label "beta = 0.20 — the false-negative rate, complement of the power"@x-gmeow-english .
+ex:testTypeI a math:TypeIErrorRate ;
+    rdfs:label "alpha = 0.05 — the false-positive rate the threshold controls"@x-gmeow-english .

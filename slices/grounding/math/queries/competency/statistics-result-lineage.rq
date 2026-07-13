@@ -1,0 +1,30 @@
+# Competency question: "Does a terminal result reach back to an estimand and forward to
+# a held observation — the connected estimand → estimator → estimate → uncertainty →
+# claim chain?"
+# Exercises the process / result / claim spine end to end: a math:Estimate result object
+# traces BACK to the math:Estimand it targets (math:estimatesEstimand), through its
+# math:Estimator (math:estimator) and the math:InferenceRun process that produced it
+# (gmeow:wasGeneratedBy), and carries its uncertainty as a value quantity
+# (math:estimateValue); and it traces FORWARD to the held claim — the gmeow:Observation
+# that reports it (gmeow:observationResult) from a gmeow:vantage and is itself generated
+# by the same run (gmeow:wasGeneratedBy). The query returns the whole connected lineage,
+# so a result is never a bare number: it reaches back to what it estimates and forward to
+# the vantage-held observation that asserts it. Scoped to the fixture namespace so the
+# answer is exactly the single lineage row.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?result ?estimand ?estimator ?uncertainty ?run ?observation ?vantage WHERE {
+    ?result a math:Estimate ;
+            math:estimatesEstimand ?estimand ;
+            math:estimator ?estimator ;
+            math:estimateValue ?uncertainty ;
+            gmeow:wasGeneratedBy ?run .
+    ?run a math:InferenceRun .
+    ?observation a gmeow:Observation ;
+                 gmeow:observationResult ?result ;
+                 gmeow:vantage ?vantage ;
+                 gmeow:wasGeneratedBy ?run .
+    FILTER(STRSTARTS(STR(?result), "http://example.org/math/"))
+}
+ORDER BY ?result ?observation
