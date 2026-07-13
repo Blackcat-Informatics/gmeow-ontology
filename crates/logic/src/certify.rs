@@ -33,13 +33,11 @@
 //!   the class into the key as `"{rdf:type-iri} {class-iri}"`, so class-level
 //!   recursion (`?x a C :- ?y a C`) shows up as a self-cycle.
 //!
-//! The Rust certifier instead consumes the **`.rls` text** that the canonical
-//! Nemo projection (`project_nemo`) emits.  `project_nemo`:
+//! The Rust certifier consumes typed evaluation rules lowered directly from the
+//! canonical program:
 //!
 //! * writes predicates as bare angle-bracketed IRIs — `<http://…/p>(?S, ?O, ?W)`
-//!   — and Nemo's parser resolves an `<iri>` tag to its bare content
-//!   ([`nemo`'s `resolve_tag`] returns `iri.content()`), so
-//!   `Atom::predicate().to_string()` yields **exactly** the bare IRI the Python
+//!   — so the predicate value is **exactly** the bare IRI the canonical
 //!   IR stores. No prefix expansion, no re-bracketing.
 //! * uses the **arity-3 ternary encoding** `pred(subject, object, world)`, so an
 //!   atom's *object* is `terms()[1]`. This is the slot the `rdf:type` fold keys
@@ -49,16 +47,13 @@
 //!   Python `_predicate_key` fold over `terms()[1]` reproduces the Python key
 //!   byte-for-byte.
 //!
-//! Therefore [`predicate_key`] re-implements Python's `_predicate_key`:
+//! Therefore `eval_predicate_key` re-implements Python's `_predicate_key`:
 //! `predicate IRI` from `Atom::predicate()`, and — when the predicate is
 //! `rdf:type` and the object term is **not** a variable — the bare object IRI
-//! (Nemo displays a ground IRI as `<iri>`, which we de-bracket to the bare form
-//! the Python IR carries). The rendered cycle string `[P -> Q -> P]` is thus
+//! in the canonical IR. The rendered cycle string `[P -> Q -> P]` is thus
 //! identical on both sides.
 //!
-//! Negation parity: Nemo's parser splits a rule body into
-//! [`nemo::rule_model::components::rule::Rule::body_positive`] and
-//! `body_negative`; the latter are the `~atom` negation-as-failure literals. We
+//! Negation parity: typed rules retain positive and negation-as-failure body atoms. We
 //! label every `body_negative()` edge `"negative"`, matching the IR's
 //! `LogicAxiom.negated` flag, so the StratifiedNAF SCC analysis sees the same
 //! negative edges as Python.
@@ -77,24 +72,11 @@
 //! Rejecting a genuinely **non-terminating** rule set up front is *this static
 //! certifier's* job, not the runtime budget governor's. The governor in
 //! `gmeow_logic.materialize` is **post-hoc for the count ceilings**: both the
-//! Python oracle and Nemo run the chase to full fixpoint and then truncate the
-//! derived set to the canonical-sort prefix of the *complete* derivation, so
-//! `max_rule_firings`/`max_answers` are engine-independent and deterministic —
-//! identical verdicts on both engines. Asserted EDB input is always kept in full.
-//! The only engine-dependent budget is `time_ms`: the Python oracle can cut the
-//! chase mid-flight on the wall clock, while Nemo's `reason()` has no native
-//! budget hook, so on the Rust side `time_ms` bounds only post-fixpoint work. The
-//! divergence is **named, not glossed**: under the count ceilings the verdict and
-//! budget strings match the oracle exactly; the `time_ms` difference is documented
-//! here, in `py.rs`, and in `crates/logic/README.md`. Keeping `oracle ≡ engine`
-//! truthful is the reason the certifier exists as the front-line termination
-//! guard.
+//! native chase enforces deterministic derivation-step ceilings. Wall-clock budgets
+//! are rejected at the public boundary rather than approximated. Asserted EDB input
+//! is always kept in full.
 
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
-
-use crate::nemo_engine::NemoParsedRules;
-use nemo::rule_model::components::atom::Atom;
-use nemo::rule_model::programs::ProgramRead;
 
 /// Wrap a certification condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -111,7 +93,7 @@ const SEC_PROFILES: &str = "§Semantic profiles";
 /// `§Decidability` section heading (quoted verbatim, like Python).
 const SEC_DECIDABILITY: &str = "§Decidability";
 
-/// The `rdf:type` predicate IRI string, exactly as the IR / Nemo stores it.
+/// The `rdf:type` predicate IRI string used by the canonical IR.
 ///
 /// Mirrors Python `_RDF_TYPE = str(RDF.type)`.
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -191,7 +173,7 @@ struct PosTerm {
 /// body predicate keys, and negative (negation-as-failure) body predicate keys,
 /// plus the S/O position lists the weak-acyclicity analysis consumes.
 ///
-/// The keys are computed by [`predicate_key`] so they match the Python IR's
+/// The keys are computed by [`eval_predicate_key`] so they match the Python IR's
 /// `_predicate_key` byte-for-byte (see the module docs).
 struct RuleView {
     head_keys: Vec<String>,
@@ -213,155 +195,101 @@ struct RuleView {
     all_body_positions: Vec<PosTerm>,
 }
 
-/// Compute the dependency-graph node key for a Nemo [`Atom`], mirroring Python
-/// `_predicate_key`.
-///
-/// For an `rdf:type` atom whose object (the arity-3 `terms()[1]` slot) is a
-/// **non-variable**, the key folds in the class:
-/// `"{rdf:type-iri} {class-iri}"`. Otherwise the key is the bare predicate IRI.
-fn predicate_key(atom: &Atom) -> String {
-    let predicate = atom.predicate().to_string();
-    if predicate == RDF_TYPE {
-        // Arity-3 encoding `pred(subject, object, world)`: object is terms()[1].
-        if let Some(obj) = atom.terms().nth(1)
-            && !obj.is_variable()
-        {
-            return format!("{predicate} {}", debracket(&obj.to_string()));
+// Typed canonical-IR rule views are the sole certification input.
+
+fn eval_term_surface(term: &crate::rule_ir::EvalTerm) -> (bool, String) {
+    match term {
+        crate::rule_ir::EvalTerm::Var(name) => (true, name.clone()),
+        crate::rule_ir::EvalTerm::ConstNamed(iri) => (false, iri.clone()),
+        crate::rule_ir::EvalTerm::ConstLit(value) => {
+            (false, crate::provenance::term_display(value))
         }
     }
-    predicate
 }
 
-/// Strip the outer `<…>` (Nemo's ground-IRI display) or `"…"` (literal display)
-/// so the folded class string matches the bare IRI / value the Python IR stores
-/// in `atom.obj`.
-fn debracket(s: &str) -> String {
-    if let Some(inner) = s.strip_prefix('<').and_then(|t| t.strip_suffix('>')) {
-        return inner.to_owned();
-    }
-    if let Some(inner) = s.strip_prefix('"').and_then(|t| t.strip_suffix('"')) {
-        return inner.to_owned();
-    }
-    s.to_owned()
-}
-
-/// The logical (subject, object) terms of an atom in the arity-3 `.rls`
-/// encoding `pred(subject, object, world)`.
-///
-/// **World-slot normalization (parity-critical).** The Python certifier runs
-/// over the IR, whose atom is `(subject, predicate, obj)` with NO world slot —
-/// `project_nemo` injects the world variable into a *third* term that the IR
-/// never carries. To keep the variable/position analysis byte-identical to
-/// Python we expose only `terms()[0]` (subject) and `terms()[1]` (object) as the
-/// logical S/O positions, and **drop `terms()[2]` (the world context)**. The
-/// predicate IRI is a constant on both sides (the IR's `atom.predicate` is never
-/// a variable), so it is excluded from the variable set, exactly as Python's
-/// `_atom_variables` excludes it in practice.
-fn logical_terms(atom: &Atom) -> Vec<&nemo::rule_model::components::term::Term> {
-    atom.terms().take(2).collect()
-}
-
-/// The bare variable names occurring in an atom's logical S/O terms (Nemo renders
-/// a universal variable as `?Name`; we record `?Name` to match Python `_is_var`).
-/// The world slot is excluded (see [`logical_terms`]).
-fn atom_variables(atom: &Atom) -> BTreeSet<String> {
-    let mut out = BTreeSet::new();
-    for term in logical_terms(atom) {
-        if term.is_variable() {
-            // Nemo's Display for a variable is `?Name` (matches the IR's `?x`).
-            out.insert(term.to_string());
+fn eval_predicate_key(atom: &crate::rule_ir::EvalAtom) -> String {
+    if atom.predicate == RDF_TYPE {
+        let (is_var, object) = eval_term_surface(&atom.object);
+        if !is_var {
+            return format!("{} {object}", atom.predicate);
         }
     }
-    out
+    atom.predicate.clone()
 }
 
-/// The S ("S") and O ("O") positions of an atom as [`PosTerm`]s. Slot[0] is the
-/// subject, slot[1] the object; the world slot (slot[2]) is excluded. Mirrors
-/// Python `_positions` over the IR's subject/object (predicate is constant).
-fn atom_so_positions(atom: &Atom) -> Vec<PosTerm> {
-    let key = predicate_key(atom);
-    let mut out = Vec::new();
-    for (idx, slot) in [(0usize, "S"), (1usize, "O")] {
-        if let Some(term) = atom.terms().nth(idx) {
-            out.push(PosTerm {
+fn eval_atom_variables(atom: &crate::rule_ir::EvalAtom) -> BTreeSet<String> {
+    [&atom.subject, &atom.object]
+        .into_iter()
+        .filter_map(|term| match term {
+            crate::rule_ir::EvalTerm::Var(name) => Some(name.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+fn eval_atom_positions(atom: &crate::rule_ir::EvalAtom) -> Vec<PosTerm> {
+    let key = eval_predicate_key(atom);
+    [(&atom.subject, "S"), (&atom.object, "O")]
+        .into_iter()
+        .map(|(term, slot)| {
+            let (is_var, term) = eval_term_surface(term);
+            PosTerm {
                 key: key.clone(),
                 slot,
-                is_var: term.is_variable(),
-                term: term.to_string(),
-            });
-        }
-    }
-    out
+                is_var,
+                term,
+            }
+        })
+        .collect()
 }
 
-/// Parse the `.rls` text via Nemo's own parser and project each rule into a
-/// [`RuleView`]. Reusing Nemo's parser (no second IR) is mandated by the task:
-/// it guarantees the predicate surface is identical to the engine's.
-///
-/// # Errors
-///
-/// Returns the Nemo parse-error string when the `.rls` text does not parse.
-fn parse_rule_views(rules: &str) -> gmeow_errors::Result<Vec<RuleView>> {
-    // Parse WITHOUT Nemo's semantic validation: the validator rejects the very
-    // rule shapes the certifier must flag (unsafe head vars, negation-only
-    // bodies). Syntax errors still fail loudly. See `parse_unvalidated`.
-    let parsed = NemoParsedRules::parse_unvalidated(rules)?;
-    let program = parsed.into_program();
-
-    let mut views: Vec<RuleView> = Vec::new();
-    for rule in program.rules() {
-        let head_keys: Vec<String> = rule.head().iter().map(predicate_key).collect();
-        let positive_body_keys: Vec<String> = rule.body_positive().map(predicate_key).collect();
-        let negative_body_keys: Vec<String> = rule.body_negative().map(predicate_key).collect();
-
-        // DL-safety bookkeeping (mirrors Python `certify_dl_safe`): a variable is
-        // "bound" iff it appears in a positive body atom; "used" = head ∪ body.
-        let mut bound_vars: BTreeSet<String> = BTreeSet::new();
-        for atom in rule.body_positive() {
-            bound_vars.extend(atom_variables(atom));
-        }
-        let mut used_vars: BTreeSet<String> = BTreeSet::new();
-        for atom in rule.head() {
-            used_vars.extend(atom_variables(atom));
-        }
-        for atom in rule.body_atoms() {
-            used_vars.extend(atom_variables(atom));
-        }
-
-        // The head key used in DL-safety diagnostics is the first head atom's key
-        // (rules have exactly one head atom in the gmeow-logic fragment).
-        let head_key_for_safety = head_keys.first().cloned().unwrap_or_default();
-
-        // S/O position lists for weak acyclicity.
-        let mut head_positions: Vec<PosTerm> = Vec::new();
-        for atom in rule.head() {
-            head_positions.extend(atom_so_positions(atom));
-        }
-        let mut positive_positions: Vec<PosTerm> = Vec::new();
-        for atom in rule.body_positive() {
-            positive_positions.extend(atom_so_positions(atom));
-        }
-        let mut all_body_positions: Vec<PosTerm> = Vec::new();
-        for atom in rule.body_atoms() {
-            all_body_positions.extend(atom_so_positions(atom));
-        }
-
-        views.push(RuleView {
-            head_keys,
-            positive_body_keys,
-            negative_body_keys,
-            head_key_for_safety,
-            used_vars,
-            bound_vars,
-            head_positions,
-            positive_positions,
-            all_body_positions,
-        });
-    }
-    Ok(views)
+fn eval_rule_views(rules: &[crate::rule_ir::EvalRule]) -> Vec<RuleView> {
+    rules
+        .iter()
+        .map(|rule| {
+            let head_keys = vec![eval_predicate_key(&rule.head)];
+            let positive: Vec<&crate::rule_ir::EvalAtom> =
+                rule.body.iter().filter(|atom| !atom.negated).collect();
+            let negative: Vec<&crate::rule_ir::EvalAtom> =
+                rule.body.iter().filter(|atom| atom.negated).collect();
+            let positive_body_keys = positive
+                .iter()
+                .map(|atom| eval_predicate_key(atom))
+                .collect();
+            let negative_body_keys = negative
+                .iter()
+                .map(|atom| eval_predicate_key(atom))
+                .collect();
+            let bound_vars = positive
+                .iter()
+                .flat_map(|atom| eval_atom_variables(atom))
+                .collect();
+            let mut used_vars = eval_atom_variables(&rule.head);
+            for atom in &rule.body {
+                used_vars.extend(eval_atom_variables(atom));
+            }
+            let head_positions = eval_atom_positions(&rule.head);
+            let positive_positions = positive
+                .iter()
+                .flat_map(|atom| eval_atom_positions(atom))
+                .collect();
+            let all_body_positions = rule.body.iter().flat_map(eval_atom_positions).collect();
+            RuleView {
+                head_key_for_safety: head_keys[0].clone(),
+                head_keys,
+                positive_body_keys,
+                negative_body_keys,
+                used_vars,
+                bound_vars,
+                head_positions,
+                positive_positions,
+                all_body_positions,
+            }
+        })
+        .collect()
 }
 
-// ── Predicate dependency graph + Tarjan SCC ──────────────────────────────────
+// ── Predicate dependency graph// ── Predicate dependency graph + Tarjan SCC ──────────────────────────────────
 
 /// The predicate dependency graph: nodes are predicate keys, edges are
 /// `head ← body` with a `negative` flag for negation-as-failure body literals.
@@ -615,25 +543,25 @@ fn is_stratified(graph: &DepGraph) -> bool {
     offending_cycle(graph).is_none()
 }
 
-/// Whether the `.rls` program is stratifiable (no negation-as-failure cycle).
+/// Whether the typed program is stratifiable (no negation-as-failure cycle).
 ///
 /// Thin wrapper over the existing dependency-graph analysis, exposed so the later
 /// `py.rs` materialize routing phase can dispatch stratifiable
-/// programs to the Nemo chase and non-stratifiable ones to the native
+/// programs to the stratified chase and non-stratifiable ones to the native
 /// well-founded / stable-model evaluators.  Additive; reuses
-/// [`parse_rule_views`], [`DepGraph`], and [`is_stratified`] verbatim.
+/// [`eval_rule_views`], [`DepGraph`], and [`is_stratified`] verbatim.
 ///
 /// # Errors
 ///
-/// Returns the Nemo parse-error string if `rules` does not parse as `.rls`.
+/// The input is already typed and therefore requires no text-rule parse step.
 // Phase-A scaffolding for the `py.rs` materialize router that dispatches on
-// stratifiability (Nemo chase vs native well-founded / stable-model evaluators) is
+// stratifiability (stratified chase vs well-founded / stable-model evaluators) is
 // Phase B; this helper is landed now so the routing change is additive.
 #[allow(dead_code)]
-pub(crate) fn is_stratifiable(rules: &str) -> gmeow_errors::Result<bool> {
-    let views = parse_rule_views(rules)?;
+pub(crate) fn is_stratifiable(rules: &[crate::rule_ir::EvalRule]) -> bool {
+    let views = eval_rule_views(rules);
     let graph = DepGraph::from_views(&views);
-    Ok(is_stratified(&graph))
+    is_stratified(&graph)
 }
 
 /// The stratum index of every predicate in `rules`, keyed by its bare predicate
@@ -641,7 +569,7 @@ pub(crate) fn is_stratifiable(rules: &str) -> gmeow_errors::Result<bool> {
 /// `(rule, predicate, stratum)` coordinate the deterministic cost vector
 /// ([`crate::cost::CostVector`]) buckets committed derivations by.
 ///
-/// Reuses the existing SCC/stratification machinery verbatim: [`parse_rule_views`]
+/// Reuses the existing SCC/stratification machinery verbatim: [`eval_rule_views`]
 /// → [`DepGraph`] → [`DepGraph::sccs`] (the same Tarjan condensation the
 /// stratifiability check runs). A predicate's stratum is the length of the longest
 /// chain of cross-SCC dependency edges (head → body) from it down to a predicate it
@@ -651,21 +579,21 @@ pub(crate) fn is_stratifiable(rules: &str) -> gmeow_errors::Result<bool> {
 /// DAG, so the longest-chain depth is well-defined and terminating even for a
 /// non-stratifiable program (a negative cycle collapses into one SCC).
 ///
-/// **rdf:type fold collapse.** [`predicate_key`] folds a ground `rdf:type` object
+/// **rdf:type fold collapse.** [`eval_predicate_key`] folds a ground `rdf:type` object
 /// into the SCC node key (`"{rdf:type} {class}"`) for finer recursion analysis; the
 /// cost vector keys on the BARE predicate of a materialized row, so several
 /// class-folded keys collapse onto the bare `rdf:type` predicate here, taking the
 /// MAX (deepest) stratum among them. For every non-`rdf:type` predicate the key IS
 /// the bare IRI, so the projection is exact.
 ///
-/// Deterministic: `parse_rule_views`, `DepGraph` (`BTreeSet`/`BTreeMap`), and
+/// Deterministic: `eval_rule_views`, `DepGraph` (`BTreeSet`/`BTreeMap`), and
 /// `sccs()` are all order-stable, and the result is a sorted [`BTreeMap`].
 ///
 /// # Errors
 ///
-/// Returns the Nemo parse-error string if `rules` does not parse as `.rls`.
-pub(crate) fn predicate_strata(rules: &str) -> gmeow_errors::Result<BTreeMap<String, u32>> {
-    let views = parse_rule_views(rules)?;
+/// The input is already typed and therefore requires no text-rule parse step.
+pub(crate) fn predicate_strata(rules: &[crate::rule_ir::EvalRule]) -> BTreeMap<String, u32> {
+    let views = eval_rule_views(rules);
     let graph = DepGraph::from_views(&views);
     let sccs = graph.sccs();
 
@@ -696,7 +624,7 @@ pub(crate) fn predicate_strata(rules: &str) -> gmeow_errors::Result<BTreeMap<Str
         let slot = out.entry(bare).or_insert(0);
         *slot = (*slot).max(depth);
     }
-    Ok(out)
+    out
 }
 
 /// The longest chain of cross-SCC dependency edges from `scc_idx` down to a sink SCC
@@ -808,7 +736,7 @@ fn certify_dl_safe(views: &[RuleView]) -> Vec<String> {
 /// Faithful mirror of Python `certify_weak_acyclicity` (NOT a stub): it builds
 /// the full position dependency graph and fires the special-edge branch whenever
 /// a head variable is *not* bound by a positive body atom (a value-inventing
-/// "existential" head variable). For real `project_nemo` output every head
+/// "existential" head variable). For compiler-lowered rules every head
 /// variable is a frontier variable (bound positively, carrying the world var),
 /// so the graph has no special edges and this is vacuously satisfied — but a
 /// pathological input (e.g. a head var bound only under negation) reproduces
@@ -816,7 +744,7 @@ fn certify_dl_safe(views: &[RuleView]) -> Vec<String> {
 ///
 /// Positions are `(predicate_key, slot)` with slot ∈ {`"S"`,`"O"`} — the logical
 /// subject/object slots (the world slot and the constant predicate are excluded,
-/// see [`logical_terms`]); this matches Python, where the predicate term is never
+/// see `logical terms`); this matches Python, where the predicate term is never
 /// a variable so no `"P"` position is ever emitted.
 fn certify_weak_acyclicity(views: &[RuleView]) -> Vec<String> {
     type Pos = (String, &'static str);
@@ -995,7 +923,7 @@ pub fn evolution_decidability_class(evolution: &str) -> gmeow_errors::Result<&'s
     }
 }
 
-/// Statically certify `rules` (`.rls` text) against its `declared_profile`.
+/// Statically certify typed rule views against the declared profile.
 ///
 /// **Sufficient-condition / necessarily-incomplete.** Because termination is
 /// undecidable (Church/Turing), a clean verdict proves membership in the declared
@@ -1019,47 +947,42 @@ pub fn evolution_decidability_class(evolution: &str) -> gmeow_errors::Result<&'s
 ///
 /// # Errors
 ///
-/// Returns the Nemo parse-error string if `rules` does not parse as `.rls`, or the
-/// evolution hard-fail string if `evolution` denotes an unrecognized mode.
-pub fn certify(
-    rules: &str,
+/// Returns an error if `evolution` denotes an unrecognized mode.
+fn certify_views(
+    views: &[RuleView],
     profile: &str,
     evolution: Option<&str>,
 ) -> gmeow_errors::Result<CertificationVerdict> {
-    // Collapse the Option → StaticEvolution at the certify boundary, then map to
-    // the required evolution_class string (unknown non-empty value → hard fail).
     let evolution_class = evolution_decidability_class(evolution.unwrap_or("StaticEvolution"))?;
-
-    let views = parse_rule_views(rules)?;
-    let graph = DepGraph::from_views(&views);
+    let graph = DepGraph::from_views(views);
 
     let mut violations: Vec<String> = Vec::new();
     match profile {
         "PositiveHornProfile" => {
-            violations.extend(certify_positive_horn(&views));
-            violations.extend(certify_dl_safe(&views));
-            violations.extend(certify_weak_acyclicity(&views));
-            violations.extend(certify_joint_acyclicity(&views));
-            violations.extend(certify_guarded(&views));
-            violations.extend(certify_sticky(&views));
+            violations.extend(certify_positive_horn(views));
+            violations.extend(certify_dl_safe(views));
+            violations.extend(certify_weak_acyclicity(views));
+            violations.extend(certify_joint_acyclicity(views));
+            violations.extend(certify_guarded(views));
+            violations.extend(certify_sticky(views));
         }
         "StratifiedNAFProfile" => {
             violations.extend(certify_stratified_naf(&graph));
-            violations.extend(certify_dl_safe(&views));
-            violations.extend(certify_weak_acyclicity(&views));
-            violations.extend(certify_joint_acyclicity(&views));
-            violations.extend(certify_guarded(&views));
-            violations.extend(certify_sticky(&views));
+            violations.extend(certify_dl_safe(views));
+            violations.extend(certify_weak_acyclicity(views));
+            violations.extend(certify_joint_acyclicity(views));
+            violations.extend(certify_guarded(views));
+            violations.extend(certify_sticky(views));
         }
         "WellFoundedProfile" => {
-            violations.extend(certify_well_founded(&views));
-            violations.extend(certify_dl_safe(&views));
-            violations.extend(certify_weak_acyclicity(&views));
+            violations.extend(certify_well_founded(views));
+            violations.extend(certify_dl_safe(views));
+            violations.extend(certify_weak_acyclicity(views));
         }
         "StableModelProfile" => {
             violations.extend(certify_stable_model(&graph));
-            violations.extend(certify_dl_safe(&views));
-            violations.extend(certify_weak_acyclicity(&views));
+            violations.extend(certify_dl_safe(views));
+            violations.extend(certify_weak_acyclicity(views));
         }
         other => {
             // ProceduralProlog / Probabilistic / unknown: no static guarantee.
@@ -1086,25 +1009,16 @@ pub fn certify(
 /// Certify a program straight from the **canonical source AST**.
 ///
 /// This is the canonical-AST front door to the certifier: the program is lowered
-/// to its Nemo rules section by the Rust compiler ([`gmeow_logic_compile::projections`])
-/// and certified — no Python and no hand-authored `.rls` in the loop, so the
+/// directly to typed evaluation rules and certified — no hand-authored rule text in the loop, so the
 /// canonical IR is the single source feeding decidability certification too.
 pub fn certify_program(
     program: &gmeow_logic_compile::ir::LogicProgram,
     profile: &str,
 ) -> gmeow_errors::Result<CertificationVerdict> {
-    // Only the `.rls` rule text is consumed here; the nemo projection's drops are interned
-    // into a throwaway loss store.
-    let nemo = gmeow_logic_compile::projections::text::project_nemo(
-        program,
-        &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
-    )
-    .map_err(|e| certify_err(e.to_string()))?;
-    let rules_section =
-        gmeow_logic_compile::projections::text::extract_nemo_rules_section(&nemo.content)
-            .map_err(|e| certify_err(e.to_string()))?;
+    let rules = crate::lower::lower_eval_rules(program)?;
+    let views = eval_rule_views(&rules);
     let evolution = program_evolution(program)?;
-    certify(&rules_section, profile, evolution.as_deref())
+    certify_views(&views, profile, evolution.as_deref())
 }
 
 /// The single governing `logic:EvolutionMode` of a program's reasoning contracts,
@@ -1142,368 +1056,3 @@ pub fn program_evolution(
 }
 
 // ── Unit tests ────────────────────────────────────────────────────────────────
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // The arity-3 ternary `.rls` encoding `project_nemo` emits.
-    const P: &str = "http://example.org/p";
-    const Q: &str = "http://example.org/q";
-    const R: &str = "http://example.org/r";
-    const S: &str = "http://example.org/s";
-
-    // ── Tarjan SCC ────────────────────────────────────────────────────────────
-
-    #[test]
-    fn tarjan_finds_simple_cycle() {
-        let mut g: BTreeMap<String, Vec<String>> = BTreeMap::new();
-        g.insert("a".into(), vec!["b".into()]);
-        g.insert("b".into(), vec!["a".into()]);
-        g.insert("c".into(), vec!["a".into()]);
-        let sccs = tarjan_scc(&g);
-        let big = sccs.iter().find(|s| s.len() > 1).expect("cycle SCC");
-        assert_eq!(
-            big,
-            &["a".to_owned(), "b".to_owned()]
-                .into_iter()
-                .collect::<BTreeSet<_>>()
-        );
-        assert!(sccs.contains(&["c".to_owned()].into_iter().collect()));
-    }
-
-    #[test]
-    fn tarjan_is_deterministic() {
-        let mut g: BTreeMap<String, Vec<String>> = BTreeMap::new();
-        g.insert("a".into(), vec!["b".into(), "c".into()]);
-        g.insert("b".into(), vec!["c".into()]);
-        g.insert("c".into(), vec!["a".into()]);
-        g.insert("d".into(), vec![]);
-        assert_eq!(tarjan_scc(&g), tarjan_scc(&g));
-    }
-
-    // ── Stratification ─────────────────────────────────────────────────────────
-
-    /// `r(x,y) :- p(x,y)` and `s(x,x) :- p(x,y), ~q(x,y)` — no negative cycle.
-    fn stratified_rls() -> String {
-        format!(
-            "<{R}>(?x, ?y, ?W) :- <{P}>(?x, ?y, ?W) .\n\
-             <{S}>(?x, ?x, ?W) :- <{P}>(?x, ?y, ?W), ~<{Q}>(?x, ?y, ?W) .\n"
-        )
-    }
-
-    /// `p(x,y) :- ~q(x,y)` and `q(x,y) :- p(x,y)` — cycle through negation.
-    fn non_stratified_rls() -> String {
-        format!(
-            "<{P}>(?x, ?y, ?W) :- ~<{Q}>(?x, ?y, ?W) .\n\
-             <{Q}>(?x, ?y, ?W) :- <{P}>(?x, ?y, ?W) .\n"
-        )
-    }
-
-    #[test]
-    fn stratified_set_certifies() {
-        let verdict = certify(&stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
-        assert!(verdict.certified, "violations: {:?}", verdict.violations);
-        assert!(verdict.violations.is_empty());
-        assert_eq!(verdict.decidability_class, "terminating/PTIME-data");
-    }
-
-    #[test]
-    fn non_stratified_set_is_flagged_with_cycle_message() {
-        let verdict = certify(&non_stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
-        assert!(!verdict.certified);
-        // The pathological fixture (a negation-only body, no positive atom to bind
-        // the world var) legitimately also trips DL-safety / weak-acyclicity — the
-        // SAME violations the Python `certify_program` emits for this program (see
-        // the parity-check note in the module docs). We assert the stratification
-        // cycle is present, with the deterministic rendering Python produces.
-        let cycle = verdict
-            .violations
-            .iter()
-            .find(|v| v.contains("StratifiedNAFProfile violation"))
-            .expect("cycle violation present");
-        assert!(cycle.contains("crosses a negated body atom"));
-        assert!(cycle.contains("not stratifiable"));
-        assert!(cycle.contains("LOGIC-SEMANTICS.md §Semantic profiles"));
-        // The exact rendered cycle: negative edge (p ← q); shortest_cycle BFS from
-        // body `q` to head `p` yields the closing form `[p -> q -> p]` — the cycle
-        // closes back to the negated head, identical to the Python oracle
-        // (verified against logic_certify.py).
-        assert!(
-            cycle.contains(&format!("[{P} -> {Q} -> {P}]")),
-            "unexpected cycle text: {cycle}"
-        );
-    }
-
-    #[test]
-    fn stratified_naf_check_is_deterministic() {
-        let a = certify(&non_stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
-        let b = certify(&non_stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
-        assert_eq!(a, b);
-    }
-
-    // ── PositiveHorn ────────────────────────────────────────────────────────────
-
-    #[test]
-    fn positive_horn_rejects_negation() {
-        let rls = format!("<{P}>(?x, ?y, ?W) :- ~<{Q}>(?x, ?y, ?W) .\n");
-        let verdict = certify(&rls, "PositiveHornProfile", None).expect("parse");
-        assert!(!verdict.certified);
-        assert!(
-            verdict
-                .violations
-                .iter()
-                .any(|v| v.contains("PositiveHornProfile violation")
-                    && v.contains("no negation-as-failure")),
-            "{:?}",
-            verdict.violations
-        );
-    }
-
-    #[test]
-    fn positive_program_certifies_under_positive_horn() {
-        let rls = format!("<{R}>(?x, ?y, ?W) :- <{P}>(?x, ?y, ?W), <{Q}>(?x, ?y, ?W) .\n");
-        let verdict = certify(&rls, "PositiveHornProfile", None).expect("parse");
-        assert!(verdict.certified, "violations: {:?}", verdict.violations);
-    }
-
-    // ── DL-safety ───────────────────────────────────────────────────────────────
-
-    #[test]
-    fn dl_safety_violation_detected() {
-        // ?z appears only in the head — unbound by any positive body atom.
-        let rls = format!("<{R}>(?x, ?z, ?W) :- <{P}>(?x, ?y, ?W) .\n");
-        let verdict = certify(&rls, "StratifiedNAFProfile", None).expect("parse");
-        assert!(!verdict.certified);
-        assert!(
-            verdict
-                .violations
-                .iter()
-                .any(|v| v.contains("DL-safety violation")
-                    && v.contains("?z")
-                    && v.contains("not DL-safe")),
-            "{:?}",
-            verdict.violations
-        );
-    }
-
-    // ── StableModel advisory ─────────────────────────────────────────────────────
-
-    #[test]
-    fn stable_model_advisory_present_when_not_stratified() {
-        let verdict = certify(&non_stratified_rls(), "StableModelProfile", None).expect("parse");
-        assert!(!verdict.certified);
-        assert_eq!(verdict.decidability_class, "NP-hard");
-        assert!(
-            verdict
-                .violations
-                .iter()
-                .any(|v| v.contains("StableModelProfile is NP-hard")
-                    && v.contains("LOGIC-SEMANTICS.md §Decidability")),
-            "{:?}",
-            verdict.violations
-        );
-    }
-
-    #[test]
-    fn stable_model_advisory_absent_when_stratified() {
-        // A stratified set is also stable=well-founded ⇒ no NP-hard advisory.
-        let verdict = certify(&stratified_rls(), "StableModelProfile", None).expect("parse");
-        assert!(
-            !verdict.violations.iter().any(|v| v.contains("NP-hard")),
-            "{:?}",
-            verdict.violations
-        );
-    }
-
-    // ── Vacuous decidable-fragment checks pass on function-free input ────────────
-
-    #[test]
-    fn function_free_program_certifies_acyclicity() {
-        // The stratified, function-free program certifies under StratifiedNAF
-        // (weak/joint acyclicity, guard, sticky all vacuously pass).
-        let verdict = certify(&stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
-        assert!(verdict.certified, "violations: {:?}", verdict.violations);
-    }
-
-    // ── rdf:type class-level fold (parity normalization) ─────────────────────────
-
-    #[test]
-    fn rdf_type_class_level_self_cycle_through_negation_flagged() {
-        // `?x a C :- ~(?x a C)` — a class-level negative self-loop. The fold keys
-        // on the class IRI in the object slot, so the cycle is visible.
-        let cls = "http://example.org/C";
-        let rls = format!("<{RDF_TYPE}>(?x, <{cls}>, ?W) :- ~<{RDF_TYPE}>(?x, <{cls}>, ?W) .\n");
-        let verdict = certify(&rls, "StratifiedNAFProfile", None).expect("parse");
-        let cycle = verdict
-            .violations
-            .iter()
-            .find(|v| v.contains("StratifiedNAFProfile violation"))
-            .expect("cycle violation present");
-        assert!(cycle.contains("crosses a negated body atom"), "{cycle}");
-        // The folded key is `{rdf:type} {class}`, so the rendered cycle names it —
-        // proving the rdf:type fold over the object slot matches Python.
-        assert!(cycle.contains(&format!("{RDF_TYPE} {cls}")), "{cycle}");
-    }
-
-    // ── reified n-ary shape certifies soundly (logic:instanceOf reflection) ──────
-
-    #[test]
-    fn reified_nary_body_rule_certifies_soundly() {
-        // A rule with reified n-ary atoms in its BODY and a binary head (the
-        // associativity shape — no existential):
-        //   eq(?l, ?r, ?W) :- instanceOf(?M, op, ?W), naryArg0(?M, ?a, ?W),
-        //     naryArg1(?M, ?b, ?W), naryArg2(?M, ?l, ?W),  <second op tuple ?N …?r>
-        // The certifier treats `logic:instanceOf`/`logic:naryArg{i}` as ordinary binary
-        // predicates. Two distinct reifier variables `?M`/`?N` and two op tuples share
-        // the `instanceOf`/`naryArg{i}` predicate keys (a SOUND over-approximation of the
-        // reliance graph — it refuses more, never unsoundly accepts). The rule is
-        // function-free (no existential head), so it certifies clean: weak-acyclic,
-        // DL-safe. This is the soundness confirmation for the reified body encoding.
-        let io = "https://blackcatinformatics.ca/logic/instanceOf";
-        let a0 = "https://blackcatinformatics.ca/logic/naryArg0";
-        let a1 = "https://blackcatinformatics.ca/logic/naryArg1";
-        let a2 = "https://blackcatinformatics.ca/logic/naryArg2";
-        let op = "http://example.org/op";
-        let eq = "http://example.org/eq";
-        let rls = format!(
-            "<{eq}>(?l, ?r, ?W) :- \
-             <{io}>(?M, <{op}>, ?W), <{a0}>(?M, ?a, ?W), <{a1}>(?M, ?b, ?W), \
-             <{a2}>(?M, ?l, ?W), \
-             <{io}>(?N, <{op}>, ?W), <{a0}>(?N, ?a, ?W), <{a1}>(?N, ?b, ?W), \
-             <{a2}>(?N, ?r, ?W) .\n"
-        );
-        let verdict = certify(&rls, "PositiveHornProfile", None).expect("parse");
-        assert!(
-            verdict.certified,
-            "the reified n-ary body rule must certify soundly: {:?}",
-            verdict.violations
-        );
-
-        // The reified n-ary HEAD rule is a genuine EXISTENTIAL rule (`?R` invented), so
-        // weak-acyclicity CORRECTLY declines it (it is a sufficient-not-necessary
-        // termination test) — the restricted chase terminates it via head-satisfaction +
-        // the content-addressed (`mint_nary_reifier`) witness. Confirm the certifier
-        // SOUNDLY flags the existential rather than silently accepting an unbounded chase.
-        let mul = "http://example.org/mul";
-        let head_rls = format!(
-            "<{io}>(?R, <{mul}>, ?W), <{a0}>(?R, ?a, ?W), <{a1}>(?R, ?b, ?W), \
-             <{a2}>(?R, ?c, ?W) :- \
-             <{io}>(?M, <{op}>, ?W), <{a0}>(?M, ?a, ?W), <{a1}>(?M, ?b, ?W), \
-             <{a2}>(?M, ?c, ?W) .\n"
-        );
-        let head_verdict = certify(&head_rls, "PositiveHornProfile", None).expect("parse");
-        assert!(
-            !head_verdict.certified
-                && head_verdict
-                    .violations
-                    .iter()
-                    .any(|v| v.contains("not bound by any positive body atom")),
-            "the reified head existential must be SOUNDLY flagged (DL-unsafe / not \
-             weakly-acyclic), never silently accepted: {:?}",
-            head_verdict.violations
-        );
-    }
-
-    // ── Unknown/operational profiles ─────────────────────────────────────────────
-
-    #[test]
-    fn procedural_prolog_has_no_static_certification() {
-        let rls = format!("<{R}>(?x, ?y, ?W) :- <{P}>(?x, ?y, ?W) .\n");
-        let verdict = certify(&rls, "ProceduralPrologProfile", None).expect("parse");
-        assert!(!verdict.certified);
-        assert!(
-            verdict
-                .violations
-                .iter()
-                .any(|v| v.contains("no static decidability certification")),
-            "{:?}",
-            verdict.violations
-        );
-        assert_eq!(verdict.decidability_class, "operational/Turing-complete");
-    }
-
-    // ── to_json shape parity ─────────────────────────────────────────────────────
-
-    #[test]
-    fn to_json_pairs_sorts_violations() {
-        let verdict = CertificationVerdict {
-            profile_id: "StratifiedNAFProfile".into(),
-            decidability_class: "terminating/PTIME-data".into(),
-            evolution_class: "static/single-state".into(),
-            certified: false,
-            violations: vec!["zeta".into(), "alpha".into(), "mu".into()],
-        };
-        let (certified, dc, ec, pid, violations) = verdict.to_json_pairs();
-        assert!(!certified);
-        assert_eq!(dc, "terminating/PTIME-data");
-        assert_eq!(ec, "static/single-state");
-        assert_eq!(pid, "StratifiedNAFProfile");
-        assert_eq!(violations, vec!["alpha", "mu", "zeta"]);
-    }
-
-    // ── Evolution-facet decidability class ───────────────────────────────────────
-
-    #[test]
-    fn evolution_class_locked_strings() {
-        assert_eq!(
-            evolution_decidability_class("StaticEvolution").unwrap(),
-            "static/single-state"
-        );
-        assert_eq!(
-            evolution_decidability_class("StateTransitionEvolution").unwrap(),
-            "state-transition/PTIME-per-step"
-        );
-        assert_eq!(
-            evolution_decidability_class("TransactionPathEvolution").unwrap(),
-            "transaction-path/PTIME-classification (conflict-serializability; \
-             classification not search; step-governor bounded)"
-        );
-        // Full-IRI and prefixed forms normalize the same way.
-        assert_eq!(
-            evolution_decidability_class(
-                "https://blackcatinformatics.ca/logic/TransactionPathEvolution"
-            )
-            .unwrap(),
-            "transaction-path/PTIME-classification (conflict-serializability; \
-             classification not search; step-governor bounded)"
-        );
-    }
-
-    #[test]
-    fn evolution_class_unknown_hard_fails() {
-        assert!(evolution_decidability_class("NotAMode").is_err());
-        assert!(evolution_decidability_class("").is_err());
-    }
-
-    #[test]
-    fn certify_defaults_to_static_evolution_when_none() {
-        let verdict = certify(&stratified_rls(), "StratifiedNAFProfile", None).expect("parse");
-        assert_eq!(verdict.evolution_class, "static/single-state");
-    }
-
-    #[test]
-    fn certify_threads_transaction_path_evolution() {
-        let verdict = certify(
-            &stratified_rls(),
-            "StratifiedNAFProfile",
-            Some("TransactionPathEvolution"),
-        )
-        .expect("parse");
-        assert_eq!(
-            verdict.evolution_class,
-            "transaction-path/PTIME-classification (conflict-serializability; \
-             classification not search; step-governor bounded)"
-        );
-    }
-
-    #[test]
-    fn certify_unknown_evolution_hard_fails() {
-        let err = certify(&stratified_rls(), "StratifiedNAFProfile", Some("Bogus"))
-            .expect_err("unknown evolution must hard-fail");
-        assert!(
-            err.message().contains("unrecognized logic:EvolutionMode"),
-            "{err}"
-        );
-    }
-}

@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# Nightly deep fuzz of the format frontends (T7, #788). The always-on
+# Nightly deep fuzz of the format frontends. The always-on
 # "reject malformed, never panic" contract runs in the normal CI nextest lane via
-# the proptest never-panic gate (crates/{rdf,shacl,logic}/tests/never_panic.rs);
-# this scheduled job runs cargo-fuzz for a longer, coverage-guided budget. Any
+# the logic proptest never-panic gate; this scheduled job runs cargo-fuzz across
+# purrdf data formats, native logic/query parsing, and all Common Logic dialects.
+# Any
 # crash artifact fails the run and is uploaded for triage (must become a checked-in
 # regression seed + a parser fix).
 name: fuzz

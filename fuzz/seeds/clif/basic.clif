@@ -1,0 +1,3 @@
+(forall (?x) (if ('https://example.org/cat' ?x) ('https://example.org/animal' ?x)))
+;; @@gmeow-rdf-meta@@
+('https://example.org/type' 'https://example.org/milo' 'https://example.org/cat')

@@ -49,7 +49,7 @@ members = [
     "crates/logic",
     # The pure, wasm-able logic compiler (#664/#732): the parse(RDF 1.2)→IR→project
     # half of the logic stack, split out of crates/logic with zero reasoning-runtime
-    # deps (no Nemo/tokio/PyO3/oxigraph). gmeow-logic depends on it.
+    # deps. gmeow-logic depends on it.
     "crates/logic-compile",
     # Synchronous LSP server for .ttl and .logic files + sarif CLI (#671).
     "crates/lsp",
@@ -134,14 +134,6 @@ edition = "2024"
 license = "AGPL-3.0-only"
 repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"
 
-# === Build-memory taming for the `nemo` dependency tree ===
-# nemo / nemo-physical are generic-heavy: LLVM monomorphizes them into a few
-# enormous functions, so peak compile RAM (historically ~64 GB) is dominated by
-# (a) full DWARF on debug builds feeding the link step, and (b) opt-level-3 LLVM
-# working sets on release builds. These profiles cap both without slowing our own
-# crates. Combined with the bundled rust-lld linker (.cargo/config.toml), this
-# brings a clean nemo build back into normal-workstation territory.
-
 [profile.dev]
 # NO debuginfo. We never run a debugger here, and the DWARF in `target/debug` was the
 # dominant disk hog: a built debug tree is 20–40 GB per worktree (vs ~1.4 GB release),
@@ -159,14 +151,12 @@ strip = "symbols"
 # release-grade codegen AND the overflow/assert safety net the gate depends on). This is
 # a compute engine (native EL/DL/RL reasoner, forward chase, higher-order math kernels),
 # so codegen quality is a first-class runtime property of our own crates, not just deps.
-# MEASURED 2026-07-05, our-crate opt-3 vs opt-2 (nemo held at its RAM-safe pin, deps
-# constant): NO build penalty — a full workspace test rebuild is 46s@opt-3 vs 42s@opt-2
+# MEASURED 2026-07-05, our-crate opt-3 vs opt-2 with dependencies constant:
+# NO build penalty — a full workspace test rebuild is 46s@opt-3 vs 42s@opt-2
 # with peak build RSS 7.6 vs 8.2 GB (opt-3 is not the slower or hungrier build). And a
 # consistent runtime WIN on our reasoner (gmeow-logic `reason` bench): opt-3 faster in
 # every group — el_closure/30-class 126.6ms vs 134.3ms (~5.7%), reason_all ~1.6%,
-# materialize_core ~2.2%. The win is modest today only because the chase still delegates
-# to nemo (pinned); it grows as native code subsumes that path. debug-assertions stay on,
-# so coverage is unchanged; nemo stays RAM-safe at opt-1 below. (The dep-bound
+# materialization ~2.2%. Debug assertions stay on, so coverage is unchanged. (The dep-bound
 # whole-bundle canonicalization tests — ~147s in purrdf, already opt-3 — are NOT moved by
 # our-crate opt-level: measured 147s@opt-2 ≈ 148s@opt-3; they are handled on their own.)
 opt-level = 3
@@ -188,36 +178,20 @@ opt-level = 3
 # keep the checks-ON contract above). Our crates and deps thus share opt-3 codegen; the
 # only difference is that our code additionally carries the runtime safety net. The
 # conformance-gated purrdf engine (parse + id-native SHACL + SPARQL eval) is compute-bound
-# in the whole-bundle tests, so opt-3 here is load-bearing. nemo / nemo-physical are the
-# exception: pinned back to opt-1 because their generic monomorphization is the build-RAM
-# driver (opt-3 restores the ~64 GB peak the nemo cap above exists to prevent).
+# in the whole-bundle tests, so opt-3 here is load-bearing.
 [profile.dev.package."*"]
 opt-level = 3
 debug-assertions = false
 overflow-checks = false
-
-[profile.dev.package.nemo]
-opt-level = 1
-
-[profile.dev.package.nemo-physical]
-opt-level = 1
 
 [profile.test.package."*"]
 opt-level = 3
 debug-assertions = false
 overflow-checks = false
 
-[profile.test.package.nemo]
-opt-level = 1
-
-[profile.test.package.nemo-physical]
-opt-level = 1
-
-# Workspace-wide thin-LTO. `lto` is profile-global — it cannot be
-# scoped away from nemo the way codegen-units is — so enabling it was gated on a
-# measurement of peak link RSS against the 16 GB `ubuntu-latest` wheel runner.
-# MEASURED 2026-06-24: a cold `cargo build --release` (the full
-# nemo graph + workspace link) with `lto = "thin"` peaked at 7.37 GB RSS
+# Workspace-wide thin-LTO was gated on a measurement of peak link RSS against
+# the 16 GB `ubuntu-latest` wheel runner. MEASURED 2026-06-24: a cold
+# `cargo build --release` with `lto = "thin"` peaked at 7.37 GB RSS
 # across the whole build tree at full 32-core local parallelism. A 4-core CI
 # runner has fewer concurrent rustc compiles (lower compile-phase peak) and the
 # same single-process LTO link, so its peak is ≤ that figure — well under 16 GB
@@ -234,30 +208,19 @@ lto = "thin"
 # already Cargo's release default (no DWARF); `strip` is not.
 strip = "symbols"
 
-# Release/wheel builds: opt-level 3 on nemo's generics is the RAM driver. opt 2
-# keeps ~all the runtime speed; many small codegen units cap per-unit LLVM peak.
-[profile.release.package.nemo]
-opt-level = 2
-codegen-units = 256
-
-[profile.release.package.nemo-physical]
-opt-level = 2
-codegen-units = 256
-
 # === First-party release tuning (#630 acceleration, Phase 1) ===
 # Our own crates carry the runtime hot paths (logic chase, SHACL evaluation,
 # validation lints). The default release profile splits each crate into 16
 # codegen units, which forfeits cross-function inlining WITHIN the crate.
 # codegen-units = 1 lets LLVM optimize each of our crates as a single unit.
 #
-# This is scoped to FIRST-PARTY crates via per-package overrides on purpose:
-#   * nemo / nemo-physical keep their 256-unit caps (their build-RAM budget,
-#     historically ~64 GB, is the reason the overrides above exist);
-#   * third-party deps (oxigraph, regex, …) keep the default 16 units,
-#     so neither their build RAM nor build time regresses.
-# Net effect: only the crates we actually wrote get the tighter codegen, so the
-# CI nemo build budget is untouched.
-#
+# This is scoped to FIRST-PARTY crates via per-package overrides on purpose;
+# third-party dependencies keep the default 16 units, so neither their build RAM
+# nor build time regresses.
+# A per-package table inherits every unspecified setting from `[profile.release]`:
+# `gmeow-logic` therefore remains at release `opt-level = 3`; this override changes
+# ONLY `codegen-units`. Net effect: only the crates we actually wrote get the tighter
+# within-crate optimization unit.
 # Workspace-wide thin-LTO IS now enabled (see `[profile.release]` above) — its
 # peak link RSS was measured at 7.37 GB, well within the 16 GB wheel-runner
 # budget (#828 item 3). codegen-units = 1 below still matters: it sets the
@@ -301,10 +264,7 @@ codegen-units = 1
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which
-# inherits the BASE release settings but NOT the per-package overrides above —
-# Cargo profile overrides are per-profile and are not inherited. Mirror the two
-# RAM-critical nemo caps so a local benchmark build does not rebuild nemo at the
-# default opt-3 / 16-unit settings (the very thing the release caps above avoid).
+# inherits the BASE release settings but NOT the per-package overrides above.
 # Our own crates bench at the release base (opt-level 3); criterion deltas across
 # phases are relative, so codegen-units fidelity to the wheel is not required here.
 #
@@ -334,11 +294,3 @@ lto = false
 # above — `bench` does not inherit `[profile.release]`'s settings (Cargo profile
 # overrides are per-profile), so it needs its own `strip` closing the same gap.
 strip = "symbols"
-
-[profile.bench.package.nemo]
-opt-level = 2
-codegen-units = 256
-
-[profile.bench.package.nemo-physical]
-opt-level = 2
-codegen-units = 256

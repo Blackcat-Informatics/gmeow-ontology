@@ -344,6 +344,8 @@ fn lower_one_rule(rule: &NaryRule, scheme: ArgScheme) -> gmeow_errors::Result<Ex
         // invented tuple has its OWN reifier subject, minted by tuple identity), so the
         // structural distinctness guard is empty here by construction.
         distinct: Vec::new(),
+        witness_frontier: None,
+        witness_policy: crate::physical::WitnessPolicy::FrontierSkolem,
     })
 }
 
@@ -369,8 +371,7 @@ pub fn certify_nary_termination(rules: &[NaryRule]) -> gmeow_errors::Result<Chas
 /// The program is lowered to the reified binary encoding ([`lower_nary_edb`] +
 /// [`lower_nary_rules`]) and run through the EXISTING native chase
 /// ([`crate::physical::chase_world`]); the derived reified triples are then re-assembled
-/// into `(relation, args)` tuples so a caller can compare against a native-n-ary oracle
-/// (e.g. Nemo's) output directly.
+/// into `(relation, args)` tuples for native consumers.
 ///
 /// Termination is a CERTIFICATE, not a hope: the program is certified weakly acyclic on the
 /// relation-qualified model first; an uncertified program is REFUSED (a hard error naming
@@ -536,72 +537,18 @@ pub fn run_native_nary_forward_run(
     })
 }
 
-// ── Nemo n-ary oracle seam ────────────────────────────────────────────────────
-
-/// Drive the demoted Nemo bootstrap oracle over the SAME n-ary EDB + n-ary multi-head
-/// existential `.rls` program the native path runs, returning the closure DE-DECODED into
-/// n-ary tuples (asserted EDB ∪ derived), for a native↔Nemo n-ary parity comparison.
-///
-/// This is the n-ary sibling of [`crate::cost::run_nemo_forward_facts_only`]: the
-/// arity-4+ EDB cannot be carried through the binary `RdfDataset` seam that function
-/// takes, so the tuples are interned into a [`crate::facts::TypedFactSet`] at full arity
-/// and run through the facts-only typed chase ([`crate::nemo_engine::run_chase_typed_facts_only`]) —
-/// exactly the path the native↔Nemo n-ary parity test drives. The chase invents fresh
-/// labeled nulls whose identifiers legitimately differ per engine, so a caller compares
-/// the closures NULL-BLIND ([`nary_closures_agree`] / [`nary_canonical_fingerprint`]),
-/// never by raw null identifier.
-///
-/// # Errors
-///
-/// Returns `Err` if the Nemo facts-only chase fails to parse/validate/evaluate/decode.
-pub fn run_nemo_nary_forward(edb: &[NaryTuple], rls: &str) -> gmeow_errors::Result<Vec<NaryTuple>> {
-    use crate::facts::TypedFactSet;
-
-    let mut typed = TypedFactSet::new();
-    for tuple in edb {
-        let ids: Vec<_> = tuple.args.iter().map(|a| typed.intern(a)).collect();
-        typed.push_fact(&tuple.relation, ids);
-    }
-    let rows = crate::nemo_engine::run_chase_typed_facts_only(&typed, rls)?;
-    Ok(rows
-        .into_iter()
-        .map(|row| NaryTuple {
-            relation: row.predicate,
-            args: row.args,
-        })
-        .collect())
-}
-
 // ── Null-blind canonicalization (colour refinement) ───────────────────────────
 
-/// Whether a term's rendered display string is an invented null: a native chase Skolem IRI
-/// (`…/skolem/…`) or a Nemo labeled null (`urn:gmeow:nemo-null:…`). Split out from [`is_null`]
-/// so callers that already hold the rendered string (e.g. a pre-rendered display cache) can
-/// test it without re-running `term_display`.
+/// Whether a term's rendered display string is a native chase Skolem IRI.
 fn is_null_display(d: &str) -> bool {
-    d.contains("/skolem/") || d.contains("nemo-null:")
-}
-
-/// Whether a term is an invented null: a native chase Skolem IRI (`…/skolem/…`) or a Nemo
-/// labeled null (`urn:gmeow:nemo-null:…`). Both engines mint fresh witnesses whose surface
-/// identifiers legitimately differ, so a cross-engine comparison canonicalizes them away.
-///
-/// `canonical_null_blind_multiset` itself now pre-renders `term_display` once per argument
-/// and tests [`is_null_display`] against the cached string, so this `TermValue`-taking form
-/// is test-only (kept for parity assertions in `nary::tests` that inspect raw tuple args).
-#[cfg(test)]
-fn is_null(t: &TermValue) -> bool {
-    is_null_display(&term_display(t))
+    d.contains("/skolem/")
 }
 
 /// Canonicalize an n-ary tuple set to a null-blind MULTISET by colour refinement of the
 /// null-labeled tuple hypergraph: a null's colour is the fixpoint of the multiset of
 /// `(relation, its position, the colours of every argument)` contexts it occurs in,
-/// grounded in the named terms. Isomorphic null structures converge to equal colours
-/// across engines; non-isomorphic ones never do, and witness MULTIPLICITY is preserved by
-/// the count. This is the SAME canonicalization the native↔Nemo n-ary parity test uses,
-/// promoted here so the engine-bench harness computes a stable cross-engine agreement
-/// verdict without re-implementing it.
+/// grounded in the named terms. Isomorphic null structures converge to equal colours,
+/// non-isomorphic ones never do, and witness MULTIPLICITY is preserved by the count.
 #[must_use]
 pub fn canonical_null_blind_multiset(
     tuples: &[NaryTuple],
@@ -696,9 +643,7 @@ pub fn canonical_null_blind_multiset(
     ms
 }
 
-/// A deterministic, null-blind fingerprint of an n-ary closure — the stable verdict token
-/// two engines' closures compare EQUAL on iff they agree up to a structure-respecting
-/// renaming of invented nulls (and preserved multiplicity). Built from
+/// A deterministic, null-blind fingerprint of an n-ary closure. Built from
 /// [`canonical_null_blind_multiset`] and hashed via the shared SHA-1 hex digest, so it is
 /// a pure function of the closure and drift-gate-stable.
 #[must_use]
@@ -714,14 +659,6 @@ pub fn nary_canonical_fingerprint(tuples: &[NaryTuple]) -> String {
         payload.push('\u{1e}');
     }
     crate::provenance::sha1_hex(&payload)
-}
-
-/// Whether two n-ary closures AGREE null-blind: their null-canonicalized multisets are
-/// equal (isomorphic null structure, identical named-tuple support, preserved
-/// multiplicity). The sound cross-engine invariant for a value-inventing n-ary chase.
-#[must_use]
-pub fn nary_closures_agree(native: &[NaryTuple], nemo: &[NaryTuple]) -> bool {
-    canonical_null_blind_multiset(native) == canonical_null_blind_multiset(nemo)
 }
 
 #[cfg(test)]

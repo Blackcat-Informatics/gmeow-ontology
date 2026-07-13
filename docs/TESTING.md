@@ -103,12 +103,11 @@ omitting it means `gmeow:reasoningNone`.
 
 ### Why not full OWL 2 RL
 
-The native OWL 2 RL closure (`gmeow_logic::reason::rl_closure`) takes ~4 minutes
-over the *whole* merged ontology — far too slow for a routine test lane, and it
-pulls the Nemo Datalog engine into the harness's build graph. RDFS captures the
-type-and-subsumption entailments competency questions actually need at a tiny
-fraction of the cost, and `crates/slicetest` carries **no `gmeow-logic`/Nemo
-dependency** as a result.
+The native OWL 2 RL closure (`gmeow_logic::reason::rl_closure`) takes minutes over
+the *whole* merged ontology — far too slow for a routine slice-test lane. RDFS
+captures the type-and-subsumption entailments competency questions actually need
+at a tiny fraction of the cost, and ordinary `crates/slicetest` questions avoid
+the full `gmeow-logic` dependency as a result.
 
 ### The OWL 2 RL entailment harness (`crates/logic/tests/ontology_entailments.rs`)
 

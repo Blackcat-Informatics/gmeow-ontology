@@ -6,7 +6,7 @@
 //! See [`crate::clif`] for the two-channel architecture. This module emits the
 //! idiomatic FOL channel (`rules` + `formulas`) as Common Logic sentences and the
 //! RDF/predication channel (everything else) as `(<P> <S> <O>)` predications after the
-//! [`RDF_META_SENTINEL`](super::RDF_META_SENTINEL).
+//! `RDF_META_SENTINEL`.
 
 use gmeow_errors::Diag;
 

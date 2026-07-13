@@ -6,7 +6,7 @@
 //! See [`crate::cgif`] for the two-channel architecture. This module emits the idiomatic
 //! conceptual-graph channel (`rules` + `formulas`) as readable conceptual graphs and the
 //! RDF/predication channel (everything else) as `("P" "S" "O")` relation predications after
-//! the [`RDF_META_SENTINEL`](super::RDF_META_SENTINEL).
+//! the `RDF_META_SENTINEL`.
 
 use gmeow_errors::Diag;
 

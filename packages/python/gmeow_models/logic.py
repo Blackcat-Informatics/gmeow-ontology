@@ -57,12 +57,12 @@ class Logic_ChaseAcceptanceWitness(ConfiguredBaseModel):
 
     The acceptance record that an existential-rule chase materialization terminated under a
     weak-acyclicity certificate, executed natively by
-    gmeow_logic::materialize::materialize_routed, which surfaces the ChaseAdmission
-    termination certificate as a first-class gmeow:Finding. It carries, through
-    logic:carriesTerminationCertificate, the certificate evidence. The flagship producer
-    runs the native chase and pins that the surfaced Finding is non-empty and that the
-    derivation carries an explain trace passing gmeow_logic::explain::assert_faithful; this
-    witness is the ontological twin the thin logic:ChaseAcceptanceWitnessShape gates.
+    gmeow_logic::materialize::materialize_existential_rules, which surfaces the
+    ChaseAdmission termination certificate as a first-class gmeow:Finding. It carries,
+    through logic:carriesTerminationCertificate, the certificate evidence. The flagship
+    producer runs the native chase and pins that the surfaced Finding is non-empty and that
+    the derivation carries an explain trace passing gmeow_logic::explain::assert_faithful;
+    this witness is the ontological twin the thin logic:ChaseAcceptanceWitnessShape gates.
 
     Usage:
         >>> from gmeow_models.logic import Logic_ChaseAcceptanceWitness
@@ -77,7 +77,7 @@ class Logic_ChaseAcceptanceWitness(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/ChaseAcceptanceWitness", "curie": "logic:ChaseAcceptanceWitness", "definitionDigest": "blake3:5ba545f3573aeeaab4318b2cc21716deb62eeb37fd062a67bb95e7b1a5ef0458", "iri": "https://blackcatinformatics.ca/logic/ChaseAcceptanceWitness"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/ChaseAcceptanceWitness", "curie": "logic:ChaseAcceptanceWitness", "definitionDigest": "blake3:2b2128fa1233cd3c71ad905857e897902dfe608b0625958298d73557b71f7fcf", "iri": "https://blackcatinformatics.ca/logic/ChaseAcceptanceWitness"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
@@ -388,6 +388,55 @@ class Logic_FormalizationCandidate(ConfiguredBaseModel):
     candidateSemanticRisk: list[str] = Field(min_length=1, description="Relates a logic:FormalizationCandidate to its logic:SemanticRiskClass — how far a wrong formalization would propagate, which sets how strict the reviewer gate must be. Single-valued. Domain logic:FormalizationCandidate, range logic:SemanticRiskClass.", alias="logic:candidateSemanticRisk")
     candidateSourceField: list[str] | None = Field(default=None, description="Names which annotation field of the logic:candidateFormalizes term a candidate harvested — a logic:ProseField from the closed set (logic:ProseFieldDefinition, logic:ProseFieldUseWhen, logic:ProseFieldAvoidWhen). Together with logic:candidateFormalizes it pins the harvested axiom to the exact source triple. Co-present with logic:candidateFormalizes: a candidate carrying one of the pair without the other is a hard governance error (verify.harvest-link-paired), never a half-link. Single-valued. Domain logic:FormalizationCandidate, range logic:ProseField.", alias="logic:candidateSourceField")
     candidateSourceHash: list[str] = Field(min_length=1, description="The content hash of the source text a logic:FormalizationCandidate was extracted from: the anchor that ties the candidate back to the exact prose it formalizes and detects drift if that prose changes. Single-valued, xsd:string. Domain logic:FormalizationCandidate.", alias="logic:candidateSourceHash")
+
+
+class Logic_Formula(ConfiguredBaseModel):
+    """Formula.
+
+    A first-order formula node: the reified AST node a non-Horn logic: statement compiles
+    into. A logic:Formula is a quantifier (carrying logic:forall or logic:exists over a body
+    and one or more logic:quantifiedVariable bindings), a connective (logic:and, logic:or,
+    logic:not, logic:antecedent with logic:consequent, or logic:iff over sub-formulae), or
+    an atomic predication (logic:relation over ordered logic:argument terms). It is the
+    unified full-FOL core of which Horn+NAF derivation rules are a recognized sub-fragment;
+    the canonical RDF 1.2 serialization round-trips it losslessly, while weaker projections
+    carry any formula they cannot express as flagged unsupported residue.
+
+    When to use:
+        - Use for first-order quantifier or connective structure that cannot live uniquely as a
+          Horn fact or rule.
+
+    When to avoid:
+        - Do not encode a trivially Horn binary fact as a top-level formula; place it in the axiom
+          or rule collection.
+
+    How to use:
+        - Choose one constructor family, link its sub-formulae, and place every argument or
+          binding in an indexed logic:TermCarrier.
+
+    Examples:
+        - The tree for every person knows someone is a logic:forall node whose body is a
+          logic:exists node containing a logic:relation atom.
+
+    Usage:
+        >>> from gmeow_models.logic import Logic_Formula
+        >>> Logic_Formula.model_config["json_schema_extra"]["curie"]
+        'logic:Formula'
+
+    IRI:    https://blackcatinformatics.ca/logic/Formula
+    CURIE:  logic:Formula
+
+    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/Formula", "curie": "logic:Formula", "definitionDigest": "blake3:c848f62ee31ae4ec362bde22cc72732a617ee7216b88bf3a858d67b9b4c14a3d", "iri": "https://blackcatinformatics.ca/logic/Formula"},
+    )
+
+    annotation: Annotation | None = Field(default=None, alias="@annotation")
+    id: str | None = Field(default=None, alias="@id")
+    type_: str | list[str] | None = Field(default=None, alias="@type")
 
 
 class Logic_FreshnessGuard(ConfiguredBaseModel):
@@ -729,3 +778,48 @@ class Logic_SectionAcceptanceWitness(ConfiguredBaseModel):
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
     dischargesSectionObligation: list[str] = Field(min_length=1, description="Relates a logic:SectionAcceptanceWitness to the section obligation (an IRI) its executed get/put round-trip discharges. Domain logic:SectionAcceptanceWitness (stated in prose). Exactly the edge whose absence makes the discharge unfalsifiable: a section witness that names no obligation asserts a round-trip without saying which law it satisfies.", alias="logic:dischargesSectionObligation")
+
+
+class Logic_TermCarrier(ConfiguredBaseModel):
+    """Term Carrier.
+
+    An ordered slot in an atomic formula's logic:argument list or a quantifier's
+    logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and
+    exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, or
+    logic:termSequenceMarker. It is not the term value itself; it is the RDF node that
+    preserves the value's kind and position independently of triple order.
+
+    When to use:
+        - Use for each ordered atom argument and each ordered quantifier binding.
+
+    When to avoid:
+        - Do not place two value kinds on one carrier or infer its position from Turtle
+          serialization order.
+
+    How to use:
+        - Assign one contiguous zero-based index and one of the four exclusive term-value
+          predicates.
+
+    Examples:
+        - An atom's second argument can be represented by a carrier with logic:termIndex 1 and
+          logic:termVariable 'object'.
+
+    Usage:
+        >>> from gmeow_models.logic import Logic_TermCarrier
+        >>> Logic_TermCarrier.model_config["json_schema_extra"]["curie"]
+        'logic:TermCarrier'
+
+    IRI:    https://blackcatinformatics.ca/logic/TermCarrier
+    CURIE:  logic:TermCarrier
+
+    GENERATED by the gmeow pydantic emitter — DO NOT EDIT.
+    """
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/logic/TermCarrier", "curie": "logic:TermCarrier", "definitionDigest": "blake3:0512742696e98bc5bfd40da85ebd72c4e7763c7d757ae400ea09e6f6cd23723e", "iri": "https://blackcatinformatics.ca/logic/TermCarrier"},
+    )
+
+    annotation: Annotation | None = Field(default=None, alias="@annotation")
+    id: str | None = Field(default=None, alias="@id")
+    type_: str | list[str] | None = Field(default=None, alias="@type")

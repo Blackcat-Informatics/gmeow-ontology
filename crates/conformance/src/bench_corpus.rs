@@ -6,15 +6,14 @@
 //! The bench corpus is a NEW sibling of the OWL-consistency `cases/external/` tree.
 //! Each `cases/bench/<corpus>/` directory carries a `corpus.json`
 //! ([`crate::external::corpus::CorpusMeta`]) whose declared SPDX license is audited
-//! with the SAME [`audit_vendorable`] gate the external corpora use — a
+//! with the SAME `audit_vendorable` gate the external corpora use — a
 //! non-vendorable (REFERENCE_ONLY / unknown) license is a HARD FAIL, never a
 //! silently-loaded case. Each `<corpus>/<case>/` directory carries the four
 //! benchmark artifacts:
 //!
-//! * `program.rules` — engine rule text. For `forward`/`existential` cases this is
-//!   the world-scoped ternary `#[name(...)]` surface
-//!   [`gmeow_logic::cost::run_native_forward`] / [`gmeow_logic::materialize::materialize_routed`]
-//!   accept; for `backward` cases it is the goal-directed `.logic` query surface
+//! * `program.rules` — corpus-local fixture text. Forward and existential cases are
+//!   parsed here into typed engine inputs before evaluation; backward cases use the
+//!   goal-directed `.logic` query surface
 //!   [`gmeow_logic::query_ir::parse_query_program`] parses and
 //!   [`gmeow_logic::dispatch::dispatch_query`] consumes (the EDB is supplied
 //!   separately from `input.nq`, not inlined in the query).
@@ -31,14 +30,6 @@
 //! `delta.nq`, checks the resulting closure against a clean native rebuild, retracts the
 //! same batch, and checks that the base closure is recovered. Its golden `rows` is the
 //! derived-row count after insertion.
-//!
-//! The `nary-existential` fragment (the ChaseBench/Nemo-KR2024 family shape) carries a
-//! DIFFERENT EDB + rule surface instead of `program.rules` + `input.nq`: an n-ary
-//! `program.rls` program ([`gmeow_logic::nary_rls::parse_nary_rls_program`]) plus a `data/`
-//! directory of delimited (`<rel>.csv` / `<rel>.tsv`, optionally `.gz`) n-ary EDB relations
-//! ([`gmeow_logic::nary_rls::load_nary_data_file`]). The same `program.rls` drives BOTH the
-//! native reified-binary chase and the Nemo n-ary oracle; its `expected/result.json` golden
-//! is the hand-derived de-reified closure tuple count keyed by a nominal world IRI.
 //!
 //! Loading is manual + hard-fail (matching `external/corpus.rs`): a missing artifact,
 //! a wrong type, an unknown key, or an engine/fragment inconsistency is an error,
@@ -58,9 +49,9 @@ use crate::external::corpus::{audit_vendorable, parse_corpus_meta};
 /// (`program.rules`) and the engines the harness may drive.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Fragment {
-    /// Forward Datalog materialization (native / Nemo).
+    /// Forward Datalog materialization.
     Forward,
-    /// Existential (value-inventing) TGD chase (native / Nemo).
+    /// Existential (value-inventing) native TGD chase.
     Existential,
     /// Goal-directed backward query (native / captured SLD golden).
     Backward,
@@ -71,11 +62,6 @@ pub enum Fragment {
     /// grounder is incremental; the non-monotone solver remains from scratch and is
     /// reported explicitly per shot.
     IncrementalGrounding,
-    /// Fixed-arity n-ary multi-head existential TGD chase (native reified-binary lowering
-    /// vs Nemo), driven from an n-ary `.rls` program + delimited (`data/<rel>.csv`) EDB —
-    /// the ChaseBench/Nemo-KR2024 family shape. Distinct from [`Fragment::Existential`]
-    /// (which is the ternary world-scoped surface over an `input.nq` EDB).
-    NaryExistential,
 }
 
 impl Fragment {
@@ -87,12 +73,10 @@ impl Fragment {
             "backward" => Ok(Fragment::Backward),
             "incremental" => Ok(Fragment::Incremental),
             "incremental-grounding" => Ok(Fragment::IncrementalGrounding),
-            "nary-existential" => Ok(Fragment::NaryExistential),
             other => Err(Diag::of_kind(ProfileInvalid {
                 detail: format!(
                     "profile.json fragment must be \"forward\", \"existential\", \"backward\", \
-                     \"incremental\", \"incremental-grounding\", or \
-                     \"nary-existential\", got {other:?}"
+                     \"incremental\", or \"incremental-grounding\", got {other:?}"
                 ),
             })),
         }
@@ -107,7 +91,6 @@ impl Fragment {
             Fragment::Backward => "backward",
             Fragment::Incremental => "incremental",
             Fragment::IncrementalGrounding => "incremental-grounding",
-            Fragment::NaryExistential => "nary-existential",
         }
     }
 }
@@ -124,10 +107,6 @@ pub struct GoldenWorld {
 
 /// A loaded, typed benchmark case.
 ///
-/// `Eq` is intentionally NOT derived: an [`Fragment::NaryExistential`] case carries a
-/// [`gmeow_logic::nary::NaryTuple`] EDB whose `purrdf::TermValue` arguments are `PartialEq`
-/// but not `Eq` (a float literal has no total equality), so the whole case is `PartialEq`
-/// only. Nothing keys a `BenchCase` in a hashed/ordered set, so this loses nothing.
 #[derive(Debug, Clone, PartialEq)]
 pub struct BenchCase {
     /// The owning corpus directory name (`cases/bench/<corpus>/`).
@@ -138,22 +117,264 @@ pub struct BenchCase {
     pub fragment: Fragment,
     /// The engines the harness may drive this case through (as declared).
     pub engines: Vec<String>,
-    /// The engine rule / query text — `program.rules` for the ternary
-    /// forward/existential/backward fragments, or the n-ary `program.rls` for
-    /// [`Fragment::NaryExistential`] — verbatim.
+    /// The engine rule / query text from `program.rules`, verbatim.
     pub rules: String,
-    /// The world-scoped EDB as N-Quads (`input.nq`), verbatim. EMPTY for an
-    /// [`Fragment::NaryExistential`] case, whose EDB is the n-ary `nary_edb` instead.
+    /// The world-scoped EDB as N-Quads (`input.nq`), verbatim.
     pub edb_nq: String,
     /// The signed insertion fixture (`delta.nq`) for [`Fragment::Incremental`] and
     /// [`Fragment::IncrementalGrounding`] cases ONLY — empty for every other
     /// fragment. The same rows are retracted after insertion to prove parity.
     pub delta_nq: String,
-    /// The n-ary EDB (`data/<rel>.csv` files, arity-driven), for
-    /// [`Fragment::NaryExistential`] cases ONLY — empty for every other fragment.
-    pub nary_edb: Vec<gmeow_logic::nary::NaryTuple>,
     /// The hand-derived golden, keyed by world IRI (sorted).
     pub golden: std::collections::BTreeMap<String, GoldenWorld>,
+}
+
+impl BenchCase {
+    /// Parse this corpus fixture into the canonical typed logic program consumed by
+    /// the native forward, incremental, and grounding seams.
+    ///
+    /// The compact `program.rules` syntax is a storage format local to the benchmark
+    /// corpus. It never crosses into the engine API.
+    pub fn canonical_program(&self) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicProgram> {
+        use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
+
+        let rules = parse_fixture_rules(&self.rules)?;
+        let mut canonical = Vec::with_capacity(rules.len());
+        for rule in rules {
+            if rule.head.subject.existential
+                || rule.head.object.existential
+                || rule
+                    .body
+                    .iter()
+                    .any(|atom| atom.subject.existential || atom.object.existential)
+            {
+                return Err(fixture_err(format!(
+                    "{}/{}: existential variable found where a finite canonical program was required",
+                    self.corpus, self.name
+                )));
+            }
+            let head = fixture_axiom(&rule.head)?;
+            let body = rule
+                .body
+                .iter()
+                .map(fixture_axiom)
+                .collect::<gmeow_errors::Result<Vec<LogicAxiom>>>()?;
+            let scope = ContextualScope {
+                provenance: Some(rule.rule_iri),
+                ..ContextualScope::default()
+            };
+            canonical.push(LogicRule::new(head, body, Vec::new(), scope));
+        }
+        Ok(LogicProgram::new(Vec::new(), canonical, Vec::new(), None))
+    }
+
+    /// Parse this existential corpus fixture into structured restricted-chase rules.
+    ///
+    /// The returned rules are the typed public boundary; compact fixture parsing is
+    /// contained in this corpus adapter.
+    pub fn existential_rules(
+        &self,
+    ) -> gmeow_errors::Result<Vec<gmeow_logic::materialize::StructuredExistentialRule>> {
+        use gmeow_logic::materialize::{StructuredAtom, StructuredExistentialRule, StructuredTerm};
+
+        fn term(term: &FixtureTerm) -> StructuredTerm {
+            if term.value.starts_with('?') {
+                StructuredTerm::var(&term.value)
+            } else {
+                StructuredTerm::named(&term.value)
+            }
+        }
+
+        fn atom(atom: &FixtureAtom) -> StructuredAtom {
+            StructuredAtom::new(term(&atom.subject), &atom.predicate, term(&atom.object))
+        }
+
+        parse_fixture_rules(&self.rules)?
+            .into_iter()
+            .map(|rule| {
+                if rule
+                    .body
+                    .iter()
+                    .any(|body| body.negated || body.subject.existential || body.object.existential)
+                {
+                    return Err(fixture_err(format!(
+                        "{}/{}: existential benchmark bodies must be positive and frontier-bound",
+                        self.corpus, self.name
+                    )));
+                }
+                Ok(StructuredExistentialRule {
+                    rule_iri: rule.rule_iri,
+                    body: rule.body.iter().map(atom).collect(),
+                    head: vec![atom(&rule.head)],
+                    distinct: Vec::new(),
+                    witness_frontier: None,
+                })
+            })
+            .collect()
+    }
+}
+
+#[derive(Debug)]
+struct FixtureTerm {
+    value: String,
+    existential: bool,
+}
+
+#[derive(Debug)]
+struct FixtureAtom {
+    subject: FixtureTerm,
+    predicate: String,
+    object: FixtureTerm,
+    negated: bool,
+}
+
+#[derive(Debug)]
+struct FixtureRule {
+    rule_iri: String,
+    head: FixtureAtom,
+    body: Vec<FixtureAtom>,
+}
+
+fn fixture_err(detail: String) -> Diag {
+    Diag::of_kind(CorpusInvalid { detail })
+}
+
+fn fixture_axiom(atom: &FixtureAtom) -> gmeow_errors::Result<gmeow_logic_compile::ir::LogicAxiom> {
+    gmeow_logic_compile::ir::LogicAxiom::new(
+        &atom.subject.value,
+        &atom.predicate,
+        &atom.object.value,
+        false,
+        atom.negated,
+        gmeow_logic_compile::ir::ContextualScope::default(),
+    )
+}
+
+fn parse_fixture_rules(source: &str) -> gmeow_errors::Result<Vec<FixtureRule>> {
+    let mut rules = Vec::new();
+    let mut name = None;
+    let mut statement = String::new();
+    for line in source.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('%') {
+            continue;
+        }
+        if let Some(inner) = trimmed
+            .strip_prefix("#[name(\"")
+            .and_then(|value| value.strip_suffix("\")]"))
+        {
+            name = Some(inner.to_owned());
+            continue;
+        }
+        if !statement.is_empty() {
+            statement.push(' ');
+        }
+        statement.push_str(trimmed);
+        if !trimmed.ends_with('.') {
+            continue;
+        }
+        let text = statement.trim_end_matches('.').trim();
+        let (head, body) = text
+            .split_once(":-")
+            .ok_or_else(|| fixture_err(format!("benchmark rule lacks ':-': {text}")))?;
+        rules.push(FixtureRule {
+            rule_iri: name
+                .take()
+                .unwrap_or_else(|| format!("urn:gmeow:benchmark-rule:{}", rules.len())),
+            head: parse_fixture_atom(head, false)?,
+            body: split_fixture_atoms(body)
+                .into_iter()
+                .map(|text| {
+                    let negated = text.trim_start().starts_with('~');
+                    parse_fixture_atom(text, negated)
+                })
+                .collect::<gmeow_errors::Result<Vec<_>>>()?,
+        });
+        statement.clear();
+    }
+    if !statement.trim().is_empty() {
+        return Err(fixture_err(format!(
+            "unterminated benchmark rule: {statement}"
+        )));
+    }
+    Ok(rules)
+}
+
+fn split_fixture_atoms(body: &str) -> Vec<&str> {
+    let mut atoms = Vec::new();
+    let mut depth = 0u32;
+    let mut start = 0usize;
+    for (index, byte) in body.bytes().enumerate() {
+        match byte {
+            b'(' => depth += 1,
+            b')' => depth = depth.saturating_sub(1),
+            b',' if depth == 0 => {
+                atoms.push(&body[start..index]);
+                start = index + 1;
+            }
+            _ => {}
+        }
+    }
+    atoms.push(&body[start..]);
+    atoms
+}
+
+fn parse_fixture_atom(text: &str, negated: bool) -> gmeow_errors::Result<FixtureAtom> {
+    let text = text.trim().strip_prefix('~').unwrap_or(text.trim());
+    let open = text
+        .find('(')
+        .ok_or_else(|| fixture_err(format!("invalid benchmark atom: {text}")))?;
+    let close = text
+        .rfind(')')
+        .ok_or_else(|| fixture_err(format!("invalid benchmark atom: {text}")))?;
+    let predicate = parse_fixture_iri(text[..open].trim())?;
+    let args = text[open + 1..close]
+        .split(',')
+        .map(str::trim)
+        .collect::<Vec<_>>();
+    if args.len() != 3 {
+        return Err(fixture_err(format!(
+            "benchmark atom must be named-ternary, got {} arguments: {text}",
+            args.len()
+        )));
+    }
+    if !args[2].starts_with('?') {
+        return Err(fixture_err(format!(
+            "benchmark atom world slot must be a variable: {text}"
+        )));
+    }
+    Ok(FixtureAtom {
+        subject: parse_fixture_term(args[0])?,
+        predicate,
+        object: parse_fixture_term(args[1])?,
+        negated,
+    })
+}
+
+fn parse_fixture_iri(text: &str) -> gmeow_errors::Result<String> {
+    text.strip_prefix('<')
+        .and_then(|value| value.strip_suffix('>'))
+        .map(str::to_owned)
+        .ok_or_else(|| fixture_err(format!("benchmark predicate must be an IRI: {text}")))
+}
+
+fn parse_fixture_term(text: &str) -> gmeow_errors::Result<FixtureTerm> {
+    if let Some(variable) = text.strip_prefix('?') {
+        return Ok(FixtureTerm {
+            value: format!("?{variable}"),
+            existential: false,
+        });
+    }
+    if let Some(variable) = text.strip_prefix('!') {
+        return Ok(FixtureTerm {
+            value: format!("?{variable}"),
+            existential: true,
+        });
+    }
+    Ok(FixtureTerm {
+        value: parse_fixture_iri(text)?,
+        existential: false,
+    })
 }
 
 /// The engine-benchmark corpus root, `conformance/logic/cases/bench/`.
@@ -227,11 +448,9 @@ pub fn load_bench_corpora_from(root: &Path) -> gmeow_errors::Result<Vec<BenchCas
 
 /// Load one case directory into a typed [`BenchCase`].
 ///
-/// The rule-text and EDB artifacts depend on the fragment: the ternary
-/// forward/existential/backward fragments carry `program.rules` + an `input.nq` N-Quads
-/// EDB, while the [`Fragment::NaryExistential`] fragment carries an n-ary `program.rls`
-/// program + a `data/` directory of delimited (`<rel>.csv`) n-ary EDB relations. The
-/// profile is read FIRST so the shape is known before the shape-specific artifacts load.
+/// Every fragment carries `program.rules` plus a world-scoped `input.nq`; incremental
+/// fragments additionally carry `delta.nq`. The profile is read first so the loader
+/// knows whether the delta artifact is required.
 fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<BenchCase> {
     let (fragment, engines) = parse_profile(&read_json(&case_dir.join("profile.json"))?)?;
     let golden = parse_golden(&read_json(&case_dir.join("expected").join("result.json"))?)?;
@@ -248,28 +467,17 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
     }
 
     // Shape-specific rule text + EDB.
-    let (rules, edb_nq, delta_nq, nary_edb) = match fragment {
-        Fragment::NaryExistential => {
-            let rules = read_to_string(&case_dir.join("program.rls"))?;
-            // Resolve the delimited EDB relation stems against the SAME `@prefix` map the
-            // Nemo front-end resolves the rule-atom CURIEs against, so a CURIE stem
-            // (`nf:isMainClass.csv`) names the SAME relation IRI as its rule atom — without
-            // this the reified body atoms never join the EDB and the native chase silently
-            // derives nothing.
-            let prefixes = gmeow_logic::nary_rls::parse_rls_prefixes(&rules);
-            let nary_edb = load_nary_edb_dir(corpus, name, &case_dir.join("data"), &prefixes)?;
-            (rules, String::new(), String::new(), nary_edb)
-        }
+    let (rules, edb_nq, delta_nq) = match fragment {
         Fragment::Incremental | Fragment::IncrementalGrounding => {
             let rules = read_to_string(&case_dir.join("program.rules"))?;
             let edb_nq = read_to_string(&case_dir.join("input.nq"))?;
             let delta_nq = read_to_string(&case_dir.join("delta.nq"))?;
-            (rules, edb_nq, delta_nq, Vec::new())
+            (rules, edb_nq, delta_nq)
         }
         Fragment::Forward | Fragment::Existential | Fragment::Backward => {
             let rules = read_to_string(&case_dir.join("program.rules"))?;
             let edb_nq = read_to_string(&case_dir.join("input.nq"))?;
-            (rules, edb_nq, String::new(), Vec::new())
+            (rules, edb_nq, String::new())
         }
     };
 
@@ -281,60 +489,8 @@ fn load_case(corpus: &str, name: &str, case_dir: &Path) -> gmeow_errors::Result<
         rules,
         edb_nq,
         delta_nq,
-        nary_edb,
         golden,
     })
-}
-
-/// Load every delimited n-ary EDB relation under `data_dir` into one [`gmeow_logic::nary::NaryTuple`]
-/// vector, in deterministic (sorted-filename) order. Each `<rel>.csv` / `<rel>.tsv`
-/// (optionally `.gz`) file is one relation; the loader is arity-strict and hard-fails on a
-/// malformed / non-uniform file. An empty (or missing) `data/` directory is a HARD FAIL —
-/// an n-ary case with no EDB is a corpus defect, never a silently-empty run.
-fn load_nary_edb_dir(
-    corpus: &str,
-    name: &str,
-    data_dir: &Path,
-    prefixes: &std::collections::BTreeMap<String, String>,
-) -> gmeow_errors::Result<Vec<gmeow_logic::nary::NaryTuple>> {
-    if !data_dir.is_dir() {
-        return Err(Diag::of_kind(CorpusInvalid {
-            detail: format!(
-                "{corpus}/{name}: an nary-existential case must carry a data/ directory of \
-                 delimited n-ary EDB relations, found none at {}",
-                data_dir.display()
-            ),
-        }));
-    }
-    let mut files: Vec<PathBuf> = std::fs::read_dir(data_dir)
-        .map_err(|e| {
-            Diag::of_kind(Io {
-                detail: format!("cannot read directory {}: {e}", data_dir.display()),
-            })
-        })?
-        .filter_map(|entry| entry.ok().map(|e| e.path()))
-        .filter(|p| p.is_file())
-        .collect();
-    files.sort();
-
-    let mut edb: Vec<gmeow_logic::nary::NaryTuple> = Vec::new();
-    for path in &files {
-        let tuples = gmeow_logic::nary_rls::load_nary_data_file(path, prefixes).map_err(|e| {
-            Diag::of_kind(CorpusInvalid {
-                detail: format!("{corpus}/{name}: {} — {e}", path.display()),
-            })
-        })?;
-        edb.extend(tuples);
-    }
-    if edb.is_empty() {
-        return Err(Diag::of_kind(CorpusInvalid {
-            detail: format!(
-                "{corpus}/{name}: the data/ directory carries no n-ary EDB tuples — an \
-                 nary-existential case must have at least one fact"
-            ),
-        }));
-    }
-    Ok(edb)
 }
 
 /// Parse `profile.json` (`{ "fragment": …, "engines": [ … ] }`) — closed surface,
@@ -538,12 +694,7 @@ mod tests {
         // ≥1 case per committed corpus.
         let corpora: std::collections::BTreeSet<&str> =
             cases.iter().map(|c| c.corpus.as_str()).collect();
-        for want in [
-            "chasebench-mini",
-            "nary-mini",
-            "nemo-kr2024-mini",
-            "relational-core-mini",
-        ] {
+        for want in ["chasebench-mini", "relational-core-mini"] {
             assert!(
                 corpora.contains(want),
                 "expected a loaded case from corpus {want:?}; loaded corpora: {corpora:?}"
@@ -579,29 +730,8 @@ mod tests {
                 c.corpus,
                 c.name
             );
-            // The EDB carrier is fragment-specific: the ternary fragments carry a non-empty
-            // `input.nq`; the n-ary fragment carries a non-empty `nary_edb` (and no N-Quads).
+            // Every retained case carries a world-scoped N-Quads EDB.
             match c.fragment {
-                Fragment::NaryExistential => {
-                    assert!(
-                        c.edb_nq.is_empty(),
-                        "{}/{}: an nary-existential case has no input.nq EDB",
-                        c.corpus,
-                        c.name
-                    );
-                    assert!(
-                        !c.nary_edb.is_empty(),
-                        "{}/{}: an nary-existential case must carry a non-empty n-ary EDB",
-                        c.corpus,
-                        c.name
-                    );
-                    assert!(
-                        c.delta_nq.is_empty(),
-                        "{}/{}: an nary-existential case carries no delta.nq",
-                        c.corpus,
-                        c.name
-                    );
-                }
                 Fragment::Incremental | Fragment::IncrementalGrounding => {
                     assert!(
                         !c.edb_nq.trim().is_empty(),
@@ -615,23 +745,11 @@ mod tests {
                         c.corpus,
                         c.name
                     );
-                    assert!(
-                        c.nary_edb.is_empty(),
-                        "{}/{}: an incremental case carries no n-ary EDB",
-                        c.corpus,
-                        c.name
-                    );
                 }
                 _ => {
                     assert!(
                         !c.edb_nq.trim().is_empty(),
                         "{}/{}: empty input.nq",
-                        c.corpus,
-                        c.name
-                    );
-                    assert!(
-                        c.nary_edb.is_empty(),
-                        "{}/{}: a ternary-fragment case carries no n-ary EDB",
                         c.corpus,
                         c.name
                     );
@@ -643,23 +761,6 @@ mod tests {
                     );
                 }
             }
-        }
-
-        // The nary-existential cases parse (n-ary `.rls`) and RUN through the reified
-        // native chase over their committed CSV EDB — confirming the committed program +
-        // data are real engine input (the golden itself is authored by hand, not echoed).
-        for c in cases
-            .iter()
-            .filter(|c| c.fragment == Fragment::NaryExistential)
-        {
-            let rules = gmeow_logic::nary_rls::parse_nary_rls_program(&c.rules)
-                .unwrap_or_else(|e| panic!("{}/{}: n-ary .rls must parse: {e}", c.corpus, c.name));
-            gmeow_logic::nary::run_native_nary_forward(&c.nary_edb, &rules).unwrap_or_else(|e| {
-                panic!(
-                    "{}/{}: n-ary program must run natively over its CSV EDB: {e}",
-                    c.corpus, c.name
-                )
-            });
         }
 
         // The required goal-directed backward native case is present with a captured
@@ -694,21 +795,40 @@ mod tests {
             });
         }
 
-        // The existential (chasebench) cases parse and RUN through the value-inventing
-        // chase router (confirming the committed TGD text is real engine input — the
-        // golden itself is authored by hand, not echoed from this run).
+        // The existential (chasebench) cases parse into typed rules and RUN through
+        // the value-inventing chase router (the golden itself is authored by hand,
+        // not echoed from this run).
         for c in cases.iter().filter(|c| c.fragment == Fragment::Existential) {
-            gmeow_logic::materialize::materialize_routed(
-                &c.rules,
-                &c.edb_nq,
-                None,
-                None,
-                None,
-                Some("PositiveHornProfile"),
+            let dataset = purrdf::parse_dataset(c.edb_nq.as_bytes(), "application/n-quads", None)
+                .unwrap_or_else(|e| panic!("{}/{}: EDB must parse: {e}", c.corpus, c.name));
+            let rules = c.existential_rules().unwrap_or_else(|e| {
+                panic!(
+                    "{}/{}: existential TGD fixture must parse: {e}",
+                    c.corpus, c.name
+                )
+            });
+            gmeow_logic::materialize::materialize_existential_rules(
+                dataset.as_ref(),
+                &rules,
+                gmeow_logic::materialize::MaterializationLimits::default(),
             )
             .unwrap_or_else(|e| {
                 panic!(
-                    "{}/{}: existential TGD text must parse and run: {e}",
+                    "{}/{}: existential typed rules must run: {e}",
+                    c.corpus, c.name
+                )
+            });
+        }
+
+        for c in cases.iter().filter(|c| {
+            matches!(
+                c.fragment,
+                Fragment::Forward | Fragment::Incremental | Fragment::IncrementalGrounding
+            )
+        }) {
+            c.canonical_program().unwrap_or_else(|e| {
+                panic!(
+                    "{}/{}: forward fixture must lower to canonical IR: {e}",
                     c.corpus, c.name
                 )
             });

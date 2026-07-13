@@ -25,11 +25,11 @@ use purrdf::{
     RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, TermValue,
 };
 
-use crate::nemo_engine::codec::decode_nemo_term;
 use crate::reason::dl::gaps_from_unsupported;
 use crate::reason::el::InferredAxiom;
 use crate::reason::ledger::{DivergenceLedger, divergence_findings};
 use crate::result::ReasoningResult;
+use crate::term_codec::decode_term;
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -123,7 +123,7 @@ fn derived_rule_iri(axiom: &InferredAxiom) -> gmeow_errors::Result<String> {
 ///
 /// The native engine emits subjects/predicates/worlds as bare IRI strings, but
 /// objects already wrapped in `<...>` (the N3 display form of
-/// `decode_nemo_term`). This collapses both to the bare inner IRI so a single
+/// the typed term decoder). This collapses both to the bare inner IRI so a single
 /// `RdfTerm::iri` never double-wraps the angle brackets. Mirrors the retired
 /// Python `_iri_term`.
 fn iri_term(value: &str) -> RdfTerm {
@@ -270,7 +270,7 @@ pub fn build_explanations_ttl(result: &ReasoningResult) -> gmeow_errors::Result<
 /// Turtle. A form the decoder cannot read (it never occurs as a subsumption
 /// premise object) falls back to the bare-IRI unwrap.
 fn premise_object(display: &str) -> RdfTerm {
-    match decode_nemo_term(display) {
+    match decode_term(display) {
         Ok(TermValue::Iri(iri)) => RdfTerm::iri(iri),
         Ok(TermValue::Literal {
             lexical_form,
@@ -331,7 +331,7 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 /// defect, and the entailment/gap counts. The committed bundle is expected to
 /// have zero `DlGap` rows.
 pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
-    const DEFERRED_NOTE: &str = "oracle comparison runs in classic-cross-check; native gaps fail";
+    const CROSSCHECK_NOTE: &str = "the independent purrdf entailment cross-check validates the native result; native gaps fail";
     let mut out = String::from(LEDGER_HEADER);
 
     // The DL coverage gaps are reconstructed from the shared model's
@@ -387,7 +387,7 @@ pub fn build_dl_el_ledger_ttl(result: &ReasoningResult) -> String {
                 (gmeow("inWorld"), format!("<{}>", bare_iri(&axiom.world))),
                 (
                     RDFS_COMMENT.to_owned(),
-                    format!("\"{}\"@en", escape_literal(DEFERRED_NOTE)),
+                    format!("\"{}\"@en", escape_literal(CROSSCHECK_NOTE)),
                 ),
             ],
         ));
@@ -563,39 +563,6 @@ pub fn build_reasoning_result_ttl(result: &ReasoningResult) -> String {
     out
 }
 
-// ── committed native↔oracle parity counts (the certified, non-vacuous numbers) ───
-
-// The build MUST NOT run Nemo, yet the shipped `subsumption-correspondence.ttl`
-// certificate must carry the REAL, non-zero native↔oracle agreement — not an
-// all-zero placeholder. So the measured per-fragment `agree` / `native_only`
-// counts from the live native↔Nemo divergence ledgers are carried here as
-// committed constants. The on-gate parity gates (`el/rl/dl_native_oracle_ledger_gap_zero`
-// in `crate::physical::parity`) PIN these constants to the live measurement with an
-// `assert_eq!`, so if the engine or fixtures shift the count the parity gate goes red
-// until the constant is re-minted; the production builder
-// (`build_all_subsumption_correspondences_ttl`) sources the certificate's counts from
-// them, and the pipeline drift-gate refuses any committed bundle whose `agreeCount`
-// disagrees. This keeps the number real and drift-gated WITHOUT running Nemo on-build.
-
-/// The measured native↔Nemo agreeing-subsumption count over the certified EL
-/// fragment corpus (pinned by `el_native_oracle_ledger_gap_zero`).
-pub const EL_CERTIFIED_AGREE: usize = 13;
-/// The measured native-only subsumption count over the EL fragment (gap-zero
-/// certified: native ⊇ Nemo, pinned by `el_native_oracle_ledger_gap_zero`).
-pub const EL_CERTIFIED_NATIVE_ONLY: usize = 0;
-/// The measured native↔Nemo agreeing-fact count over the certified RL fragment
-/// corpus (pinned by `rl_native_oracle_ledger_gap_zero`).
-pub const RL_CERTIFIED_AGREE: usize = 25;
-/// The measured native-only fact count over the RL fragment (pinned by
-/// `rl_native_oracle_ledger_gap_zero`).
-pub const RL_CERTIFIED_NATIVE_ONLY: usize = 0;
-/// The measured native↔Nemo agreeing-fact count over the certified DL-Horn
-/// fragment corpus (pinned by `dl_horn_closure_native_oracle_ledger_gap_zero`).
-pub const DL_CERTIFIED_AGREE: usize = 17;
-/// The measured native-only fact count over the DL-Horn fragment (pinned by
-/// `dl_horn_closure_native_oracle_ledger_gap_zero`).
-pub const DL_CERTIFIED_NATIVE_ONLY: usize = 0;
-
 // ── fragment-subsumption correspondence (EL, RL, … lattice edges) ─────────────────
 
 /// A certified fragment on the native-chase promotion lattice (EL ⊂ RL ⊂ DL …).
@@ -627,10 +594,9 @@ const RL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
 };
 
 /// The DL fragment edge — the terminal edge of the EL ⊂ RL ⊂ DL fragment
-/// lattice — over the world-scoped ternary DL Horn closure (`dl_rules()`:
-/// `EL_RULES` + the clash-detection `DL_EXTRA_RULES`). The DL value-invention
-/// witness pass is provenance-blind and downstream of the oracle seam, so the
-/// promoted Horn closure is what this correspondence certifies.
+/// lattice — over the world-scoped typed DL Horn closure. Existential obligations
+/// share the native structured restricted chase, so this correspondence certifies
+/// the same single-authority closure against the independent entailment reference.
 const DL_FRAGMENT: SubsumptionFragment = SubsumptionFragment {
     slug: "dl",
     label: "DL",
@@ -643,7 +609,7 @@ fn correspondence_header(fragment: &SubsumptionFragment) -> String {
         "\
 # GMEOW native ⊒ oracle {label}-subsumption correspondence (RDF 1.2).
 # The reified logic:Correspondence recording that the native forward engine
-# SUBSUMES the demoted external oracle on the certified {label} fragment: the oracle
+# SUBSUMES the independent purrdf entailment reference on the certified {label} fragment: the reference
 # closure is a section/retraction of the native closure (put ∘ get = id over the
 # {label} profile), a complete over-approximation carrying the native↔oracle
 # divergence ledger as its loss cell. Pure native-lane output. DO NOT EDIT.
@@ -655,31 +621,10 @@ fn correspondence_header(fragment: &SubsumptionFragment) -> String {
     )
 }
 
-/// Banner for the COMBINED EL ⊂ RL ⊂ DL native⊒oracle subsumption correspondence
-/// bundle — the single committed `generated/logic/subsumption-correspondence.ttl`
-/// projection carrying all three lattice-edge `logic:Correspondence` individuals
-/// under one prefix block.
-fn combined_correspondence_header() -> String {
-    "\
-# GMEOW native ⊒ oracle EL ⊂ RL ⊂ DL subsumption correspondence bundle (RDF 1.2).
-# The three reified logic:Correspondence individuals recording that the native
-# forward engine SUBSUMES the demoted external oracle on each certified fragment of
-# the EL ⊂ RL ⊂ DL promotion lattice: on every edge the oracle closure is a
-# section/retraction of the native closure (put ∘ get = id over the profile), a
-# complete over-approximation carrying the native↔oracle divergence ledger as its
-# loss cell. Pure native-lane projection of gmeow.gts. DO NOT EDIT.
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix logic: <https://blackcatinformatics.ca/logic/> .
-"
-    .to_owned()
-}
-
 /// Render the native⊒oracle EL-subsumption parity result as a bundle-borne
 /// `logic:Correspondence` individual (Part B of the native-chase promotion).
 ///
-/// Thin wrapper over [`build_subsumption_correspondence_ttl`] pinned to the EL
+/// Thin wrapper over the shared subsumption-correspondence builder, pinned to the EL
 /// lattice edge; see that function for the full claim-shape rationale.
 pub fn build_el_subsumption_correspondence_ttl(
     ledger: &DivergenceLedger,
@@ -692,7 +637,7 @@ pub fn build_el_subsumption_correspondence_ttl(
 /// Render the native⊒oracle RL-subsumption parity result as a bundle-borne
 /// `logic:Correspondence` individual (the next edge of the EL ⊂ RL lattice).
 ///
-/// Thin wrapper over [`build_subsumption_correspondence_ttl`] pinned to the RL
+/// Thin wrapper over the shared subsumption-correspondence builder, pinned to the RL
 /// lattice edge; the RL closure is the larger OWL 2 RL/RDF deductive closure over
 /// the 4-ary generic-triple encoding, and the reified claim shape is identical to
 /// EL's (native ⊒ oracle, section/retraction, complete over-approximation, section
@@ -709,9 +654,9 @@ pub fn build_rl_subsumption_correspondence_ttl(
 /// `logic:Correspondence` individual (the terminal edge of the EL ⊂ RL ⊂ DL
 /// lattice).
 ///
-/// Thin wrapper over [`build_subsumption_correspondence_ttl`] pinned to the DL
-/// lattice edge. The certified fragment is the DL Horn closure of `dl_rules()`
-/// (`EL_RULES` + the clash-detection `DL_EXTRA_RULES`); the reified claim shape
+/// Thin wrapper over the shared subsumption-correspondence builder, pinned to the DL
+/// lattice edge. The certified fragment is the structured DL Horn closure (the EL
+/// calculus plus the clash-detection DL rules); the reified claim shape
 /// is identical to EL's and RL's (native ⊒ oracle, section/retraction, complete
 /// over-approximation, section law discharged within the certified fragment).
 pub fn build_dl_subsumption_correspondence_ttl(
@@ -753,7 +698,7 @@ pub fn build_dl_subsumption_correspondence_ttl(
 /// to a `gmeow:Finding` (via [`divergence_findings`]) — a gap-zero ledger carries
 /// zero findings, so a healthy run emits none. `contract_hash` is the native
 /// contract digest ([`crate::reason::native_contract_hash`]); `view_engine` names
-/// the demoted oracle (`"nemo"`).
+/// the comparison oracle.
 fn build_subsumption_correspondence_ttl(
     fragment: &SubsumptionFragment,
     ledger: &DivergenceLedger,
@@ -770,58 +715,10 @@ fn build_subsumption_correspondence_ttl(
     out
 }
 
-/// The committed gap-zero divergence ledger for a fragment, built from the pinned
-/// certified counts (`*_CERTIFIED_AGREE` / `*_CERTIFIED_NATIVE_ONLY`). The build must
-/// NOT run Nemo, so the real, non-zero native↔Nemo agreement measured on-gate by the
-/// parity gates is carried through these committed constants instead. A gap-zero run
-/// carries NO oracle-only / dl-gap / corpus-only rows (empty `rows` ⇒ zero findings),
-/// so the certificate emits its counts but no divergence findings.
-fn certified_gap_zero_ledger(agree: usize, native_only: usize) -> DivergenceLedger {
-    DivergenceLedger {
-        rows: Vec::new(),
-        agree,
-        native_only,
-        oracle_only: 0,
-        dl_gap: 0,
-        corpus_only: 0,
-    }
-}
-
-/// Emit ALL THREE certified lattice edges (EL ⊂ RL ⊂ DL) as one committed
-/// `logic:Correspondence` bundle under a single prefix block — the body of the
-/// `generated/logic/subsumption-correspondence.ttl` projection the reason stage
-/// commits. Each edge reuses the identical claim shape ([`subsumption_correspondence_body`])
-/// but carries ITS OWN certified counts: the per-fragment ledger is built from the
-/// committed `*_CERTIFIED_AGREE` / `*_CERTIFIED_NATIVE_ONLY` constants (the real,
-/// non-zero native↔Nemo agreement the on-gate parity gates pin to the live measurement),
-/// so the shipped certificate carries measured evidence — never an all-zero placeholder.
-/// The build stays Nemo-free: the numbers come from the committed constants, not a
-/// build-time oracle run. `contract_hash` binds every edge to the native contract digest
-/// and `view_engine` names the demoted oracle. This is the single production consumer of
-/// the per-fragment claim shape (the on-gate drift-gate refuses what disagrees).
-pub fn build_all_subsumption_correspondences_ttl(contract_hash: &str, view_engine: &str) -> String {
-    let mut out = combined_correspondence_header();
-    for (fragment, agree, native_only) in [
-        (&EL_FRAGMENT, EL_CERTIFIED_AGREE, EL_CERTIFIED_NATIVE_ONLY),
-        (&RL_FRAGMENT, RL_CERTIFIED_AGREE, RL_CERTIFIED_NATIVE_ONLY),
-        (&DL_FRAGMENT, DL_CERTIFIED_AGREE, DL_CERTIFIED_NATIVE_ONLY),
-    ] {
-        let ledger = certified_gap_zero_ledger(agree, native_only);
-        out.push_str(&subsumption_correspondence_body(
-            fragment,
-            &ledger,
-            contract_hash,
-            view_engine,
-        ));
-    }
-    out
-}
-
 /// The per-fragment body (everything after the prefix header) of a native⊒oracle
 /// subsumption correspondence: the reified `logic:Correspondence`, its discharged
 /// `logic:SectionLaw` claim, and the loss-cell findings. Factored out so the single
-/// (`build_subsumption_correspondence_ttl`) and combined
-/// (`build_all_subsumption_correspondences_ttl`) builders share one claim shape.
+/// (`build_subsumption_correspondence_ttl`) builders share one claim shape.
 fn subsumption_correspondence_body(
     fragment: &SubsumptionFragment,
     ledger: &DivergenceLedger,

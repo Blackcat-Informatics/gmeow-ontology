@@ -4,9 +4,8 @@
 #![doc = include_str!("../README.md")]
 //!
 //! This crate is single-target native only.
-//! Nemo-based rule evaluation is unconditional; PyO3 bindings are enabled only
-//! for the unified native extension.
 
+pub mod annotation;
 pub mod certificate;
 /// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
 /// first-order formula against a KB in an isolated, standpoint-scoped scenario world.
@@ -14,11 +13,11 @@ pub mod conjecture;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
 pub mod correspondence_exec;
-/// Deterministic engine-benchmark seams ([`cost::run_native_forward`] /
-/// [`cost::run_nemo_forward`]) and the decomposable [`cost::CostVector`] — the
+pub mod cost;
+/// Deterministic native engine-benchmark seams and the decomposable
+/// [`cost::CostVector`] — the
 /// scalar-projection carrier of the cost semiring (`LOGIC-PERFORMANCE.md
 /// §Measurement doctrine`) keyed by `(rule, predicate, stratum)`.
-pub mod cost;
 pub mod counterfactual;
 /// The DAG-workflow profile certifier (`logic:DagWorkflowResource`): the single
 /// shared acyclicity check the canonical process model and the build pipeline run.
@@ -48,7 +47,7 @@ pub mod foundation;
 // Runtime-side projection of compiler parse diagnostics into the PyO3-tainted
 // gmeow-errors Report — kept out of the wasm-able compiler crate.
 pub mod logic_diagnostics;
-// Compiler-IR → runtime EvalRule bridge: depends on crate::rule_ir (Nemo),
+// Compiler-IR → runtime EvalRule bridge: depends on crate::rule_ir,
 // so it stays in the runtime crate, not the wasm-able gmeow-logic-compile crate.
 pub mod lower;
 pub mod materialize;
@@ -57,12 +56,7 @@ pub mod materialize;
 // `logic:naryArg{i}` over a content-addressed reifier) keeps `EvalAtom` binary,
 // per LOGIC-IR.md §RelationalCore.
 pub mod nary;
-pub mod nary_rls;
 pub mod obligations;
-// Path-projection runtime tests: they run the projected Datalog through
-// crate::rule_ir (Nemo), so they live runtime-side as an in-crate test module.
-#[cfg(test)]
-mod path_projection_tests;
 // Native physical execution core: columnar RelationStore + the semi-naive / magic-sets
 // engine that the materialize and dispatch routers invoke native-first. Crate-internal.
 mod physical;
@@ -75,9 +69,9 @@ pub mod reference_resolver;
 pub mod relational_core;
 pub mod result;
 pub mod result_rdf;
-/// The typed `logic:ResultShape` lives in the Nemo-free `gmeow-logic-compile`
+/// The typed `logic:ResultShape` lives in the runtime-free `gmeow-logic-compile`
 /// crate (alongside `LOGIC_NAMESPACE`/`PreservationKind`) so pure-data consumers
-/// — notably the slice-test harness — can use it without pulling in Nemo;
+/// — notably the slice-test harness — can use it without pulling in the reasoner;
 /// re-exported here as `gmeow_logic::result_shape` for the result family.
 pub use gmeow_logic_compile::result_shape;
 pub mod rule_ir;
@@ -97,6 +91,7 @@ pub mod store;
 /// in-crate benches and the `gmeow-conformance` bench-corpus loader.
 pub mod synth_corpus;
 pub mod teleology;
+mod term_codec;
 pub mod transaction;
 pub mod transition;
 pub mod verify;
@@ -106,9 +101,6 @@ pub mod wellfounded;
 // runtime twin the dogfood parity gate checks the authored
 // `logic:wellFoundedMaterializerPlan` against (Principle 12).
 pub use wellfounded::{WELL_FOUNDED_ITERATED_PHASE, WELL_FOUNDED_PHASES};
-
-// Nemo reasoner bridge.
-pub(crate) mod nemo_engine;
 
 // The reasoning-oracle boundary: Forward/Backward oracle traits + engine adapters.
 pub(crate) mod oracle;

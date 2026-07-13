@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+# The carrier has an index but ambiguously selects both the IRI and variable value kinds.
+ex:ambiguousCarrier
+    a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termIri ex:person ;
+    logic:termVariable "person" .

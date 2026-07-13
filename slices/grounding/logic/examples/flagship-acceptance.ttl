@@ -82,10 +82,10 @@ exa:symmetricConjecture a gmeow:FlagshipScenario ;
 # --- Flagship 5 — the chase termination certificate ------------------------ #
 exa:chaseTerminationCertificate a gmeow:FlagshipScenario ;
     rdfs:label "Flagship: the chase termination certificate"@x-gmeow-english ;
-    skos:definition "An existential-rule chase materialization (gmeow_logic::materialize::materialize_routed) terminates under a weak-acyclicity certificate surfaced as a first-class gmeow:Finding (ChaseAdmission::to_finding). The worked program is weakly acyclic — its Finding is non-empty and its derivation carries an explain trace passing gmeow_logic::explain::assert_faithful — so the closure is certified rather than uncertified."@x-gmeow-english ;
+    skos:definition "An existential-rule chase materialization (gmeow_logic::materialize::materialize_existential_rules) terminates under a weak-acyclicity certificate surfaced as a first-class gmeow:Finding (ChaseAdmission::to_finding). The worked program is weakly acyclic — its Finding is non-empty and its derivation carries an explain trace passing gmeow_logic::explain::assert_faithful — so the closure is certified rather than uncertified."@x-gmeow-english ;
     gmeow:demonstratedByExample "tests/conformance-fixtures/chase-witness-complete.ttl" ;
     gmeow:demonstratedByCompetency cq:cqLogicChase ;
-    gmeow:demonstratedByProducer "logic::materialize::materialize_routed" ;
+    gmeow:demonstratedByProducer "logic::materialize::materialize_existential_rules" ;
     gmeow:guardedByCounterExample "tests/counter-examples/chase-witness-uncertified.ttl" ;
     gmeow:enforcesFailureClass logic:UncertifiedChase ;
     gmeow:counterExampleDischarge gmeow:reasonerDrivenDischarge .

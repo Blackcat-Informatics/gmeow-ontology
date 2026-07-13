@@ -20,7 +20,7 @@
 //! * [`ResultExt`] adds `.ctx`/`.with_ctx`/`.at`/`.for_focus`/`.grade` for the `?`
 //!   path and `.or_collect` for the push-and-continue path (half of all emission
 //!   sites are non-fatal collection, not `?`).
-//! * [`diag!`](crate::diag)/[`bail!`](crate::bail)/[`ensure!`](crate::ensure)
+//! * [`diag!`](macro@crate::diag)/[`bail!`](macro@crate::bail)/[`ensure!`](macro@crate::ensure)
 //!   capture the emit site via `#[track_caller]`.
 
 use std::error::Error as StdError;
@@ -933,10 +933,10 @@ mod tests {
     fn define_diag_kind_binds_code_grade_message_and_registers() {
         let e = UnknownStageImpl {
             stage: "reason".to_owned(),
-            impl_key: "nemo".to_owned(),
+            impl_key: "demo".to_owned(),
         };
         // Message renders from the fields via the positional format.
-        assert_eq!(e.to_string(), "no impl `nemo` for stage `reason`");
+        assert_eq!(e.to_string(), "no impl `demo` for stage `reason`");
         assert_eq!(UnknownStageImpl::CODE, "test.define.unknown-stage-impl");
         // Code is registered (eagerly reachable via register(), and via code()).
         assert_eq!(e.code(), UnknownStageImpl::register());

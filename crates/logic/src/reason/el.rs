@@ -1,22 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native OWL-2-EL/RL subsumption closure over the Nemo chase.
+//! Native OWL-2-EL/RL subsumption closure over the structured chase.
 //!
-//! The rule set [`EL_RULES`] is fixed and ontology-independent: it encodes the
+//! `structured_el_rules` is fixed and ontology-independent: it encodes the
 //! class-level OWL-2-EL/RL entailment calculus (subclass transitivity,
 //! equivalence, type propagation, sub-property transitivity) directly, as a
 //! fixed built-in calculus. We feed the TBox/ABox of any kernel store
-//! through the world-scoped ternary gmeow encoding and run the chase, returning
-//! the derived subsumption closure with raw chase provenance.
+//! through the native world-scoped fact store and return the derived subsumption
+//! closure with raw chase provenance.
 //!
 //! # Encoding
 //!
-//! Every fact is the ternary `<predicate>(subject, object, "world")` form owned
-//! by [`crate::nemo_engine::codec`]; the world IRI threads through unchanged as the `?w`
-//! variable. Because the predicate is a Nemo *symbol* (not data), this encoding
-//! cannot express entailments that quantify over the predicate position
-//! (domain/range, property chains) — see the [`ElClosure::gaps`] surface.
+//! Every fact carries subject, predicate, object, and named world as native typed
+//! values. Predicate-quantifying RL constructs are handled by the dedicated RL
+//! engine; this EL closure deliberately surfaces its narrower coverage.
 
 use purrdf::RdfDataset;
 
@@ -27,23 +25,51 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
     gmeow_errors::Diag::of_kind(crate::error::Reason { detail })
 }
 
-/// The fixed OWL-2-EL/RL class-level entailment rule set, in the world-scoped
-/// ternary gmeow encoding. Full IRIs in angle brackets; `?w` threads the world.
-pub const EL_RULES: &str = r#"
-#[name("el:subClassOf-transitive")]
-<http://www.w3.org/2000/01/rdf-schema#subClassOf>(?x,?z,?w) :- <http://www.w3.org/2000/01/rdf-schema#subClassOf>(?x,?y,?w), <http://www.w3.org/2000/01/rdf-schema#subClassOf>(?y,?z,?w) .
-#[name("el:equivalentClass-fwd")]
-<http://www.w3.org/2000/01/rdf-schema#subClassOf>(?x,?y,?w) :- <http://www.w3.org/2002/07/owl#equivalentClass>(?x,?y,?w) .
-#[name("el:equivalentClass-bwd")]
-<http://www.w3.org/2000/01/rdf-schema#subClassOf>(?y,?x,?w) :- <http://www.w3.org/2002/07/owl#equivalentClass>(?x,?y,?w) .
-#[name("el:type-propagation")]
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?i,?c2,?w) :- <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?i,?c1,?w), <http://www.w3.org/2000/01/rdf-schema#subClassOf>(?c1,?c2,?w) .
-#[name("el:subPropertyOf-transitive")]
-<http://www.w3.org/2000/01/rdf-schema#subPropertyOf>(?x,?z,?w) :- <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>(?x,?y,?w), <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>(?y,?z,?w) .
-"#;
+pub(crate) fn structured_el_rules() -> Vec<crate::rule_ir::EvalRule> {
+    use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
+
+    const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const EQUIVALENT: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
+    const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const SUBPROPERTY: &str = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf";
+
+    let v = EvalTerm::var;
+    let a = EvalAtom::positive;
+    vec![
+        EvalRule::positive(
+            "el:subClassOf-transitive",
+            a(v("?x"), SUBCLASS, v("?z")),
+            vec![a(v("?x"), SUBCLASS, v("?y")), a(v("?y"), SUBCLASS, v("?z"))],
+        ),
+        EvalRule::positive(
+            "el:equivalentClass-fwd",
+            a(v("?x"), SUBCLASS, v("?y")),
+            vec![a(v("?x"), EQUIVALENT, v("?y"))],
+        ),
+        EvalRule::positive(
+            "el:equivalentClass-bwd",
+            a(v("?y"), SUBCLASS, v("?x")),
+            vec![a(v("?x"), EQUIVALENT, v("?y"))],
+        ),
+        EvalRule::positive(
+            "el:type-propagation",
+            a(v("?i"), TYPE, v("?c2")),
+            vec![a(v("?i"), TYPE, v("?c1")), a(v("?c1"), SUBCLASS, v("?c2"))],
+        ),
+        EvalRule::positive(
+            "el:subPropertyOf-transitive",
+            a(v("?x"), SUBPROPERTY, v("?z")),
+            vec![
+                a(v("?x"), SUBPROPERTY, v("?y")),
+                a(v("?y"), SUBPROPERTY, v("?z")),
+            ],
+        ),
+    ]
+}
 
 /// The subsumption predicates the EL closure surfaces. Other derived rows from
-/// the chase (none, for [`EL_RULES`]) are filtered out of [`ElClosure::inferred`].
+/// the chase (none, for [`structured_el_rules`]) are filtered out of
+/// [`ElClosure::inferred`].
 ///
 /// `pub(crate)` so the single-chase [`crate::reason::reason_all`] can apply the
 /// same subsumption filter to the shared `dl_rules` closure it runs once.
@@ -84,21 +110,21 @@ pub struct ElClosure {
     pub gaps: Vec<String>,
 }
 
-/// Compute the OWL-2-EL/RL subsumption closure of `edb` via the Nemo chase.
+/// Compute the native OWL-2-EL/RL subsumption closure of `edb`.
 ///
-/// Runs the fixed [`EL_RULES`] over `edb` through the shared
-/// [`crate::reason::run_reasoning`] chase machinery, then filters the decoded
+/// Runs the fixed `structured_el_rules()` calculus over `edb` through the shared
+/// native structured-rule chase, then filters the decoded
 /// closure to the subsumption predicates and surfaces the EL-profile
 /// predicate-position limitations for callers that use this narrow surface
 /// directly.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
-/// chase fails to parse/validate/evaluate, or if a derived row fails to decode.
+/// Returns an error if the source store cannot be loaded, native evaluation fails,
+/// or a derived row fails to decode.
 pub fn el_closure(edb: &RdfDataset) -> gmeow_errors::Result<ElClosure> {
     // 1. Run the fixed EL rule set through the shared chase machinery.
-    let all = crate::reason::run_reasoning(edb, EL_RULES)?;
+    let all = crate::reason::run_reasoning_rules(edb, structured_el_rules())?;
 
     // 2. `total_facts` counts every decoded ternary row; filter the surfaced
     //    closure to the subsumption predicates.
@@ -112,7 +138,7 @@ pub fn el_closure(edb: &RdfDataset) -> gmeow_errors::Result<ElClosure> {
     //    express entailments that quantify over the predicate position.
     let gaps = vec![
         "domain/range and property-chain entailments are NOT expressible in the \
-         predicate-as-symbol ternary encoding (the predicate is a Nemo symbol, not \
+         predicate-as-symbol ternary encoding (the predicate is a relation name, not \
          data); callers that need those entailments must use the native DL/RL \
          authority surface"
             .to_owned(),
@@ -156,7 +182,7 @@ mod tests {
 
     /// Find an inferred axiom matching the given triple (any world).
     ///
-    /// `o` is the bare object IRI; the stored axiom keeps the decoded Nemo
+    /// `o` is the bare object IRI; the stored axiom keeps the decoded
     /// display form (`<iri>`), so we wrap before comparing.
     fn find<'a>(closure: &'a ElClosure, s: &str, p: &str, o: &str) -> Option<&'a InferredAxiom> {
         let object_display = format!("<{o}>");

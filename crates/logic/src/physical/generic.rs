@@ -55,8 +55,8 @@ use crate::physical::binding_pattern::BindingPattern;
 use crate::physical::bitset::DenseBitset;
 use crate::physical::id::RowId;
 use crate::physical::seminaive::StepGovernor;
-use crate::provenance::{LOGIC_NAMESPACE, term_display};
-use crate::rule_ir::{EvalTerm, lower_nemo_term};
+use crate::provenance::term_display;
+use crate::rule_ir::EvalTerm;
 use crate::seam::BudgetStatus;
 
 /// Wrap a physical-chase condition message as a typed diagnostic on the shared
@@ -93,94 +93,7 @@ pub(crate) struct GenericRule {
     pub(crate) rule_iri: String,
 }
 
-// ── Parsing (shared Nemo front-end, arity-preserving) ──────────────────────────
-
-/// Lower one Nemo atom into a [`GenericAtom`], KEEPING ALL terms.
-///
-/// The relation name is `atom.predicate()`; every argument is lowered with the SAME
-/// [`crate::rule_ir::lower_nemo_term`] codec the binary IR uses (with `slot =
-/// "object"`, permissive — a generic relation may carry a literal in any position).
-fn lower_generic_atom(
-    atom: &nemo::rule_model::components::atom::Atom,
-) -> gmeow_errors::Result<GenericAtom> {
-    let relation = atom.predicate().to_string();
-    let mut args: Vec<EvalTerm> = Vec::new();
-    for term in atom.terms() {
-        args.push(lower_nemo_term(term, "object")?);
-    }
-    Ok(GenericAtom { relation, args })
-}
-
-/// Parse `.rls`-style rule text into the arity-generic IR via the SAME Nemo parser
-/// the binary [`crate::rule_ir::parse_eval_rules`] uses, so the predicate / variable
-/// surface is byte-identical to the engine — but WITHOUT the arity-3 restriction, so
-/// the 4-ary `triple` / 3-ary `list_member` relations and the variable
-/// predicate-position survive.
-///
-/// # Errors
-///
-/// Returns the Nemo parse-error string, a lowering error, or — because this fragment
-/// is pure positive Datalog — a HARD ERROR if any rule carries a negated body atom
-/// (RL/RDF has none; a negated atom would be a rule-text bug, never approximated).
-pub(crate) fn parse_generic_rules(rules: &str) -> gmeow_errors::Result<Vec<GenericRule>> {
-    use crate::nemo_engine::NemoParsedRules;
-
-    let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
-    lower_program_generic_rules(&program)
-}
-
-/// Lower an already-parsed Nemo [`Program`] into the arity-generic IR.
-///
-/// The [`crate::oracle::NativeForwardOracle::materialize`] dispatch parses the rule
-/// text ONCE and threads the `Program` into both the arity-eligibility inspection
-/// and this lowering, so the generic path never re-parses the text;
-/// [`parse_generic_rules`] is the string-front convenience over this. The same hard
-/// error on a negated body atom applies.
-///
-/// [`Program`]: nemo::rule_model::programs::program::Program
-pub(crate) fn lower_program_generic_rules(
-    program: &nemo::rule_model::programs::program::Program,
-) -> gmeow_errors::Result<Vec<GenericRule>> {
-    use nemo::rule_model::programs::ProgramRead;
-
-    let mut out: Vec<GenericRule> = Vec::new();
-    for rule in program.rules() {
-        let head_atom = rule
-            .head()
-            .first()
-            .ok_or_else(|| physical_err("generic: rule has no head atom".to_owned()))?;
-        let head = lower_generic_atom(head_atom)?;
-
-        // Positive Datalog only: a negated body literal is a hard error (RL/RDF is
-        // negation-free; this evaluator must never see one, and must never silently
-        // treat it as positive).
-        if rule.body_negative().count() != 0 {
-            return Err(physical_err(format!(
-                "generic: rule {:?} carries a negated body atom, but the generic n-ary \
-                 evaluator is pure positive Datalog (OWL 2 RL/RDF has no negation)",
-                rule.name().unwrap_or_else(|| "<anonymous>".to_owned())
-            )));
-        }
-
-        let mut body: Vec<GenericAtom> = Vec::new();
-        for atom in rule.body_positive() {
-            body.push(lower_generic_atom(atom)?);
-        }
-
-        let rule_iri = rule
-            .name()
-            .unwrap_or_else(|| format!("{LOGIC_NAMESPACE}rule/anonymous"));
-
-        out.push(GenericRule {
-            head,
-            body,
-            rule_iri,
-        });
-    }
-    Ok(out)
-}
-
-// ── Generic store (relation-keyed, insertion-ordered, N3-surface deduped) ──────
+// ── Generic store// ── Generic store (relation-keyed, insertion-ordered, N3-surface deduped) ──────
 
 /// The N3-surface tuple of a ground row — the dedup / delta key.
 type RowSurface = Vec<String>;
@@ -217,7 +130,7 @@ type RoundWinner = (Vec<TermValue>, String, Vec<GenericAntecedent>);
 
 /// One ground antecedent row consumed by a firing: `(relation, row-terms)`.
 ///
-/// The pre-reifier premise the [`crate::oracle::ForwardOracle`] seam re-exposes as a
+/// The pre-reifier premise the [`crate::oracle::NativeForwardOracle`] seam re-exposes as a
 /// [`crate::oracle::TypedRow`] so the materialize consumer can mint reifiers (and,
 /// crucially, HARD-FAIL on a non-ternary antecedent of a ternary head — a binary
 /// helper premise has no world-scoped reifier).
@@ -611,7 +524,7 @@ fn ground_head(head: &GenericAtom, sol: &Binding) -> gmeow_errors::Result<Vec<Te
 ///
 /// The output includes BOTH the echoed EDB rows (`is_edb = true`, `rule_name =
 /// None`) and every derived row (`is_edb = false`, `rule_name = Some(rule_iri)`) —
-/// mirroring Nemo, which `rl_closure` relies on (asserted ∪ derived). Each derived
+/// including asserted EDB rows, which `rl_closure` relies on (asserted ∪ derived). Each derived
 /// row carries its matched body rows as antecedents (the production provenance the
 /// materialize consumer mints reifiers from — full-arity, so a non-ternary premise
 /// hard-fails rather than fabricating a reifier); parity still compares FACTS, not
@@ -765,7 +678,7 @@ pub(crate) fn materialize_generic_budgeted(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::reason::rl::RL_RULES;
+    use crate::reason::rl_rules::structured_rl_rules;
 
     // ── generic-triple EDB helpers (the RL predicate-as-data encoding) ──────────
 
@@ -818,7 +731,7 @@ mod tests {
 
         /// Run the RL closure natively over this EDB, returning the derived triples.
         fn close(&self) -> TypedChaseResult {
-            let rules = parse_generic_rules(RL_RULES).expect("RL rules parse");
+            let rules = structured_rl_rules();
             materialize_generic(&self.facts, &rules).expect("generic materialize")
         }
     }
@@ -974,15 +887,5 @@ mod tests {
         let c = e.close();
         assert!(has(&c, X, P, v), "x P V via cls-hv1");
         assert!(has(&c, Z, TYPE, r), "z a R via cls-hv2");
-    }
-
-    #[test]
-    fn generic_parse_rejects_a_negated_body_atom() {
-        // Positive Datalog only: a negated body atom is a hard error, never treated
-        // as positive.
-        let rls = "#[name(\"ex:neg\")]\n\
-             <http://ex/q>(?x, ?y, ?w) :- <http://ex/p>(?x, ?y, ?w), ~<http://ex/r>(?x, ?y, ?w) .\n";
-        let err = parse_generic_rules(rls).expect_err("a negated body atom must be rejected");
-        assert!(err.message().contains("negated body atom"), "got: {err}");
     }
 }

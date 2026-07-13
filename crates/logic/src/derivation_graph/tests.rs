@@ -4,7 +4,7 @@
 //! Acceptance tests for the S6b truth-maintenance derivation graph.
 //!
 //! These run against the Rust derivation graph **directly**, with
-//! content-addressed goldens — NOT a Nemo re-chase (Nemo rejects non-stratifiable
+//! content-addressed goldens — not a second forward chase (the native positive
 //! materialization). Every assertion is over the structure built here.
 
 use std::collections::BTreeSet;

@@ -7,8 +7,8 @@
 //! explicit `--corpus-dir`) through the NATIVE engine and, per fragment, the
 //! applicable live or captured reference, and emits two strictly-separated outputs.
 //!
-//! Two cheap native-only gate verbs run before any live oracle is constructed: `--check-golden`
-//! (a single-run native-vs-published agreement gate) and `--soak N` (the N-run soak
+//! Two cheap native-only gate verbs run without constructing an external engine:
+//! `--check-golden` (a single-run native-vs-published agreement gate) and `--soak N` (the N-run soak
 //! window — the same deterministic check re-run N times, asserting gap-zero AND a
 //! byte-identical finding-graph digest across every run; see [`run_soak`]).
 //!
@@ -68,12 +68,9 @@
 //! * **native ↔ golden** — the native derived-fact / answer COUNT against the
 //!   hand-derived golden's committed `rows` count (the golden carries only a count, so
 //!   the token is `derived=<n>`);
-//! * **native ↔ oracle** — for the FORWARD and BACKWARD fragments a `blake3`
-//!   fingerprint of the fully-sorted result rows / bindings (for backward cases the
-//!   published token is the captured SLD digest; for forward cases it is Nemo), a true set equality over
-//!   ground terms), and for the EXISTENTIAL fragment the derived COUNT (the chase
-//!   invents fresh labeled nulls whose identifiers legitimately differ per engine, so
-//!   only the count is a sound cross-engine invariant).
+//! * **native ↔ reference** — forward/existential cases use their hand-derived
+//!   counts, while backward cases additionally compare the fully-sorted answer
+//!   fingerprint to the captured SLD digest.
 //!
 //! Both comparisons are folded through the SHARED divergence ledger
 //! ([`gmeow_logic::reason::compare_external_corpus`] → [`build_ledger`] →
@@ -84,14 +81,8 @@
 //! ([`agreement_tally`]) and the emitted `gmeow:Finding` N-Quads graph
 //! ([`emit_divergence_nq`]) are folded in the same pass.
 //!
-//! # Oracle isolation (in-process, fresh engine per call)
-//!
-//! Cases run IN-PROCESS with a fresh EDB per case; no subprocess is needed. This is
-//! sound because the remaining live oracle rebuilds a fresh engine per call: Nemo's
-//! `nemo_engine::load_string(rls)` constructs a new engine inside every
-//! `run_chase_typed`, serialized by `CHASE_LOCK`. The production `reason::crosscheck_native_vs_nemo`
-//! lane already dual-runs many cases in one process on exactly this design, so the
-//! same in-process, lock-serialized pattern is the established precedent here.
+//! Cases run in-process with a fresh EDB per case; no subprocess or secondary
+//! reasoning runtime is constructed.
 //!
 //! # Allocator confinement
 //!
@@ -126,15 +117,10 @@ use gmeow_errors::Diag;
 
 use gmeow_logic::cost::{
     ForwardRows, IncrementalForwardSession, IncrementalGroundingCostSession, RepeatForwardSession,
-    SignedForwardRow, run_native_forward, run_nemo_forward, run_nemo_forward_facts_only,
-    run_rule_parallel_evidence,
+    SignedForwardRow, run_native_forward, run_rule_parallel_evidence,
 };
 use gmeow_logic::dispatch::dispatch_query;
-use gmeow_logic::materialize::materialize_routed;
-use gmeow_logic::nary::{
-    nary_canonical_fingerprint, run_native_nary_forward_run, run_nemo_nary_forward,
-};
-use gmeow_logic::nary_rls::parse_nary_rls_program;
+use gmeow_logic::materialize::{MaterializationLimits, materialize_existential_rules};
 use gmeow_logic::provenance::{ASSERT_RULE_IRI, term_display};
 use gmeow_logic::query_ir::{AnswerSet, Budget, parse_query_program};
 use gmeow_logic::reason::{
@@ -154,12 +140,6 @@ static ALLOC: CountingAllocator = CountingAllocator::new();
 /// Horn). The dispatch profile is the full IRI the profile gate keys on; the
 /// materialize router keys on the bare token.
 const HORN_PROFILE_IRI: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
-const HORN_PROFILE_TOKEN: &str = "PositiveHornProfile";
-
-/// The pinned Nemo engine revision (mirrors `crates/logic/Cargo.toml`'s `nemo` git
-/// `rev`). Surfaced as an engine-version pin in the deterministic artifact so a
-/// cost/agreement baseline is attributable to the exact oracle build that produced it.
-const NEMO_REV: &str = "4415bc2e180adf33a7a4b98ddc41be9914b7584e";
 /// Version of the captured SLD answer-set goldens used by the backward lane.
 const BACKWARD_REFERENCE: &str = "captured-sld-goldens/v1";
 
@@ -270,9 +250,9 @@ fn main() -> gmeow_errors::Result<()> {
     // ── (1) The ON-GATE native-vs-golden agreement gate ─────────────────────────
     // `--check-golden` runs the NATIVE engine ONLY over the committed mini corpora and
     // HARD-FAILS if any case's native result disagrees with its committed golden
-    // (`expected/result.json`). It deliberately drives no live oracle: golden
+    // (`expected/result.json`). It deliberately drives no external engine: golden
     // agreement is native-vs-published only, so the check stays cheap enough to wire into
-    // `make check`. It returns before any oracle run / artifact emission below.
+    // `make check`. It returns before any full cost run / artifact emission below.
     if check_golden {
         return run_golden_gate(&cases);
     }
@@ -283,7 +263,7 @@ fn main() -> gmeow_errors::Result<()> {
     // corpus_only == 0`) AND that the finding-graph blake3 digest is byte-identical across
     // all N runs (a drifting fingerprint is itself a divergence finding — reproducibility
     // is the soak invariant). Native-only, so it stays cheap enough to wire on-gate. It
-    // returns before any oracle run / artifact emission below.
+    // returns before any full cost run / artifact emission below.
     if let Some(window) = soak {
         return run_soak(&cases, window);
     }
@@ -393,7 +373,6 @@ fn main() -> gmeow_errors::Result<()> {
         "schema": "gmeow.bench-engines.cost/1",
         "engine_pins": {
             "native": EngineId::native().version,
-            "nemo_rev": NEMO_REV,
             "backward_reference": BACKWARD_REFERENCE,
         },
         "case_count": case_records.len(),
@@ -454,7 +433,8 @@ struct AdvisoryRow {
     agreement: bool,
 }
 
-/// Drive one case through the native engine and the applicable oracle. `main` pinned the
+/// Drive one case through the native engine and the applicable native scratch or
+/// committed reference. `main` pinned the
 /// global Rayon pool to the single calling thread, so all engine allocation lands on the
 /// measuring thread: `consumed_steps` / cost-vector / `peak_live_bytes` are exactly
 /// reproducible, and the total-allocation scalars are captured for the tolerance-band gate.
@@ -465,7 +445,6 @@ fn run_case(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         Fragment::Backward => run_backward(case),
         Fragment::Incremental => run_incremental(case),
         Fragment::IncrementalGrounding => run_incremental_grounding(case),
-        Fragment::NaryExistential => run_nary(case),
     }
 }
 
@@ -490,10 +469,13 @@ fn sole_world(case: &BenchCase) -> gmeow_errors::Result<(String, u64)> {
     Ok((world.clone(), golden.rows))
 }
 
-/// FORWARD fragment: native `run_native_forward` (with the allocation sample plugged
-/// into its cost vector) vs the Nemo oracle `run_nemo_forward`.
+/// FORWARD fragment: native `run_native_forward` with the allocation sample
+/// plugged into its cost vector and checked against the hand-derived golden.
 fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
+    let program = case
+        .canonical_program()
+        .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
 
     let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
@@ -502,7 +484,7 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     // EDB loading, and stratum certification are outside both measured regions. Each
     // region performs a complete materialization; only the physical plan may persist.
     let plan_contract = format!("bench-repeat-plan-v1:{}/{}", case.corpus, case.name);
-    let mut repeat = RepeatForwardSession::prepare(edb.as_ref(), &case.rules, plan_contract)
+    let mut repeat = RepeatForwardSession::prepare(edb.as_ref(), &program, plan_contract)
         .map_err(|e| run_err(case, format!("repeat-forward prepare failed: {e}")))?;
     let (cold_res, cold_sample) = measure(|| repeat.evaluate());
     let cold = cold_res.map_err(|e| run_err(case, format!("cold plan evaluation failed: {e}")))?;
@@ -558,14 +540,14 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     // Prime the production process-wide plan cache outside the primary allocation sample.
     // Cold planning remains measured explicitly by the paired local repeat probe above;
     // this sample is the steady-state execution cost, not a cold-start/cache mixture.
-    run_native_forward(edb.as_ref(), &case.rules)
+    run_native_forward(edb.as_ref(), &program)
         .map_err(|e| run_err(case, format!("native forward plan prime failed: {e}")))?;
 
     // Native (measured). The global Rayon pool is the single calling thread (set in
     // `main`), so the engine's parallel work runs inline on the measuring thread; the
     // process-global totals and per-thread peak-live capture it completely — pool-quiesce.
     let native_start = Instant::now();
-    let (native_res, sample) = measure(|| run_native_forward(edb.as_ref(), &case.rules));
+    let (native_res, sample) = measure(|| run_native_forward(edb.as_ref(), &program));
     let native_wall = native_start.elapsed().as_nanos();
     let mut native =
         native_res.map_err(|e| run_err(case, format!("native forward failed: {e}")))?;
@@ -575,29 +557,18 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let native_derived = native.cost.total_derivations();
     let native_fp = fingerprint_rows(&native.rows);
 
-    // Nemo oracle.
-    let nemo_start = Instant::now();
-    let nemo = run_nemo_forward(edb.as_ref(), &case.rules)
-        .map_err(|e| run_err(case, format!("nemo forward failed: {e}")))?;
-    let nemo_wall = nemo_start.elapsed().as_nanos();
-    let nemo_fp = fingerprint_rows(&nemo);
-
-    // native ↔ golden by derived count; native ↔ nemo by full-row fingerprint.
+    // Native closure against the hand-derived golden count.
     let native_golden_tok = count_token(native_derived);
     let golden_tok = count_token(golden_rows);
     let agree_golden = native_golden_tok == golden_tok;
-    let agree_nemo = native_fp == nemo_fp;
 
-    let comparisons = vec![
-        comp(
-            case,
-            &world,
-            "native-vs-golden",
-            &native_golden_tok,
-            &golden_tok,
-        ),
-        comp(case, &world, "native-vs-nemo", &native_fp, &nemo_fp),
-    ];
+    let comparisons = vec![comp(
+        case,
+        &world,
+        "native-vs-golden",
+        &native_golden_tok,
+        &golden_tok,
+    )];
 
     let record = json!({
         "corpus": case.corpus,
@@ -671,42 +642,24 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 "record_alloc_count_overhead": record_alloc_count_overhead,
             },
         },
-        "oracle": {
-            "engine": "nemo",
-            "rows_fingerprint": nemo_fp,
-            "row_count": nemo.len(),
-        },
         "agreement": {
             "native_vs_golden": agree_golden,
-            "native_vs_oracle": agree_nemo,
             "native_golden_token": native_golden_tok,
             "golden_token": golden_tok,
-            "native_oracle_token": native_fp,
-            "oracle_token": nemo_fp,
         },
     });
 
     let peak = peak_rss_kib();
     Ok(CaseOutcome {
         record,
-        advisory: vec![
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "forward",
-                engine: "native",
-                wall_ns: native_wall,
-                peak_rss_kib: peak,
-                agreement: agree_golden,
-            },
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "forward",
-                engine: "nemo",
-                wall_ns: nemo_wall,
-                peak_rss_kib: peak,
-                agreement: agree_nemo,
-            },
-        ],
+        advisory: vec![AdvisoryRow {
+            corpus: case.corpus.clone(),
+            fragment: "forward",
+            engine: "native",
+            wall_ns: native_wall,
+            peak_rss_kib: peak,
+            agreement: agree_golden,
+        }],
         comparisons,
     })
 }
@@ -718,6 +671,9 @@ fn run_forward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 /// secondary engine is constructed.
 fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
+    let program = case
+        .canonical_program()
+        .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
     let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
     let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
@@ -726,9 +682,9 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 
     // Bootstrap and base scratch evaluation are intentionally outside the measured
     // transaction. The optimized consumer is a loop over one stable base session.
-    let mut session = IncrementalForwardSession::prepare(base.as_ref(), &case.rules)
+    let mut session = IncrementalForwardSession::prepare(base.as_ref(), &program)
         .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
-    let base_scratch = run_native_forward(base.as_ref(), &case.rules)
+    let base_scratch = run_native_forward(base.as_ref(), &program)
         .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
     let base_fp = fingerprint_rows(&base_scratch.rows);
 
@@ -746,7 +702,7 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let incremental_changes_fp = fingerprint_signed_rows(&incremental.changes);
 
     let scratch_start = Instant::now();
-    let (scratch_res, scratch_sample) = measure(|| run_native_forward(&updated, &case.rules));
+    let (scratch_res, scratch_sample) = measure(|| run_native_forward(&updated, &program));
     let scratch_wall = scratch_start.elapsed().as_nanos();
     let mut scratch =
         scratch_res.map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
@@ -856,7 +812,7 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
                 "cost_vector": cost_tuples(&scratch.cost.to_sorted_tuples()),
             },
         },
-        "oracle": {
+        "reference": {
             "engine": "native-scratch",
             "derived_count": scratch_derived,
             "rows_fingerprint": scratch_fp,
@@ -864,14 +820,14 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         },
         "agreement": {
             "native_vs_golden": agree_golden,
-            "native_vs_oracle": agree_insert && agree_retract,
+            "native_vs_reference": agree_insert && agree_retract,
             "incremental_insert_vs_scratch": agree_insert,
             "incremental_retract_vs_scratch": agree_retract,
             "incremental_step_win": step_win,
             "native_golden_token": native_golden_tok,
             "golden_token": golden_tok,
-            "native_oracle_token": parity_token,
-            "oracle_token": "insert-and-retract-match-scratch",
+            "native_reference_descriptor": parity_token,
+            "reference_descriptor": "insert-and-retract-match-scratch",
             "step_token": step_token,
         },
     });
@@ -908,6 +864,9 @@ fn run_incremental(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
 /// is grounding only.
 fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
+    let program = case
+        .canonical_program()
+        .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
     let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
         .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
     let delta = purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
@@ -915,7 +874,7 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
     let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
     let updated_edb_count = updated.quads().count() as u64;
 
-    let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &case.rules)
+    let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &program)
         .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
     let base_fp = session.current_rows_fingerprint();
 
@@ -1108,7 +1067,7 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
                 "active_ground_rules": scratch.active_ground_rules,
             },
         },
-        "oracle": {
+        "reference": {
             "engine": "native-grounding-scratch",
             "derived_count": scratch_derived,
             "rows_fingerprint": scratch_fp,
@@ -1116,15 +1075,15 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
         },
         "agreement": {
             "native_vs_golden": agree_golden,
-            "native_vs_oracle": grounding_semantic_parity(agree_insert, agree_retract),
+            "native_vs_reference": grounding_semantic_parity(agree_insert, agree_retract),
             "incremental_insert_vs_scratch": agree_insert,
             "incremental_retract_vs_scratch": agree_retract,
             "incremental_step_win": step_win,
             "incremental_probe_win": probe_win,
             "native_golden_token": native_golden_tok,
             "golden_token": golden_tok,
-            "native_oracle_token": parity_token,
-            "oracle_token": "insert-and-retract-ground-slice-match-scratch",
+            "native_reference_descriptor": parity_token,
+            "reference_descriptor": "insert-and-retract-ground-slice-match-scratch",
             "step_token": step_token,
             "probe_token": probe_token,
         },
@@ -1155,7 +1114,7 @@ fn run_incremental_grounding(case: &BenchCase) -> gmeow_errors::Result<CaseOutco
     })
 }
 
-/// Semantic oracle agreement is answer parity only. Deterministic work wins are
+/// Semantic reference agreement is answer parity only. Deterministic work wins are
 /// recorded in their dedicated fields and must never redefine correctness.
 fn grounding_semantic_parity(insert_matches: bool, retract_matches: bool) -> bool {
     insert_matches && retract_matches
@@ -1175,70 +1134,35 @@ fn changed_solver_shots_are_flagged(
         && retract_status == "flagged-non-incremental"
 }
 
-/// EXISTENTIAL fragment: native value-inventing chase (`materialize_routed`) vs the
-/// Nemo oracle. The chase invents fresh labeled nulls whose identifiers legitimately
-/// differ per engine, so the native↔nemo comparison is by DERIVED COUNT (the sound
-/// cross-engine invariant), not a row fingerprint.
+/// EXISTENTIAL fragment: native value-inventing chase against the hand-derived count.
 fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     let (world, golden_rows) = sole_world(case)?;
-
-    // Native chase (measured; global Rayon pool is the single calling thread — pool-quiesce).
-    let native_start = Instant::now();
-    let (native_res, sample) = measure(|| {
-        materialize_routed(
-            &case.rules,
-            &case.edb_nq,
-            None,
-            None,
-            None,
-            Some(HORN_PROFILE_TOKEN),
-        )
+    let rules = case
+        .existential_rules()
+        .map_err(|error| run_err(case, format!("typed existential parse failed: {error}")))?;
+    let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|error| run_err(case, format!("EDB parse error: {error}")))?;
+    let started = Instant::now();
+    let (native, sample) = measure(|| {
+        materialize_existential_rules(edb.as_ref(), &rules, MaterializationLimits::default())
     });
-    let native_wall = native_start.elapsed().as_nanos();
-    let native = native_res.map_err(|e| run_err(case, format!("native chase failed: {e}")))?;
-    // Derived = every quad NOT attributed to the EDB-echo assert rule.
+    let wall_ns = started.elapsed().as_nanos();
+    let native = native.map_err(|error| run_err(case, format!("native chase failed: {error}")))?;
     let native_derived = native
         .quads
         .iter()
-        .filter(|q| q.rule_iri != ASSERT_RULE_IRI)
+        .filter(|quad| quad.rule_iri != ASSERT_RULE_IRI)
         .count() as u64;
-    let consumed_steps = native.frontier.consumed_steps;
-
-    // Nemo oracle: derived = rows whose predicate is not an EDB predicate.
-    let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
-        .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
-    let edb_preds = edb_predicates(&case.edb_nq)?;
-    // The provenance-carrying Nemo forward oracle rejects invented nulls, so the
-    // existential fragment drives the facts-only Nemo chase (the SAME path the
-    // materialize router demotes uncertified existentials to).
-    let nemo_start = Instant::now();
-    let nemo = run_nemo_forward_facts_only(edb.as_ref(), &case.rules)
-        .map_err(|e| run_err(case, format!("nemo facts-only chase failed: {e}")))?;
-    let nemo_wall = nemo_start.elapsed().as_nanos();
-    let nemo_derived = nemo
-        .rows
-        .iter()
-        .filter(|r| !edb_preds.contains(&r.predicate))
-        .count() as u64;
-
-    let native_golden_tok = count_token(native_derived);
-    let golden_tok = count_token(golden_rows);
-    let native_nemo_tok = count_token(native_derived);
-    let nemo_tok = count_token(nemo_derived);
-    let agree_golden = native_golden_tok == golden_tok;
-    let agree_nemo = native_nemo_tok == nemo_tok;
-
-    let comparisons = vec![
-        comp(
-            case,
-            &world,
-            "native-vs-golden",
-            &native_golden_tok,
-            &golden_tok,
-        ),
-        comp(case, &world, "native-vs-nemo", &native_nemo_tok, &nemo_tok),
-    ];
-
+    let native_token = count_token(native_derived);
+    let golden_token = count_token(golden_rows);
+    let agreement = native_token == golden_token;
+    let comparisons = vec![comp(
+        case,
+        &world,
+        "native-vs-golden",
+        &native_token,
+        &golden_token,
+    )];
     let record = json!({
         "corpus": case.corpus,
         "case": case.name,
@@ -1247,170 +1171,33 @@ fn run_existential(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
         "golden_rows": golden_rows,
         "native": {
             "engine": EngineId::native().version,
-            "consumed_steps": consumed_steps,
+            "consumed_steps": native.frontier.consumed_steps,
             "derived_count": native_derived,
-            // All three allocation scalars GATE: alloc_bytes/alloc_count are the
-            // process-global totals (deterministic under the sequential harness) and
-            // peak_live_bytes is the per-thread net-live high-water.
             "alloc_bytes": sample.bytes,
             "alloc_count": sample.count,
             "peak_live_bytes": sample.peak_live,
-            // The chase seam exposes no decomposable (rule,predicate,stratum) vector,
-            // so none is fabricated (the no-optionality doctrine: an absent measure is
-            // absent, never a zeroed lie).
             "cost_vector": Value::Array(Vec::new()),
         },
-        "oracle": {
-            "engine": "nemo",
-            "derived_count": nemo_derived,
-        },
         "agreement": {
-            "native_vs_golden": agree_golden,
-            "native_vs_oracle": agree_nemo,
-            "native_golden_token": native_golden_tok,
-            "golden_token": golden_tok,
-            "native_oracle_token": native_nemo_tok,
-            "oracle_token": nemo_tok,
+            "native_vs_golden": agreement,
+            "native_golden_token": native_token,
+            "golden_token": golden_token,
         },
     });
-
-    let peak = peak_rss_kib();
     Ok(CaseOutcome {
         record,
-        advisory: vec![
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "existential",
-                engine: "native",
-                wall_ns: native_wall,
-                peak_rss_kib: peak,
-                agreement: agree_golden,
-            },
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "existential",
-                engine: "nemo",
-                wall_ns: nemo_wall,
-                peak_rss_kib: peak,
-                agreement: agree_nemo,
-            },
-        ],
+        advisory: vec![AdvisoryRow {
+            corpus: case.corpus.clone(),
+            fragment: "existential",
+            engine: "native",
+            wall_ns,
+            peak_rss_kib: peak_rss_kib(),
+            agreement,
+        }],
         comparisons,
     })
 }
 
-/// NARY-EXISTENTIAL fragment: the native reified-binary n-ary chase
-/// (`run_native_nary_forward_run`) vs the Nemo n-ary oracle (`run_nemo_nary_forward`) over
-/// the SAME n-ary `.rls` program + delimited (`data/<rel>.csv`) EDB. Both engines invent
-/// fresh nulls whose identifiers legitimately differ per engine, so the native↔nemo verdict
-/// is a NULL-BLIND canonical fingerprint (`nary_canonical_fingerprint`, colour refinement),
-/// not a raw row fingerprint — the sound cross-engine invariant for a value-inventing
-/// n-ary chase. The native closure's tuple COUNT drives the native↔golden comparison.
-fn run_nary(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
-    let (world, golden_rows) = sole_world(case)?;
-
-    // Parse the n-ary `.rls` ONCE; the SAME program drives native (via the reified lowering)
-    // and Nemo (verbatim). A genuinely-unsupported construct hard-fails here (named).
-    let rules = parse_nary_rls_program(&case.rules)
-        .map_err(|e| run_err(case, format!("n-ary .rls parse failed: {e}")))?;
-
-    // Native (measured; global Rayon pool is the single calling thread — pool-quiesce).
-    let native_start = Instant::now();
-    let (native_res, sample) = measure(|| run_native_nary_forward_run(&case.nary_edb, &rules));
-    let native_wall = native_start.elapsed().as_nanos();
-    let native =
-        native_res.map_err(|e| run_err(case, format!("native n-ary chase failed: {e}")))?;
-    let native_derived = native.tuples.len() as u64;
-    let consumed_steps = native.consumed_steps;
-    let native_fp = nary_canonical_fingerprint(&native.tuples);
-
-    // Nemo n-ary oracle over the SAME EDB + program (facts-only typed chase at full arity).
-    let nemo_start = Instant::now();
-    let nemo = run_nemo_nary_forward(&case.nary_edb, &case.rules)
-        .map_err(|e| run_err(case, format!("nemo n-ary chase failed: {e}")))?;
-    let nemo_wall = nemo_start.elapsed().as_nanos();
-    let nemo_fp = nary_canonical_fingerprint(&nemo);
-
-    // native ↔ golden by de-reified closure count; native ↔ nemo by null-blind fingerprint.
-    let native_golden_tok = count_token(native_derived);
-    let golden_tok = count_token(golden_rows);
-    let agree_golden = native_golden_tok == golden_tok;
-    let agree_nemo = native_fp == nemo_fp;
-
-    let comparisons = vec![
-        comp(
-            case,
-            &world,
-            "native-vs-golden",
-            &native_golden_tok,
-            &golden_tok,
-        ),
-        comp(case, &world, "native-vs-nemo", &native_fp, &nemo_fp),
-    ];
-
-    let record = json!({
-        "corpus": case.corpus,
-        "case": case.name,
-        "fragment": "nary-existential",
-        "world": world,
-        "golden_rows": golden_rows,
-        "native": {
-            "engine": EngineId::native().version,
-            "consumed_steps": consumed_steps,
-            "derived_count": native_derived,
-            // All three allocation scalars GATE: alloc_bytes/alloc_count are the
-            // process-global totals (deterministic under the sequential harness) and
-            // peak_live_bytes is the per-thread net-live high-water.
-            "alloc_bytes": sample.bytes,
-            "alloc_count": sample.count,
-            "peak_live_bytes": sample.peak_live,
-            // The reified n-ary chase seam exposes no decomposable (rule,predicate,stratum)
-            // vector, so none is fabricated (no-optionality: an absent measure is absent).
-            "cost_vector": Value::Array(Vec::new()),
-            "closure_fingerprint": native_fp,
-        },
-        "oracle": {
-            "engine": "nemo",
-            "closure_count": nemo.len(),
-            "closure_fingerprint": nemo_fp,
-        },
-        "agreement": {
-            "native_vs_golden": agree_golden,
-            "native_vs_oracle": agree_nemo,
-            "native_golden_token": native_golden_tok,
-            "golden_token": golden_tok,
-            "native_oracle_token": native_fp,
-            "oracle_token": nemo_fp,
-        },
-    });
-
-    let peak = peak_rss_kib();
-    Ok(CaseOutcome {
-        record,
-        advisory: vec![
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "nary-existential",
-                engine: "native",
-                wall_ns: native_wall,
-                peak_rss_kib: peak,
-                agreement: agree_golden,
-            },
-            AdvisoryRow {
-                corpus: case.corpus.clone(),
-                fragment: "nary-existential",
-                engine: "nemo",
-                wall_ns: nemo_wall,
-                peak_rss_kib: peak,
-                agreement: agree_nemo,
-            },
-        ],
-        comparisons,
-    })
-}
-
-/// BACKWARD fragment: native goal-directed `dispatch_query` against the committed
-/// answer-count and answer-set fingerprint captured from the retired SLD reference lane.
 fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
     if case.golden.len() != 1 {
         return Err(Diag::of_kind(RunFailed {
@@ -1498,18 +1285,18 @@ fn run_backward(case: &BenchCase) -> gmeow_errors::Result<CaseOutcome> {
             // No decomposable cost vector at the backward dispatch seam.
             "cost_vector": Value::Array(Vec::new()),
         },
-        "oracle": {
+        "reference": {
             "engine": BACKWARD_REFERENCE,
             "answer_count": golden_rows,
             "answers_fingerprint": published_fp,
         },
         "agreement": {
             "native_vs_golden": agree_golden,
-            "native_vs_oracle": agree_published,
+            "native_vs_reference": agree_published,
             "native_golden_token": native_golden_tok,
             "golden_token": golden_tok,
-            "native_oracle_token": native_fp,
-            "oracle_token": published_fp,
+            "native_reference_descriptor": native_fp,
+            "reference_descriptor": published_fp,
         },
     });
 
@@ -1935,14 +1722,7 @@ fn run_parallelism_regression_check(
 /// (Total `alloc_bytes` is ADVISORY, never a gate — it is transient scratch that carries a
 /// sub-ε non-deterministic run-to-run jitter, so gating on it would be gating on noise.
 /// It is reported as corroboration only; see [`COST_WIN_CASES`].)
-const COST_PEAK_WIN_CASES: &[(&str, &str)] = &[
-    ("relational-core-mini", "same-generation"),
-    ("nemo-kr2024-mini", "ancestor-query"),
-    ("nemo-kr2024-mini", "reachability-query"),
-    ("nary-mini", "co-witness"),
-    ("nary-mini", "split-null"),
-    ("nary-mini", "stb-like"),
-];
+const COST_PEAK_WIN_CASES: &[(&str, &str)] = &[("relational-core-mini", "same-generation")];
 
 /// The `relational-core-mini` forward-recursive cases whose churn-shedding `alloc_bytes`
 /// drop is REPORTED as advisory corroboration of the win — the deterministic-cost analogues
@@ -1969,8 +1749,6 @@ const COST_NOREG_CASES: &[(&str, &str)] = &[
     ("chasebench-mini", "deep-linear"),
     ("chasebench-mini", "doctors-like"),
     ("chasebench-mini", "lubm-like"),
-    ("nemo-kr2024-mini", "ancestor-query"),
-    ("nemo-kr2024-mini", "reachability-query"),
 ];
 
 /// Index a cost-baseline JSON document's cases by `(corpus, case)` → its `native` object.
@@ -2209,9 +1987,12 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
     match case.fragment {
         Fragment::Forward => {
             let (world, golden_rows) = sole_world(case)?;
+            let program = case
+                .canonical_program()
+                .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
             let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
                 .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
-            let native = run_native_forward(edb.as_ref(), &case.rules)
+            let native = run_native_forward(edb.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("native forward failed: {e}")))?;
             Ok(GoldenObservation {
                 world,
@@ -2222,13 +2003,15 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
         }
         Fragment::Existential => {
             let (world, golden_rows) = sole_world(case)?;
-            let native = materialize_routed(
-                &case.rules,
-                &case.edb_nq,
-                None,
-                None,
-                None,
-                Some(HORN_PROFILE_TOKEN),
+            let rules = case
+                .existential_rules()
+                .map_err(|e| run_err(case, format!("typed existential parse failed: {e}")))?;
+            let edb = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
+                .map_err(|e| run_err(case, format!("EDB parse error: {e}")))?;
+            let native = materialize_existential_rules(
+                edb.as_ref(),
+                &rules,
+                MaterializationLimits::default(),
             )
             .map_err(|e| run_err(case, format!("native chase failed: {e}")))?;
             let native_derived = native
@@ -2243,32 +2026,22 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                 fingerprint: None,
             })
         }
-        Fragment::NaryExistential => {
-            let (world, golden_rows) = sole_world(case)?;
-            let rules = parse_nary_rls_program(&case.rules)
-                .map_err(|e| run_err(case, format!("n-ary .rls parse failed: {e}")))?;
-            let native = run_native_nary_forward_run(&case.nary_edb, &rules)
-                .map_err(|e| run_err(case, format!("native n-ary chase failed: {e}")))?;
-            Ok(GoldenObservation {
-                world,
-                native_count: native.tuples.len() as u64,
-                golden_count: golden_rows,
-                fingerprint: None,
-            })
-        }
         Fragment::Incremental => {
             let (world, golden_rows) = sole_world(case)?;
+            let program = case
+                .canonical_program()
+                .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
             let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
                 .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
             let delta =
                 purrdf::parse_dataset(case.delta_nq.as_bytes(), "application/n-quads", None)
                     .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
             let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
-            let base_scratch = run_native_forward(base.as_ref(), &case.rules)
+            let base_scratch = run_native_forward(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("base scratch rebuild failed: {e}")))?;
-            let updated_scratch = run_native_forward(&updated, &case.rules)
+            let updated_scratch = run_native_forward(&updated, &program)
                 .map_err(|e| run_err(case, format!("updated scratch rebuild failed: {e}")))?;
-            let mut session = IncrementalForwardSession::prepare(base.as_ref(), &case.rules)
+            let mut session = IncrementalForwardSession::prepare(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("incremental prepare failed: {e}")))?;
             let inserted = session
                 .insert(delta.as_ref(), None)
@@ -2295,6 +2068,9 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
         }
         Fragment::IncrementalGrounding => {
             let (world, golden_rows) = sole_world(case)?;
+            let program = case
+                .canonical_program()
+                .map_err(|e| run_err(case, format!("canonical program parse failed: {e}")))?;
             let base = purrdf::parse_dataset(case.edb_nq.as_bytes(), "application/n-quads", None)
                 .map_err(|e| run_err(case, format!("base EDB parse error: {e}")))?;
             let delta =
@@ -2302,7 +2078,7 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
                     .map_err(|e| run_err(case, format!("delta EDB parse error: {e}")))?;
             let updated = purrdf::RdfDataset::union(&[base.as_ref(), delta.as_ref()]);
             let updated_edb_count = updated.quads().count() as u64;
-            let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &case.rules)
+            let mut session = IncrementalGroundingCostSession::prepare(base.as_ref(), &program)
                 .map_err(|e| run_err(case, format!("incremental grounding prepare failed: {e}")))?;
             let base_fp = blake3::Hash::from_bytes(session.current_rows_fingerprint())
                 .to_hex()
@@ -2399,13 +2175,13 @@ fn native_golden_pair(case: &BenchCase) -> gmeow_errors::Result<GoldenObservatio
 /// additionally compare the complete canonical answer-set fingerprint with the captured
 /// SLD digest. Each comparison is folded through the shared divergence ledger, so every disagreement becomes a named
 /// `gmeow:Finding` carrying content-addressed ledger identity (`finding_iri` + anchor +
-/// antecedents), NOT a bare diff. ANY disagreement HARD-FAILS (no-optionality). No oracle
+/// antecedents), NOT a bare diff. ANY disagreement HARD-FAILS (no-optionality). No external
 /// is driven, so this is cheap enough for `make check`.
 /// Drive every committed mini bench case through the NATIVE engine ONLY and group the
 /// resulting native-vs-golden comparisons by corpus (deterministic BTree order; the
 /// loader yields cases sorted by `(corpus, case)`). This is the shared native-only path
 /// behind BOTH the single-run golden gate ([`run_golden_gate`]) and the N-run soak window
-/// ([`run_soak`]) — no oracle is ever constructed, so both stay cheap on-gate.
+/// ([`run_soak`]) — no external engine is ever constructed, so both stay cheap on-gate.
 fn golden_comps_by_corpus(
     cases: &[BenchCase],
 ) -> gmeow_errors::Result<BTreeMap<String, Vec<ExternalComparison>>> {
@@ -2458,7 +2234,7 @@ fn run_golden_gate(cases: &[BenchCase]) -> gmeow_errors::Result<()> {
     if disagreements == 0 {
         eprintln!(
             "✓ golden gate: all {} native mini-corpus case(s) agree with their committed golden \
-             (count invariants plus captured backward answer digests; no live oracle run).",
+             (count invariants plus captured backward answer digests; no external engine run).",
             cases.len()
         );
         return Ok(());
@@ -2643,7 +2419,7 @@ fn count_token(n: u64) -> String {
 }
 
 /// Build one divergence comparison. `kind` distinguishes the two comparison lanes
-/// (`native-vs-golden` / `native-vs-oracle`) so the ledger's structural focus keys
+/// (`native-vs-golden` / `native-vs-reference`) so the ledger's structural focus keys
 /// never collide. Never yields the `"incomplete"` token, so a comparison is always
 /// classified Agree / CorpusOnly (never mis-read as a native coverage gap).
 fn comp(
@@ -2710,27 +2486,6 @@ fn fingerprint_answers(answers: &AnswerSet) -> String {
         hasher.update(b"\n");
     }
     hasher.finalize().to_hex().to_string()
-}
-
-/// The set of EDB predicate IRIs in a world-scoped N-Quads EDB (sorted for
-/// determinism). Used to separate derived rows from EDB-echo rows on the oracle's
-/// row set, which — unlike the native seams — carries no provenance flag.
-fn edb_predicates(edb_nq: &str) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
-    let store = WorldStore::new();
-    store.load_nquads(edb_nq).map_err(|e| {
-        Diag::of_kind(RunFailed {
-            detail: format!("EDB predicate scan: {e}"),
-        })
-    })?;
-    let mut preds = std::collections::BTreeSet::new();
-    for world in store.worlds() {
-        for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
-            if let Some(p) = quad.p.as_iri() {
-                preds.insert(p.to_owned());
-            }
-        }
-    }
-    Ok(preds)
 }
 
 /// Project the sorted cost-vector tuples into a JSON array of `[rule, predicate,
@@ -2923,7 +2678,7 @@ mod tests {
                 "peak_live_bytes": 100,
                 "cost_vector": [],
             },
-            "agreement": { "native_vs_golden": true, "native_vs_oracle": true },
+            "agreement": { "native_vs_golden": true, "native_vs_reference": true },
         })
     }
 
@@ -3089,7 +2844,7 @@ mod tests {
     }
 
     #[test]
-    fn incremental_grounding_oracle_agreement_is_semantic_only() {
+    fn incremental_grounding_reference_agreement_is_semantic_only() {
         assert!(grounding_semantic_parity(true, true));
         assert!(!grounding_semantic_parity(true, false));
         assert!(!grounding_semantic_parity(false, true));

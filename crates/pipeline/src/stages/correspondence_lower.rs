@@ -178,16 +178,17 @@ pub fn lower_all(
 }
 
 /// The discharged-`logic:SectionLaw` cell IRIs computed directly from in-memory cell TTLs + the
-/// ontology N-Triples — the string-fed twin of the mappings stage's [`discharge_correspondence_laws`]
+/// ontology N-Triples — the string-fed twin of the mappings stage's
+/// `discharge_correspondence_laws`
 /// (crate::stages::mappings). It reuses the SAME `transpile_correspondences_indexed` +
 /// [`sparql::lower_sparql`] + [`crate::correspondence_law::discharge_laws`] pipeline, so it yields
 /// the identical authorization set the bundle folds into `graph/correspondence-laws` — never a
 /// second copy of the discharge algorithm.
 ///
-/// This exists for the PyO3 `execute_put_legs` binding: its Python caller supplies the projection
-/// cells and the ontology, but not the folded verdict graph, so the binding recomputes the SAME
-/// verdicts here rather than hard-failing for want of the folded set. The native `gmeow` /
-/// `gmeow-dev` up-projection path consumes the FOLDED verdict from the bundle
+/// This exists for callers that supply the projection cells and ontology, but not
+/// the folded verdict graph, so they can recompute the SAME verdicts rather than
+/// hard-failing for want of the folded set. The native `gmeow` / `gmeow-dev`
+/// up-projection path consumes the FOLDED verdict from the bundle
 /// ([`crate::projections::discharged_section_cells_from_bundle`]) instead.
 pub fn discharged_section_cells_from_cells(
     projection_ttls: &[String],

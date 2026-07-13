@@ -3,10 +3,9 @@
 
 //! Native physical execution core.
 //!
-//! The destination is one native Rust engine. Nemo remains a temporary forward
-//! comparison oracle; oxigraph remains a storage compatibility layer. This module hosts the engine's working
-//! representation — starting with the columnar [`RelationStore`] and the single
-//! oxigraph → columnar bridge [`extract_edb`].
+//! This module hosts the native engine's working representation — starting with
+//! the columnar [`RelationStore`] and the single oxigraph → columnar bridge
+//! [`extract_edb`].
 //!
 //! # Phase dead code
 //!
@@ -19,6 +18,7 @@
 // The phase-scoped row/tuple bump arena: a genuinely resettable
 // per-round argument-tuple buffer, distinct from the persistent term arena
 // (`facts::TermInterner`). Consumed by the semi-naive fixpoint (`seminaive`).
+mod annotation;
 mod arena;
 mod binding_pattern;
 // The dense `u64`-word delta bitset: row-id membership over the
@@ -50,7 +50,6 @@ mod incremental_grounding;
 pub(crate) mod id;
 mod magic;
 mod magic_generic;
-mod parity;
 // The consuming type-state plan pipeline: `Parsed → Stratified →
 // Planned → Executable`. Makes an unstratified/unplanned program unrepresentable at the
 // semi-naive executor boundary and memoizes the content-addressed owned RA plan: strata,
@@ -70,9 +69,7 @@ pub(crate) use binding_pattern::BindingPattern;
 // `crate::oracle::NativeForwardOracle` for the generic-triple encoding; the binary
 // EL/DL path stays on `seminaive`. `#[cfg(test)]`-gated coverage lives in the module.
 #[allow(unused_imports)]
-pub(crate) use generic::{
-    GenericRule, lower_program_generic_rules, materialize_generic, parse_generic_rules,
-};
+pub(crate) use generic::{GenericAtom, GenericRule, materialize_generic};
 
 #[allow(unused_imports)]
 pub(crate) use incremental::{
@@ -88,7 +85,7 @@ pub(crate) use incremental_grounding::{
 // forward/backward evaluators landing on the next rung. Until then the re-export is
 // unused crate-wide, so allow it here rather than dropping the intended API.
 #[allow(unused_imports)]
-pub(crate) use store::{Bound, RelationStore, extract_edb};
+pub(crate) use store::{Bound, RelationStore, SkolemRegistry, extract_edb};
 
 // The arrangement's native lending cursor + its sealed GAT trait: the zero-alloc row
 // scan consumed by the semi-naive join (`seminaive`) and the chase (`chase`).
@@ -105,20 +102,27 @@ pub(crate) use seminaive::{
     rule_parallel_probe,
 };
 
+pub(crate) use annotation::{
+    AnnotationExecution, PhysicalAnnotationDerivation, certify_query, evaluate_annotations,
+};
+
 // The type-state plan pipeline: the executor's entry-gate types. `Parsed` is the sole
 // entry; `Executable` is the sole type the forward/backward evaluators accept. The
 // intermediate `Stratified`/`Planned` are re-exported so a caller can name a stage if it
 // chooses, though the fluent `Parsed::uncached(..).stratify()?.plan().into_executable()` chain
 // never needs to.
 #[allow(unused_imports)]
-pub(crate) use plan::{Executable, Parsed, PlanCache, Planned, Stratified, compile_cached};
+pub(crate) use plan::{
+    Executable, Parsed, PlanCache, Planned, Stratified, canonical_rule_hash, compile_cached,
+};
 
 // The native restricted (standard) existential-rule chase: value invention for the
 // existential fragment, admitted by the `ChaseAdmission` termination certificate and
 // consumed by `materialize::materialize_routed`.
 #[allow(unused_imports)]
 pub(crate) use chase::{
-    ExistentialRule, chase_materialize, chase_world, parse_existential_rules, route_chase,
+    ExistentialRule, WitnessPolicy, chase_materialize, chase_world, route_chase,
+    route_chase_with_registry,
 };
 // The termination certificate is surfaced PUBLICLY (re-exported through the public
 // `materialize` module below) so callers can read the chase's weak-acyclicity certificate
@@ -130,6 +134,7 @@ pub use chase::ChaseAdmission;
 // backward path consumed by `dispatch::dispatch_query`.
 #[cfg(test)]
 pub(crate) use magic::resolve_native;
+pub(crate) use magic::resolve_native_annotated_under;
 pub(crate) use magic::{IncrementalQuerySession, prepare_incremental_query, resolve_native_under};
 
 // The shared moded builtin evaluator: one arithmetic/comparison semantics called

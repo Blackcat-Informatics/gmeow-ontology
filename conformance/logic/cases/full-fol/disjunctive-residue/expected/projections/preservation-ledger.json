@@ -53,13 +53,6 @@
     ],
     "preservation": "CompleteOverApproximation"
   },
-  "nemo": {
-    "complexity": "PTIME/datalog",
-    "lossy_drops": [
-      "actual: logic:Formula #0 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
-    ],
-    "preservation": "SoundUnderApproximation"
-  },
   "owl-dl": {
     "complexity": "decidable/N2EXPTIME",
     "lossy_drops": [

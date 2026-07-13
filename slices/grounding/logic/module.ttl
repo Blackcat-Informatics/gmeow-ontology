@@ -1438,6 +1438,17 @@ logic:ProjectionTarget
     skos:definition "The facet value class of a projection target: a surface the answer is rendered to. The projection facet is an output request that may name one or more targets (canonical, OWL, Datalog, Common Logic, validation-only) at once; it is a standing request, not a semantic selection, and never alters which entailments hold."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ConversionTarget
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conversion Target"@x-gmeow-english ;
+    skos:definition "A legal output language for a lowering: every emitted construct must inhabit this target, while anything it cannot express remains explicit flagged residue. It is not a logic:ProjectionTarget, which requests a presentation of an answer; a conversion target instead delimits the IR or dialect into which canonical content may be legalized."@x-gmeow-english ;
+    skos:example "logic:RelationalCore a logic:ConversionTarget ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a conversion target as a reasoning-contract output preference or let it change which entailments hold."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the legal target dialect, emit only constructs admitted by it, and carry every rejected source construct as typed residue with a preservation judgment."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the legality domain of a compiler lowering or dialect conversion."@x-gmeow-english .
+
 logic:PropertyPathProjection
     a owl:NamedIndividual ,
         logic:ProjectionTarget ;
@@ -1883,7 +1894,7 @@ logic:Type
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Type"@x-gmeow-english ;
-    skos:definition "A universal: a type whose instances share a common feature, reified as a first-order individual so it can itself be the object of logic:instanceOf and carry a logic:orderedType. The counterpart of gufo:Type; first-order (its instances are logic:Individuals, logic:orderedType 1) or higher-order (its instances are themselves types). The root of the type taxonomy, complementing logic:Individual; every foundation sort (logic:Kind, logic:Role, …) and every meta-type below is a logic:Type."@x-gmeow-english ;
+    skos:definition "A universal: a type whose instances share a common feature, reified as a first-order individual so it can itself be the object of logic:instanceOf and carry a logic:orderedType. The counterpart of gufo:Type; first-order (its instances are logic:Individuals, logic:orderedType 1) or higher-order (its instances are themselves types). The root of the type taxonomy, complementing logic:Individual; every foundation sort (logic:Kind, logic:Role, …) and every meta-type below is a logic:Type. It is not an OWL class-punning shortcut: its deep-instantiation role is explicit first-order data."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:UncertaintyMeasure
@@ -2926,14 +2937,14 @@ logic:distinctBody
     rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "distinct body"@x-gmeow-english ;
-    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."@x-gmeow-english .
+    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."@x-gmeow-english .
 
 logic:aggregateFunction
     a owl:DatatypeProperty ;
     rdfs:comment "Aggregate function of a reduce rule. Default-absent: an ordinary Horn rule carries no aggregation surface, so the existing corpus is byte-identical."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "aggregate function"@x-gmeow-english ;
-    skos:definition "Names the aggregate function (SUM, COUNT, MIN, MAX, AVG) a logic:Rule applies in its reduce (aggregation) head: the rule binds logic:aggregateResult to this function applied to logic:aggregateVariable over the groups formed by logic:groupKey. This is the canonical logic: representation of the reduce half of the computation surface; it projects to an aggregating Datalog/Nemo rule and to a SHACL-AF GROUP-BY sub-SELECT (design/LOGIC-SHACL-AF.md). A rule with no logic:aggregateFunction is an ordinary derivation (map) rule."@x-gmeow-english .
+    skos:definition "Names the aggregate function (SUM, COUNT, MIN, MAX, AVG) a logic:Rule applies in its reduce (aggregation) head: the rule binds logic:aggregateResult to this function applied to logic:aggregateVariable over the groups formed by logic:groupKey. This is the canonical logic: representation of the reduce half of the computation surface; it projects to an aggregating Datalog rule and to a SHACL-AF GROUP-BY sub-SELECT (design/LOGIC-SHACL-AF.md). A rule with no logic:aggregateFunction is an ordinary derivation (map) rule."@x-gmeow-english .
 
 logic:aggregateVariable
     a owl:DatatypeProperty ;
@@ -5722,7 +5733,7 @@ logic:Lens
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Lens"@x-gmeow-english ;
-    skos:definition "The executable asymmetric core a logic:Correspondence wraps: a get / put leg pair between a rich source S and a derived view V, with get : S → V the down-projection and put : V × S → S the up-projection. GMEOW is always the source S and the external vocabulary the view V, so down-projection (GMEOW → external) is the get leg and up-projection (external → GMEOW) is the put leg. The view is the smaller, derived thing; put folds a possibly-fresh view back into the rich source, and the ingest-with-no-prior-state case (S empty) is exactly where a witness must travel in the view — the mnemomorphism a logic:Correspondence records with logic:mnemomorphic. Both legs are logic:TransactionProgram bodies over the path semantics of the transaction layer and logic:PathShape — no new pattern language is introduced. Distinguished from logic:Correspondence, which wraps this lens with the relation, the quantitative axes, the law claims and the standpoint envelope (design/LOGIC-CORRESPONDENCE.md, the orientation-convention section)."@x-gmeow-english ;
+    skos:definition "The executable asymmetric core a logic:Correspondence wraps: a get / put leg pair between a rich source S and a derived view V, with get : S → V the down-projection and put : V × S → S the up-projection. GMEOW is always the source S and the external vocabulary the view V, so down-projection (GMEOW → external) is the get leg and up-projection (external → GMEOW) is the put leg. The view is the smaller, derived thing; put folds a possibly-fresh view back into the rich source, and the ingest-with-no-prior-state case (S empty) is exactly where a witness must travel in the view — the mnemomorphism a logic:Correspondence records with logic:mnemomorphic. Both legs are logic:TransactionProgram bodies over the path semantics of the transaction layer and logic:PathShape — no new pattern language is introduced. It is not the logic:Correspondence envelope, which separately carries the relation, quantitative axes, law claims, and standpoint (design/LOGIC-CORRESPONDENCE.md, the orientation-convention section)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:CorrespondenceRelation
@@ -5916,6 +5927,7 @@ logic:LawClaim
 
 logic:Dialect
     a owl:Class ;
+    rdfs:subClassOf logic:ConversionTarget ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Dialect"@x-gmeow-english ;
     skos:definition "A named sub-language of the canonical logic: IR, in the MLIR sense of a dialect with its own node verifiers and progressive lowering (not an LLVM-style substrate). The one F1 dialect is logic:RelationalCore, the logical-to-physical lowering waist between the full IR and the native execution engine."@x-gmeow-english ;
@@ -5923,6 +5935,7 @@ logic:Dialect
 
 logic:RelationalCore
     a owl:NamedIndividual ,
+        logic:ConversionTarget ,
         logic:Dialect ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Relational Core"@x-gmeow-english ;
@@ -6312,7 +6325,7 @@ logic:levelStrong
 # threshold profile (logic:LadderProjectionProfile). The factored assessment stays
 # the canonical record; the ladder is the readable ordinal projection. The shipped
 # projection rules are positive Horn, so they materialize under the engine's default
-# semantics and fold into gmeow.gts and the datalog/N3/Nemo program projections.
+# semantics and fold into gmeow.gts and the Datalog/N3 program projections.
 # Normative in design/LOGIC-COGNITION.md §Projection to the coarse knowledge ladder.
 
 logic:LadderProjectionProfile
@@ -7437,6 +7450,20 @@ logic:Formula
     skos:definition "A first-order formula node: the reified AST node a non-Horn logic: statement compiles into. A logic:Formula is a quantifier (carrying logic:forall or logic:exists over a body and one or more logic:quantifiedVariable bindings), a connective (logic:and, logic:or, logic:not, logic:antecedent with logic:consequent, or logic:iff over sub-formulae), or an atomic predication (logic:relation over ordered logic:argument terms). It is the unified full-FOL core of which Horn+NAF derivation rules are a recognized sub-fragment; the canonical RDF 1.2 serialization round-trips it losslessly, while weaker projections carry any formula they cannot express as flagged unsupported residue."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:Rule
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rule"@x-gmeow-english ;
+    skos:definition "A productive Horn or stratified-negation derivation whose logic:head is entailed when every positive logic:body atom holds, every logic:negatedBody atom is absent in its declared closure, and every guard succeeds. It is not a general logic:Formula or an integrity logic:Constraint: constructs outside the rule fragment remain formula trees and are carried as projection residue rather than approximated."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:TermCarrier
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Carrier"@x-gmeow-english ;
+    skos:definition "An ordered slot in an atomic formula's logic:argument list or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker. It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:SequenceMarker
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -7492,61 +7519,100 @@ logic:message
 # sh:SPARQLConstraint (design/LOGIC-VALIDATION.md).
 # --------------------------------------------------------------------------- #
 
+logic:ConstraintSugar
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Constraint Sugar"@x-gmeow-english ;
+    skos:definition "An authoring descriptor that the logic frontend expands into one canonical logic:Constraint with a reified integrity formula. A constraint-sugar record names a closed validation pattern and its parameters; it is not itself a logic:Formula AST node, so formula constructor checks never mistake validation metadata for an object-level sentence."@x-gmeow-english ;
+    skos:example "A logic:ChoiceGroupConstraint record can require exactly one of two predicates without being treated as either operand of the formula it compiles."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a sugar class when the integrity condition needs a formula shape the selected closed pattern cannot preserve."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Select the narrowest sugar subclass, provide its target and pattern parameters, and inspect the compiled logic:Constraint projection."@x-gmeow-english ;
+    gmeow:useWhen "Use for a supported closed-world validation pattern whose canonical expansion is deterministic."@x-gmeow-english .
+
 logic:ChoiceGroupConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:Formula ;
+    rdfs:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Choice Group Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a choice group when several members may coexist and at least one, rather than exactly or at most one, is required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Supply one target class, at least two choice predicates, and the exact cardinality mode the compiled XOR or at-most formula must enforce."@x-gmeow-english ;
+    gmeow:useWhen "Use when a closed validation boundary permits exactly one or at most one member of a finite predicate group."@x-gmeow-english .
 
 logic:GuardedImplicationConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:Formula ;
+    rdfs:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Guarded Implication Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use guarded implication for an unconditional required property or for a trigger whose value needs an open-ended expression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class, trigger predicate, optional trigger value, and every companion predicate whose existence the guard requires."@x-gmeow-english ;
+    gmeow:useWhen "Use when the presence of a predicate, optionally at one fixed value, conditionally requires companion data."@x-gmeow-english .
 
 logic:DisjunctiveRequirednessConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:Formula ;
+    rdfs:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Disjunctive Requiredness Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use disjunctive requiredness when the alternatives are mutually exclusive; use a choice-group cardinality constraint instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Provide one target class and at least two alternative predicates; the compiled condition succeeds when any alternative has a value."@x-gmeow-english ;
+    gmeow:useWhen "Use when a focus node must carry at least one of several substitutable properties and may legitimately carry more than one."@x-gmeow-english .
 
 logic:PathValueTypeConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:Formula ;
+    rdfs:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Path Value Type Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a path-value type constraint to require that the path exist; it constrains every present value but does not add minimum cardinality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the focus class, one value path, and the class every object reached through that path must instantiate."@x-gmeow-english ;
+    gmeow:useWhen "Use when all values of one direct predicate must belong to a declared class under closed-world validation."@x-gmeow-english .
 
 logic:CrossNodeConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:Formula ;
+    rdfs:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Cross Node Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a cross-node constraint for independent cardinalities; it compares the presence or values of two named roles on the same focus."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Provide the target class, two role predicates, and either co-occur or differ as the comparison mode."@x-gmeow-english ;
+    gmeow:useWhen "Use when two roles must appear together or must never resolve to the same value."@x-gmeow-english .
 
 logic:ForbiddenPatternConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:Formula ;
+    rdfs:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Forbidden Pattern Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a forbidden pattern to express an open-world negation claim; this is a closed validation prohibition over observed data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class and forbidden predicate, adding a fixed forbidden value only when other values on that predicate remain legal."@x-gmeow-english ;
+    gmeow:useWhen "Use when a focus must not carry a predicate at all or must exclude one specific predicate value."@x-gmeow-english .
 
 logic:AggregateConstraint
     a owl:Class ;
-    rdfs:subClassOf logic:Formula ;
+    rdfs:subClassOf logic:ConstraintSugar ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Aggregate Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an aggregate constraint for a per-value condition that needs no grouping; use the narrower path-value or forbidden-pattern sugar."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Specify the target, aggregate function, path, comparator, and literal or property-valued right-hand side; request DISTINCT only when duplicate values must collapse."@x-gmeow-english ;
+    gmeow:useWhen "Use when validity depends on COUNT, SUM, MIN, or MAX over the values reached by one predicate."@x-gmeow-english .
 
 logic:onClass
     a owl:ObjectProperty ;
@@ -7710,16 +7776,18 @@ logic:aggregateComparison
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:forall
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "for all"@x-gmeow-english ;
-    skos:definition "Relates a universal-quantifier logic:Formula to its body formula. The bound variables are carried by logic:quantifiedVariable; their block order is significant. Universal quantification ranges over individuals in the domain of discourse (the object level stays first-order)."@x-gmeow-english ;
+    skos:definition "Relates a universal-quantifier logic:Formula to its body formula. The bound variables are carried by logic:quantifiedVariable; their block order is significant. Universal quantification ranges over individuals in the domain of discourse (the object level stays first-order). It is not iteration over RDF serialization order or a higher-order predicate binder."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:exists
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -7733,7 +7801,7 @@ logic:and
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "and"@x-gmeow-english ;
-    skos:definition "Relates a conjunction logic:Formula to each of its operand sub-formulae (multi-valued, two or more). Conjunction is commutative and associative, so the canonical identity flattens nested conjunctions and is insensitive to operand order."@x-gmeow-english ;
+    skos:definition "Relates a conjunction logic:Formula to each of its operand sub-formulae (multi-valued, two or more). Conjunction is commutative and associative, so the canonical identity flattens nested conjunctions and is insensitive to operand order. It is not serial composition of transaction programs, which has state-changing path semantics."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:or
@@ -7742,11 +7810,12 @@ logic:or
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "or"@x-gmeow-english ;
-    skos:definition "Relates a disjunction logic:Formula to each of its operand sub-formulae (multi-valued, two or more). Disjunction is commutative and associative, so the canonical identity flattens nested disjunctions and is insensitive to operand order."@x-gmeow-english ;
+    skos:definition "Relates a disjunction logic:Formula to each of its operand sub-formulae (multi-valued, two or more). Disjunction is commutative and associative, so the canonical identity flattens nested disjunctions and is insensitive to operand order. It is not a program-choice operator and does not select one branch for execution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:not
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -7755,7 +7824,8 @@ logic:not
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:antecedent
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -7764,7 +7834,8 @@ logic:antecedent
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:consequent
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -7782,7 +7853,8 @@ logic:iff
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:relation
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
     rdfs:domain logic:Formula ;
     rdfs:range logic:Type ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -7793,66 +7865,416 @@ logic:relation
 logic:argument
     a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
+    rdfs:range logic:TermCarrier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "argument"@x-gmeow-english ;
-    skos:definition "Relates an atomic-predication logic:Formula to one of its argument term-carriers. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property (logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker), so a variadic argument list — including sequence markers — round-trips with its order and term kinds intact."@x-gmeow-english ;
+    skos:definition "Relates an atomic-predication logic:Formula to one of its argument term-carriers. Each carrier fixes its position with logic:termIndex and its value with exactly one term-value property (logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker), so a variadic argument list — including sequence markers — round-trips with its order and term kinds intact. It is not a direct link to the term value and carries no ordering by triple position."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:quantifiedVariable
     a owl:ObjectProperty ;
     rdfs:domain logic:Formula ;
+    rdfs:range logic:TermCarrier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "quantified variable"@x-gmeow-english ;
     skos:definition "Relates a quantifier logic:Formula to one of its bound-variable term-carriers. Each carrier fixes its position in the binder block with logic:termIndex and its name with logic:termVariable; block order is significant, because bound-variable renaming preserves meaning but reordering a quantifier prefix does not."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termIri
-    a owl:ObjectProperty ;
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:TermCarrier ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term IRI"@x-gmeow-english ;
-    skos:definition "Carries an IRI-constant term value on an argument term-carrier: the argument is an individual (or a reified relation or type) named by this IRI. One of the four mutually exclusive term-value properties; exactly one is present on each carrier."@x-gmeow-english ;
+    skos:definition "Carries an IRI-constant term value on an argument term-carrier: the argument is an individual (or a reified relation or type) named by this IRI. One of the four mutually exclusive term-value properties; exactly one is present on each carrier. It is not a variable name, lexical literal, or sequence-marker string."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termIndex
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:TermCarrier ;
     rdfs:range xsd:nonNegativeInteger ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term index"@x-gmeow-english ;
-    skos:definition "The zero-based ordinal of a term-carrier within its ordered list — an argument within an atomic predication, or a bound variable within a quantifier block. Fixing position explicitly makes the variadic, order-significant lists round-trip independent of RDF statement order."@x-gmeow-english ;
+    skos:definition "The zero-based ordinal of a term-carrier within its ordered list — an argument within an atomic predication, or a bound variable within a quantifier block. Fixing position explicitly makes the variadic, order-significant lists round-trip independent of RDF statement order. It is not an RDF statement position, which has no graph semantics."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termVariable
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:TermCarrier ;
     rdfs:range xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term variable"@x-gmeow-english ;
-    skos:definition "Carries a variable term value (the authored variable name, without a sigil) on a term-carrier: a single-term variable, bound by an enclosing quantifier or free. One of the four mutually exclusive term-value properties."@x-gmeow-english ;
+    skos:definition "Carries a variable term value (the authored variable name, without a sigil) on a term-carrier: a single-term variable, bound by an enclosing quantifier or free. One of the four mutually exclusive term-value properties. It is not an IRI constant or a variadic sequence marker."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termLiteral
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:TermCarrier ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term literal"@x-gmeow-english ;
-    skos:definition "Carries a data-literal term value (its lexical form) on an argument term-carrier; the term's datatype rides on the companion logic:termLiteralDatatype. One of the four mutually exclusive term-value properties."@x-gmeow-english ;
+    skos:definition "Carries a data-literal term value (its lexical form) on an argument term-carrier; the term's datatype rides on the companion logic:termLiteralDatatype. One of the four mutually exclusive term-value properties. It is not an IRI constant, variable, or datatype declaration by itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termLiteralDatatype
-    a owl:ObjectProperty ;
-    rdfs:domain logic:Formula ;
+    a owl:ObjectProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:TermCarrier ;
     rdfs:range rdfs:Datatype ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term literal datatype"@x-gmeow-english ;
-    skos:definition "Carries the datatype IRI of a literal term value on an argument term-carrier that also bears logic:termLiteral. Absent for a plain literal. Held separately from the literal so the typed-literal term round-trips losslessly regardless of how an intermediate reader handles literal datatypes."@x-gmeow-english ;
+    skos:definition "Carries the datatype IRI of a literal term value on an argument term-carrier that also bears logic:termLiteral. Absent for a plain literal. Held separately from the literal so the typed-literal term round-trips losslessly regardless of how an intermediate reader handles literal datatypes. It is not the lexical literal and cannot occur on a non-literal carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:termSequenceMarker
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain logic:TermCarrier ;
     rdfs:range xsd:string ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "term sequence marker"@x-gmeow-english ;
     skos:definition "Carries a sequence-marker term value (the authored marker name) on an argument term-carrier: the argument is a logic:SequenceMarker binding a sequence of terms rather than a single one. One of the four mutually exclusive term-value properties."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# The ontology-level well-formedness surface mirrors the Rust frontend's typed checks. The
+# choice constraints make constructor/value exclusivity executable in the projected validation
+# graph; the paired implications make material implication indivisible; functional-property
+# declarations above cap singleton values. Ordered-list uniqueness, contiguity, recursive-cycle
+# rejection, and connective arity are checked by the Rust typed-IR parser because they compare a
+# whole RDF subgraph rather than one focus property in isolation.
+
+logic:FormulaConstructorConstraint
+    a logic:ChoiceGroupConstraint ;
+    logic:choiceMode "exactly-one" ;
+    logic:choicePredicate logic:and ,
+        logic:antecedent ,
+        logic:exists ,
+        logic:forall ,
+        logic:iff ,
+        logic:not ,
+        logic:or ,
+        logic:relation ;
+    logic:formalizes logic:Formula ;
+    logic:onClass logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Formula Constructor Constraint"@x-gmeow-english ;
+    skos:definition "Requires every logic:Formula to select exactly one constructor family: atomic relation, strong negation, conjunction, disjunction, material implication (keyed by logic:antecedent), biconditional, universal quantification, or existential quantification. It does not choose among serialized operands; it prevents one node from having two incompatible logical meanings."@x-gmeow-english ;
+    skos:example "A node with both logic:relation and logic:not violates this constraint because it cannot be both an atom and a negation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use this constraint to limit how many operands a selected constructor carries; arity is a separate typed-IR invariant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Validate every authored formula tree before lowering it; reject a focus node unless exactly one listed constructor predicate is present."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating canonical RDF formula trees before parsing, canonicalization, or projection."@x-gmeow-english .
+
+logic:ImplicationConsequentConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:Formula ;
+    logic:onClass logic:Formula ;
+    logic:requires logic:consequent ;
+    logic:trigger logic:antecedent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Implication Consequent Constraint"@x-gmeow-english ;
+    skos:definition "Requires a logic:Formula carrying logic:antecedent to carry logic:consequent as the ordered second operand of the same material implication. It is not a rule that derives a consequent; it is a structural integrity condition on the implication node."@x-gmeow-english ;
+    skos:example "An implication node with an antecedent atom but no consequent formula violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not read the required edge as logical modus ponens; it only completes the serialized constructor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "When logic:antecedent is present, require one resource-valued logic:consequent before constructing Formula::Implies."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating the ordered pair that encodes material implication."@x-gmeow-english .
+
+logic:ImplicationAntecedentConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:Formula ;
+    logic:onClass logic:Formula ;
+    logic:requires logic:antecedent ;
+    logic:trigger logic:consequent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Implication Antecedent Constraint"@x-gmeow-english ;
+    skos:definition "Requires a logic:Formula carrying logic:consequent to carry logic:antecedent as the ordered first operand of the same material implication. It is not an inverse entailment from conclusion to premise; it is the reverse structural completeness check for the serialized pair."@x-gmeow-english ;
+    skos:example "A formula node with a consequent formula but no antecedent formula violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use the constraint to infer that a consequent semantically entails its antecedent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "When logic:consequent is present, require one resource-valued logic:antecedent before constructing Formula::Implies."@x-gmeow-english ;
+    gmeow:useWhen "Use with logic:ImplicationConsequentConstraint to validate both halves of an implication."@x-gmeow-english .
+
+logic:TermCarrierValueConstraint
+    a logic:ChoiceGroupConstraint ;
+    logic:choiceMode "exactly-one" ;
+    logic:choicePredicate logic:termIri ,
+        logic:termLiteral ,
+        logic:termSequenceMarker ,
+        logic:termVariable ;
+    logic:formalizes logic:TermCarrier ;
+    logic:onClass logic:TermCarrier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Carrier Value Constraint"@x-gmeow-english ;
+    skos:definition "Requires every logic:TermCarrier to carry exactly one term-value kind: IRI, variable, literal, or sequence marker. It does not constrain the carrier's ordinal; logic:termIndex and list-level contiguity are checked independently."@x-gmeow-english ;
+    skos:example "A carrier with both logic:termIri ex:a and logic:termVariable 'a' violates this constraint even though the spellings resemble one another."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse IRI, variable, literal, and sequence-marker values into a shared string field; their kinds affect formula meaning."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Reject a carrier unless exactly one of the four term-value predicates has exactly one value."@x-gmeow-english ;
+    gmeow:useWhen "Use whenever an RDF argument or quantifier-binding carrier is reconstructed as a typed IR term."@x-gmeow-english .
+
+logic:TermCarrierIndexConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:TermCarrier ;
+    logic:onClass logic:TermCarrier ;
+    logic:requires logic:termIndex ;
+    logic:trigger rdf:type ;
+    logic:triggerValue logic:TermCarrier ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Term Carrier Index Constraint"@x-gmeow-english ;
+    skos:definition "Requires every declared logic:TermCarrier to carry a logic:termIndex. It is not the list-level ordering check: uniqueness and zero-based contiguity are verified across all sibling carriers by the typed-IR frontend."@x-gmeow-english ;
+    skos:example "A logic:TermCarrier with logic:termVariable 'x' but no logic:termIndex violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not infer an omitted index from RDF statement order, which has no semantic ordering."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Require one non-negative integer index on each carrier, then validate the sibling index set as 0 through n minus 1."@x-gmeow-english ;
+    gmeow:useWhen "Use when validating ordered argument lists and quantifier binding blocks."@x-gmeow-english .
+
+logic:LiteralDatatypeConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:formalizes logic:TermCarrier ;
+    logic:onClass logic:TermCarrier ;
+    logic:requires logic:termLiteral ;
+    logic:trigger logic:termLiteralDatatype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Literal Datatype Constraint"@x-gmeow-english ;
+    skos:definition "Requires a carrier with logic:termLiteralDatatype to carry logic:termLiteral, so a datatype IRI can never float without the lexical literal it types. It does not require a datatype for every literal; absence denotes a plain literal."@x-gmeow-english ;
+    skos:example "A carrier with logic:termLiteralDatatype xsd:integer but no logic:termLiteral violates this constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not attach logic:termLiteralDatatype to an IRI, variable, or sequence-marker carrier."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Accept zero or one datatype IRI only on a carrier whose sole value kind is logic:termLiteral."@x-gmeow-english ;
+    gmeow:useWhen "Use when reconstructing typed literal terms from their lexical and datatype components."@x-gmeow-english .
+
+# ── Typed-IR exemplar annotation coat ────────────────────────────────────────
+# These annotations teach the IR through decisions and executable examples. They are deliberately
+# term-specific: no inventory prose and no generic "this term means X" placeholders.
+
+logic:DischargeCondition
+    skos:example "Use logic:DischargeFiniteClosure when a completed finite chase makes absence of the forbidden predicate decidable."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not claim a discharge condition merely because a search timed out or found no witness."@x-gmeow-english ;
+    gmeow:howToUse "Select the narrowest condition the checker actually implements, and retain logic:ObligationUnknown outside that boundary."@x-gmeow-english ;
+    gmeow:useWhen "Use to state why a non-entailment or law check can return a conclusive verdict."@x-gmeow-english .
+
+logic:DischargeVerdict
+    skos:example "A bounded check that exhausts its declared corpus without deriving the forbidden predicate returns logic:ObligationDischarged."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:ObligationDischarged as a synonym for 'not observed yet'."@x-gmeow-english ;
+    gmeow:howToUse "Pair the verdict with the condition and evidence that delimit its conclusiveness."@x-gmeow-english ;
+    gmeow:useWhen "Use for the three-way outcome of an executable obligation or lens-law discharge."@x-gmeow-english .
+
+logic:Formula
+    skos:example "The tree for every person knows someone is a logic:forall node whose body is a logic:exists node containing a logic:relation atom."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not encode a trivially Horn binary fact as a top-level formula; place it in the axiom or rule collection."@x-gmeow-english ;
+    gmeow:howToUse "Choose one constructor family, link its sub-formulae, and place every argument or binding in an indexed logic:TermCarrier."@x-gmeow-english ;
+    gmeow:useWhen "Use for first-order quantifier or connective structure that cannot live uniquely as a Horn fact or rule."@x-gmeow-english .
+
+logic:FormulaShape
+    skos:example "A formula containing logic:or receives logic:Disjunctive in a Horn projection's residue ledger."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not treat a formula-shape tag as an evaluation profile or as the formula's truth value."@x-gmeow-english ;
+    gmeow:howToUse "Attach every applicable closed-set tag to the projection loss row for the unsupported formula."@x-gmeow-english ;
+    gmeow:useWhen "Use to disclose which first-order construct exceeded a target fragment."@x-gmeow-english .
+
+logic:Lens
+    skos:example "ex:alignment logic:hasLens ex:roundTripLens . ex:roundTripLens logic:getLeg ex:downProjection ; logic:putLeg ex:upProjection ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not call an unpaired one-way transform a lens or infer put by naively reversing get."@x-gmeow-english ;
+    gmeow:howToUse "Provide typed get and put transaction programs, then discharge only the laws their evidence supports."@x-gmeow-english ;
+    gmeow:useWhen "Use as the executable bidirectional core of a logic:Correspondence."@x-gmeow-english .
+
+logic:Module
+    skos:example "A Common Logic theory named ex:geometry can import ex:orders while remaining in the same epistemic world."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a module IRI as a world, standpoint, provenance agent, or source document."@x-gmeow-english ;
+    gmeow:howToUse "Assign statement reifiers with logic:inModule and connect theory dependencies with logic:imports."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve named-theory membership and import structure across Common Logic dialects."@x-gmeow-english .
+
+logic:ModuleContextAxis
+    skos:example "One result can be indexed simultaneously by ex:geometry as its module and ex:analystView as its standpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace the world or standpoint axis with the module axis; the dimensions coexist."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Include this facet when a reasoning contract must preserve theory membership independently of epistemic context."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare module membership as one coordinate of the multi-axis context model."@x-gmeow-english .
+
+logic:ProjectionTarget
+    skos:example "A contract may request both logic:CanonicalProjection and logic:CommonLogicProjection for one canonical answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a projection target to select semantics or suppress unsupported canonical content."@x-gmeow-english ;
+    gmeow:howToUse "Name each requested rendering surface and preserve a loss judgment for constructs it cannot express."@x-gmeow-english ;
+    gmeow:useWhen "Use to request one or more output renderings from the same reasoning result."@x-gmeow-english .
+
+logic:RelationalCore
+    skos:example "A fixed-arity atom lowers to logic:instanceOf plus logic:naryArg0 through logic:naryArg2 before the native chase evaluates it."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not force disjunctive or genuinely variadic formula structure into the relational core."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:howToUse "Legalize the Horn-expressible fragment into typed rules and carry every illegal remainder with its preservation judgment."@x-gmeow-english ;
+    gmeow:useWhen "Use as the stable logical-to-physical waist for chase, incremental, and semiring execution."@x-gmeow-english .
+
+logic:Rule
+    skos:example "A rule can derive ex:ancestor(x,z) from ex:parent(x,y) and ex:ancestor(y,z), with its variables bound positively in the body."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not encode disjunction, strong negation, or an unstratified negative cycle as a Horn rule."@x-gmeow-english ;
+    gmeow:howToUse "Provide one head, the positive and optional stratified-negative body atoms, and any explicit guards or aggregate specification."@x-gmeow-english ;
+    gmeow:useWhen "Use for productive Horn, existential-rule, or stratified-negation derivations."@x-gmeow-english .
+
+logic:SequenceMarker
+    skos:example "ex:restCarrier logic:termIndex 1 ; logic:termSequenceMarker \"rest\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not substitute a sequence marker for an ordinary variable that binds exactly one term."@x-gmeow-english ;
+    gmeow:howToUse "Carry the marker name through logic:termSequenceMarker on a single indexed term carrier."@x-gmeow-english ;
+    gmeow:useWhen "Use for a genuinely variadic argument sequence that fixed positional predicates cannot represent."@x-gmeow-english .
+
+logic:TermCarrier
+    skos:example "An atom's second argument can be represented by a carrier with logic:termIndex 1 and logic:termVariable 'object'."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not place two value kinds on one carrier or infer its position from Turtle serialization order."@x-gmeow-english ;
+    gmeow:howToUse "Assign one contiguous zero-based index and one of the four exclusive term-value predicates."@x-gmeow-english ;
+    gmeow:useWhen "Use for each ordered atom argument and each ordered quantifier binding."@x-gmeow-english .
+
+logic:Type
+    skos:example "logic:Kind is reified as a logic:Type so it can classify entity types through logic:instanceOf."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:Type as OWL punning or assume every OWL class participates in the deep-instantiation tower."@x-gmeow-english ;
+    gmeow:howToUse "Reify a universal, state its order where needed, and connect its instances through logic:instanceOf."@x-gmeow-english ;
+    gmeow:useWhen "Use when a universal must itself be quantified over, classified, or placed at a higher type order."@x-gmeow-english .
+
+logic:and
+    skos:example "A conjunction node can link the atoms ex:red(x) and ex:round(x) through two logic:and edges."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:and for serial program composition or with fewer than two operands."@x-gmeow-english ;
+    gmeow:howToUse "Link at least two formula operands; canonicalization flattens nested conjunctions and sorts their keys."@x-gmeow-english ;
+    gmeow:useWhen "Use when every operand formula must hold at the same logical point."@x-gmeow-english .
+
+logic:antecedent
+    skos:example "In person(x) implies mortal(x), the person atom is the sole logic:antecedent."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:antecedent without a paired logic:consequent or as an unordered biconditional operand."@x-gmeow-english ;
+    gmeow:howToUse "Place exactly one hypothesis formula on the implication node and pair it with exactly one consequent."@x-gmeow-english ;
+    gmeow:useWhen "Use for the ordered hypothesis side of material implication."@x-gmeow-english .
+
+logic:argument
+    skos:example "The atom ex:knows(alice,bob) uses carriers at indices 0 and 1 linked through logic:argument."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not link a raw term value directly or rely on RDF edge order to recover argument order."@x-gmeow-english ;
+    gmeow:howToUse "Link each atomic formula to a logic:TermCarrier whose index set is unique and contiguous from zero."@x-gmeow-english ;
+    gmeow:useWhen "Use to supply the ordered terms of a reified atomic predication."@x-gmeow-english .
+
+logic:consequent
+    skos:example "In person(x) implies mortal(x), the mortal atom is the sole logic:consequent."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:consequent without a paired logic:antecedent or treat it as a derived rule head."@x-gmeow-english ;
+    gmeow:howToUse "Place exactly one conclusion formula on the implication node after its exactly one antecedent."@x-gmeow-english ;
+    gmeow:useWhen "Use for the ordered conclusion side of material implication."@x-gmeow-english .
+
+logic:exists
+    skos:example "An existential node can bind y and point logic:exists to the atom ex:knows(x,y)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not put a Skolem witness on the formula node or omit the indexed bound-variable block."@x-gmeow-english ;
+    gmeow:howToUse "Link exactly one body formula and one or more contiguous logic:quantifiedVariable carriers."@x-gmeow-english ;
+    gmeow:useWhen "Use when at least one assignment to the bound first-order variables must satisfy the body."@x-gmeow-english .
+
+logic:forall
+    skos:example "A universal node can bind x and point logic:forall to person(x) implies mortal(x)."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an empty binder or read universal quantification as iteration over serialized RDF nodes."@x-gmeow-english ;
+    gmeow:howToUse "Link exactly one body and declare every bound variable in a unique contiguous carrier block."@x-gmeow-english ;
+    gmeow:useWhen "Use when the body must hold for every assignment to its first-order bound variables."@x-gmeow-english .
+
+logic:iff
+    skos:example "A definition can connect triangle(x) and polygonWithThreeSides(x) as the two logic:iff operands."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:iff with other than two operands or when only one implication direction is justified."@x-gmeow-english ;
+    gmeow:howToUse "Link exactly two formula operands; canonicalization sorts them because the biconditional is commutative."@x-gmeow-english ;
+    gmeow:useWhen "Use when each of two formulae materially implies the other."@x-gmeow-english .
+
+logic:imports
+    skos:example "ex:geometry logic:imports ex:orders makes the imported module's sentences visible in ex:geometry."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:imports for file inclusion, provenance, or cross-world accessibility."@x-gmeow-english ;
+    gmeow:howToUse "Link the importing logic:Module to the imported module and let the module engine close the import graph."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve Common Logic theory importation."@x-gmeow-english .
+
+logic:inModule
+    skos:example "A reified axiom can carry logic:inModule ex:geometry without changing the standpoint under which it holds."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not attach logic:inModule as a substitute for source provenance or epistemic perspective."@x-gmeow-english ;
+    gmeow:howToUse "Attach the edge to the statement reifier; omit it only for the explicit top-level unnamed module."@x-gmeow-english ;
+    gmeow:useWhen "Use to index a sentence by the named theory that owns it."@x-gmeow-english .
+
+logic:instanceOf
+    skos:example "ex:Fido logic:instanceOf ex:Dog and ex:Dog logic:instanceOf logic:Kind form two levels of one deep-instantiation chain."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not replace ordinary rdf:type indiscriminately or assume distinct names denote distinct instances."@x-gmeow-english ;
+    gmeow:howToUse "Relate an individual or reified type to its next-order type and check logic:orderedType coherence where orders are declared."@x-gmeow-english ;
+    gmeow:useWhen "Use for first-order HiLog-style instantiation across one or more meta-levels."@x-gmeow-english .
+
+logic:loadBearing
+    skos:example "A witness needed to reconstruct a richer source is logic:loadBearing true, while a display hint is false."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not mark presentation prose as load-bearing or silently drop an annotation marked true."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set true only when inverse reconstruction or correctness depends on the annotation; otherwise use false or omit it."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish preservation-critical annotations from droppable display metadata."@x-gmeow-english .
+
+logic:naryArg0
+    skos:example "The lowering of ex:between(a,b,c) links its tuple reifier to a through logic:naryArg0."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:naryArg0 as an AST carrier or for any position other than zero."@x-gmeow-english ;
+    gmeow:howToUse "Emit it with logic:instanceOf on the same content-addressed tuple reifier."@x-gmeow-english ;
+    gmeow:useWhen "Use for the first flat-binary argument of a fixed-arity reified atom."@x-gmeow-english .
+
+logic:naryArg1
+    skos:example "The lowering of ex:between(a,b,c) links its tuple reifier to b through logic:naryArg1."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:naryArg1 for the first or third tuple position."@x-gmeow-english ;
+    gmeow:howToUse "Emit exactly the second positional edge on the same reifier used by logic:naryArg0."@x-gmeow-english ;
+    gmeow:useWhen "Use for the second flat-binary argument of a fixed-arity reified atom."@x-gmeow-english .
+
+logic:naryArg2
+    skos:example "The lowering of ex:between(a,b,c) links its tuple reifier to c through logic:naryArg2."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not emit logic:naryArg2 for a binary atom or reuse it for later positions."@x-gmeow-english ;
+    gmeow:howToUse "Emit it only when a third fixed argument exists; extend the closed positional vocabulary for higher fixed arity."@x-gmeow-english ;
+    gmeow:useWhen "Use for the third flat-binary argument of a fixed-arity reified atom."@x-gmeow-english .
+
+logic:not
+    skos:example "A formula node with logic:not ex:licensed represents the strong negation of the ex:licensed formula."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:not for closed-world negation-as-failure or with more than one operand."@x-gmeow-english ;
+    gmeow:howToUse "Link exactly one formula operand and retain strong-negation residue when a target cannot express it."@x-gmeow-english ;
+    gmeow:useWhen "Use for explicit classical negation inside the first-order formula tree."@x-gmeow-english .
+
+logic:or
+    skos:example "A covering formula can link ex:Cat(x), ex:Dog(x), and ex:Bird(x) through three logic:or edges."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use logic:or for program choice or with fewer than two operands."@x-gmeow-english ;
+    gmeow:howToUse "Link at least two formula operands; canonicalization flattens nested disjunctions and sorts their keys."@x-gmeow-english ;
+    gmeow:useWhen "Use when at least one operand formula must hold."@x-gmeow-english .
+
+logic:quantifiedVariable
+    skos:example "A two-variable quantifier links carriers at indices 0 and 1 with logic:termVariable values 'x' and 'y'."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not bind an IRI, literal, sequence marker, duplicate index, or gapped index through this property."@x-gmeow-english ;
+    gmeow:howToUse "Link one or more logic:TermCarrier nodes whose sole values are variable names and whose indices are contiguous."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the ordered binding block of logic:forall or logic:exists."@x-gmeow-english .
+
+logic:relation
+    skos:example "An atomic formula for ex:knows(alice,bob) carries ex:knows as its sole logic:relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not put a variable or literal in the relation slot or combine it with a connective constructor on the same formula."@x-gmeow-english ;
+    gmeow:howToUse "Provide exactly one reified relation IRI and an ordered, non-empty logic:argument carrier list."@x-gmeow-english ;
+    gmeow:useWhen "Use to mark a logic:Formula as an atomic predication."@x-gmeow-english .
+
+logic:termIndex
+    skos:example "The object argument of a binary atom uses logic:termIndex 1 after its subject argument at index 0."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not repeat an index, leave a gap, use a negative value, or infer position from RDF serialization."@x-gmeow-english ;
+    gmeow:howToUse "Assign exactly one non-negative integer per carrier and validate siblings as the contiguous set 0 through n minus 1."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve argument and binder order independently of graph statement order."@x-gmeow-english .
+
+logic:termIri
+    skos:example "A constant argument naming ex:Alice is carried as logic:termIri ex:Alice."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not store a variable name, lexical literal, or sequence marker in logic:termIri."@x-gmeow-english ;
+    gmeow:howToUse "Place exactly one IRI value on a carrier that has no other term-value property."@x-gmeow-english ;
+    gmeow:useWhen "Use for an individual, reified type, or reified relation constant in a term position."@x-gmeow-english .
+
+logic:termLiteral
+    skos:example "The integer lexical value 42 is carried with logic:termLiteral '42' and logic:termLiteralDatatype xsd:integer."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not place an IRI or variable in the literal slot or attach two datatype IRIs."@x-gmeow-english ;
+    gmeow:howToUse "Carry exactly one lexical literal and optionally one companion datatype IRI."@x-gmeow-english ;
+    gmeow:useWhen "Use for a data literal appearing as an atomic formula argument."@x-gmeow-english .
+
+logic:termLiteralDatatype
+    skos:example "A carrier for the lexical value '2026-07-12' can use logic:termLiteralDatatype xsd:date."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not attach a datatype without logic:termLiteral or use a literal string in place of the datatype IRI."@x-gmeow-english ;
+    gmeow:howToUse "Add at most one datatype IRI to a literal-valued carrier; omit it for a plain literal."@x-gmeow-english ;
+    gmeow:useWhen "Use when the literal term's RDF datatype must round-trip explicitly."@x-gmeow-english .
+
+logic:termSequenceMarker
+    skos:example "A variadic carrier can use logic:termSequenceMarker 'rest' to bind the remaining argument sequence."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a sequence marker for one ordinary term or combine it with logic:termVariable."@x-gmeow-english ;
+    gmeow:howToUse "Place exactly one non-empty marker name on an indexed carrier and disclose variadic residue to fixed-arity targets."@x-gmeow-english ;
+    gmeow:useWhen "Use for the Common Logic sequence-variable form in a genuinely variadic atom."@x-gmeow-english .
+
+logic:termVariable
+    skos:example "A carrier with logic:termVariable 'person' represents the authored variable name without a question-mark sigil."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not include a surface sigil, use an empty name, or combine the variable with another term-value kind."@x-gmeow-english ;
+    gmeow:howToUse "Store one non-empty authored name; the canonicalizer resolves bound names through the quantifier environment."@x-gmeow-english ;
+    gmeow:useWhen "Use for a bound or free single-term variable in an argument or binder carrier."@x-gmeow-english .
 
 # ── The evaluable n-ary reification vocabulary (flat-binary lowering) ─────────
 # A fixed-arity n-ary atom Rel(a₀,…,aₙ) is realized in the binary relational core
@@ -7871,21 +8293,21 @@ logic:naryArg0
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "n-ary argument 0"@x-gmeow-english ;
-    skos:definition "Relates a reifier node to the term in argument position 0 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the first argument of a fixed-arity n-ary atom Rel(a₀,…): logic:naryArg0(R, a₀) beside logic:instanceOf(R, Rel). Directly evaluable in the binary relational core; the zero-based position is fixed in the predicate itself so no separate index carrier is needed."@x-gmeow-english ;
+    skos:definition "Relates a reifier node to the term in argument position 0 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the first argument of a fixed-arity n-ary atom Rel(a₀,…): logic:naryArg0(R, a₀) beside logic:instanceOf(R, Rel). Directly evaluable in the binary relational core; the zero-based position is fixed in the predicate itself so no separate index carrier is needed. It is not a logic:argument AST-carrier edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:naryArg1
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "n-ary argument 1"@x-gmeow-english ;
-    skos:definition "Relates a reifier node to the term in argument position 1 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the second argument of a fixed-arity n-ary atom; companion to logic:naryArg0. Directly evaluable in the binary relational core."@x-gmeow-english ;
+    skos:definition "Relates a reifier node to the term in argument position 1 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the second argument of a fixed-arity n-ary atom; companion to logic:naryArg0. Directly evaluable in the binary relational core. It is not the first position and is not a logic:argument AST-carrier edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:naryArg2
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "n-ary argument 2"@x-gmeow-english ;
-    skos:definition "Relates a reifier node to the term in argument position 2 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the third argument of a fixed-arity n-ary atom; companion to logic:naryArg0 and logic:naryArg1. Directly evaluable in the binary relational core. The enumerated positional predicates run 0 … N for the maximum fixed arity in play (ternary here); a higher arity extends the closed set with the next positional predicate."@x-gmeow-english ;
+    skos:definition "Relates a reifier node to the term in argument position 2 of the n-ary tuple it reifies. The flat-binary positional predicate the evaluable lowering emits for the third argument of a fixed-arity n-ary atom; companion to logic:naryArg0 and logic:naryArg1. Directly evaluable in the binary relational core. The enumerated positional predicates run 0 … N for the maximum fixed arity in play (ternary here); a higher arity extends the closed set with the next positional predicate. It is not emitted for a binary atom and is not a logic:argument AST-carrier edge."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # ── The full-FOL residue shape vocabulary (loss-ledger disclosure) ────────────
@@ -8530,7 +8952,7 @@ logic:candidateBullshitTruthIndifference
 # violation is a finding, these are logic:Rule derivations whose head is ENTAILED:
 # monotone positive-Horn rules whose every head variable is bound positively in
 # the body (a frontier variable), so the derived fact is materialized natively
-# (it appears in the chase output) and projects to Datalog/Nemo as
+# (it appears in the chase output) and projects to Datalog as
 # logic:ExactPreservation. Each spans terms across two or more domain slices,
 # carries a logic:formalizes back-reference, and is governed by a reviewed
 # logic:FormalizationCandidate (logic:CategoryDerivationRule).
@@ -9812,7 +10234,7 @@ logic:UncertifiedChase
     rdfs:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Uncertified Chase"@x-gmeow-english ;
-    skos:definition "The failure raised when a logic:ChaseAcceptanceWitness — the acceptance record of an existential-rule chase materialization — carries no logic:carriesTerminationCertificate, i.e. reports a materialized closure without the weak-acyclicity termination certificate that admits it. An uncertified chase may not terminate; the flagship's guarantee is that materialize_routed surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding, so a chase acceptance record with no certificate is ill-formed (LOGIC-RUNTIME.md)."@x-gmeow-english ;
+    skos:definition "The failure raised when a logic:ChaseAcceptanceWitness — the acceptance record of an existential-rule chase materialization — carries no logic:carriesTerminationCertificate, i.e. reports a materialized closure without the weak-acyclicity termination certificate that admits it. An uncertified chase may not terminate; the flagship's guarantee is that materialize_existential_rules surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding, so a chase acceptance record with no certificate is ill-formed (LOGIC-RUNTIME.md)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:UnwiredFlagshipScenario
@@ -9912,7 +10334,7 @@ logic:ChaseAcceptanceWitness
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Chase Acceptance Witness"@x-gmeow-english ;
-    skos:definition "The acceptance record that an existential-rule chase materialization terminated under a weak-acyclicity certificate, executed natively by gmeow_logic::materialize::materialize_routed, which surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding. It carries, through logic:carriesTerminationCertificate, the certificate evidence. The flagship producer runs the native chase and pins that the surfaced Finding is non-empty and that the derivation carries an explain trace passing gmeow_logic::explain::assert_faithful; this witness is the ontological twin the thin logic:ChaseAcceptanceWitnessShape gates."@x-gmeow-english ;
+    skos:definition "The acceptance record that an existential-rule chase materialization terminated under a weak-acyclicity certificate, executed natively by gmeow_logic::materialize::materialize_existential_rules, which surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding. It carries, through logic:carriesTerminationCertificate, the certificate evidence. The flagship producer runs the native chase and pins that the surfaced Finding is non-empty and that the derivation carries an explain trace passing gmeow_logic::explain::assert_faithful; this witness is the ontological twin the thin logic:ChaseAcceptanceWitnessShape gates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:carriesTerminationCertificate

@@ -5,7 +5,7 @@
 //! formula to an ISO-24617 SemAF / AMR meaning-graph annotation, and a `lang:CommunicativeAct`'s
 //! `lang:communicativeForce` to a SemAF dialogue-act label.
 //!
-//! This projection is PROGRAM-DEPENDENT and DISCLOSED, exactly as the Nemo projection is: the
+//! This projection is PROGRAM-DEPENDENT and DISCLOSED: the
 //! preservation is whatever the SPECIFIC denotation supports, judged per emission, never treated
 //! as the meaning itself. Only a `lang:denotesLogicFormula` denotation has a meaning-graph form
 //! (AMR is a coarse predicate-argument surface); a denotation of any other kind — a type, a

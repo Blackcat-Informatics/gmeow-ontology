@@ -23,7 +23,7 @@
 # default/ci profile. The remaining exclusions are still over budget:
 #   - gmeow-validate deep_surfaces_entailed_inconsistency..._heavy_offgate:
 #     30.705 s locally; the consumer `gmeow validate --deep` AC1 test reasons over
-#     user data merged with the WHOLE bundled TBox via the native Nemo chase. Fast
+#     user data merged with the WHOLE bundled TBox via the native chase. Fast
 #     per-commit coverage stays with the tiny-TBox gmeow-logic unit tests plus the
 #     on-gate deep_pass_failure_* / deep_false_* validate tests.
 #   - gmeow-pipeline fold_parity binary:
@@ -85,7 +85,7 @@
 #     on the per-commit gate.
 #   - gmeow-logic whole_bundle_coherence_gate_catches_injected_clash:
 #     ~570 s locally; it imports the WHOLE committed `gmeow.gts` bundle and drives
-#     the native Nemo chase over it twice (once benign, once with an injected
+#     the native chase over it twice (once benign, once with an injected
 #     disjoint-class clash). This exclusion is budget-exempt, NOT gate-exempt: the
 #     test still runs on every `make check` via the dedicated `coherence-gate-teeth`
 #     target, which invokes it with `--ignore-default-filter` plus an explicit `-E`
@@ -152,6 +152,14 @@
 #     rendering and the docs archive are drift-gated on every `make check` via
 #     `make check-generated`, the render/mdbook/roundtrip contracts keep their
 #     fixture-scale unit coverage on-gate, and all four stay on-gate on `maint-heavy`.
+#   - gmeow-docs mdbook_render::book_term_chapter_with_dropped_link_golden (30.7 s),
+#     book_no_relative_link_to_dropped_page (30.4 s), book_toml_golden (26.6 s), and
+#     book_zero_term_slice_renders_valid_chapter (26.4 s): each reads the WHOLE primed
+#     documentation model and renders the complete mdBook surface before making its
+#     focused assertion, so the typed-IR vocabulary/prose growth pushed this existing
+#     whole-site class over budget under CI contention. Focused link, TOML, and zero-term
+#     render helpers remain on-gate, committed docs remain byte-drift-gated, and the four
+#     exhaustive renders run on `maint-heavy`.
 #   - gmeow-cli cli::project_unknown_view_fails + cli::describe_env_language_rejected_if_unknown
 #     + gmeow-dev-cli cli_parity::project_view_over_the_snapshot:
 #     3-5 s standalone but 27.5-32.2 s under full-parallelism CI contention. Each
@@ -299,6 +307,22 @@
 #     and crates/pipeline (the export.rs MCP ambiguity test), the registry-vs-table coherence stays
 #     on-gate via the lpg_prefixes coherence gate, and all four whole-bundle describe tests stay
 #     on-gate on `maint-heavy`.
+#   - gmeow-cli cli::describe_known_term_renders_prose (28.7 s),
+#     cli::describe_unknown_language_fails_with_available_list (25.9 s),
+#     cli::describe_toon_format_emits_toon (25.4 s), and gmeow-docs
+#     describe_bundle_language::describe_resolves_carrier_tags_against_shipped_bundle
+#     (25.8 s): each loads/folds the WHOLE shipped bundle before its fast render, reject,
+#     format, or language assertion. The typed-IR vocabulary enlarged that shared bundle,
+#     pushing these siblings over the CI budget under contention. Fixture-scale describe,
+#     language, and TOON coverage remains on-gate; all four bundle-scale cases run on
+#     `maint-heavy`.
+#   - gmeow-pipeline stages::export::tests::export_produces_structurally_valid_artifacts
+#     (23.014 s in the snapshot-review run, 25.579 s under the full-gate shard): this
+#     folds the WHOLE committed bundle and renders all 14 export artifacts, so its cost
+#     is irreducibly O(bundle/vocabulary size) and now rides the policy cliff on normal
+#     contention. Focused export renderer/schema tests stay on-gate, and every committed
+#     export remains byte-drift-gated by `make check-generated`; the exhaustive structural
+#     sweep remains on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -313,7 +337,7 @@ default-filter = '''
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
     | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers) | binary(conformance_affect_producer_union)))
     | (package(gmeow-dev-cli) & binary(cli_parity) & (test(build_writes_serializations) | test(project_view_over_the_snapshot)))
-    | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown) | test(describe_resolves_grounding_curies) | test(describe_resolves_grounding_full_iris)))
+    | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown) | test(describe_resolves_grounding_curies) | test(describe_resolves_grounding_full_iris) | test(describe_known_term_renders_prose) | test(describe_unknown_language_fails_with_available_list) | test(describe_toon_format_emits_toon)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/))
@@ -324,13 +348,15 @@ default-filter = '''
     | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode) | test(describe_wheel_mode_equals_repo_mode) | test(describe_grounding_terms_wheel_mode_equals_repo_mode)))
     | (package(gmeow-docs) & test(/describe::tests::every_grounding_namespace_has_describable_terms_that_render/))
     | (package(gmeow-docs) & binary(render_golden) & test(render_site_is_byte_stable))
-    | (package(gmeow-docs) & binary(mdbook_render) & test(book_bodies_are_rewrite_of_single_authority))
+    | (package(gmeow-docs) & binary(mdbook_render) & (test(book_bodies_are_rewrite_of_single_authority) | test(book_term_chapter_with_dropped_link_golden) | test(book_no_relative_link_to_dropped_page) | test(book_toml_golden) | test(book_zero_term_slice_renders_valid_chapter)))
+    | (package(gmeow-docs) & binary(describe_bundle_language) & test(describe_resolves_carrier_tags_against_shipped_bundle))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(english_carrier_tree_matches_render_site))
     | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
     | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
     | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
+    | (package(gmeow-pipeline) & test(/stages::export::tests::export_produces_structurally_valid_artifacts/))
   )
 '''
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
@@ -359,11 +385,9 @@ default-filter = 'all()'
 junit = { path = "junit.xml" }
 fail-fast = false
 
-# Engine memory cap. The retained Nemo comparison engine is
-# RAM-heavy: nextest runs EACH test in its own process, and the in-process
-# `CHASE_LOCK` (nemo_engine.rs)
-# process-global mutexes serialize only WITHIN a process — they do NOT cap how many multi-GB chase
-# PROCESSES run at once. On the 16 GB CI runner the available CPU count is four
+# Engine memory cap. Native whole-bundle chase tests are RAM-heavy: nextest runs
+# EACH test in its own process, so an in-process guard cannot cap how many multi-GB
+# chase PROCESSES run at once. On the 16 GB CI runner the available CPU count is four
 # (4), so up to 4 concurrent chases could OOM-thrash. This group caps concurrent engine
 # tests to 2; the fast leaf-crate tests (rdf/shacl/validate/docs/diagnostics) and
 # the ~360 fast gmeow-logic unit tests stay fully parallel.
@@ -372,15 +396,11 @@ engine = { max-threads = 2 }
 mapping-stage = { max-threads = 1 }
 
 [[profile.default.overrides]]
-# The whole gmeow-conformance datatest harness (its foundation/* cases materialize
-# via nemo's run_chase) plus every gmeow-logic test that drives Nemo:
-# - Nemo (run_chase / run_reasoning): nemo_engine, materialize, reason, verify, certify
-# - The oracle boundary: `oracle` and `physical::parity` drive the retained Nemo
-#   comparison engine
-#   against the native core per fragment). Matched by module so membership is by design,
+# The whole gmeow-conformance datatest harness plus every gmeow-logic test that
+# drives a native materialization/reasoning path. Matched by module so membership is by design,
 #   not by a test name happening to contain another module's substring.
 # foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
-filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|materialize|reason|verify|certify|oracle|parity/))'
+filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/materialize|reason|verify|certify|oracle/))'
 test-group = 'engine'
 
 [[profile.default.overrides]]
@@ -389,7 +409,7 @@ test-group = 'engine'
 # concurrent chases. The over-budget full-fold / end-to-end binaries are
 # off-gated via `default-filter`, but this override still applies in maint-heavy.
 # fanout_parity stays ON-gate (~8 s standalone, not irreducible) but joins the
-# serialized group: unserialized it piled onto concurrent Nemo chases in the
+# serialized group: unserialized it piled onto concurrent native chases in the
 # shared shard and rode the 25 s cliff over on CI jitter (measured 27.9 s while a
 # 20 s entailment chase ran alongside). Serializing it against engine work removes
 # the contention without off-gating the fanout write-idempotence coverage — the
@@ -400,8 +420,8 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # The native reasoning-entailment harness (crates/logic/tests/ontology_entailments.rs)
-# migrates the OWL/EL/DL reasoning pytest cluster: each test drives Nemo
-# (rl_closure -> run_chase) over a scoped set of authored slice modules. These
+# migrates the OWL/EL/DL reasoning pytest cluster: each test drives the native
+# closure over a scoped set of authored slice modules. These
 # are now on-gate and under budget after the 2026-06-29 reevaluation, but they
 # still share the `engine` group so multi-module closures do not OOM-thrash
 # alongside other chases on the 16 GB runner. The longer timeout is only a
@@ -412,7 +432,7 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # The whole-ontology coherence-gate teeth tests (crates/logic/tests/coherence_gate.rs)
-# drive the native DL consistency path (dl_consistency -> reason_closure -> Nemo chase),
+# drive the native DL consistency path (dl_consistency -> reason_closure -> native chase),
 # once over a minimal injected clash and once over the WHOLE committed gmeow.gts bundle.
 # They share the `engine` memory group so the full-bundle chase does not OOM-thrash
 # alongside other chases; the longer timeout is only a runaway cliff, the JUnit budget
@@ -438,7 +458,7 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 # scores_the_logic_slice_green_vs_advisory) drives `score_slice` over the WHOLE real logic
 # slice — running the reasoner/closure analysis that backs its `slice-quality.reasoner.*`
 # axes. It is ~8 s standalone (measured 8.3 s), NOT irreducible, so the bias is fix-not-off-gate
-# (the same class as `fanout_parity` above): unserialized it piled onto concurrent Nemo
+# (the same class as `fanout_parity` above): unserialized it piled onto concurrent native
 # chases in the shared CI shard and rode the 25 s cliff over on jitter (measured 25.9 s under
 # full-parallelism contention). Serialize it under the `engine` memory group so the slice-closure
 # reasoning does not contend with the other chases — this removes the contention WITHOUT
@@ -482,7 +502,7 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # The consumer `gmeow validate --deep` AC1 test reasons over the user data merged
-# with the WHOLE bundled TBox via the native Nemo chase (~50s full-fold). It is
+# with the WHOLE bundled TBox via the native chase (~50s full-fold). It is
 # off-gated via `default-filter` (so it runs only on maint-heavy), but the override
 # still applies there (maint-heavy inherits default): serialize under the `engine`
 # memory group so the full-fold chase does not OOM-thrash, and grant the long
@@ -503,10 +523,10 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # The docs "try-it" goldens (crates/pipeline/src/stages/carrier.rs, mod
-# docs_try_it_golden) each drive the native Nemo chase (reason_over_dataset)
+# docs_try_it_golden) each drive the native chase (reason_over_dataset)
 # to reason the reduced authored-default-world seed — and the reduced-vs-full-EDB
 # equivalence golden reasons the full object-level EDB as well. They are on-gate
-# lib unit tests, so keep them in the `engine` memory group (like the Nemo-driving
+# lib unit tests, so keep them in the `engine` memory group (like the chase-driving
 # binaries above): otherwise they over-parallelize with the other chases and
 # OOM-thrash on the 16 GB runner. Each fixture is tiny, so the JUnit budget gate's
 # 25 s policy still holds; the longer terminate cliff is only a runaway backstop.
@@ -527,7 +547,7 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 
 [[profile.default.overrides]]
 # The B1 real-repo non-vacuity proof runs the whole-ontology SHACL
-# validate + logic-compile chain (no Nemo chase, so no `engine` memory group — the
+# validate + logic-compile chain (no reasoning chase, so no `engine` memory group — the
 # same class as the off-gate `conformance_*` validate binaries). It is off-gated via
 # `default-filter` (runs only on `maint-heavy`); grant a runaway cliff well over its
 # measured ~105 s so CI jitter never trips the terminate backstop.

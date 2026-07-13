@@ -401,7 +401,6 @@ impl Stage for BenchLeaderboardStage {
 #[derive(Deserialize)]
 struct EnginePins {
     native: String,
-    nemo_rev: String,
     backward_reference: String,
 }
 
@@ -523,7 +522,6 @@ struct ScratchCost {
 #[derive(Deserialize)]
 struct Agreement {
     native_vs_golden: bool,
-    native_vs_oracle: bool,
     #[serde(default)]
     incremental_insert_vs_scratch: Option<bool>,
     #[serde(default)]
@@ -682,21 +680,20 @@ pub(crate) fn render_cost_ledger(
         "reproduces it byte-for-byte from the committed baseline without running a benchmark.".to_string(),
         String::new(),
         format!(
-            "Engine/reference pins: native `{}`, nemo `{}`, backward `{}`.",
+            "Engine/reference pins: native `{}`, backward `{}`.",
             artifact.engine_pins.native,
-            artifact.engine_pins.nemo_rev,
             artifact.engine_pins.backward_reference
         ),
         String::new(),
         "## Per-case deterministic cost + verdict-agreement".to_string(),
         String::new(),
-        "| corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden | native_vs_oracle |"
+        "| corpus | case | fragment | consumed_steps | derived | alloc_bytes | alloc_count | peak_live_bytes | native_vs_golden |"
             .to_string(),
-        "|---|---|---|---|---|---|---|---|---|---|".to_string(),
+        "|---|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for case in &cases {
         lines.push(format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |",
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} |",
             case.corpus,
             case.case,
             case.fragment,
@@ -706,7 +703,6 @@ pub(crate) fn render_cost_ledger(
             case.native.alloc_count,
             case.native.peak_live_bytes,
             case.agreement.native_vs_golden,
-            case.agreement.native_vs_oracle,
         ));
     }
 
@@ -1153,10 +1149,9 @@ pub(crate) fn render_soak(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, gmeo
     lines.push(String::new());
     lines.push(format!(
         "Gap-zero HELD across {} corpora at soak window {SOAK_WINDOW}; pins native `{}`, \
-         nemo `{}`, backward reference `{}`.",
+         backward reference `{}`.",
         artifact.ledgers.len(),
         artifact.engine_pins.native,
-        artifact.engine_pins.nemo_rev,
         artifact.engine_pins.backward_reference,
     ));
     let md = lines.join("\n") + "\n";

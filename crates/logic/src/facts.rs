@@ -7,11 +7,8 @@
 //!
 //! The reasoning core exchanges facts as **typed values**, never as fact-string
 //! text: a [`TypedFactSet`] holds [`TypedFact`]s whose arguments are [`TermId`]s
-//! into a per-set [`TermInterner`] over native [`TermValue`]s.  The Nemo adapter
-//! is the **sole stringifier** — it renders typed facts to Nemo's ground-fact
-//! syntax at the last moment, inside its own module, and decodes every result
-//! row back to `TermValue` before it leaves the adapter.  Nothing else in the
-//! crate formats or parses fact strings.
+//! into a per-set [`TermInterner`] over native [`TermValue`]s. Nothing in the
+//! production reasoning path formats or parses fact strings.
 //!
 //! # Determinism (non-negotiable)
 //!
@@ -366,9 +363,8 @@ impl TypedFactSet {
     /// `predicate(subject, object, world)`; return `true` if newly inserted.
     ///
     /// Blank-node subjects/objects are Skolemized to stable IRIs before
-    /// interning.  The world is interned as a plain string literal — the same
-    /// treatment the Nemo fact encoding gives the world position (a string
-    /// constant, not an IRI term).
+    /// interning. The world is interned as a plain string literal rather than an
+    /// IRI term.
     pub(crate) fn push_quad(
         &mut self,
         subject: &TermValue,
@@ -608,7 +604,7 @@ mod tests {
             set.interner().resolve(fact.args[1]),
             &TermValue::Iri(skolem_iri("b1"))
         );
-        // The world is a plain string literal (Nemo string-constant treatment).
+        // The world is a plain string literal.
         assert_eq!(
             set.interner().resolve(fact.args[2]),
             &TermValue::simple_literal("http://world/W")

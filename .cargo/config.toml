@@ -13,11 +13,10 @@ CXXFLAGS = { value = "-O2 -march=native -mtune=native", force = true }
 
 [target.x86_64-unknown-linux-gnu]
 # Link with the toolchain's BUNDLED rust-lld (no system lld / apt install — the
-# nightly toolchain CI already uses ships it under gcc-ld/). This slashes peak
-# link-step RAM and time on the large `nemo` dependency tree versus the default
-# bfd linker. Nightly gates `link-self-contained=+linker` behind
-# `-Zunstable-options`; the repo is nightly-pinned (nemo needs unstable
-# features), so these flags are always available.
+# nightly toolchain CI already uses ships it under gcc-ld/). This reduces peak
+# link-step RAM and time across the large workspace versus the default bfd linker.
+# Nightly gates `link-self-contained=+linker` behind `-Zunstable-options`; the repo
+# is nightly-pinned for `portable_simd`, so these flags are always available.
 rustflags = [
     "-Zunstable-options",
     "-Clink-self-contained=+linker",

@@ -53,18 +53,16 @@ channel = "nightly"
 components = ["rustfmt", "clippy"]
 ```
 
-Nightly is mandatory, not preferred. The `nemo` engine — a hard dependency of
-`gmeow-logic` — uses unstable language features (`macro_metavar_expr`,
-`iter_intersperse`, `slice_swap_unchecked`) and does not compile on stable.
-There is no stable fallback for the logic stack.
+Nightly is mandatory, not preferred. The native `gmeow-logic` engine uses
+`portable_simd`; there is no stable fallback for the logic stack.
 
 `gmeow-gts`, by contrast, targets **stable** Rust. This is not a conflict:
 stable Rust is a subset of nightly, so a stable-targeting crate compiles
 cleanly under the workspace's nightly toolchain. Nightly is a strict superset
 of the surface a stable crate can use, so consuming `gmeow-gts` under nightly is
 forward-compatible by construction. The workspace as a whole therefore requires
-nightly (because of `nemo`), while individual crates like `gmeow-gts` neither
-require nor are harmed by it.
+nightly for the native reasoning kernels, while individual crates like `gmeow-gts`
+neither require nor are harmed by it.
 
 The toolchain policy is to **track the current nightly** rather than freeze a
 date:
@@ -77,9 +75,8 @@ date:
 
 Local and CI toolchains are kept in lockstep this way. A specific nightly may be
 **temporarily** pinned in both places when an upstream miscompile demands it —
-for example, the Scryer-Prolog dependency has required such a workaround in the
-past — but pinning is the exception, applied deliberately and removed once the
-upstream issue clears. At present neither file pins a date; both float.
+but pinning is the exception, applied deliberately and removed once the upstream
+issue clears. At present neither file pins a date; both float.
 
 When bumping the toolchain, change `rust-toolchain.toml` and the CI
 `toolchain:` inputs together so they never diverge.

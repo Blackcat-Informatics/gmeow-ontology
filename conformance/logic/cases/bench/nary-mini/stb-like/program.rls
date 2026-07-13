@@ -1,4 +1,0 @@
-#[name("https://blackcatinformatics.ca/gmeow/bench/nary/rules/stb-r1")]
-mid(?a, !n), out(!n, ?b) :- src(?a, ?b, ?c) .
-#[name("https://blackcatinformatics.ca/gmeow/bench/nary/rules/stb-r2")]
-seg(?n, !m), cap(!m, ?b) :- out(?n, ?b) .

@@ -5,9 +5,9 @@
 //!
 //! XCL is the ISO/IEC 24707 XML serialization for full first-order Common Logic. This module
 //! is a **bidirectional, `PreservationKind::Exact`** dialect, a sibling of [`crate::clif`] and
-//! [`crate::cgif`]: [`project_xcl`](writer::project_xcl) lowers a
+//! [`crate::cgif`]: [`project_xcl`] lowers a
 //! [`LogicProgram`](crate::ir::LogicProgram) to XCL XML and
-//! [`parse_xcl_str`](reader::parse_xcl_str) lifts it back, and the two are inverses on the
+//! [`parse_xcl_str`] lifts it back, and the two are inverses on the
 //! canonical IR (the production round-trip test pins this).
 //!
 //! ## The two-channel split that makes Exact genuine

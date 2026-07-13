@@ -204,3 +204,51 @@ ex:ecFlagshipNonFailureClass a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example is a gmeow:FlagshipScenario whose gmeow:enforcesFailureClass names logic:Conjecture — a real class that is NOT a logic:LogicConformanceFailure subclass (the failure-range sh:sparql of the slice's thin logic:FlagshipScenarioShape). That constraint fires, so validation MUST emit shacl.SPARQLConstraintComponent (logic:UnwiredFlagshipScenario) — the enforcing failure class is checked by value." .
+
+# =========================================================================== #
+# Typed full-FOL IR — procedural constraint projection twins. The positive case
+# jointly satisfies all six ontology-authored constraints; each negative fixture
+# changes one independent condition and must be rejected by the generated
+# sh:SPARQLConstraint surface.
+# =========================================================================== #
+
+ex:ecTypedIrConstraintsWellformed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/typed-ir-constraints-wellformed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The complete implication selects one constructor at every Formula node, carries both ordered operands, and gives each TermCarrier exactly one indexed value kind; its typed literal carries both lexical form and datatype. FormulaConstructorConstraint, both implication guards, TermCarrierValueConstraint, TermCarrierIndexConstraint, and LiteralDatatypeConstraint therefore all remain silent." .
+
+ex:ecTypedIrTwoConstructors a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/typed-ir-two-constructors.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The focus carries both logic:relation and logic:not, so FormulaConstructorConstraint's exactly-one choice is false and its generated SPARQL constraint must reject the ambiguous formula." .
+
+ex:ecTypedIrAntecedentWithoutConsequent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/typed-ir-antecedent-without-consequent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The focus selects the implication constructor with logic:antecedent but omits logic:consequent, so ImplicationConsequentConstraint's guarded requirement must reject the incomplete ordered pair." .
+
+ex:ecTypedIrConsequentWithoutAntecedent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/typed-ir-consequent-without-antecedent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The focus carries logic:consequent but omits logic:antecedent; its sole counted constructor is logic:relation, isolating the reverse ImplicationAntecedentConstraint guard, which must reject the missing first operand." .
+
+ex:ecTypedIrCarrierTwoValues a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/typed-ir-carrier-two-values.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The indexed TermCarrier simultaneously carries logic:termIri and logic:termVariable, so TermCarrierValueConstraint's exactly-one value-kind choice must reject it." .
+
+ex:ecTypedIrCarrierWithoutIndex a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/typed-ir-carrier-without-index.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The TermCarrier has one unambiguous variable value but no logic:termIndex, so TermCarrierIndexConstraint must reject the positionless RDF argument rather than infer order from serialization." .
+
+ex:ecTypedIrDatatypeWithoutLiteral a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/typed-ir-datatype-without-literal.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The indexed carrier has one IRI value kind plus logic:termLiteralDatatype but no lexical logic:termLiteral, so LiteralDatatypeConstraint must reject the dangling datatype IRI." .

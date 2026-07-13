@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Fuzz the NATIVE RDF text codec (`gmeow_rdf::parse_dataset`, #909) — the canonical
+//! Fuzz the native RDF text codec (`purrdf::parse_dataset`) — the canonical
 //! parse path the whole workspace now routes through. Contract: reject malformed,
 //! never panic (it returns `Err`). libFuzzer aborts only on a panic. Fuzzed across
 //! every text serialization the native codec accepts, so a panic in any format's
@@ -18,6 +18,6 @@ fuzz_target!(|data: &[u8]| {
         "application/n-triples",
     ] {
         // Must never panic on arbitrary input — malformed bytes come back as Err.
-        let _ = gmeow_rdf::parse_dataset(data, media_type, None);
+        let _ = purrdf::parse_dataset(data, media_type, None);
     }
 });

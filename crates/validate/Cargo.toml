@@ -40,7 +40,7 @@ ciborium = "0.2"
 
 # Native-only dependencies: the slice-authoring dev gate, repo-lint guards, DSL
 # phases, and the Tier-2 `--deep` reasoner path. None of these cross-compile to wasm
-# (gmeow-logic drags in nemo/tokio, rayon needs threads, ureq needs sockets),
+# (gmeow-logic is the full reasoning stack, rayon needs threads, ureq needs sockets),
 # so they are excluded from the wasm target entirely — the modules that use them are
 # `#[cfg(not(target_arch = "wasm32"))]` in lib.rs.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
@@ -73,11 +73,10 @@ ureq = "3"
 # the `license_policy_for` pyfunction surfaces it to the Python `LinkPolicy` shim.
 gmeow-license = { path = "../license" }
 # Native reasoning engine: the `validate --deep` semantic pass reasons over the bundle
-# (`gmeow_logic::reason::reason_all`) and reads the shared logic:ReasoningResult. nemo
-# is built once for the workspace, so this edge is link-only marginal cost; no cycle
-# (logic does not depend on validate).
+# (`gmeow_logic::reason::reason_all`) and reads the shared logic:ReasoningResult.
+# The edge remains acyclic because logic does not depend on validate.
 gmeow-logic = { path = "../logic" }
-# The Nemo-free canonical validation-shape IR + the shape-subsumption enforcement
+# The canonical validation-shape IR + the shape-subsumption enforcement
 # pre-order (equivalent/subsumes/residue_normal_form): the equivalence ORACLE
 # (`shape_oracle`) inverts the SHACL emitter over this IR and decides equivalence via
 # the subsumption lattice. Comparison-only; never wired into a slices/** writer.

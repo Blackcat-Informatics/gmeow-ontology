@@ -8,12 +8,12 @@
 //! `purrdf::entail` — a 70/70 W3C-entailment-conformance-tested native reasoner —
 //! and reads two independent verdicts off the closure:
 //!
-//! * [`owlrl_subsumptions`] — the named-class `rdfs:subClassOf` closure (the
+//! * `owlrl_subsumptions` — the named-class `rdfs:subClassOf` closure (the
 //!   subsumption hierarchy an external classifier would report), and
-//! * [`consistency`] — the satisfiability verdict, keyed on any class forced to be
+//! * `consistency` — the satisfiability verdict, keyed on any class forced to be
 //!   equivalent to (or populated as) `owl:Nothing`.
 //!
-//! Unlike the Nemo-chase engine in [`crate::reason`], this oracle carries NO
+//! Unlike the production reasoning engine in [`crate::reason`], this oracle carries NO
 //! gmeow-specific calculus: it is the general OWL semantics purrdf implements, run
 //! over an arbitrary TBox/ABox, so it can serve as the independent cross-check the
 //! divergence ledger compares the native engine against. It lives OUTSIDE `reason`

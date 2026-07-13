@@ -25,19 +25,15 @@ gmeow-errors = { path = "../errors" }
 # the PDF byte-reproducible: a patch bump to any of the three could perturb the
 # rendered bytes or the embedded-font set.
 #
-# The 0.13 line is chosen deliberately over the newer 0.15: its bibliography
-# stack (hayagriva 0.8 / biblatex 0.10) uses `strum 0.26`, which is a distinct
-# major from the `strum 0.27` the pinned `nemo` reasoner dependency uses, so the
-# two never share a resolved strum. The 0.15 line's biblatex 0.12 pulls
-# `strum 0.27` WITH its `derive` feature, and cargo feature-unification would then
-# turn that feature on for nemo's strum too — which makes nemo fail to compile (a
-# duplicate `VariantArray` macro import). Staying on 0.13 keeps the whole
-# workspace building.
+# The 0.13 line is pinned deliberately: the rendered PDF and embedded-font set
+# are committed byte-for-byte outputs, so dependency drift requires an explicit
+# golden review rather than an incidental patch update.
 typst = "=0.13.1"
 typst-pdf = "=0.13.1"
 typst-assets = { version = "=0.13.1", features = ["fonts"] }
-# BLAKE3 for the embedded-font-set digest (pinned in a test).
-blake3 = "=1.5.4"
+# BLAKE3 for the embedded-font-set digest; the resulting digest is pinned by the
+# golden test, so compatible 1.x implementation updates do not need a manifest pin.
+blake3 = "1"
 
 [dev-dependencies]
 insta = "1.48"

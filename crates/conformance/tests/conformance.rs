@@ -35,7 +35,7 @@ fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     let case_dir = gmeow_conformance::paths::case_dir(profile_json.as_std_path());
 
     // The `cases/bench/` subtree is the ENGINE-BENCHMARK corpus (relational-core /
-    // nemo-kr2024 / chasebench mini representatives), a NEW sibling of the
+    // chasebench mini representatives), a NEW sibling of the
     // OWL-consistency `cases/external/` tree. Its cases carry `program.rules` +
     // `input.nq` + `expected/result.json` (a hand-derived row/answer golden), NOT the
     // `input.logic.ttl` this consistency harness requires. It is loaded and run by the

@@ -125,8 +125,8 @@ restraint we reject; `logic:` subsumes the contribution and discards the restrai
 | SWRL | rules over OWL | DL-safe restriction; rules bolted on, not native | rules are first-class and unrestricted |
 | RIF | rule interchange | never fully realized; interchange, not a logic | a single native logic, not an exchange format |
 | SHACL | closed-world validation, shapes | no inference; validation only | open- and closed-world co-resident |
-| Datalog (Soufflé, Nemo, RDFox) | recursive monotonic rules, fast materialization | monotonic only; no open-world classification; no modality | monotonic *and* non-monotonic; with classification and modality |
-| Prolog (SWI, Scryer, Trealla) | unification, SLD resolution, computation | not RDF-native; no open-world reading; no native probability | logic programming over RDF 1.2 triple terms |
+| Datalog (Soufflé, RDFox) | recursive monotonic rules, fast materialization | monotonic only; no open-world classification; no modality | monotonic *and* non-monotonic; with classification and modality |
+| Prolog (SWI, Trealla) | unification, SLD resolution, computation | not RDF-native; no open-world reading; no native probability | logic programming over RDF 1.2 triple terms |
 | ProbLog | probabilistic logic programming | a separate tool from one's ontology | probability/confidence scope is first-class (carefully typed — see semantics) |
 | F-logic (Flora-2, Ergo) | frame/object reasoning + LP | its own syntax, outside RDF | frame reasoning over native RDF frames |
 | N3 Logic (cwm, EYE) | RDF-native rules, **quoted graphs**, builtins, both chaining directions | pre-RDF-1.2 cited formulae; no contextual/modal scope as data | RDF 1.2 triple terms are the modern cited formula, with full contextual scope |

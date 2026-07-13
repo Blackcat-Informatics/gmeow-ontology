@@ -72,7 +72,7 @@ pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>> {
 /// lattice's `gmeow:ruleGmnRingWithinDerive` / `gmeow:ruleGmnRingCompartmentGap` (Horn
 /// `logic:Rule`s, the `logic:ruleProjectIsAwareOf` idiom) and their EDB witness (the ring
 /// individuals' authored `gmeow:gmnRingLevel` / `gmeow:gmnRingCompartment` coordinates).
-/// That graph is compiled to a canonical [`LogicProgram`]
+/// That graph is compiled to a canonical [`gmeow_logic_compile::ir::LogicProgram`]
 /// ([`parse_logic_dataset`](gmeow_logic_compile::frontend::parse_logic_dataset)) and
 /// evaluated over the same graph as its EDB through
 /// [`reason_program_closure_dataset`](gmeow_logic::reason::reason_program_closure_dataset);
@@ -85,8 +85,8 @@ pub fn rdfs_closed_store() -> Result<Arc<RdfDataset>> {
 /// closure (a ~37k-quad DL closure of unrelated vocabulary) past the per-test time budget for
 /// no added entailment. A future `reasoningLogic` question extends the source set in
 /// [`native_reasoning_source_files`], exactly as a new module extends [`merged_store`]. This is
-/// the ONE lane that pays the native chase (and pulls Nemo into the build graph); the default
-/// (`reasoningNone`) and `reasoningRdfs` lanes stay Nemo-free.
+/// the ONE lane that pays the full native chase; the default (`reasoningNone`) and
+/// `reasoningRdfs` lanes stay lightweight.
 ///
 /// # Errors
 ///

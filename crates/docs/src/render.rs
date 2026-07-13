@@ -3338,7 +3338,7 @@ fn md_logic_loss_ledger(model: &DocsModel) -> String {
         &mut out,
         "Every projection of the canonical IR declares **how much it preserves**. A \
          lossy down-projection (OWL, gUFO, Datalog, …) is sound but drops structure \
-         the target format cannot carry; the exact targets (canonical RDF 1.2, Nemo) \
+         the target format cannot carry; exact targets such as canonical RDF 1.2 \
          drop nothing. This ledger is the per-target record — the compiler's \
          overclaim gate turns the build red if a target claims exact preservation \
          yet drops anything.",

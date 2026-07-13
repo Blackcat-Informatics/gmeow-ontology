@@ -36,7 +36,7 @@ Rust performance and advanced-language-feature work must also follow
 [`docs/RUST-OPTIMIZATION.md`](./docs/RUST-OPTIMIZATION.md): measure first,
 preserve deterministic output, prefer Rust-native data/dispatch/ownership
 changes over compiler-flag churn, and keep the existing debug-assertion,
-overflow-check, no-debug-symbol, and `nemo` build-memory contracts intact.
+overflow-check, and no-debug-symbol contracts intact.
 
 ### The CLI razor — `gmeow` vs `gmeow-dev`
 
@@ -249,7 +249,7 @@ make bench-compare   # report-only perf scoreboard: live criterion run vs commit
 make rust-coverage   # cargo-llvm-cov region coverage (lcov + HTML, --include-ffi); report-only.
                      #   Named NOT `coverage` — that is the entity-coverage gate.
 make mutants         # cargo-mutants over the logic+validate cores (mutants.toml). Grades whether
-                     #   the suite catches regressions. The full logic run is HOURS (nemo) — scope
+                     #   the suite catches regressions. The full logic run is HOURS — scope
                      #   locally with MUTANTS_ARGS="-p gmeow-validate -f <file>".
 ```
 
@@ -289,7 +289,7 @@ a comment in that filter AND a one-line entry here.
 Default off-gate groups (reevaluated 2026-06-29): `gmeow-validate`
 `deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate` (30.705 s
 locally in `make maint-rust-heavy`; the consumer `gmeow validate --deep` AC1
-reasons over user data merged with the whole bundled TBox via the native Nemo
+reasons over user data merged with the whole bundled TBox via the native
 chase; the same merge->inconsistency path is covered on-gate by the fast
 tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
 `deep_pass_failure_*`/`deep_false_*` validate tests); the `gmeow-pipeline`
@@ -363,7 +363,7 @@ the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on eve
 `make check` via `make check-generated`, and the exhaustive proof stays on-gate on
 `maint-heavy`); and
 `gmeow-logic::whole_bundle_coherence_gate_catches_injected_clash` (~95 s locally;
-it imports the WHOLE committed `gmeow.gts` bundle and drives the native Nemo
+it imports the WHOLE committed `gmeow.gts` bundle and drives the native
 chase over it twice, proving the shipped ontology is coherent and that an
 injected disjoint-class clash is caught). This exclusion is **budget-exempt,
 not gate-exempt**: the test still runs on every `make check` via the dedicated
@@ -525,6 +525,30 @@ bare-local plus the ambiguity hard-fail) stays on-gate via the fixture-scale res
 tests in `crates/docs` (`describe.rs`) and `crates/pipeline` (the `export.rs` MCP ambiguity
 test), the registry-vs-`PREFIXES_BY_LEN` coherence stays on-gate via the `lpg_prefixes`
 coherence gate, and all four whole-bundle describe tests stay on-gate on `maint-heavy`.
+The whole-bundle export structural sweep
+`gmeow-pipeline::stages::export::tests::export_produces_structurally_valid_artifacts`
+is likewise off-gate (23.014 s in snapshot review, 25.579 s under the full-gate
+shard). It folds the whole committed bundle and renders all 14 export artifacts, so
+its cost is irreducibly O(bundle and vocabulary size) and now rides the 25 s cliff
+under normal contention. No export coverage class leaves the per-commit gate: the
+focused renderer, schema, and envelope tests remain on-gate, every committed export
+is byte-drift-gated by `make check-generated`, and the exhaustive structural sweep
+runs on `maint-heavy`.
+The typed-IR logic uplift grew the shipped vocabulary, documentation model, and bundle
+enough to push eight more whole-site / whole-bundle tests over the budget under the
+full CI shard: `gmeow-docs::mdbook_render::book_term_chapter_with_dropped_link_golden`
+(30.7 s), `::book_no_relative_link_to_dropped_page` (30.4 s), `::book_toml_golden`
+(26.6 s), `::book_zero_term_slice_renders_valid_chapter` (26.4 s),
+`gmeow-cli::cli::describe_known_term_renders_prose` (28.7 s),
+`::describe_unknown_language_fails_with_available_list` (25.9 s),
+`::describe_toon_format_emits_toon` (25.4 s), and
+`gmeow-docs::describe_bundle_language::describe_resolves_carrier_tags_against_shipped_bundle`
+(25.8 s). The mdBook cases render the WHOLE primed documentation model, while the
+describe cases load/fold the WHOLE shipped bundle before making their focused
+assertions, so the cost is irreducibly O(site or bundle size), not fixture size.
+Focused renderer, link, language, TOON, and fixture-scale describe tests remain
+on-gate, committed documentation stays byte-drift-gated by `make check-generated`,
+and all eight exhaustive cases run on `maint-heavy`.
 Former off-gate groups such as
 ontology entailments, SPARQL path parity, RDF/RDFC parity outliers,
 correspondence parity, mapping parity, carrier/docs archive tests, scoreboards

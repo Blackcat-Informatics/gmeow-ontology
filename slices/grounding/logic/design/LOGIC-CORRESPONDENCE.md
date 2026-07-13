@@ -300,8 +300,10 @@ function into `⟨ legal output ⊕ flagged residue ⟩`; the loss ledger is the
 
 Three commitments are recorded in [`LOGIC-IR.md`](LOGIC-IR.md) and are load-bearing for this calculus:
 
-1. **Lowering is legalization** (`logic:ConversionTarget`) — partial conversion leaves an illegal
-   construct in place, flagged: the "unsupported carried and flagged, never dropped" rule.
+1. **Lowering is legalization** (`logic:ConversionTarget`) — the target names the legal IR or
+   dialect, and partial conversion leaves an illegal construct in place, flagged: the "unsupported
+   carried and flagged, never dropped" rule. This is distinct from `logic:ProjectionTarget`, which
+   requests an output presentation without defining the legality domain or changing entailments.
 2. **Every annotation is typed `logic:loadBearing` or droppable** — a display hint is droppable; the
    in-band complement and the axes are load-bearing (`put` needs them for `u∘d = id`). *Without this
    bit the section/retraction rung cannot be verified*, so it is in the node type from the start.

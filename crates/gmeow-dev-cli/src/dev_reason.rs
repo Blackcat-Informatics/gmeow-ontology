@@ -401,104 +401,6 @@ pub fn reason_crosscheck() -> i32 {
     }
 }
 
-/// `gmeow-dev reason-nemo-crosscheck` — the scheduled native ↔ Nemo differential
-/// subsumption cross-check.
-///
-/// This is Nemo's ONLY remaining production home after the Task-6 native flip: a
-/// scheduled (maint-lane) differential oracle, never on the primary reasoning path.
-/// It dual-runs the committed reasoning corpus (the same snapshot import
-/// `reason-verify` uses) through BOTH the native forward oracle (`forward_oracle()`)
-/// and the retained Nemo oracle (`nemo_forward_oracle()`, reached through its sole
-/// off-path provider) over the fixed DL calculus, folds the two subsumption closures
-/// into the [`crate::reason::ledger::DivergenceLedger`], and HARD-FAILS unless
-/// `enforce(&ledger).passed` AND `ledger.agree > 0` (non-vacuity: a real dual-run
-/// that actually agreed on something, not an empty pass).
-///
-/// A Nemo-only subsumption is an `OracleOnly` row `enforce` fails on (native ⊇ Nemo
-/// coverage regression); a native-only row is expected superset richness and passes.
-/// The whole fixed DL calculus is gap-zero on the committed bundle, so a healthy run
-/// is pure agreement. The reused emitters record the run: `divergence_findings`
-/// projects every divergence into a `gmeow:Finding`, and `build_dl_el_ledger_ttl`
-/// serializes the native subsumption ledger as the recorded `gmeow:Finding` graph.
-pub fn reason_nemo_crosscheck() -> i32 {
-    use gmeow_logic::reason::artifacts::build_dl_el_ledger_ttl;
-    use gmeow_logic::reason::{crosscheck_native_vs_nemo, divergence_findings, enforce};
-
-    let root = project_root();
-    let dataset = match snapshot_dataset(&root) {
-        Ok(d) => d,
-        Err(code) => return code,
-    };
-
-    // The native reasoning result the ledger TTL records (the native subsumption
-    // graph); it also proves the native path decides the committed corpus.
-    let native_result = match reason_all(dataset.as_ref()) {
-        Ok(r) => r,
-        Err(e) => {
-            return fail(format!(
-                "reason-nemo-crosscheck: native reasoning failed: {e}"
-            ));
-        }
-    };
-
-    // The differential itself: dual-run native vs Nemo, fold into the ledger.
-    let ledger = match crosscheck_native_vs_nemo(dataset.as_ref()) {
-        Ok(l) => l,
-        Err(e) => {
-            return fail(format!(
-                "reason-nemo-crosscheck: native↔Nemo dual-run failed: {e}"
-            ));
-        }
-    };
-    let verdict = enforce(&ledger);
-
-    println!(
-        "native ↔ Nemo differential subsumption cross-check (scheduled, Docker-free): \
-         {agree} agree, {native_only} native-only (expected richness), \
-         {nemo_only} nemo-only, {dl_gap} dl-gap",
-        agree = ledger.agree,
-        native_only = ledger.native_only,
-        nemo_only = ledger.oracle_only,
-        dl_gap = ledger.dl_gap,
-    );
-
-    // Record the ledger as the reused gmeow:Finding graph (native subsumption + gap
-    // header) and project every divergence into a gmeow:Finding — the canonical
-    // emitters, not a parallel vocabulary.
-    print!("{}", build_dl_el_ledger_ttl(&native_result));
-    for finding in divergence_findings(&ledger) {
-        note(
-            "gmeow-dev.reason-nemo-crosscheck.finding",
-            format!("  [{}] {}", finding.code, finding.message),
-        );
-    }
-
-    // Hard-fail unless the strict superset verdict passes AND the run was non-vacuous
-    // (both engines actually agreed on ≥1 subsumption — never an empty green).
-    if !verdict.passed {
-        for reason in &verdict.reasons {
-            note(
-                "gmeow-dev.reason-nemo-crosscheck.reason",
-                format!("reason-nemo-crosscheck: {reason}"),
-            );
-        }
-        return fail("reason-nemo-crosscheck: native↔Nemo subsumption divergence");
-    }
-    if ledger.agree == 0 {
-        return fail(
-            "reason-nemo-crosscheck: VACUOUS cross-check — native and Nemo agreed on zero \
-             subsumptions; the dual-run produced no comparable evidence",
-        );
-    }
-    println!(
-        "reason-nemo-crosscheck: native ⊇ Nemo — no divergence over {agree} agreed \
-         subsumption(s) ({native_only} native-only enrichment(s))",
-        agree = ledger.agree,
-        native_only = ledger.native_only,
-    );
-    0
-}
-
 /// `gmeow-dev explain` — explain unsatisfiable classes / inconsistency.
 pub fn explain() -> i32 {
     let root = project_root();
@@ -576,31 +478,7 @@ pub fn certify(input_path: &Path, profile: Option<&str>) -> i32 {
             ));
         }
     };
-    // Discharge every authored correspondence's lens law by EXECUTION so the five
-    // correspondence gates inside `compile_program` read a real per-correspondence verdict.
-    // A correspondence-free source yields an empty map (the gates never run); a source that
-    // declares `logic:Correspondence` cells MUST supply a verdict for each — computing it here
-    // is what keeps a correspondence-bearing input from reaching the gates' missing-verdict
-    // hard-fail. A malformed leg registry surfaces as a clean error, never a panic.
-    let verdicts = match gmeow_logic::correspondence_exec::logic_program_verdicts(&program) {
-        Ok(v) => v,
-        Err(e) => {
-            return fail(format!(
-                "certify: cannot discharge correspondence lens laws for {}: {e}",
-                input_path.display()
-            ));
-        }
-    };
-    let arts = match gmeow_logic_compile::projections::compile_program(&program, &verdicts) {
-        Ok(a) => a,
-        Err(e) => {
-            return fail(format!(
-                "certify: cannot compile {}: {e}",
-                input_path.display()
-            ));
-        }
-    };
-    let verdict = match gmeow_logic::certify::certify(&arts.nemo_rules, &profile_str, None) {
+    let verdict = match gmeow_logic::certify::certify_program(&program, &profile_str) {
         Ok(v) => v,
         Err(e) => return fail(format!("certify: native certifier failed: {e}")),
     };

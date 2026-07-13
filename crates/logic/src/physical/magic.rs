@@ -53,9 +53,8 @@
 //! For a goal `g(t0, t1)` with adornment `a` (over `{b, f}`):
 //!
 //! 1. **Seed** — the goal's ground magic fact carrying the goal's bound constant(s),
-//!    asserted directly into the EDB (never emitted as a bodyless rule — the semi-naive
-//!    engine never fires a zero-positive-body rule). For `ff` there is no seed at all
-//!    (`ff` is unrestricted).
+//!    asserted directly into the EDB as control state rather than retained as an
+//!    unconditional demand rule. For `ff` there is no seed at all (`ff` is unrestricted).
 //! 2. **Modified rules** — each original rule `h :- b1..bn` becomes, for the head
 //!    adornment `a_h`, `h :- magic_h^{a_h}, b1, ..., bn` (the guard prepended; an `ff`
 //!    head emits no guard).  Each IDB body atom is adorned per a left-to-right SIPS (a
@@ -103,6 +102,11 @@ use crate::query_ir::{
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
 use crate::seam::{BudgetStatus, WorldFactSource};
 
+use crate::annotation::{
+    AnnotatedAnswer, AnnotatedAnswerSet, AnnotatedFactKey, AnnotationDerivation, AnnotationFactRef,
+    AnnotationRequest, TupleAnnotationAlgebra,
+};
+
 /// Wrap a physical-chase condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
 fn physical_err(detail: String) -> gmeow_errors::Diag {
@@ -123,7 +127,7 @@ fn physical_err(detail: String) -> gmeow_errors::Diag {
 ///
 /// A `Const("<iri>")` → [`EvalTerm::ConstNamed`] (angle brackets stripped); a `Var(v)` →
 /// `EvalTerm::Var("?v")` (the engine's variable surface carries a leading `?`, matching
-/// `parse_eval_rules`); a `Num` is an arithmetic operand the native core does not carry.
+/// typed lowering); a `Num` is an arithmetic operand the native core does not carry.
 ///
 /// Shared with the n-ary generic backward path ([`super::magic_generic`]): the same
 /// `QTerm → EvalTerm` codec lowers a generic atom's positional args.
@@ -381,9 +385,9 @@ fn rule(head: EvalAtom, body: Vec<EvalAtom>, rule_iri: String) -> EvalRule {
     }
 }
 
-/// Route a transform-emitted rule: a bodyless positive rule is an unconditional GROUND fact
-/// (the semi-naive engine never fires a zero-positive-body rule), so materialize it as a
-/// demand seed; a rule with a positive body is emitted normally.
+/// Route a transform-emitted rule: a bodyless positive rule is an unconditional GROUND
+/// control fact, so materialize it directly as a demand seed; a conditional rule is emitted
+/// normally.
 ///
 /// A bodyless positive rule's head is always ground: an empty body means the head guard is
 /// `None`, so every bound position of the emitted atom is a constant carried from the source
@@ -409,15 +413,16 @@ fn emit_or_seed(
 /// rules + magic rules) plus the SET of ground demand seed facts inserted into the EDB
 /// before evaluation.
 ///
-/// EVERY bodyless positive rule the transform would produce (the goal's magic seed AND each
-/// per-atom/modified demand rule whose body collapses to empty) is lifted into this seed set
-/// rather than left as a rule, because the semi-naive engine never fires a zero-positive-body
-/// rule (a bodyless rule produces no solution in a delta round). A bodyless positive rule is
-/// definitionally an unconditional ground fact — an asserted demand — so it belongs in the
-/// EDB seed. An `ff` goal contributes no goal seed (the predicate is unrestricted); the set is
-/// then whatever the demand/modified sites lift.
+/// EVERY unconditional demand rule the transform would produce (the goal's magic seed AND
+/// each per-atom/modified demand rule whose body collapses to empty) is lifted into this seed
+/// set. Such a rule is definitionally a ground control fact — an asserted demand — so it
+/// belongs in the EDB seed rather than the semantic rule program. An `ff` goal contributes no
+/// goal seed (the predicate is unrestricted); the set is then whatever the demand/modified
+/// sites lift.
 struct MagicProgram {
-    /// The transformed rules (modified original rules + magic rules), none bodyless.
+    /// The transformed rules (modified original rules + magic rules), with no
+    /// unconditional demand-control rule. Semantic NAF-only or builtin-only rules may
+    /// have no positive atom and are evaluated from the relational identity.
     rules: Vec<EvalRule>,
     /// The ground demand seed facts to assert into the EDB before evaluation (the goal's
     /// magic seed plus every lifted bodyless-rule head), deduplicated and order-stable.
@@ -573,8 +578,8 @@ fn magic_transform(
 
     // (3) Seed: the goal's magic fact, keyed on the KEPT table that serves the goal's
     //     adornment (the goal projection re-imposes the goal's own residual). None for an
-    //     all-free served goal. This and every other bodyless positive rule below are
-    //     asserted into the EDB by the caller (a zero-positive-body rule never fires).
+    //     all-free served goal. This and every other unconditional demand rule below are
+    //     asserted into the EDB by the caller as control facts.
     if let Some(s) = magic_seed_atom(goal, served(goal.predicate.as_str(), goal_adorn)) {
         seeds.push(s);
     }
@@ -667,10 +672,9 @@ fn magic_transform(
                     head_adorn.code()
                 );
                 // A ground fact-rule (empty original body) under an all-free head yields an
-                // empty `mod_body` with a ground head — an unconditional fact the engine
-                // would never fire. Lift it to a seed. A builtin-bearing rule is never a
-                // fact-rule (a fact carries no builtins), but the guard keeps a builtin from
-                // being silently dropped if that ever changes.
+                // empty `mod_body` with a ground head — an unconditional fact. Lift this
+                // transform control fact to a seed. A builtin-bearing rule is semantic, so
+                // retain it for relational-identity evaluation.
                 if mod_body.is_empty() && r.builtins.is_empty() {
                     seeds.push(r.head.clone());
                 } else {
@@ -682,15 +686,13 @@ fn magic_transform(
         }
     }
 
-    // The BINARY fragment admits stratified NAF, so a body of only negated atoms has no
-    // positive driver and can never fire; the invariant therefore demands a POSITIVE body
-    // atom, not merely a non-empty body. `resolve_native_under`'s unpositive-body gate
-    // refuses any empty-positive-body rule that is not a pure ground fact-rule (which is
-    // seeded) UPSTREAM of this transform, so this holds as a true structural invariant.
+    // Unconditional transform control facts are seeds, never executable rules. Semantic
+    // NAF-only and builtin-only rules are valid: the semi-naive core starts them from the
+    // relational identity, so require semantic content rather than a positive driver.
     assert!(
-        out.iter().all(|r| r.body.iter().any(|a| !a.negated)),
-        "magic_transform must not emit a positive rule with no positive body atom (it would \
-         never fire in the semi-naive engine and silently under-demand)"
+        out.iter()
+            .all(|r| !r.body.is_empty() || !r.builtins.is_empty()),
+        "magic_transform must lift every unconditional demand-control rule into the seed set"
     );
     // The goal seed and the per-atom/modified demand lifts above can mint the same ground
     // demand fact from more than one emission site; dedup ONCE here, order-preservingly
@@ -723,8 +725,8 @@ fn magic_transform_variant(
     let mut out: Vec<EvalRule> = Vec::new();
     let mut seeds: Vec<EvalAtom> = Vec::new();
 
-    // (1) Seed: the goal's magic fact (none for an ff goal). Every bodyless positive rule
-    //     below is likewise lifted into the seed set (the engine never fires one).
+    // (1) Seed: the goal's magic fact (none for an ff goal). Every unconditional demand
+    //     rule below is likewise lifted into the seed set as control state.
     if let Some(s) = magic_seed_atom(goal, goal_adorn) {
         seeds.push(s);
     }
@@ -791,14 +793,12 @@ fn magic_transform_variant(
         }
     }
 
-    // Same fragment reasoning as `magic_transform`'s invariant above: this variant mirrors
-    // the production transform exactly (it exists only as the A/B byte-identity oracle), so
-    // the same "positive body atom required, not merely non-empty" invariant must hold here
-    // too, or the oracle comparison would no longer be checking a valid production shape.
+    // The variant mirrors the production transform exactly: unconditional demand-control
+    // rules are lifted, while semantic NAF-only and builtin-only rules remain executable.
     assert!(
-        out.iter().all(|r| r.body.iter().any(|a| !a.negated)),
-        "magic_transform_variant must not emit a positive rule with no positive body atom (it \
-         would never fire in the semi-naive engine and silently under-demand)"
+        out.iter()
+            .all(|r| !r.body.is_empty() || !r.builtins.is_empty()),
+        "magic_transform_variant must lift every unconditional demand-control rule into the seed set"
     );
     // Identical order-preserving end-of-transform dedup as `magic_transform` — required so
     // the A/B byte-identity oracle test comparing the two transforms' seed sets holds.
@@ -1194,9 +1194,9 @@ pub(crate) fn prepare_incremental_query(
 ///
 /// Parity sibling of [`crate::reference_resolver::resolve`]: the returned [`AnswerSet`]
 /// (after `canonicalize`) carries the SAME goal-variable bindings and status as the
-/// top-down oracle for the binary positive corpus.  A cut / arithmetic / non-binary input
-/// is a declared gap ([`NativeOutcome::Unsupported`]); the caller routes such requests to
-/// an oracle (no-optionality).
+/// retained top-down reference for the binary positive corpus. A cut / arithmetic /
+/// non-binary input is a declared gap ([`NativeOutcome::Unsupported`]); production dispatch
+/// surfaces that typed refusal because no fallback evaluator remains.
 ///
 /// # Budget semantics
 ///
@@ -1291,7 +1291,8 @@ fn eval_with_base_fallback(
                     demand_pruning_dropped: true,
                 })
             }
-            // A builtin gap in the base program passes through to the caller's oracle route.
+            // A builtin gap in the base program passes through to production dispatch as a
+            // typed refusal.
             NativeOutcome::Unsupported(other) => Ok(FallbackOutcome::Unsupported(other)),
         };
     };
@@ -1307,7 +1308,7 @@ fn eval_with_base_fallback(
             })
         }
         // Any other declared native gap (cut / arithmetic / non-binary) passes through to
-        // the caller's oracle route unchanged.
+        // production dispatch unchanged.
         NativeOutcome::Unsupported(other) => Ok(FallbackOutcome::Unsupported(other)),
     }
 }
@@ -1333,19 +1334,154 @@ fn demand_pruning_dropped_claim() -> crate::result::PreservationClaim {
     claim
 }
 
+/// Native binary fact evaluation retained for both plain and annotation-carrying
+/// answer projection. Keeping the demand transformation and tuple fixpoint here means
+/// `dispatch_query` and `dispatch_query_annotated` cannot drift into separate reasoners.
+struct BinaryEvaluation {
+    facts: Vec<Fact>,
+    status: BudgetStatus,
+    frontier: CompletionFrontier,
+    demand_pruning_dropped: bool,
+    goal_atom: EvalAtom,
+    base_rules: Vec<EvalRule>,
+    executed_rules: Vec<EvalRule>,
+    base_edb_facts: Vec<Fact>,
+    control_predicates: BTreeSet<String>,
+}
+
+type AnnotatedRows<E> = BTreeMap<Binding, (E, Vec<AnnotationDerivation<E>>)>;
+
+fn evaluate_binary_under(
+    contract_hash: &str,
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+    goal: &QAtom,
+) -> gmeow_errors::Result<NativeOutcome<BinaryEvaluation>> {
+    let mut rules: Vec<EvalRule> = Vec::with_capacity(program.rules.len());
+    for source_rule in &program.rules {
+        if source_rule
+            .body
+            .iter()
+            .any(|literal| matches!(literal, QBodyLit::Cut))
+        {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
+        }
+        let head = match atom_of(&source_rule.head) {
+            Ok(atom) => atom,
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+        };
+        let mut body = Vec::new();
+        let mut builtins = Vec::new();
+        for literal in &source_rule.body {
+            match literal {
+                QBodyLit::Atom(atom) => match atom_of(atom) {
+                    Ok(atom) => body.push(atom),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Neg(atom) => match atom_of(atom) {
+                    Ok(atom) => body.push(EvalAtom {
+                        negated: true,
+                        ..atom
+                    }),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Builtin(builtin) => builtins.push(builtin_of(builtin)),
+                QBodyLit::Cut => unreachable!("cut handled before binary rule lowering"),
+            }
+        }
+        if negated_body_flounders(&body, &builtins) {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
+        }
+        let rule_iri = format!("{}::rule", head.predicate.as_str());
+        rules.push(EvalRule {
+            head,
+            body,
+            rule_iri,
+            distinct_pairs: Vec::new(),
+            builtins,
+        });
+    }
+
+    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&rules) {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingArithmetic,
+        ));
+    }
+
+    let goal_atom = match atom_of(goal) {
+        Ok(atom) => atom,
+        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+    };
+    let transformed = magic_transform(&rules, &goal_atom, goal_adornment(goal));
+    let mut control_predicates: BTreeSet<String> = transformed
+        .rules
+        .iter()
+        .filter(|rule| rule.rule_iri.contains("::magic/"))
+        .map(|rule| rule.head.predicate.clone())
+        .collect();
+    for seed in &transformed.seeds {
+        control_predicates.insert(seed.predicate.clone());
+    }
+
+    let mut edb = extract_edb(foreign, world);
+    let base_edb_facts = edb.facts_sorted();
+    for seed in &transformed.seeds {
+        let fact = seed_to_fact(seed)?;
+        edb.insert(&fact.predicate, &fact.subject, &fact.object);
+    }
+    let transformed_rules = transformed.rules;
+    let base_rules = rules;
+    let outcome = eval_with_base_fallback(
+        contract_hash,
+        edb,
+        transformed_rules.clone(),
+        base_rules.clone(),
+        budget.max_steps,
+        || extract_edb(foreign, world),
+    )?;
+    match outcome {
+        FallbackOutcome::Decided {
+            facts,
+            status,
+            frontier,
+            demand_pruning_dropped,
+        } => Ok(NativeOutcome::Decided(BinaryEvaluation {
+            facts,
+            status,
+            frontier,
+            demand_pruning_dropped,
+            goal_atom,
+            base_rules: base_rules.clone(),
+            executed_rules: if demand_pruning_dropped {
+                base_rules
+            } else {
+                transformed_rules
+            },
+            base_edb_facts,
+            control_predicates: if demand_pruning_dropped {
+                BTreeSet::new()
+            } else {
+                control_predicates
+            },
+        })),
+        FallbackOutcome::Unsupported(kind) => Ok(NativeOutcome::Unsupported(kind)),
+    }
+}
+
 /// Resolve `program`'s single backward goal against `world` via the native magic-sets core.
 ///
-/// # Oracle-soundness contract
+/// # Native-authority contract
 ///
 /// The native core is AUTHORITATIVE for every request it decides: a
 /// [`NativeOutcome::Decided`] answer is the whole answer (exact, or an honestly-downgraded
-/// complete over-approximation on the base fallback), and dispatch returns it without
-/// consulting any oracle. The oracle is consulted ONLY where the native core declares a
+/// complete over-approximation on the native base fallback). A
 /// [`NativeOutcome::Unsupported`] gap — cut, arithmetic residue, a non-binary shape, a
-/// genuinely non-stratifiable program, or a floundering NAF goal. The two never overlap:
-/// native never silently defers a case it can decide, and the oracle never overrides a
-/// native verdict. Stratified negation stays entirely inside this native path (decided or a
-/// declared gap); it is never a silent drop.
+/// genuinely non-stratifiable program, or a floundering NAF goal — is surfaced by production
+/// [`crate::dispatch::dispatch_query`] as a typed hard failure. There is no external oracle,
+/// secondary evaluator, or demotion route. Stratified negation stays entirely inside this
+/// native path (decided or a declared gap); it is never a silent drop.
 pub(crate) fn resolve_native(
     foreign: &dyn WorldFactSource,
     world: &str,
@@ -1411,125 +1547,19 @@ pub(crate) fn resolve_native_under(
         return super::magic_generic::resolve_native_generic(foreign, world, program, budget);
     }
 
-    // (1) Convert program rules → binary EvalRules, splitting each body into its atoms
-    // (the join structure) and its arithmetic/comparison builtins (the post-join
-    // constraint stage, evaluated in the modified rules by the shared moded evaluator).
-    let mut rules: Vec<EvalRule> = Vec::with_capacity(program.rules.len());
-    for r in &program.rules {
-        // Cut is procedural — still a declared gap.
-        if r.body.iter().any(|lit| matches!(lit, QBodyLit::Cut)) {
-            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
-        }
-        let head = match atom_of(&r.head) {
-            Ok(a) => a,
-            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+    let evaluation =
+        match evaluate_binary_under(contract_hash, foreign, world, program, budget, goal)? {
+            NativeOutcome::Decided(evaluation) => evaluation,
+            NativeOutcome::Unsupported(kind) => return Ok(NativeOutcome::Unsupported(kind)),
         };
-        let mut body: Vec<EvalAtom> = Vec::new();
-        let mut builtins: Vec<QBuiltin> = Vec::new();
-        for lit in &r.body {
-            match lit {
-                QBodyLit::Atom(a) => match atom_of(a) {
-                    Ok(ea) => body.push(ea),
-                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
-                },
-                // A negated body atom lowers to the same binary `EvalAtom` with the
-                // `negated` flag set: the shared stratified evaluator decides it by NAF
-                // against the accumulated lower-stratum least model.
-                QBodyLit::Neg(a) => match atom_of(a) {
-                    Ok(ea) => body.push(EvalAtom {
-                        negated: true,
-                        ..ea
-                    }),
-                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
-                },
-                QBodyLit::Builtin(b) => builtins.push(builtin_of(b)),
-                // Cut already returned above.
-                QBodyLit::Cut => unreachable!("cut handled above"),
-            }
-        }
-        // Floundering guard: NAF is sound only when every variable of a negated body
-        // atom is range-restricted by a POSITIVE body atom (or bound by an `is`
-        // generator). A negated variable no positive literal binds is still free when
-        // the NAF goal fires — an unsound goal that must NOT be silently decided.
-        if negated_body_flounders(&body, &builtins) {
-            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
-        }
-        // A rule with no POSITIVE body atom cannot drive bottom-up derivation: the semi-naive
-        // engine never fires a zero-positive-body rule. An empty-bodied ground fact-rule is the
-        // sole exception (it is materialized as a demand seed). A rule reaching here with no
-        // positive atom yet a non-empty body (ground NAF) or builtins (a builtin-only generator)
-        // is neither a fact nor firable, so it is a declared gap routed to the oracle — not a rule
-        // the transform would emit and then trip its no-bodyless-positive-rule invariant.
-        let has_positive_body_atom = body.iter().any(|a| !a.negated);
-        if !has_positive_body_atom && !(body.is_empty() && builtins.is_empty()) {
-            return Ok(NativeOutcome::Unsupported(UnsupportedKind::UnpositiveBody));
-        }
-        // A synthesized stable rule IRI for the modified/original rule.
-        let rule_iri = format!("{}::rule", head.predicate.as_str());
-        rules.push(EvalRule {
-            head,
-            body,
-            rule_iri,
-            distinct_pairs: vec![],
-            builtins,
-        });
-    }
-
-    // (1b) Value-generating-recursion termination guard.  Over the finite triple EDB a
-    // pure-Datalog backward program always terminates; the ONE divergence source is an
-    // arithmetic `is` value-generator inside an IDB dependency cycle with no finite
-    // driver.  With no `max_steps` budget that is an unbounded hang, so — detected
-    // STATICALLY here, before any evaluation — the request is refused to the oracle
-    // (incomplete-never-wrong, never a hang).  WITH a `max_steps` budget the
-    // `StepGovernor` cuts the recursion deterministically, so it is evaluated normally.
-    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&rules) {
-        return Ok(NativeOutcome::Unsupported(
-            UnsupportedKind::NonTerminatingArithmetic,
-        ));
-    }
-
-    // (2) Compute the goal adornment and magic-transform.
-    let goal_atom = match atom_of(goal) {
-        Ok(a) => a,
-        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
-    };
-    let adorn = goal_adornment(goal);
-    let transformed = magic_transform(&rules, &goal_atom, adorn);
-
-    // (3) Extract the world EDB columnar-form, assert every ground demand seed, and run the
-    //     bottom-up fixpoint.  EVERY bodyless positive rule the transform would produce (the
-    //     goal's magic seed plus each per-atom/modified demand rule whose body collapses to
-    //     empty) is materialized here into the EDB, because the semi-naive engine never fires
-    //     a zero-positive-body rule — leaving such a demand as a rule would silently drop it
-    //     (the leading-bound recursive-IDB under-demand bug).
-    let mut edb = extract_edb(foreign, world);
-    for seed in &transformed.seeds {
-        let fact = seed_to_fact(seed)?;
-        edb.insert(&fact.predicate, &fact.subject, &fact.object);
-    }
-    // The step/derivation budget is honoured DURING the fixpoint: `Exhausted` on a cut,
-    // `Ok` on a natural fixpoint (including the pure-EDB case, where no rule fires).  The
-    // decided arm surfaces the governor's completion frontier (which strata / predicates
-    // are settled) on the answer instead of dropping it: an `Exhausted` backward goal is
-    // incomplete, and the caller reads `completed < total` to tell that from a conclusive
-    // result.  On a non-stratifiable transformed program the helper falls back to the base
-    // rules over a lazily re-extracted EDB (see `eval_with_base_fallback`).
-    let (facts, fixpoint_status, frontier, demand_pruning_dropped) = match eval_with_base_fallback(
-        contract_hash,
-        edb,
-        transformed.rules,
-        rules,
-        budget.max_steps,
-        || extract_edb(foreign, world),
-    )? {
-        FallbackOutcome::Decided {
-            facts,
-            status,
-            frontier,
-            demand_pruning_dropped,
-        } => (facts, status, frontier, demand_pruning_dropped),
-        FallbackOutcome::Unsupported(k) => return Ok(NativeOutcome::Unsupported(k)),
-    };
+    let BinaryEvaluation {
+        facts,
+        status: fixpoint_status,
+        frontier,
+        demand_pruning_dropped,
+        goal_atom,
+        ..
+    } = evaluation;
 
     // (4) Project the goal predicate's derived tuples into bindings.
     let mut bindings = project_answers(&facts, goal, goal_atom.predicate.as_str());
@@ -1603,6 +1633,262 @@ pub(crate) fn resolve_native_under(
 
     answer.canonicalize();
     Ok(NativeOutcome::Decided(answer))
+}
+
+fn public_derivations<E: Clone>(
+    world: &str,
+    derivations: &[super::annotation::PhysicalAnnotationDerivation<E>],
+    control_predicates: &BTreeSet<String>,
+) -> Vec<AnnotationDerivation<E>> {
+    derivations
+        .iter()
+        .map(|derivation| AnnotationDerivation {
+            rule_iri: derivation.rule_iri.clone(),
+            sources: derivation
+                .sources
+                .iter()
+                .filter(|(_, predicate, _)| !control_predicates.contains(predicate))
+                .map(|(subject, predicate, object)| AnnotatedFactKey {
+                    graph: world.to_owned(),
+                    subject: subject.clone(),
+                    predicate: predicate.clone(),
+                    object: object.clone(),
+                })
+                .collect(),
+            tuple_sources: Vec::new(),
+            annotation: derivation.annotation.clone(),
+        })
+        .collect()
+}
+
+/// Contract-scoped score-carrying counterpart of [`resolve_native_under`].
+///
+/// Tuple membership and opaque annotation equations are produced by one
+/// demand-transformed physical fixpoint. Magic predicates remain unit-valued control
+/// tuples so the demand rewrite never double-counts a scored premise.
+pub(crate) fn resolve_native_annotated_under<A, F>(
+    contract_hash: &str,
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+    annotation: &AnnotationRequest<'_, A, F>,
+) -> gmeow_errors::Result<NativeOutcome<AnnotatedAnswerSet<A::Element>>>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    if profile_gate::has_cut(program) {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
+    }
+    if program.goal.atoms.len() != 1 {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+    }
+    let goal = &program.goal.atoms[0];
+    let binary_eligible = goal.args.len() == 2
+        && program.rules.iter().all(|rule| {
+            rule.head.args.len() == 2
+                && rule.body.iter().all(|literal| match literal {
+                    QBodyLit::Atom(atom) | QBodyLit::Neg(atom) => atom.args.len() == 2,
+                    QBodyLit::Builtin(_) | QBodyLit::Cut => true,
+                })
+        });
+    if !binary_eligible {
+        return super::magic_generic::resolve_native_generic_annotated(
+            foreign, world, program, budget, annotation,
+        );
+    }
+
+    let mut base_rules = Vec::with_capacity(program.rules.len());
+    for source_rule in &program.rules {
+        if source_rule
+            .body
+            .iter()
+            .any(|literal| matches!(literal, QBodyLit::Cut))
+        {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
+        }
+        let head = match atom_of(&source_rule.head) {
+            Ok(atom) => atom,
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+        };
+        let mut body = Vec::new();
+        let mut builtins = Vec::new();
+        for literal in &source_rule.body {
+            match literal {
+                QBodyLit::Atom(atom) => match atom_of(atom) {
+                    Ok(atom) => body.push(atom),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Neg(atom) => match atom_of(atom) {
+                    Ok(atom) => body.push(EvalAtom {
+                        negated: true,
+                        ..atom
+                    }),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Builtin(builtin) => builtins.push(builtin_of(builtin)),
+                QBodyLit::Cut => unreachable!("cut handled above"),
+            }
+        }
+        if negated_body_flounders(&body, &builtins) {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
+        }
+        let rule_iri = format!("{}::rule", head.predicate.as_str());
+        base_rules.push(EvalRule {
+            head,
+            body,
+            rule_iri,
+            distinct_pairs: Vec::new(),
+            builtins,
+        });
+    }
+    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&base_rules) {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingArithmetic,
+        ));
+    }
+    let goal_atom = match atom_of(goal) {
+        Ok(atom) => atom,
+        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+    };
+    let transformed = magic_transform(&base_rules, &goal_atom, goal_adornment(goal));
+    let mut control_predicates = transformed
+        .rules
+        .iter()
+        .filter(|rule| rule.rule_iri.contains("::magic/"))
+        .map(|rule| rule.head.predicate.clone())
+        .collect::<BTreeSet<_>>();
+    for seed in &transformed.seeds {
+        control_predicates.insert(seed.predicate.clone());
+    }
+    let base_edb_facts = extract_edb(foreign, world).facts_sorted();
+    let mut edb = base_edb_facts.clone();
+    for seed in &transformed.seeds {
+        edb.push(seed_to_fact(seed)?);
+    }
+    edb.sort_by_key(Fact::key);
+
+    let (executed_rules, demand_pruning_dropped) = {
+        let lookup = super::plan::compile_cached(contract_hash, transformed.rules.clone());
+        if lookup.executable.is_some() {
+            (transformed.rules, false)
+        } else {
+            let base_lookup = super::plan::compile_cached(contract_hash, base_rules.clone());
+            if base_lookup.executable.is_none() {
+                return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
+            }
+            (base_rules.clone(), true)
+        }
+    };
+    let lookup = super::plan::compile_cached(contract_hash, executed_rules);
+    let executable = lookup
+        .executable
+        .expect("the selected annotated binary plan was checked executable");
+    let certification = super::annotation::certify_query(&base_rules, annotation.contract)?;
+    let mut seed_annotations = BTreeMap::new();
+    for fact in &base_edb_facts {
+        let fact_annotation = (annotation.annotation_for)(AnnotationFactRef {
+            world,
+            subject: &fact.subject,
+            predicate: &fact.predicate,
+            object: &fact.object,
+        })
+        .unwrap_or_else(|| annotation.algebra.one());
+        seed_annotations.insert(fact.key(), fact_annotation);
+    }
+    for fact in &edb {
+        if control_predicates.contains(&fact.predicate) {
+            seed_annotations.insert(fact.key(), annotation.algebra.one());
+        }
+    }
+    let annotated = super::annotation::evaluate_annotations(
+        world,
+        &edb,
+        executable.as_ref(),
+        super::annotation::AnnotationExecution::new(
+            budget.max_steps,
+            &seed_annotations,
+            &control_predicates,
+            annotation.algebra,
+            annotation.contract,
+        ),
+    )?;
+
+    let mut rows: AnnotatedRows<A::Element> = BTreeMap::new();
+    for fact in &annotated.facts {
+        let Some(binding) = project_answers(
+            std::slice::from_ref(fact),
+            goal,
+            goal_atom.predicate.as_str(),
+        )
+        .into_iter()
+        .next() else {
+            continue;
+        };
+        let key = fact.key();
+        let fact_annotation = annotated
+            .annotations
+            .get(&key)
+            .cloned()
+            .unwrap_or_else(|| annotation.algebra.zero());
+        let derivations = public_derivations(
+            world,
+            annotated
+                .derivations
+                .get(&key)
+                .map_or(&[][..], Vec::as_slice),
+            &control_predicates,
+        );
+        match rows.entry(binding) {
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert((fact_annotation, derivations));
+            }
+            std::collections::btree_map::Entry::Occupied(mut entry) => {
+                let (combined, lineage) = entry.get_mut();
+                *combined = annotation.algebra.add(combined, &fact_annotation)?;
+                lineage.extend(derivations);
+            }
+        }
+    }
+
+    let mut answers: Vec<AnnotatedAnswer<A::Element>> = rows
+        .into_iter()
+        .map(|(binding, (annotation, derivations))| AnnotatedAnswer {
+            binding,
+            annotation,
+            derivations,
+        })
+        .collect();
+    let mut status = annotated.status;
+    if let Some(max_answers) = budget.max_answers
+        && answers.len() >= max_answers
+        && !answers.is_empty()
+    {
+        answers.truncate(max_answers);
+        status = BudgetStatus::Partial;
+    }
+    if status == BudgetStatus::Exhausted
+        && answers.is_empty()
+        && annotated
+            .frontier
+            .saturated_preds
+            .contains(goal_atom.predicate.as_str())
+    {
+        status = BudgetStatus::Ok;
+    }
+
+    Ok(NativeOutcome::Decided(AnnotatedAnswerSet {
+        answers,
+        status,
+        preservation: if demand_pruning_dropped {
+            demand_pruning_dropped_claim()
+        } else {
+            crate::result::PreservationClaim::exact()
+        },
+        frontier: annotated.frontier,
+        certification,
+    }))
 }
 
 #[cfg(test)]
@@ -2071,14 +2357,14 @@ mod tests {
     // Over the finite triple EDB a pure-Datalog backward program always terminates; the
     // ONLY divergence source is an arithmetic `is` value-generator inside an IDB cycle
     // with no finite driver.  `potentially_nonterminating_arithmetic` flags EXACTLY that
-    // shape, and `resolve_native` routes it to the oracle when `max_steps` is None (no
+    // shape, and `resolve_native` returns a typed refusal when `max_steps` is None (no
     // hang possible), evaluating normally when a step budget can cut the recursion.
 
     /// A binary self-drive `count(X,S) :- count(X,Y), S is Y+1` (seeded from an EDB
     /// `seed(a,a)` via a base rule) has NO finite driver in its recursive rule — its only
     /// positive body atom is the cyclic head predicate `count`, and the `is` generates a
     /// fresh successor forever.  With no step budget that is an unbounded hang, so the
-    /// native core refuses it to the oracle as `NonTerminatingArithmetic`.
+    /// native core refuses it as `NonTerminatingArithmetic`.
     fn self_drive_program() -> String {
         format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -2647,6 +2933,56 @@ mod tests {
         );
     }
 
+    #[test]
+    fn annotated_stratified_naf_scores_positive_support_and_treats_absence_as_unit() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reachable(X, Y) :- ex:edge(X, Y).\n\
+             ex:reachable(X, Y) :- ex:edge(X, Z), ex:reachable(Z, Y).\n\
+             ex:unreachable(X, Y) :- ex:node(X, X), ex:node(Y, Y), \\+ ex:reachable(X, Y).\n\
+             ?- ex:unreachable(ex:a, Y).\n"
+        );
+        let program = parse_query_program(&src).unwrap();
+        let contract = crate::annotation::AnnotationContract::exact();
+        let request = AnnotationRequest::new(
+            &crate::provenance::ZWeightSemiring,
+            &contract,
+            |fact: AnnotationFactRef<'_>| (fact.predicate == format!("{BASE}node")).then_some(2),
+        );
+        let answer = match resolve_native_annotated_under(
+            "annotated-naf-one-pass",
+            &foreign,
+            &world_nn,
+            &program,
+            &Budget::default(),
+            &request,
+        )
+        .unwrap()
+        {
+            NativeOutcome::Decided(answer) => answer,
+            NativeOutcome::Unsupported(kind) => panic!("unexpected NAF refusal: {kind:?}"),
+        };
+
+        assert_eq!(
+            answer.certification.query_class,
+            crate::annotation::AnnotationQueryClass::StratifiedNaf
+        );
+        assert_eq!(answer.answers.len(), 1);
+        assert_eq!(answer.answers[0].binding["Y"], format!("<{BASE}a>"));
+        assert_eq!(
+            answer.answers[0].annotation, 4,
+            "two positive node premises: 2*2"
+        );
+        let direct = answer.answers[0]
+            .derivations
+            .iter()
+            .find(|derivation| derivation.sources.len() == 2)
+            .expect("NAF answer keeps positive support only");
+        assert_eq!(direct.annotation, 4);
+    }
+
     // (a, downgrade) A stratified-negation program whose BASE is stratifiable but whose
     // DEMAND transform is NOT: a negated recursive IDB atom placed before its positive use
     // puts a negative literal inside a magic (demand) rule, breaking the transform's
@@ -2703,7 +3039,7 @@ mod tests {
     // (b) A genuinely non-stratifiable program (a negative cycle p ⇄ q at the BASE level,
     // over binary atoms with the negated vars range-restricted by `e`): both the demand
     // transform AND the base are non-stratifiable, so the native core declares the gap and
-    // dispatch routes it to the oracle.
+    // production dispatch surfaces the typed refusal.
     #[test]
     fn magic_negative_cycle_is_unsupported_nonstratifiable() {
         let (store, world_nn) = make_world(&[(
@@ -2805,7 +3141,7 @@ mod tests {
 
     // An n-ary (non-binary) program that also carries negation is an explicit, honest gap:
     // stratified NAF lives only on the binary backward path, so the generic n-ary path
-    // refuses it to the oracle rather than silently dropping the negation.
+    // returns a typed refusal rather than silently dropping the negation.
     #[test]
     fn magic_nary_with_negation_is_unsupported() {
         let (store, world_nn) = make_world(&[(
@@ -3171,10 +3507,9 @@ mod tests {
     //
     // A conjunctive rule body that LEADS with a recursive IDB atom carrying a bound
     // argument (`reach(self, P)`) must resolve the join — never silently return empty+Ok.
-    // The magic transform emits the `reach_bf(self,self)` demand for that leading atom as a
-    // bodyless positive rule, which the semi-naive engine never fires; unless that ground
-    // demand fact is materialized into the EDB seed set, `reach` is never demanded and every
-    // leading-IDB body returns 0 answers under status Ok.
+    // The magic transform identifies the `reach_bf(self,self)` demand for that leading atom
+    // as an unconditional control fact. It must be materialized in the EDB seed set so
+    // `reach` is demanded before the semantic program runs.
 
     /// The base recursive `reach` program + a trailing goal/rule snippet.
     fn leading_idb_src(tail: &str) -> String {
@@ -3336,8 +3671,8 @@ mod tests {
     #[test]
     fn magic_ff_goal_ground_fact_rule_resolves() {
         // Site B: a ground fact-rule `pf(a, b).` under an all-free goal `?- pf(X, Y)` lowers
-        // the modified rule to an EMPTY body — a bodyless positive rule the semi-naive engine
-        // never fires. Its ground head must be materialized as a demand seed, not dropped.
+        // the modified rule to an EMPTY body — an unconditional fact that belongs in the
+        // demand seed set rather than the transformed semantic program.
         let (store, world_nn) = make_world(&[]);
         let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let budget = Budget::default();
@@ -3420,14 +3755,15 @@ mod tests {
         let goal_atom = atom_of(goal).unwrap();
         let transformed = magic_transform(&rules, &goal_atom, goal_adornment(goal));
 
-        // No bodyless positive rule survives (the invariant the transform now asserts), and
-        // every seed is ground.
+        // No unconditional rule survives (the invariant the transform asserts), and every
+        // seed is ground. Semantic NAF-only/builtin-only rules remain valid because they
+        // carry body or builtin content.
         assert!(
             transformed
                 .rules
                 .iter()
-                .all(|r| r.body.iter().any(|a| !a.negated)),
-            "no transformed rule may be bodyless-positive: {:?}",
+                .all(|r| !r.body.is_empty() || !r.builtins.is_empty()),
+            "no transformed rule may be unconditional: {:?}",
             transformed.rules
         );
         for s in &transformed.seeds {
@@ -3462,17 +3798,13 @@ mod tests {
         );
     }
 
-    // ── Unpositive-body gate: a rule with no positive body atom is a declared gap ──
+    // ── Empty-positive-body identity: NAF-only and builtin-only rules evaluate ──
     //
-    // Neither the ground-NAF-only nor the builtin-only shape below is a materializable
-    // ground fact (a fact carries no NAF and no builtins) or a rule the semi-naive engine
-    // can ever fire (`join_body_binary` returns empty when the positive set is empty), so
-    // `resolve_native_under` must refuse them as `Unsupported(UnpositiveBody)` BEFORE the
-    // magic transform, rather than emit a bodyless-positive rule that would trip the
-    // transform's own no-bodyless-positive-rule invariant.
+    // The empty conjunction contributes one empty substitution. NAF then filters that row
+    // against the frozen lower-stratum store, while sequential `is` builtins extend it.
 
     #[test]
-    fn resolve_native_ground_naf_no_positive_body_is_unsupported() {
+    fn resolve_native_ground_naf_only_body_evaluates_absence_and_presence() {
         let (store, world_nn) = make_world(&[]);
         let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
@@ -3481,35 +3813,53 @@ mod tests {
              ?- ex:p(X, Y).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        let absent =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        assert_eq!(
+            absent.bindings.len(),
+            1,
+            "absent q must let p fire: {absent:?}"
+        );
+        assert_eq!(absent.bindings[0]["X"], format!("<{BASE}a>"));
+        assert_eq!(absent.bindings[0]["Y"], format!("<{BASE}b>"));
+
+        let q_subject = format!("{BASE}a");
+        let q_predicate = format!("{BASE}q");
+        let q_object = format!("{BASE}b");
+        let (store, world_nn) = make_world(&[(&q_subject, &q_predicate, &q_object)]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let present =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
         assert!(
-            matches!(
-                outcome,
-                NativeOutcome::Unsupported(UnsupportedKind::UnpositiveBody)
-            ),
-            "a ground-NAF-only body (no positive body atom) must be \
-             Unsupported(UnpositiveBody): {outcome:?}"
+            present.bindings.is_empty(),
+            "present q must block the ground NAF-only rule: {present:?}"
         );
     }
 
     #[test]
-    fn resolve_native_builtin_only_body_is_unsupported() {
+    fn resolve_native_builtin_only_body_evaluates_adjacent_assignments() {
         let (store, world_nn) = make_world(&[]);
         let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
         let src = format!(
             ":- prefix(ex, '{BASE}').\n\
-             ex:p(X, Y) :- X is 0 + 1, Y is 0 + 2.\n\
+             ex:p(X, Y) :- X is 1, Y is 2.\n\
              ?- ex:p(A, B).\n"
         );
         let prog = parse_query_program(&src).unwrap();
-        let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
-        assert!(
-            matches!(
-                outcome,
-                NativeOutcome::Unsupported(UnsupportedKind::UnpositiveBody)
-            ),
-            "a builtin-only body (no positive body atom) must be \
-             Unsupported(UnpositiveBody): {outcome:?}"
+        let answer =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        assert_eq!(
+            answer.bindings.len(),
+            1,
+            "builtin-only rule must fire once: {answer:?}"
+        );
+        assert_eq!(
+            answer.bindings[0]["A"],
+            "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+        assert_eq!(
+            answer.bindings[0]["B"],
+            "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>"
         );
     }
 

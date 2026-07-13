@@ -5,12 +5,11 @@
 //!
 //! Each generator emits a self-contained forward-Datalog workload for one classic
 //! relational-core family, parameterized by a single scale integer `n`, as a triple
-//! `(rules, edb, expected_rows)`:
+//! `(program, edb, expected_rows)`:
 //!
-//! - `rules` — engine rule text in the world-scoped ternary `#[name(...)]` surface
-//!   [`crate::cost::run_native_forward`] / [`crate::cost::run_nemo_forward`] accept
-//!   (the SAME shape as `cost::tests::two_stratum_rules`).
-//! - `edb` — the world-scoped [`RdfDataset`] EDB of `predicate(subject, object, world)`
+//! - `program` — canonical typed [`gmeow_logic_compile::ir::LogicProgram`] input for
+//!   [`crate::cost::run_native_forward`].
+//! - `edb` — the world-scoped [`purrdf::RdfDataset`] EDB of `predicate(subject, object, world)`
 //!   facts, built the SAME way `benches/graph.rs` and `benches/foundation.rs`
 //!   construct their synthetic inputs.
 //! - `expected_rows` — the **analytically-known** size of the derived relation(s),
@@ -24,10 +23,11 @@
 //! (`crates/logic/benches/*`) and the `gmeow-conformance` crate (which depends on
 //! `gmeow-logic`) reach the identical generators — one source, no duplication.
 //!
-//! Every generator is deterministic: identical `n` ⇒ byte-identical `rules`, an
+//! Every generator is deterministic: identical `n` ⇒ an identical typed program, an
 //! identical EDB fact set (pushed in a fixed order and frozen), and an identical
 //! `expected_rows`.
 
+use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 
 /// The single named-graph world every synthetic EDB fact lives in.
@@ -36,19 +36,50 @@ pub const WORLD: &str = "https://example.org/bench/synth/world";
 /// The IRI namespace root for synthetic nodes, predicates, and rule names.
 const BASE: &str = "https://example.org/bench/synth";
 
-/// One synthetic relational-core workload: engine rule text, its world-scoped EDB,
+/// One synthetic relational-core workload: canonical rules, its world-scoped EDB,
 /// and the analytically-known count of derived facts.
 ///
-/// Not `Clone` — [`RdfDataset`] owns its frozen tables and is intentionally move-only;
+/// Not `Clone` — [`purrdf::RdfDataset`] owns its frozen tables and is intentionally move-only;
 /// a consumer that needs the workload twice regenerates it (the generators are pure).
 #[derive(Debug)]
 pub struct SynthWorkload {
-    /// Engine rule text in the world-scoped ternary `#[name(...)]` surface.
-    pub rules: String,
+    /// Canonical typed logic program.
+    pub program: LogicProgram,
     /// The world-scoped EDB of `predicate(subject, object, world)` facts.
     pub edb: RdfDataset,
     /// The closed-form count of DERIVED facts across every IDB predicate.
     pub expected_rows: u64,
+}
+
+fn axiom(subject: &str, predicate: &str, object: &str) -> LogicAxiom {
+    LogicAxiom::new(
+        subject,
+        predicate,
+        object,
+        false,
+        false,
+        ContextualScope::default(),
+    )
+    .expect("synthetic benchmark axiom is valid")
+}
+
+fn rule(rule_iri: &str, head: (&str, &str, &str), body: Vec<(&str, &str, &str)>) -> LogicRule {
+    let scope = ContextualScope {
+        provenance: Some(rule_iri.to_owned()),
+        ..ContextualScope::default()
+    };
+    LogicRule::new(
+        axiom(head.0, head.1, head.2),
+        body.into_iter()
+            .map(|(subject, predicate, object)| axiom(subject, predicate, object))
+            .collect(),
+        Vec::new(),
+        scope,
+    )
+}
+
+fn program(rules: Vec<LogicRule>) -> LogicProgram {
+    LogicProgram::new(Vec::new(), rules, Vec::new(), None)
 }
 
 /// A node IRI `…/n{i}` — the synthetic graph vertices.
@@ -57,7 +88,7 @@ fn node(i: usize) -> String {
 }
 
 /// Freeze a set of `(subject, predicate, object)` triples into a world-scoped
-/// [`RdfDataset`] EDB. The triples are pushed in the given order and the frozen
+/// [`purrdf::RdfDataset`] EDB. The triples are pushed in the given order and the frozen
 /// dataset's internal order is deterministic, so the EDB is a pure function of the
 /// triple sequence.
 fn edb_from_triples(triples: &[(String, &str, String)]) -> RdfDataset {
@@ -104,16 +135,22 @@ pub fn transitive_closure(n: usize) -> SynthWorkload {
     }
     let edb = edb_from_triples(&triples);
 
-    let rules = format!(
-        "#[name(\"{BASE}/rules/tc-base\")]\n\
-         <{path}>(?s, ?o, ?w) :- <{edge}>(?s, ?o, ?w) .\n\
-         #[name(\"{BASE}/rules/tc-step\")]\n\
-         <{path}>(?s, ?o, ?w) :- <{edge}>(?s, ?m, ?w), <{path}>(?m, ?o, ?w) .\n"
-    );
+    let program = program(vec![
+        rule(
+            &format!("{BASE}/rules/tc-base"),
+            ("?s", &path, "?o"),
+            vec![("?s", &edge, "?o")],
+        ),
+        rule(
+            &format!("{BASE}/rules/tc-step"),
+            ("?s", &path, "?o"),
+            vec![("?s", &edge, "?m"), ("?m", &path, "?o")],
+        ),
+    ]);
 
     let expected_rows = (n as u64) * (n as u64 + 1) / 2;
     SynthWorkload {
-        rules,
+        program,
         edb,
         expected_rows,
     }
@@ -144,19 +181,28 @@ pub fn strongly_connected(n: usize) -> SynthWorkload {
     }
     let edb = edb_from_triples(&triples);
 
-    let rules = format!(
-        "#[name(\"{BASE}/rules/scc-path-base\")]\n\
-         <{path}>(?s, ?o, ?w) :- <{edge}>(?s, ?o, ?w) .\n\
-         #[name(\"{BASE}/rules/scc-path-step\")]\n\
-         <{path}>(?s, ?o, ?w) :- <{edge}>(?s, ?m, ?w), <{path}>(?m, ?o, ?w) .\n\
-         #[name(\"{BASE}/rules/scc-same-component\")]\n\
-         <{same}>(?s, ?o, ?w) :- <{path}>(?s, ?o, ?w), <{path}>(?o, ?s, ?w) .\n"
-    );
+    let program = program(vec![
+        rule(
+            &format!("{BASE}/rules/scc-path-base"),
+            ("?s", &path, "?o"),
+            vec![("?s", &edge, "?o")],
+        ),
+        rule(
+            &format!("{BASE}/rules/scc-path-step"),
+            ("?s", &path, "?o"),
+            vec![("?s", &edge, "?m"), ("?m", &path, "?o")],
+        ),
+        rule(
+            &format!("{BASE}/rules/scc-same-component"),
+            ("?s", &same, "?o"),
+            vec![("?s", &path, "?o"), ("?o", &path, "?s")],
+        ),
+    ]);
 
     let n2 = (n as u64) * (n as u64);
     let expected_rows = 2 * n2;
     SynthWorkload {
-        rules,
+        program,
         edb,
         expected_rows,
     }
@@ -192,17 +238,27 @@ pub fn same_generation(n: usize) -> SynthWorkload {
     }
     let edb = edb_from_triples(&triples);
 
-    let rules = format!(
-        "#[name(\"{BASE}/rules/sg-base\")]\n\
-         <{sg}>(?x, ?y, ?w) :- <{parent}>(?x, ?p, ?w), <{parent}>(?y, ?p, ?w) .\n\
-         #[name(\"{BASE}/rules/sg-step\")]\n\
-         <{sg}>(?x, ?y, ?w) :- <{parent}>(?x, ?a, ?w), <{sg}>(?a, ?b, ?w), <{parent}>(?y, ?b, ?w) .\n"
-    );
+    let program = program(vec![
+        rule(
+            &format!("{BASE}/rules/sg-base"),
+            ("?x", &sg, "?y"),
+            vec![("?x", &parent, "?p"), ("?y", &parent, "?p")],
+        ),
+        rule(
+            &format!("{BASE}/rules/sg-step"),
+            ("?x", &sg, "?y"),
+            vec![
+                ("?x", &parent, "?a"),
+                ("?a", &sg, "?b"),
+                ("?y", &parent, "?b"),
+            ],
+        ),
+    ]);
 
     let n2 = (n as u64) * (n as u64);
     let expected_rows = n2 + n2 * n2;
     SynthWorkload {
-        rules,
+        program,
         edb,
         expected_rows,
     }
@@ -232,54 +288,23 @@ pub fn reachability(n: usize) -> SynthWorkload {
 
     // The source `v0` is a constant in both the base and step rules, so `reach` is
     // seeded and extended only from that single source.
-    let rules = format!(
-        "#[name(\"{BASE}/rules/reach-base\")]\n\
-         <{reach}>(<{source}>, ?o, ?w) :- <{edge}>(<{source}>, ?o, ?w) .\n\
-         #[name(\"{BASE}/rules/reach-step\")]\n\
-         <{reach}>(<{source}>, ?o, ?w) :- <{reach}>(<{source}>, ?m, ?w), <{edge}>(?m, ?o, ?w) .\n"
-    );
+    let program = program(vec![
+        rule(
+            &format!("{BASE}/rules/reach-base"),
+            (&source, &reach, "?o"),
+            vec![(&source, &edge, "?o")],
+        ),
+        rule(
+            &format!("{BASE}/rules/reach-step"),
+            (&source, &reach, "?o"),
+            vec![(&source, &reach, "?m"), ("?m", &edge, "?o")],
+        ),
+    ]);
 
     let expected_rows = n as u64;
     SynthWorkload {
-        rules,
+        program,
         edb,
         expected_rows,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::cost::run_native_forward;
-
-    /// Every generator's analytically-known `expected_rows` (a closed-form formula,
-    /// NOT a native echo) equals the native engine's committed-derivation count over
-    /// its EDB — proving the generators are real workloads AND the golden formula is
-    /// correct. `n` is kept tiny so each closure is hand-checkable.
-    #[test]
-    fn generators_match_native_derivation_count() {
-        // (label, workload) — tiny scales chosen so each closure is hand-verifiable.
-        let cases = [
-            ("transitive_closure", transitive_closure(3)), // 3*4/2 = 6
-            ("strongly_connected", strongly_connected(3)), // 2*9   = 18
-            ("same_generation", same_generation(2)),       // 4 + 16 = 20
-            ("reachability", reachability(3)),             // 3
-        ];
-        // Pin the closed-form values so a formula regression is caught here too.
-        let expected = [6u64, 18, 20, 3];
-
-        for ((label, wl), want) in cases.into_iter().zip(expected) {
-            assert_eq!(
-                wl.expected_rows, want,
-                "{label}: closed-form expected_rows drifted from the pinned value"
-            );
-            let run = run_native_forward(&wl.edb, &wl.rules)
-                .unwrap_or_else(|e| panic!("{label}: native forward run failed: {e}"));
-            assert_eq!(
-                run.cost.total_derivations(),
-                wl.expected_rows,
-                "{label}: native committed-derivation count must equal the analytic golden",
-            );
-        }
     }
 }

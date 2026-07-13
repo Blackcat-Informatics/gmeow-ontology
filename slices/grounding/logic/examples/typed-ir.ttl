@@ -1,0 +1,194 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# ∀x. Person(x) → ((∃y. knows(x,y) ∧ Active(y)) ∨ ¬banned(x))
+ex:personClassification
+    a logic:Formula ;
+    logic:forall ex:personClassificationImplication ;
+    logic:quantifiedVariable [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] .
+
+ex:personClassificationImplication
+    a logic:Formula ;
+    logic:antecedent ex:personAtom ;
+    logic:consequent ex:knownOrNotBanned .
+
+ex:personAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] ;
+    logic:relation ex:Person .
+
+ex:knownOrNotBanned
+    a logic:Formula ;
+    logic:or ex:knownActivePerson ,
+        ex:notBanned .
+
+ex:knownActivePerson
+    a logic:Formula ;
+    logic:exists ex:knownActiveConjunction ;
+    logic:quantifiedVariable [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "y"
+    ] .
+
+ex:knownActiveConjunction
+    a logic:Formula ;
+    logic:and ex:activeAtom ,
+        ex:knowsAtom .
+
+ex:knowsAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 1 ;
+        logic:termVariable "y"
+    ] ;
+    logic:relation ex:knows .
+
+ex:activeAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "y"
+    ] ;
+    logic:relation ex:Active .
+
+ex:notBanned
+    a logic:Formula ;
+    logic:not ex:bannedAtom .
+
+ex:bannedAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] ;
+    logic:relation ex:banned .
+
+# eligible(x) ↔ (age(x, 18) ∧ taggedWith(x, ...tags)). This second tree exercises a typed
+# literal, a sequence marker, and the commutative binary biconditional constructor.
+ex:eligibilityDefinition
+    a logic:Formula ;
+    logic:iff ex:eligibleAtom ,
+        ex:eligibilityConditions .
+
+ex:eligibleAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] ;
+    logic:relation ex:eligible .
+
+ex:eligibilityConditions
+    a logic:Formula ;
+    logic:and ex:ageAtom ,
+        ex:tagsAtom .
+
+ex:ageAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 1 ;
+        logic:termLiteral "18" ;
+        logic:termLiteralDatatype xsd:integer
+    ] ;
+    logic:relation ex:age .
+
+ex:tagsAtom
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termVariable "x"
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 1 ;
+        logic:termSequenceMarker "tags"
+    ] ;
+    logic:relation ex:taggedWith .
+
+# A fixed ternary source formula. The native producer test parses THIS formula and drives the
+# real logic:RelationalCore lowering, where it becomes one shared tuple reifier carrying
+# instanceOf(between) plus naryArg0/1/2 in this authored order. No hand-authored lowered tuple is
+# present here: the compiler output, not an illustrative duplicate, is the legalization evidence.
+ex:betweenAssertion
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termIri ex:Alice
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 1 ;
+        logic:termIri ex:Bob
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 2 ;
+        logic:termIri ex:Carol
+    ] ;
+    logic:relation ex:between .
+
+ex:between a logic:Type .
+
+# Five distinct closed-world policies authored through their compact typed constraint records. They
+# share one small submission domain but encode different conditions: alternative contact routes,
+# typed attachment values, distinct author/reviewer roles, a forbidden legacy code, and a minimum
+# reviewer count. The competency query joins each record to its load-bearing parameters; the logic
+# frontend parses the same records into canonical Constraint IR rather than treating the class names
+# as an inventory.
+ex:contactRoute
+    a logic:DisjunctiveRequirednessConstraint ;
+    logic:anyOf ex:email ,
+        ex:phone ;
+    logic:onClass ex:Submission .
+
+ex:attachmentType
+    a logic:PathValueTypeConstraint ;
+    logic:onClass ex:Submission ;
+    logic:valueClass ex:Document ;
+    logic:valuePath ex:attachment .
+
+ex:reviewerSeparation
+    a logic:CrossNodeConstraint ;
+    logic:crossMode "differ" ;
+    logic:onClass ex:Submission ;
+    logic:roleA ex:author ;
+    logic:roleB ex:reviewer .
+
+ex:noDeprecatedCode
+    a logic:ForbiddenPatternConstraint ;
+    logic:forbiddenPredicate ex:deprecatedCode ;
+    logic:onClass ex:Submission .
+
+ex:minimumReviewers
+    a logic:AggregateConstraint ;
+    logic:aggComparator ">=" ;
+    logic:aggCompareTo 2 ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath ex:reviewer ;
+    logic:onClass ex:Submission .

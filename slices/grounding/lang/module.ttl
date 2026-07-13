@@ -3145,7 +3145,7 @@ gmeow:gmnRingPresetDefault
 # owl:AsymmetricProperty anywhere in this derivation) — acyclicity and the ⊇
 # test are Horn-rule / SHACL machinery only, keeping the EL fragment clean
 # (make reason-verify). NOTE: logic:distinctBody is parsed and correctly
-# rendered into the projected Nemo rule text, but is NOT enforced by the
+# rendered into the projected Datalog rule text, but is NOT enforced by the
 # native chase's actual execution (verified by isolated repro) — a discovered
 # reasoner gap, not an authoring mistake — so it is deliberately UNUSED here.
 # gmeow:gmnRingWithin is therefore REFLEXIVE (a ring is trivially within

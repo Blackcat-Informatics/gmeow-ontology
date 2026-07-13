@@ -4,9 +4,9 @@
 //! Projection back-ends: [`LogicProgram`] → each target format.
 //!
 //! The projection phase of the GMEOW Logic compiler; the Python duplicate
-//! (`logic_projections.py`) has been retired.  Ten whole-program targets:
+//! (`logic_projections.py`) has been retired. Whole-program targets include:
 //!
-//! * [`text::project_datalog`], [`text::project_n3`], [`text::project_nemo`] —
+//! * [`text::project_datalog`] and [`text::project_n3`] —
 //!   **byte-identical** text targets (the conformance goldens compare bytes).
 //! * [`rdf::project_owl_dl`], [`rdf::project_owl_el`], [`rdf::project_gufo`],
 //!   [`rdf::project_canonical_rdf12`] — **RDF-isomorphic** targets (serialized via
@@ -103,8 +103,6 @@ pub struct CompiledArtifacts {
     pub gufo: String,
     /// `generated/logic/gmeow.logic.rdf12.ttl`.
     pub canonical_rdf12: String,
-    /// `generated/logic/gmeow.rls`.
-    pub nemo: String,
     /// `generated/cl/gmeow.clif`.
     pub clif: String,
     /// `generated/cl/gmeow.cgif`.
@@ -115,10 +113,6 @@ pub struct CompiledArtifacts {
     pub shacl_af: String,
     /// `generated/logic/projection-report.ttl`.
     pub report: String,
-    /// The `% === Rules ===` section of [`nemo`](Self::nemo) — the rule text the
-    /// native reasoning engines (`materialize` / `certify` / `stable_models`)
-    /// consume.  Surfaced so Python no longer re-extracts it from `nemo`.
-    pub nemo_rules: String,
     /// The preservation ledger: `target -> (preservationKind, complexityClass,
     /// structural lossy-drop notes)`.  Surfaced as JSON by `compile_logic` so the
     /// conformance runner no longer rebuilds it from Python `ProjectionResult`s.
@@ -174,7 +168,7 @@ pub struct LedgerEntry {
 }
 
 /// Run every projection back-end over `program` and build the report — the full
-/// compile surface.  Returns `Err` on a Nemo safety violation or an overclaim.
+/// compile surface. Returns `Err` on a projection failure or an overclaim.
 ///
 /// `verdicts` is the per-correspondence EXECUTED lens-law verdict map the five correspondence
 /// gates read (keyed by correspondence IRI). A correspondence-free program supplies an empty
@@ -215,7 +209,6 @@ pub fn compile_program(
             detail: e.to_string(),
         })
     })?;
-    let nemo = text::project_nemo(program, &mut loss)?;
     let clif = crate::clif::project_clif(program)?;
     let cgif = crate::cgif::project_cgif(program)?;
     let xcl = crate::xcl::project_xcl(program)?;
@@ -228,7 +221,6 @@ pub fn compile_program(
         &n3,
         &gufo,
         &canonical_rdf12,
-        &nemo,
         &clif,
         &cgif,
         &xcl,
@@ -452,9 +444,6 @@ pub fn compile_program(
         })
         .collect();
 
-    // The rule section of the nemo projection — the reasoning-engine surface.
-    let nemo_rules = text::extract_nemo_rules_section(&nemo.content)?;
-
     Ok(CompiledArtifacts {
         owl_dl: owl_dl.content,
         owl_el: owl_el.content,
@@ -462,13 +451,11 @@ pub fn compile_program(
         n3: n3.content,
         gufo: gufo.content,
         canonical_rdf12: canonical_rdf12.content,
-        nemo: nemo.content,
         clif: clif.content,
         cgif: cgif.content,
         xcl: xcl.content,
         shacl_af: shacl_af.content,
         report,
-        nemo_rules,
         preservation_ledger,
         path_projections,
         logic_projections: owned,
@@ -504,7 +491,7 @@ pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#ty
 pub struct ProjectionResult {
     /// Short target name (`"owl-dl"`, `"datalog"`, …).
     pub target: String,
-    /// The serialized output (Turtle string, Datalog text, or N3/Nemo).
+    /// The serialized output (Turtle string, Datalog text, or N3).
     pub content: String,
     /// Whether `content` is an RDF (Turtle) serialization (vs. plain text).
     pub is_rdf: bool,
@@ -733,7 +720,6 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             "N/A (identity serialization)",
             vec![],
         ),
-        "nemo" => (PreservationKind::Exact, "PTIME/datalog", vec![]),
         // CLIF: a bidirectional s-expression FOL dialect. ExactPreservation —
         // the idiomatic FOL channel (rules + formulas) round-trips verbatim and the
         // RDF/predication channel rides the lossless canonical-RDF-1.2 leg, so nothing
@@ -976,14 +962,13 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 21] = [
+const LEDGER_TARGETS: [&str; 20] = [
     "owl-dl",
     "owl-el",
     "datalog",
     "n3",
     "gufo",
     "canonical-rdf12",
-    "nemo",
     "clif",
     "cgif",
     "xcl",
@@ -1116,8 +1101,8 @@ pub const SATISFIED_BY_IRI: &str = "https://blackcatinformatics.ca/gmeow/satisfi
 /// The drop note appended to every LOSSY projection target when the teleology
 /// materialization emitted a `gmeow:satisfiedBy` edge.
 ///
-/// Exact-preservation targets (`canonical-rdf12`, `nemo`) carry the full
-/// `logic:GoalEvaluation` structure in their materialized output and are excluded.
+/// The exact-preservation target (`canonical-rdf12`) carries the full
+/// `logic:GoalEvaluation` structure in its materialized output and is excluded.
 pub const GOAL_EVAL_COLLAPSE_DROP: &str = concat!(
     "logic:GoalEvaluation factored axes (satisfaction/feasibility/lifecycle status, ",
     "satisfaction degree, criterion, evaluator/standpoint vantage multiplicity) ",
@@ -1125,9 +1110,8 @@ pub const GOAL_EVAL_COLLAPSE_DROP: &str = concat!(
 );
 
 /// Targets that lose the `logic:GoalEvaluation` structure when a `satisfiedBy`
-/// collapse is present.  `canonical-rdf12` and `nemo` are exact-preservation
-/// targets and carry the full evaluation in their materialized output — they are NOT
-/// augmented.
+/// collapse is present. `canonical-rdf12` is exact-preservation and carries the
+/// full evaluation in its materialized output — it is NOT augmented.
 pub const GOAL_EVAL_COLLAPSE_TARGETS: &[&str] = &["owl-dl", "owl-el", "gufo", "datalog", "n3"];
 
 // --------------------------------------------------------------------------- //
@@ -1149,8 +1133,7 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
 /// rule/axiom surfaces (OWL-DL, OWL-EL, gUFO, Datalog, N3) carry no facet
 /// vocabulary, so each contract a program declares is recorded as an explicit
 /// drop rather than silently discarded.  The canonical RDF 1.2 target preserves
-/// contracts losslessly and must NOT call this; the Nemo target consumes the
-/// contract as the engine-selecting input (it is not encoded in the `.rls`).
+/// contracts losslessly and must NOT call this.
 pub(crate) fn contract_drop_notes(
     program: &LogicProgram,
     target_label: &str,
@@ -1179,11 +1162,11 @@ pub(crate) fn contract_drop_notes(
 }
 
 /// One drop note per stratified-aggregation (reduce) rule, for a target that cannot represent
-/// aggregation (Datalog / N3 / Nemo). Carried-and-flagged, never silent; an aggregation-free
+/// aggregation (Datalog / N3). Carried-and-flagged, never silent; an aggregation-free
 /// program adds nothing, so its ledger is byte-unchanged.
 /// Each note paired with the DOCUMENTED gmeow: source term it concerns — the aggregation
 /// rule's head predicate when it is a gmeow: property (so a `gmeow:` aggregation whose reduce
-/// form Datalog/N3/Nemo cannot carry lands on that term's page), else `None` (whole-program).
+/// form Datalog/N3 cannot carry lands on that term's page), else `None` (whole-program).
 pub(crate) fn aggregation_drop_notes(
     program: &LogicProgram,
     target_label: &str,

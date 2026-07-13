@@ -211,16 +211,10 @@ unless they themselves cite an external work; they are cross-references within G
 ## Engines and tools (`intentBridgedByReference`)
 
 - Oxigraph — an RDF store with SPARQL and RDF 1.2 support (Rust). <https://oxigraph.org/>
-- Nemo — a Datalog-based rule engine with existential rules and stratified negation (knowsys, Rust).
-  <https://knowsys.github.io/nemo/> — Ivliev, A., Gerlach, L., Meusel, S., Steinberg, J. &
-  Krötzsch, M. (2024). *Nemo: Your Friendly and Versatile Rule Reasoning Toolkit.* KR. (Columnar
-  tries, leapfrog triejoin, semi-naive evaluation, restricted chase; single-threaded and
-  non-incremental by its own account — the beat-line of LOGIC-PERFORMANCE.md.)
 - Soufflé — Jordan, H., Scholz, B. & Subotić, P. (2016). *Soufflé: On Synthesis of Program
   Analyzers.* CAV. <https://souffle-lang.github.io/>
 - RDFox — Nenov, Y., Piro, R., Motik, B., Horrocks, I., Wu, Z. & Banerjee, J. (2015). *RDFox: A
   Highly-Scalable RDF Store.* ISWC. (Cited as prior art only; not a dependency — Principle 5.)
-- Scryer Prolog — an ISO Prolog system in Rust. <https://www.scryer.pl/>
 - Trealla Prolog — a compact ISO Prolog in C/Rust bindings. <https://trealla-prolog.github.io/>
 - ProbLog — De Raedt, L., Kimmig, A. & Toivonen, H. (2007). *ProbLog: A Probabilistic Prolog and Its
   Application in Link Discovery.* IJCAI.

@@ -42,9 +42,13 @@ fn python_repr_matches_cpython() {
 #[test]
 fn overclaim_gate_fires_on_exact_with_drops() {
     use crate::ir::PreservationKind;
-    assert!(assert_no_overclaim("nemo", PreservationKind::Exact, &[]).is_ok());
-    let err =
-        assert_no_overclaim("nemo", PreservationKind::Exact, &["dropped something"]).unwrap_err();
+    assert!(assert_no_overclaim("demo-exact", PreservationKind::Exact, &[]).is_ok());
+    let err = assert_no_overclaim(
+        "demo-exact",
+        PreservationKind::Exact,
+        &["dropped something"],
+    )
+    .unwrap_err();
     assert!(err.0.contains("Overclaim"));
     // SoundUnder with drops is fine.
     assert!(assert_no_overclaim("owl-dl", PreservationKind::SoundUnder, &["x"]).is_ok());
@@ -163,31 +167,7 @@ fn projection_ledger_rows_are_sorted_and_classified() {
     );
 }
 
-#[test]
-fn extract_nemo_rules_section_finds_marker() {
-    let nemo = text::project_nemo(
-        &parse("ex:A logic:subClassOf ex:B ."),
-        &mut LossLedger::new(),
-    )
-    .unwrap();
-    let rules = text::extract_nemo_rules_section(&nemo.content).unwrap();
-    assert!(rules.is_empty()); // no rules in this program
-    assert!(text::extract_nemo_rules_section("no marker here").is_err());
-}
-
 // ── Unit: rule emission (text targets, not exercised by the axiom-only cases) ──
-
-#[test]
-fn nemo_rule_safety_violation_errors() {
-    // Head variable ?z absent from body → safety violation.
-    let prog = parse(
-        "ex:r a logic:Rule ;
-            logic:head [ rdf:subject \"?x\" ; rdf:predicate logic:p ; rdf:object \"?z\" ] ;
-            logic:body [ rdf:subject \"?x\" ; rdf:predicate logic:q ; rdf:object \"?y\" ] .",
-    );
-    let err = text::project_nemo(&prog, &mut LossLedger::new()).unwrap_err();
-    assert!(err.message().contains("safety violation"), "got: {err}");
-}
 
 #[test]
 fn datalog_rule_emits_world_var_and_guard() {
@@ -283,7 +263,6 @@ fn run_case(case: &str) {
         // Text targets: byte-identical (the front-end canonicalizes blank labels).
         insta::assert_snapshot!("datalog", arts.datalog);
         insta::assert_snapshot!("n3", arts.n3);
-        insta::assert_snapshot!("nemo", arts.nemo);
 
         // RDF targets: canonicalized sorted triple-set.
         insta::assert_snapshot!("owl-dl", rdf_snapshot(&arts.owl_dl));
@@ -875,7 +854,7 @@ fn validation_shape_projection_goldens() {
     let mut settings = insta::Settings::clone_current();
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {
-        // Text surfaces (is_rdf:false) → raw byte golden, like datalog/n3/nemo.
+        // Text surfaces (is_rdf:false) → raw byte golden, like datalog/n3.
         insta::assert_snapshot!("validation-shacl-core", shacl.content);
         insta::assert_snapshot!("validation-shex", shex.content);
         // Graph-isomorphic view of the SHACL — pins semantic content independent of ordering.
@@ -1109,22 +1088,20 @@ fn satisfied_by_axiom_injects_collapse_drop_on_lossy_targets() {
         );
     }
 
-    // The exact-preservation targets (canonical-rdf12, nemo) must NOT be augmented.
-    for target in &["canonical-rdf12", "nemo"] {
-        let entry = arts
-            .preservation_ledger
+    // The exact canonical serialization must NOT be augmented.
+    let entry = arts
+        .preservation_ledger
+        .iter()
+        .find(|e| e.target == "canonical-rdf12")
+        .expect("ledger must carry canonical-rdf12");
+    assert!(
+        !entry
+            .lossy_drops
             .iter()
-            .find(|e| e.target == *target)
-            .unwrap_or_else(|| panic!("ledger must carry exact target {target:?}"));
-        assert!(
-            !entry
-                .lossy_drops
-                .iter()
-                .any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
-            "exact target {target:?} must NOT carry the GoalEvaluation collapse drop;              got: {:?}",
-            entry.lossy_drops
-        );
-    }
+            .any(|d| d == GOAL_EVAL_COLLAPSE_DROP),
+        "canonical-rdf12 must NOT carry the GoalEvaluation collapse drop; got: {:?}",
+        entry.lossy_drops
+    );
 }
 
 #[test]
@@ -1257,38 +1234,6 @@ fn down_projections_disclose_formula_residue_and_gate_passes() {
     // residue from the same loss store the producers interned into.
     let canon = rdf::project_canonical_rdf12(&program).expect("canon ok");
     report::build_projection_report(&program, &[owl, canon], &loss).expect("report builds");
-}
-
-#[test]
-fn project_nemo_preservation_is_program_dependent_on_formulas() {
-    use crate::ir::{Formula, LogicProgram, PreservationKind, Term};
-
-    // Formula-free → nemo stays Exact (the `.rls` losslessly carries the Horn rule set), so
-    // the shipped bundle's nemo projection is byte- and preservation-unchanged.
-    let plain = LogicProgram::new(vec![], vec![], vec![], None);
-    let mut plain_loss = LossLedger::new();
-    let nemo_plain = text::project_nemo(&plain, &mut plain_loss).unwrap();
-    assert_eq!(nemo_plain.preservation, PreservationKind::Exact);
-    assert!(actual_drops(&plain_loss, "nemo").is_empty());
-
-    // A program carrying a non-Horn full-FOL formula (a disjunctive head) → nemo drops to
-    // SoundUnder and the loss ledger NAMES the dropped FOL construct (the Disjunctive tag),
-    // so the overclaim gate stays honest instead of a static Exact omitting the formula layer.
-    let iri = |s: &str| format!("https://blackcatinformatics.ca/gmeow/{s}");
-    let atom = |p: &str, a: Vec<Term>| Formula::atom(Term::Iri(iri(p)), a).unwrap();
-    let disjunctive = Formula::Or(vec![
-        atom("p", vec![Term::Iri(iri("x")), Term::Iri(iri("a"))]),
-        atom("q", vec![Term::Iri(iri("x")), Term::Iri(iri("b"))]),
-    ]);
-    let prog = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(vec![disjunctive]);
-    let mut loss = LossLedger::new();
-    let nemo = text::project_nemo(&prog, &mut loss).unwrap();
-    assert_eq!(nemo.preservation, PreservationKind::SoundUnder);
-    let drops = actual_drops(&loss, "nemo");
-    assert!(
-        drops.iter().any(|d| d.contains("Disjunctive")),
-        "the nemo loss ledger names the dropped FOL construct: {drops:?}"
-    );
 }
 
 // ── Class-covering formula → OWL union / disjoint-union (H2) ──────────────────

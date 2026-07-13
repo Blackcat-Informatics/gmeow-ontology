@@ -35,8 +35,8 @@ use std::sync::Arc;
 use super::seminaive::StepGovernor;
 use crate::provenance::{ProvenanceRing, ProvenanceSemiring, ZWeightSemiring};
 use crate::rule_ir::{
-    EvalRule, EvalTerm, Fact, FactKey, FactStore, Solution, distinct_pairs_satisfied,
-    eval_rules_to_rls, ground_head, match_atom,
+    EvalRule, EvalTerm, Fact, FactKey, FactStore, Solution, distinct_pairs_satisfied, ground_head,
+    match_atom,
 };
 use crate::seam::BudgetStatus;
 
@@ -63,10 +63,10 @@ pub(crate) struct IncrementalIdentity {
 
 impl IncrementalIdentity {
     fn new(contract_hash: impl Into<String>, rules: &[EvalRule]) -> Self {
-        let rendered = eval_rules_to_rls(rules);
+        let rule_hash = super::plan::canonical_rule_hash(rules);
         Self {
             contract_hash: contract_hash.into(),
-            rule_hash: blake3::hash(rendered.as_bytes()).to_hex().to_string(),
+            rule_hash: rule_hash.iter().map(|byte| format!("{byte:02x}")).collect(),
             solver_version: INCREMENTAL_SOLVER_VERSION,
         }
     }

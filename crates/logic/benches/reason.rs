@@ -7,20 +7,21 @@
 //!
 //! Three groups, each over a small + a larger synthetic input so a regression in
 //! either the constant factor or the scaling is visible:
-//! - `reason_all` — the native EL/DL/RL reasoner (authority): one Nemo
+//! - `reason_all` — the native EL/DL/RL reasoner (authority): one structured
 //!   chase yielding the subsumption closure + the consistency verdict, over a
 //!   `RdfDataset` class hierarchy (the same IR shape the PyO3 `reason_native`
 //!   seam drives).
 //! - `el_closure` — the EL subsumption closure alone (the sub-path of `reason_all`
 //!   without the DL consistency verdict; whether it is meaningfully cheaper at a
 //!   given size is exactly what the bench measures).
-//! - `materialize_core` — the Nemo forward-chase materialize over a transitive
-//!   `subClassOf` chain (O(n^2) derived facts), reusing the materialize.rs test
+//! - `run_native_forward` — the native forward chase over a transitive
+//!   `subClassOf` chain (O(n^2) derived facts), reusing the materialization test
 //!   ruleset.
 
 use criterion::{Criterion, criterion_group, criterion_main};
-use gmeow_logic::materialize::materialize_core;
+use gmeow_logic::cost::run_native_forward;
 use gmeow_logic::reason::{el_closure, reason_all};
+use gmeow_logic_compile::ir::{ContextualScope, LogicAxiom, LogicProgram, LogicRule};
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
 use std::sync::Arc;
 
@@ -57,13 +58,34 @@ fn hierarchy_store(num_classes: usize, instances: usize) -> Arc<RdfDataset> {
     builder.freeze().expect("valid benchmark dataset")
 }
 
-/// `logic:subClassOf` transitivity rule in Nemo IRI-predicate syntax (mirrors the
-/// `materialize.rs` test ruleset).
-const TRANSITIVITY_RULES: &str = concat!(
-    "<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-\n",
-    "    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),\n",
-    "    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .\n",
-);
+fn transitivity_program() -> LogicProgram {
+    let atom = |subject, object| {
+        LogicAxiom::new(
+            subject,
+            "https://blackcatinformatics.ca/logic/subClassOf",
+            object,
+            false,
+            false,
+            ContextualScope::default(),
+        )
+        .expect("transitivity benchmark atom")
+    };
+    let scope = ContextualScope {
+        provenance: Some("urn:gmeow:benchmark-rule:transitivity".to_owned()),
+        ..ContextualScope::default()
+    };
+    LogicProgram::new(
+        Vec::new(),
+        vec![LogicRule::new(
+            atom("?X", "?Z"),
+            vec![atom("?X", "?Y"), atom("?Y", "?Z")],
+            Vec::new(),
+            scope,
+        )],
+        Vec::new(),
+        None,
+    )
+}
 
 /// A `C0 → C1 → … → C{n}` `logic:subClassOf` chain as N-Quads (one world); the
 /// transitive chase derives the full O(n^2) closure.
@@ -109,18 +131,20 @@ fn bench_el_closure(c: &mut Criterion) {
     group.finish();
 }
 
-fn bench_materialize_core(c: &mut Criterion) {
-    let mut group = c.benchmark_group("materialize_core");
+fn bench_native_forward(c: &mut Criterion) {
+    let mut group = c.benchmark_group("native_forward");
     // ADVISORY-ONLY (measurement doctrine): wall-clock is report-only and NEVER gates
     // `make check`, so the reduced sample_size is a runtime economy, not a gate risk.
     group.sample_size(20);
+    let program = transitivity_program();
     for &n in &[8usize, 40usize] {
         let input = chain_nquads(n);
+        let dataset = purrdf::parse_dataset(input.as_bytes(), "application/n-quads", None)
+            .expect("benchmark N-Quads parse");
         group.bench_function(format!("transitive_chain_{n}"), |b| {
             b.iter(|| {
                 std::hint::black_box(
-                    materialize_core(TRANSITIVITY_RULES, &input, None, None, None)
-                        .expect("materialize_core"),
+                    run_native_forward(dataset.as_ref(), &program).expect("run_native_forward"),
                 )
             });
         });
@@ -132,6 +156,6 @@ criterion_group!(
     benches,
     bench_reason_all,
     bench_el_closure,
-    bench_materialize_core
+    bench_native_forward
 );
 criterion_main!(benches);

@@ -20,7 +20,7 @@ use std::path::Path;
 use gmeow_errors::Diag;
 use gmeow_logic::explain::{Row, explain_all};
 use gmeow_logic::foundation::{AntiRigidityPolicy, evaluate as foundation_evaluate};
-use gmeow_logic::materialize::materialize_routed;
+use gmeow_logic::materialize::{MaterializationLimits, materialize_program};
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::result::PreservationClaim;
 use gmeow_logic::seam::{BudgetStatus, WorldFactSnapshot};
@@ -86,7 +86,7 @@ pub struct ProjectionOutputs {
     pub report_turtle: String,
     /// The preservation ledger JSON (`{target: {preservation, complexity, lossy_drops}}`).
     pub ledger: serde_json::Value,
-    /// Plain-text projections (`datalog`, `n3`, `nemo`) — kept for bless; not diffed.
+    /// Plain-text projections (`datalog`, `n3`) — kept for bless; not diffed.
     pub text: BTreeMap<String, String>,
     /// Per-shape property-path projections (`logic:PathShape` → SPARQL + Datalog).
     /// Empty when the program declares no path shapes — never absent.
@@ -192,7 +192,7 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
         return run_cl_roundtrip_case(&case_id, case_dir);
     }
 
-    // ── Compile (frontend → IR → projections + nemo rules + ledger) ──────────
+    // ── Compile (frontend → canonical IR → projections + ledger) ─────────────
     // The unsupported-contract firewall lives in `compile_case_program`,
     // shared with the CL round-trip path so neither can evaluate an unsound program.
     let program = match compile_case_program(&case_id, case_dir, profile.expect_unsupported)? {
@@ -231,54 +231,24 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
             .map_err(|e| prefix(format!("discharge correspondence lens laws: {e}")))?;
     let arts = compile_program(&program, &correspondence_verdicts)
         .map_err(|e| prefix(format!("compile failed: {e}")))?;
-    // The program's Horn rules, plus the relational-core lowering of its full-FOL formulas
-    // so the Horn-expressible formula fragment evaluates in the SAME chase. A formula-free
-    // program appends nothing, so every existing case is byte-identical; the non-Horn
-    // residue is disclosed by the lowering's preservation claim, never silently materialized.
-    let mut nemo_rules = arts.nemo_rules.clone();
-    let (formula_rls, formula_preservation) =
-        gmeow_logic::relational_core::formula_eval_rls(&program);
-    if !formula_rls.trim().is_empty() {
-        nemo_rules.push('\n');
-        nemo_rules.push_str(&formula_rls);
-    }
-
     // ── Static certification against the declared profile ────────────────────
     // Thread the program's contract `logic:EvolutionMode` so a facet-direct case
     // (e.g. transaction-path) carries the right evolution_class; no facet selected
     // collapses to StaticEvolution at the certify boundary.
-    let evolution = gmeow_logic::certify::program_evolution(&program)
+    let verdict = gmeow_logic::certify::certify_program(&program, &profile.semantic_profile)
         .map_err(|e| prefix(format!("certify failed: {e}")))?;
-    let verdict =
-        gmeow_logic::certify::certify(&nemo_rules, &profile.semantic_profile, evolution.as_deref())
-            .map_err(|e| prefix(format!("certify failed: {e}")))?;
     let certification = serialize::certification_to_json(&verdict);
 
     // ── Materialization (+ explanations) ─────────────────────────────────────
     let input_nq = read_optional(case_dir, "input.nq")?;
-    let (quads, budget_status, incomplete, mut mat_preservation, mat_frontier) =
+    let (quads, budget_status, incomplete, mat_preservation, mat_frontier) =
         if profile.foundation_lowering {
             materialize_foundation(&case_id, &input_nq, &profile)?
         } else if profile.teleology_lowering {
             materialize_teleology(&case_id, &input_nq, &profile)?
         } else {
-            materialize_default(&case_id, &nemo_rules, &input_nq, &profile)?
+            materialize_default(&case_id, &program, &input_nq, &profile)?
         };
-    // Carry the full-FOL formula residue into the runtime preservation claim (maximal
-    // information flow): a non-Horn formula that did not lower to an evaluable rule is
-    // disclosed here as a SoundUnder construct, never silently absent. A clean (fully
-    // Horn-expressible or formula-free) program adds nothing, so the golden is unchanged.
-    if !formula_preservation.unsupported_constructs.is_empty() {
-        mat_preservation
-            .unsupported_constructs
-            .extend(formula_preservation.unsupported_constructs.iter().cloned());
-        mat_preservation
-            .polarities
-            .remove(&gmeow_logic_compile::ir::PreservationKind::Exact);
-        mat_preservation
-            .polarities
-            .insert(gmeow_logic_compile::ir::PreservationKind::SoundUnder);
-    }
     let explanations = run_explanations(&case_id, &quads)?;
 
     // ── N-Quads serialization + downstream artifacts ─────────────────────────
@@ -317,7 +287,6 @@ pub fn run_case(case_dir: &Path) -> gmeow_errors::Result<CaseOutputs> {
     let mut text = BTreeMap::new();
     text.insert("datalog".to_string(), arts.datalog.clone());
     text.insert("n3".to_string(), arts.n3.clone());
-    text.insert("nemo".to_string(), arts.nemo.clone());
 
     let path_projections_out: Vec<PathProjectionOut> = arts
         .path_projections
@@ -619,7 +588,7 @@ fn empty_outputs(case_id: String) -> CaseOutputs {
         rdf.insert(target.to_string(), String::new());
     }
     let mut text = BTreeMap::new();
-    for target in ["datalog", "n3", "nemo"] {
+    for target in ["datalog", "n3"] {
         text.insert(target.to_string(), String::new());
     }
     CaseOutputs {
@@ -772,7 +741,7 @@ fn bare_iri(term: &str) -> String {
 /// judgment disclosing any derivation rules the routing could not evaluate.
 fn materialize_default(
     case_id: &str,
-    nemo_rules: &str,
+    program: &gmeow_logic_compile::ir::LogicProgram,
     input_nq: &str,
     profile: &Profile,
 ) -> gmeow_errors::Result<(
@@ -783,13 +752,32 @@ fn materialize_default(
     gmeow_logic::query_ir::CompletionFrontier,
 )> {
     let budget = profile.budget_params.clone().unwrap_or_default();
-    let derived = materialize_routed(
-        nemo_rules,
-        input_nq,
-        budget.max_rule_firings,
-        budget.max_answers,
-        budget.time_ms,
-        Some(&profile.semantic_profile),
+    if budget.time_ms.is_some() {
+        return Err(run_fail(format!(
+            "case {case_id}: budget_params.time_ms is unsupported: native materialization uses deterministic derivation-step budgets"
+        )));
+    }
+    let max_steps = match (budget.max_rule_firings, budget.max_answers) {
+        (Some(a), Some(b)) => Some(a.min(b)),
+        (Some(a), None) => Some(a),
+        (None, Some(b)) => Some(b),
+        (None, None) => None,
+    };
+    let dataset = purrdf::parse_dataset(input_nq.as_bytes(), "application/n-quads", None)
+        .map_err(|e| run_fail(format!("case {case_id}: input.nq RDF parse failed: {e}")))?;
+    let declared_profile =
+        gmeow_logic_compile::ir::SemanticProfileId::from_local(&profile.semantic_profile)
+            .ok_or_else(|| {
+                run_fail(format!(
+                    "case {case_id}: unsupported materialization profile {}",
+                    profile.semantic_profile
+                ))
+            })?;
+    let derived = materialize_program(
+        program,
+        dataset.as_ref(),
+        MaterializationLimits { max_steps },
+        Some(declared_profile),
     )
     .map_err(|e| run_fail(format!("case {case_id}: materialize failed: {e}")))?;
 
@@ -890,7 +878,7 @@ fn materialize_foundation(
 /// Teleology-lowering materialization via the native canonical-process teleology evaluator.
 ///
 /// Mirrors [`materialize_foundation`] exactly: the teleology evaluator has no budget
-/// governor and needs no nemo rules, so a declared `budget_params` is a hard failure,
+/// governor and needs no rule-program input, so a declared `budget_params` is a hard failure,
 /// and the only input it reads is the world-scoped `input.nq`. It runs ALL applicable
 /// teleology computations (goal-expression evaluation, plan-success classification,
 /// deontic obligation/prohibition, serialization-anomaly detection, and the

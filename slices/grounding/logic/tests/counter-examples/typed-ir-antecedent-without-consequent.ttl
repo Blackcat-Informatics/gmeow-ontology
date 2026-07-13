@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+# The implication constructor is selected by antecedent, but its ordered second operand is absent.
+ex:missingConsequent
+    a logic:Formula ;
+    logic:antecedent ex:validAntecedent .
+
+ex:validAntecedent
+    a logic:Formula ;
+    logic:relation ex:predicate .

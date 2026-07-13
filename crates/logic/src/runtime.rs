@@ -192,9 +192,11 @@ const RUNTIME_PROFILES: [SemanticProfileId; 6] = [
 /// newly-delegated-to file breaks that test loudly rather than silently dropping out of
 /// the contract.
 ///
-/// `facts.rs` (term/predicate interning — `TermInterner::intern` keys answer-bound term
-/// identity), `provenance.rs` (`term_display`, the interning key `facts.rs` hashes on),
-/// and `rule_ir.rs` (the shared evaluable rule IR + join/unification primitives —
+/// `annotation.rs` (the caller-visible algebra and admission contract), `facts.rs`
+/// (term/predicate interning — `TermInterner::intern` keys answer-bound term identity),
+/// `provenance.rs` (`term_display`, the interning key `facts.rs` hashes on), `term_codec.rs`
+/// (the native term decoder used by `rule_ir.rs`), and `rule_ir.rs` (the shared
+/// evaluable rule IR + join/unification primitives —
 /// `ground`, `match_atom`, `join_body`, `extend_solutions` — that every `physical/*.rs`
 /// evaluator below imports in production, non-test code) are included for the same
 /// reason the `physical/` files are: their bytes are demonstrably imported by the
@@ -204,22 +206,19 @@ const RUNTIME_PROFILES: [SemanticProfileId; 6] = [
 /// # Verified decision-surface boundary
 ///
 /// The backward goal-resolution DECISION surface is confined to these top-level
-/// `src/*.rs` files plus `src/physical/*.rs`. The `src/` subdirectory modules — `reason/`
-/// (the forward EL/DL/RL chase, pinned separately via `forward_contract_hash`),
-/// `nemo_engine/` (the demoted forward fallback/oracle), and the remaining `src/`
-/// subdirectories — are the forward chase, the demoted comparison oracle, or post-hoc /
-/// comparison bookkeeping; none sit on the `dispatch_query` decision path. This was
-/// verified by tracing production (non-`#[cfg(test)]`) imports: the only physical-engine
-/// references into those subtrees are the native↔oracle *comparator* in
-/// `physical/parity.rs` (its `crate::reason::ledger` `DivergenceKind` / `LedgerRow` /
-/// `LedgerVerdict` are comparison bookkeeping, not the decided `AnswerSet`) and the
-/// forward oracle bridge in `crate::nemo_engine` — neither decides a backward answer. The
-/// partition is therefore NOT recursed into those forward subsystems: doing so would
-/// falsely imply they are backward-relevant.
+/// `src/*.rs` files plus `src/physical/*.rs`. The `src/` subdirectory modules — notably
+/// `reason/` (the forward EL/DL/RL chase, pinned separately via
+/// `forward_contract_hash`) — and the remaining subdirectories are forward reasoning or
+/// post-hoc bookkeeping; none sit on the `dispatch_query` decision path. This was
+/// verified by tracing production (non-`#[cfg(test)]`) imports. The retired external
+/// engine and its physical parity adapter are deliberately absent: the native physical
+/// core is the sole production authority. The partition is therefore not recursed into
+/// forward-only subsystems, which would falsely imply they are backward-relevant.
 ///
 /// [`AnswerSet`]: crate::query_ir::AnswerSet
 /// [`dispatch_query`]: crate::dispatch::dispatch_query
 const BACKWARD_SOURCE: &[(&str, &str)] = &[
+    ("annotation.rs", include_str!("annotation.rs")),
     ("dispatch.rs", include_str!("dispatch.rs")),
     ("facts.rs", include_str!("facts.rs")),
     ("profile_gate.rs", include_str!("profile_gate.rs")),
@@ -227,6 +226,11 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("query_ir.rs", include_str!("query_ir.rs")),
     ("rule_ir.rs", include_str!("rule_ir.rs")),
     ("seam.rs", include_str!("seam.rs")),
+    ("term_codec.rs", include_str!("term_codec.rs")),
+    (
+        "physical/annotation.rs",
+        include_str!("physical/annotation.rs"),
+    ),
     ("physical/arena.rs", include_str!("physical/arena.rs")),
     (
         "physical/binding_pattern.rs",
@@ -255,7 +259,6 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
         include_str!("physical/magic_generic.rs"),
     ),
     ("physical/mod.rs", include_str!("physical/mod.rs")),
-    ("physical/parity.rs", include_str!("physical/parity.rs")),
     ("physical/plan.rs", include_str!("physical/plan.rs")),
     (
         "physical/seminaive.rs",
@@ -352,15 +355,11 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     (
         "materialize.rs",
-        "pure-Rust forward materialization core — forward reasoning surface; physical/parity.rs references it only inside #[cfg(test)]",
+        "pure-Rust forward materialization core — forward reasoning surface with no backward dispatch caller",
     ),
     (
         "nary.rs",
         "n-ary predication to reified-binary lowering + forward-chase ingestion — facts are lowered before backward dispatch runs; not itself part of the decision",
-    ),
-    (
-        "nary_rls.rs",
-        "n-ary .rls program parser + EDB loader, used only by nary/tests.rs — not a production dispatch dependency",
     ),
     (
         "obligations.rs",
@@ -368,11 +367,7 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
     ),
     (
         "oracle.rs",
-        "forward/backward oracle trait boundary — physical/*.rs production code reuses only its plain TypedRow/TypedProvenance/TypedChaseResult data shapes; its trait impls (Nemo bridge, reference SLD oracle) are test-only comparison adapters, consumed from physical/parity.rs which is itself #[cfg(test)]-only (`#![allow(dead_code)]`, \"no non-test caller yet\")",
-    ),
-    (
-        "path_projection_tests.rs",
-        "#[cfg(test)]-only runtime test module for the PathShape projection (see the `#[cfg(test)] mod path_projection_tests;` declaration in lib.rs), not production code",
+        "native forward-materialization boundary plus a test-only backward reference seam; production backward dispatch calls the physical core directly and does not call this module",
     ),
     (
         "probabilistic.rs",
