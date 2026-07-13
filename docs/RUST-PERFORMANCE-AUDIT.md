@@ -84,6 +84,31 @@ closure probe reduced the cold pipeline only to 394.040 s (-17.61%) while
 raising user CPU time. It was not accepted as the explanation for the final
 gain. The inner algorithm and ownership change is load-bearing.
 
+## Main-source crate sweep
+
+The sweep below makes the disposition of each main Rust performance surface
+independently reviewable. Pipeline-stage figures come from the same cold
+9,614-artifact candidate run reported above. A rejected mechanism means that it
+did not meet the measure-first burden; it is not an implied second work list.
+
+| Scope and symbol | Measured evidence | Candidate mechanism | Semantic risk | Minimum acceptance proof | Disposition |
+|---|---|---|---|---|---|
+| `gmeow-logic`: `reason_all`, `oracle_subsumptions`, `owlrl_subsumptions` | The combined gate spent 203.560 s in native reasoning and 4.171 s in oracle work; the focused allocation counter recorded 37,145 allocations before the ownership change | Reuse one closure, parallelize independent immutable worlds, and reject rows through borrowed `TermRef` values before owning output | Closure completeness, world isolation, and deterministic pair ordering | Exact inferred-axiom/consistency/oracle counters, serial/parallel parity under a fixed pool, producer-execution count, and allocation counts | Accepted; this is the dominant measured Rust gain |
+| `gmeow-logic-compile`: `compile_program` and `CompileLogicStage::run` | `stage-compile-logic` took 12.448 s, 6.5% of the 192.973 s cold command | The compiler retains both named output strings and cloned `ProjectionResult` values; the stage also clones the projection vector for its JSON channel | Projection-report, preservation-ledger, typed-handle, and fanout consumers intentionally share one semantic product; an ownership rewrite can silently separate those authorities | A focused compile allocation counter plus byte identity for every projection, report, ledger, channel, and typed-handle backing graph | Rejected: no allocation profile attributed enough of the stage to those clones, and the stage is not on the dominant serialized path |
+| `gmeow-pipeline`: `SourceLoadStage::run` and the DAG scheduler | The scheduler took 175.215 s; source-load fell from 342.706 s to 55.747 s after its 313.548 s slice-quality subphase was isolated | Add nested phase evidence, then parallelize only the independent leave-one-out work; preserve the scheduler's indexed products and cache keys | Artifact bytes, graph attachment order, stage-digest identity, and concurrent peak memory | All 9,614 generated artifacts byte-clean, identical assessment RDF, stage-order tests, and peak RSS below the 16 GiB contract | Accepted; coarse carrier/cache-format rewrites were rejected because the measured inner algorithm explained the bottleneck |
+| `gmeow-validate`: `ValidationRun::run` and per-example SHACL | `stage-validate` took 18.609 s in the cold pipeline | The current path already parses each source once, builds one shared dataset, content-addresses merged SHACL results, projects the base once, and uses indexed Rayon work for cache misses | Finding order, first-error selection, cache invalidation, and SHACL graph semantics | A phase/allocation profile naming a residual producer, followed by identical normalized diagnostics and cached/uncached conformance results | Rejected: static inspection found the expected reuse and deterministic parallel fold, but no measured residual mechanism |
+| `gmeow-docs`: `render_site_lang_exec`; pipeline MCP `McpView::run_docs_query` | Whole-site render took 3.957 s; the standalone MCP full-card test fell from 12.677 s to 6.711 s | Keep fixture/model render caches; share one immutable documentation dataset across all card queries with `OnceLock<Arc<_>>` | Language fallback, page order, query result order, and cache cross-contamination | Exact site/JSON bytes, every tier field, and pointer identity for the shared projection | Accepted for MCP query reuse; no render rewrite was justified at a 2.1% pipeline share |
+| `gmeow-slice-quality`: `score_slices_with_rubric_timed` and `reasoner_axis` | The phase fell from 313.548 s to 27.750 s (-91.15%) | Use indexed Rayon slice/probe buffers and a borrowed early-exit membership query instead of allocating a full closure set | Authored slice order, diagnostic/finding/RDF order, and concurrent closure memory | Repeated serial/parallel equality under a fixed pool, assessment byte identity, generated-artifact parity, and peak RSS | Accepted; both the scheduling and inner ownership changes are required |
+| Targeted SIMD: identifier scanners and escaping loops in `up_projection_gates`, `slice-quality::axes`, `docs::coverage`/`render`, and logic projection writers | No phase or allocation sample attributed measurable command time to these loops; the measured costs are graph closure, SHACL, whole-corpus assembly, and repeated querying | Vectorize a contiguous byte/typed-ID kernel only after a profile isolates it; retain a scalar implementation as the semantic oracle | UTF-8 boundaries, RDF/XML/N-Triples escaping, short-input overhead, target-feature dispatch, and cross-architecture reproducibility | A real-corpus Criterion case with scalar/SIMD byte parity, separate short/long distributions, and supported-target fallback measurements | Rejected: none of the inspected loops is presently a profile-proven SIMD kernel |
+
+The sweep also checked dense IDs, enum layout, boxed iterators, scratch reuse,
+hash lookups, lock scope, and representation-aware I/O. The accepted changes
+were the cases with a measured end-to-end mechanism: borrowed term inspection,
+early-exit membership, deterministic indexed parallelism, one-owner reasoning,
+and immutable projection reuse. Changing integer widths, hashers, enum layout,
+or cache serialization without a producer-specific profile would trade away
+semantic transparency for an ungrounded micro-optimization.
+
 ## Sealing audit
 
 Sealing is an API-closure tool, not an automatic devirtualization switch. The
