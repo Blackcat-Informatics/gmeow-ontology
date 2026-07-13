@@ -297,6 +297,13 @@ fn magic_transform_generic(
         }
     }
 
+    // The N-ARY fragment REJECTS negation and builtins UPSTREAM: `generic_atom_of` and
+    // `resolve_native_generic` return `Unsupported` on `Neg`/`Builtin`/`Cut`, so every body
+    // atom that reaches here is positive. `!body.is_empty()` is therefore exactly the "has a
+    // positive driver" invariant for this path — a weaker predicate than the binary fragment's
+    // "has a positive atom", but exactly equivalent here since no NAF atom can appear. The
+    // asymmetry with `magic_transform`'s assert above is intentional: it tracks the fragment
+    // difference (stratified NAF admitted there, rejected here), not an oversight.
     assert!(
         out.iter().all(|r| !r.body.is_empty()),
         "magic_transform_generic must not emit a bodyless positive rule (it never fires in the \
@@ -921,6 +928,116 @@ mod tests {
             answer.bindings.len(),
             2,
             "reach(self,·) = {{a, b}}, each named ⇒ 2 answers: {answer:?}"
+        );
+    }
+
+    #[test]
+    fn generic_seeds_are_exactly_the_bodyless_rule_heads() {
+        // Demand-completeness certificate (Beeri–Ramakrishnan), the n-ary mirror of
+        // `magic::tests::magic_seeds_are_exactly_the_bodyless_rule_heads`: the materialized
+        // seed set is EXACTLY the set of ground heads of the bodyless positive rules the
+        // transform would emit. The program is the arity-2 analogue of the binary leading-
+        // IDB repro (`reach(X,Y):-knows(X,Y)`, `reach(X,Y):-knows(X,Z),reach(Z,Y)`) behind a
+        // wrapping goal-rule `c(P) :- reach(<self>,P)` whose body LEADS with the recursive
+        // IDB atom bound-first. The top-level goal is `c(P)`, all-free, so it contributes no
+        // goal seed of its own — the sole seed is minted when `c`'s rule body is walked and
+        // the leading `reach(<self>,P)` atom is adorned bound-first (`bf`).
+        let v = |n: &str| QTerm::Var(n.to_owned());
+        let konst = |iri: &str| QTerm::Const(format!("<{iri}>"));
+        let knows = |x: QTerm, y: QTerm| QAtom {
+            pred: "knows".to_owned(),
+            args: vec![x, y],
+        };
+        let reach = |x: QTerm, y: QTerm| QAtom {
+            pred: "reach".to_owned(),
+            args: vec![x, y],
+        };
+
+        let prog = QProgram {
+            rules: vec![
+                // base: reach(X,Y) :- knows(X,Y).
+                crate::query_ir::QRule {
+                    head: reach(v("x"), v("y")),
+                    body: vec![QBodyLit::Atom(knows(v("x"), v("y")))],
+                },
+                // recursive: reach(X,Y) :- knows(X,Z), reach(Z,Y).
+                crate::query_ir::QRule {
+                    head: reach(v("x"), v("y")),
+                    body: vec![
+                        QBodyLit::Atom(knows(v("x"), v("z"))),
+                        QBodyLit::Atom(reach(v("z"), v("y"))),
+                    ],
+                },
+                // goal rule, leading with the recursive IDB atom bound-first:
+                // c(P) :- reach(<self>, P).
+                crate::query_ir::QRule {
+                    head: QAtom {
+                        pred: "c".to_owned(),
+                        args: vec![v("p")],
+                    },
+                    body: vec![QBodyLit::Atom(reach(konst(SELF), v("p")))],
+                },
+            ],
+            goal: QGoal {
+                atoms: vec![QAtom {
+                    pred: "c".to_owned(),
+                    args: vec![v("p")],
+                }],
+            },
+            counterfactual: None,
+            prob_facts: vec![],
+            prob_model: None,
+            confidences: vec![],
+        };
+
+        let rules: Vec<GenericRule> = prog
+            .rules
+            .iter()
+            .map(|r| {
+                let head = generic_atom_of(&r.head).unwrap();
+                let body: Vec<GenericAtom> = r
+                    .body
+                    .iter()
+                    .map(|l| match l {
+                        QBodyLit::Atom(a) => generic_atom_of(a).unwrap(),
+                        other => panic!("unexpected body literal {other:?}"),
+                    })
+                    .collect();
+                let iri = format!("{}::rule", head.relation);
+                generic_rule(head, body, iri)
+            })
+            .collect();
+        let goal_atom = generic_atom_of(&prog.goal.atoms[0]).unwrap();
+        let pattern = goal_pattern(&prog.goal.atoms[0]);
+        let transformed = magic_transform_generic(&rules, &goal_atom, pattern).unwrap();
+
+        // (a) Beeri–Ramakrishnan completeness: no surviving rule is bodyless (the invariant
+        // `magic_transform_generic` itself asserts).
+        assert!(
+            transformed.rules.iter().all(|r| !r.body.is_empty()),
+            "no transformed rule may be bodyless: {:?}",
+            transformed.rules
+        );
+
+        // (b) Re-derive the expected demand INDEPENDENTLY of the transform. The sole leading
+        // bound recursive-IDB atom is `reach(<self>, ?p)` inside `c`'s body, adorned
+        // bound-first (subject bound, object free) — pattern `bf`. The generic magic guard
+        // carries the REAL bound sub-tuple (arity = #bound positions; see the module-level
+        // doc contrasting this with the binary store's self-loop pair hack), so for a
+        // single bound position the expected seed args are the ARITY-1 tuple `[<self>]`, not
+        // a 2-element self-loop pair. The relation is minted by the arity-agnostic
+        // `magic_pred_iri` helper both backward legs share.
+        let expected_relation = magic_pred_iri("reach", "bf");
+        let expected_seed = (expected_relation, vec![TermValue::iri(SELF)]);
+        assert_eq!(
+            transformed.seeds.len(),
+            1,
+            "exactly one lifted demand seed: {:?}",
+            transformed.seeds
+        );
+        assert_eq!(
+            transformed.seeds[0], expected_seed,
+            "the seed set must equal the bodyless-rule-head demand set {{magic_reach_bf(<self>)}}"
         );
     }
 
