@@ -223,7 +223,7 @@ cargo test -p gmeow-logic
 ## Library API
 
 The supported entry point for an external **runtime** consumer is the
-[`gmeow_logic::runtime`] module: one import path (`use gmeow_logic::runtime::*`)
+[`crate::runtime`] module: one import path (`use gmeow_logic::runtime::*`)
 over the whole store → snapshot → dispatch → result chain, plus the self-describing
 `EngineContract` runtime pin. Its module docs carry the stability, thread-safety,
 refusal, and forward-compatibility contract, and a worked end-to-end example.
