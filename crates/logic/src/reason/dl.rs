@@ -1051,7 +1051,10 @@ fn structured_existential_rules(
                     )],
                     head,
                     distinct,
-                    witness_frontier: Some(Vec::new()),
+                    // Let the chase derive the frontier from the rule shape. The
+                    // bound subject occurs in both body and head, so each subject's
+                    // existential obligation receives its own deterministic witness.
+                    witness_frontier: None,
                 });
         }
     }
@@ -4395,6 +4398,47 @@ mod tests {
                 .as_deref()
                 .is_some_and(|name| name.contains("dl-existential"))
         }));
+    }
+
+    #[test]
+    fn existential_witnesses_are_frontier_bound_per_subject_and_deterministic() {
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, SOME_VALUES_FROM, C),
+            quad(X, TYPE, R),
+            quad(Y, TYPE, R),
+        ]);
+        let (first, first_verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("structured native existential chase should decide both obligations");
+        let (second, second_verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("repeated native chase should be deterministic");
+
+        assert!(first_verdict.consistent);
+        assert!(second_verdict.consistent);
+        assert_eq!(first, second, "frontier-addressed witnesses must be stable");
+
+        let fillers = |subject: &str| {
+            first
+                .iter()
+                .filter(|axiom| axiom.subject == subject && axiom.predicate == P)
+                .map(|axiom| unwrap_iri(&axiom.object).to_owned())
+                .collect::<BTreeSet<_>>()
+        };
+        let x_fillers = fillers(X);
+        let y_fillers = fillers(Y);
+        assert_eq!(x_fillers.len(), 1, "x needs exactly one existential filler");
+        assert_eq!(y_fillers.len(), 1, "y needs exactly one existential filler");
+        assert!(
+            x_fillers.is_disjoint(&y_fillers),
+            "different frontier bindings must not share a rule-scoped witness"
+        );
+        for filler in x_fillers.iter().chain(&y_fillers) {
+            assert!(first.iter().any(|axiom| {
+                axiom.subject == *filler
+                    && axiom.predicate == TYPE
+                    && unwrap_iri(&axiom.object) == C
+            }));
+        }
     }
 
     #[test]
