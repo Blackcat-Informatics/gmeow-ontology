@@ -163,6 +163,42 @@ fn creative_works(#[case] case: Case) {
     case.run();
 }
 
+/// The full frame-relativity IRI of the Expression frame carrier — the `sh:path` the
+/// generated `gmeow:ExpressionFrameRequirementShape` constrains (`sh:minCount 1`).
+const HAS_REFERENCE_FRAME: &str = "https://blackcatinformatics.ca/gmeow/hasReferenceFrame";
+
+/// W1 falsifying regression (CONSTITUTION P11 frame-relativity): a `gmeow:Expression`
+/// asserted with NO `gmeow:hasReferenceFrame` is REJECTED — the generated
+/// `gmeow:ExpressionFrameRequirementShape` (`sh:path gmeow:hasReferenceFrame`,
+/// `sh:minCount 1`, `MinCountConstraintComponent`) flags the frameless Expression on
+/// the LIVE production shape union (`.shape_union()`, the corpus `gmeow validate`
+/// runs).
+///
+/// The frame finding is asserted with the SEVERITY-AGNOSTIC [`Case::flags_on_path`]
+/// (not [`Case::fails_on_path`], which filters to `sh:Violation`): the generated frame
+/// shape currently emits this finding at `sh:Warning`, and a later task migrates its
+/// severity to `sh:Violation`. This regression must hold at BOTH ends of that
+/// migration — the finding is present at either severity — so it anchors on the
+/// (path, constraint-component) pair without pinning the severity.
+///
+/// The `.fails()` hard-failure check is carried by the ORTHOGONAL, severity-stable
+/// "Expression must realize a Work" violation that a bare Expression always trips
+/// (see `expression_without_work_fails_shacl`), so the case is a hard SHACL failure
+/// regardless of the frame shape's mid-migration severity.
+#[test]
+fn frameless_expression_flags_frame_requirement() {
+    Case::inline(format!(
+        "{PREFIXES}\
+ex:x a gmeow:Expression .
+ex:x rdfs:label \"Frameless Expression\" .
+"
+    ))
+    .shape_union()
+    .fails()
+    .flags_on_path(HAS_REFERENCE_FRAME, "MinCountConstraintComponent")
+    .run();
+}
+
 /// Each WEMI tier class (Work, Expression, Manifestation, Item) has
 /// gmeow:InformationObject in its transitive rdfs:subClassOf closure — a live
 /// graph traversal over the merged ontology, not a single-module ASK.
