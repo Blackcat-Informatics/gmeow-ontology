@@ -420,10 +420,22 @@ impl OracleCtx {
                 // Fold only functional-property maxima. A legacy minimum is never invented here:
                 // it must already be present in the projected IR. This prevents a hand-authored
                 // `sh:minCount` from receiving credit merely because the legacy shape asserted it.
+                // The fold is CREDIT-ONLY: it fires only when the legacy shape authored the SAME
+                // per-path bound the functional shape carries. A legacy shape that authored NO max
+                // must never be compared against a folded one — the functional bound rides its own
+                // global `sh:targetSubjectsOf` shape whether or not the legacy block exists, so
+                // attributing it to the class comparison would manufacture a spurious tightening.
                 let mut proj_ir = proj.ir.clone();
                 for pc in proj_ir.properties.iter_mut() {
+                    let legacy_max = read
+                        .ir
+                        .properties
+                        .iter()
+                        .find(|lp| lp.path == pc.path)
+                        .and_then(|lp| lp.max_count);
                     if pc.max_count.is_none()
                         && let Some(&m) = self.functional_max.get(&pc.path)
+                        && legacy_max == Some(m)
                     {
                         pc.max_count = Some(m);
                     }
