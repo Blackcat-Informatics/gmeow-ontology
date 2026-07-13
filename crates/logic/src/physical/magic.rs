@@ -1438,6 +1438,16 @@ pub(crate) fn resolve_native_under(
         if negated_body_flounders(&body, &builtins) {
             return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
         }
+        // A rule with no POSITIVE body atom cannot drive bottom-up derivation: the semi-naive
+        // engine never fires a zero-positive-body rule. An empty-bodied ground fact-rule is the
+        // sole exception (it is materialized as a demand seed). A rule reaching here with no
+        // positive atom yet a non-empty body (ground NAF) or builtins (a builtin-only generator)
+        // is neither a fact nor firable, so it is a declared gap routed to the oracle — not a rule
+        // the transform would emit and then trip its no-bodyless-positive-rule invariant.
+        let has_positive_body_atom = body.iter().any(|a| !a.negated);
+        if !has_positive_body_atom && !(body.is_empty() && builtins.is_empty()) {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::UnpositiveBody));
+        }
         // A synthesized stable rule IRI for the modified/original rule.
         let rule_iri = format!("{}::rule", head.predicate.as_str());
         rules.push(EvalRule {
@@ -3362,6 +3372,87 @@ mod tests {
         assert_eq!(
             transformed.seeds[0], expected,
             "the seed set must equal the bodyless-rule-head demand set {{magic_reach_bf(self, self)}}"
+        );
+    }
+
+    // ── Unpositive-body gate: a rule with no positive body atom is a declared gap ──
+    //
+    // Neither the ground-NAF-only nor the builtin-only shape below is a materializable
+    // ground fact (a fact carries no NAF and no builtins) or a rule the semi-naive engine
+    // can ever fire (`join_body_binary` returns empty when the positive set is empty), so
+    // `resolve_native_under` must refuse them as `Unsupported(UnpositiveBody)` BEFORE the
+    // magic transform, rather than emit a bodyless-positive rule that would trip the
+    // transform's own no-bodyless-positive-rule invariant.
+
+    #[test]
+    fn resolve_native_ground_naf_no_positive_body_is_unsupported() {
+        let (store, world_nn) = make_world(&[]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(ex:a, ex:b) :- \\+ ex:q(ex:a, ex:b).\n\
+             ?- ex:p(X, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert!(
+            matches!(
+                outcome,
+                NativeOutcome::Unsupported(UnsupportedKind::UnpositiveBody)
+            ),
+            "a ground-NAF-only body (no positive body atom) must be \
+             Unsupported(UnpositiveBody): {outcome:?}"
+        );
+    }
+
+    #[test]
+    fn resolve_native_builtin_only_body_is_unsupported() {
+        let (store, world_nn) = make_world(&[]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- X is 0 + 1, Y is 0 + 2.\n\
+             ?- ex:p(A, B).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let outcome = resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap();
+        assert!(
+            matches!(
+                outcome,
+                NativeOutcome::Unsupported(UnsupportedKind::UnpositiveBody)
+            ),
+            "a builtin-only body (no positive body atom) must be \
+             Unsupported(UnpositiveBody): {outcome:?}"
+        );
+    }
+
+    #[test]
+    fn prepare_incremental_query_declines_ground_naf() {
+        // The incremental path already declines any body carrying a `Neg` literal
+        // (`binary_eligible`'s per-literal match at the top of
+        // `prepare_incremental_query`), UPSTREAM of `magic_transform` — so it is
+        // panic-safe on this shape with no additional gate needed there.
+        let (store, world_nn) = make_world(&[]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(ex:a, ex:b) :- \\+ ex:q(ex:a, ex:b).\n\
+             ?- ex:p(X, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let session = prepare_incremental_query(
+            &foreign,
+            &world_nn,
+            &prog,
+            "test-contract-1511-unpositive",
+            &Budget::default(),
+        )
+        .unwrap();
+        assert!(
+            session.is_none(),
+            "a ground-NAF-only body must decline incremental preparation, not panic: \
+             {:?}",
+            session.is_some()
         );
     }
 }
