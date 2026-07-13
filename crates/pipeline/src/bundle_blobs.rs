@@ -58,8 +58,8 @@ pub const REP_AXIOMS: &str = "axioms-archive";
 pub const REP_DENIED: &str = "transform:denied";
 /// JSON (NOT a tar) of a diagnostics producer's FORWARD-projected
 /// `Vec<gmeow_errors::DiagNode>` — the pre-lowered run-ledger nodes. On the pipeline
-/// CARRIER this rides `stage-validate` / `stage-compile-logic`'s product bundle (the
-/// run ledger's single source); on the SHIPPED gts it is absent (the run ledger is a
+/// CARRIER this rides `stage-validate` / `stage-compile-logic` / `stage-reason` product
+/// bundles (the run ledger's single source); on the SHIPPED gts it is absent (the run ledger is a
 /// build-time projection, not a folded gts surface), so `diag_nodes` resolves to an
 /// empty set — the wheel-only contract. This is the SINGLE definition of the label; the
 /// producer side re-exports it as [`crate::stages::carrier::REP_DIAG_NODES`], so no drift

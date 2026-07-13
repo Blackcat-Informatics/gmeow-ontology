@@ -81,7 +81,7 @@ pub(crate) const GRAPH_DOCUMENTATION: &str =
     "https://blackcatinformatics.ca/gmeow/graph/documentation";
 pub(crate) const GRAPH_DIAGNOSTICS: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
 /// The by-reference blob `representation` under which a diagnostics producer
-/// (`stage-validate` / `stage-compile-logic`) carries its FORWARD-projected
+/// (`stage-validate` / `stage-compile-logic` / `stage-reason`) carries its FORWARD-projected
 /// `Vec<gmeow_errors::DiagNode>` (raw JSON) on its product bundle — the SINGLE source
 /// the run-level `DiagLedger` folds. It rides the standard content-store + lookaside
 /// blob lane, so the per-stage cache persists/replays it verbatim; a cache-hit product
@@ -721,10 +721,12 @@ fn assemble_carrier(
     )?;
     let documentation = producer_graph(upstream, "stage-docs-render", GRAPH_DOCUMENTATION)?;
     // graph/diagnostics ← SHACL diagnostics (stage-validate) ∪ logic-compile diagnostics
-    // (stage-compile-logic), each read off its producer's attached graph and unioned here.
+    // (stage-compile-logic) ∪ chase certificates (stage-reason), each read off its
+    // producer's attached graph and unioned here.
     let diagnostics = purrdf::RdfDataset::union(&[
         producer_graph(upstream, "stage-validate", GRAPH_DIAGNOSTICS)?.as_ref(),
         producer_graph(upstream, "stage-compile-logic", GRAPH_DIAGNOSTICS)?.as_ref(),
+        producer_graph(upstream, "stage-reason", GRAPH_DIAGNOSTICS)?.as_ref(),
     ]);
     let conformance = producer_graph(upstream, "stage-conformance", GRAPH_CONFORMANCE)?;
     let projection_ledger = producer_graph(upstream, "stage-mappings", GRAPH_PROJECTION_LEDGER)?;

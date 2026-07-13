@@ -66,6 +66,15 @@ fn physical_err(detail: String) -> gmeow_errors::Diag {
 /// A chase attempt's outcome: a decided budgeted derivation, or a declared gap.
 pub(crate) type ChaseOutcome = NativeOutcome<Budgeted<Vec<DerivedRow>>>;
 
+/// One not-yet-committed chase row and the provenance needed to publish it.
+struct PendingRow {
+    key: FactKey,
+    fact: Fact,
+    source_quad_ids: Vec<String>,
+    antecedents: Vec<Fact>,
+    rule_iri: String,
+}
+
 /// A single existential (tuple-generating) rule: a conjunctive body implies a
 /// conjunctive head that may quantify fresh existential variables.
 ///
@@ -344,7 +353,7 @@ fn chase_world_into(
         let round_height = MinProofHeightSemiring.derive([prior_round_height])?;
         // Gather this round's new facts with their provenance, keyed for deterministic
         // FactKey-sorted commit (the columnar-store determinism doctrine).
-        let mut round: Vec<(FactKey, Fact, Vec<String>, String)> = Vec::new();
+        let mut round = Vec::new();
         for (rule, existentials, frontier_vars) in &prepared {
             for sol in join_atoms(&rule.body, &store, &empty_solution()) {
                 // The rule's `distinct` guards range over the EXISTENTIAL head vars
@@ -430,15 +439,28 @@ fn chase_world_into(
                 let sources = reifiers_of(&sol)?;
                 for hatom in &rule.head {
                     let fact = ground_head(hatom, &extended)?;
-                    round.push((fact.key(), fact, sources.clone(), rule.rule_iri.clone()));
+                    round.push(PendingRow {
+                        key: fact.key(),
+                        fact,
+                        source_quad_ids: sources.clone(),
+                        antecedents: sol.source_facts.clone(),
+                        rule_iri: rule.rule_iri.clone(),
+                    });
                 }
             }
         }
 
         // Commit in FactKey-sorted order, deduped against what is already known.
-        round.sort_by(|(a, _, _, _), (b, _, _, _)| a.cmp(b));
+        round.sort_by(|left, right| left.key.cmp(&right.key));
         let mut progressed = false;
-        for (key, fact, sources, rule_iri) in round {
+        for PendingRow {
+            key,
+            fact,
+            source_quad_ids,
+            antecedents,
+            rule_iri,
+        } in round
+        {
             if committed.contains(&key) {
                 continue;
             }
@@ -446,7 +468,7 @@ fn chase_world_into(
                 status = BudgetStatus::Exhausted;
                 break 'fixpoint;
             }
-            let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
+            let src_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
             let derivation_id = mint_derivation_id(&rule_iri, &src_refs);
             store.insert(&fact.predicate, &fact.subject, &fact.object);
             out.push(DerivedRow {
@@ -455,15 +477,10 @@ fn chase_world_into(
                 predicate: fact.predicate,
                 object: fact.object,
                 rule_iri,
-                source_quad_ids: sources,
+                source_quad_ids,
                 derivation_id,
                 proof_height: round_height,
-                // The restricted existential chase is consumed by the reifier-based
-                // provenance path (`materialize_routed`'s existential leg / the n-ary
-                // head chase), never through the ternary `ForwardOracle` seam that
-                // re-exposes decoded antecedents, so the decoded-fact list is unused
-                // here and left empty rather than threaded through the round tuple.
-                antecedents: Vec::new(),
+                antecedents,
             });
             committed.insert(key);
             governor.charge();
