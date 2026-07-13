@@ -186,17 +186,12 @@ fn card_md_and_json_carry_the_python_model_link_for_a_modeled_class() {
         "card.md must carry the exact construct/validate snippet:\n{card_md}"
     );
 
-    // card.json — the machine surface emitted alongside card.md by the same site
-    // render; drive it through `render_site_lang` so the assertion exercises the
-    // production wiring end to end, not a hand-built `Card`.
-    let slug = term_slug(&term);
-    let site = gmeow_docs::render::render_site_lang(&model, "english");
-    let json_bytes = site
-        .files
-        .get(&format!("terms/{slug}/card.json"))
-        .unwrap_or_else(|| panic!("card.json emitted for {slug}"));
+    // card.json — the machine surface emitted alongside card.md; driven through
+    // the SAME per-term builder `render_site_lang` uses to emit
+    // `terms/{slug}/card.json` (byte-identical), without paying a full-site render.
+    let json_bytes = gmeow_docs::render::term_card_json(&model, &term);
     let parsed: serde_json::Value =
-        serde_json::from_slice(json_bytes).expect("card.json parses as JSON");
+        serde_json::from_slice(&json_bytes).expect("card.json parses as JSON");
     assert_eq!(
         parsed["python_model"], expected_model,
         "card.json python_model field must equal the shared emitter's dotted path"
