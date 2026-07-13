@@ -102,7 +102,9 @@ pub(crate) use seminaive::{
     rule_parallel_probe,
 };
 
-pub(crate) use annotation::{PhysicalAnnotationDerivation, certify_query, evaluate_annotations};
+pub(crate) use annotation::{
+    AnnotationExecution, PhysicalAnnotationDerivation, certify_query, evaluate_annotations,
+};
 
 // The type-state plan pipeline: the executor's entry-gate types. `Parsed` is the sole
 // entry; `Executable` is the sole type the forward/backward evaluators accept. The

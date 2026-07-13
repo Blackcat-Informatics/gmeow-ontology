@@ -89,6 +89,22 @@ pub enum AnnotationQueryClass {
     PositiveAcyclic,
     /// Positive, finite Datalog with at least one recursive IDB dependency.
     PositiveRecursive,
+    /// Positive arity-generic Datalog with an acyclic IDB dependency graph.
+    PositiveNaryAcyclic,
+    /// Positive arity-generic Datalog with at least one recursive IDB dependency.
+    PositiveNaryRecursive,
+    /// Stratified negation-as-failure. Negative literals are membership guards:
+    /// a satisfied absence contributes `one()` and is not a lineage source.
+    StratifiedNaf,
+    /// Well-founded non-monotone evaluation. Scores follow the selected positive
+    /// support of rows in the well-founded result; negative guards contribute `one()`.
+    WellFounded,
+    /// Cautious stable-model evaluation. Scores follow positive support common to
+    /// the selected cautious result; negative guards contribute `one()`.
+    StableModel,
+    /// Restricted existential chase. Every conjunctive head row receives the body
+    /// product of its firing; invented witnesses are identities, not scored premises.
+    ExistentialChase,
 }
 
 impl AnnotationQueryClass {
@@ -98,8 +114,28 @@ impl AnnotationQueryClass {
         match self {
             Self::PositiveAcyclic => "positive-acyclic",
             Self::PositiveRecursive => "positive-recursive",
+            Self::PositiveNaryAcyclic => "positive-nary-acyclic",
+            Self::PositiveNaryRecursive => "positive-nary-recursive",
+            Self::StratifiedNaf => "stratified-naf",
+            Self::WellFounded => "well-founded",
+            Self::StableModel => "stable-model",
+            Self::ExistentialChase => "existential-chase",
         }
     }
+}
+
+/// Which physical lineage surface justified an annotation certificate.
+///
+/// Positive binary/n-ary and stratified evaluation enumerate every admitted rule
+/// grounding during the one closure pass. Non-monotone solvers and the restricted
+/// chase already select deterministic physical proof rows, so their annotation fold
+/// follows those selected rows without re-running a second closure.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AnnotationLineageContract {
+    /// Every direct positive grounding contributes to `add` (`oplus`).
+    AllPhysicalDerivations,
+    /// The native solver's deterministic selected proof carrier contributes.
+    SelectedPhysicalDerivation,
 }
 
 /// An explicit non-semiring declaration and the query classes for which the caller
@@ -224,6 +260,9 @@ pub struct AnnotationCertification {
     pub preservation: crate::result::PreservationClaim,
     /// Empty for an exact semiring; otherwise the explicitly declared deviations.
     pub declared_deviations: BTreeSet<SemiringLaw>,
+    /// Whether the physical class exposes every grounding or a solver-selected
+    /// support carrier. This is explicit so a consumer never infers lineage strength.
+    pub lineage_contract: AnnotationLineageContract,
 }
 
 /// Stable public identity of one world-scoped tuple in annotation lineage.
@@ -239,6 +278,17 @@ pub struct AnnotatedFactKey {
     pub object: String,
 }
 
+/// Stable identity of an arity-generic world-scoped tuple in annotation lineage.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct AnnotatedTupleKey {
+    /// Named graph/world IRI.
+    pub graph: String,
+    /// Relation name.
+    pub relation: String,
+    /// Canonical N3 argument surfaces in positional order.
+    pub arguments: Vec<String>,
+}
+
 /// One direct derivation's contribution to a tuple annotation.
 ///
 /// This is a one-hop lineage edge, not an eagerly-expanded proof tree.  Recursive
@@ -250,6 +300,9 @@ pub struct AnnotationDerivation<E> {
     pub rule_iri: String,
     /// Direct positive premises in authored body order.
     pub sources: Vec<AnnotatedFactKey>,
+    /// Direct arity-generic premises in authored body order. Binary derivations
+    /// keep using `sources`; n-ary derivations use this lossless positional carrier.
+    pub tuple_sources: Vec<AnnotatedTupleKey>,
     /// The premise product contributed by this firing.
     pub annotation: E,
 }
