@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:IncompleteCredibleIntervalShape (Rule I5): a
+# math:CredibleInterval naming its posterior context through math:hasPosterior (a
+# well-formed math:PosteriorDistribution: a beta family, so the P6a family gate stays
+# satisfied and it supplies no parameters so the P6b/P7 parametric gates stay silent) and
+# its posterior mass through math:credibleMass — a FRAMED math:ProbabilityValue, exact
+# 95/100 in [0, 1] (AC#6), satisfying the probability-value shapes. It carries its two
+# bounds too, though the credible-interval gate requires only the posterior and the mass.
+# It is a math:BayesianResult (not a math:ConfidenceInterval), so no confidence-interval
+# shape targets it. It MUST raise NO failure class.
+# Positive counterpart of counter-examples/credible-interval-incomplete.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecCredibleIntervalComplete).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:paramCredible a math:CredibleInterval ;
+    math:hasIntervalBound ex:credLower , ex:credUpper ;
+    math:hasPosterior ex:paramPosterior ;
+    math:credibleMass ex:credMass .
+
+ex:credLower a math:MathematicalObject .
+ex:credUpper a math:MathematicalObject .
+
+# The posterior the interval summarizes: a well-formed distribution (family named,
+# no supplied parameters, so the parametric gates stay silent).
+ex:paramPosterior a math:PosteriorDistribution ;
+    math:distributionFamily ex:betaFamily .
+
+ex:betaFamily a math:DistributionFamily .
+
+# The posterior mass: a FRAMED probability value, exact 95/100 = 0.95 in [0, 1].
+ex:credMass a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:posteriorFrame .
+
+ex:posteriorFrame a gmeow:ReferenceFrame .

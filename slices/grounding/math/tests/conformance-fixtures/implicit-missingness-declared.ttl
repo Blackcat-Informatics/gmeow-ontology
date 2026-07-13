@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:StatisticalVariable whose values encode absence — it carries a
+# math:MissingnessIndicator through math:hasMissingnessIndicator — AND declares the
+# math:MissingnessMechanism an analysis depending on it rests on, through
+# math:missingnessMechanism. Because the mechanism is declared, math:ImplicitMissingnessShape
+# is satisfied and validation emits no findings.
+# Bound by ex:ecImplicitMissingnessDeclared.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:income a math:StatisticalVariable ;
+    math:hasMissingnessIndicator ex:incomeMissing ;
+    math:missingnessMechanism ex:incomeMechanism .
+ex:incomeMissing a math:MissingnessIndicator .
+ex:incomeMechanism a math:MissingnessMechanism .

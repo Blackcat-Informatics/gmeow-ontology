@@ -1,0 +1,15 @@
+# Competency question: "Which result kinds are Bayesian?" The mirror of the frequentist
+# taxonomy question: every Bayesian inference result is asserted a DIRECT subclass of
+# math:BayesianResult in module.ttl, so the reasoning-free query walks the asserted
+# rdfs:subClassOf edge and enumerates the Bayesian result vocabulary, held owl:disjointWith
+# the frequentist family so nothing reaches both. Scoped to the math: namespace. Over the
+# merged ontology the answer is exactly the four Bayesian result kinds
+# {math:CredibleInterval, math:CredibleRegion, math:BayesFactor, math:PosteriorProbability}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?kind WHERE {
+    ?kind rdfs:subClassOf math:BayesianResult .
+    FILTER(STRSTARTS(STR(?kind), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?kind

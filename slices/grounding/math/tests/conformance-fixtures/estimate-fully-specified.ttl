@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: a math:Estimate that fixes both WHAT it estimates and HOW. It names its
+# math:Estimand through math:estimatesEstimand (the target quantity), the math:Estimator
+# that produced it through math:estimator (the procedure), and carries its produced value
+# through math:estimateValue. Because the target arm (the sh:or over estimand/parameter)
+# and the estimator arm are both satisfied, math:UnderspecifiedEstimateShape is satisfied
+# and validation emits no findings.
+# Bound by ex:ecEstimateFullySpecified.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:treatmentEffectEstimate a math:Estimate ;
+    math:estimatesEstimand ex:averageTreatmentEffect ;
+    math:estimator ex:olsEstimator ;
+    math:estimateValue ex:effectValue .
+
+ex:averageTreatmentEffect a math:Estimand .
+ex:olsEstimator a math:Estimator .

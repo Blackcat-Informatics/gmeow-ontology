@@ -1,0 +1,18 @@
+# Competency question: "What are the first-class object kinds of the models, estimation, and
+# inference vocabulary?" Exercises the STATISTICS-charter "Models and estimation" +
+# "Inference and results" surface: over a worked inference scene the reasoning-free query
+# reads back the asserted kind of each object — the estimation chain (estimand, estimator,
+# estimate), the summary/contrast pair (statistic, statistical contrast), a model assumption,
+# the process (inference run) and its plan/design apparatus (analysis plan, experimental
+# design, randomization scheme), the test/sampling-distribution pair, the effect size, and the
+# prediction/prediction-interval/tolerance-interval forecast objects. Scoped so items are
+# fixture-local and kinds are math:. Over the fixture the answer is exactly the sixteen
+# models/estimation/inference classes.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?item ?kind WHERE {
+    ?item a ?kind .
+    FILTER(STRSTARTS(STR(?item), "http://example.org/math/"))
+    FILTER(STRSTARTS(STR(?kind), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?item

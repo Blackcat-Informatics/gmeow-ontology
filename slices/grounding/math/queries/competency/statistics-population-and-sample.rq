@@ -1,0 +1,18 @@
+# Competency question: "What population and sample does this estimate refer to?"
+# Exercises the statistics study spine: a math:Sample is drawn (math:sampleOf) from a
+# math:SamplingFrame that operationalizes (math:samplingFrame) a math:StatisticalPopulation,
+# and the sample refers to that population (math:population). The query returns, for each
+# sample, the population it refers to and the frame it is drawn from, so the target of
+# inference (who we care about) is kept distinct from the thing measured (who we reached).
+# Scoped to the fixture namespace so the answer is exactly {sample → cohortSample, population
+# → cohortPopulation, frame → cohortRegistry}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?sample ?population ?frame WHERE {
+    ?sample a math:Sample ;
+            math:population ?population ;
+            math:sampleOf ?frame .
+    ?population math:samplingFrame ?frame .
+    FILTER(STRSTARTS(STR(?sample), "http://example.org/math/"))
+}
+ORDER BY ?sample

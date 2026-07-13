@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The six native producers of the `math:` grounding slice: five flagship-acceptance
-//! producers plus the probability layer's live `logic:probabilityModel` seam producer.
+//! The seven native producers of the `math:` grounding slice: five flagship-acceptance
+//! producers, the probability layer's live `logic:probabilityModel` seam producer, and the
+//! signature `lang:` → `logic:` → `math:` p-value tri-slice producer.
 //!
 //! Each flagship scenario in `slices/grounding/math/examples/flagship-acceptance.ttl`
 //! names a native producer entrypoint (`gmeow:demonstratedByProducer`). This module IS
@@ -25,6 +26,13 @@
 //! `module.ttl` + `imports/*.ttl` feed the bundle's authored default graph, and Design A's
 //! native producers are the one established path for demonstrator A-box content to ride
 //! inside `gmeow.gts` as queryable RDF).
+//!
+//! [`pvalue_tri_slice`] is a SEVENTH producer, folded the SAME way and likewise NOT
+//! flagship-bound. It carries the charter's signature tri-slice round-trip — the sentence
+//! "the p-value was 0.03" grounded as a `lang:SurfaceForm` → a `logic:Formula` → a
+//! well-framed `math:PValue` with a framed `math:pValue` measure — as ONE genuinely grounded
+//! chain (a `lang:denotesLogicFormula` denotation whose target is the formula, and the
+//! formula predicating over the specific p-value) inside `gmeow.gts` itself.
 //!
 //! The graphs are built from constant templates and formatted exact integers/rationals —
 //! there is no `HashMap` iteration, no clock, and no randomness — so two calls to the same
@@ -565,6 +573,226 @@ pub fn probability_model_seam() -> ProbabilityModelSeam {
     }
 }
 
+// ===========================================================================
+// Seventh producer — the signature lang: → logic: → math: p-value tri-slice.
+// ===========================================================================
+
+/// The base IRI the tri-slice producer mints every individual under — a content-free,
+/// stable example base, distinct from [`PRODUCER_NS`] so its scene never collides with a
+/// worked example when both are merged into one dataset. Its `#`-fragment individuals keep
+/// the base itself a single document IRI.
+pub const PVALUE_TRI_SLICE_NS: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/math/statistics/pvalue-tri-slice#";
+
+/// The exact rational magnitude the tri-slice p-value carries — `3/100 = 0.03`, the value in
+/// the charter's signature sentence "the p-value was 0.03".
+fn pvalue_tri_slice_magnitude() -> Rational {
+    Rational::new(3, 100).expect("3/100 is a rational")
+}
+
+/// The pinned result of [`pvalue_tri_slice`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PValueTriSlice {
+    /// The exact rational p-value magnitude, pinned at `3/100` and verified in `[0, 1]`.
+    pub magnitude: Rational,
+    /// The IRI of the `lang:SurfaceForm` carrying the sentence "the p-value was 0.03".
+    pub surface: String,
+    /// The IRI of the `logic:Formula` the sentence's `lang:Denotation` targets.
+    pub formula: String,
+    /// The IRI of the `math:PValue` the formula predicates over — the terminus of the
+    /// grounded lang → logic → math chain.
+    pub pvalue: String,
+    /// The graph: the sentence "the p-value was 0.03" grounded as a `lang:SurfaceForm` that
+    /// `lang:realizes` a `lang:ComposedForm`, a `lang:Denotation`
+    /// (`lang:denotesLogicFormula`) whose `lang:denotationTarget` is a `logic:Formula`, and
+    /// that formula predicating over a well-framed `math:PValue` (a framed `math:pValue`
+    /// magnitude, a parameterized `math:nullDistribution`, a `math:testStatistic`, a
+    /// `math:alternativeSidedness`) produced by a `math:InferenceRun` and held by a
+    /// `gmeow:Observation`.
+    pub turtle: String,
+}
+
+/// Emit the charter's signature tri-slice round-trip: the sentence "the p-value was 0.03"
+/// grounded as a `lang:` surface form → a `logic:` formula → a well-framed `math:PValue`.
+///
+/// The p-value magnitude `3/100` is carried EXACTLY (as [`Rational`], never `f64`) and
+/// verified to lie in the probability range `[0, 1]` — the framing condition
+/// `math:ProbabilityValueRangeShape` gates on. The single scene links the three slices with
+/// genuine crossing triples (it is one grounded chain, not three disconnected islands):
+///
+/// * lang → logic — a `lang:Denotation` with `lang:denotationKind lang:denotesLogicFormula`
+///   whose `lang:denotationTarget` is a specific `logic:Formula`;
+/// * logic → math — that `logic:Formula` is an atomic predication whose first argument's
+///   `logic:termIri` is the specific `math:PValue`.
+///
+/// The p-value carries its whole frame (`math:pValue` → a framed `math:ProbabilityValue`,
+/// `math:nullDistribution` → a parameterized `math:SamplingDistribution`,
+/// `math:testStatistic`, `math:nullHypothesis`, `math:alternativeSidedness` →
+/// `math:twoSidedAlternative`) so it PASSES `math:IllFramedPValue`, and it honours the
+/// process / result / claim spine (a `math:InferenceRun` produced it through
+/// `gmeow:wasGeneratedBy`, a `gmeow:Observation` holds the claim from a `gmeow:vantage`),
+/// folded into `gmeow.gts` itself (Design A, like the sixth probability-model seam
+/// producer), not merely in an on-disk worked example.
+///
+/// # Panics
+///
+/// Panics (a loud hard fail) if the magnitude does not lie in `[0, 1]` — a p-value whose
+/// magnitude is not a probability is a bug, never a silently-degraded fallback.
+pub fn pvalue_tri_slice() -> PValueTriSlice {
+    let magnitude = pvalue_tri_slice_magnitude();
+    assert!(
+        magnitude >= Rational::zero() && magnitude <= Rational::one(),
+        "the tri-slice p-value magnitude 3/100 must lie in the probability range [0, 1]"
+    );
+
+    let surface = format!("{PVALUE_TRI_SLICE_NS}pvalueSurface");
+    let formula = format!("{PVALUE_TRI_SLICE_NS}pvalueFormula");
+    let pvalue = format!("{PVALUE_TRI_SLICE_NS}tTestPValue");
+
+    let mut t = String::new();
+    t.push_str("@prefix math:  <https://blackcatinformatics.ca/math/> .\n");
+    t.push_str("@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n");
+    t.push_str("@prefix logic: <https://blackcatinformatics.ca/logic/> .\n");
+    t.push_str("@prefix lang:  <https://blackcatinformatics.ca/lang/> .\n");
+    t.push_str("@prefix p:     <");
+    t.push_str(PVALUE_TRI_SLICE_NS);
+    t.push_str("> .\n\n");
+
+    t.push_str("# The signature lang: -> logic: -> math: round-trip: the sentence\n");
+    t.push_str("# \"the p-value was 0.03\" grounded as a surface form realizing an analyzed\n");
+    t.push_str("# form, denoting a logic:Formula, that predicates over a well-framed\n");
+    t.push_str("# math:PValue whose magnitude is exactly 3/100 (0.03), in [0, 1].\n\n");
+
+    // --- lang: the surface, the analyzed composed form, the denotation --------
+    t.push_str("# lang: the English sign system and Latin script the surface is written in.\n");
+    t.push_str("p:english a lang:SignSystem ;\n");
+    t.push_str("    lang:signSystemKind lang:naturalLanguageKind ;\n");
+    t.push_str("    lang:modality lang:writtenModality .\n");
+    t.push_str("p:latinScript a lang:Script .\n\n");
+
+    t.push_str("# The four word forms of \"the p-value was 0.03\".\n");
+    t.push_str("p:wfThe     a lang:WordForm ; lang:inSignSystem p:english .\n");
+    t.push_str("p:wfPValue  a lang:WordForm ; lang:inSignSystem p:english .\n");
+    t.push_str("p:wfWas     a lang:WordForm ; lang:inSignSystem p:english .\n");
+    t.push_str("p:wfMagnitude a lang:WordForm ; lang:inSignSystem p:english .\n\n");
+
+    t.push_str("# The analyzed composed form: one analysis over four zero-based slots.\n");
+    t.push_str("p:pvalueAnalysis a lang:Analysis .\n");
+    t.push_str("p:pvalueSentence a lang:ComposedForm ;\n");
+    t.push_str("    lang:inSignSystem p:english ;\n");
+    t.push_str("    lang:compositionLevel lang:sentenceLevel ;\n");
+    t.push_str("    lang:inAnalysis p:pvalueAnalysis ;\n");
+    t.push_str("    lang:formHead p:wfWas ;\n");
+    t.push_str("    lang:formSlot p:slot0 , p:slot1 , p:slot2 , p:slot3 .\n\n");
+    t.push_str("p:slot0 a lang:FormSlot ; lang:inAnalysis p:pvalueAnalysis ; lang:slotIndex 0 ;\n");
+    t.push_str(
+        "    lang:slotForm p:wfThe ; lang:slotRole lang:subjectRole ; lang:dependsOn p:slot1 .\n",
+    );
+    t.push_str("p:slot1 a lang:FormSlot ; lang:inAnalysis p:pvalueAnalysis ; lang:slotIndex 1 ;\n");
+    t.push_str("    lang:slotForm p:wfPValue ; lang:slotRole lang:subjectRole ; lang:dependsOn p:slot2 .\n");
+    t.push_str("p:slot2 a lang:FormSlot ; lang:inAnalysis p:pvalueAnalysis ; lang:slotIndex 2 ;\n");
+    t.push_str("    lang:slotForm p:wfWas ; lang:slotRole lang:predicateRole .\n");
+    t.push_str("p:slot3 a lang:FormSlot ; lang:inAnalysis p:pvalueAnalysis ; lang:slotIndex 3 ;\n");
+    t.push_str("    lang:slotForm p:wfMagnitude ; lang:slotRole lang:objectRole ; lang:dependsOn p:slot2 .\n\n");
+
+    t.push_str("# The surface: the concrete text, parsed, realizing the composed form.\n");
+    t.push_str("p:pvalueSurface a lang:SurfaceForm ;\n");
+    t.push_str("    lang:inSignSystem p:english ;\n");
+    t.push_str("    lang:surfaceText \"the p-value was 0.03\" ;\n");
+    t.push_str("    lang:inScript p:latinScript ;\n");
+    t.push_str("    lang:encoding \"UTF-8\" ;\n");
+    t.push_str("    lang:unicodeNormalization \"NFC\" ;\n");
+    t.push_str("    lang:collationLocale \"en\" ;\n");
+    t.push_str("    lang:analysisLevel lang:parsedLevel ;\n");
+    t.push_str("    lang:realizes p:pvalueSentence .\n\n");
+
+    t.push_str(
+        "# The assertion act: the sentence is asserted, so it lowers to an asserted formula.\n",
+    );
+    t.push_str("p:pvalueAssertion a lang:CommunicativeAct ;\n");
+    t.push_str("    lang:performedOn p:pvalueSentence ;\n");
+    t.push_str("    lang:communicativeForce lang:assertForce .\n\n");
+
+    t.push_str("# lang -> logic: the reified denotation whose target IS the logic:Formula.\n");
+    t.push_str("p:pvalueDenotation a lang:Denotation ;\n");
+    t.push_str("    lang:denotedForm p:pvalueSentence ;\n");
+    t.push_str("    lang:denotationKind lang:denotesLogicFormula ;\n");
+    t.push_str("    lang:denotationTarget p:pvalueFormula ;\n");
+    t.push_str("    lang:denotationContext p:samplingReportContext ;\n");
+    t.push_str("    lang:isIndexical false ;\n");
+    t.push_str("    logic:preservationKind logic:ExactPreservation .\n\n");
+
+    // --- logic: the atomic-predication formula whose argument IS the p-value ---
+    t.push_str("# logic -> math: an atomic-predication formula pValueMagnitudeOf(pvalue, 3/100)\n");
+    t.push_str("# whose first argument's logic:termIri is the specific math:PValue.\n");
+    t.push_str("p:pvalueFormula a logic:Formula ;\n");
+    t.push_str("    logic:relation p:pValueMagnitudeOfRelation ;\n");
+    t.push_str("    logic:argument p:argPValue , p:argMagnitude .\n");
+    t.push_str("p:pValueMagnitudeOfRelation a logic:Type .\n");
+    t.push_str("p:argPValue logic:termIndex 0 ;\n");
+    t.push_str("    logic:termIri p:tTestPValue .\n");
+    t.push_str("p:argMagnitude logic:termIndex 1 ;\n");
+    t.push_str("    logic:termIri p:pValueMagnitude .\n\n");
+
+    // --- math: the well-framed p-value and its process / claim spine ----------
+    t.push_str("# math: the well-framed p-value the formula predicates over -- it carries its\n");
+    t.push_str("# whole frame, so it PASSES math:IllFramedPValue.\n");
+    t.push_str("p:tTestPValue a math:PValue ;\n");
+    t.push_str("    math:testStatistic p:tStatistic ;\n");
+    t.push_str("    math:nullHypothesis p:noEffectNull ;\n");
+    t.push_str("    math:nullDistribution p:tNullDistribution ;\n");
+    t.push_str("    math:alternativeSidedness math:twoSidedAlternative ;\n");
+    t.push_str("    math:pValue p:pValueMagnitude ;\n");
+    t.push_str("    gmeow:wasGeneratedBy p:inferenceRun .\n");
+    t.push_str("p:tStatistic a math:Statistic .\n");
+    t.push_str("p:noEffectNull a math:NullHypothesis .\n\n");
+
+    t.push_str("# The null distribution: a parameterized sampling distribution (normal family,\n");
+    t.push_str("# mean/stddev parameterization, one parameter per required role).\n");
+    t.push_str("p:tNullDistribution a math:SamplingDistribution ;\n");
+    t.push_str("    math:distributionFamily p:normalFamily ;\n");
+    t.push_str("    math:distributionParameterization p:meanStddevParameterization ;\n");
+    t.push_str("    math:hasDistributionParameter p:meanParam , p:stddevParam .\n");
+    t.push_str("p:normalFamily a math:DistributionFamily .\n");
+    t.push_str("p:meanStddevParameterization a math:DistributionParameterization ;\n");
+    t.push_str("    math:requiresParameterRole p:meanRole , p:stddevRole .\n");
+    t.push_str("p:meanRole a math:DistributionParameterRole .\n");
+    t.push_str("p:stddevRole a math:DistributionParameterRole .\n");
+    t.push_str("p:meanParam a math:DistributionParameter ; math:parameterRole p:meanRole .\n");
+    t.push_str(
+        "p:stddevParam a math:DistributionParameter ; math:parameterRole p:stddevRole .\n\n",
+    );
+
+    t.push_str(
+        "# The p-value magnitude: a framed exact-rational probability value, 3/100 = 0.03.\n",
+    );
+    t.push_str("p:pValueMagnitude a math:ProbabilityValue , math:RationalValue ;\n");
+    t.push_str("    math:numerator 3 ;\n");
+    t.push_str("    math:denominator 100 ;\n");
+    t.push_str("    gmeow:hasReferenceFrame p:samplingFrame .\n");
+    t.push_str("p:samplingFrame a gmeow:ReferenceFrame .\n\n");
+
+    t.push_str("# The process / result / claim spine: the run produced the p-value, the\n");
+    t.push_str("# observation holds the claim about it from a vantage.\n");
+    t.push_str("p:inferenceRun a math:InferenceRun , gmeow:Activity ;\n");
+    t.push_str("    math:fittedToData p:sampleData .\n");
+    t.push_str("p:sampleData a math:DatasetMatrix .\n");
+    t.push_str("p:pvalueObservation a gmeow:Observation ;\n");
+    t.push_str("    gmeow:vantage p:analystStandpoint ;\n");
+    t.push_str("    gmeow:observedFeature p:tTestPValue ;\n");
+    t.push_str("    gmeow:observationResult p:tTestPValue ;\n");
+    t.push_str("    gmeow:wasGeneratedBy p:inferenceRun .\n");
+    t.push_str("p:analystStandpoint a gmeow:Standpoint .\n");
+
+    PValueTriSlice {
+        magnitude,
+        surface,
+        formula,
+        pvalue,
+        turtle: t,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -888,5 +1116,129 @@ mod tests {
             probability_model_seam().turtle,
             probability_model_seam().turtle
         );
+    }
+
+    // ---- Seventh producer — the lang -> logic -> math p-value tri-slice ----
+
+    const LANG: &str = "https://blackcatinformatics.ca/lang/";
+    const LOGIC: &str = "https://blackcatinformatics.ca/logic/";
+
+    fn tri(local: &str) -> String {
+        format!("{PVALUE_TRI_SLICE_NS}{local}")
+    }
+    fn lang_iri(local: &str) -> String {
+        format!("{LANG}{local}")
+    }
+    fn logic_iri(local: &str) -> String {
+        format!("{LOGIC}{local}")
+    }
+
+    #[test]
+    fn pvalue_tri_slice_pins_the_exact_magnitude() {
+        let s = pvalue_tri_slice();
+        // The signature value: exactly 3/100 = 0.03, and a valid probability in [0, 1].
+        assert_eq!(s.magnitude, r(3, 100));
+        assert!(s.magnitude >= r(0, 1) && s.magnitude <= r(1, 1));
+        assert_eq!(s.surface, tri("pvalueSurface"));
+        assert_eq!(s.formula, tri("pvalueFormula"));
+        assert_eq!(s.pvalue, tri("tTestPValue"));
+    }
+
+    #[test]
+    fn pvalue_tri_slice_links_the_three_slices() {
+        let s = pvalue_tri_slice();
+        let idx = index_turtle(s.turtle.as_bytes()).expect("parse tri-slice graph");
+
+        // lang: a surface form realizing the analyzed composed form.
+        assert!(has_type(
+            &idx,
+            &tri("pvalueSurface"),
+            &lang_iri("SurfaceForm")
+        ));
+        assert_eq!(
+            first_iri(&idx, &tri("pvalueSurface"), &lang_iri("realizes")).as_deref(),
+            Some(tri("pvalueSentence").as_str())
+        );
+        // lang -> logic: the denotation's kind is denotesLogicFormula and its target IS the
+        // specific logic:Formula (the load-bearing lang->logic crossing triple).
+        assert!(has_type(
+            &idx,
+            &tri("pvalueDenotation"),
+            &lang_iri("Denotation")
+        ));
+        assert_eq!(
+            first_iri(&idx, &tri("pvalueDenotation"), &lang_iri("denotationKind")).as_deref(),
+            Some(lang_iri("denotesLogicFormula").as_str())
+        );
+        assert_eq!(
+            first_iri(
+                &idx,
+                &tri("pvalueDenotation"),
+                &lang_iri("denotationTarget")
+            )
+            .as_deref(),
+            Some(tri("pvalueFormula").as_str())
+        );
+        // logic -> math: the formula is an atomic predication whose first argument's
+        // logic:termIri is the specific math:PValue (the load-bearing logic->math crossing).
+        assert!(has_type(&idx, &tri("pvalueFormula"), &logic_iri("Formula")));
+        assert_eq!(
+            first_iri(&idx, &tri("argPValue"), &logic_iri("termIri")).as_deref(),
+            Some(tri("tTestPValue").as_str())
+        );
+        // math: the well-framed p-value, its framed magnitude, and the process/claim spine.
+        assert!(has_type(&idx, &tri("tTestPValue"), &math_iri("PValue")));
+        assert_eq!(
+            first_iri(&idx, &tri("tTestPValue"), &math_iri("alternativeSidedness")).as_deref(),
+            Some(math_iri("twoSidedAlternative").as_str())
+        );
+        assert_eq!(
+            first_iri(&idx, &tri("tTestPValue"), &math_iri("pValue")).as_deref(),
+            Some(tri("pValueMagnitude").as_str())
+        );
+        assert_eq!(
+            first_i128(&idx, &tri("pValueMagnitude"), &math_iri("numerator")),
+            Some(3)
+        );
+        assert_eq!(
+            first_i128(&idx, &tri("pValueMagnitude"), &math_iri("denominator")),
+            Some(100)
+        );
+        assert!(
+            first_iri(
+                &idx,
+                &tri("pValueMagnitude"),
+                &gmeow_iri("hasReferenceFrame")
+            )
+            .is_some()
+        );
+        assert!(has_type(
+            &idx,
+            &tri("inferenceRun"),
+            &math_iri("InferenceRun")
+        ));
+        assert_eq!(
+            first_iri(&idx, &tri("tTestPValue"), &gmeow_iri("wasGeneratedBy")).as_deref(),
+            Some(tri("inferenceRun").as_str())
+        );
+        assert!(has_type(
+            &idx,
+            &tri("pvalueObservation"),
+            &gmeow_iri("Observation")
+        ));
+        assert_eq!(
+            first_iri(
+                &idx,
+                &tri("pvalueObservation"),
+                &gmeow_iri("observationResult")
+            )
+            .as_deref(),
+            Some(tri("tTestPValue").as_str())
+        );
+    }
+
+    #[test]
+    fn pvalue_tri_slice_is_deterministic() {
+        assert_eq!(pvalue_tri_slice().turtle, pvalue_tri_slice().turtle);
     }
 }
