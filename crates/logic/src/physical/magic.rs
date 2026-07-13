@@ -1572,6 +1572,7 @@ fn public_derivations<E: Clone>(
                     object: object.clone(),
                 })
                 .collect(),
+            tuple_sources: Vec::new(),
             annotation: derivation.annotation.clone(),
         })
         .collect()
@@ -1579,11 +1580,9 @@ fn public_derivations<E: Clone>(
 
 /// Contract-scoped score-carrying counterpart of [`resolve_native_under`].
 ///
-/// The ordinary fact closure and resource frontier are produced once by the same
-/// demand-transformed binary core.  Opaque annotations then solve over that admitted
-/// physical closure through the same planned joins, preserving direct derivation score
-/// lineage. Magic predicates remain unit-valued control tuples so the demand rewrite
-/// never double-counts a scored premise.
+/// Tuple membership and opaque annotation equations are produced by one
+/// demand-transformed physical fixpoint. Magic predicates remain unit-valued control
+/// tuples so the demand rewrite never double-counts a scored premise.
 pub(crate) fn resolve_native_annotated_under<A, F>(
     contract_hash: &str,
     foreign: &dyn WorldFactSource,
@@ -1612,23 +1611,100 @@ where
                 })
         });
     if !binary_eligible {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+        return super::magic_generic::resolve_native_generic_annotated(
+            foreign, world, program, budget, annotation,
+        );
     }
 
-    let evaluation =
-        match evaluate_binary_under(contract_hash, foreign, world, program, budget, goal)? {
-            NativeOutcome::Decided(evaluation) => evaluation,
-            NativeOutcome::Unsupported(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+    let mut base_rules = Vec::with_capacity(program.rules.len());
+    for source_rule in &program.rules {
+        if source_rule
+            .body
+            .iter()
+            .any(|literal| matches!(literal, QBodyLit::Cut))
+        {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
+        }
+        let head = match atom_of(&source_rule.head) {
+            Ok(atom) => atom,
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
         };
-    let certification =
-        super::annotation::certify_query(&evaluation.base_rules, annotation.contract)?;
-    let lookup = super::plan::compile_cached(contract_hash, evaluation.executed_rules.clone());
-    let Some(executable) = lookup.executable else {
-        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
+        let mut body = Vec::new();
+        let mut builtins = Vec::new();
+        for literal in &source_rule.body {
+            match literal {
+                QBodyLit::Atom(atom) => match atom_of(atom) {
+                    Ok(atom) => body.push(atom),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Neg(atom) => match atom_of(atom) {
+                    Ok(atom) => body.push(EvalAtom {
+                        negated: true,
+                        ..atom
+                    }),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Builtin(builtin) => builtins.push(builtin_of(builtin)),
+                QBodyLit::Cut => unreachable!("cut handled above"),
+            }
+        }
+        if negated_body_flounders(&body, &builtins) {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
+        }
+        let rule_iri = format!("{}::rule", head.predicate.as_str());
+        base_rules.push(EvalRule {
+            head,
+            body,
+            rule_iri,
+            distinct_pairs: Vec::new(),
+            builtins,
+        });
+    }
+    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&base_rules) {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingArithmetic,
+        ));
+    }
+    let goal_atom = match atom_of(goal) {
+        Ok(atom) => atom,
+        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
     };
+    let transformed = magic_transform(&base_rules, &goal_atom, goal_adornment(goal));
+    let mut control_predicates = transformed
+        .rules
+        .iter()
+        .filter(|rule| rule.rule_iri.contains("::magic/"))
+        .map(|rule| rule.head.predicate.clone())
+        .collect::<BTreeSet<_>>();
+    if let Some(seed) = &transformed.seed {
+        control_predicates.insert(seed.predicate.clone());
+    }
+    let base_edb_facts = extract_edb(foreign, world).facts_sorted();
+    let mut edb = base_edb_facts.clone();
+    if let Some(seed) = &transformed.seed {
+        edb.push(seed_to_fact(seed)?);
+    }
+    edb.sort_by_key(Fact::key);
 
+    let (executed_rules, demand_pruning_dropped) = {
+        let lookup = super::plan::compile_cached(contract_hash, transformed.rules.clone());
+        if lookup.executable.is_some() {
+            (transformed.rules, false)
+        } else {
+            let base_lookup = super::plan::compile_cached(contract_hash, base_rules.clone());
+            if base_lookup.executable.is_none() {
+                return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
+            }
+            (base_rules.clone(), true)
+        }
+    };
+    let lookup = super::plan::compile_cached(contract_hash, executed_rules);
+    let executable = lookup
+        .executable
+        .expect("the selected annotated binary plan was checked executable");
+    let certification = super::annotation::certify_query(&base_rules, annotation.contract)?;
     let mut seed_annotations = BTreeMap::new();
-    for fact in &evaluation.base_edb_facts {
+    for fact in &base_edb_facts {
         let fact_annotation = (annotation.annotation_for)(AnnotationFactRef {
             world,
             subject: &fact.subject,
@@ -1638,21 +1714,30 @@ where
         .unwrap_or_else(|| annotation.algebra.one());
         seed_annotations.insert(fact.key(), fact_annotation);
     }
+    for fact in &edb {
+        if control_predicates.contains(&fact.predicate) {
+            seed_annotations.insert(fact.key(), annotation.algebra.one());
+        }
+    }
     let annotated = super::annotation::evaluate_annotations(
-        &evaluation.facts,
+        world,
+        &edb,
         executable.as_ref(),
-        &seed_annotations,
-        &evaluation.control_predicates,
-        annotation.algebra,
-        annotation.contract,
+        super::annotation::AnnotationExecution::new(
+            budget.max_steps,
+            &seed_annotations,
+            &control_predicates,
+            annotation.algebra,
+            annotation.contract,
+        ),
     )?;
 
     let mut rows: AnnotatedRows<A::Element> = BTreeMap::new();
-    for fact in &evaluation.facts {
+    for fact in &annotated.facts {
         let Some(binding) = project_answers(
             std::slice::from_ref(fact),
             goal,
-            evaluation.goal_atom.predicate.as_str(),
+            goal_atom.predicate.as_str(),
         )
         .into_iter()
         .next() else {
@@ -1670,7 +1755,7 @@ where
                 .derivations
                 .get(&key)
                 .map_or(&[][..], Vec::as_slice),
-            &evaluation.control_predicates,
+            &control_predicates,
         );
         match rows.entry(binding) {
             std::collections::btree_map::Entry::Vacant(entry) => {
@@ -1692,7 +1777,7 @@ where
             derivations,
         })
         .collect();
-    let mut status = evaluation.status;
+    let mut status = annotated.status;
     if let Some(max_answers) = budget.max_answers
         && answers.len() >= max_answers
         && !answers.is_empty()
@@ -1702,10 +1787,10 @@ where
     }
     if status == BudgetStatus::Exhausted
         && answers.is_empty()
-        && evaluation
+        && annotated
             .frontier
             .saturated_preds
-            .contains(evaluation.goal_atom.predicate.as_str())
+            .contains(goal_atom.predicate.as_str())
     {
         status = BudgetStatus::Ok;
     }
@@ -1713,12 +1798,12 @@ where
     Ok(NativeOutcome::Decided(AnnotatedAnswerSet {
         answers,
         status,
-        preservation: if evaluation.demand_pruning_dropped {
+        preservation: if demand_pruning_dropped {
             demand_pruning_dropped_claim()
         } else {
             crate::result::PreservationClaim::exact()
         },
-        frontier: evaluation.frontier,
+        frontier: annotated.frontier,
         certification,
     }))
 }
@@ -2763,6 +2848,56 @@ mod tests {
             "a stratifiable-transform answer is exact: {:?}",
             native.preservation
         );
+    }
+
+    #[test]
+    fn annotated_stratified_naf_scores_positive_support_and_treats_absence_as_unit() {
+        let (store, world_nn) = reachability_world();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reachable(X, Y) :- ex:edge(X, Y).\n\
+             ex:reachable(X, Y) :- ex:edge(X, Z), ex:reachable(Z, Y).\n\
+             ex:unreachable(X, Y) :- ex:node(X, X), ex:node(Y, Y), \\+ ex:reachable(X, Y).\n\
+             ?- ex:unreachable(ex:a, Y).\n"
+        );
+        let program = parse_query_program(&src).unwrap();
+        let contract = crate::annotation::AnnotationContract::exact();
+        let request = AnnotationRequest::new(
+            &crate::provenance::ZWeightSemiring,
+            &contract,
+            |fact: AnnotationFactRef<'_>| (fact.predicate == format!("{BASE}node")).then_some(2),
+        );
+        let answer = match resolve_native_annotated_under(
+            "annotated-naf-one-pass",
+            &foreign,
+            &world_nn,
+            &program,
+            &Budget::default(),
+            &request,
+        )
+        .unwrap()
+        {
+            NativeOutcome::Decided(answer) => answer,
+            NativeOutcome::Unsupported(kind) => panic!("unexpected NAF refusal: {kind:?}"),
+        };
+
+        assert_eq!(
+            answer.certification.query_class,
+            crate::annotation::AnnotationQueryClass::StratifiedNaf
+        );
+        assert_eq!(answer.answers.len(), 1);
+        assert_eq!(answer.answers[0].binding["Y"], format!("<{BASE}a>"));
+        assert_eq!(
+            answer.answers[0].annotation, 4,
+            "two positive node premises: 2*2"
+        );
+        let direct = answer.answers[0]
+            .derivations
+            .iter()
+            .find(|derivation| derivation.sources.len() == 2)
+            .expect("NAF answer keeps positive support only");
+        assert_eq!(direct.annotation, 4);
     }
 
     // (a, downgrade) A stratified-negation program whose BASE is stratifiable but whose
