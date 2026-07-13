@@ -211,7 +211,30 @@ impl Stage for ValidateStage {
         // RENDERED SARIF `fixes` (and CLI/HTML "how to fix" lines) are the genuine
         // product of the annotate API, not a bypass. Shared with the CLI consumer path
         // (`gmeow_validate::data_validate::run`) so the two surfaces cannot drift.
-        gmeow_validate::enrich::enrich_findings(&mut report);
+        //
+        // Per-term usage guidance (Part 3) additionally needs an `&RdfDataset` to scan;
+        // this stage runs before `stage-constraint-catalog` (it consumes only
+        // `stage-source-load`, a sibling of `stage-reason` in the DAG, not a
+        // descendant), so no bundle carrying the generated `gmeow:ValidationRule`
+        // catalog is in scope here — the rule-governing-term key honestly resolves
+        // to nothing on this path. The authored source graph IS in scope (already
+        // consumed above as `source_graph`), so it is parsed once more and passed as
+        // BOTH the bundle and the subject: `documented_terms` guidance (prose authored
+        // directly on ontology terms) still resolves fully, and the rule-governing-term
+        // key stays an honest, structurally-guaranteed absence rather than a fabricated
+        // join. No new `consumes()` edge: this is the SAME `stage-source-load` product
+        // already declared.
+        let source_dataset = purrdf::parse_dataset(source_graph, "application/n-quads", None)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("source graph parse (guidance join): {e}"),
+                })
+            })?;
+        gmeow_validate::enrich::enrich_findings(
+            &mut report,
+            source_dataset.as_ref(),
+            source_dataset.as_ref(),
+        );
         // Build the reasoner-derived gate-verdict program ONCE from the authored source
         // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).

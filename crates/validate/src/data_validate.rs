@@ -253,9 +253,17 @@ pub fn run(
     }
 
     // The single proof-carrying enrichment pass: rule identity (catalog help URIs)
-    // + DSL-authored remediation on every finding, so the CLI consumer report
-    // carries the same enrichment as the pipeline validate stage.
-    crate::enrich::enrich_findings(&mut report);
+    // + DSL-authored remediation + per-term usage guidance on every finding, so the
+    // CLI consumer report carries the same enrichment as the pipeline validate
+    // stage. The bundle carries the constraint-catalog `gmeow:ValidationRule`
+    // nodes (the rule-governing-term key); the user's own data graph is the
+    // `documented_terms` subject. Parsed unconditionally (not just under
+    // `--deep`) since enrichment runs for both tiers; a genuinely-corrupt bundle
+    // or data graph at this point is a hard input error (Tier-1 already parsed
+    // both once above), so it propagates via `?` rather than being swallowed.
+    let bundle = purrdf::import_gts_events(gts_bytes)?;
+    let subject = data_dataset(data_bytes, data_format)?;
+    crate::enrich::enrich_findings(&mut report, bundle.dataset.as_ref(), subject.as_ref());
 
     Ok(report)
 }
