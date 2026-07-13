@@ -74,6 +74,20 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
+    /// The runtime pin's typed refusal when a live [`EngineContract`]
+    /// descriptor differs from the descriptor a consumer pinned: answers minted
+    /// under the pinned contract must not be trusted against a drifted engine, so
+    /// the mismatch is a distinct hard failure rather than the generic reasoning
+    /// [`Reason`] kind.
+    ///
+    /// [`EngineContract`]: crate::runtime::EngineContract
+    pub struct ContractDrift { detail: String }
+    code = "logic.contract-drift";
+    grade = logic_grade!();
+    message = "{}", detail;
+}
+
+define_diag_kind! {
     /// The native physical execution core failed: a chase, semi-naive, magic-sets,
     /// or parity step that could not evaluate.
     pub struct Physical { detail: String }
@@ -239,6 +253,7 @@ pub const LOGIC_DIAG_CODES: &[&str] = &[
     Query::CODE,
     Reason::CODE,
     Engine::CODE,
+    ContractDrift::CODE,
     Physical::CODE,
     Teleology::CODE,
     Transaction::CODE,
@@ -265,6 +280,7 @@ pub fn register_all() -> Vec<Code> {
         Query::register(),
         Reason::register(),
         Engine::register(),
+        ContractDrift::register(),
         Physical::register(),
         Teleology::register(),
         Transaction::register(),
