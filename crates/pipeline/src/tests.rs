@@ -1020,3 +1020,96 @@ fn attach_drift_honors_typed_entity_inputs() {
     run(&graph, &bound, &mut ctx)
         .expect("typed entity narrowing exposes the consumer's real G2 attachment");
 }
+
+/// A synthetic producer/consumer that attaches one content-addressed record under a
+/// shared blob-representation label. Different payloads must be distinct attachments
+/// even when an upstream product already carries that representation label.
+struct AttachBlobStage {
+    id: String,
+    consumes: Vec<String>,
+    representation: String,
+    payload: Vec<u8>,
+    declared: Vec<String>,
+}
+
+impl Stage for AttachBlobStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn attaches_blob_reps(&self) -> &[String] {
+        &self.declared
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let dataset = purrdf::parse_dataset(b"", "application/n-quads", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("attach-blob empty dataset: {e}"),
+            })
+        })?;
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            std::collections::BTreeMap::new(),
+            purrdf::provenance::DatasetProvenance::new(),
+            &self.representation,
+            "application/octet-stream",
+            self.payload.clone(),
+        );
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id.clone(),
+            Arc::new(bundle),
+        )))
+    }
+}
+
+#[test]
+fn attach_drift_distinguishes_shared_blob_rep_by_content() {
+    const REP: &str = "diagnostics:nodes";
+    let dir = tempfile::tempdir().unwrap();
+    let mut s = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("producer", &[]),
+            spec("consumer", &["producer"]),
+            spec("sink", &["consumer"]),
+        ],
+    };
+    for st in &mut s.stages {
+        if st.id == "producer" || st.id == "consumer" {
+            st.attaches_blob_reps = vec![REP.to_string()];
+        }
+    }
+    let graph = s.validate().unwrap();
+
+    let stage = |id: &str, consumes: &[&str], payload: &[u8]| {
+        Arc::new(AttachBlobStage {
+            id: id.to_string(),
+            consumes: consumes
+                .iter()
+                .map(|producer| (*producer).to_string())
+                .collect(),
+            representation: REP.to_string(),
+            payload: payload.to_vec(),
+            declared: vec![REP.to_string()],
+        }) as Arc<dyn Stage>
+    };
+    let mut registry = StageRegistry::new();
+    registry.register(
+        "impl:producer".to_string(),
+        stage("producer", &[], b"compile"),
+    );
+    registry.register(
+        "impl:consumer".to_string(),
+        stage("consumer", &["producer"], b"reason"),
+    );
+    registry.register("impl:sink".to_string(), fake("sink", &["consumer"]));
+    let bound = bind(&s, &graph, &registry).expect("shared blob-rep fixture binds");
+    let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
+
+    run(&graph, &bound, &mut ctx)
+        .expect("content-distinct records on one representation lane are both attachments");
+}
