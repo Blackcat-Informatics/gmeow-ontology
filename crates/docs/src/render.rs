@@ -6836,6 +6836,18 @@ pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
     term_card_md_inner(term, &alignment_facets, model)
 }
 
+/// The `card.json` machine surface for ONE term — the STANDARD-tier [`Card`]
+/// serialized byte-for-byte as `render_site_lang` emits `terms/{slug}/card.json`
+/// (and as the live MCP `doc_card format=json detail=standard` renders). The
+/// single-term counterpart of [`term_card_md`]: lets a caller obtain one term's
+/// card payload without rendering the whole site.
+pub fn term_card_json(model: &DocsModel, term: &DocTerm) -> Vec<u8> {
+    let alignment_facets = precompute_alignment_facets(model);
+    let standard =
+        doc_term_card(term, &alignment_facets, model).projected(crate::card::CardDetail::Standard);
+    serde_json::to_vec(&standard).expect("a pure-data Card of String/Vec/Option fields serializes")
+}
+
 /// [`term_card_md`] with the alignment facets supplied — lets `render_site_lang`
 /// emit every card while paying the linkage scan once.
 fn term_card_md_inner(
