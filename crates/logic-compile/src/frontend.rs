@@ -1152,22 +1152,32 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
 /// closure vocabulary verbatim (no new shape DSL); it is the single authored signal the issue
 /// allows. The default is to derive a shape for every eligible axiom (MAXIMAL UTILITY), so an
 /// absent annotation means "derive". Read directly off the merged authored store, consistent
-/// with the dataset-derive architecture.
+/// with the dataset-derive architecture. Property-GLOBAL entries only: an entry carrying
+/// `logic:onClass` is class-scoped and never suppresses corpus-wide (see
+/// [`closure_keys_with_value`]).
 fn closure_validation_optouts(store: &RdfDataset) -> std::collections::BTreeSet<String> {
     closure_keys_with_value(store, "OpenWorldClosure")
 }
 
-/// The `logic:closureKey` set of every `logic:closureEntry` whose `logic:closureValue` is the
-/// closure-value individual named by `value_local`. The `closureKey` predicate node is built
-/// once and reused across entries (not re-minted per iteration).
+/// The `logic:closureKey` set of every PROPERTY-GLOBAL `logic:closureEntry` whose
+/// `logic:closureValue` is the closure-value individual named by `value_local`. An entry that
+/// carries `logic:onClass` is CLASS-SCOPED — its (class, key) pair is read by
+/// [`closure_validation_closed_requirements`] alone — and contributes NOTHING here: sweeping a
+/// class-scoped key into a global set would promote a per-class closure into a corpus-wide law
+/// the author never asserted. The predicate nodes are built once and reused across entries
+/// (not re-minted per iteration).
 fn closure_keys_with_value(
     store: &RdfDataset,
     value_local: &str,
 ) -> std::collections::BTreeSet<String> {
     let target = Node::iri(logic_iri(value_local));
     let key_pred = nn(&logic_iri("closureKey"));
+    let class_pred = nn(&logic_iri("onClass"));
     let mut set = std::collections::BTreeSet::new();
     for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &target) {
+        if value(store, &entry, &class_pred).is_some() {
+            continue;
+        }
         if let Some(key) = value(store, &entry, &key_pred) {
             set.insert(term_str(&key));
         }
@@ -1184,7 +1194,10 @@ fn closure_keys_with_value(
 /// signal that closes one — the exact peer of the opt-out, reusing the existing closure vocabulary
 /// verbatim (no new shape DSL). An absent annotation means "open-world / derive no domain-range
 /// shape". Read directly off the merged authored store, consistent with the dataset-derive
-/// architecture.
+/// architecture. Property-GLOBAL entries only: an entry carrying `logic:onClass` is class-scoped
+/// — it feeds [`closure_validation_closed_requirements`], never this global set, so it derives
+/// no corpus-wide `sh:targetSubjectsOf`/`sh:targetObjectsOf` domain/range shape (see
+/// [`closure_keys_with_value`]).
 fn closure_validation_closed_optins(store: &RdfDataset) -> std::collections::BTreeSet<String> {
     closure_keys_with_value(store, "ClosedWorldClosure")
 }
