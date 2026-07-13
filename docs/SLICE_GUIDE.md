@@ -480,6 +480,12 @@ procedure, and where the two differ the skill and the rubric win. Keep the lane 
 from §9's hard gates — it *measures and holds*, it never asserts a bit right or wrong
 ([`docs/SLICE_QA.md`](SLICE_QA.md)).
 
+For the curation method that turns an advisor finding into a connected semantic
+packet — canonical model, worked example, layered falsification, production-path
+proof, natural translation, regeneration, and earned ratchet — use
+[`docs/SLICE-UPGRADE.md`](SLICE-UPGRADE.md). In particular, do not treat the
+advisor's term list as the specification of the uplift.
+
 - **The ascent is a lattice meet, not a score.** The roll-up tier is the lossy meet
   projection of the profile: the UNWEIGHTED lattice meet — `min` over the per-axis tier
   ranks (`crates/slice-quality/src/prioritize.rs`). `axisWeight` orders ties only; it never

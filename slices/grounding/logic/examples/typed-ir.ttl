@@ -6,30 +6,6 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# Module membership is an independent context coordinate: the rule remains in the same
-# epistemic standpoint while its named theory imports the base vocabulary.
-ex:peopleTheory
-    a logic:Module ;
-    logic:imports ex:baseTheory .
-
-ex:adultRule
-    a logic:Rule ;
-    logic:body [
-        rdf:object ex:Person ;
-        rdf:predicate rdf:type ;
-        rdf:subject "?person"
-    ] , [
-        rdf:object "18" ;
-        rdf:predicate ex:minimumAge ;
-        rdf:subject "?person"
-    ] ;
-    logic:head [
-        rdf:object ex:Adult ;
-        rdf:predicate rdf:type ;
-        rdf:subject "?person"
-    ] ;
-    logic:inModule ex:peopleTheory .
-
 # ∀x. Person(x) → ((∃y. knows(x,y) ∧ Active(y)) ∨ ¬banned(x))
 ex:personClassification
     a logic:Formula ;
@@ -148,7 +124,7 @@ ex:tagsAtom
     logic:argument [
         a logic:TermCarrier ;
         logic:termIndex 0 ;
-        logic:termIri ex:Alice
+        logic:termVariable "x"
     ] , [
         a logic:TermCarrier ;
         logic:termIndex 1 ;
@@ -156,35 +132,63 @@ ex:tagsAtom
     ] ;
     logic:relation ex:taggedWith .
 
-# The same fixed ternary tuple after legalization to the flat relational-core waist.
-ex:betweenTuple
-    logic:instanceOf ex:between ;
-    logic:naryArg0 ex:Alice ;
-    logic:naryArg1 ex:Bob ;
-    logic:naryArg2 ex:Carol .
+# A fixed ternary source formula. The native producer test parses THIS formula and drives the
+# real logic:RelationalCore lowering, where it becomes one shared tuple reifier carrying
+# instanceOf(between) plus naryArg0/1/2 in this authored order. No hand-authored lowered tuple is
+# present here: the compiler output, not an illustrative duplicate, is the legalization evidence.
+ex:betweenAssertion
+    a logic:Formula ;
+    logic:argument [
+        a logic:TermCarrier ;
+        logic:termIndex 0 ;
+        logic:termIri ex:Alice
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 1 ;
+        logic:termIri ex:Bob
+    ] , [
+        a logic:TermCarrier ;
+        logic:termIndex 2 ;
+        logic:termIri ex:Carol
+    ] ;
+    logic:relation ex:between .
 
 ex:between a logic:Type .
 
-ex:irContract
-    a logic:ReasoningContract ;
-    logic:contextAxis logic:ModuleContextAxis ;
-    logic:projectionTarget logic:CanonicalProjection ,
-        logic:CommonLogicProjection .
+# Five distinct closed-world policies authored through their compact typed constraint records. They
+# share one small submission domain but encode different conditions: alternative contact routes,
+# typed attachment values, distinct author/reviewer roles, a forbidden legacy code, and a minimum
+# reviewer count. The competency query joins each record to its load-bearing parameters; the logic
+# frontend parses the same records into canonical Constraint IR rather than treating the class names
+# as an inventory.
+ex:contactRoute
+    a logic:DisjunctiveRequirednessConstraint ;
+    logic:anyOf ex:email ,
+        ex:phone ;
+    logic:onClass ex:Submission .
 
-ex:roundTripLens
-    a logic:Lens ;
-    logic:getLeg ex:downProjection ;
-    logic:putLeg ex:upProjection .
+ex:attachmentType
+    a logic:PathValueTypeConstraint ;
+    logic:onClass ex:Submission ;
+    logic:valueClass ex:Document ;
+    logic:valuePath ex:attachment .
 
-ex:roundTripWitness
-    logic:loadBearing true .
+ex:reviewerSeparation
+    a logic:CrossNodeConstraint ;
+    logic:crossMode "differ" ;
+    logic:onClass ex:Submission ;
+    logic:roleA ex:author ;
+    logic:roleB ex:reviewer .
 
-ex:absenceCheck
-    a logic:NonEntailmentObligation ;
-    logic:obligationForbiddenPredicate "https://blackcatinformatics.ca/gmeow/examples/logic/minorEligibleForAdultOnlyBenefit"^^xsd:anyURI ;
-    logic:obligationDischargeCondition logic:DischargeFiniteClosure ;
-    logic:obligationDischargeVerdict logic:ObligationDischarged .
+ex:noDeprecatedCode
+    a logic:ForbiddenPatternConstraint ;
+    logic:forbiddenPredicate ex:deprecatedCode ;
+    logic:onClass ex:Submission .
 
-# The example is validated as a self-contained data graph, so the referenced closed-value
-# individual carries its range type here rather than relying on an ontology-union inference.
-logic:DischargeFiniteClosure a logic:DischargeCondition .
+ex:minimumReviewers
+    a logic:AggregateConstraint ;
+    logic:aggComparator ">=" ;
+    logic:aggCompareTo 2 ;
+    logic:aggFunction "COUNT" ;
+    logic:aggPath ex:reviewer ;
+    logic:onClass ex:Submission .

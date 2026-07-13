@@ -194,11 +194,13 @@ per-node verifiers, progressive lowering; **not** LLVM IR's substrate (an impera
 represent open-world entailment, paraconsistency, or modal scope). Patterns and tooling cross over;
 the substrate does not.
 
-- **Lowering is legalization (`logic:ProjectionTarget`).** A lowering to a target is a legalization
-  against a declared target — statically, or *dynamically legal* iff a construct falls in the target's
-  certified fragment. **Partial conversion** leaves an illegal construct in place, flagged: this *is*
-  the "unsupported carried and flagged, never dropped" rule above. Every lowering is therefore a total
-  function into `⟨ legal output ⊕ flagged residue ⟩`, and the loss ledger is the residue set.
+- **Lowering is legalization (`logic:ConversionTarget`).** A lowering to a target is a legalization
+  against a declared legal IR or dialect — statically, or *dynamically legal* iff a construct falls
+  in the target's certified fragment. A conversion target is distinct from `logic:ProjectionTarget`,
+  the reasoning-contract facet that merely requests one or more answer renderings. **Partial
+  conversion** leaves an illegal construct in place, flagged: this *is* the "unsupported carried and
+  flagged, never dropped" rule above. Every lowering is therefore a total function into `⟨ legal
+  output ⊕ flagged residue ⟩`, and the loss ledger is the residue set.
 - **Every annotation is typed load-bearing or droppable (`logic:loadBearing`).** A display hint /
   `scopeNote` is **droppable** — correctness must never depend on it, and dropping it only pessimizes.
   An in-band complement or a quantitative axis is **load-bearing** — the inverse leg needs it for

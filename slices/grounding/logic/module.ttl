@@ -1438,6 +1438,17 @@ logic:ProjectionTarget
     skos:definition "The facet value class of a projection target: a surface the answer is rendered to. The projection facet is an output request that may name one or more targets (canonical, OWL, Datalog, Common Logic, validation-only) at once; it is a standing request, not a semantic selection, and never alters which entailments hold."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ConversionTarget
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Conversion Target"@x-gmeow-english ;
+    skos:definition "A legal output language for a lowering: every emitted construct must inhabit this target, while anything it cannot express remains explicit flagged residue. It is not a logic:ProjectionTarget, which requests a presentation of an answer; a conversion target instead delimits the IR or dialect into which canonical content may be legalized."@x-gmeow-english ;
+    skos:example "logic:RelationalCore a logic:ConversionTarget ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a conversion target as a reasoning-contract output preference or let it change which entailments hold."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the legal target dialect, emit only constructs admitted by it, and carry every rejected source construct as typed residue with a preservation judgment."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the legality domain of a compiler lowering or dialect conversion."@x-gmeow-english .
+
 logic:PropertyPathProjection
     a owl:NamedIndividual ,
         logic:ProjectionTarget ;
@@ -5916,6 +5927,7 @@ logic:LawClaim
 
 logic:Dialect
     a owl:Class ;
+    rdfs:subClassOf logic:ConversionTarget ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Dialect"@x-gmeow-english ;
     skos:definition "A named sub-language of the canonical logic: IR, in the MLIR sense of a dialect with its own node verifiers and progressive lowering (not an LLVM-style substrate). The one F1 dialect is logic:RelationalCore, the logical-to-physical lowering waist between the full IR and the native execution engine."@x-gmeow-english ;
@@ -5923,6 +5935,7 @@ logic:Dialect
 
 logic:RelationalCore
     a owl:NamedIndividual ,
+        logic:ConversionTarget ,
         logic:Dialect ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Relational Core"@x-gmeow-english ;
@@ -7523,7 +7536,11 @@ logic:ChoiceGroupConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Choice Group Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a choice group when several members may coexist and at least one, rather than exactly or at most one, is required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Supply one target class, at least two choice predicates, and the exact cardinality mode the compiled XOR or at-most formula must enforce."@x-gmeow-english ;
+    gmeow:useWhen "Use when a closed validation boundary permits exactly one or at most one member of a finite predicate group."@x-gmeow-english .
 
 logic:GuardedImplicationConstraint
     a owl:Class ;
@@ -7531,7 +7548,11 @@ logic:GuardedImplicationConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Guarded Implication Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use guarded implication for an unconditional required property or for a trigger whose value needs an open-ended expression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class, trigger predicate, optional trigger value, and every companion predicate whose existence the guard requires."@x-gmeow-english ;
+    gmeow:useWhen "Use when the presence of a predicate, optionally at one fixed value, conditionally requires companion data."@x-gmeow-english .
 
 logic:DisjunctiveRequirednessConstraint
     a owl:Class ;
@@ -7539,7 +7560,11 @@ logic:DisjunctiveRequirednessConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Disjunctive Requiredness Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use disjunctive requiredness when the alternatives are mutually exclusive; use a choice-group cardinality constraint instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Provide one target class and at least two alternative predicates; the compiled condition succeeds when any alternative has a value."@x-gmeow-english ;
+    gmeow:useWhen "Use when a focus node must carry at least one of several substitutable properties and may legitimately carry more than one."@x-gmeow-english .
 
 logic:PathValueTypeConstraint
     a owl:Class ;
@@ -7547,7 +7572,11 @@ logic:PathValueTypeConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Path Value Type Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a path-value type constraint to require that the path exist; it constrains every present value but does not add minimum cardinality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the focus class, one value path, and the class every object reached through that path must instantiate."@x-gmeow-english ;
+    gmeow:useWhen "Use when all values of one direct predicate must belong to a declared class under closed-world validation."@x-gmeow-english .
 
 logic:CrossNodeConstraint
     a owl:Class ;
@@ -7555,7 +7584,11 @@ logic:CrossNodeConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Cross Node Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a cross-node constraint for independent cardinalities; it compares the presence or values of two named roles on the same focus."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Provide the target class, two role predicates, and either co-occur or differ as the comparison mode."@x-gmeow-english ;
+    gmeow:useWhen "Use when two roles must appear together or must never resolve to the same value."@x-gmeow-english .
 
 logic:ForbiddenPatternConstraint
     a owl:Class ;
@@ -7563,7 +7596,11 @@ logic:ForbiddenPatternConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Forbidden Pattern Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a forbidden pattern to express an open-world negation claim; this is a closed validation prohibition over observed data."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class and forbidden predicate, adding a fixed forbidden value only when other values on that predicate remain legal."@x-gmeow-english ;
+    gmeow:useWhen "Use when a focus must not carry a predicate at all or must exclude one specific predicate value."@x-gmeow-english .
 
 logic:AggregateConstraint
     a owl:Class ;
@@ -7571,7 +7608,11 @@ logic:AggregateConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Aggregate Constraint"@x-gmeow-english ;
     skos:definition "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    skos:example "ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use an aggregate constraint for a per-value condition that needs no grouping; use the narrower path-value or forbidden-pattern sugar."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Specify the target, aggregate function, path, comparator, and literal or property-valued right-hand side; request DISTINCT only when duplicate values must collapse."@x-gmeow-english ;
+    gmeow:useWhen "Use when validity depends on COUNT, SUM, MIN, or MAX over the values reached by one predicate."@x-gmeow-english .
 
 logic:onClass
     a owl:ObjectProperty ;

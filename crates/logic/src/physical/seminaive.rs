@@ -74,7 +74,7 @@ use crate::query_ir::QBuiltin;
 use crate::rule_ir::{
     DerivedRow, EvalAtom, EvalRule, Fact, FactKey, FactStore, Provenance, RuleRoundCandidate,
     Solution, distinct_pairs_satisfied, echo_asserted, fact_key_hash, ground, ground_head,
-    match_atom, sort_rows, world_edb_facts,
+    ground_relational_head, match_atom, sort_rows, world_edb_facts,
 };
 use crate::seam::BudgetStatus;
 
@@ -121,13 +121,6 @@ pub(crate) enum UnsupportedKind {
     /// (incomplete-never-wrong); with a step budget the [`StepGovernor`] cuts it, so it
     /// is evaluated normally.
     NonTerminatingArithmetic,
-    /// A rule with no POSITIVE body atom that is not a materializable ground fact — it
-    /// carries only NAF and/or builtin literals — cannot drive bottom-up derivation: the
-    /// semi-naive engine never fires a zero-positive-body rule (`join_body_binary`
-    /// returns empty when the positive set is empty). It is therefore a declared gap
-    /// routed to the oracle, rather than a rule the magic transform would emit and then
-    /// trip its no-bodyless-positive-rule invariant.
-    UnpositiveBody,
 }
 
 /// The result of a native-execution attempt: a decided value or a declared gap.
@@ -1367,9 +1360,13 @@ fn join_body_binary(
     let negated = plan.negated();
 
     let mut solutions: Vec<Solution> = if positive.is_empty() {
-        // Zero positive atoms never touch delta, so they never fire in a semi-naive
-        // round — matches `join_body`'s empty-positive branch exactly.
-        Vec::new()
+        // The empty conjunction is relational identity: one empty substitution. This
+        // lets unconditional, NAF-only, and constraint-only rules fire once; duplicate
+        // heads are suppressed by the store on the following round.
+        vec![Solution {
+            bindings: Vec::new(),
+            source_facts: Vec::new(),
+        }]
     } else {
         let k = positive.len();
         debug_assert_eq!(plan.operators().len(), k);
@@ -1428,9 +1425,9 @@ fn join_body_binary(
 /// A generator extends the solution's bindings with the computed value in the
 /// canonical typed-integer surface; a filter keeps or prunes the solution. An
 /// operand that is still unbound, or a domain/precision error (÷0, overflow),
-/// sets `gap` and drops the solution — the caller then re-demotes the WHOLE
-/// program to the oracle rather than present an incomplete native answer, so a
-/// dropped solution is never a wrong answer.
+/// sets `gap` and drops the solution — the caller then surfaces a typed refusal for
+/// the WHOLE program rather than present an incomplete native answer, so a dropped
+/// solution is never a wrong answer.
 fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) -> Vec<Solution> {
     let mut out: Vec<Solution> = Vec::with_capacity(sols.len());
     'next_sol: for mut sol in sols {
@@ -1449,9 +1446,9 @@ fn apply_builtins(builtins: &[QBuiltin], sols: Vec<Solution>, gap: &mut bool) ->
                     sol.bindings.push((var, emit_integer_surface(value)));
                 }
                 BuiltinOutcome::Unbound | BuiltinOutcome::Error(_) => {
-                    // A single unbound operand / domain error re-demotes the WHOLE
-                    // program to the oracle, so the remaining solutions cannot
-                    // change the outcome — stop evaluating them.
+                    // A single unbound operand / domain error refuses the WHOLE program,
+                    // so the remaining solutions cannot change the outcome — stop
+                    // evaluating them.
                     *gap = true;
                     return Vec::new();
                 }
@@ -2024,7 +2021,10 @@ fn evaluate_rule_into_round(
         if !distinct_pairs_satisfied(&rule.distinct_pairs, &sol)? {
             continue;
         }
-        let head = ground_head(&rule.head, &sol)?;
+        let head = match snapshot.mode {
+            ProvenanceMode::Record => ground_head(&rule.head, &sol)?,
+            ProvenanceMode::Skip => ground_relational_head(&rule.head, &sol)?,
+        };
         let key = head.key();
         if snapshot.store.contains_key(&key) {
             continue; // a prior round/stratum already derived it; earlier wins

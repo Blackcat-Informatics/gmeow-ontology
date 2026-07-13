@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# One complete material implication. Its leaves select only the atomic constructor; both ordered
+# implication operands are present; and each carrier has one index plus exactly one value kind.
+ex:validImplication
+    a logic:Formula ;
+    logic:antecedent ex:validAntecedent ;
+    logic:consequent ex:validConsequent .
+
+ex:validAntecedent
+    a logic:Formula ;
+    logic:argument ex:variableCarrier ;
+    logic:relation ex:eligible .
+
+ex:variableCarrier
+    a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termVariable "person" .
+
+ex:validConsequent
+    a logic:Formula ;
+    logic:argument ex:typedLiteralCarrier ;
+    logic:relation ex:minimumAge .
+
+ex:typedLiteralCarrier
+    a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termLiteral "18" ;
+    logic:termLiteralDatatype xsd:integer .

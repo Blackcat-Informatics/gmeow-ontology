@@ -750,10 +750,10 @@ ex:rowTypedIrQuantifiedRoot a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "root" ; gmeow:cellValueIri ir:personClassification ] .
 
 ex:cqTypedIrTermKinds a gmeow:CompetencyQuestion ;
-    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX ir: <https://blackcatinformatics.ca/gmeow/examples/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?definition WHERE { ?definition a logic:Formula ; logic:iff ?eligible, ?conditions . ?eligible logic:relation ir:eligible ; logic:argument ?eligibleArg . ?eligibleArg logic:termIndex 0 ; logic:termVariable 'x' . ?conditions logic:and ?age, ?tags . ?age logic:relation ir:age ; logic:argument ?ageSubject, ?ageLiteral . ?ageSubject logic:termIndex 0 ; logic:termVariable 'x' . ?ageLiteral logic:termIndex 1 ; logic:termLiteral '18' ; logic:termLiteralDatatype xsd:integer . ?tags logic:relation ir:taggedWith ; logic:argument ?tagSubject, ?tagSequence . ?tagSubject logic:termIndex 0 ; logic:termIri ir:Alice . ?tagSequence logic:termIndex 1 ; logic:termSequenceMarker 'tags' . logic:SequenceMarker a owl:Class . FILTER (?definition = ir:eligibilityDefinition) }" ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX ir: <https://blackcatinformatics.ca/gmeow/examples/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> SELECT ?definition WHERE { ?definition a logic:Formula ; logic:iff ?eligible, ?conditions . ?eligible logic:relation ir:eligible ; logic:argument ?eligibleArg . ?eligibleArg logic:termIndex 0 ; logic:termVariable 'x' . ?conditions logic:and ?age, ?tags . ?age logic:relation ir:age ; logic:argument ?ageSubject, ?ageLiteral . ?ageSubject logic:termIndex 0 ; logic:termVariable 'x' . ?ageLiteral logic:termIndex 1 ; logic:termLiteral '18' ; logic:termLiteralDatatype xsd:integer . ?tags logic:relation ir:taggedWith ; logic:argument ?tagSubject, ?tagSequence . ?tagSubject logic:termIndex 0 ; logic:termVariable 'x' . ?tagSequence logic:termIndex 1 ; logic:termSequenceMarker 'tags' . logic:SequenceMarker a owl:Class . FILTER (?definition = ir:eligibilityDefinition) }" ;
     gmeow:cqDataFile "examples/typed-ir.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The eligibility biconditional must retain exactly two operands and distinguish all non-variable term kinds: a typed literal keeps lexical value 18 plus xsd:integer, an IRI constant remains ir:Alice, and a sequence marker remains the distinct variadic kind. Replacing any with an untyped shared string or disturbing the carrier indices empties the result." ;
+    gmeow:cqRationale "The eligibility biconditional keeps one variable x coherent across eligible, age, and taggedWith while preserving two genuinely different argument kinds: a typed literal retains lexical value 18 plus xsd:integer, and a sequence marker remains the distinct variadic kind. Replacing either with an untyped shared string, replacing the tagged subject with a constant, or disturbing a carrier index empties the result." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqTypedIrDefinitionShape ;
     gmeow:cqExpectRow ex:rowTypedIrDefinition .
@@ -765,34 +765,62 @@ ex:cqTypedIrDefinitionShape a logic:ResultShape ;
 ex:rowTypedIrDefinition a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "definition" ; gmeow:cellValueIri ir:eligibilityDefinition ] .
 
-ex:cqTypedIrCrossLayerContract a gmeow:CompetencyQuestion ;
-    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX ir: <https://blackcatinformatics.ca/gmeow/examples/logic/> PREFIX owl: <http://www.w3.org/2002/07/owl#> SELECT DISTINCT ?rule WHERE { ?rule a logic:Rule ; logic:inModule ?module . ?module a logic:Module ; logic:imports ir:baseTheory . ir:irContract a logic:ReasoningContract ; logic:contextAxis logic:ModuleContextAxis ; logic:projectionTarget ?canonical, ?common . ?canonical a logic:ProjectionTarget . ?common a logic:ProjectionTarget . FILTER (?canonical != ?common) logic:ModuleContextAxis a logic:ContextAxis . ir:roundTripLens a logic:Lens ; logic:getLeg ir:downProjection ; logic:putLeg ir:upProjection . ir:roundTripWitness logic:loadBearing true . ir:absenceCheck logic:obligationDischargeCondition ?condition ; logic:obligationDischargeVerdict ?verdict . ?condition a logic:DischargeCondition . ?verdict a logic:DischargeVerdict . logic:Disjunctive a logic:FormulaShape . logic:RelationalCore a logic:Dialect . logic:Type a owl:Class . FILTER (?rule = ir:adultRule) }" ;
+ex:cqTypedIrTernarySourceOrder a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX ir: <https://blackcatinformatics.ca/gmeow/examples/logic/> SELECT ?formula WHERE { ?formula a logic:Formula ; logic:relation ir:between ; logic:argument ?alice, ?bob, ?carol . ?alice logic:termIndex 0 ; logic:termIri ir:Alice . ?bob logic:termIndex 1 ; logic:termIri ir:Bob . ?carol logic:termIndex 2 ; logic:termIri ir:Carol . FILTER (?formula = ir:betweenAssertion) }" ;
     gmeow:cqDataFile "examples/typed-ir.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "One query crosses the typed IR's surrounding contracts without conflating them: a Rule belongs to a Module that imports another theory; the independent ModuleContextAxis coexists with two ProjectionTarget requests; a Lens has executable get and put legs; a load-bearing witness survives; a finite-closure DischargeCondition yields a typed DischargeVerdict; FormulaShape and RelationalCore remain distinct projection and execution classifications; and Type remains the reified universal class." ;
+    gmeow:cqRationale "The canonical source graph carries one named ternary between formula whose three IRI arguments are explicitly ordered Alice, Bob, Carol by zero-based termIndex. Swapping or dropping any carrier edge empties the result. The native producer test, not this source-graph query, is the authority that then lowers this same formula to logic:RelationalCore." ;
     gmeow:cqExactRows true ;
-    gmeow:cqResultShape ex:cqTypedIrRuleShape ;
-    gmeow:cqExpectRow ex:rowTypedIrRule .
+    gmeow:cqResultShape ex:cqTypedIrTernaryShape ;
+    gmeow:cqExpectRow ex:rowTypedIrTernary .
 
-ex:cqTypedIrRuleShape a logic:ResultShape ;
-    logic:declaresColumn [ logic:columnVariable "rule" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+ex:cqTypedIrTernaryShape a logic:ResultShape ;
+    logic:declaresColumn [ logic:columnVariable "formula" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
-ex:rowTypedIrRule a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "rule" ; gmeow:cellValueIri ir:adultRule ] .
+ex:rowTypedIrTernary a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "formula" ; gmeow:cellValueIri ir:betweenAssertion ] .
 
-ex:cqTypedIrRelationalLegalization a gmeow:CompetencyQuestion ;
-    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX ir: <https://blackcatinformatics.ca/gmeow/examples/logic/> SELECT ?tuple WHERE { ?tuple logic:instanceOf ?relation ; logic:naryArg0 ir:Alice ; logic:naryArg1 ir:Bob ; logic:naryArg2 ir:Carol . ?relation a logic:Type . FILTER (?tuple = ir:betweenTuple && ?relation = ir:between) }" ;
+ex:cqTypedIrConstraintBehaviors a gmeow:CompetencyQuestion ;
+    gmeow:cqQuery "PREFIX logic: <https://blackcatinformatics.ca/logic/> PREFIX ir: <https://blackcatinformatics.ca/gmeow/examples/logic/> SELECT ?constraint ?behavior WHERE { { BIND(ir:contactRoute AS ?constraint) ?constraint a logic:DisjunctiveRequirednessConstraint ; logic:onClass ir:Submission ; logic:anyOf ir:email, ir:phone . BIND('alternative-contact' AS ?behavior) } UNION { BIND(ir:attachmentType AS ?constraint) ?constraint a logic:PathValueTypeConstraint ; logic:onClass ir:Submission ; logic:valuePath ir:attachment ; logic:valueClass ir:Document . BIND('typed-attachment' AS ?behavior) } UNION { BIND(ir:reviewerSeparation AS ?constraint) ?constraint a logic:CrossNodeConstraint ; logic:onClass ir:Submission ; logic:roleA ir:author ; logic:roleB ir:reviewer ; logic:crossMode 'differ' . BIND('separated-reviewer' AS ?behavior) } UNION { BIND(ir:noDeprecatedCode AS ?constraint) ?constraint a logic:ForbiddenPatternConstraint ; logic:onClass ir:Submission ; logic:forbiddenPredicate ir:deprecatedCode . BIND('forbidden-legacy-code' AS ?behavior) } UNION { BIND(ir:minimumReviewers AS ?constraint) ?constraint a logic:AggregateConstraint ; logic:onClass ir:Submission ; logic:aggFunction 'COUNT' ; logic:aggPath ir:reviewer ; logic:aggComparator '>=' ; logic:aggCompareTo 2 . BIND('minimum-reviewer-count' AS ?behavior) } }" ;
     gmeow:cqDataFile "examples/typed-ir.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The fixed ternary between atom must legalize into the flat relational core without losing type or order: the tuple reifier is instanceOf the reified relation Type, and naryArg0, naryArg1, and naryArg2 retain Alice, Bob, and Carol at their exact positions. Swapping or dropping any positional edge empties the result." ;
+    gmeow:cqRationale "One submission policy uses five different constraint semantics, each joined to the parameters that determine its compiled condition: at least one contact route, typed attachment values, unequal author/reviewer roles, absence of a deprecated code, and a reviewer COUNT lower bound. Exact expected rows require every behavior to be present; a bare sugar-class declaration or disconnected term list cannot answer the query." ;
     gmeow:cqExactRows true ;
-    gmeow:cqResultShape ex:cqTypedIrTupleShape ;
-    gmeow:cqExpectRow ex:rowTypedIrTuple .
+    gmeow:cqResultShape ex:cqTypedIrConstraintBehaviorShape ;
+    gmeow:cqExpectRow ex:rowTypedIrAlternativeContact ,
+        ex:rowTypedIrTypedAttachment ,
+        ex:rowTypedIrSeparatedReviewer ,
+        ex:rowTypedIrForbiddenCode ,
+        ex:rowTypedIrMinimumReviewers .
 
-ex:cqTypedIrTupleShape a logic:ResultShape ;
-    logic:declaresColumn [ logic:columnVariable "tuple" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+ex:cqTypedIrConstraintBehaviorShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "constraint" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "behavior" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
     logic:shapeCardinality logic:RowsExact .
 
-ex:rowTypedIrTuple a gmeow:ExpectedRow ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "tuple" ; gmeow:cellValueIri ir:betweenTuple ] .
+ex:rowTypedIrAlternativeContact a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "constraint" ; gmeow:cellValueIri ir:contactRoute ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "behavior" ; gmeow:cellValueLiteral "alternative-contact" ] .
+
+ex:rowTypedIrTypedAttachment a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "constraint" ; gmeow:cellValueIri ir:attachmentType ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "behavior" ; gmeow:cellValueLiteral "typed-attachment" ] .
+
+ex:rowTypedIrSeparatedReviewer a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "constraint" ; gmeow:cellValueIri ir:reviewerSeparation ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "behavior" ; gmeow:cellValueLiteral "separated-reviewer" ] .
+
+ex:rowTypedIrForbiddenCode a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "constraint" ; gmeow:cellValueIri ir:noDeprecatedCode ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "behavior" ; gmeow:cellValueLiteral "forbidden-legacy-code" ] .
+
+ex:rowTypedIrMinimumReviewers a gmeow:ExpectedRow ;
+    gmeow:rowCell
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "constraint" ; gmeow:cellValueIri ir:minimumReviewers ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "behavior" ; gmeow:cellValueLiteral "minimum-reviewer-count" ] .

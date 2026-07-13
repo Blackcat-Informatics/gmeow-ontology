@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+# A relation supplies the one counted constructor, isolating the reverse implication guard: the
+# consequent trigger is present but the required antecedent is absent.
+ex:missingAntecedent
+    a logic:Formula ;
+    logic:consequent ex:validConsequent ;
+    logic:relation ex:predicate .
+
+ex:validConsequent
+    a logic:Formula ;
+    logic:relation ex:otherPredicate .
