@@ -36,8 +36,8 @@ use std::sync::Arc;
 
 use crate::provenance::{ProvenanceSemiring, ZWeightSemiring};
 use crate::rule_ir::{
-    EvalAtom, EvalRule, EvalTerm, Fact, FactKey, Solution, distinct_pairs_satisfied,
-    eval_rules_to_rls, ground, match_atom, surface_to_value,
+    EvalAtom, EvalRule, EvalTerm, Fact, FactKey, Solution, distinct_pairs_satisfied, ground,
+    match_atom, surface_to_value,
 };
 
 use super::incremental::{IncrementalSession, SignedFact};
@@ -611,7 +611,10 @@ fn ground_term(term: &EvalTerm, solution: &Solution) -> gmeow_errors::Result<Eva
 }
 
 fn ground_rule_key(rule: &EvalRule) -> String {
-    eval_rules_to_rls(std::slice::from_ref(rule))
+    super::plan::canonical_rule_hash(std::slice::from_ref(rule))
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn consolidate_edb(
@@ -638,159 +641,4 @@ fn consolidate_edb(
         }
     }
     Ok(out)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::rule_ir::parse_eval_rules;
-    use purrdf::TermValue;
-
-    const NS: &str = "https://example.org/incremental-grounding/";
-
-    fn fact(subject: &str, predicate: &str, object: &str) -> Fact {
-        Fact {
-            subject: TermValue::iri(format!("{NS}{subject}")),
-            predicate: format!("{NS}{predicate}"),
-            object: TermValue::iri(format!("{NS}{object}")),
-        }
-    }
-
-    fn signed(fact: Fact, weight: i64) -> SignedFact {
-        SignedFact { fact, weight }
-    }
-
-    fn rules() -> Vec<EvalRule> {
-        parse_eval_rules(&format!(
-            "#[name(\"{NS}edgeReach\")]\n\
-             <{NS}reach>(?X, ?Y, ?W) :- <{NS}edge>(?X, ?Y, ?W) .\n\
-             #[name(\"{NS}transitiveReach\")]\n\
-             <{NS}reach>(?X, ?Z, ?W) :-\n\
-                 <{NS}reach>(?X, ?Y, ?W), <{NS}edge>(?Y, ?Z, ?W) .\n\
-             #[name(\"{NS}openReach\")]\n\
-             <{NS}open>(?X, ?Z, ?W) :-\n\
-                 <{NS}reach>(?X, ?Z, ?W), ~<{NS}blocked>(?Z, ?Z, ?W) .\n"
-        ))
-        .expect("parse grounding rules")
-    }
-
-    fn assert_ground(session: &IncrementalGroundProgram) {
-        for rule in session.snapshot().rules {
-            for atom in std::iter::once(&rule.head).chain(rule.body.iter()) {
-                assert!(!matches!(atom.subject, EvalTerm::Var(_)));
-                assert!(!matches!(atom.object, EvalTerm::Var(_)));
-            }
-        }
-    }
-
-    #[test]
-    fn insert_and_retract_maintain_exact_scratch_ground_program() {
-        let mut session =
-            IncrementalGroundProgram::new("contract", [fact("a", "edge", "b")], &rules())
-                .expect("initial ground program");
-        session.check_scratch_parity().expect("initial parity");
-        assert_ground(&session);
-
-        let inserted = session
-            .apply([signed(fact("b", "edge", "c"), 1)])
-            .expect("insert b->c");
-        assert!(inserted.slice_changed);
-        assert!(!inserted.edb_changes.is_empty());
-        assert!(!inserted.rule_changes.is_empty());
-        assert!(inserted.universe_changes > 0);
-        assert!(inserted.joined_rows > 0);
-        session.check_scratch_parity().expect("insert parity");
-        assert_ground(&session);
-
-        let retracted = session
-            .apply([signed(fact("b", "edge", "c"), -1)])
-            .expect("retract b->c");
-        assert!(retracted.slice_changed);
-        assert!(
-            retracted
-                .rule_changes
-                .iter()
-                .any(|change| change.weight == -1)
-        );
-        session.check_scratch_parity().expect("retract parity");
-        assert_ground(&session);
-    }
-
-    #[test]
-    fn cancelled_batch_is_a_true_noop() {
-        let mut session =
-            IncrementalGroundProgram::new("contract", [fact("a", "edge", "b")], &rules())
-                .expect("initial ground program");
-        let before = session.snapshot().parity_key();
-        let update = session
-            .apply([
-                signed(fact("b", "edge", "c"), 1),
-                signed(fact("b", "edge", "c"), -1),
-            ])
-            .expect("cancelled transaction");
-        assert!(!update.slice_changed);
-        assert!(update.edb_changes.is_empty());
-        assert!(update.rule_changes.is_empty());
-        assert_eq!(session.snapshot().parity_key(), before);
-    }
-
-    #[test]
-    fn asserted_change_invalidates_slice_even_when_candidate_universe_is_unchanged() {
-        let mut session =
-            IncrementalGroundProgram::new("contract", [fact("a", "edge", "b")], &rules())
-                .expect("initial ground program");
-        // reach(a,b) is already in H as a derived candidate.  Making it asserted
-        // does not change H or any ground rule, but it changes reduct input.
-        let update = session
-            .apply([signed(fact("a", "reach", "b"), 1)])
-            .expect("assert an already-derived candidate");
-        assert!(update.slice_changed);
-        assert_eq!(update.universe_changes, 0);
-        assert!(update.rule_changes.is_empty());
-        session.check_scratch_parity().expect("EDB-only parity");
-    }
-
-    #[test]
-    fn scratch_probe_count_tracks_each_committed_snapshot() {
-        let mut session =
-            IncrementalGroundProgram::new("contract", [fact("a", "edge", "b")], &rules())
-                .expect("initial ground program");
-        let initial = session
-            .scratch_ground_rule_probe_rows()
-            .expect("initial scratch probes");
-
-        session
-            .apply([signed(fact("b", "edge", "c"), 1)])
-            .expect("insert b->c");
-        let refreshed = session
-            .scratch_ground_rule_probe_rows()
-            .expect("refreshed scratch probes");
-        let rebuilt = IncrementalGroundProgram::new(
-            "contract",
-            [fact("a", "edge", "b"), fact("b", "edge", "c")],
-            &rules(),
-        )
-        .expect("fresh current-snapshot ground program")
-        .scratch_ground_rule_probe_rows()
-        .expect("fresh current-snapshot probes");
-
-        assert_ne!(
-            refreshed, initial,
-            "the expanded snapshot changes probe work"
-        );
-        assert_eq!(refreshed, rebuilt);
-    }
-
-    #[test]
-    fn unsafe_negative_variable_is_rejected_before_data_can_hide_it() {
-        let unsafe_rules = parse_eval_rules(&format!(
-            "#[name(\"{NS}unsafe\")]\n\
-             <{NS}out>(?X, ?Y, ?W) :-\n\
-                 <{NS}edge>(?X, ?X, ?W), ~<{NS}blocked>(?Y, ?Y, ?W) .\n"
-        ))
-        .expect("parse unsafe rule");
-        let err = IncrementalGroundProgram::new("contract", std::iter::empty(), &unsafe_rules)
-            .expect_err("unsafe negative variable must fail");
-        assert!(err.to_string().contains("is unsafe"), "{err}");
-    }
 }

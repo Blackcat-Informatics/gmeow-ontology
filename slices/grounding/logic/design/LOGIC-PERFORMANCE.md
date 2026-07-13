@@ -27,7 +27,7 @@ reasoner would be a standing argument for bypassing the canon; a fast one is the
 argument for maximal ontological use.
 
 The published record of the subsumed substrates fixes the beat-line precisely. The
-state-of-the-art forward engine family (Nemo/VLog lineage) is built on columnar trie storage,
+state-of-the-art forward-engine family is built on columnar trie storage,
 leapfrog triejoin, semi-naive evaluation, and the restricted chase — and is, by its own account,
 single-threaded, non-incremental, and batch-only. The backward substrate (embedded Prolog)
 carries process-global mutable symbol state that forces whole-lifecycle serialization and
@@ -257,6 +257,23 @@ Provenance is bounded-cost and in-band, never an afterthought pass.
   the Z carrier additionally exposes additive inverse, and the production incremental circuit
   routes weight sum, product, and retraction through it. Overflow is a hard diagnostic, never
   saturation or wrapping.
+- **Caller-supplied score annotations use that same physical seam, not a post-hoc answer join.**
+  `dispatch_query_annotated` and `materialize_program_annotated` accept an opaque
+  `TupleAnnotationAlgebra`: `multiply` (`⊗`) combines the positive premises of one rule firing and
+  `add` (`⊕`) combines alternative firings for the same tuple. The native planned join retains each
+  direct contribution beside the combined answer, so a BM25/vector/name-similarity score arrives
+  with its one-hop proof lineage; it does not lose the derivation that produced it. Magic demand
+  predicates are unit-valued control tuples and are excluded from score products, preventing the
+  demand transform from counting a scored prefix twice. This bounded direct-edge carrier is not an
+  eagerly expanded provenance polynomial.
+- **Algebraic deviations are admitted only by an explicit, structurally checked contract.** An
+  exact contract warrants the ordinary semiring laws. A non-semiring algebra must name each
+  violated law and the positive query classes for which the caller warrants a complete
+  over-approximation; the engine classifies the actual IDB graph as acyclic or recursive and
+  refuses an out-of-scope declaration. Annotation recursion must reach a deterministic fixed point
+  within the declared round guard or hard-fail. Negation-as-failure, value-inventing existential
+  heads, and the arity-generic backward surface currently have no declared score algebra and are
+  typed refusals, never silent score erasure.
 - The Record/Skip capability boundary is unchanged: Skip mode commits the identical fact set in
   the identical order under the identical budget, minus the annotations. Provenance remains a
   capability, not a correctness fork.
@@ -442,7 +459,7 @@ keeps "not yet fast" or "not yet reachable" honest instead of silently reading a
 "done".
 
 - **Native full-scale EL/Galen non-completion.** The native n-ary reified chase is *correct* —
-  native↔Nemo parity is proven on small recursive CURIE programs and an EL-shaped multi-arity
+  captured-golden parity is proven on small recursive CURIE programs and an EL-shaped multi-arity
   recursion, and native actively derives on the real EL/Galen corpus — but the naive,
   non-incremental restricted chase (`crates/logic/src/physical/chase.rs` re-derives against the
   full store every round) does not reach the ~2,025,426-tuple EL/Galen fixpoint within a
@@ -450,17 +467,14 @@ keeps "not yet fast" or "not yet reachable" honest instead of silently reading a
   PERFORMANCE is not yet there. Forward path: incremental / semi-naive maintenance (the
   perf-lever program), orthogonal to the n-ary correctness work.
 - **ChaseBench upstream is unlicensed.** dbunibas/chasebench carries no license, so its fetch
-  lane (`maint-chasebench-corpus`) fetches then HARD-FAILS on the missing license (honest
-  no-optionality). The same ChaseBench-family scenarios run under the Apache-2.0
-  knowsys/nemo-examples packaging via `maint-nemo-kr2024-corpus`.
+  lane (`maint-chasebench-corpus`) HARD-FAILS on the missing license (honest no-optionality).
 - **Published-scenario native-fragment gap.** The native fixed-arity positive-existential
   fragment refuses negation-as-failure, arithmetic/comparison builtins, aggregates, and
   Skolem-FUNCTION existentials — so the published ChaseBench deep/doctors/lubm/ontology-256
-  scenarios and most nemo-examples programs cannot run natively engine-vs-engine on-gate.
+  scenarios cannot run in the native on-gate fragment.
   Committed on-gate coverage therefore uses license-clean, native-completing scenarios that
-  mirror those families' shapes; the one clean + native-completing published set (the EL-Galen
-  owl-el example, ~45k-row EDB) is too large for an on-gate committed corpus and stays the
-  off-gate `maint-nemo-kr2024-corpus` lane.
+  mirror those families' shapes; the large EL-Galen example remains off-gate because its
+  ~45k-row EDB is too large for an on-gate committed corpus.
 - **Allocation gate is a tolerance band, not exact match.** The native forward core exhibits a
   genuine residual ~0.059% per-run allocation jitter (a single quantized ±14-alloc event deep in
   the forward core; the engine already fixed-seeds its hashers) that neither process-global

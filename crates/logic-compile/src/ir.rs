@@ -644,7 +644,7 @@ impl LogicAxiom {
 /// binds `result_var` to `function` applied to `aggregate_var` over the groups formed by
 /// `group_keys`. This is the canonical `logic:` representation of the "reduce" half of the
 /// computation surface (the "map" half is an ordinary derivation rule); it lowers to an
-/// aggregating Datalog/Nemo rule and to a SHACL-AF `GROUP BY` sub-`SELECT`. A rule without an
+/// aggregating rule and to a SHACL-AF `GROUP BY` sub-`SELECT`. A rule without an
 /// `AggregateSpec` is an ordinary Horn rule, so the existing corpus is byte-identical.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AggregateSpec {

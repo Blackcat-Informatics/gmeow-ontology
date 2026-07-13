@@ -85,7 +85,7 @@ pub struct Profile {
     pub foundation_lowering: bool,
     /// Whether the case opts into the teleology-lowering materialization
     /// (`"teleology_lowering": true`). Like `foundation_lowering`, the
-    /// teleology evaluator has no budget governor and needs no nemo rules; a declared
+    /// teleology evaluator has no budget governor and needs no rule-program input; a declared
     /// `budget_params` is a hard failure (enforced in the runner).
     pub teleology_lowering: bool,
     /// The foundation anti-rigidity policy (default

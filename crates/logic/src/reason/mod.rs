@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native, ontology-independent OWL-2 reasoning over the Nemo chase.
+//! Native, ontology-independent OWL-2 reasoning.
 //!
 //! This module hosts fixed, built-in entailment rule sets — an intrinsic
 //! entailment calculus — that run over an arbitrary TBox/ABox through the world-scoped
@@ -11,7 +11,7 @@
 //!
 //! Provides the EL subsumption closure ([`el`]), the predicate-as-DATA RL/DL
 //! native closure ([`rl`] + [`dl`]), and the divergence ledger ([`ledger`])
-//! comparing the native engine against the classic oracles.
+//! comparing native results against captured external corpora.
 
 pub mod artifacts;
 pub mod dl;
@@ -19,6 +19,7 @@ pub mod el;
 pub mod ledger;
 pub mod perf_ledger;
 pub mod rl;
+pub(crate) mod rl_rules;
 
 pub use dl::{DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
 pub use el::{ElClosure, InferredAxiom, el_closure};
@@ -30,11 +31,40 @@ pub use ledger::{
 pub use rl::{RlClosure, RlTriple, rl_closure};
 
 use crate::facts::TypedFactSet;
-use crate::nemo_engine::TypedRow;
-use crate::oracle::{ForwardBudget, ForwardOracle, forward_oracle};
+use crate::oracle::TypedRow;
 use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermValue};
+
+/// One production existential-program admission certificate, scoped to the RDF
+/// world whose obligations were chased.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ChaseCertificate {
+    /// Named-graph world whose existential program was certified and evaluated.
+    pub world: String,
+    /// The native chase termination certificate and its proof evidence.
+    pub admission: crate::materialize::ChaseAdmission,
+}
+
+impl ChaseCertificate {
+    /// Project this world-scoped certificate onto the shared diagnostic model.
+    #[must_use]
+    pub fn to_finding(&self) -> gmeow_errors::Finding {
+        let mut finding = self.admission.to_finding();
+        finding.message = format!("world <{}>: {}", self.world, finding.message);
+        finding
+    }
+}
+
+/// The single production reasoning run and the existential termination evidence
+/// generated while constructing its result.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CertifiedReasoning {
+    /// Typed five-axis reasoning result.
+    pub result: ReasoningResult,
+    /// Deterministic, deduplicated world-scoped chase certificates.
+    pub chase_certificates: Vec<ChaseCertificate>,
+}
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -46,34 +76,50 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 /// the `contract_hash` every native-reason result is produced under.
 ///
 /// The hash covers ALL source that defines the reasoning contract:
-/// * the three fixed rule texts (`dl_rules()`, `EL_RULES`, `RL_RULES`) whose
-///   change alters which axioms the Nemo chase derives;
+/// * the fixed typed EL/DL/RL rule sets whose change alters which axioms the
+///   native chase derives;
 /// * the full source of `dl.rs`, which owns the post-pass functions
 ///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
 ///   `classify_coverage` — any edit to those changes the contract semantics even
 ///   when the rule text is unchanged;
-/// * the source of this file (`mod.rs`), which owns the `run_reasoning` and
-///   `reason_closure` orchestration glue.
+/// * the structured rule IR, typed adapter, plan, semi-naive evaluator, restricted
+///   existential chase, and relation store that execute those rules;
+/// * the source of this file (`mod.rs`), which owns the production reasoning
+///   orchestration and typed-result fold.
 ///
 /// A change to any of these files will produce a different hash, invalidating
 /// cached results produced under the old contract. Public so a consumer holding a
 /// shipped `graph/reasoning` verdict can refuse one minted under a different
 /// contract than the engine it is about to trust it against.
+const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
+    ("reason/el.rs", include_str!("el.rs")),
+    ("reason/rl_rules.rs", include_str!("rl_rules.rs")),
+    ("reason/dl.rs", include_str!("dl.rs")),
+    ("reason/mod.rs", include_str!("mod.rs")),
+    ("oracle.rs", include_str!("../oracle.rs")),
+    ("rule_ir.rs", include_str!("../rule_ir.rs")),
+    ("physical/plan.rs", include_str!("../physical/plan.rs")),
+    (
+        "physical/seminaive.rs",
+        include_str!("../physical/seminaive.rs"),
+    ),
+    ("physical/chase.rs", include_str!("../physical/chase.rs")),
+    ("physical/store.rs", include_str!("../physical/store.rs")),
+];
+
 pub fn native_contract_hash() -> String {
     static HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     HASH.get_or_init(|| {
-        // Contract source is immutable for the lifetime of a compiled binary. Build
-        // and hash the large concatenated surface once; plan-cache lookups then clone
-        // only the 40-byte digest instead of rematerializing the whole rules/source
-        // corpus on every evaluation.
-        let contract = format!(
-            "{dl_rules}\n{el_rules}\n{rl_rules}\n{dl_src}\n{mod_src}",
-            dl_rules = dl::dl_rules(),
-            el_rules = el::EL_RULES,
-            rl_rules = rl::RL_RULES,
-            dl_src = include_str!("dl.rs"),
-            mod_src = include_str!("mod.rs"),
-        );
+        // Contract source is immutable for the lifetime of a compiled binary. Frame
+        // every component by name and byte length so neither path/content boundaries
+        // nor concatenation ambiguity can produce the same semantic identity.
+        let mut contract = String::new();
+        for (name, source) in NATIVE_CONTRACT_COMPONENTS {
+            use std::fmt::Write as _;
+            write!(&mut contract, "{}:{name}:{}:", name.len(), source.len())
+                .expect("String writes cannot fail");
+            contract.push_str(source);
+        }
         crate::provenance::sha1_hex(&contract)
     })
     .clone()
@@ -90,9 +136,8 @@ pub fn native_contract_hash() -> String {
 ///
 /// # Errors
 ///
-/// Returns `Err` if the source store cannot be loaded, if the Nemo chase
-/// fails to parse/validate/evaluate/decode, or if coverage/consistency scanning
-/// fails.
+/// Returns `Err` if the source store cannot be loaded, native evaluation fails,
+/// or coverage/consistency scanning fails.
 pub(crate) fn reason_closure(
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<(Vec<InferredAxiom>, dl::DlVerdict)> {
@@ -114,11 +159,11 @@ pub(crate) fn reason_closure(
 ///
 /// # Errors
 ///
-/// Returns `Err` if the source store cannot be loaded or the Nemo chase fails to
-/// parse/validate/evaluate/decode — the same closure-side failures [`reason_closure`]
-/// surfaces (it omits only the verdict-scan error path).
+/// Returns `Err` if the source store cannot be loaded or native evaluation fails —
+/// the same closure-side failures [`reason_closure`] surfaces (it omits only the
+/// verdict-scan error path).
 pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<InferredAxiom>> {
-    let mut inferred = run_reasoning(edb, &dl::dl_rules())?;
+    let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
     inferred.sort();
     Ok(inferred)
@@ -140,12 +185,28 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
 ///
 /// # Errors
 ///
-/// Returns `Err` if the source store cannot be loaded, if the Nemo
-/// chase fails to parse/validate/evaluate/decode, or if coverage/consistency
-/// scanning fails.
+/// Returns `Err` if the source store cannot be loaded, native evaluation fails,
+/// or coverage/consistency scanning fails.
 pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
-    let (inferred, verdict) = reason_closure(edb)?;
-    Ok(typed_result(inferred, &verdict))
+    Ok(reason_all_certified(edb)?.result)
+}
+
+/// Run the same production reasoning path as [`reason_all`] while retaining the
+/// existential-chase admission certificates emitted during that single pass.
+///
+/// # Errors
+///
+/// Returns the same source-loading, native-evaluation, and consistency-scanning
+/// failures as [`reason_all`].
+pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedReasoning> {
+    let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
+    let chase_certificates = dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
+    inferred.sort();
+    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
+    Ok(CertifiedReasoning {
+        result: typed_result(inferred, &verdict),
+        chase_certificates,
+    })
 }
 
 /// Result of applying one ground conjecture candidate to a cached fixed-rule
@@ -241,7 +302,7 @@ pub(crate) fn reason_ground_fact_insert_incremental(
         });
     }
 
-    let rules = crate::rule_ir::parse_eval_rules(&dl::dl_rules())?;
+    let rules = dl::structured_dl_rules();
     let mut session =
         crate::physical::IncrementalSession::new(native_contract_hash(), world_edb, &rules)?;
     let adjusted = session.apply_insert_budgeted(
@@ -411,15 +472,15 @@ fn dataset_contains_ground_fact(
 /// returning the shared typed [`ReasoningResult`].
 ///
 /// This is the program-carrying entry the full-FOL formula layer flows through to actual
-/// evaluation. The pipeline is `Formula → relational-core lowering → EvalRule → RLS →
-/// chase`, run alongside the program's own Horn rules (the canonical Nemo projection) and
-/// the fixed DL calculus, in one chase over `edb`:
+/// evaluation. The pipeline is `Formula → relational-core lowering → EvalRule →
+/// native chase`, run alongside the program's own Horn rules and the fixed DL
+/// calculus in one chase over `edb`:
 ///
 /// 1. `relational_core::lower_formulas` legalizes each formula: the Horn-expressible
 ///    fragment becomes evaluable rules; everything beyond it (disjunctive heads,
 ///    `∃`-functions, sequence markers, …) is carried as flagged residue.
-/// 2. The evaluable rules are rendered to Nemo `.rls` ([`crate::rule_ir::eval_rules_to_rls`])
-///    in the same ternary encoding as the program rules, so they join the same chase.
+/// 2. The evaluable typed rules join the program rules directly in the same
+///    native chase without a textual projection.
 /// 3. The result's preservation claim UNIONS the lowering residue with the DL coverage gap
 ///    ([`ReasoningResult::from_dl_verdict_with_preservation`]): a non-evaluable formula is
 ///    disclosed (`{sound-under}` + `unsupported_constructs`), never silently absent.
@@ -429,40 +490,25 @@ fn dataset_contains_ground_fact(
 ///
 /// # Errors
 ///
-/// Returns `Err` if the Nemo projection of the program rules fails (e.g. a head
-/// variable unbound by any body atom), or if the chase fails to parse/validate/evaluate/decode.
+/// Returns `Err` if rule lowering fails (for example, a head variable is unbound
+/// by every body atom), or if native evaluation fails.
 pub fn reason_program(
     program: &gmeow_logic_compile::ir::LogicProgram,
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<ReasoningResult> {
-    use gmeow_logic_compile::projections::text::{extract_nemo_rules_section, project_nemo};
-
-    // 1. Lower the full-FOL formulas through the relational-core waist.
-    let (formula_rls, formula_preservation) = crate::relational_core::formula_eval_rls(program);
-
-    // 2. The program's own Horn rules, via the canonical Nemo projection (rules section only;
-    //    facts come from `edb`).
-    // The reasoning surface consumes only the `.rls` rule text, not the loss ledger, so the
-    // nemo projection's drops are interned into a throwaway store.
-    let program_nemo = project_nemo(
-        program,
-        &mut gmeow_logic_compile::loss_ledger::LossLedger::new(),
-    )?;
-    let program_rules = extract_nemo_rules_section(&program_nemo.content)?;
-
-    // 3. Run program rules + formula-derived rules ALONGSIDE the fixed DL calculus, so the
-    //    program's consequences and DL consistency are computed in one chase.
-    let rules = format!("{}\n{program_rules}\n{formula_rls}", dl::dl_rules());
-    let mut inferred = run_reasoning(edb, &rules)?;
+    let lowering = crate::relational_core::lower_formulas(program);
+    let formula_preservation = lowering.preservation.clone();
+    let mut rules = dl::structured_dl_rules();
+    rules.extend(crate::lower::lower_eval_rules(program)?);
+    rules.extend(lowering.rules);
+    let mut inferred = run_reasoning_rules(edb, rules)?;
 
     // 3b. n-ary HEAD-derivation rules (`Rel(a₀..aₙ)` in a rule head) invent a shared reifier
-    //     null per firing — a value-inventing existential the Nemo PROVENANCE chase in
-    //     `run_reasoning` cannot trace ("no trace tree"). They are evaluated SEPARATELY through
-    //     the native restricted chase, which mints the reified tuple by content identity, and
-    //     the derived reified triples are folded into the same closure.
-    let nary_head_rls = crate::relational_core::formula_nary_head_rls(program);
-    if !nary_head_rls.trim().is_empty() {
-        inferred.extend(run_nary_head_chase(&nary_head_rls, edb)?);
+    //     null per firing. They are evaluated through the native restricted chase,
+    //     which mints the reified tuple by content identity, and the derived reified
+    //     triples are folded into the same closure.
+    if !lowering.nary_head_rules.is_empty() {
+        inferred.extend(run_nary_head_chase(&lowering.nary_head_rules, edb)?);
     }
 
     dl::augment_inferred_with_dl(&mut inferred, edb)?;
@@ -579,29 +625,26 @@ fn term_value_to_rdf_term(value: &TermValue) -> gmeow_errors::Result<RdfTerm> {
     })
 }
 
-/// Evaluate the n-ary HEAD-derivation `.rls` (conjunctive-head existential rules) through the
-/// native restricted chase over `edb`, returning the DERIVED reified tuples as
+/// Evaluate n-ary conjunctive-head existential rules through the native restricted
+/// chase over `edb`, returning the DERIVED reified tuples as
 /// [`InferredAxiom`]s to fold into the reasoning closure.
 ///
-/// The native chase is used because these rules invent a reifier null the Nemo provenance
-/// trace cannot follow; it mints each reified tuple by content identity
-/// ([`crate::provenance::mint_nary_reifier`]). Only the chase-DERIVED rows are returned — the
-/// asserted-EDB echo the chase also produces is already present in the Nemo closure, so it is
-/// dropped here to avoid duplication.
+/// The chase mints each reified tuple by content identity
+/// ([`crate::provenance::mint_nary_reifier`]). Only chase-DERIVED rows are returned;
+/// the asserted-EDB echo is dropped to avoid duplication.
 ///
 /// # Errors
 ///
-/// Returns `Err` if the `.rls` cannot be parsed as existential rules, if the store fails to
-/// load `edb`, or if the chase declines the program (an uncertified, non-terminating
-/// existential set) — a first-class declared gap, never a silent drop.
+/// Returns `Err` if the store fails to load `edb`, or if the chase declines the
+/// program (an uncertified, non-terminating existential set) — a first-class
+/// declared gap, never a silent drop.
 fn run_nary_head_chase(
-    nary_head_rls: &str,
+    rules: &[crate::physical::ExistentialRule],
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<Vec<InferredAxiom>> {
-    let rules = crate::physical::parse_existential_rules(nary_head_rls)?;
     let store = WorldStore::new();
     store.load_dataset(edb)?;
-    let (_admission, outcome) = crate::physical::chase_materialize(&store, &rules, None)?;
+    let (_admission, outcome) = crate::physical::chase_materialize(&store, rules, None)?;
     let budgeted = match outcome {
         crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
         crate::physical::NativeOutcome::Unsupported(kind) => {
@@ -615,8 +658,8 @@ fn run_nary_head_chase(
 
     let mut out: Vec<InferredAxiom> = Vec::new();
     for row in budgeted.rows {
-        // Drop the asserted-EDB echo (rule_iri == logic:assert); it is already in the closure
-        // from the Nemo run. Keep only the chase-derived reified tuples.
+        // Drop the asserted-EDB echo (rule_iri == logic:assert); it is already in
+        // the closure. Keep only the chase-derived reified tuples.
         if row.rule_iri == crate::provenance::ASSERT_RULE_IRI {
             continue;
         }
@@ -691,7 +734,7 @@ fn subject_iri(term: &TermValue) -> gmeow_errors::Result<String> {
 /// The raw world string of a typed world term.
 ///
 /// The world position of a ternary reasoning fact is always a plain string
-/// literal (the Nemo string-constant treatment); any other shape is a hard error.
+/// literal; any other shape is a hard error.
 fn world_string(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Literal {
@@ -724,66 +767,18 @@ fn decode_premise(row: &TypedRow) -> gmeow_errors::Result<(String, String, Strin
     Ok((subject, row.predicate.clone(), object))
 }
 
-/// Run a fixed entailment rule set over `edb` through the Nemo chase.
-///
-/// Loads `edb` into a fresh [`WorldStore`], pushes every IRI-object quad of
-/// every world into a typed EDB ([`TypedFactSet`]), runs the typed chase (the
-/// Nemo adapter is the sole fact stringifier), and coerces every ternary typed
-/// row into an [`InferredAxiom`] carrying its raw provenance (EDB/IDB flag,
-/// firing rule name, immediate premises).
-///
-/// This is the shared chase machinery both [`el::el_closure`] and
-/// [`dl::dl_consistency`] build on: the rule set is the only difference.
-///
-/// # Errors
-///
-/// Returns `Err` if the source store cannot be loaded, if the Nemo
-/// chase fails to parse/validate/evaluate/decode, or if a materialized row is
-/// not the ternary reasoning shape.
-pub(crate) fn run_reasoning(
+// Structured rules are the sole forward reasoning input.
+pub(crate) fn run_reasoning_rules(
     edb: &RdfDataset,
-    rules: &str,
+    rules: Vec<crate::rule_ir::EvalRule>,
 ) -> gmeow_errors::Result<Vec<InferredAxiom>> {
-    // The primary reasoning path funnels through the single naming site
-    // `forward_oracle()` (the native core after the Task-6 flip).
-    let oracle = forward_oracle();
-    run_reasoning_with(edb, rules, &oracle)
-}
-
-/// Run the shared chase machinery over `rules` using a SPECIFIC [`ForwardOracle`],
-/// returning the coerced [`InferredAxiom`] closure.
-///
-/// [`run_reasoning`] delegates here with the production `forward_oracle()`. The
-/// native↔Nemo differential cross-check ([`crosscheck_native_vs_nemo`]) is the
-/// only other caller: it drives the SAME corpus and rule text through BOTH the
-/// native oracle and the retained Nemo oracle so the two closures can be compared
-/// row-for-row. Factoring the oracle out keeps the EDB construction and the
-/// [`chase_rows_to_inferred`] coercion byte-identical across engines, so any
-/// residual difference in the compared closures is a genuine engine divergence,
-/// never a harness artifact.
-///
-/// # Errors
-///
-/// Returns `Err` if the source store cannot be loaded, if the chase fails
-/// to parse/validate/evaluate/decode, or if a materialized row is not the ternary
-/// reasoning shape.
-pub(crate) fn run_reasoning_with(
-    edb: &RdfDataset,
-    rules: &str,
-    oracle: &dyn ForwardOracle,
-) -> gmeow_errors::Result<Vec<InferredAxiom>> {
-    // 1-2. Build the typed EDB (the byte-identical fact set every engine sees).
     let edb_facts = build_edb_facts(edb)?;
-
-    // 3. Run the typed chase through the CHOSEN forward oracle (the adapter renders
-    //    the fact lines internally).
-    let chase = oracle.materialize(&edb_facts, rules, &ForwardBudget::UNBOUNDED)?;
-
-    // 4. Coerce every ternary typed row into an InferredAxiom.
+    let (chase, _frontier) =
+        crate::oracle::native_forward_eval_rules_with_frontier(&edb_facts, rules)?;
     chase_rows_to_inferred(&chase)
 }
 
-/// Build the typed EDB ([`TypedFactSet`]) for `edb` — the single, engine-neutral
+/// Build the typed EDB ([`TypedFactSet`]) for `edb` — the single native
 /// fact-set construction the whole reasoning path shares.
 ///
 /// Loads `edb` into a fresh [`WorldStore`], then pushes every IRI-object quad of
@@ -795,11 +790,8 @@ pub(crate) fn run_reasoning_with(
 /// verdict. It is no longer a transport necessity: the typed adapter carries
 /// literal objects — control characters included — losslessly through the chase.
 ///
-/// Factored out of [`run_reasoning_with`] so the benchmark seams
-/// ([`crate::cost::run_native_forward`] / [`crate::cost::run_nemo_forward`]) drive
-/// each engine over the EXACT same fact set the production reasoning path builds —
-/// byte-identical EDB across engines is what lets the cost/parity comparison isolate
-/// the engine and nothing else.
+/// Factored out so benchmark seams drive the exact same fact set as the production
+/// reasoning path.
 ///
 /// # Errors
 ///
@@ -827,94 +819,18 @@ pub(crate) fn build_edb_facts(edb: &RdfDataset) -> gmeow_errors::Result<TypedFac
     Ok(edb_facts)
 }
 
-/// `rdfs:subClassOf` — the subsumption predicate the native↔Nemo differential compares.
-const RDFS_SUBCLASS_OF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-
-/// Extract the `(subclass, superclass, world)` subsumption tuples from a coerced
-/// closure — every `rdfs:subClassOf` axiom (asserted echo + derived), sorted and
-/// deduplicated.
-///
-/// Both sides of the native↔Nemo differential run through the identical
-/// [`chase_rows_to_inferred`] coercion, so the subject/object/world encodings line
-/// up exactly and [`ledger::compare_subsumption`] classifies any residual
-/// difference as a genuine engine divergence.
-fn subsumption_tuples(inferred: &[InferredAxiom]) -> Vec<(String, String, String)> {
-    let mut out: Vec<(String, String, String)> = inferred
-        .iter()
-        .filter(|ax| ax.predicate == RDFS_SUBCLASS_OF)
-        .map(|ax| (ax.subject.clone(), ax.object.clone(), ax.world.clone()))
-        .collect();
-    out.sort();
-    out.dedup();
-    out
-}
-
-/// Run the native ↔ Nemo differential subsumption cross-check over `edb`.
-///
-/// This is the scheduled cross-check lane's engine: it dual-runs the SAME committed
-/// reasoning corpus under the fixed DL calculus ([`dl::dl_rules`]) through BOTH the
-/// production native oracle ([`crate::oracle::forward_oracle`]) and the retained
-/// Nemo bootstrap oracle ([`crate::oracle::nemo_forward_oracle`]) — the last
-/// remaining Nemo entry point on any non-test path — then folds the two subsumption
-/// closures into a [`DivergenceLedger`] via [`ledger::compare_subsumption`].
-///
-/// The native closure is the `native` side and the Nemo closure the `oracle` side,
-/// so a `NemoOnly` subsumption surfaces as an `OracleOnly` row that
-/// [`ledger::enforce`] FAILS on (a native coverage regression: Nemo derived a
-/// subsumption the production native path did not). A native-only subsumption is
-/// expected superset richness and passes. The whole fixed DL calculus is gap-zero
-/// on the committed bundle, so a healthy run is pure agreement.
-///
-/// Both engines see byte-identical EDB and rule text and share the
-/// [`chase_rows_to_inferred`] coercion, so the ledger isolates the engine
-/// difference and nothing else. Nemo runs UNBUDGETED (`ForwardBudget::UNBOUNDED`),
-/// exactly as it did when it was the production chase, so this is a faithful
-/// dual-run, never a downgraded approximation.
-///
-/// # Errors
-///
-/// Returns `Err` if either engine's chase fails to
-/// parse/validate/evaluate/decode over the committed corpus.
-pub fn crosscheck_native_vs_nemo(edb: &RdfDataset) -> gmeow_errors::Result<DivergenceLedger> {
-    let rules = dl::dl_rules();
-
-    // Native: the production forward oracle (the single-naming-site native core).
-    let native_oracle = forward_oracle();
-    let native = run_reasoning_with(edb, &rules, &native_oracle)?;
-
-    // Nemo: the retained bootstrap oracle, reached ONLY through its dedicated
-    // off-primary-path provider — the last production consumer keeping Nemo alive.
-    let nemo_oracle = crate::oracle::nemo_forward_oracle();
-    let nemo = run_reasoning_with(edb, &rules, &nemo_oracle)?;
-
-    let native_subs = subsumption_tuples(&native);
-    let nemo_subs = subsumption_tuples(&nemo);
-    let rows = ledger::compare_subsumption(&native_subs, &nemo_subs);
-    Ok(ledger::build_ledger(
-        rows,
-        Vec::new(),
-        Vec::new(),
-        Vec::new(),
-    ))
-}
-
 /// Coerce a typed chase result into the `Vec<InferredAxiom>` closure the DL/EL
 /// post-passes and result folds consume.
 ///
 /// Every reasoning fact is the ternary `predicate(subject, object, world)`. The
-/// rule texts the reasoning chase runs — `EL_RULES`, `dl_rules()`, and the
-/// ternary projections `reason_program` appends — are repo-owned and declare
+/// typed rule sets the reasoning chase runs are repo-owned and declare
 /// ONLY ternary relations, so a non-ternary row indicates a rule-text bug and is
 /// a hard error. (This differs from `materialize`'s explicit non-quad bucket:
 /// there the rule text is caller-supplied and may legitimately declare helper
 /// predicates of other arities.)
 ///
-/// Factored out of [`run_reasoning`] so the coercion is INDEPENDENT of which
-/// [`ForwardOracle`] produced the closure: a caller holding a native-produced
-/// AND a Nemo-produced [`crate::oracle::TypedChaseResult`] of the same program
-/// can coerce BOTH identically and feed the resulting closures through the
-/// provenance-blind DL post-pass, demonstrating engine-invariance of the
-/// downstream verdict.
+/// Kept as a separate fold so native evaluator and benchmark callers share the
+/// same provenance-aware conversion into the public closure.
 ///
 /// # Errors
 ///
@@ -989,6 +905,33 @@ mod tests {
     }
 
     #[test]
+    fn native_contract_hash_frames_every_load_bearing_engine_component() {
+        let names = NATIVE_CONTRACT_COMPONENTS
+            .iter()
+            .map(|(name, source)| {
+                assert!(!source.is_empty(), "contract component {name} is empty");
+                *name
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            names,
+            vec![
+                "reason/el.rs",
+                "reason/rl_rules.rs",
+                "reason/dl.rs",
+                "reason/mod.rs",
+                "oracle.rs",
+                "rule_ir.rs",
+                "physical/plan.rs",
+                "physical/seminaive.rs",
+                "physical/chase.rs",
+                "physical/store.rs",
+            ]
+        );
+        assert_eq!(native_contract_hash().len(), 40, "SHA-1 hex contract id");
+    }
+
+    #[test]
     fn is_absolute_iri_recognizes_schemeless_authority_worlds() {
         // http(s) worlds — the common case — stay named.
         assert!(is_absolute_iri(
@@ -1010,60 +953,7 @@ mod tests {
         assert!(!is_absolute_iri("1http://bad-scheme")); // scheme must start with a letter
     }
 
-    /// The flip observable (adversary F5): after promoting the native core,
-    /// `forward_oracle()` — the SOLE naming site the primary reasoning path funnels
-    /// through (`run_reasoning` line ~476) — resolves to the native engine, and the
-    /// retained Nemo oracle is reachable ONLY via its distinct off-path provider.
-    ///
-    /// This does not rest on the contract-hash bump: it verifies the ENGINE ON THE
-    /// PATH structurally (the seam name), then drives `reason_all` end-to-end over
-    /// the fixed DL calculus to prove the native path actually DECIDES the whole
-    /// closure (a native OracleOnly/DlGap regression would surface as an `Err` or a
-    /// missing entailment here, not a silent byte-diff).
-    #[test]
-    fn nemo_off_primary_reasoning_path() {
-        // 1. Structural observable: the production forward seam is native.
-        assert_eq!(
-            crate::oracle::forward_oracle().name(),
-            "native",
-            "the primary reasoning path's forward oracle must be the native engine"
-        );
-        // 2. Nemo is retained but OFF the primary path — reachable only via its own
-        //    distinct provider (the parity/cross-check seam), never `forward_oracle`.
-        assert_eq!(
-            crate::oracle::nemo_forward_oracle().name(),
-            "nemo",
-            "Nemo stays reachable only through its dedicated off-path provider"
-        );
-        assert_ne!(
-            crate::oracle::forward_oracle().name(),
-            crate::oracle::nemo_forward_oracle().name(),
-            "the production engine and the bootstrap oracle must be distinct engines"
-        );
-
-        // 3. End-to-end: `reason_all` (→ `reason_closure` → `run_reasoning` →
-        //    `forward_oracle().materialize`) decides the full fixed DL calculus on
-        //    native. A ⊑ B, A ⊑ C, B ⊓ C ⊑ ⊥, x : A must be found inconsistent —
-        //    exercising subsumption transitivity AND the disjointness clash the
-        //    native chase now materializes end-to-end.
-        let store = dataset(vec![
-            quad(A, SUBCLASS, B),
-            quad(A, SUBCLASS, C),
-            quad(B, DISJOINT, C),
-            quad(X, TYPE, A),
-        ]);
-        let result = reason_all(store.as_ref()).expect("native reason_all must decide the closure");
-        assert!(
-            !result.is_consistent(),
-            "native path must derive the disjointness inconsistency (no DlGap regression)"
-        );
-        assert!(
-            !result.inferred().is_empty(),
-            "native path must materialize a non-empty subsumption closure"
-        );
-    }
-
-    /// Production-surface antecedent guard (gap G3): the primary reasoning path
+    /// Production-surface    /// Production-surface antecedent guard (gap G3): the primary reasoning path
     /// (`reason_all` → `reason_closure` → `run_reasoning` → `forward_oracle().materialize`
     /// → `chase_rows_to_inferred`) must carry REAL native premises end-to-end, not
     /// just non-empty inferred facts. `forward_oracle()` funnels the binary
@@ -1097,68 +987,27 @@ mod tests {
         );
     }
 
-    /// The Task-7 scheduled cross-check engine: dual-running the SAME corpus through
-    /// the native oracle and the retained Nemo oracle over the fixed DL calculus must
-    /// agree — pure agreement, no Nemo-only (OracleOnly) regression, and the verdict
-    /// passes. Non-vacuity is pinned too: the transitive `A ⊑ C` plus the two asserted
-    /// echoes give `agree > 0`, so the lane's `passed && agree > 0` gate is real.
-    #[test]
-    fn materialize_crosscheck_native_vs_nemo_agrees_on_subclass_chain() {
-        // A ⊑ B ⊑ C — both engines derive the transitive A ⊑ C, so the differential
-        // ledger is pure Agree.
-        let store = dataset(vec![quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)]);
-        let ledger =
-            crosscheck_native_vs_nemo(store.as_ref()).expect("native↔Nemo dual-run must succeed");
-        let verdict = ledger::enforce(&ledger);
-        assert!(
-            verdict.passed,
-            "native and Nemo must agree over the fixed DL calculus: {:?}; rows {:#?}",
-            verdict.reasons, ledger.rows
-        );
-        assert_eq!(
-            ledger.oracle_only, 0,
-            "no Nemo-only subsumption (a native coverage regression): {:#?}",
-            ledger.rows
-        );
-        assert!(
-            ledger.agree > 0,
-            "non-vacuous: native and Nemo actually agree on ≥1 subsumption: {:#?}",
-            ledger.rows
-        );
-        // The transitive A ⊑ C is derived by BOTH engines and classified Agree.
-        let agrees: Vec<(&str, &str)> = ledger
-            .rows
-            .iter()
-            .filter(|r| r.kind == DivergenceKind::Agree)
-            .map(|r| (r.subject.as_str(), r.object.as_str()))
-            .collect();
-        assert!(
-            agrees.contains(&(A, C)),
-            "transitive A ⊑ C must be a shared Agree row: {agrees:?}"
-        );
-    }
-
-    /// A Nemo-only subsumption the native path missed is an `OracleOnly` row that the
+    /// An external-only subsumption the native path missed is an `OracleOnly` row that the
     /// scheduled lane's `enforce` verdict FAILS on — the differential's whole purpose.
     /// A native-only subsumption is expected superset richness and passes. This pins
     /// the failure semantics the real engines never trip on the gap-zero corpus.
     #[test]
-    fn crosscheck_ledger_fails_on_nemo_only_and_passes_on_native_only() {
+    fn crosscheck_ledger_fails_on_oracle_only_and_passes_on_native_only() {
         let native = vec![(A.to_owned(), B.to_owned(), W.to_owned())];
-        let nemo_extra = vec![
+        let oracle_extra = vec![
             (A.to_owned(), B.to_owned(), W.to_owned()),
             (B.to_owned(), C.to_owned(), W.to_owned()),
         ];
-        // Nemo derived B ⊑ C that native did not → OracleOnly → the lane must fail.
-        let rows = ledger::compare_subsumption(&native, &nemo_extra);
+        // The captured oracle derived B ⊑ C that native did not: the lane must fail.
+        let rows = ledger::compare_subsumption(&native, &oracle_extra);
         let bad = ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new());
-        assert_eq!(bad.oracle_only, 1, "the Nemo-only subsumption is counted");
+        assert_eq!(bad.oracle_only, 1, "the oracle-only subsumption is counted");
         assert!(
             !ledger::enforce(&bad).passed,
-            "a Nemo-only subsumption must fail the differential"
+            "an oracle-only subsumption must fail the differential"
         );
-        // The converse — native richer than Nemo — is not a failure.
-        let rows = ledger::compare_subsumption(&nemo_extra, &native);
+        // The converse — native richer than the captured oracle — is not a failure.
+        let rows = ledger::compare_subsumption(&oracle_extra, &native);
         let rich = ledger::build_ledger(rows, Vec::new(), Vec::new(), Vec::new());
         assert_eq!(rich.native_only, 1);
         assert!(

@@ -1,13 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# Nightly Rust is required because the `nemo` engine (a hard dependency of
-# gmeow-logic) uses unstable features: macro_metavar_expr, iter_intersperse,
-# and slice_swap_unchecked.  There is no fallback — nemo does not compile on
-# stable.  Tracking issues: #499, PR #531 (logic-engine-scaffold).
-#
-# Use the latest available nightly. The retained Nemo comparison engine depends
-# on unstable features.
+# Nightly Rust is required because gmeow-logic uses `portable_simd` for targeted
+# native vector kernels. Use the latest available nightly.
 # CI keeps this in lockstep via the dtolnay `toolchain:` inputs in ci.yml.
 [toolchain]
 channel = "nightly"

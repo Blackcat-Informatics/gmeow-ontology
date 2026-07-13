@@ -171,11 +171,10 @@ fn render_source_print(
     root: &Path,
     model: &gmeow_docs::DocsModel,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    const AXIOMS: [&str; 5] = [
+    const AXIOMS: [&str; 4] = [
         "generated/owl/gmeow-dl.ttl",
         "generated/owl/gmeow-el.ttl",
         "generated/logic/gmeow.logic.rdf12.ttl",
-        "generated/logic/gmeow.rls",
         "generated/datalog/gmeow.dl",
     ];
     let mut axioms = BTreeMap::new();

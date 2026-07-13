@@ -6,8 +6,7 @@
 //! The forward semi-naive core ([`crate::physical::seminaive`]) is a pure Datalog
 //! engine: [`ground_head`] hard-errors on a head variable the body does not bind.
 //! This module adds the missing capability — **value invention** for existential head
-//! variables — as the Datalog± *restricted (standard) chase*, the forward fragment
-//! Nemo carries as a demoted oracle today.
+//! variables — as the Datalog± *restricted (standard) chase*.
 //!
 //! # Restricted, not oblivious
 //!
@@ -18,15 +17,14 @@
 //! the restricted chase from the oblivious chase, and — together with weak acyclicity
 //! of the rule set — is what makes it terminate.
 //!
-//! # The witness is a Skolem function of the frontier (matches Nemo)
+//! # The witness is a Skolem function of the frontier
 //!
 //! When a firing does invent, each existential variable is bound to a deterministic
 //! [`crate::physical::store::SkolemTerm`] witness addressed on the bound frontier
 //! VALUES (never lexical variable names) — a genuine Skolem function `f(x̄)`.  Two
-//! distinct frontier bindings mint two distinct witnesses, exactly as Nemo's restricted
-//! chase does, so the produced fact set is parity-comparable to Nemo up to a null-blind
-//! (recipe-recursive) renaming.  Re-firing on the same frontier recovers the same
-//! witness (the registry is idempotent), so a converging program reaches its fixpoint.
+//! distinct frontier bindings mint two distinct witnesses. Re-firing on the same
+//! frontier recovers the same witness (the registry is idempotent), so a converging
+//! program reaches its fixpoint.
 //!
 //! # Termination is a certificate, not a hope
 //!
@@ -38,9 +36,8 @@
 //!
 //! # Routing
 //!
-//! [`chase_materialize`] is the forward entry `materialize::materialize_routed` dispatches
-//! to for a value-inventing program (a rule with an existential head variable), sitting
-//! ahead of the Datalog arm because `materialize_native` cannot represent one.
+//! [`chase_materialize`] is the native forward entry for a value-inventing program
+//! (a rule with an existential head variable).
 
 use std::collections::BTreeSet;
 
@@ -69,6 +66,25 @@ fn physical_err(detail: String) -> gmeow_errors::Diag {
 /// A chase attempt's outcome: a decided budgeted derivation, or a declared gap.
 pub(crate) type ChaseOutcome = NativeOutcome<Budgeted<Vec<DerivedRow>>>;
 
+/// How an existential rule addresses witnesses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum WitnessPolicy {
+    /// Standard frontier-Skolem witnesses for general existential TGDs.
+    FrontierSkolem,
+    /// DL tableau blocking: preserve a distinct witness per root binding, then
+    /// close recursive same-rule/ordinal obligations on the nearest ancestor.
+    DlAncestorBlocking,
+}
+
+/// One not-yet-committed chase row and the provenance needed to publish it.
+struct PendingRow {
+    key: FactKey,
+    fact: Fact,
+    source_quad_ids: Vec<String>,
+    antecedents: Vec<Fact>,
+    rule_iri: String,
+}
+
 /// A single existential (tuple-generating) rule: a conjunctive body implies a
 /// conjunctive head that may quantify fresh existential variables.
 ///
@@ -78,10 +94,8 @@ pub(crate) type ChaseOutcome = NativeOutcome<Budgeted<Vec<DerivedRow>>>;
 /// both by the satisfaction check and — since distinct existential ordinals already
 /// mint distinct witnesses — honored by construction on a firing.
 ///
-/// `distinct` is populated only when the rule is built directly from the IR (which can
-/// state the guard); [`parse_existential_rules`] REFUSES the `≥n` `.rls` shape outright
-/// rather than reconstruct it with the guard dropped, since the `.rls` surface cannot
-/// express witness distinctness.
+/// `distinct` is populated directly from the typed IR so witness distinctness is
+/// preserved without an intermediate rule-language projection.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct ExistentialRule {
     /// The content-addressed firing rule IRI.
@@ -92,6 +106,11 @@ pub(crate) struct ExistentialRule {
     pub(crate) head: Vec<EvalAtom>,
     /// Pairwise inequality guards over head/existential variables.
     pub(crate) distinct: Vec<(String, String)>,
+    /// Optional explicit witness-address frontier. `None` derives the standard
+    /// head/body intersection; `Some([])` gives a rule-scoped shared witness.
+    pub(crate) witness_frontier: Option<Vec<String>>,
+    /// Witness addressing policy for this rule family.
+    pub(crate) witness_policy: WitnessPolicy,
 }
 
 impl ExistentialRule {
@@ -130,6 +149,9 @@ impl ExistentialRule {
     /// The frontier variables: head vars the body DOES bind, sorted.  These are the
     /// Skolem function's arguments — the witness depends on their bound values.
     fn frontier_vars(&self) -> Vec<String> {
+        if let Some(explicit) = &self.witness_frontier {
+            return explicit.clone();
+        }
         let body = self.body_vars();
         self.head_vars()
             .into_iter()
@@ -258,32 +280,37 @@ pub(crate) fn chase_world_explained(
     rules: &[ExistentialRule],
     max_steps: Option<u64>,
 ) -> gmeow_errors::Result<(ChaseOutcome, SkolemRegistry)> {
-    let mut governor = StepGovernor::new(max_steps);
     let mut registry = SkolemRegistry::new();
+    let outcome = chase_world_with_registry(world, edb_facts, rules, max_steps, &mut registry)?;
+    Ok((outcome, registry))
+}
+
+/// Run one world while retaining witness recipes across repeated outer fixed-point
+/// invocations. The DL reasoner uses this to make ancestor blocking span its
+/// alternating ordinary-rule/chase rounds; general chase entry points use a fresh
+/// registry and therefore keep standard one-shot behavior.
+pub(crate) fn chase_world_with_registry(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[ExistentialRule],
+    max_steps: Option<u64>,
+    registry: &mut SkolemRegistry,
+) -> gmeow_errors::Result<ChaseOutcome> {
+    let mut governor = StepGovernor::new(max_steps);
     let mut out: Vec<DerivedRow> = Vec::new();
-    let status = chase_world_into(
-        world,
-        edb_facts,
-        rules,
-        &mut governor,
-        &mut registry,
-        &mut out,
-    )?;
+    let status = chase_world_into(world, edb_facts, rules, &mut governor, registry, &mut out)?;
     sort_rows(&mut out);
     let progress = StrataProgress {
         completed: usize::from(status == BudgetStatus::Ok),
         total: 1,
         saturated_preds: BTreeSet::new(),
     };
-    Ok((
-        NativeOutcome::Decided(Budgeted {
-            rows: out,
-            status,
-            progress,
-            consumed_steps: governor.consumed,
-        }),
-        registry,
-    ))
+    Ok(NativeOutcome::Decided(Budgeted {
+        rows: out,
+        status,
+        progress,
+        consumed_steps: governor.consumed,
+    }))
 }
 
 /// Chase ONE world into a shared output buffer under a shared step governor.
@@ -343,7 +370,7 @@ fn chase_world_into(
         let round_height = MinProofHeightSemiring.derive([prior_round_height])?;
         // Gather this round's new facts with their provenance, keyed for deterministic
         // FactKey-sorted commit (the columnar-store determinism doctrine).
-        let mut round: Vec<(FactKey, Fact, Vec<String>)> = Vec::new();
+        let mut round = Vec::new();
         for (rule, existentials, frontier_vars) in &prepared {
             for sol in join_atoms(&rule.body, &store, &empty_solution()) {
                 // The rule's `distinct` guards range over the EXISTENTIAL head vars
@@ -379,11 +406,7 @@ fn chase_world_into(
                     // No reified n-ary tuple in the head: every existential is a genuine value
                     // witness (DL `∃p.D`, `≥n p.D`, …), frontier-addressed `SkolemTerm`.
                     for (ordinal, evar) in existentials.iter().enumerate() {
-                        let witness = registry.mint(SkolemTerm {
-                            rule_iri: rule.rule_iri.clone(),
-                            ordinal,
-                            frontier: frontier.clone(),
-                        });
+                        let witness = mint_witness(rule, registry, ordinal, &frontier);
                         extended
                             .bindings
                             .push((evar.clone(), term_display(&witness)));
@@ -403,11 +426,7 @@ fn chase_world_into(
                         if reifier_vars.contains(evar.as_str()) {
                             continue;
                         }
-                        let witness = registry.mint(SkolemTerm {
-                            rule_iri: rule.rule_iri.clone(),
-                            ordinal,
-                            frontier: frontier.clone(),
-                        });
+                        let witness = mint_witness(rule, registry, ordinal, &frontier);
                         extended
                             .bindings
                             .push((evar.clone(), term_display(&witness)));
@@ -429,15 +448,28 @@ fn chase_world_into(
                 let sources = reifiers_of(&sol)?;
                 for hatom in &rule.head {
                     let fact = ground_head(hatom, &extended)?;
-                    round.push((fact.key(), fact, sources.clone()));
+                    round.push(PendingRow {
+                        key: fact.key(),
+                        fact,
+                        source_quad_ids: sources.clone(),
+                        antecedents: sol.source_facts.clone(),
+                        rule_iri: rule.rule_iri.clone(),
+                    });
                 }
             }
         }
 
         // Commit in FactKey-sorted order, deduped against what is already known.
-        round.sort_by(|(a, _, _), (b, _, _)| a.cmp(b));
+        round.sort_by(|left, right| left.key.cmp(&right.key));
         let mut progressed = false;
-        for (key, fact, sources) in round {
+        for PendingRow {
+            key,
+            fact,
+            source_quad_ids,
+            antecedents,
+            rule_iri,
+        } in round
+        {
             if committed.contains(&key) {
                 continue;
             }
@@ -445,24 +477,19 @@ fn chase_world_into(
                 status = BudgetStatus::Exhausted;
                 break 'fixpoint;
             }
-            let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
-            let derivation_id = mint_derivation_id(&fact_rule_iri(&sources), &src_refs);
+            let src_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
+            let derivation_id = mint_derivation_id(&rule_iri, &src_refs);
             store.insert(&fact.predicate, &fact.subject, &fact.object);
             out.push(DerivedRow {
                 graph: world.to_owned(),
                 subject: fact.subject,
                 predicate: fact.predicate,
                 object: fact.object,
-                rule_iri: CHASE_RULE_IRI.to_owned(),
-                source_quad_ids: sources,
+                rule_iri,
+                source_quad_ids,
                 derivation_id,
                 proof_height: round_height,
-                // The restricted existential chase is consumed by the reifier-based
-                // provenance path (`materialize_routed`'s existential leg / the n-ary
-                // head chase), never through the ternary `ForwardOracle` seam that
-                // re-exposes decoded antecedents, so the decoded-fact list is unused
-                // here and left empty rather than threaded through the round tuple.
-                antecedents: Vec::new(),
+                antecedents,
             });
             committed.insert(key);
             governor.charge();
@@ -560,135 +587,7 @@ pub(crate) fn chase_materialize(
     ))
 }
 
-/// Parse a Nemo `.rls` program into [`ExistentialRule`]s, capturing conjunctive heads and
-/// existential (`!Y`) head variables.
-///
-/// [`crate::rule_ir::parse_eval_rules`] takes only the FIRST head atom and cannot represent
-/// a value-inventing rule; this parser keeps every head atom (so a `∃y. p(x,y) ∧ D(y)`
-/// obligation stays ONE rule sharing its witness) and preserves the existential-vs-frontier
-/// distinction structurally (an existential var appears in the head but no body atom).  A
-/// plain Datalog rule parses too — its [`ExistentialRule::is_existential`] is simply false.
-///
-/// # A `≥n` obligation is REFUSED, not silently downgraded
-///
-/// A qualified `≥n p.D` restriction lowers to a TGD whose head places `n` interchangeable
-/// existential witnesses in the same `(predicate, slot)` (`p(x,!y1) ∧ D(!y1) ∧ p(x,!y2) ∧
-/// D(!y2) …`) PLUS the pairwise inequality `!yi ≠ !yj` that forces them apart.  The Nemo
-/// `.rls` surface cannot state that inequality over invented variables — an inequality
-/// (`Unequals`) is a *body* operation and an existential variable never occurs in the body —
-/// so the distinctness is unrecoverable from the parsed program.  Building the rule with an
-/// empty `distinct` would let the restricted-chase satisfaction check collapse every witness
-/// onto one pre-existing individual and under-generate: a WRONG answer, not merely an
-/// incomplete one.  Rather than paper over the gap, this parser [hard-fails] on that shape.
-///
-/// (The hand-built IR path can still carry `≥n` distinctness — [`ExistentialRule::distinct`]
-/// is populated directly there; only the `.rls`-surface reconstruction is refused, because
-/// only it loses the guard.)
-///
-/// [hard-fails]: reject_unrepresentable_distinctness
-pub(crate) fn parse_existential_rules(rules: &str) -> gmeow_errors::Result<Vec<ExistentialRule>> {
-    use crate::nemo_engine::NemoParsedRules;
-    use nemo::rule_model::programs::ProgramRead;
-
-    let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
-    let mut out: Vec<ExistentialRule> = Vec::new();
-    for (rule_index, rule) in program.rules().enumerate() {
-        let head: Vec<EvalAtom> = rule
-            .head()
-            .iter()
-            .map(|atom| crate::rule_ir::lower_nemo_atom(atom, false))
-            .collect::<Result<_, _>>()?;
-        let body: Vec<EvalAtom> = rule
-            .body_positive()
-            .map(|atom| crate::rule_ir::lower_nemo_atom(atom, false))
-            .collect::<Result<_, _>>()?;
-        // Distinct UNNAMED rules must not share one IRI. `SkolemTerm` keys a witness on
-        // `(rule_iri, ordinal, frontier)`, so two anonymous existential rules firing on the
-        // same frontier would otherwise mint the SAME witness — conflating their invented
-        // individuals. Disambiguate the anonymous IRI by the rule's position.
-        let rule_iri = rule.name().unwrap_or_else(|| {
-            format!(
-                "{}rule/anonymous/{rule_index}",
-                crate::provenance::LOGIC_NAMESPACE
-            )
-        });
-        let parsed = ExistentialRule {
-            rule_iri,
-            body,
-            head,
-            // The `.rls` surface carries no witness-distinctness guard (see the type doc);
-            // an empty vec is CORRECT for the single-witness `∃p.D` shape and REFUSED below
-            // for the multi-witness `≥n p.D` shape, never silently kept for the latter.
-            distinct: Vec::new(),
-        };
-        // A VALUE-INVENTING rule whose body carries a negated (`~atom`) guard cannot be
-        // honored: the restricted chase joins only positive body atoms, so dropping the
-        // guard would invent witnesses the negation forbids — a wrong answer. Refuse it.
-        // (A non-existential rule's negation is harmless HERE — this `ExistentialRule` is
-        // only probed for `is_existential`, never chased; the Datalog path re-parses it via
-        // `parse_eval_rules`, which lowers the negated body faithfully.)
-        if parsed.is_existential() && rule.body_negative().count() > 0 {
-            return Err(physical_err(format!(
-                "chase: value-inventing rule {} carries a negated body literal (~atom) the \
-                 restricted existential chase cannot honor (it joins only positive body \
-                 atoms); refusing rather than inventing witnesses the guard forbids",
-                parsed.rule_iri
-            )));
-        }
-        reject_unrepresentable_distinctness(&parsed)?;
-        out.push(parsed);
-    }
-    Ok(out)
-}
-
-/// Hard-fail a parsed rule whose head is the `≥n p.D` shape — `n ≥ 2` interchangeable
-/// existential witnesses in one `(predicate)` — because the `.rls` surface cannot carry the
-/// pairwise distinctness that separates them (see [`parse_existential_rules`]).
-///
-/// Two DISTINCT existential head variables filling the SAME predicate are interchangeable
-/// role-fillers: the restricted-chase satisfaction check could bind both to a single
-/// pre-existing witness and skip the firing, under-generating.  A single existential witness
-/// (the common `∃p.D` case, and the live `materialize_routed` path) never trips this — one
-/// variable can never share a predicate with a second one.  Existentials over DIFFERENT
-/// predicates are not interchangeable (distinct ordinals mint distinct witnesses by
-/// construction), so they parse fine.
-fn reject_unrepresentable_distinctness(rule: &ExistentialRule) -> gmeow_errors::Result<()> {
-    let existentials: BTreeSet<String> = rule.existentials().into_iter().collect();
-    // Bucket existential head vars by the predicate whose subject/object slot they fill.
-    let mut per_predicate: std::collections::BTreeMap<String, BTreeSet<String>> =
-        std::collections::BTreeMap::new();
-    for atom in &rule.head {
-        for term in [&atom.subject, &atom.object] {
-            if let EvalTerm::Var(name) = term
-                && existentials.contains(name)
-            {
-                per_predicate
-                    .entry(atom.predicate.clone())
-                    .or_default()
-                    .insert(name.clone());
-            }
-        }
-    }
-    for (predicate, vars) in per_predicate {
-        if vars.len() >= 2 {
-            let names: Vec<&str> = vars.iter().map(String::as_str).collect();
-            return Err(physical_err(format!(
-                "chase: rule {} places {} distinct existential witnesses ({}) in predicate <{}> \
-                 — the shape of a ≥n qualified restriction whose pairwise witness distinctness \
-                 the Nemo .rls surface cannot express (an inequality guard is a body constraint \
-                 and cannot range over invented head variables); refusing rather than dropping \
-                 the distinctness and under-generating",
-                rule.rule_iri,
-                names.len(),
-                names.join(", "),
-                predicate,
-            )));
-        }
-    }
-    Ok(())
-}
-
-/// The firing IRI stamped on a chase-derived row.
+/// The firing IRI stamped/// The firing IRI stamped on a chase-derived row.
 const CHASE_RULE_IRI: &str = "https://blackcatinformatics.ca/gmeow/logic/chase/exists";
 
 /// The empty seed solution.
@@ -708,6 +607,23 @@ fn bound_value(sol: &Solution, var: &str) -> gmeow_errors::Result<purrdf::TermVa
         ))
     })?;
     crate::rule_ir::surface_to_value(surface)
+}
+
+fn mint_witness(
+    rule: &ExistentialRule,
+    registry: &mut SkolemRegistry,
+    ordinal: usize,
+    frontier: &[purrdf::TermValue],
+) -> purrdf::TermValue {
+    let recipe = SkolemTerm {
+        rule_iri: rule.rule_iri.clone(),
+        ordinal,
+        frontier: frontier.to_vec(),
+    };
+    match rule.witness_policy {
+        WitnessPolicy::FrontierSkolem => registry.mint(recipe),
+        WitnessPolicy::DlAncestorBlocking => registry.mint_dl_blocked(recipe),
+    }
 }
 
 /// The reifier IRIs of a solution's matched body facts, in body order.
@@ -950,7 +866,7 @@ fn fact_rule_iri(_sources: &[String]) -> String {
 // is placed; the program terminates when no special edge lies inside a cycle (weak
 // acyclicity).  This is the `ExistentialRule`-native port of `certify.rs`'s
 // `certify_weak_acyclicity` — computed on the SAME rules the chase runs, so the
-// existential head vars are actually visible (a `.rls` re-projection would hard-error on
+// existential head vars are actually visible (a text re-projection would hard-error on
 // them and the certifier would stay vacuous).
 //
 // # Constant refinement (why plain positions are too coarse)
@@ -1226,9 +1142,8 @@ impl ChaseAdmission {
 /// entry points ([`route_chase`], single-world, and [`chase_materialize`], multi-world):
 /// the native chase may run iff the program is certified terminating OR a step budget
 /// bounds it (an uncertified program stays incomplete-never-wrong under the governor).
-/// A certified-negative, unbudgeted program is `Unsupported` — refused to the demoted
-/// oracle rather than looped.  Only this DECISION is unified; each entry point keeps its
-/// own chase scoping.
+/// A certified-negative, unbudgeted program is `Unsupported` rather than looped. Only
+/// this DECISION is unified; each entry point keeps its own chase scoping.
 fn admits_or_budgeted(admission: &ChaseAdmission, max_steps: Option<u64>) -> bool {
     admission.admits_native() || max_steps.is_some()
 }
@@ -1245,12 +1160,10 @@ fn admits_or_budgeted(admission: &ChaseAdmission, max_steps: Option<u64>) -> boo
 /// - **Uncertified** with a budget ⇒ run the chase **budgeted-partial** — the budget
 ///   governor caps it, returning an incomplete-never-wrong prefix.
 /// - **Uncertified** with no budget ⇒ `Unsupported(NonTerminatingExistential)`, refusing
-///   the program to the demoted oracle rather than looping.
+///   the program rather than looping.
 ///
-/// `materialize::materialize_routed` reaches the value-inventing fragment through
-/// [`chase_materialize`] (its multi-world sibling), so the production forward path now
-/// carries existential rules; the native↔Nemo parity gate additionally exercises this
-/// single-world router end-to-end against the facts-only oracle.
+/// [`chase_materialize`] is the multi-world sibling used by the production forward
+/// path; this router exposes the same admission decision for one-world callers.
 ///
 /// # Errors
 ///
@@ -1264,6 +1177,24 @@ pub(crate) fn route_chase(
     let admission = ChaseAdmission::certify(rules);
     let outcome = if admits_or_budgeted(&admission, max_steps) {
         chase_world(world, edb_facts, rules, max_steps)?
+    } else {
+        NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)
+    };
+    Ok((admission, outcome))
+}
+
+/// The production-DL sibling of [`route_chase`] that preserves one witness registry
+/// across alternating fixed-point rounds.
+pub(crate) fn route_chase_with_registry(
+    world: &str,
+    edb_facts: &[Fact],
+    rules: &[ExistentialRule],
+    max_steps: Option<u64>,
+    registry: &mut SkolemRegistry,
+) -> gmeow_errors::Result<(ChaseAdmission, ChaseOutcome)> {
+    let admission = ChaseAdmission::certify(rules);
+    let outcome = if admits_or_budgeted(&admission, max_steps) {
+        chase_world_with_registry(world, edb_facts, rules, max_steps, registry)?
     } else {
         NativeOutcome::Unsupported(UnsupportedKind::NonTerminatingExistential)
     };
@@ -1374,6 +1305,8 @@ mod tests {
                 atom(var("?y"), TYPE, EvalTerm::ConstNamed(D.to_owned())),
             ],
             distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         }
     }
 
@@ -1410,6 +1343,8 @@ mod tests {
                 atom(var("?r"), &a0, var("?a")),
             ],
             distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let (reifier, got_rel, args) = reified_nary_head(&rule).unwrap().unwrap();
         assert_eq!(reifier, "?r");
@@ -1437,6 +1372,8 @@ mod tests {
                 atom(var("?r"), &a2, var("?c")),
             ],
             distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let err = reified_nary_head(&rule).unwrap_err();
         assert!(
@@ -1463,6 +1400,8 @@ mod tests {
                 atom(var("?r"), &a0, var("?b")),
             ],
             distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let err = reified_nary_head(&rule).unwrap_err();
         assert!(
@@ -1547,6 +1486,8 @@ mod tests {
                 atom(var("?y"), TYPE, EvalTerm::ConstNamed(D.to_owned())),
             ],
             distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let edb = vec![fact("http://ex/a", TYPE, D)];
         let b = decided(chase_world(W, &edb, &[cyclic], Some(3)).unwrap());
@@ -1571,6 +1512,8 @@ mod tests {
                 atom(var("?y2"), TYPE, EvalTerm::ConstNamed(D.to_owned())),
             ],
             distinct: vec![("?y1".to_owned(), "?y2".to_owned())],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         // `a` has ONE existing typed witness — short of the two required.
         let edb = vec![
@@ -1591,110 +1534,6 @@ mod tests {
             "≥2 distinct witnesses, got {}",
             targets.len()
         );
-    }
-
-    // ── parse_existential_rules: single ∃ parses, ≥n refuses ─────────────────────
-
-    #[test]
-    fn parse_single_existential_rule_parses_with_empty_distinct() {
-        // The common `∃p.D` shape (one invented witness) — and exactly the live
-        // `materialize_routed` path — must keep parsing cleanly.
-        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-        let rls = format!("<{P}>(?x, !y, ?w), <{ty}>(!y, <{D}>, ?w) :- <{ty}>(?x, <{C}>, ?w) .");
-        let rules = parse_existential_rules(&rls).expect("single-existential ∃p.D must parse");
-        assert_eq!(rules.len(), 1);
-        assert!(rules[0].is_existential(), "the rule invents a witness");
-        assert_eq!(rules[0].existentials().len(), 1, "exactly one ∃ witness");
-        assert!(
-            rules[0].distinct.is_empty(),
-            "a single witness carries no distinctness guard"
-        );
-    }
-
-    #[test]
-    fn parse_ge_n_existential_rule_is_refused_not_silently_downgraded() {
-        // `≥2 p.D`: two interchangeable existential witnesses in the SAME predicate `p`.
-        // The `.rls` surface cannot carry `!y1 ≠ !y2`, so the parser must REFUSE (Err)
-        // rather than build a rule with the distinctness dropped — which would let the
-        // restricted chase collapse both witnesses onto one and under-generate.
-        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-        let rls = format!(
-            "<{P}>(?x, !y1, ?w), <{ty}>(!y1, <{D}>, ?w), \
-             <{P}>(?x, !y2, ?w), <{ty}>(!y2, <{D}>, ?w) :- <{ty}>(?x, <{C}>, ?w) ."
-        );
-        let err = parse_existential_rules(&rls)
-            .expect_err("a ≥n obligation the surface cannot carry must be refused");
-        assert!(
-            err.message().contains("≥n")
-                && err.message().contains("distinct existential witnesses"),
-            "the refusal must name the ≥n distinctness gap it is protecting: {err}"
-        );
-        // No GitHub issue/PR/process refs leak into the message.
-        assert!(
-            !err.message().contains('#'),
-            "the refusal message must carry no process refs: {err}"
-        );
-    }
-
-    #[test]
-    fn parse_existential_rule_with_negated_body_is_refused() {
-        // A VALUE-INVENTING rule whose body carries a negated (~atom) guard cannot be
-        // honored — the restricted chase joins only positive body atoms, so dropping the
-        // guard would invent witnesses it forbids. The parser must REFUSE.
-        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-        let rls = format!(
-            "<{P}>(?x, !y, ?w), <{ty}>(!y, <{D}>, ?w) :- \
-             <{ty}>(?x, <{C}>, ?w), ~<{ty}>(?x, <{E}>, ?w) ."
-        );
-        let err = parse_existential_rules(&rls)
-            .expect_err("an existential rule with a negated body guard must be refused");
-        assert!(
-            err.message().contains("negated body literal"),
-            "the refusal must name the negation it protects against: {err}"
-        );
-        assert!(
-            !err.message().contains('#'),
-            "no process refs in the message: {err}"
-        );
-    }
-
-    #[test]
-    fn parse_non_existential_rule_with_negation_still_parses() {
-        // A NON-value-inventing (Datalog) rule with a negated guard is not the chase's
-        // concern: its `ExistentialRule` is only probed for `is_existential` (false) and
-        // never chased; the Datalog path re-parses it with the negation intact. It must
-        // parse here rather than being wrongly refused.
-        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-        let rls =
-            format!("<{ty}>(?x, <{D}>, ?w) :- <{ty}>(?x, <{C}>, ?w), ~<{ty}>(?x, <{E}>, ?w) .");
-        let rules =
-            parse_existential_rules(&rls).expect("a plain Datalog rule with negation must parse");
-        assert_eq!(rules.len(), 1);
-        assert!(
-            !rules[0].is_existential(),
-            "no invented witness ⇒ not existential"
-        );
-    }
-
-    #[test]
-    fn parse_anonymous_existential_rules_get_distinct_iris() {
-        // Two UNNAMED existential rules must not share `logic:rule/anonymous`: `SkolemTerm`
-        // keys a witness on (rule_iri, ordinal, frontier), so a shared IRI would collide
-        // their invented individuals on the same frontier. Anonymous IRIs are index-suffixed.
-        let ty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-        let rls = format!(
-            "<{P}>(?x, !y, ?w), <{ty}>(!y, <{D}>, ?w) :- <{ty}>(?x, <{C}>, ?w) .\n\
-             <{Q}>(?x, !z, ?w), <{ty}>(!z, <{E}>, ?w) :- <{ty}>(?x, <{D}>, ?w) ."
-        );
-        let rules =
-            parse_existential_rules(&rls).expect("two anonymous existential rules must parse");
-        assert_eq!(rules.len(), 2);
-        assert_ne!(
-            rules[0].rule_iri, rules[1].rule_iri,
-            "distinct anonymous rules must not share a Skolem-identity IRI"
-        );
-        assert!(rules[0].rule_iri.ends_with("/anonymous/0"));
-        assert!(rules[1].rule_iri.ends_with("/anonymous/1"));
     }
 
     #[test]
@@ -1741,6 +1580,8 @@ mod tests {
                 atom(var("?y"), TYPE, EvalTerm::ConstNamed(to.to_owned())),
             ],
             distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         }
     }
 
@@ -1805,6 +1646,8 @@ mod tests {
             body: vec![atom(var("?x"), P, var("?y"))],
             head: vec![atom(var("?y"), P, var("?x"))],
             distinct: vec![],
+            witness_frontier: None,
+            witness_policy: WitnessPolicy::FrontierSkolem,
         };
         let admission = ChaseAdmission::certify(&[datalog]);
         assert!(admission.admits_native());
@@ -1861,7 +1704,7 @@ mod tests {
 
     #[test]
     fn route_uncertified_without_budget_refuses_to_the_oracle() {
-        // Cyclic D⊑∃p.D, no budget ⇒ a first-class declared gap (demote to Nemo), never
+        // Cyclic D⊑∃p.D, no budget ⇒ a first-class declared gap, never
         // a native loop.
         let cyclic = restriction_rule("http://ex/rule/cyclic", D, P, D);
         let edb = vec![fact("http://ex/a", TYPE, D)];

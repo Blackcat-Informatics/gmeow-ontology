@@ -14,7 +14,8 @@
 //! (sorted, deduped) `lang:CompositionalLowering` N-Triples graph carrying its formula content
 //! key plus one `lang:LoweringStage` per lowering step (each with its `logic:preservationKind`).
 //!
-//! A sentence outside the modeled quantified-SVO fragment is a HARD FAILURE (a [`Diag`] carrying
+//! A sentence outside the modeled quantified-SVO fragment is a HARD FAILURE (a
+//! [`gmeow_errors::Diag`] carrying
 //! the offending construct) — never a plausible-but-wrong formula, never a silent fallback. The
 //! modeled fragment lowers exactly, so every stage discharges [`PreservationKind::Exact`] and the
 //! corpus folds ONE honest, vacuously-exact loss-ledger row (nothing dropped) exactly as the

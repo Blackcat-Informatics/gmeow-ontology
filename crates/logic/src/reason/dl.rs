@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native DL consistency / unsatisfiability over the Nemo chase.
+//! Native DL consistency / unsatisfiability over the structured chase.
 //!
 //! The native authority now closes the bundle with the predicate-as-DATA RL
 //! engine ([`crate::reason::rl`]) and layers DL-specific finite consistency
@@ -22,8 +22,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 use crate::facts::skolem_iri;
 use crate::reason::InferredAxiom;
-use crate::reason::el::EL_RULES;
-use purrdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm};
+use purrdf::{RdfDataset, RdfLiteral, RdfLoss, RdfQuad, RdfTerm, TermValue};
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -162,7 +161,7 @@ const OWL_HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
 //
 // `owl:intersectionOf` is deliberately NOT listed in CONSTRUCT_COVERAGE and is
 // therefore never placed in `DlCoverage::present`. This is intentional and
-// honest: the EL/RL-positive path (the Nemo chase + `EL_RULES`) already
+// honest: the native EL/RL-positive path already
 // materialises conjunction via standard subclass-propagation rules — every
 // class expression `C ≡ (A ⊓ B)` in the bundle is expressed as
 // `C ⊑ A`, `C ⊑ B` (plus the EL rules for the converse), so the subsumption
@@ -356,24 +355,47 @@ const DATATYPE_FACET_FAMILIES: &[&str] = &[
     "langRange",
 ];
 
-/// The clash-detection rules layered on top of [`EL_RULES`], in the
-/// world-scoped ternary gmeow encoding. Full IRIs in angle brackets; `?w`
-/// threads the world. Predicate-quantifying constructs are handled in the Rust
-/// post-pass below, where the predicate is data in the indexed [`Fact`] set.
-const DL_EXTRA_RULES: &str = r#"
-#[name("dl:individual-clash")]
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?i,<http://www.w3.org/2002/07/owl#Nothing>,?w) :- <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?i,?c1,?w), <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?i,?c2,?w), <http://www.w3.org/2002/07/owl#disjointWith>(?c1,?c2,?w) .
-#[name("dl:unsatisfiable-class")]
-<http://www.w3.org/2000/01/rdf-schema#subClassOf>(?c,<http://www.w3.org/2002/07/owl#Nothing>,?w) :- <http://www.w3.org/2000/01/rdf-schema#subClassOf>(?c,?d,?w), <http://www.w3.org/2000/01/rdf-schema#subClassOf>(?c,?e,?w), <http://www.w3.org/2002/07/owl#disjointWith>(?d,?e,?w) .
-#[name("dl:nothing-membership")]
-<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?i,<http://www.w3.org/2002/07/owl#Nothing>,?w) :- <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?i,?c,?w), <http://www.w3.org/2000/01/rdf-schema#subClassOf>(?c,<http://www.w3.org/2002/07/owl#Nothing>,?w) .
-"#;
-
-/// Assemble the fast native DL rule set: the fixed EL calculus plus native
-/// clash detection. Finite DL/profile constructs are then completed by
+/// Assemble the fast native DL rule set: the fixed typed EL calculus plus
+/// native clash detection. Finite DL/profile constructs are then completed by
 /// [`augment_inferred_with_dl`].
-pub(crate) fn dl_rules() -> String {
-    format!("{EL_RULES}\n{DL_EXTRA_RULES}")
+pub(crate) fn structured_dl_rules() -> Vec<crate::rule_ir::EvalRule> {
+    use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm};
+
+    const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const DISJOINT: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+    const NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+
+    let v = EvalTerm::var;
+    let n = EvalTerm::named;
+    let a = EvalAtom::positive;
+    let mut rules = super::el::structured_el_rules();
+    rules.extend([
+        EvalRule::positive(
+            "dl:individual-clash",
+            a(v("?i"), TYPE, n(NOTHING)),
+            vec![
+                a(v("?i"), TYPE, v("?c1")),
+                a(v("?i"), TYPE, v("?c2")),
+                a(v("?c1"), DISJOINT, v("?c2")),
+            ],
+        ),
+        EvalRule::positive(
+            "dl:unsatisfiable-class",
+            a(v("?c"), SUBCLASS, n(NOTHING)),
+            vec![
+                a(v("?c"), SUBCLASS, v("?d")),
+                a(v("?c"), SUBCLASS, v("?e")),
+                a(v("?d"), DISJOINT, v("?e")),
+            ],
+        ),
+        EvalRule::positive(
+            "dl:nothing-membership",
+            a(v("?i"), TYPE, n(NOTHING)),
+            vec![a(v("?i"), TYPE, v("?c")), a(v("?c"), SUBCLASS, n(NOTHING))],
+        ),
+    ]);
+    rules
 }
 
 /// A class proven unsatisfiable: it subsumes two disjoint classes, so it can
@@ -440,11 +462,8 @@ pub struct DlVerdict {
     pub gaps: Vec<RdfLoss>,
 }
 
-/// Strip a decoded Nemo object display form (`<iri>`) back to the bare IRI.
-///
-/// Derived/asserted object terms come through the chase decoder as their Nemo
-/// display string; IRIs are wrapped in angle brackets. Non-IRI forms are
-/// returned unchanged.
+/// Strip a decoded object display form (`<iri>`) back to the bare IRI.
+/// Non-IRI forms are returned unchanged.
 fn unwrap_iri(display: &str) -> &str {
     display
         .strip_prefix('<')
@@ -850,30 +869,6 @@ fn has_fact(
     ))
 }
 
-/// A scoped Skolem witness IRI for an existential filler — the chase's
-/// value-invention (tuple-generating dependency) discipline (SEMANTICS:27,
-/// LOGIC-IR.md:66-72).
-///
-/// The witness identity is a *deterministic, content-addressed* function of the
-/// scope `(world, property, filler_class, ordinal)` — deliberately **not** the
-/// parent individual. This is the **termination guarantee** (restricted-chase
-/// blocking by class-set, the canonical approach): an obligation
-/// `≥n p.D` in `world` always discharges to the *same* `n` witnesses
-/// `w₀…wₙ₋₁` regardless of which individual raised it, so a cyclic axiom like
-/// `D ⊑ ∃p.D` reuses the witness it already invented (`p(w_D, w_D')` where
-/// `w_D'` already exists) instead of inventing a fresh chain — the witness pool
-/// per `(world, property, filler_class)` is finite, so [`add_inferred_fact`]'s
-/// `BTreeSet::insert` saturates and the fixpoint loop terminates. Distinct
-/// ordinals yield distinct IRIs, giving the `n` distinct fillers a `≥n`
-/// obligation needs.
-///
-/// We reuse the project Skolem namespace ([`crate::facts::SKOLEM_PREFIX`]) so the
-/// witness is indistinguishable from a Skolemized blank node downstream.
-fn witness_iri(world: &str, property: &str, filler_class: &str, ordinal: usize) -> String {
-    let key = format!("dl-exists\u{1f}{world}\u{1f}{property}\u{1f}{filler_class}\u{1f}{ordinal}");
-    skolem_iri(&key)
-}
-
 /// True iff `a` and `b` are **provably** distinct individuals — i.e. an explicit
 /// `owl:differentFrom` relates them.
 ///
@@ -968,7 +963,7 @@ fn cardinality_minima(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
 /// (`cardinality`, `minCardinality`, `qualifiedCardinality`,
 /// `minQualifiedCardinality`) contribute their `≥n` lower bound, qualified by
 /// `onClass` when present. These are the obligations the chase discharges by
-/// inventing scoped Skolem witnesses ([`witness_iri`]).
+/// inventing scoped Skolem witnesses through the native restricted chase.
 fn existential_obligations(restriction: &Restriction) -> Vec<(usize, Option<&str>)> {
     let mut obligations: Vec<(usize, Option<&str>)> = Vec::new();
     if let Some(class) = restriction.some_values_from.as_deref() {
@@ -982,6 +977,182 @@ fn existential_obligations(restriction: &Restriction) -> Vec<(usize, Option<&str
     obligations
 }
 
+fn structured_existential_rules(
+    restrictions: &BTreeMap<(String, String), Restriction>,
+    edb: &RdfDataset,
+) -> BTreeMap<String, Vec<crate::physical::ExistentialRule>> {
+    use crate::rule_ir::{EvalAtom, EvalTerm};
+
+    const DATATYPE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#DatatypeProperty";
+    let datatype_properties = quads_by_subject(edb)
+        .into_iter()
+        .filter_map(|(subject, predicate, object, world)| {
+            (predicate == RDF_TYPE
+                && matches!(object, RdfTerm::Iri(ref iri) if iri == DATATYPE_PROPERTY))
+            .then_some((world, subject))
+        })
+        .collect::<BTreeSet<_>>();
+    let mut by_world: BTreeMap<String, Vec<crate::physical::ExistentialRule>> = BTreeMap::new();
+    for ((world, restriction_iri), restriction) in restrictions {
+        let Some(property) = restriction.on_property.as_deref() else {
+            continue;
+        };
+        if restriction.on_data_range.is_some()
+            || datatype_properties.contains(&(world.clone(), property.to_owned()))
+        {
+            continue;
+        }
+        for (needed, on_class) in existential_obligations(restriction) {
+            let witnesses = (0..needed)
+                .map(|ordinal| format!("?witness{ordinal}"))
+                .collect::<Vec<_>>();
+            let mut head = Vec::new();
+            for witness in &witnesses {
+                head.push(EvalAtom::positive(
+                    EvalTerm::var("?subject"),
+                    property,
+                    EvalTerm::var(witness),
+                ));
+                if let Some(class) = on_class {
+                    head.push(EvalAtom::positive(
+                        EvalTerm::var(witness),
+                        RDF_TYPE,
+                        EvalTerm::named(class),
+                    ));
+                }
+            }
+            let mut distinct = Vec::new();
+            for left in 0..witnesses.len() {
+                for right in (left + 1)..witnesses.len() {
+                    distinct.push((witnesses[left].clone(), witnesses[right].clone()));
+                    head.push(EvalAtom::positive(
+                        EvalTerm::var(&witnesses[left]),
+                        OWL_DIFFERENT_FROM,
+                        EvalTerm::var(&witnesses[right]),
+                    ));
+                }
+            }
+            let identity = format!(
+                "{world}\u{1f}{restriction_iri}\u{1f}{property}\u{1f}{needed}\u{1f}{}",
+                on_class.unwrap_or(OWL_THING)
+            );
+            by_world
+                .entry(world.clone())
+                .or_default()
+                .push(crate::physical::ExistentialRule {
+                    rule_iri: format!(
+                        "https://blackcatinformatics.ca/gmeow/logic/rule/dl-existential/{}",
+                        crate::provenance::sha1_hex(&identity)
+                    ),
+                    body: vec![EvalAtom::positive(
+                        EvalTerm::var("?subject"),
+                        RDF_TYPE,
+                        EvalTerm::named(restriction_iri),
+                    )],
+                    head,
+                    distinct,
+                    // Let the chase derive the frontier from the rule shape. The
+                    // bound subject occurs in both body and head, so each subject's
+                    // existential obligation receives its own deterministic witness.
+                    witness_frontier: None,
+                    witness_policy: crate::physical::WitnessPolicy::DlAncestorBlocking,
+                });
+        }
+    }
+    by_world
+}
+
+fn run_structured_existential_chase(
+    inferred: &mut Vec<InferredAxiom>,
+    facts: &mut BTreeSet<Fact>,
+    rules_by_world: &BTreeMap<String, Vec<crate::physical::ExistentialRule>>,
+    witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
+) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
+    let mut certificates = Vec::new();
+    for (world, rules) in rules_by_world {
+        if rules.is_empty() {
+            continue;
+        }
+        let edb = facts
+            .iter()
+            .filter(|fact| fact.world == *world)
+            .map(|fact| crate::rule_ir::Fact {
+                subject: TermValue::iri(fact.subject.clone()),
+                predicate: fact.predicate.clone(),
+                object: TermValue::iri(fact.object.clone()),
+            })
+            .collect::<Vec<_>>();
+        let registry = witness_registries.entry(world.clone()).or_default();
+        let (admission, outcome) =
+            crate::physical::route_chase_with_registry(world, &edb, rules, None, registry)?;
+        let budgeted = match outcome {
+            crate::physical::NativeOutcome::Decided(budgeted) => budgeted,
+            crate::physical::NativeOutcome::Unsupported(kind) => {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                    detail: format!(
+                        "structured DL existential chase refused {kind:?}: {:?}",
+                        admission.capability_gap_rows()
+                    ),
+                }));
+            }
+        };
+        certificates.push(crate::reason::ChaseCertificate {
+            world: world.clone(),
+            admission,
+        });
+        for row in budgeted.rows {
+            if row.rule_iri == crate::provenance::ASSERT_RULE_IRI {
+                continue;
+            }
+            let premises = row
+                .antecedents
+                .iter()
+                .map(|premise| {
+                    let subject = match &premise.subject {
+                        TermValue::Iri(iri) => iri.clone(),
+                        other => {
+                            return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                                detail: format!(
+                                    "existential chase premise has non-IRI subject {other:?}"
+                                ),
+                            }));
+                        }
+                    };
+                    Ok((
+                        subject,
+                        premise.predicate.clone(),
+                        crate::provenance::term_display(&premise.object),
+                    ))
+                })
+                .collect::<gmeow_errors::Result<Vec<_>>>()?;
+            let subject = match row.subject {
+                TermValue::Iri(iri) => iri,
+                other => {
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                        detail: format!("existential chase emitted non-IRI subject {other:?}"),
+                    }));
+                }
+            };
+            let object = match row.object {
+                TermValue::Iri(iri) => iri,
+                other => {
+                    return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                        detail: format!("existential chase emitted non-IRI object {other:?}"),
+                    }));
+                }
+            };
+            add_inferred_fact(
+                inferred,
+                facts,
+                Fact::new(subject, row.predicate, object, row.graph),
+                &row.rule_iri,
+                premises,
+            );
+        }
+    }
+    Ok(certificates)
+}
+
 /// Add DL-only finite consistency consequences to the closure.
 ///
 /// The RL generic-triple engine owns positive entailment. This pass owns the DL
@@ -992,10 +1163,22 @@ pub(crate) fn augment_inferred_with_dl(
     inferred: &mut Vec<InferredAxiom>,
     edb: &RdfDataset,
 ) -> gmeow_errors::Result<()> {
+    augment_inferred_with_dl_certificates(inferred, edb).map(|_| ())
+}
+
+/// Add the finite DL consequences and retain every production existential-chase
+/// termination certificate that admitted a real rule program.
+pub(crate) fn augment_inferred_with_dl_certificates(
+    inferred: &mut Vec<InferredAxiom>,
+    edb: &RdfDataset,
+) -> gmeow_errors::Result<Vec<crate::reason::ChaseCertificate>> {
     let restrictions = read_restrictions(edb);
+    let existential_rules = structured_existential_rules(&restrictions, edb);
     let lists = read_lists(edb);
 
     let mut facts: BTreeSet<Fact> = raw_resource_facts(edb).into_iter().collect();
+    let mut certificates = Vec::new();
+    let mut witness_registries = BTreeMap::new();
     for ax in inferred.iter() {
         if let Some(fact) = fact_from_axiom(ax) {
             facts.insert(fact);
@@ -1692,116 +1875,6 @@ pub(crate) fn augment_inferred_with_dl(
                             );
                         }
                     }
-
-                    // ── existential value-invention (the chase) ─────────────────
-                    // For each existential obligation `≥needed p.D` whose distinct
-                    // qualifying fillers fall short, invent scoped Skolem witnesses
-                    // (TGD value-invention) and assert `p(x,w)` + `type(w,D)`. The
-                    // witness identity is content-addressed on
-                    // (world,x,property,class,ordinal) — so re-firing re-derives
-                    // the SAME witness and the fixpoint terminates (no regenerated
-                    // anonymous individuals). The all-values / disjoint clash rules
-                    // then saturate the witness and surface ∃p.C ⊓ ∀p.D clashes.
-                    for (needed, on_class) in existential_obligations(restriction) {
-                        let filler_class = on_class.unwrap_or(OWL_NOTHING);
-                        // Count the distinct qualifying fillers x already has.
-                        let qualifying: Vec<&String> = match on_class {
-                            Some(class) => fillers
-                                .iter()
-                                .copied()
-                                .filter(|filler| {
-                                    has_fact(&facts, world, filler.as_str(), RDF_TYPE, class)
-                                })
-                                .collect(),
-                            // Unqualified `≥n p.⊤`: any filler counts.
-                            None => fillers.clone(),
-                        };
-                        if !pairwise_distinct(&facts, world, &qualifying) {
-                            // Existing fillers are not provably distinct (a
-                            // `sameAs` merge collapses them); the obligation may be
-                            // met by overlap, so do not over-invent.
-                            continue;
-                        }
-                        let have = qualifying.len();
-                        if have >= needed {
-                            continue;
-                        }
-                        // The `n` fillers satisfying a `≥n` obligation are the
-                        // already-distinct existing qualifying ones plus the freshly
-                        // invented witnesses. Collect owned copies so we can
-                        // materialise their pairwise distinctness (the axiom entails
-                        // it) after inventing them.
-                        let mut obligation_fillers: Vec<String> =
-                            qualifying.iter().map(|f| (*f).clone()).collect();
-                        for ordinal in have..needed {
-                            let witness = witness_iri(world, property, filler_class, ordinal);
-                            // p(x, witness)
-                            add_inferred_fact(
-                                inferred,
-                                &mut facts,
-                                Fact::new(
-                                    subject.clone(),
-                                    property.to_owned(),
-                                    witness.clone(),
-                                    world.clone(),
-                                ),
-                                "dl:exists-witness-edge",
-                                vec![(
-                                    restriction_key.clone(),
-                                    OWL_ON_PROPERTY.to_owned(),
-                                    property.to_owned(),
-                                )],
-                            );
-                            // type(witness, D) — only for a qualified obligation;
-                            // an unqualified `≥n p.⊤` invents an untyped witness.
-                            if let Some(class) = on_class {
-                                add_inferred_fact(
-                                    inferred,
-                                    &mut facts,
-                                    Fact::new(
-                                        witness.clone(),
-                                        RDF_TYPE.to_owned(),
-                                        class.to_owned(),
-                                        world.clone(),
-                                    ),
-                                    "dl:exists-witness-type",
-                                    vec![(
-                                        restriction_key.clone(),
-                                        OWL_SOME_VALUES_FROM.to_owned(),
-                                        class.to_owned(),
-                                    )],
-                                );
-                            }
-                            obligation_fillers.push(witness);
-                        }
-                        // A `≥n p` obligation with `n ≥ 2` entails its `n` fillers
-                        // are pairwise DIFFERENT (`owl:differentFrom`). Materialise
-                        // that so the no-UNA `distinct_individuals` guard can see the
-                        // witnesses are distinct — the honest replacement for the old
-                        // UNA default (a `≥2 p ⊓ ≤1 p` must still clash).
-                        if needed >= 2 {
-                            for i in 0..obligation_fillers.len() {
-                                for j in (i + 1)..obligation_fillers.len() {
-                                    add_inferred_fact(
-                                        inferred,
-                                        &mut facts,
-                                        Fact::new(
-                                            obligation_fillers[i].clone(),
-                                            OWL_DIFFERENT_FROM.to_owned(),
-                                            obligation_fillers[j].clone(),
-                                            world.clone(),
-                                        ),
-                                        "dl:min-cardinality-witness-distinct",
-                                        vec![(
-                                            restriction_key.clone(),
-                                            OWL_ON_PROPERTY.to_owned(),
-                                            property.to_owned(),
-                                        )],
-                                    );
-                                }
-                            }
-                        }
-                    }
                 }
 
                 for i in 0..types.len() {
@@ -1916,14 +1989,39 @@ pub(crate) fn augment_inferred_with_dl(
             }
         }
 
+        certificates.extend(run_structured_existential_chase(
+            inferred,
+            &mut facts,
+            &existential_rules,
+            &mut witness_registries,
+        )?);
+
         if facts.len() == before {
             break;
         }
     }
 
-    augment_with_extra_dl_clashes(inferred, &mut facts, &restrictions, edb);
+    augment_with_extra_dl_clashes(
+        inferred,
+        &mut facts,
+        &restrictions,
+        edb,
+        &mut certificates,
+        &mut witness_registries,
+    )?;
 
-    Ok(())
+    certificates.sort_by(|left, right| {
+        let left_finding = left.admission.to_finding();
+        let right_finding = right.admission.to_finding();
+        (&left.world, &left_finding.code, &left_finding.message).cmp(&(
+            &right.world,
+            &right_finding.code,
+            &right_finding.message,
+        ))
+    });
+    certificates
+        .dedup_by(|left, right| left.world == right.world && left.admission == right.admission);
+    Ok(certificates)
 }
 
 /// The predicate-quantifying / literal-aware DL clashes the resource-only
@@ -1965,7 +2063,9 @@ fn augment_with_extra_dl_clashes(
     facts: &mut BTreeSet<Fact>,
     restrictions: &BTreeMap<(String, String), Restriction>,
     edb: &RdfDataset,
-) {
+    certificates: &mut Vec<crate::reason::ChaseCertificate>,
+    witness_registries: &mut BTreeMap<String, crate::physical::SkolemRegistry>,
+) -> gmeow_errors::Result<()> {
     // ── 1. owl:Thing forced into owl:Nothing ──────────────────────────────────
     // owl:Thing ⊑ owl:Nothing (asserted or via equivalentClass) makes the always-
     // populated top class empty — inconsistent. We materialise the mandatory
@@ -1979,25 +2079,39 @@ fn augment_with_extra_dl_clashes(
         })
         .map(|f| f.world.clone())
         .collect();
+    let mut thing_rules = BTreeMap::new();
     for world in thing_empty_worlds {
-        let witness = witness_iri(&world, OWL_THING, OWL_THING, 0);
-        add_inferred_fact(
-            inferred,
-            facts,
-            Fact::new(
-                witness,
-                RDF_TYPE.to_owned(),
-                OWL_NOTHING.to_owned(),
-                world.clone(),
-            ),
-            "dl:thing-empty-clash",
-            vec![(
-                OWL_THING.to_owned(),
-                RDFS_SUBCLASSOF.to_owned(),
-                OWL_NOTHING.to_owned(),
-            )],
-        );
+        use crate::rule_ir::{EvalAtom, EvalTerm};
+        let rules = [RDFS_SUBCLASSOF, OWL_EQUIVALENT_CLASS]
+            .into_iter()
+            .map(|predicate| crate::physical::ExistentialRule {
+                rule_iri: format!(
+                    "https://blackcatinformatics.ca/gmeow/logic/rule/dl-thing-nonempty/{}",
+                    crate::provenance::sha1_hex(&format!("{world}\u{1f}{predicate}"))
+                ),
+                body: vec![EvalAtom::positive(
+                    EvalTerm::named(OWL_THING),
+                    predicate,
+                    EvalTerm::named(OWL_NOTHING),
+                )],
+                head: vec![EvalAtom::positive(
+                    EvalTerm::var("?domainWitness"),
+                    RDF_TYPE,
+                    EvalTerm::named(OWL_NOTHING),
+                )],
+                distinct: Vec::new(),
+                witness_frontier: Some(Vec::new()),
+                witness_policy: crate::physical::WitnessPolicy::DlAncestorBlocking,
+            })
+            .collect();
+        thing_rules.insert(world, rules);
     }
+    certificates.extend(run_structured_existential_chase(
+        inferred,
+        facts,
+        &thing_rules,
+        witness_registries,
+    )?);
 
     // ── 2. Empty bottom property forced to have a value ───────────────────────
     // An individual typed a restriction on owl:bottomObjectProperty /
@@ -2322,6 +2436,7 @@ fn augment_with_extra_dl_clashes(
             );
         }
     }
+    Ok(())
 }
 
 /// A per-`(world, property)` map `subject → {value_key}` merging the closed
@@ -2661,10 +2776,10 @@ fn key_values_agree(
     true
 }
 
-/// Decide native DL consistency / unsatisfiability of `edb` via the Nemo chase.
+/// Decide native DL consistency / unsatisfiability of `edb`.
 ///
-/// Runs the full [`dl_rules`] set through the shared
-/// [`crate::reason::run_reasoning`] machinery, then reads off the clash facts:
+/// Runs the full [`structured_dl_rules`] set through the shared native structured
+/// chase, then reads off the clash facts:
 /// every `type(?i, owl:Nothing, ?w)` is an [`InconsistencyWitness`]; every
 /// `subClassOf(?c, owl:Nothing, ?w)` (with `?c` not `owl:Nothing` itself) is an
 /// [`UnsatClass`]. The verdict is consistent iff no inconsistency witness was
@@ -2672,8 +2787,8 @@ fn key_values_agree(
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the source store cannot be loaded or the Nemo
-/// chase/post-pass fails to parse/validate/evaluate/decode.
+/// Returns `Err(String)` if the source store cannot be loaded or native
+/// chase/post-pass evaluation fails.
 pub fn dl_consistency(edb: &RdfDataset) -> gmeow_errors::Result<DlVerdict> {
     // This is the verdict-only entry point. The single-chase pipeline
     // (run_reasoning → augment_inferred_with_dl → sort → verdict_from_inferred)
@@ -3253,7 +3368,7 @@ fn nil_bears_list_edge(edb: &RdfDataset) -> bool {
 /// - `propertyChainAxiom` — the handler only composes chains of **exactly
 ///   length 2**; decided iff every present chain is a resolvable 2-list.
 /// - `someValuesFrom` — the chase invents a scoped Skolem witness for `∃p.D`
-///   (value invention, [`witness_iri`]), types it `D`, saturates it through the
+///   (value invention through the native restricted chase), types it `D`, saturates it through the
 ///   EL/DL rules, and surfaces `∃p.C ⊓ ∀p.D` clashes. Decided iff every present
 ///   `∃` restriction has a resolvable `onProperty` and filler class so the
 ///   witness can be generated (Gap B).
@@ -3709,7 +3824,7 @@ fn datatype_qualified_cardinality_has_live_obligation(edb: &RdfDataset) -> bool 
 /// **parseable** non-negative integer bound and a resolvable `onProperty`, and —
 /// for the qualified families — a resolvable `onClass`. Given that shape:
 /// - a *minimum* (`min`/exact/`qualified`/`minQualified`) discharges by inventing
-///   the required distinct Skolem witnesses ([`witness_iri`]);
+///   the required distinct Skolem witnesses through the native restricted chase;
 /// - a *maximum* (`max`/exact/`qualified`/`maxQualified`) clashes by counting
 ///   distinct fillers under the identity-stance anti-merge ([`pairwise_distinct`]).
 ///
@@ -4311,10 +4426,134 @@ mod tests {
             quad(C, SUBCLASS, R),
             quad(X, TYPE, C),
         ]);
-        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+        let (closure, verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("cyclic DL existential reasoning should terminate");
 
         assert!(verdict.consistent, "cyclic but satisfiable ∃ is consistent");
         assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+        let filler = closure
+            .iter()
+            .find(|axiom| axiom.subject == X && axiom.predicate == P)
+            .map(|axiom| unwrap_iri(&axiom.object).to_owned())
+            .expect("the root receives one existential filler");
+        assert!(closure.iter().any(|axiom| {
+            axiom.subject == filler && axiom.predicate == P && unwrap_iri(&axiom.object) == filler
+        }));
+        assert_eq!(
+            closure.iter().filter(|axiom| axiom.predicate == P).count(),
+            2,
+            "ancestor blocking must close the recursive model instead of growing a witness chain"
+        );
+    }
+
+    #[test]
+    fn qualified_min_two_uses_two_distinct_native_chase_witnesses() {
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, ON_CLASS, C),
+            literal_quad(R, MIN_QUALIFIED_CARDINALITY, "2", XSD_NON_NEGATIVE_INTEGER),
+            quad(X, TYPE, R),
+        ]);
+        let (closure, verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("structured native existential chase should decide >=2");
+        assert!(verdict.consistent);
+
+        let mut fillers = closure
+            .iter()
+            .filter(|axiom| axiom.subject == X && axiom.predicate == P)
+            .map(|axiom| unwrap_iri(&axiom.object).to_owned())
+            .collect::<Vec<_>>();
+        fillers.sort();
+        fillers.dedup();
+        assert_eq!(fillers.len(), 2, ">=2 must invent exactly two witnesses");
+        for filler in &fillers {
+            assert!(closure.iter().any(|axiom| {
+                axiom.subject == *filler
+                    && axiom.predicate == TYPE
+                    && unwrap_iri(&axiom.object) == C
+            }));
+        }
+        assert!(closure.iter().any(|axiom| {
+            axiom.predicate == OWL_DIFFERENT_FROM
+                && ((axiom.subject == fillers[0] && unwrap_iri(&axiom.object) == fillers[1])
+                    || (axiom.subject == fillers[1] && unwrap_iri(&axiom.object) == fillers[0]))
+        }));
+        assert!(closure.iter().any(|axiom| {
+            axiom
+                .rule_name
+                .as_deref()
+                .is_some_and(|name| name.contains("dl-existential"))
+        }));
+    }
+
+    #[test]
+    fn existential_witnesses_are_frontier_bound_per_subject_and_deterministic() {
+        let store = dataset(vec![
+            quad(R, ON_PROPERTY, P),
+            quad(R, SOME_VALUES_FROM, C),
+            quad(X, TYPE, R),
+            quad(Y, TYPE, R),
+        ]);
+        let (first, first_verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("structured native existential chase should decide both obligations");
+        let (second, second_verdict) = crate::reason::reason_closure(store.as_ref())
+            .expect("repeated native chase should be deterministic");
+
+        assert!(first_verdict.consistent);
+        assert!(second_verdict.consistent);
+        assert_eq!(first, second, "frontier-addressed witnesses must be stable");
+
+        let fillers = |subject: &str| {
+            first
+                .iter()
+                .filter(|axiom| axiom.subject == subject && axiom.predicate == P)
+                .map(|axiom| unwrap_iri(&axiom.object).to_owned())
+                .collect::<BTreeSet<_>>()
+        };
+        let x_fillers = fillers(X);
+        let y_fillers = fillers(Y);
+        assert_eq!(x_fillers.len(), 1, "x needs exactly one existential filler");
+        assert_eq!(y_fillers.len(), 1, "y needs exactly one existential filler");
+        assert!(
+            x_fillers.is_disjoint(&y_fillers),
+            "different frontier bindings must not share a rule-scoped witness"
+        );
+        for filler in x_fillers.iter().chain(&y_fillers) {
+            assert!(first.iter().any(|axiom| {
+                axiom.subject == *filler
+                    && axiom.predicate == TYPE
+                    && unwrap_iri(&axiom.object) == C
+            }));
+        }
+        for subject in [X, Y] {
+            let link = first
+                .iter()
+                .find(|axiom| axiom.subject == subject && axiom.predicate == P)
+                .expect("each subject must have a derived existential link");
+            assert_eq!(
+                link.premises,
+                vec![(subject.to_owned(), TYPE.to_owned(), format!("<{R}>"))],
+                "the production explanation must cite the matched restriction membership"
+            );
+        }
+
+        let certified = crate::reason::reason_all_certified(store.as_ref())
+            .expect("production reasoning should retain chase certificates");
+        assert_eq!(certified.result.inferred(), first.as_slice());
+        assert_eq!(
+            certified.chase_certificates.len(),
+            1,
+            "the repeated DL fixpoint must deduplicate the same world/program certificate"
+        );
+        let finding = certified.chase_certificates[0].to_finding();
+        assert_eq!(finding.code, "chase.certificate.weakly-acyclic");
+        assert!(
+            finding
+                .message
+                .contains("existential edge(s), none in a cycle")
+                && !finding.message.contains("0 existential edge(s)"),
+            "frontier certification must carry non-vacuous special-edge evidence: {finding:?}"
+        );
     }
 
     #[test]

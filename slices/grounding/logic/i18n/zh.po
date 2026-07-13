@@ -1,0 +1,326 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: logic, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# This initial catalog deliberately covers the typed-IR exemplar introduced in this uplift.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|rdfs:label"
+msgid "Rule"
+msgstr "规则"
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|skos:definition"
+msgid "A productive Horn or stratified-negation derivation whose logic:head is entailed when every positive logic:body atom holds, every logic:negatedBody atom is absent in its declared closure, and every guard succeeds. It is not a general logic:Formula or an integrity logic:Constraint: constructs outside the rule fragment remain formula trees and are carried as projection residue rather than approximated."
+msgstr "一种能产生结论的 Horn 或分层否定推导：当每个正向 logic:body 原子成立、每个 logic:negatedBody 原子在其声明的闭包中均不存在且所有守卫都成功时，其 logic:head 被蕴涵。它既不是一般的 logic:Formula，也不是完整性 logic:Constraint；规则片段之外的构造仍保留为公式树，并作为投影残留携带，而不会被近似替代。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|skos:example"
+msgid "A rule can derive ex:ancestor(x,z) from ex:parent(x,y) and ex:ancestor(y,z), with its variables bound positively in the body."
+msgstr "一条规则可以由 ex:parent(x,y) 与 ex:ancestor(y,z) 推导 ex:ancestor(x,z)，其中变量在规则体中被正向绑定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:avoidWhen"
+msgid "Do not encode disjunction, strong negation, or an unstratified negative cycle as a Horn rule."
+msgstr "不要把析取、强否定或未分层的否定循环编码成 Horn 规则。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:howToUse"
+msgid "Provide one head, the positive and optional stratified-negative body atoms, and any explicit guards or aggregate specification."
+msgstr "提供一个规则头、正向规则体原子、可选的分层否定规则体原子，以及任何显式守卫或聚合规范。"
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:useWhen"
+msgid "Use for productive Horn, existential-rule, or stratified-negation derivations."
+msgstr "用于能产生结论的 Horn 推导、存在规则推导或分层否定推导。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|rdfs:label"
+msgid "Term Carrier"
+msgstr "词项载体"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|skos:definition"
+msgid "An ordered slot in an atomic formula's logic:argument list or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker. It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."
+msgstr "原子公式的 logic:argument 列表或量词的 logic:quantifiedVariable 块中的一个有序位置。它恰好携带一个从零开始的 logic:termIndex，以及恰好一种值类型：logic:termIri、logic:termVariable、logic:termLiteral 或 logic:termSequenceMarker。它不是词项值本身，而是一个 RDF 节点，用于在不依赖三元组顺序的情况下保留值的类型和位置。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|skos:example"
+msgid "An atom's second argument can be represented by a carrier with logic:termIndex 1 and logic:termVariable 'object'."
+msgstr "一个原子的第二个论元可以由携带 logic:termIndex 1 与 logic:termVariable 'object' 的载体表示。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:avoidWhen"
+msgid "Do not place two value kinds on one carrier or infer its position from Turtle serialization order."
+msgstr "不要在同一个载体上放置两种值类型，也不要从 Turtle 序列化顺序推断其位置。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:howToUse"
+msgid "Assign one contiguous zero-based index and one of the four exclusive term-value predicates."
+msgstr "分配一个从零开始且连续的索引，并选择四个互斥词项值谓词中的一个。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:useWhen"
+msgid "Use for each ordered atom argument and each ordered quantifier binding."
+msgstr "用于每个有序的原子论元以及每个有序的量词绑定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|rdfs:label"
+msgid "Formula Constructor Constraint"
+msgstr "公式构造器约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|skos:definition"
+msgid "Requires every logic:Formula to select exactly one constructor family: atomic relation, strong negation, conjunction, disjunction, material implication (keyed by logic:antecedent), biconditional, universal quantification, or existential quantification. It does not choose among serialized operands; it prevents one node from having two incompatible logical meanings."
+msgstr "要求每个 logic:Formula 恰好选择一个构造器族：原子关系、强否定、合取、析取、实质蕴含（由 logic:antecedent 标识）、双条件、全称量化或存在量化。它不在已序列化的操作数之间作选择；它防止同一节点同时具有两种不相容的逻辑含义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|skos:example"
+msgid "A node with both logic:relation and logic:not violates this constraint because it cannot be both an atom and a negation."
+msgstr "同时具有 logic:relation 与 logic:not 的节点违反此约束，因为它不能既是原子又是否定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:avoidWhen"
+msgid "Do not use this constraint to limit how many operands a selected constructor carries; arity is a separate typed-IR invariant."
+msgstr "不要用此约束限制所选构造器携带的操作数数量；元数是一个独立的类型化 IR 不变量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:howToUse"
+msgid "Validate every authored formula tree before lowering it; reject a focus node unless exactly one listed constructor predicate is present."
+msgstr "在降低之前验证每棵已创作的公式树；除非焦点节点恰好具有一个列出的构造器谓词，否则拒绝该节点。"
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:useWhen"
+msgid "Use when validating canonical RDF formula trees before parsing, canonicalization, or projection."
+msgstr "用于在解析、规范化或投影之前验证规范 RDF 公式树。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|rdfs:label"
+msgid "Implication Consequent Constraint"
+msgstr "蕴含后件约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|skos:definition"
+msgid "Requires a logic:Formula carrying logic:antecedent to carry logic:consequent as the ordered second operand of the same material implication. It is not a rule that derives a consequent; it is a structural integrity condition on the implication node."
+msgstr "要求携带 logic:antecedent 的 logic:Formula 同时携带 logic:consequent，作为同一实质蕴含中有序的第二个操作数。它不是推导后件的规则，而是施加于蕴含节点的结构完整性条件。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|skos:example"
+msgid "An implication node with an antecedent atom but no consequent formula violates this constraint."
+msgstr "具有前件原子但没有后件公式的蕴含节点违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:avoidWhen"
+msgid "Do not read the required edge as logical modus ponens; it only completes the serialized constructor."
+msgstr "不要把所需边理解为逻辑上的肯定前件式；它只用于补全已序列化的构造器。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:howToUse"
+msgid "When logic:antecedent is present, require one resource-valued logic:consequent before constructing Formula::Implies."
+msgstr "当 logic:antecedent 存在时，在构造 Formula::Implies 之前要求一个以资源为值的 logic:consequent。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:useWhen"
+msgid "Use when validating the ordered pair that encodes material implication."
+msgstr "用于验证编码实质蕴含的有序对。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|rdfs:label"
+msgid "Implication Antecedent Constraint"
+msgstr "蕴含前件约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|skos:definition"
+msgid "Requires a logic:Formula carrying logic:consequent to carry logic:antecedent as the ordered first operand of the same material implication. It is not an inverse entailment from conclusion to premise; it is the reverse structural completeness check for the serialized pair."
+msgstr "要求携带 logic:consequent 的 logic:Formula 同时携带 logic:antecedent，作为同一实质蕴含中有序的第一个操作数。它不是从结论到前提的逆向蕴涵，而是对已序列化有序对进行的反向结构完整性检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|skos:example"
+msgid "A formula node with a consequent formula but no antecedent formula violates this constraint."
+msgstr "具有后件公式但没有前件公式的公式节点违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:avoidWhen"
+msgid "Do not use the constraint to infer that a consequent semantically entails its antecedent."
+msgstr "不要用此约束推断后件在语义上蕴涵其前件。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:howToUse"
+msgid "When logic:consequent is present, require one resource-valued logic:antecedent before constructing Formula::Implies."
+msgstr "当 logic:consequent 存在时，在构造 Formula::Implies 之前要求一个以资源为值的 logic:antecedent。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:useWhen"
+msgid "Use with logic:ImplicationConsequentConstraint to validate both halves of an implication."
+msgstr "与 logic:ImplicationConsequentConstraint 配合使用，以验证蕴含的两个部分。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|rdfs:label"
+msgid "Term Carrier Value Constraint"
+msgstr "词项载体值约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|skos:definition"
+msgid "Requires every logic:TermCarrier to carry exactly one term-value kind: IRI, variable, literal, or sequence marker. It does not constrain the carrier's ordinal; logic:termIndex and list-level contiguity are checked independently."
+msgstr "要求每个 logic:TermCarrier 恰好携带一种词项值类型：IRI、变量、字面量或序列标记。它不约束载体的序号；logic:termIndex 与列表层级的连续性会被独立检查。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|skos:example"
+msgid "A carrier with both logic:termIri ex:a and logic:termVariable 'a' violates this constraint even though the spellings resemble one another."
+msgstr "同时具有 logic:termIri ex:a 与 logic:termVariable 'a' 的载体违反此约束，即使两者的拼写相似。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:avoidWhen"
+msgid "Do not collapse IRI, variable, literal, and sequence-marker values into a shared string field; their kinds affect formula meaning."
+msgstr "不要把 IRI、变量、字面量和序列标记值压缩进同一个字符串字段；它们的类型会影响公式含义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:howToUse"
+msgid "Reject a carrier unless exactly one of the four term-value predicates has exactly one value."
+msgstr "除非四个词项值谓词中恰好有一个且仅有一个值，否则拒绝该载体。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:useWhen"
+msgid "Use whenever an RDF argument or quantifier-binding carrier is reconstructed as a typed IR term."
+msgstr "每当 RDF 论元或量词绑定载体被重建为类型化 IR 词项时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|rdfs:label"
+msgid "Term Carrier Index Constraint"
+msgstr "词项载体索引约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|skos:definition"
+msgid "Requires every declared logic:TermCarrier to carry a logic:termIndex. It is not the list-level ordering check: uniqueness and zero-based contiguity are verified across all sibling carriers by the typed-IR frontend."
+msgstr "要求每个已声明的 logic:TermCarrier 都携带 logic:termIndex。它不是列表层级的排序检查；类型化 IR 前端会跨所有同级载体验证索引的唯一性以及从零开始的连续性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|skos:example"
+msgid "A logic:TermCarrier with logic:termVariable 'x' but no logic:termIndex violates this constraint."
+msgstr "具有 logic:termVariable 'x' 但没有 logic:termIndex 的 logic:TermCarrier 违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:avoidWhen"
+msgid "Do not infer an omitted index from RDF statement order, which has no semantic ordering."
+msgstr "不要从 RDF 语句顺序推断省略的索引，因为该顺序没有语义上的次序。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:howToUse"
+msgid "Require one non-negative integer index on each carrier, then validate the sibling index set as 0 through n minus 1."
+msgstr "要求每个载体具有一个非负整数索引，然后验证同级索引集合恰为从 0 到 n 减 1。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:useWhen"
+msgid "Use when validating ordered argument lists and quantifier binding blocks."
+msgstr "用于验证有序论元列表和量词绑定块。"
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|rdfs:label"
+msgid "Literal Datatype Constraint"
+msgstr "字面量数据类型约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|skos:definition"
+msgid "Requires a carrier with logic:termLiteralDatatype to carry logic:termLiteral, so a datatype IRI can never float without the lexical literal it types. It does not require a datatype for every literal; absence denotes a plain literal."
+msgstr "要求具有 logic:termLiteralDatatype 的载体同时携带 logic:termLiteral，从而避免数据类型 IRI 脱离其所类型化的词法字面量而孤立存在。它不要求每个字面量都有数据类型；缺省表示普通字面量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|skos:example"
+msgid "A carrier with logic:termLiteralDatatype xsd:integer but no logic:termLiteral violates this constraint."
+msgstr "具有 logic:termLiteralDatatype xsd:integer 但没有 logic:termLiteral 的载体违反此约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:avoidWhen"
+msgid "Do not attach logic:termLiteralDatatype to an IRI, variable, or sequence-marker carrier."
+msgstr "不要把 logic:termLiteralDatatype 附加到 IRI、变量或序列标记载体。"
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:howToUse"
+msgid "Accept zero or one datatype IRI only on a carrier whose sole value kind is logic:termLiteral."
+msgstr "仅当载体唯一的值类型为 logic:termLiteral 时，才允许零个或一个数据类型 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:useWhen"
+msgid "Use when reconstructing typed literal terms from their lexical and datatype components."
+msgstr "用于从词法部分与数据类型部分重建有类型的字面量词项。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|rdfs:label"
+msgid "Constraint Sugar"
+msgstr "约束语法糖"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|skos:definition"
+msgid "An authoring descriptor that the logic frontend expands into one canonical logic:Constraint with a reified integrity formula. A constraint-sugar record names a closed validation pattern and its parameters; it is not itself a logic:Formula AST node, so formula constructor checks never mistake validation metadata for an object-level sentence."
+msgstr "一种创作描述符，逻辑前端会将其展开为一个带有具象化完整性公式的规范 logic:Constraint。约束语法糖记录为封闭验证模式及其参数命名；它本身不是 logic:Formula 抽象语法树节点，因此公式构造器检查不会把验证元数据误当作对象层语句。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|skos:example"
+msgid "A logic:ChoiceGroupConstraint record can require exactly one of two predicates without being treated as either operand of the formula it compiles."
+msgstr "一条 logic:ChoiceGroupConstraint 记录可以要求两个谓词中恰好出现一个，而不会被视为其所编译公式的任一操作数。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:avoidWhen"
+msgid "Do not use a sugar class when the integrity condition needs a formula shape the selected closed pattern cannot preserve."
+msgstr "当完整性条件需要所选封闭模式无法保真的公式结构时，不要使用语法糖类。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:howToUse"
+msgid "Select the narrowest sugar subclass, provide its target and pattern parameters, and inspect the compiled logic:Constraint projection."
+msgstr "选择范围最窄的语法糖子类，提供其目标与模式参数，并检查编译后的 logic:Constraint 投影。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:useWhen"
+msgid "Use for a supported closed-world validation pattern whose canonical expansion is deterministic."
+msgstr "用于规范展开结果确定且受支持的封闭世界验证模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|rdfs:label"
+msgid "Conversion Target"
+msgstr "转换目标"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:definition"
+msgid "A legal output language for a lowering: every emitted construct must inhabit this target, while anything it cannot express remains explicit flagged residue. It is not a logic:ProjectionTarget, which requests a presentation of an answer; a conversion target instead delimits the IR or dialect into which canonical content may be legalized."
+msgstr "降低过程所面向的合法输出语言：每个发出的构造都必须属于该目标，而无法表达的内容仍作为显式标记的残留保留。它不是请求答案呈现形式的 logic:ProjectionTarget；转换目标限定的是规范内容可被合法化到的 IR 或方言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:example"
+msgid "logic:RelationalCore a logic:ConversionTarget ."
+msgstr "例如：logic:RelationalCore a logic:ConversionTarget ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|rdfs:label"
+msgid "Choice Group Constraint"
+msgstr "选择组约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:definition"
+msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
+msgstr "选择组基数约束（P1）的紧凑语法糖：包含一个 logic:onClass 目标、一组 logic:choicePredicate 谓词，以及 logic:choiceMode（'exactly-one'、'at-most-one'，或作为 'exactly-one' 别名的 'exactly-one-of-N'）。编译器将其展开为规范的 logic:Constraint，其完整性条件是各谓词存在性要求之上的异或或至多公式。它仅供前端创作使用，不是新的节点类型。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:example"
+msgid "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
+msgstr "例如：ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|rdfs:label"
+msgid "Guarded Implication Constraint"
+msgstr "受守卫蕴含约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:definition"
+msgid "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."
+msgstr "受守卫蕴含约束（P2）的紧凑语法糖：包含一个 logic:onClass 目标、一个可由 logic:triggerValue 固定的 logic:trigger 谓词，以及一个或多个 logic:requires 伴随谓词。它展开为规范的 logic:Constraint：∀x. C(x) ∧ trigger(x, …) → ∃y。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:example"
+msgid "ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
+msgstr "例如：ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|rdfs:label"
+msgid "Disjunctive Requiredness Constraint"
+msgstr "析取必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:definition"
+msgid "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."
+msgstr "析取必需性约束（P3）的紧凑语法糖：包含一个 logic:onClass 目标和一组 logic:anyOf 谓词，其中至少一个必须存在。它展开为规范的 logic:Constraint：∀x. C(x) → (∃p1 ∨ … ∨ ∃pn)。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:example"
+msgid "ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
+msgstr "例如：ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|rdfs:label"
+msgid "Path Value Type Constraint"
+msgstr "路径值类型约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:definition"
+msgid "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."
+msgstr "路径值类型成员约束（P4）的紧凑语法糖：包含一个 logic:onClass 目标、一个 logic:valuePath 谓词和必需的 logic:valueClass。它展开为规范的 logic:Constraint：∀x. C(x) → ∀v. P(x,v) → D(v)。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:example"
+msgid "ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
+msgstr "例如：ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|rdfs:label"
+msgid "Cross Node Constraint"
+msgstr "跨节点约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:definition"
+msgid "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."
+msgstr "跨节点共现或不等约束（P5）的紧凑语法糖：包含一个 logic:onClass 目标和两个角色 logic:roleA、logic:roleB；它们依照 logic:crossMode 必须共同出现，或永不绑定同一值。它展开为规范的 logic:Constraint，其完整性条件是双蕴含，或通过 logic:termEqual 过滤关系形成的连接加不等式。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:example"
+msgid "ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
+msgstr "例如：ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|rdfs:label"
+msgid "Forbidden Pattern Constraint"
+msgstr "禁用模式约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:definition"
+msgid "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."
+msgstr "禁用模式约束（P7）的紧凑语法糖：包含一个 logic:onClass 目标和一个可固定到 logic:forbiddenValue 的 logic:forbiddenPredicate。它展开为规范的 logic:Constraint：∀x. C(x) → ¬∃b. forbidden(x,b)，或固定值形式 ¬ forbidden(x, value)。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:example"
+msgid "ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
+msgstr "例如：ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|rdfs:label"
+msgid "Aggregate Constraint"
+msgstr "聚合约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:definition"
+msgid "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."
+msgstr "聚合比较约束（P6）的紧凑语法糖：包含一个 logic:onClass 目标、路径上的聚合（logic:aggFunction、可选的 logic:aggDistinct 与 logic:aggPath）、logic:aggComparator，以及作为被比较属性 IRI 或字面量的右端 logic:aggCompareTo。它展开为规范的 logic:Constraint，同时携带忠实具象化的 FOL 完整性条件与结构化聚合附属结构，并降低为带分组和聚合条件的 sh:SPARQLConstraint。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:example"
+msgid "ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
+msgstr "例如：ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."

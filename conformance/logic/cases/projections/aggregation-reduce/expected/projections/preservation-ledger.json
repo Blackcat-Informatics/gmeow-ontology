@@ -56,13 +56,6 @@
     ],
     "preservation": "CompleteOverApproximation"
   },
-  "nemo": {
-    "complexity": "PTIME/datalog",
-    "lossy_drops": [
-      "actual: rule deriving <https://example.org/aggregation-reduce/total> uses stratified aggregation (reduce/GROUP BY), which Nemo does not represent; it is carried in the canonical logic: layer and projected to the SHACL-AF reduce surface"
-    ],
-    "preservation": "SoundUnderApproximation"
-  },
   "owl-dl": {
     "complexity": "decidable/N2EXPTIME",
     "lossy_drops": [

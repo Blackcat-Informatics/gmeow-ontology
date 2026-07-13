@@ -34,7 +34,7 @@ toolchain.
 > **Toolchain requirement:** nightly Rust is required. The repo ships a
 > `rust-toolchain.toml` at the root that selects the latest available `nightly`;
 > `cargo` and `rustup` pick this up automatically. This crate does NOT link
-> Nemo, so the `crates/logic` zstd/TMPDIR build workarounds are not needed.
+> the full reasoning stack, so its heavier build workarounds are not needed.
 
 ```bash
 cargo build -p gmeow-validate

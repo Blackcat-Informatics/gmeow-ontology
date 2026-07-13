@@ -26,8 +26,8 @@ Rust-first / Python-surface boundary.
   builds. Runtime checks are part of the gate.
 - Do not restore debug symbols in local dev/test builds. Full debug-symbol trees
   are banned because they produce tens of GB of useless artifacts per worktree.
-- Respect the `nemo` build-memory budget. Do not enable profile-wide options that
-  force `nemo` or `nemo-physical` back into high-RSS opt-level/LTO/codegen shapes.
+- Keep build-memory measurements in the optimization evidence. Do not enable
+  profile-wide options that create high-RSS opt-level/LTO/codegen shapes.
 
 ## Measurement Rules
 
@@ -146,6 +146,14 @@ are consumed through its public Rust API:
   height per fact; Skip stores none. `crates/logic/src/explain.rs` indexes row
   identity once and descends only a queried witness subtree, so no eager proof-tree
   forest is materialized.
+- Opaque score-carrying evaluation: `crates/logic/src/annotation.rs` owns the public
+  algebra/contract/result types, while `physical/annotation.rs` evaluates annotation
+  equations through the existing planned semi-naive joins. `dispatch_query_annotated`
+  reuses the ordinary magic-transformed fact closure and treats magic relations as
+  unit-valued control; `materialize_program_annotated` applies the same rule-firing
+  algebra to canonical-IR materialization. Keep score combination in this physical
+  seam: joining scores onto completed answers loses alternative-derivation lineage and
+  duplicates evaluation work.
 - Incremental non-monotone grounding:
   `crates/logic/src/physical/incremental_grounding.rs` reuses the signed recursive
   session for the positive candidate universe and differentiates the ground-rule
@@ -186,13 +194,12 @@ The existing profile layout is part of the optimization surface:
 
 - `profile.dev` and `profile.test` keep debug assertions and overflow checks on,
   disable debug symbols, strip residual symbols, and use `opt-level = 1`.
-- Release builds use thin LTO and first-party `codegen-units = 1`, while `nemo` and
-  `nemo-physical` retain memory-capped package overrides.
-- Bench builds intentionally drop thin LTO and mirror the `nemo` memory caps.
+- Release builds use thin LTO and first-party `codegen-units = 1`.
+- Bench builds intentionally drop thin LTO to keep iteration and memory costs bounded.
 
 Do not change these profiles opportunistically. Profile changes require a before /
 after measurement that includes wall time, peak memory where relevant, and the
-effect on `nemo` and the unified native extension.
+effect on the unified native extension.
 
 ## Validation Expectations
 

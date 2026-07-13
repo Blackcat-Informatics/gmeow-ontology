@@ -32,7 +32,7 @@ use crate::provenance::register_stage_unit;
 /// stages competing for the same resource serialize. A permit, not data — results
 /// are returned, never stored behind the lock. The engine resource
 /// ([`crate::node::ENGINE_RESOURCE`]) mirrors the `CHASE_LOCK` in `gmeow-logic`
-/// (the retained Nemo comparison engine is not concurrency-safe); any other shared resource a
+/// (the process-wide reasoning state is exclusive); any other shared resource a
 /// stage declares serializes the same way, with no new special case.
 static RESOURCE_LOCKS: LazyLock<Mutex<HashMap<String, Arc<Mutex<()>>>>> =
     LazyLock::new(|| Mutex::new(HashMap::new()));
@@ -510,27 +510,41 @@ fn product_graphs(product: &StageProduct) -> std::collections::BTreeSet<String> 
         .collect()
 }
 
-/// The set of blob-representation lane labels a product's carrier bundle carries (the
-/// `representation`-keyed by-reference blob records — NOT the byte-artifact lane).
-fn product_blob_reps(product: &StageProduct) -> std::collections::BTreeSet<String> {
-    product
-        .bundle()
-        .lookaside()
-        .blobs
-        .iter()
-        .filter_map(|r| r.representation.clone())
-        .collect()
+/// The content identities carried under each blob-representation lane label in a
+/// product's carrier bundle (`representation`-keyed by-reference blob records — NOT
+/// the byte-artifact lane). A representation label is the lane; its content digest
+/// distinguishes this product's record from a different producer's record on the same
+/// shared lane (notably each diagnostics producer's `diagnostics:nodes` contribution).
+fn product_blob_records(
+    product: &StageProduct,
+) -> BTreeMap<String, std::collections::BTreeSet<String>> {
+    let mut records: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+    for record in &product.bundle().lookaside().blobs {
+        if let Some(representation) = &record.representation {
+            records
+                .entry(representation.clone())
+                .or_default()
+                .insert(record.digest.clone());
+        }
+    }
+    records
 }
 
 /// HARD-fail if a stage's ACTUAL attach delta diverges from its DECLARED attach set,
 /// in either direction. The delta is "what this stage attaches" = the named graphs /
-/// blob-rep lanes present in its OUTPUT product bundle but NOT in its assembled INPUT
-/// (the union over its consumed upstream products) — the cumulative output bundle diffed
-/// against the input, so an upstream graph carried forward is NOT counted as this stage's
-/// attach. Compared against the stage's `attaches_graphs()` / `attaches_blob_reps()`
-/// declaration (Rust/RDF-verified at load). Runs on both the cache-hit and cache-miss
-/// paths (called by [`exec_stage`]) so a cached product with drifted declarations cannot
-/// slip through. No optionality, no fallback.
+/// blob-rep lanes present in its OUTPUT product bundle but NOT in its effective INPUT.
+/// For named graphs, that input honors `consumed_entities()`: a typed producer contributes
+/// only the graph entities this stage actually reads, while an untyped producer contributes
+/// its whole product. Blob records remain whole-product inputs because there is no typed
+/// blob-consumption declaration, but their identity is `(representation, content digest)`:
+/// two producers may each attach distinct content under the same shared lane label. The
+/// cumulative output bundle is diffed against those inputs, so a graph the stage actually
+/// consumes and carries forward is NOT counted as its attach, while a graph merely present
+/// elsewhere in an upstream carrier is not allowed to hide a real attachment. Compared
+/// against the stage's `attaches_graphs()` /
+/// `attaches_blob_reps()` declaration (Rust/RDF-verified at load). Runs on both the cache-hit
+/// and cache-miss paths (called by [`exec_stage`]) so a cached product with drifted
+/// declarations cannot slip through. No optionality, no fallback.
 fn verify_attach_drift(
     stage: &dyn Stage,
     upstream: &BTreeMap<String, StageProduct>,
@@ -538,21 +552,48 @@ fn verify_attach_drift(
 ) -> Result<(), gmeow_errors::Diag> {
     use std::collections::BTreeSet;
 
-    // Assembled input sets = union over the consumed upstream products.
+    // Effective input graph set = the same typed-entity narrowing used by the cache key.
+    // A producer absent from the declaration remains a whole-product dependency. Blob
+    // records have no typed consumption lane, so they remain the union over every consumed
+    // upstream product. Record identity includes the payload digest: sharing a representation
+    // label does not make two producers' distinct payloads equal.
+    let entities: BTreeMap<&str, &[String]> = stage
+        .consumed_entities()
+        .iter()
+        .map(|(producer, ents)| (producer.as_str(), ents.as_slice()))
+        .collect();
     let mut input_graphs: BTreeSet<String> = BTreeSet::new();
-    let mut input_blob_reps: BTreeSet<String> = BTreeSet::new();
-    for up in upstream.values() {
-        input_graphs.extend(product_graphs(up));
-        input_blob_reps.extend(product_blob_reps(up));
+    let mut input_blob_records: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for (producer, up) in upstream {
+        let upstream_graphs = product_graphs(up);
+        match entities.get(producer.as_str()) {
+            Some(ents) if !ents.is_empty() => input_graphs.extend(
+                upstream_graphs
+                    .into_iter()
+                    .filter(|graph| ents.iter().any(|entity| entity == graph)),
+            ),
+            _ => input_graphs.extend(upstream_graphs),
+        }
+        for (representation, digests) in product_blob_records(up) {
+            input_blob_records
+                .entry(representation)
+                .or_default()
+                .extend(digests);
+        }
     }
 
     let delta_graphs: BTreeSet<String> = product_graphs(product)
         .difference(&input_graphs)
         .cloned()
         .collect();
-    let delta_blob_reps: BTreeSet<String> = product_blob_reps(product)
-        .difference(&input_blob_reps)
-        .cloned()
+    let delta_blob_reps: BTreeSet<String> = product_blob_records(product)
+        .into_iter()
+        .filter_map(|(representation, output_digests)| {
+            let already_present = input_blob_records
+                .get(&representation)
+                .is_some_and(|input_digests| output_digests.is_subset(input_digests));
+            (!already_present).then_some(representation)
+        })
         .collect();
 
     check_lane(

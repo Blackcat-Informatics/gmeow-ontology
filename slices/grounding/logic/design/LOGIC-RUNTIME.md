@@ -96,17 +96,15 @@ filled by a component optimized for that purpose; the architecture does not conf
 ### Substrate lineage
 
 Production forward and backward reasoning are implemented by the native Rust relational core;
-storage and SPARQL use a Rust-native RDF 1.2 quad store (**oxigraph**). **Nemo** remains only as a
-temporary forward differential reference while its final existential correctness gates land.
-**Scryer has been retired**: there is no embedded Prolog dependency or backward fallback. External
+storage and SPARQL use a Rust-native RDF 1.2 quad store (**oxigraph**). The former external forward
+and backward substrates have both been retired: there is no embedded fallback. External
 reasoners remain available for
 checking the OWL projections of the IR, but they are secondary validators of their projected
 fragments — not authorities over the canonical `logic:` semantics.
 
-**Trajectory.** The backward substrate is fully subsumed. The remaining forward retirement work
-promotes production existential reasoning onto the native chase and deletes Nemo after its
-correctness and evidence gates pass. Named engines are evidence sources, not architectural
-commitments.
+**Trajectory.** Both substrates are fully subsumed. Production existential reasoning runs on the
+typed native restricted chase, and captured external corpora remain evidence rather than runtime
+dependencies.
 
 > Ownership boundary. The existential-rule substrate provides the chase *mechanism* used by
 > `logic:` typed-context construction — it is not, by itself, a context-construction engine.
@@ -337,21 +335,18 @@ within-context inconsistency.
 
 ## The native physical engine — execution and optimization
 
-Routing every query to bootstrap substrates (Nemo's chase and an embedded SLD engine) was the starting point,
+Routing every query to bootstrap substrates was the starting point,
 not the long-term architecture: two black-box whole-program engines cannot be planned across,
 specialized, parallelized, or made incremental, and each boundary pays re-serialization. On the
-forward path that starting point is now behind us: the Nemo-track promotion has **landed**, so the
+forward path that starting point is now behind us, so the
 production reasoning engine is the single native physical core in Rust that the IR's progressive
 lowering ([LOGIC-IR.md § IR commitments](LOGIC-IR.md)) targets *downward*. `forward_oracle()` returns
 the native forward oracle; the fixed OWL-profile rule texts (EL, RL, and the DL Horn fragment) run on
 the native chase, and the RL `triple/4` fragment is evaluated by the native generic n-ary evaluator
 (predicate-as-data) rather than by a black-box substrate. The backward substrate and fallback
-router are deleted; Nemo is correspondingly demoted to a forward conformance oracle — subsumed
-fragment-by-fragment and **oracle-gated** by the divergence ledger
-([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)), the same retirement discipline used for the Python
-oracle. Nemo has left the primary reasoning path entirely: it survives only as the scheduled
-differential cross-check lane (`make maint-nemo-crosscheck`) and the parity gates that keep the native
-core honest.
+router are deleted. Native results remain **corpus-gated** by the divergence ledger
+([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)); captured external expectations keep the native core
+honest without shipping another executable reasoner.
 
 The execution lowering stack:
 
@@ -376,8 +371,8 @@ world/standpoint and the quantitative axes in one pass, where the semiring *is* 
 — the `ReasoningContract` ([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)) as the physical-plan selector, i.e.
 decidability-as-projection applied to performance.
 
-Honest staging: native subsumption is fragment-by-fragment, oracle-gated. The Nemo-track — the
-forward-chase profiles (EL, RL, DL Horn) — is now subsumed and in production; the hard parts —
+Honest staging: native subsumption is fragment-by-fragment and corpus-gated. The forward-chase
+profiles (EL, RL, DL Horn) are native and in production; the hard parts —
 well-founded / stable-model semantics *incrementally*, existential-rule chase with termination *and*
 incrementality together, and the paraconsistent/modal facets — stay heavy-path fallbacks longest and
 are flagged non-incremental in the perf ledger. The full rationale and the MLIR/LLVM lineage
@@ -496,5 +491,5 @@ respectively, as first-class operations on the running solver.
 
 ---
 
-*Engines and tools named here — oxigraph, Nemo, the retired Scryer reference, ProbLog, EYE/cwm — are
+*Engines and tools named here — oxigraph, ProbLog, EYE/cwm — are
 listed in [LOGIC-REFERENCES.md](LOGIC-REFERENCES.md).*

@@ -468,3 +468,106 @@ fn flagship_cats_chase_mice_lowers_to_evaluable_rules_with_exact_preservation() 
         out.preservation.polarities
     );
 }
+
+/// The slice's typed-IR example is the source authority for the fixed ternary atom. Parse that
+/// exact RDF formula and drive the production relational-core adapter: the result must be one
+/// shared existential tuple reifier whose ordered binary edges preserve relation and arguments.
+///
+/// This closes the evidence gap a hand-authored `betweenTuple` could not: changing the fixture's
+/// relation, argument kind/order, or the compiler's reification recipe now fails at the real
+/// producer boundary.
+#[test]
+fn typed_ir_fixture_ternary_formula_legalizes_through_the_real_adapter() {
+    use gmeow_logic_compile::frontend::parse_logic_str;
+
+    const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/logic/";
+    let fixture = include_str!("../../../../slices/grounding/logic/examples/typed-ir.ttl");
+    let (program, diagnostics) = parse_logic_str(fixture, None).expect("typed-IR fixture parses");
+    assert!(
+        !diagnostics.iter().any(|d| d.code == "MALFORMED_FORMULA"),
+        "every authored typed-IR formula must reconstruct cleanly: {diagnostics:?}"
+    );
+
+    let relation = Term::Iri(format!("{EX}between"));
+    let between = program
+        .formulas
+        .iter()
+        .find(|formula| {
+            matches!(
+                formula,
+                Formula::Atom {
+                    relation: candidate,
+                    ..
+                } if candidate == &relation
+            )
+        })
+        .expect("the source fixture carries its between formula")
+        .clone();
+    let Formula::Atom {
+        relation: parsed_relation,
+        args,
+    } = &between
+    else {
+        unreachable!("selected by Formula::Atom relation")
+    };
+    assert_eq!(parsed_relation, &relation, "the relation IRI is preserved");
+    assert_eq!(
+        args,
+        &vec![
+            Term::Iri(format!("{EX}Alice")),
+            Term::Iri(format!("{EX}Bob")),
+            Term::Iri(format!("{EX}Carol")),
+        ],
+        "termIndex reconstructs the exact Alice/Bob/Carol argument order"
+    );
+
+    let out = lower_formulas(&program_with(vec![between]));
+    assert!(
+        out.rules.is_empty(),
+        "a ternary derivation belongs to the conjunctive-head chase lane"
+    );
+    assert_eq!(
+        out.nary_head_rules.len(),
+        1,
+        "one source ternary atom yields one existential tuple rule"
+    );
+    assert!(
+        out.preservation.unsupported_constructs.is_empty(),
+        "the fixed-arity ternary formula is legal, not residue: {:?}",
+        out.preservation.unsupported_constructs
+    );
+    assert!(
+        out.preservation
+            .polarities
+            .contains(&PreservationKind::Exact),
+        "fixed-arity reification is exact"
+    );
+
+    let lowered = &out.nary_head_rules[0];
+    assert!(lowered.body.is_empty(), "a ground assertion has no body");
+    assert_eq!(
+        lowered.head.len(),
+        4,
+        "the tuple has one relation-typing edge plus three positional edges"
+    );
+    let reifier = lowered.head[0].subject.clone();
+    assert!(
+        matches!(reifier, EvalTerm::Var(ref name) if name.starts_with("?naryH")),
+        "the shared tuple node is the content-addressed existential reifier: {reifier:?}"
+    );
+    assert!(
+        lowered.head.iter().all(|atom| atom.subject == reifier),
+        "all four edges must share one tuple reifier: {:?}",
+        lowered.head
+    );
+    assert_eq!(lowered.head[0].predicate, format!("{LOGIC}instanceOf"));
+    assert_eq!(
+        lowered.head[0].object,
+        EvalTerm::ConstNamed(format!("{EX}between"))
+    );
+    for (index, expected) in ["Alice", "Bob", "Carol"].iter().enumerate() {
+        let atom = &lowered.head[index + 1];
+        assert_eq!(atom.predicate, format!("{LOGIC}naryArg{index}"));
+        assert_eq!(atom.object, EvalTerm::ConstNamed(format!("{EX}{expected}")));
+    }
+}

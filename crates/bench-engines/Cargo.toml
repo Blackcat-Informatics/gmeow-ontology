@@ -27,7 +27,7 @@ path = "src/main.rs"
 # path (cli→pipeline→conformance) therefore never reaches the counting allocator.
 gmeow-conformance = { path = "../conformance" }
 # The native logic engine seams the harness drives each engine through:
-# cost::{run_native_forward, run_nemo_forward, run_nemo_forward_facts_only},
+# cost::run_native_forward,
 # materialize::materialize_routed and dispatch::dispatch_query, plus the query IR,
 # store, seam, provenance, result,
 # / reason (divergence-ledger) surfaces.

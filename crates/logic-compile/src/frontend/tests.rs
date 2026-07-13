@@ -81,6 +81,13 @@ fn reified_trivially_horn_formula_routes_to_axioms_not_panics() {
         "the reified ground atom must be routed to LogicProgram.axioms, got {:?}",
         prog.axioms
     );
+    assert!(
+        !prog.axioms.iter().any(|a| {
+            a.subject.ends_with("/phi") && a.predicate == RDF_TYPE && a.obj == logic_iri("Formula")
+        }),
+        "logic:Formula typing is owned by the formula extractor and must not be duplicated as a generic axiom: {:?}",
+        prog.axioms
+    );
 }
 
 // ── Minimal graph + reasoning contracts ───────────────────────────────
@@ -853,9 +860,22 @@ fn quantifier_with_malformed_bound_var_is_malformed_not_silently_narrowed() {
         "a malformed binder must be skipped, not narrowed: {:?}",
         prog.formulas
     );
+    let malformed: Vec<_> = diags
+        .iter()
+        .filter(|d| d.code == "MALFORMED_FORMULA")
+        .collect();
+    assert_eq!(malformed.len(), 1, "one binder defect must report once");
+    assert_eq!(
+        malformed[0].subject.as_deref(),
+        Some("https://example.org/test/f1"),
+        "the owning quantifier, not its term carrier, is the formula identity"
+    );
     assert!(
-        diags.iter().any(|d| d.code == "MALFORMED_FORMULA"),
-        "expected a MALFORMED_FORMULA diagnostic for a binder missing termVariable: {diags:?}"
+        malformed[0].message.contains("https://example.org/test/f1")
+            && malformed[0]
+                .message
+                .contains("https://example.org/test/qv1"),
+        "the message must name both owning formula and malformed carrier: {malformed:?}"
     );
 }
 
@@ -880,6 +900,238 @@ fn vacuous_quantifier_is_malformed() {
     assert!(
         diags.iter().any(|d| d.code == "MALFORMED_FORMULA"),
         "expected a MALFORMED_FORMULA diagnostic for a vacuous quantifier: {diags:?}"
+    );
+}
+
+fn assert_malformed_formula_error(ttl: &str, expected_detail: &str) {
+    let (prog, diags) = parse(ttl);
+    assert!(
+        prog.formulas.is_empty(),
+        "a malformed formula must never enter the IR: {:?}",
+        prog.formulas
+    );
+    assert!(
+        diags.iter().any(|d| {
+            d.code == "MALFORMED_FORMULA"
+                && d.severity == Severity::Error
+                && d.message.contains(expected_detail)
+        }),
+        "expected an error-grade MALFORMED_FORMULA containing {expected_detail:?}: {diags:?}"
+    );
+}
+
+#[test]
+fn formula_constructor_is_exclusive_and_cardinalities_are_strict() {
+    let cases = [
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ; logic:not ex:child ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .
+             ex:child a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "exactly one constructor family",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:and ex:child .
+             ex:child a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "at least two operands",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:iff ex:child .
+             ex:child a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "exactly two operands",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:antecedent ex:child .
+             ex:child a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "exactly one logic:consequent",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:not ex:left, ex:right .
+             ex:left a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .
+             ex:right a logic:Formula ; logic:relation ex:q ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ] .",
+            "exactly one logic:not",
+        ),
+    ];
+
+    for (ttl, expected_detail) in cases {
+        assert_malformed_formula_error(ttl, expected_detail);
+    }
+}
+
+#[test]
+fn term_carrier_values_and_indices_are_total_and_unambiguous() {
+    let cases = [
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ],
+                            [ logic:termIndex 0 ; logic:termIri ex:a ] .",
+            "unique and contiguous",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ],
+                            [ logic:termIndex 2 ; logic:termIri ex:a ] .",
+            "unique and contiguous",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termVariable \"x\" ;
+                              logic:termIri ex:a ] .",
+            "exactly one term-value property",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termIri ex:a ;
+                              logic:termLiteralDatatype xsd:string ] .",
+            "only with logic:termLiteral",
+        ),
+        (
+            "ex:f a logic:Formula ; logic:relation ex:p ;
+             logic:argument [ logic:termIndex 0 ; logic:termLiteral \"a\" ;
+                              logic:termLiteralDatatype \"xsd:string\" ] .",
+            "IRI-valued logic:termLiteralDatatype",
+        ),
+    ];
+
+    for (ttl, expected_detail) in cases {
+        assert_malformed_formula_error(ttl, expected_detail);
+    }
+}
+
+#[test]
+fn recursive_formula_cycle_is_an_error_even_without_a_top_level_root() {
+    assert_malformed_formula_error(
+        "ex:left a logic:Formula ; logic:not ex:right .
+         ex:right a logic:Formula ; logic:not ex:left .",
+        "recursive constructor cycle",
+    );
+}
+
+#[test]
+fn malformed_child_reports_once_at_the_exact_child_not_a_prefix_colliding_ancestor() {
+    let (prog, diags) = parse(
+        "ex:f a logic:Formula ; logic:not ex:f1 .
+         ex:f1 a logic:Formula .",
+    );
+    assert!(prog.formulas.is_empty());
+    let malformed: Vec<_> = diags
+        .iter()
+        .filter(|d| d.code == "MALFORMED_FORMULA")
+        .collect();
+    assert_eq!(malformed.len(), 1, "the child failure must not cascade");
+    assert_eq!(
+        malformed[0].subject.as_deref(),
+        Some("https://example.org/test/f1")
+    );
+    assert!(malformed[0].message.contains("https://example.org/test/f1"));
+}
+
+#[test]
+fn malformed_term_carrier_reports_once_at_its_owning_formula() {
+    let (prog, diags) = parse(
+        "ex:f a logic:Formula ; logic:relation ex:p ; logic:argument ex:arg .
+         ex:arg logic:termIndex \"not-an-index\" ; logic:termVariable \"x\" .",
+    );
+    assert!(prog.formulas.is_empty());
+    let malformed: Vec<_> = diags
+        .iter()
+        .filter(|d| d.code == "MALFORMED_FORMULA")
+        .collect();
+    assert_eq!(malformed.len(), 1);
+    assert_eq!(
+        malformed[0].subject.as_deref(),
+        Some("https://example.org/test/f")
+    );
+    assert!(
+        malformed[0].message.contains("https://example.org/test/f")
+            && malformed[0]
+                .message
+                .contains("https://example.org/test/arg"),
+        "the diagnostic must identify both formula and carrier: {malformed:?}"
+    );
+}
+
+#[test]
+fn malformed_constraint_integrity_has_one_authoritative_formula_diagnostic() {
+    let (prog, diags) = parse(
+        "ex:c a logic:Constraint ;
+             logic:integrity ex:integrity ;
+             logic:severity \"Violation\" .
+         ex:integrity a logic:Formula ; logic:not ex:badChild .
+         ex:badChild a logic:Formula .",
+    );
+    assert!(prog.constraints.is_empty());
+    let relevant: Vec<_> = diags
+        .iter()
+        .filter(|d| {
+            matches!(
+                d.code.as_str(),
+                "MALFORMED_FORMULA" | "MALFORMED_CONSTRAINT"
+            )
+        })
+        .collect();
+    assert_eq!(relevant.len(), 1, "formula cause must not be wrapped twice");
+    assert_eq!(relevant[0].code, "MALFORMED_FORMULA");
+    assert_eq!(
+        relevant[0].subject.as_deref(),
+        Some("https://example.org/test/badChild")
+    );
+}
+
+#[test]
+fn independent_constraint_defect_survives_formula_deduplication() {
+    let (prog, diags) = parse(
+        "ex:c a logic:Constraint ;
+             logic:integrity ex:integrity ;
+             logic:severity \"NotASeverity\" .
+         ex:integrity a logic:Formula ; logic:not ex:badChild .
+         ex:badChild a logic:Formula .",
+    );
+    assert!(prog.constraints.is_empty());
+    assert_eq!(
+        diags
+            .iter()
+            .filter(|d| d.code == "MALFORMED_FORMULA")
+            .count(),
+        1
+    );
+    assert!(diags.iter().any(|d| {
+        d.code == "MALFORMED_CONSTRAINT"
+            && d.subject.as_deref() == Some("https://example.org/test/c")
+            && d.message.contains("NotASeverity")
+    }));
+}
+
+#[test]
+fn formula_cycle_identity_and_message_are_traversal_order_independent() {
+    let (_, left_first) = parse(
+        "ex:left a logic:Formula ; logic:not ex:right .
+         ex:right a logic:Formula ; logic:not ex:left .",
+    );
+    let (_, right_first) = parse(
+        "ex:right a logic:Formula ; logic:not ex:left .
+         ex:left a logic:Formula ; logic:not ex:right .",
+    );
+    let select = |diags: &[Diagnostic]| {
+        diags
+            .iter()
+            .filter(|d| d.code == "MALFORMED_FORMULA")
+            .map(|d| (d.subject.clone(), d.message.clone()))
+            .collect::<Vec<_>>()
+    };
+    let left = select(&left_first);
+    let right = select(&right_first);
+    assert_eq!(left, right);
+    assert_eq!(left.len(), 1);
+    assert_eq!(left[0].0.as_deref(), Some("https://example.org/test/left"));
+    assert!(
+        left[0].1.contains("https://example.org/test/left")
+            && left[0].1.contains("https://example.org/test/right")
     );
 }
 

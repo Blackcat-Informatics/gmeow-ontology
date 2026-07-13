@@ -1,21 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native OWL 2 RL/RDF deductive closure over the Nemo chase (Task 5).
+//! Native OWL 2 RL/RDF deductive closure.
 //!
-//! This is the Docker/Java-free **primary** entailment authority that replaces
-//! the `owlrl` deductive-closure baseline the conversion suites used to call.
-//! `owlrl` is relocated to the classic-cross-check lane as the agreement oracle
-//! (it is no longer required for normal use).
+//! This is the Docker/Java-free **primary** entailment authority. The independent
+//! in-process `purrdf::entail` OWL-RL evaluator remains the on-gate agreement
+//! cross-check; it is not a production fallback.
 //!
 //! # Why a predicate-as-DATA encoding (not the [`crate::reason::el`] one)
 //!
 //! The EL/DL lane encodes every quad as the ternary `<predicate>(s, o, "world")`
-//! form, where the RDF predicate becomes the Nemo predicate *symbol*. That
+//! form, where the RDF predicate becomes the relation *symbol*. That
 //! encoding is structurally incapable of expressing OWL 2 RL meta-rules that
 //! quantify over the property position (`prp-dom`, `prp-rng`, `prp-trp`,
-//! `prp-inv`, `prp-spo1`, `prp-spo2`, `prp-symp`, `prp-fp`, `prp-eqp`) — a Nemo
-//! predicate symbol can never be a variable. `el.rs` names exactly this as its
+//! `prp-inv`, `prp-spo1`, `prp-spo2`, `prp-symp`, `prp-fp`, `prp-eqp`) — a
+//! relation symbol can never be a variable. `el.rs` names exactly this as its
 //! honest gap ("they require a predicate-as-data reformulation").
 //!
 //! This module IS that reformulation: every quad is encoded as the **4-ary
@@ -25,7 +24,7 @@
 //! so the closure is computed RDF-1.2-first (world-scoped, per-graph), never
 //! flattened to a world-less RDF-1.0 representation.
 //!
-//! The chase machinery is the shared forward oracle (`crate::oracle::ForwardOracle`)
+//! The chase machinery is the shared native forward evaluator
 //! — the same one [`crate::reason::el`]/[`crate::reason::dl`] and
 //! `gmeow_logic.materialize` drive. Only the encoding and the (fixed,
 //! ontology-independent) RL rule set differ; the 4-ary `triple` facts here are
@@ -34,7 +33,7 @@
 //! # Rule families implemented
 //!
 //! Driven by the constructs the 8 conversion suites exercise (verified by the
-//! native↔owlrl agreement loop) — a sound subset of OWL 2 RL/RDF:
+//! native↔`purrdf::entail` agreement loop) — a sound subset of OWL 2 RL/RDF:
 //!
 //! * **cax-sco** — class subsumption: `x a C1`, `C1 ⊑ C2` ⟹ `x a C2`.
 //! * **scm-sco** — subclass transitivity: `C1 ⊑ C2`, `C2 ⊑ C3` ⟹ `C1 ⊑ C3`.
@@ -66,13 +65,12 @@
 //! clash rules (`cax-dw`, `prp-irp`, …) are intentionally NOT materialised as
 //! *positive* entailments here: they either derive only `owl:sameAs` edges the
 //! suites never assert, or they detect inconsistency (the [`crate::reason::dl`]
-//! lane's job). The agreement oracle confirms this subset matches `owlrl` on
-//! every fixture the suites use.
+//! lane's job). The independent `purrdf::entail` cross-check confirms this subset
+//! on every fixture the suites use.
 
 use std::collections::HashMap;
 
 use crate::facts::{SKOLEM_PREFIX, TypedFactSet, skolem_iri};
-use crate::oracle::{ForwardBudget, ForwardOracle, forward_oracle};
 use purrdf::{RdfDataset, RdfTerm, TermValue};
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
@@ -88,7 +86,7 @@ const LIT_SURROGATE_PREFIX: &str = "urn:gmeow-rl-lit:";
 /// is `triple(subject, predicate-as-data, object, world)`.
 const TRIPLE_RELATION: &str = "triple";
 
-/// The relation name of the RDF-list membership helper [`RL_RULES`] declares
+/// The relation name of the RDF-list membership helper `structured_rl_rules()` declares
 /// (`list_member(?l, ?x, ?w)`) — internal bookkeeping for the finite
 /// class-expression rules, never a closure fact.
 const LIST_MEMBER_RELATION: &str = "list_member";
@@ -100,222 +98,7 @@ const LIST_MEMBER_RELATION: &str = "list_member";
 /// Python helper drops when folding the closure back into the default graph.
 pub const DEFAULT_WORLD: &str = "https://blackcatinformatics.ca/gmeow/graph/rl-default";
 
-/// The fixed OWL 2 RL/RDF rule set in the generic 4-ary `triple(?s,?p,?o,?w)`
-/// encoding (predicate-as-DATA). Full IRIs in angle brackets; `?w` threads the
-/// world so the closure stays world-scoped (RDF-1.2-first).
-///
-/// Rule names mirror the OWL 2 RL/RDF rule table (`rl:<rule-id>`) so the
-/// provenance and explanations cite the canonical rule that fired.
-pub const RL_RULES: &str = r#"
-% ── cax-sco: class subsumption (type propagation) ───────────────────────────
-#[name("rl:cax-sco")]
-triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c2, ?w) :-
-    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c1, ?w),
-    triple(?c1, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c2, ?w) .
-
-% ── scm-sco: subClassOf transitivity ────────────────────────────────────────
-#[name("rl:scm-sco")]
-triple(?c1, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c3, ?w) :-
-    triple(?c1, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c2, ?w),
-    triple(?c2, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c3, ?w) .
-
-% ── scm-eqc1: equivalentClass ⇒ subClassOf (both directions) ─────────────────
-#[name("rl:scm-eqc1-fwd")]
-triple(?c1, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c2, ?w) :-
-    triple(?c1, <http://www.w3.org/2002/07/owl#equivalentClass>, ?c2, ?w) .
-#[name("rl:scm-eqc1-bwd")]
-triple(?c2, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c1, ?w) :-
-    triple(?c1, <http://www.w3.org/2002/07/owl#equivalentClass>, ?c2, ?w) .
-
-% ── scm-eqc2: mutual subClassOf ⇒ equivalentClass ───────────────────────────
-#[name("rl:scm-eqc2")]
-triple(?c1, <http://www.w3.org/2002/07/owl#equivalentClass>, ?c2, ?w) :-
-    triple(?c1, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c2, ?w),
-    triple(?c2, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c1, ?w) .
-
-% ── scm-spo: subPropertyOf transitivity ─────────────────────────────────────
-#[name("rl:scm-spo")]
-triple(?p1, <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>, ?p3, ?w) :-
-    triple(?p1, <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>, ?p2, ?w),
-    triple(?p2, <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>, ?p3, ?w) .
-
-% ── prp-spo1: sub-property assertion propagation ────────────────────────────
-#[name("rl:prp-spo1")]
-triple(?x, ?p2, ?y, ?w) :-
-    triple(?p1, <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>, ?p2, ?w),
-    triple(?x, ?p1, ?y, ?w) .
-
-% ── prp-eqp1/2: equivalentProperty ⇒ mutual subPropertyOf ───────────────────
-#[name("rl:prp-eqp1")]
-triple(?p1, <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>, ?p2, ?w) :-
-    triple(?p1, <http://www.w3.org/2002/07/owl#equivalentProperty>, ?p2, ?w) .
-#[name("rl:prp-eqp2")]
-triple(?p2, <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>, ?p1, ?w) :-
-    triple(?p1, <http://www.w3.org/2002/07/owl#equivalentProperty>, ?p2, ?w) .
-
-% ── prp-dom: rdfs:domain ⇒ subject type ─────────────────────────────────────
-#[name("rl:prp-dom")]
-triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
-    triple(?p, <http://www.w3.org/2000/01/rdf-schema#domain>, ?c, ?w),
-    triple(?x, ?p, ?y, ?w) .
-
-% ── prp-rng: rdfs:range ⇒ object type ───────────────────────────────────────
-#[name("rl:prp-rng")]
-triple(?y, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
-    triple(?p, <http://www.w3.org/2000/01/rdf-schema#range>, ?c, ?w),
-    triple(?x, ?p, ?y, ?w) .
-
-% ── scm-dom2: a sub-property inherits its super-property's domain ───────────
-#[name("rl:scm-dom2")]
-triple(?p1, <http://www.w3.org/2000/01/rdf-schema#domain>, ?c, ?w) :-
-    triple(?p2, <http://www.w3.org/2000/01/rdf-schema#domain>, ?c, ?w),
-    triple(?p1, <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>, ?p2, ?w) .
-
-% ── scm-dom1: a domain class subsumes up the class hierarchy ────────────────
-#[name("rl:scm-dom1")]
-triple(?p, <http://www.w3.org/2000/01/rdf-schema#domain>, ?c2, ?w) :-
-    triple(?p, <http://www.w3.org/2000/01/rdf-schema#domain>, ?c1, ?w),
-    triple(?c1, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c2, ?w) .
-
-% ── scm-rng2: a sub-property inherits its super-property's range ────────────
-#[name("rl:scm-rng2")]
-triple(?p1, <http://www.w3.org/2000/01/rdf-schema#range>, ?c, ?w) :-
-    triple(?p2, <http://www.w3.org/2000/01/rdf-schema#range>, ?c, ?w),
-    triple(?p1, <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>, ?p2, ?w) .
-
-% ── scm-rng1: a range class subsumes up the class hierarchy ─────────────────
-#[name("rl:scm-rng1")]
-triple(?p, <http://www.w3.org/2000/01/rdf-schema#range>, ?c2, ?w) :-
-    triple(?p, <http://www.w3.org/2000/01/rdf-schema#range>, ?c1, ?w),
-    triple(?c1, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c2, ?w) .
-
-% ── prp-trp: owl:TransitiveProperty ─────────────────────────────────────────
-#[name("rl:prp-trp")]
-triple(?x, ?p, ?z, ?w) :-
-    triple(?p, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, <http://www.w3.org/2002/07/owl#TransitiveProperty>, ?w),
-    triple(?x, ?p, ?y, ?w),
-    triple(?y, ?p, ?z, ?w) .
-
-% ── prp-symp: owl:SymmetricProperty ─────────────────────────────────────────
-#[name("rl:prp-symp")]
-triple(?y, ?p, ?x, ?w) :-
-    triple(?p, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, <http://www.w3.org/2002/07/owl#SymmetricProperty>, ?w),
-    triple(?x, ?p, ?y, ?w) .
-
-% ── prp-inv1/2: owl:inverseOf ───────────────────────────────────────────────
-#[name("rl:prp-inv1")]
-triple(?y, ?p2, ?x, ?w) :-
-    triple(?p1, <http://www.w3.org/2002/07/owl#inverseOf>, ?p2, ?w),
-    triple(?x, ?p1, ?y, ?w) .
-#[name("rl:prp-inv2")]
-triple(?y, ?p1, ?x, ?w) :-
-    triple(?p1, <http://www.w3.org/2002/07/owl#inverseOf>, ?p2, ?w),
-    triple(?x, ?p2, ?y, ?w) .
-
-% ── prp-spo2: length-2 property chains ──────────────────────────────────────
-% A chain `P owl:propertyChainAxiom ( P1 P2 )` serializes as an RDF list:
-%   P propertyChainAxiom L0 ; L0 rdf:first P1 ; L0 rdf:rest L1 ;
-%   L1 rdf:first P2 ; L1 rdf:rest rdf:nil .
-% so a two-step chain is read off the list structure directly.
-#[name("rl:prp-spo2")]
-triple(?u1, ?p, ?u3, ?w) :-
-    triple(?p, <http://www.w3.org/2002/07/owl#propertyChainAxiom>, ?l0, ?w),
-    triple(?l0, <http://www.w3.org/1999/02/22-rdf-syntax-ns#first>, ?p1, ?w),
-    triple(?l0, <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>, ?l1, ?w),
-    triple(?l1, <http://www.w3.org/1999/02/22-rdf-syntax-ns#first>, ?p2, ?w),
-    triple(?l1, <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>, <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>, ?w),
-    triple(?u1, ?p1, ?u2, ?w),
-    triple(?u2, ?p2, ?u3, ?w) .
-
-% ── cls-svf1: someValuesFrom restriction membership ─────────────────────────
-% `R onProperty P; R someValuesFrom C; x P y; y a C` ⇒ `x a R`. With the
-% restriction node R bound, the rule classifies an individual into the anonymous
-% restriction class — the engine that drives owl:equivalentClass defined-class
-% recognition (e.g. PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place).
-#[name("rl:cls-svf1")]
-triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w) :-
-    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
-    triple(?r, <http://www.w3.org/2002/07/owl#someValuesFrom>, ?c, ?w),
-    triple(?x, ?p, ?y, ?w),
-    triple(?y, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) .
-
-% ── cls-avf: allValuesFrom restriction value typing ─────────────────────────
-#[name("rl:cls-avf")]
-triple(?y, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
-    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w),
-    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
-    triple(?r, <http://www.w3.org/2002/07/owl#allValuesFrom>, ?c, ?w),
-    triple(?x, ?p, ?y, ?w) .
-
-% ── cls-hv1/2: hasValue restriction assertion + recognition ────────────────
-#[name("rl:cls-hv1")]
-triple(?x, ?p, ?v, ?w) :-
-    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w),
-    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
-    triple(?r, <http://www.w3.org/2002/07/owl#hasValue>, ?v, ?w) .
-#[name("rl:cls-hv2")]
-triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w) :-
-    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
-    triple(?r, <http://www.w3.org/2002/07/owl#hasValue>, ?v, ?w),
-    triple(?x, ?p, ?v, ?w) .
-
-% ── RDF list membership helper for finite class expressions ─────────────────
-#[name("rl:list-member-head")]
-list_member(?l, ?x, ?w) :-
-    triple(?l, <http://www.w3.org/1999/02/22-rdf-syntax-ns#first>, ?x, ?w) .
-#[name("rl:list-member-tail")]
-list_member(?l, ?x, ?w) :-
-    triple(?l, <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>, ?r, ?w),
-    list_member(?r, ?x, ?w) .
-
-% ── cls-oneOf: nominal members are instances of the enumeration class ───────
-#[name("rl:cls-oneOf")]
-triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
-    triple(?c, <http://www.w3.org/2002/07/owl#oneOf>, ?l, ?w),
-    list_member(?l, ?x, ?w) .
-
-% ── cls-union/disjointUnion: members are subclasses of the containing class ──
-#[name("rl:cls-union-member")]
-triple(?m, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c, ?w) :-
-    triple(?c, <http://www.w3.org/2002/07/owl#unionOf>, ?l, ?w),
-    list_member(?l, ?m, ?w) .
-#[name("rl:cls-disjointUnion-member")]
-triple(?m, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c, ?w) :-
-    triple(?c, <http://www.w3.org/2002/07/owl#disjointUnionOf>, ?l, ?w),
-    list_member(?l, ?m, ?w) .
-
-% ── cls-int1: length-2 intersectionOf membership ────────────────────────────
-% `C intersectionOf ( C1 C2 ); x a C1; x a C2` ⇒ `x a C`. The intersection list
-% is read off its RDF-list structure (the defined classes in the suites are all
-% binary intersections); combined with cls-svf1 + scm-eqc1 this recognizes the
-% equivalentClass defined classes.
-#[name("rl:cls-int1")]
-triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
-    triple(?c, <http://www.w3.org/2002/07/owl#intersectionOf>, ?l0, ?w),
-    triple(?l0, <http://www.w3.org/1999/02/22-rdf-syntax-ns#first>, ?c1, ?w),
-    triple(?l0, <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>, ?l1, ?w),
-    triple(?l1, <http://www.w3.org/1999/02/22-rdf-syntax-ns#first>, ?c2, ?w),
-    triple(?l1, <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>, <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>, ?w),
-    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c1, ?w),
-    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c2, ?w) .
-
-% ── eq-*: owl:sameAs is an equivalence relation + substitution ───────────────
-#[name("rl:eq-sym")]
-triple(?y, <http://www.w3.org/2002/07/owl#sameAs>, ?x, ?w) :-
-    triple(?x, <http://www.w3.org/2002/07/owl#sameAs>, ?y, ?w) .
-#[name("rl:eq-trans")]
-triple(?x, <http://www.w3.org/2002/07/owl#sameAs>, ?z, ?w) :-
-    triple(?x, <http://www.w3.org/2002/07/owl#sameAs>, ?y, ?w),
-    triple(?y, <http://www.w3.org/2002/07/owl#sameAs>, ?z, ?w) .
-#[name("rl:eq-rep-s")]
-triple(?x2, ?p, ?o, ?w) :-
-    triple(?x1, <http://www.w3.org/2002/07/owl#sameAs>, ?x2, ?w),
-    triple(?x1, ?p, ?o, ?w) .
-#[name("rl:eq-rep-o")]
-triple(?s, ?p, ?o2, ?w) :-
-    triple(?o1, <http://www.w3.org/2002/07/owl#sameAs>, ?o2, ?w),
-    triple(?s, ?p, ?o1, ?w) .
-"#;
+// The fixed OWL 2 RL/RDF calculus is authored as typed rules in `rl_rules.rs`.
 
 /// One triple in the RL closure, decoded from a generic-triple chase row.
 ///
@@ -439,10 +222,8 @@ fn literal_nt(lit: &purrdf::RdfLiteral) -> String {
 /// OWL 2 RL rules never inspect a *literal value* (they match on IRIs in the
 /// property / class positions), so a literal object is mapped to an opaque
 /// surrogate IRI before the chase and mapped back afterwards. This is sound —
-/// the closure is identical to one over the literals themselves — and robust:
-/// it sidesteps every Nemo string-lexer hazard (escaped quotes, hyphenated
-/// language subtags like `@x-gmeow-english`, typed-literal display
-/// normalization) that would otherwise corrupt or reject the line-based program.
+/// the closure is identical to one over the literals themselves — and keeps the
+/// native rule core resource-only while round-tripping literal identity.
 #[derive(Default)]
 struct Interner {
     /// `surrogate IRI` → original literal N-Triples object form.
@@ -499,7 +280,7 @@ fn resource_term(term: &RdfTerm, interner: &mut Interner) -> Option<TermValue> {
 /// blank-node-graph) triple is encoded under [`DEFAULT_WORLD`] so an un-named
 /// rdflib graph still closes in a single world (RDF-1.2-first; the world axis
 /// is never flattened away). A triple-term subject/object is skipped —
-/// unsupported in the Nemo chase and absent from the suites' RL fixtures.
+/// unsupported in this RL encoding and absent from the suites' RL fixtures.
 fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> TypedFactSet {
     let mut facts = TypedFactSet::new();
     for quad in store.owned_quads() {
@@ -540,18 +321,18 @@ fn rl_iri(term: &TermValue, position: &str) -> gmeow_errors::Result<String> {
     }
 }
 
-/// Compute the OWL 2 RL/RDF deductive closure of `edb` via the Nemo chase.
+/// Compute the native OWL 2 RL/RDF deductive closure of `edb`.
 ///
-/// Loads `edb` into the typed generic-triple encoding, runs the forward oracle
-/// (`forward_oracle`) once over [`RL_RULES`], and coerces every
+/// Loads `edb` into the typed generic-triple encoding, runs the native structured
+/// generic evaluator once over `structured_rl_rules()`, and coerces every
 /// `triple/4` typed row back into an [`RlTriple`] (asserted + derived). The
 /// closure is world-scoped: derived triples carry the world IRI of the facts
 /// they were derived from.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the chase fails to parse/validate/evaluate/decode
-/// or if a materialized row is not one of the two relations [`RL_RULES`]
+/// Returns an error if the chase fails to validate, evaluate, or decode, or if a
+/// materialized row is not one of the two relations `structured_rl_rules()`
 /// declares (`triple/4`, `list_member/3`).
 pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
     let mut interner = Interner::default();
@@ -559,7 +340,8 @@ pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
     if edb_facts.is_empty() {
         return Ok(RlClosure { triples: vec![] });
     }
-    let chase = forward_oracle().materialize(&edb_facts, RL_RULES, &ForwardBudget::UNBOUNDED)?;
+    let rules = super::rl_rules::structured_rl_rules();
+    let chase = crate::physical::materialize_generic(&edb_facts, &rules)?;
 
     let mut triples: Vec<RlTriple> = Vec::new();
     for (row, prov) in &chase.rows {
@@ -568,8 +350,8 @@ pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
         // membership helper. The helper is internal bookkeeping — explicitly
         // not a closure fact — and any OTHER row shape indicates a rule-text
         // bug: hard-error, never skip silently (same doctrine as
-        // `crate::reason::run_reasoning`; materialize's non-quad bucket exists
-        // for caller-supplied rule texts, which these are not).
+        // ordinary materialization; its non-quad bucket exists for caller-supplied
+        // structured programs, which these are not).
         match (row.predicate.as_str(), row.args.len()) {
             (TRIPLE_RELATION, 4) => {}
             (LIST_MEMBER_RELATION, 3) => continue,
@@ -584,10 +366,9 @@ pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
         let subject = rl_iri(&row.args[0], "subject")?;
         // A literal surrogate in the SUBJECT position is a derived literal-typing
         // entailment (e.g. `prp-rng` typing an interned literal object) with no
-        // standard-RDF form — a literal can never be a triple subject. owlrl emits
-        // these as literal-subject triples (a non-standard D-entailment); the
-        // native authority drops them (sound: no RL rule depends on a literal's
-        // type, and the suites never assert one).
+        // standard-RDF form — a literal can never be a triple subject. The native
+        // authority drops the non-standard D-entailment row (sound: no supported RL
+        // rule depends on a literal's type, and the suites never assert one).
         if subject.starts_with(LIT_SURROGATE_PREFIX) {
             continue;
         }
@@ -595,8 +376,7 @@ pub fn rl_closure(edb: &RdfDataset) -> gmeow_errors::Result<RlClosure> {
         // The object is always an IRI in the chase (literals were interned to
         // surrogate IRIs); resolve a surrogate back to its original literal.
         let object = interner.resolve_object(&rl_iri(&row.args[2], "object")?);
-        // The world is the 4th argument: a plain string literal (the Nemo
-        // string-constant treatment of the world position).
+        // The world is the 4th argument: a plain string literal.
         let world = match &row.args[3] {
             TermValue::Literal {
                 lexical_form,
@@ -890,9 +670,8 @@ mod tests {
     #[test]
     fn literal_objects_round_trip_through_interning() {
         // A hyphenated language tag (`@x-gmeow-english`), an escaped quote, and a
-        // typed integer would all corrupt or be rejected by Nemo's string lexer;
-        // interning the literals sidesteps that. prp-spo1 must carry the literal
-        // object through the closure unchanged.
+        // typed integer all retain exact identity through interning. prp-spo1 must
+        // carry the literal object through the closure unchanged.
         let subprop = SUBPROP;
         let p1 = P1;
         let p2 = P2;

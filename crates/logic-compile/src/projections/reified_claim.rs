@@ -137,7 +137,7 @@ pub enum ClaimObject {
 pub struct ClaimAnnotation {
     /// The blank-node label for this annotation node (unique within the enclosing CONSTRUCT).
     pub label: String,
-    /// The annotation property IRI (e.g. [`GM_MAPPED_FROM`] or [`GM_CONFIDENCE`]).
+    /// The annotation property IRI (e.g. `GM_MAPPED_FROM` or `GM_CONFIDENCE`).
     pub property: String,
     /// The already-rendered annotation value term (an IRI/CURIE, or a typed/plain literal).
     pub value: String,

@@ -6,7 +6,7 @@
 //!
 //! # Why this exists
 //!
-//! The single-immediate-antecedent [`crate::nemo_engine::ChaseProvenance`] and the
+//! The native chase's single-immediate-antecedent provenance and the
 //! first-wins [`crate::foundation::FoundationQuad`] record exactly **one**
 //! derivation per fact. That is sufficient to *render* a proof, but it cannot
 //! answer the incremental question: *if a source assertion is removed, does this

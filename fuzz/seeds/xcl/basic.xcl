@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gmeow-xcl>
+  <sentences>
+    <atom>
+      <rel><name>https://example.org/cat</name></rel>
+      <arg><var>x</var></arg>
+    </atom>
+  </sentences>
+  <gmeow-rdf-meta>&lt;https://example.org/milo&gt; &lt;https://example.org/type&gt; &lt;https://example.org/cat&gt; .</gmeow-rdf-meta>
+</gmeow-xcl>

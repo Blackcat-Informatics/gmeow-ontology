@@ -147,8 +147,8 @@ pub fn enforce(ledger: &DivergenceLedger) -> LedgerVerdict {
 
 /// Strip a single surrounding pair of angle brackets from `s`.
 ///
-/// The native [`crate::reason::InferredAxiom`] object comes through as a Nemo
-/// display form (`<iri>`); oracle tuples arrive as bare IRIs. Normalizing both by
+/// The native [`crate::reason::InferredAxiom`] object uses a bracketed IRI
+/// display form (`<iri>`); corpus tuples arrive as bare IRIs. Normalizing both by
 /// trimming one leading `<` and one trailing `>` lets the two forms compare equal.
 fn unbracket(s: &str) -> String {
     s.strip_prefix('<')

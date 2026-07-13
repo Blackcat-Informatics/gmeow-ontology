@@ -1,55 +1,29 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The reasoning-oracle boundary.
+//! Native typed-closure adapters and neutral row vocabulary.
 //!
 //! A *reasoner* is a partial decision procedure over a fragment of the logic.
-//! The native physical core (`crate::physical`) is the production authority;
-//! retained external engines are test-only comparison adapters.
-//!
-//! Two dual traits mirror the forward/backward duality of Datalog±:
-//! materialization (least-fixpoint `T_P` closure) and reference goal resolution.
-//!
-//! - [`ForwardOracle`] — materialize the deductive closure of a typed EDB under
-//!   a rule program.  The PRODUCTION implementer is the native stratified core
-//!   ([`NativeForwardOracle`], returned by [`forward_oracle`]); the Nemo bridge
-//!   ([`NemoForwardOracle`], reached only via [`nemo_forward_oracle`]) is
-//!   retained solely as the bootstrap/parity oracle off the primary path.
-//! - [`BackwardOracle`] — test-only seam for the declarative SLD reference
-//!   resolver (`ReferenceBackwardOracle`), used to check the native demand-
-//!   transformed engine against an independent evaluation strategy.
+//! The native physical core (`crate::physical`) is the sole production authority.
+//! This module carries the neutral typed rows used by the structured native
+//! materialization adapters.
+//! The independent backward resolver and the `purrdf::entail` cross-check remain
+//! comparison surfaces only; neither is a production fallback.
 //!
 //! # Neutral vocabulary
 //!
 //! The closure vocabulary ([`TypedRow`], [`TypedProvenance`], [`TypedChaseResult`])
-//! lives here, not inside any adapter, so the trait does not depend on the
-//! engine that happens to produce it. Nemo also carries a
-//! separate rule/term codec (`NemoParsedRules` / `decode_nemo_term`), a
-//! wire-format concern distinct from solver invocation, so fully retiring Nemo
-//! additionally requires neutralizing that codec (see *Single naming site*).
+//! lives here rather than inside a parser or evaluator, so consumers share one
+//! engine-neutral result shape.
 //!
 //! # Provenance as a capability
 //!
-//! Nemo attributes each derived fact via `engine.trace()`; the native core's
-//! provenance has a different shape.  So provenance is a *queried capability*
-//! ([`ForwardOracle::provides_provenance`]), never a mandatory method — an
-//! oracle that cannot attribute derivations reports `false` and its consumers
-//! hard-fail rather than fabricate attribution.
-//!
-//! # Single naming site
-//!
-//! [`forward_oracle`] is the production materialization provider. Nemo's
-//! rule/term *codec* (`NemoParsedRules` /
-//! `decode_nemo_term`) is a distinct wire-format subsystem — the neutral rule-IR
-//! carrier — named outside this seam in production code, so retiring Nemo
-//! *entirely* additionally requires neutralizing that codec; it is not covered
-//! by this solver boundary.
+//! Native Record-mode evaluation populates provenance. Comparison adapters that do
+//! not carry a proof-height annotation use `None`; consumers must never fabricate an
+//! attribution or silently reinterpret absence as zero.
 
 use purrdf::TermValue;
 use purrdf::provenance::Attribution;
-
-use crate::query_ir::{AnswerSet, Budget, QProgram};
-use crate::seam::WorldFactSource;
 
 /// Wrap a reasoning-oracle condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
@@ -76,9 +50,9 @@ pub(crate) struct TypedRow {
 
 /// Provenance metadata for a typed row.
 ///
-/// An oracle that reports [`ForwardOracle::provides_provenance`] `== false` must
-/// never emit a populated `TypedProvenance` (fabricated attribution is a hard
-/// error, not a silent default) — the field carries real trace data or nothing.
+/// Every populated field carries real native trace data. An adapter that lacks an
+/// annotation leaves the optional field empty; fabricated attribution is a hard
+/// error, never a silent default.
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct TypedProvenance {
     /// Whether this fact is an EDB (asserted input) fact.
@@ -106,361 +80,17 @@ pub(crate) struct TypedChaseResult {
     pub rows: Vec<(TypedRow, TypedProvenance)>,
 }
 
-// ── Forward budget ────────────────────────────────────────────────────────────
-
-/// A declared bound on a forward materialization.
-///
-/// Distinct from the backward [`Budget`]: a forward run is bounded by rule
-/// firings, derived-answer count, and post-fixpoint wall-clock — not by SLD
-/// inference steps.  The default is unbounded.
-///
-/// The Nemo chase is not interruptible, so a [`ForwardOracle`] backed by it
-/// cannot honor a non-default `ForwardBudget` *inline*; enforcement is a
-/// governor concern layered above the oracle.  A non-default budget handed to
-/// such an oracle is therefore a hard error (see [`NemoForwardOracle::materialize`]),
-/// never silently dropped.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
-pub(crate) struct ForwardBudget {
-    /// Maximum IDB rule firings.
-    pub max_rule_firings: Option<u64>,
-    /// Maximum derived answers.
-    pub max_answers: Option<u64>,
-    /// Post-fixpoint wall-clock ceiling, in milliseconds.
-    pub time_ms: Option<u64>,
-}
-
-impl ForwardBudget {
-    /// The unbounded budget (no field set) — the value every current forward
-    /// call site passes, since inline forward-budget governance is a
-    /// native-governor concern above the oracle boundary, not an oracle
-    /// capability.
-    pub const UNBOUNDED: ForwardBudget = ForwardBudget {
-        max_rule_firings: None,
-        max_answers: None,
-        time_ms: None,
-    };
-
-    /// Whether any bound is set.
-    pub fn is_bounded(&self) -> bool {
-        self.max_rule_firings.is_some() || self.max_answers.is_some() || self.time_ms.is_some()
-    }
-}
-
-// ── Forward oracle ────────────────────────────────────────────────────────────
-
-/// A forward reasoner: materialize the deductive closure of a typed EDB under a
-/// rule program.
-pub(crate) trait ForwardOracle {
-    /// Stable label for ledgers and diagnostics (e.g. `"nemo"`).
-    fn name(&self) -> &'static str;
-
-    /// Materialize the closure of `facts` under `rules`.
-    ///
-    /// `rules` is the engine's rule text (the existential-rule superset carrier).
-    /// `budget` is a declared bound; an oracle that cannot honor a non-default
-    /// bound inline must return `Err` rather than silently ignore it.
-    fn materialize(
-        &self,
-        facts: &crate::facts::TypedFactSet,
-        rules: &str,
-        budget: &ForwardBudget,
-    ) -> gmeow_errors::Result<TypedChaseResult>;
-
-    /// Whether [`materialize`](Self::materialize) populates per-row provenance.
-    fn provides_provenance(&self) -> bool;
-}
-
-/// The Nemo forward adapter.  Wraps `nemo_engine::run_chase_typed` verbatim; the
-/// process-global `CHASE_LOCK` stays inside that call.
-///
-/// Off the primary path after the native flip: constructed only via
-/// [`nemo_forward_oracle`] (the parity gates + the scheduled cross-check lane
-/// `crate::reason::crosscheck_native_vs_nemo`), never from `reason_all`.
-pub(crate) struct NemoForwardOracle;
-
-impl ForwardOracle for NemoForwardOracle {
-    fn name(&self) -> &'static str {
-        "nemo"
-    }
-
-    fn materialize(
-        &self,
-        facts: &crate::facts::TypedFactSet,
-        rules: &str,
-        budget: &ForwardBudget,
-    ) -> gmeow_errors::Result<TypedChaseResult> {
-        // The Nemo chase is not interruptible and applies no budget inline; a
-        // non-default budget cannot be honored here.  Hard-fail rather than run
-        // an unbounded chase and pretend the bound was respected (no seam lie).
-        if budget.is_bounded() {
-            return Err(oracle_err(format!(
-                "NemoForwardOracle cannot honor a forward budget inline \
-                 ({budget:?}); forward-budget governance is a router/native-governor \
-                 concern above the oracle boundary"
-            )));
-        }
-        crate::nemo_engine::run_chase_typed(facts, rules)
-    }
-
-    fn provides_provenance(&self) -> bool {
-        true
-    }
-}
-
-/// The default forward oracle — the sole engine-naming site for materialization.
-///
-/// This is the PRODUCTION materialization engine: the native stratified
-/// semi-naive core ([`NativeForwardOracle`]).  Every production reasoning entry
-/// (`reason_all` / `run_reasoning`, the RL fragment, and `materialize`) resolves
-/// its forward chase through here, so the whole-bundle closure runs native.
-///
-/// Nemo is NO LONGER on the primary path.  It is retained ONLY as the bootstrap
-/// oracle for the scheduled cross-check lane and the native↔Nemo parity gates —
-/// reached exclusively via [`nemo_forward_oracle`], never from `reason_all`.
-pub(crate) fn forward_oracle() -> impl ForwardOracle {
-    NativeForwardOracle
-}
-
-/// The Nemo forward oracle — the ONLY remaining Nemo materialization entry point.
-///
-/// After the flip of [`forward_oracle`] onto the native core, Nemo leaves the
-/// primary reasoning path entirely.  This provider is the single seam through
-/// which the retained Nemo engine is reached: the native↔Nemo parity gates and
-/// the scheduled cross-check lane consult it, and nothing on the `reason_all`
-/// production path does.  Keeping it a named provider (rather than constructing
-/// [`NemoForwardOracle`] ad hoc) preserves the "single naming site" discipline
-/// for the bootstrap oracle too.
-///
-/// Its production consumer is the scheduled differential cross-check
-/// [`crate::reason::crosscheck_native_vs_nemo`] (the `reason-nemo-crosscheck` /
-/// `make maint-nemo-crosscheck` lane); the `#[cfg(test)]` parity gates also reach
-/// Nemo through here.
-pub(crate) fn nemo_forward_oracle() -> NemoForwardOracle {
-    NemoForwardOracle
-}
-
-/// A facts-only Nemo forward adapter for the **existential** fragment.
-///
-/// The value-inventing chase mints labeled nulls that Nemo's provenance trace cannot
-/// follow (`run_chase_typed` hard-errors "no trace tree"), so this oracle uses the
-/// facts-only path ([`crate::nemo_engine::run_chase_typed_facts_only`]) and reports
-/// `provides_provenance() == false`.  It is the parity oracle for the native existential
-/// chase, where the gate compares FACTS null-blind (provenance is exempt).
-///
-/// Consumed by the existential-chase parity gate and by `materialize_routed`, which
-/// demotes an uncertified existential program to this facts-only path (the provenance
-/// oracle would hard-error on its invented nulls).
-pub(crate) struct NemoFactsOracle;
-
-impl ForwardOracle for NemoFactsOracle {
-    fn name(&self) -> &'static str {
-        "nemo"
-    }
-
-    fn materialize(
-        &self,
-        facts: &crate::facts::TypedFactSet,
-        rules: &str,
-        budget: &ForwardBudget,
-    ) -> gmeow_errors::Result<TypedChaseResult> {
-        if budget.is_bounded() {
-            return Err(oracle_err(format!(
-                "NemoFactsOracle cannot honor a forward budget inline ({budget:?}); \
-                 forward-budget governance is a router/native-governor concern above \
-                 the oracle boundary"
-            )));
-        }
-        let rows = crate::nemo_engine::run_chase_typed_facts_only(facts, rules)?;
-        // `provides_provenance() == false`, so every row carries EMPTY provenance
-        // (never a fabricated attribution — the no-optionality doctrine).
-        Ok(TypedChaseResult {
-            rows: rows
-                .into_iter()
-                .map(|row| {
-                    (
-                        row,
-                        TypedProvenance {
-                            is_edb: false,
-                            rule_name: None,
-                            antecedents: Vec::new(),
-                            proof_height: None,
-                            attributions: Vec::new(),
-                        },
-                    )
-                })
-                .collect(),
-        })
-    }
-
-    fn provides_provenance(&self) -> bool {
-        false
-    }
-}
-
-/// The native forward adapter — gmeow's own stratified semi-naive core.
-///
-/// Wraps [`crate::physical::materialize_native`] (the native chase
-/// `crate::materialize::materialize_routed` already runs) behind the
-/// [`ForwardOracle`] seam, so the fixed OWL-profile rule texts can be routed onto
-/// the native engine instead of Nemo.  This is the substitution point the oracle
-/// boundary was built for.
-///
-/// The native chase is a pure Horn/stratified evaluator: it takes the ternary
-/// `predicate(subject, object, world)` EDB, reconstructs the world-indexed
-/// [`WorldStore`](crate::store::WorldStore) it materializes over, runs the fixed
-/// least-fixpoint closure, and re-exposes each [`DerivedRow`](crate::rule_ir::DerivedRow)
-/// as a ternary [`TypedRow`].  It reports `provides_provenance() == true`: each
-/// row carries its firing-rule identity (the assert sentinel for echoed EDB, else
-/// the rule IRI) AND its immediate antecedents, re-exposed from the native
-/// `DerivedRow.antecedents` (the matched body facts) as ternary
-/// `predicate(subject, object, world)` rows — the production provenance the
-/// reason/explain/materialize consumers require (they cannot invert a reifier
-/// hash).  The FACT set is what the parity ledger compares — provenance is exempt
-/// (`compare_materialization` compares only fact keys) — but the antecedents must
-/// be real here, since this is now the primary reasoning path.
-///
-/// This is the PRODUCTION materialization path: [`forward_oracle`] returns it, so
-/// every production reasoning entry (`reason_all` / `run_reasoning`, the RL
-/// fragment, and `materialize`) runs its forward chase through this adapter.  The
-/// native↔Nemo parity gates additionally construct it directly to check gap-zero.
-pub(crate) struct NativeForwardOracle;
-
-impl ForwardOracle for NativeForwardOracle {
-    fn name(&self) -> &'static str {
-        "native"
-    }
-
-    fn materialize(
-        &self,
-        facts: &crate::facts::TypedFactSet,
-        rules: &str,
-        budget: &ForwardBudget,
-    ) -> gmeow_errors::Result<TypedChaseResult> {
-        // Forward-budget governance is a router/native-governor concern layered
-        // ABOVE the oracle boundary (the 5-field incomplete-never-wrong result is
-        // minted there): this seam stays UNBOUNDED, exactly like Nemo's.  A
-        // non-default budget is a hard error, never a silently-unbudgeted chase.
-        if budget.is_bounded() {
-            return Err(oracle_err(format!(
-                "NativeForwardOracle cannot honor a forward budget inline ({budget:?}); \
-                 forward-budget governance is a router/native-governor concern above \
-                 the oracle boundary"
-            )));
-        }
-
-        // The oracle boundary carries only the closure vocabulary, so the
-        // native governor's completion frontier is discarded here.  The benchmark
-        // seam ([`crate::cost::run_native_forward`]) reaches the SAME evaluation
-        // through [`native_forward_with_frontier`] to keep the frontier's
-        // `consumed_steps` cost probe.
-        let (result, _frontier) = native_forward_with_frontier(facts, rules)?;
-        Ok(result)
-    }
-
-    fn provides_provenance(&self) -> bool {
-        true
-    }
-}
-
-/// Run the native stratified forward chase over `facts` under `rules` UNBUDGETED,
-/// returning BOTH the typed closure AND the governor's [`CompletionFrontier`].
-///
-/// This is the exact evaluation [`NativeForwardOracle::materialize`] performs — the
-/// [`ForwardOracle`] boundary just discards the frontier because its neutral
-/// closure vocabulary ([`TypedChaseResult`]) carries no governor state.  The
-/// deterministic-cost benchmark seam ([`crate::cost::run_native_forward`]) needs
-/// the frontier's `consumed_steps` (the committed-derivation count — a scalar
-/// projection of the cost semiring), so it calls THIS entry instead and reads both.
-///
-/// The binary named-ternary path reports the real governor frontier (`consumed_steps`
-/// = the semi-naive commit count); the arity-generic n-ary path is not governed
-/// through the frontier, so it reports the empty frontier
-/// ([`crate::query_ir::CompletionFrontier::empty`]) — the same "empty ⇒ no governor
-/// stats" convention [`crate::materialize::Materialization`] uses on its ungoverned
-/// routes.  Dispatch, IR lowering, and the WrongClosure guards are byte-identical to
-/// the production oracle path (this is the one body both entries share).
-///
-/// # Errors
-///
-/// Returns `Err` on a parse/lowering failure, a non-ternary EDB fact on the binary
-/// path, or a declared native gap (non-stratifiable / `Unsupported`) the chase must
-/// not approximate.
-pub(crate) fn native_forward_with_frontier(
+// Structured native materialization.
+pub(crate) fn native_forward_eval_rules_with_frontier(
     facts: &crate::facts::TypedFactSet,
-    rules: &str,
+    eval_rules: Vec<crate::rule_ir::EvalRule>,
 ) -> gmeow_errors::Result<(TypedChaseResult, crate::query_ir::CompletionFrontier)> {
-    // ── Dispatch: binary (named-ternary EL/DL) vs generic (n-ary RL/RDF, or
-    //    an arity-3 program that carries a non-ternary HELPER relation) ──
-    //
-    // The binary `seminaive` core keys every relation by a CONSTANT predicate
-    // NAME and models exactly the ternary `<predicate>(subject, object, world)`
-    // shape: `crate::rule_ir::lower_nemo_atom` reads only `terms[0]`/`terms[1]`
-    // and DROPS the rest, so it is faithful ONLY when EVERY atom it sees is
-    // arity-3.  Feed it an arity-4 `triple(?s,?p,?o,?w)` atom or an arity-2
-    // `helper(?x,?y)` atom and it does not error — it silently mis-slots the
-    // terms and produces a WRONG closure.  So the binary path is admissible
-    // ONLY for a program whose EDB *and* whose whole rule set are purely
-    // arity-3 named-ternary.  Everything else routes to the arity-generic
-    // evaluator `crate::physical::generic`, which keeps EVERY term (predicate
-    // position included) and is a strict generalization — it evaluates the
-    // arity-3 named-ternary relations too (a constant predicate name is just
-    // another relation), so the mixed case (arity-3 program rules + a
-    // non-ternary helper, the shape `crate::materialize` accepts from a user
-    // program) runs correctly on it.
-    //
-    // The signal is the ARITY of the encoding, read from BOTH surfaces:
-    //
-    // * EL/DL: every quad → ternary `<predicate>(subject, object, world)` (EDB
-    //   arity 3) and every rule atom is arity-3 named-ternary → BINARY core.
-    // * OWL 2 RL/RDF (`crate::reason::rl`): every quad → the 4-ary
-    //   `triple(?s, ?p, ?o, ?w)` relation (predicate as a DATA term) and the
-    //   meta-rules carry arity-4 / arity-3 generic atoms → GENERIC evaluator.
-    // * A user materialize program (`crate::materialize`): arity-3 EDB but a
-    //   rule set that declares a HELPER predicate of another arity → GENERIC
-    //   evaluator (the binary core cannot represent the helper atom).
-    //
-    // A program is binary-eligible IFF its EDB is all-ternary AND its rule set
-    // is all-ternary (`rules_are_pure_ternary`).  A non-ternary rule set that
-    // ALSO carries negation is genuinely un-runnable by either native path
-    // (binary needs ternary, generic is positive-only): it routes to generic,
-    // where `parse_generic_rules` HARD-FAILS on the negated atom — never a
-    // guess, never a silent approximation.  An empty EDB with an all-ternary
-    // rule set stays binary (the closure is vacuously empty either way).
-    //
-    // Parse the rule text into a Nemo `Program` ONCE here and thread it into
-    // BOTH the arity-eligibility inspection (`program_is_pure_ternary`) and the
-    // chosen lowering (`lower_program_generic_rules` / `lower_program_eval_rules`).
-    // The dispatch and the downstream IR lowering share a single parse, so a
-    // materialize call parses the rule program exactly once instead of twice.
-    let program = crate::nemo_engine::NemoParsedRules::parse_unvalidated(rules)?.into_program();
-    let edb_all_ternary = facts.facts().all(|f| f.args.len() == 3);
-    let binary_eligible = edb_all_ternary && program_is_pure_ternary(&program);
-    if !binary_eligible {
-        // Generic (n-ary) path: lower the parsed program KEEPING all terms and
-        // run the arity-generic positive-Datalog least-fixpoint.  The binary core
-        // below is left UNTOUCHED — EL/DL never reach this branch.
-        let generic_rules = crate::physical::lower_program_generic_rules(&program)?;
-        let result = crate::physical::materialize_generic(facts, &generic_rules)?;
-        // The arity-generic evaluator is not driven through the stratum governor,
-        // so it reports the empty frontier (no `consumed_steps` cost probe) — the
-        // same "empty ⇒ ungoverned" convention `Materialization` uses.
-        return Ok((result, crate::query_ir::CompletionFrontier::empty()));
-    }
-
-    // Reconstruct the world-indexed store the native chase materializes over
-    // from the ternary typed EDB.  Every reasoning fact is
-    // `predicate(subject, object, world)`; a non-ternary fact is a rule-text /
-    // EDB-construction bug (the fixed reasoning rule texts declare only ternary
-    // relations), so it is a hard error — mirroring `run_reasoning`'s ternary
-    // contract, not a silent skip.
     let interner = facts.interner();
     let store = crate::store::WorldStore::new();
     for fact in facts.facts() {
         if fact.args.len() != 3 {
             return Err(oracle_err(format!(
-                "NativeForwardOracle EDB fact for predicate {:?} has arity {} \
-                     (expected 3): the ternary reasoning encoding is \
-                     predicate(subject, object, world)",
+                "native structured-rule EDB fact for predicate {:?} has arity {} (expected 3)",
                 fact.predicate,
                 fact.args.len()
             )));
@@ -470,71 +100,34 @@ pub(crate) fn native_forward_with_frontier(
         let world = world_lexical(interner.resolve(fact.args[2]))?;
         store
             .insert_quad_terms(&world, subject, TermValue::iri(&fact.predicate), object)
-            .map_err(|e| oracle_err(format!("NativeForwardOracle store seed failed: {e}")))?;
+            .map_err(|e| oracle_err(format!("native structured-rule store seed failed: {e}")))?;
     }
 
-    // Parse the rule text into the Horn/stratified IR and run the native
-    // least-fixpoint closure UNBOUNDED (`None` max_steps — the governor never
-    // cuts, so the full least model is produced).
-    let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
-    // Compile once per reasoning-contract + canonical-rule identity. A cache hit skips
-    // both stratification and physical planning and returns an immutable plan shared by
-    // forward and backward execution. Non-stratifiable programs are negative-cached as
-    // `None`, preserving the declared-gap behavior without repeating the analysis.
     let lookup = crate::physical::compile_cached(crate::reason::native_contract_hash(), eval_rules);
     let Some(executable) = lookup.executable else {
         return Err(oracle_err(
-            "NativeForwardOracle: the native chase does not decide this rule set \
-                 (non-stratifiable: a negative dependency-graph edge inside a cycle); it \
-                 must not approximate an undecided fragment"
-                .to_owned(),
+            "native structured-rule chase does not decide a non-stratifiable program".to_owned(),
         ));
     };
-    // Capture the governor's completion frontier alongside the rows: its
-    // `consumed_steps` is the committed-derivation count the benchmark seam reads
-    // as a scalar projection of the cost semiring.
     let (rows, frontier) =
         match crate::physical::materialize_native(&store, executable.as_ref(), None)? {
             crate::physical::NativeOutcome::Decided(budgeted) => {
                 let frontier = budgeted.frontier();
                 (budgeted.rows, frontier)
             }
-            // Any other declared native gap the forward executor might raise — never
-            // approximate it into a fabricated closure.
             crate::physical::NativeOutcome::Unsupported(kind) => {
                 return Err(oracle_err(format!(
-                    "NativeForwardOracle: the native chase does not decide this rule set \
-                     (Unsupported({kind:?})); it must not approximate an undecided fragment"
+                    "native structured-rule chase returned Unsupported({kind:?})"
                 )));
             }
         };
 
-    // Re-expose each native `DerivedRow` as a ternary `TypedRow`
-    // `predicate(subject, object, world)` — the shape `run_reasoning`'s decoder
-    // and `typed_row_fact_key` both coerce back to a `(subject, predicate,
-    // object)` fact key.  `is_edb` keys off the assert sentinel; `rule_name`
-    // is the firing rule IRI for a derived fact, `None` for an echoed EDB fact.
-    //
-    // The antecedents ARE populated below from `DerivedRow.antecedents` (the
-    // matched body facts): `crate::materialize::materialize` mints reifiers from
-    // `TypedProvenance::antecedents`, and `chase_rows_to_inferred` decodes them
-    // into `InferredAxiom.premises`, so the primary reasoning path now carries
-    // real native provenance end-to-end.
     let typed = rows
         .into_iter()
         .map(|row| {
             let is_edb = row.rule_iri == crate::provenance::ASSERT_RULE_IRI;
             let proof_height = row.proof_height;
             let rule_name = if is_edb { None } else { Some(row.rule_iri) };
-            // Re-expose each matched body fact as a ternary antecedent
-            // `predicate(subject, object, world)` — the exact shape
-            // `chase_rows_to_inferred`'s `decode_premise` and
-            // `materialize`'s `reifier_for_antecedent_row` consume.  Every
-            // antecedent of a within-world derivation shares the derived
-            // row's world (`row.graph`), so the world column is that graph
-            // literal (the same `simple_literal(&row.graph)` the derived row
-            // itself carries).  An EDB echo has no antecedents (empty), so the
-            // premise list is correctly empty for asserted rows.
             let antecedents = row
                 .antecedents
                 .into_iter()
@@ -566,74 +159,10 @@ pub(crate) fn native_forward_with_frontier(
             )
         })
         .collect();
-
     Ok((TypedChaseResult { rows: typed }, frontier))
 }
 
-/// Parse `rules` and report whether EVERY atom of EVERY rule is arity-3 — the
-/// string-front convenience over [`program_is_pure_ternary`].
-///
-/// The production dispatch ([`NativeForwardOracle::materialize`]) parses the program
-/// ONCE and calls [`program_is_pure_ternary`] directly to avoid a double parse, so
-/// this string-front wrapper is exercised only by the dispatch-predicate gate tests.
-/// A pure syntax error propagates.
-#[cfg(test)]
-pub(crate) fn rules_are_pure_ternary(rules: &str) -> gmeow_errors::Result<bool> {
-    use crate::nemo_engine::NemoParsedRules;
-
-    let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
-    Ok(program_is_pure_ternary(&program))
-}
-
-/// Whether EVERY atom of EVERY rule in an already-parsed [`Program`] is arity-3 —
-/// the binary [`crate::physical::seminaive`] core's admissibility test.
-///
-/// The binary core keys a relation by its constant predicate name and models the
-/// ternary `predicate(subject, object, world)` shape only; `lower_nemo_atom`
-/// silently drops all terms past `terms[1]`, so an atom of any other arity (a
-/// 4-ary `triple(?s,?p,?o,?w)`, a 2-ary `helper(?x,?y)`) would be mis-slotted into
-/// a WRONG closure rather than rejected.  This inspection lets the dispatch route
-/// such a program to the arity-generic evaluator BEFORE that silent corruption. It
-/// inspects the head plus every positive AND negated body atom; unlike
-/// [`crate::physical::parse_generic_rules`] it does NOT reject a negated atom — a
-/// non-ternary negated rule set is left for the generic path to hard-fail on
-/// (positive-only), and a ternary negated rule set is a legal binary program
-/// (stratified NAF).
-///
-/// Taking a pre-parsed program (rather than the raw text) lets
-/// [`NativeForwardOracle::materialize`] share ONE parse between the dispatch
-/// decision and the IR lowering (no double parse per materialize call);
-/// `rules_are_pure_ternary` is the string-front convenience the gate tests use.
-///
-/// [`Program`]: nemo::rule_model::programs::program::Program
-pub(crate) fn program_is_pure_ternary(
-    program: &nemo::rule_model::programs::program::Program,
-) -> bool {
-    use nemo::rule_model::programs::ProgramRead;
-
-    for rule in program.rules() {
-        let atom_is_ternary =
-            |atom: &nemo::rule_model::components::atom::Atom| atom.terms().count() == 3;
-        let head_ok = rule.head().iter().all(atom_is_ternary);
-        let body_ok = rule
-            .body_positive()
-            .chain(rule.body_negative())
-            .all(atom_is_ternary);
-        if !head_ok || !body_ok {
-            return false;
-        }
-    }
-    true
-}
-
-/// The raw world string of a ternary EDB fact's world term.
-///
-/// The world position is always a plain `xsd:string` literal (the Nemo
-/// string-constant treatment `TypedFactSet::push_quad` applies); any other shape
-/// is a hard error — mirroring `crate::reason::world_string`.
-///
-/// Called on the production dispatch path by [`NativeForwardOracle::materialize`]
-/// (now that [`forward_oracle`] returns the native adapter).
+/// Decode the named world carried by a typed fact.
 fn world_lexical(term: &TermValue) -> gmeow_errors::Result<String> {
     match term {
         TermValue::Literal {
@@ -643,318 +172,7 @@ fn world_lexical(term: &TermValue) -> gmeow_errors::Result<String> {
             ..
         } if datatype == "http://www.w3.org/2001/XMLSchema#string" => Ok(lexical_form.clone()),
         other => Err(oracle_err(format!(
-            "NativeForwardOracle EDB world term must be a plain string literal, got {other:?}"
+            "native structured-rule EDB world term must be a plain string literal, got {other:?}"
         ))),
-    }
-}
-
-// ── Backward oracle ───────────────────────────────────────────────────────────
-
-/// A test-only backward reference reasoner.
-pub(crate) trait BackwardOracle {
-    /// Stable label for ledgers and diagnostics.
-    fn name(&self) -> &'static str;
-
-    /// Resolve the goal, returning a canonical answer set plus budget status.
-    ///
-    /// `tabling` lists IDB predicate IRIs to memoize (cyclic predicates).  It is
-    /// **advisory**: an oracle that ignores it must still return the same answer
-    /// set — tabling affects termination/performance, never the answers — so a
-    /// resolver with no memo table (e.g. `ReferenceBackwardOracle`) honoring
-    /// the contract while dropping `tabling` is not an LSP violation.
-    fn solve(
-        &self,
-        foreign: &dyn WorldFactSource,
-        world: &str,
-        program: &QProgram,
-        tabling: &[String],
-        budget: &Budget,
-    ) -> gmeow_errors::Result<AnswerSet>;
-}
-
-/// The declarative SLD reference resolver as a backward oracle — the parity
-/// oracle the native magic-sets engine is checked against.  SLD needs no memo
-/// table, so `tabling` is ignored (answer-preserving, per the trait contract).
-///
-/// This is a conformance/parity oracle, not a production engine; it exists solely
-/// so the parity gate can be generic over [`BackwardOracle`].
-#[cfg(test)]
-pub(crate) struct ReferenceBackwardOracle;
-
-#[cfg(test)]
-impl BackwardOracle for ReferenceBackwardOracle {
-    fn name(&self) -> &'static str {
-        "reference-sld"
-    }
-
-    fn solve(
-        &self,
-        foreign: &dyn WorldFactSource,
-        world: &str,
-        program: &QProgram,
-        _tabling: &[String],
-        budget: &Budget,
-    ) -> gmeow_errors::Result<AnswerSet> {
-        crate::reference_resolver::resolve(foreign, world, program, budget)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::facts::TypedFactSet;
-
-    /// A trivial transitive-closure chase materializes the derived edge and the
-    /// Nemo adapter reports it provides provenance.
-    #[test]
-    fn nemo_forward_oracle_materializes_and_provides_provenance() {
-        // Nemo is off the primary path now; reach the retained bootstrap oracle
-        // through its single naming site.
-        let oracle = nemo_forward_oracle();
-        assert_eq!(oracle.name(), "nemo");
-        assert!(oracle.provides_provenance());
-
-        // EDB: edge(a, b), edge(b, c). Rule: path is edge, transitively closed.
-        // Full IRIs (predicate contains `://` so it renders angle-bracketed) and the
-        // `#[name(...)]` directive Nemo expects, mirroring the parity corpus conventions.
-        let edge = "http://example.org/edge";
-        let path = "http://example.org/path";
-        let world = "http://example.org/world";
-        let mut edb = TypedFactSet::new();
-        let a = TermValue::Iri("http://example.org/a".into());
-        let b = TermValue::Iri("http://example.org/b".into());
-        let c = TermValue::Iri("http://example.org/c".into());
-        edb.push_quad(&a, edge, &b, world);
-        edb.push_quad(&b, edge, &c, world);
-
-        let rules = format!(
-            "#[name(\"http://example.org/rules/edge-is-path\")]\n\
-             <{path}>(?s, ?o, ?w) :- <{edge}>(?s, ?o, ?w) .\n\
-             #[name(\"http://example.org/rules/path-trans\")]\n\
-             <{path}>(?s, ?o, ?w) :- <{path}>(?s, ?m, ?w), <{edge}>(?m, ?o, ?w) .\n"
-        );
-
-        let result = oracle
-            .materialize(&edb, &rules, &ForwardBudget::UNBOUNDED)
-            .expect("unbudgeted chase must succeed");
-
-        // path(a, c, w) is derived by transitivity.
-        let derived_path_a_c = result.rows.iter().any(|(row, _prov)| {
-            row.predicate.contains("path")
-                && row.args.len() == 3
-                && row.args[0] == a
-                && row.args[1] == c
-        });
-        assert!(
-            derived_path_a_c,
-            "transitive path(a,c) must be materialized; got {:?}",
-            result.rows
-        );
-    }
-
-    /// A non-default forward budget is a hard error, never a silently-unbudgeted
-    /// full chase (no seam lie).
-    #[test]
-    fn nemo_forward_oracle_rejects_a_budget_it_cannot_honor() {
-        let oracle = nemo_forward_oracle();
-        let edb = TypedFactSet::new();
-        let budget = ForwardBudget {
-            max_rule_firings: Some(10),
-            ..ForwardBudget::default()
-        };
-        let err = oracle
-            .materialize(&edb, "", &budget)
-            .expect_err("a bounded budget must be rejected, not silently ignored");
-        assert!(
-            err.message().contains("cannot honor a forward budget"),
-            "got: {err}"
-        );
-    }
-
-    // ── Dispatch predicate: `rules_are_pure_ternary` (Task 5) ──────────────────
-    //
-    // These exercise the rule-arity signal that decides binary vs generic WITHOUT
-    // driving any chase engine (pure Nemo-parse), so they carry no engine-group
-    // token: the fixed EL/DL calculi are pure arity-3 (→ binary), while a rule set
-    // that carries a NON-ternary helper atom or the arity-4 `triple` relation is
-    // not (→ generic).
-
-    /// The fixed EL and DL calculi are pure arity-3 named-ternary, so they are
-    /// binary-eligible — the promotion of EL/DL onto the binary core (Tasks 2/4)
-    /// depends on this staying true.
-    #[test]
-    fn rules_are_pure_ternary_accepts_the_fixed_el_and_dl_calculi() {
-        assert!(
-            rules_are_pure_ternary(crate::reason::el::EL_RULES)
-                .expect("EL rules parse for arity inspection"),
-            "EL_RULES must be pure arity-3 (binary-eligible)"
-        );
-        assert!(
-            rules_are_pure_ternary(&crate::reason::dl::dl_rules())
-                .expect("dl_rules() parse for arity inspection"),
-            "dl_rules() must be pure arity-3 (binary-eligible)"
-        );
-    }
-
-    /// A user materialize program whose rule set declares a BINARY helper predicate
-    /// is NOT binary-eligible: the binary core would silently mis-slot the helper's
-    /// two terms, so the dispatch must route the whole program to the generic
-    /// evaluator. The fixed DL calculus combined with such a helper stays
-    /// non-eligible (one non-ternary atom taints the set).
-    #[test]
-    fn rules_are_pure_ternary_rejects_a_non_ternary_helper() {
-        let helper = "helperEdge(?x, ?y) :- \
-             <http://www.w3.org/2000/01/rdf-schema#subClassOf>(?x, ?y, ?w) .\n";
-        assert!(
-            !rules_are_pure_ternary(helper).expect("helper rule parses"),
-            "a binary helperEdge head is arity-2 → NOT binary-eligible"
-        );
-        let combined = format!("{}\n{helper}", crate::reason::dl::dl_rules());
-        assert!(
-            !rules_are_pure_ternary(&combined).expect("combined rules parse"),
-            "dl_rules() + a binary helper is NOT binary-eligible (one non-ternary atom taints it)"
-        );
-    }
-
-    /// The OWL 2 RL/RDF meta-rules use the arity-4 `triple(?s,?p,?o,?w)` relation
-    /// (predicate-as-data), which is not arity-3, so they are NOT binary-eligible —
-    /// the generic evaluator is the only faithful native path for them (Task 3).
-    #[test]
-    fn rules_are_pure_ternary_rejects_the_arity_four_rl_triple_relation() {
-        assert!(
-            !rules_are_pure_ternary(crate::reason::rl::RL_RULES)
-                .expect("RL rules parse for arity inspection"),
-            "RL_RULES carry the arity-4 `triple` relation → NOT binary-eligible"
-        );
-    }
-
-    // ── Antecedent threading on BOTH native dispatch branches (gap G3) ─────────
-    //
-    // The production `NativeForwardOracle` reports `provides_provenance() == true`;
-    // the escaped bug had it emit EMPTY `antecedents` on derived rows (masked
-    // because the native↔Nemo parity ledger compares only fact keys, never
-    // provenance). The fix threads matched body facts as antecedents through BOTH
-    // dispatch branches. These two guards drive `forward_oracle()` end-to-end
-    // through each branch — proving WHICH branch via the `rules_are_pure_ternary`
-    // dispatch signal — and assert a DERIVED row (`is_edb == false`) carries a
-    // NON-EMPTY `antecedents` list. Falsifiable: revert either branch's
-    // antecedent threading to `Vec::new()` and the matching guard goes red.
-
-    /// BINARY seminaive branch: the fixed DL calculus is pure arity-3, so the
-    /// production oracle routes A⊑B, B⊑C through the binary `seminaive` core and
-    /// derives the transitive A⊑C. The derived edge must cite its two body facts —
-    /// i.e. carry NON-EMPTY `antecedents` — which the empty-antecedents bug broke.
-    #[test]
-    fn native_oracle_threads_antecedents_on_binary_seminaive_path() {
-        let oracle = forward_oracle();
-        assert_eq!(oracle.name(), "native");
-
-        let subclass = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-        let world = "http://gmeow.example/w";
-        let a = TermValue::Iri("http://gmeow.example/A".into());
-        let b = TermValue::Iri("http://gmeow.example/B".into());
-        let c = TermValue::Iri("http://gmeow.example/C".into());
-        let mut edb = TypedFactSet::new();
-        edb.push_quad(&a, subclass, &b, world);
-        edb.push_quad(&b, subclass, &c, world);
-
-        let rules = crate::reason::dl::dl_rules();
-        // Prove dispatch took the BINARY branch: EDB + rule set are all arity-3.
-        assert!(
-            rules_are_pure_ternary(&rules).expect("dl_rules parse for arity inspection"),
-            "dl_rules() must be pure arity-3 so this drives the binary seminaive branch"
-        );
-
-        let result = oracle
-            .materialize(&edb, &rules, &ForwardBudget::UNBOUNDED)
-            .expect("unbudgeted native chase must succeed");
-
-        // The transitive subClassOf(A, C) is DERIVED (not an EDB echo); assert it
-        // cites its matched body facts through the `TypedProvenance::antecedents`
-        // field — the exact provenance the escaped bug left empty.
-        let derived_transitive = result.rows.iter().find(|(row, prov)| {
-            !prov.is_edb
-                && row.predicate == subclass
-                && row.args.len() == 3
-                && row.args[0] == a
-                && row.args[1] == c
-        });
-        let (_, prov) = derived_transitive.unwrap_or_else(|| {
-            panic!(
-                "transitive subClassOf(A, C) must be derived on the binary path; got {:?}",
-                result.rows
-            )
-        });
-        assert!(
-            !prov.antecedents.is_empty(),
-            "derived subClassOf(A, C) must cite NON-EMPTY antecedents (the empty-antecedents \
-             bug fails here); got {prov:?}"
-        );
-        assert!(
-            prov.proof_height.is_some_and(|height| height.get() > 0),
-            "binary Record provenance must carry a positive minimal proof height"
-        );
-        assert!(
-            result.rows.iter().filter(|(_, prov)| prov.is_edb).all(
-                |(_, prov)| prov.proof_height == Some(crate::provenance::ProofHeight::ASSERTED)
-            ),
-            "every binary asserted leaf must carry height zero"
-        );
-    }
-
-    /// GENERIC n-ary branch: the OWL 2 RL/RDF rules carry the arity-4
-    /// `triple(?s,?p,?o,?w)` relation, so they are NOT pure-ternary and the
-    /// production oracle routes to the arity-generic evaluator. A 4-ary EDB
-    /// (A⊑B, B⊑C) makes `rl:scm-sco` derive A⊑C; the derived row must carry
-    /// NON-EMPTY `antecedents` on this branch too.
-    #[test]
-    fn native_oracle_threads_antecedents_on_generic_nary_path() {
-        let oracle = forward_oracle();
-        assert_eq!(oracle.name(), "native");
-
-        let subclass = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
-        let world = "http://gmeow.example/w";
-
-        // Build the arity-4 `triple(?s, ?p, ?o, ?w)` EDB directly (predicate as a
-        // DATA term), the shape the generic evaluator consumes.
-        let mut edb = TypedFactSet::new();
-        let a = edb.intern(&TermValue::iri("http://gmeow.example/A"));
-        let b = edb.intern(&TermValue::iri("http://gmeow.example/B"));
-        let c = edb.intern(&TermValue::iri("http://gmeow.example/C"));
-        let sc = edb.intern(&TermValue::iri(subclass));
-        let w = edb.intern(&TermValue::simple_literal(world));
-        edb.push_fact("triple", vec![a, sc, b, w]);
-        edb.push_fact("triple", vec![b, sc, c, w]);
-
-        // Prove dispatch took the GENERIC branch: the rule set is NOT pure arity-3.
-        assert!(
-            !rules_are_pure_ternary(crate::reason::rl::RL_RULES)
-                .expect("RL rules parse for arity inspection"),
-            "RL_RULES carry the arity-4 `triple` relation, so this drives the generic branch"
-        );
-
-        let result = oracle
-            .materialize(&edb, crate::reason::rl::RL_RULES, &ForwardBudget::UNBOUNDED)
-            .expect("unbudgeted native chase must succeed");
-
-        // At least one DERIVED row (e.g. the transitive A⊑C from `rl:scm-sco`) must
-        // cite its matched body facts through `TypedProvenance::antecedents`.
-        let derived_with_antecedents = result
-            .rows
-            .iter()
-            .any(|(_row, prov)| !prov.is_edb && !prov.antecedents.is_empty());
-        assert!(
-            derived_with_antecedents,
-            "at least one derived row on the generic path must cite NON-EMPTY antecedents \
-             (the empty-antecedents bug fails here); got {:?}",
-            result.rows
-        );
-        assert!(
-            result
-                .rows
-                .iter()
-                .all(|(_, prov)| prov.proof_height.is_none()),
-            "the generic evaluator must report the absent annotation honestly"
-        );
     }
 }

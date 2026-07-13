@@ -5509,6 +5509,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/actionResource> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/antecedent> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/antecedent-domain-shape> {
+  <https://blackcatinformatics.ca/logic/antecedent> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/candidateCategory> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/candidateCategory-domain-shape> {
   <https://blackcatinformatics.ca/logic/candidateCategory> . {0,1} ;
@@ -5614,14 +5619,29 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/conjectureStandpoint> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/consequent> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/consequent-domain-shape> {
+  <https://blackcatinformatics.ca/logic/consequent> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/effect> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/effect-domain-shape> {
   <https://blackcatinformatics.ca/logic/effect> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/exists> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/exists-domain-shape> {
+  <https://blackcatinformatics.ca/logic/exists> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/feasibilityStatus> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/feasibilityStatus-domain-shape> {
   <https://blackcatinformatics.ca/logic/feasibilityStatus> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/forall> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/forall-domain-shape> {
+  <https://blackcatinformatics.ca/logic/forall> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/freshnessHorizon> (associate via ShapeMap)
@@ -5657,6 +5677,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/lifecycleStatus> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/lifecycleStatus-domain-shape> {
   <https://blackcatinformatics.ca/logic/lifecycleStatus> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/not> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/not-domain-shape> {
+  <https://blackcatinformatics.ca/logic/not> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/objectiveValue> (associate via ShapeMap)
@@ -5696,6 +5721,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/logic/planSuccessMode> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/relation> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/relation-domain-shape> {
+  <https://blackcatinformatics.ca/logic/relation> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/satisfactionDegree> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/satisfactionDegree-domain-shape> {
   <https://blackcatinformatics.ca/logic/satisfactionDegree> . {0,1} ;
@@ -5704,6 +5734,36 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/satisfactionStatus> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/satisfactionStatus-domain-shape> {
   <https://blackcatinformatics.ca/logic/satisfactionStatus> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/termIndex> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/termIndex-domain-shape> {
+  <https://blackcatinformatics.ca/logic/termIndex> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/termIri> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/termIri-domain-shape> {
+  <https://blackcatinformatics.ca/logic/termIri> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/termLiteral> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/termLiteral-domain-shape> {
+  <https://blackcatinformatics.ca/logic/termLiteral> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/termLiteralDatatype> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/termLiteralDatatype-domain-shape> {
+  <https://blackcatinformatics.ca/logic/termLiteralDatatype> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/termSequenceMarker> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/termSequenceMarker-domain-shape> {
+  <https://blackcatinformatics.ca/logic/termSequenceMarker> . {0,1} ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/logic/termVariable> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/termVariable-domain-shape> {
+  <https://blackcatinformatics.ca/logic/termVariable> . {0,1} ;
 }
 
 # targetSubjectsOf <https://blackcatinformatics.ca/logic/utility> (associate via ShapeMap)

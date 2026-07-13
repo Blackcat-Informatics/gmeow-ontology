@@ -853,6 +853,8 @@ struct AttachTestStage {
     id: String,
     attach_graph: Option<String>,
     declared: Vec<String>,
+    consumes: Vec<String>,
+    entities: Vec<(String, Vec<String>)>,
 }
 
 impl Stage for AttachTestStage {
@@ -860,7 +862,10 @@ impl Stage for AttachTestStage {
         &self.id
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
+    }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
     }
     fn attaches_graphs(&self) -> &[String] {
         &self.declared
@@ -919,6 +924,8 @@ fn run_attach_case(
             id: "producer".to_string(),
             attach_graph: attach_graph.map(|s| s.to_string()),
             declared: declared.clone(),
+            consumes: Vec::new(),
+            entities: Vec::new(),
         }) as Arc<dyn Stage>,
     );
     reg.register("impl:sink".to_string(), fake("sink", &["producer"]));
@@ -956,4 +963,153 @@ fn attach_drift_clean_when_declaration_matches_the_attach_delta() {
     // Attaches exactly G and declares exactly G → no drift, the run completes.
     const G: &str = "https://example.org/graph/matched";
     run_attach_case(Some(G), &[G]).expect("a matching attach declaration must not drift");
+}
+
+#[test]
+fn attach_drift_honors_typed_entity_inputs() {
+    // The producer carries G1 + G2, but the consumer's typed edge reads ONLY G1.
+    // When the consumer emits G2, G2 is therefore a real attachment: its mere presence
+    // elsewhere in the producer carrier must not hide the consumer's attach delta.
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("typed-attach-source.txt");
+    std::fs::write(&file, b"v1").unwrap();
+
+    let mut s = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("producer", &[]),
+            spec("consumer", &["producer"]),
+            spec("sink", &["consumer"]),
+        ],
+    };
+    for st in &mut s.stages {
+        match st.id.as_str() {
+            "producer" => st.attaches_graphs = vec![G1.to_string(), G2.to_string()],
+            "consumer" => {
+                st.dataflow_entities = vec![("producer".to_string(), vec![G1.to_string()])];
+                st.attaches_graphs = vec![G2.to_string()];
+            }
+            _ => {}
+        }
+    }
+    let graph = s.validate().unwrap();
+
+    let mut registry = StageRegistry::new();
+    registry.register(
+        "impl:producer".to_string(),
+        Arc::new(TwoGraphProducer {
+            file,
+            runs: Arc::new(AtomicUsize::new(0)),
+            attaches: vec![G1.to_string(), G2.to_string()],
+        }) as Arc<dyn Stage>,
+    );
+    registry.register(
+        "impl:consumer".to_string(),
+        Arc::new(AttachTestStage {
+            id: "consumer".to_string(),
+            attach_graph: Some(G2.to_string()),
+            declared: vec![G2.to_string()],
+            consumes: vec!["producer".to_string()],
+            entities: vec![("producer".to_string(), vec![G1.to_string()])],
+        }) as Arc<dyn Stage>,
+    );
+    registry.register("impl:sink".to_string(), fake("sink", &["consumer"]));
+    let bound = bind(&s, &graph, &registry).expect("typed attach fixture binds");
+    let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
+
+    run(&graph, &bound, &mut ctx)
+        .expect("typed entity narrowing exposes the consumer's real G2 attachment");
+}
+
+/// A synthetic producer/consumer that attaches one content-addressed record under a
+/// shared blob-representation label. Different payloads must be distinct attachments
+/// even when an upstream product already carries that representation label.
+struct AttachBlobStage {
+    id: String,
+    consumes: Vec<String>,
+    representation: String,
+    payload: Vec<u8>,
+    declared: Vec<String>,
+}
+
+impl Stage for AttachBlobStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn attaches_blob_reps(&self) -> &[String] {
+        &self.declared
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let dataset = purrdf::parse_dataset(b"", "application/n-quads", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("attach-blob empty dataset: {e}"),
+            })
+        })?;
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            std::collections::BTreeMap::new(),
+            purrdf::provenance::DatasetProvenance::new(),
+            &self.representation,
+            "application/octet-stream",
+            self.payload.clone(),
+        );
+        Ok(StageOutput::new(StageProduct::from_bundle(
+            self.id.clone(),
+            Arc::new(bundle),
+        )))
+    }
+}
+
+#[test]
+fn attach_drift_distinguishes_shared_blob_rep_by_content() {
+    const REP: &str = "diagnostics:nodes";
+    let dir = tempfile::tempdir().unwrap();
+    let mut s = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("producer", &[]),
+            spec("consumer", &["producer"]),
+            spec("sink", &["consumer"]),
+        ],
+    };
+    for st in &mut s.stages {
+        if st.id == "producer" || st.id == "consumer" {
+            st.attaches_blob_reps = vec![REP.to_string()];
+        }
+    }
+    let graph = s.validate().unwrap();
+
+    let stage = |id: &str, consumes: &[&str], payload: &[u8]| {
+        Arc::new(AttachBlobStage {
+            id: id.to_string(),
+            consumes: consumes
+                .iter()
+                .map(|producer| (*producer).to_string())
+                .collect(),
+            representation: REP.to_string(),
+            payload: payload.to_vec(),
+            declared: vec![REP.to_string()],
+        }) as Arc<dyn Stage>
+    };
+    let mut registry = StageRegistry::new();
+    registry.register(
+        "impl:producer".to_string(),
+        stage("producer", &[], b"compile"),
+    );
+    registry.register(
+        "impl:consumer".to_string(),
+        stage("consumer", &["producer"], b"reason"),
+    );
+    registry.register("impl:sink".to_string(), fake("sink", &["consumer"]));
+    let bound = bind(&s, &graph, &registry).expect("shared blob-rep fixture binds");
+    let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
+
+    run(&graph, &bound, &mut ctx)
+        .expect("content-distinct records on one representation lane are both attachments");
 }

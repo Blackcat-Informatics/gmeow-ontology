@@ -2,20 +2,6 @@
 % Datalog projection of the canonical logic: program.
 
 % === Ground facts (axioms) ===
-type("https://example.org/deception/held-projected-no-intent/deceptionHeldProjectedDivergence", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdAnte", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdBody", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdCons", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdConsBody", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdDivergent", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdHeld", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdHeldDox", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdHeldModality", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdProjected", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdProjectedDox", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdProjectedModality", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdShared", "https://blackcatinformatics.ca/logic/Formula", "default").
-type("https://example.org/deception/held-projected-no-intent/dhpdSharedBody", "https://blackcatinformatics.ca/logic/Formula", "default").
 type("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "https://blackcatinformatics.ca/logic/Rule", "default").
 body("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "c14n0", "default").
 body("https://example.org/deception/held-projected-no-intent/ruleStandpointPairWitness", "c14n1", "default").

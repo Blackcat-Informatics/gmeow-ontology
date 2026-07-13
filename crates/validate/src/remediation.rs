@@ -5,7 +5,7 @@
 //! rendered "how to fix" payload.
 //!
 //! For every finding in a validation [`Report`], this resolves the finding's code
-//! to the rule catalogue's [`remediation_for`](crate::rule_catalog::remediation_for)
+//! to the rule catalogue's [`crate::rule_catalog::remediation_for`]
 //! guidance and hangs it on the finding through the
 //! [`DiagLedger::annotate`](gmeow_errors::DiagLedger::annotate)
 //! annotate-by-fingerprint seam — never by writing `finding.remediation` directly.

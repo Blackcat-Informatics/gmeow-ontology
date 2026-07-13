@@ -33,7 +33,7 @@ fn query_err(detail: String) -> gmeow_errors::Diag {
 
 /// The reserved relation name of the arity-4 predicate-as-data encoding
 /// `triple(subject, predicate, object, world)` — the REAL n-ary shape the binary
-/// [`crate::store::RelationStore`] cannot represent (the property rides in a DATA
+/// [`crate::physical::store::RelationStore`] cannot represent (the property rides in a DATA
 /// position).  A goal or rule that names this bare, unqualified relation is routed to
 /// the arity-generic n-ary evaluator, whose generic-triple EDB
 /// ([`crate::physical::magic_generic`]) loads every world fact under this exact
@@ -94,7 +94,7 @@ pub enum QBodyLit {
     Neg(QAtom),
     /// Retired cut syntax `!`, retained only for a typed rejection diagnostic.
     Cut,
-    /// An arithmetic (`X is Y op Z`) or comparison (`L cmp R`) builtin.
+    /// An arithmetic (`X is Expr`) or comparison (`L cmp R`) builtin.
     ///
     /// Gated to `ProceduralPrologProfile` and evaluated by the native physical
     /// core. Used to compute over `rdf:first`/`rdf:rest` chains.
@@ -107,7 +107,9 @@ pub enum QBodyLit {
 /// and becomes a native filter failure if reached).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum QBuiltin {
-    /// `target is lhs op rhs` — arithmetic evaluation (op ∈ `+ - * //`).
+    /// `target is expr` — arithmetic evaluation, where `expr` is either one operand or
+    /// `lhs op rhs` (`op` ∈ `+ - * //`). A single operand is canonically lowered to
+    /// `operand + 0`, keeping one bounded arithmetic IR and evaluator path.
     Is {
         /// The variable (or operand) that receives the computed value.
         target: QTerm,
@@ -129,7 +131,7 @@ pub enum QBuiltin {
     },
 }
 
-/// Arithmetic operators recognized in `X is Y op Z` builtins.
+/// Arithmetic operators recognized in `X is Expr` builtins.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArithOp {
     /// Addition (`+`).
@@ -984,7 +986,7 @@ fn find_neck(s: &str) -> Option<usize> {
 /// Builtins are detected BEFORE the `parse_atom` fallback. A builtin token has no
 /// outer `pred(...)` parens; an atom does — that disambiguates robustly:
 /// - `!`                              → [`QBodyLit::Cut`].
-/// - `target is lhs op rhs`           → [`QBuiltin::Is`] (op ∈ `+ - * //`).
+/// - `target is expr`                 → [`QBuiltin::Is`] (one operand or `lhs op rhs`).
 /// - `lhs cmp rhs` (no `name(...)`)   → [`QBuiltin::Compare`] (cmp ∈ `> < >= =< =:=`).
 /// - otherwise                        → [`QBodyLit::Atom`].
 fn parse_body_lit_list(
@@ -1038,17 +1040,17 @@ fn try_parse_builtin(
     tok: &str,
     prefixes: &BTreeMap<String, String>,
 ) -> gmeow_errors::Result<Option<QBuiltin>> {
-    // `X is Y op Z` — the ` is ` infix (with surrounding spaces) is unambiguous.
+    // `X is Expr` — the ` is ` infix (with surrounding spaces) is unambiguous.
     if let Some(is_pos) = find_infix_top(tok, " is ") {
         let target_str = tok[..is_pos].trim();
         let rhs_str = tok[is_pos + 4..].trim();
         let target = parse_term(target_str, prefixes)?;
-        // Split RHS on the arithmetic operator (multi-char `//` checked first).
-        let (lhs_str, op, rhs_op_str) = split_arith(rhs_str).ok_or_else(|| {
-            query_err(format!(
-                "malformed arithmetic builtin RHS {rhs_str:?} in {tok:?}"
-            ))
-        })?;
+        // Split a binary RHS on its arithmetic operator (multi-char `//` checked
+        // first). A single operand is the arithmetic-expression base case; lower it
+        // canonically to `operand + 0` so parsing, hashing, mode analysis, and execution
+        // retain one bounded `QBuiltin::Is` representation.
+        let (lhs_str, op, rhs_op_str) =
+            split_arith(rhs_str).unwrap_or((rhs_str, ArithOp::Add, "0"));
         let lhs = parse_term(lhs_str.trim(), prefixes)?;
         let rhs = parse_term(rhs_op_str.trim(), prefixes)?;
         return Ok(Some(QBuiltin::Is {
@@ -1608,6 +1610,36 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
             }
             other => panic!("expected Is builtin, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn parse_is_single_operand_lowers_to_canonical_additive_identity() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ex:p(X, Y) :- X is 1, Y is 2.\n\
+             ?- ex:p(X, Y).\n",
+        )
+        .unwrap();
+        let body = &prog.rules[0].body;
+        assert_eq!(body.len(), 2);
+        assert_eq!(
+            body[0],
+            QBodyLit::Builtin(QBuiltin::Is {
+                target: QTerm::Var("X".to_owned()),
+                lhs: QTerm::Num(1),
+                op: ArithOp::Add,
+                rhs: QTerm::Num(0),
+            })
+        );
+        assert_eq!(
+            body[1],
+            QBodyLit::Builtin(QBuiltin::Is {
+                target: QTerm::Var("Y".to_owned()),
+                lhs: QTerm::Num(2),
+                op: ArithOp::Add,
+                rhs: QTerm::Num(0),
+            })
+        );
     }
 
     #[test]

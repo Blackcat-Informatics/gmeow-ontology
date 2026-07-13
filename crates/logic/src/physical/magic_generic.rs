@@ -44,6 +44,11 @@ use purrdf::TermValue;
 
 use super::generic::{GenericAtom, GenericRule, materialize_generic_budgeted};
 use super::magic::{magic_pred_iri, term_of};
+use crate::annotation::{
+    AnnotatedAnswer, AnnotatedAnswerSet, AnnotatedTupleKey, AnnotationDerivation,
+    AnnotationFactRef, AnnotationLineageContract, AnnotationQueryClass, AnnotationRequest,
+    TupleAnnotationAlgebra,
+};
 use crate::facts::TypedFactSet;
 use crate::oracle::{TypedProvenance, TypedRow};
 use crate::physical::binding_pattern::BindingPattern;
@@ -568,6 +573,431 @@ pub(super) fn resolve_native_generic(
     Ok(NativeOutcome::Decided(answer))
 }
 
+type GenericAnnotationKey = (String, Vec<String>);
+
+#[derive(Clone)]
+struct GenericAnnotatedRow<E> {
+    relation: String,
+    args: Vec<TermValue>,
+    annotation: E,
+    derivations: Vec<AnnotationDerivation<E>>,
+}
+
+fn generic_key(relation: &str, args: &[TermValue]) -> GenericAnnotationKey {
+    (relation.to_owned(), args.iter().map(term_display).collect())
+}
+
+fn bind_generic(
+    atom: &GenericAtom,
+    row: &GenericAnnotatedRow<impl Clone>,
+    base: &BTreeMap<String, TermValue>,
+) -> Option<BTreeMap<String, TermValue>> {
+    if atom.relation != row.relation || atom.args.len() != row.args.len() {
+        return None;
+    }
+    let mut binding = base.clone();
+    for (term, value) in atom.args.iter().zip(&row.args) {
+        match term {
+            EvalTerm::ConstNamed(iri) => {
+                if term_display(value) != format!("<{iri}>") {
+                    return None;
+                }
+            }
+            EvalTerm::ConstLit(literal) => {
+                if term_display(value) != term_display(literal) {
+                    return None;
+                }
+            }
+            EvalTerm::Var(name) => match binding.get(name) {
+                Some(existing) if term_display(existing) != term_display(value) => return None,
+                Some(_) => {}
+                None => {
+                    binding.insert(name.clone(), value.clone());
+                }
+            },
+        }
+    }
+    Some(binding)
+}
+
+fn ground_generic(
+    atom: &GenericAtom,
+    binding: &BTreeMap<String, TermValue>,
+) -> gmeow_errors::Result<Vec<TermValue>> {
+    atom.args
+        .iter()
+        .map(|term| match term {
+            EvalTerm::ConstNamed(iri) => Ok(TermValue::iri(iri.clone())),
+            EvalTerm::ConstLit(literal) => Ok(literal.clone()),
+            EvalTerm::Var(name) => binding.get(name).cloned().ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Physical {
+                    detail: format!("generic annotated head variable {name:?} is unbound"),
+                })
+            }),
+        })
+        .collect()
+}
+
+fn generic_solutions<E: Clone>(
+    rule: &GenericRule,
+    rows: &BTreeMap<GenericAnnotationKey, GenericAnnotatedRow<E>>,
+) -> Vec<(BTreeMap<String, TermValue>, Vec<GenericAnnotationKey>)> {
+    let mut solutions = vec![(BTreeMap::new(), Vec::new())];
+    for atom in &rule.body {
+        let mut next = Vec::new();
+        for (binding, sources) in solutions {
+            for (key, row) in rows.iter().filter(|(_, row)| row.relation == atom.relation) {
+                if let Some(merged) = bind_generic(atom, row, &binding) {
+                    let mut lineage = sources.clone();
+                    lineage.push(key.clone());
+                    next.push((merged, lineage));
+                }
+            }
+        }
+        solutions = next;
+        if solutions.is_empty() {
+            break;
+        }
+    }
+    solutions
+}
+
+fn generic_annotation_class(rules: &[GenericRule]) -> AnnotationQueryClass {
+    // Predicate-as-data programs intentionally use one physical relation (`triple`) for
+    // many logical predicates. A relation-name-only dependency graph therefore invents
+    // recursion for `triple(_, <p2>, _, _) :- triple(_, <p1>, _, _)`. Refine the graph
+    // by rule-head unifiability: a body atom depends on a producer only when their
+    // relation, arity, and constant positions can actually unify.
+    let compatible = |body: &GenericAtom, head: &GenericAtom| {
+        body.relation == head.relation
+            && body.args.len() == head.args.len()
+            && body.args.iter().zip(&head.args).all(|(left, right)| {
+                matches!(left, EvalTerm::Var(_))
+                    || matches!(right, EvalTerm::Var(_))
+                    || left == right
+            })
+    };
+    let mut edges = vec![BTreeSet::new(); rules.len()];
+    let mut indegree = vec![0usize; rules.len()];
+    for (consumer, rule) in rules.iter().enumerate() {
+        for body in &rule.body {
+            for (producer, candidate) in rules.iter().enumerate() {
+                if compatible(body, &candidate.head) && edges[consumer].insert(producer) {
+                    indegree[producer] += 1;
+                }
+            }
+        }
+    }
+    let mut ready = indegree
+        .iter()
+        .enumerate()
+        .filter_map(|(index, &degree)| (degree == 0).then_some(index))
+        .collect::<BTreeSet<_>>();
+    let mut visited = 0usize;
+    while let Some(index) = ready.pop_first() {
+        visited += 1;
+        for &next in &edges[index] {
+            indegree[next] -= 1;
+            if indegree[next] == 0 {
+                ready.insert(next);
+            }
+        }
+    }
+    if visited != rules.len() {
+        AnnotationQueryClass::PositiveNaryRecursive
+    } else {
+        AnnotationQueryClass::PositiveNaryAcyclic
+    }
+}
+
+/// Score-carrying n-ary magic evaluation. Tuple membership, `oplus`/`otimes`, and
+/// positional lineage are committed by one arity-generic fixpoint.
+pub(super) fn resolve_native_generic_annotated<A, F>(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+    annotation: &AnnotationRequest<'_, A, F>,
+) -> gmeow_errors::Result<NativeOutcome<AnnotatedAnswerSet<A::Element>>>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    let goal = &program.goal.atoms[0];
+    let mut rules = Vec::with_capacity(program.rules.len());
+    for source in &program.rules {
+        let head = match generic_atom_of(&source.head) {
+            Ok(atom) => atom,
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+        };
+        let mut body = Vec::new();
+        for literal in &source.body {
+            match literal {
+                QBodyLit::Atom(atom) => match generic_atom_of(atom) {
+                    Ok(atom) => body.push(atom),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Neg(_) => {
+                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
+                }
+                QBodyLit::Builtin(_) => {
+                    return Ok(NativeOutcome::Unsupported(UnsupportedKind::Arithmetic));
+                }
+                QBodyLit::Cut => return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut)),
+            }
+        }
+        let rule_iri = format!("{}::rule", head.relation);
+        rules.push(generic_rule(head, body, rule_iri));
+    }
+    let goal_atom = match generic_atom_of(goal) {
+        Ok(atom) => atom,
+        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+    };
+    if !generic_program_servable(&rules, &goal_atom) {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+    }
+    let certification = annotation.contract.certify_physical_class(
+        generic_annotation_class(&rules),
+        AnnotationLineageContract::AllPhysicalDerivations,
+    )?;
+    let transformed = magic_transform_generic(&rules, &goal_atom, goal_pattern(goal))?;
+    let mut facts = build_generic_edb(foreign, world);
+    let mut control_relations = transformed
+        .rules
+        .iter()
+        .filter(|rule| rule.rule_iri.contains("::magic/"))
+        .map(|rule| rule.head.relation.clone())
+        .collect::<BTreeSet<_>>();
+    for (relation, args) in &transformed.seeds {
+        let ids = args.iter().map(|arg| facts.intern(arg)).collect::<Vec<_>>();
+        facts.push_fact(relation, ids);
+        control_relations.insert(relation.clone());
+    }
+
+    let interner = facts.interner();
+    let mut rows = BTreeMap::<GenericAnnotationKey, GenericAnnotatedRow<A::Element>>::new();
+    let mut seeds = BTreeMap::<GenericAnnotationKey, A::Element>::new();
+    for fact in facts.facts() {
+        let args = fact
+            .args
+            .iter()
+            .map(|&id| interner.resolve(id).clone())
+            .collect::<Vec<_>>();
+        let key = generic_key(&fact.predicate, &args);
+        let value = if control_relations.contains(&fact.predicate) {
+            annotation.algebra.one()
+        } else if fact.predicate == GENERIC_TRIPLE_RELATION && args.len() == 4 {
+            let predicate = match &args[1] {
+                TermValue::Iri(iri) => iri.as_str(),
+                _ => return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom)),
+            };
+            (annotation.annotation_for)(AnnotationFactRef {
+                world,
+                subject: &args[0],
+                predicate,
+                object: &args[2],
+            })
+            .unwrap_or_else(|| annotation.algebra.one())
+        } else {
+            annotation.algebra.one()
+        };
+        seeds.insert(key.clone(), value.clone());
+        rows.insert(
+            key,
+            GenericAnnotatedRow {
+                relation: fact.predicate.clone(),
+                args,
+                annotation: value.clone(),
+                derivations: vec![AnnotationDerivation {
+                    rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
+                    sources: Vec::new(),
+                    tuple_sources: Vec::new(),
+                    annotation: value,
+                }],
+            },
+        );
+    }
+
+    let mut consumed = 0_u64;
+    let mut status = BudgetStatus::Ok;
+    let mut converged = false;
+    for _round in 0..annotation.contract.max_fixpoint_rounds {
+        let mut contributions = BTreeMap::<
+            GenericAnnotationKey,
+            Vec<(
+                String,
+                Vec<TermValue>,
+                Vec<GenericAnnotationKey>,
+                A::Element,
+            )>,
+        >::new();
+        for rule in &transformed.rules {
+            for (binding, sources) in generic_solutions(rule, &rows) {
+                let args = ground_generic(&rule.head, &binding)?;
+                let key = generic_key(&rule.head.relation, &args);
+                let mut product = annotation.algebra.one();
+                for source in &sources {
+                    let factor = if control_relations.contains(&source.0) {
+                        annotation.algebra.one()
+                    } else {
+                        rows.get(source)
+                            .map(|row| row.annotation.clone())
+                            .unwrap_or_else(|| annotation.algebra.zero())
+                    };
+                    product = annotation.algebra.multiply(&product, &factor)?;
+                }
+                contributions.entry(key).or_default().push((
+                    rule.rule_iri.clone(),
+                    args,
+                    sources,
+                    product,
+                ));
+            }
+        }
+
+        let mut inserted = false;
+        for (key, direct) in &contributions {
+            if rows.contains_key(key) {
+                continue;
+            }
+            if budget.max_steps.is_some_and(|limit| consumed >= limit) {
+                status = BudgetStatus::Exhausted;
+                break;
+            }
+            let (_, args, _, _) = direct.first().expect("a contribution is non-empty");
+            rows.insert(
+                key.clone(),
+                GenericAnnotatedRow {
+                    relation: key.0.clone(),
+                    args: args.clone(),
+                    annotation: annotation.algebra.zero(),
+                    derivations: Vec::new(),
+                },
+            );
+            consumed = consumed.saturating_add(1);
+            inserted = true;
+        }
+
+        let mut annotation_changed = false;
+        for (key, row) in &mut rows {
+            let mut value = seeds
+                .get(key)
+                .cloned()
+                .unwrap_or_else(|| annotation.algebra.zero());
+            let mut derivations = seeds.get(key).map_or_else(Vec::new, |seed| {
+                vec![AnnotationDerivation {
+                    rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
+                    sources: Vec::new(),
+                    tuple_sources: Vec::new(),
+                    annotation: seed.clone(),
+                }]
+            });
+            if control_relations.contains(&row.relation) {
+                value = annotation.algebra.one();
+            } else if let Some(direct) = contributions.get(key) {
+                for (rule_iri, _, sources, product) in direct {
+                    value = annotation.algebra.add(&value, product)?;
+                    derivations.push(AnnotationDerivation {
+                        rule_iri: rule_iri.clone(),
+                        sources: Vec::new(),
+                        tuple_sources: sources
+                            .iter()
+                            .filter(|(relation, _)| !control_relations.contains(relation))
+                            .map(|(relation, arguments)| AnnotatedTupleKey {
+                                graph: world.to_owned(),
+                                relation: relation.clone(),
+                                arguments: arguments.clone(),
+                            })
+                            .collect(),
+                        annotation: product.clone(),
+                    });
+                }
+            }
+            annotation_changed |= value != row.annotation;
+            row.annotation = value;
+            row.derivations = derivations;
+        }
+        if status == BudgetStatus::Exhausted {
+            break;
+        }
+        if !inserted && !annotation_changed {
+            converged = true;
+            break;
+        }
+    }
+    if status != BudgetStatus::Exhausted && !converged {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+            detail: format!(
+                "generic annotation fixed point did not converge within {} deterministic rounds",
+                annotation.contract.max_fixpoint_rounds
+            ),
+        }));
+    }
+
+    let mut grouped =
+        BTreeMap::<Binding, (A::Element, Vec<AnnotationDerivation<A::Element>>)>::new();
+    for row in rows.values() {
+        let typed = TypedRow {
+            predicate: row.relation.clone(),
+            args: row.args.clone(),
+        };
+        let provenance = TypedProvenance {
+            is_edb: false,
+            rule_name: None,
+            antecedents: Vec::new(),
+            proof_height: None,
+            attributions: Vec::new(),
+        };
+        let Some(binding) = project_generic(&[(typed, provenance)], goal)
+            .into_iter()
+            .next()
+        else {
+            continue;
+        };
+        match grouped.entry(binding) {
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert((row.annotation.clone(), row.derivations.clone()));
+            }
+            std::collections::btree_map::Entry::Occupied(mut entry) => {
+                let (value, lineage) = entry.get_mut();
+                *value = annotation.algebra.add(value, &row.annotation)?;
+                lineage.extend(row.derivations.clone());
+            }
+        }
+    }
+    let mut answers = grouped
+        .into_iter()
+        .map(|(binding, (annotation, derivations))| AnnotatedAnswer {
+            binding,
+            annotation,
+            derivations,
+        })
+        .collect::<Vec<_>>();
+    if let Some(max_answers) = budget.max_answers
+        && answers.len() >= max_answers
+        && !answers.is_empty()
+    {
+        answers.truncate(max_answers);
+        status = BudgetStatus::Partial;
+    }
+    Ok(NativeOutcome::Decided(AnnotatedAnswerSet {
+        answers,
+        status,
+        preservation: crate::result::PreservationClaim::exact(),
+        frontier: CompletionFrontier {
+            completed: usize::from(status != BudgetStatus::Exhausted),
+            total: 1,
+            saturated_preds: if status == BudgetStatus::Exhausted {
+                BTreeSet::new()
+            } else {
+                rows.values().map(|row| row.relation.clone()).collect()
+            },
+            consumed_steps: consumed,
+        },
+        certification,
+    }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -579,6 +1009,36 @@ mod tests {
     const PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
     const P1: &str = "http://ex/p1";
     const P2: &str = "http://ex/p2";
+
+    struct SumProduct;
+
+    impl TupleAnnotationAlgebra for SumProduct {
+        type Element = f64;
+
+        fn zero(&self) -> Self::Element {
+            0.0
+        }
+
+        fn one(&self) -> Self::Element {
+            1.0
+        }
+
+        fn add(
+            &self,
+            left: &Self::Element,
+            right: &Self::Element,
+        ) -> gmeow_errors::Result<Self::Element> {
+            Ok(left + right)
+        }
+
+        fn multiply(
+            &self,
+            left: &Self::Element,
+            right: &Self::Element,
+        ) -> gmeow_errors::Result<Self::Element> {
+            Ok(left * right)
+        }
+    }
 
     fn make_world(triples: &[(&str, &str, &str)]) -> (WorldStore, String) {
         let store = WorldStore::new();
@@ -835,7 +1295,53 @@ mod tests {
             prov.antecedents
         );
     }
+    #[test]
+    fn annotated_generic_dispatch_carries_score_and_positional_lineage_in_one_fixpoint() {
+        let (store, world) = make_world(&[("http://ex/x", P1, "http://ex/y")]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let program = subprop_program();
+        let contract = crate::annotation::AnnotationContract::exact();
+        let request =
+            AnnotationRequest::new(&SumProduct, &contract, |fact: AnnotationFactRef<'_>| {
+                (fact.predicate == P1).then_some(2.5)
+            });
 
+        let answer = match resolve_native_generic_annotated(
+            &foreign,
+            &world,
+            &program,
+            &Budget::default(),
+            &request,
+        )
+        .unwrap()
+        {
+            NativeOutcome::Decided(answer) => answer,
+            NativeOutcome::Unsupported(kind) => panic!("unexpected n-ary refusal: {kind:?}"),
+        };
+
+        assert_eq!(
+            answer.certification.query_class,
+            AnnotationQueryClass::PositiveNaryAcyclic
+        );
+        assert_eq!(
+            answer.certification.lineage_contract,
+            AnnotationLineageContract::AllPhysicalDerivations
+        );
+        assert_eq!(answer.answers.len(), 1);
+        assert_eq!(answer.answers[0].annotation, 2.5);
+        let rule = answer.answers[0]
+            .derivations
+            .iter()
+            .find(|derivation| !derivation.tuple_sources.is_empty())
+            .expect("derived answer retains positional tuple lineage");
+        assert_eq!(
+            rule.tuple_sources.len(),
+            1,
+            "magic control tuples are unit/hidden"
+        );
+        assert_eq!(rule.tuple_sources[0].relation, GENERIC_TRIPLE_RELATION);
+        assert_eq!(rule.tuple_sources[0].arguments[1], format!("<{P1}>"));
+    }
     // ── Leading-bound recursive IDB (the n-ary soundness repro) ──────────────────
 
     const EDGE: &str = "http://ex/edge";

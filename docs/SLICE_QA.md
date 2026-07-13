@@ -191,6 +191,9 @@ The operational loop — how to read the worklist, pick the capping axis, land t
 slice-local PR, and ratchet the floor — is the contract in the
 `gmeow-slice-uplift` skill (`.agents/skills/gmeow-slice-uplift/SKILL.md`). Follow
 it there; this section only draws the boundary against the hard test cells above.
+The semantic curation strategy — including how to replace term-list tests with
+behaviour-connected, production-executed evidence — is in
+[`SLICE-UPGRADE.md`](SLICE-UPGRADE.md).
 
 ## Recipe: move a QA bit into the slice
 

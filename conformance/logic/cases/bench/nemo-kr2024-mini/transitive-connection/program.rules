@@ -1,4 +1,0 @@
-#[name("https://example.org/bench/rules/conn-base")]
-<https://example.org/bench/conn>(?s, ?o, ?w) :- <https://example.org/bench/link>(?s, ?o, ?w) .
-#[name("https://example.org/bench/rules/conn-step")]
-<https://example.org/bench/conn>(?s, ?o, ?w) :- <https://example.org/bench/link>(?s, ?m, ?w), <https://example.org/bench/conn>(?m, ?o, ?w) .

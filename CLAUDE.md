@@ -8,7 +8,7 @@ Rust optimization and advanced-language-feature work is governed by
 [`docs/RUST-OPTIMIZATION.md`](./docs/RUST-OPTIMIZATION.md): measure first,
 preserve deterministic output, prefer Rust-native data/dispatch/ownership
 changes over compiler-flag churn, and keep debug assertions, overflow checks,
-the no-debug-symbol policy, and `nemo` build-memory caps intact.
+and the no-debug-symbol policy intact.
 
 ## Standing constraints (non-negotiable)
 

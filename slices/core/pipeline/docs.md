@@ -41,7 +41,7 @@ unless exactly one stage holds it) and `gmeow:sourceOrigin` (the authored-source
 quads' provenance origin is `Source`). A stage holding no capability is a plain transform / validate /
 export leaf — provenance-`Generated`, non-sink, parallel-eligible within its topological level.
 Serialization treatment is not a kind: only the reasoning stage `gmeow:requiresResource`
-`gmeow:engineResource` (the retained Nemo comparison engine is not concurrency-safe), so it serializes against
+`gmeow:engineResource` (the process-wide reasoning state is exclusive), so it serializes against
 any stage competing for it.
 
 ## Invariants (HARD-failed before any stage runs)

@@ -525,7 +525,7 @@ struct CandidateLift {
 ///
 /// `discharged_section_cells` is the A→B authorization channel (issue Deliverable A → B): the set
 /// of `gmeow:ProjectionMapping` cell IRIs whose EXECUTED lens-law discharge (the mappings stage's
-/// [`crate::stages::mappings::discharge_correspondence_laws`], folded into
+/// `stages::mappings::discharge_correspondence_laws`, folded into
 /// `graph/correspondence-laws`) carried a `logic:SectionLaw` verdict of `ObligationDischarged`.
 /// A mnemomorphic `=` cell so authorized is promoted to a LAWFUL rename rule — it lifts as a FACT,
 /// not a lossy close-match claim — because the executed round-trip PROVED its `put ∘ get = id`. A
@@ -806,7 +806,7 @@ fn resolve_rename(
 
 /// The set of `gmeow:ProjectionMapping` cell IRIs whose EXECUTED lens-law discharge carried a
 /// `logic:SectionLaw` verdict of `ObligationDischarged`, extracted from the `graph/correspondence-laws`
-/// projection (the mappings stage's [`crate::stages::mappings::discharge_correspondence_laws`]
+/// projection (the mappings stage's `discharge_correspondence_laws`
 /// output) presented as `(subject, predicate, object)` value-string triples. A correspondence's
 /// `logic:getLeg` IS its cell IRI; a discharged section-law claim is a `logic:lawClaimed =
 /// logic:SectionLaw` node whose `logic:lawDischargeVerdict` is `logic:ObligationDischarged`. This is

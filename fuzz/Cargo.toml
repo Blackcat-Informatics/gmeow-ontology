@@ -1,21 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# cargo-fuzz harness for the gmeow format frontends (T7, #788). Deep,
-# coverage-guided fuzzing of the "reject malformed, never panic" contract — the
-# nightly/manual counterpart to the always-on proptest gate in
-# crates/{rdf,shacl,logic}/tests/never_panic.rs.
-#
-# Scoped to the CHEAP parsers (gmeow-rdf's native text codec + gmeow-shacl) so the
-# libFuzzer + sanitizer build never drags the heavy nemo tree. The logic
-# frontends (parse_logic_str / parse_query_program) are covered by the proptest
-# gate; their fuzz targets are deferred (nemo build cost). CLIF/CGIF/XCL (#718)
-# and full-FOL IR (#719) parsers do not exist yet — no targets.
+# cargo-fuzz harness for the RDF, shape, and logic format frontends. Deep,
+# coverage-guided fuzzing enforces the "reject malformed, never panic" contract
+# across the same public parser boundaries used by production.
 
 [package]
 name = "gmeow-fuzz"
 version = "0.0.0"
-edition = "2021"
+edition = "2024"
 license = "AGPL-3.0-only"
 publish = false
 
@@ -24,15 +17,14 @@ cargo-fuzz = true
 
 # A standalone workspace: cargo-fuzz carries its own nightly + sanitizer profile
 # and must NOT join the parent workspace (whose explicit `members` list excludes
-# this dir and whose nemo build-memory profiles are irrelevant here).
+# this directory).
 [workspace]
 
 [dependencies]
 libfuzzer-sys = "0.4"
-# The fuzzed frontends. gmeow-rdf with the default `gts` feature pulls oxigraph +
-# gmeow-gts (no nemo); gmeow-shacl is oxigraph-only.
-gmeow-rdf = { path = "../crates/rdf", features = ["gts"] }
-gmeow-shacl = { path = "../crates/shacl" }
+purrdf = "0.5"
+gmeow-logic = { path = "../crates/logic" }
+gmeow-logic-compile = { path = "../crates/logic-compile" }
 
 [[bin]]
 name = "nquads"
@@ -65,6 +57,41 @@ bench = false
 [[bin]]
 name = "statements"
 path = "fuzz_targets/statements.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "logic"
+path = "fuzz_targets/logic.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "query"
+path = "fuzz_targets/query.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "clif"
+path = "fuzz_targets/clif.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "cgif"
+path = "fuzz_targets/cgif.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "xcl"
+path = "fuzz_targets/xcl.rs"
 test = false
 doc = false
 bench = false

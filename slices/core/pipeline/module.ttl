@@ -90,7 +90,7 @@ gmeow:Resource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Resource"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SocialObject ;
-    skos:definition "A shared execution resource a build stage must hold exclusively while it runs — declared through gmeow:requiresResource (a specialization of logic:actionResource). Two stages requiring the same resource compete for it (logic:competesForResource) and the scheduler serializes them; a stage requiring no resource runs in parallel within its topological level. The canonical example is the process-wide reasoning engine (gmeow:engineResource), whose retained Nemo comparison engine is not concurrency-safe — modelled as a resource so serialization is a conflict the scheduler reads, not a hardcoded special case."@x-gmeow-english ;
+    skos:definition "A shared execution resource a build stage must hold exclusively while it runs — declared through gmeow:requiresResource (a specialization of logic:actionResource). Two stages requiring the same resource compete for it (logic:competesForResource) and the scheduler serializes them; a stage requiring no resource runs in parallel within its topological level. The canonical example is the process-wide reasoning engine (gmeow:engineResource), whose mutable reasoning state is exclusive — modelled as a resource so serialization is a conflict the scheduler reads, not a hardcoded special case."@x-gmeow-english ;
     skos:example "gmeow:engineResource a gmeow:Resource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -245,11 +245,11 @@ gmeow:attachesBlobRep
     rdfs:label "attaches blob rep"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
     rdfs:range xsd:string ;
-    skos:definition "A blob-representation lane label a gmeow:PipelineStage ATTACHES to the carrier — a representation-keyed by-reference blob record (e.g. \"diagnostics:nodes\", \"spans:source-table\") present in its output product but NOT in its assembled input (its blob-rep attach DELTA). NOT the byte-artifact lane (logical paths) — only the representation-keyed blob lane the consumers read back by rep. Multi-valued. Stable identifier strings, not localizable prose. The Rust Stage's attaches_blob_reps() must agree exactly (Rust/RDF agreement) and the scheduler verifies the run-time delta (AttachDrift)."@x-gmeow-english ;
+    skos:definition "A blob-representation lane label a gmeow:PipelineStage ATTACHES to the carrier — a representation-keyed by-reference blob record (e.g. \"diagnostics:nodes\", \"spans:source-table\") whose (representation, content digest) identity is present in its output product but NOT in its assembled input (its blob-rep attach DELTA). Distinct producers may therefore each attach different content under the same shared lane label, as the compile, reason, and validation stages do for diagnostics:nodes. NOT the byte-artifact lane (logical paths) — only the representation-keyed blob lane the consumers read back by rep. Multi-valued. Stable identifier strings, not localizable prose. The Rust Stage's attaches_blob_reps() must agree exactly (Rust/RDF agreement) and the scheduler verifies the run-time delta (AttachDrift)."@x-gmeow-english ;
     skos:example "gmeow:stage-source-load gmeow:attachesBlobRep \"spans:source-table\" ."@x-gmeow-english ;
     gmeow:useWhen "Declare a representation-keyed blob a stage folds onto its product's by-reference lane (the diagnostics-nodes run-ledger contribution, the source-span table), so the run-time verification covers it."@x-gmeow-english ;
-    gmeow:avoidWhen "Do NOT use it for named graphs (gmeow:attachesGraph) or for the byte-artifact lane; do NOT list a rep the stage carries forward from an upstream (the delta subtracts it)."@x-gmeow-english ;
-    gmeow:howToUse "Assert one gmeow:attachesBlobRep per representation label the stage adds beyond its inputs, matching attaches_blob_reps(); captured empirically from a full run's blob-rep delta."@x-gmeow-english ;
+    gmeow:avoidWhen "Do NOT use it for named graphs (gmeow:attachesGraph) or for the byte-artifact lane; do NOT list a record whose representation and content digest the stage merely carries forward from an upstream (the delta subtracts that identity)."@x-gmeow-english ;
+    gmeow:howToUse "Assert one gmeow:attachesBlobRep per representation label under which the stage adds a content-distinct record beyond its inputs, matching attaches_blob_reps(); captured empirically from a full run's blob-rep delta."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Fanout extraction map (path ↔ carrier representative, promoted to data) ----
@@ -353,7 +353,7 @@ gmeow:engineResource
     a gmeow:Resource ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "reasoning engine"@x-gmeow-english ;
-    skos:definition "The process-wide reasoning resource covering native EL/DL closure and the retained Nemo comparison lane. A stage that gmeow:requiresResource it runs serialized against every other stage requiring it — the resource-conflict serialization that replaces the former derived engine-lock flag. The sole reasoning stage (gmeow:stage-reason) declares it."@x-gmeow-english ;
+    skos:definition "The process-wide reasoning resource covering native EL/DL closure. A stage that gmeow:requiresResource it runs serialized against every other stage requiring it — the resource-conflict serialization that replaces the former derived engine-lock flag. The sole reasoning stage (gmeow:stage-reason) declares it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 # =========================================================================== #
@@ -505,7 +505,7 @@ gmeow:stage-compile-logic
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "compile logic"@x-gmeow-english ;
-    skos:definition "Run the logic: compiler (parse → canonical IR → projection back-ends) over the canonical logic source and emit every compiler product as a committed artifact: the eight projection serializations (canonical RDF 1.2 IR, OWL DL/EL, Datalog, N3, gUFO, Nemo, and the projection-report loss ledger) plus the compile diagnostics rendered to JSON, SARIF, HTML, and gmeow:Finding RDF. The single in-DAG producer of the logic projection surface, so the loss ledger and compile diagnostics reach the bundle, docs, and SARIF instead of terminating on disk."@x-gmeow-english ;
+    skos:definition "Run the logic: compiler (parse → canonical IR → projection back-ends) over the canonical logic source and emit every compiler product as a committed artifact: the seven projection serializations (canonical RDF 1.2 IR, OWL DL/EL, Datalog, N3, gUFO, and the projection-report loss ledger) plus the compile diagnostics rendered to JSON, SARIF, HTML, and gmeow:Finding RDF. The single in-DAG producer of the logic projection surface, so the loss ledger and compile diagnostics reach the bundle, docs, and SARIF instead of terminating on disk."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -536,7 +536,7 @@ gmeow:stage-reason
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "reason"@x-gmeow-english ;
-    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (ontology + imports + statements + alignments + logic/relational-core/correspondence, in the bundle's graph layout but WITHOUT the meta/report graphs, which assert no axioms and only perturb the content-addressed Skolem witnesses). The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
+    skos:definition "Compute the native EL/DL reasoned closure and logic materialization — the SOLE reasoning pass. It reasons ONCE over the object-level EDB (ontology + imports + statements + alignments + logic/relational-core/correspondence, in the bundle's graph layout but WITHOUT the meta/report graphs, which assert no axioms and only perturb the content-addressed Skolem witnesses). The single result both backs the bundle's graph/reasoning projection AND owns the committed artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) — there is no separate full-fold export leaf. The run's content-addressed native contract is always projected as a gmeow:Finding into graph/diagnostics and the diagnostics:nodes cache lane, keeping that declared attachment total even when the EDB contains no existential obligation; every production existential program's world-scoped termination certificate joins it from the same reasoning run. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1015,7 +1015,10 @@ gmeow:stage-mappings
         <https://blackcatinformatics.ca/gmeow/graph/projection-ledger> .
 
 gmeow:stage-reason
-    gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/reasoning> .
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ,
+        <https://blackcatinformatics.ca/gmeow/graph/reasoning> ;
+    gmeow:attachesBlobRep "diagnostics:nodes" .
 
 gmeow:stage-validate
     gmeow:attachesGraph <https://blackcatinformatics.ca/gmeow/graph/diagnostics> ;

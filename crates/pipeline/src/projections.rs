@@ -249,7 +249,7 @@ pub fn gts_base_graph(gts_bytes: &[u8]) -> gmeow_errors::Result<Vec<RdfQuad>> {
 /// The A→B authorization set folded into a `.gts`: the `gmeow:ProjectionMapping` cell IRIs whose
 /// EXECUTED lens-law discharge carried an `ObligationDischarged` `logic:SectionLaw`, read from the
 /// bundle's `graph/correspondence-laws` named graph (the mappings stage's
-/// [`crate::stages::mappings::discharge_correspondence_laws`] output).
+/// `stages::mappings::discharge_correspondence_laws` output).
 ///
 /// This is the production consumer of Deliverable A: the bundle carries the executed discharge
 /// verdicts, and the up-projection executor consumes THIS set to promote each mnemomorphic `=` cell

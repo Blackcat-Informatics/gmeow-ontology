@@ -6,7 +6,7 @@
 //! `logic query` resolves a backward `.logic` goal over a materialized world
 //! through the native dispatcher (`gmeow_logic::dispatch`); `logic compile` emits
 //! or drift-checks the ten generated logic-projection artifacts via the
-//! Nemo-free `gmeow_logic_compile` compiler and the whole-pipeline drift gate.
+//! Native `gmeow_logic_compile` compiler and the whole-pipeline drift gate.
 
 use std::path::Path;
 

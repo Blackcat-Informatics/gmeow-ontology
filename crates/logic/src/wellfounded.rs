@@ -3,8 +3,8 @@
 
 //! Native well-founded-semantics evaluator.
 //!
-//! Nemo rejects non-stratifiable programs, so the well-founded model is computed
-//! here by the **alternating fixpoint** of van Gelder, on top of the reduct least
+//! The well-founded model is computed by the **alternating fixpoint** of van Gelder,
+//! on top of the reduct least
 //! model in [`crate::rule_ir`].  Per world:
 //!
 //! 1. `K = edb` (the certainly-true under-estimate).
@@ -31,7 +31,7 @@
 //! `source_quad_ids = [reifier(move(p1,p2))]`.
 //!
 //! [`IncrementalWellFoundedSession`] is the production multi-shot boundary used by
-//! [`crate::materialize::NonmonotoneMaterializationSession`]. The low-level scratch
+//! the production materialization router. The low-level scratch
 //! entry points remain crate-internal comparators for parity tests and benchmarks,
 //! hence the crate-internal `dead_code` allowance.
 #![allow(dead_code)]
@@ -199,6 +199,16 @@ pub(crate) fn materialize(
     Ok(out)
 }
 
+/// Benchmark-only adapter for canonical typed rules.
+#[doc(hidden)]
+pub fn bench_wf_materialize(
+    store: &crate::store::WorldStore,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+) -> gmeow_errors::Result<usize> {
+    let rules = crate::lower::lower_eval_rules(program)?;
+    materialize(store, &rules).map(|rows| rows.len())
+}
+
 /// Run the deliberately non-incremental alternating fixpoint over one complete
 /// solver slice. `rules` may be the original variable program or the exact active
 /// ground program maintained by [`IncrementalGroundProgram`].
@@ -240,46 +250,33 @@ fn materialize_ground_slice(
     Ok(out)
 }
 
-/// Benchmarking shim: run the well-founded materializer over a pre-built store + rules.
-///
-/// Accepts a reference to a [`crate::store::WorldStore`] (already populated, built once
-/// outside `b.iter`) and a Nemo `.rls` rule string.  Parses the rules, calls
-/// [`materialize`], and returns the number of output rows.  Used by `benches/reduct.rs`
-/// to exercise `rule_ir::least_model_of_reduct` through the public API with N-Quad
-/// loading amortised outside the hot loop.  Not part of the production surface.
-///
-/// # Errors
-///
-/// Propagates errors from rule parsing or `materialize`.
-#[doc(hidden)]
-pub fn bench_wf_materialize(
-    store: &crate::store::WorldStore,
-    rules_text: &str,
-) -> gmeow_errors::Result<usize> {
-    use crate::rule_ir::parse_eval_rules;
-    let rules = parse_eval_rules(rules_text)?;
-    let rows = materialize(store, &rules)?;
-    Ok(rows.len())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::provenance::{mint_derivation_id, mint_reifier};
-    use crate::rule_ir::parse_eval_rules;
+    use crate::rule_ir::{EvalAtom, EvalTerm};
     use crate::store::WorldStore;
     use purrdf::TermValue;
 
     const WF: &str = "https://example.org/profiles/well-founded/";
 
     fn wf_rules() -> Vec<EvalRule> {
-        let rls = format!(
-            "#[name(\"{WF}ruleWin\")]\n\
-             <{WF}win>(?X, ?X, ?W) :-\n\
-                 <{WF}move>(?X, ?Y, ?W),\n\
-                 ~<{WF}win>(?Y, ?Y, ?W) .\n"
-        );
-        parse_eval_rules(&rls).expect("parse WF rules")
+        let atom = |subject: &str, predicate: &str, object: &str, negated| EvalAtom {
+            subject: EvalTerm::var(subject),
+            predicate: format!("{WF}{predicate}"),
+            object: EvalTerm::var(object),
+            negated,
+        };
+        vec![EvalRule {
+            head: atom("?X", "win", "?X", false),
+            body: vec![
+                atom("?X", "move", "?Y", false),
+                atom("?Y", "win", "?Y", true),
+            ],
+            rule_iri: format!("{WF}ruleWin"),
+            distinct_pairs: Vec::new(),
+            builtins: Vec::new(),
+        }]
     }
 
     fn wf_store() -> WorldStore {

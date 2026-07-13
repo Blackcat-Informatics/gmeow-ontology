@@ -20,12 +20,8 @@
 //! - [`run_native_forward`] drives the native stratified core and returns the full
 //!   decomposable [`NativeForwardRun`] (rows + `consumed_steps` + cost vector +
 //!   engine identity).
-//! - [`run_nemo_forward`] drives the demoted Nemo bootstrap oracle and returns only
-//!   its deterministically-ordered [`ForwardRows`] — Nemo exposes no governor step
-//!   counts, so no cost vector is fabricated for it (the no-optionality doctrine:
-//!   an absent measurement is absent, never a zeroed lie).
 //!
-//! Both seams build the typed EDB through the SAME
+//! The benchmark seam builds the typed EDB through the SAME
 //! [`crate::reason::build_edb_facts`] the production reasoning path uses, so every
 //! engine sees a byte-identical fact set and any measured difference is the engine's
 //! alone.
@@ -34,7 +30,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use purrdf::{RdfDataset, TermValue};
 
-use crate::oracle::{ForwardBudget, ForwardOracle, TypedChaseResult, TypedRow};
+use crate::oracle::{TypedChaseResult, TypedRow};
 use crate::result::EngineId;
 
 /// Wrap a cost-seam condition message as a typed diagnostic on the shared
@@ -86,7 +82,7 @@ impl CostVector {
     /// (non-EDB) row by `(firing rule, predicate, stratum)` and counting it.
     ///
     /// `strata` is the certifier's per-predicate stratum map
-    /// ([`crate::certify::predicate_strata`]) over the SAME rule text that produced
+    /// ([`crate::certify::predicate_strata`]) over the same canonical program that produced
     /// `chase`. EDB-echo rows are skipped (they carry no firing rule). A derived row
     /// whose provenance carries no firing rule, or whose predicate the certifier
     /// never stratified, is a genuine engine/certifier inconsistency and a hard
@@ -283,9 +279,8 @@ impl CostVector {
 }
 
 /// A single materialized row exposed across the public benchmark seam: the bare
-/// relation name plus its decoded native-term arguments (the neutral shape both the
-/// native and Nemo engines emit — a public projection of the crate-internal
-/// [`TypedRow`]).
+/// relation name plus its decoded native-term arguments — a public projection of
+/// the crate-internal [`TypedRow`].
 #[derive(Debug, Clone, PartialEq)]
 pub struct ForwardRow {
     /// The relation name (a full predicate IRI, un-bracketed, or a bare program-local symbol).
@@ -438,7 +433,7 @@ pub struct RecordForwardObservation {
 /// Fixed-EDB/rule session proving a second evaluation reuses one immutable physical
 /// plan while executing the same forward core from scratch.
 ///
-/// Parsing, EDB loading, and certified-stratum construction happen in [`Self::prepare`]
+/// Typed lowering, EDB loading, and certified-stratum construction happen in [`Self::prepare`]
 /// outside the measured region. Each [`Self::evaluate`] still performs a complete
 /// materialization; only stratification and physical planning are cacheable.
 pub struct RepeatForwardSession {
@@ -455,21 +450,14 @@ impl RepeatForwardSession {
     ///
     /// # Errors
     ///
-    /// Returns an error for malformed/non-ternary rules, EDB loading failure, or a
-    /// certification/lowering failure.
+    /// Returns an error for EDB loading, canonical lowering, or certification failure.
     pub fn prepare(
         edb: &RdfDataset,
-        rules: &str,
+        program: &gmeow_logic_compile::ir::LogicProgram,
         contract_hash: impl Into<String>,
     ) -> gmeow_errors::Result<Self> {
-        let program = crate::nemo_engine::NemoParsedRules::parse_unvalidated(rules)?.into_program();
-        if !crate::oracle::program_is_pure_ternary(&program) {
-            return Err(cost_err(
-                "repeat-forward plan probe requires a pure named-ternary rule program".to_owned(),
-            ));
-        }
-        let eval_rules = crate::rule_ir::lower_program_eval_rules(&program)?;
-        let strata = crate::certify::predicate_strata(rules)?;
+        let eval_rules = crate::lower::lower_eval_rules(program)?;
+        let strata = crate::certify::predicate_strata(&eval_rules);
         let store = crate::store::WorldStore::new();
         store.load_dataset(edb)?;
         Ok(Self {
@@ -899,9 +887,12 @@ pub struct IncrementalGroundingCostSession {
 
 impl IncrementalGroundingCostSession {
     /// Prepare a fixed-rule, single-world incremental WFS-grounding session.
-    pub fn prepare(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<Self> {
+    pub fn prepare(
+        edb: &RdfDataset,
+        program: &gmeow_logic_compile::ir::LogicProgram,
+    ) -> gmeow_errors::Result<Self> {
         let (world, facts) = incremental_dataset_facts(edb, None)?;
-        let eval_rules = crate::rule_ir::parse_eval_rules(rules)?;
+        let eval_rules = crate::lower::lower_eval_rules(program)?;
         let contract_hash = format!(
             "gmeow-native-incremental-wfs-grounding-v1:{}",
             blake3::hash(world.as_bytes()).to_hex()
@@ -1016,12 +1007,15 @@ impl IncrementalForwardSession {
     ///
     /// # Errors
     ///
-    /// Returns an error when the EDB is not exactly one named world, the rule text
-    /// is outside finite positive binary Datalog, or the rules cannot be stratified.
-    pub fn prepare(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<Self> {
+    /// Returns an error when the EDB is not exactly one named world, the canonical
+    /// program is outside finite positive binary Datalog, or it cannot be stratified.
+    pub fn prepare(
+        edb: &RdfDataset,
+        program: &gmeow_logic_compile::ir::LogicProgram,
+    ) -> gmeow_errors::Result<Self> {
         let (world, facts) = incremental_dataset_facts(edb, None)?;
-        let eval_rules = crate::rule_ir::parse_eval_rules(rules)?;
-        let strata = crate::certify::predicate_strata(rules)?;
+        let eval_rules = crate::lower::lower_eval_rules(program)?;
+        let strata = crate::certify::predicate_strata(&eval_rules);
         let edb_keys = facts.iter().map(crate::rule_ir::Fact::key).collect();
         let contract_hash = format!(
             "gmeow-native-incremental-forward-v1:{}",
@@ -1239,9 +1233,9 @@ fn incremental_dataset_facts(
 ///
 /// The typed EDB is built through [`crate::reason::build_edb_facts`] (the exact
 /// production construction), then the native evaluation runs through
-/// [`crate::oracle::native_forward_with_frontier`] — the same body the production
-/// [`crate::oracle::NativeForwardOracle`] runs, additionally surfacing the
-/// governor's completion frontier. `consumed_steps` is read from that frontier; the
+/// [`crate::oracle::native_forward_eval_rules_with_frontier`] — the same body the production
+/// native structured materializer runs, additionally surfacing the governor's
+/// completion frontier. `consumed_steps` is read from that frontier; the
 /// [`CostVector`] is aggregated from the result's derived rows + provenance and the
 /// certifier's per-predicate stratification ([`crate::certify::predicate_strata`]).
 ///
@@ -1250,10 +1244,15 @@ fn incremental_dataset_facts(
 /// Returns `Err` if the EDB cannot be built, if the native chase declines the rule
 /// set (a declared gap), if the certifier cannot stratify the rules, or if a derived
 /// row cannot be attributed a `(rule, predicate, stratum)` coordinate.
-pub fn run_native_forward(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<NativeForwardRun> {
+pub fn run_native_forward(
+    edb: &RdfDataset,
+    program: &gmeow_logic_compile::ir::LogicProgram,
+) -> gmeow_errors::Result<NativeForwardRun> {
     let facts = crate::reason::build_edb_facts(edb)?;
-    let (chase, frontier) = crate::oracle::native_forward_with_frontier(&facts, rules)?;
-    let strata = crate::certify::predicate_strata(rules)?;
+    let eval_rules = crate::lower::lower_eval_rules(program)?;
+    let (chase, frontier) =
+        crate::oracle::native_forward_eval_rules_with_frontier(&facts, eval_rules.clone())?;
+    let strata = crate::certify::predicate_strata(&eval_rules);
     let cost = CostVector::from_chase(&chase, &strata)?;
     Ok(NativeForwardRun {
         rows: ForwardRows::from_chase(&chase),
@@ -1261,306 +1260,4 @@ pub fn run_native_forward(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result
         cost,
         engine: EngineId::native(),
     })
-}
-
-/// Drive the DEMOTED Nemo bootstrap oracle over `edb` under `rules`, returning ONLY
-/// its deterministically-ordered [`ForwardRows`].
-///
-/// Nemo is off the primary reasoning path and exposes no governor step counts, so
-/// this seam fabricates no cost vector for it (the no-optionality doctrine). It
-/// reuses the SAME [`crate::reason::build_edb_facts`] EDB construction as
-/// [`run_native_forward`], so both engines see a byte-identical fact set — the
-/// precondition for a faithful native↔Nemo comparison.
-///
-/// # Errors
-///
-/// Returns `Err` if the EDB cannot be built or if the Nemo chase fails to
-/// parse/validate/evaluate/decode.
-pub fn run_nemo_forward(edb: &RdfDataset, rules: &str) -> gmeow_errors::Result<ForwardRows> {
-    let facts = crate::reason::build_edb_facts(edb)?;
-    let oracle = crate::oracle::nemo_forward_oracle();
-    let chase = oracle.materialize(&facts, rules, &ForwardBudget::UNBOUNDED)?;
-    Ok(ForwardRows::from_chase(&chase))
-}
-
-/// Drive the DEMOTED Nemo bootstrap oracle over `edb` under a VALUE-INVENTING
-/// (existential-rule) `rules` set via the FACTS-ONLY chase, returning its
-/// deterministically-ordered [`ForwardRows`].
-///
-/// This is the existential sibling of [`run_nemo_forward`]. The provenance-carrying
-/// [`crate::oracle::nemo_forward_oracle`] that [`run_nemo_forward`] uses hard-errors
-/// on a chase that invents fresh labeled nulls ("no trace tree for derived fact") —
-/// an architectural fact of the trace reconstruction, NOT an optional degradation —
-/// so an existential program is materialized through the facts-only
-/// [`crate::oracle::NemoFactsOracle`] instead, exactly as the `materialize_routed`
-/// existential fallback (`demote_existential_to_facts_only`) does. The facts-only
-/// closure carries no provenance (it attributes nothing), which is why no cost vector
-/// is fabricated for it — the row set is the sound, comparable signal (the invented
-/// nulls are labeled per-engine, so a benchmark compares the DERIVED COUNT across
-/// engines, never the null identifiers).
-///
-/// It reuses the SAME [`crate::reason::build_edb_facts`] EDB construction as the
-/// native chase seam, so both engines see a byte-identical fact set.
-///
-/// # Errors
-///
-/// Returns `Err` if the EDB cannot be built or if the Nemo facts-only chase fails to
-/// parse/validate/evaluate/decode.
-pub fn run_nemo_forward_facts_only(
-    edb: &RdfDataset,
-    rules: &str,
-) -> gmeow_errors::Result<ForwardRows> {
-    let facts = crate::reason::build_edb_facts(edb)?;
-    let chase =
-        crate::oracle::NemoFactsOracle.materialize(&facts, rules, &ForwardBudget::UNBOUNDED)?;
-    Ok(ForwardRows::from_chase(&chase))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
-
-    const EDGE: &str = "http://example.org/edge";
-    const PATH: &str = "http://example.org/path";
-    const REACH: &str = "http://example.org/reach";
-    const W: &str = "http://example.org/w";
-    const A: &str = "http://example.org/a";
-    const B: &str = "http://example.org/b";
-    const C: &str = "http://example.org/c";
-
-    #[test]
-    fn four_worker_rule_parallel_evidence_is_non_vacuous_and_deterministic() {
-        let evidence = run_rule_parallel_evidence().expect("four-worker evidence run");
-        assert_eq!(
-            (
-                evidence.worker_count,
-                evidence.rule_count,
-                evidence.seed_rows,
-                evidence.derived_rows,
-                evidence.consumed_steps,
-                evidence.parallel_rounds,
-                evidence.rule_tasks,
-                evidence.serial_candidate_rows,
-                evidence.critical_path_candidate_rows,
-                evidence.max_buffered_candidate_rows,
-                evidence.max_task_candidate_rows,
-                evidence.budget_cases,
-            ),
-            (4, 6, 24, 120, 120, 3, 18, 144, 48, 96, 24, 8),
-            "the committed fixture's structural work vector must stay exact: {evidence:?}"
-        );
-        assert!(evidence.output_parity);
-        assert!(evidence.budget_parity);
-        assert!(evidence.parallel_path_entered);
-        assert!(evidence.critical_path_strictly_lower);
-        assert_ne!(evidence.closure_hash, [0; 32]);
-    }
-
-    /// A tiny 2-stratum pure-ternary Datalog program (binary-eligible, so the
-    /// governed semi-naive core runs and `consumed_steps` is populated):
-    ///
-    /// * stratum 1 — `path` is the transitive closure of `edge`;
-    /// * stratum 2 — `reach` echoes every `path` edge.
-    ///
-    /// Named rules (`#[name(...)]`) so derived rows carry a real firing-rule IRI.
-    fn two_stratum_rules() -> String {
-        format!(
-            "#[name(\"http://example.org/rules/edge-is-path\")]\n\
-             <{PATH}>(?s, ?o, ?w) :- <{EDGE}>(?s, ?o, ?w) .\n\
-             #[name(\"http://example.org/rules/path-trans\")]\n\
-             <{PATH}>(?s, ?o, ?w) :- <{PATH}>(?s, ?m, ?w), <{EDGE}>(?m, ?o, ?w) .\n\
-             #[name(\"http://example.org/rules/path-is-reach\")]\n\
-             <{REACH}>(?s, ?o, ?w) :- <{PATH}>(?s, ?o, ?w) .\n"
-        )
-    }
-
-    /// EDB: `edge(a, b)`, `edge(b, c)` in world `W`.
-    fn two_edge_edb() -> std::sync::Arc<RdfDataset> {
-        let mut builder = RdfDatasetBuilder::new();
-        for (s, o) in [(A, B), (B, C)] {
-            builder.push_owned_quad(
-                &RdfQuad::new(RdfTerm::iri(s), EDGE, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W)),
-            );
-        }
-        builder.freeze().expect("valid test dataset")
-    }
-
-    /// The native seam is deterministic (byte-identical cost vector across two runs)
-    /// AND its attribution is non-vacuous (≥1 real-rule coordinate with a nonzero
-    /// count), and the Nemo seam feasibly returns a non-empty row set over the SAME
-    /// program — the seams a benchmark harness drives each engine through.
-    #[test]
-    fn native_forward_cost_vector_is_deterministic_and_attributed() {
-        let edb = two_edge_edb();
-        let rules = two_stratum_rules();
-
-        let run_a = run_native_forward(edb.as_ref(), &rules).expect("native forward run a");
-        let run_b = run_native_forward(edb.as_ref(), &rules).expect("native forward run b");
-
-        // Determinism: the two cost vectors are byte-identical, and so is their
-        // integer serialization.
-        assert_eq!(
-            run_a.cost, run_b.cost,
-            "the native cost vector must be deterministic across identical runs"
-        );
-        assert_eq!(run_a.cost.to_sorted_tuples(), run_b.cost.to_sorted_tuples());
-        assert_eq!(
-            run_a.rows, run_b.rows,
-            "the native row set must be deterministic"
-        );
-        assert_eq!(run_a.consumed_steps, run_b.consumed_steps);
-
-        // Non-vacuous attribution: ≥1 coordinate keyed to a REAL rule IRI with a
-        // nonzero count.
-        let tuples = run_a.cost.to_sorted_tuples();
-        assert!(
-            tuples.iter().any(|(rule, _pred, _stratum, count)| {
-                rule.starts_with("http://example.org/rules/") && *count > 0
-            }),
-            "the cost vector must attribute ≥1 derivation to a real rule: {tuples:?}"
-        );
-        assert!(
-            run_a.cost.total_derivations() > 0,
-            "the program derives facts, so total_derivations must be nonzero"
-        );
-
-        // The governed semi-naive core committed derivations, so the step probe is nonzero.
-        assert!(
-            run_a.consumed_steps > 0,
-            "the binary-eligible program runs the governed core; consumed_steps must be nonzero"
-        );
-
-        // Engine identity is stamped.
-        assert_eq!(run_a.engine, EngineId::native());
-
-        // Two distinct strata are attributed: `path` (stratum 1) and `reach`
-        // (stratum 2) — proving the stratum coordinate is threaded, not flattened.
-        let strata: std::collections::BTreeSet<u32> = tuples
-            .iter()
-            .map(|(_r, _p, stratum, _c)| *stratum)
-            .collect();
-        assert!(
-            strata.contains(&1) && strata.contains(&2),
-            "both stratum 1 (path) and stratum 2 (reach) must be attributed: {tuples:?}"
-        );
-
-        // Feasibility: the Nemo seam returns a non-empty row set over the same program.
-        let nemo = run_nemo_forward(edb.as_ref(), &rules).expect("nemo forward run");
-        assert!(
-            !nemo.is_empty(),
-            "the Nemo seam must materialize a non-empty row set for the same program"
-        );
-    }
-
-    #[test]
-    fn repeat_forward_session_reuses_plan_with_identical_cost_and_closure() {
-        let edb = two_edge_edb();
-        let rules = two_stratum_rules();
-        let mut session =
-            RepeatForwardSession::prepare(edb.as_ref(), &rules, "repeat-forward-test")
-                .expect("prepare repeat-forward session");
-
-        let cold = session.evaluate().expect("cold evaluation");
-        let warm = session.evaluate().expect("warm evaluation");
-        assert!(!cold.cache_hit);
-        assert_eq!(cold.plan_builds, 1);
-        assert!(cold.planning_units > 0);
-        assert!(warm.cache_hit);
-        assert_eq!((warm.plan_builds, warm.planning_units), (0, 0));
-        assert!(warm.same_executable_as_first);
-        assert_eq!(cold.rule_hash, warm.rule_hash);
-        assert_eq!(cold.solver_version, warm.solver_version);
-        assert_eq!(cold.closure_hash, warm.closure_hash);
-        assert_eq!(cold.fact_closure_hash, warm.fact_closure_hash);
-        assert_eq!(cold.consumed_steps, warm.consumed_steps);
-        assert_eq!(cold.cost, warm.cost);
-        assert_eq!(warm.annotation_count, 8, "one height per closure fact");
-        assert_eq!(
-            warm.max_proof_height, 3,
-            "reach(a,c) is one level above the two-edge path proof"
-        );
-        assert!(
-            cold.cost.attributed_coordinates() >= 2,
-            "repeat evidence retains per-(rule,predicate,stratum) attribution"
-        );
-
-        let record = session
-            .evaluate_record_provenance()
-            .expect("bounded-provenance evaluation");
-        let skip = session.evaluate_skip().expect("facts-only evaluation");
-        assert_eq!(record.annotation_count, warm.annotation_count);
-        assert_eq!(record.max_proof_height, warm.max_proof_height);
-        assert_eq!(skip.fact_count, record.annotation_count);
-        assert_eq!(skip.fact_closure_hash, record.fact_closure_hash);
-        assert_eq!(skip.consumed_steps, record.consumed_steps);
-    }
-
-    #[test]
-    fn provenance_probes_refuse_cold_plan_cache_measurements() {
-        let edb = two_edge_edb();
-        let rules = two_stratum_rules();
-
-        let mut record_session =
-            RepeatForwardSession::prepare(edb.as_ref(), &rules, "cold-record-test")
-                .expect("prepare Record session");
-        let record_err = record_session
-            .evaluate_record_provenance()
-            .err()
-            .expect("a cold Record probe must be refused");
-        assert!(record_err.message().contains("Record"));
-        assert!(record_err.message().contains("warm plan cache"));
-
-        let mut skip_session =
-            RepeatForwardSession::prepare(edb.as_ref(), &rules, "cold-skip-test")
-                .expect("prepare Skip session");
-        let skip_err = skip_session
-            .evaluate_skip()
-            .err()
-            .expect("a cold Skip probe must be refused");
-        assert!(skip_err.message().contains("Skip"));
-        assert!(skip_err.message().contains("warm plan cache"));
-    }
-
-    /// The facts-only Nemo seam materializes a value-inventing (existential-rule)
-    /// program the provenance-carrying seam cannot: [`run_nemo_forward`] hard-errors on
-    /// its invented labeled nulls ("no trace tree for derived fact"), while
-    /// [`run_nemo_forward_facts_only`] returns a non-empty, deterministic closure. This
-    /// is the seam the benchmark harness drives the existential fragment's Nemo side
-    /// through.
-    #[test]
-    fn nemo_facts_only_materializes_an_existential_program() {
-        // `e1(?x, !y, ?w) :- edge(?x, ?o, ?w) .` — a single existential (value-inventing)
-        // TGD over the ternary forward surface (`!y` is a fresh labeled null per binding).
-        let rules = format!(
-            "#[name(\"http://example.org/rules/e1\")]\n\
-             <{PATH}>(?x, !y, ?w) :- <{EDGE}>(?x, ?o, ?w) .\n"
-        );
-        let edb = two_edge_edb();
-
-        // The provenance-carrying forward seam refuses the invented nulls (an
-        // architectural fact, not an optional degradation).
-        assert!(
-            run_nemo_forward(edb.as_ref(), &rules).is_err(),
-            "the provenance-carrying Nemo forward seam must refuse invented nulls"
-        );
-
-        // The facts-only seam materializes them: a non-empty, deterministic closure.
-        let a = run_nemo_forward_facts_only(edb.as_ref(), &rules).expect("facts-only run a");
-        let b = run_nemo_forward_facts_only(edb.as_ref(), &rules).expect("facts-only run b");
-        assert!(
-            !a.is_empty(),
-            "the facts-only seam must materialize a non-empty existential closure"
-        );
-        assert_eq!(
-            a, b,
-            "the facts-only row set must be deterministic across runs"
-        );
-
-        // Each input edge invents one `path` head, so a derived `path` row is present.
-        assert!(
-            a.rows.iter().any(|r| r.predicate == PATH),
-            "the facts-only closure must carry the invented existential head `path`"
-        );
-    }
 }

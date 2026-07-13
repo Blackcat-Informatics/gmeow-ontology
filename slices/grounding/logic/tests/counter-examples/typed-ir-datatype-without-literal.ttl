@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# The IRI supplies exactly one value kind, isolating the dangling datatype invariant: a datatype
+# IRI is present without the lexical logic:termLiteral it is supposed to type.
+ex:danglingDatatype
+    a logic:TermCarrier ;
+    logic:termIndex 0 ;
+    logic:termIri ex:person ;
+    logic:termLiteralDatatype xsd:integer .

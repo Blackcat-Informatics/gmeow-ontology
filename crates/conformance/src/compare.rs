@@ -84,7 +84,7 @@ fn canonical_quads(text: &str, media_type: &str) -> gmeow_errors::Result<Vec<Str
     Ok(quads)
 }
 
-/// Compare two deterministic text projections (Datalog / Nemo `.rls` / N3) by exact
+/// Compare two deterministic text projections (Datalog / N3) by exact
 /// equality. Unlike the RDF targets these carry no blank-node ambiguity once the
 /// front-end RDFC-1.0-canonicalizes blank labels, so a byte mismatch is a real
 /// regression, not codec skew. On mismatch the line counts and the first differing
@@ -480,16 +480,12 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
             }
         }
 
-        // ── Projection text targets (Datalog / N3 / Nemo) ─────────────────────
+        // ── Projection text targets (Datalog / N3) ───────────────────────────
         // Deterministic since the front-end RDFC-1.0-canonicalizes blank labels, so
         // these are gated by exact text equality (parity with the RDF block's
         // missing-golden hard-fail). Every committed `projections/` dir carries all
-        // three text files, so a missing-but-produced target is a real regression.
-        const TEXT: [(&str, &str); 3] = [
-            ("datalog", "datalog.dl"),
-            ("n3", "n3.n3"),
-            ("nemo", "nemo.rls"),
-        ];
+        // two text files, so a missing-but-produced target is a real regression.
+        const TEXT: [(&str, &str); 2] = [("datalog", "datalog.dl"), ("n3", "n3.n3")];
         for (target, filename) in TEXT {
             let expected_path = proj.join(filename);
             let produced = out.projections.text.get(target);

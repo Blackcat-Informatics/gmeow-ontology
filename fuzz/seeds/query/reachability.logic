@@ -1,0 +1,4 @@
+:- prefix(ex, 'https://example.org/').
+ex:reachable(X, Y) :- ex:edge(X, Y).
+ex:reachable(X, Z) :- ex:edge(X, Y), ex:reachable(Y, Z).
+?- ex:reachable(ex:a, Y).

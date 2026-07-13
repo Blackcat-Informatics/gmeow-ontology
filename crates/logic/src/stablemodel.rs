@@ -3,8 +3,8 @@
 
 //! Native stable-model / answer-set evaluator.
 //!
-//! Nemo rejects non-stratifiable programs, so the stable models are enumerated
-//! here directly, on top of the reduct least model in [`crate::rule_ir`].  Per
+//! Stable models are enumerated directly on top of the reduct least model in
+//! [`crate::rule_ir`]. Per
 //! world:
 //!
 //! 1. **Candidate universe.**  `H = lmr(reference = ∅).store` — the least model of
@@ -25,7 +25,7 @@
 //! so only the asserted `candidate(x,x)` quad is emitted.
 //!
 //! [`IncrementalStableModelSession`] is the production multi-shot boundary used by
-//! [`crate::materialize::NonmonotoneMaterializationSession`]. The low-level model
+//! the production materialization router. The low-level model
 //! enumerator and scratch materializer remain crate-internal comparators for parity
 //! tests, hence the crate-internal `dead_code` allowance.
 #![allow(dead_code)]
@@ -363,24 +363,30 @@ fn cautious_ground_slice(
 mod tests {
     use super::*;
     use crate::provenance::ASSERT_RULE_IRI;
-    use crate::rule_ir::parse_eval_rules;
+    use crate::rule_ir::{EvalAtom, EvalTerm};
     use crate::store::WorldStore;
     use purrdf::TermValue;
 
     const SM: &str = "https://example.org/profiles/stable-model/";
 
     fn sm_rules() -> Vec<EvalRule> {
-        let rls = format!(
-            "#[name(\"{SM}ruleInSet\")]\n\
-             <{SM}inSet>(?X, ?X, ?W) :-\n\
-                 <{SM}candidate>(?X, ?X, ?W),\n\
-                 ~<{SM}outSet>(?X, ?X, ?W) .\n\
-             #[name(\"{SM}ruleOutSet\")]\n\
-             <{SM}outSet>(?X, ?X, ?W) :-\n\
-                 <{SM}candidate>(?X, ?X, ?W),\n\
-                 ~<{SM}inSet>(?X, ?X, ?W) .\n"
-        );
-        parse_eval_rules(&rls).expect("parse SM rules")
+        let atom = |predicate: &str, negated| EvalAtom {
+            subject: EvalTerm::var("?X"),
+            predicate: format!("{SM}{predicate}"),
+            object: EvalTerm::var("?X"),
+            negated,
+        };
+        let rule = |head: &str, blocked: &str, name: &str| EvalRule {
+            head: atom(head, false),
+            body: vec![atom("candidate", false), atom(blocked, true)],
+            rule_iri: format!("{SM}{name}"),
+            distinct_pairs: Vec::new(),
+            builtins: Vec::new(),
+        };
+        vec![
+            rule("inSet", "outSet", "ruleInSet"),
+            rule("outSet", "inSet", "ruleOutSet"),
+        ]
     }
 
     fn sm_store() -> WorldStore {

@@ -3,10 +3,10 @@
 
 //! Conjecture-and-refutation: test a candidate first-order formula against a KB.
 //!
-//! [`conjecture_test`] is the runtime for `logic:Conjecture` (design/LOGIC-FOUNDATION.md,
+//! `conjecture_test` is the runtime for `logic:Conjecture` (design/LOGIC-FOUNDATION.md,
 //! the conjecture-and-refutation section). It **generalizes** the counterfactual
 //! [`crate::counterfactual::construct_and_resolve`] from ground assume-atoms to a full
-//! candidate [`Formula`] — crucially including a universally-quantified Horn implication
+//! candidate `Formula` — crucially including a universally-quantified Horn implication
 //! `∀x. body → head`, which is lowered to an evaluable rule and RESOLVED, never refused.
 //!
 //! # The symmetric test — two independent legs, `φ` and `¬φ`
@@ -22,8 +22,8 @@
 //!   candidate program `P_phi` evaluated over the EDB).
 //!
 //! The verdict comes from two GENUINELY INDEPENDENT legs — support for `φ` and support for
-//! its constructed strong negation `¬φ` ([`negate_candidate`]) — so
-//! [`InformationState::classify`] can land in any Belnap quadrant, `Both` included:
+//! its constructed strong negation `¬φ` (`negate_candidate`) — so
+//! `InformationState::classify` can land in any Belnap quadrant, `Both` included:
 //!
 //! * **`φ` leg (proof)** — `with_phi` added NOTHING NEW versus `base` (the candidate is
 //!   redundant given the KB ⟹ the KB's canonical model already satisfies `φ` ⟹ `KB ⊨ φ`).
@@ -31,7 +31,7 @@
 //!   consistency of `with_phi`, so it stays true even when the `¬φ` leg also fires.
 //! * **`¬φ` leg (counterproof)** — `KB ⊨ ¬φ`, decided SOUNDLY AND COMPLETELY over the
 //!   supported fragment by the inconsistency of asserting `φ`: `KB ∪ {φ} ⊨ ⊥ ⟺ KB ⊨ ¬φ`
-//!   ([`kb_entails_negation`]). For a ground literal `¬φ` is the direct clash; for a
+//!   (`kb_entails_negation`). For a ground literal `¬φ` is the direct clash; for a
 //!   `∀x. body → head` the negation `∃x. body ∧ ¬head` is EXISTENTIAL and chase-inexpressible
 //!   to *lower*, yet is decided WITHOUT lowering it — the clash on the asserted rule
 //!   materializes the body-instance witness that forces the head false. The first
@@ -44,13 +44,13 @@
 //! A base whose inconsistency is UNRELATED to the candidate (it entails neither `φ` nor a
 //! genuine `φ`-refutation) is still a hard error: a conjecture cannot be tested against a
 //! world contradictory for foreign reasons (ex falso would make every candidate both
-//! entailed and refuted). See the base-consistency guard in [`conjecture_test`].
+//! entailed and refuted). See the base-consistency guard in `conjecture_test`.
 //!
 //! A candidate whose lowering produced ZERO evaluable content (fully beyond the
 //! Horn-expressible fragment — a disjunctive head, an existential-as-goal, strong
 //! negation, an unbounded sequence marker) was never evaluated: the run is
-//! [`EvaluationStatus::Unsupported`] and classifies to
-//! [`InformationState::NotEvaluated`], with the residue disclosed (never a false proof
+//! `EvaluationStatus::Unsupported` and classifies to
+//! `InformationState::NotEvaluated`, with the residue disclosed (never a false proof
 //! from a vacuous "added nothing"). A PARTIALLY-supported formula still evaluates its
 //! Horn part and discloses the residue in the preservation claim.
 //!
@@ -65,13 +65,13 @@
 //! A candidate that changes the rule program (a non-trivial formula) cannot reuse that
 //! fixed-contract session.  It remains on the complete native program evaluator and its
 //! declared ceiling is applied after closure construction until rule-program sessions are
-//! separately incrementalized.  The two cases are explicit in [`conjecture_test`]; neither
+//! separately incrementalized.  The two cases are explicit in `conjecture_test`; neither
 //! is routed through a secondary reasoner.
 //!
 //! # Lifecycle projection
 //!
-//! [`lifecycle_of`] is the single chokepoint mapping the Belnap verdict to the epistemic
-//! [`ConjectureLifecycleState`]: Supported → Corroborated; Opposed | Both →
+//! `lifecycle_of` is the single chokepoint mapping the Belnap verdict to the epistemic
+//! `ConjectureLifecycleState`: Supported → Corroborated; Opposed | Both →
 //! RefutedInStandpoint; Neither-conclusive → Open (discharge Discharged); Undetermined |
 //! NotEvaluated | BudgetExhausted → Open (discharge Unknown). `Withdrawn` is an author
 //! action, NEVER engine-produced.
@@ -84,7 +84,7 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 use crate::query_ir::Budget;
 use crate::reason::InferredAxiom;
 use crate::reason::{reason_all, reason_program};
-use crate::relational_core::{formula_eval_rls, formula_nary_head_rls};
+use crate::relational_core::lower_formulas;
 use crate::result::{
     CompletenessStatus, ContradictionWitness, EvaluationStatus, InformationState, InputStatus,
     PreservationClaim, ReasoningResult, ResultProvenance,
@@ -350,9 +350,8 @@ pub fn conjecture_test(
             // The candidate contributed EVALUABLE content iff its lowering produced any Horn
             // rule or n-ary head rule. A fully beyond-fragment candidate (empty lowering) was
             // never evaluated, so its "added nothing" is vacuous, not a proof.
-            let (rls, _residue) = formula_eval_rls(&p_phi);
-            let nary_rls = formula_nary_head_rls(&p_phi);
-            let evaluable = !rls.trim().is_empty() || !nary_rls.trim().is_empty();
+            let lowering = lower_formulas(&p_phi);
+            let evaluable = !lowering.rules.is_empty() || !lowering.nary_head_rules.is_empty();
             (reason_program(&p_phi, &base_edb)?, evaluable, None)
         }
     };

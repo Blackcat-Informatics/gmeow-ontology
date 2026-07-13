@@ -3,14 +3,11 @@
 
 //! Shared evaluable rule IR + Gelfond-Lifschitz reduct engine.
 //!
-//! This module is the native (non-Nemo) substrate for the two *non-stratifiable*
+//! This module is the native substrate for the two *non-stratifiable*
 //! semantics the foundation chase cannot express: the well-founded model
 //! (alternating fixpoint, [`crate::wellfounded`]) and the stable-model / answer-set
-//! semantics ([`crate::stablemodel`]).  Nemo rejects non-stratifiable programs up
-//! front, so those two evaluators hand-roll the fixpoint here — but they reuse
-//! Nemo's **parser** to lower `.rls` text into the [`EvalRule`] IR, exactly as
-//! [`crate::certify`] does, so the predicate / variable surface is byte-identical
-//! to the engine.
+//! semantics ([`crate::stablemodel`]). Both evaluators consume the same typed
+//! [`EvalRule`] IR as the stratified native chase.
 //!
 //! # Why native terms, not bare strings
 //!
@@ -38,15 +35,15 @@
 //! exists is dropped (first-wins).  Provenance for each derived fact is the FIRST
 //! firing's `(rule_iri, source_reifiers)`.
 //!
-//! # Internal oracle surface
+//! # Internal execution surface
 //!
-//! The routed and stateful materializers consume [`parse_eval_rules`] and
-//! [`DerivedRow`] in production. A few lower-level constructors and comparison
-//! helpers remain intentionally available only to scratch-parity tests, so this
-//! module keeps a crate-internal `dead_code` allowance rather than exporting them.
+//! Production materializers consume typed [`EvalRule`] values and emit
+//! [`DerivedRow`] values. A few lower-level constructors and comparison helpers
+//! remain intentionally available only to scratch-parity tests, so this module
+//! keeps a crate-internal `dead_code` allowance rather than exporting them.
 #![allow(dead_code)]
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap};
 use std::hash::{BuildHasher, Hash, Hasher};
 
 use foldhash::fast::FixedState;
@@ -57,8 +54,8 @@ use crate::facts::{PredId, PredInterner};
 use crate::physical::bitset::DenseBitset;
 use crate::physical::id::RowId;
 use crate::provenance::{
-    ASSERT_RULE_IRI, LOGIC_NAMESPACE, MinProofHeightSemiring, ProofHeight, mint_derivation_id,
-    mint_reifier, term_display,
+    ASSERT_RULE_IRI, MinProofHeightSemiring, ProofHeight, mint_derivation_id, mint_reifier,
+    term_display,
 };
 use crate::query_ir::QBuiltin;
 
@@ -99,18 +96,27 @@ fn ir_err(detail: String) -> gmeow_errors::Diag {
 
 /// A head/body term: a `?var` reference, a constant IRI, or a constant literal.
 ///
-/// Subject and predicate are never literals (an `.rls` predicate is always an IRI
-/// and a subject is an IRI/blank in the gmeow fragment); only an *object* may be a
-/// [`ConstLit`](EvalTerm::ConstLit).
+/// RDF ingress admits literals only in object position. Internal query relations are
+/// positional rather than RDF triples, however, so a builtin-generated head value may be
+/// a [`ConstLit`](EvalTerm::ConstLit) in either argument. Predicate identity remains an IRI.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum EvalTerm {
-    /// A variable, e.g. `?X` (the string includes the leading `?`, matching Nemo's
-    /// `Display` for a universal variable).
+    /// A variable, e.g. `?X` (the string includes the leading `?`).
     Var(String),
     /// A constant IRI (the full IRI string).
     ConstNamed(String),
     /// A constant literal (object position only).
     ConstLit(TermValue),
+}
+
+impl EvalTerm {
+    pub(crate) fn var(name: &str) -> Self {
+        Self::Var(name.to_owned())
+    }
+
+    pub(crate) fn named(iri: &str) -> Self {
+        Self::ConstNamed(iri.to_owned())
+    }
 }
 
 /// A single arity-3-derived atom, with the world slot dropped (subject, object).
@@ -126,6 +132,17 @@ pub(crate) struct EvalAtom {
     pub(crate) negated: bool,
 }
 
+impl EvalAtom {
+    pub(crate) fn positive(subject: EvalTerm, predicate: &str, object: EvalTerm) -> Self {
+        Self {
+            subject,
+            predicate: predicate.to_owned(),
+            object,
+            negated: false,
+        }
+    }
+}
+
 /// A lowered rule: one head atom, an ordered body (positive atoms then negated
 /// atoms), the firing rule IRI (from `#[name("...")]`), and inequality guards.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -138,21 +155,29 @@ pub(crate) struct EvalRule {
     pub(crate) rule_iri: String,
     /// Inequality guards `(?A, ?B)`: a `distinctBody` (`?A != ?B`) constraint that
     /// blocks the rule's firing when the two variables bind to the same value.
-    /// Populated by both lowering paths — the canonical-AST path
-    /// ([`crate::lower::lower_rule`]) directly from `LogicRule::distinct_pairs`, and
-    /// the Nemo-reparse path ([`parse_eval_rules`]) by translating Nemo's
-    /// `Operation`-encoded `Unequals` body literals (see `extract_distinct_pairs`) —
-    /// so the chase (`distinct_pairs_satisfied`) sees the same guard regardless of
-    /// which path produced the [`EvalRule`].
+    /// Populated by canonical-AST lowering directly from
+    /// `LogicRule::distinct_pairs`, so the chase's guard is preserved structurally.
     pub(crate) distinct_pairs: Vec<(String, String)>,
     /// Arithmetic / comparison builtins, in body order, with variable operands in
     /// the engine's `?`-prefixed surface (matching the body atoms' [`EvalTerm::Var`]
     /// keys).  Evaluated as a post-join constraint stage: a generator (`is` with a
     /// free target) binds its target before the head is grounded, a filter prunes
-    /// the solution.  Empty for every forward `.rls` rule — populated solely by the
+    /// the solution. Empty for ordinary forward rules — populated solely by the
     /// backward magic transform ([`crate::physical::magic`]), the only path that
     /// carries arithmetic.
     pub(crate) builtins: Vec<QBuiltin>,
+}
+
+impl EvalRule {
+    pub(crate) fn positive(rule_iri: &str, head: EvalAtom, body: Vec<EvalAtom>) -> Self {
+        Self {
+            head,
+            body,
+            rule_iri: rule_iri.to_owned(),
+            distinct_pairs: Vec::new(),
+            builtins: Vec::new(),
+        }
+    }
 }
 
 // ── Ground fact + store (oxigraph-term based, insertion-ordered, first-wins) ─────
@@ -160,7 +185,8 @@ pub(crate) struct EvalRule {
 /// A fully-ground fact `(subject, predicate, object)` over native terms.
 #[derive(Debug, Clone)]
 pub(crate) struct Fact {
-    /// The subject term (an IRI/blank node in practice).
+    /// The first binary-relation argument. RDF-sourced rows contain an IRI/blank node;
+    /// facts-only backward evaluation may carry a generated literal here.
     pub(crate) subject: TermValue,
     /// The predicate IRI string.
     pub(crate) predicate: String,
@@ -337,7 +363,7 @@ pub(crate) struct DerivedRow {
     /// the pre-reifier `(subject, predicate, object)` antecedents whose reifiers
     /// are exactly [`source_quad_ids`](Self::source_quad_ids).
     ///
-    /// Carried so the [`crate::oracle::ForwardOracle`] seam can re-expose each
+    /// Carried so the [`crate::oracle::NativeForwardOracle`] seam can re-expose each
     /// antecedent as a decoded [`crate::oracle::TypedRow`] (the production
     /// provenance the reason/explain/materialize consumers require — they cannot
     /// invert a reifier hash back to its triple).  Empty for an echoed EDB row
@@ -347,7 +373,7 @@ pub(crate) struct DerivedRow {
 }
 
 /// Sort rows canonically by `(graph, subject, predicate, object)` N3 surfaces —
-/// the same deterministic order the Nemo path and `foundation.rs` emit. Shared by
+/// the same deterministic order the native paths and `foundation.rs` emit. Shared by
 /// the well-founded and stable-model materializers.
 ///
 /// Uses `sort_by_cached_key` so each row's string key is materialized once (O(n)
@@ -374,205 +400,7 @@ pub(crate) struct ReductResult {
     pub(crate) derivations: Vec<DerivedRow>,
 }
 
-// ── Parsing `.rls` into the IR (Nemo parser reuse, mirroring certify.rs) ─────────
-
-/// Lower a Nemo [`Term`](nemo::rule_model::components::term::Term) into an
-/// [`EvalTerm`].
-///
-/// A variable renders as `?Name`; a ground IRI as `<iri>`; a literal as its N3.
-/// The `is_subject` flag enforces no-optionality: a literal in subject/predicate
-/// position is a hard error (the gmeow fragment never emits one).
-///
-/// `pub(crate)` so the arity-generic n-ary lowering
-/// ([`crate::physical::generic::parse_generic_rules`]) reuses the SAME term codec
-/// — it lowers EVERY argument (including the predicate-as-data position) with
-/// `slot = "object"`, which is permissive by design: a generic n-ary relation may
-/// carry a literal in any position.
-pub(crate) fn lower_nemo_term(
-    term: &nemo::rule_model::components::term::Term,
-    slot: &str,
-) -> gmeow_errors::Result<EvalTerm> {
-    if term.is_variable() {
-        return Ok(EvalTerm::Var(term.to_string()));
-    }
-    let rendered = term.to_string();
-    if let Some(iri) = rendered.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
-        return Ok(EvalTerm::ConstNamed(iri.to_owned()));
-    }
-    // A literal (or any non-IRI ground term).  Only an object may be a literal.
-    if slot != "object" {
-        return Err(ir_err(format!(
-            "rule_ir: non-IRI constant {rendered:?} in {slot} position — \
-             only an object may be a literal (no-optionality)"
-        )));
-    }
-    // Parse the literal's N3 surface into a native term via the shared Nemo-surface
-    // decoder — the same `"lex"`/`"lex"@lang`/`"lex"^^<dt>` grammar the encode/decode
-    // path uses, oxigraph-free.
-    let lit = parse_n3_object_literal(&rendered)?;
-    Ok(EvalTerm::ConstLit(lit))
-}
-
-/// Parse a literal object's Nemo N3 surface (`"lex"`, `"lex"@lang`,
-/// `"lex"^^<dt>`) into a native [`TermValue`].
-///
-/// Delegates to [`crate::nemo_engine::codec::decode_nemo_term`], the shared decoder for the
-/// `"lex"`/`"lex"@lang`/`"lex"^^<dt>`/`<iri>` surface grammar — same codec as the
-/// rest of the stack, oxigraph-free.
-fn parse_n3_object_literal(n3: &str) -> gmeow_errors::Result<TermValue> {
-    crate::nemo_engine::codec::decode_nemo_term(n3)
-        .map_err(|e| ir_err(format!("rule_ir: cannot parse literal object {n3:?}: {e}")))
-}
-
-/// Extract the inequality body guards (`?A != ?B`) from a Nemo rule's body
-/// operations, translating Nemo's `Operation`-encoded `Unequals` literals into the
-/// `(String, String)` variable-pair representation [`crate::lower::lower_rule`]'s
-/// canonical-AST path already populates on [`EvalRule::distinct_pairs`] — same field,
-/// same `?`-prefixed variable surface — so [`distinct_pairs_satisfied`] (and the chase
-/// that calls it) honors a `distinctBody` guard identically regardless of which
-/// lowering path produced the [`EvalRule`].
-///
-/// # Errors
-///
-/// Returns `Err` if an `Unequals` operand is not a plain variable. The gmeow fragment
-/// (`logic:distinctBody`) only ever projects a variable-variable guard — a
-/// constant-object guard is rejected at compile time in
-/// `gmeow_logic_compile::frontend` before it can reach `.rls` text — so a non-variable
-/// operand here means the input did not originate from this compiler's projection;
-/// there is no fallback representation for it, so this is a hard failure, not a
-/// silent drop.
-fn extract_distinct_pairs(
-    rule: &nemo::rule_model::components::rule::Rule,
-) -> gmeow_errors::Result<Vec<(String, String)>> {
-    use nemo::rule_model::components::term::operation::operation_kind::OperationKind;
-
-    let mut pairs: Vec<(String, String)> = Vec::new();
-    for op in rule.body_operations() {
-        if op.operation_kind() != OperationKind::Unequals {
-            continue;
-        }
-        let mut terms = op.terms();
-        let left = terms.next().ok_or_else(|| {
-            ir_err("rule_ir: != operation has no operands (arity < 1)".to_owned())
-        })?;
-        let right = terms.next().ok_or_else(|| {
-            ir_err("rule_ir: != operation has only one operand (arity < 2)".to_owned())
-        })?;
-        pairs.push((require_var_term(left)?, require_var_term(right)?));
-    }
-    Ok(pairs)
-}
-
-/// The `?Name` surface of `term` (matching [`EvalTerm::Var`]'s convention), or a hard
-/// error if `term` is not a plain variable.
-fn require_var_term(
-    term: &nemo::rule_model::components::term::Term,
-) -> gmeow_errors::Result<String> {
-    if term.is_variable() {
-        return Ok(term.to_string());
-    }
-    Err(ir_err(format!(
-        "rule_ir: != operand {term} is not a variable — only a variable-variable \
-         inequality guard is representable in distinct_pairs"
-    )))
-}
-
-/// Lower a Nemo atom into an [`EvalAtom`], dropping the arity-3 world slot.
-///
-/// `terms()[0]` = subject, `terms()[1]` = object; `terms()[2]` (world) is ignored,
-/// exactly like `certify.rs::logical_terms`.
-pub(crate) fn lower_nemo_atom(
-    atom: &nemo::rule_model::components::atom::Atom,
-    negated: bool,
-) -> gmeow_errors::Result<EvalAtom> {
-    let predicate = atom.predicate().to_string();
-    let mut it = atom.terms();
-    let subj = it
-        .next()
-        .ok_or_else(|| ir_err("rule_ir: atom has no subject term (arity < 1)".to_owned()))?;
-    let obj = it
-        .next()
-        .ok_or_else(|| ir_err("rule_ir: atom has no object term (arity < 2)".to_owned()))?;
-    let subject = lower_nemo_term(subj, "subject")?;
-    let object = lower_nemo_term(obj, "object")?;
-    Ok(EvalAtom {
-        subject,
-        predicate,
-        object,
-        negated,
-    })
-}
-
-/// Parse `.rls` text into the evaluable IR via Nemo's parser.
-///
-/// Reuses [`crate::nemo_engine::NemoParsedRules::parse_unvalidated`] (the same
-/// translation-only path `certify.rs` uses), so the predicate / variable surface
-/// is identical to the engine.  The body is `body_positive()` atoms (negated
-/// `false`) followed by `body_negative()` atoms (negated `true`).  The rule IRI is
-/// the `#[name(...)]` value, or a synthesized `{LOGIC_NAMESPACE}rule/anonymous`.
-///
-/// # Errors
-///
-/// Returns the Nemo parse-error string, or a lowering error (e.g. a literal in a
-/// subject slot).
-pub(crate) fn parse_eval_rules(rules: &str) -> gmeow_errors::Result<Vec<EvalRule>> {
-    use crate::nemo_engine::NemoParsedRules;
-
-    let program = NemoParsedRules::parse_unvalidated(rules)?.into_program();
-    lower_program_eval_rules(&program)
-}
-
-/// Lower an already-parsed Nemo [`Program`] into the evaluable IR.
-///
-/// The arity-generic dispatch in [`crate::oracle::NativeForwardOracle::materialize`]
-/// parses the rule text ONCE and threads the resulting `Program` into both its
-/// eligibility inspection and this lowering, so the binary path never re-parses the
-/// same text; [`parse_eval_rules`] is the string-front convenience over this.
-///
-/// [`Program`]: nemo::rule_model::programs::program::Program
-pub(crate) fn lower_program_eval_rules(
-    program: &nemo::rule_model::programs::program::Program,
-) -> gmeow_errors::Result<Vec<EvalRule>> {
-    use nemo::rule_model::programs::ProgramRead;
-
-    let mut out: Vec<EvalRule> = Vec::new();
-    for rule in program.rules() {
-        let head_atom = rule
-            .head()
-            .first()
-            .ok_or_else(|| ir_err("rule_ir: rule has no head atom".to_owned()))?;
-        let head = lower_nemo_atom(head_atom, false)?;
-
-        let mut body: Vec<EvalAtom> = Vec::new();
-        for atom in rule.body_positive() {
-            body.push(lower_nemo_atom(atom, false)?);
-        }
-        for atom in rule.body_negative() {
-            body.push(lower_nemo_atom(atom, true)?);
-        }
-
-        let rule_iri = rule
-            .name()
-            .unwrap_or_else(|| format!("{LOGIC_NAMESPACE}rule/anonymous"));
-
-        // Translate Nemo's `Operation`-encoded `!=` body literals into `distinct_pairs`
-        // (see `extract_distinct_pairs`) — the reparse path is otherwise faithful to
-        // the canonical AST lowering (`crate::lower::lower_rule`) for this guard.
-        let distinct_pairs = extract_distinct_pairs(rule)?;
-
-        out.push(EvalRule {
-            head,
-            body,
-            rule_iri,
-            distinct_pairs,
-            // Forward `.rls` rules carry no arithmetic (the ontology corpus has none).
-            builtins: Vec::new(),
-        });
-    }
-    Ok(out)
-}
-
-// ── Join engine (semi-naive, NAF against a SEPARATE reference store) ─────────────
+// ── Join engine// ── Join engine (semi-naive, NAF against a SEPARATE reference store) ─────────────
 
 /// A candidate solution: variable→N3-surface bindings plus the matched positive
 /// body facts (their full [`Fact`]s, for provenance recovery).
@@ -716,7 +544,7 @@ enum Scan {
 
 /// Extend each partial solution by matching `atom` against the store under `scan`.
 ///
-/// `EvalAtom::predicate` is always a constant `NamedNode` in the gmeow `.rls` fragment,
+/// `EvalAtom::predicate` is always a constant named relation in the GMEOW fragment,
 /// so this always uses the predicate bucket — gated by delta membership for the
 /// [`Scan::Delta`] / [`Scan::OldOnly`] positions.  Walks the bucket in insertion order
 /// so the produced solutions (and their `source_facts`) match a full insertion-ordered
@@ -778,10 +606,10 @@ fn join_body(
     };
 
     let mut solutions: Vec<Solution> = if positive.is_empty() {
-        // Zero positive atoms: the empty solution never touches delta, so it never
-        // fires in a semi-naive round.  Emit nothing (matches the prior end-filter
-        // behaviour where an empty source_facts list never passed the delta check).
-        Vec::new()
+        // The empty conjunction is relational identity: one empty substitution. This
+        // lets unconditional, NAF-only, and constraint-only rules fire once; duplicate
+        // heads are suppressed by the store on the following round.
+        vec![empty.clone()]
     } else {
         // True semi-naive: union over delta position p of
         //   { a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta }.
@@ -1122,17 +950,32 @@ pub(crate) fn least_model_of_reduct(
     Ok(ReductResult { store, derivations })
 }
 
-/// Ground a rule head into a [`Fact`], failing hard on an unbound head variable or
-/// a literal subject/predicate.
+/// Ground a rule head into an RDF-shaped [`Fact`], failing hard on an unbound head variable
+/// or a literal first argument.
 pub(crate) fn ground_head(head: &EvalAtom, sol: &Solution) -> gmeow_errors::Result<Fact> {
-    let subject = ground_term_to_value(&head.subject, sol, "head subject")?;
-    let object = ground_term_to_value(&head.object, sol, "head object")?;
-    // The subject must be an IRI/blank node, never a literal.
-    if subject.is_literal() {
+    let fact = ground_relational_head(head, sol)?;
+    // Forward materialization emits RDF-shaped rows, whose subject must be an IRI/blank
+    // node. Facts-only backward query evaluation uses `ground_relational_head` directly
+    // because its binary IDB tuples are positional relations, not asserted RDF triples.
+    if fact.subject.is_literal() {
         return Err(ir_err(
             "rule_ir: head subject grounded to a literal (no-optionality)".to_owned(),
         ));
     }
+    Ok(fact)
+}
+
+/// Ground a rule head into an internal binary-relation tuple.
+///
+/// Unlike [`ground_head`], this admits a literal in the first position. The facts-only
+/// backward engine projects such tuples straight to query bindings and never emits them as
+/// RDF or mints triple provenance for them.
+pub(crate) fn ground_relational_head(
+    head: &EvalAtom,
+    sol: &Solution,
+) -> gmeow_errors::Result<Fact> {
+    let subject = ground_term_to_value(&head.subject, sol, "head subject")?;
+    let object = ground_term_to_value(&head.object, sol, "head object")?;
     Ok(Fact {
         subject,
         predicate: head.predicate.clone(),
@@ -1181,6 +1024,14 @@ pub(crate) fn surface_to_value(surface: &str) -> gmeow_errors::Result<TermValue>
     }
     // Literal surface.
     parse_n3_object_literal(surface)
+}
+
+fn parse_n3_object_literal(surface: &str) -> gmeow_errors::Result<TermValue> {
+    crate::term_codec::decode_term(surface).map_err(|error| {
+        ir_err(format!(
+            "rule_ir: cannot parse literal object {surface:?}: {error}"
+        ))
+    })
 }
 
 // ── Asserted-EDB echo (mirror of foundation.rs chase_world's assert block) ───────
@@ -1245,538 +1096,4 @@ fn strip_angle(s: &str) -> &str {
     s.strip_prefix('<')
         .and_then(|t| t.strip_suffix('>'))
         .unwrap_or(s)
-}
-
-// ── Evaluable rule → Nemo `.rls` text (inverse of `parse_eval_rules`) ────────────
-
-/// Render evaluable rules back to Nemo `.rls` text — the inverse of
-/// [`parse_eval_rules`].
-///
-/// Mirrors the 3-ary `pred(subject, object, world)` encoding that
-/// `gmeow_logic_compile`'s `project_nemo` emits for `LogicProgram.rules`, so
-/// formula-derived rules join the SAME chase the program rules and the DL calculus run
-/// in. The world slot is threaded by a fresh variable across a rule's head and body (a
-/// bodyless rule is a ground fact in the `"default"` world). `parse_eval_rules` drops the
-/// world slot, so `parse_eval_rules(eval_rules_to_rls(rs)) == rs` for the binary fragment.
-pub(crate) fn eval_rules_to_rls(rules: &[EvalRule]) -> String {
-    let mut out = String::new();
-    for rule in rules {
-        let name = rule.rule_iri.replace('\\', "\\\\").replace('"', "\\\"");
-        out.push_str(&format!("#[name(\"{name}\")]\n"));
-
-        if rule.body.is_empty() && rule.distinct_pairs.is_empty() {
-            // A bodyless rule is a ground fact, asserted in the "default" world.
-            out.push_str(&format!(
-                "{}.\n",
-                render_eval_atom(&rule.head, "\"default\"")
-            ));
-            continue;
-        }
-
-        let world = fresh_world_var(rule);
-        let mut parts: Vec<String> = rule
-            .body
-            .iter()
-            .map(|ba| render_eval_atom(ba, &world))
-            .collect();
-        for (a, b) in &rule.distinct_pairs {
-            parts.push(format!("{a} != {b}"));
-        }
-        out.push_str(&format!(
-            "{} :-\n    {} .\n",
-            render_eval_atom(&rule.head, &world),
-            parts.join(",\n    ")
-        ));
-    }
-    out
-}
-
-/// Render one [`EvalAtom`] as `[~]<pred>(subject, object, world)`.
-fn render_eval_atom(atom: &EvalAtom, world: &str) -> String {
-    let prefix = if atom.negated { "~" } else { "" };
-    format!(
-        "{prefix}<{}>({}, {}, {world})",
-        atom.predicate.as_str(),
-        render_eval_term(&atom.subject),
-        render_eval_term(&atom.object),
-    )
-}
-
-/// Render one [`EvalTerm`] in Nemo surface syntax (`?var`, `<iri>`, or `"literal"`).
-fn render_eval_term(term: &EvalTerm) -> String {
-    match term {
-        EvalTerm::Var(name) => name.clone(),
-        EvalTerm::ConstNamed(iri) => format!("<{iri}>"),
-        EvalTerm::ConstLit(TermValue::Literal { lexical_form, .. }) => {
-            let escaped = lexical_form.replace('\\', "\\\\").replace('"', "\\\"");
-            format!("\"{escaped}\"")
-        }
-        EvalTerm::ConstLit(other) => term_display(other),
-    }
-}
-
-/// A `?W`-style world variable not already used by `rule`, so the head's world slot is
-/// bound by the body (Nemo safety). Only freshness matters — the parse side drops the
-/// world slot — so the exact name is immaterial to round-trip identity.
-fn fresh_world_var(rule: &EvalRule) -> String {
-    let mut used: HashSet<String> = HashSet::new();
-    collect_var(&rule.head.subject, &mut used);
-    collect_var(&rule.head.object, &mut used);
-    for ba in &rule.body {
-        collect_var(&ba.subject, &mut used);
-        collect_var(&ba.object, &mut used);
-    }
-    for (a, b) in &rule.distinct_pairs {
-        used.insert(a.clone());
-        used.insert(b.clone());
-    }
-    let mut candidate = "?W".to_owned();
-    let mut i = 0u32;
-    while used.contains(&candidate) {
-        i += 1;
-        candidate = format!("?W{i}");
-    }
-    candidate
-}
-
-/// Record a variable term's name in `used`.
-fn collect_var(term: &EvalTerm, used: &mut HashSet<String>) {
-    if let EvalTerm::Var(name) = term {
-        used.insert(name.clone());
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // A tiny stratifiable program for the join engine: r(?X,?X) :- p(?X,?Y).
-    const NS: &str = "https://example.org/t/";
-
-    fn rls_simple() -> String {
-        format!("<{NS}r>(?X, ?X, ?W) :- <{NS}p>(?X, ?Y, ?W) .\n")
-    }
-
-    fn fact(s: &str, p: &str, o: &str) -> Fact {
-        Fact {
-            subject: TermValue::iri(format!("{NS}{s}")),
-            predicate: format!("{NS}{p}"),
-            object: TermValue::iri(format!("{NS}{o}")),
-        }
-    }
-
-    #[test]
-    fn parse_lowers_world_slot_dropped() {
-        let rules = parse_eval_rules(&rls_simple()).expect("parse");
-        assert_eq!(rules.len(), 1);
-        let r = &rules[0];
-        // head r(?X,?X): subject and object are both ?X.
-        match (&r.head.subject, &r.head.object) {
-            (EvalTerm::Var(a), EvalTerm::Var(b)) => {
-                assert_eq!(a, "?X");
-                assert_eq!(b, "?X");
-            }
-            other => panic!("unexpected head terms: {other:?}"),
-        }
-        assert_eq!(r.head.predicate.as_str(), format!("{NS}r"));
-        // body has one positive atom p(?X,?Y); world slot dropped.
-        assert_eq!(r.body.len(), 1);
-        assert!(!r.body[0].negated);
-        assert_eq!(r.body[0].predicate.as_str(), format!("{NS}p"));
-    }
-
-    #[test]
-    fn eval_rules_to_rls_round_trips_through_parse() {
-        // The writer is the inverse of the parser on the binary fragment: rendering a
-        // body-carrying EvalRule to RLS and re-parsing yields the identical EvalRule (the
-        // world slot is threaded then dropped, so it never perturbs identity). Exercises a
-        // plain rule and a negated body literal.
-        let rls = format!(
-            "{}<{NS}s>(?X, ?Z, ?W) :- <{NS}p>(?X, ?Z, ?W), ~<{NS}q>(?X, ?Z, ?W) .\n",
-            rls_simple(),
-        );
-        let rules = parse_eval_rules(&rls).expect("parse original");
-        assert_eq!(rules.len(), 2);
-        let rendered = eval_rules_to_rls(&rules);
-        let reparsed = parse_eval_rules(&rendered).expect("parse rendered");
-        assert_eq!(
-            rules, reparsed,
-            "eval_rules_to_rls must round-trip through parse_eval_rules:\n{rendered}"
-        );
-    }
-
-    #[test]
-    fn eval_rules_to_rls_renders_a_bodyless_rule_as_a_default_world_fact() {
-        // A Skolemized existential lowers to a bodyless EvalRule; it must render as a
-        // ground fact in the "default" world (which the chase consumes as EDB).
-        let nn = |l: &str| format!("{NS}{l}");
-        let fact_rule = EvalRule {
-            head: EvalAtom {
-                subject: EvalTerm::ConstNamed(nn("a")),
-                predicate: nn("t"),
-                object: EvalTerm::ConstNamed(nn("b")),
-                negated: false,
-            },
-            body: vec![],
-            rule_iri: format!("{NS}rule/fact"),
-            distinct_pairs: vec![],
-            builtins: vec![],
-        };
-        let rendered = eval_rules_to_rls(&[fact_rule]);
-        assert!(
-            rendered.contains(&format!("<{NS}t>(<{NS}a>, <{NS}b>, \"default\").")),
-            "bodyless rule must render as a default-world ground fact: {rendered}"
-        );
-    }
-
-    #[test]
-    fn reduct_derives_simple_head() {
-        let rules = parse_eval_rules(&rls_simple()).expect("parse");
-        let mut edb = FactStore::new();
-        edb.insert(fact("a", "p", "b"));
-        let reference = FactStore::new();
-        let res = least_model_of_reduct(&edb, &rules, &reference).expect("lmr");
-        // r(a,a) should be derived.
-        let key = (format!("<{NS}a>"), format!("{NS}r"), format!("<{NS}a>"));
-        assert!(
-            res.store.contains_key(&key),
-            "r(a,a) should be in the model"
-        );
-        assert_eq!(res.derivations.len(), 1, "exactly one derived row");
-        let row = &res.derivations[0];
-        // An unnamed rule synthesizes the logic-namespace anonymous IRI.
-        let anon = format!("{LOGIC_NAMESPACE}rule/anonymous");
-        assert_eq!(row.rule_iri, anon);
-        // source = reifier of the matched p(a,b) fact.
-        let want_src = fact("a", "p", "b").reifier().unwrap();
-        assert_eq!(row.source_quad_ids, vec![want_src.clone()]);
-        assert_eq!(
-            row.derivation_id,
-            mint_derivation_id(&anon, &[want_src.as_str()])
-        );
-    }
-
-    #[test]
-    fn reparse_path_extracts_distinct_pairs_and_blocks_self_loop() {
-        // Regression for the Nemo-reparse path silently dropping `distinctBody`
-        // guards. Mirrors `logic:ruleCrossNodeGlut`'s
-        // real production shape: two head variables (?f1, ?f2) are joined ONLY
-        // through a shared "anchor" body atom, guarded by an inequality (f1 ≠ f2)
-        // so a single anchor-sharer cannot self-join into a self-loop edge — exactly
-        // the shape that let `crossNodeGlutWith(f, f)` over-derive when this vec was
-        // always empty on this path.
-        //
-        // This exercises `parse_eval_rules` (the Nemo `.rls`-text reparse path)
-        // specifically, NOT `crate::lower::lower_rule` (the canonical-AST path),
-        // which already preserved `distinct_pairs` correctly before this fix.
-        let rls = format!(
-            "<{NS}r>(?f1, ?f2, ?W) :- <{NS}p>(?f1, ?a, ?W), <{NS}p>(?f2, ?a, ?W), ?f1 != ?f2 .\n"
-        );
-        let rules = parse_eval_rules(&rls).expect("parse");
-        assert_eq!(rules.len(), 1);
-        // The reparse must translate Nemo's `Unequals` body operation into
-        // `distinct_pairs` — before this fix, this vec was unconditionally empty
-        // regardless of the source text, silently discarding the guard.
-        assert_eq!(
-            rules[0].distinct_pairs,
-            vec![("?f1".to_owned(), "?f2".to_owned())],
-            "reparse must populate distinct_pairs from the Nemo Unequals operation"
-        );
-
-        // Two distinct entities (x, y) share one anchor (a) — the exact fixture
-        // shape where, WITHOUT the guard enforced, the join binds ?f1 = ?f2 = x (and
-        // = y) and derives the forbidden self-loops r(x,x) / r(y,y).
-        let mut edb = FactStore::new();
-        edb.insert(fact("x", "p", "a"));
-        edb.insert(fact("y", "p", "a"));
-        let reference = FactStore::new();
-        let res = least_model_of_reduct(&edb, &rules, &reference).expect("lmr");
-
-        let key = |s: &str, o: &str| (format!("<{NS}{s}>"), format!("{NS}r"), format!("<{NS}{o}>"));
-
-        // The guard must block both self-loops.
-        assert!(
-            !res.store.contains_key(&key("x", "x")),
-            "distinct_pairs guard must block the r(x,x) self-loop"
-        );
-        assert!(
-            !res.store.contains_key(&key("y", "y")),
-            "distinct_pairs guard must block the r(y,y) self-loop"
-        );
-        // The guard must not over-suppress: a genuinely-distinct pair sharing the
-        // anchor still derives in both directions.
-        assert!(
-            res.store.contains_key(&key("x", "y")),
-            "distinct pair (x,y) must still derive"
-        );
-        assert!(
-            res.store.contains_key(&key("y", "x")),
-            "distinct pair (y,x) must still derive"
-        );
-    }
-
-    #[test]
-    fn echo_asserted_uses_assert_sentinel() {
-        let f = fact("a", "p", "b");
-        let rows = echo_asserted("urn:w", std::slice::from_ref(&f)).expect("echo");
-        assert_eq!(rows.len(), 1);
-        assert_eq!(rows[0].rule_iri, ASSERT_RULE_IRI);
-        let self_ref = f.reifier().unwrap();
-        assert_eq!(rows[0].source_quad_ids, vec![self_ref.clone()]);
-        assert_eq!(
-            rows[0].derivation_id,
-            mint_derivation_id(ASSERT_RULE_IRI, &[self_ref.as_str()])
-        );
-    }
-
-    // ── Determinism / quality-ordered tiebreak test ───────────────────────────
-    //
-    // Mirrors `foundation/tests.rs::first_wins_tiebreak_prefers_most_direct_derivation_order_independent`
-    // but uses `RuleRoundCandidate`'s five-field tiebreak key, which adds `rule_iri` as a
-    // total-order backstop (since rule IRIs vary per rule in rule_ir, unlike foundation.rs
-    // where a single anonymous IRI is used for all rules) AND body-order `sources` as the
-    // final total-order closer (so a symmetric body, which yields equal `sorted_sources`
-    // from different body orders, is still resolved deterministically).
-    //
-    // Proves:
-    //   1. Depth dominates lex order — shallower wins over lex-smaller deeper candidate.
-    //   2. Sum-depth tiebreaks at equal max-depth.
-    //   3. Lex-min sorted_sources as content-addressed tiebreaker (all depths equal).
-    //   4. `rule_iri` provides a total-order backstop when all other fields are equal.
-    //   5. Body-order `sources` is the total-order closer: two candidates with equal
-    //      `sorted_sources` but different body orders resolve to lex-min `sources`.
-    //   All levels are enumeration-order-independent (forward, reverse, permuted).
-    /// Verify that the per-round winner-selection tiebreak in `least_model_of_reduct` is
-    /// quality-ordered and independent of the order in which candidates are folded into
-    /// the round map.
-    ///
-    /// The total order is `(max_src_depth, sum_src_depth, sorted_sources, rule_iri,
-    /// sources)` — smaller wins.  Self-contained; no external store or rule parsing.
-    #[test]
-    fn first_wins_tiebreak_prefers_most_direct_derivation_order_independent() {
-        /// A minimal stand-in for [`RuleRoundCandidate`]'s comparison key — its fields
-        /// mirror [`RuleRoundCandidate::tiebreak_key`] exactly (including the body-order
-        /// `sources` closer).
-        #[derive(Clone, Debug, PartialEq, Eq)]
-        struct FakeCand {
-            max_depth: u32,
-            sum_depth: u64,
-            sorted_sources: Vec<String>,
-            rule_iri: String,
-            sources: Vec<String>, // body-order reifiers — the total-order closer
-            label: &'static str,  // for assertion messages only
-        }
-
-        /// Fold a slice of candidates using the same `and_modify` logic as
-        /// `least_model_of_reduct`, returning a clone of the winning candidate.  The key
-        /// is the full five-tuple, matching [`RuleRoundCandidate::tiebreak_key`].
-        fn fold(cands: &[FakeCand]) -> FakeCand {
-            let mut winner: Option<FakeCand> = None;
-            for c in cands {
-                match &winner {
-                    None => winner = Some(c.clone()),
-                    Some(w) => {
-                        let c_key = (
-                            c.max_depth,
-                            c.sum_depth,
-                            &c.sorted_sources,
-                            &c.rule_iri,
-                            &c.sources,
-                        );
-                        let w_key = (
-                            w.max_depth,
-                            w.sum_depth,
-                            &w.sorted_sources,
-                            &w.rule_iri,
-                            &w.sources,
-                        );
-                        if c_key < w_key {
-                            winner = Some(c.clone());
-                        }
-                    }
-                }
-            }
-            winner.unwrap()
-        }
-
-        // ── Level 1: depth dominates lex order ──────────────────────────────
-        //
-        // `shallow` has max_depth=1; `deep` has max_depth=2 but a lex-smaller
-        // sorted_sources.  Expected winner: `shallow` (depth beats lex).
-        let shallow = FakeCand {
-            max_depth: 1,
-            sum_depth: 1,
-            sorted_sources: vec!["urn:z".to_owned()], // lex-larger
-            rule_iri: "urn:rule/b".to_owned(),
-            sources: vec!["urn:z".to_owned()],
-            label: "shallow",
-        };
-        let deep = FakeCand {
-            max_depth: 2,
-            sum_depth: 2,
-            sorted_sources: vec!["urn:a".to_owned()], // lex-smaller — but loses on depth
-            rule_iri: "urn:rule/a".to_owned(),
-            sources: vec!["urn:a".to_owned()],
-            label: "deep",
-        };
-        let pool1 = vec![shallow.clone(), deep.clone()];
-        let pool1_rev = vec![deep.clone(), shallow.clone()];
-        assert_eq!(fold(&pool1).label, "shallow", "fwd: depth must beat lex");
-        assert_eq!(
-            fold(&pool1_rev).label,
-            "shallow",
-            "rev: depth must beat lex"
-        );
-
-        // ── Level 2: sum-depth tiebreak at equal max-depth ───────────────────
-        //
-        // `asserted_rooted` has max=1, sum=1; `chain_rooted` has max=1, sum=3.
-        // Same max-depth; sum-depth picks `asserted_rooted`.
-        let asserted_rooted = FakeCand {
-            max_depth: 1,
-            sum_depth: 1,
-            sorted_sources: vec!["urn:m".to_owned()], // lex-larger
-            rule_iri: "urn:rule/b".to_owned(),
-            sources: vec!["urn:m".to_owned()],
-            label: "asserted_rooted",
-        };
-        let chain_rooted = FakeCand {
-            max_depth: 1,
-            sum_depth: 3,
-            sorted_sources: vec!["urn:a".to_owned()], // lex-smaller — but loses on sum
-            rule_iri: "urn:rule/a".to_owned(),
-            sources: vec!["urn:a".to_owned()],
-            label: "chain_rooted",
-        };
-        let pool2 = vec![asserted_rooted.clone(), chain_rooted.clone()];
-        let pool2_rev = vec![chain_rooted.clone(), asserted_rooted.clone()];
-        assert_eq!(
-            fold(&pool2).label,
-            "asserted_rooted",
-            "fwd: sum-depth must beat lex at equal max-depth"
-        );
-        assert_eq!(
-            fold(&pool2_rev).label,
-            "asserted_rooted",
-            "rev: sum-depth must beat lex at equal max-depth"
-        );
-
-        // ── Level 3: lex-min sorted_sources as content-addressed tiebreaker ─
-        //
-        // All candidates have same max-depth, sum-depth, and rule_iri;
-        // only sorted_sources (lex order) decides.
-        let cands3: Vec<FakeCand> = vec![
-            FakeCand {
-                max_depth: 0,
-                sum_depth: 0,
-                sorted_sources: vec!["urn:a".to_owned(), "urn:c".to_owned()],
-                rule_iri: "urn:rule/x".to_owned(),
-                sources: vec!["urn:a".to_owned(), "urn:c".to_owned()],
-                label: "ac",
-            },
-            FakeCand {
-                max_depth: 0,
-                sum_depth: 0,
-                sorted_sources: vec!["urn:a".to_owned(), "urn:b".to_owned()], // ← lex smallest
-                rule_iri: "urn:rule/x".to_owned(),
-                sources: vec!["urn:a".to_owned(), "urn:b".to_owned()],
-                label: "ab",
-            },
-            FakeCand {
-                max_depth: 0,
-                sum_depth: 0,
-                sorted_sources: vec!["urn:b".to_owned(), "urn:d".to_owned()],
-                rule_iri: "urn:rule/x".to_owned(),
-                sources: vec!["urn:b".to_owned(), "urn:d".to_owned()],
-                label: "bd",
-            },
-        ];
-        let cands3_rev: Vec<FakeCand> = cands3.iter().cloned().rev().collect();
-        let cands3_perm: Vec<FakeCand> =
-            vec![cands3[2].clone(), cands3[0].clone(), cands3[1].clone()];
-        assert_eq!(
-            fold(&cands3).label,
-            "ab",
-            "fwd: lex-min sorted_sources must win when depths equal"
-        );
-        assert_eq!(
-            fold(&cands3_rev).label,
-            "ab",
-            "rev: lex-min sorted_sources must win when depths equal"
-        );
-        assert_eq!(
-            fold(&cands3_perm).label,
-            "ab",
-            "perm: lex-min sorted_sources must win when depths equal"
-        );
-
-        // ── Level 4: rule_iri total-order backstop ───────────────────────────
-        //
-        // All depth/sum/sorted_sources equal; rule_iri lex order is the final tiebreak.
-        let rule_a = FakeCand {
-            max_depth: 0,
-            sum_depth: 0,
-            sorted_sources: vec!["urn:s".to_owned()],
-            rule_iri: "urn:rule/a".to_owned(), // ← lex smallest
-            sources: vec!["urn:s".to_owned()],
-            label: "rule_a",
-        };
-        let rule_b = FakeCand {
-            max_depth: 0,
-            sum_depth: 0,
-            sorted_sources: vec!["urn:s".to_owned()],
-            rule_iri: "urn:rule/b".to_owned(),
-            sources: vec!["urn:s".to_owned()],
-            label: "rule_b",
-        };
-        let pool4 = vec![rule_b.clone(), rule_a.clone()];
-        let pool4_rev = vec![rule_a.clone(), rule_b.clone()];
-        assert_eq!(
-            fold(&pool4).label,
-            "rule_a",
-            "fwd: lex-min rule_iri must win when all other fields equal"
-        );
-        assert_eq!(
-            fold(&pool4_rev).label,
-            "rule_a",
-            "rev: lex-min rule_iri must win when all other fields equal"
-        );
-
-        // ── Level 5: body-order `sources` closer (the symmetric-body case) ───
-        //
-        // The exact hazard the columnar store introduces: a symmetric body
-        // `co(?z) :- rel(?x,?z), rel(?y,?z)` derives the same head with the SAME
-        // `sorted_sources` from DIFFERENT body orders, so every earlier key component
-        // ties.  Only the body-order `sources` decides, and it must decide
-        // deterministically (lex-min wins) regardless of enumeration order — otherwise
-        // value-order row enumeration would flip which provenance wins.
-        let src_ab = FakeCand {
-            max_depth: 1,
-            sum_depth: 2,
-            sorted_sources: vec!["urn:a".to_owned(), "urn:b".to_owned()],
-            rule_iri: "urn:rule/co".to_owned(),
-            sources: vec!["urn:a".to_owned(), "urn:b".to_owned()], // ← body order (x,z),(y,z)
-            label: "src_ab",
-        };
-        let src_ba = FakeCand {
-            max_depth: 1,
-            sum_depth: 2,
-            sorted_sources: vec!["urn:a".to_owned(), "urn:b".to_owned()], // identical sorted
-            rule_iri: "urn:rule/co".to_owned(),
-            sources: vec!["urn:b".to_owned(), "urn:a".to_owned()], // ← body order (y,z),(x,z)
-            label: "src_ba",
-        };
-        let pool5 = vec![src_ba.clone(), src_ab.clone()];
-        let pool5_rev = vec![src_ab.clone(), src_ba.clone()];
-        assert_eq!(
-            fold(&pool5).label,
-            "src_ab",
-            "fwd: lex-min body-order sources must win when sorted_sources tie"
-        );
-        assert_eq!(
-            fold(&pool5_rev).label,
-            "src_ab",
-            "rev: lex-min body-order sources must win when sorted_sources tie"
-        );
-    }
 }

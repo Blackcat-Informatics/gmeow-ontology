@@ -41,12 +41,8 @@ round-trips.
    an excellent **transport ingress**, not a ready-made interned IR.
 
 Every stage still pays a conversion tax: GTS → `RdfQuad` (clone) → oxigraph (clone
-again). The Python FFI adds text round-trips — N-Triples/N-Quads serialization for logic
-materialize, RL closure, and the test SHACL path (`native_rl_rdflib.py:47`,
-`logic_runner.py:1210`, `tests/_graph_nt.py:49`) — with the
-zero-copy capsule-pointer (`py_store.rs:835`) used *only* for production SHACL. Logic
-adds a further internal text round-trip: quads → Nemo ternary fact **strings** →
-ChaseRow **strings** → decoded terms.
+again). The historical Python FFI also added text round-trips for logic and SHACL.
+Those logic paths now consume typed RDF values directly in the native engine.
 
 **Intended outcome:** `gmeow-rdf` exposes a single **immutable, RDF-semantics-defined,
 value-interned dataset IR** with GTS as an efficient transport ingress, ID-native
@@ -162,8 +158,8 @@ benchmark-selected layouts and operational requirements:
   - at most one import/interning pass per external representation;
   - no repeated conversion between the canonical IR and oxigraph;
   - GTS import **moves** owned strings where possible rather than cloning them.
-- Literal zero-copy across *every* backend is not a realistic contract: external engines
-  (oxigraph, Nemo) own their own term representations.
+- Literal zero-copy across *every* backend is not a realistic contract: oxigraph owns its
+  own compatibility representation.
 
 #### Layout decision — bench-driven, not asserted (C1 Task 7)
 
@@ -209,15 +205,9 @@ instrument to revisit the decision against, rather than re-asserting it.
   paths, target resolution, and Core constraints** to an ID-native `ShaclDataGraph` over
   `RdfDataset`, retaining the lazy oxigraph backend **only** for SHACL-SPARQL targets and
   constraints. (Porting target selection alone would not eliminate the materialization.)
-- **Logic / Nemo** — the full seam (not just EDB input). Today logic: materializes into an
-  oxigraph `WorldStore`; converts quads into Nemo fact *strings*; concatenates a complete
-  rule-language string; asks Nemo to parse it; converts returned `AnyDataValue`s back into
-  strings; and reconstructs/reparses fact strings for provenance. The target replaces the
-  whole round-trip with **typed EDB fact injection**, a **`TermId ↔ Nemo AnyDataValue`
-  mapping**, **typed derived-row extraction**, **provenance via fact handles / typed atoms
-  rather than reparsed strings**, and **direct world/graph IDs without an intermediate
-  `WorldStore`**. This likely needs a deeper Nemo API or a small upstream contribution, so
-  the *first* deliverable is a feasibility spike with a documented fallback boundary.
+- **Logic** — the full seam is typed end-to-end. The native engine consumes compiler IR and
+  typed EDB facts, emits typed derived rows with provenance, and uses direct world/graph IDs.
+  Production evaluation performs no executable rule-text or fact-string round-trip.
 
 ### Streaming — reuse the existing GTS event contract
 
@@ -273,7 +263,7 @@ transitional ABI.
 | **C2** | GTS consuming importer + event-sink importer: reuse the existing streaming events; remap segment IDs by value; move strings where possible. |
 | **C3** | Lazy, policy-keyed oxigraph compatibility backend (the migration bridge — keeps behavior available while consumers move). |
 | **C4** | Native SHACL Core graph interface (`ShaclDataGraph`), paths, target resolution, Core constraints, and indexes over `RdfDataset`; oxigraph retained for SHACL-SPARQL only. |
-| **C5** | Typed Nemo bridge: typed EDB injection, `TermId ↔ AnyDataValue`, typed derived rows, handle-based provenance, direct world IDs. (First deliverable: feasibility spike + fallback boundary.) |
+| **C5** | Typed native logic bridge: typed EDB injection, typed derived rows, handle-based provenance, direct world IDs. |
 | **C6** | General evented output / projection sinks (`RdfEventSink`) for chase output, SHACL results, projections. |
 | **C7** | `Arc`-backed Python handle; remove text-exchange FFI paths. |
 | **C8** | Delete the old owned store shim and redundant stores. |
@@ -460,38 +450,13 @@ RFC required as C5's first deliverable.
   (repo-relative URIs, no angle brackets, related-locations carry
   physicalLocation, fallback anchor) is locked by regression tests.
 
-### C5 spike finding — typed Nemo bridge IS feasible (implementation deferred)
+### C5 outcome — typed native bridge landed
 
-Investigated the pinned Nemo rev (`4415bc2`). The path the logic crate uses today
-(`nemo::api::{load_string, reason}`, `crates/logic/src/nemo_engine.rs`) is
-**string-based**: quads are encoded as Nemo fact *strings* concatenated into the
-`.rls` program text. But a **typed** path is reachable:
-
-- `nemo::rule_model::pipeline::state::add_fact(Fact)` accepts a typed `Fact`, and
-  the typed `Fact`/`Atom`/`AnyDataValue` types are already imported in
-  `nemo_engine.rs` (used for tracing). A `Program` can therefore be built
-  **programmatically** with typed facts instead of parsing fact strings — the
-  basis for a `TermId ↔ AnyDataValue` typed-EDB injection.
-- Fact-handle provenance already works: `engine.trace()` yields per-fact
-  derivation provenance, which `run_chase` already consumes.
-
-**Verdict:** the typed `TermId ↔ AnyDataValue` EDB bridge is **feasible** (no
-upstream Nemo change required — the API exists).
-
-**Landed since the spike:** the typed fact bridge now exists. Callers build a
-dictionary-interned `TypedFactSet` (`crates/logic/src/facts.rs`) and drive the
-chase through `run_chase_typed` (`crates/logic/src/nemo_engine/mod.rs`), which
-returns typed rows with typed provenance; the string codec is confined to
-`nemo_engine/codec.rs` as the adapter's private, last-moment serialization, and
-the columnar `RelationStore` keys and indexes on interned `TermId`s. What remains
-of C5 is only the *internal* swap from fact-line rendering to programmatic
-`add_fact(AnyDataValue)` construction inside the adapter — invisible to every
-caller of the typed surface.
-
-**Documented fallback boundary (current behavior):** inside the adapter, typed
-facts are rendered to `.rls` fact lines at the last moment, and provenance is
-recovered via `engine.trace()`. The explanation **cited-IRI string skeleton**
-(the conformance contract) is unchanged.
+Callers build a dictionary-interned `TypedFactSet` (`crates/logic/src/facts.rs`)
+and drive the native physical engine directly. The columnar `RelationStore` keys
+and indexes on interned `TermId`s; derived rows and provenance remain typed
+through the public fold. The former string adapter and external runtime dependency
+have been removed.
 
 ### Deferred (with reason)
 

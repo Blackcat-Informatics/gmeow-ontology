@@ -6,8 +6,8 @@
 //! Every DAG defect is a HARD failure surfaced *before* (or during) stage
 //! execution (no-optionality). Each defect is a [`gmeow_errors::DiagKind`] minted
 //! by [`gmeow_errors::define_diag_kind!`], so a raised diagnostic carries a stable
-//! registered [`Code`](gmeow_errors::Code), a [`Grade`], and stays downcastable to
-//! its typed value off the [`Diag`](gmeow_errors::Diag) source. There is no
+//! registered [`gmeow_errors::Code`], a [`gmeow_errors::Grade`], and stays
+//! downcastable to its typed value off the [`gmeow_errors::Diag`] source. There is no
 //! hand-rolled error `enum`: the substrate is the single content-bound carrier.
 
 use gmeow_errors::{Code, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
@@ -121,12 +121,12 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A stage's ACTUAL run-time attach delta (the named graphs / blob-rep lanes its
-    /// output product carries beyond its assembled input) diverges from its DECLARED
-    /// attach set — either an undeclared attachment (attached but not declared) or an
-    /// unfulfilled declaration (declared but not attached). Fires on BOTH the
-    /// cache-hit and cache-miss paths (a stale cached product with drifted declarations
-    /// must not sail through). A HARD FAIL — no optionality, no fallback.
+    /// A stage's ACTUAL run-time attach delta (the named graphs / content-identified
+    /// blob-rep records its output product carries beyond its assembled input) diverges
+    /// from its DECLARED attach set — either an undeclared attachment (attached but not
+    /// declared) or an unfulfilled declaration (declared but not attached). Fires on
+    /// BOTH the cache-hit and cache-miss paths (a stale cached product with drifted
+    /// declarations must not sail through). A HARD FAIL — no optionality, no fallback.
     pub struct AttachDrift {
         stage: String,
         lane: String,
@@ -293,17 +293,6 @@ define_diag_kind! {
     message = "diagnostic meta-fold error: {}", message;
 }
 
-define_diag_kind! {
-    /// A hard defect raised by the native ⊒ oracle subsumption-correspondence drift gate: a
-    /// dropped fragment, a weakened or absent discharge claim, a stale native contract hash, or
-    /// a vacuous / drifted measured-agreement count. CI refuses to ship a subsumption claim that
-    /// is no longer current, complete, and discharged.
-    pub struct SubsumptionDrift { message: String }
-    code = "pipeline.reason.subsumption-drift";
-    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
-    message = "subsumption-correspondence drift: {}", message;
-}
-
 /// The complete pipeline diagnostic-code catalog, in registration order. Every
 /// [`DiagKind`](gmeow_errors::DiagKind) minted anywhere in the crate appears here
 /// exactly once — [`register_all`] seeds them and the collision test proves the
@@ -335,7 +324,6 @@ pub const PIPELINE_DIAG_CODES: &[&str] = &[
     Release::CODE,
     EvalSchema::CODE,
     MetaFold::CODE,
-    SubsumptionDrift::CODE,
     SpanTableConsumedAfterDrop::CODE,
     crate::transcode::UnknownCodec::CODE,
     crate::transcode::NonInvertibleSource::CODE,
@@ -381,7 +369,6 @@ pub fn register_all() -> Vec<Code> {
         Release::register(),
         EvalSchema::register(),
         MetaFold::register(),
-        SubsumptionDrift::register(),
         SpanTableConsumedAfterDrop::register(),
         crate::transcode::UnknownCodec::register(),
         crate::transcode::NonInvertibleSource::register(),

@@ -190,7 +190,6 @@ mod tests {
             "generated/owl/gmeow-dl.ttl",
             "generated/owl/gmeow-el.ttl",
             "generated/logic/gmeow.logic.rdf12.ttl",
-            "generated/logic/gmeow.rls",
             "generated/datalog/gmeow.dl",
             // The SHACL-AF rule (computation) surface the generated-fanout archive pulls
             // from the compile-logic product (design/LOGIC-SHACL-AF.md).
@@ -283,10 +282,6 @@ mod tests {
         reason_artifacts.insert(
             crate::stages::reason::PERF_LEDGER_PATH.to_string(),
             b"# perf".to_vec(),
-        );
-        reason_artifacts.insert(
-            crate::stages::reason::CORRESPONDENCE_PATH.to_string(),
-            b"# subsumption correspondence".to_vec(),
         );
         let reason = StageProduct::from_artifacts("stage-reason", reason_artifacts);
 

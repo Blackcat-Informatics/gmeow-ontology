@@ -16,8 +16,8 @@
 //!
 //! This module is deliberately PURE: it operates over the abstract [`Dimension`]
 //! / [`MaturityAnchor`] types with NO dependency on the `DocsModel`. It is the
-//! single Rust source of the anchor intents ([`ANCHOR_TABLE`] via
-//! [`anchor_table`]); the later coverage→RDF projection wires the model's
+//! single Rust source of the anchor intents ([`anchor_table`]); the later
+//! coverage→RDF projection wires the model's
 //! per-term coverage into a [`DimSet`] and reuses this table.
 //!
 //! # Synchronization contract
@@ -26,7 +26,7 @@
 //! `gmeow:maturityRequiresDimension` intents. The two MUST stay in lockstep: a
 //! change to an anchor's intent in the TTL requires the same change here (and the
 //! slice's structural cells `saAnchorIntentsNest` / `saNoOrphanDimension` guard
-//! the TTL side, while [`tests`] guards this side).
+//! the TTL side, while the module tests guard this side).
 
 use std::collections::BTreeSet;
 
@@ -158,7 +158,7 @@ pub fn dim_set(dims: &[Dimension]) -> DimSet {
 /// A named documentation-maturity anchor — a distinguished intent in the
 /// Formal-Concept lattice. The variants' rank order (`Minimal < Basic < Full <
 /// Maximal`) is the derived maturity order; it is guaranteed to agree with intent
-/// inclusion because the intents are authored to nest (checked in [`tests`]).
+/// inclusion because the intents are authored to nest (checked in the module tests).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MaturityAnchor {
     /// A term is named and defined.

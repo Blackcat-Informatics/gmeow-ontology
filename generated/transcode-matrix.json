@@ -51,15 +51,6 @@
   },
   {
     "from": "gts",
-    "to": "nemo",
-    "lossy": true,
-    "loss_codes": [
-      "named-graph-dropped",
-      "nemo-projection"
-    ]
-  },
-  {
-    "from": "gts",
     "to": "nquads",
     "lossy": false,
     "loss_codes": []
@@ -173,15 +164,6 @@
     "loss_codes": [
       "n3-projection",
       "named-graph-dropped"
-    ]
-  },
-  {
-    "from": "jsonld",
-    "to": "nemo",
-    "lossy": true,
-    "loss_codes": [
-      "named-graph-dropped",
-      "nemo-projection"
     ]
   },
   {
@@ -310,15 +292,6 @@
   },
   {
     "from": "nquads",
-    "to": "nemo",
-    "lossy": true,
-    "loss_codes": [
-      "named-graph-dropped",
-      "nemo-projection"
-    ]
-  },
-  {
-    "from": "nquads",
     "to": "ntriples",
     "lossy": true,
     "loss_codes": [
@@ -434,14 +407,6 @@
   },
   {
     "from": "ntriples",
-    "to": "nemo",
-    "lossy": true,
-    "loss_codes": [
-      "nemo-projection"
-    ]
-  },
-  {
-    "from": "ntriples",
     "to": "nquads",
     "lossy": false,
     "loss_codes": []
@@ -548,14 +513,6 @@
   },
   {
     "from": "owl-rdf12",
-    "to": "nemo",
-    "lossy": true,
-    "loss_codes": [
-      "nemo-projection"
-    ]
-  },
-  {
-    "from": "owl-rdf12",
     "to": "nquads",
     "lossy": false,
     "loss_codes": []
@@ -656,14 +613,6 @@
     "lossy": true,
     "loss_codes": [
       "n3-projection"
-    ]
-  },
-  {
-    "from": "rdfxml",
-    "to": "nemo",
-    "lossy": true,
-    "loss_codes": [
-      "nemo-projection"
     ]
   },
   {
@@ -776,15 +725,6 @@
   },
   {
     "from": "trig",
-    "to": "nemo",
-    "lossy": true,
-    "loss_codes": [
-      "named-graph-dropped",
-      "nemo-projection"
-    ]
-  },
-  {
-    "from": "trig",
     "to": "nquads",
     "lossy": false,
     "loss_codes": []
@@ -896,14 +836,6 @@
     "lossy": true,
     "loss_codes": [
       "n3-projection"
-    ]
-  },
-  {
-    "from": "turtle",
-    "to": "nemo",
-    "lossy": true,
-    "loss_codes": [
-      "nemo-projection"
     ]
   },
   {

@@ -1,4 +1,0 @@
-:- prefix(ex, 'https://example.org/bench/').
-ex:reachable(X, Y) :- ex:link(X, Y).
-ex:reachable(X, Y) :- ex:link(X, Z), ex:reachable(Z, Y).
-?- ex:reachable(ex:n1, Y).
