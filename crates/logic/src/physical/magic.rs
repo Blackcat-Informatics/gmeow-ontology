@@ -672,9 +672,7 @@ fn magic_transform(
                 // fact-rule (a fact carries no builtins), but the guard keeps a builtin from
                 // being silently dropped if that ever changes.
                 if mod_body.is_empty() && r.builtins.is_empty() {
-                    if !seeds.contains(&r.head) {
-                        seeds.push(r.head.clone());
-                    }
+                    seeds.push(r.head.clone());
                 } else {
                     let mut modified = rule(r.head.clone(), mod_body, iri);
                     modified.builtins = r.builtins.clone();
@@ -689,6 +687,13 @@ fn magic_transform(
         "magic_transform must not emit a positive rule with no positive body atom (it would \
          never fire in the semi-naive engine and silently under-demand)"
     );
+    // The goal seed and the per-atom/modified demand lifts above can mint the same ground
+    // demand fact from more than one emission site; dedup ONCE here, order-preservingly
+    // (first-seen kept), rather than guarding every push with an O(N) `contains` scan.
+    // `EvalAtom` derives `Debug` but not `Hash`/`Ord` (its `TermValue` operand is external
+    // to this crate), so the dedup key is the atom's deterministic `Debug` rendering.
+    let mut seen = std::collections::HashSet::new();
+    seeds.retain(|s| seen.insert(format!("{s:?}")));
     MagicProgram { rules: out, seeds }
 }
 
@@ -771,9 +776,7 @@ fn magic_transform_variant(
 
                 let iri = format!("{}::mod/{}#{ri}", r.head.predicate.as_str(), adorn_code);
                 if mod_body.is_empty() && r.builtins.is_empty() {
-                    if !seeds.contains(&r.head) {
-                        seeds.push(r.head.clone());
-                    }
+                    seeds.push(r.head.clone());
                 } else {
                     let mut modified = rule(r.head.clone(), mod_body, iri);
                     modified.builtins = r.builtins.clone();
@@ -788,6 +791,10 @@ fn magic_transform_variant(
         "magic_transform_variant must not emit a positive rule with no positive body atom (it \
          would never fire in the semi-naive engine and silently under-demand)"
     );
+    // Identical order-preserving end-of-transform dedup as `magic_transform` — required so
+    // the A/B byte-identity oracle test comparing the two transforms' seed sets holds.
+    let mut seen = std::collections::HashSet::new();
+    seeds.retain(|s| seen.insert(format!("{s:?}")));
     MagicProgram { rules: out, seeds }
 }
 

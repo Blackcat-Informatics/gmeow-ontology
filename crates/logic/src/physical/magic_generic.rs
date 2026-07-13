@@ -176,8 +176,10 @@ fn generic_rule(head: GenericAtom, body: Vec<GenericAtom>, rule_iri: String) -> 
 ///
 /// A bodyless positive rule's head is always ground: an empty body means the head guard is
 /// `None` (an all-free head demand), so every arg of the emitted atom is a constant carried
-/// from the source — never a variable ([`ground_eval_term`] therefore never errs). Deduping
-/// keeps the seed set deterministic when both emission sites mint the same demand fact.
+/// from the source — never a variable ([`ground_eval_term`] therefore never errs). A
+/// duplicate demand fact minted by more than one emission site is deduped once, order-
+/// preservingly, at the end of the enclosing transform (see the `seen`/`retain` pass in
+/// `magic_transform_generic`), not here.
 fn emit_or_seed_generic(
     head: GenericAtom,
     body: Vec<GenericAtom>,
@@ -188,10 +190,7 @@ fn emit_or_seed_generic(
     if body.is_empty() {
         let args: gmeow_errors::Result<Vec<TermValue>> =
             head.args.iter().map(ground_eval_term).collect();
-        let entry = (head.relation.clone(), args?);
-        if !seeds.contains(&entry) {
-            seeds.push(entry); // deterministic dedup
-        }
+        seeds.push((head.relation.clone(), args?));
     } else {
         out.push(generic_rule(head, body, rule_iri));
     }
@@ -303,6 +302,13 @@ fn magic_transform_generic(
         "magic_transform_generic must not emit a bodyless positive rule (it never fires in the \
          n-ary semi-naive engine and would silently under-demand)"
     );
+    // The goal seed and the per-atom/modified demand lifts above can mint the same ground
+    // demand fact `(relation, args)` from more than one emission site; dedup ONCE here,
+    // order-preservingly (first-seen kept), rather than guarding every push with an O(N)
+    // `contains` scan. The tuple derives `Debug` (both `String` and `Vec<TermValue>` do) but
+    // not `Hash`/`Ord`, so the dedup key is its deterministic `Debug` rendering.
+    let mut seen = std::collections::HashSet::new();
+    seeds.retain(|s| seen.insert(format!("{s:?}")));
     Ok(GenericMagicProgram { rules: out, seeds })
 }
 
