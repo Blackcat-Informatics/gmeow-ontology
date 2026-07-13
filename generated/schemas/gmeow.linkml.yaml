@@ -18001,6 +18001,9 @@ enums:
       pipeline-dataflow-reason-compile-logic:
         meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-compile-logic
         title: 'dataflow: compile-logic → reason'
+      pipeline-dataflow-validate-compile-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-compile-logic
+        title: 'dataflow: compile-logic → validate'
   CadastralReferenceTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CadastralReferenceType
     permissible_values:

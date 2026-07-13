@@ -926,6 +926,7 @@ export enum BranchConditionTypeEnum {
 
 export enum BuildDataFlowEnum {
     pipeline_dataflow_reason_compile_logic = "pipeline-dataflow-reason-compile-logic",
+    pipeline_dataflow_validate_compile_logic = "pipeline-dataflow-validate-compile-logic",
 }
 
 export enum CadastralReferenceTypeEnum {
