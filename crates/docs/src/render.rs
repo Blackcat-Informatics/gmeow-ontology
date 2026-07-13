@@ -413,24 +413,24 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         );
     }
 
-    // Diagram SVGs are DEFERRED pending purrdf's SVG graph library: the
-    // hand-rolled renderers carry a latent cross-process ordering non-determinism,
-    // so each diagram is emitted as a deterministic placeholder for now. AUTHORIZED
-    // DEFERRAL (paudley) — restore the `svg::*_svg` calls when the purrdf SVG lib
-    // lands (tracked in the docs-SVG revisit issue). The emitted file set and every
-    // page embed are unchanged, so no image link dangles.
+    // Diagram SVGs. The node-link graph diagrams (slice dependency graph, per-slice
+    // local dependencies, per-term neighbourhoods) are rendered by gmeow's shipped
+    // RDF-graph renderer (`purrdf::viz`); the chart diagrams (concern bar chart,
+    // coverage heatmap) and the capability-coloured pipeline DAG stay hand-emitted,
+    // as those are not node-link graphs. Every emitted path also has a page embed, so
+    // no image link dangles.
     files.insert(
         "diagrams/slices.svg".to_string(),
-        svg::deferred_diagram_svg("Slice dependency graph").into_bytes(),
+        svg::slice_dependency_svg(model).into_bytes(),
     );
     files.insert(
         "diagrams/concerns.svg".to_string(),
-        svg::deferred_diagram_svg("Concerns by term count").into_bytes(),
+        svg::concern_overview_svg(model).into_bytes(),
     );
     // The per-slice documentation-coverage heatmap embedded on the health page.
     files.insert(
         "diagrams/coverage-heatmap.svg".to_string(),
-        svg::deferred_diagram_svg("Documentation coverage by slice").into_bytes(),
+        svg::coverage_heatmap_svg(model).into_bytes(),
     );
     // The dogfooded build-pipeline DAG, embedded on `Page::PipelineDag` (emitted
     // only when a pipeline was discovered, so the page's embed never dangles).
@@ -443,8 +443,7 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
     for slice in &model.slices {
         files.insert(
             format!("diagrams/slices/{}.svg", slice_slug(slice)),
-            svg::deferred_diagram_svg(&format!("Dependencies for slice {}", slice_slug(slice)))
-                .into_bytes(),
+            svg::slice_local_svg(model, &slice.iri).into_bytes(),
         );
     }
     // Per-term neighbourhood diagrams — only for terms that actually have a
@@ -454,8 +453,7 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         if svg::term_has_neighbourhood(term) {
             files.insert(
                 format!("diagrams/terms/{}.svg", term_slug(term)),
-                svg::deferred_diagram_svg(&format!("Neighborhood for term {}", term_slug(term)))
-                    .into_bytes(),
+                svg::term_neighbourhood_svg(term).into_bytes(),
             );
         }
     }
