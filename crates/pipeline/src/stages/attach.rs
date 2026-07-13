@@ -14,9 +14,12 @@
 //! parity gate (`tests/dag_dogfood.rs`, via `bind`) proves the two never diverge
 //! (Rust/RDF agreement, HARD-fail on mismatch).
 //!
-//! **A stage's attach set = its DELTA** — the named graphs / blob-rep lanes present in
-//! its OUTPUT product bundle but NOT in its assembled INPUT (the union over the products
-//! it consumes). The scheduler recomputes that delta at run time and HARD-fails
+//! **A stage's attach set = its DELTA** — the named graphs / content-identified blob-rep
+//! records present in its OUTPUT product bundle but NOT in its effective INPUT. Named
+//! graphs honor typed `consumed_entities`; blob records use `(representation, content
+//! digest)` identity across every consumed upstream product, so several diagnostics
+//! producers may each attach distinct content under the shared `diagnostics:nodes` lane.
+//! The scheduler recomputes that delta at run time and HARD-fails
 //! ([`crate::error::AttachDrift`]) if it diverges from this declaration in either
 //! direction. The sets below were captured empirically from a full production run so the
 //! global bidirectional check has zero false positives.

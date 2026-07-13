@@ -121,12 +121,12 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A stage's ACTUAL run-time attach delta (the named graphs / blob-rep lanes its
-    /// output product carries beyond its assembled input) diverges from its DECLARED
-    /// attach set — either an undeclared attachment (attached but not declared) or an
-    /// unfulfilled declaration (declared but not attached). Fires on BOTH the
-    /// cache-hit and cache-miss paths (a stale cached product with drifted declarations
-    /// must not sail through). A HARD FAIL — no optionality, no fallback.
+    /// A stage's ACTUAL run-time attach delta (the named graphs / content-identified
+    /// blob-rep records its output product carries beyond its assembled input) diverges
+    /// from its DECLARED attach set — either an undeclared attachment (attached but not
+    /// declared) or an unfulfilled declaration (declared but not attached). Fires on
+    /// BOTH the cache-hit and cache-miss paths (a stale cached product with drifted
+    /// declarations must not sail through). A HARD FAIL — no optionality, no fallback.
     pub struct AttachDrift {
         stage: String,
         lane: String,

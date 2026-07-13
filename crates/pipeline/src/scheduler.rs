@@ -511,9 +511,10 @@ fn product_graphs(product: &StageProduct) -> std::collections::BTreeSet<String> 
 }
 
 /// The content identities carried under each blob-representation lane label in a
-/// product's carrier bundle. A representation label is the lane; its content digest
+/// product's carrier bundle (`representation`-keyed by-reference blob records — NOT
+/// the byte-artifact lane). A representation label is the lane; its content digest
 /// distinguishes this product's record from a different producer's record on the same
-/// shared lane, notably each `diagnostics:nodes` contribution.
+/// shared lane (notably each diagnostics producer's `diagnostics:nodes` contribution).
 fn product_blob_records(
     product: &StageProduct,
 ) -> BTreeMap<String, std::collections::BTreeSet<String>> {
