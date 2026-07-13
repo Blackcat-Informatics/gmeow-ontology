@@ -79,6 +79,12 @@ pub mod dsl_shacl;
 // surfaces cannot drift.
 #[cfg(not(target_arch = "wasm32"))]
 pub mod enrich;
+// The per-term usage-guidance reader (Part 3): joins a finding onto the
+// `gmeow:howToUse`/`gmeow:useWhen`/`gmeow:avoidWhen` prose authored on ontology
+// terms, from both the finding's rule-governing term(s) and its own
+// `documented_terms`. Reads an `RdfDataset` directly (native-only, like `enrich`).
+#[cfg(not(target_arch = "wasm32"))]
+pub mod guidance;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod instance;
 #[cfg(not(target_arch = "wasm32"))]

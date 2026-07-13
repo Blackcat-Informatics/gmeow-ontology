@@ -783,7 +783,10 @@ gmeow:requiresFrame
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
     rdfs:label "requires frame"@x-gmeow-english ;
     skos:definition "Declares that every instance of the annotated class must carry the named reference-frame property (CONSTITUTION P11, frame-relativity gate): 'a value asserted without its frame is ill-formed'. The frame-relativity SHACL shape is GENERATED from this declaration — exactly one frame when the named property is owl:FunctionalProperty, at least one otherwise — so a new frame-relative value class is enforced the moment it is declared, never by remembering to hand-write its shape. Pair with gmeow:ruleSeverity \"advisory\" to downgrade the generated shape from the binding violation to an advisory warning."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:avoidWhen "Avoid annotating a class whose values hold absolutely with no frame dependency, and avoid hand-writing the generated frame-relativity SHACL shape in parallel — declare the carrier's frame property here instead and let the shape follow from it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Annotate the frame-carrying class with gmeow:requiresFrame pointing at the property that carries its reference frame (e.g. gmeow:MediaObject gmeow:requiresFrame gmeow:colourspace); use gmeow:requiresFrameCardinality to override the default exactly-one/at-least-one derivation when the frame property's own functionality does not match the carrier's actual multiplicity, and gmeow:ruleSeverity to downgrade the generated shape to advisory."@x-gmeow-english ;
+    gmeow:useWhen "Use when a class's instances assert a value that is meaningful only relative to a named frame — a measurement, a colourspace, a postal-address format — and the frame-relativity discipline (P11) must therefore be enforced on every instance."@x-gmeow-english .
 
 gmeow:sensitivityConfidential
     a gmeow:SensitivityLevel ;
