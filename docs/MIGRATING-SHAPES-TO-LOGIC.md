@@ -111,8 +111,9 @@ Idiom cheatsheet:
 
 ## Prove parity, then retire
 
-1. `make regenerate` **twice** (SHACL/cardinality edits leave
-   `gmeow.{openapi,schema}.json` stale after one pass), then `make check-generated`.
+1. `make regenerate` **once** (the JSON-Schema/OpenAPI, Pydantic, and SHACL-diagnostics
+   stages consume the generated shape surfaces as in-memory products, so a shape edit
+   reaches `gmeow.{openapi,schema}.json` in a single pass), then `make check-generated`.
 2. Confirm the slice's `tests/example-conformance.ttl` + `tests/counter-examples/*.ttl`
    still pass/fail identically against the projected union (each migrated constraint needs
    a ≥1-pass / ≥1-fail witness pair).
