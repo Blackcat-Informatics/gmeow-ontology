@@ -82,27 +82,45 @@ fn reason_err(detail: String) -> gmeow_errors::Diag {
 ///   `augment_inferred_with_dl`, `verdict_from_inferred`, `scan_coverage`, and
 ///   `classify_coverage` — any edit to those changes the contract semantics even
 ///   when the rule text is unchanged;
-/// * the source of this file (`mod.rs`), which owns the `run_reasoning` and
-///   `reason_closure` orchestration glue.
+/// * the structured rule IR, typed adapter, plan, semi-naive evaluator, restricted
+///   existential chase, and relation store that execute those rules;
+/// * the source of this file (`mod.rs`), which owns the production reasoning
+///   orchestration and typed-result fold.
 ///
 /// A change to any of these files will produce a different hash, invalidating
 /// cached results produced under the old contract. Public so a consumer holding a
 /// shipped `graph/reasoning` verdict can refuse one minted under a different
 /// contract than the engine it is about to trust it against.
+const NATIVE_CONTRACT_COMPONENTS: &[(&str, &str)] = &[
+    ("reason/el.rs", include_str!("el.rs")),
+    ("reason/rl_rules.rs", include_str!("rl_rules.rs")),
+    ("reason/dl.rs", include_str!("dl.rs")),
+    ("reason/mod.rs", include_str!("mod.rs")),
+    ("oracle.rs", include_str!("../oracle.rs")),
+    ("rule_ir.rs", include_str!("../rule_ir.rs")),
+    ("physical/plan.rs", include_str!("../physical/plan.rs")),
+    (
+        "physical/seminaive.rs",
+        include_str!("../physical/seminaive.rs"),
+    ),
+    ("physical/chase.rs", include_str!("../physical/chase.rs")),
+    ("physical/store.rs", include_str!("../physical/store.rs")),
+];
+
 pub fn native_contract_hash() -> String {
     static HASH: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     HASH.get_or_init(|| {
-        // Contract source is immutable for the lifetime of a compiled binary. Build
-        // and hash the large concatenated surface once; plan-cache lookups then clone
-        // only the 40-byte digest instead of rematerializing the whole rules/source
-        // corpus on every evaluation.
-        let contract = concat!(
-            include_str!("el.rs"),
-            include_str!("rl_rules.rs"),
-            include_str!("dl.rs"),
-            include_str!("mod.rs"),
-        );
-        crate::provenance::sha1_hex(contract)
+        // Contract source is immutable for the lifetime of a compiled binary. Frame
+        // every component by name and byte length so neither path/content boundaries
+        // nor concatenation ambiguity can produce the same semantic identity.
+        let mut contract = String::new();
+        for (name, source) in NATIVE_CONTRACT_COMPONENTS {
+            use std::fmt::Write as _;
+            write!(&mut contract, "{}:{name}:{}:", name.len(), source.len())
+                .expect("String writes cannot fail");
+            contract.push_str(source);
+        }
+        crate::provenance::sha1_hex(&contract)
     })
     .clone()
 }
@@ -884,6 +902,33 @@ mod tests {
             builder.push_owned_quad(&quad);
         }
         builder.freeze().expect("valid test dataset")
+    }
+
+    #[test]
+    fn native_contract_hash_frames_every_load_bearing_engine_component() {
+        let names = NATIVE_CONTRACT_COMPONENTS
+            .iter()
+            .map(|(name, source)| {
+                assert!(!source.is_empty(), "contract component {name} is empty");
+                *name
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(
+            names,
+            vec![
+                "reason/el.rs",
+                "reason/rl_rules.rs",
+                "reason/dl.rs",
+                "reason/mod.rs",
+                "oracle.rs",
+                "rule_ir.rs",
+                "physical/plan.rs",
+                "physical/seminaive.rs",
+                "physical/chase.rs",
+                "physical/store.rs",
+            ]
+        );
+        assert_eq!(native_contract_hash().len(), 40, "SHA-1 hex contract id");
     }
 
     #[test]
