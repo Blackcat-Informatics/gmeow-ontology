@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:IncompleteConfidenceIntervalShape (Rule I4) and
+# math:IntervalKindConflationShape (Rule I3): a math:ConfidenceInterval carrying its two
+# bounds through math:hasIntervalBound (a lower AND an upper endpoint, satisfying
+# sh:minCount 2) and its coverage through math:confidenceLevel — a FRAMED
+# math:ProbabilityValue, exact 95/100 in [0, 1] per the exact-rational discipline (AC#6),
+# so the level satisfies math:ProbabilityValueRangeShape / math:ProbabilityValueFramedShape /
+# math:ProbabilityScaleDisjointShape / math:RationalValueShape. It is NOT typed
+# math:CredibleInterval, so math:IntervalKindConflationShape's sh:not stays satisfied.
+# It MUST raise NO failure class.
+# Positive counterpart of counter-examples/confidence-interval-incomplete.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecConfidenceIntervalComplete).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:meanCI a math:ConfidenceInterval ;
+    math:hasIntervalBound ex:ciLower , ex:ciUpper ;
+    math:confidenceLevel ex:ciLevel .
+
+ex:ciLower a math:MathematicalObject .
+ex:ciUpper a math:MathematicalObject .
+
+# The coverage: a FRAMED probability value, exact 95/100 = 0.95 in [0, 1].
+ex:ciLevel a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+
+ex:samplingFrame a gmeow:ReferenceFrame .

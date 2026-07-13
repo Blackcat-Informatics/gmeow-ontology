@@ -282,6 +282,19 @@ fn describe_wheel_mode_equals_repo_mode() {
 }
 
 #[test]
+fn describe_grounding_terms_wheel_mode_equals_repo_mode() {
+    // The runtime-independence invariant for the grounding namespaces: each grounding
+    // term resolves from the EMBEDDED bundle alone (blinded, env-cleared, no-repo cwd)
+    // byte-identically to the full-checkout run. Covers all four namespaces from the
+    // crate-bundled GTS (gmeow via the test above; logic/math/lang here).
+    for term in ["lang:Denotation", "math:Function", "logic:Formula"] {
+        assert_cwd_parity("describe", |_out_dir| {
+            vec!["describe".to_owned(), term.to_owned()]
+        });
+    }
+}
+
+#[test]
 fn validate_wheel_mode_equals_repo_mode() {
     // Reuses the same `clean.ttl` fixture `cli.rs::validate_clean_file_passes`
     // already proves live: zero findings, so "validation passed" on stdout.

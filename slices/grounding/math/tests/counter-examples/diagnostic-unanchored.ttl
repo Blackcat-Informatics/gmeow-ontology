@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:UnanchoredDiagnosticShape (Rule D1): a math:ModelDiagnostic
+# naming the math:FittedModel it evaluates through math:diagnosticFor (so the sh:minCount 1
+# fitted-model arm is SATISFIED) but omitting math:diagnosticMethod, tripping the method
+# arm's sh:minCount 1 — shacl.MinCountConstraintComponent (math:UnanchoredDiagnostic).
+# Single violation: the fitted model it points at is well-formed — bound to its data through
+# math:fittedToData and specified through math:modelFormula — so math:UnfittedModel stays
+# silent, and the fitted-model arm stays satisfied, so EXACTLY ONE finding fires, no sibling.
+# Back-reference: math:UnanchoredDiagnostic (slices/grounding/math/module.ttl).
+# Negative counterpart of conformance-fixtures/diagnostic-anchored.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecDiagnosticUnanchored).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+# A diagnostic naming its fit but NO method — only the method arm fires.
+ex:methodlessDiagnostic a math:ModelDiagnostic ;
+    math:diagnosticFor ex:trialFit .    # fit present, but NO math:diagnosticMethod
+
+# The fit it evaluates: a well-formed math:FittedModel, so no math:UnfittedModel fires.
+ex:trialFit a math:FittedModel ;
+    math:fittedToData ex:trialData ;
+    math:modelFormula ex:trialFormula .
+
+ex:trialData a math:DatasetMatrix .
+ex:trialFormula a math:ModelFormula ;
+    math:argumentSlot ex:trialSlot0 .
+ex:trialSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:trialResponse .
+ex:trialResponse a math:VariableExpression .

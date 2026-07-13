@@ -342,6 +342,7 @@ pub fn describe(
     term: &str,
     gts: Option<&Path>,
     lang: Option<&str>,
+    format: gmeow_docs::card::CardFormat,
 ) -> i32 {
     let bytes = match gts_bytes(reporter, gts) {
         Ok(b) => b,
@@ -353,14 +354,41 @@ pub fn describe(
     let resolved: Option<String> = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok());
-    let (text, code) = gmeow_docs::describe(term, &bytes, resolved.as_deref());
-    if code == 0 {
-        println!("{text}");
-        0
-    } else {
-        // The backend's non-zero code is a resolution failure; surface its text as
-        // a graded diagnostic and preserve the exit code it produced.
-        fail_code(reporter, "gmeow-cli.describe.unresolved", text, code)
+    let (text, status) = gmeow_docs::describe(term, &bytes, resolved.as_deref(), format);
+    // Map each backend failure kind to its OWN typed diagnostic code — a resolution
+    // miss, a cross-namespace ambiguity, an unknown language, and a bundle-load
+    // failure are distinct, greppable codes (the old path lumped them all under
+    // `describe.unresolved`).
+    use gmeow_docs::DescribeStatus;
+    match status {
+        DescribeStatus::Ok => {
+            println!("{text}");
+            0
+        }
+        DescribeStatus::Unresolved => {
+            reporter.report(&report_diag(
+                Diag::of_kind(crate::error::DescribeUnresolved { detail: text }),
+                "gmeow",
+            ));
+            status.exit_code()
+        }
+        DescribeStatus::Ambiguous => {
+            reporter.report(&report_diag(
+                Diag::of_kind(crate::error::DescribeAmbiguous { detail: text }),
+                "gmeow",
+            ));
+            status.exit_code()
+        }
+        DescribeStatus::UnknownLanguage => {
+            fail_code(reporter, "gmeow-cli.lang.unknown", text, status.exit_code())
+        }
+        DescribeStatus::LoadFailed => {
+            reporter.report(&report_diag(
+                Diag::of_kind(crate::error::RdfPipelineFailed { detail: text }),
+                "gmeow",
+            ));
+            status.exit_code()
+        }
     }
 }
 

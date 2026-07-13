@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the p-value-framing competency question "which properties frame a p-value".
+# One fully framed math:PValue carrying each edge that makes P(T >= t | H0) unambiguous: its
+# magnitude (math:pValue), the null it is computed under (math:nullHypothesis), the sampling
+# distribution of the statistic under that null (math:nullDistribution), the statistic driving
+# it (math:testStatistic), the tail it is measured over (math:tailDefinition), its enumerated
+# math:Sidedness (math:alternativeSidedness, here the lawful individual math:twoSidedAlternative),
+# and its multiplicity handling — the adjustment applied (math:pValueAdjustment) over a
+# comparison family (math:multipleComparisonFamily). The reasoning-free query projects each
+# predicate on the p-value. Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:pval a math:PValue ;
+    math:pValue ex:magnitude ;
+    math:nullHypothesis ex:null ;
+    math:nullDistribution ex:nullDist ;
+    math:testStatistic ex:stat ;
+    math:tailDefinition ex:tail ;
+    math:alternativeSidedness math:twoSidedAlternative ;
+    math:pValueAdjustment ex:adjustment ;
+    math:multipleComparisonFamily ex:family .

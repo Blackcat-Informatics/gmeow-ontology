@@ -41,7 +41,7 @@ use purrdf::gts::writer::Writer as GtsWriter;
 use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 use sha2::{Digest, Sha256};
 
-use crate::stages::export::{self, FoldView, Term};
+use crate::stages::export::{self, ConsumerResolution, FoldView, Term};
 use crate::stages::fold_arena;
 
 // The internal→BCP-47 display-language map is carried on the lang: carrier
@@ -658,15 +658,21 @@ impl McpView {
 
     /// Resolve a CURIE / local name / IRI / label (or unambiguous prefix) to its
     /// canonical term IRI, via the SAME resolution path `lookup_term` / `doc_card`
-    /// use. `None` when the query does not resolve to exactly one term — the caller
-    /// HARD-FAILS an unknown term rather than returning a fabricated empty result.
-    /// `export::resolve_term_iri` itself borrows zero-copy; this wrapper must
-    /// allocate ONE owned `String` here because the resolved IRI has to outlive
-    /// the cached `terms` slice that `with_terms` only lends for the closure's
-    /// duration.
-    fn resolve_term_iri(&self, term: &str, requested: Vec<String>) -> Option<String> {
+    /// use. Propagates [`export::ConsumerResolution`] so the caller HARD-FAILS a
+    /// cross-namespace collision with a typed ambiguity diagnostic and an unknown
+    /// term with the unknown-term diagnostic — never a fabricated empty result or a
+    /// silent pick. `export::resolve_term_iri` borrows zero-copy; this wrapper must
+    /// allocate ONE owned `String` here because the resolved IRI has to outlive the
+    /// cached `terms` slice that `with_terms` only lends for the closure's duration.
+    fn resolve_term_iri(&self, term: &str, requested: Vec<String>) -> ConsumerResolution<String> {
         self.with_terms(requested, |terms| {
-            export::resolve_term_iri(terms, term).map(str::to_owned)
+            match export::resolve_term_iri(terms, term) {
+                ConsumerResolution::Resolved(iri) => ConsumerResolution::Resolved(iri.to_owned()),
+                ConsumerResolution::Ambiguous { candidates } => {
+                    ConsumerResolution::Ambiguous { candidates }
+                }
+                ConsumerResolution::NotFound => ConsumerResolution::NotFound,
+            }
         })
     }
 
@@ -819,13 +825,12 @@ impl McpView {
     ) -> gmeow_errors::Result<String> {
         use gmeow_docs::card::CardDetail;
         let built = self.with_terms(requested, |terms| export::doc_card_build(terms, term));
-        let Some((title, mut card)) = built else {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "unknown term `{term}`: does not resolve to a bundled GMEOW term \
-                     (expected a CURIE, local name, IRI, or label)"
-                ),
-            }));
+        let (title, mut card) = match built {
+            ConsumerResolution::Resolved(pair) => pair,
+            ConsumerResolution::Ambiguous { candidates } => {
+                return Err(ambiguous_term_err(term, &candidates));
+            }
+            ConsumerResolution::NotFound => return Err(unknown_term_err(term)),
         };
         // The full tier is the oracle card: enrich the compact card with the rich
         // panels queried from the documentation graph by the resolved term IRI.
@@ -1917,17 +1922,20 @@ impl McpServer {
     }
 
     /// Resolve a term string to its canonical IRI, HARD-FAILING (`Err`) on an unknown
-    /// term — the shared unknown-term guard for the documentation-surface tools.
+    /// term OR a cross-namespace bare-name collision — the shared resolution guard for
+    /// the documentation-surface tools (`counter_examples`, `entailments`,
+    /// `competency_questions`). Ambiguity carries the TYPED `McpAmbiguousTerm`
+    /// diagnostic (sorted candidate CURIEs); an unknown term keeps the generic
+    /// unknown-term diagnostic — never a silent pick.
     fn resolve_term_or_err(&self, term: &str, args: &Value) -> gmeow_errors::Result<String> {
         let requested = self.requested_from_args(args)?;
-        self.view.resolve_term_iri(term, requested).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: format!(
-                    "unknown term `{term}`: does not resolve to a bundled GMEOW term \
-                     (expected a CURIE, local name, IRI, or label)"
-                ),
-            })
-        })
+        match self.view.resolve_term_iri(term, requested) {
+            ConsumerResolution::Resolved(iri) => Ok(iri),
+            ConsumerResolution::Ambiguous { candidates } => {
+                Err(ambiguous_term_err(term, &candidates))
+            }
+            ConsumerResolution::NotFound => Err(unknown_term_err(term)),
+        }
     }
 
     fn tool_query_docs(&self, args: &Value) -> gmeow_errors::Result<String> {
@@ -2933,6 +2941,30 @@ fn resolve_slice_dir(root: &Path, rel: &str) -> gmeow_errors::Result<PathBuf> {
         )));
     }
     Ok(canon)
+}
+
+/// The shared unknown-term hard fail for the resolution guard and `doc_card`: a
+/// query that resolves to no bundled GMEOW term.
+fn unknown_term_err(term: &str) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Mcp {
+        message: format!(
+            "unknown term `{term}`: does not resolve to a bundled GMEOW term \
+             (expected a CURIE, local name, IRI, or label)"
+        ),
+    })
+}
+
+/// The shared cross-namespace-collision hard fail: a bare local name that exactly
+/// names terms in more than one namespace. Carries the TYPED `McpAmbiguousTerm`
+/// code (distinct from the generic unknown-term `Mcp`), naming the query and listing
+/// the sorted candidate CURIEs — the MCP twin of `gmeow-cli.describe.ambiguous`.
+fn ambiguous_term_err(term: &str, candidates: &[String]) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::McpAmbiguousTerm {
+        message: format!(
+            "ambiguous term `{term}`: names terms in multiple namespaces: {}",
+            candidates.join(" / ")
+        ),
+    })
 }
 
 fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
@@ -4158,6 +4190,73 @@ mod tests {
         unsafe {
             // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
             env::remove_var("GMEOW_LANG");
+        }
+    }
+
+    /// A bare local name that collides across grounding namespaces HARD-FAILS on
+    /// EVERY consumer surface — the MCP twin of `gmeow describe`'s typed ambiguity —
+    /// never a silent first-exact pick (`.goals` NO OPTIONALITY). `Conjecture` names
+    /// both `logic:Conjecture` and `math:Conjecture` in the shipped bundle.
+    #[test]
+    fn ambiguous_bare_name_hard_fails_across_mcp_surfaces() {
+        let server = consumer_server();
+
+        // `lookup_term`: the DISTINCT ambiguity envelope (ok:false) listing BOTH
+        // sorted candidate CURIEs — not a silent pick of the first exact match.
+        let looked =
+            text_payload(server.call_tool_result("lookup_term", &json!({"term": "Conjecture"})));
+        assert_eq!(looked["ok"], json!(false));
+        let err = looked["error"].as_str().expect("ambiguity error string");
+        assert_eq!(
+            err, "ambiguous term 'Conjecture': logic:Conjecture, math:Conjecture",
+            "lookup_term must emit the sorted-candidate ambiguity envelope"
+        );
+
+        // `doc_card`: hard fail (isError) with the same ambiguity — not a card.
+        let card = server.call_tool_result("doc_card", &json!({"term": "Conjecture"}));
+        assert_eq!(card["isError"], json!(true));
+        let card_err = text_payload(card);
+        assert_eq!(card_err["ok"], json!(false));
+        let ce_msg = card_err["error"].as_str().expect("doc_card error");
+        assert!(
+            ce_msg.contains("logic:Conjecture") && ce_msg.contains("math:Conjecture"),
+            "doc_card ambiguity must list sorted candidates, got {ce_msg:?}"
+        );
+
+        // The resolution guard feeding `counter_examples` / `entailments` /
+        // `competency_questions` hard-fails too (isError) — never a silent IRI.
+        let guarded = server.call_tool_result("counter_examples", &json!({"term": "Conjecture"}));
+        assert_eq!(guarded["isError"], json!(true));
+
+        // The ambiguity carries its OWN typed code, DISTINCT from the generic
+        // unknown-term `pipeline.mcp` — greppable as `pipeline.mcp.ambiguous-term`.
+        let requested = server.startup_requested.clone();
+        let ConsumerResolution::Ambiguous { candidates } =
+            server.view.resolve_term_iri("Conjecture", requested)
+        else {
+            panic!("`Conjecture` must resolve ambiguously across logic:/math:");
+        };
+        assert_eq!(
+            candidates,
+            vec![
+                "logic:Conjecture".to_string(),
+                "math:Conjecture".to_string()
+            ],
+            "candidates sorted + deduped"
+        );
+        let diag = ambiguous_term_err("Conjecture", &candidates);
+        assert_eq!(diag.code(), crate::error::McpAmbiguousTerm::register());
+
+        // Regression: unambiguous queries still RESOLVE on the same surface — the
+        // ambiguity gate fires ONLY on genuine cross-namespace collisions.
+        for (q, curie) in [
+            ("lang:Denotation", "lang:Denotation"),
+            ("math:Function", "math:Function"),
+            ("Denotation", "lang:Denotation"),
+        ] {
+            let hit = text_payload(server.call_tool_result("lookup_term", &json!({"term": q})));
+            assert_eq!(hit["ok"], json!(true), "`{q}` must still resolve");
+            assert_eq!(hit["curie"], json!(curie), "`{q}` resolves to {curie}");
         }
     }
 
@@ -5853,7 +5952,9 @@ mod tests {
         // Independent expected: the SAME shared builder + renderer at Standard.
         let requested = server.startup_requested.clone();
         let expected = server.view.with_terms(requested, |terms| {
-            let (title, card) = export::doc_card_build(terms, term).expect("known term resolves");
+            let (title, card) = export::doc_card_build(terms, term)
+                .resolved()
+                .expect("known term resolves");
             gmeow_docs::card::render_card(&title, &card, gmeow_docs::card::CardDetail::Standard)
         });
         assert_eq!(

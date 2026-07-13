@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the estimand-framing competency question "which properties frame an
+# estimand". One fully specified math:Estimand carrying each of the six ICH E9(R1)-style
+# attributes that pin the target quantity before any data is seen: the population it targets
+# (math:targetPopulation), the outcome it is defined on (math:targetOutcome), the contrast it
+# measures (math:targetContrast), the intervention it conditions on
+# (math:interventionCondition), the time horizon (math:targetTime), and the missing-data /
+# intercurrent-event policy (math:missingDataPolicy). The reasoning-free query projects each
+# predicate on the estimand. Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:estimand a math:Estimand ;
+    math:targetPopulation ex:targetPop ;
+    math:targetOutcome ex:outcome ;
+    math:targetContrast ex:contrast ;
+    math:interventionCondition ex:intervention ;
+    math:targetTime ex:horizon ;
+    math:missingDataPolicy ex:treatmentPolicy .

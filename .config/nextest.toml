@@ -280,6 +280,25 @@
 #     graphs, focused projection-report units cover report construction, and
 #     `make check-generated` byte-gates the final committed union. The exhaustive
 #     real-repository cross-stage sweeps remain on `maint-heavy`.
+#   - gmeow-cli cli::describe_resolves_grounding_curies (40.6 s) +
+#     cli::describe_resolves_grounding_full_iris (27.4 s) +
+#     self_sufficiency::describe_grounding_terms_wheel_mode_equals_repo_mode (59.4 s) +
+#     gmeow-docs describe::tests::every_grounding_namespace_has_describable_terms_that_render (47.5 s):
+#     each drives `gmeow describe` over the WHOLE embedded bundle. The CLI pair spawn the shipped
+#     binary once per grounding namespace, and each spawn pays the full bundle cold-start — the same
+#     whole-committed-bundle O(bundle size) class as the already-off-gate single-spawn sibling
+#     cli::describe_env_language_rejected_if_unknown (3-5 s standalone / 27-32 s under CI contention),
+#     so splitting into single-spawn tests would not keep them under the cliff either. The
+#     self_sufficiency case runs describe in both the wheel-mode and repo-mode legs (the grounding-term
+#     twin of the already-off-gate self_sufficiency::describe_wheel_mode_equals_repo_mode), and the docs
+#     sweep re-folds the whole bundle once per grounding namespace to prove a term renders in each.
+#     Bringing the merged lang:/math:/logic: grounding vocabulary into the described-term set grew the
+#     bundle, so all four ride the same 25 s cliff on bundle size, not fixture cost. No coverage class
+#     leaves the gate: cross-namespace resolution (CURIE / full-IRI / bare-local + the ambiguity
+#     hard-fail) stays on-gate via the fixture-scale resolver unit tests in crates/docs (describe.rs)
+#     and crates/pipeline (the export.rs MCP ambiguity test), the registry-vs-table coherence stays
+#     on-gate via the lpg_prefixes coherence gate, and all four whole-bundle describe tests stay
+#     on-gate on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -294,7 +313,7 @@ default-filter = '''
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
     | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers) | binary(conformance_affect_producer_union)))
     | (package(gmeow-dev-cli) & binary(cli_parity) & (test(build_writes_serializations) | test(project_view_over_the_snapshot)))
-    | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown)))
+    | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown) | test(describe_resolves_grounding_curies) | test(describe_resolves_grounding_full_iris)))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/))
@@ -302,7 +321,8 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::docs_render::tests::term_loss_digest_is_non_vacuous_on_the_real_repo/))
     | (package(gmeow-slicetest) & test(/run_structural_file::core\/slice-quality-rubric\/tests\/structural\.ttl/))
     | (package(gmeow-pipeline) & binary(release_verify_roundtrip))
-    | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode) | test(describe_wheel_mode_equals_repo_mode)))
+    | (package(gmeow-cli) & binary(self_sufficiency) & (test(transpile_wheel_mode_equals_repo_mode) | test(transpile_blinded_lifts_and_fans_out_without_x_gmeow_leak) | test(project_wheel_mode_equals_repo_mode) | test(describe_wheel_mode_equals_repo_mode) | test(describe_grounding_terms_wheel_mode_equals_repo_mode)))
+    | (package(gmeow-docs) & test(/describe::tests::every_grounding_namespace_has_describable_terms_that_render/))
     | (package(gmeow-docs) & binary(render_golden) & test(render_site_is_byte_stable))
     | (package(gmeow-docs) & binary(mdbook_render) & test(book_bodies_are_rewrite_of_single_authority))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(english_carrier_tree_matches_render_site))

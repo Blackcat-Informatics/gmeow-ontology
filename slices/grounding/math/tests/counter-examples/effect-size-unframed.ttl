@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:UnframedEffectSizeShape (Rule I6): a math:EffectSize that names
+# its comparison through math:effectSizeContrast and its scale through math:effectSizeScale
+# (so those two arms are SATISFIED) but omits gmeow:hasReferenceFrame, tripping the frame
+# arm's sh:minCount 1 — shacl.MinCountConstraintComponent (math:UnframedEffectSize).
+# Single violation: the contrast and scale keep their arms satisfied, so ONLY the frame
+# arm fires — EXACTLY ONE finding, no sibling.
+# Back-reference: math:UnframedEffectSize (slices/grounding/math/module.ttl).
+# Negative counterpart of conformance-fixtures/effect-size-framed.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecEffectSizeUnframed).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:unframedD a math:EffectSize ;
+    math:effectSizeContrast ex:treatmentContrast ;
+    math:effectSizeScale ex:standardDeviationScale .    # contrast + scale present, but NO gmeow:hasReferenceFrame
+
+ex:treatmentContrast a math:StatisticalContrast .
+ex:standardDeviationScale a math:MeasurementScale .

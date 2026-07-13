@@ -1,0 +1,16 @@
+# Competency question: "Which result kinds are frequentist?" Exercises the paradigm
+# taxonomy: every frequentist inference result is asserted a DIRECT subclass of
+# math:FrequentistResult in module.ttl, so the reasoning-free query walks the asserted
+# rdfs:subClassOf edge (no closure needed) and enumerates the frequentist result vocabulary.
+# Scoped to the math: namespace so a stray owl:Restriction blank never leaks in. Over the
+# merged ontology the answer is exactly the six frequentist result kinds
+# {math:PValue, math:StatisticalPower, math:TypeIErrorRate, math:TypeIIErrorRate,
+# math:ConfidenceInterval, math:ConfidenceRegion}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?kind WHERE {
+    ?kind rdfs:subClassOf math:FrequentistResult .
+    FILTER(STRSTARTS(STR(?kind), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?kind

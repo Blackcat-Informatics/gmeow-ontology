@@ -1,0 +1,105 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked scene — DIAGNOSTICS, MODEL COMPARISON, CALIBRATION, AND DESIGN/INTEGRITY,
+# dogfooding the "Model comparison and calibration" and "Design and integrity" charter
+# sections over two fitted models.
+#
+#   * A math:ModelDiagnostic evaluates a fit: it anchors to the math:FittedModel it is
+#     a diagnostic FOR (math:diagnosticFor) AND the method it applies
+#     (math:diagnosticMethod), so math:UnanchoredDiagnosticShape stays silent (a
+#     diagnostic anchored to neither would fire math:UnanchoredDiagnostic).
+#   * A math:CalibrationDiagnostic is the STATISTICAL calibration sense (predicted
+#     probabilities vs. observed frequencies); it is a math:ModelDiagnostic, so it too
+#     anchors to its fit and method, and it is NEVER a math:StabilityCalibrationRecord
+#     (the topological homonym), so math:CalibrationSenseConflationShape stays silent.
+#   * math:ModelComparison, math:InformationCriterion (an AIC), and
+#     math:CrossValidationResult weigh and score the fits, each pointing at the fit it
+#     concerns through the shared math:diagnosticFor anchoring edge.
+#   * Design/integrity: a math:ExperimentalDesign and its math:RandomizationScheme
+#     record HOW units were assigned; a math:AnalysisPlan carries its
+#     math:analysisPlanVersion and is named by the math:InferenceRun that ran it
+#     (math:usedAnalysisPlan), so pre-registered vs. post-hoc is data, not lost context.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statistics/diagnostics/> .
+
+# --- Two fitted models to evaluate and compare ------------------------------- #
+
+ex:fitA a math:FittedModel ;
+    rdfs:label "Model A — logistic fit of relapse on treatment and age"@x-gmeow-english ;
+    math:fittedToData ex:trialMatrix ;
+    math:modelFormula ex:formulaA .
+ex:fitB a math:FittedModel ;
+    rdfs:label "Model B — logistic fit adding a treatment-by-age interaction"@x-gmeow-english ;
+    math:fittedToData ex:trialMatrix ;
+    math:modelFormula ex:formulaB .
+
+ex:trialMatrix a math:DatasetMatrix ;
+    rdfs:label "The relapse-trial data frame (by reference)"@x-gmeow-english .
+
+# Each specification is a binder AST over indexed argument slots, never a string.
+ex:formulaA a math:ModelFormula ;
+    rdfs:label "relapse ~ treatment + age"@x-gmeow-english ;
+    math:argumentSlot ex:aSlot0 , ex:aSlot1 .
+ex:aSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:relapseExpr .
+ex:aSlot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:treatmentExpr .
+ex:formulaB a math:ModelFormula ;
+    rdfs:label "relapse ~ treatment * age"@x-gmeow-english ;
+    math:argumentSlot ex:bSlot0 , ex:bSlot1 .
+ex:bSlot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:relapseExpr .
+ex:bSlot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:interactionExpr .
+ex:relapseExpr a math:VariableExpression .
+ex:treatmentExpr a math:VariableExpression .
+ex:interactionExpr a math:VariableExpression .
+
+# --- Model diagnostics: anchored to a fit AND a method ----------------------- #
+
+ex:qqDiagnostic a math:ModelDiagnostic ;
+    rdfs:label "Deviance-residual Q-Q assessment of Model A"@x-gmeow-english ;
+    math:diagnosticFor ex:fitA ;
+    math:diagnosticMethod ex:qqMethod .
+ex:qqMethod a math:MathematicalObject ;
+    rdfs:label "Quantile-quantile plot of the deviance residuals"@x-gmeow-english .
+
+# The STATISTICAL calibration sense — a model diagnostic, anchored, and NOT a
+# topological math:StabilityCalibrationRecord.
+ex:reliabilityDiagnostic a math:CalibrationDiagnostic ;
+    rdfs:label "Reliability-curve calibration of Model A's predicted probabilities"@x-gmeow-english ;
+    math:diagnosticFor ex:fitA ;
+    math:diagnosticMethod ex:eceMethod .
+ex:eceMethod a math:MathematicalObject ;
+    rdfs:label "Expected-calibration-error binning against observed frequencies"@x-gmeow-english .
+
+# --- Model comparison and per-model scores ----------------------------------- #
+
+ex:abComparison a math:ModelComparison ;
+    rdfs:label "Likelihood-ratio and AIC comparison of Model A vs. Model B"@x-gmeow-english ;
+    math:diagnosticFor ex:fitA , ex:fitB .
+
+ex:aicA a math:InformationCriterion ;
+    rdfs:label "AIC = 412.7 for Model A (a penalized-fit score)"@x-gmeow-english ;
+    math:diagnosticFor ex:fitA .
+
+ex:cvB a math:CrossValidationResult ;
+    rdfs:label "10-fold cross-validated log-loss for Model B (out-of-sample)"@x-gmeow-english ;
+    math:diagnosticFor ex:fitB .
+
+# --- Design and integrity ---------------------------------------------------- #
+
+ex:trialDesign a math:ExperimentalDesign ;
+    rdfs:label "Stratified block randomized controlled trial design"@x-gmeow-english .
+
+ex:blockRandomization a math:RandomizationScheme ;
+    rdfs:label "Permuted-block randomization, 1:1 allocation, stratified by site"@x-gmeow-english .
+
+ex:analysisPlan a math:AnalysisPlan ;
+    rdfs:label "Pre-registered statistical analysis plan"@x-gmeow-english ;
+    math:analysisPlanVersion "2.1.0" .
+
+# The PROCESS that ran under the pre-specified plan — so 'which plan, at which
+# version, this analysis followed' is queryable rather than asserted in prose.
+ex:confirmatoryRun a math:InferenceRun , gmeow:Activity ;
+    rdfs:label "The confirmatory analysis run"@x-gmeow-english ;
+    math:usedAnalysisPlan ex:analysisPlan .

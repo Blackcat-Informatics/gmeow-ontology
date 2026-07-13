@@ -1,0 +1,35 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Clean conformance fixture for math:UnanchoredDiagnosticShape (Rule D1): a
+# math:ModelDiagnostic anchored to BOTH what it evaluates and how — it names the
+# math:FittedModel it checks through math:diagnosticFor (satisfying the sh:minCount 1
+# fitted-model arm) and the method it applies through math:diagnosticMethod (satisfying
+# the sh:minCount 1 method arm). The fitted model itself is well-formed — bound to its
+# data through math:fittedToData and specified through math:modelFormula — so
+# math:UnfittedModel stays silent. A diagnostic that names both its fit and its method is
+# well-formed and MUST raise NO failure class.
+# Positive counterpart of counter-examples/diagnostic-unanchored.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecDiagnosticAnchored).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The evaluation: a diagnostic naming its fit AND its method.
+ex:residualDiagnostic a math:ModelDiagnostic ;
+    math:diagnosticFor ex:trialFit ;
+    math:diagnosticMethod ex:residualAnalysis .
+
+ex:residualAnalysis a math:MathematicalObject .   # the diagnostic method, a first-class object
+
+# The fit it evaluates: a well-formed math:FittedModel (data + specification).
+ex:trialFit a math:FittedModel ;
+    math:fittedToData ex:trialData ;
+    math:modelFormula ex:trialFormula .
+
+ex:trialData a math:DatasetMatrix .
+ex:trialFormula a math:ModelFormula ;
+    math:argumentSlot ex:trialSlot0 .
+ex:trialSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:trialResponse .
+ex:trialResponse a math:VariableExpression .

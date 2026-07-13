@@ -1,0 +1,39 @@
+# Competency question: "Which model diagnostics, comparisons, and calibration results
+# evaluate this fitted model?" Exercises the model-evaluation spine: a math:ModelDiagnostic,
+# a math:ModelComparison, a math:InformationCriterion (AIC/BIC/WAIC), a
+# math:CrossValidationResult, and — the STATISTICAL calibration sense — a
+# math:CalibrationDiagnostic all anchor to the math:FittedModel they evaluate through the
+# SINGLE shared edge math:diagnosticFor, so "which model, and how well evaluated" is
+# answerable rather than implicit. Each evaluation kind is read on its OWN asserted-type
+# UNION branch (no reasoning: a math:CalibrationDiagnostic, being asserted only as such, does
+# NOT also surface on the math:ModelDiagnostic branch), so every evaluation binds its own
+# kind and the five edges are never collapsed. Scoped to the fixture namespace so the answer
+# is exactly the five evaluation rows over the one fitted model.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?evaluation ?kind WHERE {
+    ?model a math:FittedModel .
+    {
+        ?evaluation a math:ModelDiagnostic ;
+                    math:diagnosticFor ?model .
+        BIND(math:ModelDiagnostic AS ?kind)
+    } UNION {
+        ?evaluation a math:ModelComparison ;
+                    math:diagnosticFor ?model .
+        BIND(math:ModelComparison AS ?kind)
+    } UNION {
+        ?evaluation a math:CalibrationDiagnostic ;
+                    math:diagnosticFor ?model .
+        BIND(math:CalibrationDiagnostic AS ?kind)
+    } UNION {
+        ?evaluation a math:CrossValidationResult ;
+                    math:diagnosticFor ?model .
+        BIND(math:CrossValidationResult AS ?kind)
+    } UNION {
+        ?evaluation a math:InformationCriterion ;
+                    math:diagnosticFor ?model .
+        BIND(math:InformationCriterion AS ?kind)
+    }
+    FILTER(STRSTARTS(STR(?evaluation), "http://example.org/math/"))
+}
+ORDER BY ?evaluation
