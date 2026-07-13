@@ -1,0 +1,25 @@
+# Competency question: "Is an interval a confidence, credible, prediction, or tolerance
+# interval (or region), and what level or mass does it carry?" Exercises the interval-
+# estimate spine: a frequentist math:ConfidenceInterval carries its coverage through
+# math:confidenceLevel (a property of the sampling PROCEDURE), while a Bayesian
+# math:CredibleInterval carries its posterior mass through math:credibleMass (a POSTERIOR
+# probability) — the same word "interval" over two irreconcilable semantics. The two kinds
+# are read on separate UNION branches so each interval binds its OWN quantity (a confidence
+# interval its level, a credible interval its mass) and the level/mass edges are never
+# collapsed onto one another. Scoped to the fixture namespace so the answer is exactly the
+# two framed interval rows.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?interval ?kind ?amount WHERE {
+    {
+        ?interval a math:ConfidenceInterval ;
+                  math:confidenceLevel ?amount .
+        BIND(math:ConfidenceInterval AS ?kind)
+    } UNION {
+        ?interval a math:CredibleInterval ;
+                  math:credibleMass ?amount .
+        BIND(math:CredibleInterval AS ?kind)
+    }
+    FILTER(STRSTARTS(STR(?interval), "http://example.org/math/"))
+}
+ORDER BY ?interval

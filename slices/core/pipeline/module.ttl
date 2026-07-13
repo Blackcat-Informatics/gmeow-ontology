@@ -526,7 +526,7 @@ gmeow:stage-math-producers
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "math-producers"@x-gmeow-english ;
-    skos:definition "Run the five math: flagship producers (gmeow_math::producers) and fold each producer's deterministic RDF graph into the carrier as its own bundle-internal named graph, so the native producer output ships in gmeow.gts (the shippable deliverable) rather than living only behind a test-side equality gate. A leaf compute stage: it consumes no upstream product — the producers compute from pinned in-code exact-arithmetic constants."@x-gmeow-english ;
+    skos:definition "Run the seven native math: producers (gmeow_math::producers — five flagship producers, the probability-model seam producer, and the p-value tri-slice producer) and fold each producer's deterministic RDF graph into the carrier as its own bundle-internal named graph, so the native producer output ships in gmeow.gts (the shippable deliverable) rather than living only behind a test-side equality gate. A leaf compute stage: it consumes no upstream product — the producers compute from pinned in-code exact-arithmetic constants."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
@@ -1000,6 +1000,7 @@ gmeow:stage-math-producers
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pca-residual> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/probability-model> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/proof-ingest> ,
+        <https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> .
 
 gmeow:stage-mappings

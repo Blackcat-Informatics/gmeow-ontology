@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ImplicitMissingnessShape: a math:StatisticalVariable whose values
+# encode absence — it carries a math:MissingnessIndicator through math:hasMissingnessIndicator,
+# the SAME antecedent as the conforming fixture — but declares NO math:MissingnessMechanism
+# through math:missingnessMechanism, so an analysis depending on it assumes an MCAR/MAR/MNAR
+# mechanism implicitly. It fails ONLY the SPARQL constraint of math:ImplicitMissingnessShape,
+# so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding
+# (math:ImplicitMissingness). Every sibling shape is satisfied (no other shape targets a
+# math:StatisticalVariable or math:MissingnessIndicator).
+# Bound by ex:ecImplicitMissingnessUndeclared.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:income a math:StatisticalVariable ;
+    math:hasMissingnessIndicator ex:incomeMissing .
+ex:incomeMissing a math:MissingnessIndicator .

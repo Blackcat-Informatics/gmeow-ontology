@@ -1,0 +1,17 @@
+# Competency question: "Which properties frame a p-value — what makes P(T >= t | H0)
+# unambiguous?" Exercises the p-value framing object properties: a math:PValue carries its
+# magnitude (math:pValue), the null it is computed under (math:nullHypothesis), the
+# distribution of the statistic under that null (math:nullDistribution), the statistic driving
+# it (math:testStatistic), the tail it is measured over (math:tailDefinition), its enumerated
+# sidedness (math:alternativeSidedness), and — for multiplicity — the adjustment applied
+# (math:pValueAdjustment) over a comparison family (math:multipleComparisonFamily). The query
+# projects each PREDICATE on the p-value, scoped to the math: namespace. Over the fixture the
+# answer is exactly the eight p-value-framing property edges.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <http://example.org/math/>
+
+SELECT ?prop ?object WHERE {
+    ex:pval ?prop ?object .
+    FILTER(STRSTARTS(STR(?prop), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?prop ?object

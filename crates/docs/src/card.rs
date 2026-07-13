@@ -23,6 +23,7 @@
 //! data-only, no I/O).
 
 use serde::Serialize;
+use serde_json::Value;
 
 /// How much of a [`Card`] to surface — the token-budgeted detail tiers the live
 /// `doc_card` MCP tool exposes. The DEFAULT is [`CardDetail::Standard`], whose
@@ -512,6 +513,205 @@ pub fn card_json_schema() -> serde_json::Value {
     })
 }
 
+/// The output serialization for a term [`Card`] on the `describe` surface.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum CardFormat {
+    /// Human-facing Markdown prose (the default) — the canonical `render_card`.
+    #[default]
+    Prose,
+    /// Pretty JSON of the serialized card (the [`card_json_schema`] shape).
+    Json,
+    /// TOON (Token-Oriented Object Notation) — a compact, token-efficient,
+    /// indentation-based serialization for LLM/agent consumption.
+    Toon,
+}
+
+/// Serialize a card as pretty JSON — the exact field shape of the packed
+/// `card.json` member and the `doc_card format=json` payload (see
+/// [`card_json_schema`]). Byte-stable: struct-declaration field order, empty
+/// optionals/vectors skipped.
+#[must_use]
+pub fn card_json(card: &Card) -> String {
+    serde_json::to_string_pretty(card)
+        .expect("a Card is pure String/Vec data and always serializes to JSON")
+}
+
+/// Serialize a card as TOON — the compact, token-oriented notation. Encodes the
+/// card's neutral serde JSON model, so it is reusable for any [`serde::Serialize`]
+/// value that maps to the same JSON object/array/scalar shape.
+///
+/// The encoding: object fields as `key: value` lines (nested objects indented by
+/// two spaces); scalar arrays inline and length-tagged (`key[N]: a,b,c`); arrays
+/// of uniform scalar-valued objects as a length-and-header-tagged table
+/// (`key[N]{f1,f2}:` then one comma-row per element); any other array as a
+/// length-tagged `-`-marked list. A string is quoted only when it would otherwise
+/// be ambiguous (empty, padded, or containing a structural delimiter / a
+/// number/bool/null lexeme).
+#[must_use]
+pub fn card_toon(card: &Card) -> String {
+    let value = serde_json::to_value(card)
+        .expect("a Card is pure String/Vec data and always serializes to a JSON value");
+    let mut out = String::new();
+    toon_encode(&value, 0, &mut out);
+    out
+}
+
+/// Render a JSON value at the root of a TOON document (or as a `-`-list element).
+fn toon_encode(value: &Value, indent: usize, out: &mut String) {
+    match value {
+        Value::Object(map) => {
+            for (k, v) in map {
+                toon_field(k, v, indent, out);
+            }
+        }
+        Value::Array(arr) => toon_array("", arr, indent, out),
+        scalar => {
+            let pad = "  ".repeat(indent);
+            out.push_str(&pad);
+            out.push_str(&toon_scalar(scalar));
+            out.push('\n');
+        }
+    }
+}
+
+/// Render one `key`/`value` object field.
+fn toon_field(key: &str, value: &Value, indent: usize, out: &mut String) {
+    let pad = "  ".repeat(indent);
+    let k = toon_scalar_str(key);
+    match value {
+        Value::Object(map) => {
+            out.push_str(&format!("{pad}{k}:\n"));
+            for (ck, cv) in map {
+                toon_field(ck, cv, indent + 1, out);
+            }
+        }
+        Value::Array(arr) => toon_array(&k, arr, indent, out),
+        scalar => out.push_str(&format!("{pad}{k}: {}\n", toon_scalar(scalar))),
+    }
+}
+
+/// Render an array field (`key` already escaped; empty for a root array).
+fn toon_array(key: &str, arr: &[Value], indent: usize, out: &mut String) {
+    let pad = "  ".repeat(indent);
+    let n = arr.len();
+    if arr.is_empty() {
+        out.push_str(&format!("{pad}{key}[0]:\n"));
+        return;
+    }
+    // Scalar array → inline comma list.
+    if arr.iter().all(is_scalar) {
+        let items: Vec<String> = arr.iter().map(toon_scalar).collect();
+        out.push_str(&format!("{pad}{key}[{n}]: {}\n", items.join(",")));
+        return;
+    }
+    // Uniform scalar-valued objects → tabular.
+    if let Some(fields) = uniform_scalar_object_fields(arr) {
+        let header: Vec<String> = fields.iter().map(|f| toon_scalar_str(f)).collect();
+        out.push_str(&format!("{pad}{key}[{n}]{{{}}}:\n", header.join(",")));
+        let rowpad = "  ".repeat(indent + 1);
+        for elem in arr {
+            let obj = elem
+                .as_object()
+                .expect("uniform check guarantees an object");
+            let cells: Vec<String> = fields.iter().map(|f| toon_scalar(&obj[f])).collect();
+            out.push_str(&format!("{rowpad}{}\n", cells.join(",")));
+        }
+        return;
+    }
+    // Otherwise → a `-`-marked list of nested elements.
+    out.push_str(&format!("{pad}{key}[{n}]:\n"));
+    let elem_indent = indent + 1;
+    let dashpad = "  ".repeat(elem_indent);
+    for elem in arr {
+        if is_scalar(elem) {
+            out.push_str(&format!("{dashpad}- {}\n", toon_scalar(elem)));
+        } else {
+            let mut buf = String::new();
+            toon_encode(elem, elem_indent + 1, &mut buf);
+            splice_dash(&buf, elem_indent, out);
+        }
+    }
+}
+
+/// Splice a `- ` element marker onto the first line of a rendered nested element,
+/// keeping the remaining lines' deeper indent aligned under it.
+fn splice_dash(buf: &str, elem_indent: usize, out: &mut String) {
+    let inner_pad = "  ".repeat(elem_indent + 1);
+    let dash_pad = "  ".repeat(elem_indent);
+    let mut first = true;
+    for line in buf.lines() {
+        if first {
+            let content = line.strip_prefix(&inner_pad).unwrap_or(line);
+            out.push_str(&format!("{dash_pad}- {content}\n"));
+            first = false;
+        } else {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+}
+
+/// A JSON scalar (not an object or array).
+fn is_scalar(v: &Value) -> bool {
+    !matches!(v, Value::Object(_) | Value::Array(_))
+}
+
+/// The shared field list when every array element is a non-empty object with the
+/// same keys and only scalar values — the precondition for the tabular form.
+fn uniform_scalar_object_fields(arr: &[Value]) -> Option<Vec<String>> {
+    let first = arr.first()?.as_object()?;
+    if first.is_empty() {
+        return None;
+    }
+    let fields: Vec<String> = first.keys().cloned().collect();
+    for elem in arr {
+        let obj = elem.as_object()?;
+        if obj.len() != fields.len() {
+            return None;
+        }
+        for f in &fields {
+            match obj.get(f) {
+                Some(v) if is_scalar(v) => {}
+                _ => return None,
+            }
+        }
+    }
+    Some(fields)
+}
+
+/// A TOON scalar token: `null`/`true`/`false`/number bare, string minimally quoted.
+fn toon_scalar(v: &Value) -> String {
+    match v {
+        Value::Null => "null".to_string(),
+        Value::Bool(b) => b.to_string(),
+        Value::Number(n) => n.to_string(),
+        Value::String(s) => toon_scalar_str(s),
+        // Objects/arrays are never rendered as an inline scalar.
+        other => other.to_string(),
+    }
+}
+
+/// A string as a TOON token — bare when unambiguous, else double-quoted with the
+/// structural escapes.
+fn toon_scalar_str(s: &str) -> String {
+    let needs_quote = s.is_empty()
+        || s != s.trim()
+        || s.contains([',', ':', '"', '\n', '\t', '\r', '\\', '[', ']', '{', '}'])
+        || matches!(s, "true" | "false" | "null")
+        || s.parse::<f64>().is_ok();
+    if needs_quote {
+        let escaped = s
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"")
+            .replace('\n', "\\n")
+            .replace('\t', "\\t")
+            .replace('\r', "\\r");
+        format!("\"{escaped}\"")
+    } else {
+        s.to_string()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -765,5 +965,17 @@ mod tests {
             ..sample()
         };
         assert!(!render_card_body(&plain, CardDetail::Standard).contains("Python model"));
+    }
+
+    #[test]
+    fn toon_scalar_str_escapes_carriage_return_and_backslash() {
+        // A lone `\r` and a `\` must both force quoting AND be escaped —
+        // otherwise TOON's line-oriented, indentation-based format would
+        // either emit a raw CR inside a bare token or leave a backslash
+        // ambiguous with the escape sequences that follow it.
+        assert_eq!(
+            toon_scalar_str("line1\rline2\\tail"),
+            "\"line1\\rline2\\\\tail\""
+        );
     }
 }
