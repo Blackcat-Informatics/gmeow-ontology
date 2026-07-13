@@ -45,20 +45,25 @@ fn logical_assignment<'a>(source: &'a str, name: &str) -> Vec<&'a str> {
     words
 }
 
-fn target_header<'a>(source: &'a str, target: &str) -> &'a str {
+fn target_header_index(source: &str, target: &str) -> usize {
     let prefix = format!("{target}:");
     source
         .lines()
-        .find(|line| line.starts_with(&prefix))
+        .position(|line| line.starts_with(&prefix))
         .unwrap_or_else(|| panic!("missing Make target {target}"))
 }
 
-fn target_recipe(source: &str, target: &str) -> String {
-    let header = target_header(source, target);
-    let start = source.find(header).expect("header is in source") + header.len();
-    source[start..]
+fn target_header<'a>(source: &'a str, target: &str) -> &'a str {
+    source
         .lines()
-        .skip(1)
+        .nth(target_header_index(source, target))
+        .expect("target header index is in bounds")
+}
+
+fn target_recipe(source: &str, target: &str) -> String {
+    source
+        .lines()
+        .skip(target_header_index(source, target) + 1)
         .take_while(|line| line.starts_with('\t') || line.trim().is_empty())
         .collect::<Vec<_>>()
         .join("\n")

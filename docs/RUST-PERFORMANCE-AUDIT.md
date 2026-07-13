@@ -151,6 +151,7 @@ change.
 Use the repository targets for final evidence:
 
 ```bash
+make help
 make fmt
 make reason-gate
 make reason-verify
@@ -163,7 +164,7 @@ make check
 The focused allocation counter is intentionally a bench-only diagnostic:
 
 ```bash
-cargo bench -p gmeow-logic --bench entail_oracle_alloc
+make bench-entail-oracle-alloc
 ```
 
 For timing comparisons, build once, run the exact same command and population,

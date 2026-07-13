@@ -74,7 +74,7 @@ CHECK_TARGETS := check-lint rust-gate gts-frame-profile-gate validate check-gene
 	constitution-check crate-check lint-alignment doc-lint rust-gate coherence-gate-teeth clippy carrier-purity wasm \
 	lsp-build lsp-release lsp-sarif diagnostics-rust-sarif \
 	slicetest conformance conformance-report insta-review slice-quality slice-quality-gate \
-	fuzz-smoke bench bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
+	fuzz-smoke bench bench-entail-oracle-alloc bench-compare bench-golden-gate bench-soak rust-coverage mutants compliance-report perf-gate \
 	maint-crosscheck \
 	maint-extract maint-refresh-target-axioms maint-wikidata-live \
 	maint-wikidata-coverage maint-wikidata-audit \
@@ -458,6 +458,9 @@ fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format fron
 
 bench: ## Run criterion benchmarks with host-tuned codegen.
 	cargo bench -p gmeow-logic -p gmeow-validate
+
+bench-entail-oracle-alloc: ## Run the focused entailment-oracle allocation counter (report-only).
+	cargo bench -p gmeow-logic --bench entail_oracle_alloc
 
 bench-compare: ## Report-only perf scoreboard: live criterion run vs committed bench/baseline.json.
 	@cargo run -q -p gmeow-pipeline --bin bench-compare
