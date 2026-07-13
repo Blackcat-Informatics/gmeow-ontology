@@ -1,5 +1,26 @@
 # Recorded deficiencies (append-only honest skip log)
 
+## 2026-07-12 (stage2 exit) — final `make check` blocked by a full shared disk
+
+The confirming end-of-stage `make check` could NOT be run to completion locally:
+the shared build filesystem (`/dev/nvme0n1p3`, 1.8 TB, mounted at `/home`, `/`,
+`/tmp`, `/var/tmp` — one physical disk) sat at 100% (≈4 GB free), consumed by
+30+ concurrent developer worktrees, and the run died with `No space left on
+device (os error 28)` during the Rust build. Freeing this branch's own
+`target/*/incremental` did not recover enough; other worktrees' caches are not
+this session's to delete.
+
+What IS demonstrated (not skipped, just not re-confirmed in one green run):
+- The PRIOR complete `make check` on this HEAD ran the FULL suite — **5847/5847
+  tests passed** — and cleared validate + native reason + every other gate. Its
+  ONLY failure was the always-on 25 s test-budget: one docs golden took 28.8 s.
+- That test was fixed the same session (`term_card_json` fast per-term helper,
+  28.8 s → 0.05 s, committed) and re-verified passing in isolation.
+So the gate is logically green; the single confirming green run is deferred to
+CI (which builds the PR merged into `main` in a clean environment) — the
+authoritative gate. If CI surfaces anything the prior local run did not, it must
+be fixed before merge (stage3), not waved past.
+
 ## 2026-07-12 — Pydantic v2 functional documentation surface (gmeow_models)
 
 Delivered comprehensively (emitter, exemplary docs, stage + models-python blob,
