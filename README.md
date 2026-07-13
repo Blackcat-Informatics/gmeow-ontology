@@ -205,16 +205,18 @@ developer command.
 
 ```bash
 make install         # build the Rust CLIs and configure repo-local Git merge drivers
-make check           # fast local gate: lint, validate, native EL/DL reason + verify, subsumption cross-check, mappings, Rust tests
+make check           # full local gate: lint, validate, one-closure native reason gate, generated drift, Rust tests
+make reason-gate     # one fresh native closure shared by verify + the subsumption oracle
 make reason-verify   # native reasoning + reasoned-graph verify (consistency), one closure (Docker-free)
-make reason-crosscheck  # on-gate purrdf-entail subsumption cross-check oracle (native ⊇ oracle, Docker-free)
+make reason-crosscheck  # focused purrdf-entail subsumption cross-check oracle (native ⊇ oracle, Docker-free)
 ```
 
 `make check` is the normal local gate — fully Java/Docker-free (native EL/DL
 reasoning and native reasoned-graph verify). The cross-check oracle is the in-process
-`purrdf::entail` engine, folded on-gate into `make reason-crosscheck` (which `make check`
-runs), so routine development and required CI need no JVM or container; the external engine
-survives only to cross-check the native lane's subsumption closure.
+`purrdf::entail` engine. The aggregate `make reason-gate` computes one complete native
+closure and shares it with both reasoned-graph verification and the oracle comparison;
+the two focused targets remain available without making `make check` repeat the chase.
+Routine development and required CI therefore need no JVM or container.
 
 ## The `gmeow.gts` bundle
 
@@ -278,8 +280,9 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 |---|---|
 | `make validate` | Turtle syntax + term-annotation lint + SHACL |
 | `make reason` | Native Docker-free EL/DL reasoning authority |
+| `make reason-gate` | One complete native closure shared by reasoned-graph verify and the `purrdf::entail` subsumption oracle |
 | `make reason-verify` | Native reasoning + reasoned-graph verify (consistency), one closure (Docker-free) |
-| `make reason-crosscheck` | On-gate `purrdf::entail` **subsumption** cross-check oracle (native ⊇ oracle, Docker-free) |
+| `make reason-crosscheck` | Focused `purrdf::entail` **subsumption** cross-check oracle (native ⊇ oracle, Docker-free) |
 | `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
 | `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework: mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
 | `make check-generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
@@ -349,7 +352,7 @@ status — is the generated [`generated/module-status.md`](./generated/module-st
 The **native `logic:` engine is the reasoning authority** (`make reason`, Docker-free) — forward
 materialization + backward goal-resolution over the RDF-1.2 canonical form, with per-triple
 derivation provenance. The cross-check oracle is the in-process `purrdf::entail` engine
-(`gmeow-dev reason-crosscheck`, run on-gate): OWL-RL subsumption + OWL-Direct-tableau consistency,
+(`gmeow-dev reason-gate` on-gate; `gmeow-dev reason-crosscheck` focused): OWL-RL subsumption + OWL-Direct-tableau consistency,
 70/70 W3C-entailment conformance-tested, run as a *secondary* validator of the exported OWL
 projection, never as the authority over `logic:` semantics.
 

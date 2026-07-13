@@ -1,7 +1,7 @@
 //! Whole-ontology coherence-gate teeth tests.
 //!
 //! `make check` already runs a whole-ontology native DL consistency pass: the
-//! `reason-verify` target imports the committed `gmeow.gts` bundle and reasons over
+//! `reason-gate` target imports the committed `gmeow.gts` bundle and reasons over
 //! it via the same [`gmeow_logic::reason::reason_closure`] the verdict-only
 //! [`dl_consistency`] entry point wraps. A gate that RUNS but is never shown to CATCH
 //! anything is untrustworthy, so these tests prove it has teeth: an individual forced
@@ -17,15 +17,16 @@
 //!   `owl:disjointWith` of its own) on top of the WHOLE committed `gmeow.gts`, so the
 //!   clash is forced SOLELY by the foundational-partition disjointness the bundle itself
 //!   ships — binding the PRODUCTION edge to the gate's teeth (drop the kernel assertion
-//!   and this test goes green→red). It additionally asserts the shipped ontology is itself
-//!   coherent (a regression guard on the bundle). This is the literal whole-ontology proof
-//!   and it RUNS ON-GATE, via the dedicated `make
-//!   coherence-gate-teeth` target. The full-bundle chase takes ~520 s (the DL rule set
+//!   and this test goes green→red). The clean-bundle regression guard is the explicit
+//!   `reason-gate` prerequisite of the dedicated `make coherence-gate-teeth` target, so
+//!   the poisoned test does not repeat that whole-bundle chase. This is the literal
+//!   whole-ontology teeth proof and it RUNS ON-GATE. The full-bundle chase is expensive
+//!   (the DL rule set
 //!   applied over the whole ~720k-quad bundle, dominated by the merged-in top-sortal
-//!   disjointness axioms; it was ~95 s before that merge — the SHACL/ShEx validation-shape
-//!   projection is a reasoner-invisible sidecar and did not add chase cost), well over the
-//!   25 s per-test budget, so it stays carved out of the budget-gated `ci`/`default` nextest
-//!   profile by `default-filter` — that exclusion is budget-exempt, not gate-exempt:
+//!   disjointness axioms; the SHACL/ShEx validation-shape projection is a
+//!   reasoner-invisible sidecar), well over the 25 s per-test budget, so it stays carved
+//!   out of the budget-gated `ci`/`default` nextest profile by `default-filter` — that
+//!   exclusion is budget-exempt, not gate-exempt:
 //!   `coherence-gate-teeth` invokes it explicitly with `--ignore-default-filter` and an
 //!   `-E` selector, without feeding the JUnit report into the 25 s budget gate, and is
 //!   wired into `make check` via `CHECK_TARGETS`. The minimal test above remains a fast,
@@ -147,20 +148,12 @@ fn dl_consistency_gate_catches_injected_disjoint_clash() {
 
 #[test]
 fn whole_bundle_coherence_gate_catches_injected_clash() {
-    // Load the committed bundle exactly as production `reason-verify` does.
+    // Load the committed bundle exactly as production `reason-gate` does.
     let gts_path = repo_root().join("generated/dist/gmeow.gts");
     let bytes = std::fs::read(&gts_path)
         .unwrap_or_else(|e| panic!("read committed bundle {}: {e}", gts_path.display()));
     let bundle = import_gts_events(&bytes).expect("import the committed gmeow.gts bundle");
     let onto = bundle.dataset;
-
-    // The shipped ontology is coherent as-is (a regression guard on the bundle).
-    let v0 = dl_consistency(onto.as_ref()).expect("consistency run over the whole bundle");
-    assert!(
-        v0.consistent,
-        "the committed gmeow.gts must be coherent, but the gate found: {:?}",
-        v0.inconsistencies
-    );
 
     // Locate the SHIPPED gmeow:Agent ⊥ gmeow:SocialObject edge in the bundle and read the
     // world (named graph) it lives in. Finding it AT ALL proves the net-new production
