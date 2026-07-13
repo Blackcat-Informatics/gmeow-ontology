@@ -602,6 +602,21 @@ pub struct DocTerm {
     pub label: Option<String>,
     /// `skos:definition` (falling back to `rdfs:comment`).
     pub definition: Option<String>,
+    /// The CANONICAL (authored English) `rdfs:label`, stashed by
+    /// [`crate::render::localize_model`] just before it overwrites [`Self::label`]
+    /// with a translation. Documentation-COMPLETENESS is a property of the authored
+    /// source, not the display language — viewing a term in French must not change
+    /// its completeness score — so [`Self::coverage_label`] reads this in preference
+    /// to the (possibly translated) display label. `None` on a canonical
+    /// (English / unlocalized) model, where [`Self::label`] is already canonical.
+    /// A pure in-memory render detail: NEVER serialized, so the persisted model and
+    /// its golden snapshots are unchanged.
+    #[serde(skip)]
+    pub canonical_label: Option<String>,
+    /// The CANONICAL (authored English) definition, the completeness-scoring twin of
+    /// [`Self::canonical_label`] for [`Self::definition`]. See [`Self::coverage_definition`].
+    #[serde(skip)]
+    pub canonical_definition: Option<String>,
     /// The vocabulary category derived from `rdf:type`.
     pub category: DocTermCategory,
     /// The slice IRI that defines this term (the module it was parsed from).
@@ -682,6 +697,28 @@ pub struct DocTerm {
     /// Computed in `from_catalog` from the slices' `sliceProfile` /
     /// `sliceDependsOn` declarations.
     pub profiles: Vec<String>,
+}
+
+impl DocTerm {
+    /// The CANONICAL (authored English) label for documentation-completeness
+    /// scoring — [`Self::canonical_label`] when a localized render stashed it,
+    /// else [`Self::label`] (already canonical on an English / unlocalized model).
+    ///
+    /// Completeness is a property of the authored source, not the display language,
+    /// so every coverage predicate reads through this rather than the possibly
+    /// translated display label — keeping the completeness score (and the badge
+    /// assets derived from it) byte-identical across languages.
+    pub fn coverage_label(&self) -> Option<&str> {
+        self.canonical_label.as_deref().or(self.label.as_deref())
+    }
+
+    /// The CANONICAL (authored English) definition for documentation-completeness
+    /// scoring — the twin of [`Self::coverage_label`] for [`Self::definition`].
+    pub fn coverage_definition(&self) -> Option<&str> {
+        self.canonical_definition
+            .as_deref()
+            .or(self.definition.as_deref())
+    }
 }
 
 /// A cross-slice dependency edge projected from the ownership report.
@@ -2564,6 +2601,11 @@ fn build_doc_terms(
             curie,
             label,
             definition,
+            // The parsed model IS the canonical English carrier; the completeness
+            // fallbacks read `label`/`definition` directly. `localize_model` stashes
+            // these when it later builds a translated copy.
+            canonical_label: None,
+            canonical_definition: None,
             category,
             owner_slice: owner_slice.to_string(),
             parents,
