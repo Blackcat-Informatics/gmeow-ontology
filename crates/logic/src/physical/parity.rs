@@ -1500,6 +1500,58 @@ mod tests {
         }
     }
 
+    /// (e) THE leading-bound recursive-IDB bug shape (F1): an ALL-FREE-head goal rule whose
+    /// body LEADS with a recursive IDB atom carrying a bound argument FROM A CONSTANT.
+    ///
+    /// `ex:c(P, S) :- ex:reach(ex:self, P), ex:nameMatch(P, S).` under the all-free goal
+    /// `?- ex:c(P, S).` mints NO head guard (the goal is `ff`), so the leading `reach(ex:self, P)`
+    /// adorns `bf` FROM THE CONSTANT `ex:self` — the exact adornment whose per-atom demand rule
+    /// had an EMPTY body (`magic/reach_bf(self, self) :- .`) and was silently dropped by the
+    /// semi-naive engine pre-fix, returning an empty answer set with `status: Ok`. Placing an EDB
+    /// atom first (the permuted order the gate also sweeps) hid the drop. `reach` is
+    /// right-recursive (EDB-first), so the reference path-memo resolver is complete on it and the
+    /// two engines MUST agree. World: `knows(self, a)`, `knows(a, b)` ⇒ `reach(self, ·) = {a, b}`;
+    /// only `b` has a `nameMatch`, so the correct answer is the single `c(b, nameB)` — non-empty,
+    /// so the pre-fix drop is observable.
+    fn backward_leading_idb_reach() -> BackwardProgram {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reach(X, Y) :- ex:knows(X, Y).\n\
+             ex:reach(X, Y) :- ex:knows(X, Z), ex:reach(Z, Y).\n\
+             ex:c(P, S) :- ex:reach(ex:self, P), ex:nameMatch(P, S).\n\
+             ?- ex:c(P, S).\n"
+        );
+        BackwardProgram {
+            label: "leading-idb-reach",
+            triples: vec![
+                (p("self"), p("knows"), p("a")),
+                (p("a"), p("knows"), p("b")),
+                (p("b"), p("nameMatch"), p("nameB")),
+            ],
+            program: parse_query_program(&src).expect("parse leading-idb-reach"),
+        }
+    }
+
+    /// (f) THE SECOND bodyless site (Site B): an all-free goal over a ground FACT-RULE.
+    ///
+    /// `ex:p(ex:a, ex:b).` is a bodyless positive rule whose head is ground; under the all-free
+    /// goal `?- ex:p(X, Y).` the modified-rule site produced an empty `mod_body` with a ground
+    /// head — an unconditional fact the semi-naive engine never fires — so `p(a, b)` was lost
+    /// pre-fix. The correct answer is the single `p(a, b)` (no EDB triples: the fact-rule is the
+    /// sole source), so a drop is observable.
+    fn backward_ff_fact_rule() -> BackwardProgram {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(ex:a, ex:b).\n\
+             ?- ex:p(X, Y).\n"
+        );
+        BackwardProgram {
+            label: "ff-fact-rule",
+            triples: vec![],
+            program: parse_query_program(&src).expect("parse ff-fact-rule"),
+        }
+    }
+
     fn backward_corpus() -> Vec<BackwardProgram> {
         vec![
             backward_ancestor_ff(),
@@ -1507,6 +1559,8 @@ mod tests {
             backward_multi_rule(),
             backward_ground_present(),
             backward_arithmetic_length(),
+            backward_leading_idb_reach(),
+            backward_ff_fact_rule(),
         ]
     }
 
@@ -1583,6 +1637,152 @@ mod tests {
             total_native_answers > 0,
             "the native engine answered ZERO backward queries across the whole corpus — a total \
              fallback is a coverage-floor failure"
+        );
+    }
+
+    // ── Body-order permutation invariance: native ≡ reference for EVERY permutation ───
+    //
+    // The invariant under test is "any body permutation → identical answer set". The magic-sets
+    // transform is SIPS-dependent, so different body orders legitimately mint different demand
+    // predicates — only the GOAL ANSWER SET is order-invariant (the correctness theorem), which
+    // is inherently semantic. So the gate sweeps every body-atom permutation of each permutable
+    // rule and demands native == the `ReferenceBackwardOracle` for ALL of them.
+
+    /// Every permutation of the index range `0..n`, in a FIXED lexicographic order — NO RNG, no
+    /// clock. `n == 0` yields the single empty permutation. Determinism is a CONSTITUTION hard
+    /// constraint, so the sweep must be reproducible byte-for-byte.
+    fn index_permutations(n: usize) -> Vec<Vec<usize>> {
+        let mut out: Vec<Vec<usize>> = Vec::new();
+        let items: Vec<usize> = (0..n).collect();
+        permute_into(&items, &mut Vec::new(), &mut out);
+        out
+    }
+
+    /// Recursive lexicographic permutation builder: at each position pick the next unused index
+    /// in ascending order, so the emitted permutations are sorted.
+    fn permute_into(remaining: &[usize], acc: &mut Vec<usize>, out: &mut Vec<Vec<usize>>) {
+        if remaining.is_empty() {
+            out.push(acc.clone());
+            return;
+        }
+        for i in 0..remaining.len() {
+            let mut rest = remaining.to_vec();
+            let chosen = rest.remove(i);
+            acc.push(chosen);
+            permute_into(&rest, acc, out);
+            acc.pop();
+        }
+    }
+
+    #[test]
+    fn dispatch_parity_body_permutations_agree_with_reference() {
+        let mut checked_permutations = 0usize;
+        let mut leading_idb_swept = false;
+        for b in backward_corpus() {
+            for (ri, rule) in b.program.rules.iter().enumerate() {
+                // Permute ONLY a rule whose body is ≥2 pure positive atoms AND is NOT
+                // self-recursive. Reordering a non-self-recursive positive conjunction never
+                // changes the least model, so BOTH engines must return the same answer set —
+                // whereas permuting a self-recursive rule (e.g. `ancestor`) would mint a
+                // LEFT-recursive body on which the reference path-memo legitimately UNDER-produces
+                // (a documented reference limitation, not a native bug), so it is excluded. A
+                // builtin/negation body literal is likewise excluded (order can bind its operands).
+                let head_pred = rule.head.pred.clone();
+                let all_positive_atoms =
+                    rule.body.iter().all(|lit| matches!(lit, QBodyLit::Atom(_)));
+                let self_recursive = rule
+                    .body
+                    .iter()
+                    .any(|lit| matches!(lit, QBodyLit::Atom(a) if a.pred == head_pred));
+                if rule.body.len() < 2 || !all_positive_atoms || self_recursive {
+                    continue;
+                }
+
+                for perm in index_permutations(rule.body.len()) {
+                    let mut program = b.program.clone();
+                    program.rules[ri].body = perm.iter().map(|&i| rule.body[i].clone()).collect();
+
+                    let (store, world_nn) = backward_world(&b);
+                    let foreign = WorldFactSnapshot::from_world(&store, &world_nn, PROFILE)
+                        .expect("from_world must succeed");
+                    let native = match resolve_native(
+                        &foreign,
+                        &world_nn,
+                        &program,
+                        &Budget::default(),
+                    )
+                    .unwrap_or_else(|e| {
+                        panic!(
+                            "[{} r{ri} perm {perm:?}] resolve_native errored: {e}",
+                            b.label
+                        )
+                    }) {
+                        NativeOutcome::Decided(a) => a,
+                        NativeOutcome::Unsupported(kind) => panic!(
+                            "[{} r{ri} perm {perm:?}] native FELL BACK to Unsupported({kind:?}) — \
+                             every body permutation of a positive-Horn rule must still DECIDE",
+                            b.label
+                        ),
+                    };
+
+                    let ledger = compare_answers(
+                        &native,
+                        &ReferenceBackwardOracle,
+                        &foreign,
+                        &world_nn,
+                        &program,
+                        &Budget::default(),
+                    )
+                    .unwrap_or_else(|e| {
+                        panic!(
+                            "[{} r{ri} perm {perm:?}] backward oracle solve failed: {e}",
+                            b.label
+                        )
+                    });
+                    let verdict = ledger.enforce();
+                    assert!(
+                        verdict.passed,
+                        "[{} r{ri} perm {perm:?}] native↔reference answer set DIVERGED under body \
+                         permutation ({} native-only, {} oracle-only): {:?}\nnative {:?}\ndivergent \
+                         rows {:?}",
+                        b.label,
+                        ledger.native_only,
+                        ledger.oracle_only,
+                        verdict.reasons,
+                        native.bindings,
+                        ledger
+                            .rows
+                            .iter()
+                            .filter(|r| r.kind != DivergenceKind::Agree)
+                            .collect::<Vec<_>>()
+                    );
+
+                    // F1 teeth: the leading-bound recursive-IDB program's answer set must be
+                    // NON-empty under EVERY permutation — including the `reach(self, P)`-first
+                    // order that dropped the demand seed pre-fix. A future regression that empties
+                    // this join fails loudly here, not silently as an empty-`Ok`.
+                    if b.label == "leading-idb-reach" {
+                        assert!(
+                            !native.bindings.is_empty(),
+                            "[{} r{ri} perm {perm:?}] the reach/c join produced ZERO answers — the \
+                             leading-bound recursive-IDB demand was dropped (a soundness bug); the \
+                             correct answer set is the single c(b, nameB)",
+                            b.label
+                        );
+                        leading_idb_swept = true;
+                    }
+                    checked_permutations += 1;
+                }
+            }
+        }
+        assert!(
+            leading_idb_swept,
+            "the leading-idb-reach bug-shape program must be in the corpus and its goal rule swept \
+             — otherwise this gate is vacuous (F1)"
+        );
+        assert!(
+            checked_permutations > 0,
+            "the permutation gate exercised ZERO permutations — a vacuous gate"
         );
     }
 
