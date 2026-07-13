@@ -478,54 +478,61 @@ pub(crate) fn term_loss_digest_from_upstream(
     })
 }
 
-/// Fold the per-term JSON Schema / OpenAPI fragment digest
-/// [`gmeow_docs::model::SchemaFragmentDigest`] from the LIVE
-/// `stage-export-json-schema` product's committed `gmeow.schema.json` /
-/// `gmeow.openapi.json` artifacts ([`crate::stages::json_schema::JSON_SCHEMA_PATH`]
-/// / [`crate::stages::json_schema::OPENAPI_PATH`]) — the SAME bytes the carrier
-/// folds into the packed `schemas-archive`, read in-memory off the already-emitted
-/// product (never a re-run of the emitter, never a `generated/` disk read). Each
-/// documented CLASS whose emitter def key
-/// ([`Namespaces::def_key`](purrdf::shapes::json_schema::Namespaces::def_key): a
-/// bare local name for a primary-namespace class, a CURIE otherwise) names a
-/// `$defs` (respectively `components/schemas`) entry gets that fragment,
-/// pretty-printed deterministically. A class with no matching entry is honestly
-/// absent (no fabricated stub); the emitter's synthetic `Node`/`Annotation` keys
-/// (a whole-schema discriminator + the RDF-1.2 reifier-metadata fragment) are
-/// never joined. Hard-fails when the declared `stage-export-json-schema` product /
-/// artifact is absent or its bytes fail to parse as JSON (never a silently empty
-/// digest).
-#[cfg(test)]
-#[allow(dead_code)]
-pub(crate) fn schema_fragments_from_upstream(
-    upstream: &BTreeMap<String, StageProduct>,
+/// Fold the per-term JSON Schema / OpenAPI fragment digest off the COMMITTED
+/// `generated/schemas/gmeow.schema.json` / `gmeow.openapi.json` under `root` — the
+/// disk-sourced reader for the standalone `make docs` fanout
+/// (`gmeow-dev export-docs`), which builds the docs model via
+/// [`gmeow_docs::model::DocsModel::discover`] WITHOUT a live pipeline product. The
+/// two committed files are projections of the `stage-export-json-schema` emitter
+/// output, so the resulting digest — and thus every rendered per-term Python/Rust
+/// example tab — is a faithful projection of that emitter output (the join is
+/// delegated to [`schema_fragments_from_json`]). Hard-fails when either committed
+/// schema file is absent or
+/// its bytes fail to parse as JSON (no-optionality: a missing required schema
+/// source is never papered over with an empty digest).
+pub fn schema_fragments_from_generated(
+    root: &Path,
     terms: &[gmeow_docs::model::DocTerm],
 ) -> Result<gmeow_docs::model::SchemaFragmentDigest, gmeow_errors::Diag> {
-    let product = upstream.get("stage-export-json-schema").ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-            stage: "stage-docs-render".to_string(),
-            message: "missing stage-export-json-schema product for the schema-fragment digest"
-                .to_string(),
-        })
-    })?;
-    let read_json = |path: &str| -> Result<serde_json::Value, gmeow_errors::Diag> {
-        let bytes = product.artifact(path).ok_or_else(|| {
+    let read_json = |rel: &str| -> Result<serde_json::Value, gmeow_errors::Diag> {
+        let path = root.join(rel);
+        let bytes = std::fs::read(&path).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-docs-render".to_string(),
+                stage: "export-docs".to_string(),
                 message: format!(
-                    "missing stage-export-json-schema artifact {path} for the schema-fragment digest"
+                    "missing committed schema source {} for the schema-fragment digest: {e}",
+                    path.display()
                 ),
             })
         })?;
-        serde_json::from_slice(bytes).map_err(|e| {
+        serde_json::from_slice(&bytes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-docs-render".to_string(),
-                message: format!("parse {path} JSON for the schema-fragment digest: {e}"),
+                stage: "export-docs".to_string(),
+                message: format!(
+                    "parse committed schema source {} for the schema-fragment digest: {e}",
+                    path.display()
+                ),
             })
         })
     };
     let schema = read_json(crate::stages::json_schema::JSON_SCHEMA_PATH)?;
     let openapi = read_json(crate::stages::json_schema::OPENAPI_PATH)?;
+    Ok(schema_fragments_from_json(&schema, &openapi, terms))
+}
+
+/// The pure per-term join both schema-fragment readers share: for each documented
+/// CLASS, look its emitter def key
+/// ([`Namespaces::def_key`](purrdf::shapes::json_schema::Namespaces::def_key)) up
+/// in the parsed `$defs` (JSON Schema) / `components/schemas` (OpenAPI) objects and
+/// carry the pretty-printed fragment. A class with no matching entry is honestly
+/// absent (no fabricated stub); the emitter's synthetic `Node`/`Annotation` keys
+/// (a whole-schema discriminator + the RDF-1.2 reifier-metadata fragment) are
+/// never joined. Deterministic (`BTreeMap` keys + stable pretty-print).
+pub(crate) fn schema_fragments_from_json(
+    schema: &serde_json::Value,
+    openapi: &serde_json::Value,
+    terms: &[gmeow_docs::model::DocTerm],
+) -> gmeow_docs::model::SchemaFragmentDigest {
     let defs = schema.get("$defs").and_then(|v| v.as_object());
     let components = openapi
         .pointer("/components/schemas")
@@ -558,10 +565,10 @@ pub(crate) fn schema_fragments_from_upstream(
         }
     }
 
-    Ok(gmeow_docs::model::SchemaFragmentDigest {
+    gmeow_docs::model::SchemaFragmentDigest {
         schema_by_term,
         openapi_by_term,
-    })
+    }
 }
 
 /// Discover the docs model under `root`, attach the native-reasoner `verdict`, the
@@ -1691,5 +1698,71 @@ mod tests {
                  (empty target or no dropped feature); rows = {rows:?}"
             );
         }
+    }
+
+    /// The EXACT production `make docs` fanout path: build the docs model via
+    /// `DocsModel::discover` (no live pipeline product — the standalone render),
+    /// source the schema-fragment digest off the committed `generated/schemas/*.json`
+    /// via [`schema_fragments_from_generated`] (the production sibling reader), attach
+    /// it, and render a real modeled class's term page. Proves that after the
+    /// production discover+attach the model's `schema_fragments` is populated AND that
+    /// the per-term Python (Pydantic) + Rust example tabs actually render — the gate the
+    /// dark feature lacked (the tabs return `None` whenever `schema_fragments` is
+    /// `None`, which was ALWAYS the case on the shipped surface before this wiring).
+    /// This deliberately does NOT hand-call `attach_schema_fragments` with a synthetic
+    /// digest: it exercises the real disk-sourced producer end-to-end.
+    #[test]
+    fn make_docs_render_populates_schema_fragments_and_renders_python_rust_tabs() {
+        use gmeow_docs::model::{DocTermCategory, DocsModel};
+        use gmeow_docs::render::{Page, term_slug, to_markdown};
+
+        let root = repo_root();
+        let mut model = DocsModel::discover(&root).expect("discover live docs model");
+
+        // The production disk-sourced digest — NOT a hand-attached synthetic one.
+        let digest = schema_fragments_from_generated(&root, &model.terms)
+            .expect("build schema-fragment digest from committed generated/schemas/*.json");
+        assert!(
+            !digest.schema_by_term.is_empty(),
+            "the committed JSON Schema must join at least one documented class \
+             (an empty digest means the tabs would never render)"
+        );
+        model.attach_schema_fragments(digest);
+        assert!(
+            model.schema_fragments.is_some(),
+            "attach_schema_fragments must populate the model's schema_fragments"
+        );
+
+        // Pick a real modeled CLASS carrying a schema fragment — the exact key both
+        // example-tab providers read — deterministically (first by iri).
+        let fragments = model.schema_fragments.as_ref().unwrap();
+        let mut modeled: Vec<&gmeow_docs::model::DocTerm> = model
+            .terms
+            .iter()
+            .filter(|t| {
+                t.category == DocTermCategory::Class
+                    && fragments.schema_by_term.contains_key(&t.iri)
+            })
+            .collect();
+        modeled.sort_by(|a, b| a.iri.cmp(&b.iri));
+        let term = modeled
+            .first()
+            .copied()
+            .expect("at least one modeled class carries a schema fragment")
+            .clone();
+
+        let md = to_markdown(&model, &Page::Term(term_slug(&term)));
+        assert!(
+            md.contains("## Example in multiple syntaxes"),
+            "the modeled class term page must render the multi-syntax example section"
+        );
+        assert!(
+            md.contains("from gmeow_models.") && md.contains(".model_validate("),
+            "the Python (Pydantic) example tab must render on the production term page"
+        );
+        assert!(
+            md.contains("purrdf::parse_turtle(") && md.contains("gmeow_validate::validate("),
+            "the Rust example tab must render on the production term page"
+        );
     }
 }

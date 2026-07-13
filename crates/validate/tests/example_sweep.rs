@@ -147,6 +147,7 @@ const NON_CONFORMANT: &[&str] = &[
     "slices/core/coreference/examples/authority-links.ttl", // lang:denotationKind → lang:denotesEntity + lang:inSignSystem → lang:english (shared grounding individuals) untyped standalone
     "slices/core/language/examples/multilingual-document.ttl", // lang:renderingKind/transliterationScheme → shared rendering/transliteration individuals + lang:renderingPreservation → logic:PreservationKind (logic:ExactPreservation/SoundUnderApproximation) untyped standalone
     "slices/core/notation/examples/notation-systems.ttl", // lang:signSystemKind → lang:notationalKind + lang:modality → lang:writtenModality + lang:renderingPreservation → logic:PreservationKind untyped standalone
+    "slices/core/notation/examples/pydantic-projection-profile.ttl", // lang:signSystemKind → lang:notationalKind + lang:modality → lang:writtenModality + gmeow:notationSystemKind → gmeow:symbolicKindEncoding + lang:renderingPreservation/logic:preservationKind → logic:ValidationOnly + the logic:Correspondence value individuals (logic:Overlaps/BridgeView/CommitmentShiftingBridge/Crisp) are shared individuals defined in module.ttl, untyped standalone
     "slices/grounding/math/examples/expression-rendering.ttl", // lang:renderingKind → lang:renderingNotation + lang:renderingPreservation → logic:ExactPreservation (shared logic:PreservationKind) untyped standalone
 ];
 

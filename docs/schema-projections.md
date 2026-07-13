@@ -7,8 +7,12 @@
 > **JSON Schema** (`gmeow.schema.json`) + **OpenAPI** (`gmeow.openapi.json`) are compiled
 > **natively in Rust from the SHACL shapes** (`crates/shacl`).  They are
 > *closed-world* validators.
-> The **LinkML targets** (`gmeow.linkml.yaml`, `gmeow.py`, `gmeow.ts`, `gmeow.graphql`) are
+> The **LinkML targets** (`gmeow.linkml.yaml`, `gmeow.ts`, `gmeow.graphql`) are
 > projected **OWL → LinkML**.  They are *open-world* structural views.
+> The **Pydantic surface** is no longer an OWL→LinkML projection: it is the
+> SHACL-derived `gmeow_models/` package, co-derived from the SAME shape
+> compilation as the JSON Schema (so a model's `model_json_schema()` agrees with
+> `gmeow.schema.json`).
 > Regenerate: `cargo run -p gmeow-dev-cli -- regenerate schemas`.
 > CI gate: `cargo run -p gmeow-dev-cli -- check-generated schemas` (in the `ontology` job).
 
@@ -86,9 +90,11 @@ entry `ex:shaclJsonSchemaReport`.
 The remaining developer artifacts are projected from the **OWL** source through **LinkML**:
 
 * `gmeow.linkml.yaml` — the canonical LinkML schema
-* `gmeow.py` — Pydantic models
 * `gmeow.ts` — TypeScript interfaces
 * `gmeow.graphql` — GraphQL type stubs
+
+The **Pydantic** developer surface is derived from the **SHACL** layer instead —
+the `gmeow_models/` package (see §1), not an OWL → LinkML projection.
 
 OWL is *open-world*: absence of a triple is not negation.  LinkML projection of OWL is therefore
 **intentionally lossy** by design (CONSTITUTION Principle 5: *maximal bridging — by reference*),
@@ -212,7 +218,7 @@ Output files:
 * `dist/schemas/gmeow.schema.json` — JSON Schema (closed-world, native from SHACL)
 * `dist/schemas/gmeow.openapi.json` — OpenAPI 3.1 (closed-world, native from SHACL)
 * `dist/schemas/gmeow.linkml.yaml` — canonical LinkML schema (OWL → LinkML)
-* `dist/schemas/gmeow.py` — Pydantic models (OWL → LinkML)
+* `gmeow_models/` — Pydantic v2 package (closed-world, native from SHACL)
 * `dist/schemas/gmeow.ts` — TypeScript interfaces (OWL → LinkML)
 * `dist/schemas/gmeow.graphql` — GraphQL type stubs (OWL → LinkML)
 

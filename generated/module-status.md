@@ -64,7 +64,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | names | core | core | 10 | 16 | 37 | 0 | 1 | 53/53 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 1 | - | full |
-| notation | core | core | 6 | 8 | 17 | 0 | 1 | 25/25 | full |
+| notation | core | core | 6 | 8 | 17 | 0 | 2 | 25/25 | full |
 | notes | extension | extensions | 2 | 6 | 15 | 0 | 1 | - | full |
 | observations | core | core | 6 | 14 | 25 | 0 | 2 | 39/39 | full |
 | organization | core | core | 4 | 12 | 39 | 0 | 1 | 51/51 | full |

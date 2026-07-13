@@ -1,0 +1,71 @@
+# Publish the `gmeow-ontology` wheel (the generated Pydantic model package) to
+# PyPI via trusted publishing. The `pypi-gmeow` environment must be configured in
+# the repository settings and registered as a trusted publisher on PyPI for the
+# `gmeow-ontology` project (OIDC; no long-lived API token).
+#
+# The `gmeow_models/` tree under packages/python/ is a GENERATED, committed
+# artifact (written + drift-checked by `gmeow-dev regenerate`); this workflow
+# packages the committed tree, it does not regenerate it.
+name: Publish gmeow-ontology to PyPI
+
+permissions: {}
+
+on:
+  push:
+    tags:
+      - "gmeow-ontology-v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v5
+        with:
+          # This job needs no git credentials after checkout (it builds + uploads
+          # an artifact); dropping them avoids credential persistence (zizmor
+          # artipacked).
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Guard — the generated package must be present
+        run: |
+          test -f packages/python/gmeow_models/__init__.py \
+            || { echo "packages/python/gmeow_models is missing — run 'make regenerate' and commit it"; exit 1; }
+
+      - name: Build the wheel + sdist
+        run: |
+          python -m pip install --upgrade build
+          python -m build packages/python --outdir dist
+
+      - name: Assert the wheel carries the importable package
+        run: |
+          python -m pip install --upgrade wheel
+          W=$(ls dist/gmeow_ontology-*.whl)
+          python -m zipfile -l "$W" | grep -q 'gmeow_models/__init__.py' \
+            || { echo "built wheel does not contain gmeow_models/__init__.py"; exit 1; }
+          python -m zipfile -l "$W" | grep -q 'gmeow_models/py.typed' \
+            || { echo "built wheel does not contain the py.typed marker"; exit 1; }
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: dist-gmeow-ontology
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi-gmeow
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-gmeow-ontology
+          path: dist/
+
+      - name: Publish to PyPI (trusted publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1

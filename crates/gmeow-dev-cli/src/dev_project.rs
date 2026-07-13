@@ -28,11 +28,26 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
     let resolved: Option<String> = lang
         .map(str::to_owned)
         .or_else(|| std::env::var("GMEOW_LANG").ok());
+    // The JSON Schema `$defs` key set folded into THIS bundle — the
+    // model-existence signal `build_card` gates a class's `python_model` link on
+    // (a class with no `$defs` entry has no generated Pydantic model, so the link
+    // must never be fabricated: issue "Pydantic model surface", finding F3).
+    let modeled_defs = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
+        .and_then(|bundle| bundle.modeled_def_keys())
+    {
+        Ok(defs) => defs,
+        Err(e) => {
+            return fail(format!(
+                "cannot read the bundled JSON Schema for the model-existence gate: {e}"
+            ));
+        }
+    };
     let (text, status) = gmeow_docs::describe(
         term,
         &bytes,
         resolved.as_deref(),
         gmeow_docs::card::CardFormat::Prose,
+        &modeled_defs,
     );
     // Map each backend failure kind to its OWN typed diagnostic code — a
     // resolution miss, a cross-namespace ambiguity, an unknown language, and a
@@ -68,10 +83,23 @@ pub fn export_docs(
         ));
     }
 
-    let model = match gmeow_docs::DocsModel::discover(&root) {
+    let mut model = match gmeow_docs::DocsModel::discover(&root) {
         Ok(model) => model,
         Err(e) => return fail(format!("cannot build documentation model: {e}")),
     };
+    // Attach the per-term JSON-Schema / OpenAPI fragment digest so the per-term
+    // Python (Pydantic) + Rust example tabs actually render on this — the sole —
+    // production docs surface (`make docs` fanout). The standalone render has no
+    // live pipeline product, so the digest is sourced off the committed
+    // `generated/schemas/*.json`, the projection of the same
+    // `stage-export-json-schema` emitter output the in-pipeline reader consumes.
+    // Hard-fails if the required committed schema source is missing (no silent
+    // None — no-optionality).
+    match gmeow_pipeline::stages::docs_render::schema_fragments_from_generated(&root, &model.terms)
+    {
+        Ok(digest) => model.attach_schema_fragments(digest),
+        Err(e) => return fail(format!("cannot build schema-fragment digest: {e}")),
+    }
     let source_lang = pick_source_lang(lang, &model.translations);
 
     use crate::ExportFormat;
@@ -86,6 +114,10 @@ pub fn export_docs(
             directory,
             source_snippets(gmeow_docs::render_site_lang(&model, &source_lang).files),
         ),
+        ExportFormat::Pydantic => write_docs_projection(
+            directory,
+            gmeow_pipeline::stages::pydantic::render_models_python_package(&root),
+        ),
         ExportFormat::All => {
             let plan = [
                 (
@@ -97,6 +129,10 @@ pub fn export_docs(
                 (
                     "snippets",
                     source_snippets(gmeow_docs::render_site_lang(&model, &source_lang).files),
+                ),
+                (
+                    "pydantic",
+                    gmeow_pipeline::stages::pydantic::render_models_python_package(&root),
                 ),
             ];
             for (sub, tree) in plan {

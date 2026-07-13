@@ -48,6 +48,7 @@ fn describe_resolves_carrier_tags_against_shipped_bundle() {
         &bytes,
         Some("fr"),
         gmeow_docs::card::CardFormat::Prose,
+        &std::collections::BTreeSet::new(),
     );
     assert_eq!(
         status,
@@ -68,6 +69,7 @@ fn describe_rejects_unknown_tag_but_lists_the_carriers() {
         &bytes,
         Some("zz-nonsense"),
         gmeow_docs::card::CardFormat::Prose,
+        &std::collections::BTreeSet::new(),
     );
     assert_eq!(
         status,
