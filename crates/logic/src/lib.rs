@@ -10,6 +10,11 @@ pub mod certificate;
 /// Conjecture-and-refutation runtime: [`conjecture::conjecture_test`] tests a candidate
 /// first-order formula against a KB in an isolated, standpoint-scoped scenario world.
 pub mod conjecture;
+/// The off-gate independent OWL-Direct consistency cross-check: a per-world
+/// native structured [`reason::dl::DlVerdict`] ↔ [`entail_oracle::consistency`]
+/// tableau differential acting as a native-soundness anti-regression tripwire.
+/// NP-hard (OWL-Direct), so it is maintainer-run off-gate, never in `make check`.
+pub mod consistency_crosscheck;
 /// Executed lens-law discharge for a `logic:Correspondence`'s realized `LegPath` legs —
 /// the per-correspondence section-law verdict the (execution-free) correspondence gates read.
 pub mod correspondence_exec;
