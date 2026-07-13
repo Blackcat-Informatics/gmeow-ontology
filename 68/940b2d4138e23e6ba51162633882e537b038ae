@@ -1,17 +1,17 @@
-ghprsq structured squash audit metadata
+ghprsq PR head backlink metadata
 
-parent_hashes: 8dc65028b7887f5441f0619c4e2b019dd20de543
+parent_hashes: 68940b2d4138e23e6ba51162633882e537b038ae 8dc65028b7887f5441f0619c4e2b019dd20de543
 
 GhpRsq-Schema: 1
-GhpRsq-Merge-Style: structured-squash
+GhpRsq-Merge-Style: structured-squash-head-backlink
 GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
-GhpRsq-GitHub-Pull-Request: 1515
-GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1515
-GhpRsq-Base-Ref: paudley/1429-remove-nemo
-GhpRsq-Base-OID: 2746b4924aeff66fe6fa04d4149b9772263aa2f9
-GhpRsq-Head-Ref: paudley/logic-quality-ir-pr
-GhpRsq-Head-OID: 8dc65028b7887f5441f0619c4e2b019dd20de543
+GhpRsq-GitHub-Pull-Request: 1514
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/1514
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: e54885fc614e6500c49f3daf966867962b857b3e
+GhpRsq-Head-Ref: paudley/1429-remove-nemo
+GhpRsq-Head-OID: 68940b2d4138e23e6ba51162633882e537b038ae
 GhpRsq-Result-Tree: f5d13fcab996640540c34a1f88c1e743d05e946c
-GhpRsq-Result-Commit: 68940b2d4138e23e6ba51162633882e537b038ae
-GhpRsq-Parent-Hashes: 8dc65028b7887f5441f0619c4e2b019dd20de543
-GhpRsq-Squash-Notes-SHA256: d7b7e96d7c867c752dad097493daa0308efb87e1a781558c3e8aaf0100ced400
+GhpRsq-Result-Commit: 13634fcfac83d827856d2c83e62a22bec0269a62
+GhpRsq-Parent-Hashes: 68940b2d4138e23e6ba51162633882e537b038ae 8dc65028b7887f5441f0619c4e2b019dd20de543
+GhpRsq-Squash-Notes-SHA256: 5617e4c6170342ff86c924027f9149dfa595a4d38a0a1f7536c7c9a44fad26e9
