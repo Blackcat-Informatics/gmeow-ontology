@@ -518,6 +518,13 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, gm
             metadata: Some(format!("level={};cached={}", timing.level, timing.cached)),
         });
     }
+    for timing in &result.stage_phase_timings {
+        timings.push(TimingRecord {
+            phase: format!("stage:{}/{}", timing.stage_id, timing.phase),
+            elapsed_ms: timing.elapsed_ms,
+            metadata: timing.metadata.clone(),
+        });
+    }
     for timing in &result.level_timings {
         timings.push(TimingRecord {
             phase: "pipeline-level".to_string(),

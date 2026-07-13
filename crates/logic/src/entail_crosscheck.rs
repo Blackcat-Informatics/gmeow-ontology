@@ -66,6 +66,7 @@
 //! graph-scoping artifact.
 
 use purrdf::RdfDataset;
+use rayon::prelude::*;
 
 use crate::entail_oracle;
 use crate::reason::InferredAxiom;
@@ -142,7 +143,7 @@ fn is_comparable_class(iri: &str) -> bool {
 /// (routed through consistency), and Skolem-witness endpoints (blank restriction
 /// nodes the oracle keeps as blanks and never reports as subsumptions).
 fn native_subsumptions(inferred: &[InferredAxiom]) -> Vec<(String, String, String)> {
-    let mut out: Vec<(String, String, String)> = Vec::new();
+    let mut pairs: Vec<(String, String)> = Vec::new();
     for ax in inferred {
         if ax.predicate != SUBCLASS_OF {
             continue;
@@ -152,11 +153,14 @@ fn native_subsumptions(inferred: &[InferredAxiom]) -> Vec<(String, String, Strin
         if sub == sup || !is_comparable_class(sub) || !is_comparable_class(sup) {
             continue;
         }
-        out.push((sub.to_owned(), sup.to_owned(), CROSSCHECK_WORLD.to_owned()));
+        pairs.push((sub.to_owned(), sup.to_owned()));
     }
-    out.sort();
-    out.dedup();
-    out
+    pairs.sort();
+    pairs.dedup();
+    pairs
+        .into_iter()
+        .map(|(sub, sup)| (sub, sup, CROSSCHECK_WORLD.to_owned()))
+        .collect()
 }
 
 /// Run the oracle OWL-RL subsumption closure once **per world** and union the
@@ -166,19 +170,52 @@ fn native_subsumptions(inferred: &[InferredAxiom]) -> Vec<(String, String, Strin
 /// `purrdf::entail` reads — via [`RdfDataset::project_named_graph`], so the oracle
 /// reasons over exactly the same per-world axiom set the native chase does. Skolem
 /// endpoints are dropped defensively so the two sides share one comparable universe.
-fn oracle_subsumptions(bundle: &RdfDataset, worlds: &[String]) -> Vec<(String, String, String)> {
-    let mut out: Vec<(String, String, String)> = Vec::new();
+fn oracle_world_subsumptions(bundle: &RdfDataset, world: &str) -> Vec<(String, String)> {
+    let world_ds = bundle.project_named_graph(world);
+    entail_oracle::owlrl_subsumptions(&world_ds)
+        .into_iter()
+        .filter(|(sub, sup)| is_comparable_class(sub) && is_comparable_class(sup))
+        .collect()
+}
+
+/// Sequential reference implementation retained for parity tests and the direct
+/// single-world path, where entering Rayon costs more than it can recover.
+fn oracle_subsumptions_serial(bundle: &RdfDataset, worlds: &[String]) -> Vec<(String, String)> {
+    let mut out: Vec<(String, String)> = Vec::new();
     for world in worlds {
-        let world_ds = bundle.project_named_graph(world);
-        for (sub, sup) in entail_oracle::owlrl_subsumptions(&world_ds) {
-            if is_comparable_class(&sub) && is_comparable_class(&sup) {
-                out.push((sub, sup, CROSSCHECK_WORLD.to_owned()));
-            }
-        }
+        out.extend(oracle_world_subsumptions(bundle, world));
     }
     out.sort();
     out.dedup();
     out
+}
+
+fn oracle_subsumptions(bundle: &RdfDataset, worlds: &[String]) -> Vec<(String, String, String)> {
+    let pairs = if worlds.len() <= 1 {
+        oracle_subsumptions_serial(bundle, worlds)
+    } else {
+        // `par_iter` over a slice is indexed, so collecting the per-world vectors
+        // preserves source-world order independently of scheduling. Each world is
+        // an isolated EDB; the only shared value is the immutable source bundle.
+        // The final explicit sort/dedup remains the observable commit boundary.
+        let chunks: Vec<Vec<(String, String)>> = worlds
+            .par_iter()
+            .map(|world| oracle_world_subsumptions(bundle, world))
+            .collect();
+        let capacity = chunks.iter().map(Vec::len).sum();
+        let mut out = Vec::with_capacity(capacity);
+        for chunk in chunks {
+            out.extend(chunk);
+        }
+        out.sort();
+        out.dedup();
+        out
+    };
+
+    pairs
+        .into_iter()
+        .map(|(sub, sup)| (sub, sup, CROSSCHECK_WORLD.to_owned()))
+        .collect()
 }
 
 /// Run the native ↔ entail-oracle subsumption divergence cross-check.
@@ -250,8 +287,10 @@ mod tests {
     use super::*;
     use crate::reason::ledger::DivergenceKind;
     use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+    use rayon::ThreadPoolBuilder;
 
     const W: &str = "http://gmeow.example/world";
+    const W2: &str = "http://gmeow.example/world-2";
     const OWL_CLASS: &str = "http://www.w3.org/2002/07/owl#Class";
     const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
     const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
@@ -279,6 +318,58 @@ mod tests {
             builder.push_owned_quad(&quad);
         }
         builder.freeze().expect("valid test dataset")
+    }
+
+    fn two_world_dataset() -> std::sync::Arc<RdfDataset> {
+        let mut builder = RdfDatasetBuilder::new();
+        for (world, prefix) in [(W, "left"), (W2, "right")] {
+            for class in ["A", "B", "C"] {
+                let class = iri(&format!("{prefix}-{class}"));
+                let quad = RdfQuad::new(RdfTerm::iri(class), RDF_TYPE, RdfTerm::iri(OWL_CLASS))
+                    .in_graph(RdfTerm::iri(world));
+                builder.push_owned_quad(&quad);
+            }
+            for (sub, sup) in [("A", "B"), ("B", "C")] {
+                let quad = RdfQuad::new(
+                    RdfTerm::iri(iri(&format!("{prefix}-{sub}"))),
+                    SUBCLASS_OF,
+                    RdfTerm::iri(iri(&format!("{prefix}-{sup}"))),
+                )
+                .in_graph(RdfTerm::iri(world));
+                builder.push_owned_quad(&quad);
+            }
+        }
+        builder.freeze().expect("valid two-world test dataset")
+    }
+
+    #[test]
+    fn parallel_oracle_worlds_match_serial_and_are_repeatably_ordered() {
+        let dataset = two_world_dataset();
+        let worlds = vec![W.to_owned(), W2.to_owned()];
+        let expected: Vec<_> = oracle_subsumptions_serial(dataset.as_ref(), &worlds)
+            .into_iter()
+            .map(|(sub, sup)| (sub, sup, CROSSCHECK_WORLD.to_owned()))
+            .collect();
+        let pool = ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .expect("fixed four-worker pool");
+
+        for _ in 0..8 {
+            let actual = pool.install(|| oracle_subsumptions(dataset.as_ref(), &worlds));
+            assert_eq!(actual, expected, "parallel fold must equal serial bytes");
+        }
+
+        let one_world = vec![W.to_owned()];
+        let expected_one: Vec<_> = oracle_subsumptions_serial(dataset.as_ref(), &one_world)
+            .into_iter()
+            .map(|(sub, sup)| (sub, sup, CROSSCHECK_WORLD.to_owned()))
+            .collect();
+        assert_eq!(
+            oracle_subsumptions(dataset.as_ref(), &one_world),
+            expected_one,
+            "single-world direct path must equal the serial reference"
+        );
     }
 
     #[test]

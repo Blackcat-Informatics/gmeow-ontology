@@ -149,6 +149,15 @@ fn repo_facts(root: &Path) -> Arc<RepoFacts> {
     built
 }
 
+/// Prime the immutable repo-wide documentation facts before a parallel slice sweep.
+///
+/// The ordinary axis lookup remains the single cache authority. This entry point only
+/// moves its first construction ahead of the worker fan-out so workers never occupy a
+/// Rayon thread while waiting on the cache mutex.
+pub(crate) fn prime_repo_facts(root: &Path) {
+    drop(repo_facts(root));
+}
+
 /// Build the per-slice documentation facts from a fresh [`DocsModel`]. The per-slice
 /// coverage fraction + covered-dimension incidence are read back from the SAME
 /// `graph/documentation` N-Quads the docs projection emits (via [`documentation_graph`]),
