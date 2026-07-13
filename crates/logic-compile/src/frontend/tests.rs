@@ -1137,6 +1137,38 @@ fn formula_cycle_identity_and_message_are_traversal_order_independent() {
 
 // ── Derived validation shapes (OWL restrictions → closed-world SHACL) ─────────
 
+/// [`AUTHORING_NAMESPACES`] is THE single authoring-namespace authority — the derive's own
+/// dogfooding boundary AND the `shape-migrate` injector's eligibility test (`gmeow-dev-cli`)
+/// both consume this exact set. Pin it to exactly the four namespaces so an accidental
+/// addition/removal reds here instead of silently drifting one of its two consumers out of
+/// sync with the other.
+#[test]
+fn authoring_namespaces_is_pinned_to_the_four_dogfooded_namespaces() {
+    assert_eq!(
+        AUTHORING_NAMESPACES,
+        [
+            "https://blackcatinformatics.ca/gmeow/",
+            "https://blackcatinformatics.ca/math/",
+            "https://blackcatinformatics.ca/lang/",
+            "https://blackcatinformatics.ca/logic/",
+        ]
+    );
+}
+
+#[test]
+fn is_authoring_namespace_accepts_every_dogfooded_namespace_and_rejects_external() {
+    for ns in AUTHORING_NAMESPACES {
+        assert!(
+            is_authoring_namespace(&format!("{ns}Example")),
+            "{ns} must be accepted as an authoring namespace"
+        );
+    }
+    assert!(!is_authoring_namespace("http://xmlns.com/foaf/0.1/Person"));
+    assert!(!is_authoring_namespace(
+        "https://ontologies.gufo.example/gufo#Object"
+    ));
+}
+
 /// Parse a Turtle fragment into a dataset for [`derive_validation_shapes`]. The `g:` prefix is
 /// the GMEOW authoring namespace, so its classes are in-scope for derivation.
 fn shape_dataset(ttl: &str) -> std::sync::Arc<RdfDataset> {
