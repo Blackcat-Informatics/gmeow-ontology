@@ -27,14 +27,6 @@ path = "src/bin/conformance_report.rs"
 name = "ingest-external"
 path = "src/bin/ingest_external.rs"
 
-# Bench-corpus ingestion: convert a fetched Nemo-examples ChaseBench-family program
-# tree (`.rls` + `@import`ed CSV/gz EDB) into the bench-corpus `nary-existential`
-# layout the `gmeow-bench-engines` harness runs, with a Nemo-reference golden. Driven
-# by `make maint-nemo-kr2024-corpus`.
-[[bin]]
-name = "bench-ingest"
-path = "src/bin/bench_ingest.rs"
-
 [dependencies]
 # Dependency-free license-token policy classifier (RUST-FIRST single source of truth).
 # The vendoring gate (external/corpus.rs) shares this exact algorithm with the Python
@@ -73,13 +65,6 @@ serde_json = "1"
 # IRIs are minted with in gmeow-errors), so the folded graph/conformance individuals
 # are deterministic and blank-node-free.
 blake3 = "1"
-# Transparent gunzip for the bench-ingest converter: a fetched Nemo-examples EDB
-# relation may ship an EMPTY gzipped CSV (e.g. Galen has no role chains), which the
-# n-ary loader refuses as a zero-row relation — the converter decodes to detect and
-# omit an empty relation (announced, never silent). `gmeow-logic` already depends on
-# this crate, so no new external edge enters the graph.
-flate2 = "1"
-
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered profile.json (i.e. per
 # case directory), run in parallel. Mirrors crates/slicetest.

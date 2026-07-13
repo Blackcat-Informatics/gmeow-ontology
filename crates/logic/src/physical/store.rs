@@ -11,7 +11,7 @@
 //! a bound **subject** OR a bound **object**, not just by predicate.  This module is
 //! the column-oriented analogue: per predicate a [`Relation`] holds `(subject, object)`
 //! tuples as a **shared arrangement** — a log of sorted immutable batches plus a small
-//! mutable tail (the McSherry-et-al. / Nemo-Ivliev columnar discipline).
+//! mutable tail (the McSherry-et-al. columnar discipline).
 //!
 //! # The arrangement shape
 //!
@@ -83,15 +83,15 @@ use crate::seam::WorldFactSource;
 // the recipe can.  Keeping it is what leaves the door open for later Skolem
 // FUNCTIONS, full-FOL backward resolution, and provenance-semiring worlds — none of
 // which an opaque hash could express.  It also drives recursive, order-independent
-// null-blind parity against Nemo and an "explain invented individual" surface.
+// null-blind comparison and an "explain invented individual" surface.
 
 /// The decomposable recipe for a chase-invented null — a Skolem **function** of the
 /// frontier binding, the standard restricted-chase witness.
 ///
 /// The invented value depends on the bound frontier VALUES (never the lexical
 /// variable names), so alpha-variant rules firing on the same data mint the same
-/// null (`content_key` alpha-normalized identity), and — matching Nemo's restricted
-/// chase — two distinct frontier bindings mint two distinct witnesses.  A frontier
+/// null (`content_key` alpha-normalized identity), and two distinct frontier bindings
+/// mint two distinct witnesses. A frontier
 /// slot may itself be a prior invented null (a nested Skolem term), which stays
 /// decomposable via the registry.  Termination is exactly weak acyclicity of the
 /// rule set; the [`ChaseAdmission`](crate) certificate gates admission.
@@ -1456,7 +1456,7 @@ mod tests {
     #[test]
     fn skolem_distinct_frontiers_give_distinct_witnesses() {
         // The standard restricted chase mints one fresh witness per frontier binding
-        // (matching Nemo) — distinct frontier values ⇒ distinct nulls.
+        // Distinct frontier values imply distinct nulls.
         let mut reg = SkolemRegistry::new();
         let wa = reg.mint(witness(0, vec![term("http://ex/a")]));
         let wb = reg.mint(witness(0, vec![term("http://ex/b")]));

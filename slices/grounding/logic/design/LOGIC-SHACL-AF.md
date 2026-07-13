@@ -54,7 +54,7 @@ The canon does not gain a new "map/reduce" construct; it already has the two hal
 
 - **Map** is a `logic:` **derivation rule**: for every binding of its body it derives
   its head. A least-model evaluation of a rule over a graph *is* a map over the matched
-  subgraphs — this is exactly what the native materializer and the Datalog/N3/Nemo
+  subgraphs — this is exactly what the native materializer and the Datalog/N3
   projections already do with `program.rules`. No new vocabulary is minted for it.
 - **Reduce** is **aggregation**: a derivation whose head is a function (count, sum,
   extremum) of a *group* of body bindings. The relational-core dialect's declared

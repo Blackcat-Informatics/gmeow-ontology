@@ -46,7 +46,7 @@ No case may depend on iteration order. Each expected artifact is compared by a f
 | Output | Comparison |
 |---|---|
 | `materialized.nq`, `witnesses.nq`, `projections/*.ttl` (RDF) | **graph isomorphism** (blank-node-aware, RDFC-1.0) |
-| `projections/{datalog.dl, nemo.rls, n3.n3}` (text) | **exact text equality** — deterministic, see below |
+| `projections/{datalog.dl, n3.n3}` (text) | **exact text equality** — deterministic, see below |
 | `verdicts.json`, `answers/*.json` | **canonical JSON** — sorted keys, normalized literals |
 | `explanation/*.md` | the **cited-IRI and rule-IRI skeleton**, *not* the surface prose |
 

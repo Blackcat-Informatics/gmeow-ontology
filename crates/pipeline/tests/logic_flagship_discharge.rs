@@ -33,7 +33,10 @@ use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
 use gmeow_logic::correspondence_exec::leg_pair_verdict;
 use gmeow_logic::counterfactual::construct_and_resolve;
 use gmeow_logic::explain::{Row, assert_faithful, explain_one};
-use gmeow_logic::materialize::{ChaseAdmission, materialize_routed};
+use gmeow_logic::materialize::{
+    ChaseAdmission, MaterializationLimits, StructuredAtom, StructuredExistentialRule,
+    StructuredTerm, materialize_existential_rules,
+};
 use gmeow_logic::provenance::{ASSERT_RULE_IRI, term_display};
 use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::reason::reason_all;
@@ -165,7 +168,7 @@ fn run_counterexample(
         "logic::correspondence_exec::leg_pair_verdict" => run_broken_section()?,
         "logic::counterfactual::construct_and_resolve" => run_unentrenched_counterfactual()?,
         "logic::conjecture::conjecture_test" => run_unwitnessed_refutation()?,
-        "logic::materialize::materialize_routed" => run_uncertified_chase()?,
+        "logic::materialize::materialize_existential_rules" => run_uncertified_chase()?,
         other => {
             return Err(flagship_error(format!(
                 "unknown logic flagship producer identifier: {other}"
@@ -198,7 +201,7 @@ fn run_producer(flagship: &Flagship, _ctx: &FlagshipCtx<'_>) {
         "logic::conjecture::conjecture_test" => run_conjecture(),
         // chaseTerminationCertificate: a weakly-acyclic existential chase surfaces a
         // non-empty ChaseAdmission Finding, and the derivation carries an assert_faithful trace.
-        "logic::materialize::materialize_routed" => run_chase(),
+        "logic::materialize::materialize_existential_rules" => run_chase(),
         other => panic!("unknown logic flagship producer identifier: {other}"),
     }
 }
@@ -524,19 +527,39 @@ fn run_unwitnessed_refutation() -> gmeow_errors::Result<&'static str> {
     }
 }
 
-/// FS5 — a weakly-acyclic existential chase: `materialize_routed` surfaces the ChaseAdmission
+/// FS5 — a weakly-acyclic existential chase: the typed materializer surfaces the ChaseAdmission
 /// termination certificate as a non-empty gmeow:Finding, and the derivation carries an
 /// explanation trace that passes `assert_faithful` (its cited witness IRIs are present).
 fn run_chase() {
     // A weakly-acyclic value-inventing program: for each typed individual, invent a fresh
     // ancestor. The existential head predicate never feeds a body position, so no existential
     // edge lies in a cycle ⇒ the chase is certified terminating.
-    let rules = "<https://ex/hasAncestor>(?x, !y, ?w) :- \
-                 <https://ex/hasType>(?x, <https://ex/Person>, ?w) .";
     let input = "<https://ex/alice> <https://ex/hasType> <https://ex/Person> <https://world/W> .\n";
-
-    let m = materialize_routed(rules, input, Some(64), None, None, None)
-        .expect("FS5: the existential chase materializes");
+    let rules = vec![StructuredExistentialRule {
+        rule_iri: "https://ex/rule/ancestor".to_owned(),
+        body: vec![StructuredAtom::new(
+            StructuredTerm::var("?x"),
+            "https://ex/hasType",
+            StructuredTerm::named("https://ex/Person"),
+        )],
+        head: vec![StructuredAtom::new(
+            StructuredTerm::var("?x"),
+            "https://ex/hasAncestor",
+            StructuredTerm::var("?y"),
+        )],
+        distinct: Vec::new(),
+        witness_frontier: None,
+    }];
+    let dataset = purrdf::parse_dataset(input.as_bytes(), "application/n-quads", None)
+        .expect("FS5: input parses");
+    let m = materialize_existential_rules(
+        dataset.as_ref(),
+        &rules,
+        MaterializationLimits {
+            max_steps: Some(64),
+        },
+    )
+    .expect("FS5: the existential chase materializes");
 
     // The termination certificate is surfaced PUBLICLY on the materialization result.
     let admission = m
@@ -565,10 +588,10 @@ fn run_chase() {
         "FS5: the surfaced gmeow:Finding must be non-empty (it carries the proof evidence)"
     );
 
-    // The derivation carries a faithful explanation trace over `materialize_routed`'s OWN
+    // The derivation carries a faithful explanation trace over the materializer's OWN
     // output — never a fabricated stand-in trace. Convert the chase's real derived quads to
     // the explain surface's `Row`s (reproducing, not re-deriving, the SAME reifier
-    // `materialize_routed` already minted into `source_quad_ids`), locate the invented
+    // materializer already minted into `source_quad_ids`), locate the invented
     // `hasAncestor` quad the chase actually derived, and assert its explanation is non-empty
     // and faithful — assert_faithful rejects any fabricated witness.
     let rows: Vec<Row> = m.quads.iter().map(quad_to_row).collect();
@@ -592,15 +615,46 @@ fn run_chase() {
 /// returns the native `Uncertified` admission (while its terminating facts-only oracle leg keeps
 /// the fixture executable); a parse failure, unsupported input, or missing admission is an error.
 fn run_uncertified_chase() -> gmeow_errors::Result<&'static str> {
-    let rules = "<http://ex/p>(?x, !y, ?w) :- \
-                 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?x, <http://ex/C>, ?w) .\n\
-                 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(?z, <http://ex/C>, ?w) :- \
-                 <http://ex/p>(<http://ex/a>, ?z, ?w) .\n";
     let input = "<http://ex/a> \
                  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
                  <http://ex/C> <http://world/W> .\n";
-    let result = materialize_routed(rules, input, None, None, None, Some("PositiveHornProfile"))
+    let rules = vec![
+        StructuredExistentialRule {
+            rule_iri: "http://ex/rule/invent".to_owned(),
+            body: vec![StructuredAtom::new(
+                StructuredTerm::var("?x"),
+                TYPE,
+                StructuredTerm::named("http://ex/C"),
+            )],
+            head: vec![StructuredAtom::new(
+                StructuredTerm::var("?x"),
+                "http://ex/p",
+                StructuredTerm::var("?y"),
+            )],
+            distinct: Vec::new(),
+            witness_frontier: None,
+        },
+        StructuredExistentialRule {
+            rule_iri: "http://ex/rule/recur".to_owned(),
+            body: vec![StructuredAtom::new(
+                StructuredTerm::named("http://ex/a"),
+                "http://ex/p",
+                StructuredTerm::var("?z"),
+            )],
+            head: vec![StructuredAtom::new(
+                StructuredTerm::var("?z"),
+                TYPE,
+                StructuredTerm::named("http://ex/C"),
+            )],
+            distinct: Vec::new(),
+            witness_frontier: None,
+        },
+    ];
+    let dataset = purrdf::parse_dataset(input.as_bytes(), "application/n-quads", None)
         .map_err(|e| flagship_error(e.to_string()))?;
+    let result =
+        materialize_existential_rules(dataset.as_ref(), &rules, MaterializationLimits::default())
+            .map_err(|e| flagship_error(e.to_string()))?;
     match result.chase_admission.as_ref() {
         Some(ChaseAdmission::Uncertified { violations }) if !violations.is_empty() => {
             Ok("UncertifiedChase")
@@ -616,7 +670,7 @@ fn run_uncertified_chase() -> gmeow_errors::Result<&'static str> {
 
 /// Convert a chase-materialized [`DerivedQuad`] into the `explain` surface's [`Row`]: the bare
 /// subject/predicate IRIs plus the `term_display`-rendered object N3 form reproduce, byte for
-/// byte, the SAME `mint_reifier` recipe `materialize_routed` already used to mint this quad's
+/// byte, the SAME `mint_reifier` recipe the typed materializer used to mint this quad's
 /// entries in `source_quad_ids` — this is a second READER of that one provenance scheme, not a
 /// second scheme.
 fn quad_to_row(dq: &DerivedQuad) -> Row {

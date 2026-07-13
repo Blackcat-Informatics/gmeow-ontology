@@ -84,7 +84,7 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 use crate::query_ir::Budget;
 use crate::reason::InferredAxiom;
 use crate::reason::{reason_all, reason_program};
-use crate::relational_core::{formula_eval_rls, formula_nary_head_rls};
+use crate::relational_core::lower_formulas;
 use crate::result::{
     CompletenessStatus, ContradictionWitness, EvaluationStatus, InformationState, InputStatus,
     PreservationClaim, ReasoningResult, ResultProvenance,
@@ -350,9 +350,8 @@ pub fn conjecture_test(
             // The candidate contributed EVALUABLE content iff its lowering produced any Horn
             // rule or n-ary head rule. A fully beyond-fragment candidate (empty lowering) was
             // never evaluated, so its "added nothing" is vacuous, not a proof.
-            let (rls, _residue) = formula_eval_rls(&p_phi);
-            let nary_rls = formula_nary_head_rls(&p_phi);
-            let evaluable = !rls.trim().is_empty() || !nary_rls.trim().is_empty();
+            let lowering = lower_formulas(&p_phi);
+            let evaluable = !lowering.rules.is_empty() || !lowering.nary_head_rules.is_empty();
             (reason_program(&p_phi, &base_edb)?, evaluable, None)
         }
     };

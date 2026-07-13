@@ -287,7 +287,7 @@ meta:gate-logic-conformance a meta:Gate ;
 meta:gate-logic-round-trip a meta:Gate ;
     rdfs:label "logic→OWL DL/EL, Datalog, N3, gUFO projection round-trip isomorphism + preservation ledger"@x-gmeow-english ;
     meta:artifact "crates/logic-compile/src/projections/text.rs", "crates/logic-compile/src/projections/report.rs" ;
-    meta:symbol "project_nemo", "build_projection_report" .
+    meta:symbol "build_projection_report" .
 
 meta:gate-foundation-conformance a meta:Gate ;
     rdfs:label "gUFO foundation downcast ≡ reasoning_lint verdicts — native Rust evaluator"@x-gmeow-english ;

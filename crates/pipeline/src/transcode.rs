@@ -14,7 +14,7 @@
 //!   that can be decoded (parsed) into the IR: Turtle, N-Triples, N-Quads, TriG,
 //!   JSON-LD, JSON-LD-star\*, YAML-LD-star\*, RDF/XML, GTS, OWL-RDF-1.2.
 //! - **Projection codecs** — lossy, semantic-subset targets that cannot be
-//!   decoded (no inverse parse exists): OWL-DL, OWL-EL, Datalog, N3, Nemo,
+//!   decoded (no inverse parse exists): OWL-DL, OWL-EL, Datalog, N3,
 //!   gUFO, canonical-RDF12.
 //!
 //! (\* JSON-LD-star and YAML-LD-star are syntax codecs but are NOT decodable via
@@ -39,7 +39,7 @@ use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::{
     rdf::{project_canonical_rdf12, project_gufo, project_owl_dl, project_owl_el},
-    text::{project_datalog, project_n3, project_nemo},
+    text::{project_datalog, project_n3},
 };
 use purrdf::loss::pair_loss_ledger;
 use purrdf::{
@@ -88,8 +88,6 @@ pub enum Codec {
     Datalog,
     /// Notation-3 projection (lossy; NOT decodable).
     N3,
-    /// Nemo existential-rules projection (lossy; NOT decodable).
-    Nemo,
     /// gUFO foundational-classes projection (lossy; NOT decodable).
     Gufo,
     /// Canonical RDF-1.2 logic form projection (exact; NOT decodable as a
@@ -118,7 +116,6 @@ impl Codec {
             Self::OwlEl => "owl-el",
             Self::Datalog => "datalog",
             Self::N3 => "n3",
-            Self::Nemo => "nemo",
             Self::Gufo => "gufo",
             Self::CanonicalRdf12 => "canonical-rdf12",
         }
@@ -141,7 +138,6 @@ impl Codec {
             Self::OwlEl,
             Self::Datalog,
             Self::N3,
-            Self::Nemo,
             Self::Gufo,
             Self::CanonicalRdf12,
         ]
@@ -167,7 +163,6 @@ impl Codec {
             "owl-el" => Ok(Self::OwlEl),
             "datalog" | "dl" => Ok(Self::Datalog),
             "n3" => Ok(Self::N3),
-            "nemo" => Ok(Self::Nemo),
             "gufo" => Ok(Self::Gufo),
             "canonical-rdf12" => Ok(Self::CanonicalRdf12),
             other => Err(gmeow_errors::Diag::of_kind(
@@ -189,7 +184,6 @@ impl Codec {
                 | Self::OwlEl
                 | Self::Datalog
                 | Self::N3
-                | Self::Nemo
                 | Self::Gufo
                 | Self::CanonicalRdf12
         )
@@ -515,15 +509,6 @@ fn transcode_to_projection(
             let drops = loss.actual_drop_count(&result.target) as u64;
             (result.content, drops)
         }
-        Codec::Nemo => {
-            let result = project_nemo(&program, &mut loss).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
-                    message: format!("nemo projection: {e}"),
-                })
-            })?;
-            let drops = loss.actual_drop_count(&result.target) as u64;
-            (result.content, drops)
-        }
         Codec::Gufo => {
             let result = project_gufo(&program, &mut loss).map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::transcode::CodecError {
@@ -657,6 +642,28 @@ pub fn transcode_matrix_json() -> String {
     }
     entries.sort_by(|a, b| a.from.cmp(b.from).then(a.to.cmp(b.to)));
     let mut json = serde_json::to_string_pretty(&entries).unwrap_or_else(|_| "[]".to_owned());
+    json.push('\n');
+    json
+}
+
+/// Render the static loss ledger for exactly the codecs this binary supports.
+///
+/// purrdf owns the shared loss vocabulary and may expose additional projection
+/// codecs. The GMEOW CLI's committed matrix must describe its own accepted surface,
+/// so rows whose source or target is absent from [`Codec::all`] are excluded.
+pub fn transcode_loss_matrix_json() -> String {
+    let supported: HashSet<&str> = Codec::all().iter().map(|codec| codec.name()).collect();
+    let mut entries: Vec<serde_json::Value> =
+        serde_json::from_str(&purrdf::transcode_loss_matrix_json())
+            .expect("purrdf static transcode-loss matrix must be valid JSON");
+    entries.retain(|entry| {
+        let from = entry.get("from").and_then(serde_json::Value::as_str);
+        let to = entry.get("to").and_then(serde_json::Value::as_str);
+        from.is_some_and(|name| supported.contains(name))
+            && to.is_some_and(|name| supported.contains(name))
+    });
+    let mut json = serde_json::to_string_pretty(&entries)
+        .expect("filtered transcode-loss matrix must serialize");
     json.push('\n');
     json
 }
@@ -938,18 +945,6 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
     }
 
     #[test]
-    fn logic_to_nemo_succeeds_nonempty() {
-        let out = transcode(
-            LOGIC_FIXTURE_TTL.as_bytes(),
-            Codec::Turtle,
-            Codec::Nemo,
-            None,
-        )
-        .expect("turtle → nemo");
-        assert!(!out.bytes.is_empty(), "nemo output must be non-empty");
-    }
-
-    #[test]
     fn logic_to_n3_succeeds_nonempty() {
         let out = transcode(LOGIC_FIXTURE_TTL.as_bytes(), Codec::Turtle, Codec::N3, None)
             .expect("turtle → n3");
@@ -1043,6 +1038,22 @@ ex:MyProp a owl:ObjectProperty ; rdfs:domain ex:MyClass .
     #[test]
     fn transcode_matrix_is_deterministic() {
         assert_eq!(transcode_matrix_json(), transcode_matrix_json());
+    }
+
+    #[test]
+    fn transcode_loss_matrix_contains_only_supported_codecs() {
+        let supported: HashSet<&str> = Codec::all().iter().map(|codec| codec.name()).collect();
+        let rows: Vec<serde_json::Value> =
+            serde_json::from_str(&transcode_loss_matrix_json()).expect("valid matrix JSON");
+        assert!(rows.iter().all(|row| {
+            row.get("from")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|name| supported.contains(name))
+                && row
+                    .get("to")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|name| supported.contains(name))
+        }));
     }
 
     /// Drift gate: the committed artifact must byte-equal the freshly rendered

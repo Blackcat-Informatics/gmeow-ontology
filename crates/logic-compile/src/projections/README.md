@@ -13,7 +13,7 @@ claims and loss ledgers, so a target must disclose what it drops.
 
 | Family | Modules | Role |
 | --- | --- | --- |
-| Whole-program targets | `text`, `rdf` | Emit Datalog, N3, Nemo, OWL DL/EL, gUFO, and canonical RDF 1.2 projections. |
+| Whole-program targets | `text`, `rdf` | Emit Datalog, N3, OWL DL/EL, gUFO, and canonical RDF 1.2 projections. |
 | Correspondence calculus | `correspondence`, `get_leg`, `put_derivation`, `correspondence_gate`, `correspondence_gates` | Lower get/put legs and enforce law/overclaim/round-trip/mnemomorphism/composition gates. |
 | Mapping artifacts | `sparql`, `edoal`, `fno`, `sssom` | Emit executable CONSTRUCT queries and alignment/function artifacts from the shared correspondence model. |
 | Reports and helpers | `report`, `paths`, `tests` | Build the projection report, path-shape projections, and shared test support. |

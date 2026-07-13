@@ -55,11 +55,6 @@
     ],
     "preservation": "CompleteOverApproximation"
   },
-  "nemo": {
-    "complexity": "PTIME/datalog",
-    "lossy_drops": [],
-    "preservation": "ExactPreservation"
-  },
   "owl-dl": {
     "complexity": "decidable/N2EXPTIME",
     "lossy_drops": [

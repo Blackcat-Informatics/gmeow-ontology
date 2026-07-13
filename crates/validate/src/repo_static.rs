@@ -1144,7 +1144,7 @@ fn blank_comments_strings_and_cfg_test_modules(text: &str) -> String {
 /// and inside every `[target.'cfg(...)'.dependencies]`-style sub-table): the Phase-6
 /// Diag-substrate honest invariant that first-party manifests never declare `thiserror` or
 /// `anyhow` — `gmeow_errors::Diag` is the single first-party error type. Transitive
-/// occurrences pulled in by vendored third-party crates (`nemo`, `tiktoken-rs`, …) are
+/// occurrences pulled in by vendored third-party crates (`tiktoken-rs`, …) are
 /// allowed and out of scope: this gate scans MANIFESTS only, never the resolved dependency
 /// tree / `Cargo.lock`.
 const DEP_TABLE_KEYS_STATIC: &[&str] = &["dependencies", "dev-dependencies", "build-dependencies"];

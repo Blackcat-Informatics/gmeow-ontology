@@ -1144,11 +1144,10 @@ const REP_AXIOMS: &str = "axioms-archive";
 /// small, committed, drift-gated projections a repo-free consumer needs. The
 /// big reasoning outputs are deliberately excluded. Order is canonical for the
 /// fail-closed scan; the archive re-sorts members by key for determinism.
-const AXIOM_FILES: [&str; 5] = [
+const AXIOM_FILES: [&str; 4] = [
     "generated/owl/gmeow-dl.ttl",
     "generated/owl/gmeow-el.ttl",
     "generated/logic/gmeow.logic.rdf12.ttl",
-    "generated/logic/gmeow.rls",
     "generated/datalog/gmeow.dl",
 ];
 /// tar of the native reasoner's REPORT artifacts: the entailment
@@ -1456,8 +1455,7 @@ fn opaque_already_carried(path: &str) -> bool {
         || path == "generated/schemas/gmeow.openapi.json" // REP_SCHEMAS
         || path == "generated/schemas/card.schema.json"   // REP_SCHEMAS
         || path == "generated/schemas/validate-finding.schema.json" // REP_SCHEMAS
-        || path == "generated/datalog/gmeow.dl"           // REP_AXIOMS
-        || path == "generated/logic/gmeow.rls" // REP_AXIOMS
+        || path == "generated/datalog/gmeow.dl" // REP_AXIOMS
 }
 
 /// The two generated validation-shape surfaces (SHACL Core Turtle + ShEx compact),
@@ -1628,7 +1626,6 @@ fn build_fanout_opaque_blob(
         ("stage-reason", crate::stages::reason::EXPLANATIONS_PATH),
         ("stage-reason", crate::stages::reason::LEDGER_PATH),
         ("stage-reason", crate::stages::reason::PERF_LEDGER_PATH),
-        ("stage-reason", crate::stages::reason::CORRESPONDENCE_PATH),
     ] {
         let bytes = upstream
             .get(stage)
@@ -1678,7 +1675,7 @@ fn build_fanout_opaque_blob(
     );
     members.insert(
         "generated/transcode-loss-matrix.json".to_string(),
-        purrdf::transcode_loss_matrix_json().into_bytes(),
+        crate::transcode::transcode_loss_matrix_json().into_bytes(),
     );
     members.insert(
         "generated/transcode-matrix.json".to_string(),
@@ -1844,10 +1841,6 @@ fn build_reasoning_blob(
         (
             "reason/perf-ledger.ttl".to_string(),
             get(crate::stages::reason::PERF_LEDGER_PATH)?,
-        ),
-        (
-            "reason/subsumption-correspondence.ttl".to_string(),
-            get(crate::stages::reason::CORRESPONDENCE_PATH)?,
         ),
     ];
     archive_blob(REP_REASONING, &members)
@@ -4713,10 +4706,6 @@ mod ustar_tests {
             crate::stages::reason::PERF_LEDGER_PATH.to_string(),
             b"# perf ledger".to_vec(),
         );
-        artifacts.insert(
-            crate::stages::reason::CORRESPONDENCE_PATH.to_string(),
-            b"# subsumption correspondence".to_vec(),
-        );
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert(
             "stage-reason".to_string(),
@@ -4733,8 +4722,7 @@ mod ustar_tests {
             [
                 "reason/dl-el-crosscheck-report.ttl",
                 "reason/perf-ledger.ttl",
-                "reason/reasoning-explanations.rdf12.ttl",
-                "reason/subsumption-correspondence.ttl"
+                "reason/reasoning-explanations.rdf12.ttl"
             ]
             .into_iter()
             .collect::<std::collections::BTreeSet<&str>>(),

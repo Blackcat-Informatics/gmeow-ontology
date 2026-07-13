@@ -101,6 +101,11 @@ use crate::query_ir::{
 use crate::rule_ir::{EvalAtom, EvalRule, EvalTerm, Fact};
 use crate::seam::{BudgetStatus, WorldFactSource};
 
+use crate::annotation::{
+    AnnotatedAnswer, AnnotatedAnswerSet, AnnotatedFactKey, AnnotationDerivation, AnnotationFactRef,
+    AnnotationRequest, TupleAnnotationAlgebra,
+};
+
 /// Wrap a physical-chase condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
 fn physical_err(detail: String) -> gmeow_errors::Diag {
@@ -121,7 +126,7 @@ fn physical_err(detail: String) -> gmeow_errors::Diag {
 ///
 /// A `Const("<iri>")` → [`EvalTerm::ConstNamed`] (angle brackets stripped); a `Var(v)` →
 /// `EvalTerm::Var("?v")` (the engine's variable surface carries a leading `?`, matching
-/// `parse_eval_rules`); a `Num` is an arithmetic operand the native core does not carry.
+/// typed lowering); a `Num` is an arithmetic operand the native core does not carry.
 ///
 /// Shared with the n-ary generic backward path ([`super::magic_generic`]): the same
 /// `QTerm → EvalTerm` codec lowers a generic atom's positional args.
@@ -1245,6 +1250,142 @@ fn demand_pruning_dropped_claim() -> crate::result::PreservationClaim {
     claim
 }
 
+/// Native binary fact evaluation retained for both plain and annotation-carrying
+/// answer projection. Keeping the demand transformation and tuple fixpoint here means
+/// `dispatch_query` and `dispatch_query_annotated` cannot drift into separate reasoners.
+struct BinaryEvaluation {
+    facts: Vec<Fact>,
+    status: BudgetStatus,
+    frontier: CompletionFrontier,
+    demand_pruning_dropped: bool,
+    goal_atom: EvalAtom,
+    base_rules: Vec<EvalRule>,
+    executed_rules: Vec<EvalRule>,
+    base_edb_facts: Vec<Fact>,
+    control_predicates: BTreeSet<String>,
+}
+
+type AnnotatedRows<E> = BTreeMap<Binding, (E, Vec<AnnotationDerivation<E>>)>;
+
+fn evaluate_binary_under(
+    contract_hash: &str,
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+    goal: &QAtom,
+) -> gmeow_errors::Result<NativeOutcome<BinaryEvaluation>> {
+    let mut rules: Vec<EvalRule> = Vec::with_capacity(program.rules.len());
+    for source_rule in &program.rules {
+        if source_rule
+            .body
+            .iter()
+            .any(|literal| matches!(literal, QBodyLit::Cut))
+        {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
+        }
+        let head = match atom_of(&source_rule.head) {
+            Ok(atom) => atom,
+            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+        };
+        let mut body = Vec::new();
+        let mut builtins = Vec::new();
+        for literal in &source_rule.body {
+            match literal {
+                QBodyLit::Atom(atom) => match atom_of(atom) {
+                    Ok(atom) => body.push(atom),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Neg(atom) => match atom_of(atom) {
+                    Ok(atom) => body.push(EvalAtom {
+                        negated: true,
+                        ..atom
+                    }),
+                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+                },
+                QBodyLit::Builtin(builtin) => builtins.push(builtin_of(builtin)),
+                QBodyLit::Cut => unreachable!("cut handled before binary rule lowering"),
+            }
+        }
+        if negated_body_flounders(&body, &builtins) {
+            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
+        }
+        let rule_iri = format!("{}::rule", head.predicate.as_str());
+        rules.push(EvalRule {
+            head,
+            body,
+            rule_iri,
+            distinct_pairs: Vec::new(),
+            builtins,
+        });
+    }
+
+    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&rules) {
+        return Ok(NativeOutcome::Unsupported(
+            UnsupportedKind::NonTerminatingArithmetic,
+        ));
+    }
+
+    let goal_atom = match atom_of(goal) {
+        Ok(atom) => atom,
+        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+    };
+    let transformed = magic_transform(&rules, &goal_atom, goal_adornment(goal));
+    let mut control_predicates: BTreeSet<String> = transformed
+        .rules
+        .iter()
+        .filter(|rule| rule.rule_iri.contains("::magic/"))
+        .map(|rule| rule.head.predicate.clone())
+        .collect();
+    if let Some(seed) = &transformed.seed {
+        control_predicates.insert(seed.predicate.clone());
+    }
+
+    let mut edb = extract_edb(foreign, world);
+    let base_edb_facts = edb.facts_sorted();
+    if let Some(seed) = &transformed.seed {
+        let fact = seed_to_fact(seed)?;
+        edb.insert(&fact.predicate, &fact.subject, &fact.object);
+    }
+    let transformed_rules = transformed.rules;
+    let base_rules = rules;
+    let outcome = eval_with_base_fallback(
+        contract_hash,
+        edb,
+        transformed_rules.clone(),
+        base_rules.clone(),
+        budget.max_steps,
+        || extract_edb(foreign, world),
+    )?;
+    match outcome {
+        FallbackOutcome::Decided {
+            facts,
+            status,
+            frontier,
+            demand_pruning_dropped,
+        } => Ok(NativeOutcome::Decided(BinaryEvaluation {
+            facts,
+            status,
+            frontier,
+            demand_pruning_dropped,
+            goal_atom,
+            base_rules: base_rules.clone(),
+            executed_rules: if demand_pruning_dropped {
+                base_rules
+            } else {
+                transformed_rules
+            },
+            base_edb_facts,
+            control_predicates: if demand_pruning_dropped {
+                BTreeSet::new()
+            } else {
+                control_predicates
+            },
+        })),
+        FallbackOutcome::Unsupported(kind) => Ok(NativeOutcome::Unsupported(kind)),
+    }
+}
+
 /// Resolve `program`'s single backward goal against `world` via the native magic-sets core.
 ///
 /// # Oracle-soundness contract
@@ -1323,112 +1464,19 @@ pub(crate) fn resolve_native_under(
         return super::magic_generic::resolve_native_generic(foreign, world, program, budget);
     }
 
-    // (1) Convert program rules → binary EvalRules, splitting each body into its atoms
-    // (the join structure) and its arithmetic/comparison builtins (the post-join
-    // constraint stage, evaluated in the modified rules by the shared moded evaluator).
-    let mut rules: Vec<EvalRule> = Vec::with_capacity(program.rules.len());
-    for r in &program.rules {
-        // Cut is procedural — still a declared gap.
-        if r.body.iter().any(|lit| matches!(lit, QBodyLit::Cut)) {
-            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
-        }
-        let head = match atom_of(&r.head) {
-            Ok(a) => a,
-            Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+    let evaluation =
+        match evaluate_binary_under(contract_hash, foreign, world, program, budget, goal)? {
+            NativeOutcome::Decided(evaluation) => evaluation,
+            NativeOutcome::Unsupported(kind) => return Ok(NativeOutcome::Unsupported(kind)),
         };
-        let mut body: Vec<EvalAtom> = Vec::new();
-        let mut builtins: Vec<QBuiltin> = Vec::new();
-        for lit in &r.body {
-            match lit {
-                QBodyLit::Atom(a) => match atom_of(a) {
-                    Ok(ea) => body.push(ea),
-                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
-                },
-                // A negated body atom lowers to the same binary `EvalAtom` with the
-                // `negated` flag set: the shared stratified evaluator decides it by NAF
-                // against the accumulated lower-stratum least model.
-                QBodyLit::Neg(a) => match atom_of(a) {
-                    Ok(ea) => body.push(EvalAtom {
-                        negated: true,
-                        ..ea
-                    }),
-                    Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
-                },
-                QBodyLit::Builtin(b) => builtins.push(builtin_of(b)),
-                // Cut already returned above.
-                QBodyLit::Cut => unreachable!("cut handled above"),
-            }
-        }
-        // Floundering guard: NAF is sound only when every variable of a negated body
-        // atom is range-restricted by a POSITIVE body atom (or bound by an `is`
-        // generator). A negated variable no positive literal binds is still free when
-        // the NAF goal fires — an unsound goal that must NOT be silently decided.
-        if negated_body_flounders(&body, &builtins) {
-            return Ok(NativeOutcome::Unsupported(UnsupportedKind::Floundering));
-        }
-        // A synthesized stable rule IRI for the modified/original rule.
-        let rule_iri = format!("{}::rule", head.predicate.as_str());
-        rules.push(EvalRule {
-            head,
-            body,
-            rule_iri,
-            distinct_pairs: vec![],
-            builtins,
-        });
-    }
-
-    // (1b) Value-generating-recursion termination guard.  Over the finite triple EDB a
-    // pure-Datalog backward program always terminates; the ONE divergence source is an
-    // arithmetic `is` value-generator inside an IDB dependency cycle with no finite
-    // driver.  With no `max_steps` budget that is an unbounded hang, so — detected
-    // STATICALLY here, before any evaluation — the request is refused to the oracle
-    // (incomplete-never-wrong, never a hang).  WITH a `max_steps` budget the
-    // `StepGovernor` cuts the recursion deterministically, so it is evaluated normally.
-    if budget.max_steps.is_none() && potentially_nonterminating_arithmetic(&rules) {
-        return Ok(NativeOutcome::Unsupported(
-            UnsupportedKind::NonTerminatingArithmetic,
-        ));
-    }
-
-    // (2) Compute the goal adornment and magic-transform.
-    let goal_atom = match atom_of(goal) {
-        Ok(a) => a,
-        Err(kind) => return Ok(NativeOutcome::Unsupported(kind)),
-    };
-    let adorn = goal_adornment(goal);
-    let transformed = magic_transform(&rules, &goal_atom, adorn);
-
-    // (3) Extract the world EDB columnar-form, seed the goal's magic fact, and run the
-    //     bottom-up fixpoint.  The seed is an asserted demand fact, so it goes into the
-    //     EDB seed (a bodyless rule never fires in the semi-naive engine).
-    let mut edb = extract_edb(foreign, world);
-    if let Some(seed) = &transformed.seed {
-        let fact = seed_to_fact(seed)?;
-        edb.insert(&fact.predicate, &fact.subject, &fact.object);
-    }
-    // The step/derivation budget is honoured DURING the fixpoint: `Exhausted` on a cut,
-    // `Ok` on a natural fixpoint (including the pure-EDB case, where no rule fires).  The
-    // decided arm surfaces the governor's completion frontier (which strata / predicates
-    // are settled) on the answer instead of dropping it: an `Exhausted` backward goal is
-    // incomplete, and the caller reads `completed < total` to tell that from a conclusive
-    // result.  On a non-stratifiable transformed program the helper falls back to the base
-    // rules over a lazily re-extracted EDB (see `eval_with_base_fallback`).
-    let (facts, fixpoint_status, frontier, demand_pruning_dropped) = match eval_with_base_fallback(
-        contract_hash,
-        edb,
-        transformed.rules,
-        rules,
-        budget.max_steps,
-        || extract_edb(foreign, world),
-    )? {
-        FallbackOutcome::Decided {
-            facts,
-            status,
-            frontier,
-            demand_pruning_dropped,
-        } => (facts, status, frontier, demand_pruning_dropped),
-        FallbackOutcome::Unsupported(k) => return Ok(NativeOutcome::Unsupported(k)),
-    };
+    let BinaryEvaluation {
+        facts,
+        status: fixpoint_status,
+        frontier,
+        demand_pruning_dropped,
+        goal_atom,
+        ..
+    } = evaluation;
 
     // (4) Project the goal predicate's derived tuples into bindings.
     let mut bindings = project_answers(&facts, goal, goal_atom.predicate.as_str());
@@ -1502,6 +1550,177 @@ pub(crate) fn resolve_native_under(
 
     answer.canonicalize();
     Ok(NativeOutcome::Decided(answer))
+}
+
+fn public_derivations<E: Clone>(
+    world: &str,
+    derivations: &[super::annotation::PhysicalAnnotationDerivation<E>],
+    control_predicates: &BTreeSet<String>,
+) -> Vec<AnnotationDerivation<E>> {
+    derivations
+        .iter()
+        .map(|derivation| AnnotationDerivation {
+            rule_iri: derivation.rule_iri.clone(),
+            sources: derivation
+                .sources
+                .iter()
+                .filter(|(_, predicate, _)| !control_predicates.contains(predicate))
+                .map(|(subject, predicate, object)| AnnotatedFactKey {
+                    graph: world.to_owned(),
+                    subject: subject.clone(),
+                    predicate: predicate.clone(),
+                    object: object.clone(),
+                })
+                .collect(),
+            annotation: derivation.annotation.clone(),
+        })
+        .collect()
+}
+
+/// Contract-scoped score-carrying counterpart of [`resolve_native_under`].
+///
+/// The ordinary fact closure and resource frontier are produced once by the same
+/// demand-transformed binary core.  Opaque annotations then solve over that admitted
+/// physical closure through the same planned joins, preserving direct derivation score
+/// lineage. Magic predicates remain unit-valued control tuples so the demand rewrite
+/// never double-counts a scored premise.
+pub(crate) fn resolve_native_annotated_under<A, F>(
+    contract_hash: &str,
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    budget: &Budget,
+    annotation: &AnnotationRequest<'_, A, F>,
+) -> gmeow_errors::Result<NativeOutcome<AnnotatedAnswerSet<A::Element>>>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    if profile_gate::has_cut(program) {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::Cut));
+    }
+    if program.goal.atoms.len() != 1 {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+    }
+    let goal = &program.goal.atoms[0];
+    let binary_eligible = goal.args.len() == 2
+        && program.rules.iter().all(|rule| {
+            rule.head.args.len() == 2
+                && rule.body.iter().all(|literal| match literal {
+                    QBodyLit::Atom(atom) | QBodyLit::Neg(atom) => atom.args.len() == 2,
+                    QBodyLit::Builtin(_) | QBodyLit::Cut => true,
+                })
+        });
+    if !binary_eligible {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonBinaryAtom));
+    }
+
+    let evaluation =
+        match evaluate_binary_under(contract_hash, foreign, world, program, budget, goal)? {
+            NativeOutcome::Decided(evaluation) => evaluation,
+            NativeOutcome::Unsupported(kind) => return Ok(NativeOutcome::Unsupported(kind)),
+        };
+    let certification =
+        super::annotation::certify_query(&evaluation.base_rules, annotation.contract)?;
+    let lookup = super::plan::compile_cached(contract_hash, evaluation.executed_rules.clone());
+    let Some(executable) = lookup.executable else {
+        return Ok(NativeOutcome::Unsupported(UnsupportedKind::NonStratifiable));
+    };
+
+    let mut seed_annotations = BTreeMap::new();
+    for fact in &evaluation.base_edb_facts {
+        let fact_annotation = (annotation.annotation_for)(AnnotationFactRef {
+            world,
+            subject: &fact.subject,
+            predicate: &fact.predicate,
+            object: &fact.object,
+        })
+        .unwrap_or_else(|| annotation.algebra.one());
+        seed_annotations.insert(fact.key(), fact_annotation);
+    }
+    let annotated = super::annotation::evaluate_annotations(
+        &evaluation.facts,
+        executable.as_ref(),
+        &seed_annotations,
+        &evaluation.control_predicates,
+        annotation.algebra,
+        annotation.contract,
+    )?;
+
+    let mut rows: AnnotatedRows<A::Element> = BTreeMap::new();
+    for fact in &evaluation.facts {
+        let Some(binding) = project_answers(
+            std::slice::from_ref(fact),
+            goal,
+            evaluation.goal_atom.predicate.as_str(),
+        )
+        .into_iter()
+        .next() else {
+            continue;
+        };
+        let key = fact.key();
+        let fact_annotation = annotated
+            .annotations
+            .get(&key)
+            .cloned()
+            .unwrap_or_else(|| annotation.algebra.zero());
+        let derivations = public_derivations(
+            world,
+            annotated
+                .derivations
+                .get(&key)
+                .map_or(&[][..], Vec::as_slice),
+            &evaluation.control_predicates,
+        );
+        match rows.entry(binding) {
+            std::collections::btree_map::Entry::Vacant(entry) => {
+                entry.insert((fact_annotation, derivations));
+            }
+            std::collections::btree_map::Entry::Occupied(mut entry) => {
+                let (combined, lineage) = entry.get_mut();
+                *combined = annotation.algebra.add(combined, &fact_annotation)?;
+                lineage.extend(derivations);
+            }
+        }
+    }
+
+    let mut answers: Vec<AnnotatedAnswer<A::Element>> = rows
+        .into_iter()
+        .map(|(binding, (annotation, derivations))| AnnotatedAnswer {
+            binding,
+            annotation,
+            derivations,
+        })
+        .collect();
+    let mut status = evaluation.status;
+    if let Some(max_answers) = budget.max_answers
+        && answers.len() >= max_answers
+        && !answers.is_empty()
+    {
+        answers.truncate(max_answers);
+        status = BudgetStatus::Partial;
+    }
+    if status == BudgetStatus::Exhausted
+        && answers.is_empty()
+        && evaluation
+            .frontier
+            .saturated_preds
+            .contains(evaluation.goal_atom.predicate.as_str())
+    {
+        status = BudgetStatus::Ok;
+    }
+
+    Ok(NativeOutcome::Decided(AnnotatedAnswerSet {
+        answers,
+        status,
+        preservation: if evaluation.demand_pruning_dropped {
+            demand_pruning_dropped_claim()
+        } else {
+            crate::result::PreservationClaim::exact()
+        },
+        frontier: evaluation.frontier,
+        certification,
+    }))
 }
 
 #[cfg(test)]

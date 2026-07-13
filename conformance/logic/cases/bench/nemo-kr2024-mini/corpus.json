@@ -1,8 +1,0 @@
-{
-  "name": "nemo-kr2024-mini",
-  "spdx_license": "CC-BY-4.0",
-  "source_url": "https://github.com/knowsys/nemo-examples",
-  "version_or_commit": "gmeow-self-authored-1",
-  "refresh_command": "make maint-nemo-kr2024-corpus",
-  "lane": "a"
-}

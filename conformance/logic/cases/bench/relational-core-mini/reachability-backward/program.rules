@@ -1,0 +1,4 @@
+:- prefix(ex, 'https://example.org/bench/').
+ex:reach(X, Y) :- ex:edge(X, Y).
+ex:reach(X, Z) :- ex:reach(X, Y), ex:edge(Y, Z).
+?- ex:reach(ex:s, Y).

@@ -10,7 +10,7 @@
 //! Each resource a stage [`Stage::resources`] declares is held exclusively while
 //! it runs — two stages competing for the same resource serialize; everything
 //! else is parallel within its topological level. The reasoning stage requires
-//! [`ENGINE_RESOURCE`] (the retained Nemo comparison engine is not concurrency-safe).
+//! [`ENGINE_RESOURCE`] (the process-wide reasoning state is exclusive).
 
 use std::collections::BTreeMap;
 use std::path::Path;

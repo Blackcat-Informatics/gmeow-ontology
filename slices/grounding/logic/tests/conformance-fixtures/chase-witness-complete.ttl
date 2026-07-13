@@ -3,7 +3,7 @@
 #
 # Worked example for the chaseTerminationCertificate flagship: a
 # logic:ChaseAcceptanceWitness carrying the weak-acyclicity termination-certificate
-# evidence (the ChaseAdmission::WeaklyAcyclic evidence the native materialize_routed
+# evidence (the ChaseAdmission::WeaklyAcyclic evidence the typed materializer
 # surfaces). Satisfies logic:ChaseAcceptanceWitnessShape (sh:minCount 1 on
 # logic:carriesTerminationCertificate), so it validates with no findings. Bound by
 # ex:ecChaseComplete and queried by ex:cqLogicChase.
@@ -12,4 +12,4 @@
 
 ex:chaseWitness a logic:ChaseAcceptanceWitness ;
     logic:carriesTerminationCertificate "weakly acyclic: none in a cycle" ;
-    ex:executesNativeProducer "logic::materialize::materialize_routed" .
+    ex:executesNativeProducer "logic::materialize::materialize_existential_rules" .

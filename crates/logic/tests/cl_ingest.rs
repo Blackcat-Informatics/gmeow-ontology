@@ -3,7 +3,7 @@
 
 //! End-to-end proof: import a sample **external** Common Logic
 //! (CLIF) knowledge base and reason over it — `parse_clif_str` → `LogicProgram`
-//! IR → native/Nemo materialization.
+//! IR → native materialization.
 //!
 //! The fixtures live under `conformance/logic/cl-ingest/`:
 //!
@@ -29,7 +29,6 @@
 use gmeow_logic_compile::clif::parse_clif_str;
 use gmeow_logic_compile::clif::writer::project_clif;
 use gmeow_logic_compile::frontend::{Severity, parse_logic_str};
-use gmeow_logic_compile::projections::compile_program;
 
 const GENEALOGY_NS: &str = "https://example.org/cl-ingest/genealogy/";
 
@@ -80,7 +79,7 @@ fn sample_kb_clif_fixture_matches_projection() {
 }
 
 /// The end-to-end ingest + reason proof: `parse_clif_str` on the committed
-/// external CLIF KB → `compile_program` → `materialize_routed` derives the
+/// external CLIF KB → canonical structured materialization derives the
 /// `ancestor` transitive closure over the `parent` EDB.
 #[test]
 fn sample_kb_clif_ingest_and_reason_derives_ancestor_closure() {
@@ -94,58 +93,40 @@ fn sample_kb_clif_ingest_and_reason_derives_ancestor_closure() {
         "CLIF ingest raised Error diagnostics on a project_clif-produced fixture: {diags:?}"
     );
 
-    // ── 2. Compile the ingested program down to the Nemo/native rule text. ─────
-    let arts = compile_program(&program, &Default::default())
-        .expect("compile_program(ingested CLIF program)");
-
-    // ── 3. Reason: materialize the rules over the committed EDB. ────────────────
+    // ── 2. Reason directly from the canonical program over the committed EDB. ──
     let edb = read_fixture("sample-kb.edb.nq");
-
-    let profiles: [Option<&str>; 2] = [None, Some("StratifiedNAFProfile")];
-    let mut derived_last: Vec<(String, String, String)> = Vec::new();
-    let mut found = false;
+    let dataset = purrdf::parse_dataset(edb.as_bytes(), "application/n-quads", None)
+        .expect("parse sample-kb.edb.nq");
+    let materialized = gmeow_logic::materialize::materialize_program(
+        &program,
+        dataset.as_ref(),
+        gmeow_logic::materialize::MaterializationLimits::default(),
+        None,
+    )
+    .expect("materialize canonical CLIF program");
     let ancestor_pred = format!("{GENEALOGY_NS}ancestor");
     let want_alice = format!("<{GENEALOGY_NS}alice>");
     let want_bob = format!("<{GENEALOGY_NS}bob>");
     let want_carol = format!("<{GENEALOGY_NS}carol>");
 
-    for profile in profiles {
-        let m = gmeow_logic::materialize::materialize_routed(
-            &arts.nemo_rules,
-            &edb,
-            None,
-            None,
-            None,
-            profile,
-        )
-        .unwrap_or_else(|e| panic!("materialize_routed(profile={profile:?}) failed: {e}"));
-
-        let derived: Vec<(String, String, String)> = m
-            .quads
-            .iter()
-            .map(|q| {
-                (
-                    gmeow_logic::provenance::term_display(&q.subject),
-                    q.predicate.clone(),
-                    gmeow_logic::provenance::term_display(&q.object),
-                )
-            })
-            .collect();
-
-        let has_closure = derived
-            .iter()
-            .any(|(s, p, o)| p == &ancestor_pred && s == &want_alice && o == &want_carol);
-
-        derived_last = derived;
-        if has_closure {
-            found = true;
-            break;
-        }
-    }
+    let derived_last: Vec<(String, String, String)> = materialized
+        .quads
+        .iter()
+        .map(|q| {
+            (
+                gmeow_logic::provenance::term_display(&q.subject),
+                q.predicate.clone(),
+                gmeow_logic::provenance::term_display(&q.object),
+            )
+        })
+        .collect();
+    let found = derived_last
+        .iter()
+        .any(|(s, p, o)| p == &ancestor_pred && s == &want_alice && o == &want_carol);
 
     assert!(
         found,
-        "ancestor(alice, carol) was NOT derived under any tried profile — the transitive-step \
+        "ancestor(alice, carol) was NOT derived — the transitive-step \
          Horn rule must fire twice over the ingested CLIF program's rules; derived quads: \
          {derived_last:?}"
     );
@@ -161,4 +142,68 @@ fn sample_kb_clif_ingest_and_reason_derives_ancestor_closure() {
              {derived_last:?}"
         );
     }
+}
+
+#[test]
+fn annotated_materialization_carries_scores_through_canonical_ir() {
+    let clif = read_fixture("sample-kb.clif");
+    let source_iri = format!("{GENEALOGY_NS}kb");
+    let (program, diags) =
+        parse_clif_str(&clif, Some(source_iri)).expect("parse_clif_str(sample-kb.clif)");
+    assert!(diags.iter().all(|diag| diag.severity != Severity::Error));
+    let edb = read_fixture("sample-kb.edb.nq");
+    let dataset = purrdf::parse_dataset(edb.as_bytes(), "application/n-quads", None)
+        .expect("parse sample-kb.edb.nq");
+    let parent = format!("{GENEALOGY_NS}parent");
+    let alice = format!("<{GENEALOGY_NS}alice>");
+    let bob = format!("<{GENEALOGY_NS}bob>");
+    let carol = format!("<{GENEALOGY_NS}carol>");
+    let annotated = gmeow_logic::materialize::materialize_program_annotated(
+        &program,
+        dataset.as_ref(),
+        gmeow_logic::materialize::MaterializationLimits::default(),
+        None,
+        gmeow_logic::annotation::AnnotationRequest::new(
+            &gmeow_logic::provenance::ZWeightSemiring,
+            &gmeow_logic::annotation::AnnotationContract::exact(),
+            |fact: gmeow_logic::annotation::AnnotationFactRef<'_>| {
+                if fact.predicate != parent {
+                    return None;
+                }
+                match (
+                    gmeow_logic::provenance::term_display(fact.subject),
+                    gmeow_logic::provenance::term_display(fact.object),
+                ) {
+                    (s, o) if s == alice && o == bob => Some(2),
+                    (s, o) if s == bob && o == carol => Some(3),
+                    _ => None,
+                }
+            },
+        ),
+    )
+    .expect("annotated canonical materialization");
+
+    assert_eq!(
+        annotated.certification.query_class,
+        gmeow_logic::annotation::AnnotationQueryClass::PositiveRecursive
+    );
+    let ancestor = format!("{GENEALOGY_NS}ancestor");
+    let transitive = annotated
+        .quads
+        .iter()
+        .find(|row| {
+            row.quad.predicate == ancestor
+                && gmeow_logic::provenance::term_display(&row.quad.subject) == alice
+                && gmeow_logic::provenance::term_display(&row.quad.object) == carol
+        })
+        .expect("ancestor(alice, carol) annotated row");
+    assert_eq!(transitive.annotation, 6);
+    assert!(
+        transitive
+            .derivations
+            .iter()
+            .any(|derivation| derivation.annotation == 6 && derivation.sources.len() == 2),
+        "{:#?}",
+        transitive.derivations
+    );
 }

@@ -26,58 +26,27 @@ conformance corpus as `gmeow-gts`.
 that backs world construction, entailment queries, and provenance capture. It
 supersedes the earlier Python reference oracle, which has been retired.
 
-The current scope is the **world-indexed storage layer**: an in-memory
-`WorldStore` wrapping oxigraph that enforces isolated named graphs as worlds.
-Nemo-based rule materialization and PyO3 bindings are included.
+The runtime includes a **world-indexed storage layer**, typed IR lowering,
+semi-naive positive evaluation, stratified and non-monotone solvers, and a
+restricted existential chase. Production rules remain typed from compiler IR
+through evaluation; no intermediate executable rule-text projection is used.
 
 ---
 
-## Static certifier and the budget governor
+## Static certification and deterministic budgets
 
-`certify(rules, profile)` is the Rust reimplementation of the retired Python oracle
-(`gmeow_tools.logic_certify`). It parses Nemo `.rls` text with Nemo's own parser
-(reusing the engine's surface, never a second IR) and produces a
-`CertificationVerdict` whose JSON shape, violation strings, and SCC-cycle
-rendering are **byte-identical** to the oracle, so the `oracle ≡ engine` gate
-diffs them directly. Every check is a *sufficient* condition and is *necessarily
-incomplete*: because termination is undecidable, a clean verdict proves
-membership in the declared decidable/terminating fragment, while a violation only
-proves that the cheap structural condition does not hold — the program may still
-terminate.
+`certify` checks the typed rule IR against the declared semantic profile. Every
+check is a sufficient condition and necessarily incomplete: because termination
+is undecidable, a clean verdict proves membership in the declared fragment while
+a violation means the inexpensive structural proof did not succeed.
 
-### Budget enforcement is post-hoc — and honest about it
-
-`materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
-adds an optional resource budget with this contract:
-
-- **Asserted EDB input facts are always kept in full.** A budget never drops a
-  given input quad; only **derived (IDB)** quads are bounded.
-- **The count ceilings (`max_rule_firings`, `max_answers`) are engine-independent
-  and deterministic.** Both engines run the chase to full fixpoint and then
-  truncate the derived set *post-hoc* to the canonical-sort prefix of the
-  **complete** derivation — a prefix of the `(graph, S, P, O)` sort, never a
-  fabricated row. The kept quads are stamped `budget_status = "exhausted"` and the
-  run is marked incomplete. Because both the Python oracle and Nemo compute the
-  same complete fixpoint and truncate the same canonical prefix, the count
-  ceilings give **identical** verdicts on both engines.
-- **Only `time_ms` is a mid-chase cut, and only in Python.** The Python oracle can
-  stop the chase early on the wall clock; Nemo's `reason()` runs to fixpoint with
-  no native budget hook, so on the Rust side `time_ms` bounds only *post-fixpoint*
-  work (decode + bookkeeping), not the chase itself. This is the one budget
-  parameter whose behaviour is engine-dependent.
-- **Rejecting genuinely non-terminating rule sets is the static certifier's job,
-  up front — not the governor's to interrupt.** The governor never sees a
-  non-terminating program it is expected to halt.
-- **Kept results are always a sound subset of the full fixpoint** — never a false
-  answer.
-
-This keeps `oracle ≡ engine` truthful rather than convenient: under the count
-ceilings the verdict, kept set, and budget strings match the oracle exactly; the
-only engine-dependent budget is `time_ms`, and that divergence is **named here,
-not glossed** (the same contract appears in the `certify.rs` and `py.rs` doc
-comments). With all three budget parameters `None` (the default), `materialize`
-output is byte-identical to the pre-existing behaviour: chase order preserved, every
-quad `"ok"`.
+`materialize_program(program, input, limits, profile)` is the production entry
+point. Its budget is a deterministic step limit enforced inside the native
+evaluator. Asserted EDB facts are retained, derived rows are a sound prefix, and
+an exhausted run is explicitly incomplete. Wall-clock limits are rejected because
+they cannot preserve reproducible output. Typed existential callers use
+`materialize_existential_rules`; only the repo-owned performance fixtures retain a
+small benchmark-only textual TGD adapter.
 
 ## Foundation lowering
 
@@ -202,11 +171,9 @@ The corpus lives under `conformance/logic/cases/profiles/probabilistic-*`.
 
 ## Build
 
-> **Toolchain requirement:** nightly Rust is required. The `nemo` engine (a
-> hard dependency) uses unstable features (`macro_metavar_expr`,
-> `iter_intersperse`, `slice_swap_unchecked`) that are not available on stable.
-> The repo ships a `rust-toolchain.toml` at the root that selects the latest
-> available `nightly`; `cargo` and `rustup` pick this up automatically.
+> **Toolchain requirement:** nightly Rust is required for the native engine's
+> `portable_simd` kernels. The repo ships a `rust-toolchain.toml` at the root;
+> `cargo` and `rustup` pick it up automatically.
 
 ```bash
 cargo build -p gmeow-logic

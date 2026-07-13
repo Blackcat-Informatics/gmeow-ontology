@@ -13,7 +13,7 @@
 //! * [`consistency`] — the satisfiability verdict, keyed on any class forced to be
 //!   equivalent to (or populated as) `owl:Nothing`.
 //!
-//! Unlike the Nemo-chase engine in [`crate::reason`], this oracle carries NO
+//! Unlike the production reasoning engine in [`crate::reason`], this oracle carries NO
 //! gmeow-specific calculus: it is the general OWL semantics purrdf implements, run
 //! over an arbitrary TBox/ABox, so it can serve as the independent cross-check the
 //! divergence ledger compares the native engine against. It lives OUTSIDE `reason`

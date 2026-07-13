@@ -36,7 +36,7 @@ Rust performance and advanced-language-feature work must also follow
 [`docs/RUST-OPTIMIZATION.md`](./docs/RUST-OPTIMIZATION.md): measure first,
 preserve deterministic output, prefer Rust-native data/dispatch/ownership
 changes over compiler-flag churn, and keep the existing debug-assertion,
-overflow-check, no-debug-symbol, and `nemo` build-memory contracts intact.
+overflow-check, and no-debug-symbol contracts intact.
 
 ### The CLI razor — `gmeow` vs `gmeow-dev`
 
@@ -249,7 +249,7 @@ make bench-compare   # report-only perf scoreboard: live criterion run vs commit
 make rust-coverage   # cargo-llvm-cov region coverage (lcov + HTML, --include-ffi); report-only.
                      #   Named NOT `coverage` — that is the entity-coverage gate.
 make mutants         # cargo-mutants over the logic+validate cores (mutants.toml). Grades whether
-                     #   the suite catches regressions. The full logic run is HOURS (nemo) — scope
+                     #   the suite catches regressions. The full logic run is HOURS — scope
                      #   locally with MUTANTS_ARGS="-p gmeow-validate -f <file>".
 ```
 
@@ -289,7 +289,7 @@ a comment in that filter AND a one-line entry here.
 Default off-gate groups (reevaluated 2026-06-29): `gmeow-validate`
 `deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate` (30.705 s
 locally in `make maint-rust-heavy`; the consumer `gmeow validate --deep` AC1
-reasons over user data merged with the whole bundled TBox via the native Nemo
+reasons over user data merged with the whole bundled TBox via the native
 chase; the same merge->inconsistency path is covered on-gate by the fast
 tiny-TBox `gmeow-logic` unit `reason_all_with_data_*` plus the on-gate
 `deep_pass_failure_*`/`deep_false_*` validate tests); the `gmeow-pipeline`
@@ -363,7 +363,7 @@ the folded `generated/quality/gmeow.quality-assessment.nt` is drift-gated on eve
 `make check` via `make check-generated`, and the exhaustive proof stays on-gate on
 `maint-heavy`); and
 `gmeow-logic::whole_bundle_coherence_gate_catches_injected_clash` (~95 s locally;
-it imports the WHOLE committed `gmeow.gts` bundle and drives the native Nemo
+it imports the WHOLE committed `gmeow.gts` bundle and drives the native
 chase over it twice, proving the shipped ontology is coherent and that an
 injected disjoint-class clash is caught). This exclusion is **budget-exempt,
 not gate-exempt**: the test still runs on every `make check` via the dedicated

@@ -8,6 +8,9 @@
 //! core. A fragment the native core cannot soundly decide is a typed hard failure:
 //! there is no secondary engine, silent approximation, or demotion route.
 
+use crate::annotation::{
+    AnnotatedAnswerSet, AnnotationFactRef, AnnotationRequest, TupleAnnotationAlgebra,
+};
 use crate::profile_gate;
 use crate::query_ir::{AnswerSet, Budget, QProgram};
 use crate::seam::WorldFactSource;
@@ -78,6 +81,61 @@ pub fn dispatch_query(
     }
 }
 
+/// Resolve `program` while carrying opaque annotations through native derivations.
+///
+/// `annotation_for` is consulted for asserted world facts. Returning `None` assigns
+/// `algebra.one()`. Body conjunction uses `multiply`; alternative derivations use
+/// `add`; each answer exposes the combined value plus its direct derivation lineage.
+/// The annotation contract is independently content-framed into the plan identity, so
+/// an exact-semiring call cannot alias a declared approximation call.
+///
+/// # Errors
+///
+/// Returns `Err` for a profile/fragment refusal, an annotation contract mismatch, an
+/// algebra failure, or a non-convergent annotation fixed point. Annotation dispatch is
+/// currently the native binary positive-Datalog seam; unsupported n-ary or negated
+/// programs hard-fail rather than silently losing scores.
+pub fn dispatch_query_annotated<A, F>(
+    foreign: &dyn WorldFactSource,
+    world: &str,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    annotation: AnnotationRequest<'_, A, F>,
+) -> gmeow_errors::Result<AnnotatedAnswerSet<A::Element>>
+where
+    A: TupleAnnotationAlgebra,
+    F: for<'fact> Fn(AnnotationFactRef<'fact>) -> Option<A::Element>,
+{
+    profile_gate::reject_cut(program)?;
+    profile_gate::check_builtin_profile(program, profile)?;
+
+    let base_contract = query_contract_hash(profile, budget);
+    let annotation_frame = annotation.contract.canonical_key();
+    let contract_hash = blake3::hash(
+        format!("gmeow-annotated-query-contract-v1:{base_contract}:{annotation_frame}").as_bytes(),
+    )
+    .to_hex()
+    .to_string();
+    match crate::physical::resolve_native_annotated_under(
+        &contract_hash,
+        foreign,
+        world,
+        program,
+        budget,
+        &annotation,
+    )? {
+        crate::physical::NativeOutcome::Decided(answer) => Ok(answer),
+        crate::physical::NativeOutcome::Unsupported(kind) => {
+            Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
+                detail: format!(
+                    "native annotated backward engine does not support {kind:?}; query refused because annotations cannot be demoted to post-hoc scoring"
+                ),
+            }))
+        }
+    }
+}
+
 // ── Unit tests ─────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -101,6 +159,82 @@ mod tests {
 
     fn rdf(local: &str) -> String {
         format!("{RDF}{local}")
+    }
+
+    struct PeakAlgebra {
+        _runtime_identity: String,
+    }
+
+    struct FloatingScore;
+
+    impl crate::annotation::TupleAnnotationAlgebra for FloatingScore {
+        type Element = f64;
+
+        fn zero(&self) -> Self::Element {
+            0.0
+        }
+
+        fn one(&self) -> Self::Element {
+            1.0
+        }
+
+        fn add(
+            &self,
+            left: &Self::Element,
+            right: &Self::Element,
+        ) -> gmeow_errors::Result<Self::Element> {
+            let score = left + right;
+            if score.is_finite() {
+                Ok(score)
+            } else {
+                Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                    detail: "floating score addition produced a non-finite value".to_owned(),
+                }))
+            }
+        }
+
+        fn multiply(
+            &self,
+            left: &Self::Element,
+            right: &Self::Element,
+        ) -> gmeow_errors::Result<Self::Element> {
+            let score = left * right;
+            if score.is_finite() {
+                Ok(score)
+            } else {
+                Err(gmeow_errors::Diag::of_kind(crate::error::Physical {
+                    detail: "floating score multiplication produced a non-finite value".to_owned(),
+                }))
+            }
+        }
+    }
+
+    impl crate::annotation::TupleAnnotationAlgebra for PeakAlgebra {
+        type Element = i64;
+
+        fn zero(&self) -> Self::Element {
+            0
+        }
+
+        fn one(&self) -> Self::Element {
+            0
+        }
+
+        fn add(
+            &self,
+            left: &Self::Element,
+            right: &Self::Element,
+        ) -> gmeow_errors::Result<Self::Element> {
+            Ok((*left).max(*right))
+        }
+
+        fn multiply(
+            &self,
+            left: &Self::Element,
+            right: &Self::Element,
+        ) -> gmeow_errors::Result<Self::Element> {
+            Ok((*left).max(*right))
+        }
     }
 
     #[test]
@@ -195,6 +329,195 @@ mod tests {
         assert!(
             ys.contains(&format!("<{BASE}d>").as_str()),
             "missing d: {ys:?}"
+        );
+    }
+
+    #[test]
+    fn annotated_dispatch_combines_body_scores_and_alternative_derivations() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
+        store.insert_quad(W, &p("b"), &p("edge"), &p("c"));
+        store.insert_quad(W, &p("a"), &p("edge"), &p("c"));
+
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:path(X, Y) :- ex:edge(X, Y).\n\
+             ex:path(X, Z) :- ex:path(X, Y), ex:edge(Y, Z).\n\
+             ?- ex:path(ex:a, Y).\n"
+        );
+        let program = parse_query_program(&src).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, HORN_PROFILE).unwrap();
+        let answer = dispatch_query_annotated(
+            &foreign,
+            W,
+            &program,
+            HORN_PROFILE,
+            &Budget::default(),
+            crate::annotation::AnnotationRequest::new(
+                &FloatingScore,
+                &crate::annotation::AnnotationContract::exact(),
+                |fact: crate::annotation::AnnotationFactRef<'_>| {
+                    if fact.predicate != p("edge") {
+                        return None;
+                    }
+                    let key = (
+                        crate::provenance::term_display(fact.subject),
+                        crate::provenance::term_display(fact.object),
+                    );
+                    match key {
+                        (subject, object)
+                            if subject == format!("<{BASE}a>")
+                                && object == format!("<{BASE}b>") =>
+                        {
+                            Some(2.0)
+                        }
+                        (subject, object)
+                            if subject == format!("<{BASE}b>")
+                                && object == format!("<{BASE}c>") =>
+                        {
+                            Some(3.0)
+                        }
+                        (subject, object)
+                            if subject == format!("<{BASE}a>")
+                                && object == format!("<{BASE}c>") =>
+                        {
+                            Some(4.0)
+                        }
+                        _ => None,
+                    }
+                },
+            ),
+        )
+        .unwrap();
+
+        assert_eq!(
+            answer.certification.query_class,
+            crate::annotation::AnnotationQueryClass::PositiveRecursive
+        );
+        let by_y: std::collections::BTreeMap<&str, _> = answer
+            .answers
+            .iter()
+            .map(|row| (row.binding["Y"].as_str(), row))
+            .collect();
+        let b = by_y[format!("<{BASE}b>").as_str()];
+        assert_eq!(b.annotation, 2.0);
+        assert_eq!(b.derivations.len(), 1);
+        let c = by_y[format!("<{BASE}c>").as_str()];
+        assert_eq!(c.annotation, 10.0, "direct 4 plus path product 2*3");
+        assert_eq!(c.derivations.len(), 2, "both score lineages survive");
+        assert!(
+            c.derivations
+                .iter()
+                .any(|derivation| derivation.annotation == 6.0 && derivation.sources.len() == 2),
+            "{:#?}",
+            c.derivations
+        );
+    }
+
+    #[test]
+    fn annotated_dispatch_scopes_declared_law_deviation_to_query_class() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("edge"), &p("b"));
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:path(X, Y) :- ex:edge(X, Y).\n\
+             ex:path(X, Z) :- ex:path(X, Y), ex:edge(Y, Z).\n\
+             ?- ex:path(ex:a, Y).\n"
+        );
+        let program = parse_query_program(&src).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, HORN_PROFILE).unwrap();
+        let contract = crate::annotation::AnnotationContract::complete_over(
+            [crate::annotation::SemiringLaw::Distributive],
+            [crate::annotation::AnnotationQueryClass::PositiveAcyclic],
+        );
+        let error = dispatch_query_annotated(
+            &foreign,
+            W,
+            &program,
+            HORN_PROFILE,
+            &Budget::default(),
+            crate::annotation::AnnotationRequest::new(
+                &crate::provenance::ZWeightSemiring,
+                &contract,
+                |_fact: crate::annotation::AnnotationFactRef<'_>| None,
+            ),
+        )
+        .unwrap_err();
+        assert!(
+            error
+                .message()
+                .contains("not certified for actual query class PositiveRecursive"),
+            "{error}"
+        );
+
+        let admitted_contract = crate::annotation::AnnotationContract::complete_over(
+            [crate::annotation::SemiringLaw::ZeroAnnihilates],
+            [crate::annotation::AnnotationQueryClass::PositiveRecursive],
+        );
+        let answer = dispatch_query_annotated(
+            &foreign,
+            W,
+            &program,
+            HORN_PROFILE,
+            &Budget::default(),
+            crate::annotation::AnnotationRequest::new(
+                &PeakAlgebra {
+                    _runtime_identity: "lillith-recall-peak-v1".to_owned(),
+                },
+                &admitted_contract,
+                |fact: crate::annotation::AnnotationFactRef<'_>| {
+                    (fact.predicate == p("edge")).then_some(7)
+                },
+            ),
+        )
+        .unwrap();
+        assert_eq!(answer.answers[0].annotation, 7);
+        assert_eq!(
+            answer.certification.declared_deviations,
+            [crate::annotation::SemiringLaw::ZeroAnnihilates]
+                .into_iter()
+                .collect()
+        );
+        assert!(
+            answer
+                .certification
+                .preservation
+                .polarities
+                .contains(&gmeow_logic_compile::ir::PreservationKind::CompleteOver)
+        );
+    }
+
+    #[test]
+    fn annotated_dispatch_hard_fails_a_nonconvergent_recursive_algebra() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("edge"), &p("a"));
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:path(X, Y) :- ex:edge(X, Y).\n\
+             ex:path(X, Z) :- ex:path(X, Y), ex:edge(Y, Z).\n\
+             ?- ex:path(ex:a, Y).\n"
+        );
+        let program = parse_query_program(&src).unwrap();
+        let foreign = WorldFactSnapshot::from_world(&store, W, HORN_PROFILE).unwrap();
+        let contract = crate::annotation::AnnotationContract::exact().with_max_fixpoint_rounds(4);
+        let error = dispatch_query_annotated(
+            &foreign,
+            W,
+            &program,
+            HORN_PROFILE,
+            &Budget::default(),
+            crate::annotation::AnnotationRequest::new(
+                &crate::provenance::ZWeightSemiring,
+                &contract,
+                |_fact: crate::annotation::AnnotationFactRef<'_>| Some(1),
+            ),
+        )
+        .unwrap_err();
+        assert!(
+            error
+                .message()
+                .contains("annotation fixed point did not converge within 4 deterministic rounds"),
+            "{error}"
         );
     }
 

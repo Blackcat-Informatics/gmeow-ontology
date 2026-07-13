@@ -130,8 +130,8 @@ fn reachable_iri(shape: &PathShapeIr) -> String {
     format!("{}/reachable", shape.iri)
 }
 
-/// The depth-bounded Datalog rule scheme for a path shape, in the native engine's
-/// `<iri>(?S, ?O, ?W)` syntax (directly runnable by `parse_eval_rules`).  The
+/// The depth-bounded Datalog projection for a path shape, using
+/// `<iri>(?S, ?O, ?W)` relation syntax. The
 /// `reachable` relation holds every `(start, node)` pair within the shape's depth
 /// bound; the `edge` relation is the named step (or the wildcard pre-pass output).
 pub fn datalog_text(shape: &PathShapeIr) -> String {

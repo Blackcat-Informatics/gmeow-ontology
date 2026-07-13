@@ -79,7 +79,7 @@ jobs:
         run: |
           cargo install cargo-mutants --locked || cargo install cargo-mutants
           cargo install cargo-nextest --locked || cargo install cargo-nextest
-      # The validate core is feasible nightly; the logic core (nemo) is run
+      # The validate core is feasible nightly; the larger logic core is run
       # on-demand via dispatch with MUTANTS_ARGS. Surviving mutants are a
       # report, not a gate.
       - name: Mutation test the validate core

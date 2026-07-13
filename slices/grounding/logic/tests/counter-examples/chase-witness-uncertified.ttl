@@ -11,5 +11,5 @@
 @prefix ex:    <http://example.org/logic/> .
 
 ex:chaseWitness a logic:ChaseAcceptanceWitness ;
-    ex:executesNativeProducer "logic::materialize::materialize_routed" ;
+    ex:executesNativeProducer "logic::materialize::materialize_existential_rules" ;
     ex:observesRuntimeFailure logic:UncertifiedChase .

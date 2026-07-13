@@ -74,7 +74,7 @@ Denotation records whose targets are `logic:` formulas lower to meaning-graph an
 graphs and SemAF (dialogue acts from `lang:communicativeForce`, semantic roles read off the
 lowered `logic:` predicates). **Declared loss.** AMR has no quantifier scope, no modality depth,
 and no vantage; role inventories are coarser than full-FOL structure. The lowering is
-program-dependent the way the Nemo projection is: disclosed, judged per emission, never treated
+program-dependent: disclosed, judged per emission, never treated
 as the meaning itself.
 
 ### NIF / Web Annotation — the stand-off anchoring surface

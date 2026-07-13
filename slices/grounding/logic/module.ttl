@@ -2926,14 +2926,14 @@ logic:distinctBody
     rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "distinct body"@x-gmeow-english ;
-    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."@x-gmeow-english .
+    skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged."@x-gmeow-english .
 
 logic:aggregateFunction
     a owl:DatatypeProperty ;
     rdfs:comment "Aggregate function of a reduce rule. Default-absent: an ordinary Horn rule carries no aggregation surface, so the existing corpus is byte-identical."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "aggregate function"@x-gmeow-english ;
-    skos:definition "Names the aggregate function (SUM, COUNT, MIN, MAX, AVG) a logic:Rule applies in its reduce (aggregation) head: the rule binds logic:aggregateResult to this function applied to logic:aggregateVariable over the groups formed by logic:groupKey. This is the canonical logic: representation of the reduce half of the computation surface; it projects to an aggregating Datalog/Nemo rule and to a SHACL-AF GROUP-BY sub-SELECT (design/LOGIC-SHACL-AF.md). A rule with no logic:aggregateFunction is an ordinary derivation (map) rule."@x-gmeow-english .
+    skos:definition "Names the aggregate function (SUM, COUNT, MIN, MAX, AVG) a logic:Rule applies in its reduce (aggregation) head: the rule binds logic:aggregateResult to this function applied to logic:aggregateVariable over the groups formed by logic:groupKey. This is the canonical logic: representation of the reduce half of the computation surface; it projects to an aggregating Datalog rule and to a SHACL-AF GROUP-BY sub-SELECT (design/LOGIC-SHACL-AF.md). A rule with no logic:aggregateFunction is an ordinary derivation (map) rule."@x-gmeow-english .
 
 logic:aggregateVariable
     a owl:DatatypeProperty ;
@@ -6261,7 +6261,7 @@ logic:levelStrong
 # threshold profile (logic:LadderProjectionProfile). The factored assessment stays
 # the canonical record; the ladder is the readable ordinal projection. The shipped
 # projection rules are positive Horn, so they materialize under the engine's default
-# semantics and fold into gmeow.gts and the datalog/N3/Nemo program projections.
+# semantics and fold into gmeow.gts and the Datalog/N3 program projections.
 # Normative in design/LOGIC-COGNITION.md §Projection to the coarse knowledge ladder.
 
 logic:LadderProjectionProfile
@@ -8479,7 +8479,7 @@ logic:candidateBullshitTruthIndifference
 # violation is a finding, these are logic:Rule derivations whose head is ENTAILED:
 # monotone positive-Horn rules whose every head variable is bound positively in
 # the body (a frontier variable), so the derived fact is materialized natively
-# (it appears in the chase output) and projects to Datalog/Nemo as
+# (it appears in the chase output) and projects to Datalog as
 # logic:ExactPreservation. Each spans terms across two or more domain slices,
 # carries a logic:formalizes back-reference, and is governed by a reviewed
 # logic:FormalizationCandidate (logic:CategoryDerivationRule).
@@ -9761,7 +9761,7 @@ logic:UncertifiedChase
     rdfs:subClassOf logic:LogicConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Uncertified Chase"@x-gmeow-english ;
-    skos:definition "The failure raised when a logic:ChaseAcceptanceWitness — the acceptance record of an existential-rule chase materialization — carries no logic:carriesTerminationCertificate, i.e. reports a materialized closure without the weak-acyclicity termination certificate that admits it. An uncertified chase may not terminate; the flagship's guarantee is that materialize_routed surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding, so a chase acceptance record with no certificate is ill-formed (LOGIC-RUNTIME.md)."@x-gmeow-english ;
+    skos:definition "The failure raised when a logic:ChaseAcceptanceWitness — the acceptance record of an existential-rule chase materialization — carries no logic:carriesTerminationCertificate, i.e. reports a materialized closure without the weak-acyclicity termination certificate that admits it. An uncertified chase may not terminate; the flagship's guarantee is that materialize_existential_rules surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding, so a chase acceptance record with no certificate is ill-formed (LOGIC-RUNTIME.md)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:UnwiredFlagshipScenario
@@ -9861,7 +9861,7 @@ logic:ChaseAcceptanceWitness
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Chase Acceptance Witness"@x-gmeow-english ;
-    skos:definition "The acceptance record that an existential-rule chase materialization terminated under a weak-acyclicity certificate, executed natively by gmeow_logic::materialize::materialize_routed, which surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding. It carries, through logic:carriesTerminationCertificate, the certificate evidence. The flagship producer runs the native chase and pins that the surfaced Finding is non-empty and that the derivation carries an explain trace passing gmeow_logic::explain::assert_faithful; this witness is the ontological twin the thin logic:ChaseAcceptanceWitnessShape gates."@x-gmeow-english ;
+    skos:definition "The acceptance record that an existential-rule chase materialization terminated under a weak-acyclicity certificate, executed natively by gmeow_logic::materialize::materialize_existential_rules, which surfaces the ChaseAdmission termination certificate as a first-class gmeow:Finding. It carries, through logic:carriesTerminationCertificate, the certificate evidence. The flagship producer runs the native chase and pins that the surfaced Finding is non-empty and that the derivation carries an explain trace passing gmeow_logic::explain::assert_faithful; this witness is the ontological twin the thin logic:ChaseAcceptanceWitnessShape gates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:carriesTerminationCertificate
