@@ -56,10 +56,23 @@ pub fn export_docs(
         ));
     }
 
-    let model = match gmeow_docs::DocsModel::discover(&root) {
+    let mut model = match gmeow_docs::DocsModel::discover(&root) {
         Ok(model) => model,
         Err(e) => return fail(format!("cannot build documentation model: {e}")),
     };
+    // Attach the per-term JSON-Schema / OpenAPI fragment digest so the per-term
+    // Python (Pydantic) + Rust example tabs actually render on this — the sole —
+    // production docs surface (`make docs` fanout). The standalone render has no
+    // live pipeline product, so the digest is sourced off the committed
+    // `generated/schemas/*.json`, the projection of the same
+    // `stage-export-json-schema` emitter output the in-pipeline reader consumes.
+    // Hard-fails if the required committed schema source is missing (no silent
+    // None — no-optionality).
+    match gmeow_pipeline::stages::docs_render::schema_fragments_from_generated(&root, &model.terms)
+    {
+        Ok(digest) => model.attach_schema_fragments(digest),
+        Err(e) => return fail(format!("cannot build schema-fragment digest: {e}")),
+    }
     let source_lang = pick_source_lang(lang, &model.translations);
 
     use crate::ExportFormat;
