@@ -3728,7 +3728,7 @@ logic:engine
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "engine"@x-gmeow-english ;
-    skos:definition "The engine identity + version that produced a logic:ReasoningResult. Single-valued. Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
+    skos:definition "The engine identity + version that produced a logic:ReasoningResult, or — reusing the same property — that a logic:EngineContract pins as the engine entitled to produce one. Single-valued. Domain logic:ReasoningResult or logic:EngineContract (stated in prose)."@x-gmeow-english .
 
 logic:query
     a owl:DatatypeProperty ;
@@ -3923,6 +3923,57 @@ logic:forbiddenViolationWitness
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "forbidden violation witness"@x-gmeow-english ;
     skos:definition "Relates a coherence outcome to a within-world contradiction the contract FORBIDS (a logic:FindingContradictionWitness) — MULTI-valued. A NON-EMPTY set blocks issuance: a logic:CoherenceCertificate is issued only when this set is empty. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
+# ── The runtime engine contract: the pin-able self-describing engine identity ────
+# The content-addressed runtime pin an external consumer records at load and then
+# refuses a drifted answer against. ONE descriptor (logic:engineContractDescriptorHash)
+# covers the whole engine — the forward EL/DL/RL chase (logic:forwardContractHash)
+# and the backward goal-resolution source surface (logic:backwardSourceHash) — plus
+# the engine identity (reusing logic:engine) and the per-preset capability manifest
+# (logic:supportedProfile, each supported logic:ReasoningPreset carrying a
+# logic:decidabilityClass). It mirrors the coherence-evidence family's to_nquads
+# projection idiom (a content-addressed evidence object folded into a signed ledger AS
+# DATA). Authored canonically in crates/logic (Rust, crates/logic/src/runtime.rs);
+# these terms are the lossy documentation projection (Principle 17). Normative in
+# design/LOGIC-RUNTIME.md, §The compiler/runtime split and §The forward
+# materialization ↔ backward resolution seam.
+
+logic:EngineContract
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Engine Contract"@x-gmeow-english ;
+    skos:definition "The self-describing, content-addressed identity of the WHOLE gmeow-logic runtime engine — the runtime pin a signed-ledger consumer records at load and later refuses a drifted answer against. One descriptor covers BOTH engine directions at once: the forward EL/DL/RL chase reasoning-contract identity (logic:forwardContractHash) and the backward goal-resolution source surface (logic:backwardSourceHash), together with the engine identity and version (logic:engine) and the per-preset capability manifest (logic:supportedProfile, each supported logic:ReasoningPreset carrying its logic:decidabilityClass guarantee). Its own content address is logic:engineContractDescriptorHash — the single value a consumer pins; the projected instance's subject IRI is itself content-addressed on that hash, so there is no second copy of the identity that could drift. Conceptual sibling of the coherence-evidence family (logic:CoherenceCertificate / logic:CoherenceCheckAttestation): each is a content-addressed, to_nquads-projectable evidence object a consumer folds into its own (signed) ledger AS DATA — but a coherence outcome scopes ONE completed check over a bundle, whereas an engine contract pins the ENGINE that would decide any such check, and so is negotiated once at load rather than issued per run. DISTINCT from logic:ReasoningResult and its per-invocation logic:contractHash: a result records what one query decided, the engine contract records which engine was entitled to decide it. Authored canonically in crates/logic (Rust, crates/logic/src/runtime.rs); this is a lossy documentation projection (Principle 17). Normative in design/LOGIC-RUNTIME.md, §The compiler/runtime split."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:engineContractDescriptorHash
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "engine contract descriptor hash"@x-gmeow-english ;
+    skos:definition "The framed-BLAKE3 content address computed over the WHOLE logic:EngineContract descriptor — the engine identity and version, the backward-source digest (logic:backwardSourceHash), the forward-contract digest (logic:forwardContractHash), and every supported preset with its logic:decidabilityClass. This is THE value a consumer pins at load: any change to any covered input moves it, and the projected contract's subject IRI is content-addressed on it. Single-valued. Domain logic:EngineContract (stated in prose). NON-CONFLATION: it pins the engine SOURCE identity (which engine could decide answers), NOT a single invocation — a per-query logic:contractHash on a logic:ReasoningResult pins the semantics/resource inputs of ONE dispatch, and two queries under different presets or budgets share this descriptor while carrying different per-query contracts, so recording 'answer X was minted under engine Y' needs both. Authored canonically in crates/logic (Rust); a lossy documentation projection (Principle 17)."@x-gmeow-english .
+
+logic:backwardSourceHash
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "backward source hash"@x-gmeow-english ;
+    skos:definition "The framed-BLAKE3 digest over the backward goal-resolution SOURCE surface of the engine — the dispatch entry point, the profile gates, the query IR, the fact-source seam, and the whole physical resolution engine — folded into a logic:EngineContract so a pinned consumer detects any change to how a goal query is decided. Because it digests source bytes in a fixed order, a rename or a body edit of any covered file both move it (and the containing logic:engineContractDescriptorHash). Single-valued. Domain logic:EngineContract (stated in prose). NON-CONFLATION with logic:forwardContractHash: the backward surface answers goal queries by resolution, the forward surface materializes consequences by the EL/DL/RL chase; the two source surfaces are independent and MUST NOT alias — a change confined to one moves only its own digest, which is why the descriptor carries both rather than a single blended hash. Authored canonically in crates/logic (Rust); a lossy documentation projection (Principle 17). Normative in design/LOGIC-RUNTIME.md, §The forward materialization ↔ backward resolution seam."@x-gmeow-english .
+
+logic:forwardContractHash
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "forward contract hash"@x-gmeow-english ;
+    skos:definition "The content-addressed identity of the FORWARD reasoning contract — the EL/DL/RL materialization (chase) engine's own contract hash — folded into a logic:EngineContract so ONE descriptor pins both engine directions. It is the same value a forward reasoning run records as logic:contractHash on its logic:ReasoningResult: the engine contract carries the forward identity so a consumer can pin the materializer without first executing a query. Single-valued. Domain logic:EngineContract (stated in prose). NON-CONFLATION with logic:backwardSourceHash (the independent backward goal-resolution surface) and with logic:engineContractDescriptorHash (the whole-descriptor address that FOLDS this value in among others). Authored canonically in crates/logic (Rust); a lossy documentation projection (Principle 17). Normative in design/LOGIC-RUNTIME.md, §The forward materialization ↔ backward resolution seam."@x-gmeow-english .
+
+logic:supportedProfile
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "supported profile"@x-gmeow-english ;
+    skos:definition "Relates a logic:EngineContract to a logic:ReasoningPreset the runtime dispatch surface recognizes — one edge per entry of the capability manifest, MULTI-valued. It lets a consumer NEGOTIATE capability up front (does this engine support the preset my query needs?) instead of discovering an unsupported preset as a runtime refusal (a typed Err, never a silent empty answer). Each linked preset carries, via logic:decidabilityClass, the decidability guarantee the engine offers for it, so the manifest pairs recognition with its termination promise. Domain logic:EngineContract, range logic:ReasoningPreset (stated in prose, matching the module's convention). Authored canonically in crates/logic (Rust); a lossy documentation projection (Principle 17)."@x-gmeow-english .
+
+logic:decidabilityClass
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "decidability class"@x-gmeow-english ;
+    skos:definition "The decidability-class guarantee a logic:EngineContract offers for one of its logic:supportedProfile presets — the termination/complexity token the engine promises for queries read under that preset (e.g. `terminating/PTIME-data` for the positive-Horn and stratified-negation presets, `three-valued/PTIME` for well-founded, `NP-hard` for stable-model, `operational/Turing-complete` for procedural Prolog, `probabilistic/#P-hard` for the probabilistic preset). Single-valued per preset. Domain logic:ReasoningPreset — a supported preset of the contract — (stated in prose). It draws from the SAME value vocabulary as logic:complexityClass but is carried in a DIFFERENT place for a different purpose: logic:complexityClass records the class of a lowering/projection alongside its preservation polarity in the loss ledger, whereas logic:decidabilityClass is the per-preset guarantee published on the runtime engine's capability manifest so a consumer reads it off the pinned contract. Decidability here is a projection guarantee bought by reasoning under a bounded preset, never a canonical-layer promise — the canonical layer is maximally expressive and only semi-decidable. Authored canonically in crates/logic (Rust); a lossy documentation projection (Principle 17)."@x-gmeow-english .
 
 # ── The typed logic:ResultShape surface ─────────────────────────────────────────
 # A schema-level type contract on a SPARQL SELECT result set: the declared columns
