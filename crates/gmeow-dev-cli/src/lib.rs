@@ -223,6 +223,12 @@ pub enum Commands {
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
+    /// Independent OWL-Direct consistency differential (Docker-free, off-gate; NP-hard).
+    #[command(name = "reason-consistency-crosscheck")]
+    ReasonConsistencyCrosscheck {
+        #[arg(long = "timings-json")]
+        timings_json: Option<PathBuf>,
+    },
     /// Run native reasoning followed by reasoned-graph verify.
     #[command(name = "reason-verify")]
     ReasonVerify {
@@ -804,6 +810,9 @@ pub fn run() -> i32 {
         } => dev_reason::verify(&mode, fresh, timings_json.as_deref()),
         Commands::ReasonCrosscheck { timings_json } => {
             dev_reason::reason_crosscheck(timings_json.as_deref())
+        }
+        Commands::ReasonConsistencyCrosscheck { timings_json } => {
+            dev_reason::reason_consistency_crosscheck(timings_json.as_deref())
         }
         Commands::ReasonVerify {
             fresh,
