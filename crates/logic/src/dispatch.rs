@@ -17,7 +17,12 @@ use crate::seam::WorldFactSource;
 /// The rule program has its own canonical digest in the physical plan key. This digest
 /// covers the remaining semantics/resource inputs that can change dispatch behavior,
 /// with explicit option tags so `None` cannot alias a numeric zero.
-fn query_contract_hash(profile: &str, budget: &Budget) -> String {
+///
+/// `pub(crate)` so the stable runtime façade ([`crate::runtime::EngineContract`]) can
+/// surface the per-query contract from THIS single source — a runtime consumer that
+/// records "answer minted under contract Y" reproduces the same Y, and there is never a
+/// second copy of this hash to drift.
+pub(crate) fn query_contract_hash(profile: &str, budget: &Budget) -> String {
     fn frame(hasher: &mut blake3::Hasher, value: &[u8]) {
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);

@@ -46,6 +46,34 @@ impl WorldStore {
         }
     }
 
+    /// Construct a `WorldStore` folded from a caller-supplied frozen dataset,
+    /// preserving named graphs as worlds.
+    ///
+    /// This is the supported entry for a runtime consumer that owns its own
+    /// `Arc<RdfDataset>` — folded from its own source (e.g. a signed ledger), not
+    /// from a repo checkout. `Arc<RdfDataset>` callers pass `&*arc` (or `&arc`,
+    /// which derefs), so this one constructor serves both `&RdfDataset` and
+    /// `Arc<RdfDataset>`, and stays signature-stable when a paged dataset backend
+    /// lands behind the same [`RdfDataset`] type.
+    ///
+    /// Refresh has two shapes:
+    /// * **additive** — call [`load_dataset`](Self::load_dataset),
+    ///   [`insert_quad`](Self::insert_quad), or
+    ///   [`insert_quad_terms`](Self::insert_quad_terms) again; every insert is a
+    ///   delta, never a reset;
+    /// * **wholesale replace** — construct a *fresh* store from the re-folded
+    ///   dataset and drop the prior one. There is no in-place `clear`: replacement
+    ///   is a new value, so a re-folded source never double-counts.
+    ///
+    /// # Errors
+    ///
+    /// Propagates any fold error from [`load_dataset`](Self::load_dataset).
+    pub fn from_dataset(source: &RdfDataset) -> gmeow_errors::Result<Self> {
+        let store = Self::new();
+        store.load_dataset(source)?;
+        Ok(store)
+    }
+
     /// Load N-Quads text into the store, preserving named graphs (worlds).
     ///
     /// Each quad's graph component becomes its world. The default graph and
@@ -72,6 +100,12 @@ impl WorldStore {
     /// default-graph quads are loaded but remain inaccessible through the
     /// world-only APIs by design.
     ///
+    /// This method **appends**: each call inserts the source's quads as deltas on
+    /// top of whatever the store already holds — it is not an idempotent reset.
+    /// Calling it again with more quads is the additive refresh path. To replace
+    /// the contents wholesale, construct a fresh store via
+    /// [`from_dataset`](Self::from_dataset) and drop the prior one.
+    ///
     /// # Errors
     ///
     /// Infallible in practice (the in-memory delta insert cannot fail); the
@@ -91,6 +125,8 @@ impl WorldStore {
 
     /// Insert the triple `(s, p, o)` — all IRI strings — into the named graph
     /// whose IRI is `world`.
+    ///
+    /// Appends a delta: repeated calls accumulate, they do not reset the store.
     pub fn insert_quad(&self, world: &str, s: &str, p: &str, o: &str) {
         self.inner.borrow_mut().insert(QuadValues {
             s: TermValue::iri(s),
@@ -312,6 +348,55 @@ mod tests {
 
         assert_eq!(store.quads_in_world(WORLD_A).len(), 1);
         assert!(store.quads_in_world(WORLD_B).is_empty());
+    }
+
+    /// Build a single-quad frozen dataset placing `(s, p, o)` in graph `world`.
+    fn single_quad_dataset(world: &str, s: &str, p: &str, o: &str) -> std::sync::Arc<RdfDataset> {
+        use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+        let quad = RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(world));
+        let mut builder = RdfDatasetBuilder::new();
+        builder.push_owned_quad(&quad);
+        builder.freeze().expect("valid dataset")
+    }
+
+    #[test]
+    fn from_dataset_folds_arc_dataset_repo_root_free() {
+        // The Arc-ergonomic constructor a runtime consumer uses on its own dataset.
+        let arc = single_quad_dataset(WORLD_A, S_A, P_A, O_A);
+        let store = WorldStore::from_dataset(&arc).expect("Arc<RdfDataset> should fold");
+        assert_eq!(store.worlds(), vec![WORLD_A]);
+        assert_eq!(store.quads_in_world(WORLD_A).len(), 1);
+    }
+
+    #[test]
+    fn from_dataset_then_insert_quad_is_additive() {
+        // Refresh shape 1: additive append on top of the folded base.
+        let arc = single_quad_dataset(WORLD_A, S_A, P_A, O_A);
+        let store = WorldStore::from_dataset(&arc).expect("fold base");
+        store.insert_quad(WORLD_B, S_B, P_B, O_B);
+        let mut worlds = store.worlds();
+        worlds.sort();
+        assert_eq!(worlds, vec![WORLD_A, WORLD_B], "append must not reset");
+        assert_eq!(store.quads_in_world(WORLD_A).len(), 1);
+        assert_eq!(store.quads_in_world(WORLD_B).len(), 1);
+    }
+
+    #[test]
+    fn from_dataset_fresh_construct_is_wholesale_replace() {
+        // Refresh shape 2: a fresh store from a re-folded dataset carries ONLY the
+        // new fold's worlds — no in-place mutation, no double-count.
+        let first = single_quad_dataset(WORLD_A, S_A, P_A, O_A);
+        let store = WorldStore::from_dataset(&first).expect("fold first");
+        assert_eq!(store.worlds(), vec![WORLD_A]);
+
+        let second = single_quad_dataset(WORLD_B, S_B, P_B, O_B);
+        let replaced = WorldStore::from_dataset(&second).expect("fold second");
+        assert_eq!(
+            replaced.worlds(),
+            vec![WORLD_B],
+            "wholesale replace carries only the re-folded world"
+        );
+        assert!(replaced.quads_in_world(WORLD_A).is_empty());
     }
 
     #[test]
