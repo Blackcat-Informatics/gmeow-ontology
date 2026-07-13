@@ -32,7 +32,7 @@ use std::hint::black_box;
 
 // Measure the retired-instruction cost of one native forward run over a synthetic
 // workload. Each case's argument expression is the generator call that builds the
-// workload (`rules` + frozen EDB); iai-callgrind evaluates and black-boxes that
+// workload (typed program + frozen EDB); iai-callgrind evaluates and black-boxes that
 // expression as SETUP, OUTSIDE the measured region — so only the engine's chase is
 // counted, never workload construction. (This comment sits ABOVE
 // `#[library_benchmark]`: the macro forbids any attribute — including a `///` doc
@@ -47,7 +47,7 @@ use std::hint::black_box;
 #[bench::reachability_n6(reachability(6))]
 fn native_forward(workload: SynthWorkload) -> NativeForwardRun {
     black_box(
-        run_native_forward(&workload.edb, &workload.rules).expect("native forward run succeeds"),
+        run_native_forward(&workload.edb, &workload.program).expect("native forward run succeeds"),
     )
 }
 
