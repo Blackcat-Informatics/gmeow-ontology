@@ -346,7 +346,9 @@ the native chase, and the RL `triple/4` fragment is evaluated by the native gene
 (predicate-as-data) rather than by a black-box substrate. The backward substrate and fallback
 router are deleted. Native results remain **corpus-gated** by the divergence ledger
 ([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)); captured external expectations keep the native core
-honest without shipping another executable reasoner.
+honest without shipping another executable reasoner. Native's consistency verdict is additionally
+subject to an off-gate OWL-Direct tableau differential acting as a soundness anti-regression tripwire
+(see [LOGIC-CONFORMANCE.md § The off-gate OWL-Direct consistency differential](LOGIC-CONFORMANCE.md#the-off-gate-owl-direct-consistency-differential)).
 
 The execution lowering stack:
 
