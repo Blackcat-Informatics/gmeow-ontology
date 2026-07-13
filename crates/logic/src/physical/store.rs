@@ -74,9 +74,10 @@ use crate::seam::WorldFactSource;
 // bound by the body.  A witness is a **Skolem constant, not a blank node** (the
 // same doctrine `relational_core` follows: the clausifier "mints Skolem constants,
 // never blanks (no-optionality)").  Every witness IRI is minted through the single
-// [`crate::facts::skolem_iri`] surface — the one value-invention interning point,
-// shared with `reason/dl.rs`'s TBox witness pass — so null identity has ONE source
-// of truth.
+// [`crate::facts::skolem_iri`] surface — the one restricted-chase value-invention
+// interning point, so null identity has ONE source of truth. Other users of
+// `skolem_iri` normalize pre-existing blank-node identifiers; they do not invent a
+// second DL witness.
 //
 // Beyond the opaque interned IRI, each witness retains a **decomposable recipe**
 // ([`SkolemRecipe`]).  An interned IRI is a hash and cannot be unified structurally;
@@ -195,6 +196,40 @@ impl SkolemRegistry {
             }
         }
         TermValue::iri(&iri)
+    }
+
+    /// Mint a DL-tableau witness, blocking a recursive existential obligation on
+    /// the nearest ancestor produced by the same rule and existential ordinal.
+    ///
+    /// Production DL restrictions have one frontier subject. Keeping the first
+    /// witness per root subject preserves distinct root obligations, while folding a
+    /// later same-rule cycle onto its own ancestor yields a finite model for patterns
+    /// such as `C subClassOf exists p.C`. General TGD chase callers continue to use
+    /// [`Self::mint`] and retain ordinary frontier-Skolem semantics.
+    pub(crate) fn mint_dl_blocked(&mut self, recipe: SkolemTerm) -> TermValue {
+        if let Some(blocker) = self.dl_recursive_blocker(&recipe) {
+            return blocker;
+        }
+        self.mint(recipe)
+    }
+
+    fn dl_recursive_blocker(&self, recipe: &SkolemTerm) -> Option<TermValue> {
+        let [TermValue::Iri(frontier_iri)] = recipe.frontier.as_slice() else {
+            return None;
+        };
+        let mut cursor = frontier_iri.as_str();
+        let mut seen = BTreeSet::new();
+        while seen.insert(cursor.to_owned()) {
+            let ancestor = self.recipes.get(cursor)?;
+            if ancestor.rule_iri == recipe.rule_iri && ancestor.ordinal == recipe.ordinal {
+                return Some(TermValue::iri(cursor));
+            }
+            let [TermValue::Iri(parent)] = ancestor.frontier.as_slice() else {
+                return None;
+            };
+            cursor = parent;
+        }
+        None
     }
 
     /// The recipe behind an invented-null IRI surface, if this registry minted it.
