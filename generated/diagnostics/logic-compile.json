@@ -94,26 +94,6 @@
     {
       "severity": "note",
       "code": "preservation.rung.actual",
-      "message": "logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
-      "tool": "logic-compile",
-      "locations": [
-        {
-          "path": "slices/grounding/logic/module.ttl"
-        }
-      ],
-      "finding_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/0122b676bb3c36af8859e1a6ffce33ab",
-      "anchor_iri": "https://blackcatinformatics.ca/gmeow/diagnostics/anchor/d8da4af312e8a3f8459285ccd0ca185c",
-      "anchor_non_trivial": true,
-      "tags": [
-        "preservation:SoundUnderApproximation"
-      ],
-      "detail": "logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue\nlogic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue\nlogic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue\nlogic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue\nlogic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
-      "category": "projection-loss",
-      "standpoint": "perspectival"
-    },
-    {
-      "severity": "note",
-      "code": "preservation.rung.actual",
       "message": "logic:instantiatesFramework on <https://blackcatinformatics.ca/logic/ActionSchema> has no EL equivalent",
       "tool": "logic-compile",
       "locations": [

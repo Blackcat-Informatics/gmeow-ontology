@@ -98,29 +98,6 @@
           "level": "note",
           "locations": [
             {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "slices/grounding/logic/module.ttl"
-                }
-              }
-            }
-          ],
-          "message": {
-            "text": "logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue"
-          },
-          "partialFingerprints": {
-            "gmeowFindingHash/v2": "19a50f2fc20d17a8"
-          },
-          "properties": {
-            "detail": "logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue\nlogic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue\nlogic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue\nlogic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue\nlogic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue",
-            "gmeow.category": "projection-loss"
-          },
-          "ruleId": "preservation.rung.actual"
-        },
-        {
-          "level": "note",
-          "locations": [
-            {
               "logicalLocations": [
                 {
                   "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/diagnostics/finding/bb15982f8b70d6bf9ddbf5119e518901"

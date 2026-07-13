@@ -308,9 +308,9 @@ fn object_id(ds: &RdfDataset, object: &Node) -> Option<TermId> {
 ///
 /// This is the determinism source for the whole compiler. The RDF back-ends either
 /// canonicalize on output or rewrite rule atoms to deterministic `rule/NNNN/...`
-/// IRIs, so they were already byte-stable; the *text* back-ends (Datalog / Nemo /
+/// IRIs, so they were already byte-stable; the *text* back-ends (Datalog /
 /// N3) emit a blank node's raw label verbatim, so a random parse-time id leaked
-/// straight into `gmeow.rls` / `gmeow.dl` / `gmeow.n3` and the conformance goldens,
+/// straight into `gmeow.dl` / `gmeow.n3` and the conformance goldens,
 /// making them differ on every run. Canonicalizing once at load fixes every
 /// projection at the source (greenfield: one deterministic front door, not a
 /// per-back-end patch).

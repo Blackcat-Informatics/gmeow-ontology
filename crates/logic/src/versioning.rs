@@ -53,11 +53,11 @@ fn to_hex(digest: blake3::Hash) -> String {
 /// and any differing field produces a different serialization (and therefore a different key).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BudgetParams {
-    /// Maximum number of Nemo fixpoint iterations, or `None` for no limit.
+    /// Maximum number of fixpoint iterations, or `None` for no limit.
     pub max_iterations: Option<u64>,
     /// Maximum number of derived quads across the whole materialization, or `None` for no limit.
     pub max_derived_quads: Option<u64>,
-    /// Maximum wall-clock milliseconds for a single Nemo run, or `None` for no limit.
+    /// Maximum wall-clock milliseconds for a single solver run, or `None` for no limit.
     pub timeout_ms: Option<u64>,
 }
 
@@ -105,7 +105,7 @@ pub struct MaterializedKeyInputs {
     pub rule_set_hash: [u8; 32],
     /// IRI identifying the semantic / decidability profile in force.
     pub profile_id: String,
-    /// Semver string of the solver (Nemo) version used.
+    /// Semver string of the solver version used.
     pub solver_version: String,
     /// Execution-budget parameters that were active during materialization.
     pub budget_params: BudgetParams,

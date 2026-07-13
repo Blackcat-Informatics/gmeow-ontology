@@ -7,7 +7,7 @@
 //!
 //! `least_model_of_reduct` is `pub(crate)`, so the bench drives it through the public
 //! entry point [`gmeow_logic::wellfounded::bench_wf_materialize`], which takes a
-//! pre-built `WorldStore` reference and a Nemo `.rls` rule string and returns the
+//! pre-built `WorldStore` reference and a compact benchmark rule string and returns the
 //! materialized row count.
 //! This mirrors the public-path pattern used by `benches/graph.rs` for
 //! `entrenchment::closure`.
@@ -45,11 +45,10 @@ fn build_parent_chain_store(n: usize) -> WorldStore {
     store
 }
 
-/// Build the `.rls` rule text for transitive ancestor closure.
+/// Build the compact benchmark rule text for transitive ancestor closure.
 ///
 /// The world slot (`?W`) is present so the arity-3 gmeow fragment matches; all
 /// nodes and edges are in a single world.
-/// (No inline comments inside the .rls text — Nemo's parser rejects them.)
 fn ancestor_rules() -> String {
     format!(
         "#[name(\"{NS}ruleAncestorBase\")]\n\

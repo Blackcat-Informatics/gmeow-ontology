@@ -85,17 +85,6 @@ sha2 = "0.10"
 # parser (weeks/days/hours/minutes/seconds), not chrono.
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 
-# nemo: forward-chaining existential-rule reasoner. Hard dependency — the build
-# MUST succeed with the full Nemo reasoner linked; there is no fallback.
-nemo = { git = "https://github.com/knowsys/nemo", rev = "4415bc2e180adf33a7a4b98ddc41be9914b7584e" }
-
-# tokio is required to drive Nemo's async chase API (load_string / reason /
-# predicate_rows).  We match the exact feature set Nemo itself declares
-# (features = ["rt", "macros"]) and rely on Cargo's existing lock resolution
-# (1.52.x series) to avoid a duplicate tokio in the tree.  current_thread
-# flavour is used (same as nemo-cli's #[tokio::main(flavor = "current_thread")]).
-tokio = { version = "1", features = ["rt", "macros"] }
-
 [dev-dependencies]
 # Also a dev-dependency so the integration tests (tests/never_panic.rs,
 # proptest_invariants.rs) can `use gmeow_logic_compile::` directly (#732).

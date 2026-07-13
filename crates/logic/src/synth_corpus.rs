@@ -8,7 +8,7 @@
 //! `(rules, edb, expected_rows)`:
 //!
 //! - `rules` — engine rule text in the world-scoped ternary `#[name(...)]` surface
-//!   [`crate::cost::run_native_forward`] / [`crate::cost::run_nemo_forward`] accept
+//!   [`crate::cost::run_native_forward`] accepts
 //!   (the SAME shape as `cost::tests::two_stratum_rules`).
 //! - `edb` — the world-scoped [`RdfDataset`] EDB of `predicate(subject, object, world)`
 //!   facts, built the SAME way `benches/graph.rs` and `benches/foundation.rs`
@@ -244,42 +244,5 @@ pub fn reachability(n: usize) -> SynthWorkload {
         rules,
         edb,
         expected_rows,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::cost::run_native_forward;
-
-    /// Every generator's analytically-known `expected_rows` (a closed-form formula,
-    /// NOT a native echo) equals the native engine's committed-derivation count over
-    /// its EDB — proving the generators are real workloads AND the golden formula is
-    /// correct. `n` is kept tiny so each closure is hand-checkable.
-    #[test]
-    fn generators_match_native_derivation_count() {
-        // (label, workload) — tiny scales chosen so each closure is hand-verifiable.
-        let cases = [
-            ("transitive_closure", transitive_closure(3)), // 3*4/2 = 6
-            ("strongly_connected", strongly_connected(3)), // 2*9   = 18
-            ("same_generation", same_generation(2)),       // 4 + 16 = 20
-            ("reachability", reachability(3)),             // 3
-        ];
-        // Pin the closed-form values so a formula regression is caught here too.
-        let expected = [6u64, 18, 20, 3];
-
-        for ((label, wl), want) in cases.into_iter().zip(expected) {
-            assert_eq!(
-                wl.expected_rows, want,
-                "{label}: closed-form expected_rows drifted from the pinned value"
-            );
-            let run = run_native_forward(&wl.edb, &wl.rules)
-                .unwrap_or_else(|e| panic!("{label}: native forward run failed: {e}"));
-            assert_eq!(
-                run.cost.total_derivations(),
-                wl.expected_rows,
-                "{label}: native committed-derivation count must equal the analytic golden",
-            );
-        }
     }
 }

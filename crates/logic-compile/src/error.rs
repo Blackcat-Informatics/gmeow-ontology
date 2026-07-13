@@ -148,8 +148,7 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A textual projection failed: a rendering that could not be emitted or a
-    /// Nemo-rules section that could not be extracted.
+    /// A textual projection failed because its rendering could not be emitted.
     pub struct Text { detail: String }
     code = "logic-compile.text";
     grade = compile_grade!();

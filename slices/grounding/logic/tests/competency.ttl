@@ -714,7 +714,7 @@ ex:cqLogicChase a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "slices/grounding/logic/queries/competency/logic-chase-certificate.rq" ;
     gmeow:cqDataFile  "tests/conformance-fixtures/chase-witness-complete.ttl" ;
     gmeow:cqReasoning gmeow:reasoningNone ;
-    gmeow:cqRationale "The chaseTerminationCertificate flagship pinned: over the worked witness the accepted chase carries exactly the weak-acyclicity certificate evidence `weakly acyclic: none in a cycle` — the ChaseAdmission::WeaklyAcyclic evidence materialize_routed surfaces as a gmeow:Finding. Dropping logic:carriesTerminationCertificate empties the result." ;
+    gmeow:cqRationale "The chaseTerminationCertificate flagship pinned: over the worked witness the accepted chase carries exactly the weak-acyclicity certificate evidence `weakly acyclic: none in a cycle` — the ChaseAdmission::WeaklyAcyclic evidence materialize_existential_rules surfaces as a gmeow:Finding. Dropping logic:carriesTerminationCertificate empties the result." ;
     gmeow:cqExactRows true ;
     gmeow:cqResultShape ex:cqLogicChaseShape ;
     gmeow:cqExpectRow ex:rowLogicChase .

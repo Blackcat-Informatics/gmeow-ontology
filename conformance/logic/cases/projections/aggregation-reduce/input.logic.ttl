@@ -5,7 +5,7 @@
 # Exercises the "reduce" half of the computation surface: a logic: rule that
 # aggregates (SUM) a body variable over a group key. It projects to an aggregating
 # SHACL-AF sh:SPARQLRule with a GROUP-BY sub-SELECT, and is carried-and-flagged (never
-# silently dropped) on the Datalog / N3 / Nemo targets that have no aggregation form.
+# silently dropped) on the Datalog / N3 targets that have no aggregation form.
 
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://example.org/aggregation-reduce/> .

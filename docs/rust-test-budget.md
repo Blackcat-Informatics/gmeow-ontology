@@ -32,8 +32,8 @@ Full `cargo nextest run --profile ci`: 2409 tests, ~554 s wall / ~3703 s summed.
 | Cluster | Count >25 s | Cause | Disposition |
 |---|---|---|---|
 | `gmeow-docs` render/competency/extract/lint/i18n/model | ~39 | each test rebuilt the full `DocsModel` via `discover` (~13 s) + render (~5 s), uncached across nextest's process-per-test model | **now on-gate** via a shared once-per-run model fixture (slowest ~12 s) |
-| `gmeow-pipeline` full-fold / full-DAG / codec / mapping-parity | ~13 | minutes of Nemo fold + byte-parity over the whole bundle | off-gate (engine-bound by design) |
-| `gmeow-logic::ontology_entailments`, `gmeow-conformance` | ~3 (+ ~16 in 10–25 s) | Nemo OWL-2-RL closures / chase | off-gate whole binaries |
+| `gmeow-pipeline` full-fold / full-DAG / codec / mapping-parity | ~13 | whole-bundle fold + byte-parity | off-gate (bundle-size bound) |
+| `gmeow-logic::ontology_entailments`, `gmeow-conformance` | ~3 (+ ~16 in 10–25 s) | native OWL-2-RL closures / chase | off-gate whole binaries |
 | `gmeow-slice` / `gmeow-slicetest` stragglers | ~3 | whole-ontology emit/closure just over budget | off-gate the specific tests |
 
 ### The corpus-parity case

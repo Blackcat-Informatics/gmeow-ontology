@@ -84,7 +84,7 @@ pub const DERIVATION_PREFIX: &str = "https://blackcatinformatics.ca/gmeow/deriva
 /// error, never a saturated or wrapped provenance claim.
 pub trait ProvenanceSemiring {
     /// One annotation value.
-    type Element: Copy + Eq;
+    type Element: Copy + Eq + std::fmt::Debug;
 
     /// Additive identity: no derivation.
     fn zero(self) -> Self::Element;
@@ -98,6 +98,37 @@ pub trait ProvenanceSemiring {
         left: Self::Element,
         right: Self::Element,
     ) -> gmeow_errors::Result<Self::Element>;
+}
+
+impl<S> crate::annotation::TupleAnnotationAlgebra for S
+where
+    S: ProvenanceSemiring + Copy,
+{
+    type Element = S::Element;
+
+    fn zero(&self) -> Self::Element {
+        ProvenanceSemiring::zero(*self)
+    }
+
+    fn one(&self) -> Self::Element {
+        ProvenanceSemiring::one(*self)
+    }
+
+    fn add(
+        &self,
+        left: &Self::Element,
+        right: &Self::Element,
+    ) -> gmeow_errors::Result<Self::Element> {
+        ProvenanceSemiring::add(*self, *left, *right)
+    }
+
+    fn multiply(
+        &self,
+        left: &Self::Element,
+        right: &Self::Element,
+    ) -> gmeow_errors::Result<Self::Element> {
+        ProvenanceSemiring::multiply(*self, *left, *right)
+    }
 }
 
 /// A provenance semiring with additive inverses (the signed Z-set carrier).

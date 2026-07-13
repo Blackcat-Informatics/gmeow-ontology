@@ -13,7 +13,7 @@
 //! regenerate/drift gate owns —
 //!
 //! * the projection serializations (the canonical RDF 1.2 IR, the OWL DL/EL,
-//!   Datalog, N3, gUFO, Nemo, CLIF, CGIF and XCL projections, and the projection-report loss
+//!   Datalog, N3, gUFO, CLIF, CGIF and XCL projections, and the projection-report loss
 //!   ledger), and
 //! * the compile diagnostics rendered to the four canonical projections (JSON, SARIF,
 //!   HTML, and `gmeow:Finding` N-Quads) — each below-`Exact` projection's structural
@@ -123,8 +123,6 @@ pub const N3_PATH: &str = "generated/n3/gmeow.n3";
 pub const GUFO_PATH: &str = "generated/foundation/gufo.ttl";
 /// Committed canonical RDF 1.2 IR serialization.
 pub const CANONICAL_RDF12_PATH: &str = "generated/logic/gmeow.logic.rdf12.ttl";
-/// Committed Nemo (`.rls`) projection.
-pub const RULES_PATH: &str = "generated/logic/gmeow.rls";
 /// Committed CLIF (Common Logic Interchange Format) projection: the bidirectional,
 /// `PreservationKind::Exact` s-expression FOL dialect.
 pub const CLIF_PATH: &str = "generated/cl/gmeow.clif";
@@ -485,7 +483,6 @@ impl Stage for CompileLogicStage {
             CANONICAL_RDF12_PATH.to_string(),
             canonical_rdf12.clone().into_bytes(),
         );
-        artifacts.insert(RULES_PATH.to_string(), arts.nemo.into_bytes());
         artifacts.insert(CLIF_PATH.to_string(), arts.clif.into_bytes());
         artifacts.insert(CGIF_PATH.to_string(), arts.cgif.into_bytes());
         artifacts.insert(XCL_PATH.to_string(), arts.xcl.into_bytes());
@@ -840,7 +837,6 @@ mod tests {
             N3_PATH,
             GUFO_PATH,
             CANONICAL_RDF12_PATH,
-            RULES_PATH,
             CLIF_PATH,
             CGIF_PATH,
             XCL_PATH,

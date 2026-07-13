@@ -108,7 +108,7 @@ fn fixture_for<'a>(from: &str, gts_bytes: &'a [u8]) -> &'a [u8] {
 // ── Main test ─────────────────────────────────────────────────────────────────
 
 /// Expected row count (byte-stable against the committed artifact).
-const EXPECTED_ROW_COUNT: usize = 128;
+const EXPECTED_ROW_COUNT: usize = 120;
 
 #[test]
 fn every_matrix_row_has_an_executable_path() {

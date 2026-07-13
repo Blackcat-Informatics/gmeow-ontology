@@ -13,7 +13,6 @@
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/datalog> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/gufo> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/n3> .
-<https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/nemo> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/owl-dl> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/owl-el> .
 <https://blackcatinformatics.ca/logic/projection-report> <https://blackcatinformatics.ca/logic/hasProjection> <https://blackcatinformatics.ca/logic/target/procedural-constraint> .
@@ -78,10 +77,6 @@
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "N3 builtins used for arithmetic/string predicates where available" .
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "modal context encoded as quoted graph arguments (may overgenerate)" .
 <https://blackcatinformatics.ca/logic/target/n3> <https://blackcatinformatics.ca/gmeow/lossyDrop> "negation-as-failure guards are dropped; monotone log:implies cannot express a defeater, so a defeasible rule is over-approximated (CompleteOver) rather than emitting the guard as a positive antecedent" .
-<https://blackcatinformatics.ca/logic/target/nemo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
-<https://blackcatinformatics.ca/logic/target/nemo> <http://www.w3.org/2000/01/rdf-schema#label> "nemo" .
-<https://blackcatinformatics.ca/logic/target/nemo> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/ExactPreservation> .
-<https://blackcatinformatics.ca/logic/target/nemo> <https://blackcatinformatics.ca/logic/complexityClass> "PTIME/datalog" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/ProjectionTarget> .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <http://www.w3.org/2000/01/rdf-schema#label> "owl-dl" .
 <https://blackcatinformatics.ca/logic/target/owl-dl> <https://blackcatinformatics.ca/logic/preservationKind> <https://blackcatinformatics.ca/logic/SoundUnderApproximation> .

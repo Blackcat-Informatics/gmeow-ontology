@@ -1,2 +1,0 @@
-#[name("https://blackcatinformatics.ca/gmeow/bench/nary/rules/cowitness")]
-head1(?p, ?q, !n), head2(!n, ?r, ?s) :- base(?p, ?q, ?r, ?s, ?t) .

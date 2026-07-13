@@ -90,7 +90,7 @@ const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
 /// `rdfs:Resource` — the RDFS universal; `X ⊑ rdfs:Resource` carries no info.
 const RDFS_RESOURCE: &str = "http://www.w3.org/2000/01/rdf-schema#Resource";
 
-/// Strip a decoded Nemo object display form (`<iri>`) back to a bare IRI.
+/// Strip a decoded object display form (`<iri>`) back to a bare IRI.
 fn unbracket(display: &str) -> &str {
     display
         .strip_prefix('<')

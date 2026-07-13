@@ -101,7 +101,6 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> gmeow_errors::Resul
         for (target, filename) in [
             ("datalog", "datalog.dl"),
             ("n3", "n3.n3"),
-            ("nemo", "nemo.rls"),
             ("clif", "gmeow.clif"),
             ("cgif", "gmeow.cgif"),
             ("xcl", "gmeow.xcl"),

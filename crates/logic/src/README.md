@@ -13,7 +13,7 @@ PyO3 module registered by `gmeow-native`.
 
 | Family | Modules | Role |
 | --- | --- | --- |
-| Engine and dispatch | `nemo_engine`, `rule_ir`, `materialize`, `dispatch` | Drive native rule and query execution; retain Nemo only for forward comparison. |
+| Engine and dispatch | `physical`, `rule_ir`, `materialize`, `dispatch` | Drive typed native rule and query execution. |
 | Reasoning and verification | `reason`, `slme`, `verify`, `certificate`, `certify`, `profile_gate`, `dag_profile` | Entailment, consistency, module extraction, static profile checks, and coherence certificates. |
 | Results and provenance | `result`, `result_rdf`, `derivation_graph`, `provenance`, `explain`, `seam` | Stable result contracts, RDF projections, derivation metadata, and Python seam shapes. |
 | Logic features | `counterfactual`, `entrenchment`, `foundation`, `obligations`, `probabilistic`, `stablemodel`, `teleology`, `transaction`, `transition`, `versioning`, `wellfounded` | Domain-specific logic surfaces layered on the core runtime. |
@@ -22,7 +22,7 @@ PyO3 module registered by `gmeow-native`.
 ## Boundaries
 
 - Compiler-only data structures belong in `gmeow-logic-compile`; this crate is
-  allowed to depend on Nemo/PyO3 and is native-only.
+  native-only and consumes the compiler's typed IR directly.
 - Python-visible result shapes must stay byte-compatible with the conformance
   goldens and the documented seam contract.
 - Runtime budget behavior and static certification must remain explicit; do not

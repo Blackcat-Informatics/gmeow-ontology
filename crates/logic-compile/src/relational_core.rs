@@ -564,14 +564,13 @@ fn lower_axiom(axiom: &LogicAxiom) -> gmeow_errors::Result<RcAtom> {
 fn lower_rule(rule: &LogicRule) -> gmeow_errors::Result<RcRule> {
     // A stratified aggregation (reduce) rule is outside the binary-Horn fragment the relational
     // core models: it is carried as flagged residue (never silently dropped, never mis-lowered to
-    // a plain Horn rule), and the projections that can express it (Nemo, SHACL-AF) emit it from
-    // the LogicProgram directly.
+    // a plain Horn rule), and projections that can express it emit it from the
+    // LogicProgram directly.
     if let Some(agg) = &rule.aggregation {
         return Err(Diag::of_kind(crate::error::RelationalCore {
             detail: format!(
                 "rule deriving <{}> uses aggregation ({} of {} over {}), outside the binary-Horn \
-             relational core; carried in the logic: canon and projected to the aggregating Nemo / \
-             SHACL-AF surfaces",
+             relational core; carried in the logic: canon for aggregation-capable surfaces",
                 rule.head.predicate,
                 agg.function,
                 agg.aggregate_var,
@@ -867,8 +866,8 @@ fn lower_nary_head_clause(
         syntactic_key.push('\u{1f}');
         syntactic_key.push_str(&t.key());
     }
-    // Underscore-free, letter-first (Nemo variable grammar rejects a leading underscore);
-    // `naryH` = the reified HEAD reifier, a distinct namespace from the `naryB` body reifier.
+    // Underscore-free, letter-first for portability across text projections; `naryH` = the
+    // reified HEAD reifier, a distinct namespace from the `naryB` body reifier.
     let reifier = RcTerm::Var(format!("?naryH{}", sha256_12(&syntactic_key)));
 
     let head = RcAtom {
@@ -982,10 +981,9 @@ fn formula_atom_to_rc_atoms(
                     syntactic_key.push('\u{1f}');
                     syntactic_key.push_str(&t.key());
                 }
-                // The reifier name is deliberately underscore-free and letter-first: the
-                // physical engine adapter renders these rules to Nemo `.rls`, whose variable
-                // grammar rejects an underscore-leading identifier. `naryB` = the reified BODY
-                // join reifier (distinct namespace from the `naryH` head reifier).
+                // The reifier name is deliberately underscore-free and letter-first for
+                // portability across text projections. `naryB` = the reified BODY join reifier
+                // (distinct namespace from the `naryH` head reifier).
                 let reifier = RcTerm::Var(format!("?naryB{}", sha256_12(&syntactic_key)));
                 let mut out = Vec::with_capacity(arg_terms.len() + 1);
                 out.push(RcAtom {

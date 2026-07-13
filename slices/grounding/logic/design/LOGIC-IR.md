@@ -177,7 +177,7 @@ Lowering follows the preservation judgments above:
   class (an exhaustive cover that leaves a deliberate overlap intact). The union list and union
   class are minted, content-derived IRIs (never blank nodes), so the serialization is byte-stable
   across regeneration;
-- **OWL 2 EL, the gUFO bridge, Datalog, N3, Nemo** cannot express a disjunction, so the covering is
+- **OWL 2 EL, the gUFO bridge, Datalog, and N3** cannot express a disjunction, so the covering is
   carried-and-flagged as `unsupported` residue (tagged `Disjunctive`), never silently dropped.
 
 A covering states only exhaustiveness; it does not re-encode any membership discipline the
@@ -211,7 +211,7 @@ the substrate does not.
   prerequisites already hold: the canonical IR is content-addressed (below) and the quantitative axes
   are semiring-annotatable first-class structure ([`LOGIC-CORRESPONDENCE.md`](LOGIC-CORRESPONDENCE.md)
   § axes). The realized evaluable path is `Formula → NNF → Skolemize → Horn-clause extraction →
-  logic:RelationalCore → Nemo rule text → chase`: the Horn-expressible fragment lowers exactly and runs
+  logic:RelationalCore → typed native chase`: the Horn-expressible fragment lowers exactly and runs
   alongside the program's own rules. Fixed-arity **n-ary predication** (`op(x,y,z)`, or a unary atom)
   is *also* evaluable: at the lowering boundary each fixed-arity atom is **reified** into a conjunction
   of ordinary binary atoms over a single content-addressed reifier node —

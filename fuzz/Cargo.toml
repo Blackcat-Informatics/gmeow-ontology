@@ -6,10 +6,9 @@
 # nightly/manual counterpart to the always-on proptest gate in
 # crates/{rdf,shacl,logic}/tests/never_panic.rs.
 #
-# Scoped to the CHEAP parsers (gmeow-rdf's native text codec + gmeow-shacl) so the
-# libFuzzer + sanitizer build never drags the heavy nemo tree. The logic
-# frontends (parse_logic_str / parse_query_program) are covered by the proptest
-# gate; their fuzz targets are deferred (nemo build cost). CLIF/CGIF/XCL (#718)
+# Scoped to the CHEAP parsers (gmeow-rdf's native text codec + gmeow-shacl). The
+# logic frontends are covered by the proptest gate; their fuzz targets remain
+# deferred because the full reasoning stack is outside this parser harness. CLIF/CGIF/XCL (#718)
 # and full-FOL IR (#719) parsers do not exist yet — no targets.
 
 [package]
@@ -24,13 +23,13 @@ cargo-fuzz = true
 
 # A standalone workspace: cargo-fuzz carries its own nightly + sanitizer profile
 # and must NOT join the parent workspace (whose explicit `members` list excludes
-# this dir and whose nemo build-memory profiles are irrelevant here).
+# this directory).
 [workspace]
 
 [dependencies]
 libfuzzer-sys = "0.4"
 # The fuzzed frontends. gmeow-rdf with the default `gts` feature pulls oxigraph +
-# gmeow-gts (no nemo); gmeow-shacl is oxigraph-only.
+# gmeow-gts; gmeow-shacl is oxigraph-only.
 gmeow-rdf = { path = "../crates/rdf", features = ["gts"] }
 gmeow-shacl = { path = "../crates/shacl" }
 

@@ -863,7 +863,6 @@ mod tests {
             "generated/logic/reasoning-explanations.rdf12.ttl",
             "generated/logic/dl-el-crosscheck-report.ttl",
             "generated/logic/perf-ledger.ttl",
-            "generated/logic/subsumption-correspondence.ttl",
             "generated/metadata/void.ttl",
             "generated/metadata/dcat.ttl",
             "generated/statements/gmeow-statements.owl.ttl",

@@ -28,15 +28,15 @@ purrdf.workspace = true
 gmeow-validate = { path = "../validate" }
 # SHACL engine: parse_shapes + validate_dataset (IR-native) for the ExampleConformance executor.
 # The canonical logic:ResultShape type contract (validate_bindings / is_satisfiable_by)
-# for the cqResultShape / cqInputShape contract check. It lives in the Nemo-FREE
-# gmeow-logic-compile crate (re-exported by gmeow-logic), so the harness gets the
-# canonical authority WITHOUT pulling Nemo into its build graph — see the note below.
+# for the cqResultShape / cqInputShape contract check. It lives in the lightweight
+# gmeow-logic-compile crate, so the harness gets the canonical authority without
+# pulling the full reasoning crate into its build graph.
 gmeow-logic-compile = { path = "../logic-compile" }
 # The native `logic:` reasoner (`reason_program_closure_dataset`) for the
 # gmeow:reasoningLogic competency lane (#1294): the four math: algebra laws run as LIVE
 # entailment consumers, deriving their consequents through fixed-arity n-ary predication.
-# This DOES pull Nemo into the build graph — accepted deliberately for this one lane; the
-# default (reasoningNone) and reasoningRdfs lanes stay Nemo-free (native SPARQL / CONSTRUCT
+# This pulls the full native reasoner into the build graph for this one lane; the
+# default (reasoningNone) and reasoningRdfs lanes stay lightweight (native SPARQL / CONSTRUCT
 # fixpoint), so only questions that opt into gmeow:reasoningLogic pay the native chase.
 gmeow-logic = { path = "../logic" }
 

@@ -24,10 +24,9 @@ portable contract enforcement; this crate explores far deeper given time.
 | `sssom` | `sssom::parse_tsv` (SSSOM TSV) | gmeow-rdf |
 | `statements` | `statements::{project_owl_to_rdf12, normalize_rdf12_to_owl}` (RDF-1.2 ↔ OWL) | gmeow-rdf |
 
-The crate depends only on `gmeow-rdf` + `gmeow-shacl` (oxigraph-backed) so the
-libFuzzer + sanitizer build never drags the heavy `nemo` tree. The **logic**
-frontends (`parse_logic_str` / `parse_query_program`) are covered by the proptest
-gate; their fuzz targets are deferred (nemo build cost). **CLIF/CGIF/XCL**
+The crate depends only on `gmeow-rdf` + `gmeow-shacl` (oxigraph-backed). The
+**logic** frontends are covered by the proptest gate; their fuzz targets remain
+outside this parser-only harness. **CLIF/CGIF/XCL**
 and **full-FOL IR** parsers do not exist yet — no targets until they land.
 
 ## Running

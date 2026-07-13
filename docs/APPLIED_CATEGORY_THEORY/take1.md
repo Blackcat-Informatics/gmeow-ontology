@@ -412,11 +412,9 @@ frontend syntax (slice-local, ergonomic)
 - **Engine of record (engine-agnostic by design).** The executor is GMEOW's own logic engine
   (Rust-native; `crates/logic`, `crates/pipeline`, `crates/validate`). It *subsumes* a bundle
   of capabilities — unification, SLD-style backward resolution, backtracking, fixpoint/chase,
-  tabling — and delegates to an embedded Prolog- or Datalog-class engine *only where a
-  capability is not yet served natively*. Named engines (Prolog, Nemo) appear in this spec
-  **purely as stand-ins for capability bundles, not as architectural commitments**: nothing in
-  the correspondence calculus is foundational to any particular engine, and the engine may be
-  replaced or grown without touching the calculus. Python remains a surface binding, not the
+  tabling — entirely in the native physical core. Nothing in the correspondence calculus is
+  foundational to any external engine, and the engine may grow without touching the calculus.
+  Python remains a surface binding, not the
   executor of record; no new Python is added for this work (per `.goals`).
 
 ### 10.1 Compiler-IR lineage — MLIR architecture, LLVM mechanisms (adopt / skip)
@@ -471,23 +469,18 @@ under/over-approximation, not a model to import.
 
 ### 10.2 Execution & optimization — the physical engine
 
-Routing every query to Scryer (SLD) and Nemo (chase) was a **bootstrap, not an architecture**: two
+Routing every query to external whole-program substrates was a **bootstrap, not an architecture**: two
 black-box whole-program engines cannot be planned across, specialized, parallelized, or made
-incremental, and each boundary pays re-serialization (Nemo even materializes the full chase, then
-truncates). The long-term design extends §10.1's progressive lowering *downward* — past the
+incremental, and each boundary pays re-serialization. The design extends §10.1's progressive lowering *downward* — past the
 projection lowerings (§11) — to a **single native physical engine** in Rust, with external engines
 demoted to conformance evidence while fragments are promoted
 (§10). The substrate is subsumed **fragment-by-fragment, oracle-gated** by the differential ledger
 — the same retirement discipline already applied to the Python oracle.
 
-The Nemo-track of that subsumption is now **realized**: native decides the production bundle. Each
-per-fragment `native ⊒ oracle` gap-zero is not merely asserted in a test — it is reified as a
-bundle-borne `logic:Correspondence` (relation `logic:Subsumes`, morphism `logic:SectionRetraction`,
-preservation `logic:CompleteOverApproximation`) in `generated/logic/subsumption-correspondence.ttl`,
-bound to `native_contract_hash()` so it is content-addressed to the exact native core it certifies,
-and enforced by an on-gate drift-gate. The correspondence *is* the subsumption claim, carried in the
-ontology and re-checked every gate. Scryer is now deleted; Nemo rides only the forward differential
-parity lane behind that gate.
+That subsumption is now **realized**: native decides the production bundle. Per-fragment
+`native ⊒ corpus` evidence is enforced by the conformance harness and divergence ledger, keyed to
+`native_contract_hash()` so captured results are tied to the exact native core they certify. The
+external execution substrates and their runtime parity lanes are deleted.
 
 The execution lowering stack (the physical continuation of §10):
 
@@ -505,7 +498,7 @@ everything:
 1. **One relational core, not two engines.** Datalog *is* relational algebra + fixpoint (Soufflé,
    RecStep). Implement the evaluation primitives natively over a shared columnar/indexed store;
    forward (Datalog) and backward (tabled) both reduce to it.
-2. **Magic-sets / demand transformation** — the move that *dissolves* the Scryer-vs-Nemo split: a
+2. **Magic-sets / demand transformation** — the move that unifies forward and backward demand: a
    goal-directed query rewrites to a bottom-up program computing only demand-relevant facts, so one
    bottom-up core serves both directions (SLG / subsumptive tabling is the dual).
 3. **Incremental maintenance — the biggest long-term lever.** Differential Dataflow / DBSP give
@@ -540,9 +533,9 @@ cleanly later: every execution strategy, the incremental layer, and the semiring
 target *it*. The other two prerequisites already hold — the four axes are semiring-annotatable
 first-class structure (§7), and the IR is content-addressed (§3).
 
-**Staging & honest risk.** Native subsumption is fragment-by-fragment and evidence-gated. The
-backward substrate is retired; Nemo remains the forward parity oracle. The Nemo-track — the forward-chase OWL profiles (EL, RL,
-DL Horn) — is realized and in production; the remaining hard parts stay ahead of it. Name them now,
+**Staging & honest risk.** Native subsumption is fragment-by-fragment and evidence-gated. Both
+external substrates are retired. The forward-chase OWL profiles (EL, RL, DL Horn) are native and
+in production; the remaining hard parts stay ahead of them. Name them now,
 do not promise them early:
 **well-founded / stable-model semantics *incrementally*** (non-monotonic + differential is
 research-frontier — monotone recursion and stratified negation are tractable, full WFS-incremental
@@ -871,8 +864,8 @@ subsumption — and naming it honestly is worth more than papering over it.
   unit-independent true quantity) grounds the data axis; the event refinements (process ≠ event,
   action-open/event-closed, causal-vs-temporal parts) ground the process axis.
 - **Execution** (§10.2): the long-term engine is a single native physical core the IR lowers to
-  (relational-core dialect → physical plan → semi-naive/incremental/compiled), with Scryer retired
-  and Nemo retained temporarily as forward comparison evidence. Seven levers
+  (relational-core dialect → physical plan → semi-naive/incremental/compiled), with the external
+  execution substrates retired. Seven levers
   (one core, magic-sets, incremental differential/DBSP, WCOJ, provenance-semirings = the axis
   algebra, compile-don't-interpret, fragment-routing). One IR commitment to lock in now: a
   first-class **relational-core dialect** as the logical↔physical lowering waist.

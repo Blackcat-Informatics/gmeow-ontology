@@ -8,7 +8,7 @@
 # ancestorOf(alice, bob), byte-identical to the equivalent logic:Rule lowering.
 #
 # This is the hand-checkable case that pins the WHOLE chain (parse → lower →
-# Skolem-free Horn extraction → Nemo .rls → chase → materialize), not just the
+# Skolem-free Horn extraction → canonical typed rules → chase → materialize), not just the
 # unit lowering. The formula is authored in the reified RDF-1.2 logic:Formula
 # surface (logic:forall over logic:antecedent/logic:consequent atomic
 # predications with ordered term-carrier arguments).

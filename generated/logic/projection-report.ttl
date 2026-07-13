@@ -35613,18 +35613,6 @@
     logic:complexityClass "semi-decidable" ;
     logic:preservationKind logic:CompleteOverApproximation .
 
-<https://blackcatinformatics.ca/logic/target/nemo>
-    a logic:ProjectionTarget ;
-    rdfs:label "nemo" ;
-    gmeow:lossyDrop "actual: logic:Formula #0 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #1 [Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #2 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #3 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #4 [Disjunctive+Nested+Quantified] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ,
-        "actual: logic:Formula #5 [Nested+Quantified+StrongNegation] (full first-order quantifier / connective tree) is not representable in Nemo; it remains in the canonical logic: layer (carried by canonical-rdf12) as flagged unsupported residue" ;
-    logic:complexityClass "PTIME/datalog" ;
-    logic:preservationKind logic:SoundUnderApproximation .
-
 <https://blackcatinformatics.ca/logic/target/nif:forms-and-sign-systems#sentAnchor>
     a logic:ProjectionTarget ;
     rdfs:label "nif:forms-and-sign-systems#sentAnchor" ;
@@ -88632,7 +88620,6 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:fe9ec60fea9db5b2> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:ff22502fe7ec3db1> ,
         <https://blackcatinformatics.ca/logic/target/n3> ,
-        <https://blackcatinformatics.ca/logic/target/nemo> ,
         <https://blackcatinformatics.ca/logic/target/nif:forms-and-sign-systems#sentAnchor> ,
         <https://blackcatinformatics.ca/logic/target/ontolex-lemon:forms-and-sign-systems> ,
         <https://blackcatinformatics.ca/logic/target/owl-dl> ,
