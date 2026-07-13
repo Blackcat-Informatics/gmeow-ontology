@@ -682,6 +682,11 @@ fn magic_transform(
         }
     }
 
+    // The BINARY fragment admits stratified NAF, so a body of only negated atoms has no
+    // positive driver and can never fire; the invariant therefore demands a POSITIVE body
+    // atom, not merely a non-empty body. `resolve_native_under`'s unpositive-body gate
+    // refuses any empty-positive-body rule that is not a pure ground fact-rule (which is
+    // seeded) UPSTREAM of this transform, so this holds as a true structural invariant.
     assert!(
         out.iter().all(|r| r.body.iter().any(|a| !a.negated)),
         "magic_transform must not emit a positive rule with no positive body atom (it would \
@@ -786,6 +791,10 @@ fn magic_transform_variant(
         }
     }
 
+    // Same fragment reasoning as `magic_transform`'s invariant above: this variant mirrors
+    // the production transform exactly (it exists only as the A/B byte-identity oracle), so
+    // the same "positive body atom required, not merely non-empty" invariant must hold here
+    // too, or the oracle comparison would no longer be checking a valid production shape.
     assert!(
         out.iter().all(|r| r.body.iter().any(|a| !a.negated)),
         "magic_transform_variant must not emit a positive rule with no positive body atom (it \
