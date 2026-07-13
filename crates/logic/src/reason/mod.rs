@@ -36,6 +36,36 @@ use crate::result::{ReasoningResult, ResultProvenance};
 use crate::store::WorldStore;
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm, RdfTriple, TermValue};
 
+/// One production existential-program admission certificate, scoped to the RDF
+/// world whose obligations were chased.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ChaseCertificate {
+    /// Named-graph world whose existential program was certified and evaluated.
+    pub world: String,
+    /// The native chase termination certificate and its proof evidence.
+    pub admission: crate::materialize::ChaseAdmission,
+}
+
+impl ChaseCertificate {
+    /// Project this world-scoped certificate onto the shared diagnostic model.
+    #[must_use]
+    pub fn to_finding(&self) -> gmeow_errors::Finding {
+        let mut finding = self.admission.to_finding();
+        finding.message = format!("world <{}>: {}", self.world, finding.message);
+        finding
+    }
+}
+
+/// The single production reasoning run and the existential termination evidence
+/// generated while constructing its result.
+#[derive(Debug, Clone, PartialEq)]
+pub struct CertifiedReasoning {
+    /// Typed five-axis reasoning result.
+    pub result: ReasoningResult,
+    /// Deterministic, deduplicated world-scoped chase certificates.
+    pub chase_certificates: Vec<ChaseCertificate>,
+}
+
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
 fn reason_err(detail: String) -> gmeow_errors::Diag {
@@ -140,8 +170,25 @@ pub fn reason_closure_axioms(edb: &RdfDataset) -> gmeow_errors::Result<Vec<Infer
 /// Returns `Err` if the source store cannot be loaded, native evaluation fails,
 /// or coverage/consistency scanning fails.
 pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
-    let (inferred, verdict) = reason_closure(edb)?;
-    Ok(typed_result(inferred, &verdict))
+    Ok(reason_all_certified(edb)?.result)
+}
+
+/// Run the same production reasoning path as [`reason_all`] while retaining the
+/// existential-chase admission certificates emitted during that single pass.
+///
+/// # Errors
+///
+/// Returns the same source-loading, native-evaluation, and consistency-scanning
+/// failures as [`reason_all`].
+pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedReasoning> {
+    let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
+    let chase_certificates = dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
+    inferred.sort();
+    let verdict = dl::verdict_from_inferred(&inferred, edb)?;
+    Ok(CertifiedReasoning {
+        result: typed_result(inferred, &verdict),
+        chase_certificates,
+    })
 }
 
 /// Result of applying one ground conjecture candidate to a cached fixed-rule

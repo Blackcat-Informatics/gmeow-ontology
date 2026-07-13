@@ -208,8 +208,8 @@ pub struct StageOutput {
     pub product: StageProduct,
     /// The pre-lowered diagnostic nodes this stage emits (the FORWARD projection of
     /// its `gmeow_errors::Report` findings). Empty for every stage that produces no
-    /// findings; the two diagnostics producers (`stage-validate` /
-    /// `stage-compile-logic`) populate it from their report. The scheduler folds
+    /// findings; the diagnostics producers (`stage-validate`, `stage-compile-logic`,
+    /// and `stage-reason`) populate it from their report. The scheduler folds
     /// these into the run-level `DiagLedger` (fresh run) or reads them back from the
     /// product's `diagnostics:nodes` blob (cache hit), so the ledger is a projection
     /// of the SAME producer findings whether the stage ran or replayed.
@@ -218,7 +218,7 @@ pub struct StageOutput {
 
 impl StageOutput {
     /// A stage output carrying `product` and NO diagnostic nodes — the default for
-    /// every stage that emits no findings. The two diagnostics producers build the
+    /// every stage that emits no findings. Diagnostics producers build the
     /// struct literal directly, threading their forward `diags` in.
     pub fn new(product: StageProduct) -> Self {
         Self {

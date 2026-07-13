@@ -142,12 +142,15 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &[],
     );
 
-    // stage-reason — the single reasoned closure graph.
+    // stage-reason — the reasoned closure plus its production chase certificates.
     entry(
         &mut t,
         "stage-reason",
-        &["https://blackcatinformatics.ca/gmeow/graph/reasoning"],
-        &[],
+        &[
+            "https://blackcatinformatics.ca/gmeow/graph/diagnostics",
+            "https://blackcatinformatics.ca/gmeow/graph/reasoning",
+        ],
+        &["diagnostics:nodes"],
     );
 
     // stage-validate — the SHACL diagnostics graph + diagnostics nodes.
