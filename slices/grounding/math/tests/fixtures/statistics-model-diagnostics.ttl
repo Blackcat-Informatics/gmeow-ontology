@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the model-evaluation competency question "which diagnostics, comparisons,
+# and calibration results evaluate this fitted model". A single well-formed math:FittedModel
+# (bound to its data through math:fittedToData and specified through math:modelFormula) is
+# evaluated by FIVE first-class objects, each anchored to it through the shared
+# math:diagnosticFor edge: a math:ModelDiagnostic (a residual analysis), a
+# math:CalibrationDiagnostic (the STATISTICAL calibration sense, predicted probabilities vs
+# observed frequencies), an math:InformationCriterion (a penalized-fit AIC), a
+# math:CrossValidationResult (an out-of-sample k-fold score), and a math:ModelComparison
+# (a likelihood-ratio weighing). Each evaluation is asserted with its OWN type only (the
+# calibration diagnostic is NOT also asserted a math:ModelDiagnostic), so the reasoning-free
+# query returns exactly one row per evaluation binding its own kind. Unioned onto the merged
+# ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The fit every evaluation is about: a well-formed math:FittedModel.
+ex:trialFit a math:FittedModel ;
+    math:fittedToData ex:trialData ;
+    math:modelFormula ex:trialFormula .
+
+ex:trialData a math:DatasetMatrix .
+ex:trialFormula a math:ModelFormula ;
+    math:argumentSlot ex:trialSlot0 .
+ex:trialSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:trialResponse .
+ex:trialResponse a math:VariableExpression .
+
+# A model diagnostic: a residual analysis over the fit, naming its method.
+ex:residualDiagnostic a math:ModelDiagnostic ;
+    math:diagnosticFor ex:trialFit ;
+    math:diagnosticMethod ex:residualAnalysis .
+ex:residualAnalysis a math:MathematicalObject .
+
+# A calibration diagnostic (statistical sense): predicted probabilities vs frequencies.
+ex:reliabilityDiagnostic a math:CalibrationDiagnostic ;
+    math:diagnosticFor ex:trialFit ;
+    math:diagnosticMethod ex:expectedCalibrationError .
+ex:expectedCalibrationError a math:MathematicalObject .
+
+# An information criterion: a penalized-fit AIC score for the fit.
+ex:aicScore a math:InformationCriterion ;
+    math:diagnosticFor ex:trialFit .
+
+# A cross-validation result: an out-of-sample k-fold score for the fit.
+ex:cvScore a math:CrossValidationResult ;
+    math:diagnosticFor ex:trialFit .
+
+# A model comparison: a likelihood-ratio weighing that evaluates the fit.
+ex:lrtComparison a math:ModelComparison ;
+    math:diagnosticFor ex:trialFit .

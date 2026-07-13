@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IntervalKindConflationShape (Rule I3): ONE node typed BOTH
+# math:ConfidenceInterval AND math:CredibleInterval — frequentist coverage under a
+# sampling procedure conflated with Bayesian posterior mass. They are held owl:disjointWith
+# THROUGH their paradigm parents (math:ConfidenceInterval ⊑ math:FrequentistResult,
+# math:CredibleInterval ⊑ math:BayesianResult, math:FrequentistResult owl:disjointWith
+# math:BayesianResult), so the sh:not [ sh:class math:CredibleInterval ] fires —
+# shacl.NotConstraintComponent (math:IntervalKindConflation).
+# Single violation: the node is COMPLETE for BOTH kinds — its two bounds and framed
+# math:confidenceLevel satisfy math:IncompleteConfidenceIntervalShape (Rule I4), and its
+# math:hasPosterior and framed math:credibleMass satisfy math:IncompleteCredibleIntervalShape
+# (Rule I5) — so ONLY the sh:not fires, EXACTLY ONE finding, no completeness sibling.
+# Back-reference: math:IntervalKindConflation (slices/grounding/math/module.ttl).
+# Negative counterpart of conformance-fixtures/interval-kinds-distinct.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecIntervalKindConflation).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+# One node typed BOTH interval kinds, complete for each so only the conflation fires.
+ex:conflatedInterval a math:ConfidenceInterval , math:CredibleInterval ;
+    math:hasIntervalBound ex:loBound , ex:hiBound ;
+    math:confidenceLevel ex:ciLevel ;      # completes the confidence-interval frame
+    math:hasPosterior ex:paramPosterior ;  # completes the credible-interval posterior
+    math:credibleMass ex:credMass .        # completes the credible-interval mass
+
+ex:loBound a math:MathematicalObject .
+ex:hiBound a math:MathematicalObject .
+
+ex:ciLevel a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+
+ex:samplingFrame a gmeow:ReferenceFrame .
+
+ex:paramPosterior a math:PosteriorDistribution ;
+    math:distributionFamily ex:betaFamily .
+
+ex:betaFamily a math:DistributionFamily .
+
+ex:credMass a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 95 ;        # 95/100 = 0.95, within [0, 1]
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:posteriorFrame .
+
+ex:posteriorFrame a gmeow:ReferenceFrame .

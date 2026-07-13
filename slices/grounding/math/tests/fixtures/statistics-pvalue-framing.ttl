@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the inference-and-results competency question "p-value framing". A
+# fully-framed math:PValue: it names the math:NullHypothesis it is computed under
+# (math:nullHypothesis), the math:SamplingDistribution it is measured against
+# (math:nullDistribution), and its math:Sidedness (math:alternativeSidedness), and it
+# ALSO names its multiplicity handling — the adjustment applied to it
+# (math:pValueAdjustment) and the family of comparisons that adjustment is controlled over
+# (math:multipleComparisonFamily) — so the query returns a non-vacuous framing row whose
+# adjustment/family columns are bound. Its magnitude is a framed math:ProbabilityValue.
+# Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The p-value and its full frame, including its multiplicity adjustment and family.
+ex:geneExpressionPValue a math:PValue ;
+    math:testStatistic ex:tStatistic ;
+    math:nullHypothesis ex:noDifferenceNull ;
+    math:nullDistribution ex:tNullDistribution ;
+    math:alternativeSidedness math:twoSidedAlternative ;
+    math:pValueAdjustment ex:benjaminiHochberg ;
+    math:multipleComparisonFamily ex:geneFamily ;
+    math:pValue ex:pValueMagnitude .
+
+ex:tStatistic a math:Statistic .
+ex:noDifferenceNull a math:NullHypothesis .
+
+# The null distribution, a parameterized sampling distribution.
+ex:tNullDistribution a math:SamplingDistribution ;
+    math:distributionFamily ex:normalFamily ;
+    math:distributionParameterization ex:meanStddevParameterization ;
+    math:hasDistributionParameter ex:meanParam , ex:stddevParam .
+
+ex:normalFamily a math:DistributionFamily .
+
+ex:meanStddevParameterization a math:DistributionParameterization ;
+    math:requiresParameterRole ex:meanRole , ex:stddevRole .
+
+ex:meanRole a math:DistributionParameterRole .
+ex:stddevRole a math:DistributionParameterRole .
+
+ex:meanParam a math:DistributionParameter ;
+    math:parameterRole ex:meanRole .
+
+ex:stddevParam a math:DistributionParameter ;
+    math:parameterRole ex:stddevRole .
+
+# The multiplicity adjustment and the family it is controlled over.
+ex:benjaminiHochberg a math:MathematicalObject .
+ex:geneFamily a math:MathematicalObject .
+
+# The p-value magnitude: a framed probability value, exact 3/100 = 0.03 in [0, 1].
+ex:pValueMagnitude a math:ProbabilityValue , math:RationalValue ;
+    math:numerator 3 ;
+    math:denominator 100 ;
+    gmeow:hasReferenceFrame ex:samplingFrame .
+
+ex:samplingFrame a gmeow:ReferenceFrame .

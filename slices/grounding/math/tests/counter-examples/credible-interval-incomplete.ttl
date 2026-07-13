@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:IncompleteCredibleIntervalShape (Rule I5): a
+# math:CredibleInterval naming its posterior context through math:hasPosterior (so the
+# posterior arm's sh:minCount 1 is SATISFIED) but omitting math:credibleMass, tripping the
+# mass arm's sh:minCount 1 — shacl.MinCountConstraintComponent (math:IncompleteCredibleInterval).
+# Single violation: its posterior is a well-formed math:PosteriorDistribution (family
+# named, no supplied parameters) so no distribution gate fires, and it is NOT typed
+# math:ConfidenceInterval so no confidence-interval or conflation shape targets it —
+# EXACTLY ONE finding, no sibling fires.
+# Back-reference: math:IncompleteCredibleInterval (slices/grounding/math/module.ttl).
+# Negative counterpart of conformance-fixtures/credible-interval-complete.ttl.
+# Bound by tests/example-conformance.ttl (ex:ecCredibleIntervalIncomplete).
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix ex:    <http://example.org/math/> .
+
+ex:masslessCredible a math:CredibleInterval ;
+    math:hasIntervalBound ex:credLower , ex:credUpper ;
+    math:hasPosterior ex:paramPosterior .    # posterior present, but NO math:credibleMass
+
+ex:credLower a math:MathematicalObject .
+ex:credUpper a math:MathematicalObject .
+
+# The posterior: a well-formed distribution, so no distribution gate fires.
+ex:paramPosterior a math:PosteriorDistribution ;
+    math:distributionFamily ex:betaFamily .
+
+ex:betaFamily a math:DistributionFamily .

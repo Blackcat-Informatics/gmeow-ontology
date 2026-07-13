@@ -1,0 +1,113 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked scene — the statistics STUDY SPINE, dogfooding the "Study and data" charter
+# section on one connected survey. A national adult-health survey keeps the four
+# study objects strictly apart so coverage and selection bias stay evaluable:
+#
+#   * the TARGET OF INFERENCE — a math:StatisticalPopulation (every resident adult),
+#     operationalized (math:samplingFrame) by
+#   * the OPERATIONAL LIST — a math:SamplingFrame (the health-registry enrolment
+#     list), out of which
+#   * the THING MEASURED — a math:Sample is drawn (math:sampleOf) and which refers
+#     back to the population (math:population), whose rows denote
+#   * the GRAIN — a math:ObservationUnit (a person).
+#
+# Its columns are first-class math:StatisticalVariable objects, each an object (not a
+# bare column name) carrying its math:VariableRole, math:MeasurementScale, and
+# math:UnitPolicy. Missingness is MODELLED, not implied: the income variable's values
+# encode absence through a math:MissingnessIndicator (math:hasMissingnessIndicator) and
+# a math:MissingValueCode, so it MUST declare the math:MissingnessMechanism (here MAR)
+# an analysis rests on through math:missingnessMechanism — satisfying
+# math:ImplicitMissingnessShape rather than assuming a mechanism silently. The BMI
+# variable carries no missingness indicator, so that gate stays vacuously silent. A
+# math:DerivedVariable (log-income) records its provenance as a math:DataTransformation.
+# The design is design-based: a math:SurveyDesign binds a math:Stratum, a math:Cluster,
+# and a math:SamplingWeight, so weighted, stratified, clustered estimation is queryable.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/math/statistics/study/> .
+
+# --- The target of inference and its operational list ------------------------ #
+
+# Who the estimate is meant to speak about (the target of inference), naming the
+# concrete list that operationalizes it.
+ex:adultPopulation a math:StatisticalPopulation ;
+    rdfs:label "Resident adults (18+) of the country — the target of inference"@x-gmeow-english ;
+    math:samplingFrame ex:registryFrame .
+
+# What we could actually reach: the health-registry enrolment list. Held distinct
+# from the population so under-coverage (adults not on the registry) is first-class.
+ex:registryFrame a math:SamplingFrame ;
+    rdfs:label "National health-registry enrolment list (the operational frame)"@x-gmeow-english .
+
+# --- The sample actually measured, its unit, and its columns ----------------- #
+
+# The units actually drawn and measured — referring to the population, drawn from
+# the frame, denoting a person per row, carrying three columns as first-class objects.
+ex:healthSample a math:Sample ;
+    rdfs:label "The 12,000-respondent health sample"@x-gmeow-english ;
+    math:population ex:adultPopulation ;
+    math:sampleOf ex:registryFrame ;
+    math:observationUnit ex:personUnit ;
+    math:statisticalVariable ex:incomeVar , ex:bmiVar , ex:logIncomeVar .
+
+ex:personUnit a math:ObservationUnit ;
+    rdfs:label "A single respondent (person-level grain)"@x-gmeow-english .
+
+# The income column: its values encode absence, so it declares BOTH its missingness
+# indicator and — the load-bearing obligation — the mechanism an analysis rests on.
+ex:incomeVar a math:StatisticalVariable ;
+    rdfs:label "Annual household income (predictor)"@x-gmeow-english ;
+    math:hasMissingnessIndicator ex:incomeObserved ;
+    math:missingnessMechanism ex:incomeMAR .
+
+ex:incomeObserved a math:MissingnessIndicator ;
+    rdfs:label "R_income: 1 if income reported, 0 if refused/absent"@x-gmeow-english .
+
+ex:incomeMAR a math:MissingnessMechanism ;
+    rdfs:label "MAR — income missingness explained by observed age, region, and education"@x-gmeow-english .
+
+# The BMI column: fully observed, carries no missingness indicator, so
+# math:ImplicitMissingnessShape is vacuously silent on it.
+ex:bmiVar a math:StatisticalVariable ;
+    rdfs:label "Body-mass index (outcome, fully observed)"@x-gmeow-english .
+
+# A derived column: its provenance is a declared transformation, not an opaque field.
+ex:logIncomeVar a math:DerivedVariable ;
+    rdfs:label "log(income + 1) — a derived, transformed column"@x-gmeow-english .
+
+ex:logTransform a math:DataTransformation ;
+    rdfs:label "log1p standardizing transformation producing log-income from income"@x-gmeow-english .
+
+# --- The first-class descriptors a variable carries (role, scale, unit, code) -- #
+
+ex:predictorRole a math:VariableRole ;
+    rdfs:label "Predictor — the analytical role income plays in the fitted model"@x-gmeow-english .
+
+ex:ratioScale a math:MeasurementScale ;
+    rdfs:label "Ratio scale — income has a true zero and licenses ratios"@x-gmeow-english .
+
+ex:nominalScale a math:MeasurementScale ;
+    rdfs:label "Nominal scale — region is an unordered category, never averaged"@x-gmeow-english .
+
+ex:currencyUnitPolicy a math:UnitPolicy ;
+    rdfs:label "Local currency, rounded to whole units, top-coded at the 99th percentile"@x-gmeow-english .
+
+ex:naSentinel a math:MissingValueCode ;
+    rdfs:label "Sentinel −99 encoding a refused income response"@x-gmeow-english .
+
+# --- The survey design: stratification, clustering, and weighting ------------ #
+
+ex:surveyDesign a math:SurveyDesign ;
+    rdfs:label "Stratified two-stage cluster design with calibrated weights"@x-gmeow-english .
+
+ex:regionStratum a math:Stratum ;
+    rdfs:label "Administrative region — a stratum sampled independently"@x-gmeow-english .
+
+ex:clinicCluster a math:Cluster ;
+    rdfs:label "Enrolment clinic — a primary sampling unit (cluster)"@x-gmeow-english .
+
+ex:designWeight a math:SamplingWeight ;
+    rdfs:label "Calibrated design weight — population units each respondent represents"@x-gmeow-english .
