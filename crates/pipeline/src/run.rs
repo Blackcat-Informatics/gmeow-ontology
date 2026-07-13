@@ -193,7 +193,22 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-statements",
             ],
         ),
-        st("stage-validate", "validate", &["stage-source-load"]),
+        // SHACL validation enforces the FRESH shape union: the generated
+        // `generated/shapes/*.ttl` members are read off THIS run's producer products
+        // (compile-logic + the three shape export leaves), never the stale committed
+        // files (the stale-disk-fold class). The compile-logic edge is narrowed to
+        // the object-level graphs (see `st_validate`).
+        st_validate(
+            "stage-validate",
+            "validate",
+            &[
+                "stage-compile-logic",
+                "stage-export-constraint-shapes",
+                "stage-export-frame-shapes",
+                "stage-export-result-shapes",
+                "stage-source-load",
+            ],
+        ),
         st("stage-conformance", "conformance", &[]),
         // The agreement-matrix dashboard PROJECTS the single external-corpus grade:
         // it reads stage-conformance's attached per-corpus tallies (never re-grading
@@ -208,6 +223,11 @@ pub fn full_spec() -> PipelineSpec {
             "docs_render",
             &[
                 "stage-compile-logic",
+                // THIS run's fresh JSON Schema/OpenAPI product: the docs model's
+                // per-term schema-fragment digest reads it in-memory, never the
+                // previous run's committed generated/schemas/*.json (the
+                // stale-disk-fold class).
+                "stage-export-json-schema",
                 "stage-gts-compose",
                 "stage-mappings",
                 "stage-reason",
@@ -294,11 +314,6 @@ pub fn full_spec() -> PipelineSpec {
         // gmeow:AxisFloorCommitment / gmeow:SliceTierFloor individuals (P4/P17).
         ("stage-export-governance-floors", "governance_floors"),
         ("stage-export-result-shapes", "result_shapes"),
-        ("stage-export-json-schema", "json_schema"),
-        // The Pydantic model package (functional documentation surface): a
-        // source-reading leaf like json-schema (reads the shape union + docs
-        // model), folded into REP_MODELS_PYTHON by the sink.
-        ("stage-export-pydantic", "pydantic"),
         ("stage-export-matrix", "matrix"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
@@ -307,6 +322,29 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-cost-ledger", "cost-ledger"),
     ] {
         stages.push(st(id, impl_key, &[]));
+    }
+    // ── fresh-shape-union export leaves: json-schema and pydantic compile the SHACL
+    //    shape union whose `generated/shapes/*.ttl` members are THIS run's producer
+    //    products (compile-logic + the three shape export leaves), never the stale
+    //    committed files (the stale-disk-fold class). Both consume the same four
+    //    producers (crate::stages::shape_union_fresh::GENERATED_SHAPE_PRODUCERS). ──
+    for (id, impl_key) in [
+        ("stage-export-json-schema", "json_schema"),
+        // The Pydantic model package (functional documentation surface): co-derived
+        // from the SAME fresh shape compilation as json-schema (plus the docs
+        // model), folded into REP_MODELS_PYTHON by the sink.
+        ("stage-export-pydantic", "pydantic"),
+    ] {
+        stages.push(st(
+            id,
+            impl_key,
+            &[
+                "stage-compile-logic",
+                "stage-export-constraint-shapes",
+                "stage-export-frame-shapes",
+                "stage-export-result-shapes",
+            ],
+        ));
     }
     // research-objects reads the generated DCAT CONSTRUCT query off the stage-mappings
     // product (never the stale committed generated/queries/dcat.rq on disk), so it
@@ -462,6 +500,23 @@ fn st_sink(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
 fn st_reason(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
     let mut s = st(id, impl_key, consumes);
     s.resources = vec![ENGINE_RESOURCE.to_string()];
+    s.dataflow_entities = vec![(
+        "stage-compile-logic".to_string(),
+        crate::stages::compile_logic::object_level_entity_list(),
+    )];
+    s
+}
+
+/// The SHACL validation stage: its `stage-compile-logic` dependency is narrowed to
+/// the object-level named graphs ([`crate::stages::compile_logic::OBJECT_LEVEL_GRAPHS`])
+/// — the program-level digest standing in for the validation-shape byte artifacts it
+/// reads off that product, and the narrowing that keeps its `graph/diagnostics`
+/// attachment a genuine delta (compile-logic's product carries a graph of the same
+/// name). Derives the SAME entity list as
+/// [`crate::stages::validate::ValidateStage`]'s consumed_entities() so the
+/// dag_dogfood parity and the loader's bind-agreement both hold.
+fn st_validate(id: &str, impl_key: &str, consumes: &[&str]) -> StageSpec {
+    let mut s = st(id, impl_key, consumes);
     s.dataflow_entities = vec![(
         "stage-compile-logic".to_string(),
         crate::stages::compile_logic::object_level_entity_list(),
@@ -1380,6 +1435,51 @@ ex:RequiredShape a sh:NodeShape ;
         StageProduct::from_bundle("stage-source-load", Arc::new(bundle))
     }
 
+    /// The four generated-shape producer products the fresh union hard-requires
+    /// (`shape_union_fresh::fresh_generated_shape_members`): each carries its
+    /// `generated/shapes/*.ttl` member as a comment-only Turtle byte product, the
+    /// same lane the real producers attach.
+    fn insert_generated_shape_producers(upstream: &mut BTreeMap<String, StageProduct>) {
+        let product = |stage: &str, rels: &[&str]| {
+            let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+            for rel in rels {
+                artifacts.insert((*rel).to_string(), b"# generated\n".to_vec());
+            }
+            StageProduct::from_artifacts(stage, artifacts)
+        };
+        upstream.insert(
+            "stage-compile-logic".to_owned(),
+            product(
+                "stage-compile-logic",
+                &[
+                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+                ],
+            ),
+        );
+        upstream.insert(
+            "stage-export-constraint-shapes".to_owned(),
+            product(
+                "stage-export-constraint-shapes",
+                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH],
+            ),
+        );
+        upstream.insert(
+            "stage-export-frame-shapes".to_owned(),
+            product(
+                "stage-export-frame-shapes",
+                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH],
+            ),
+        );
+        upstream.insert(
+            "stage-export-result-shapes".to_owned(),
+            product(
+                "stage-export-result-shapes",
+                &[crate::stages::result_shapes::RESULT_SHAPES_PATH],
+            ),
+        );
+    }
+
     /// Run the real `stage-validate` stage over the violating fixture, returning its
     /// full output (product + forward diags).
     fn run_validate(repo: &Path) -> crate::node::StageOutput {
@@ -1388,6 +1488,7 @@ ex:RequiredShape a sh:NodeShape ;
             "stage-source-load".to_owned(),
             source_load_product_with_spans(),
         );
+        insert_generated_shape_producers(&mut upstream);
         ValidateStage::new()
             .run(StageInput {
                 root: repo,
