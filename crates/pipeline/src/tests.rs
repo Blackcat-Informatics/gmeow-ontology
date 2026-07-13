@@ -853,6 +853,8 @@ struct AttachTestStage {
     id: String,
     attach_graph: Option<String>,
     declared: Vec<String>,
+    consumes: Vec<String>,
+    entities: Vec<(String, Vec<String>)>,
 }
 
 impl Stage for AttachTestStage {
@@ -860,7 +862,10 @@ impl Stage for AttachTestStage {
         &self.id
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
+    }
+    fn consumed_entities(&self) -> &[(String, Vec<String>)] {
+        &self.entities
     }
     fn attaches_graphs(&self) -> &[String] {
         &self.declared
@@ -919,6 +924,8 @@ fn run_attach_case(
             id: "producer".to_string(),
             attach_graph: attach_graph.map(|s| s.to_string()),
             declared: declared.clone(),
+            consumes: Vec::new(),
+            entities: Vec::new(),
         }) as Arc<dyn Stage>,
     );
     reg.register("impl:sink".to_string(), fake("sink", &["producer"]));
@@ -956,4 +963,60 @@ fn attach_drift_clean_when_declaration_matches_the_attach_delta() {
     // Attaches exactly G and declares exactly G → no drift, the run completes.
     const G: &str = "https://example.org/graph/matched";
     run_attach_case(Some(G), &[G]).expect("a matching attach declaration must not drift");
+}
+
+#[test]
+fn attach_drift_honors_typed_entity_inputs() {
+    // The producer carries G1 + G2, but the consumer's typed edge reads ONLY G1.
+    // When the consumer emits G2, G2 is therefore a real attachment: its mere presence
+    // elsewhere in the producer carrier must not hide the consumer's attach delta.
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("typed-attach-source.txt");
+    std::fs::write(&file, b"v1").unwrap();
+
+    let mut s = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("producer", &[]),
+            spec("consumer", &["producer"]),
+            spec("sink", &["consumer"]),
+        ],
+    };
+    for st in &mut s.stages {
+        match st.id.as_str() {
+            "producer" => st.attaches_graphs = vec![G1.to_string(), G2.to_string()],
+            "consumer" => {
+                st.dataflow_entities = vec![("producer".to_string(), vec![G1.to_string()])];
+                st.attaches_graphs = vec![G2.to_string()];
+            }
+            _ => {}
+        }
+    }
+    let graph = s.validate().unwrap();
+
+    let mut registry = StageRegistry::new();
+    registry.register(
+        "impl:producer".to_string(),
+        Arc::new(TwoGraphProducer {
+            file,
+            runs: Arc::new(AtomicUsize::new(0)),
+            attaches: vec![G1.to_string(), G2.to_string()],
+        }) as Arc<dyn Stage>,
+    );
+    registry.register(
+        "impl:consumer".to_string(),
+        Arc::new(AttachTestStage {
+            id: "consumer".to_string(),
+            attach_graph: Some(G2.to_string()),
+            declared: vec![G2.to_string()],
+            consumes: vec!["producer".to_string()],
+            entities: vec![("producer".to_string(), vec![G1.to_string()])],
+        }) as Arc<dyn Stage>,
+    );
+    registry.register("impl:sink".to_string(), fake("sink", &["consumer"]));
+    let bound = bind(&s, &graph, &registry).expect("typed attach fixture binds");
+    let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
+
+    run(&graph, &bound, &mut ctx)
+        .expect("typed entity narrowing exposes the consumer's real G2 attachment");
 }
