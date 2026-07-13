@@ -86,6 +86,12 @@ pub mod result_rdf;
 /// re-exported here as `gmeow_logic::result_shape` for the result family.
 pub use gmeow_logic_compile::result_shape;
 pub mod rule_ir;
+/// The supported, pin-able runtime query surface for an external runtime consumer:
+/// a curated projection of the store → snapshot → dispatch → result chain plus the
+/// self-describing [`runtime::EngineContract`] runtime pin. Stability is delivered
+/// consumer-side (git-tag/vendor + the content-addressed contract), never as a
+/// backwards-compat freeze of the churning core.
+pub mod runtime;
 pub mod seam;
 pub mod slme;
 pub mod stablemodel;
