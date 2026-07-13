@@ -21,7 +21,7 @@ ASK {
         gmeow:profileDescriptor gmeow:axisProducer , gmeow:axisDimension ,
             gmeow:axisThreshold , gmeow:axisAdviceTemplate , gmeow:axisWeight ,
             gmeow:axisContextScope ;
-        gmeow:profileOpenValue gmeow:QualityDimension , gmeow:AxisContextScope .
+        gmeow:profileOpenValue gmeow:SliceQualityDimension , gmeow:AxisContextScope .
 }""" ;
     gmeow:saRationale "The rubric is data, not code: a single gmeow:Profile over gmeow:Slice must enumerate exactly the six axis-descriptor properties and the three open value vocabularies, so tooling reads the axes, tiers, and scopes from the ontology rather than from a Rust fork." .
 
