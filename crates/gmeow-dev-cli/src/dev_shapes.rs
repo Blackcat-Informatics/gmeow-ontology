@@ -720,6 +720,26 @@ fn is_facet(c: &ConstraintComponent) -> bool {
     )
 }
 
+/// Whether a component constrains the path's values to LITERALS: a literal `sh:hasValue`, an
+/// `sh:datatype`, `sh:nodeKind sh:Literal`, a datatype facet (length/numeric/precision/datetime
+/// range), `sh:languageIn`, or an `sh:in` set with a literal member. Such a path can never satisfy
+/// `owl:allValuesFrom owl:Thing` (the derive projects it to `sh:nodeKind sh:BlankNodeOrIRI`, which
+/// rejects every literal), so no owl:Thing carrier may be emitted for it.
+fn constrains_to_literals(c: &ConstraintComponent) -> bool {
+    is_facet(c)
+        || matches!(
+            c,
+            ConstraintComponent::HasValue(ShapeValue::Literal { .. })
+                | ConstraintComponent::Datatype(_)
+                | ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal)
+                | ConstraintComponent::DateTimeRange { .. }
+                | ConstraintComponent::LanguageIn(_)
+        )
+        || matches!(c, ConstraintComponent::In(vals) if vals
+            .iter()
+            .any(|v| matches!(v, ShapeValue::Literal { .. })))
+}
+
 /// A `<K> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <P> ; owl:<pred> <filler> ] .` axiom.
 fn restriction(k: &str, p: &str, pred: &str, filler: &str) -> String {
     format!(
@@ -742,8 +762,9 @@ fn required_path_closure(k: &str, p: &str) -> String {
 /// family, which is conditionally out of the reasoner's EL/DL fragment). Anything with no
 /// reasoner-safe antecedent — a pattern, a non-class `sh:not`, a value-keyed / cross-node condition,
 /// an uncredited bare `sh:nodeKind`, a max ≠ 1 count, a property that cannot be corpus-consistently
-/// functional — is recorded as residue for targeted authoring (a FOL family or a `logic:formalizes`
-/// backing), never emitted as an out-of-fragment axiom.
+/// functional, a bare existence on a path that is not a declared `owl:ObjectProperty` — is recorded
+/// as residue for targeted authoring (a FOL family or a `logic:formalizes` backing), never emitted
+/// as an out-of-fragment or category-error axiom.
 fn reasoner_safe_emit(
     k: &str,
     ir: &ValidationShapeIr,
@@ -784,18 +805,16 @@ fn reasoner_safe_emit(
             _ => None,
         });
         let min_present = pc.min_count.is_some_and(|m| m >= 1);
-        if min_present {
-            class_stmts.push(required_path_closure(k, p));
-        }
 
         // The type/range filler + its restriction predicate. A datatype grounds to a BARE
         // `owl:allValuesFrom <D>` — the facet vocabulary (numeric/length range) is out of the
         // reasoner's fragment and is recorded as residue below, never emitted.
+        let mut universal_filler: Option<String> = None;
         if let Some(c) = &class_c {
             // Data-soundness gate: a class obligation the real data violates would red `make validate`
             // once projected + enforced (the hand-authored shape was never enforced). Skip it.
             if data.class_obligation_conforms(k, p, c) {
-                class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{c}>")));
+                universal_filler = Some(c.clone());
             } else {
                 residue.push(format!("{p}: sh:class {c} — example data has a non-conforming value (would red make validate); left ungrounded"));
             }
@@ -807,20 +826,38 @@ fn reasoner_safe_emit(
             let recognized =
                 dt.starts_with("http://www.w3.org/2001/XMLSchema#") || dt == RDFS_LITERAL;
             if recognized || data.class_obligation_conforms(k, p, dt) {
-                class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{dt}>")));
+                universal_filler = Some(dt.clone());
             } else {
                 residue.push(format!("{p}: datatype {dt} derives to sh:class (unrecognised by the projector) and the data has a literal value; left ungrounded"));
             }
         } else if let Some(nk) = &nodekind_filler {
-            class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{nk}>")));
+            universal_filler = Some(nk.clone());
         } else if min_present {
-            // Bare existence with no class/datatype/node-kind filler.
-            class_stmts.push(restriction(
-                k,
-                p,
-                "allValuesFrom",
-                &format!("<{OWL_THING}>"),
-            ));
+            // Bare existence with no class/datatype/node-kind filler. The vacuous
+            // `owl:allValuesFrom owl:Thing` carrier is sound ONLY for a declared
+            // owl:ObjectProperty (GMEOW individuals are IRI-named, so the derived
+            // `sh:nodeKind sh:BlankNodeOrIRI` enforces nothing new). On a datatype-valued or
+            // untyped path the same axiom is a category error — the derived node-kind rejects
+            // every literal value — so the un-projectable existence is residue instead.
+            if object_properties.contains(p) && !pc.components.iter().any(constrains_to_literals) {
+                universal_filler = Some(OWL_THING.to_owned());
+            } else {
+                residue.push(format!(
+                    "{p}: sh:minCount on a non-object (literal-valued) path — owl:allValuesFrom \
+                     owl:Thing would derive sh:nodeKind sh:BlankNodeOrIRI and reject every literal; \
+                     left as residue"
+                ));
+            }
+        }
+        if let Some(f) = &universal_filler {
+            class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{f}>")));
+            // The class-scoped closed-world authority projects `sh:minCount 1` ONLY when it rides
+            // an `owl:allValuesFrom` restriction on the same (class, path); without the carrier the
+            // entry is inert AND its bare `closureKey` opts the property's rdfs:domain/range into
+            // the closed-world reading — a global side effect no legacy class shape asked for.
+            if min_present {
+                class_stmts.push(required_path_closure(k, p));
+            }
         }
 
         // At-most-one is credited ONLY when the property is ALREADY declared owl:FunctionalProperty
@@ -1636,5 +1673,100 @@ mod tests {
         assert_eq!(projected.len(), 1);
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("share target"));
+    }
+
+    const K: &str = "https://example.test/Constant";
+    const P: &str = "https://example.test/isExact";
+
+    fn empty_data() -> InstanceData {
+        InstanceData {
+            types: BTreeMap::new(),
+            edges: BTreeMap::new(),
+            literal_edges: std::collections::BTreeSet::new(),
+        }
+    }
+
+    fn min_plus_hasvalue_shape() -> ValidationShapeIr {
+        let pc = PropertyConstraintIr::new(
+            P,
+            Some(1),
+            None,
+            Some(ConstraintProvenance::OwlRestriction),
+            vec![ConstraintComponent::HasValue(ShapeValue::Literal {
+                lexical: "true".to_owned(),
+                datatype: Some("http://www.w3.org/2001/XMLSchema#boolean".to_owned()),
+                lang: None,
+            })],
+        )
+        .expect("property constraint builds");
+        ValidationShapeIr::new(
+            "https://example.test/ConstantShape".to_owned(),
+            ShapeTarget::Class(K.to_owned()),
+            vec![pc],
+            None,
+        )
+        .expect("shape IR builds")
+    }
+
+    #[test]
+    fn datatype_valued_existence_never_fabricates_owl_thing() {
+        // A shape on a declared owl:DatatypeProperty (i.e. NOT in the object-property set) with
+        // only minCount + a literal sh:hasValue: `owl:allValuesFrom owl:Thing` derives
+        // `sh:nodeKind sh:BlankNodeOrIRI`, which every literal value violates — the existence
+        // must be residue, with no fabricated axiom and no inert closure entry.
+        let empty = std::collections::BTreeSet::new();
+        let emit = reasoner_safe_emit(K, &min_plus_hasvalue_shape(), &empty, &empty, &empty_data());
+        assert!(
+            emit.class_stmts.iter().all(|s| !s.contains(OWL_THING)),
+            "fabricated owl:Thing axiom on a datatype-valued path: {:?}",
+            emit.class_stmts
+        );
+        assert!(
+            emit.class_stmts.iter().all(|s| !s.contains("ClosureEntry")),
+            "closure entry without an allValuesFrom carrier is inert: {:?}",
+            emit.class_stmts
+        );
+        assert!(
+            emit.residue.iter().any(|r| r.contains("sh:minCount")),
+            "the un-projectable existence must be named as residue: {:?}",
+            emit.residue
+        );
+    }
+
+    #[test]
+    fn object_property_existence_keeps_the_owl_thing_carrier() {
+        // The same bare existence on a declared owl:ObjectProperty stays sound: values are
+        // IRI-named individuals, so the owl:Thing carrier (+ its closure entry) is emitted.
+        let pc = PropertyConstraintIr::new(
+            P,
+            Some(1),
+            None,
+            Some(ConstraintProvenance::OwlRestriction),
+            vec![],
+        )
+        .expect("property constraint builds");
+        let ir = ValidationShapeIr::new(
+            "https://example.test/ConstantShape".to_owned(),
+            ShapeTarget::Class(K.to_owned()),
+            vec![pc],
+            None,
+        )
+        .expect("shape IR builds");
+        let functional = std::collections::BTreeSet::new();
+        let objects: std::collections::BTreeSet<String> = std::iter::once(P.to_owned()).collect();
+        let emit = reasoner_safe_emit(K, &ir, &functional, &objects, &empty_data());
+        assert!(
+            emit.class_stmts
+                .iter()
+                .any(|s| s.contains(&format!("allValuesFrom <{OWL_THING}>"))),
+            "object-property existence keeps its universal carrier: {:?}",
+            emit.class_stmts
+        );
+        assert!(
+            emit.class_stmts.iter().any(|s| s.contains("ClosureEntry")),
+            "the carrier's closure entry projects the sh:minCount: {:?}",
+            emit.class_stmts
+        );
+        assert!(emit.residue.is_empty(), "residue: {:?}", emit.residue);
     }
 }

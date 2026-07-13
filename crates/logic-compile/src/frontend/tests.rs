@@ -2385,6 +2385,100 @@ fn derive_closed_world_closure_entry_does_not_suppress() {
 }
 
 #[test]
+fn derive_class_scoped_closed_entry_derives_no_global_domain_range_shape() {
+    // A ClosedWorldClosure entry carrying logic:onClass is CLASS-SCOPED: it turns the class's
+    // owl:allValuesFrom into a required (minCount 1) path on THAT class's shape, and it must NOT
+    // leak into the property-global opt-in set — no corpus-wide sh:targetSubjectsOf /
+    // sh:targetObjectsOf domain/range shape may be derived from it (closing a predicate on one
+    // class asserts nothing about the predicate's other subjects/objects). The closureKey is a
+    // string literal here, matching the authored slice form.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:allValuesFrom g:Doc ] . \
+         g:cites a owl:ObjectProperty ; rdfs:domain g:Article ; rdfs:range g:Doc . \
+         [] a logic:ClosureEntry ; logic:onClass g:Article ; \
+            logic:closureKey \"https://blackcatinformatics.ca/gmeow/cites\" ; \
+            logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let article = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("Article")))
+        .expect("the class-scoped entry keeps the Article class shape");
+    assert!(
+        article
+            .properties
+            .iter()
+            .any(|p| p.path.ends_with("cites") && p.min_count == Some(1)),
+        "class-scoped closed universal requires the path on the class shape: {:?}",
+        article.properties
+    );
+    assert!(
+        !shapes.iter().any(|s| matches!(
+            &s.target,
+            ShapeTarget::SubjectsOf(p) | ShapeTarget::ObjectsOf(p) if p.ends_with("cites")
+        )),
+        "a class-scoped entry must derive NO global domain/range shape: {:?}",
+        shapes.iter().map(|s| &s.target).collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn derive_property_global_closed_entry_is_unaffected_by_a_class_scoped_sibling() {
+    // The two entry scopes coexist without cross-talk: a property-GLOBAL entry (no logic:onClass)
+    // still derives its domain/range shapes, while the class-scoped sibling on another property
+    // derives none.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:refs a owl:ObjectProperty ; rdfs:range g:Doc . \
+         [] a logic:ClosureEntry ; logic:closureKey g:refs ; \
+            logic:closureValue logic:ClosedWorldClosure . \
+         g:cites a owl:ObjectProperty ; rdfs:range g:Doc . \
+         [] a logic:ClosureEntry ; logic:onClass g:Article ; logic:closureKey g:cites ; \
+            logic:closureValue logic:ClosedWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let refs = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("refs")))
+        .expect("the property-global opt-in still derives its ObjectsOf(refs) range shape");
+    assert!(
+        refs.node_components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::Class(d) if d.ends_with("Doc"))),
+        "the global entry's range shape carries its sh:class: {:?}",
+        refs.node_components
+    );
+    assert!(
+        !shapes
+            .iter()
+            .any(|s| matches!(&s.target, ShapeTarget::ObjectsOf(p) if p.ends_with("cites"))),
+        "the class-scoped sibling must not derive a global range shape: {:?}",
+        shapes.iter().map(|s| &s.target).collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn derive_class_scoped_open_entry_does_not_suppress_globally() {
+    // The symmetric discrimination for the opt-out polarity: an OpenWorldClosure entry carrying
+    // logic:onClass is class-scoped and must NOT sweep its key into the property-global opt-out
+    // set — the closed-world reading of the property's restrictions on OTHER classes stays on.
+    let ds = shape_dataset_with_logic(
+        "g:Doc a owl:Class . \
+         g:Article a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:cites ; owl:someValuesFrom g:Doc ] . \
+         [] a logic:ClosureEntry ; logic:onClass g:Other ; logic:closureKey g:cites ; \
+            logic:closureValue logic:OpenWorldClosure .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        shapes.iter().any(|s| s.iri.contains("Article")),
+        "a class-scoped OpenWorldClosure entry must not opt the property out corpus-wide: {shapes:?}"
+    );
+}
+
+#[test]
 fn derive_grounding_namespaces_are_authoring_ground() {
     // declarative-migration wave 1: the dogfooded grounding slices (math:, lang:, logic:) are authoring ground
     // too — their hand-authored shapes migrate to derived projections, so a restriction on a
