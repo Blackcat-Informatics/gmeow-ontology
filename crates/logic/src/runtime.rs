@@ -186,16 +186,46 @@ const RUNTIME_PROFILES: [SemanticProfileId; 6] = [
 /// The backward-dispatch source files whose bytes define what an [`AnswerSet`] a
 /// [`dispatch_query`] call decides. A change to any of them changes
 /// [`EngineContract::current`]'s `backward_source_hash`, so a pinned consumer detects
-/// it. The `physical/` entries are guarded against drift by
-/// `physical_coverage_matches_source_tree` — a new/renamed `physical` file breaks that
-/// test loudly rather than silently dropping out of the contract.
+/// it. Coverage is guarded against drift by `backward_source_partition_is_total`: every
+/// top-level `src/*.rs` file and every `src/physical/*.rs` file must appear in EITHER
+/// this list OR the test-only `NOT_BACKWARD_SOURCE` (with a truthful reason) — a new, renamed, or
+/// newly-delegated-to file breaks that test loudly rather than silently dropping out of
+/// the contract.
+///
+/// `facts.rs` (term/predicate interning — `TermInterner::intern` keys answer-bound term
+/// identity), `provenance.rs` (`term_display`, the interning key `facts.rs` hashes on),
+/// and `rule_ir.rs` (the shared evaluable rule IR + join/unification primitives —
+/// `ground`, `match_atom`, `join_body`, `extend_solutions` — that every `physical/*.rs`
+/// evaluator below imports in production, non-test code) are included for the same
+/// reason the `physical/` files are: their bytes are demonstrably imported by the
+/// production (non-`#[cfg(test)]`) code of the physical engine, so a change to them can
+/// change a decided [`AnswerSet`] exactly as a change to `physical/seminaive.rs` can.
+///
+/// # Verified decision-surface boundary
+///
+/// The backward goal-resolution DECISION surface is confined to these top-level
+/// `src/*.rs` files plus `src/physical/*.rs`. The `src/` subdirectory modules — `reason/`
+/// (the forward EL/DL/RL chase, pinned separately via `forward_contract_hash`),
+/// `nemo_engine/` (the demoted forward fallback/oracle), and the remaining `src/`
+/// subdirectories — are the forward chase, the demoted comparison oracle, or post-hoc /
+/// comparison bookkeeping; none sit on the `dispatch_query` decision path. This was
+/// verified by tracing production (non-`#[cfg(test)]`) imports: the only physical-engine
+/// references into those subtrees are the native↔oracle *comparator* in
+/// `physical/parity.rs` (its `crate::reason::ledger` `DivergenceKind` / `LedgerRow` /
+/// `LedgerVerdict` are comparison bookkeeping, not the decided `AnswerSet`) and the
+/// forward oracle bridge in `crate::nemo_engine` — neither decides a backward answer. The
+/// partition is therefore NOT recursed into those forward subsystems: doing so would
+/// falsely imply they are backward-relevant.
 ///
 /// [`AnswerSet`]: crate::query_ir::AnswerSet
 /// [`dispatch_query`]: crate::dispatch::dispatch_query
 const BACKWARD_SOURCE: &[(&str, &str)] = &[
     ("dispatch.rs", include_str!("dispatch.rs")),
+    ("facts.rs", include_str!("facts.rs")),
     ("profile_gate.rs", include_str!("profile_gate.rs")),
+    ("provenance.rs", include_str!("provenance.rs")),
     ("query_ir.rs", include_str!("query_ir.rs")),
+    ("rule_ir.rs", include_str!("rule_ir.rs")),
     ("seam.rs", include_str!("seam.rs")),
     ("physical/arena.rs", include_str!("physical/arena.rs")),
     (
@@ -232,6 +262,178 @@ const BACKWARD_SOURCE: &[(&str, &str)] = &[
         include_str!("physical/seminaive.rs"),
     ),
     ("physical/store.rs", include_str!("physical/store.rs")),
+];
+
+/// Every top-level `src/*.rs` file that is deliberately NOT part of the
+/// backward-dispatch decision surface [`BACKWARD_SOURCE`] enumerates, paired with a
+/// truthful, specific reason. `backward_source_partition_is_total` asserts every actual
+/// top-level source file appears in EXACTLY ONE of `BACKWARD_SOURCE` or this list — so a
+/// new top-level module cannot silently escape `backward_source_hash` coverage.
+///
+/// Classification was done by reading each file's own module doc comment AND tracing
+/// its actual (non-`#[cfg(test)]`) callers across `dispatch.rs`, `profile_gate.rs`,
+/// `query_ir.rs`, `seam.rs`, `physical/*.rs`, `facts.rs`, `provenance.rs`, and
+/// `rule_ir.rs` — a file is excluded here only when that trace turned up no production
+/// caller from the decision surface (or only a `#[cfg(test)]`/doc-comment mention).
+///
+/// `#[cfg(test)]`: this list is pure test scaffolding for
+/// `backward_source_partition_is_total` — unlike [`BACKWARD_SOURCE`], nothing in the
+/// production `EngineContract` computation reads it.
+#[cfg(test)]
+const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
+    (
+        "certificate.rs",
+        "forward reasoning/coherence-certificate surface — pinned via forward_contract_hash, not backward dispatch",
+    ),
+    (
+        "certify.rs",
+        "static profile/decidability certifier (Python-oracle mirror) — consumed by the benchmark harness (cost.rs), the EngineContract capability manifest, and forward materialization routing (materialize.rs); no reference from dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance",
+    ),
+    (
+        "conjecture.rs",
+        "conjecture-and-refutation over relational_core — forward/generative reasoning surface, not backward dispatch",
+    ),
+    (
+        "correspondence_exec.rs",
+        "executed lens-law discharge for logic:Correspondence gates — forward coherence-certification surface, not backward dispatch",
+    ),
+    (
+        "cost.rs",
+        "deterministic engine-benchmark harness + cost-vector instrumentation, not the dispatch decision path",
+    ),
+    (
+        "counterfactual.rs",
+        "Stratum-C counterfactual world construction — the generative/forward reasoning stratum; query_ir.rs only doc-links it, dispatch_query does not call it",
+    ),
+    (
+        "dag_profile.rs",
+        "DAG-workflow acyclicity certifier, consumed by teleology.rs — static certification, not backward dispatch",
+    ),
+    (
+        "dense.rs",
+        "dependency-free dense-id graph primitives, consumed by certify.rs (test) and entrenchment.rs — acceleration for forward/certification code, not backward dispatch",
+    ),
+    (
+        "derivation_graph.rs",
+        "truth-maintenance derivation graph, consumed by foundation.rs — forward evaluator support, not backward dispatch",
+    ),
+    (
+        "entail_crosscheck.rs",
+        "native vs entail-oracle OWL-RL subsumption divergence cross-check — forward reasoning-oracle gate, not backward dispatch",
+    ),
+    (
+        "entail_oracle.rs",
+        "native OWL-RL/RDFS forward-closure reasoning oracle, not backward dispatch",
+    ),
+    (
+        "entrenchment.rs",
+        "epistemic-entrenchment ordering for AGM revision — Stratum-C forward/generative revision support, not backward dispatch",
+    ),
+    (
+        "error.rs",
+        "reasoning-core diagnostic kinds — result/diagnostic data types, not dispatch decision logic",
+    ),
+    (
+        "explain.rs",
+        "explanation-skeleton emitter over an already-materialized result — post-hoc projection, not decision logic",
+    ),
+    (
+        "foundation.rs",
+        "native OntoUML foundation-discipline evaluator — forward evaluator/classifier, not backward dispatch",
+    ),
+    ("lib.rs", "crate-root module wiring, not the decision path"),
+    (
+        "logic_diagnostics.rs",
+        "projection of compile-parse diagnostics into gmeow_errors::Report — diagnostic data projection, not decision logic",
+    ),
+    (
+        "lower.rs",
+        "canonical-AST to EvalRule lowering; explicitly phase-dead-code (`#![allow(dead_code)]`) pending the PyO3 routing consumer — no current dispatch caller",
+    ),
+    (
+        "materialize.rs",
+        "pure-Rust forward materialization core — forward reasoning surface; physical/parity.rs references it only inside #[cfg(test)]",
+    ),
+    (
+        "nary.rs",
+        "n-ary predication to reified-binary lowering + forward-chase ingestion — facts are lowered before backward dispatch runs; not itself part of the decision",
+    ),
+    (
+        "nary_rls.rs",
+        "n-ary .rls program parser + EDB loader, used only by nary/tests.rs — not a production dispatch dependency",
+    ),
+    (
+        "obligations.rs",
+        "typed-formalization-governance checks over an already-reasoned graph — post-hoc verification, not decision logic",
+    ),
+    (
+        "oracle.rs",
+        "forward/backward oracle trait boundary — physical/*.rs production code reuses only its plain TypedRow/TypedProvenance/TypedChaseResult data shapes; its trait impls (Nemo bridge, reference SLD oracle) are test-only comparison adapters, consumed from physical/parity.rs which is itself #[cfg(test)]-only (`#![allow(dead_code)]`, \"no non-test caller yet\")",
+    ),
+    (
+        "path_projection_tests.rs",
+        "#[cfg(test)]-only runtime test module for the PathShape projection (see the `#[cfg(test)] mod path_projection_tests;` declaration in lib.rs), not production code",
+    ),
+    (
+        "probabilistic.rs",
+        "ProbLog-style weighted-inference evaluator for logic:ProbabilisticProfile — a separate execution path with no reference from dispatch/profile_gate/query_ir/seam/physical/rule_ir/facts/provenance",
+    ),
+    (
+        "relational_core.rs",
+        "FOL-to-Horn relational-core lowering adapter, consumed by conjecture.rs and reason/mod.rs — forward reasoning surface, not backward dispatch",
+    ),
+    (
+        "result.rs",
+        "the typed ReasoningResult data model — pure data; physical/magic_generic.rs's only production use is constructing the PreservationClaim::exact() trust marker, not decision logic",
+    ),
+    (
+        "result_rdf.rs",
+        "deterministic RDF projection of ReasoningResult — data projection, not decision logic",
+    ),
+    (
+        "runtime.rs",
+        "this façade module itself — re-export wiring + the EngineContract descriptor, not the decision path",
+    ),
+    (
+        "stablemodel.rs",
+        "native stable-model/answer-set evaluator, consumed only by materialize.rs's IncrementalStableModelSession — forward incremental materialization, not backward dispatch",
+    ),
+    (
+        "store.rs",
+        "the world-indexed named-graph store — a thin wrapper over purrdf's MutableDataset (insert/pattern/select delegate directly to purrdf); seam.rs's WorldFactSnapshot::from_world is the only backward-relevant caller, and it consumes only the copied-out quad bytes, not store.rs's own logic",
+    ),
+    (
+        "synth_corpus.rs",
+        "synthetic relational-core Datalog generators for the benchmark harness, not decision logic",
+    ),
+    (
+        "teleology.rs",
+        "native canonical-process teleology evaluator — forward evaluator/classifier, not backward dispatch",
+    ),
+    (
+        "transaction.rs",
+        "Transaction Logic combinator interpreter — forward transaction-program executor, not backward dispatch",
+    ),
+    (
+        "transition.rs",
+        "elementary Transaction-Logic world-snapshot updates — a state-transition mechanism, not query decision logic",
+    ),
+    (
+        "verify.rs",
+        "native reasoned-graph verify (closed-world SHACL-like QC) — forward verification surface, not backward dispatch",
+    ),
+    (
+        "versioning.rs",
+        "content-hash graph-versioning keys for world caching — staleness/cache-key computation, not decision logic",
+    ),
+    (
+        "wellfounded.rs",
+        "native well-founded-semantics evaluator, consumed only by materialize.rs/cost.rs's IncrementalWellFoundedSession — forward incremental materialization, not backward dispatch",
+    ),
+    (
+        "reference_resolver.rs",
+        "declarative SLD/Datalog reference oracle — used only inside #[cfg(test)] cross-checks (dispatch.rs::tests, physical/magic.rs::tests), not the production dispatch decision path",
+    ),
 ];
 
 /// Frame `value` under `tag` into `hasher` with a domain tag and length prefixes, so
@@ -478,31 +680,96 @@ mod tests {
         s.len() == 64 && s.chars().all(|c| c.is_ascii_hexdigit())
     }
 
-    #[test]
-    fn physical_coverage_matches_source_tree() {
-        // A new or renamed file under src/physical/ MUST be added to BACKWARD_SOURCE, or
-        // the runtime pin would silently stop covering it. This test makes that drift a
-        // loud build failure instead.
-        let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/physical");
-        let mut actual: Vec<String> = std::fs::read_dir(&dir)
-            .expect("src/physical must be readable")
-            .filter_map(Result::ok)
-            .map(|e| e.file_name().to_string_lossy().into_owned())
+    /// List the `.rs` file names directly under `dir` (non-recursive), hard-failing on
+    /// any unreadable entry rather than silently dropping it — a partially-unreadable
+    /// directory must not be able to pass this guard by having its bad entries filtered
+    /// away (repo policy: a missing/unreadable required thing is a hard fail, never a
+    /// silent gap).
+    fn rs_file_names(dir: &std::path::Path) -> Vec<String> {
+        std::fs::read_dir(dir)
+            .unwrap_or_else(|e| panic!("{} must be readable: {e}", dir.display()))
+            .map(|entry| entry.expect("failed to read a src directory entry"))
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
             .filter(|n| n.ends_with(".rs"))
+            .collect()
+    }
+
+    #[test]
+    fn backward_source_partition_is_total() {
+        // Every top-level src/*.rs file and every src/physical/*.rs file must appear in
+        // EXACTLY ONE of BACKWARD_SOURCE (it helps decide an AnswerSet) or
+        // NOT_BACKWARD_SOURCE (a reasoned exclusion). A new, renamed, or
+        // newly-delegated-to file that is added to neither list would otherwise silently
+        // stop being covered by backward_source_hash — this test makes that drift a loud
+        // build failure instead of a silent pin gap.
+        let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+
+        let mut actual_top_level = rs_file_names(&manifest_dir.join("src"));
+        actual_top_level.sort();
+
+        let mut actual_physical: Vec<String> = rs_file_names(&manifest_dir.join("src/physical"))
+            .into_iter()
+            .map(|name| format!("physical/{name}"))
             .collect();
+        actual_physical.sort();
+
+        let mut actual: Vec<String> = actual_top_level;
+        actual.extend(actual_physical);
         actual.sort();
+        actual.dedup();
 
         let mut covered: Vec<String> = BACKWARD_SOURCE
             .iter()
-            .filter_map(|(name, _)| name.strip_prefix("physical/").map(str::to_owned))
+            .map(|(name, _)| (*name).to_owned())
+            .chain(
+                NOT_BACKWARD_SOURCE
+                    .iter()
+                    .map(|(name, _)| (*name).to_owned()),
+            )
             .collect();
         covered.sort();
 
+        // Every classified name must name a file that actually exists — neither list may
+        // enumerate a stale/renamed entry.
+        for name in &covered {
+            assert!(
+                actual.contains(name),
+                "{name} is listed in BACKWARD_SOURCE or NOT_BACKWARD_SOURCE but no such \
+                 file exists under src/ — remove the stale entry"
+            );
+        }
+
+        // No name may appear in both lists (a file cannot both decide an AnswerSet and
+        // be reasoned-excluded from deciding one).
+        let mut backward_only: Vec<&str> = BACKWARD_SOURCE.iter().map(|(name, _)| *name).collect();
+        backward_only.sort();
+        let mut not_backward_only: Vec<&str> =
+            NOT_BACKWARD_SOURCE.iter().map(|(name, _)| *name).collect();
+        not_backward_only.sort();
+        for name in &backward_only {
+            assert!(
+                !not_backward_only.contains(name),
+                "{name} is listed in BOTH BACKWARD_SOURCE and NOT_BACKWARD_SOURCE — pick one"
+            );
+        }
+
+        covered.dedup();
         assert_eq!(
             actual, covered,
-            "src/physical/ drifted from the backward-source contract enumeration; \
-             add the new file to BACKWARD_SOURCE"
+            "src/*.rs and src/physical/*.rs drifted from the BACKWARD_SOURCE ∪ \
+             NOT_BACKWARD_SOURCE partition; a new src file must be added to \
+             BACKWARD_SOURCE (if it affects what dispatch_query decides) or to \
+             NOT_BACKWARD_SOURCE with a reason"
         );
+
+        // Every NOT_BACKWARD_SOURCE reason must be non-empty — an exclusion without a
+        // reason is exactly the silent guessing this partition exists to forbid.
+        for (name, reason) in NOT_BACKWARD_SOURCE {
+            assert!(
+                !reason.trim().is_empty(),
+                "NOT_BACKWARD_SOURCE entry {name} has no reason"
+            );
+        }
     }
 
     #[test]
