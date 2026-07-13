@@ -82,7 +82,7 @@ CHECK_TARGETS := check-lint rust-gate gts-frame-profile-gate validate check-gene
 	maint-compliance-report-full maint-bench-baseline maint-bench-instructions \
 	maint-bench-engines maint-bench-cost-baseline maint-rust-heavy \
 	maint-external-corpora maint-tptp-corpus maint-lang-selfhost \
-	maint-chasebench-corpus
+	maint-chasebench-corpus maint-reason-consistency-crosscheck
 
 ##@ Core Workflows
 
@@ -670,6 +670,9 @@ maint-external-corpora: ## Grade the native reasoner against the full Lane-B ext
 	  cargo run -p gmeow-conformance --bin ingest-external -- --grade-ore "$$sub" ore2015-el-consistency generated/conformance/divergence-ore2015-el.nq; \
 	'
 	@echo "external-corpora grading complete; divergences in generated/conformance/divergence-w3c-owl2-full.nq + divergence-ore2015-el.nq"
+
+maint-reason-consistency-crosscheck: ## Off-gate independent OWL-Direct consistency cross-check: native structured DL verdict vs the purrdf-entail tableau, per world (NP-hard; maintainer-run, never in `make check`).
+	$(GMEOW_DEV) reason-consistency-crosscheck
 
 # The scratch dir the Lane-B TPTP grade reads `*.p` problems from. Populate it from
 # a local TPTP distribution checkout, or set TPTP_SUBSET_URL to a tarball of a

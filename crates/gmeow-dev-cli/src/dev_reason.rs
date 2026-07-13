@@ -15,7 +15,11 @@
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
+use gmeow_logic::consistency_crosscheck::{
+    ConsistencyCrosscheckOutcome, run_consistency_crosscheck,
+};
 use gmeow_logic::entail_crosscheck::{CrosscheckOutcome, run_entail_crosscheck};
+use gmeow_logic::reason::divergence_findings;
 use gmeow_logic::reason::ledger::DivergenceKind;
 use gmeow_logic::reason::{native_contract_hash, reason_all};
 use gmeow_logic::result::ReasoningResult;
@@ -483,6 +487,146 @@ fn emit_crosscheck_outcome(outcome: &CrosscheckOutcome) -> i32 {
             );
         }
         fail("reason-crosscheck: native↔oracle divergence")
+    }
+}
+
+/// `gmeow-dev reason-consistency-crosscheck` — the off-gate independent OWL-Direct
+/// CONSISTENCY differential (the sibling of `reason-crosscheck` for consistency,
+/// not subsumption).
+///
+/// Loads the committed bundle EDB (the same snapshot import `reason-crosscheck`
+/// uses) and, per world, drives gmeow's own native structured DL verdict against
+/// the independent, conformance-tested `purrdf::entail` OWL-Direct ALCOIQ
+/// consistency tableau. It prints the structured per-world counts, enumerates every
+/// FAILING (`OracleOnly`) row, and emits the grounded `gmeow:Finding` divergence
+/// graph. It returns exit `0` iff the strict `enforce()` verdict passes: NO
+/// `OracleOnly` row — native decided consistent while the sound oracle proved it
+/// inconsistent/empty (a native soundness miss, the sole tripwire condition).
+/// Native-richer (`NativeOnly`), `oracle-supplement` (native withheld an
+/// out-of-fragment construct), and `oracle-undecided` (over the per-world budget)
+/// rows are recorded, non-failing. The per-world OWL-Direct tableau is NP-hard, so
+/// this runs OFF-gate under a per-world watchdog budget, never in `make check`.
+pub fn reason_consistency_crosscheck(timings_json: Option<&Path>) -> i32 {
+    let root = project_root();
+    let started = Instant::now();
+    let snapshot_started = Instant::now();
+    let dataset = match snapshot_dataset(&root) {
+        Ok(d) => d,
+        Err(code) => return code,
+    };
+    let snapshot_ms = elapsed_ms(snapshot_started);
+
+    let run_started = Instant::now();
+    let outcome = match run_consistency_crosscheck(dataset.as_ref()) {
+        Ok(o) => o,
+        Err(e) => return fail(format!("reason-consistency-crosscheck failed: {e}")),
+    };
+    let run_ms = elapsed_ms(run_started);
+    let elapsed = elapsed_ms(started);
+
+    if let Some(path) = timings_json {
+        let payload = serde_json::json!({
+            "command": "reason-consistency-crosscheck",
+            "mode": "native",
+            "ok": outcome.verdict.passed,
+            "metrics": {
+                "source_worlds": outcome.source_worlds,
+                "agree": outcome.agree,
+                "native_only": outcome.native_only,
+                "oracle_only": outcome.oracle_only,
+                "oracle_supplement": outcome.oracle_supplement,
+                "oracle_undecided": outcome.oracle_undecided,
+            },
+            "timings": [
+                { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
+                { "phase": "consistency-crosscheck", "elapsed_ms": run_ms, "metadata": format!("worlds={}", outcome.source_worlds) },
+                { "phase": "reason-consistency-crosscheck-total", "elapsed_ms": elapsed, "metadata": null },
+            ],
+        });
+        let code = write_timings_json(path, &payload);
+        if code != 0 {
+            return code;
+        }
+    }
+
+    emit_consistency_crosscheck_outcome(&outcome)
+}
+
+/// Emit the structured human summary + the mandatory grounded `gmeow:Finding`
+/// divergence graph for a consistency cross-check, and return the exit code (`0`
+/// iff `verdict.passed`; a HARD FAIL on any `OracleOnly`).
+fn emit_consistency_crosscheck_outcome(outcome: &ConsistencyCrosscheckOutcome) -> i32 {
+    let ledger = &outcome.ledger;
+    println!(
+        "native ↔ OWL-Direct-oracle consistency cross-check (Docker-free, off-gate, NP-hard): \
+         {worlds} source world(s)",
+        worlds = outcome.source_worlds,
+    );
+    println!(
+        "  ledger: {agree} agree, {native_only} native-only (expected richness), \
+         {oracle_only} oracle-only (native soundness miss), {supplement} oracle-supplement \
+         (native withheld out-of-fragment construct), {undecided} oracle-undecided (over budget)",
+        agree = outcome.agree,
+        native_only = outcome.native_only,
+        oracle_only = outcome.oracle_only,
+        supplement = outcome.oracle_supplement,
+        undecided = outcome.oracle_undecided,
+    );
+
+    // Enumerate every FAILING (OracleOnly) row so a native soundness miss is
+    // diagnosable, not opaque. Agree rows (including the non-failing
+    // oracle-supplement / oracle-undecided rows that ride the Agree kind) and the
+    // NativeOnly richness rows are summarized by count above, not spammed here.
+    for row in &ledger.rows {
+        let tag = match row.kind {
+            DivergenceKind::OracleOnly => "oracle-only",
+            DivergenceKind::DlGap => "dl-gap",
+            DivergenceKind::CorpusOnly => "corpus-only",
+            DivergenceKind::Agree | DivergenceKind::NativeOnly => continue,
+        };
+        note(
+            "gmeow-dev.reason-consistency-crosscheck.divergence",
+            format!("  [{tag}] ({}) {}", row.category, row.detail),
+        );
+    }
+
+    // MANDATORY: emit the grounded gmeow:Finding divergence graph so the graph is
+    // visible in the command output (one Finding per ledger row), mirroring how the
+    // external-corpora lane records its divergence graph. Never optional.
+    let findings = divergence_findings(ledger);
+    println!(
+        "  grounded gmeow:Finding graph: {n} finding(s)",
+        n = findings.len(),
+    );
+    for f in &findings {
+        let iri = f.finding_iri.as_deref().unwrap_or("(content-hash subject)");
+        note(
+            "gmeow-dev.reason-consistency-crosscheck.finding",
+            format!(
+                "  gmeow:Finding {code} <{iri}>: {msg}",
+                code = f.code,
+                msg = f.message,
+            ),
+        );
+    }
+
+    if outcome.verdict.passed {
+        println!(
+            "reason-consistency-crosscheck: no native soundness miss — 0 oracle-only (native, \
+             Docker-free); {supplement} oracle-supplement enrichment(s), {undecided} \
+             oracle-undecided over-budget world(s)",
+            supplement = outcome.oracle_supplement,
+            undecided = outcome.oracle_undecided,
+        );
+        0
+    } else {
+        for reason in &outcome.verdict.reasons {
+            note(
+                "gmeow-dev.reason-consistency-crosscheck.reason",
+                format!("reason-consistency-crosscheck: {reason}"),
+            );
+        }
+        fail("reason-consistency-crosscheck: native soundness miss (OracleOnly)")
     }
 }
 
