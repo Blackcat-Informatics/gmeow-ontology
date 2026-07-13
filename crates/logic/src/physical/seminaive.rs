@@ -121,6 +121,13 @@ pub(crate) enum UnsupportedKind {
     /// (incomplete-never-wrong); with a step budget the [`StepGovernor`] cuts it, so it
     /// is evaluated normally.
     NonTerminatingArithmetic,
+    /// A rule with no POSITIVE body atom that is not a materializable ground fact — it
+    /// carries only NAF and/or builtin literals — cannot drive bottom-up derivation: the
+    /// semi-naive engine never fires a zero-positive-body rule (`join_body_binary`
+    /// returns empty when the positive set is empty). It is therefore a declared gap
+    /// routed to the oracle, rather than a rule the magic transform would emit and then
+    /// trip its no-bodyless-positive-rule invariant.
+    UnpositiveBody,
 }
 
 /// The result of a native-execution attempt: a decided value or a declared gap.

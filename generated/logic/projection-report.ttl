@@ -8227,6 +8227,12 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ExactPreservation .
 
+<https://blackcatinformatics.ca/logic/target/gmn1:pydantic-projection-profile>
+    a logic:ProjectionTarget ;
+    rdfs:label "gmn1:pydantic-projection-profile" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ExactPreservation .
+
 <https://blackcatinformatics.ca/logic/target/gmn1:word-etymology>
     a logic:ProjectionTarget ;
     rdfs:label "gmn1:word-etymology" ;
@@ -93762,6 +93768,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/gmn1:person-names> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:proficiency> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:pvalue-tri-slice> ,
+        <https://blackcatinformatics.ca/logic/target/gmn1:pydantic-projection-profile> ,
         <https://blackcatinformatics.ca/logic/target/gmn1:word-etymology> ,
         <https://blackcatinformatics.ca/logic/target/governance-floor:axis-floors> ,
         <https://blackcatinformatics.ca/logic/target/governance-floor:tier-floors> ,

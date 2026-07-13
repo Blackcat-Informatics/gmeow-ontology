@@ -357,6 +357,14 @@ fn serialize_carrier_snapshot_without_docs(
             stage_err("missing stage-export-constraint-shapes constraint-shapes.ttl artifact")
         })?
         .to_vec();
+    // THIS run's freshly-rendered Pydantic model package (REP_MODELS_PYTHON),
+    // sourced from the stage-export-pydantic product so the bundle blob never lags a
+    // regenerate: the committed packages/python/gmeow_models/* are not flushed until
+    // phase 1 returns, so a disk read here would tar the stale committed tree.
+    let models_python_artifacts = upstream
+        .get("stage-export-pydantic")
+        .ok_or_else(|| stage_err("missing stage-export-pydantic product"))?
+        .artifacts();
     let mut blobs = build_archive_blobs(
         root,
         &SchemaSurfaces {
@@ -372,6 +380,7 @@ fn serialize_carrier_snapshot_without_docs(
             frame: &frame_shapes_ttl,
             constraint: &constraint_shapes_ttl,
         },
+        &models_python_artifacts,
     )?;
     // Slice guides are documentation projections too. They remain canonical
     // source inputs for `make docs`, but do not ride the logical bundle.
@@ -1120,6 +1129,11 @@ const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
 /// tar of the SHACL-derived JSON Schema + OpenAPI, member = bare filename.
 const REP_SCHEMAS: &str = "schemas-archive";
+/// tar of the generated Pydantic model package, member = package-relative path
+/// (`gmeow_models/...`). Re-exported from the reader-side definition in
+/// [`crate::bundle_blobs`] so producer and reader share ONE constant (a drifted
+/// label would silently fold/read an empty package).
+pub(crate) use crate::bundle_blobs::REP_MODELS_PYTHON;
 /// tar of the JSON-LD-star + YAML-LD-star serializations.
 #[cfg(test)]
 #[allow(dead_code)]
@@ -1200,6 +1214,7 @@ fn build_archive_blobs(
     axiom_artifacts: &BTreeMap<String, Vec<u8>>,
     mappings_artifacts: &BTreeMap<String, Vec<u8>>,
     shape_surfaces: &ShapeSurfaces<'_>,
+    models_python_artifacts: &BTreeMap<String, Vec<u8>>,
 ) -> Result<Vec<BlobRow>, gmeow_errors::Diag> {
     // mappings: member = bare filename, sourced from THIS run's stage-mappings product
     // (not re-read from disk) so a mapping-source edit folds into the bundle in one
@@ -1360,6 +1375,26 @@ fn build_archive_blobs(
         axioms.push((rel.to_string(), bytes.clone()));
     }
     axioms.sort_by(|a, b| a.0.cmp(&b.0));
+    // models-python: the generated Pydantic package, member = package-relative path
+    // (`gmeow_models/...`, the on-disk `packages/python/` prefix stripped). Sourced
+    // from THIS run's stage-export-pydantic product so the bundle blob, the on-disk
+    // wheel source tree, and `gmeow export-docs --format pydantic` are the SAME bytes
+    // (four-way identity). Fail closed: an empty package would silently ship a bundle
+    // without the documentation surface.
+    let mut models_python: Vec<(String, Vec<u8>)> = models_python_artifacts
+        .iter()
+        .filter_map(|(path, bytes)| {
+            path.strip_prefix(crate::stages::pydantic::PACKAGE_DISK_PREFIX)
+                .map(|member| (member.to_string(), bytes.clone()))
+        })
+        .collect();
+    models_python.sort_by(|a, b| a.0.cmp(&b.0));
+    if models_python.is_empty() {
+        return Err(stage_err(
+            "no packages/python/gmeow_models/* artifacts in the stage-export-pydantic product — \
+             the models-python archive would fold empty (fail-closed)",
+        ));
+    }
     Ok(vec![
         archive_blob(REP_MAPPINGS, &mappings)?,
         archive_blob(REP_CELLS, &cells)?,
@@ -1368,6 +1403,7 @@ fn build_archive_blobs(
         archive_blob(REP_SCHEMAS, &schemas)?,
         archive_blob(REP_SHAPES, &shapes)?,
         archive_blob(REP_AXIOMS, &axioms)?,
+        archive_blob(REP_MODELS_PYTHON, &models_python)?,
     ])
 }
 
@@ -4142,6 +4178,19 @@ mod ustar_tests {
         }
     }
 
+    /// A minimal non-empty stage-export-pydantic product for the blob-archive unit
+    /// tests: one package member under the on-disk prefix, so `build_archive_blobs`
+    /// clears its models-python fail-closed guard.
+    fn sample_models_python() -> BTreeMap<String, Vec<u8>> {
+        BTreeMap::from([(
+            format!(
+                "{}gmeow_models/__init__.py",
+                crate::stages::pydantic::PACKAGE_DISK_PREFIX
+            ),
+            b"# gmeow_models\n".to_vec(),
+        )])
+    }
+
     /// Mirror the committed `generated/mappings/*.sssom.tsv` AND `generated/queries/*.rq`
     /// into an artifact map keyed by repo-relative path — the stand-in for the
     /// stage-mappings product in blob-archive unit tests (production sources both the
@@ -4338,6 +4387,7 @@ mod ustar_tests {
             &axiom_artifacts,
             &mappings,
             &shapes,
+            &sample_models_python(),
         )
         .expect("archive blobs");
         let queries = blobs
@@ -4364,6 +4414,7 @@ mod ustar_tests {
             &axiom_artifacts,
             &no_queries,
             &shapes,
+            &sample_models_python(),
         )
         .expect_err("empty queries product must fail closed");
         assert!(
@@ -4407,6 +4458,7 @@ mod ustar_tests {
             &axiom_artifacts,
             &mappings,
             &shapes,
+            &sample_models_python(),
         )
         .expect("archive blobs");
         let archive = blobs
@@ -4433,6 +4485,7 @@ mod ustar_tests {
             &axiom_artifacts,
             &no_mappings,
             &shapes,
+            &sample_models_python(),
         )
         .expect_err("empty mappings product must fail closed");
         assert!(
@@ -4483,6 +4536,7 @@ mod ustar_tests {
                 frame: &frame_probe,
                 constraint: &constraint_probe,
             },
+            &sample_models_python(),
         )
         .expect("archive blobs");
         let archive = blobs
@@ -4552,6 +4606,7 @@ mod ustar_tests {
                 frame: &fresh_frame_shapes_from_disk(&root),
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
+            &sample_models_python(),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -4659,6 +4714,7 @@ mod ustar_tests {
                 frame: &fresh_frame_shapes_from_disk(&root),
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
+            &sample_models_python(),
         )
         .expect("archive blobs");
         let blob = blobs
@@ -4694,6 +4750,7 @@ mod ustar_tests {
                 frame: &fresh_frame_shapes_from_disk(&root),
                 constraint: &fresh_constraint_shapes_from_disk(&root),
             },
+            &sample_models_python(),
         )
         .expect("archive blobs");
         let blob2 = again.iter().find(|b| b.rep == REP_AXIOMS).unwrap();

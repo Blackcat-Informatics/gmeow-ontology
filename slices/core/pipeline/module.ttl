@@ -465,6 +465,7 @@ gmeow:pipeline-build
         gmeow:stage-export-result-shapes ,
         gmeow:stage-validate-result-shape-composition ,
         gmeow:stage-export-json-schema ,
+        gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-research-objects ,
@@ -663,6 +664,17 @@ gmeow:stage-export-json-schema
     gmeow:stageImpl "json_schema" ;
     gmeow:producesFormat "json-schema" .
 
+gmeow:stage-export-pydantic
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: pydantic models"@x-gmeow-english ;
+    skos:definition "Render the Pydantic v2 model package (gmeow_models/<slice>.py) — a functional documentation surface — from the same SHACL shape compilation the JSON-Schema leaf runs, joined with the documentation model for docstrings, so a model's model_json_schema() agrees with the packed JSON Schema by construction. A source-reading leaf: it reads the shape files and the documentation sources directly and consumes no upstream product; the sink folds its fresh output into the models-python blob and the package tree ships as the gmeow-ontology wheel source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "pydantic" ;
+    gmeow:producesFormat "pydantic" .
+
 gmeow:stage-export-schemas
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -713,12 +725,14 @@ gmeow:stage-export-export
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: flat views"@x-gmeow-english ;
-    skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt."@x-gmeow-english ;
+    skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt. Consumes gmeow:stage-export-json-schema alongside the snapshot so the inlined llms-full.txt cards can gate a class's python_model link on whether the class actually names a $defs entry (never a fabricated link for an unmodeled class)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "export" ;
-    gmeow:dataflowConsumes gmeow:stage-snapshot ;
+    gmeow:dataflowConsumes
+        gmeow:stage-export-json-schema ,
+        gmeow:stage-snapshot ;
     gmeow:producesFormat "csv" , "jsonl" , "markdown" , "llms-txt" .
 
 gmeow:stage-export-okf
@@ -936,6 +950,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-evals ,
         gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-json-schema ,
+        gmeow:stage-export-pydantic ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-references ,

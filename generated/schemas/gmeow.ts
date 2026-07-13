@@ -2885,6 +2885,7 @@ export enum PipelineStageEnum {
     stage_export_okf = "stage-export-okf",
     stage_export_parquet = "stage-export-parquet",
     stage_export_profiles = "stage-export-profiles",
+    stage_export_pydantic = "stage-export-pydantic",
     stage_export_references = "stage-export-references",
     stage_export_research_objects = "stage-export-research-objects",
     stage_export_result_shapes = "stage-export-result-shapes",

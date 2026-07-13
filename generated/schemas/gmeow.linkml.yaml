@@ -22732,6 +22732,9 @@ enums:
       stage-export-profiles:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-profiles
         title: 'export: profiles'
+      stage-export-pydantic:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-pydantic
+        title: 'export: pydantic models'
       stage-export-references:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-references
         title: 'export: references'

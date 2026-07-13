@@ -151,11 +151,19 @@ fn ground_eval_term(t: &EvalTerm) -> gmeow_errors::Result<TermValue> {
 // ── The arity-generic magic-sets transformation ──────────────────────────────────
 
 /// The output of [`magic_transform_generic`]: the transformed generic program plus the
-/// ground seed fact `(relation, args)` (inserted into the EDB before evaluation), or
-/// `None` for an all-free goal (no demand restriction).
+/// SET of ground seed facts `(relation, args)` inserted into the EDB before evaluation.
+///
+/// EVERY bodyless positive rule the transform would produce (the goal's magic seed AND each
+/// per-atom/modified demand rule whose body collapses to empty) is lifted into this seed set
+/// rather than left as a rule: the n-ary semi-naive engine ([`super::generic::join_body`])
+/// never fires a zero-body rule (a rule with no body position yields no delta solution), so a
+/// surviving bodyless rule would silently under-demand. A bodyless positive rule is
+/// definitionally an unconditional ground fact (an asserted demand), so it belongs in the EDB
+/// seed set. An all-free goal contributes no goal seed (unrestricted); the set is then whatever
+/// the demand/modified sites lift, deduplicated and order-stable.
 struct GenericMagicProgram {
     rules: Vec<GenericRule>,
-    seed: Option<(String, Vec<TermValue>)>,
+    seeds: Vec<(String, Vec<TermValue>)>,
 }
 
 /// A [`GenericRule`] with a synthesized deterministic rule IRI.
@@ -165,6 +173,33 @@ fn generic_rule(head: GenericAtom, body: Vec<GenericAtom>, rule_iri: String) -> 
         body,
         rule_iri,
     }
+}
+
+/// Route a transform-emitted generic rule: a bodyless positive rule is an unconditional GROUND
+/// fact (the n-ary semi-naive engine never fires a zero-body rule), so materialize it as a
+/// demand seed `(relation, args)`; a rule with a body is emitted normally.
+///
+/// A bodyless positive rule's head is always ground: an empty body means the head guard is
+/// `None` (an all-free head demand), so every arg of the emitted atom is a constant carried
+/// from the source — never a variable ([`ground_eval_term`] therefore never errs). A
+/// duplicate demand fact minted by more than one emission site is deduped once, order-
+/// preservingly, at the end of the enclosing transform (see the `seen`/`retain` pass in
+/// `magic_transform_generic`), not here.
+fn emit_or_seed_generic(
+    head: GenericAtom,
+    body: Vec<GenericAtom>,
+    rule_iri: String,
+    out: &mut Vec<GenericRule>,
+    seeds: &mut Vec<(String, Vec<TermValue>)>,
+) -> gmeow_errors::Result<()> {
+    if body.is_empty() {
+        let args: gmeow_errors::Result<Vec<TermValue>> =
+            head.args.iter().map(ground_eval_term).collect();
+        seeds.push((head.relation.clone(), args?));
+    } else {
+        out.push(generic_rule(head, body, rule_iri));
+    }
+    Ok(())
 }
 
 /// Magic-transform `rules` w.r.t. the goal atom `goal` under `goal_pattern`.
@@ -181,16 +216,16 @@ fn magic_transform_generic(
     let idb: BTreeSet<String> = rules.iter().map(|r| r.head.relation.clone()).collect();
 
     let mut out: Vec<GenericRule> = Vec::new();
+    let mut seeds: Vec<(String, Vec<TermValue>)> = Vec::new();
 
-    // (1) Seed: the goal's ground magic fact (none for an all-free goal).
-    let seed = match magic_guard_atom(goal, goal_pattern) {
-        Some(g) => {
-            let args: gmeow_errors::Result<Vec<TermValue>> =
-                g.args.iter().map(ground_eval_term).collect();
-            Some((g.relation, args?))
-        }
-        None => None,
-    };
+    // (1) Seed: the goal's ground magic fact (none for an all-free goal). This and every
+    //     other bodyless positive rule below are asserted into the EDB by the caller (a
+    //     zero-body rule never fires in the n-ary semi-naive engine).
+    if let Some(g) = magic_guard_atom(goal, goal_pattern) {
+        let args: gmeow_errors::Result<Vec<TermValue>> =
+            g.args.iter().map(ground_eval_term).collect();
+        seeds.push((g.relation, args?));
+    }
 
     // Demand fixpoint keyed on (relation, pattern.code()); `demands` doubles as the
     // visited set so each frontier node expands once.
@@ -248,7 +283,10 @@ fn magic_transform_generic(
                             a.code(),
                             head_rel
                         );
-                        out.push(generic_rule(magic_head, mbody, iri));
+                        // A leading bound recursive-IDB atom under an all-free head yields
+                        // an empty `mbody` (no head guard, empty prefix); its ground magic
+                        // head is lifted to a seed rather than dropped by the engine.
+                        emit_or_seed_generic(magic_head, mbody, iri, &mut out, &mut seeds)?;
                     }
                 }
                 mod_body.push(atom.clone());
@@ -257,11 +295,33 @@ fn magic_transform_generic(
             }
 
             let iri = format!("{}::mod/{}#{ri}", r.head.relation, adorn_code);
-            out.push(generic_rule(r.head.clone(), mod_body, iri));
+            // A ground fact-rule (empty original body) under an all-free head yields an empty
+            // `mod_body` with a ground head — an unconditional fact the engine would never
+            // fire. Lift it to a seed rather than emitting a bodyless rule.
+            emit_or_seed_generic(r.head.clone(), mod_body, iri, &mut out, &mut seeds)?;
         }
     }
 
-    Ok(GenericMagicProgram { rules: out, seed })
+    // The N-ARY fragment REJECTS negation and builtins UPSTREAM: `generic_atom_of` and
+    // `resolve_native_generic` return `Unsupported` on `Neg`/`Builtin`/`Cut`, so every body
+    // atom that reaches here is positive. `!body.is_empty()` is therefore exactly the "has a
+    // positive driver" invariant for this path — a weaker predicate than the binary fragment's
+    // "has a positive atom", but exactly equivalent here since no NAF atom can appear. The
+    // asymmetry with `magic_transform`'s assert above is intentional: it tracks the fragment
+    // difference (stratified NAF admitted there, rejected here), not an oversight.
+    assert!(
+        out.iter().all(|r| !r.body.is_empty()),
+        "magic_transform_generic must not emit a bodyless positive rule (it never fires in the \
+         n-ary semi-naive engine and would silently under-demand)"
+    );
+    // The goal seed and the per-atom/modified demand lifts above can mint the same ground
+    // demand fact `(relation, args)` from more than one emission site; dedup ONCE here,
+    // order-preservingly (first-seen kept), rather than guarding every push with an O(N)
+    // `contains` scan. The tuple derives `Debug` (both `String` and `Vec<TermValue>` do) but
+    // not `Hash`/`Ord`, so the dedup key is its deterministic `Debug` rendering.
+    let mut seen = std::collections::HashSet::new();
+    seeds.retain(|s| seen.insert(format!("{s:?}")));
+    Ok(GenericMagicProgram { rules: out, seeds })
 }
 
 // ── The n-ary generic-triple EDB ─────────────────────────────────────────────────
@@ -470,7 +530,7 @@ pub(super) fn resolve_native_generic(
     // (3) Build the generic-triple EDB, insert the seed demand fact, and run the
     //     arity-generic positive-Datalog fixpoint.
     let mut facts = build_generic_edb(foreign, world);
-    if let Some((relation, args)) = &transformed.seed {
+    for (relation, args) in &transformed.seeds {
         let ids: Vec<_> = args.iter().map(|a| facts.intern(a)).collect();
         facts.push_fact(relation, ids);
     }
@@ -708,7 +768,7 @@ where
         .filter(|rule| rule.rule_iri.contains("::magic/"))
         .map(|rule| rule.head.relation.clone())
         .collect::<BTreeSet<_>>();
-    if let Some((relation, args)) = &transformed.seed {
+    for (relation, args) in &transformed.seeds {
         let ids = args.iter().map(|arg| facts.intern(arg)).collect::<Vec<_>>();
         facts.push_fact(relation, ids);
         control_relations.insert(relation.clone());
@@ -1186,9 +1246,11 @@ mod tests {
         let pattern = goal_pattern(&prog.goal.atoms[0]);
         let transformed = magic_transform_generic(&rules, &goal_atom, pattern).unwrap();
 
-        // The seed is the goal's ground magic fact carrying the single bound sub-tuple
-        // <p2> (the property position) — arity 1, NOT a self-loop.
-        let (seed_rel, seed_args) = transformed.seed.clone().expect("bf/fbff goal ⇒ a seed");
+        // The goal seed is the ground magic fact carrying the single bound sub-tuple <p2>
+        // (the property position) — arity 1, NOT a self-loop. It is the sole seed of this
+        // EDB-first program (no bodyless demand/fact-rule is lifted).
+        assert_eq!(transformed.seeds.len(), 1, "only the goal seed is lifted");
+        let (seed_rel, seed_args) = transformed.seeds[0].clone();
         assert_eq!(seed_rel, magic_pred_iri("triple", "fbff"));
         assert_eq!(
             seed_args.len(),
@@ -1233,7 +1295,6 @@ mod tests {
             prov.antecedents
         );
     }
-
     #[test]
     fn annotated_generic_dispatch_carries_score_and_positional_lineage_in_one_fixpoint() {
         let (store, world) = make_world(&[("http://ex/x", P1, "http://ex/y")]);
@@ -1280,5 +1341,249 @@ mod tests {
         );
         assert_eq!(rule.tuple_sources[0].relation, GENERIC_TRIPLE_RELATION);
         assert_eq!(rule.tuple_sources[0].arguments[1], format!("<{P1}>"));
+    }
+    // ── Leading-bound recursive IDB (the n-ary soundness repro) ──────────────────
+
+    const EDGE: &str = "http://ex/edge";
+    const NAME: &str = "http://ex/name";
+    const SELF: &str = "http://ex/self";
+
+    /// An arity-3 `reach(?s, ?o, ?w)` IDB atom (a rule-head relation, so servable).
+    fn reach_atom(s: QTerm, o: QTerm, w: QTerm) -> QAtom {
+        QAtom {
+            pred: "reach".to_owned(),
+            args: vec![s, o, w],
+        }
+    }
+
+    /// The n-ary leading-bound recursive-IDB program: an arity-3 recursive `reach`
+    /// (transitive `<edge>` reachability in the `triple` encoding), with a goal rule
+    /// whose body LEADS with the recursive IDB atom `reach(<self>, ?o, ?w)` carrying a
+    /// bound (constant) first position — the exact shape that emits a bodyless demand
+    /// rule the n-ary semi-naive engine drops.
+    fn leading_bound_idb_program() -> QProgram {
+        let v = |n: &str| QTerm::Var(n.to_owned());
+        let triple = |s: QTerm, p: &str, o: QTerm, w: QTerm| QAtom {
+            pred: "triple".to_owned(),
+            args: vec![s, QTerm::Const(format!("<{p}>")), o, w],
+        };
+        QProgram {
+            rules: vec![
+                // base: reach(?s,?o,?w) :- triple(?s,<edge>,?o,?w).
+                crate::query_ir::QRule {
+                    head: reach_atom(v("s"), v("o"), v("w")),
+                    body: vec![QBodyLit::Atom(triple(v("s"), EDGE, v("o"), v("w")))],
+                },
+                // recursive: reach(?s,?o,?w) :- reach(?s,?m,?w), triple(?m,<edge>,?o,?w).
+                crate::query_ir::QRule {
+                    head: reach_atom(v("s"), v("o"), v("w")),
+                    body: vec![
+                        QBodyLit::Atom(reach_atom(v("s"), v("m"), v("w"))),
+                        QBodyLit::Atom(triple(v("m"), EDGE, v("o"), v("w"))),
+                    ],
+                },
+                // goal rule: answer(?p,?o,?w) :- reach(<self>,?o,?w), triple(?o,<name>,?p,?w).
+                crate::query_ir::QRule {
+                    head: QAtom {
+                        pred: "answer".to_owned(),
+                        args: vec![v("p"), v("o"), v("w")],
+                    },
+                    body: vec![
+                        QBodyLit::Atom(reach_atom(
+                            QTerm::Const(format!("<{SELF}>")),
+                            v("o"),
+                            v("w"),
+                        )),
+                        QBodyLit::Atom(triple(v("o"), NAME, v("p"), v("w"))),
+                    ],
+                },
+            ],
+            goal: QGoal {
+                atoms: vec![QAtom {
+                    pred: "answer".to_owned(),
+                    args: vec![v("p"), v("o"), v("w")],
+                }],
+            },
+            counterfactual: None,
+            prob_facts: vec![],
+            prob_model: None,
+            confidences: vec![],
+        }
+    }
+
+    #[test]
+    fn generic_leading_bound_recursive_idb_decides_full_answer_set() {
+        // World: self →edge a →edge b; a and b carry a <name>. reach(self,·) = {a, b},
+        // so the goal rule (leading with the bound recursive IDB atom) yields exactly the
+        // two named reachable nodes. Pre-fix the leading `reach(<self>,…)` demand rule is
+        // bodyless → dropped by the n-ary semi-naive engine → reach is never demanded →
+        // empty answer with status Ok (the silent under-demand this task fixes).
+        let (store, world) = make_world(&[
+            (SELF, EDGE, "http://ex/a"),
+            ("http://ex/a", EDGE, "http://ex/b"),
+            ("http://ex/a", NAME, "http://ex/na"),
+            ("http://ex/b", NAME, "http://ex/nb"),
+        ]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let prog = leading_bound_idb_program();
+
+        let answer =
+            decided(resolve_native_generic(&foreign, &world, &prog, &Budget::default()).unwrap());
+        assert_eq!(answer.status, BudgetStatus::Ok, "complete ⇒ Ok: {answer:?}");
+        assert_eq!(
+            answer.bindings.len(),
+            2,
+            "reach(self,·) = {{a, b}}, each named ⇒ 2 answers: {answer:?}"
+        );
+    }
+
+    #[test]
+    fn generic_seeds_are_exactly_the_bodyless_rule_heads() {
+        // Demand-completeness certificate (Beeri–Ramakrishnan), the n-ary mirror of
+        // `magic::tests::magic_seeds_are_exactly_the_bodyless_rule_heads`: the materialized
+        // seed set is EXACTLY the set of ground heads of the bodyless positive rules the
+        // transform would emit. The program is the arity-2 analogue of the binary leading-
+        // IDB repro (`reach(X,Y):-knows(X,Y)`, `reach(X,Y):-knows(X,Z),reach(Z,Y)`) behind a
+        // wrapping goal-rule `c(P) :- reach(<self>,P)` whose body LEADS with the recursive
+        // IDB atom bound-first. The top-level goal is `c(P)`, all-free, so it contributes no
+        // goal seed of its own — the sole seed is minted when `c`'s rule body is walked and
+        // the leading `reach(<self>,P)` atom is adorned bound-first (`bf`).
+        let v = |n: &str| QTerm::Var(n.to_owned());
+        let konst = |iri: &str| QTerm::Const(format!("<{iri}>"));
+        let knows = |x: QTerm, y: QTerm| QAtom {
+            pred: "knows".to_owned(),
+            args: vec![x, y],
+        };
+        let reach = |x: QTerm, y: QTerm| QAtom {
+            pred: "reach".to_owned(),
+            args: vec![x, y],
+        };
+
+        let prog = QProgram {
+            rules: vec![
+                // base: reach(X,Y) :- knows(X,Y).
+                crate::query_ir::QRule {
+                    head: reach(v("x"), v("y")),
+                    body: vec![QBodyLit::Atom(knows(v("x"), v("y")))],
+                },
+                // recursive: reach(X,Y) :- knows(X,Z), reach(Z,Y).
+                crate::query_ir::QRule {
+                    head: reach(v("x"), v("y")),
+                    body: vec![
+                        QBodyLit::Atom(knows(v("x"), v("z"))),
+                        QBodyLit::Atom(reach(v("z"), v("y"))),
+                    ],
+                },
+                // goal rule, leading with the recursive IDB atom bound-first:
+                // c(P) :- reach(<self>, P).
+                crate::query_ir::QRule {
+                    head: QAtom {
+                        pred: "c".to_owned(),
+                        args: vec![v("p")],
+                    },
+                    body: vec![QBodyLit::Atom(reach(konst(SELF), v("p")))],
+                },
+            ],
+            goal: QGoal {
+                atoms: vec![QAtom {
+                    pred: "c".to_owned(),
+                    args: vec![v("p")],
+                }],
+            },
+            counterfactual: None,
+            prob_facts: vec![],
+            prob_model: None,
+            confidences: vec![],
+        };
+
+        let rules: Vec<GenericRule> = prog
+            .rules
+            .iter()
+            .map(|r| {
+                let head = generic_atom_of(&r.head).unwrap();
+                let body: Vec<GenericAtom> = r
+                    .body
+                    .iter()
+                    .map(|l| match l {
+                        QBodyLit::Atom(a) => generic_atom_of(a).unwrap(),
+                        other => panic!("unexpected body literal {other:?}"),
+                    })
+                    .collect();
+                let iri = format!("{}::rule", head.relation);
+                generic_rule(head, body, iri)
+            })
+            .collect();
+        let goal_atom = generic_atom_of(&prog.goal.atoms[0]).unwrap();
+        let pattern = goal_pattern(&prog.goal.atoms[0]);
+        let transformed = magic_transform_generic(&rules, &goal_atom, pattern).unwrap();
+
+        // (a) Beeri–Ramakrishnan completeness: no surviving rule is bodyless (the invariant
+        // `magic_transform_generic` itself asserts).
+        assert!(
+            transformed.rules.iter().all(|r| !r.body.is_empty()),
+            "no transformed rule may be bodyless: {:?}",
+            transformed.rules
+        );
+
+        // (b) Re-derive the expected demand INDEPENDENTLY of the transform. The sole leading
+        // bound recursive-IDB atom is `reach(<self>, ?p)` inside `c`'s body, adorned
+        // bound-first (subject bound, object free) — pattern `bf`. The generic magic guard
+        // carries the REAL bound sub-tuple (arity = #bound positions; see the module-level
+        // doc contrasting this with the binary store's self-loop pair hack), so for a
+        // single bound position the expected seed args are the ARITY-1 tuple `[<self>]`, not
+        // a 2-element self-loop pair. The relation is minted by the arity-agnostic
+        // `magic_pred_iri` helper both backward legs share.
+        let expected_relation = magic_pred_iri("reach", "bf");
+        let expected_seed = (expected_relation, vec![TermValue::iri(SELF)]);
+        assert_eq!(
+            transformed.seeds.len(),
+            1,
+            "exactly one lifted demand seed: {:?}",
+            transformed.seeds
+        );
+        assert_eq!(
+            transformed.seeds[0], expected_seed,
+            "the seed set must equal the bodyless-rule-head demand set {{magic_reach_bf(<self>)}}"
+        );
+    }
+
+    #[test]
+    fn generic_ff_goal_ground_fact_rule_decides_the_fact() {
+        // Site B: an n-ary ground fact-rule (empty body) `p(<a>,<b>,<c>).` under an
+        // all-free goal `?- p(?x,?y,?z)`. Pre-fix the modified rule for `p` collapses to a
+        // bodyless positive rule the engine never fires → the asserted fact is lost. The
+        // fact-rule head is ground, so it must be materialized as a seed.
+        let (store, world) = make_world(&[]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let c = |iri: &str| QTerm::Const(format!("<{iri}>"));
+        let v = |n: &str| QTerm::Var(n.to_owned());
+        let prog = QProgram {
+            rules: vec![crate::query_ir::QRule {
+                head: QAtom {
+                    pred: "p".to_owned(),
+                    args: vec![c("http://ex/a"), c("http://ex/b"), c("http://ex/c")],
+                },
+                body: vec![],
+            }],
+            goal: QGoal {
+                atoms: vec![QAtom {
+                    pred: "p".to_owned(),
+                    args: vec![v("x"), v("y"), v("z")],
+                }],
+            },
+            counterfactual: None,
+            prob_facts: vec![],
+            prob_model: None,
+            confidences: vec![],
+        };
+
+        let answer =
+            decided(resolve_native_generic(&foreign, &world, &prog, &Budget::default()).unwrap());
+        assert_eq!(answer.status, BudgetStatus::Ok, "complete ⇒ Ok: {answer:?}");
+        assert_eq!(
+            answer.bindings.len(),
+            1,
+            "the asserted ground fact p(a,b,c) is the sole answer: {answer:?}"
+        );
     }
 }

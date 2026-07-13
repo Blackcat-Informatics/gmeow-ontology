@@ -77,6 +77,8 @@ bench/cost-baseline.json:generic-api-key:644
 
 # Extended for the grown multi-worker cost baseline (content-addressed SHA-256
 # oracle/golden reasoning fingerprints; same non-secret rationale as above).
+cost-baseline.json:generic-api-key:152
+cost-baseline.json:generic-api-key:155
 cost-baseline.json:generic-api-key:512
 cost-baseline.json:generic-api-key:515
 cost-baseline.json:generic-api-key:649
@@ -95,6 +97,8 @@ cost-baseline.json:generic-api-key:1381
 cost-baseline.json:generic-api-key:1384
 cost-baseline.json:generic-api-key:1500
 cost-baseline.json:generic-api-key:1503
+bench/cost-baseline.json:generic-api-key:152
+bench/cost-baseline.json:generic-api-key:155
 bench/cost-baseline.json:generic-api-key:512
 bench/cost-baseline.json:generic-api-key:515
 bench/cost-baseline.json:generic-api-key:649
