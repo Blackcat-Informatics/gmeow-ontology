@@ -51,6 +51,27 @@ ex:orphanRealm a gmeow:FrameRealm .
     ))
     .warnings(&["Open value individuals must be referenced by at least one profile descriptor"])
 )]
+// W2 falsifying regression: an UNWIRED owned open value still fires the guard.
+// The REAL `gmeow:sliceQualityRubric` profile (merged in by `.shape_union()`) narrows
+// its `gmeow:profileOpenValue` to `gmeow:SliceQualityDimension`; the 10 minted
+// dimensions are all referenced by an axis's `gmeow:axisDimension`, so they pass. An
+// ORPHAN `gmeow:SliceQualityDimension` referenced by NO descriptor must still trip
+// `gmeow:ProfileOpenValueUseConstraintProceduralConstraintShape`
+// (`SPARQLConstraintComponent`). Asserted SEVERITY-AGNOSTIC via `.flags(...)`: the
+// constraint is `sh:Warning` today and `sh:Violation` after the flip; the finding is
+// present at either severity, so this passes NOW and after the migration.
+#[case::slice_quality_rubric_open_value_guard_fires_on_orphan_dimension(
+    Case::inline(format!(
+        "{PREFIXES}\
+ex:orphanDim a gmeow:SliceQualityDimension .
+ex:orphanDim rdfs:label \"orphan dimension\"@x-gmeow-english .
+ex:orphanDim skos:definition \"A SliceQualityDimension owned by the rubric's open value but referenced by no axis descriptor — the extensibility-by-construction guard must flag it.\"@x-gmeow-english .
+ex:orphanDim gmeow:graphBoxRole gmeow:boxABox .
+"
+    ))
+    .shape_union()
+    .flags(&["Open value individuals must be referenced by at least one profile descriptor"])
+)]
 // A Profile with `gmeow:profileAppliesTo` set to a plain literal (not a class IRI)
 // must fail SHACL with a violation mentioning one of profileAppliesTo / ProfileShape
 // / class (case-sensitive disjunction → `any_violation`).
