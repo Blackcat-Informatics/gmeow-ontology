@@ -116,6 +116,22 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
     })?;
     let result = certified.result;
     let mut chase_report = gmeow_errors::Report::new("chase");
+    // `stage-reason` declares graph/diagnostics as an unconditional attachment.
+    // RDF has no representation for an empty named graph, so carry the run's
+    // content-addressed native contract as explicit evidence even when this EDB
+    // contains no existential obligations. This is an honest run fact, not a
+    // vacuous chase certificate; real per-world certificates follow below.
+    chase_report.add_finding(
+        gmeow_errors::Finding::new(
+            gmeow_errors::Severity::Info,
+            "reason.native-contract",
+            format!(
+                "native reasoning contract {} produced this stage result",
+                gmeow_logic::reason::native_contract_hash()
+            ),
+        )
+        .with_tool("reason"),
+    );
     for certificate in certified.chase_certificates {
         chase_report.add_finding(certificate.to_finding());
     }
@@ -271,7 +287,11 @@ impl Stage for ReasonStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "reason.v2"
+        // The native contract changed when the external reasoners were removed and
+        // the structured existential/DL chase became the sole production authority.
+        // Bumping the stage version prevents a pre-removal closure from surviving in
+        // the content-addressed pipeline cache when its RDF inputs are unchanged.
+        "reason.v3"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         // Reason ONCE over the object-level EDB (ontology + imports + statements +
@@ -367,6 +387,12 @@ mod tests {
             assert!(!ttl.trim().is_empty(), "{name} artifact is empty");
         }
         assert!(reasoned.closure.contains("<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> ."));
+        assert!(reasoned.chase_report.findings.iter().any(|finding| {
+            finding.code == "reason.native-contract"
+                && finding
+                    .message
+                    .contains(&gmeow_logic::reason::native_contract_hash())
+        }));
         // The perf ledger flags the deferred / non-incremental levers (static content).
         assert!(
             reasoned
@@ -384,9 +410,12 @@ mod tests {
 <http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/R> <http://gmeow.example/w> .
 "#;
         let reasoned = reason_artifacts(nq).expect("production existential reason");
-        assert_eq!(reasoned.chase_report.findings.len(), 1);
-        let finding = &reasoned.chase_report.findings[0];
-        assert_eq!(finding.code, "chase.certificate.weakly-acyclic");
+        let finding = reasoned
+            .chase_report
+            .findings
+            .iter()
+            .find(|finding| finding.code == "chase.certificate.weakly-acyclic")
+            .expect("the production chase certificate is surfaced");
         assert!(
             finding
                 .message
@@ -410,8 +439,8 @@ mod tests {
             crate::stages::diag_render::finding_nodes(&reasoned.chase_report, "stage-reason");
         assert_eq!(
             nodes.len(),
-            1,
-            "the run-ledger projection must retain the certificate"
+            2,
+            "the run-ledger projection must retain the native contract and certificate"
         );
     }
 
@@ -453,6 +482,11 @@ mod tests {
             bundle.graph_digest(GRAPH_REASONING),
             bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
             "graph/reasoning carries the projection"
+        );
+        assert_ne!(
+            bundle.graph_digest(crate::stages::carrier::GRAPH_DIAGNOSTICS),
+            bundle.graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent"),
+            "graph/diagnostics always carries the run's native contract evidence"
         );
     }
 
