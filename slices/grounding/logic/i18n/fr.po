@@ -187,7 +187,7 @@ msgstr "Contrainte de type de données du littéral"
 
 msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|skos:definition"
 msgid "Requires a carrier with logic:termLiteralDatatype to carry logic:termLiteral, so a datatype IRI can never float without the lexical literal it types. It does not require a datatype for every literal; absence denotes a plain literal."
-msgstr "Exige qu'un porteur ayant logic:termLiteralDatatype porte aussi logic:termLiteral, afin qu'une IRI de type de données ne puisse jamais flotter sans le littéral lexical qu'elle type. Elle n'exige pas un type de données pour chaque littéral ; l'absence désigne un littéral simple."
+msgstr "Exige qu'un porteur ayant logic:termLiteralDatatype porte aussi logic:termLiteral, afin qu'un IRI de type de données ne puisse jamais flotter sans le littéral lexical qu'il type. Elle n'exige pas un type de données pour chaque littéral ; l'absence désigne un littéral simple."
 
 msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|skos:example"
 msgid "A carrier with logic:termLiteralDatatype xsd:integer but no logic:termLiteral violates this constraint."
@@ -199,7 +199,7 @@ msgstr "Ne pas attacher logic:termLiteralDatatype à un porteur d'IRI, de variab
 
 msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:howToUse"
 msgid "Accept zero or one datatype IRI only on a carrier whose sole value kind is logic:termLiteral."
-msgstr "N'accepter zéro ou une IRI de type de données que sur un porteur dont l'unique genre de valeur est logic:termLiteral."
+msgstr "N'accepter zéro ou un IRI de type de données que sur un porteur dont l'unique genre de valeur est logic:termLiteral."
 
 msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:useWhen"
 msgid "Use when reconstructing typed literal terms from their lexical and datatype components."
@@ -228,3 +228,99 @@ msgstr "Choisir la sous-classe de sucre syntaxique la plus étroite, fournir sa 
 msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:useWhen"
 msgid "Use for a supported closed-world validation pattern whose canonical expansion is deterministic."
 msgstr "Utiliser pour un motif de validation en monde fermé pris en charge dont le développement canonique est déterministe."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|rdfs:label"
+msgid "Conversion Target"
+msgstr "Cible de conversion"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:definition"
+msgid "A legal output language for a lowering: every emitted construct must inhabit this target, while anything it cannot express remains explicit flagged residue. It is not a logic:ProjectionTarget, which requests a presentation of an answer; a conversion target instead delimits the IR or dialect into which canonical content may be legalized."
+msgstr "Un langage de sortie légal pour un abaissement : toute construction émise doit appartenir à cette cible, tandis que ce qu'elle ne peut exprimer reste un résidu explicite et signalé. Ce n'est pas une logic:ProjectionTarget, qui demande une présentation d'une réponse ; une cible de conversion délimite plutôt l'IR ou le dialecte dans lequel le contenu canonique peut être légalisé."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:example"
+msgid "logic:RelationalCore a logic:ConversionTarget ."
+msgstr "Par exemple : logic:RelationalCore a logic:ConversionTarget ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|rdfs:label"
+msgid "Choice Group Constraint"
+msgstr "Contrainte de groupe de choix"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:definition"
+msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de cardinalité d'un groupe de choix (P1) : une cible logic:onClass, un ensemble de prédicats logic:choicePredicate et un logic:choiceMode ('exactly-one', 'at-most-one' ou l'alias 'exactly-one-of-N'). Le compilateur le développe en une logic:Constraint canonique dont l'intégrité est la formule XOR ou au-plus portant sur l'exigence existentielle de chaque prédicat. Réservé au frontal : ce n'est pas un nouveau genre de nœud, seulement un raccourci de création."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:example"
+msgid "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
+msgstr "Exemple : ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|rdfs:label"
+msgid "Guarded Implication Constraint"
+msgstr "Contrainte d'implication gardée"
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:definition"
+msgid "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte d'implication gardée (P2) : une cible logic:onClass, un prédicat logic:trigger éventuellement fixé par logic:triggerValue et un ou plusieurs prédicats compagnons logic:requires. Il se développe en une logic:Constraint canonique ∀x. C(x) ∧ trigger(x, …) → ∃ compagnon. Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:example"
+msgid "ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
+msgstr "Exemple : ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|rdfs:label"
+msgid "Disjunctive Requiredness Constraint"
+msgstr "Contrainte d'obligation disjonctive"
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:definition"
+msgid "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte d'obligation disjonctive (P3) : une cible logic:onClass et un ensemble de prédicats logic:anyOf dont au moins un est requis. Il se développe en une logic:Constraint canonique ∀x. C(x) → (∃p1 ∨ … ∨ ∃pn). Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:example"
+msgid "ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
+msgstr "Exemple : ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|rdfs:label"
+msgid "Path Value Type Constraint"
+msgstr "Contrainte de type des valeurs de chemin"
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:definition"
+msgid "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte d'appartenance de type des valeurs d'un chemin (P4) : une cible logic:onClass, un prédicat logic:valuePath et une logic:valueClass requise. Il se développe en une logic:Constraint canonique ∀x. C(x) → ∀v. P(x,v) → D(v). Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:example"
+msgid "ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
+msgstr "Exemple : ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|rdfs:label"
+msgid "Cross Node Constraint"
+msgstr "Contrainte entre nœuds"
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:definition"
+msgid "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de cooccurrence ou d'inégalité entre nœuds (P5) : une cible logic:onClass et deux rôles, logic:roleA et logic:roleB, qui doivent selon logic:crossMode soit coexister, soit différer sans jamais lier la même valeur. Il se développe en une logic:Constraint canonique dont l'intégrité est la bi-implication ou la jointure avec inégalité au moyen de logic:termEqual. Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:example"
+msgid "ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
+msgstr "Exemple : ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|rdfs:label"
+msgid "Forbidden Pattern Constraint"
+msgstr "Contrainte de motif interdit"
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:definition"
+msgid "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de motif interdit (P7) : une cible logic:onClass et un logic:forbiddenPredicate éventuellement fixé à une logic:forbiddenValue. Il se développe en une logic:Constraint canonique ∀x. C(x) → ¬∃b. forbidden(x,b), ou dans la forme à valeur fixe ¬ forbidden(x, value). Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:example"
+msgid "ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
+msgstr "Exemple : ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|rdfs:label"
+msgid "Aggregate Constraint"
+msgstr "Contrainte d'agrégat"
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:definition"
+msgid "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de comparaison d'agrégat (P6) : une cible logic:onClass, un agrégat sur un chemin avec logic:aggFunction, logic:aggDistinct facultatif et logic:aggPath, un logic:aggComparator et un opérande droit logic:aggCompareTo, IRI de propriété comparée ou littéral. Il se développe en une logic:Constraint canonique portant l'intégrité FOL réifiée et un satellite d'agrégat structuré, abaissé en sh:SPARQLConstraint avec regroupement et condition d'agrégat. Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:example"
+msgid "ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
+msgstr "Exemple : ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."

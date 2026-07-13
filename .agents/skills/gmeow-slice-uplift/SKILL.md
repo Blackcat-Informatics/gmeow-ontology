@@ -210,8 +210,9 @@ into the three durable artifacts the lane already runs on:
 
 1. a **quality axis** that measures the deficiency objectively (so every slice's gap
    becomes a ranked `advice=` item, per §8);
-2. **curation docs** that teach the remediation (extend `docs/SLICE_GUIDE.md` /
-   `docs/SLICE_QA.md`, or the axis's `axisAdviceTemplate`);
+2. **curation docs** that teach the remediation (extend `docs/SLICE-UPGRADE.md`,
+   `docs/SLICE_GUIDE.md`, `docs/SLICE_QA.md`, or the axis's
+   `axisAdviceTemplate`);
 3. **this skill**, if the loop's shape changes.
 
 Then the sweep discharges itself, one slice-local PR at a time, through the ordinary
@@ -301,3 +302,5 @@ Those deltas — not any single frozen number — are the evidence the loop is w
   doctrine), §11 (gates, drift, and landing), §14 (the condensed checklist)
 - [`docs/SLICE_QA.md`](../../../docs/SLICE_QA.md) — moving every test bit into the slice
   structure (the testing axes read this)
+- [`docs/SLICE-UPGRADE.md`](../../../docs/SLICE-UPGRADE.md) — the evidence-first
+  curation playbook that turns measured gaps into connected semantic packets

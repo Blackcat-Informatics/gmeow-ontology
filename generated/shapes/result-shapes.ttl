@@ -1832,6 +1832,39 @@ gmeow:GenResultRowShape_examples_logic_tests_cqRefutedConjectureHasWitnessShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'world' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <http://www.w3.org/2001/XMLSchema#string> ) }""" ;
     ] .
 
+gmeow:GenResultRowShape_examples_logic_tests_cqTypedIrConstraintBehaviorShape
+    a sh:NodeShape ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrConstraintBehaviorShape> (generated)"@en ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrConstraintBehaviorShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?behavior must be present and bind a literal" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'behavior' ; gmeow:cellValueLiteral ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?behavior must bind a literal" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'behavior' ; gmeow:cellValueIri ?val }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?behavior must bind a literal of datatype <http://www.w3.org/2001/XMLSchema#string>" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'behavior' ; gmeow:cellValueLiteral ?val . FILTER ( datatype(?val) != <http://www.w3.org/2001/XMLSchema#string> ) }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?constraint must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'constraint' ; gmeow:cellValueIri ?val } }""" ;
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "result column ?constraint must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'constraint' ; gmeow:cellValueLiteral ?val }""" ;
+    ] .
+
 gmeow:GenResultRowShape_examples_logic_tests_cqTypedIrDefinitionShape
     a sh:NodeShape ;
     rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrDefinitionShape> (generated)"@en ;
@@ -1868,40 +1901,22 @@ gmeow:GenResultRowShape_examples_logic_tests_cqTypedIrRootShape
         sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'root' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
-gmeow:GenResultRowShape_examples_logic_tests_cqTypedIrRuleShape
+gmeow:GenResultRowShape_examples_logic_tests_cqTypedIrTernaryShape
     a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrRuleShape> (generated)"@en ;
+    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrTernaryShape> (generated)"@en ;
     sh:target [
         a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrRuleShape> . ?cq gmeow:cqExpectRow ?this }""" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrTernaryShape> . ?cq gmeow:cqExpectRow ?this }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
-        sh:message "result column ?rule must be present and bind an IRI" ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'rule' ; gmeow:cellValueIri ?val } }""" ;
+        sh:message "result column ?formula must be present and bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'formula' ; gmeow:cellValueIri ?val } }""" ;
     ] ;
     sh:sparql [
         sh:severity sh:Violation ;
-        sh:message "result column ?rule must bind an IRI" ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'rule' ; gmeow:cellValueLiteral ?val }""" ;
-    ] .
-
-gmeow:GenResultRowShape_examples_logic_tests_cqTypedIrTupleShape
-    a sh:NodeShape ;
-    rdfs:label "result-row shape for <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrTupleShape> (generated)"@en ;
-    sh:target [
-        a sh:SPARQLTarget ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT ?this WHERE { ?cq gmeow:cqResultShape <https://blackcatinformatics.ca/gmeow/examples/logic/tests/cqTypedIrTupleShape> . ?cq gmeow:cqExpectRow ?this }""" ;
-    ] ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "result column ?tuple must be present and bind an IRI" ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { FILTER NOT EXISTS { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'tuple' ; gmeow:cellValueIri ?val } }""" ;
-    ] ;
-    sh:sparql [
-        sh:severity sh:Violation ;
-        sh:message "result column ?tuple must bind an IRI" ;
-        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'tuple' ; gmeow:cellValueLiteral ?val }""" ;
+        sh:message "result column ?formula must bind an IRI" ;
+        sh:select """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/> SELECT $this WHERE { $this gmeow:rowCell ?c . ?c gmeow:cellVar 'formula' ; gmeow:cellValueLiteral ?val }""" ;
     ] .
 
 gmeow:GenResultRowShape_examples_math_tests_cqBridgeOnnxShape

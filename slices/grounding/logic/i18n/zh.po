@@ -228,3 +228,99 @@ msgstr "选择范围最窄的语法糖子类，提供其目标与模式参数，
 msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:useWhen"
 msgid "Use for a supported closed-world validation pattern whose canonical expansion is deterministic."
 msgstr "用于规范展开结果确定且受支持的封闭世界验证模式。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|rdfs:label"
+msgid "Conversion Target"
+msgstr "转换目标"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:definition"
+msgid "A legal output language for a lowering: every emitted construct must inhabit this target, while anything it cannot express remains explicit flagged residue. It is not a logic:ProjectionTarget, which requests a presentation of an answer; a conversion target instead delimits the IR or dialect into which canonical content may be legalized."
+msgstr "降低过程所面向的合法输出语言：每个发出的构造都必须属于该目标，而无法表达的内容仍作为显式标记的残留保留。它不是请求答案呈现形式的 logic:ProjectionTarget；转换目标限定的是规范内容可被合法化到的 IR 或方言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:example"
+msgid "logic:RelationalCore a logic:ConversionTarget ."
+msgstr "例如：logic:RelationalCore a logic:ConversionTarget ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|rdfs:label"
+msgid "Choice Group Constraint"
+msgstr "选择组约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:definition"
+msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
+msgstr "选择组基数约束（P1）的紧凑语法糖：包含一个 logic:onClass 目标、一组 logic:choicePredicate 谓词，以及 logic:choiceMode（'exactly-one'、'at-most-one'，或作为 'exactly-one' 别名的 'exactly-one-of-N'）。编译器将其展开为规范的 logic:Constraint，其完整性条件是各谓词存在性要求之上的异或或至多公式。它仅供前端创作使用，不是新的节点类型。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:example"
+msgid "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
+msgstr "例如：ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|rdfs:label"
+msgid "Guarded Implication Constraint"
+msgstr "受守卫蕴含约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:definition"
+msgid "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."
+msgstr "受守卫蕴含约束（P2）的紧凑语法糖：包含一个 logic:onClass 目标、一个可由 logic:triggerValue 固定的 logic:trigger 谓词，以及一个或多个 logic:requires 伴随谓词。它展开为规范的 logic:Constraint：∀x. C(x) ∧ trigger(x, …) → ∃y。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:example"
+msgid "ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
+msgstr "例如：ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|rdfs:label"
+msgid "Disjunctive Requiredness Constraint"
+msgstr "析取必需性约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:definition"
+msgid "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."
+msgstr "析取必需性约束（P3）的紧凑语法糖：包含一个 logic:onClass 目标和一组 logic:anyOf 谓词，其中至少一个必须存在。它展开为规范的 logic:Constraint：∀x. C(x) → (∃p1 ∨ … ∨ ∃pn)。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:example"
+msgid "ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
+msgstr "例如：ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|rdfs:label"
+msgid "Path Value Type Constraint"
+msgstr "路径值类型约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:definition"
+msgid "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."
+msgstr "路径值类型成员约束（P4）的紧凑语法糖：包含一个 logic:onClass 目标、一个 logic:valuePath 谓词和必需的 logic:valueClass。它展开为规范的 logic:Constraint：∀x. C(x) → ∀v. P(x,v) → D(v)。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:example"
+msgid "ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
+msgstr "例如：ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|rdfs:label"
+msgid "Cross Node Constraint"
+msgstr "跨节点约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:definition"
+msgid "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."
+msgstr "跨节点共现或不等约束（P5）的紧凑语法糖：包含一个 logic:onClass 目标和两个角色 logic:roleA、logic:roleB；它们依照 logic:crossMode 必须共同出现，或永不绑定同一值。它展开为规范的 logic:Constraint，其完整性条件是双蕴含，或通过 logic:termEqual 过滤关系形成的连接加不等式。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:example"
+msgid "ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
+msgstr "例如：ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|rdfs:label"
+msgid "Forbidden Pattern Constraint"
+msgstr "禁用模式约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:definition"
+msgid "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."
+msgstr "禁用模式约束（P7）的紧凑语法糖：包含一个 logic:onClass 目标和一个可固定到 logic:forbiddenValue 的 logic:forbiddenPredicate。它展开为规范的 logic:Constraint：∀x. C(x) → ¬∃b. forbidden(x,b)，或固定值形式 ¬ forbidden(x, value)。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:example"
+msgid "ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
+msgstr "例如：ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|rdfs:label"
+msgid "Aggregate Constraint"
+msgstr "聚合约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:definition"
+msgid "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."
+msgstr "聚合比较约束（P6）的紧凑语法糖：包含一个 logic:onClass 目标、路径上的聚合（logic:aggFunction、可选的 logic:aggDistinct 与 logic:aggPath）、logic:aggComparator，以及作为被比较属性 IRI 或字面量的右端 logic:aggCompareTo。它展开为规范的 logic:Constraint，同时携带忠实具象化的 FOL 完整性条件与结构化聚合附属结构，并降低为带分组和聚合条件的 sh:SPARQLConstraint。它只是前端创作捷径。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:example"
+msgid "ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
+msgstr "例如：ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
