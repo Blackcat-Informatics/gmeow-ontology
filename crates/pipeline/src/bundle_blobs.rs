@@ -24,7 +24,7 @@
 //! the retired Python `REP_*` constants EXACTLY — a drifted label silently
 //! resolves to an empty archive, shipping the bundle without that surface.
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::Path;
 
 use purrdf::gts::reader::read;
@@ -304,6 +304,33 @@ impl Bundle {
     /// absent.
     pub fn schema(&self) -> Result<Option<Vec<u8>>, gmeow_errors::Diag> {
         Ok(self.schemas()?.remove("gmeow.schema.json"))
+    }
+
+    /// The set of `$defs` object keys in the bundled JSON Schema ([`Self::schema`])
+    /// — the "this class has a generated Pydantic model" existence signal EVERY
+    /// term→model gate must share (§19 one-path): `gmeow describe`
+    /// (`gmeow_docs::describe::build_card`), the folded/MCP card
+    /// (`crate::stages::export::term_to_card`), and the docs-site card
+    /// (`gmeow_docs::render::doc_term_card`) all check a class's
+    /// [`purrdf::shapes::json_schema::Namespaces::def_key`] against this set before
+    /// emitting a `python_model` link, so a class the emitter never gave a `$defs`
+    /// entry never gets a fabricated one (issue: Pydantic model surface, finding
+    /// F3). Empty when the bundle carries no `schemas-archive` rep (the
+    /// wheel-only-install contract) or the schema declares no `$defs`.
+    pub fn modeled_def_keys(&self) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
+        let Some(schema_bytes) = self.schema()? else {
+            return Ok(BTreeSet::new());
+        };
+        let parsed: serde_json::Value = serde_json::from_slice(&schema_bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::bundle_blobs::BundleJson {
+                message: format!("gmeow.schema.json: {e}"),
+            })
+        })?;
+        Ok(parsed
+            .get("$defs")
+            .and_then(|v| v.as_object())
+            .map(|d| d.keys().cloned().collect())
+            .unwrap_or_default())
     }
 
     /// The bundled term-`Card` JSON Schema (`card.schema.json`) — the

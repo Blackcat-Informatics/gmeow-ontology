@@ -132,3 +132,77 @@ fn python_and_rust_syntax_tabs_render_for_a_modeled_class() {
     insta::assert_snapshot!("python_syntax_tab_body", python);
     insta::assert_snapshot!("rust_syntax_tab_body", rust);
 }
+
+/// The static per-term `card.md` (`crates/docs/src/render.rs::doc_term_card`) must
+/// carry the SAME term→model link as the live `gmeow describe` / MCP `doc_card`
+/// surface (`crates/docs/src/describe.rs::build_card`) and the folded-snapshot MCP
+/// card (`crates/pipeline/src/stages/export.rs::term_to_card`) — one derivation
+/// (`gmeow_docs::card::python_model_path` / `python_model_snippet`), never a third
+/// copy. Before this test the static `card.md`/`card.json` builder never populated
+/// `python_model`/`python_snippet` at all, so every shipped card file carried
+/// `python_model: null` even for a modeled class (issue 1408 req 18).
+///
+/// Gated on the SAME `model.schema_fragments.schema_by_term` digest the Python/Rust
+/// syntax tabs use (see `python_and_rust_syntax_tabs_render_for_a_modeled_class`
+/// above) — a class only gets the link once its generated Pydantic model actually
+/// exists.
+#[test]
+fn card_md_and_json_carry_the_python_model_link_for_a_modeled_class() {
+    let base = common::cached_model();
+    let term = class_term_with_properties(&base).clone();
+
+    let mut digest = SchemaFragmentDigest::default();
+    digest.schema_by_term.insert(
+        term.iri.clone(),
+        serde_json::to_string_pretty(&serde_json::json!({
+            "title": term.label.clone().unwrap_or_else(|| term.curie.clone()),
+            "type": "object",
+            "properties": {},
+        }))
+        .expect("serialize synthetic schema fragment"),
+    );
+
+    let mut model = base;
+    model.attach_schema_fragments(digest);
+
+    // The expected dotted path + snippet, computed through the SAME shared
+    // emitter routing the card builder must call — not re-derived by hand here.
+    let expected_model = gmeow_docs::card::python_model_path(&term.owner_slice, &term.iri);
+    let expected_snippet =
+        gmeow_docs::card::python_model_snippet(&term.owner_slice, &term.iri, &term.curie);
+    assert!(
+        expected_model.starts_with("gmeow_models."),
+        "sanity: the expected dotted path is a real gmeow_models.<slice>.<Class> path: {expected_model}"
+    );
+
+    // card.md — the human-oriented static card.
+    let card_md = gmeow_docs::render::term_card_md(&model, &term);
+    assert!(
+        card_md.contains(&format!("**Python model:** `{expected_model}`")),
+        "card.md must carry the Python model link for a modeled class:\n{card_md}"
+    );
+    assert!(
+        card_md.contains(&expected_snippet),
+        "card.md must carry the exact construct/validate snippet:\n{card_md}"
+    );
+
+    // card.json — the machine surface emitted alongside card.md by the same site
+    // render; drive it through `render_site_lang` so the assertion exercises the
+    // production wiring end to end, not a hand-built `Card`.
+    let slug = term_slug(&term);
+    let site = gmeow_docs::render::render_site_lang(&model, "english");
+    let json_bytes = site
+        .files
+        .get(&format!("terms/{slug}/card.json"))
+        .unwrap_or_else(|| panic!("card.json emitted for {slug}"));
+    let parsed: serde_json::Value =
+        serde_json::from_slice(json_bytes).expect("card.json parses as JSON");
+    assert_eq!(
+        parsed["python_model"], expected_model,
+        "card.json python_model field must equal the shared emitter's dotted path"
+    );
+    assert_eq!(
+        parsed["python_snippet"], expected_snippet,
+        "card.json python_snippet field must equal the shared emitter's snippet"
+    );
+}

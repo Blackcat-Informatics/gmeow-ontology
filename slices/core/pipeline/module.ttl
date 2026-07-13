@@ -725,12 +725,14 @@ gmeow:stage-export-export
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: flat views"@x-gmeow-english ;
-    skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt."@x-gmeow-english ;
+    skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt. Consumes gmeow:stage-export-json-schema alongside the snapshot so the inlined llms-full.txt cards can gate a class's python_model link on whether the class actually names a $defs entry (never a fabricated link for an unmodeled class)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "export" ;
-    gmeow:dataflowConsumes gmeow:stage-snapshot ;
+    gmeow:dataflowConsumes
+        gmeow:stage-export-json-schema ,
+        gmeow:stage-snapshot ;
     gmeow:producesFormat "csv" , "jsonl" , "markdown" , "llms-txt" .
 
 gmeow:stage-export-okf
