@@ -28,7 +28,9 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use crate::diag::{Advice, Diag, DiagRef, Label, Remediation, Slot, SourceContext, StageId};
+use crate::diag::{
+    Advice, Diag, DiagRef, Guidance, Label, Remediation, Slot, SourceContext, StageId,
+};
 use crate::grade::{Belnap, BoundedLattice, FindingCategory, GateVerdict, Grade, gate};
 use crate::lower::lower;
 use crate::model::DiagnosticAttribution;
@@ -212,6 +214,15 @@ pub struct DiagNode {
     /// an interned node without changing its content address.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub remediation: Vec<Remediation>,
+    /// Per-term usage guidance (howToUse/useWhen/avoidWhen) joined from the bundle
+    /// documentation graph. Not part of the identity fingerprint (like
+    /// [`remediation`](DiagNode::remediation)).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub guidance: Vec<Guidance>,
+    /// The logic-world quad-reifier IRIs this witness's verdict derives FROM
+    /// (`gmeow:findingDerivedFromQuad`). Not part of the identity fingerprint.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub derived_from_quads: Vec<String>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
     /// The DOCUMENTED ontology terms this witness structurally concerns — payload,
@@ -470,6 +481,16 @@ impl DiagLedger {
                 slot.remediation.push(remediation);
             }
         }
+        for guidance in incoming.guidance {
+            if !slot.guidance.contains(&guidance) {
+                slot.guidance.push(guidance);
+            }
+        }
+        for quad in incoming.derived_from_quads {
+            if !slot.derived_from_quads.contains(&quad) {
+                slot.derived_from_quads.push(quad);
+            }
+        }
         for label in incoming.labels {
             if !slot.labels.contains(&label) {
                 slot.labels.push(label);
@@ -676,6 +697,8 @@ mod tests {
             attributions: Vec::new(),
             advice: Vec::new(),
             remediation: Vec::new(),
+            guidance: Vec::new(),
+            derived_from_quads: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
             documented_terms: Vec::new(),
@@ -718,6 +741,8 @@ mod tests {
             attributions: Vec::new(),
             advice: Vec::new(),
             remediation: Vec::new(),
+            guidance: Vec::new(),
+            derived_from_quads: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
             documented_terms: Vec::new(),

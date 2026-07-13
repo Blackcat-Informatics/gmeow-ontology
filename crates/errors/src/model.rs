@@ -7,7 +7,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use crate::diag::{Advice, Remediation};
+use crate::diag::{Advice, Guidance, Remediation};
 
 /// Serde skip-helper: `true` for `false` so a defaulted `bool` flag stays out of
 /// the wire form (keeps existing JSON/SARIF goldens byte-unchanged).
@@ -576,6 +576,18 @@ pub struct Finding {
     /// when it IS present (it rides only the full-fidelity JSON `Report`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub documented_terms: Vec<String>,
+    /// Per-term usage guidance (howToUse/useWhen/avoidWhen) joined from the bundle
+    /// documentation graph. Empty when the finding's rule/documented terms author
+    /// none (never fabricated).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub guidance: Vec<Guidance>,
+    /// The logic-world quad-reifier IRIs this finding's verdict derives FROM
+    /// (`gmeow:findingDerivedFromQuad`) — the explain-skeleton cited IRIs of the
+    /// reasoned quads that fired. A SEPARATE edge from `antecedents`/`root_cause`
+    /// (which are finding-fingerprint IRIs); never conflated with them. Empty for
+    /// non-reasoned findings.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub derived_from_quads: Vec<String>,
 }
 
 impl Finding {
@@ -604,6 +616,8 @@ impl Finding {
             standpoint: None,
             attributions: Vec::new(),
             documented_terms: Vec::new(),
+            guidance: Vec::new(),
+            derived_from_quads: Vec::new(),
         }
     }
 
@@ -631,6 +645,33 @@ impl Finding {
     /// per-term diagnostics join reads it; the SARIF/RDF/HTML projections do not.
     pub fn with_documented_term(mut self, term_iri: impl Into<String>) -> Self {
         self.documented_terms.push(term_iri.into());
+        self
+    }
+
+    /// Attach a per-term [`Guidance`] claim (howToUse/useWhen/avoidWhen), joined
+    /// from the bundle documentation graph. Never fabricated: only ever called
+    /// with a claim projected verbatim from the graph.
+    pub fn with_guidance(mut self, guidance: Guidance) -> Self {
+        self.guidance.push(guidance);
+        self
+    }
+
+    /// Attach a per-term [`Guidance`] claim in place (the non-chainable twin of
+    /// [`with_guidance`](Finding::with_guidance), mirroring
+    /// [`add_location`](Finding::add_location)'s in-place style).
+    pub fn push_guidance(&mut self, guidance: Guidance) {
+        self.guidance.push(guidance);
+    }
+
+    /// Attach the quad-reifier IRIs (`gmeow:findingDerivedFromQuad`) this
+    /// finding's verdict derives from — the explain-skeleton citations of the
+    /// reasoned quads that fired.
+    pub fn with_derived_from_quads(
+        mut self,
+        quads: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        self.derived_from_quads
+            .extend(quads.into_iter().map(Into::into));
         self
     }
 
@@ -688,6 +729,10 @@ impl Finding {
         // projects the same byte sequence regardless of attach order.
         self.documented_terms.sort();
         self.documented_terms.dedup();
+        // The explain-skeleton derivation edges are content-addressed IRIs; sort+dedup
+        // them so the projected graph is deterministic regardless of attach order.
+        self.derived_from_quads.sort();
+        self.derived_from_quads.dedup();
     }
 }
 
