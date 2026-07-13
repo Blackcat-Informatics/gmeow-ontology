@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the study-spine competency question "population and sample". A
+# population → frame → sample → estimate scene: a math:StatisticalPopulation
+# operationalized by a math:SamplingFrame (math:samplingFrame), a math:Sample drawn
+# (math:sampleOf) from that frame and referring (math:population) to the population, and a
+# math:Estimate that also refers (math:population) to it. The query keys on the sample and
+# returns its population and the frame it is drawn from. Unioned onto the merged ontology by
+# gmeow:cqDataFile.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+# The target of inference — who the estimate speaks about.
+ex:cohortPopulation a math:StatisticalPopulation ;
+    math:samplingFrame ex:cohortRegistry .
+
+# The operational list standing in for the population — who we could reach.
+ex:cohortRegistry a math:SamplingFrame .
+
+# The units actually drawn and measured — who we reached.
+ex:cohortSample a math:Sample ;
+    math:sampleOf ex:cohortRegistry ;
+    math:population ex:cohortPopulation ;
+    math:observationUnit ex:patient .
+ex:patient a math:ObservationUnit .
+
+# The produced value, referring to the same population.
+ex:prevalenceEstimate a math:Estimate ;
+    math:population ex:cohortPopulation .

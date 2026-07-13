@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Fixture for the Data-Cube projection-loss competency question. One honest
+# math:ProjectionRecord that exports the fully-framed math:PValue (the terminus of the
+# signature lang: -> logic: -> math: round-trip) to the RDF Data Cube: it names the result it
+# projects (math:projectionSource), the external target (math:projectionTargetName "RDF Data
+# Cube"), its preservation polarity (logic:preservationKind logic:SoundUnderApproximation —
+# the cube is sound but incomplete), and enumerates EACH construct the cube cannot carry
+# through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary verbatim: the
+# model assumptions, the inference method, the null-distribution parameterization, and the
+# proof/provenance frame the design charter's Data-Cube projection names as dropped. Unioned
+# onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The exported result — the fully-framed p-value.
+ex:tTestPValue a math:PValue .
+
+# The recorded Data-Cube projection with its enumerated drops.
+ex:pvalueCubeProjection a math:ProjectionRecord ;
+    math:projectionSource ex:tTestPValue ;
+    math:projectionTargetName "RDF Data Cube" ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:unsupportedConstruct
+        ex:droppedInferenceMethod ,
+        ex:droppedModelAssumptions ,
+        ex:droppedNullDistributionParameterization ,
+        ex:droppedProofProvenance .
+
+# The four dropped constructs the cube cannot carry.
+ex:droppedInferenceMethod a math:MathematicalObject .
+ex:droppedModelAssumptions a math:MathematicalObject .
+ex:droppedNullDistributionParameterization a math:MathematicalObject .
+ex:droppedProofProvenance a math:MathematicalObject .

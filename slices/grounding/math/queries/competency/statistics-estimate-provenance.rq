@@ -1,0 +1,27 @@
+# Competency question: "Which data, model, estimator, and assumptions produced this
+# result, and by which process?"
+# Exercises the models-and-estimation spine: a math:Estimate names its math:Estimator
+# (math:estimator) and its math:Estimand (math:estimatesEstimand) and is produced by a
+# math:InferenceRun process (gmeow:wasGeneratedBy). The run fits the data
+# (math:fittedToData) — a math:DatasetMatrix — and the math:FittedModel fitted to that same
+# data carries its math:ModelAssumption (math:modelAssumption). The query returns, for the
+# estimate, the whole provenance chain: the estimator, the estimand, the fitted model, the
+# data, the assumption, and the producing run — so a statistical result is never a bare
+# number but the traceable output of a method over data under stated assumptions.
+# Scoped to the fixture namespace so the answer is exactly the single provenance row.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+
+SELECT ?estimate ?run ?data ?model ?estimator ?estimand ?assumption WHERE {
+    ?estimate a math:Estimate ;
+              math:estimator ?estimator ;
+              math:estimatesEstimand ?estimand ;
+              gmeow:wasGeneratedBy ?run .
+    ?run a math:InferenceRun ;
+         math:fittedToData ?data .
+    ?model a math:FittedModel ;
+           math:fittedToData ?data ;
+           math:modelAssumption ?assumption .
+    FILTER(STRSTARTS(STR(?estimate), "http://example.org/math/"))
+}
+ORDER BY ?estimate ?assumption

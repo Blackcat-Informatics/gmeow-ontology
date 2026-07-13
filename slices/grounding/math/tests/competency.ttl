@@ -944,6 +944,47 @@ ex:rowProjectionConfidenceLoss a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "OWL annotation (probability literal)" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "issue" ; gmeow:cellValueLiteral "confidence-as-probability" ] .
 
+# === Projection Q6 — what is lost exporting a result to RDF Data Cube ======== #
+ex:cqStatisticsDataCubeProjectionLoss a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-datacube-projection-loss.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-datacube-projection-loss.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The Data-Cube projection-loss ledger made queryable: a math:ProjectionRecord exporting a math: statistical result to the RDF Data Cube names its logic:preservationKind (logic:SoundUnderApproximation — sound but incomplete) and enumerates EACH construct the cube cannot carry through logic:unsupportedConstruct, reusing the logic: loss-ledger vocabulary verbatim (Principle 17). Over the fixture the answer is exactly the four recorded drops of the p-value's Data-Cube export {pvalueCubeProjection → 'RDF Data Cube' → SoundUnderApproximation → each of droppedInferenceMethod, droppedModelAssumptions, droppedNullDistributionParameterization, droppedProofProvenance}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsDataCubeProjectionLossShape ;
+    gmeow:cqExpectRow
+        ex:rowDataCubeDropInferenceMethod ,
+        ex:rowDataCubeDropModelAssumptions ,
+        ex:rowDataCubeDropNullDistributionParameterization ,
+        ex:rowDataCubeDropProofProvenance .
+ex:cqStatisticsDataCubeProjectionLossShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "projection" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "target" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "preservation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "dropped" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+ex:rowDataCubeDropInferenceMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:pvalueCubeProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "RDF Data Cube" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueIri exf:droppedInferenceMethod ] .
+ex:rowDataCubeDropModelAssumptions a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:pvalueCubeProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "RDF Data Cube" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueIri exf:droppedModelAssumptions ] .
+ex:rowDataCubeDropNullDistributionParameterization a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:pvalueCubeProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "RDF Data Cube" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueIri exf:droppedNullDistributionParameterization ] .
+ex:rowDataCubeDropProofProvenance a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "projection" ; gmeow:cellValueIri exf:pvalueCubeProjection ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "target" ; gmeow:cellValueLiteral "RDF Data Cube" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "preservation" ; gmeow:cellValueIri logic:SoundUnderApproximation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "dropped" ; gmeow:cellValueIri exf:droppedProofProvenance ] .
+
 # =========================================================================== #
 # PROBABILITY LAYER — the seven probability-charter competency questions.      #
 # Each runs over the merged ontology unioned with its own fixture; expected    #
@@ -1131,3 +1172,741 @@ ex:cqConfidenceAsProbabilityShape a logic:ResultShape ;
 ex:rowUnmappedClaim a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "claim" ; gmeow:cellValueIri exf:unmappedClaim ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "confidence" ; gmeow:cellValueLiteral "0.9" ] .
+
+# === SQ1 — study spine: population and sample of an estimate ================ #
+
+ex:cqStatisticsPopulationAndSample a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-population-and-sample.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-population-and-sample.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Sample refers (math:population) to the math:StatisticalPopulation it stands in for and is drawn (math:sampleOf) from the math:SamplingFrame that operationalizes (math:samplingFrame) that population — keeping who-we-care-about distinct from who-we-measured. Over the fixture the answer is exactly {cohortSample → population cohortPopulation, frame cohortRegistry}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsPopulationAndSampleShape ;
+    gmeow:cqExpectRow ex:rowCohortSample .
+
+ex:cqStatisticsPopulationAndSampleShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "sample" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "population" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "frame" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCohortSample a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sample" ; gmeow:cellValueIri exf:cohortSample ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "population" ; gmeow:cellValueIri exf:cohortPopulation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "frame" ; gmeow:cellValueIri exf:cohortRegistry ] .
+
+# === SQ2 — models and estimation: data, model, estimator, assumptions, process #
+
+ex:cqStatisticsEstimateProvenance a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-estimate-provenance.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-estimate-provenance.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Estimate names its math:Estimator (math:estimator) and math:Estimand (math:estimatesEstimand) and is produced by a math:InferenceRun process (gmeow:wasGeneratedBy); the run fits the math:DatasetMatrix data (math:fittedToData) and the math:FittedModel over that same data carries its math:ModelAssumption (math:modelAssumption) — so a statistical result is the traceable output of a method over data under stated assumptions, by a named process. Over the fixture the answer is exactly {treatmentEffectEstimate → run analysisRun, data trialData, model trialFittedModel, estimator olsEstimator, estimand averageTreatmentEffect, assumption normalErrors}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsEstimateProvenanceShape ;
+    gmeow:cqExpectRow ex:rowEstimateProvenance .
+
+ex:cqStatisticsEstimateProvenanceShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "estimate" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "data" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "model" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "estimator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "estimand" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "assumption" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowEstimateProvenance a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimate" ; gmeow:cellValueIri exf:treatmentEffectEstimate ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:analysisRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "data" ; gmeow:cellValueIri exf:trialData ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "model" ; gmeow:cellValueIri exf:trialFittedModel ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimator" ; gmeow:cellValueIri exf:olsEstimator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimand" ; gmeow:cellValueIri exf:averageTreatmentEffect ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "assumption" ; gmeow:cellValueIri exf:normalErrors ] .
+
+# === SQ3 — inference and results: p-value framing and multiplicity ========= #
+
+ex:cqStatisticsPValueFraming a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-pvalue-framing.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-pvalue-framing.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:PValue names the math:NullHypothesis it is computed under (math:nullHypothesis), the math:Distribution it is measured against (math:nullDistribution, a math:SamplingDistribution) and its math:Sidedness (math:alternativeSidedness) — the frame that makes P(T ≥ t | H0) unambiguous — and its multiplicity handling is LEFT-JOINed (math:pValueAdjustment / math:multipleComparisonFamily, BindingOptional), so 'what null, distribution, and tail/sidedness produced this p-value, and was it adjusted for multiplicity' is answerable. Over the fixture the answer is exactly {geneExpressionPValue → null noDifferenceNull, distribution tNullDistribution, sidedness twoSidedAlternative, adjustment benjaminiHochberg, family geneFamily}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsPValueFramingShape ;
+    gmeow:cqExpectRow ex:rowPValueFraming .
+
+ex:cqStatisticsPValueFramingShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "pvalue" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "nullHypothesis" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "nullDistribution" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "sidedness" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "adjustment" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ,
+        [ logic:columnVariable "family" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingOptional ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPValueFraming a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pvalue" ; gmeow:cellValueIri exf:geneExpressionPValue ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "nullHypothesis" ; gmeow:cellValueIri exf:noDifferenceNull ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "nullDistribution" ; gmeow:cellValueIri exf:tNullDistribution ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:twoSidedAlternative ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "adjustment" ; gmeow:cellValueIri exf:benjaminiHochberg ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "family" ; gmeow:cellValueIri exf:geneFamily ] .
+
+# === SQ4 — interval estimates: kind and its level or mass ================== #
+
+ex:cqStatisticsIntervalKind a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-interval-kind.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-interval-kind.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A frequentist math:ConfidenceInterval carries its coverage through math:confidenceLevel (a property of the sampling procedure) and a Bayesian math:CredibleInterval carries its posterior mass through math:credibleMass (a posterior probability) — the same word 'interval' over two irreconcilable semantics, read on separate branches so each interval binds its OWN quantity and the two edges are never collapsed. Over the fixture the answer is exactly {coverageInterval → math:ConfidenceInterval, level coverageLevel; posteriorInterval → math:CredibleInterval, mass posteriorMass}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsIntervalKindShape ;
+    gmeow:cqExpectRow ex:rowCoverageInterval , ex:rowPosteriorInterval .
+
+ex:cqStatisticsIntervalKindShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "interval" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "amount" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoverageInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exf:coverageInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ConfidenceInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "amount" ; gmeow:cellValueIri exf:coverageLevel ] .
+
+ex:rowPosteriorInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exf:posteriorInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:CredibleInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "amount" ; gmeow:cellValueIri exf:posteriorMass ] .
+
+# === SQ5 — which inference paradigm a result belongs to =================== #
+
+ex:cqStatisticsResultParadigm a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-result-paradigm.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-result-paradigm.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each result is typed a paradigm-exclusive kind and its inference family is resolved by walking the ASSERTED subclass taxonomy math:ConfidenceInterval ⊑ math:FrequentistResult / math:CredibleInterval ⊑ math:BayesianResult held in module.ttl — an rdfs:subClassOf* path that resolves WITHOUT reasoning because those edges are asserted (exactly as the embedding question walks subClassOf*), and the two families are held owl:disjointWith so a result reaches exactly one. Over the fixture the answer is exactly {bayesianResult → math:BayesianResult, frequentistResult → math:FrequentistResult}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsResultParadigmShape ;
+    gmeow:cqExpectRow ex:rowBayesianParadigm , ex:rowFrequentistParadigm .
+
+ex:cqStatisticsResultParadigmShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "paradigm" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowBayesianParadigm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri exf:bayesianResult ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "paradigm" ; gmeow:cellValueIri math:BayesianResult ] .
+
+ex:rowFrequentistParadigm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri exf:frequentistResult ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "paradigm" ; gmeow:cellValueIri math:FrequentistResult ] .
+
+# === SQ6 — which diagnostics, comparisons, and calibration results evaluate a fit === #
+
+ex:cqStatisticsModelDiagnostics a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-model-diagnostics.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-model-diagnostics.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A single math:FittedModel is evaluated by five first-class objects, each anchored to it through the shared math:diagnosticFor edge: a math:ModelDiagnostic, a math:CalibrationDiagnostic (the statistical calibration sense), an math:InformationCriterion, a math:CrossValidationResult, and a math:ModelComparison. Each evaluation is asserted with its OWN type only, so the reasoning-free query reads each on its own asserted-type UNION branch — a math:CalibrationDiagnostic does NOT also surface on the math:ModelDiagnostic branch — and every evaluation binds its own kind, the five edges never collapsed. Over the fixture the answer is exactly {aicScore → math:InformationCriterion; cvScore → math:CrossValidationResult; lrtComparison → math:ModelComparison; reliabilityDiagnostic → math:CalibrationDiagnostic; residualDiagnostic → math:ModelDiagnostic}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsModelDiagnosticsShape ;
+    gmeow:cqExpectRow ex:rowAicScore , ex:rowCvScore , ex:rowLrtComparison , ex:rowReliabilityDiagnostic , ex:rowResidualDiagnostic .
+
+ex:cqStatisticsModelDiagnosticsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "evaluation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowAicScore a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:aicScore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:InformationCriterion ] .
+
+ex:rowCvScore a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:cvScore ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:CrossValidationResult ] .
+
+ex:rowLrtComparison a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:lrtComparison ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ModelComparison ] .
+
+ex:rowReliabilityDiagnostic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:reliabilityDiagnostic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:CalibrationDiagnostic ] .
+
+ex:rowResidualDiagnostic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:residualDiagnostic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ModelDiagnostic ] .
+
+# === SQ7 — result lineage: back to the estimand, forward to the held claim === #
+
+ex:cqStatisticsResultLineage a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-result-lineage.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-result-lineage.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A math:Estimate result object traces BACK to the math:Estimand it targets (math:estimatesEstimand), through its math:Estimator (math:estimator), its value quantity (math:estimateValue), and the math:InferenceRun process that produced it (gmeow:wasGeneratedBy); and FORWARD to the held claim — the gmeow:Observation that reports it (gmeow:observationResult) from a gmeow:vantage, itself generated by the same run — so the connected estimand → estimator → estimate → uncertainty → claim chain is walked without reasoning, the process, the result object, and the held observation kept strictly distinct. Over the fixture the answer is exactly {treatmentEffectEstimate → estimand averageTreatmentEffectEstimand, estimator olsEstimator, uncertainty treatmentEffectQuantity, run analysisRun, observation treatmentEffectObservation, vantage analysisPipelineCommitA1B2}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsResultLineageShape ;
+    gmeow:cqExpectRow ex:rowResultLineage .
+
+ex:cqStatisticsResultLineageShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "estimand" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "estimator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "uncertainty" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "run" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "observation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "vantage" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowResultLineage a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueIri exf:treatmentEffectEstimate ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimand" ; gmeow:cellValueIri exf:averageTreatmentEffectEstimand ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "estimator" ; gmeow:cellValueIri exf:olsEstimator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "uncertainty" ; gmeow:cellValueIri exf:treatmentEffectQuantity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "run" ; gmeow:cellValueIri exf:analysisRun ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "observation" ; gmeow:cellValueIri exf:treatmentEffectObservation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "vantage" ; gmeow:cellValueIri exf:analysisPipelineCommitA1B2 ] .
+
+# =========================================================================== #
+# STATISTICS TERM-SURFACE SATURATION — per-term competency coverage.           #
+# The questions below saturate the statistics vocabulary: every class, object  #
+# property, the one rdf:Property, and the six math:Sidedness individuals is the #
+# pinned answer of a GENUINE enumeration/structure question. Taxonomy questions #
+# (SATQ1–4) run over the merged ontology directly (no cqDataFile); the rest run #
+# over a worked-example fixture unioned in by gmeow:cqDataFile. All are         #
+# reasoning-free (gmeow:reasoningNone) and pinned exactly (logic:RowsExact).    #
+# =========================================================================== #
+
+# === SATQ1 — which result kinds are frequentist ============================= #
+
+ex:cqStatisticsFrequentistResultKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-frequentist-result-kinds.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The frequentist result vocabulary made enumerable: each frequentist inference result is asserted a DIRECT rdfs:subClassOf math:FrequentistResult in module.ttl, so the reasoning-free query walks the asserted edge with no closure. Over the merged ontology the answer is exactly the six frequentist result kinds {math:PValue, math:StatisticalPower, math:TypeIErrorRate, math:TypeIIErrorRate, math:ConfidenceInterval, math:ConfidenceRegion}; adding or mistyping a frequentist result would break this exact-match gate." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsFrequentistResultKindsShape ;
+    gmeow:cqExpectRow ex:rowFreqPValue , ex:rowFreqStatisticalPower , ex:rowFreqTypeIErrorRate ,
+        ex:rowFreqTypeIIErrorRate , ex:rowFreqConfidenceInterval , ex:rowFreqConfidenceRegion .
+
+ex:cqStatisticsFrequentistResultKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowFreqPValue a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:PValue ] .
+ex:rowFreqStatisticalPower a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:StatisticalPower ] .
+ex:rowFreqTypeIErrorRate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:TypeIErrorRate ] .
+ex:rowFreqTypeIIErrorRate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:TypeIIErrorRate ] .
+ex:rowFreqConfidenceInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ConfidenceInterval ] .
+ex:rowFreqConfidenceRegion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ConfidenceRegion ] .
+
+# === SATQ2 — which result kinds are Bayesian =============================== #
+
+ex:cqStatisticsBayesianResultKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-bayesian-result-kinds.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The Bayesian result vocabulary made enumerable: each Bayesian inference result is asserted a DIRECT rdfs:subClassOf math:BayesianResult in module.ttl, held owl:disjointWith the frequentist family so nothing reaches both. Over the merged ontology the answer is exactly the four Bayesian result kinds {math:CredibleInterval, math:CredibleRegion, math:BayesFactor, math:PosteriorProbability}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsBayesianResultKindsShape ;
+    gmeow:cqExpectRow ex:rowBayesCredibleInterval , ex:rowBayesCredibleRegion , ex:rowBayesBayesFactor , ex:rowBayesPosteriorProbability .
+
+ex:cqStatisticsBayesianResultKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowBayesCredibleInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:CredibleInterval ] .
+ex:rowBayesCredibleRegion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:CredibleRegion ] .
+ex:rowBayesBayesFactor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:BayesFactor ] .
+ex:rowBayesPosteriorProbability a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:PosteriorProbability ] .
+
+# === SATQ3 — the hypothesis kinds and their common parent ================== #
+
+ex:cqStatisticsHypothesisKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-hypothesis-kinds.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The hypothesis taxonomy made enumerable: a math:NullHypothesis and a math:AlternativeHypothesis are both asserted DIRECT rdfs:subClassOf the abstract math:Hypothesis in module.ttl, so the query names both leaf kinds AND the parent they specialize. Over the merged ontology the answer is exactly {math:NullHypothesis → math:Hypothesis, math:AlternativeHypothesis → math:Hypothesis}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsHypothesisKindsShape ;
+    gmeow:cqExpectRow ex:rowHypNull , ex:rowHypAlternative .
+
+ex:cqStatisticsHypothesisKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "parent" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHypNull a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:NullHypothesis ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parent" ; gmeow:cellValueIri math:Hypothesis ] .
+ex:rowHypAlternative a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:AlternativeHypothesis ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "parent" ; gmeow:cellValueIri math:Hypothesis ] .
+
+# === SATQ4 — the six lawful sidedness values ============================== #
+
+ex:cqStatisticsSidednessValues a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-sidedness-values.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The math:Sidedness code list made enumerable: the tail/side a p-value declares is fixed by one of a CLOSED set of individuals (never a free literal), each asserted a math:Sidedness in module.ttl. Over the merged ontology the answer is exactly the six lawful values {math:oneSidedAlternative, math:twoSidedAlternative, math:greaterAlternative, math:lessAlternative, math:exactTail, math:midPTail}, each of kind math:Sidedness — the exact set the IllFramedPValue gate checks an math:alternativeSidedness against." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsSidednessValuesShape ;
+    gmeow:cqExpectRow ex:rowSideOne , ex:rowSideTwo , ex:rowSideGreater , ex:rowSideLess , ex:rowSideExact , ex:rowSideMidP .
+
+ex:cqStatisticsSidednessValuesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "sidedness" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "class" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowSideOne a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:oneSidedAlternative ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "class" ; gmeow:cellValueIri math:Sidedness ] .
+ex:rowSideTwo a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:twoSidedAlternative ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "class" ; gmeow:cellValueIri math:Sidedness ] .
+ex:rowSideGreater a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:greaterAlternative ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "class" ; gmeow:cellValueIri math:Sidedness ] .
+ex:rowSideLess a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:lessAlternative ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "class" ; gmeow:cellValueIri math:Sidedness ] .
+ex:rowSideExact a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:exactTail ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "class" ; gmeow:cellValueIri math:Sidedness ] .
+ex:rowSideMidP a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "sidedness" ; gmeow:cellValueIri math:midPTail ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "class" ; gmeow:cellValueIri math:Sidedness ] .
+
+# === SATQ5 — the statistics conformance-failure classes ==================== #
+
+ex:cqStatisticsFailureClasses a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-failure-classes.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-failure-classes.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The statistics failure vocabulary made enumerable through exemplars: each way a statistical object can be ill-formed is a first-class subclass of math:MathConformanceFailure the slice's SHACL shapes raise. The fixture instantiates one ill-formed exemplar per failure (each with a note on WHY it is ill-formed), and the reasoning-free query reads back each exemplar's asserted failure type. Over the fixture the answer is exactly the nine statistics failure classes {math:UnderspecifiedEstimate, math:ImplicitMissingness, math:IllFramedPValue, math:IntervalKindConflation, math:IncompleteConfidenceInterval, math:IncompleteCredibleInterval, math:UnframedEffectSize, math:UnanchoredDiagnostic, math:CalibrationSenseConflation}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsFailureClassesShape ;
+    gmeow:cqExpectRow ex:rowFailUnderspecifiedEstimate , ex:rowFailImplicitMissingness , ex:rowFailIllFramedPValue ,
+        ex:rowFailIntervalKindConflation , ex:rowFailIncompleteConfidenceInterval , ex:rowFailIncompleteCredibleInterval ,
+        ex:rowFailUnframedEffectSize , ex:rowFailUnanchoredDiagnostic , ex:rowFailCalibrationSenseConflation .
+
+ex:cqStatisticsFailureClassesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "exemplar" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "failure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowFailUnderspecifiedEstimate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:badEstimate ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:UnderspecifiedEstimate ] .
+ex:rowFailImplicitMissingness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:hiddenMissing ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:ImplicitMissingness ] .
+ex:rowFailIllFramedPValue a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:ambiguousP ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:IllFramedPValue ] .
+ex:rowFailIntervalKindConflation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:mixedInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:IntervalKindConflation ] .
+ex:rowFailIncompleteConfidenceInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:halfCI ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:IncompleteConfidenceInterval ] .
+ex:rowFailIncompleteCredibleInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:halfCrI ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:IncompleteCredibleInterval ] .
+ex:rowFailUnframedEffectSize a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:bareEffect ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:UnframedEffectSize ] .
+ex:rowFailUnanchoredDiagnostic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:looseDiag ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:UnanchoredDiagnostic ] .
+ex:rowFailCalibrationSenseConflation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exemplar" ; gmeow:cellValueIri exf:mixedCalib ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "failure" ; gmeow:cellValueIri math:CalibrationSenseConflation ] .
+
+# === SATQ6 — the study & data-design object kinds ========================== #
+
+ex:cqStatisticsStudySpineClasses a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-study-spine-classes.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-study-spine.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The study & data-design vocabulary made enumerable through a worked survey scene: the reasoning-free query reads back the asserted kind of each object making up the design. Over the fixture the answer is exactly the seventeen classes — the target/measurement spine {math:StatisticalPopulation, math:SamplingFrame, math:Sample, math:ObservationUnit, math:StatisticalVariable}, the variable metadata {math:VariableRole, math:MeasurementScale, math:UnitPolicy, math:MissingValueCode, math:MissingnessIndicator, math:MissingnessMechanism}, and the design apparatus {math:SamplingWeight, math:Stratum, math:Cluster, math:SurveyDesign, math:DataTransformation, math:DerivedVariable}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsStudySpineClassesShape ;
+    gmeow:cqExpectRow ex:rowSpineCluster , ex:rowSpineDataTransformation , ex:rowSpineDerivedVariable ,
+        ex:rowSpineFrame , ex:rowSpineMeasurementScale , ex:rowSpineMissingnessIndicator ,
+        ex:rowSpineMissingnessMechanism , ex:rowSpineMissingValueCode , ex:rowSpineObservationUnit ,
+        ex:rowSpinePopulation , ex:rowSpineSample , ex:rowSpineSamplingWeight , ex:rowSpineStratum ,
+        ex:rowSpineSurveyDesign , ex:rowSpineUnitPolicy , ex:rowSpineVariable , ex:rowSpineVariableRole .
+
+ex:cqStatisticsStudySpineClassesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "item" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowSpinePopulation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:pop ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:StatisticalPopulation ] .
+ex:rowSpineFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:frame ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:SamplingFrame ] .
+ex:rowSpineSample a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:sample ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:Sample ] .
+ex:rowSpineObservationUnit a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:unit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ObservationUnit ] .
+ex:rowSpineVariable a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:var ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:StatisticalVariable ] .
+ex:rowSpineMissingnessIndicator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:mi ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:MissingnessIndicator ] .
+ex:rowSpineMissingnessMechanism a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:mech ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:MissingnessMechanism ] .
+ex:rowSpineVariableRole a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:role ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:VariableRole ] .
+ex:rowSpineMeasurementScale a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:scale ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:MeasurementScale ] .
+ex:rowSpineUnitPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:unitPolicy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:UnitPolicy ] .
+ex:rowSpineMissingValueCode a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:mvc ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:MissingValueCode ] .
+ex:rowSpineSamplingWeight a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:weight ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:SamplingWeight ] .
+ex:rowSpineStratum a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:stratum ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:Stratum ] .
+ex:rowSpineCluster a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:cluster ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:Cluster ] .
+ex:rowSpineSurveyDesign a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:survey ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:SurveyDesign ] .
+ex:rowSpineDataTransformation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:transform ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:DataTransformation ] .
+ex:rowSpineDerivedVariable a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:derived ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:DerivedVariable ] .
+
+# === SATQ7 — the study-spine linking properties =========================== #
+
+ex:cqStatisticsStudySpineProperties a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-study-spine-properties.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-study-spine.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The study-spine linking properties made enumerable: over the same worked survey scene the query projects each PREDICATE wiring the spine subjects together, so the object properties that keep the target of inference distinct from the thing measured are the answer. Over the fixture the answer is exactly the seven edges {pop math:samplingFrame frame; sample math:sampleOf frame; sample math:population pop; sample math:observationUnit unit; sample math:statisticalVariable var; var math:hasMissingnessIndicator mi; var math:missingnessMechanism mech}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsStudySpinePropertiesShape ;
+    gmeow:cqExpectRow ex:rowSpinePropSamplingFrame , ex:rowSpinePropSampleOf , ex:rowSpinePropPopulation ,
+        ex:rowSpinePropObservationUnit , ex:rowSpinePropStatisticalVariable , ex:rowSpinePropHasMissingnessIndicator ,
+        ex:rowSpinePropMissingnessMechanism .
+
+ex:cqStatisticsStudySpinePropertiesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "prop" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowSpinePropSamplingFrame a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:pop ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:samplingFrame ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:frame ] .
+ex:rowSpinePropSampleOf a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:sample ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:sampleOf ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:frame ] .
+ex:rowSpinePropPopulation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:sample ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:population ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:pop ] .
+ex:rowSpinePropObservationUnit a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:sample ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:observationUnit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:unit ] .
+ex:rowSpinePropStatisticalVariable a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:sample ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:statisticalVariable ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:var ] .
+ex:rowSpinePropHasMissingnessIndicator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:var ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:hasMissingnessIndicator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:mi ] .
+ex:rowSpinePropMissingnessMechanism a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:var ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:missingnessMechanism ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:mech ] .
+
+# === SATQ8 — the models, estimation, and inference object kinds =========== #
+
+ex:cqStatisticsInferenceObjectKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-inference-object-kinds.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-inference-objects.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The models/estimation/inference vocabulary made enumerable through a worked inference scene: the reasoning-free query reads back the asserted kind of each object. Over the fixture the answer is exactly the sixteen classes — the estimation chain {math:Estimand, math:Estimator, math:Estimate}, the summary/contrast pair {math:Statistic, math:StatisticalContrast}, a math:ModelAssumption, the process and plan/design apparatus {math:InferenceRun, math:AnalysisPlan, math:ExperimentalDesign, math:RandomizationScheme}, the testing pair {math:HypothesisTest, math:SamplingDistribution}, a math:EffectSize, and the forecast objects {math:Prediction, math:PredictionInterval, math:ToleranceInterval}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsInferenceObjectKindsShape ;
+    gmeow:cqExpectRow ex:rowInfAssumption , ex:rowInfContrast , ex:rowInfDesign , ex:rowInfEffect ,
+        ex:rowInfEstimand , ex:rowInfEstimate , ex:rowInfEstimator , ex:rowInfPlan , ex:rowInfPrediction ,
+        ex:rowInfPredInterval , ex:rowInfRandomization , ex:rowInfRun , ex:rowInfSampDist , ex:rowInfStatistic ,
+        ex:rowInfTest , ex:rowInfTolInterval .
+
+ex:cqStatisticsInferenceObjectKindsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "item" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "kind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowInfEstimand a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:estimand ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:Estimand ] .
+ex:rowInfEstimator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:estimator ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:Estimator ] .
+ex:rowInfEstimate a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:estimate ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:Estimate ] .
+ex:rowInfStatistic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:statistic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:Statistic ] .
+ex:rowInfContrast a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:contrast ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:StatisticalContrast ] .
+ex:rowInfAssumption a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:assumption ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ModelAssumption ] .
+ex:rowInfRun a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:run ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:InferenceRun ] .
+ex:rowInfPlan a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:plan ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:AnalysisPlan ] .
+ex:rowInfDesign a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:design ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ExperimentalDesign ] .
+ex:rowInfRandomization a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:randomization ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:RandomizationScheme ] .
+ex:rowInfTest a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:test ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:HypothesisTest ] .
+ex:rowInfSampDist a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:sampdist ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:SamplingDistribution ] .
+ex:rowInfEffect a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:effect ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:EffectSize ] .
+ex:rowInfPrediction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:prediction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:Prediction ] .
+ex:rowInfPredInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:predInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:PredictionInterval ] .
+ex:rowInfTolInterval a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri exf:tolInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri math:ToleranceInterval ] .
+
+# === SATQ9 — the estimand-framing properties =============================== #
+
+ex:cqStatisticsEstimandFramingProperties a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-estimand-framing-properties.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-estimand-framing.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The estimand-definition object properties made enumerable: over a fully specified estimand the query projects each PREDICATE pinning the target quantity before data. Over the fixture the answer is exactly the six ICH E9(R1)-style attributes {math:targetPopulation, math:targetOutcome, math:targetContrast, math:interventionCondition, math:targetTime, math:missingDataPolicy}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsEstimandFramingPropertiesShape ;
+    gmeow:cqExpectRow ex:rowEstPropTargetPopulation , ex:rowEstPropTargetOutcome , ex:rowEstPropTargetContrast ,
+        ex:rowEstPropInterventionCondition , ex:rowEstPropTargetTime , ex:rowEstPropMissingDataPolicy .
+
+ex:cqStatisticsEstimandFramingPropertiesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "prop" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowEstPropTargetPopulation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:targetPopulation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:targetPop ] .
+ex:rowEstPropTargetOutcome a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:targetOutcome ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:outcome ] .
+ex:rowEstPropTargetContrast a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:targetContrast ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:contrast ] .
+ex:rowEstPropInterventionCondition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:interventionCondition ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:intervention ] .
+ex:rowEstPropTargetTime a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:targetTime ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:horizon ] .
+ex:rowEstPropMissingDataPolicy a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:missingDataPolicy ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:treatmentPolicy ] .
+
+# === SATQ10 — the p-value framing properties ============================== #
+
+ex:cqStatisticsPValueFramingProperties a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-pvalue-framing-properties.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-pvalue-properties.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The p-value framing object properties made enumerable: over a fully framed p-value the query projects each PREDICATE that makes P(T ≥ t | H0) unambiguous. Over the fixture the answer is exactly the eight edges {math:pValue, math:nullHypothesis, math:nullDistribution, math:testStatistic, math:tailDefinition, math:alternativeSidedness (to the lawful math:twoSidedAlternative), math:pValueAdjustment, math:multipleComparisonFamily}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsPValueFramingPropertiesShape ;
+    gmeow:cqExpectRow ex:rowPvPropPValue , ex:rowPvPropNullHypothesis , ex:rowPvPropNullDistribution ,
+        ex:rowPvPropTestStatistic , ex:rowPvPropTailDefinition , ex:rowPvPropAlternativeSidedness ,
+        ex:rowPvPropPValueAdjustment , ex:rowPvPropMultipleComparisonFamily .
+
+ex:cqStatisticsPValueFramingPropertiesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "prop" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPvPropPValue a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:pValue ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:magnitude ] .
+ex:rowPvPropNullHypothesis a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:nullHypothesis ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:null ] .
+ex:rowPvPropNullDistribution a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:nullDistribution ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:nullDist ] .
+ex:rowPvPropTestStatistic a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:testStatistic ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:stat ] .
+ex:rowPvPropTailDefinition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:tailDefinition ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:tail ] .
+ex:rowPvPropAlternativeSidedness a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:alternativeSidedness ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri math:twoSidedAlternative ] .
+ex:rowPvPropPValueAdjustment a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:pValueAdjustment ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:adjustment ] .
+ex:rowPvPropMultipleComparisonFamily a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:multipleComparisonFamily ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:family ] .
+
+# === SATQ11 — result / evaluation framing properties ===================== #
+
+ex:cqStatisticsResultFramingProperties a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-result-framing-properties.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-result-framing.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The remaining result/evaluation object properties made enumerable: over a worked result scene the query projects each framing PREDICATE. Over the fixture the answer is exactly the thirteen edges — a test's {math:alternativeHypothesis, math:effectSize}, an effect size's {math:effectSizeContrast, math:effectSizeScale}, a confidence interval's {math:hasIntervalBound (×2), math:confidenceLevel}, a credible interval's {math:credibleMass}, a prediction's {math:predictionTarget}, a diagnostic's {math:diagnosticFor, math:diagnosticMethod}, a fitted model's {math:modelAssumption}, and a run's {math:usedAnalysisPlan}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsResultFramingPropertiesShape ;
+    gmeow:cqExpectRow ex:rowRfTestAltHyp , ex:rowRfTestEffectSize , ex:rowRfEsContrast , ex:rowRfEsScale ,
+        ex:rowRfCiLower , ex:rowRfCiUpper , ex:rowRfCiLevel , ex:rowRfCriMass , ex:rowRfPredTarget ,
+        ex:rowRfDiagFor , ex:rowRfDiagMethod , ex:rowRfFitAssumption , ex:rowRfRunPlan .
+
+ex:cqStatisticsResultFramingPropertiesShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "subject" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "prop" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "object" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRfTestAltHyp a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:test ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:alternativeHypothesis ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:alt ] .
+ex:rowRfTestEffectSize a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:test ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:effectSize ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:es ] .
+ex:rowRfEsContrast a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:es ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:effectSizeContrast ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:contrast ] .
+ex:rowRfEsScale a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:es ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:effectSizeScale ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:scale ] .
+ex:rowRfCiLower a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:ci ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:hasIntervalBound ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:lower ] .
+ex:rowRfCiUpper a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:ci ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:hasIntervalBound ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:upper ] .
+ex:rowRfCiLevel a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:ci ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:confidenceLevel ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:level ] .
+ex:rowRfCriMass a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:cri ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:credibleMass ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:mass ] .
+ex:rowRfPredTarget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:pred ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:predictionTarget ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:target ] .
+ex:rowRfDiagFor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:diag ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:diagnosticFor ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:fit ] .
+ex:rowRfDiagMethod a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:diag ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:diagnosticMethod ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:method ] .
+ex:rowRfFitAssumption a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:fit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:modelAssumption ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:assumption ] .
+ex:rowRfRunPlan a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subject" ; gmeow:cellValueIri exf:run ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:usedAnalysisPlan ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "object" ; gmeow:cellValueIri exf:plan ] .
+
+# === SATQ12 — the analysis-plan version property (the one rdf:Property) ==== #
+
+ex:cqStatisticsAnalysisPlanVersion a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/statistics-analysis-plan-version-property.rq" ;
+    gmeow:cqDataFile "tests/fixtures/statistics-analysis-plan-version.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The one rdf:Property of the statistics surface made enumerable: over a math:AnalysisPlan the query projects the PREDICATE carrying its version, so the plan revision a result followed is a named property rather than a bare annotation. Over the fixture the answer is exactly {math:analysisPlanVersion → \"2.1\"} — the pre-registration guard against post-hoc plan drift." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqStatisticsAnalysisPlanVersionShape ;
+    gmeow:cqExpectRow ex:rowAnalysisPlanVersion .
+
+ex:cqStatisticsAnalysisPlanVersionShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "prop" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "version" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowAnalysisPlanVersion a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "prop" ; gmeow:cellValueIri math:analysisPlanVersion ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "version" ; gmeow:cellValueLiteral "2.1" ] .

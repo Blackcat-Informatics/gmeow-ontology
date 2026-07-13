@@ -1,0 +1,16 @@
+# Competency question: "Which property fixes which revision of a pre-specified analysis plan a
+# result followed?" Exercises the one rdf:Property of the statistics surface,
+# math:analysisPlanVersion, which pins the version identifier of a math:AnalysisPlan so a
+# result's provenance names the exact plan revision it followed (a pre-registration guard
+# against post-hoc plan drift). The query projects the PREDICATE on the plan, scoped to the
+# math: namespace, so the version literal is carried by a named property rather than a bare
+# annotation. Over the fixture the answer is exactly {math:analysisPlanVersion -> "2.1"}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX ex:   <http://example.org/math/>
+
+SELECT ?prop ?version WHERE {
+    ex:plan a math:AnalysisPlan ;
+            ?prop ?version .
+    FILTER(STRSTARTS(STR(?prop), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?prop

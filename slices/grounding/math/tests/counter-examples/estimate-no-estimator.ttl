@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:UnderspecifiedEstimateShape: a math:Estimate that DOES name its
+# math:Estimand through math:estimatesEstimand (so the sh:or target arm is satisfied) and
+# carries its value through math:estimateValue, but names NO math:Estimator through
+# math:estimator — a produced value with no procedure, a bare number without its act. It
+# fails ONLY the estimator min-count property of math:UnderspecifiedEstimateShape (the
+# sh:or is satisfied by the estimand, so it does not trip), so validation MUST emit
+# shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedEstimate). No
+# other shape targets a math:Estimate, math:Estimand, or the untyped value node.
+# Bound by ex:ecEstimateNoEstimator.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:treatmentEffectEstimate a math:Estimate ;
+    math:estimatesEstimand ex:averageTreatmentEffect ;
+    math:estimateValue ex:effectValue .
+
+ex:averageTreatmentEffect a math:Estimand .

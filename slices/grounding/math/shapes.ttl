@@ -1513,6 +1513,28 @@ math:FittedModelShape
         sh:message "A math:FittedModel must reference its math:ModelFormula specification through math:modelFormula." ;
     ] .
 
+# Rule — an estimate fixes what it estimates and how: its estimand and/or its
+# estimated parameter, AND the estimator that produced it.
+math:UnderspecifiedEstimateShape
+    a sh:NodeShape ;
+    rdfs:label "Underspecified-estimate target-and-estimator shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:Estimate: it fixes both WHAT it estimates and HOW. The target arm is an sh:or requiring the estimand (math:estimatesEstimand) and/or the estimated parameter (math:estimatedParameter) — an estimate may reference its math:Estimand, its model parameter, or both — and the procedure arm requires the math:Estimator that produced it (math:estimator, min one). An estimate is the structured result object of the process / result / claim separation, never a bare number; one naming neither its estimand nor its parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The two arms report distinct components — the target arm trips shacl.OrConstraintComponent, the estimator arm shacl.MinCountConstraintComponent — so a counter-example that satisfies the sh:or but omits the estimator isolates to the estimator min-count alone."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnderspecifiedEstimate ;
+    sh:targetClass math:Estimate ;
+    sh:or (
+        [ sh:path math:estimatesEstimand ; sh:minCount 1 ]
+        [ sh:path math:estimatedParameter ; sh:minCount 1 ]
+    ) ;
+    sh:property [
+        sh:path math:estimator ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Estimate must name the math:Estimator that produced it through math:estimator; a produced value with no estimator is a bare number without its act (math:UnderspecifiedEstimate)." ;
+    ] ;
+    sh:severity sh:Violation ;
+    sh:message "A math:Estimate must reference its estimand through math:estimatesEstimand and/or its estimated parameter through math:estimatedParameter; an estimate naming neither its target quantity nor a model parameter is underspecified (math:UnderspecifiedEstimate)." .
+
 math:ModelFormulaShape
     a sh:NodeShape ;
     rdfs:label "Model-formula binder shape"@x-gmeow-english ;
@@ -1526,6 +1548,26 @@ math:ModelFormulaShape
         sh:class math:ArgumentSlot ;
         sh:severity sh:Violation ;
         sh:message "A math:ModelFormula must carry its response/term structure as indexed math:ArgumentSlot operands (a math:BindingExpression AST), never a bare string." ;
+    ] .
+
+# Rule — missingness is modelled, not implied: a variable whose values encode
+# absence declares the mechanism an analysis depending on it rests on.
+math:ImplicitMissingnessShape
+    a sh:NodeShape ;
+    rdfs:label "Implicit-missingness declared-mechanism shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:StatisticalVariable: a variable whose values encode absence — detected by a declared math:MissingnessIndicator attached through math:hasMissingnessIndicator — must name the math:MissingnessMechanism (MCAR/MAR/MNAR) an analysis depending on it rests on, through math:missingnessMechanism. The validity of every missing-data method is conditional on which mechanism holds, so a variable that carries a missingness indicator but declares no mechanism assumes one implicitly and is ill-formed (math:ImplicitMissingness). Absent a missingness indicator the shape is silent; it fires only on the un-declared conflation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:ImplicitMissingness ;
+    sh:targetClass math:StatisticalVariable ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) must declare the math:MissingnessMechanism an analysis depending on it rests on, through math:missingnessMechanism; a variable that depends on missing data but names no MCAR/MAR/MNAR mechanism assumes one implicitly and is ill-formed (math:ImplicitMissingness)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this <https://blackcatinformatics.ca/math/hasMissingnessIndicator> ?indicator .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/missingnessMechanism> ?mechanism . }
+            }
+        """ ;
     ] .
 
 math:FormalVerificationResultShape
@@ -1835,3 +1877,202 @@ math:ProbabilityEventOccurrentDisjointShape
     sh:not [ sh:class logic:Event ] ;
     sh:severity sh:Violation ;
     sh:message "A math:ProbabilityEvent (a measurable set of outcomes) must not also be a logic:Event (an occurrent); typing one node as both conflates the event-set with the occurrence (math:ProbabilityEventOccurrentConflation)." .
+
+# =========================================================================== #
+# Statistical-inference gates — the p-value framing rules (shapes for the
+# "Inference and results" charter section). A math:PValue is unambiguous only
+# when it carries its test, null hypothesis, test statistic, null distribution,
+# and a tail/sidedness; a bogus sidedness value is also an ill-framed p-value.
+# =========================================================================== #
+
+# Rule I1 — a p-value carries its full frame (test, null hypothesis, test
+# statistic, null distribution, and a tail-or-sidedness). Authored as SHACL-SPARQL
+# because the "test" and "tail-or-sidedness" arms are disjunctions over distinct
+# paths (a missing arm fires, so a p-value with a null and a statistic but no tail
+# or sidedness is still caught).
+math:IllFramedPValueShape
+    a sh:NodeShape ;
+    rdfs:label "Ill-framed p-value shape"@x-gmeow-english ;
+    skos:definition "SHACL-SPARQL constraint over math:PValue: a p-value carries the whole frame that makes P(T ≥ t | H0) well-defined — a test (a math:testStatistic, and/or the math:HypothesisTest whose math:pValue it is), a math:nullHypothesis, a math:nullDistribution, and a tail-or-sidedness (a math:tailDefinition OR a math:alternativeSidedness). The select fires when ANY arm is missing, so a p-value with a null and a statistic but no tail or sidedness is still caught as ambiguous — because whether the extremity is one-tailed, two-tailed, or mid-p changes the value. A missing arm trips shacl.SPARQLConstraintComponent (math:IllFramedPValue)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IllFramedPValue ;
+    sh:targetClass math:PValue ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "A math:PValue must carry its test (a math:testStatistic or the math:HypothesisTest whose math:pValue it is), its math:nullHypothesis, its math:nullDistribution, and a math:tailDefinition or math:alternativeSidedness; a p-value missing any of these is ambiguous and ill-formed (math:IllFramedPValue)." ;
+        sh:select """
+            SELECT DISTINCT $this WHERE {
+                $this a <https://blackcatinformatics.ca/math/PValue> .
+                FILTER (
+                    (
+                        NOT EXISTS { $this <https://blackcatinformatics.ca/math/testStatistic> ?anyTestStat . }
+                        && NOT EXISTS { ?test a <https://blackcatinformatics.ca/math/HypothesisTest> ; <https://blackcatinformatics.ca/math/pValue> $this . }
+                    )
+                    || NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullHypothesis> ?nullHyp . }
+                    || NOT EXISTS { $this <https://blackcatinformatics.ca/math/nullDistribution> ?nullDist . }
+                    || (
+                        NOT EXISTS { $this <https://blackcatinformatics.ca/math/tailDefinition> ?tailDef . }
+                        && NOT EXISTS { $this <https://blackcatinformatics.ca/math/alternativeSidedness> ?sidedness . }
+                    )
+                )
+            }
+        """ ;
+    ] .
+
+# Rule I2 — a p-value's math:alternativeSidedness, when present, is one of the six
+# lawful math:Sidedness individuals. SHACL-Core sh:in, so a bogus sidedness value
+# trips shacl.InConstraintComponent; the constraint is vacuously satisfied when the
+# property is absent (the SPARQL gate above handles a missing tail/sidedness).
+math:AlternativeSidednessValueShape
+    a sh:NodeShape ;
+    rdfs:label "Alternative-sidedness value shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:PValue: any math:alternativeSidedness it carries is one of the six closed math:Sidedness values (math:oneSidedAlternative, math:twoSidedAlternative, math:greaterAlternative, math:lessAlternative, math:exactTail, math:midPTail). Authored as a pure sh:property shape with sh:in, so a bogus sidedness value trips shacl.InConstraintComponent; a p-value that omits math:alternativeSidedness altogether satisfies this shape vacuously (the missing-tail/sidedness case is caught by math:IllFramedPValueShape). A sidedness outside the six is also an ill-framed p-value (math:IllFramedPValue)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IllFramedPValue ;
+    sh:targetClass math:PValue ;
+    sh:property [
+        sh:path math:alternativeSidedness ;
+        sh:in ( math:oneSidedAlternative math:twoSidedAlternative math:greaterAlternative math:lessAlternative math:exactTail math:midPTail ) ;
+        sh:severity sh:Violation ;
+        sh:message "A math:PValue's math:alternativeSidedness must be one of the six lawful math:Sidedness values (one-sided, two-sided, greater, less, exact, mid-p); a value outside them is not a lawful sidedness and marks the p-value ill-framed (math:IllFramedPValue)." ;
+    ] .
+
+# =========================================================================== #
+# Interval, region, and effect-size gates — the rest of the "Inference and
+# results" charter section. A confidence interval carries its bounds and level;
+# a credible interval carries its posterior and mass; a node typed both a
+# confidence and a credible interval conflates frequentist coverage with
+# posterior mass (paired SHACL over the entailed paradigm disjointness); an
+# effect size identifies its contrast, scale, and frame.
+# =========================================================================== #
+
+# Rule I3 — a confidence interval is never also a credible interval. The OWL
+# disjointness is ENTAILED by the paradigm parents (math:ConfidenceInterval ⊑
+# math:FrequentistResult, math:CredibleInterval ⊑ math:BayesianResult,
+# math:FrequentistResult owl:disjointWith math:BayesianResult); this paired SHACL
+# surfaces the same conflation as a finding so a both-typed node trips
+# shacl.NotConstraintComponent instead of resting only on the DL gate.
+math:IntervalKindConflationShape
+    a sh:NodeShape ;
+    rdfs:label "Interval-kind conflation shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ConfidenceInterval: it is NOT also typed math:CredibleInterval. A confidence interval's level is frequentist coverage under a sampling procedure; a credible interval's mass is a Bayesian posterior probability — they share the word 'interval' and nothing else, held owl:disjointWith THROUGH their paradigm parents (math:ConfidenceInterval ⊑ math:FrequentistResult, math:CredibleInterval ⊑ math:BayesianResult, math:FrequentistResult owl:disjointWith math:BayesianResult). This paired SHACL surfaces the same conflation as a finding so a node typed both trips shacl.NotConstraintComponent instead of resting only on the DL gate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IntervalKindConflation ;
+    sh:targetClass math:ConfidenceInterval ;
+    sh:not [ sh:class math:CredibleInterval ] ;
+    sh:severity sh:Violation ;
+    sh:message "A math:ConfidenceInterval must not also be a math:CredibleInterval — frequentist coverage and Bayesian posterior mass are different result kinds held disjoint through their paradigm parents; typing one node as both conflates them (math:IntervalKindConflation)." .
+
+# Rule I4 — a confidence interval carries its bounds and its confidence level.
+math:IncompleteConfidenceIntervalShape
+    a sh:NodeShape ;
+    rdfs:label "Confidence-interval completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ConfidenceInterval: it names its two bounds through math:hasIntervalBound (a two-sided interval carries its lower AND its upper endpoint, so min two) and its coverage through math:confidenceLevel (a framed math:ProbabilityValue over the sampling procedure, min one). The bound cardinality is authored as sh:minCount 2 — the cleanest expression of 'a lower and an upper endpoint' — so a one-endpoint or endpoint-less interval trips shacl.MinCountConstraintComponent, and an interval naming no level trips it too. A confidence interval missing its bounds or its level is a bare pair of numbers, not a coverage statement (math:IncompleteConfidenceInterval)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IncompleteConfidenceInterval ;
+    sh:targetClass math:ConfidenceInterval ;
+    sh:property [
+        sh:path math:hasIntervalBound ;
+        sh:minCount 2 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ConfidenceInterval must name its two bounds through math:hasIntervalBound — its lower AND its upper endpoint (sh:minCount 2); an interval missing a bound is ill-formed (math:IncompleteConfidenceInterval)." ;
+    ] ;
+    sh:property [
+        sh:path math:confidenceLevel ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ConfidenceInterval must name its coverage through math:confidenceLevel — a framed math:ProbabilityValue over the sampling procedure (sh:minCount 1); an interval with no confidence level is not a coverage statement (math:IncompleteConfidenceInterval)." ;
+    ] .
+
+# Rule I5 — a credible interval carries its posterior context and its credible mass.
+math:IncompleteCredibleIntervalShape
+    a sh:NodeShape ;
+    rdfs:label "Credible-interval completeness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:CredibleInterval: it names its posterior context through math:hasPosterior (the math:PosteriorDistribution it summarizes, min one) and its posterior mass through math:credibleMass (a framed math:ProbabilityValue over that posterior, min one). A credible interval's mass is a probability OVER a posterior, so both the posterior and the mass are required; an interval missing either trips shacl.MinCountConstraintComponent. A credible interval with no posterior or no credible mass cannot state a posterior probability that the parameter lies within it (math:IncompleteCredibleInterval)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:IncompleteCredibleInterval ;
+    sh:targetClass math:CredibleInterval ;
+    sh:property [
+        sh:path math:hasPosterior ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:CredibleInterval must name its posterior context through math:hasPosterior — the math:PosteriorDistribution it summarizes (sh:minCount 1); an interval with no posterior cannot carry a posterior mass (math:IncompleteCredibleInterval)." ;
+    ] ;
+    sh:property [
+        sh:path math:credibleMass ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:CredibleInterval must name its posterior mass through math:credibleMass — a framed math:ProbabilityValue over its posterior (sh:minCount 1); an interval with no credible mass is not a posterior-probability statement (math:IncompleteCredibleInterval)." ;
+    ] .
+
+# Rule I6 — an effect size identifies its contrast, its scale, and its frame.
+math:UnframedEffectSizeShape
+    a sh:NodeShape ;
+    rdfs:label "Effect-size framing shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:EffectSize: it identifies all three of the frame that makes its magnitude interpretable — the comparison it measures through math:effectSizeContrast (the SAME shared math:StatisticalContrast an estimand targets, min one), the scale it is expressed on through math:effectSizeScale (a math:MeasurementScale, min one), and its reference frame through gmeow:hasReferenceFrame (the house frame predicate, the same edge a math:ProbabilityValue is framed by, min one). Any of the three absent trips shacl.MinCountConstraintComponent; an effect size missing its contrast, scale, or frame is an uninterpretable bare number (math:UnframedEffectSize)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnframedEffectSize ;
+    sh:targetClass math:EffectSize ;
+    sh:property [
+        sh:path math:effectSizeContrast ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:EffectSize must name the comparison it measures through math:effectSizeContrast — the shared math:StatisticalContrast (sh:minCount 1); an effect size with no contrast has no comparison it is the magnitude of (math:UnframedEffectSize)." ;
+    ] ;
+    sh:property [
+        sh:path math:effectSizeScale ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:EffectSize must name the scale it is expressed on through math:effectSizeScale — a math:MeasurementScale (sh:minCount 1); an effect size with no scale is a magnitude with no units of comparison (math:UnframedEffectSize)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:hasReferenceFrame ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:EffectSize must name its reference frame through gmeow:hasReferenceFrame — the house frame predicate the value is expressed in (sh:minCount 1); an effect size with no frame is an unframed bare number (math:UnframedEffectSize)." ;
+    ] .
+
+# =========================================================================== #
+# Diagnostics, model comparison, and calibration — the model-evaluation layer  #
+# (STATISTICS-charter "Model comparison and calibration")                      #
+# =========================================================================== #
+
+# Rule D1 — a model diagnostic anchors itself to its fitted model and its method.
+math:UnanchoredDiagnosticShape
+    a sh:NodeShape ;
+    rdfs:label "Model-diagnostic anchoring shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:ModelDiagnostic: it names the math:FittedModel it evaluates through math:diagnosticFor (min one) AND the method it applies through math:diagnosticMethod (min one). A diagnostic is an evaluation OF a fit BY a method; either absent trips shacl.MinCountConstraintComponent. A diagnostic missing its fitted model or its method is a floating number rather than a checked property of a model (math:UnanchoredDiagnostic)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:UnanchoredDiagnostic ;
+    sh:targetClass math:ModelDiagnostic ;
+    sh:property [
+        sh:path math:diagnosticFor ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ModelDiagnostic must name the math:FittedModel it evaluates through math:diagnosticFor (sh:minCount 1); a diagnostic anchored to no fit is ill-formed (math:UnanchoredDiagnostic)." ;
+    ] ;
+    sh:property [
+        sh:path math:diagnosticMethod ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ModelDiagnostic must name the method it applies through math:diagnosticMethod (sh:minCount 1); a diagnostic with no method is ill-formed (math:UnanchoredDiagnostic)." ;
+    ] .
+
+# Rule D2 — a statistical calibration diagnostic is never a topological stability
+# calibration record. The two senses of "calibration" share the word and nothing
+# else; because math:CalibrationDiagnostic ⊑ math:ModelDiagnostic and
+# math:StabilityCalibrationRecord both descend from math:MathematicalObject, the
+# disjointness is NOT entailed by their parents and is asserted DIRECTLY
+# (math:CalibrationDiagnostic owl:disjointWith math:StabilityCalibrationRecord);
+# this paired SHACL surfaces the same conflation as a finding so a both-typed node
+# trips shacl.NotConstraintComponent instead of resting only on the DL gate.
+math:CalibrationSenseConflationShape
+    a sh:NodeShape ;
+    rdfs:label "Calibration-sense conflation shape"@x-gmeow-english ;
+    skos:definition "SHACL constraint for math:CalibrationDiagnostic: it is NOT also typed math:StabilityCalibrationRecord. A math:CalibrationDiagnostic is the STATISTICAL sense (a model's predicted probabilities against observed frequencies); a math:StabilityCalibrationRecord is the TOPOLOGICAL sense (a credence calibrated against a bottleneck stability bound over a math:PersistenceLifetime) — they share the word 'calibration' and nothing else, held owl:disjointWith by a DIRECT axiom (both descend from math:MathematicalObject, so the disjointness is not entailed by their parents). This paired SHACL surfaces the same conflation as a finding so a node typed both trips shacl.NotConstraintComponent instead of resting only on the DL gate."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:enforcesFailureClass math:CalibrationSenseConflation ;
+    sh:targetClass math:CalibrationDiagnostic ;
+    sh:not [ sh:class math:StabilityCalibrationRecord ] ;
+    sh:severity sh:Violation ;
+    sh:message "A math:CalibrationDiagnostic must not also be a math:StabilityCalibrationRecord — the statistical calibration sense and the topological stability-calibration sense share the word 'calibration' and nothing else, held disjoint by a direct axiom; typing one node as both conflates them (math:CalibrationSenseConflation)." .

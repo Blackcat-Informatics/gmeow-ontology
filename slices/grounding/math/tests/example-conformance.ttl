@@ -657,6 +657,141 @@ ex:ecFittedModelUnfitted a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example names its specification but omits the data through math:fittedToData (sh:minCount 1 on math:FittedModelShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnfittedModel)." .
 
+# === Models and estimation: an estimate fixes its target and its estimator == #
+
+ex:ecEstimateFullySpecified a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/estimate-fully-specified.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:Estimate that names its math:Estimand through math:estimatesEstimand (the target arm of the sh:or), the math:Estimator that produced it through math:estimator, and its value through math:estimateValue satisfies math:UnderspecifiedEstimateShape and validates with no findings." .
+
+ex:ecEstimateNoEstimator a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/estimate-no-estimator.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example names its math:Estimand through math:estimatesEstimand (satisfying the sh:or target arm) and its value, but names no math:Estimator through math:estimator (sh:minCount 1 on math:UnderspecifiedEstimateShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedEstimate)." .
+
+# === Study spine: missingness is modelled, not implied ====================== #
+
+ex:ecImplicitMissingnessDeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/implicit-missingness-declared.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) AND declares the math:MissingnessMechanism it rests on through math:missingnessMechanism satisfies math:ImplicitMissingnessShape and validates with no findings." .
+
+ex:ecImplicitMissingnessUndeclared a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/implicit-missingness-undeclared.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example carries the same antecedent — a math:StatisticalVariable with a math:MissingnessIndicator through math:hasMissingnessIndicator (its values encode absence) — but declares no math:MissingnessMechanism through math:missingnessMechanism (the SPARQL constraint of math:ImplicitMissingnessShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:ImplicitMissingness)." .
+
+# === Inference and results: a p-value carries its full frame =============== #
+
+ex:ecPValueWellFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/pvalue-well-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PValue carrying its whole frame — a math:testStatistic, a math:nullHypothesis, a parameterized math:nullDistribution (a math:SamplingDistribution), and a math:alternativeSidedness that IS one of the six lawful math:Sidedness values (math:twoSidedAlternative) — with its magnitude a framed math:ProbabilityValue (exact 3/100 in [0, 1]). Every arm of math:IllFramedPValueShape is satisfied so its SPARQL stays silent, the lawful sidedness satisfies math:AlternativeSidednessValueShape's sh:in, the framed value satisfies math:ProbabilityValueRangeShape / math:ProbabilityValueFramedShape / math:ProbabilityScaleDisjointShape / math:RationalValueShape, and the null distribution satisfies the P6a/P6b/P7 gates, so validation emits no findings." .
+
+ex:ecPValueMissingSidednessBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/pvalue-missing-sidedness.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is the SAME math:PValue fully framed — a math:testStatistic, a math:nullHypothesis, a parameterized math:nullDistribution, and a framed math:ProbabilityValue magnitude — EXCEPT it omits BOTH math:tailDefinition AND math:alternativeSidedness, so the tail-or-sidedness arm of math:IllFramedPValueShape fires. math:AlternativeSidednessValueShape's sh:in is satisfied vacuously (no math:alternativeSidedness value to check), the framed value still satisfies the probability-value shapes, and the null distribution keeps the distribution gates silent, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:IllFramedPValue)." .
+
+ex:ecPValueHypothesisTestFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/pvalue-hypothesis-test-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PValue whose test arm is satisfied via the math:HypothesisTest whose math:pValue it is (the statistic lives on the test, not the p-value) rather than a direct math:testStatistic; every arm of math:IllFramedPValueShape is satisfied so its SPARQL stays silent, the lawful sidedness (math:twoSidedAlternative) satisfies math:AlternativeSidednessValueShape's sh:in, the framed value satisfies math:ProbabilityValueRangeShape / math:ProbabilityValueFramedShape / math:ProbabilityScaleDisjointShape / math:RationalValueShape, and the null distribution satisfies the P6a/P6b/P7 gates; it exercises the HypothesisTest path of the shape's test arm, so validation emits no findings." .
+
+# === The signature lang: -> logic: -> math: p-value round-trip ============== #
+
+ex:ecPValueTriSlice a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/pvalue-tri-slice.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The signature round-trip as one grounded chain: the sentence 'the p-value was 0.03' as a lang:SurfaceForm realizing an analyzed lang:ComposedForm, a lang:Denotation (lang:denotesLogicFormula) whose lang:denotationTarget is a logic:Formula, and that formula's first argument (logic:termIri) being the math:PValue. The math:PValue carries its whole frame — a math:testStatistic, a math:nullHypothesis, a parameterized math:nullDistribution (a math:SamplingDistribution), and a math:alternativeSidedness that IS one of the six lawful math:Sidedness values (math:twoSidedAlternative) — with its magnitude a framed math:ProbabilityValue (exact 3/100 in [0, 1]). Every arm of math:IllFramedPValueShape is satisfied so its SPARQL stays silent, the lawful sidedness satisfies math:AlternativeSidednessValueShape's sh:in, the framed value satisfies math:ProbabilityValueRangeShape / math:ProbabilityValueFramedShape / math:ProbabilityScaleDisjointShape / math:RationalValueShape, and the null distribution satisfies the P6a/P6b/P7 gates, so validation emits no findings." .
+
+ex:ecPValueTriSliceIllframedBad a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/pvalue-tri-slice-illframed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is the SAME lang: -> logic: -> math: round-trip fully grounded — a lang:SurfaceForm realizing a lang:ComposedForm, a lang:Denotation targeting a logic:Formula, and that formula predicating over the math:PValue — EXCEPT the p-value omits BOTH math:tailDefinition AND math:alternativeSidedness, so the tail-or-sidedness arm of math:IllFramedPValueShape fires. math:AlternativeSidednessValueShape's sh:in is satisfied vacuously (no math:alternativeSidedness value to check), the framed value still satisfies the probability-value shapes, and the null distribution keeps the distribution gates silent, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:IllFramedPValue)." .
+
+# === Inference and results: a confidence interval carries its bounds and level (Rule I4) === #
+
+ex:ecConfidenceIntervalComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/confidence-interval-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ConfidenceInterval naming its two bounds through math:hasIntervalBound (satisfying sh:minCount 2) and its coverage through math:confidenceLevel — a framed math:ProbabilityValue, exact 95/100 in [0, 1] — satisfies math:IncompleteConfidenceIntervalShape; being no math:CredibleInterval it satisfies math:IntervalKindConflationShape's sh:not, and its framed rational level satisfies the probability-value shapes, so validation emits no findings." .
+
+ex:ecConfidenceIntervalIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/confidence-interval-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ConfidenceInterval carrying its two math:hasIntervalBound endpoints but omitting math:confidenceLevel (sh:minCount 1 on math:IncompleteConfidenceIntervalShape); its two bounds keep the bound arm satisfied and it is not a math:CredibleInterval so math:IntervalKindConflationShape stays satisfied, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteConfidenceInterval)." .
+
+# === Inference and results: a credible interval carries its posterior and mass (Rule I5) === #
+
+ex:ecCredibleIntervalComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/credible-interval-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:CredibleInterval naming its posterior context through math:hasPosterior (a family-named math:PosteriorDistribution, so the distribution gates stay silent) and its posterior mass through math:credibleMass — a framed math:ProbabilityValue, exact 95/100 in [0, 1] — satisfies math:IncompleteCredibleIntervalShape; being a math:BayesianResult and no math:ConfidenceInterval, no confidence-interval or conflation shape targets it, so validation emits no findings." .
+
+ex:ecCredibleIntervalIncomplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/credible-interval-incomplete.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:CredibleInterval naming its math:hasPosterior context but omitting math:credibleMass (sh:minCount 1 on math:IncompleteCredibleIntervalShape); its posterior arm stays satisfied, its posterior is a well-formed family-named math:PosteriorDistribution so no distribution gate fires, and it is no math:ConfidenceInterval, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteCredibleInterval)." .
+
+# === Inference and results: a confidence interval is never a credible interval (Rule I3) === #
+
+ex:ecIntervalKindsDistinct a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/interval-kinds-distinct.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ConfidenceInterval and a SEPARATE math:CredibleInterval, each on its own node and each complete for its own kind (the CI with bounds and a framed math:confidenceLevel, the credible interval with a posterior and a framed math:credibleMass), keep math:IntervalKindConflationShape's sh:not satisfied (neither node is typed both) and satisfy their respective completeness shapes, so validation emits no findings." .
+
+ex:ecIntervalKindConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/interval-kind-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is ONE node typed BOTH math:ConfidenceInterval and math:CredibleInterval, tripping the sh:not [ sh:class math:CredibleInterval ] of math:IntervalKindConflationShape. It is COMPLETE for both kinds — its two math:hasIntervalBound endpoints and framed math:confidenceLevel satisfy math:IncompleteConfidenceIntervalShape, and its math:hasPosterior and framed math:credibleMass satisfy math:IncompleteCredibleIntervalShape — so ONLY the sh:not fires: validation MUST emit shacl.NotConstraintComponent and NO other finding (math:IntervalKindConflation)." .
+
+# === Inference and results: an effect size identifies its contrast, scale, and frame (Rule I6) === #
+
+ex:ecEffectSizeFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/effect-size-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:EffectSize naming its comparison through math:effectSizeContrast (a math:StatisticalContrast), its scale through math:effectSizeScale (a math:MeasurementScale), and its reference frame through gmeow:hasReferenceFrame satisfies all three arms of math:UnframedEffectSizeShape, so validation emits no findings." .
+
+ex:ecEffectSizeUnframed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/effect-size-unframed.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:EffectSize naming its math:effectSizeContrast and math:effectSizeScale but omitting gmeow:hasReferenceFrame (sh:minCount 1 on math:UnframedEffectSizeShape); the contrast and scale arms stay satisfied, so ONLY the frame arm fires: validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedEffectSize)." .
+
+# === Model comparison and calibration: a diagnostic anchors to its fit and method (Rule D1) === #
+
+ex:ecDiagnosticAnchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/diagnostic-anchored.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ModelDiagnostic naming the math:FittedModel it evaluates through math:diagnosticFor and the method it applies through math:diagnosticMethod satisfies both arms of math:UnanchoredDiagnosticShape; the fitted model it points at is bound to its data through math:fittedToData and specified through math:modelFormula so math:UnfittedModel stays silent, so validation emits no findings." .
+
+ex:ecDiagnosticUnanchored a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/diagnostic-unanchored.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:ModelDiagnostic naming the math:FittedModel it evaluates through math:diagnosticFor but omitting math:diagnosticMethod (sh:minCount 1 on math:UnanchoredDiagnosticShape); its fitted-model arm stays satisfied and the fit it points at is a well-formed math:FittedModel so math:UnfittedModel stays silent, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnanchoredDiagnostic)." .
+
+# === Model comparison and calibration: the two calibration senses are distinct (Rule D2) === #
+
+ex:ecCalibrationSensesDistinct a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/calibration-senses-distinct.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:CalibrationDiagnostic (the statistical sense, naming its math:diagnosticFor fit and its math:diagnosticMethod so math:UnanchoredDiagnosticShape is satisfied) and a SEPARATE math:StabilityCalibrationRecord (the topological sense, naming its math:calibrationEvidence — a well-formed essential math:PersistenceLifetime over a math:Filtration — its math:credenceDerivationKind, and its math:stabilityGuarantee so math:StabilityCalibrationRecordShape is satisfied) keep math:CalibrationSenseConflationShape's sh:not satisfied (neither node is typed both), so validation emits no findings." .
+
+ex:ecCalibrationSenseConflation a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/calibration-sense-conflation.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.NotConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is ONE node typed BOTH math:CalibrationDiagnostic and math:StabilityCalibrationRecord, tripping the sh:not [ sh:class math:StabilityCalibrationRecord ] of math:CalibrationSenseConflationShape. It is COMPLETE for both kinds — its math:diagnosticFor and math:diagnosticMethod satisfy math:UnanchoredDiagnosticShape, and its math:calibrationEvidence, math:credenceDerivationKind, and math:stabilityGuarantee satisfy math:StabilityCalibrationRecordShape — so ONLY the sh:not fires: validation MUST emit shacl.NotConstraintComponent and NO other finding (math:CalibrationSenseConflation)." .
+
 # === Bridges: verification-result grounding ================================= #
 
 ex:ecVerificationResultGrounded a gmeow:ExampleConformance ;
