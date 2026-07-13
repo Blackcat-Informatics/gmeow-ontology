@@ -74,6 +74,27 @@ ex:orphanDim gmeow:graphBoxRole gmeow:boxABox .
     .fails()
     .violations(&["Open value individuals must be referenced by at least one profile descriptor"])
 )]
+// W2 falsifying regression on a SECOND, non-rubric real vocabulary: the REAL
+// `gmeow:profileReferenceFrame` profile (merged in by `.shape_union()`) narrows its
+// `gmeow:profileOpenValue` to (among others) `gmeow:FrameRealm`; the production realm
+// individuals are all referenced by some frame's `gmeow:frameRealm`, so they pass. An
+// ORPHAN `gmeow:FrameRealm` referenced by NO descriptor must still trip
+// `gmeow:ProfileOpenValueUseConstraintProceduralConstraintShape`
+// (`SPARQLConstraintComponent`) at hard `sh:Violation`; a revert to `"Warning"` would
+// stop the violation and red this.
+#[case::profile_reference_frame_open_value_guard_violates_on_orphan_realm(
+    Case::inline(format!(
+        "{PREFIXES}\
+ex:orphanRealm a gmeow:FrameRealm .
+ex:orphanRealm rdfs:label \"orphan realm\"@x-gmeow-english .
+ex:orphanRealm skos:definition \"A FrameRealm owned by profileReferenceFrame's open value but referenced by no frame's frameRealm descriptor — the extensibility-by-construction guard must flag it.\"@x-gmeow-english .
+ex:orphanRealm gmeow:graphBoxRole gmeow:boxABox .
+"
+    ))
+    .shape_union()
+    .fails()
+    .violations(&["Open value individuals must be referenced by at least one profile descriptor"])
+)]
 // A Profile with `gmeow:profileAppliesTo` set to a plain literal (not a class IRI)
 // must fail SHACL with a violation mentioning one of profileAppliesTo / ProfileShape
 // / class (case-sensitive disjunction → `any_violation`).
