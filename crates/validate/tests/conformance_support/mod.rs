@@ -1066,6 +1066,13 @@ pub struct Case {
     /// where the regression must hold at BOTH ends because the finding is present at
     /// either severity — see [`Case::flags_on_path`].
     expected_flag_path_components: Vec<(&'static str, &'static str)>,
+    /// Message substrings each requiring at least one result AT ANY SEVERITY
+    /// (`sh:Warning` OR `sh:Violation`) whose message contains it. The severity-agnostic,
+    /// path-free twin of [`Self::expected_violations`]/[`Self::expected_warnings`]: used
+    /// to witness a `sh:sparql` constraint (which binds NO `sh:resultPath`, so
+    /// [`Self::expected_flag_path_components`] cannot anchor it) whose severity is
+    /// MID-MIGRATION (Warning→Violation) — see [`Case::flags`].
+    expected_flags: Vec<&'static str>,
 }
 
 impl Case {
@@ -1085,6 +1092,7 @@ impl Case {
             forbidden_warnings: Vec::new(),
             expected_path_components: Vec::new(),
             expected_flag_path_components: Vec::new(),
+            expected_flags: Vec::new(),
         }
     }
 
@@ -1151,6 +1159,21 @@ impl Case {
     /// a hard SHACL failure independent of the mid-migration shape.
     pub fn flags_on_path(mut self, path: &'static str, component: &'static str) -> Self {
         self.expected_flag_path_components.push((path, component));
+        self
+    }
+
+    /// The SEVERITY-AGNOSTIC, path-free twin of [`Case::violations`]: require each
+    /// substring to be present in the message of some result AT ANY SEVERITY
+    /// (`sh:Warning` OR `sh:Violation`).
+    ///
+    /// Use this (not [`Case::violations`], which filters to `Violation`, nor
+    /// [`Case::flags_on_path`], which requires a `sh:resultPath`) when the constraint
+    /// being witnessed is a `sh:sparql` node constraint — which binds NO result path —
+    /// whose severity is MID-MIGRATION (Warning→Violation). The finding is present at
+    /// either severity and carries a message but no path, so it is anchored on the
+    /// message substring without pinning the severity, holding at BOTH ends of the flip.
+    pub fn flags(mut self, subs: &[&'static str]) -> Self {
+        self.expected_flags.extend_from_slice(subs);
         self
     }
 
@@ -1332,6 +1355,25 @@ impl Case {
                         r.source_constraint_component.to_string(),
                         r.severity.clone(),
                     ))
+                    .collect::<Vec<_>>()
+            );
+        }
+        for sub in &self.expected_flags {
+            // Severity-agnostic: match a result at ANY severity (Warning OR Violation)
+            // whose message carries the substring, so a mid-migration `sh:sparql`
+            // constraint is witnessed at both ends of the Warning→Violation flip.
+            let hit = report
+                .results
+                .iter()
+                .any(|r| r.message.as_deref().is_some_and(|m| m.contains(sub)));
+            assert!(
+                hit,
+                "expected a result (any severity) with a message containing {sub:?}; \
+                 messages: {:?}",
+                report
+                    .results
+                    .iter()
+                    .map(|r| (r.message.clone(), r.severity.clone()))
                     .collect::<Vec<_>>()
             );
         }
