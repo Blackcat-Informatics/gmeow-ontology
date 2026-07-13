@@ -181,6 +181,12 @@ fn oracle_world_subsumptions(bundle: &RdfDataset, world: &str) -> Vec<(String, S
 /// Sequential reference implementation retained for parity tests and the direct
 /// single-world path, where entering Rayon costs more than it can recover.
 fn oracle_subsumptions_serial(bundle: &RdfDataset, worlds: &[String]) -> Vec<(String, String)> {
+    match worlds {
+        [] => return Vec::new(),
+        [world] => return oracle_world_subsumptions(bundle, world),
+        _ => {}
+    }
+
     let mut out: Vec<(String, String)> = Vec::new();
     for world in worlds {
         out.extend(oracle_world_subsumptions(bundle, world));
@@ -267,7 +273,7 @@ pub fn run_entail_crosscheck(
     // inherent OWL-Direct cost that kept the retired external consistency oracle
     // off-gate, independent of implementation). Native's own consistency verdict (`reason_all`'s
     // `is_consistent`) remains gated on-gate by `reason-verify`; the independent
-    // tableau oracle stays a unit-tested capability, not a 89-world on-gate sweep.
+    // tableau oracle stays a unit-tested capability, not a whole-bundle on-gate sweep.
     let gap_rows = dl_gap_rows(&[]);
 
     let ledger = build_ledger(subsumption_rows, Vec::new(), gap_rows, Vec::new());
@@ -369,6 +375,27 @@ mod tests {
             oracle_subsumptions(dataset.as_ref(), &one_world),
             expected_one,
             "single-world direct path must equal the serial reference"
+        );
+    }
+
+    #[test]
+    fn serial_oracle_fast_paths_preserve_the_sorted_unique_contract() {
+        let dataset = two_world_dataset();
+        assert!(
+            oracle_subsumptions_serial(dataset.as_ref(), &[]).is_empty(),
+            "an empty world set has no oracle subsumptions"
+        );
+
+        let one_world = vec![W.to_owned()];
+        let expected = oracle_world_subsumptions(dataset.as_ref(), W);
+        let actual = oracle_subsumptions_serial(dataset.as_ref(), &one_world);
+        assert_eq!(
+            actual, expected,
+            "the one-world fast path returns the oracle result"
+        );
+        assert!(
+            actual.windows(2).all(|pair| pair[0] < pair[1]),
+            "the one-world result remains strictly sorted and unique: {actual:?}"
         );
     }
 
