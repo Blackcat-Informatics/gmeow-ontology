@@ -174,19 +174,14 @@ const HAS_REFERENCE_FRAME: &str = "https://blackcatinformatics.ca/gmeow/hasRefer
 /// the LIVE production shape union (`.shape_union()`, the corpus `gmeow validate`
 /// runs).
 ///
-/// The frame finding is asserted with the SEVERITY-AGNOSTIC [`Case::flags_on_path`]
-/// (not [`Case::fails_on_path`], which filters to `sh:Violation`): the generated frame
-/// shape currently emits this finding at `sh:Warning`, and a later task migrates its
-/// severity to `sh:Violation`. This regression must hold at BOTH ends of that
-/// migration — the finding is present at either severity — so it anchors on the
-/// (path, constraint-component) pair without pinning the severity.
-///
-/// The `.fails()` hard-failure check is carried by the ORTHOGONAL, severity-stable
-/// "Expression must realize a Work" violation that a bare Expression always trips
-/// (see `expression_without_work_fails_shacl`), so the case is a hard SHACL failure
-/// regardless of the frame shape's mid-migration severity.
+/// The frame requirement is a hard `sh:Violation`: `gmeow:Expression` carries no
+/// `gmeow:ruleSeverity`, so its `gmeow:requiresFrame` shape generates at binding
+/// severity. [`Case::fails_on_path`] (which filters to `sh:Violation`) therefore both
+/// witnesses the frame `MinCountConstraintComponent` on the exact path AND guards the
+/// promotion — if the class ever regains `gmeow:ruleSeverity "advisory"`, the shape
+/// reverts to `sh:Warning`, no Violation fires on this path, and this test reds.
 #[test]
-fn frameless_expression_flags_frame_requirement() {
+fn frameless_expression_fails_frame_requirement() {
     Case::inline(format!(
         "{PREFIXES}\
 ex:x a gmeow:Expression .
@@ -195,7 +190,7 @@ ex:x rdfs:label \"Frameless Expression\" .
     ))
     .shape_union()
     .fails()
-    .flags_on_path(HAS_REFERENCE_FRAME, "MinCountConstraintComponent")
+    .fails_on_path(HAS_REFERENCE_FRAME, "MinCountConstraintComponent")
     .run();
 }
 

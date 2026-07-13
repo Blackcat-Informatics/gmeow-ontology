@@ -154,7 +154,7 @@ gmeow:ProfileOpenValueUseConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every individual of a gmeow:profileOpenValue class is referenced through one of the owning profile's gmeow:profileDescriptor predicates."@x-gmeow-english ;
     logic:formalizes gmeow:profileOpenValue ;
-    logic:severity "Warning" ;
+    logic:severity "Violation" ;
     logic:message "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard." ;
     logic:integrity logic:povuForall .
 logic:povuForall a logic:Formula ;

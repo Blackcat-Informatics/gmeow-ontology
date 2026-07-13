@@ -38,7 +38,7 @@ ex:myProfile gmeow:profileDescriptor gmeow:hasProfile .
 "
     ))
 )]
-#[case::profile_open_value_guard_warns_on_orphan(
+#[case::profile_open_value_guard_violates_on_orphan(
     Case::inline(format!(
         "{PREFIXES}\
 gmeow:profileReferenceFrame a gmeow:Profile .
@@ -49,7 +49,7 @@ gmeow:profileReferenceFrame gmeow:profileOpenValue gmeow:FrameRealm .
 ex:orphanRealm a gmeow:FrameRealm .
 "
     ))
-    .warnings(&["Open value individuals must be referenced by at least one profile descriptor"])
+    .violations(&["Open value individuals must be referenced by at least one profile descriptor"])
 )]
 // W2 falsifying regression: an UNWIRED owned open value still fires the guard.
 // The REAL `gmeow:sliceQualityRubric` profile (merged in by `.shape_union()`) narrows
@@ -57,10 +57,10 @@ ex:orphanRealm a gmeow:FrameRealm .
 // dimensions are all referenced by an axis's `gmeow:axisDimension`, so they pass. An
 // ORPHAN `gmeow:SliceQualityDimension` referenced by NO descriptor must still trip
 // `gmeow:ProfileOpenValueUseConstraintProceduralConstraintShape`
-// (`SPARQLConstraintComponent`). Asserted SEVERITY-AGNOSTIC via `.flags(...)`: the
-// constraint is `sh:Warning` today and `sh:Violation` after the flip; the finding is
-// present at either severity, so this passes NOW and after the migration.
-#[case::slice_quality_rubric_open_value_guard_fires_on_orphan_dimension(
+// (`SPARQLConstraintComponent`). The constraint is now `logic:severity "Violation"`, so
+// the orphan is a hard `sh:Violation`; `.violations(...)` both witnesses the guard and
+// guards the promotion — a revert to `"Warning"` would stop the violation and red this.
+#[case::slice_quality_rubric_open_value_guard_violates_on_orphan_dimension(
     Case::inline(format!(
         "{PREFIXES}\
 ex:orphanDim a gmeow:SliceQualityDimension .
@@ -70,7 +70,7 @@ ex:orphanDim gmeow:graphBoxRole gmeow:boxABox .
 "
     ))
     .shape_union()
-    .flags(&["Open value individuals must be referenced by at least one profile descriptor"])
+    .violations(&["Open value individuals must be referenced by at least one profile descriptor"])
 )]
 // A Profile with `gmeow:profileAppliesTo` set to a plain literal (not a class IRI)
 // must fail SHACL with a violation mentioning one of profileAppliesTo / ProfileShape

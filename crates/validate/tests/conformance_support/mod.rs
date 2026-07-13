@@ -1059,20 +1059,6 @@ pub struct Case {
     /// `sh:sourceConstraintComponent` contains that substring. Used to assert on the
     /// PROJECTED (message-less) cardinality shapes by component + path.
     expected_path_components: Vec<(&'static str, &'static str)>,
-    /// The severity-agnostic twin of [`Self::expected_path_components`]: `(result-path
-    /// IRI, constraint-component substring)` pairs each requiring at least one result
-    /// AT ANY SEVERITY (`sh:Warning` OR `sh:Violation`) on that path with that
-    /// component. Used for a shape whose severity is MID-MIGRATION (Warning→Violation),
-    /// where the regression must hold at BOTH ends because the finding is present at
-    /// either severity — see [`Case::flags_on_path`].
-    expected_flag_path_components: Vec<(&'static str, &'static str)>,
-    /// Message substrings each requiring at least one result AT ANY SEVERITY
-    /// (`sh:Warning` OR `sh:Violation`) whose message contains it. The severity-agnostic,
-    /// path-free twin of [`Self::expected_violations`]/[`Self::expected_warnings`]: used
-    /// to witness a `sh:sparql` constraint (which binds NO `sh:resultPath`, so
-    /// [`Self::expected_flag_path_components`] cannot anchor it) whose severity is
-    /// MID-MIGRATION (Warning→Violation) — see [`Case::flags`].
-    expected_flags: Vec<&'static str>,
 }
 
 impl Case {
@@ -1091,8 +1077,6 @@ impl Case {
             any_violations_ci: Vec::new(),
             forbidden_warnings: Vec::new(),
             expected_path_components: Vec::new(),
-            expected_flag_path_components: Vec::new(),
-            expected_flags: Vec::new(),
         }
     }
 
@@ -1142,38 +1126,6 @@ impl Case {
     /// no `sh:message`.
     pub fn fails_on_path(mut self, path: &'static str, component: &'static str) -> Self {
         self.expected_path_components.push((path, component));
-        self
-    }
-
-    /// The SEVERITY-AGNOSTIC twin of [`Case::fails_on_path`]: require at least one
-    /// result — at `sh:Warning` OR `sh:Violation` — whose `sh:resultPath` is `path`
-    /// AND whose `sh:sourceConstraintComponent` contains `component`.
-    ///
-    /// Use this (not [`Case::fails_on_path`], which filters to `Violation`) when the
-    /// constraint being witnessed lives on a shape whose severity is MID-MIGRATION —
-    /// e.g. a generated frame-relativity shape moving from `sh:Warning` to
-    /// `sh:Violation`. The regression must hold at BOTH ends of that migration: the
-    /// finding is present at either severity, so it is anchored on the (path,
-    /// constraint-component) pair without pinning the severity. Pair it with
-    /// [`Case::fails`] only when a SEPARATE, severity-stable violation makes the graph
-    /// a hard SHACL failure independent of the mid-migration shape.
-    pub fn flags_on_path(mut self, path: &'static str, component: &'static str) -> Self {
-        self.expected_flag_path_components.push((path, component));
-        self
-    }
-
-    /// The SEVERITY-AGNOSTIC, path-free twin of [`Case::violations`]: require each
-    /// substring to be present in the message of some result AT ANY SEVERITY
-    /// (`sh:Warning` OR `sh:Violation`).
-    ///
-    /// Use this (not [`Case::violations`], which filters to `Violation`, nor
-    /// [`Case::flags_on_path`], which requires a `sh:resultPath`) when the constraint
-    /// being witnessed is a `sh:sparql` node constraint — which binds NO result path —
-    /// whose severity is MID-MIGRATION (Warning→Violation). The finding is present at
-    /// either severity and carries a message but no path, so it is anchored on the
-    /// message substring without pinning the severity, holding at BOTH ends of the flip.
-    pub fn flags(mut self, subs: &[&'static str]) -> Self {
-        self.expected_flags.extend_from_slice(subs);
         self
     }
 
@@ -1347,52 +1299,6 @@ impl Case {
                 hit,
                 "expected a Violation on path {path:?} with constraint component \
                  containing {component:?}; results: {:?}",
-                report
-                    .results
-                    .iter()
-                    .map(|r| (
-                        r.result_path.as_ref().map(ToString::to_string),
-                        r.source_constraint_component.to_string(),
-                        r.severity.clone(),
-                    ))
-                    .collect::<Vec<_>>()
-            );
-        }
-        for sub in &self.expected_flags {
-            // Severity-agnostic: match a result at ANY severity (Warning OR Violation)
-            // whose message carries the substring, so a mid-migration `sh:sparql`
-            // constraint is witnessed at both ends of the Warning→Violation flip.
-            let hit = report
-                .results
-                .iter()
-                .any(|r| r.message.as_deref().is_some_and(|m| m.contains(sub)));
-            assert!(
-                hit,
-                "expected a result (any severity) with a message containing {sub:?}; \
-                 messages: {:?}",
-                report
-                    .results
-                    .iter()
-                    .map(|r| (r.message.clone(), r.severity.clone()))
-                    .collect::<Vec<_>>()
-            );
-        }
-        for (path, component) in &self.expected_flag_path_components {
-            // Severity-agnostic: match a result at ANY severity (Warning OR Violation),
-            // so a mid-migration frame shape is witnessed at both ends of the
-            // Warning→Violation flip.
-            let hit = report.results.iter().any(|r| {
-                let path_ok = matches!(
-                    r.result_path.as_ref(),
-                    Some(Term::NamedNode(p)) if p.as_str().contains(path)
-                );
-                let component_ok = r.source_constraint_component.as_str().contains(component);
-                path_ok && component_ok
-            });
-            assert!(
-                hit,
-                "expected a result (any severity) on path {path:?} with constraint \
-                 component containing {component:?}; results: {:?}",
                 report
                     .results
                     .iter()
