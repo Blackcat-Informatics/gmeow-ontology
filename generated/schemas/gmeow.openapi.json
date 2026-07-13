@@ -45143,44 +45143,18 @@
           "math:underlyingSet": {
             "anyOf": [
               {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/math:Set"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
+                "$ref": "#/$defs/math:Set"
               },
               {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/math:Set"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
                 },
-                "minItems": 1,
-                "type": "array"
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           }
@@ -45253,10 +45227,19 @@
           },
           "math:approximates": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
+                "$ref": "#/$defs/math:Number"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           },
@@ -45272,6 +45255,7 @@
           }
         },
         "required": [
+          "math:approximates",
           "math:approximationError"
         ],
         "type": "object"
@@ -45325,7 +45309,8 @@
                 ],
                 "type": "object"
               }
-            ]
+            ],
+            "minimum": 0.0
           }
         },
         "required": [
@@ -45697,36 +45682,16 @@
             "type": "object"
           },
           "math:complementSemantics": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
@@ -45925,34 +45890,19 @@
             ]
           },
           "math:hasIntervalBound": {
-            "anyOf": [
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+            "items": {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
               },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
+            "minItems": 2,
+            "type": "array"
           }
         },
         "required": [
@@ -46075,36 +46025,16 @@
             ]
           },
           "math:convergenceMode": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:convergesTo": {
             "anyOf": [
@@ -46280,7 +46210,8 @@
                 ],
                 "type": "object"
               }
-            ]
+            ],
+            "minimum": 1.0
           },
           "math:withRespectToVariable": {
             "properties": {
@@ -46431,15 +46362,7 @@
               }
             ]
           },
-          "math:exponentOfDimension": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          }
+          "math:exponentOfDimension": {}
         },
         "required": [
           "math:exponentDenominator",
@@ -47063,66 +46986,27 @@
             ]
           },
           "math:filtrationThreshold": {
-            "anyOf": [
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:stageStructure": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/TopologicalSpace",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/TopologicalSpace",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/TopologicalSpace",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
@@ -47401,23 +47285,45 @@
           },
           "math:codomain": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
+                "$ref": "#/$defs/math:Set"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           },
           "math:domain": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
+                "$ref": "#/$defs/math:Set"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           }
         },
+        "required": [
+          "math:codomain",
+          "math:domain"
+        ],
         "type": "object"
       },
       "math:GramMatrix": {
@@ -47442,68 +47348,28 @@
             ]
           },
           "math:inBasis": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/Basis",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/Basis",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/Basis",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:representsForm": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
@@ -47971,36 +47837,16 @@
             ]
           },
           "math:integrand": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:integrationDomain": {
             "properties": {
@@ -48015,17 +47861,27 @@
           },
           "math:withRespectTo": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
+                "$ref": "#/$defs/math:Measure"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           }
         },
         "required": [
           "math:integrand",
-          "math:integrationDomain"
+          "math:integrationDomain",
+          "math:withRespectTo"
         ],
         "type": "object"
       },
@@ -48236,39 +48092,20 @@
                 ],
                 "type": "object"
               }
-            ]
+            ],
+            "minimum": 0.0
           },
           "math:manifoldStructureKind": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
@@ -48301,6 +48138,23 @@
           "math:isExact": {
             "anyOf": [
               {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ],
                 "const": {
                   "@type": "xsd:boolean",
                   "@value": "true"
@@ -48308,11 +48162,29 @@
               },
               {
                 "items": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    }
+                  ],
                   "const": {
                     "@type": "xsd:boolean",
                     "@value": "true"
                   }
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -48328,6 +48200,9 @@
             ]
           }
         },
+        "required": [
+          "math:isExact"
+        ],
         "type": "object"
       },
       "math:Measure": {
@@ -48352,36 +48227,16 @@
             ]
           },
           "math:measureOn": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:totalMass": {}
         },
@@ -48635,36 +48490,16 @@
             ]
           },
           "math:inNumberSystem": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
@@ -48834,36 +48669,16 @@
             ]
           },
           "math:centeringPolicy": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:covarianceOperator": {
             "anyOf": [
@@ -49046,36 +48861,16 @@
             ]
           },
           "math:scalingPolicy": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:scoreVector": {
             "anyOf": [
@@ -49378,23 +49173,10 @@
             ]
           },
           "math:totalMass": {
-            "anyOf": [
-              {
-                "const": {
-                  "@type": "xsd:integer",
-                  "@value": "1"
-                }
-              },
-              {
-                "items": {
-                  "const": {
-                    "@type": "xsd:integer",
-                    "@value": "1"
-                  }
-                },
-                "type": "array"
-              }
-            ]
+            "const": {
+              "@type": "xsd:integer",
+              "@value": "1"
+            }
           }
         },
         "type": "object"
@@ -49613,15 +49395,21 @@
             ]
           },
           "math:hasDimension": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
+        "required": [
+          "math:hasDimension"
+        ],
         "type": "object"
       },
       "math:RandomVariable": {
@@ -50240,9 +50028,23 @@
             ]
           },
           "math:credenceDerivationKind": {
+            "$comment": "external class https://blackcatinformatics.ca/math/CredenceDerivationKind",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:stabilityGuarantee": {
             "anyOf": [
               {
-                "$comment": "external class https://blackcatinformatics.ca/math/CredenceDerivationKind",
+                "$ref": "#/$defs/math:Theorem"
+              },
+              {
                 "properties": {
                   "@id": {
                     "type": "string"
@@ -50252,66 +50054,6 @@
                   "@id"
                 ],
                 "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/CredenceDerivationKind",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          },
-          "math:stabilityGuarantee": {
-            "anyOf": [
-              {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/math:Theorem"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/math:Theorem"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
-                "minItems": 1,
-                "type": "array"
               }
             ]
           }
@@ -50547,36 +50289,16 @@
             ]
           },
           "math:inParameterSpace": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [

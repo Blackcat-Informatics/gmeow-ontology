@@ -2344,6 +2344,7 @@
 <https://blackcatinformatics.ca/math/ArgumentSlotIndexUniquenessConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/SlotIndexUniquenessShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/MalformedArgumentSlot> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/math/argumentSlot> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2409,7 +2410,8 @@
 
 <https://blackcatinformatics.ca/math/FormalVerificationResultVantageGroundingConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/FormalVerificationResult> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/FormalVerificationResultShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UngroundedVerificationResult> ;
     sh:targetClass <https://blackcatinformatics.ca/math/FormalVerificationResult> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2420,7 +2422,8 @@
 
 <https://blackcatinformatics.ca/math/GramMatrixSymmetryConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/GramMatrix> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/GramMatrixShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/AsymmetricGramMatrix> ;
     sh:targetClass <https://blackcatinformatics.ca/math/GramMatrix> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2432,6 +2435,7 @@
 <https://blackcatinformatics.ca/math/LogicLoweringDeclaredConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/LogicLoweringShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UndeclaredLogicLowering> ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/math/compilesToLogicFormula> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2442,7 +2446,8 @@
 
 <https://blackcatinformatics.ca/math/LorentzianSignatureConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignature> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignatureDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/MetricSignature> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2453,7 +2458,8 @@
 
 <https://blackcatinformatics.ca/math/MetricSignatureDimensionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignature> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignatureDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/MetricSignature> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2464,7 +2470,8 @@
 
 <https://blackcatinformatics.ca/math/NormPositiveDefiniteConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/Norm> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/NormPositiveDefiniteShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/NonPositiveDefiniteNorm> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Norm> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2486,7 +2493,8 @@
 
 <https://blackcatinformatics.ca/math/RiemannianSignatureConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignature> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MetricSignatureDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/MetricSignature> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2508,7 +2516,8 @@
 
 <https://blackcatinformatics.ca/math/SetExtentDisjointConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/Set> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/SetExtentShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/AmbiguousSetExtent> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Set> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2519,7 +2528,8 @@
 
 <https://blackcatinformatics.ca/math/TangentSpaceDimensionConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/TangentSpace> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/TangentSpaceDimensionShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/DimensionMismatch> ;
     sh:targetClass <https://blackcatinformatics.ca/math/TangentSpace> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
@@ -2530,7 +2540,8 @@
 
 <https://blackcatinformatics.ca/math/TheoremWarrantConstraintProceduralConstraintShape>
     a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/Theorem> ;
+    logic:formalizes <https://blackcatinformatics.ca/math/TheoremGroundingShape> ;
+    gmeow:enforcesFailureClass <https://blackcatinformatics.ca/math/UngroundedTheoremClaim> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Theorem> ;
     sh:sparql [
         a sh:SPARQLConstraint ;
