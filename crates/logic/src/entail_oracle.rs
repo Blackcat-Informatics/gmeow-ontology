@@ -31,10 +31,14 @@ const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
 /// `rdfs:Resource` — the RDFS universal; `X ⊑ rdfs:Resource` is uninformative.
 const RDFS_RESOURCE: &str = "http://www.w3.org/2000/01/rdf-schema#Resource";
 
-/// Resolve a term id to its IRI string, or `None` for a blank/literal term.
-fn iri_of(ds: &RdfDataset, id: purrdf::TermId) -> Option<String> {
+/// Resolve a term id to its borrowed IRI, or `None` for a blank/literal term.
+///
+/// Resolution is a hot closure-scan operation. Keep the dataset borrow through
+/// predicate rejection and allocate only when a surviving named-class result
+/// must escape into the returned vector.
+fn iri_of(ds: &RdfDataset, id: purrdf::TermId) -> Option<&str> {
     match ds.resolve(id) {
-        TermRef::Iri(iri) => Some(iri.to_owned()),
+        TermRef::Iri(iri) => Some(iri),
         _ => None,
     }
 }
@@ -76,7 +80,7 @@ pub fn owlrl_subsumptions(edb: &RdfDataset) -> Vec<(String, String)> {
         if sub == sup || sup == OWL_THING || sup == RDFS_RESOURCE {
             continue;
         }
-        pairs.push((sub, sup));
+        pairs.push((sub.to_owned(), sup.to_owned()));
     }
     pairs.sort();
     pairs.dedup();
@@ -127,7 +131,7 @@ pub fn consistency(edb: &RdfDataset) -> (bool, Vec<String>) {
             continue;
         };
         if pred == SUBCLASS_OF && obj == OWL_NOTHING && sub != OWL_NOTHING {
-            unsat.push(sub);
+            unsat.push(sub.to_owned());
         }
     }
     unsat.sort();

@@ -24,7 +24,7 @@ use rayon::prelude::*;
 use crate::bundle::set_bundle_provenance;
 use crate::cache::{PipelineCache, content_digest, stage_key};
 use crate::graph::StageGraph;
-use crate::node::{Stage, StageInput, StageProduct};
+use crate::node::{Stage, StageInput, StageProduct, StageRunTiming};
 use crate::provenance::register_stage_unit;
 
 /// The process-wide registry of per-resource mutexes. A stage that declares a
@@ -142,6 +142,8 @@ pub struct RunResult {
     pub combined_digest: String,
     /// Per-stage wall-clock timings in topological execution order.
     pub stage_timings: Vec<StageTiming>,
+    /// Internal phase timings emitted by freshly executed stages.
+    pub stage_phase_timings: Vec<StagePhaseTiming>,
     /// Per-level critical-stage timings in topological level order.
     pub level_timings: Vec<LevelTiming>,
     /// The run-level diagnostic ledger: the FORWARD fold of every stage's emitted
@@ -165,6 +167,19 @@ pub struct StageTiming {
     pub elapsed_ms: u128,
     /// Whether the product came from the persistent stage cache.
     pub cached: bool,
+}
+
+/// One internal phase timing qualified by its producing stage.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StagePhaseTiming {
+    /// The stage that emitted the timing.
+    pub stage_id: String,
+    /// Stable phase name local to that stage.
+    pub phase: String,
+    /// Observed wall-clock duration in milliseconds.
+    pub elapsed_ms: u128,
+    /// Optional stable work metadata supplied by the stage.
+    pub metadata: Option<String>,
 }
 
 /// The slowest stage in one scheduler level.
@@ -191,6 +206,8 @@ struct StageRun {
     /// or the cache-restored `diagnostics:nodes` blob on a hit. Replayed into the
     /// run-wide ledger in the sequential commit phase.
     diags: Vec<gmeow_errors::DiagNode>,
+    /// Internal phase telemetry from a cache-miss execution.
+    timings: Vec<StageRunTiming>,
 }
 
 /// Run a validated, bound pipeline. `bound` is the stages in topological order
@@ -219,6 +236,7 @@ pub fn run(
     // critical path is visible without changing default behaviour.
     let profile = std::env::var_os("GMEOW_PIPELINE_TIMING").is_some();
     let mut stage_timings: Vec<StageTiming> = Vec::new();
+    let mut stage_phase_timings: Vec<StagePhaseTiming> = Vec::new();
     // (level_index, slowest-stage ms in the level, slowest-stage id): the sum of the
     // per-level maxima is the critical-path floor the level-barrier scheduler imposes.
     let mut level_timings: Vec<LevelTiming> = Vec::new();
@@ -305,6 +323,12 @@ pub fn run(
                 elapsed_ms: r.elapsed_ms,
                 cached: r.cached,
             });
+            stage_phase_timings.extend(r.timings.drain(..).map(|timing| StagePhaseTiming {
+                stage_id: r.id.clone(),
+                phase: timing.phase,
+                elapsed_ms: timing.elapsed_ms,
+                metadata: timing.metadata,
+            }));
             products.insert(r.id, r.product);
         }
         level_timings.push(LevelTiming {
@@ -373,6 +397,7 @@ pub fn run(
         products,
         combined_digest,
         stage_timings,
+        stage_phase_timings,
         level_timings,
         ledger: run_ledger,
     })
@@ -455,6 +480,7 @@ fn exec_stage(
             cached: true,
             elapsed_ms: started.elapsed().as_millis(),
             diags,
+            timings: Vec::new(),
         });
     }
 
@@ -494,6 +520,7 @@ fn exec_stage(
         cached: false,
         elapsed_ms: started.elapsed().as_millis(),
         diags: out.diags,
+        timings: out.timings,
     })
 }
 

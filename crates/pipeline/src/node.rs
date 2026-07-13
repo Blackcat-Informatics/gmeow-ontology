@@ -214,6 +214,36 @@ pub struct StageOutput {
     /// product's `diagnostics:nodes` blob (cache hit), so the ledger is a projection
     /// of the SAME producer findings whether the stage ran or replayed.
     pub diags: Vec<gmeow_errors::DiagNode>,
+    /// Optional internal phase timings from a freshly executed stage. These are
+    /// observational telemetry only: they are returned to the runner, never folded
+    /// into the product digest or persisted in the stage cache.
+    pub timings: Vec<StageRunTiming>,
+}
+
+/// One internal phase timing emitted by a freshly executed stage.
+///
+/// The scheduler qualifies `phase` with the producing stage id before exposing it
+/// through the run report. Cache hits emit no internal timings because no stage body
+/// ran; the enclosing stage timing still records cache hydration.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StageRunTiming {
+    /// Stable phase name local to the stage.
+    pub phase: String,
+    /// Observed wall-clock duration in milliseconds.
+    pub elapsed_ms: u128,
+    /// Optional stable work metadata; elapsed time itself is never deterministic.
+    pub metadata: Option<String>,
+}
+
+impl StageRunTiming {
+    /// Construct a phase timing without metadata.
+    pub fn new(phase: impl Into<String>, elapsed_ms: u128) -> Self {
+        Self {
+            phase: phase.into(),
+            elapsed_ms,
+            metadata: None,
+        }
+    }
 }
 
 impl StageOutput {
@@ -224,6 +254,7 @@ impl StageOutput {
         Self {
             product,
             diags: Vec::new(),
+            timings: Vec::new(),
         }
     }
 }

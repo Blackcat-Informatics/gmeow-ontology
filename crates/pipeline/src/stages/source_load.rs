@@ -17,6 +17,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::Instant;
 
 use std::collections::HashMap;
 
@@ -457,28 +458,56 @@ impl Stage for SourceLoadStage {
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
+        let mut timings = Vec::with_capacity(7);
         // Carry the authored base graph as the bundle's DEFAULT graph (the native
         // contribution `gts_compose`'s default-graph fold unions), and keep emitting the
         // BASE_GRAPH_PATH N-Quads byte lane for the byte readers — BOTH from the base
         // dataset alone, so neither changes as the self-description graphs are added.
+        let started = Instant::now();
         let base = load_authored_dataset(input.root)?;
+        timings.push(crate::node::StageRunTiming::new(
+            "authored-dataset",
+            started.elapsed().as_millis(),
+        ));
+        let started = Instant::now();
         let nq = dataset_to_sorted_nquads(&base)?;
+        timings.push(crate::node::StageRunTiming::new(
+            "base-nquads",
+            started.elapsed().as_millis(),
+        ));
         // Score slice quality ONCE at the DAG root: the RDF graph rides in the
         // self-description carrier and the rendered diagnostics HTML rides as an internal
         // pipeline artifact for the terminal docs archive.
+        let started = Instant::now();
         let quality = gmeow_slice_quality::assessment_artifacts(input.root).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: self.id().to_string(),
                 message: format!("quality-assessment sweep: {e}"),
             })
         })?;
+        timings.push(crate::node::StageRunTiming::new(
+            "slice-quality",
+            started.elapsed().as_millis(),
+        ));
+        timings.extend(quality.slice_timings.iter().map(|timing| {
+            crate::node::StageRunTiming::new(
+                format!("slice-quality/{}", timing.slice),
+                timing.elapsed_ms,
+            )
+        }));
         // Attach the self-description named graphs alongside the base default graph — the
         // load + canonicalize the presenter used to do on the serial snapshot node, done
         // ONCE here at the parallel DAG root.
+        let started = Instant::now();
         let self_desc = crate::stages::carrier::build_self_description_dataset_with_quality(
             input.root,
             &quality.nquads,
         )?;
+        timings.push(crate::node::StageRunTiming::new(
+            "self-description",
+            started.elapsed().as_millis(),
+        ));
+        let started = Instant::now();
         let dataset = Arc::new(RdfDataset::union(&[base.as_ref(), self_desc.as_ref()]));
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(BASE_GRAPH_PATH.to_string(), nq);
@@ -486,12 +515,22 @@ impl Stage for SourceLoadStage {
             crate::stages::carrier::SLICE_QUALITY_REPORT_HTML_ARTIFACT.to_string(),
             gmeow_errors::render::to_html(&quality.report).into_bytes(),
         );
+        timings.push(crate::node::StageRunTiming::new(
+            "carrier-union",
+            started.elapsed().as_millis(),
+        ));
         // Build the authored subject→source-position span index (fixed policy: RootOntology
         // + Source, Import suppressed) and attach it as the digest-pinned REP_SPAN_TABLE
         // raw-JSON blob — the SINGLE source of the source spans the diagnostics consumers
         // lift onto their findings. It rides the by-reference blob lane (cache-replayable),
         // and the scheduler strips it once the last consumer has run.
+        let started = Instant::now();
         let span_index = build_source_span_index(input.root)?;
+        timings.push(crate::node::StageRunTiming::new(
+            "source-spans",
+            started.elapsed().as_millis(),
+        ));
+        let started = Instant::now();
         let span_blob = serde_json::to_vec(&span_index).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
                 stage: self.id().to_owned(),
@@ -506,10 +545,16 @@ impl Stage for SourceLoadStage {
             "application/json",
             span_blob,
         );
-        Ok(StageOutput::new(StageProduct::from_bundle(
-            self.id(),
-            Arc::new(bundle),
-        )))
+        let product = StageProduct::from_bundle(self.id(), Arc::new(bundle));
+        timings.push(crate::node::StageRunTiming::new(
+            "product-assembly",
+            started.elapsed().as_millis(),
+        ));
+        Ok(StageOutput {
+            product,
+            diags: Vec::new(),
+            timings,
+        })
     }
 }
 
