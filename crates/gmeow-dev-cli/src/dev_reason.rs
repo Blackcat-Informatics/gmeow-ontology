@@ -263,9 +263,9 @@ fn evaluate_reason_verify_once<F>(
     dataset: &purrdf::RdfDataset,
     queries: &[(String, String)],
     produce_result: F,
-) -> Result<ReasonVerifyEvaluation, String>
+) -> gmeow_errors::Result<ReasonVerifyEvaluation>
 where
-    F: FnOnce(&purrdf::RdfDataset) -> Result<ReasoningResult, String>,
+    F: FnOnce(&purrdf::RdfDataset) -> gmeow_errors::Result<ReasoningResult>,
 {
     let result_started = Instant::now();
     let result = produce_result(dataset)?;
@@ -273,19 +273,19 @@ where
 
     if !result.is_decided_consistent() {
         return if result.is_consistent() {
-            Err(format!(
+            Err(error::reasoning(format!(
                 "cannot decide consistency: {n} out-of-fragment construct(s) the native \
                  path does not decide; refusing to verify",
                 n = result.preservation.unsupported_constructs.len(),
-            ))
+            )))
         } else {
-            Err("inconsistent ontology".to_owned())
+            Err(error::reasoning("inconsistent ontology"))
         };
     }
 
     let verify_started = Instant::now();
     let report = verify_with_reasoning_result(dataset, &result, queries)
-        .map_err(|e| format!("native reason+verify failed: {e}"))?;
+        .map_err(|e| error::reasoning(format!("native reason+verify failed: {e}")))?;
     let verify_ms = elapsed_ms(verify_started);
 
     Ok(ReasonVerifyEvaluation {
@@ -313,7 +313,8 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     let (evaluation, result_phase) = if fresh {
         (
             evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
-                reason_all(edb).map_err(|e| format!("native reason+verify failed: {e}"))
+                reason_all(edb)
+                    .map_err(|e| error::reasoning(format!("native reason+verify failed: {e}")))
             }),
             "reason-native",
         )
@@ -321,7 +322,7 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         (
             evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
                 shipped_reasoning_result(edb)
-                    .map_err(|e| format!("cannot reuse the shipped verdict: {e}"))
+                    .map_err(|e| error::reasoning(format!("cannot reuse the shipped verdict: {e}")))
             }),
             "reason-result-shipped",
         )
@@ -498,7 +499,7 @@ pub fn reason_gate(timings_json: Option<&Path>) -> i32 {
     let snapshot_ms = elapsed_ms(snapshot_started);
     let queries = discover_verify_queries(&root);
     let evaluation = match evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
-        reason_all(edb).map_err(|e| format!("native reason gate failed: {e}"))
+        reason_all(edb).map_err(|e| error::reasoning(format!("native reason gate failed: {e}")))
     }) {
         Ok(evaluation) => evaluation,
         Err(message) => return fail(message),
@@ -701,7 +702,7 @@ mod tests {
         let calls = Cell::new(0usize);
         let evaluation = evaluate_reason_verify_once(&dataset, &[], |edb| {
             calls.set(calls.get() + 1);
-            reason_all(edb).map_err(|e| e.to_string())
+            reason_all(edb)
         })
         .expect("empty dataset reasons and verifies");
 

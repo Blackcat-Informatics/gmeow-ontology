@@ -388,11 +388,10 @@ fn iri_local_name(iri: &str) -> &str {
 /// outranks a definition match, which outranks an advice-only match) then by `id`
 /// (the documented IRI), so the same query twice yields the same order.
 fn search_documentation(
-    dataset: &purrdf::RdfDataset,
+    docs: &Arc<purrdf::RdfDataset>,
     query: &str,
     limit: usize,
 ) -> gmeow_errors::Result<Vec<SearchHit>> {
-    let docs = Arc::new(dataset.project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION));
     // HARD FAIL: the documentation graph is absent/empty in this bundle. docs_search
     // serves the documentation graph, so a missing graph is a genuine defect.
     if docs.quad_count() == 0 {
@@ -402,8 +401,7 @@ fn search_documentation(
                 .to_string(),
         }));
     }
-    let value =
-        sparql_result_to_json(crate::stages::native_query::query(&docs, DOC_SEARCH_QUERY)?)?;
+    let value = sparql_result_to_json(crate::stages::native_query::query(docs, DOC_SEARCH_QUERY)?)?;
 
     // Aggregate the (repeatable advice/alignment/missing) rows back per entry subject.
     #[derive(Default)]
@@ -615,6 +613,11 @@ pub struct McpView {
     /// across all `requested` lists. Empty when the doc graph is absent (then the
     /// `llms.txt` index renders linkless).
     doc_urls: OnceLock<Arc<HashMap<String, String>>>,
+    /// The documentation named graph projected to a default-graph dataset once per
+    /// server. Every documentation tool and full-card panel queries this immutable
+    /// view; rebuilding it for each SPARQL query copies the same whole graph and turns
+    /// a single card into several bundle-scale scans.
+    documentation: OnceLock<Arc<purrdf::RdfDataset>>,
     /// The JSON Schema `$defs` key set folded into this bundle's `schemas-archive`
     /// blob — the model-existence signal `export::term_to_card`'s `python_model`
     /// gate reads (built once from `gts`, like `doc_urls`; see [`Self::modeled_defs`]).
@@ -644,6 +647,7 @@ impl McpView {
             version,
             cache: Mutex::new(HashMap::new()),
             doc_urls: OnceLock::new(),
+            documentation: OnceLock::new(),
             modeled_defs: OnceLock::new(),
             gts,
         })
@@ -988,11 +992,8 @@ impl McpView {
     }
 
     fn run_docs_query(&self, sparql: &str) -> gmeow_errors::Result<Value> {
-        let docs = std::sync::Arc::new(
-            self.dataset
-                .project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION),
-        );
-        let result = crate::stages::native_query::query(&docs, sparql)?;
+        let docs = self.documentation();
+        let result = crate::stages::native_query::query(docs, sparql)?;
         sparql_result_to_json(result)
     }
 
@@ -1408,6 +1409,17 @@ fn sparql_term_to_json(term: &purrdf::TermValue) -> Option<Value> {
 }
 
 impl McpView {
+    /// The documentation graph re-rooted to the default graph, projected once and
+    /// shared by every query surface for this server.
+    fn documentation(&self) -> &Arc<purrdf::RdfDataset> {
+        self.documentation.get_or_init(|| {
+            Arc::new(
+                self.dataset
+                    .project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION),
+            )
+        })
+    }
+
     /// The `term-IRI → site URL` map, built once from the documentation graph and
     /// cached (language-independent).
     fn doc_urls(&self) -> Arc<HashMap<String, String>> {
@@ -1976,7 +1988,8 @@ impl McpServer {
     fn tool_docs_search(&self, args: &Value) -> gmeow_errors::Result<String> {
         let query = required_str(args, "query")?;
         let limit = optional_limit(args, "limit")?.unwrap_or(20);
-        let hits = search_documentation(self.view.dataset.as_ref(), query, limit)?;
+        let docs = self.view.documentation();
+        let hits = search_documentation(docs, query, limit)?;
         let results: Vec<Value> = hits.iter().map(SearchHit::to_json).collect();
         Ok(json!({"ok": true, "query": query, "results": results}).to_string())
     }
@@ -5999,6 +6012,12 @@ mod tests {
     #[test]
     fn tool_doc_card_json_determinism_and_tier_fields() {
         let server = consumer_server();
+        let docs_a = server.view.documentation();
+        let docs_b = server.view.documentation();
+        assert!(
+            Arc::ptr_eq(docs_a, docs_b),
+            "documentation queries must share one projected graph"
+        );
         // Determinism + tier-field presence hold for ANY term that carries panels,
         // so use the cheapest such term (not the ~1000-entailment richest term) —
         // this test renders the full card three times, so a lean term keeps it fast.
@@ -6290,13 +6309,14 @@ mod tests {
     #[test]
     fn search_documentation_matches_facets_ranks_and_is_deterministic() {
         let dataset_arc = synthetic_docs_dataset();
-        let dataset = dataset_arc.as_ref();
+        let dataset =
+            Arc::new(dataset_arc.project_named_graph(crate::stages::carrier::GRAPH_DOCUMENTATION));
         let cat_iri = "https://blackcatinformatics.ca/gmeow/Cat";
         let feline_iri = "https://blackcatinformatics.ca/gmeow/Feline";
 
         // "cat": Cat matches by LABEL (rank 0); Feline matches by DEFINITION ("the cat
         // family …", rank 1) — so Cat sorts first.
-        let hits = search_documentation(dataset, "cat", 20).expect("search ok");
+        let hits = search_documentation(&dataset, "cat", 20).expect("search ok");
         let ids: Vec<&str> = hits.iter().map(|h| h.id.as_str()).collect();
         assert_eq!(
             ids,
@@ -6327,22 +6347,22 @@ mod tests {
         );
 
         // An advice-only match: "wildcat" appears only in Cat's advice prose.
-        let advice_hits = search_documentation(dataset, "wildcat", 20).expect("search ok");
+        let advice_hits = search_documentation(&dataset, "wildcat", 20).expect("search ok");
         let advice_ids: Vec<&str> = advice_hits.iter().map(|h| h.id.as_str()).collect();
         assert_eq!(advice_ids, vec![cat_iri], "advice prose is searchable");
 
         // A definition-only match: "mammals" appears only in Feline's definition.
-        let def_hits = search_documentation(dataset, "mammals", 20).expect("search ok");
+        let def_hits = search_documentation(&dataset, "mammals", 20).expect("search ok");
         let def_ids: Vec<&str> = def_hits.iter().map(|h| h.id.as_str()).collect();
         assert_eq!(def_ids, vec![feline_iri], "definition prose is searchable");
 
         // A non-matching query is empty-but-ok (never a hard fail on a populated graph).
-        let none = search_documentation(dataset, "xylophone", 20).expect("search ok");
+        let none = search_documentation(&dataset, "xylophone", 20).expect("search ok");
         assert!(none.is_empty(), "a non-matching query returns no hits");
 
         // Determinism: the same query twice yields the same order.
-        let a = search_documentation(dataset, "cat", 20).expect("search ok");
-        let b = search_documentation(dataset, "cat", 20).expect("search ok");
+        let a = search_documentation(&dataset, "cat", 20).expect("search ok");
+        let b = search_documentation(&dataset, "cat", 20).expect("search ok");
         assert_eq!(
             a.iter().map(|h| &h.id).collect::<Vec<_>>(),
             b.iter().map(|h| &h.id).collect::<Vec<_>>(),
@@ -6350,7 +6370,7 @@ mod tests {
         );
 
         // The limit is honored.
-        let limited = search_documentation(dataset, "cat", 1).expect("search ok");
+        let limited = search_documentation(&dataset, "cat", 1).expect("search ok");
         assert_eq!(limited.len(), 1, "limit caps the result count");
     }
 
