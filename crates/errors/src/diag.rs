@@ -141,6 +141,39 @@ pub enum GuidanceModality {
     AvoidWhen,
 }
 
+impl GuidanceModality {
+    /// The human-readable label prefix the CLI/HTML surfaces render beside the
+    /// guidance text (e.g. `"  ↳ how to use: <text>"`).
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::HowToUse => "how to use",
+            Self::UseWhen => "use when",
+            Self::AvoidWhen => "avoid when",
+        }
+    }
+
+    /// The local name of the matching `gmeow:finding*` RDF predicate this
+    /// modality projects to, mirroring the `gmeow:` DSL vocabulary
+    /// (`gmeow:findingHowToUse` / `gmeow:findingUseWhen` / `gmeow:findingAvoidWhen`).
+    pub fn predicate_local(self) -> &'static str {
+        match self {
+            Self::HowToUse => "findingHowToUse",
+            Self::UseWhen => "findingUseWhen",
+            Self::AvoidWhen => "findingAvoidWhen",
+        }
+    }
+
+    /// The pinned SARIF `properties` key this modality projects to — part of the
+    /// sorted, deterministic `gmeow.*` property key schema.
+    pub fn sarif_key(self) -> &'static str {
+        match self {
+            Self::HowToUse => "gmeow.howToUse",
+            Self::UseWhen => "gmeow.useWhen",
+            Self::AvoidWhen => "gmeow.avoidWhen",
+        }
+    }
+}
+
 /// Where a guidance claim's governing term came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GuidanceSource {
