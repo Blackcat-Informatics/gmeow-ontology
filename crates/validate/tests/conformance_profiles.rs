@@ -49,6 +49,7 @@ gmeow:profileReferenceFrame gmeow:profileOpenValue gmeow:FrameRealm .
 ex:orphanRealm a gmeow:FrameRealm .
 "
     ))
+    .fails()
     .violations(&["Open value individuals must be referenced by at least one profile descriptor"])
 )]
 // W2 falsifying regression: an UNWIRED owned open value still fires the guard.
@@ -70,6 +71,7 @@ ex:orphanDim gmeow:graphBoxRole gmeow:boxABox .
 "
     ))
     .shape_union()
+    .fails()
     .violations(&["Open value individuals must be referenced by at least one profile descriptor"])
 )]
 // A Profile with `gmeow:profileAppliesTo` set to a plain literal (not a class IRI)
