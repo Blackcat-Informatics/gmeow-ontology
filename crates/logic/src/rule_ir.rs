@@ -96,9 +96,9 @@ fn ir_err(detail: String) -> gmeow_errors::Diag {
 
 /// A head/body term: a `?var` reference, a constant IRI, or a constant literal.
 ///
-/// Subject and predicate are never literals (a predicate is always an IRI and a
-/// subject is an IRI/blank in the GMEOW fragment); only an *object* may be a
-/// [`ConstLit`](EvalTerm::ConstLit).
+/// RDF ingress admits literals only in object position. Internal query relations are
+/// positional rather than RDF triples, however, so a builtin-generated head value may be
+/// a [`ConstLit`](EvalTerm::ConstLit) in either argument. Predicate identity remains an IRI.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum EvalTerm {
     /// A variable, e.g. `?X` (the string includes the leading `?`).
@@ -185,7 +185,8 @@ impl EvalRule {
 /// A fully-ground fact `(subject, predicate, object)` over native terms.
 #[derive(Debug, Clone)]
 pub(crate) struct Fact {
-    /// The subject term (an IRI/blank node in practice).
+    /// The first binary-relation argument. RDF-sourced rows contain an IRI/blank node;
+    /// facts-only backward evaluation may carry a generated literal here.
     pub(crate) subject: TermValue,
     /// The predicate IRI string.
     pub(crate) predicate: String,
@@ -605,10 +606,10 @@ fn join_body(
     };
 
     let mut solutions: Vec<Solution> = if positive.is_empty() {
-        // Zero positive atoms: the empty solution never touches delta, so it never
-        // fires in a semi-naive round.  Emit nothing (matches the prior end-filter
-        // behaviour where an empty source_facts list never passed the delta check).
-        Vec::new()
+        // The empty conjunction is relational identity: one empty substitution. This
+        // lets unconditional, NAF-only, and constraint-only rules fire once; duplicate
+        // heads are suppressed by the store on the following round.
+        vec![empty.clone()]
     } else {
         // True semi-naive: union over delta position p of
         //   { a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta }.
@@ -949,17 +950,32 @@ pub(crate) fn least_model_of_reduct(
     Ok(ReductResult { store, derivations })
 }
 
-/// Ground a rule head into a [`Fact`], failing hard on an unbound head variable or
-/// a literal subject/predicate.
+/// Ground a rule head into an RDF-shaped [`Fact`], failing hard on an unbound head variable
+/// or a literal first argument.
 pub(crate) fn ground_head(head: &EvalAtom, sol: &Solution) -> gmeow_errors::Result<Fact> {
-    let subject = ground_term_to_value(&head.subject, sol, "head subject")?;
-    let object = ground_term_to_value(&head.object, sol, "head object")?;
-    // The subject must be an IRI/blank node, never a literal.
-    if subject.is_literal() {
+    let fact = ground_relational_head(head, sol)?;
+    // Forward materialization emits RDF-shaped rows, whose subject must be an IRI/blank
+    // node. Facts-only backward query evaluation uses `ground_relational_head` directly
+    // because its binary IDB tuples are positional relations, not asserted RDF triples.
+    if fact.subject.is_literal() {
         return Err(ir_err(
             "rule_ir: head subject grounded to a literal (no-optionality)".to_owned(),
         ));
     }
+    Ok(fact)
+}
+
+/// Ground a rule head into an internal binary-relation tuple.
+///
+/// Unlike [`ground_head`], this admits a literal in the first position. The facts-only
+/// backward engine projects such tuples straight to query bindings and never emits them as
+/// RDF or mints triple provenance for them.
+pub(crate) fn ground_relational_head(
+    head: &EvalAtom,
+    sol: &Solution,
+) -> gmeow_errors::Result<Fact> {
+    let subject = ground_term_to_value(&head.subject, sol, "head subject")?;
+    let object = ground_term_to_value(&head.object, sol, "head object")?;
     Ok(Fact {
         subject,
         predicate: head.predicate.clone(),

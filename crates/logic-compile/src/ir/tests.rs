@@ -86,40 +86,14 @@ fn semantic_profile_ids_match_module_ttl() {
     // The six preset local names must be EXACTLY the logic:ReasoningPreset named
     // individuals declared in module.ttl (reviewer B1): the historical
     // logic:SemanticProfile class is retired, so the source of truth is now the
-    // set of logic:ReasoningPreset individuals. Walk the top-level subject blocks
-    // and collect every subject whose block names logic:ReasoningPreset as a type
-    // (skipping the class declaration itself).
-    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../../slices/grounding/logic/module.ttl");
-    let text = std::fs::read_to_string(&module_ttl)
-        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
-
-    let mut from_ttl: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-    let mut current_subject: Option<String> = None;
-    let mut block_is_preset = false;
-    for line in text.lines() {
-        if let Some(rest) = line.strip_prefix("logic:") {
-            if let (Some(subj), true) = (current_subject.take(), block_is_preset) {
-                from_ttl.insert(subj);
-            }
-            current_subject = Some(local_name(rest));
-            block_is_preset = false;
-        }
-        // Only an rdf:type reference flags the block — a type-list line, never the
-        // class declaration itself, the expandsToFacet property's prose, or any
-        // other skos:definition prose (which is quoted, so exclude quoted lines).
-        if line.contains("logic:ReasoningPreset")
-            && !line.contains('"')
-            && !line.contains("a owl:Class")
-            && current_subject.as_deref() != Some("ReasoningPreset")
-            && current_subject.as_deref() != Some("expandsToFacet")
-        {
-            block_is_preset = true;
-        }
-    }
-    if let (Some(subj), true) = (current_subject, block_is_preset) {
-        from_ttl.insert(subj);
-    }
+    // set of logic:ReasoningPreset individuals. Reuse individuals_of_type, which
+    // only flags a block from a genuine rdf:type position (a bare `logic:T`
+    // type-list entry or an inline `a … logic:T` clause) and so ignores the class
+    // declaration itself, object positions (`rdfs:range`/`logic:expandsToFacet`),
+    // quoted skos:definition prose, AND `#` comments that merely mention the term
+    // in prose (e.g. the logic:EngineContract capability-manifest comment).
+    let text = module_ttl_text();
+    let from_ttl = individuals_of_type(&text, "ReasoningPreset");
 
     let from_rust: std::collections::BTreeSet<&str> = got.iter().copied().collect();
     let from_ttl_refs: std::collections::BTreeSet<&str> =

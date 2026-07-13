@@ -459,12 +459,55 @@ fn selected_single(
     Some(marked(&descs[sel.index].lexical, sel.is_fallback, "en"))
 }
 
+/// The SHACL→JSON-Schema keying namespaces (the `gmeow` primary prefix plus the
+/// authored `logic`/`lang`/`math` prefixes) [`purrdf::shapes::json_schema::
+/// Namespaces::def_key`] needs to compute a class's `$defs` key — the SAME table
+/// `gmeow-pipeline`'s (private) `crate::gmeow_ns::gmeow_json_schema_namespaces`
+/// builds. Declared here rather than imported because `gmeow-pipeline` depends on
+/// `gmeow-docs` (importing it back would be circular); the four namespace
+/// literals are already independently declared in both crates (mirrors
+/// `crates/docs/src/model.rs`'s own `LOGIC_NS`/`LANG_NS`/`MATH_NS`). Construction
+/// cannot fail: `gmeow` is always declared.
+fn json_schema_namespaces() -> purrdf::Namespaces {
+    const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+    const LANG_NS: &str = "https://blackcatinformatics.ca/lang/";
+    const MATH_NS: &str = "https://blackcatinformatics.ca/math/";
+    purrdf::Namespaces::new(
+        "gmeow",
+        &[
+            ("gmeow".to_owned(), NAMESPACE.to_owned()),
+            ("logic".to_owned(), LOGIC_NS.to_owned()),
+            ("lang".to_owned(), LANG_NS.to_owned()),
+            ("math".to_owned(), MATH_NS.to_owned()),
+        ],
+    )
+    .expect("gmeow primary prefix is always declared")
+}
+
+/// Whether `term` (a documented CLASS IRI) names a `$defs` entry in
+/// `modeled_defs` — the "this class has a generated Pydantic model" existence
+/// signal EVERY term→model gate must share (§19 one-path): the docs-site card
+/// (`crate::render::doc_term_card`) and the folded/MCP card
+/// (`gmeow_pipeline::stages::export::term_to_card`) key `$defs` the SAME way, so
+/// a term never disagrees on whether it carries a `python_model` link (issue:
+/// Pydantic model surface, finding F3).
+fn class_is_modeled(term: &str, modeled_defs: &BTreeSet<String>) -> bool {
+    modeled_defs.contains(&json_schema_namespaces().def_key(term))
+}
+
 /// Compose the canonical [`Card`] for `term` from the graph.
+///
+/// `modeled_defs` is the JSON Schema `$defs` key set (the caller's
+/// model-existence signal, e.g. `gmeow_pipeline::bundle_blobs::Bundle::
+/// modeled_def_keys` over the same GTS bundle) — `describe`/`build_card` cannot
+/// reach it on their own (a GTS bundle carries no SHACL/JSON-Schema surface as
+/// queryable RDF triples), so the caller threads it in explicitly.
 pub fn build_card(
     graph: &DescribeGraph,
     term: &str,
     selector: &LangSelector,
     tag_map: &std::collections::HashMap<String, String>,
+    modeled_defs: &BTreeSet<String>,
 ) -> Card {
     let local = local_name(term).to_owned();
 
@@ -524,18 +567,44 @@ pub fn build_card(
 
     let box_roles = sorted_curies(graph.named_objects(term, GM_GRAPH_BOX_ROLE));
 
-    // Owning slice display name (the local segment of the isDefinedBy IRI).
-    let slice = graph
+    // Owning slice: keep the full isDefinedBy IRI (the Pydantic module route needs
+    // it) and derive the display name (its local segment) for the card header.
+    let defined_by = graph
         .named_objects(term, RDFS_IS_DEFINED_BY)
         .into_iter()
-        .next()
-        .map(|iri| {
-            iri.trim_end_matches('/')
-                .rsplit('/')
-                .next()
-                .unwrap_or(&iri)
-                .to_owned()
-        });
+        .next();
+    let slice = defined_by.as_deref().map(|iri| {
+        iri.trim_end_matches('/')
+            .rsplit('/')
+            .next()
+            .unwrap_or(iri)
+            .to_owned()
+    });
+
+    // The explicit term→model link: a modeled class carries the importable dotted
+    // path of its generated Pydantic model plus a compact construct/validate
+    // snippet, computed via the SAME emitter routing (never duplicated). Gated on
+    // `class_is_modeled` (the class actually names a `$defs` entry) — an abstract
+    // class with no SHACL NodeShape has NO generated model, and unconditionally
+    // emitting the link (the pre-fix gate: `category == "Class" && defined_by.
+    // is_some()`) fabricated an ImportError for a user who copied it (issue:
+    // Pydantic model surface, finding F3). The slice defaults to "" (matching
+    // `crate::render::doc_term_card`'s `DocTerm::owner_slice: String`) so the two
+    // builders never disagree over a modeled class with no recovered slice.
+    let (python_model, python_snippet) =
+        if category == "Class" && class_is_modeled(term, modeled_defs) {
+            let slice_iri = defined_by.as_deref().unwrap_or("");
+            (
+                Some(crate::card::python_model_path(slice_iri, term)),
+                Some(crate::card::python_model_snippet(
+                    slice_iri,
+                    term,
+                    &short(term),
+                )),
+            )
+        } else {
+            (None, None)
+        };
 
     Card {
         category,
@@ -557,6 +626,8 @@ pub fn build_card(
         use_for_consumer,
         avoid_for_consumer,
         aligns: Vec::new(),
+        python_model,
+        python_snippet,
         // Full-tier rich panels: never populated on the describe/site path.
         ..Card::default()
     }
@@ -628,6 +699,12 @@ impl DescribeStatus {
 /// * `format` — the output serialization ([`CardFormat::Prose`] Markdown,
 ///   [`CardFormat::Json`], or [`CardFormat::Toon`]). The format governs only a
 ///   successful card render; every failure keeps its diagnostic text and status.
+/// * `modeled_defs` — the JSON Schema `$defs` key set for THIS bundle (e.g.
+///   `gmeow_pipeline::bundle_blobs::Bundle::modeled_def_keys`), the
+///   model-existence signal [`build_card`] gates a class's `python_model` link
+///   on. `describe` cannot derive this itself (a GTS bundle carries no SHACL/
+///   JSON-Schema surface as queryable RDF triples), so the caller — which reads
+///   the SAME bundle bytes — computes and threads it in.
 ///
 /// Returns `(text, status)`: the rendered card with [`DescribeStatus::Ok`], or a
 /// diagnostic message with the classifying [`DescribeStatus`] on a load /
@@ -637,6 +714,7 @@ pub fn describe(
     gts_bytes: &[u8],
     lang: Option<&str>,
     format: CardFormat,
+    modeled_defs: &BTreeSet<String>,
 ) -> (String, DescribeStatus) {
     let graph = match DescribeGraph::from_gts_bytes(gts_bytes) {
         Ok(graph) => graph,
@@ -740,7 +818,7 @@ pub fn describe(
         }
     };
 
-    let card = build_card(&graph, &term, &selector, &tag_map);
+    let card = build_card(&graph, &term, &selector, &tag_map, modeled_defs);
     // The prose card header is the term's own display CURIE (`gmeow:Entity`,
     // `lang:Denotation`, …), shortened through the canonical registry. The
     // structured formats carry the full IRI (and every card field) directly.
@@ -763,7 +841,7 @@ mod tests {
     /// Prose-format `describe` — the default used by every language/resolution test
     /// (the JSON/TOON formats are exercised by the CLI live-binary suite).
     fn describe_prose(query: &str, gts: &[u8], lang: Option<&str>) -> (String, DescribeStatus) {
-        describe(query, gts, lang, CardFormat::Prose)
+        describe(query, gts, lang, CardFormat::Prose, &BTreeSet::new())
     }
 
     /// The controlled multilingual fixture, mirroring `_multilingual_gts` in
@@ -876,6 +954,42 @@ mod tests {
         assert!(text.contains("English definition text."), "{text}");
         assert!(text.contains("category: Class"), "{text}");
         assert!(text.contains("slice: lifecycle"), "{text}");
+    }
+
+    /// `class_is_modeled` gate (issue: Pydantic model surface, finding F3): a
+    /// Class with NO `$defs` entry for its `def_key` must never carry a
+    /// `python_model` line, even though the pre-fix gate (`category == "Class" &&
+    /// defined_by.is_some()`) would have fabricated one for every documented
+    /// class regardless of whether a generated model actually exists. A class
+    /// whose `def_key` IS in `modeled_defs` gets the link.
+    #[test]
+    fn describe_gates_python_model_on_schema_defs_membership() {
+        let gts = multilingual_gts(true, true);
+
+        // Empty `$defs` set: SampleTerm is a documented Class, but unmodeled.
+        let (text, code) = describe(
+            "SampleTerm",
+            &gts,
+            None,
+            CardFormat::Prose,
+            &BTreeSet::new(),
+        );
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
+        assert!(
+            !text.to_lowercase().contains("python model"),
+            "an unmodeled class must never carry a python_model line:\n{text}"
+        );
+
+        // SampleTerm's bare local name IS its `def_key` in the primary `gmeow`
+        // namespace, so this membership set says "SampleTerm has a model".
+        let mut modeled = BTreeSet::new();
+        modeled.insert("SampleTerm".to_string());
+        let (text, code) = describe("SampleTerm", &gts, None, CardFormat::Prose, &modeled);
+        assert_eq!(code, DescribeStatus::Ok, "{text}");
+        assert!(
+            text.contains("**Python model:** `gmeow_models.lifecycle.SampleTerm`"),
+            "a modeled class must carry the python_model line:\n{text}"
+        );
     }
 
     #[test]

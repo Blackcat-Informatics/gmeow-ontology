@@ -418,6 +418,12 @@ maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy 
 maint-dev-cli-heavy: rust-build ## Run the off-gate gmeow-dev CLI heavy parity lane (whole-pipeline/gate commands: feedback, validate, logic compile --check, up-projection-audit).
 	GMEOW_DEV_CLI_HEAVY=1 cargo nextest run -p gmeow-dev-cli --run-ignored ignored-only $(NEXTEST_PARTITION_ARG)
 
+maint-pydantic-conformance: ## Off-gate LIVE Pydantic conformance: import + model_rebuild sweep, docstring doctests, and model_json_schema() agreement with the packed JSON Schema (uv-managed; the on-gate hard-fail is the Rust structural gate).
+	@test -f packages/python/gmeow_models/__init__.py \
+		|| { echo "packages/python/gmeow_models is missing — run 'make regenerate' first"; exit 1; }
+	cd packages/python && uv venv --allow-existing .venv && uv pip install --python .venv -e '.[conformance]'
+	cd packages/python && uv run --python .venv pytest tests -q
+
 slicetest: ## Run the slice-resident test-DSL harness in isolation.
 	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
 	cargo test --doc -p gmeow-slicetest

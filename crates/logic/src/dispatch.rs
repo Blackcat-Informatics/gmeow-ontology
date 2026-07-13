@@ -20,7 +20,12 @@ use crate::seam::WorldFactSource;
 /// The rule program has its own canonical digest in the physical plan key. This digest
 /// covers the remaining semantics/resource inputs that can change dispatch behavior,
 /// with explicit option tags so `None` cannot alias a numeric zero.
-fn query_contract_hash(profile: &str, budget: &Budget) -> String {
+///
+/// `pub(crate)` so the stable runtime façade ([`crate::runtime::EngineContract`]) can
+/// surface the per-query contract from THIS single source — a runtime consumer that
+/// records "answer minted under contract Y" reproduces the same Y, and there is never a
+/// second copy of this hash to drift.
+pub(crate) fn query_contract_hash(profile: &str, budget: &Budget) -> String {
     fn frame(hasher: &mut blake3::Hasher, value: &[u8]) {
         hasher.update(&(value.len() as u64).to_le_bytes());
         hasher.update(value);
@@ -150,6 +155,8 @@ mod tests {
     const BASE: &str = "https://example.org/";
     const W: &str = "http://logic.test/world/dispatch";
     const HORN_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
+    const STRATIFIED_NAF_PROFILE: &str =
+        "https://blackcatinformatics.ca/logic/StratifiedNAFProfile";
     const PROCEDURAL_PROFILE: &str = "https://blackcatinformatics.ca/logic/ProceduralPrologProfile";
     const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
@@ -529,6 +536,73 @@ mod tests {
     // exposes those residuals as typed refusals instead of silently changing semantics.
 
     const XSD_INT: &str = "http://www.w3.org/2001/XMLSchema#integer";
+
+    #[test]
+    fn dispatch_query_ground_naf_only_rule_evaluates_under_all_free_goal() {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(ex:a, ex:b) :- \\+ ex:q(ex:a, ex:b).\n\
+             ?- ex:p(X, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+
+        let store = WorldStore::new();
+        let foreign = WorldFactSnapshot::from_world(&store, W, STRATIFIED_NAF_PROFILE).unwrap();
+        let answer = dispatch_query(
+            &foreign,
+            W,
+            &prog,
+            STRATIFIED_NAF_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert_eq!(answer.status, BudgetStatus::Ok);
+        assert_eq!(
+            answer.bindings.len(),
+            1,
+            "absent q must let p fire: {answer:?}"
+        );
+        assert_eq!(answer.bindings[0]["X"], format!("<{BASE}a>"));
+        assert_eq!(answer.bindings[0]["Y"], format!("<{BASE}b>"));
+
+        let store = WorldStore::new();
+        store.insert_quad(W, &p("a"), &p("q"), &p("b"));
+        let foreign = WorldFactSnapshot::from_world(&store, W, STRATIFIED_NAF_PROFILE).unwrap();
+        let answer = dispatch_query(
+            &foreign,
+            W,
+            &prog,
+            STRATIFIED_NAF_PROFILE,
+            &Budget::default(),
+        )
+        .unwrap();
+        assert!(
+            answer.bindings.is_empty(),
+            "present q must block the NAF-only rule: {answer:?}"
+        );
+    }
+
+    #[test]
+    fn dispatch_query_builtin_only_rule_evaluates_adjacent_assignments() {
+        let store = WorldStore::new();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROCEDURAL_PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- X is 1, Y is 2.\n\
+             ?- ex:p(X, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let answer =
+            dispatch_query(&foreign, W, &prog, PROCEDURAL_PROFILE, &Budget::default()).unwrap();
+        assert_eq!(answer.status, BudgetStatus::Ok);
+        assert_eq!(
+            answer.bindings.len(),
+            1,
+            "builtin-only rule must fire once: {answer:?}"
+        );
+        assert_eq!(answer.bindings[0]["X"], format!("\"1\"^^<{XSD_INT}>"));
+        assert_eq!(answer.bindings[0]["Y"], format!("\"2\"^^<{XSD_INT}>"));
+    }
 
     #[test]
     fn list_length_via_arithmetic_builtin() {
