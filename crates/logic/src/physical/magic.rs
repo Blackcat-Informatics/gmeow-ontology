@@ -3178,9 +3178,10 @@ mod tests {
     }
 
     /// The repro world: `self →knows a →knows b`; `b` carries an EDB name and mention. The
-    /// name object is an IRI (`nameB`) rather than a string literal — the store helper keys
-    /// on IRIs and the join/count is identical either way, so the constant kind is immaterial
-    /// to the leading-IDB drop under test.
+    /// name object here is an IRI (`nameB`); [`leading_idb_world_literal_name`] below carries
+    /// the SAME shape with the name object as a string literal instead, which is the issue's
+    /// exact repro term (`nameMatch(b, "b")`) — both constant kinds are now exercised by the
+    /// leading-IDB regression suite.
     fn leading_idb_world() -> (WorldStore, String) {
         make_world(&[
             (
@@ -3204,6 +3205,43 @@ mod tests {
                 &format!("{BASE}engines"),
             ),
         ])
+    }
+
+    /// The SAME repro world as [`leading_idb_world`], except the `nameMatch` triple's
+    /// object is a genuine `xsd:string` literal `"b"` rather than an IRI — the issue's exact
+    /// repro term `ex:nameMatch(ex:b, "b")`. The goal-rule's `S` position is a free variable
+    /// (never a parsed literal in the query text), so the literal only needs to exist in the
+    /// EDB store: it is inserted via [`WorldStore::insert_quad_terms`] (term-preserving),
+    /// while the other three triples still go through the IRI-only [`WorldStore::insert_quad`].
+    fn leading_idb_world_literal_name() -> (WorldStore, String) {
+        let store = WorldStore::new();
+        store.insert_quad(
+            W,
+            &format!("{BASE}self"),
+            &format!("{BASE}knows"),
+            &format!("{BASE}a"),
+        );
+        store.insert_quad(
+            W,
+            &format!("{BASE}a"),
+            &format!("{BASE}knows"),
+            &format!("{BASE}b"),
+        );
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{BASE}b")),
+                TermValue::iri(format!("{BASE}nameMatch")),
+                TermValue::simple_literal("b"),
+            )
+            .unwrap();
+        store.insert_quad(
+            W,
+            &format!("{BASE}b"),
+            &format!("{BASE}mentioned"),
+            &format!("{BASE}engines"),
+        );
+        (store, W.to_owned())
     }
 
     #[test]
@@ -3251,6 +3289,39 @@ mod tests {
                 "{label}: expected {want} bindings, got {ans:?}"
             );
         }
+    }
+
+    #[test]
+    fn magic_leading_bound_recursive_idb_literal_name_object_resolves() {
+        // The issue's exact repro term: `nameMatch(b, "b")` with a STRING LITERAL object,
+        // not an IRI. The leading-IDB seed-set fix must not be sensitive to the constant
+        // kind carried by the trailing EDB atom — this drives the same demand-seed path as
+        // `magic_leading_bound_recursive_idb_body_resolves`'s "leading-idb-name" row, but
+        // over `leading_idb_world_literal_name()`.
+        let (store, world_nn) = leading_idb_world_literal_name();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let budget = Budget::default();
+        let src = leading_idb_src(
+            "ex:c(P, S) :- ex:reach(ex:self, P), ex:nameMatch(P, S).\n\
+             ?- ex:c(P, S).\n",
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans =
+            crate::dispatch::dispatch_query(&foreign, &world_nn, &prog, PROFILE, &budget).unwrap();
+        assert_eq!(
+            ans.status,
+            BudgetStatus::Ok,
+            "literal-object leading-IDB: status must be Ok (never a silent empty drop): {ans:?}"
+        );
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "literal-object leading-IDB: expected 1 binding, got {ans:?}"
+        );
+        assert_eq!(
+            ans.bindings[0]["S"], "\"b\"",
+            "S must bind to the string literal \"b\": {ans:?}"
+        );
     }
 
     #[test]
