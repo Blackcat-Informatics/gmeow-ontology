@@ -36,6 +36,14 @@ validates instance shape, it does not reason. The per-term projection-fidelity
 table in the GMEOW documentation records exactly what this surface preserves and
 drops relative to the canonical `logic:` core.
 
+## Versioning
+
+The wheel version is the ontology's `owl:versionInfo` (`ontology/gmeow.ttl`),
+stamped verbatim into the generated `gmeow_models/__about__.py` and read by
+`pyproject.toml`'s `[tool.hatch.version]`. To release a new version, bump
+`owl:versionInfo` and run `make regenerate` — never hand-edit `__about__.py` or
+set `version` in `pyproject.toml` directly.
+
 ## Do not edit by hand
 
 `gmeow_models/` is regenerated from the ontology by the GMEOW pipeline. Changes
