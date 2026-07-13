@@ -926,6 +926,33 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
                  distinctions survive only in the canonical logic: layer",
             ],
         ),
+        // The Pydantic v2 model package (gmeow_models): a closed-record instance
+        // VALIDATION surface co-derived from the SAME shape compilation as the
+        // JSON-Schema projection (so a model's model_json_schema() agrees with the
+        // packed JSON Schema), carrying full docstrings + traceability. It validates
+        // instance shape, it does not entail — ValidationOnly, exactly like its
+        // JSON-Schema / SHACL-Core sibling.
+        "pydantic" => (
+            PreservationKind::ValidationOnly,
+            "closed-record instance validation (Pydantic v2, draft-2020-12 core)",
+            vec![
+                "a model validates instance shape but does not entail (ValidationOnly): no \
+                 reasoning, no subsumption, no entailment survives — the canonical logic: layer \
+                 carries them",
+                "the open-world default is read as a closed RECORD: rdfs:domain/range are open-world \
+                 inferences that a Pydantic field cannot express, so a field is validation-only and \
+                 the open-world force is carried in the canonical logic: layer",
+                "rdfs:subClassOf is flattened to at most one same-module Python base (single \
+                 inheritance); multiple / cross-module superclasses are dropped from the class \
+                 hierarchy and survive only in the canonical logic: layer",
+                "SHACL constructs with no JSON-Schema/Pydantic analogue (sh:sparql full-FOL integrity \
+                 conditions, standpoint/world/time-indexed constraints) are dropped exactly as the \
+                 JSON-Schema projection drops them, and are carried in the canonical logic: layer",
+                "an xsd datatype with no Pydantic scalar mapping is either hard-failed (never \
+                 silently widened) or, for an explicitly allowlisted lexical form, carried as str \
+                 and disclosed as a declared datatype loss",
+            ],
+        ),
         other => panic!("unknown projection target: {other}"),
     }
 }
@@ -935,7 +962,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
 /// standard targets [`compile_program`] runs (the per-shape `property-path:<iri>`
 /// rows are program-dependent and so are NOT part of this static surface; the
 /// generic `property-path` row IS).
-const LEDGER_TARGETS: [&str; 19] = [
+const LEDGER_TARGETS: [&str; 20] = [
     "owl-dl",
     "owl-el",
     "datalog",
@@ -962,6 +989,10 @@ const LEDGER_TARGETS: [&str; 19] = [
     "shacl-core",
     "shex",
     "procedural-constraint",
+    // The Pydantic v2 model package (gmeow_models): a closed-record instance
+    // validation surface co-derived from the JSON-Schema shape compilation, carrying
+    // its own ValidationOnly preservation judgment in this same loss ledger.
+    "pydantic",
 ];
 
 /// One row of the preservation loss ledger as a public, owned value: a projection

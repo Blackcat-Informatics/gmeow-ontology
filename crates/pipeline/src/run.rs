@@ -268,12 +268,21 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-lpg", "lpg"),
         ("stage-export-yaml-ld", "yaml_ld"),
         ("stage-export-metadata", "metadata"),
-        ("stage-export-export", "export"),
         ("stage-export-okf", "okf"),
         ("stage-export-parquet", "parquet"),
     ] {
         stages.push(st(id, impl_key, &["stage-snapshot"]));
     }
+    // `stage-export-export` additionally consumes THIS run's fresh
+    // `stage-export-json-schema` product: its `llms-full.txt` inlined cards gate
+    // their `python_model` link on the JSON Schema `$defs` key set (a class with
+    // no `$defs` entry has no generated Pydantic model), so it needs the schema
+    // in hand, not only the snapshot fold.
+    stages.push(st(
+        "stage-export-export",
+        "export",
+        &["stage-export-json-schema", "stage-snapshot"],
+    ));
 
     // ── source-reading export leaves (independent; read slices/metadata/evals) ──
     for (id, impl_key) in [
@@ -286,6 +295,10 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-governance-floors", "governance_floors"),
         ("stage-export-result-shapes", "result_shapes"),
         ("stage-export-json-schema", "json_schema"),
+        // The Pydantic model package (functional documentation surface): a
+        // source-reading leaf like json-schema (reads the shape union + docs
+        // model), folded into REP_MODELS_PYTHON by the sink.
+        ("stage-export-pydantic", "pydantic"),
         ("stage-export-matrix", "matrix"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
@@ -350,6 +363,10 @@ pub fn full_spec() -> PipelineSpec {
             "stage-export-json-schema",
             "stage-export-matrix",
             "stage-export-metadata",
+            // THIS run's freshly-rendered Pydantic model package, folded into
+            // REP_MODELS_PYTHON by build_archive_blobs (sorted position:
+            // metadata < pydantic < references).
+            "stage-export-pydantic",
             "stage-export-references",
             "stage-export-research-objects",
             // THIS run's freshly-projected result-shapes.ttl, folded into REP_SHAPES so a

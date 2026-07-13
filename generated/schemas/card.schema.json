@@ -175,6 +175,14 @@
       },
       "type": "array"
     },
+    "python_model": {
+      "description": "The importable dotted path gmeow_models.<slice>.<Class> of the generated Pydantic model for a class term (the term→model link).",
+      "type": "string"
+    },
+    "python_snippet": {
+      "description": "A compact Pydantic import + model_validate snippet for a class term.",
+      "type": "string"
+    },
     "range": {
       "items": {
         "type": "string"

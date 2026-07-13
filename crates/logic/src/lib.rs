@@ -1,11 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 #![feature(portable_simd)]
-
-//! `gmeow-logic` — the Rust core of the gmeow reasoning engine.
+#![doc = include_str!("../README.md")]
 //!
-//! It models worlds as native RDF named graphs and provides world-indexed
-//! entailment queries gated against the language-neutral conformance corpus.
 //! This crate is single-target native only.
 
 pub mod annotation;
@@ -78,6 +75,12 @@ pub mod result_rdf;
 /// re-exported here as `gmeow_logic::result_shape` for the result family.
 pub use gmeow_logic_compile::result_shape;
 pub mod rule_ir;
+/// The supported, pin-able runtime query surface for an external runtime consumer:
+/// a curated projection of the store → snapshot → dispatch → result chain plus the
+/// self-describing [`runtime::EngineContract`] runtime pin. Stability is delivered
+/// consumer-side (git-tag/vendor + the content-addressed contract), never as a
+/// backwards-compat freeze of the churning core.
+pub mod runtime;
 pub mod seam;
 pub mod slme;
 pub mod stablemodel;

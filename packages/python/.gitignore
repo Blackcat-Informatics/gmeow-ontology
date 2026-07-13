@@ -1,0 +1,8 @@
+# Python build artifacts (the gmeow_models/ tree itself IS committed — it is a
+# generated, drift-checked ontology projection — but build outputs are not).
+/dist/
+/build/
+*.egg-info/
+__pycache__/
+*.pyc
+.venv/

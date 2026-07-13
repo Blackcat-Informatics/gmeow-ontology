@@ -52,8 +52,9 @@
 //!
 //! For a goal `g(t0, t1)` with adornment `a` (over `{b, f}`):
 //!
-//! 1. **Seed** — a bodyless rule deriving the goal's magic fact carrying the goal's bound
-//!    constant(s) (or, for `ff`, no seed at all — `ff` is unrestricted).
+//! 1. **Seed** — the goal's ground magic fact carrying the goal's bound constant(s),
+//!    asserted directly into the EDB as control state rather than retained as an
+//!    unconditional demand rule. For `ff` there is no seed at all (`ff` is unrestricted).
 //! 2. **Modified rules** — each original rule `h :- b1..bn` becomes, for the head
 //!    adornment `a_h`, `h :- magic_h^{a_h}, b1, ..., bn` (the guard prepended; an `ff`
 //!    head emits no guard).  Each IDB body atom is adorned per a left-to-right SIPS (a
@@ -384,20 +385,48 @@ fn rule(head: EvalAtom, body: Vec<EvalAtom>, rule_iri: String) -> EvalRule {
     }
 }
 
-/// The output of the magic-sets transformation: the transformed binary program (modified
-/// rules + magic rules) plus the ground seed fact (the goal's magic fact, inserted into
-/// the EDB before evaluation).
+/// Route a transform-emitted rule: a bodyless positive rule is an unconditional GROUND
+/// control fact, so materialize it directly as a demand seed; a conditional rule is emitted
+/// normally.
 ///
-/// The seed is inserted into the EDB rather than emitted as a bodyless rule because the
-/// semi-naive engine never fires a zero-positive-body rule (a bodyless rule produces no
-/// solution in a delta round); a magic seed is an asserted demand fact, so it belongs in
-/// the EDB seed.  An `ff` goal carries no seed (`None` — the predicate is unrestricted).
+/// A bodyless positive rule's head is always ground: an empty body means the head guard is
+/// `None`, so every bound position of the emitted atom is a constant carried from the source
+/// — never a variable. Deduping keeps the seed set deterministic when both emission sites
+/// mint the same demand fact.
+fn emit_or_seed(
+    head: EvalAtom,
+    body: Vec<EvalAtom>,
+    rule_iri: String,
+    out: &mut Vec<EvalRule>,
+    seeds: &mut Vec<EvalAtom>,
+) {
+    if body.is_empty() {
+        if !seeds.contains(&head) {
+            seeds.push(head); // deterministic dedup
+        }
+    } else {
+        out.push(rule(head, body, rule_iri));
+    }
+}
+
+/// The output of the magic-sets transformation: the transformed binary program (modified
+/// rules + magic rules) plus the SET of ground demand seed facts inserted into the EDB
+/// before evaluation.
+///
+/// EVERY unconditional demand rule the transform would produce (the goal's magic seed AND
+/// each per-atom/modified demand rule whose body collapses to empty) is lifted into this seed
+/// set. Such a rule is definitionally a ground control fact — an asserted demand — so it
+/// belongs in the EDB seed rather than the semantic rule program. An `ff` goal contributes no
+/// goal seed (the predicate is unrestricted); the set is then whatever the demand/modified
+/// sites lift.
 struct MagicProgram {
-    /// The transformed rules (modified original rules + magic rules).
+    /// The transformed rules (modified original rules + magic rules), with no
+    /// unconditional demand-control rule. Semantic NAF-only or builtin-only rules may
+    /// have no positive atom and are evaluated from the relational identity.
     rules: Vec<EvalRule>,
-    /// The goal's ground magic seed fact `(predicate, subject, object)`, or `None` for
-    /// an `ff` goal (no demand restriction).
-    seed: Option<EvalAtom>,
+    /// The ground demand seed facts to assert into the EDB before evaluation (the goal's
+    /// magic seed plus every lifted bodyless-rule head), deduplicated and order-stable.
+    seeds: Vec<EvalAtom>,
 }
 
 /// The full demanded adornment set of a magic-sets demand fixpoint: for each IDB predicate,
@@ -545,11 +574,15 @@ fn magic_transform(
     };
 
     let mut out: Vec<EvalRule> = Vec::new();
+    let mut seeds: Vec<EvalAtom> = Vec::new();
 
     // (3) Seed: the goal's magic fact, keyed on the KEPT table that serves the goal's
     //     adornment (the goal projection re-imposes the goal's own residual). None for an
-    //     all-free served goal. Inserted into the EDB by the caller.
-    let seed = magic_seed_atom(goal, served(goal.predicate.as_str(), goal_adorn));
+    //     all-free served goal. This and every other unconditional demand rule below are
+    //     asserted into the EDB by the caller as control facts.
+    if let Some(s) = magic_seed_atom(goal, served(goal.predicate.as_str(), goal_adorn)) {
+        seeds.push(s);
+    }
 
     // (4) Modified rules + magic rules, iterating ONLY the KEPT (most-general) head demands.
     //     Processing the general demand yields the general body demands; every body magic
@@ -594,7 +627,10 @@ fn magic_transform(
                                 served_a.code(),
                                 head_pred
                             );
-                            out.push(rule(magic_head, mbody, iri));
+                            // A leading bound recursive-IDB atom under an all-free head
+                            // yields an empty `mbody` (no head guard, empty prefix); its
+                            // ground magic head is lifted to a seed rather than dropped.
+                            emit_or_seed(magic_head, mbody, iri, &mut out, &mut seeds);
                         }
                     }
                     // The modified rule always keeps the ORIGINAL body atom (a negated atom
@@ -635,14 +671,37 @@ fn magic_transform(
                     r.head.predicate.as_str(),
                     head_adorn.code()
                 );
-                let mut modified = rule(r.head.clone(), mod_body, iri);
-                modified.builtins = r.builtins.clone();
-                out.push(modified);
+                // A ground fact-rule (empty original body) under an all-free head yields an
+                // empty `mod_body` with a ground head — an unconditional fact. Lift this
+                // transform control fact to a seed. A builtin-bearing rule is semantic, so
+                // retain it for relational-identity evaluation.
+                if mod_body.is_empty() && r.builtins.is_empty() {
+                    seeds.push(r.head.clone());
+                } else {
+                    let mut modified = rule(r.head.clone(), mod_body, iri);
+                    modified.builtins = r.builtins.clone();
+                    out.push(modified);
+                }
             }
         }
     }
 
-    MagicProgram { rules: out, seed }
+    // Unconditional transform control facts are seeds, never executable rules. Semantic
+    // NAF-only and builtin-only rules are valid: the semi-naive core starts them from the
+    // relational identity, so require semantic content rather than a positive driver.
+    assert!(
+        out.iter()
+            .all(|r| !r.body.is_empty() || !r.builtins.is_empty()),
+        "magic_transform must lift every unconditional demand-control rule into the seed set"
+    );
+    // The goal seed and the per-atom/modified demand lifts above can mint the same ground
+    // demand fact from more than one emission site; dedup ONCE here, order-preservingly
+    // (first-seen kept), rather than guarding every push with an O(N) `contains` scan.
+    // `EvalAtom` derives `Debug` but not `Hash`/`Ord` (its `TermValue` operand is external
+    // to this crate), so the dedup key is the atom's deterministic `Debug` rendering.
+    let mut seen = std::collections::HashSet::new();
+    seeds.retain(|s| seen.insert(format!("{s:?}")));
+    MagicProgram { rules: out, seeds }
 }
 
 /// The VARIANT (per-exact-adornment) magic-sets transformation — the `#[cfg(test)]`
@@ -664,9 +723,13 @@ fn magic_transform_variant(
         .collect();
 
     let mut out: Vec<EvalRule> = Vec::new();
+    let mut seeds: Vec<EvalAtom> = Vec::new();
 
-    // (1) Seed: the goal's magic fact (none for an ff goal).
-    let seed = magic_seed_atom(goal, goal_adorn);
+    // (1) Seed: the goal's magic fact (none for an ff goal). Every unconditional demand
+    //     rule below is likewise lifted into the seed set as control state.
+    if let Some(s) = magic_seed_atom(goal, goal_adorn) {
+        seeds.push(s);
+    }
 
     // The full variant-keyed (pred → exact adornments) demand set.
     let demanded = demand_fixpoint(rules, &idb, goal, goal_adorn);
@@ -704,7 +767,7 @@ fn magic_transform_variant(
                                 a.code(),
                                 head_pred
                             );
-                            out.push(rule(magic_head, mbody, iri));
+                            emit_or_seed(magic_head, mbody, iri, &mut out, &mut seeds);
                         }
                     }
                     mod_body.push(atom.clone());
@@ -719,14 +782,29 @@ fn magic_transform_variant(
                 }
 
                 let iri = format!("{}::mod/{}#{ri}", r.head.predicate.as_str(), adorn_code);
-                let mut modified = rule(r.head.clone(), mod_body, iri);
-                modified.builtins = r.builtins.clone();
-                out.push(modified);
+                if mod_body.is_empty() && r.builtins.is_empty() {
+                    seeds.push(r.head.clone());
+                } else {
+                    let mut modified = rule(r.head.clone(), mod_body, iri);
+                    modified.builtins = r.builtins.clone();
+                    out.push(modified);
+                }
             }
         }
     }
 
-    MagicProgram { rules: out, seed }
+    // The variant mirrors the production transform exactly: unconditional demand-control
+    // rules are lifted, while semantic NAF-only and builtin-only rules remain executable.
+    assert!(
+        out.iter()
+            .all(|r| !r.body.is_empty() || !r.builtins.is_empty()),
+        "magic_transform_variant must lift every unconditional demand-control rule into the seed set"
+    );
+    // Identical order-preserving end-of-transform dedup as `magic_transform` — required so
+    // the A/B byte-identity oracle test comparing the two transforms' seed sets holds.
+    let mut seen = std::collections::HashSet::new();
+    seeds.retain(|s| seen.insert(format!("{s:?}")));
+    MagicProgram { rules: out, seeds }
 }
 
 /// Convert a ground magic seed [`EvalAtom`] into a [`crate::rule_ir::Fact`] for EDB
@@ -1025,8 +1103,9 @@ impl IncrementalQuerySession {
 ///
 /// `Ok(None)` is an explicit optimization-boundary result, not a semantic refusal:
 /// the ordinary native scratch path still decides the request.  The session declines
-/// cut, n-ary atoms, NAF, builtins, rule facts/bodyless rules, and step-bounded runs;
-/// those paths retain their existing governed or fragment-specific implementation.
+/// cut, n-ary atoms, NAF, builtins, and step-bounded runs; those paths retain their
+/// existing governed or fragment-specific implementation. A leading-bound recursive-IDB
+/// body IS supported — its demand is a lifted seed, not a bodyless transformed rule.
 pub(crate) fn prepare_incremental_query(
     foreign: &dyn WorldFactSource,
     world: &str,
@@ -1086,16 +1165,20 @@ pub(crate) fn prepare_incremental_query(
         return Ok(None);
     };
     let transformed = magic_transform(&rules, &goal_atom, goal_adornment(goal));
-    if transformed.rules.iter().any(|rule| {
-        rule.body.is_empty()
-            || rule.body.iter().any(|atom| atom.negated)
-            || !rule.builtins.is_empty()
-    }) {
+    // A bodyless positive rule no longer survives the transform — every such demand is
+    // lifted into `transformed.seeds` and asserted into the EDB below — so the incremental
+    // path now SUPPORTS a leading-bound recursive-IDB body instead of declining it. NAF and
+    // builtins remain out of the incremental fragment.
+    if transformed
+        .rules
+        .iter()
+        .any(|rule| rule.body.iter().any(|atom| atom.negated) || !rule.builtins.is_empty())
+    {
         return Ok(None);
     }
 
     let mut edb = extract_edb(foreign, world).facts_sorted();
-    if let Some(seed) = &transformed.seed {
+    for seed in &transformed.seeds {
         edb.push(seed_to_fact(seed)?);
     }
     let state = IncrementalSession::new(contract_hash, edb, &transformed.rules)?;
@@ -1111,9 +1194,9 @@ pub(crate) fn prepare_incremental_query(
 ///
 /// Parity sibling of [`crate::reference_resolver::resolve`]: the returned [`AnswerSet`]
 /// (after `canonicalize`) carries the SAME goal-variable bindings and status as the
-/// top-down oracle for the binary positive corpus.  A cut / arithmetic / non-binary input
-/// is a declared gap ([`NativeOutcome::Unsupported`]); the caller routes such requests to
-/// an oracle (no-optionality).
+/// retained top-down reference for the binary positive corpus. A cut / arithmetic /
+/// non-binary input is a declared gap ([`NativeOutcome::Unsupported`]); production dispatch
+/// surfaces that typed refusal because no fallback evaluator remains.
 ///
 /// # Budget semantics
 ///
@@ -1208,7 +1291,8 @@ fn eval_with_base_fallback(
                     demand_pruning_dropped: true,
                 })
             }
-            // A builtin gap in the base program passes through to the caller's oracle route.
+            // A builtin gap in the base program passes through to production dispatch as a
+            // typed refusal.
             NativeOutcome::Unsupported(other) => Ok(FallbackOutcome::Unsupported(other)),
         };
     };
@@ -1224,7 +1308,7 @@ fn eval_with_base_fallback(
             })
         }
         // Any other declared native gap (cut / arithmetic / non-binary) passes through to
-        // the caller's oracle route unchanged.
+        // production dispatch unchanged.
         NativeOutcome::Unsupported(other) => Ok(FallbackOutcome::Unsupported(other)),
     }
 }
@@ -1337,13 +1421,13 @@ fn evaluate_binary_under(
         .filter(|rule| rule.rule_iri.contains("::magic/"))
         .map(|rule| rule.head.predicate.clone())
         .collect();
-    if let Some(seed) = &transformed.seed {
+    for seed in &transformed.seeds {
         control_predicates.insert(seed.predicate.clone());
     }
 
     let mut edb = extract_edb(foreign, world);
     let base_edb_facts = edb.facts_sorted();
-    if let Some(seed) = &transformed.seed {
+    for seed in &transformed.seeds {
         let fact = seed_to_fact(seed)?;
         edb.insert(&fact.predicate, &fact.subject, &fact.object);
     }
@@ -1388,17 +1472,16 @@ fn evaluate_binary_under(
 
 /// Resolve `program`'s single backward goal against `world` via the native magic-sets core.
 ///
-/// # Oracle-soundness contract
+/// # Native-authority contract
 ///
 /// The native core is AUTHORITATIVE for every request it decides: a
 /// [`NativeOutcome::Decided`] answer is the whole answer (exact, or an honestly-downgraded
-/// complete over-approximation on the base fallback), and dispatch returns it without
-/// consulting any oracle. The oracle is consulted ONLY where the native core declares a
+/// complete over-approximation on the native base fallback). A
 /// [`NativeOutcome::Unsupported`] gap — cut, arithmetic residue, a non-binary shape, a
-/// genuinely non-stratifiable program, or a floundering NAF goal. The two never overlap:
-/// native never silently defers a case it can decide, and the oracle never overrides a
-/// native verdict. Stratified negation stays entirely inside this native path (decided or a
-/// declared gap); it is never a silent drop.
+/// genuinely non-stratifiable program, or a floundering NAF goal — is surfaced by production
+/// [`crate::dispatch::dispatch_query`] as a typed hard failure. There is no external oracle,
+/// secondary evaluator, or demotion route. Stratified negation stays entirely inside this
+/// native path (decided or a declared gap); it is never a silent drop.
 pub(crate) fn resolve_native(
     foreign: &dyn WorldFactSource,
     world: &str,
@@ -1676,12 +1759,12 @@ where
         .filter(|rule| rule.rule_iri.contains("::magic/"))
         .map(|rule| rule.head.predicate.clone())
         .collect::<BTreeSet<_>>();
-    if let Some(seed) = &transformed.seed {
+    for seed in &transformed.seeds {
         control_predicates.insert(seed.predicate.clone());
     }
     let base_edb_facts = extract_edb(foreign, world).facts_sorted();
     let mut edb = base_edb_facts.clone();
-    if let Some(seed) = &transformed.seed {
+    for seed in &transformed.seeds {
         edb.push(seed_to_fact(seed)?);
     }
     edb.sort_by_key(Fact::key);
@@ -2169,7 +2252,7 @@ mod tests {
         let goal_atom = atom_of(goal).unwrap();
         let transformed = magic_transform(&rules, &goal_atom, goal_adornment(goal));
         let mut edb = extract_edb(&foreign, &world_nn);
-        if let Some(seed) = &transformed.seed {
+        for seed in &transformed.seeds {
             let f = seed_to_fact(seed).unwrap();
             edb.insert(&f.predicate, &f.subject, &f.object);
         }
@@ -2274,14 +2357,14 @@ mod tests {
     // Over the finite triple EDB a pure-Datalog backward program always terminates; the
     // ONLY divergence source is an arithmetic `is` value-generator inside an IDB cycle
     // with no finite driver.  `potentially_nonterminating_arithmetic` flags EXACTLY that
-    // shape, and `resolve_native` routes it to the oracle when `max_steps` is None (no
+    // shape, and `resolve_native` returns a typed refusal when `max_steps` is None (no
     // hang possible), evaluating normally when a step budget can cut the recursion.
 
     /// A binary self-drive `count(X,S) :- count(X,Y), S is Y+1` (seeded from an EDB
     /// `seed(a,a)` via a base rule) has NO finite driver in its recursive rule — its only
     /// positive body atom is the cyclic head predicate `count`, and the `is` generates a
     /// fresh successor forever.  With no step budget that is an unbounded hang, so the
-    /// native core refuses it to the oracle as `NonTerminatingArithmetic`.
+    /// native core refuses it as `NonTerminatingArithmetic`.
     fn self_drive_program() -> String {
         format!(
             ":- prefix(ex, '{BASE}').\n\
@@ -2956,7 +3039,7 @@ mod tests {
     // (b) A genuinely non-stratifiable program (a negative cycle p ⇄ q at the BASE level,
     // over binary atoms with the negated vars range-restricted by `e`): both the demand
     // transform AND the base are non-stratifiable, so the native core declares the gap and
-    // dispatch routes it to the oracle.
+    // production dispatch surfaces the typed refusal.
     #[test]
     fn magic_negative_cycle_is_unsupported_nonstratifiable() {
         let (store, world_nn) = make_world(&[(
@@ -3058,7 +3141,7 @@ mod tests {
 
     // An n-ary (non-binary) program that also carries negation is an explicit, honest gap:
     // stratified NAF lives only on the binary backward path, so the generic n-ary path
-    // refuses it to the oracle rather than silently dropping the negation.
+    // returns a typed refusal rather than silently dropping the negation.
     #[test]
     fn magic_nary_with_negation_is_unsupported() {
         let (store, world_nn) = make_world(&[(
@@ -3137,7 +3220,7 @@ mod tests {
         let goal_atom = atom_of(goal).unwrap();
         let transformed = transform(&rules, &goal_atom, goal_adornment(goal));
         let mut edb = extract_edb(foreign, world);
-        if let Some(seed) = &transformed.seed {
+        for seed in &transformed.seeds {
             let f = seed_to_fact(seed).unwrap();
             edb.insert(&f.predicate, &f.subject, &f.object);
         }
@@ -3368,7 +3451,7 @@ mod tests {
         // Evaluate the SUBSUMPTIVE transformed program and inspect the derived `p` facts.
         let mp = magic_transform(&rules, &goal_atom, adorn);
         let mut edb = extract_edb(&foreign, &world_nn);
-        if let Some(seed) = &mp.seed {
+        for seed in &mp.seeds {
             let f = seed_to_fact(seed).unwrap();
             edb.insert(&f.predicate, &f.subject, &f.object);
         }
@@ -3417,6 +3500,396 @@ mod tests {
             .map(String::as_str)
             .collect::<BTreeSet<_>>(),
             "the specific request yields exactly the correct instances, no leak: {answers:?}"
+        );
+    }
+
+    // ── Leading-bound recursive-IDB demand-seed repro ─────────────────────────────
+    //
+    // A conjunctive rule body that LEADS with a recursive IDB atom carrying a bound
+    // argument (`reach(self, P)`) must resolve the join — never silently return empty+Ok.
+    // The magic transform identifies the `reach_bf(self,self)` demand for that leading atom
+    // as an unconditional control fact. It must be materialized in the EDB seed set so
+    // `reach` is demanded before the semantic program runs.
+
+    /// The base recursive `reach` program + a trailing goal/rule snippet.
+    fn leading_idb_src(tail: &str) -> String {
+        format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reach(X, Y) :- ex:knows(X, Y).\n\
+             ex:reach(X, Y) :- ex:knows(X, Z), ex:reach(Z, Y).\n\
+             {tail}"
+        )
+    }
+
+    /// The repro world: `self →knows a →knows b`; `b` carries an EDB name and mention. The
+    /// name object here is an IRI (`nameB`); [`leading_idb_world_literal_name`] below carries
+    /// the SAME shape with the name object as a string literal instead, which is the issue's
+    /// exact repro term (`nameMatch(b, "b")`) — both constant kinds are now exercised by the
+    /// leading-IDB regression suite.
+    fn leading_idb_world() -> (WorldStore, String) {
+        make_world(&[
+            (
+                &format!("{BASE}self"),
+                &format!("{BASE}knows"),
+                &format!("{BASE}a"),
+            ),
+            (
+                &format!("{BASE}a"),
+                &format!("{BASE}knows"),
+                &format!("{BASE}b"),
+            ),
+            (
+                &format!("{BASE}b"),
+                &format!("{BASE}nameMatch"),
+                &format!("{BASE}nameB"),
+            ),
+            (
+                &format!("{BASE}b"),
+                &format!("{BASE}mentioned"),
+                &format!("{BASE}engines"),
+            ),
+        ])
+    }
+
+    /// The SAME repro world as [`leading_idb_world`], except the `nameMatch` triple's
+    /// object is a genuine `xsd:string` literal `"b"` rather than an IRI — the issue's exact
+    /// repro term `ex:nameMatch(ex:b, "b")`. The goal-rule's `S` position is a free variable
+    /// (never a parsed literal in the query text), so the literal only needs to exist in the
+    /// EDB store: it is inserted via [`WorldStore::insert_quad_terms`] (term-preserving),
+    /// while the other three triples still go through the IRI-only [`WorldStore::insert_quad`].
+    fn leading_idb_world_literal_name() -> (WorldStore, String) {
+        let store = WorldStore::new();
+        store.insert_quad(
+            W,
+            &format!("{BASE}self"),
+            &format!("{BASE}knows"),
+            &format!("{BASE}a"),
+        );
+        store.insert_quad(
+            W,
+            &format!("{BASE}a"),
+            &format!("{BASE}knows"),
+            &format!("{BASE}b"),
+        );
+        store
+            .insert_quad_terms(
+                W,
+                TermValue::iri(format!("{BASE}b")),
+                TermValue::iri(format!("{BASE}nameMatch")),
+                TermValue::simple_literal("b"),
+            )
+            .unwrap();
+        store.insert_quad(
+            W,
+            &format!("{BASE}b"),
+            &format!("{BASE}mentioned"),
+            &format!("{BASE}engines"),
+        );
+        (store, W.to_owned())
+    }
+
+    #[test]
+    fn magic_leading_bound_recursive_idb_body_resolves() {
+        let (store, world_nn) = leading_idb_world();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let budget = Budget::default();
+
+        // (label, goal/rule tail, expected binding count). The bare-reach and EDB-first rows
+        // are the controls (correct even on the pre-fix engine); the two leading-IDB rows are
+        // the repro (empty + Ok before the seed-set fix).
+        let rows: [(&str, &str, usize); 4] = [
+            ("bare-reach", "?- ex:reach(ex:self, P).\n", 2),
+            (
+                "edb-first-control",
+                "ex:c(P, S) :- ex:nameMatch(P, S), ex:reach(ex:self, P), ex:mentioned(P, ex:engines).\n\
+                 ?- ex:c(P, S).\n",
+                1,
+            ),
+            (
+                "leading-idb-name",
+                "ex:c(P, S) :- ex:reach(ex:self, P), ex:nameMatch(P, S).\n\
+                 ?- ex:c(P, S).\n",
+                1,
+            ),
+            (
+                "leading-idb-name-mention",
+                "ex:c(P, S) :- ex:reach(ex:self, P), ex:nameMatch(P, S), ex:mentioned(P, ex:engines).\n\
+                 ?- ex:c(P, S).\n",
+                1,
+            ),
+        ];
+        for (label, tail, want) in rows {
+            let prog = parse_query_program(&leading_idb_src(tail)).unwrap();
+            let ans = crate::dispatch::dispatch_query(&foreign, &world_nn, &prog, PROFILE, &budget)
+                .unwrap();
+            assert_eq!(
+                ans.status,
+                BudgetStatus::Ok,
+                "{label}: status must be Ok (never a silent empty drop): {ans:?}"
+            );
+            assert_eq!(
+                ans.bindings.len(),
+                want,
+                "{label}: expected {want} bindings, got {ans:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn magic_leading_bound_recursive_idb_literal_name_object_resolves() {
+        // The issue's exact repro term: `nameMatch(b, "b")` with a STRING LITERAL object,
+        // not an IRI. The leading-IDB seed-set fix must not be sensitive to the constant
+        // kind carried by the trailing EDB atom — this drives the same demand-seed path as
+        // `magic_leading_bound_recursive_idb_body_resolves`'s "leading-idb-name" row, but
+        // over `leading_idb_world_literal_name()`.
+        let (store, world_nn) = leading_idb_world_literal_name();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let budget = Budget::default();
+        let src = leading_idb_src(
+            "ex:c(P, S) :- ex:reach(ex:self, P), ex:nameMatch(P, S).\n\
+             ?- ex:c(P, S).\n",
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans =
+            crate::dispatch::dispatch_query(&foreign, &world_nn, &prog, PROFILE, &budget).unwrap();
+        assert_eq!(
+            ans.status,
+            BudgetStatus::Ok,
+            "literal-object leading-IDB: status must be Ok (never a silent empty drop): {ans:?}"
+        );
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "literal-object leading-IDB: expected 1 binding, got {ans:?}"
+        );
+        assert_eq!(
+            ans.bindings[0]["S"], "\"b\"",
+            "S must bind to the string literal \"b\": {ans:?}"
+        );
+    }
+
+    #[test]
+    fn magic_ff_goal_ground_fact_rule_resolves() {
+        // Site B: a ground fact-rule `pf(a, b).` under an all-free goal `?- pf(X, Y)` lowers
+        // the modified rule to an EMPTY body — an unconditional fact that belongs in the
+        // demand seed set rather than the transformed semantic program.
+        let (store, world_nn) = make_world(&[]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let budget = Budget::default();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:pf(ex:a, ex:b).\n\
+             ?- ex:pf(X, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let ans =
+            crate::dispatch::dispatch_query(&foreign, &world_nn, &prog, PROFILE, &budget).unwrap();
+        assert_eq!(
+            ans.status,
+            BudgetStatus::Ok,
+            "Site B status must be Ok: {ans:?}"
+        );
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "Site B ff-goal + ground fact-rule must return the asserted fact: {ans:?}"
+        );
+    }
+
+    #[test]
+    fn magic_leading_bound_recursive_idb_incremental_capable() {
+        // The incremental path previously DECLINED (returned None) a leading-bound
+        // recursive-IDB program because the transform produced a bodyless demand rule. With
+        // that demand lifted to a seed, the session is prepared and yields the correct
+        // non-empty answer end-to-end.
+        let (store, world_nn) = leading_idb_world();
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let budget = Budget::default();
+        let src = leading_idb_src(
+            "ex:c(P, S) :- ex:reach(ex:self, P), ex:nameMatch(P, S).\n\
+             ?- ex:c(P, S).\n",
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let mut session =
+            prepare_incremental_query(&foreign, &world_nn, &prog, "test-contract-1511", &budget)
+                .unwrap()
+                .expect(
+                    "a leading-bound recursive-IDB program must now prepare an incremental \
+                     session (its demand is a lifted seed, not a bodyless rule)",
+                );
+        // Apply no changes: the base least model already carries the demanded join.
+        let ans = session
+            .apply_iri_changes(std::iter::empty::<(String, String, String, i64)>(), None)
+            .unwrap();
+        assert_eq!(ans.status, BudgetStatus::Ok, "incremental status: {ans:?}");
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "incremental leading-IDB answer must be non-empty: {ans:?}"
+        );
+        assert_eq!(
+            ans.bindings[0]["P"],
+            format!("<{BASE}b>"),
+            "P must bind to b: {ans:?}"
+        );
+        assert_eq!(
+            ans.bindings[0]["S"],
+            format!("<{BASE}nameB>"),
+            "S must bind to nameB: {ans:?}"
+        );
+    }
+
+    #[test]
+    fn magic_seeds_are_exactly_the_bodyless_rule_heads() {
+        // Demand-completeness certificate (Beeri–Ramakrishnan): the materialized seed set is
+        // EXACTLY the set of ground heads of the bodyless positive rules the transform would
+        // emit. For the leading-IDB program the sole such demand is `magic_reach_bf(self,
+        // self)` — the goal `c` is ff, so it contributes no goal seed.
+        let src = leading_idb_src(
+            "ex:c(P, S) :- ex:reach(ex:self, P), ex:nameMatch(P, S).\n\
+             ?- ex:c(P, S).\n",
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let rules = eval_rules_of(&prog);
+        let goal = &prog.goal.atoms[0];
+        let goal_atom = atom_of(goal).unwrap();
+        let transformed = magic_transform(&rules, &goal_atom, goal_adornment(goal));
+
+        // No unconditional rule survives (the invariant the transform asserts), and every
+        // seed is ground. Semantic NAF-only/builtin-only rules remain valid because they
+        // carry body or builtin content.
+        assert!(
+            transformed
+                .rules
+                .iter()
+                .all(|r| !r.body.is_empty() || !r.builtins.is_empty()),
+            "no transformed rule may be unconditional: {:?}",
+            transformed.rules
+        );
+        for s in &transformed.seeds {
+            assert!(seed_to_fact(s).is_ok(), "every seed must be ground: {s:?}");
+        }
+
+        // Re-derive the expected demand independently: the only leading bound recursive-IDB
+        // atom is `reach(self, _)` adorned bf, so the single lifted demand seed is the
+        // self-loop `magic_reach_bf(self, self)`.
+        let reach_pred = rules
+            .iter()
+            .map(|r| r.head.predicate.as_str())
+            .find(|p| p.ends_with("reach"))
+            .expect("the program defines reach")
+            .to_owned();
+        let self_iri = EvalTerm::ConstNamed(format!("{BASE}self"));
+        let expected = EvalAtom {
+            subject: self_iri.clone(),
+            predicate: magic_pred_iri(&reach_pred, "bf"),
+            object: self_iri,
+            negated: false,
+        };
+        assert_eq!(
+            transformed.seeds.len(),
+            1,
+            "exactly one lifted demand seed: {:?}",
+            transformed.seeds
+        );
+        assert_eq!(
+            transformed.seeds[0], expected,
+            "the seed set must equal the bodyless-rule-head demand set {{magic_reach_bf(self, self)}}"
+        );
+    }
+
+    // ── Empty-positive-body identity: NAF-only and builtin-only rules evaluate ──
+    //
+    // The empty conjunction contributes one empty substitution. NAF then filters that row
+    // against the frozen lower-stratum store, while sequential `is` builtins extend it.
+
+    #[test]
+    fn resolve_native_ground_naf_only_body_evaluates_absence_and_presence() {
+        let (store, world_nn) = make_world(&[]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(ex:a, ex:b) :- \\+ ex:q(ex:a, ex:b).\n\
+             ?- ex:p(X, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let absent =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        assert_eq!(
+            absent.bindings.len(),
+            1,
+            "absent q must let p fire: {absent:?}"
+        );
+        assert_eq!(absent.bindings[0]["X"], format!("<{BASE}a>"));
+        assert_eq!(absent.bindings[0]["Y"], format!("<{BASE}b>"));
+
+        let q_subject = format!("{BASE}a");
+        let q_predicate = format!("{BASE}q");
+        let q_object = format!("{BASE}b");
+        let (store, world_nn) = make_world(&[(&q_subject, &q_predicate, &q_object)]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let present =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        assert!(
+            present.bindings.is_empty(),
+            "present q must block the ground NAF-only rule: {present:?}"
+        );
+    }
+
+    #[test]
+    fn resolve_native_builtin_only_body_evaluates_adjacent_assignments() {
+        let (store, world_nn) = make_world(&[]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(X, Y) :- X is 1, Y is 2.\n\
+             ?- ex:p(A, B).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let answer =
+            decided(resolve_native(&foreign, &world_nn, &prog, &Budget::default()).unwrap());
+        assert_eq!(
+            answer.bindings.len(),
+            1,
+            "builtin-only rule must fire once: {answer:?}"
+        );
+        assert_eq!(
+            answer.bindings[0]["A"],
+            "\"1\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+        assert_eq!(
+            answer.bindings[0]["B"],
+            "\"2\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+    }
+
+    #[test]
+    fn prepare_incremental_query_declines_ground_naf() {
+        // The incremental path already declines any body carrying a `Neg` literal
+        // (`binary_eligible`'s per-literal match at the top of
+        // `prepare_incremental_query`), UPSTREAM of `magic_transform` — so it is
+        // panic-safe on this shape with no additional gate needed there.
+        let (store, world_nn) = make_world(&[]);
+        let foreign = WorldFactSnapshot::from_world(&store, W, PROFILE).unwrap();
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:p(ex:a, ex:b) :- \\+ ex:q(ex:a, ex:b).\n\
+             ?- ex:p(X, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+        let session = prepare_incremental_query(
+            &foreign,
+            &world_nn,
+            &prog,
+            "test-contract-1511-unpositive",
+            &Budget::default(),
+        )
+        .unwrap();
+        assert!(
+            session.is_none(),
+            "a ground-NAF-only body must decline incremental preparation, not panic: \
+             {:?}",
+            session.is_some()
         );
     }
 }

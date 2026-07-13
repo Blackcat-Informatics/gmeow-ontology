@@ -499,13 +499,13 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
             let slug = term_slug(term);
             files.insert(
                 format!("terms/{slug}/card.md"),
-                term_card_md_inner(term, &alignment_facets).into_bytes(),
+                term_card_md_inner(term, &alignment_facets, model).into_bytes(),
             );
             // card.json — the standard-tier neutral card, deterministically
             // serialized (the `Card` derives `Serialize` with a fixed field
             // order and every internal collection is already ordered).
-            let standard =
-                doc_term_card(term, &alignment_facets).projected(crate::card::CardDetail::Standard);
+            let standard = doc_term_card(term, &alignment_facets, model)
+                .projected(crate::card::CardDetail::Standard);
             let json = serde_json::to_vec(&standard).unwrap_or_else(|e| {
                 // A pure-data `Card` of `String`/`Vec`/`Option` fields cannot fail
                 // to serialize; a failure here is a genuine invariant break.
@@ -2671,7 +2671,188 @@ const SYNTAX_TAB_PROVIDERS: &[SyntaxTabProvider] = &[
     jsonld_syntax_tab,
     json_schema_syntax_tab,
     openapi_syntax_tab,
+    python_syntax_tab,
+    rust_syntax_tab,
 ];
+
+/// The generated `gmeow_models` module slug for a slice IRI (the last IRI segment,
+/// lowercased, non-identifier chars → `_`) — the same routing the Pydantic emitter
+/// uses, so `gmeow_models.<slice>` resolves to the term's model module.
+pub(crate) fn pydantic_module_slug(slice_iri: &str) -> String {
+    let local = slice_iri.rsplit(['#', '/']).next().unwrap_or(slice_iri);
+    let mut out = String::new();
+    for ch in local.chars() {
+        out.push(if ch == '_' || ch.is_ascii_alphanumeric() {
+            ch.to_ascii_lowercase()
+        } else {
+            '_'
+        });
+    }
+    while out.contains("__") {
+        out = out.replace("__", "_");
+    }
+    out.trim_matches('_').to_string()
+}
+
+/// The generated Pydantic class name for a class IRI: the CamelCase of its local
+/// name (mirroring the emitter's `sanitize_type`), guarded against a leading digit.
+pub(crate) fn pydantic_class_name(iri: &str) -> String {
+    let local = iri.rsplit(['#', '/']).next().unwrap_or(iri);
+    let mut ident = String::new();
+    for ch in local.chars() {
+        ident.push(if ch == '_' || ch.is_ascii_alphanumeric() {
+            ch
+        } else {
+            '_'
+        });
+    }
+    while ident.contains("__") {
+        ident = ident.replace("__", "_");
+    }
+    ident = ident.trim_matches('_').to_string();
+    let mut chars = ident.chars();
+    let name = match chars.next() {
+        Some(c) => format!("{}{}", c.to_ascii_uppercase(), chars.as_str()),
+        None => "GmeowModel".to_string(),
+    };
+    if name.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+        format!("N{name}")
+    } else {
+        name
+    }
+}
+
+/// Escape `text` for embedding as a non-raw, double-quoted Python string
+/// literal: backslash and `"` are the only two characters a Python string
+/// escape needs to neutralize, and an embedded literal newline (the
+/// pretty-printer's structural whitespace, not a JSON string's *own*
+/// characters — JSON already `\n`-escapes those) must become `\n` too, since a
+/// non-raw, non-triple-quoted literal cannot contain one. Unlike a raw
+/// triple-quoted literal (`r'''...'''`), this form has no forbidden
+/// subsequence: `json.loads` decoding the result always reproduces `text`
+/// exactly, regardless of its content.
+fn python_str_escape(text: &str) -> String {
+    let mut out = String::with_capacity(text.len() + 2);
+    for ch in text.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+/// The Python (Pydantic) example tab: construct-and-validate the term's worked
+/// instance against its generated `gmeow_models` model — importing the model IS
+/// reading the term. Present only for a modeled class (one carrying a schema
+/// fragment); the payload is the SAME quickstart instance the Turtle / JSON-LD
+/// tabs render, so the code never drifts from the RDF example.
+fn python_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+    // Only a modeled class has a Pydantic model + a JSON-Schema fragment.
+    model
+        .schema_fragments
+        .as_ref()?
+        .schema_by_term
+        .get(&term.iri)?;
+    let skeleton = synthesize_quickstart(model, term);
+    if !skeleton_has_triple(&skeleton) {
+        return None;
+    }
+    let payload = quickstart_turtle_to_jsonld(&skeleton)?;
+    // A raw triple-quoted literal (`r'''...'''`) cannot escape a `'''` run, so
+    // an unlucky payload would terminate the string early and emit broken
+    // Python; a non-raw double-quoted literal has no such forbidden
+    // subsequence.
+    let payload_literal = python_str_escape(&payload);
+    let module = pydantic_module_slug(&term.owner_slice);
+    let class = pydantic_class_name(&term.iri);
+    let body = format!(
+        "import json\n\n\
+         from gmeow_models.{module} import {class}\n\n\
+         # The same worked instance shown in the Turtle / JSON-LD tabs, validated\n\
+         # against the ontology-derived model:\n\
+         payload = json.loads(\"{payload_literal}\")\n\
+         obj = {class}.model_validate(payload)\n\
+         print(obj.model_dump(by_alias=True, exclude_none=True))"
+    );
+    Some(DocSyntaxTab {
+        id: "python".to_string(),
+        label: "Python".to_string(),
+        lang: "python".to_string(),
+        body,
+    })
+}
+
+/// The narrowest Rust raw-string hash-fence width that is safe for `text`: one
+/// more `#` than the longest run of `#` immediately following any `"` in
+/// `text`. A raw string `r###"..."###` terminates at the first `"` followed by
+/// AT LEAST as many `#` as the fence width, so a fixed one-`#` fence
+/// (`r#"..."#`) is unsafe whenever `text` itself contains a `"#` sequence;
+/// widening past every such run in `text` makes early termination impossible.
+fn rust_raw_fence_width(text: &str) -> usize {
+    let bytes = text.as_bytes();
+    let mut max_run = 0usize;
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'"' {
+            let mut run = 0usize;
+            let mut j = i + 1;
+            while j < bytes.len() && bytes[j] == b'#' {
+                run += 1;
+                j += 1;
+            }
+            max_run = max_run.max(run);
+        }
+        i += 1;
+    }
+    max_run + 1
+}
+
+/// Render `text` as a Rust raw-string literal (delimiters included) using a
+/// hash fence wide enough that `text` cannot terminate it early — see
+/// [`rust_raw_fence_width`]. For the common case (no `"#`-like run in `text`)
+/// this is the familiar `r#"..."#`.
+fn rust_raw_string_literal(text: &str) -> String {
+    let fence = "#".repeat(rust_raw_fence_width(text));
+    format!("r{fence}\"{text}\"{fence}")
+}
+
+/// The Rust example tab: parse the SAME quickstart instance and validate it with
+/// the native GMEOW validator — the shipped Rust surface paired with the Python
+/// tab, from the one worked instance. Present under the same modeled-class
+/// condition as [`python_syntax_tab`].
+fn rust_syntax_tab(term: &DocTerm, model: &DocsModel) -> Option<DocSyntaxTab> {
+    model
+        .schema_fragments
+        .as_ref()?
+        .schema_by_term
+        .get(&term.iri)?;
+    let skeleton = synthesize_quickstart(model, term);
+    if !skeleton_has_triple(&skeleton) {
+        return None;
+    }
+    let turtle = format!("{QUICKSTART_TURTLE_PREAMBLE}{skeleton}");
+    // A fixed one-`#` fence breaks if `turtle` ever contains `"#`; widen the
+    // fence to whatever this particular worked instance needs.
+    let turtle_literal = rust_raw_string_literal(&turtle);
+    let body = format!(
+        "// Parse the same worked instance shown in the Turtle tab and validate it\n\
+         // with the native GMEOW validator (the shipped Rust surface).\n\
+         let turtle = {turtle_literal};\n\
+         let dataset = purrdf::parse_turtle(turtle)?;\n\
+         let report = gmeow_validate::validate(&dataset)?;\n\
+         assert!(report.conforms());"
+    );
+    Some(DocSyntaxTab {
+        id: "rust".to_string(),
+        label: "Rust".to_string(),
+        lang: "rust".to_string(),
+        body: body.trim_end().to_string(),
+    })
+}
 
 /// Whether a synthesized quickstart skeleton carries at least one Turtle triple
 /// line (a non-comment, non-blank line) — the class/property skeletons do; the
@@ -6411,7 +6592,7 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
     let alignment_facets = precompute_alignment_facets(model);
     out.push_str("## Terms\n\n");
     for term in &model.terms {
-        out.push_str(&term_full_block(term, &alignment_facets));
+        out.push_str(&term_full_block(term, &alignment_facets, model));
     }
 
     if !model.concerns.is_empty() {
@@ -6463,10 +6644,11 @@ pub fn llms_full_txt(model: &DocsModel) -> String {
 /// shared core of both the per-term card and the `llms-full.txt` inlined block.
 /// Pure markdown text (no links), so it is safe to inline anywhere. Takes the
 /// precomputed alignment facets so a caller emitting every term pays the linkage
-/// scan ONCE (not O(N²)).
-fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
+/// scan ONCE (not O(N²)), and `model` so the term→model link can be gated on the
+/// schema-fragment digest (see [`doc_term_card`]).
+fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets, model: &DocsModel) -> String {
     crate::card::render_card_body(
-        &doc_term_card(term, alignment_facets),
+        &doc_term_card(term, alignment_facets, model),
         crate::card::CardDetail::Standard,
     )
 }
@@ -6475,10 +6657,37 @@ fn term_body(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
 /// every IRI-bearing field to its display (local-name) form. The shared
 /// [`crate::card::render_card_body`] then renders it — the SAME renderer the
 /// folded-snapshot MCP card uses, so the two never diverge (§19 one-path).
-fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::card::Card {
+fn doc_term_card(
+    term: &DocTerm,
+    alignment_facets: &AlignmentFacets,
+    model: &DocsModel,
+) -> crate::card::Card {
     let label = match &term.label {
         Some(l) if l != &term.curie => Some(l.clone()),
         _ => None,
+    };
+    // The explicit term→model link (§19): a modeled class carries the importable
+    // dotted path of its generated Pydantic model plus a compact construct/validate
+    // snippet, from the SAME emitter routing the Python example tab uses (never
+    // duplicated). Gated on the SAME schema-fragment digest as
+    // [`python_syntax_tab`] — only a class with an actually-generated model has a
+    // schema fragment to route to.
+    let is_modeled = term.category == DocTermCategory::Class
+        && model
+            .schema_fragments
+            .as_ref()
+            .is_some_and(|digest| digest.schema_by_term.contains_key(&term.iri));
+    let (python_model, python_snippet) = if is_modeled {
+        (
+            Some(crate::card::python_model_path(&term.owner_slice, &term.iri)),
+            Some(crate::card::python_model_snippet(
+                &term.owner_slice,
+                &term.iri,
+                &term.curie,
+            )),
+        )
+    } else {
+        (None, None)
     };
     crate::card::Card {
         category: category_singular(term.category).to_string(),
@@ -6505,6 +6714,8 @@ fn doc_term_card(term: &DocTerm, alignment_facets: &AlignmentFacets) -> crate::c
             .get(term.iri.as_str())
             .cloned()
             .unwrap_or_default(),
+        python_model,
+        python_snippet,
         // Full-tier rich panels: never populated on the docs-site path.
         ..crate::card::Card::default()
     }
@@ -6536,7 +6747,7 @@ fn full_card_for(
     alignment_facets: &AlignmentFacets,
     fixtures_by_curie: &FixturesByCurie<'_>,
 ) -> crate::card::Card {
-    let mut card = doc_term_card(term, alignment_facets);
+    let mut card = doc_term_card(term, alignment_facets, model);
 
     // Entailments — the reasoner "why" derivations documenting the term.
     if let Some(entailments) = exec.term_entailments.get(&term.iri) {
@@ -6612,12 +6823,16 @@ fn full_card_for(
 
 /// The full inlined block for one term in `llms-full.txt`: a `### {curie}{signature}`
 /// heading followed by the shared [`term_body`].
-fn term_full_block(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
+fn term_full_block(
+    term: &DocTerm,
+    alignment_facets: &AlignmentFacets,
+    model: &DocsModel,
+) -> String {
     format!(
         "### {}{}\n\n{}",
         term.curie,
         term_signature(term),
-        term_body(term, alignment_facets)
+        term_body(term, alignment_facets, model)
     )
 }
 
@@ -6627,17 +6842,33 @@ fn term_full_block(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String
 /// injection. Emitted at `terms/{slug}/card.md` and served live over MCP.
 pub fn term_card_md(model: &DocsModel, term: &DocTerm) -> String {
     let alignment_facets = precompute_alignment_facets(model);
-    term_card_md_inner(term, &alignment_facets)
+    term_card_md_inner(term, &alignment_facets, model)
+}
+
+/// The `card.json` machine surface for ONE term — the STANDARD-tier [`Card`]
+/// serialized byte-for-byte as `render_site_lang` emits `terms/{slug}/card.json`
+/// (and as the live MCP `doc_card format=json detail=standard` renders). The
+/// single-term counterpart of [`term_card_md`]: lets a caller obtain one term's
+/// card payload without rendering the whole site.
+pub fn term_card_json(model: &DocsModel, term: &DocTerm) -> Vec<u8> {
+    let alignment_facets = precompute_alignment_facets(model);
+    let standard =
+        doc_term_card(term, &alignment_facets, model).projected(crate::card::CardDetail::Standard);
+    serde_json::to_vec(&standard).expect("a pure-data Card of String/Vec/Option fields serializes")
 }
 
 /// [`term_card_md`] with the alignment facets supplied — lets `render_site_lang`
 /// emit every card while paying the linkage scan once.
-fn term_card_md_inner(term: &DocTerm, alignment_facets: &AlignmentFacets) -> String {
+fn term_card_md_inner(
+    term: &DocTerm,
+    alignment_facets: &AlignmentFacets,
+    model: &DocsModel,
+) -> String {
     format!(
         "# {}{}\n\n{}",
         term.curie,
         term_signature(term),
-        term_body(term, alignment_facets)
+        term_body(term, alignment_facets, model)
     )
 }
 
@@ -6779,6 +7010,92 @@ mod tests {
         assert_eq!(md_escape("a|b"), "a\\|b");
         assert_eq!(md_escape("<x>"), "\\<x\\>");
         assert_eq!(md_escape("line\nbreak"), "line break");
+    }
+
+    /// Decode a Python double-quoted literal body the way `json.loads` would
+    /// see it after Python's own string-literal decoding — i.e. undo exactly
+    /// the two escapes [`python_str_escape`] introduces (`\\` and `\"`, plus
+    /// the `\n`/`\r` it uses to stand in for a literal newline/CR that a
+    /// non-raw literal cannot otherwise carry) — so the test can assert the
+    /// round trip without invoking a Python interpreter.
+    fn decode_python_double_quoted(escaped: &str) -> String {
+        let mut out = String::with_capacity(escaped.len());
+        let mut chars = escaped.chars();
+        while let Some(c) = chars.next() {
+            if c == '\\' {
+                match chars.next() {
+                    Some('\\') => out.push('\\'),
+                    Some('"') => out.push('"'),
+                    Some('n') => out.push('\n'),
+                    Some('r') => out.push('\r'),
+                    other => panic!("unexpected escape \\{other:?} in {escaped:?}"),
+                }
+            } else {
+                out.push(c);
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn python_str_escape_round_trips_triple_quote_and_metachars() {
+        // A payload containing `'''` would prematurely terminate the OLD
+        // `r'''{payload}'''` raw literal; a payload containing `\` or `"`
+        // exercises the two escapes a non-raw double-quoted literal needs.
+        // A literal newline is what a pretty-printed JSON-LD payload actually
+        // contains, and is exactly what a non-raw, non-triple-quoted literal
+        // cannot carry unescaped.
+        let payload = "{\"a\": \"it's '''not''' a \\\"quote\\\"\\\\end\",\n  \"b\": 1}";
+        let literal = python_str_escape(payload);
+
+        // No unescaped `"` may appear in the body (each `"` must be preceded
+        // by exactly one `\`), and no raw newline may appear at all — both
+        // would break a non-raw double-quoted Python literal.
+        assert!(
+            !literal.contains('\n'),
+            "escaped body must not carry a literal newline: {literal:?}"
+        );
+        let mut prev = '\0';
+        for ch in literal.chars() {
+            if ch == '"' {
+                assert_eq!(prev, '\\', "unescaped quote in {literal:?}");
+            }
+            prev = ch;
+        }
+
+        // Decoding what Python would decode reproduces the original payload
+        // exactly, so `json.loads("{literal}")` gets back the exact JSON text.
+        assert_eq!(decode_python_double_quoted(&literal), payload);
+    }
+
+    #[test]
+    fn rust_raw_fence_width_widens_past_embedded_hash_quote_runs() {
+        // No `"#`-like run at all: the familiar single-`#` fence suffices.
+        assert_eq!(rust_raw_fence_width("plain turtle, no quotes"), 1);
+        assert_eq!(rust_raw_fence_width(r#"a "quoted" string"#), 1);
+
+        // A literal string value immediately followed by a `#`-fragment IRI
+        // puts a `"#` run in the content — this demands a wider fence than
+        // the naive one-`#` fence the old code always used (`r#"..."#`),
+        // which is exactly the twin bug the reviewer flagged in
+        // `python_syntax_tab`'s raw-triple-quote interpolation.
+        let turtle = "ex:x ex:note \"ends right here\"##weird .";
+        let width = rust_raw_fence_width(turtle);
+        assert_eq!(
+            width, 3,
+            "content has a 2-`#` run after `\"`, needs a 3-`#` fence"
+        );
+
+        let literal = rust_raw_string_literal(turtle);
+        let fence = "#".repeat(width);
+        assert_eq!(literal, format!("r{fence}\"{turtle}\"{fence}"));
+        // The fence must not appear as a `"`-followed-by-fence-or-more run
+        // anywhere inside the raw content, or the literal would close early.
+        let close = format!("\"{}", "#".repeat(width));
+        assert!(
+            !turtle.contains(&close),
+            "chosen fence {width} still matches inside content: {turtle:?}"
+        );
     }
 
     #[test]
@@ -7038,7 +7355,8 @@ mod tests {
         // The standard tier carries NO rich-panel keys.
         assert!(parsed.get("entailments").is_none(), "standard omits panels");
         let facets = precompute_alignment_facets(&model);
-        let expected = doc_term_card(foo, &facets).projected(crate::card::CardDetail::Standard);
+        let expected =
+            doc_term_card(foo, &facets, &model).projected(crate::card::CardDetail::Standard);
         let expected_bytes = serde_json::to_vec(&expected).expect("serialize standard card");
         assert_eq!(
             bytes, &expected_bytes,
@@ -7062,7 +7380,7 @@ mod tests {
         );
         // The full body is a strict superset of the standard body (single renderer).
         let standard_body = crate::card::render_card_body(
-            &doc_term_card(foo, &facets),
+            &doc_term_card(foo, &facets, &model),
             crate::card::CardDetail::Standard,
         );
         assert!(

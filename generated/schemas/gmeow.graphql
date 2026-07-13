@@ -648,11 +648,15 @@ enum AxisFloorCommitmentEnum {
   afc_logic_axisFlagshipCounterExampleDepth
   afc_logic_axisGmn1Coverage
   afc_logic_axisMaximalGrounding
+  afc_logic_axisMaximalInformation
   afc_logic_axisMaximalLinkage
   afc_logic_axisMaximalProjection
+  afc_logic_axisOptimalTesting
+  afc_logic_axisProseQuality
   afc_logic_axisProvenanceHonesty
   afc_logic_axisReasonerDerived
   afc_logic_axisShapeMigration
+  afc_logic_axisTranslationCoverage
   afc_math_axisDocMaturity
   afc_math_axisDocumentation
   afc_math_axisGmn1Coverage
@@ -2881,6 +2885,7 @@ enum PipelineStageEnum {
   stage_export_okf
   stage_export_parquet
   stage_export_profiles
+  stage_export_pydantic
   stage_export_references
   stage_export_research_objects
   stage_export_result_shapes

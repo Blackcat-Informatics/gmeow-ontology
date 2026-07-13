@@ -74,23 +74,37 @@ impl Stage for JsonSchemaStage {
         // + `slices/*/*/shapes.ttl`) is exactly the source set the emitter reads.
         // Declaring those as cache inputs keeps `consumes() == []` (no DAG edge)
         // while busting the cache whenever any shape file changes — the same
-        // pattern frame_shapes uses for its authored sources.
-        purrdf::shapes::shape_union::shape_files(root)
-            .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))
+        // pattern frame_shapes uses for its authored sources. The value-vocabulary
+        // enrichment ALSO reads the ontology ABox (`slices/**/module.ttl`), so those
+        // sources bust the cache too — a new vocabulary member must reflow the schema.
+        let mut files = purrdf::shapes::shape_union::shape_files(root)
+            .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
+        files.extend(crate::stages::value_vocab::ontology_module_files(root));
+        files.sort();
+        files.dedup();
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(input.root)
             .map_err(|m| gmeow_errors::Diag::of_kind(crate::error::Parse { message: m }))?;
-        let compiled = purrdf::shapes::json_schema::compile(
-            &shapes,
-            &crate::gmeow_ns::gmeow_json_schema_namespaces(),
-        );
+        let ns = crate::gmeow_ns::gmeow_json_schema_namespaces();
+        let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns);
         report_losses(&compiled.losses);
+        // Enrich the shipped JSON Schema with the ontology's open value vocabularies —
+        // the SAME enrichment the Pydantic surface applies, so both agree. Re-serialized
+        // via `schema_bytes` (serde pretty + trailing LF), which reproduces `purrdf`'s
+        // own `to_pretty` byte convention exactly.
+        let mut schema: serde_json::Value =
+            serde_json::from_str(&compiled.schema_json).map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("parse compiled JSON Schema: {e}"),
+                })
+            })?;
+        let onto = crate::stages::value_vocab::load_ontology_store(input.root)?;
+        let onto_view = crate::stages::export::FoldView::new(&onto);
+        crate::stages::value_vocab::enrich_value_vocab_enums(&mut schema, &ns, &onto_view);
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        artifacts.insert(
-            JSON_SCHEMA_PATH.to_string(),
-            compiled.schema_json.into_bytes(),
-        );
+        artifacts.insert(JSON_SCHEMA_PATH.to_string(), schema_bytes(&schema)?);
         artifacts.insert(OPENAPI_PATH.to_string(), compiled.openapi_json.into_bytes());
         // The two hand-authored self-describing schemas, co-located with their Rust
         // types (drift-resistance). They ride REP_SCHEMAS so a repo-free consumer can

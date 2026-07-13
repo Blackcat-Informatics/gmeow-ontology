@@ -17191,12 +17191,21 @@ enums:
       afc-logic-axisMaximalGrounding:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalGrounding
         title: axis-floor commitment — logic / axisMaximalGrounding
+      afc-logic-axisMaximalInformation:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalInformation
+        title: axis-floor commitment — logic / axisMaximalInformation
       afc-logic-axisMaximalLinkage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalLinkage
         title: axis-floor commitment — logic / axisMaximalLinkage
       afc-logic-axisMaximalProjection:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisMaximalProjection
         title: axis-floor commitment — logic / axisMaximalProjection
+      afc-logic-axisOptimalTesting:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisOptimalTesting
+        title: axis-floor commitment — logic / axisOptimalTesting
+      afc-logic-axisProseQuality:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisProseQuality
+        title: axis-floor commitment — logic / axisProseQuality
       afc-logic-axisProvenanceHonesty:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisProvenanceHonesty
         title: axis-floor commitment — logic / axisProvenanceHonesty
@@ -17206,6 +17215,9 @@ enums:
       afc-logic-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisShapeMigration
         title: axis-floor commitment — logic / axisShapeMigration
+      afc-logic-axisTranslationCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-logic-axisTranslationCoverage
+        title: axis-floor commitment — logic / axisTranslationCoverage
       afc-math-axisDocMaturity:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisDocMaturity
         title: axis-floor commitment — math / axisDocMaturity
@@ -22720,6 +22732,9 @@ enums:
       stage-export-profiles:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-profiles
         title: 'export: profiles'
+      stage-export-pydantic:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-pydantic
+        title: 'export: pydantic models'
       stage-export-references:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-references
         title: 'export: references'

@@ -912,17 +912,186 @@ PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX exa: <https://blackcatinformatics.ca/gmeow/examples/logic/acceptance/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    VALUES ?scenario {
-        exa:elRlDlClosure exa:correspondenceSection exa:counterfactualStratumC
-        exa:symmetricConjecture exa:chaseTerminationCertificate
+    FILTER NOT EXISTS {
+        VALUES ?scenario {
+            exa:elRlDlClosure exa:correspondenceSection exa:counterfactualStratumC
+            exa:symmetricConjecture exa:chaseTerminationCertificate
+        }
+        FILTER NOT EXISTS {
+            ?scenario a gmeow:FlagshipScenario ;
+                gmeow:demonstratedByExample ?ex ;
+                gmeow:demonstratedByCompetency ?cq ;
+                gmeow:demonstratedByProducer ?prod ;
+                gmeow:guardedByCounterExample ?ce ;
+                gmeow:enforcesFailureClass ?fc .
+            ?fc rdfs:subClassOf+ logic:LogicConformanceFailure .
+            FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?prod) && isLiteral(?ce) && isIRI(?fc))
+        }
     }
-    ?scenario a gmeow:FlagshipScenario ;
-        gmeow:demonstratedByExample ?ex ;
-        gmeow:demonstratedByCompetency ?cq ;
-        gmeow:demonstratedByProducer ?prod ;
-        gmeow:guardedByCounterExample ?ce ;
-        gmeow:enforcesFailureClass ?fc .
-    ?fc rdfs:subClassOf+ logic:LogicConformanceFailure .
-    FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?prod) && isLiteral(?ce) && isIRI(?fc))
 }""" ;
     gmeow:saRationale "This layer's five flagship acceptance scenarios MUST each be present as a gmeow:FlagshipScenario binding its worked example, competency question, native producer, counter-example, and a real logic:LogicConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .
+
+# --- Typed unified IR declarations and carrier typing (MUST) -----------------
+ex:saTypedIrCarrierContract a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    logic:Formula a owl:Class .
+    logic:Rule a owl:Class .
+    logic:TermCarrier a owl:Class .
+    logic:argument rdfs:domain logic:Formula ; rdfs:range logic:TermCarrier .
+    logic:quantifiedVariable rdfs:domain logic:Formula ; rdfs:range logic:TermCarrier .
+    logic:termIndex rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
+    logic:termIri rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
+    logic:termVariable rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
+    logic:termLiteral rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
+    logic:termLiteralDatatype rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
+    logic:termSequenceMarker rdfs:domain logic:TermCarrier ; a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "The typed IR MUST distinguish general Formula trees, productive Rule nodes, and the TermCarrier RDF slots that preserve ordered term kinds. Every argument and binder points to a carrier; each carrier field is single-valued and domain-locked to TermCarrier, preventing the former error in which termLiteralDatatype classified its carrier as a Formula." .
+
+# --- Formula and term constructors have executable exclusivity (MUST) -------
+ex:saTypedIrConstructorConstraints a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    FILTER NOT EXISTS {
+        VALUES ?sugar {
+            logic:ChoiceGroupConstraint logic:GuardedImplicationConstraint
+            logic:DisjunctiveRequirednessConstraint logic:PathValueTypeConstraint
+            logic:CrossNodeConstraint logic:ForbiddenPatternConstraint logic:AggregateConstraint
+        }
+        FILTER NOT EXISTS {
+            ?sugar rdfs:subClassOf logic:ConstraintSugar .
+            FILTER NOT EXISTS { ?sugar rdfs:subClassOf logic:Formula }
+        }
+    }
+    logic:FormulaConstructorConstraint a logic:ChoiceGroupConstraint ;
+        logic:onClass logic:Formula ;
+        logic:choiceMode "exactly-one" ;
+        logic:choicePredicate logic:relation, logic:not, logic:and, logic:or,
+            logic:antecedent, logic:iff, logic:forall, logic:exists .
+    logic:ImplicationConsequentConstraint a logic:GuardedImplicationConstraint ;
+        logic:trigger logic:antecedent ; logic:requires logic:consequent .
+    logic:ImplicationAntecedentConstraint a logic:GuardedImplicationConstraint ;
+        logic:trigger logic:consequent ; logic:requires logic:antecedent .
+    logic:TermCarrierValueConstraint a logic:ChoiceGroupConstraint ;
+        logic:onClass logic:TermCarrier ;
+        logic:choiceMode "exactly-one" ;
+        logic:choicePredicate logic:termIri, logic:termVariable,
+            logic:termLiteral, logic:termSequenceMarker .
+    logic:TermCarrierIndexConstraint logic:requires logic:termIndex .
+    logic:LiteralDatatypeConstraint logic:trigger logic:termLiteralDatatype ;
+        logic:requires logic:termLiteral .
+}""" ;
+    gmeow:saRationale "Constraint-sugar descriptors MUST be distinct from object-level Formula AST nodes, while formula constructor choice, the two inseparable implication operands, the four exclusive term kinds, required carrier indices, and literal/datatype pairing remain ontology-resident executable constraints. The Rust parser supplies the graph-global companion checks for arity, unique contiguous indices, and cycles; neither layer relies on prose alone." .
+
+# --- Lowering legality is distinct from output presentation (MUST) ----------
+ex:saTypedIrConversionTarget a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    logic:ConversionTarget a owl:Class .
+    logic:ProjectionTarget a owl:Class .
+    logic:Dialect a owl:Class ; rdfs:subClassOf logic:ConversionTarget .
+    logic:RelationalCore a logic:Dialect, logic:ConversionTarget .
+    FILTER NOT EXISTS { logic:Dialect rdfs:subClassOf logic:ProjectionTarget }
+}""" ;
+    gmeow:saRationale "A compiler lowering MUST name a legality domain distinct from a reasoning contract's requested renderings: every Dialect is a ConversionTarget, and RelationalCore is the concrete conversion target of the native execution lowering. ProjectionTarget remains the separate presentation facet and is not a superclass of Dialect." .
+
+# --- The module coordinate remains orthogonal to presentation (MUST) --------
+ex:saTypedIrModuleContextIsIndependent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:ContextAxis a owl:Class .
+    logic:Module a owl:Class .
+    logic:ModuleContextAxis a logic:ContextAxis .
+    logic:contextAxis a owl:ObjectProperty .
+    logic:projectionTarget a owl:ObjectProperty .
+    logic:inModule a owl:ObjectProperty .
+    logic:imports a owl:ObjectProperty .
+    FILTER (
+        logic:contextAxis != logic:projectionTarget &&
+        logic:inModule != logic:imports
+    )
+    FILTER NOT EXISTS { logic:ModuleContextAxis a logic:ProjectionTarget }
+}""" ;
+    gmeow:saRationale "The named-theory coordinate MUST remain a real ContextAxis independent of answer presentation: ModuleContextAxis indexes the theory containing a statement, inModule carries membership, and imports controls theory visibility. None is a projection request, and membership is not importation. This prevents the typed-IR contract from collapsing module, epistemic context, and rendering into one ambiguous slot." .
+
+# --- Lens legs and preservation-critical annotations stay typed (MUST) -----
+ex:saTypedIrLensContractIsDirectional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    logic:Lens a owl:Class .
+    logic:getLeg a owl:ObjectProperty ;
+        rdfs:domain logic:Lens ;
+        rdfs:range logic:TransactionProgram .
+    logic:putLeg a owl:ObjectProperty ;
+        rdfs:domain logic:Lens ;
+        rdfs:range logic:TransactionProgram .
+    logic:loadBearing a owl:DatatypeProperty ;
+        rdfs:range xsd:boolean .
+    FILTER (logic:getLeg != logic:putLeg)
+}""" ;
+    gmeow:saRationale "A Lens MUST retain two directionally distinct executable TransactionProgram legs: get lowers the rich source to a view, while put folds a view back into the source. The boolean loadBearing marker remains the typed signal that inverse reconstruction depends on an annotation, so a lowering cannot silently discard it." .
+
+# --- Non-entailment discharge is closed and engine-backed (MUST) -----------
+ex:saTypedIrNonEntailmentDischargeIsTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    logic:DischargeCondition a owl:Class .
+    logic:DischargeVerdict a owl:Class .
+    logic:obligationDischargeCondition a owl:ObjectProperty ;
+        rdfs:domain logic:NonEntailmentObligation ;
+        rdfs:range logic:DischargeCondition .
+    logic:obligationDischargeVerdict a owl:ObjectProperty ;
+        rdfs:domain logic:NonEntailmentObligation ;
+        rdfs:range logic:DischargeVerdict .
+    logic:IntentNotFromDeceptionObligation
+        a logic:NonEntailmentObligation ;
+        logic:obligationDischargeCondition logic:DischargeFiniteClosure ;
+        logic:obligationDischargeVerdict logic:ObligationDischarged .
+}""" ;
+    gmeow:saRationale "A deliberate non-entailment MUST name both the closed condition under which absence is decidable and the closed verdict produced by that check. The standing deception obligation dogfoods the engine-backed finite-closure condition and its discharged verdict, rather than presenting a hand-authored result in the worked typed-IR fixture." .
+
+# --- Relational-core tuple vocabulary and residue tags are disjoint (MUST) -
+ex:saTypedIrRelationalCoreVocabularyIsPositional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    logic:Type a owl:Class .
+    logic:instanceOf a owl:ObjectProperty .
+    logic:naryArg0 a owl:ObjectProperty .
+    logic:naryArg1 a owl:ObjectProperty .
+    logic:naryArg2 a owl:ObjectProperty .
+    logic:FormulaShape a owl:Class .
+    logic:Disjunctive a logic:FormulaShape .
+    FILTER (
+        logic:naryArg0 != logic:naryArg1 &&
+        logic:naryArg0 != logic:naryArg2 &&
+        logic:naryArg1 != logic:naryArg2
+    )
+}""" ;
+    gmeow:saRationale "The evaluable relational-core lowering MUST type one tuple reifier through instanceOf and preserve each fixed argument in a distinct zero-based positional predicate. FormulaShape remains a separate loss-ledger vocabulary: Disjunctive tags unsupported residue and is never confused with an emitted tuple edge. The production Rust adapter test proves the source ternary formula actually lowers through this contract." .

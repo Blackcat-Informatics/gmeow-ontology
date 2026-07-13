@@ -303,11 +303,15 @@ https://blackcatinformatics.ca/gmeow/slices/logic	axisDocumentation	1.0
 https://blackcatinformatics.ca/gmeow/slices/logic	axisFlagshipCounterExampleDepth	1.0
 https://blackcatinformatics.ca/gmeow/slices/logic	axisGmn1Coverage	1.0
 https://blackcatinformatics.ca/gmeow/slices/logic	axisMaximalGrounding	1.0
+https://blackcatinformatics.ca/gmeow/slices/logic	axisMaximalInformation	0.5772102747909199
 https://blackcatinformatics.ca/gmeow/slices/logic	axisMaximalLinkage	1.0
 https://blackcatinformatics.ca/gmeow/slices/logic	axisMaximalProjection	1.0
+https://blackcatinformatics.ca/gmeow/slices/logic	axisOptimalTesting	0.392823418319169
+https://blackcatinformatics.ca/gmeow/slices/logic	axisProseQuality	0.6482334869431644
 https://blackcatinformatics.ca/gmeow/slices/logic	axisProvenanceHonesty	1.0
 https://blackcatinformatics.ca/gmeow/slices/logic	axisReasonerDerived	1.0
 https://blackcatinformatics.ca/gmeow/slices/logic	axisShapeMigration	1.0
+https://blackcatinformatics.ca/gmeow/slices/logic	axisTranslationCoverage	0.3416320885200553
 https://blackcatinformatics.ca/gmeow/slices/math	axisDocMaturity	0.75
 https://blackcatinformatics.ca/gmeow/slices/math	axisDocumentation	1.0
 https://blackcatinformatics.ca/gmeow/slices/math	axisGmn1Coverage	1.0

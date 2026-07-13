@@ -870,7 +870,7 @@ fn certify_sticky(_views: &[RuleView]) -> Vec<String> {
 /// orthogonal Evolution-facet characterization) hard-fails on an unrecognized
 /// value. That asymmetry is out of the Evolution-facet work's scope and is left
 /// deliberately untouched here so it can be flagged rather than silently changed.
-fn decidability_class(profile: &str) -> &'static str {
+pub(crate) fn decidability_class(profile: &str) -> &'static str {
     match profile {
         "PositiveHornProfile" => "terminating/PTIME-data",
         "StratifiedNAFProfile" => "terminating/PTIME-data",

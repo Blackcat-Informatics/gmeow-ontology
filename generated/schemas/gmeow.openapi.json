@@ -27298,6 +27298,31 @@
                 "@type": {
                   "anyOf": [
                     {
+                      "const": "logic:Formula"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:Formula"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:Formula"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
                       "const": "logic:FreshnessGuard"
                     },
                     {
@@ -27515,6 +27540,31 @@
             },
             "then": {
               "$ref": "#/$defs/logic:SectionAcceptanceWitness"
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "logic:TermCarrier"
+                    },
+                    {
+                      "contains": {
+                        "const": "logic:TermCarrier"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/logic:TermCarrier"
             }
           },
           {
@@ -43992,6 +44042,31 @@
         ],
         "type": "object"
       },
+      "logic:Formula": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
+        "type": "object"
+      },
       "logic:FreshnessGuard": {
         "properties": {
           "@annotation": {
@@ -44955,6 +45030,31 @@
         "required": [
           "logic:dischargesSectionObligation"
         ],
+        "type": "object"
+      },
+      "logic:TermCarrier": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+        "properties": {
+          "@annotation": {
+            "$ref": "#/$defs/Annotation"
+          },
+          "@id": {
+            "type": "string"
+          },
+          "@type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          }
+        },
         "type": "object"
       },
       "math:AlgebraicStructure": {

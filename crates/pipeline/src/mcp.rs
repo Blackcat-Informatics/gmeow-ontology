@@ -615,6 +615,10 @@ pub struct McpView {
     /// across all `requested` lists. Empty when the doc graph is absent (then the
     /// `llms.txt` index renders linkless).
     doc_urls: OnceLock<Arc<HashMap<String, String>>>,
+    /// The JSON Schema `$defs` key set folded into this bundle's `schemas-archive`
+    /// blob — the model-existence signal `export::term_to_card`'s `python_model`
+    /// gate reads (built once from `gts`, like `doc_urls`; see [`Self::modeled_defs`]).
+    modeled_defs: OnceLock<Arc<BTreeSet<String>>>,
     /// The raw `gmeow.gts` snapshot bytes this view was imported from, retained
     /// verbatim. `from_snapshot` parses the bundle to the carrier dataset and
     /// then DISCARDS the bytes; the native validation surface
@@ -640,6 +644,7 @@ impl McpView {
             version,
             cache: Mutex::new(HashMap::new()),
             doc_urls: OnceLock::new(),
+            modeled_defs: OnceLock::new(),
             gts,
         })
     }
@@ -797,8 +802,9 @@ impl McpView {
     fn llms_full_text(&self, requested: Vec<String>) -> String {
         let title = self.title.clone();
         let version = self.version.clone();
+        let modeled_defs = self.modeled_defs();
         self.with_terms(requested, |terms| {
-            export::consumer_llms_full(terms, &title, &version)
+            export::consumer_llms_full(terms, &title, &version, &modeled_defs)
         })
     }
 
@@ -824,7 +830,10 @@ impl McpView {
         requested: Vec<String>,
     ) -> gmeow_errors::Result<String> {
         use gmeow_docs::card::CardDetail;
-        let built = self.with_terms(requested, |terms| export::doc_card_build(terms, term));
+        let modeled_defs = self.modeled_defs();
+        let built = self.with_terms(requested, |terms| {
+            export::doc_card_build(terms, term, &modeled_defs)
+        });
         let (title, mut card) = match built {
             ConsumerResolution::Resolved(pair) => pair,
             ConsumerResolution::Ambiguous { candidates } => {
@@ -1405,6 +1414,23 @@ impl McpView {
         Arc::clone(self.doc_urls.get_or_init(|| {
             let view = FoldView::new(self.dataset.as_ref());
             Arc::new(export::doc_url_map(&view))
+        }))
+    }
+
+    /// The JSON Schema `$defs` key set folded into this bundle's `schemas-archive`
+    /// blob — the "this class has a generated Pydantic model" existence signal
+    /// `export::term_to_card`'s `python_model` gate reads (see
+    /// `export::class_is_modeled`), built once from the raw snapshot bytes (like
+    /// `doc_urls`, language-independent). Empty when the bundle carries no
+    /// `schemas-archive` rep, mirroring `crate::bundle_blobs::Bundle`'s own
+    /// wheel-only-install contract for this accessor — a card's `python_model`
+    /// line is ancillary, never worth a hard crash of the whole server.
+    fn modeled_defs(&self) -> Arc<BTreeSet<String>> {
+        Arc::clone(self.modeled_defs.get_or_init(|| {
+            let defs = crate::bundle_blobs::Bundle::from_snapshot(&self.gts)
+                .and_then(|b| b.modeled_def_keys())
+                .unwrap_or_default();
+            Arc::new(defs)
         }))
     }
 
@@ -5951,8 +5977,9 @@ mod tests {
 
         // Independent expected: the SAME shared builder + renderer at Standard.
         let requested = server.startup_requested.clone();
+        let modeled_defs = server.view.modeled_defs();
         let expected = server.view.with_terms(requested, |terms| {
-            let (title, card) = export::doc_card_build(terms, term)
+            let (title, card) = export::doc_card_build(terms, term, &modeled_defs)
                 .resolved()
                 .expect("known term resolves");
             gmeow_docs::card::render_card(&title, &card, gmeow_docs::card::CardDetail::Standard)

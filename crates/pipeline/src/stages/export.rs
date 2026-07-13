@@ -1029,7 +1029,20 @@ pub(crate) fn collect_terms(view: &FoldView) -> Vec<Term> {
 /// carry the SAME slice. When the term has no recovered slice (e.g. a doc graph
 /// is absent), `Card::slice` is `None` and the header line is omitted — never a
 /// blank value.
-pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
+/// Whether `iri` names a `$defs` entry in `modeled_defs` (the JSON Schema
+/// `$defs` key set — [`crate::bundle_blobs::Bundle::modeled_def_keys`]), keyed
+/// through the SAME namespace table the SHACL→JSON-Schema compiler used
+/// ([`crate::gmeow_ns::gmeow_json_schema_namespaces`]) — the "this class has a
+/// generated Pydantic model" existence signal `term_to_card`'s `python_model`
+/// gate reads. Shared with `gmeow_docs::render::doc_term_card` and
+/// `gmeow_docs::describe::build_card` in spirit (never in code — the crate
+/// boundary is one-directional), so all three builders agree (issue: Pydantic
+/// model surface, finding F3).
+fn class_is_modeled(iri: &str, modeled_defs: &BTreeSet<String>) -> bool {
+    modeled_defs.contains(&crate::gmeow_ns::gmeow_json_schema_namespaces().def_key(iri))
+}
+
+pub(crate) fn term_to_card(t: &Term, modeled_defs: &BTreeSet<String>) -> gmeow_docs::card::Card {
     let category = match t.category {
         "class" => "Class",
         "property" => "Property",
@@ -1064,6 +1077,27 @@ pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
     } else {
         vec![t.range.clone()]
     };
+    // The explicit term→model link (§19): a modeled class carries the importable
+    // dotted path of its generated Pydantic model plus a compact construct/validate
+    // snippet, from the SAME emitter routing the docs-site Python tab uses (never
+    // duplicated). Gated on `class_is_modeled` (the class actually names a `$defs`
+    // entry) rather than merely "is a Class with an owning slice" — an abstract
+    // class with no SHACL NodeShape has NO generated model, and unconditionally
+    // emitting the link fabricated an ImportError for a user who copied it (issue:
+    // Pydantic model surface, finding F3).
+    let (python_model, python_snippet) =
+        if t.category == "class" && class_is_modeled(&t.iri, modeled_defs) {
+            (
+                Some(gmeow_docs::card::python_model_path(&t.owner_slice, &t.iri)),
+                Some(gmeow_docs::card::python_model_snippet(
+                    &t.owner_slice,
+                    &t.iri,
+                    &t.curie,
+                )),
+            )
+        } else {
+            (None, None)
+        };
     // Individuals carry `types` rather than parents; surface them as Related-style
     // "a Type" is not a card field, so fold types into related_terms is wrong;
     // instead they ride the `(a …)` signature suffix on the heading. Keep the
@@ -1095,6 +1129,8 @@ pub(crate) fn term_to_card(t: &Term) -> gmeow_docs::card::Card {
         use_for_consumer: t.use_for_consumer.clone(),
         avoid_for_consumer: t.avoid_for_consumer.clone(),
         aligns: t.alignments.clone(),
+        python_model,
+        python_snippet,
         // Full-tier rich panels: the folded builder has no documentation-graph
         // access; the MCP `doc_card` full tier populates them from the graph.
         ..gmeow_docs::card::Card::default()
@@ -1724,7 +1760,12 @@ fn write_llms_txt(terms: &[Term], title: &str, version: &str) -> Vec<u8> {
 /// disclosed, never silently dropped). Shared by the flat `dist/llms-full.txt`
 /// export and the MCP `llms_full` surface — the folded-`Term` twin of the
 /// docs-site `gmeow_docs::render::llms_full_txt`.
-pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> String {
+pub(crate) fn consumer_llms_full(
+    terms: &[Term],
+    title: &str,
+    version: &str,
+    modeled_defs: &BTreeSet<String>,
+) -> String {
     let prose = llms_prose(
         version,
         "Complete inlined form — every term, its definition, and its usage advice in full, \
@@ -1745,7 +1786,7 @@ pub(crate) fn consumer_llms_full(terms: &[Term], title: &str, version: &str) -> 
             t.curie,
             llms_signature(t),
             gmeow_docs::card::render_card_body(
-                &term_to_card(t),
+                &term_to_card(t, modeled_defs),
                 gmeow_docs::card::CardDetail::Standard,
             )
         );
@@ -2021,11 +2062,12 @@ mod consumer {
     pub(crate) fn doc_card_build(
         terms: &[Term],
         query: &str,
+        modeled_defs: &BTreeSet<String>,
     ) -> ConsumerResolution<(String, gmeow_docs::card::Card)> {
         match resolve_term(terms, query) {
             ConsumerResolution::Resolved(t) => {
                 let title = format!("{}{}", t.curie, llms_signature(t));
-                ConsumerResolution::Resolved((title, super::term_to_card(t)))
+                ConsumerResolution::Resolved((title, super::term_to_card(t, modeled_defs)))
             }
             ConsumerResolution::Ambiguous { candidates } => {
                 ConsumerResolution::Ambiguous { candidates }
@@ -2625,8 +2667,9 @@ fn j_str_key(j: &J) -> String {
 /// through [`render_all_with_languages`].
 pub(crate) fn render_all(
     dataset: &RdfDataset,
+    modeled_defs: &BTreeSet<String>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
-    render_all_with_languages(dataset, &["en".to_string()])
+    render_all_with_languages(dataset, &["en".to_string()], modeled_defs)
 }
 
 /// Render every flat-export artifact honoring a requested public-BCP-47 language
@@ -2634,9 +2677,13 @@ pub(crate) fn render_all(
 /// `definition` selection (via [`FoldView::with_requested`]); every entry adds a
 /// `label_<lang>` / `definition_<lang>` CSV column pair. An empty list falls back
 /// to `["en"]`. Mirrors the Python `export` command's `selector` threading.
+/// `modeled_defs` is the JSON Schema `$defs` key set
+/// ([`crate::bundle_blobs::Bundle::modeled_def_keys`]) `llms-full.txt`'s inlined
+/// cards gate their `python_model` link on (see [`class_is_modeled`]).
 pub(crate) fn render_all_with_languages(
     dataset: &RdfDataset,
     languages: &[String],
+    modeled_defs: &BTreeSet<String>,
 ) -> Result<BTreeMap<String, Vec<u8>>, gmeow_errors::Diag> {
     let requested: Vec<String> = if languages.is_empty() {
         vec!["en".to_string()]
@@ -2683,7 +2730,7 @@ pub(crate) fn render_all_with_languages(
     );
     out.insert(
         format!("{DIST_DIR}/llms-full.txt"),
-        consumer_llms_full(&terms, &title, &version).into_bytes(),
+        consumer_llms_full(&terms, &title, &version, modeled_defs).into_bytes(),
     );
     out.insert(
         format!("{DIST_DIR}/gmeow.nq"),
@@ -2746,16 +2793,57 @@ pub(crate) fn read_fold_upstream(
     crate::stages::carrier::snapshot_dataset(upstream)
 }
 
+/// THIS run's JSON Schema `$defs` key set, read directly off the in-memory
+/// `stage-export-json-schema` product (never a stale disk read of the previously
+/// committed `generated/schemas/gmeow.schema.json`) — the model-existence signal
+/// [`class_is_modeled`] gates `python_model` on. Hard-fails if the declared
+/// upstream product or its `gmeow.schema.json` artifact is missing
+/// (no-optionality): [`ExportStage`] declares this dependency explicitly, so its
+/// absence is a genuine wiring defect, never an honest absence.
+pub(crate) fn modeled_defs_from_upstream(
+    upstream: &std::collections::BTreeMap<String, StageProduct>,
+) -> Result<BTreeSet<String>, gmeow_errors::Diag> {
+    let bytes = upstream
+        .get("stage-export-json-schema")
+        .and_then(|p| p.artifact(crate::stages::json_schema::JSON_SCHEMA_PATH))
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-export-export".to_string(),
+                message: "missing stage-export-json-schema gmeow.schema.json artifact for the \
+                          model-existence gate"
+                    .to_string(),
+            })
+        })?;
+    let parsed: serde_json::Value = serde_json::from_slice(bytes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+            stage: "stage-export-export".to_string(),
+            message: format!("parse gmeow.schema.json for the model-existence gate: {e}"),
+        })
+    })?;
+    Ok(parsed
+        .get("$defs")
+        .and_then(|v| v.as_object())
+        .map(|d| d.keys().cloned().collect())
+        .unwrap_or_default())
+}
+
 /// The `stage-export-export` export-leaf stage.
 pub struct ExportStage {
     consumes: Vec<String>,
 }
 
 impl ExportStage {
-    /// Construct the stage; it consumes THIS run's snapshot fold.
+    /// Construct the stage; it consumes THIS run's snapshot fold plus the
+    /// `stage-export-json-schema` product, whose freshly-emitted `$defs` drive the
+    /// `llms-full.txt` cards' `python_model` gate (see [`class_is_modeled`]) —
+    /// without this edge the stage would only ever see the PREVIOUS run's
+    /// committed schema (or none on a first run).
     pub fn new() -> Self {
         Self {
-            consumes: vec!["stage-snapshot".to_string()],
+            consumes: vec![
+                "stage-export-json-schema".to_string(),
+                "stage-snapshot".to_string(),
+            ],
         }
     }
 }
@@ -2778,9 +2866,10 @@ impl Stage for ExportStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let graph = read_fold_upstream(input.upstream)?;
+        let modeled_defs = modeled_defs_from_upstream(input.upstream)?;
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
-            render_all(graph.as_ref())?,
+            render_all(graph.as_ref(), &modeled_defs)?,
         )))
     }
 }
@@ -2798,6 +2887,23 @@ mod tests {
             .unwrap()
     }
 
+    /// The REAL committed `generated/schemas/gmeow.schema.json` `$defs` key set —
+    /// the same model-existence signal production reads, for tests exercising
+    /// `term_to_card`/`consumer_llms_full`/`doc_card_build` against the real
+    /// `english_terms()` corpus (so a modeled term like `gmeow:EntityExistence`
+    /// still carries its `python_model` link in these tests, not a synthetic one).
+    fn repo_modeled_defs() -> BTreeSet<String> {
+        let path = repo_root().join("generated/schemas/gmeow.schema.json");
+        let bytes = std::fs::read(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+        let parsed: serde_json::Value =
+            serde_json::from_slice(&bytes).expect("gmeow.schema.json parses as JSON");
+        parsed
+            .get("$defs")
+            .and_then(|v| v.as_object())
+            .map(|d| d.keys().cloned().collect())
+            .unwrap_or_default()
+    }
+
     #[test]
     fn json_str_ascii_matches_cpython_short_escapes() {
         // `json.dumps(s)` (ensure_ascii=True) uses the short escapes `\b`/`\f`/
@@ -2813,7 +2919,7 @@ mod tests {
     fn export_produces_structurally_valid_artifacts() {
         let root = repo_root();
         let graph = read_fold(&root).expect("read fold");
-        let arts = render_all(&graph).expect("render");
+        let arts = render_all(&graph, &repo_modeled_defs()).expect("render");
 
         // All 14 expected logical paths present and non-empty.
         let expected = [
@@ -3080,7 +3186,8 @@ mod tests {
     #[test]
     fn doc_card_build_renders_card_and_not_found() {
         let (terms, _t, _v) = english_terms();
-        let (title, built) = doc_card_build(&terms, "gmeow:EntityExistence")
+        let modeled_defs = repo_modeled_defs();
+        let (title, built) = doc_card_build(&terms, "gmeow:EntityExistence", &modeled_defs)
             .resolved()
             .expect("known term resolves");
         let card =
@@ -3104,14 +3211,43 @@ mod tests {
             "slice value must be non-blank, got {slice_line:?}"
         );
         assert!(card.ends_with('\n'));
+        // `gmeow:EntityExistence` genuinely has a generated Pydantic model (it
+        // names a `$defs` entry), so the MCP card must carry the link.
+        assert!(
+            card.contains("**Python model:**"),
+            "a modeled class must carry the python_model line:\n{card}"
+        );
 
         assert!(
             matches!(
-                doc_card_build(&terms, "gmeow:NoSuchTerm"),
+                doc_card_build(&terms, "gmeow:NoSuchTerm", &modeled_defs),
                 ConsumerResolution::NotFound
             ),
             "an unresolved query yields NotFound"
         );
+    }
+
+    /// `class_is_modeled` gate (finding F3, reproduced by issue 1408): a Class
+    /// with NO `$defs` entry (an abstract class with no SHACL NodeShape) must
+    /// never get a fabricated `python_model` link, even though `term_to_card`'s
+    /// PRE-fix gate (`category == "class" && !owner_slice.is_empty()`) would have
+    /// shown one. `gmeow:Proposition` is a real production example.
+    #[test]
+    fn doc_card_build_omits_python_model_for_an_unmodeled_class() {
+        let (terms, _t, _v) = english_terms();
+        let modeled_defs = repo_modeled_defs();
+        assert!(
+            !modeled_defs.contains("Proposition"),
+            "sanity: gmeow:Proposition must genuinely have no $defs entry today"
+        );
+        let (_, built) = doc_card_build(&terms, "gmeow:Proposition", &modeled_defs)
+            .resolved()
+            .expect("gmeow:Proposition resolves");
+        assert_eq!(
+            built.python_model, None,
+            "an unmodeled class must never fabricate a python_model link"
+        );
+        assert_eq!(built.python_snippet, None);
     }
 
     /// `llms_full` / `llms-full.txt`: the standard header then `### ` term blocks
@@ -3120,7 +3256,7 @@ mod tests {
     #[test]
     fn consumer_llms_full_inlines_terms_within_the_token_budget() {
         let (terms, title, version) = english_terms();
-        let full = consumer_llms_full(&terms, &title, &version);
+        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs());
         assert!(full.starts_with(&format!(
             "# {title}\n\n> {}\n\n",
             gmeow_docs::llms::GMEOW_SUMMARY
@@ -3177,7 +3313,7 @@ mod tests {
         let doc_urls = doc_url_map(&FoldView::new(&graph));
 
         let txt = consumer_llms_txt(&terms, &title, &version, &doc_urls);
-        let full = consumer_llms_full(&terms, &title, &version);
+        let full = consumer_llms_full(&terms, &title, &version, &repo_modeled_defs());
 
         assert!(
             txt.contains("## Reference\n"),
@@ -3290,14 +3426,14 @@ mod tests {
 
         // The folded builder must produce exactly that Card (field-for-field).
         assert_eq!(
-            term_to_card(&folded),
+            term_to_card(&folded, &BTreeSet::new()),
             expected,
             "term_to_card must map the folded Term into the canonical shared Card"
         );
 
         // …and both render IDENTICALLY through the SOLE body renderer.
         let from_folded = gmeow_docs::card::render_card_body(
-            &term_to_card(&folded),
+            &term_to_card(&folded, &BTreeSet::new()),
             gmeow_docs::card::CardDetail::Standard,
         );
         let from_expected =
@@ -3329,10 +3465,13 @@ mod tests {
             owner_slice: "https://blackcatinformatics.ca/gmeow/slice/zoo".to_string(),
             ..Term::default()
         };
-        assert_eq!(term_to_card(&with_slice).slice, Some("zoo".to_string()));
+        assert_eq!(
+            term_to_card(&with_slice, &BTreeSet::new()).slice,
+            Some("zoo".to_string())
+        );
         assert!(
             gmeow_docs::card::render_card_body(
-                &term_to_card(&with_slice),
+                &term_to_card(&with_slice, &BTreeSet::new()),
                 gmeow_docs::card::CardDetail::Standard,
             )
             .contains("- slice: zoo\n")
@@ -3344,14 +3483,50 @@ mod tests {
             curie: "gmeow:Dog".to_string(),
             ..Term::default()
         };
-        assert_eq!(term_to_card(&no_slice).slice, None);
+        assert_eq!(term_to_card(&no_slice, &BTreeSet::new()).slice, None);
         assert!(
             !gmeow_docs::card::render_card_body(
-                &term_to_card(&no_slice),
+                &term_to_card(&no_slice, &BTreeSet::new()),
                 gmeow_docs::card::CardDetail::Standard,
             )
             .contains("- slice:")
         );
+    }
+
+    /// `class_is_modeled` gate: a class whose IRI names a `$defs` entry gets the
+    /// `python_model` link; an otherwise-identical class that does not is honestly
+    /// omitted — never a fabricated ImportError-inducing link (issue: Pydantic
+    /// model surface, finding F3).
+    #[test]
+    fn term_to_card_gates_python_model_on_schema_defs_membership() {
+        let modeled = Term {
+            category: "class",
+            iri: "https://blackcatinformatics.ca/gmeow/Cat".to_string(),
+            curie: "gmeow:Cat".to_string(),
+            owner_slice: "https://blackcatinformatics.ca/gmeow/slice/zoo".to_string(),
+            ..Term::default()
+        };
+        let mut defs = BTreeSet::new();
+        defs.insert("Cat".to_string());
+        let card = term_to_card(&modeled, &defs);
+        assert_eq!(
+            card.python_model,
+            Some(gmeow_docs::card::python_model_path(
+                &modeled.owner_slice,
+                &modeled.iri
+            ))
+        );
+        assert!(card.python_snippet.is_some());
+
+        // Same shape, but `Cat` is absent from the `$defs` set: no link.
+        let unmodeled = Term {
+            iri: "https://blackcatinformatics.ca/gmeow/Ferret".to_string(),
+            curie: "gmeow:Ferret".to_string(),
+            ..modeled.clone()
+        };
+        let card = term_to_card(&unmodeled, &defs);
+        assert_eq!(card.python_model, None);
+        assert_eq!(card.python_snippet, None);
     }
 
     /// `okf_index`: the manifest envelope wraps `ok`/`format`/`lossy`/`count`

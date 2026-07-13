@@ -1,5 +1,20 @@
 {
   "$defs": {
+    "AboutnessModeEnum": {
+      "enum": [
+        "gmeow:aboutnessDescribes",
+        "gmeow:aboutnessEnacts"
+      ],
+      "type": "string"
+    },
+    "AcceptanceStatusEnum": {
+      "enum": [
+        "gmeow:acceptanceIn",
+        "gmeow:acceptanceOut",
+        "gmeow:acceptanceUndecided"
+      ],
+      "type": "string"
+    },
     "AccessibilityAssertion": {
       "properties": {
         "@annotation": {
@@ -24,29 +39,11 @@
         "gmeow:assertionFacet": {
           "anyOf": [
             {
-              "$comment": "gmeow:AccessibilityFacet has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/AccessibilityFacetEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:AccessibilityFacet has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/AccessibilityFacetEnum"
               },
               "type": "array"
             }
@@ -55,29 +52,11 @@
         "gmeow:assertionPolarity": {
           "anyOf": [
             {
-              "$comment": "gmeow:AccessibilityPolarity has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/AccessibilityPolarityEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:AccessibilityPolarity has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/AccessibilityPolarityEnum"
               },
               "type": "array"
             }
@@ -129,6 +108,34 @@
       },
       "type": "object"
     },
+    "AccessibilityFacetEnum": {
+      "enum": [
+        "gmeow:facetAuditory",
+        "gmeow:facetClearance",
+        "gmeow:facetCognitive",
+        "gmeow:facetLifeSupport",
+        "gmeow:facetStepFree",
+        "gmeow:facetVisual",
+        "gmeow:facetWheelchair"
+      ],
+      "type": "string"
+    },
+    "AccessibilityPolarityEnum": {
+      "enum": [
+        "gmeow:polarityBarrier",
+        "gmeow:polarityFeature",
+        "gmeow:polarityLimited"
+      ],
+      "type": "string"
+    },
+    "AccountStatusEnum": {
+      "enum": [
+        "gmeow:accountStatusActive",
+        "gmeow:accountStatusDormant",
+        "gmeow:accountStatusHistorical"
+      ],
+      "type": "string"
+    },
     "AdequacyAssessment": {
       "properties": {
         "@annotation": {
@@ -153,29 +160,11 @@
         "gmeow:adequacyUnderStandard": {
           "anyOf": [
             {
-              "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/EpistemicStandardEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/EpistemicStandardEnum"
               },
               "type": "array"
             }
@@ -184,29 +173,11 @@
         "gmeow:meetsThreshold": {
           "anyOf": [
             {
-              "$comment": "gmeow:AdequacyVerdict has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/AdequacyVerdictEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:AdequacyVerdict has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/AdequacyVerdictEnum"
               },
               "type": "array"
             }
@@ -214,6 +185,22 @@
         }
       },
       "type": "object"
+    },
+    "AdequacyVerdictEnum": {
+      "enum": [
+        "gmeow:adequacyMet",
+        "gmeow:adequacyUndetermined",
+        "gmeow:adequacyUnmet"
+      ],
+      "type": "string"
+    },
+    "AestheticQualityEnum": {
+      "enum": [
+        "gmeow:qualityElegance",
+        "gmeow:qualityKitsch",
+        "gmeow:qualitySublimity"
+      ],
+      "type": "string"
     },
     "AffectClassifierLabel": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -343,6 +330,13 @@
         "gmeow:vantage"
       ],
       "type": "object"
+    },
+    "AffectFunctionEnum": {
+      "enum": [
+        "gmeow:fnAffectiveIntensity",
+        "gmeow:fnArgmax"
+      ],
+      "type": "string"
     },
     "AffectScaleProfile": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -600,6 +594,18 @@
       },
       "type": "object"
     },
+    "AggregationFunctionEnum": {
+      "enum": [
+        "gmeow:aggAverage",
+        "gmeow:aggCentroid",
+        "gmeow:aggCount",
+        "gmeow:aggDensity",
+        "gmeow:aggMaximum",
+        "gmeow:aggMinimum",
+        "gmeow:aggSum"
+      ],
+      "type": "string"
+    },
     "Analogy": {
       "properties": {
         "@annotation": {
@@ -659,6 +665,21 @@
       ],
       "type": "object"
     },
+    "AnalysisPropertyEnum": {
+      "enum": [
+        "gmeow:analysisPropertyFormFunction",
+        "gmeow:analysisPropertyGroove",
+        "gmeow:analysisPropertyHarmonyLabel",
+        "gmeow:analysisPropertyKey",
+        "gmeow:analysisPropertyMeter",
+        "gmeow:analysisPropertyMode",
+        "gmeow:analysisPropertyMotifIdentity",
+        "gmeow:analysisPropertySchema",
+        "gmeow:analysisPropertySegment",
+        "gmeow:analysisPropertyTuningIdentification"
+      ],
+      "type": "string"
+    },
     "Annotation": {
       "additionalProperties": {
         "anyOf": [
@@ -699,6 +720,21 @@
       "description": "Free-form metadata about an asserted triple (e.g. meta:accordingTo, meta:confidence, meta:assertedAt). Permissive.",
       "title": "RDF-1.2 statement metadata (reifier annotation)",
       "type": "object"
+    },
+    "AnnotationMotivationEnum": {
+      "enum": [
+        "gmeow:motivationAssessing",
+        "gmeow:motivationBookmarking",
+        "gmeow:motivationCommenting",
+        "gmeow:motivationDescribing",
+        "gmeow:motivationHighlighting",
+        "gmeow:motivationLinking",
+        "gmeow:motivationModerating",
+        "gmeow:motivationQuestioning",
+        "gmeow:motivationReplying",
+        "gmeow:motivationTagging"
+      ],
+      "type": "string"
     },
     "Appellation": {
       "allOf": [
@@ -948,6 +984,20 @@
       ],
       "type": "object"
     },
+    "AppraisalDimensionEnum": {
+      "enum": [
+        "gmeow:dimensionAgency",
+        "gmeow:dimensionCertainty",
+        "gmeow:dimensionCoping",
+        "gmeow:dimensionGoalCongruence",
+        "gmeow:dimensionGoalRelevance",
+        "gmeow:dimensionNormCompatibility",
+        "gmeow:dimensionNovelty",
+        "gmeow:dimensionObjectFocus",
+        "gmeow:dimensionTemporalOrientation"
+      ],
+      "type": "string"
+    },
     "ArcSample": {
       "properties": {
         "@annotation": {
@@ -997,6 +1047,17 @@
         "gmeow:vantage"
       ],
       "type": "object"
+    },
+    "ArcTypeEnum": {
+      "enum": [
+        "gmeow:arcTypeComingOfAge",
+        "gmeow:arcTypeCorruption",
+        "gmeow:arcTypeFall",
+        "gmeow:arcTypeQuest",
+        "gmeow:arcTypeRecovery",
+        "gmeow:arcTypeRedemption"
+      ],
+      "type": "string"
     },
     "ArchaeologicalFindContext": {
       "properties": {
@@ -1247,29 +1308,11 @@
         "gmeow:acceptanceStatus": {
           "anyOf": [
             {
-              "$comment": "gmeow:AcceptanceStatus has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/AcceptanceStatusEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:AcceptanceStatus has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/AcceptanceStatusEnum"
               },
               "type": "array"
             }
@@ -1324,6 +1367,27 @@
         "gmeow:underSemantics"
       ],
       "type": "object"
+    },
+    "ArticulationKindEnum": {
+      "enum": [
+        "gmeow:articulationAccent",
+        "gmeow:articulationHarmonic",
+        "gmeow:articulationLegato",
+        "gmeow:articulationMarcato",
+        "gmeow:articulationPizzicato",
+        "gmeow:articulationStaccato",
+        "gmeow:articulationTenuto"
+      ],
+      "type": "string"
+    },
+    "AssertoricForceEnum": {
+      "enum": [
+        "gmeow:assertoricAssert",
+        "gmeow:assertoricAssume",
+        "gmeow:assertoricConjecture",
+        "gmeow:assertoricRetract"
+      ],
+      "type": "string"
     },
     "Assessment": {
       "properties": {
@@ -1402,6 +1466,16 @@
       ],
       "type": "object"
     },
+    "AssetTypeEnum": {
+      "enum": [
+        "gmeow:assetTypeBond",
+        "gmeow:assetTypeCommodity",
+        "gmeow:assetTypeCryptocurrency",
+        "gmeow:assetTypeRealEstate",
+        "gmeow:assetTypeStock"
+      ],
+      "type": "string"
+    },
     "AtomicConstraint": {
       "allOf": [
         {
@@ -1450,29 +1524,11 @@
         "gmeow:constraintOperator": {
           "anyOf": [
             {
-              "$comment": "gmeow:ConstraintOperator has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/ConstraintOperatorEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:ConstraintOperator has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/ConstraintOperatorEnum"
               },
               "type": "array"
             }
@@ -1481,29 +1537,11 @@
         "gmeow:leftOperand": {
           "anyOf": [
             {
-              "$comment": "gmeow:LeftOperand has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/LeftOperandEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:LeftOperand has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/LeftOperandEnum"
               },
               "type": "array"
             }
@@ -1581,29 +1619,11 @@
         "gmeow:attackKind": {
           "anyOf": [
             {
-              "$comment": "gmeow:AttackKind has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/AttackKindEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:AttackKind has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/AttackKindEnum"
               },
               "type": "array"
             }
@@ -1658,6 +1678,14 @@
         "gmeow:attackTarget"
       ],
       "type": "object"
+    },
+    "AttackKindEnum": {
+      "enum": [
+        "gmeow:attackRebut",
+        "gmeow:attackUndercut",
+        "gmeow:attackUndermine"
+      ],
+      "type": "string"
     },
     "Attestation": {
       "properties": {
@@ -1885,6 +1913,39 @@
       },
       "type": "object"
     },
+    "AttestationTypeEnum": {
+      "enum": [
+        "gmeow:attestationTypeAIOutput",
+        "gmeow:attestationTypeBlockchainClaim",
+        "gmeow:attestationTypeC2PA",
+        "gmeow:attestationTypeCoherenceCertificate",
+        "gmeow:attestationTypeConformanceVerdict",
+        "gmeow:attestationTypeCrossCheckAgreement",
+        "gmeow:attestationTypeDSSE",
+        "gmeow:attestationTypeDocumentationArtifact",
+        "gmeow:attestationTypeEAT",
+        "gmeow:attestationTypeFactCheck",
+        "gmeow:attestationTypeGitSignedTag",
+        "gmeow:attestationTypeInToto",
+        "gmeow:attestationTypeNanopublication",
+        "gmeow:attestationTypeQualityReport",
+        "gmeow:attestationTypeReleaseManifest",
+        "gmeow:attestationTypeSCITT",
+        "gmeow:attestationTypeSLSAProvenance",
+        "gmeow:attestationTypeSignedRDF",
+        "gmeow:attestationTypeVerifiableCredential"
+      ],
+      "type": "string"
+    },
+    "AuthorityLevelEnum": {
+      "enum": [
+        "gmeow:authorityAbsolute",
+        "gmeow:authorityConditional",
+        "gmeow:authorityHigh",
+        "gmeow:authorityMedium"
+      ],
+      "type": "string"
+    },
     "Availability": {
       "properties": {
         "@annotation": {
@@ -1994,6 +2055,56 @@
         }
       },
       "type": "object"
+    },
+    "AvailabilityStatusEnum": {
+      "enum": [
+        "gmeow:availabilityStatusBusy",
+        "gmeow:availabilityStatusFree",
+        "gmeow:availabilityStatusOutOfOffice",
+        "gmeow:availabilityStatusTentative"
+      ],
+      "type": "string"
+    },
+    "AwarenessLevelEnum": {
+      "enum": [
+        "gmeow:levelAlert",
+        "gmeow:levelDrowsy",
+        "gmeow:levelHyperalert",
+        "gmeow:levelObtunded",
+        "gmeow:levelRelaxed",
+        "gmeow:levelUnresponsive"
+      ],
+      "type": "string"
+    },
+    "AwarenessModeEnum": {
+      "enum": [
+        "gmeow:modeAsleep",
+        "gmeow:modeComatose",
+        "gmeow:modeDormant",
+        "gmeow:modeDreaming",
+        "gmeow:modeDrowsy",
+        "gmeow:modeFlow",
+        "gmeow:modeFocused",
+        "gmeow:modeLucidDreaming",
+        "gmeow:modeMeditative",
+        "gmeow:modeMindWandering",
+        "gmeow:modeOfflineReplay",
+        "gmeow:modeOnlineInference",
+        "gmeow:modeREM",
+        "gmeow:modeSampling",
+        "gmeow:modeSedated",
+        "gmeow:modeTraining",
+        "gmeow:modeWaking"
+      ],
+      "type": "string"
+    },
+    "AxisContextScopeEnum": {
+      "enum": [
+        "gmeow:scopeDepsClosure",
+        "gmeow:scopeMergedClosure",
+        "gmeow:scopeSliceLocal"
+      ],
+      "type": "string"
     },
     "Blob": {
       "properties": {
@@ -2214,6 +2325,13 @@
         }
       },
       "type": "object"
+    },
+    "BlockingDispositionEnum": {
+      "enum": [
+        "gmeow:blockingBlocking",
+        "gmeow:blockingCoherent"
+      ],
+      "type": "string"
     },
     "Blutdruck-Diastolic-cardinality": {
       "properties": {
@@ -3487,6 +3605,15 @@
       },
       "type": "object"
     },
+    "BranchConditionTypeEnum": {
+      "enum": [
+        "gmeow:branchConditionIf",
+        "gmeow:branchConditionLoop",
+        "gmeow:branchConditionParallel",
+        "gmeow:branchConditionSwitch"
+      ],
+      "type": "string"
+    },
     "BuildActivity": {
       "properties": {
         "@annotation": {
@@ -3704,6 +3831,46 @@
       ],
       "type": "object"
     },
+    "CadastralReferenceTypeEnum": {
+      "enum": [
+        "gmeow:referenceTypeFolio",
+        "gmeow:referenceTypeLot",
+        "gmeow:referenceTypeParcelId",
+        "gmeow:referenceTypeSurveyPlan",
+        "gmeow:referenceTypeTitle"
+      ],
+      "type": "string"
+    },
+    "CalendarMethodEnum": {
+      "enum": [
+        "gmeow:calendarMethodAdd",
+        "gmeow:calendarMethodCancel",
+        "gmeow:calendarMethodCounter",
+        "gmeow:calendarMethodDeclineCounter",
+        "gmeow:calendarMethodPublish",
+        "gmeow:calendarMethodRefresh",
+        "gmeow:calendarMethodReply",
+        "gmeow:calendarMethodRequest"
+      ],
+      "type": "string"
+    },
+    "CalibrationStatusEnum": {
+      "enum": [
+        "gmeow:overconfident",
+        "gmeow:underconfident",
+        "gmeow:wellCalibrated"
+      ],
+      "type": "string"
+    },
+    "CarrierMediumEnum": {
+      "enum": [
+        "gmeow:mediumEInkFile",
+        "gmeow:mediumOpticalDisc",
+        "gmeow:mediumPrint",
+        "gmeow:mediumServerObject"
+      ],
+      "type": "string"
+    },
     "Cascade": {
       "properties": {
         "@annotation": {
@@ -3765,6 +3932,37 @@
         }
       },
       "type": "object"
+    },
+    "CausalModalityEnum": {
+      "enum": [
+        "gmeow:causallyEnables",
+        "gmeow:causallyNecessitates",
+        "gmeow:causallyPrevents",
+        "gmeow:causallyPromotes"
+      ],
+      "type": "string"
+    },
+    "CelestialObjectTypeEnum": {
+      "enum": [
+        "gmeow:celestialObjectTypeAsteroid",
+        "gmeow:celestialObjectTypeCluster",
+        "gmeow:celestialObjectTypeComet",
+        "gmeow:celestialObjectTypeGalaxy",
+        "gmeow:celestialObjectTypeNebula",
+        "gmeow:celestialObjectTypePlanet",
+        "gmeow:celestialObjectTypeSpacecraft",
+        "gmeow:celestialObjectTypeStar"
+      ],
+      "type": "string"
+    },
+    "CelestialReferenceOriginEnum": {
+      "enum": [
+        "gmeow:refOriginBarycentric",
+        "gmeow:refOriginGeocentric",
+        "gmeow:refOriginHeliocentric",
+        "gmeow:refOriginTopocentric"
+      ],
+      "type": "string"
     },
     "Certification": {
       "properties": {
@@ -4059,29 +4257,11 @@
         "gmeow:citationIntent": {
           "anyOf": [
             {
-              "$comment": "gmeow:CitationIntent has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/CitationIntentEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:CitationIntent has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/CitationIntentEnum"
               },
               "type": "array"
             }
@@ -4164,6 +4344,21 @@
       },
       "type": "object"
     },
+    "CitationIntentEnum": {
+      "enum": [
+        "gmeow:intentBridgedByReference",
+        "gmeow:intentCitesAsDataSource",
+        "gmeow:intentConformsTo",
+        "gmeow:intentDerivedFrom",
+        "gmeow:intentDisagreesWith",
+        "gmeow:intentDocuments",
+        "gmeow:intentExtends",
+        "gmeow:intentIsInspiredBy",
+        "gmeow:intentSupports",
+        "gmeow:intentUsesMethodIn"
+      ],
+      "type": "string"
+    },
     "ClaimEvaluation": {
       "properties": {
         "@annotation": {
@@ -4218,6 +4413,34 @@
         }
       },
       "type": "object"
+    },
+    "ClaimVeridicalityEnum": {
+      "enum": [
+        "gmeow:veridicalityLicensedFalsehood",
+        "gmeow:veridicalityUntrue"
+      ],
+      "type": "string"
+    },
+    "CodecClassEnum": {
+      "enum": [
+        "gmeow:codecClassCompress",
+        "gmeow:codecClassEncode",
+        "gmeow:codecClassEncrypt"
+      ],
+      "type": "string"
+    },
+    "CollectionMemberRoleEnum": {
+      "enum": [
+        "gmeow:collectionMemberRoleAscentOnly",
+        "gmeow:collectionMemberRoleDescentOnly",
+        "gmeow:collectionMemberRoleGhammaz",
+        "gmeow:collectionMemberRoleMember",
+        "gmeow:collectionMemberRoleOrnamental",
+        "gmeow:collectionMemberRoleSamvadi",
+        "gmeow:collectionMemberRoleTonicFinalis",
+        "gmeow:collectionMemberRoleVadi"
+      ],
+      "type": "string"
     },
     "Comment": {
       "properties": {
@@ -5038,15 +5261,7 @@
           ]
         },
         "gmeow:expressionLanguage": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/ExpressionLanguageEnum"
         },
         "gmeow:expressionText": {}
       },
@@ -5117,6 +5332,40 @@
         "gmeow:parameterName"
       ],
       "type": "object"
+    },
+    "ConflictStrategyEnum": {
+      "enum": [
+        "gmeow:conflictInvalid",
+        "gmeow:conflictPerm",
+        "gmeow:conflictProhibit"
+      ],
+      "type": "string"
+    },
+    "ConstraintLogicEnum": {
+      "enum": [
+        "gmeow:logicAnd",
+        "gmeow:logicAndSequence",
+        "gmeow:logicOr",
+        "gmeow:logicXone"
+      ],
+      "type": "string"
+    },
+    "ConstraintOperatorEnum": {
+      "enum": [
+        "gmeow:operatorEq",
+        "gmeow:operatorGt",
+        "gmeow:operatorGteq",
+        "gmeow:operatorHasPart",
+        "gmeow:operatorIsA",
+        "gmeow:operatorIsAllOf",
+        "gmeow:operatorIsAnyOf",
+        "gmeow:operatorIsNoneOf",
+        "gmeow:operatorIsPartOf",
+        "gmeow:operatorLt",
+        "gmeow:operatorLteq",
+        "gmeow:operatorNeq"
+      ],
+      "type": "string"
     },
     "ContactPoint": {
       "allOf": [
@@ -5298,6 +5547,15 @@
       },
       "type": "object"
     },
+    "ContactPointTypeEnum": {
+      "enum": [
+        "gmeow:contactPointTypePersonal",
+        "gmeow:contactPointTypePersonalDomain",
+        "gmeow:contactPointTypeSupport",
+        "gmeow:contactPointTypeWork"
+      ],
+      "type": "string"
+    },
     "ContainmentTenure": {
       "properties": {
         "@annotation": {
@@ -5408,6 +5666,24 @@
       },
       "type": "object"
     },
+    "ContentDispositionEnum": {
+      "enum": [
+        "gmeow:contentDispositionAttachment",
+        "gmeow:contentDispositionInline"
+      ],
+      "type": "string"
+    },
+    "ContentOriginEnum": {
+      "enum": [
+        "gmeow:originBelieved",
+        "gmeow:originGenerated",
+        "gmeow:originImagined",
+        "gmeow:originPerceived",
+        "gmeow:originRemembered",
+        "gmeow:originSupposed"
+      ],
+      "type": "string"
+    },
     "ContentSegment": {
       "properties": {
         "@annotation": {
@@ -5459,22 +5735,34 @@
           ]
         },
         "gmeow:segmentType": {
-          "$comment": "gmeow:ContentSegmentType has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/ContentSegmentTypeEnum"
         }
       },
       "required": [
         "gmeow:segmentOf"
       ],
       "type": "object"
+    },
+    "ContentSegmentTypeEnum": {
+      "enum": [
+        "gmeow:segmentTypeBackMatter",
+        "gmeow:segmentTypeChapter",
+        "gmeow:segmentTypeFrontMatter",
+        "gmeow:segmentTypeParagraph",
+        "gmeow:segmentTypeScene",
+        "gmeow:segmentTypeSection"
+      ],
+      "type": "string"
+    },
+    "ContentTransferEncodingEnum": {
+      "enum": [
+        "gmeow:transferEncoding7bit",
+        "gmeow:transferEncoding8bit",
+        "gmeow:transferEncodingBase64",
+        "gmeow:transferEncodingBinary",
+        "gmeow:transferEncodingQuotedPrintable"
+      ],
+      "type": "string"
     },
     "ContinuityDetermination": {
       "properties": {
@@ -5500,29 +5788,11 @@
         "gmeow:determinationForce": {
           "anyOf": [
             {
-              "$comment": "gmeow:DeterminationForce has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/DeterminationForceEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:DeterminationForce has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/DeterminationForceEnum"
               },
               "type": "array"
             }
@@ -5617,6 +5887,14 @@
       },
       "type": "object"
     },
+    "ContinuityVerdictEnum": {
+      "enum": [
+        "gmeow:continuityDifferent",
+        "gmeow:continuityIndeterminate",
+        "gmeow:continuitySame"
+      ],
+      "type": "string"
+    },
     "Contradiction": {
       "properties": {
         "@annotation": {
@@ -5659,6 +5937,15 @@
       ],
       "type": "object"
     },
+    "ContradictionKindEnum": {
+      "enum": [
+        "gmeow:contradictionKindFactual",
+        "gmeow:contradictionKindFraming",
+        "gmeow:contradictionKindNumeric",
+        "gmeow:contradictionKindTemporal"
+      ],
+      "type": "string"
+    },
     "Contribution": {
       "properties": {
         "@annotation": {
@@ -5683,29 +5970,11 @@
         "gmeow:contributionRole": {
           "anyOf": [
             {
-              "$comment": "gmeow:ContributionRole has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/ContributionRoleEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:ContributionRole has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/ContributionRoleEnum"
               },
               "type": "array"
             }
@@ -5787,6 +6056,67 @@
         }
       },
       "type": "object"
+    },
+    "ContributionDegreeEnum": {
+      "enum": [
+        "gmeow:degreeEqual",
+        "gmeow:degreeLead",
+        "gmeow:degreeSupporting"
+      ],
+      "type": "string"
+    },
+    "ContributionRoleEnum": {
+      "enum": [
+        "gmeow:roleAIAssistant",
+        "gmeow:roleArranger",
+        "gmeow:roleAuthor",
+        "gmeow:roleBotContributor",
+        "gmeow:roleCodeReviewer",
+        "gmeow:roleComposer",
+        "gmeow:roleConceptualization",
+        "gmeow:roleConductor",
+        "gmeow:roleCoverArtist",
+        "gmeow:roleDataCuration",
+        "gmeow:roleDirector",
+        "gmeow:roleEditor",
+        "gmeow:roleFormalAnalysis",
+        "gmeow:roleFundingAcquisition",
+        "gmeow:roleIllustrator",
+        "gmeow:roleInventor",
+        "gmeow:roleInvestigation",
+        "gmeow:roleLLMAssistedEditor",
+        "gmeow:roleLetterer",
+        "gmeow:roleLibrettist",
+        "gmeow:roleLyricist",
+        "gmeow:roleMasteringEngineer",
+        "gmeow:roleMethodology",
+        "gmeow:roleMixingEngineer",
+        "gmeow:roleNarrator",
+        "gmeow:roleOrchestrator",
+        "gmeow:rolePerformer",
+        "gmeow:rolePhotographer",
+        "gmeow:roleProducer",
+        "gmeow:roleProjectAdministration",
+        "gmeow:rolePublisher",
+        "gmeow:roleRecordingEngineer",
+        "gmeow:roleReleaser",
+        "gmeow:roleRemixer",
+        "gmeow:roleResources",
+        "gmeow:roleSamplingArtist",
+        "gmeow:roleSecurityContact",
+        "gmeow:roleSoftware",
+        "gmeow:roleSoftwareDeveloper",
+        "gmeow:roleSoftwareMaintainer",
+        "gmeow:roleSongwriter",
+        "gmeow:roleSoundDesigner",
+        "gmeow:roleSupervision",
+        "gmeow:roleTranslator",
+        "gmeow:roleValidation",
+        "gmeow:roleVisualization",
+        "gmeow:roleWritingOriginalDraft",
+        "gmeow:roleWritingReviewEditing"
+      ],
+      "type": "string"
     },
     "ControlAssessment": {
       "properties": {
@@ -5898,29 +6228,11 @@
         "gmeow:controlLevel": {
           "anyOf": [
             {
-              "$comment": "gmeow:ControlLevel has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/ControlLevelEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:ControlLevel has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/ControlLevelEnum"
               },
               "type": "array"
             }
@@ -6038,6 +6350,14 @@
         }
       },
       "type": "object"
+    },
+    "ControlLevelEnum": {
+      "enum": [
+        "gmeow:controlContested",
+        "gmeow:controlFull",
+        "gmeow:controlPartial"
+      ],
+      "type": "string"
     },
     "CoordinateMatrix": {
       "properties": {
@@ -6299,29 +6619,11 @@
         "gmeow:copyrightStatus": {
           "anyOf": [
             {
-              "$comment": "gmeow:CopyrightStatus has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/CopyrightStatusEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:CopyrightStatus has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/CopyrightStatusEnum"
               },
               "type": "array"
             }
@@ -6406,6 +6708,33 @@
       },
       "type": "object"
     },
+    "CopyrightStatusEnum": {
+      "enum": [
+        "gmeow:copyrightStatusInCopyright",
+        "gmeow:copyrightStatusInCopyrightEducationalUse",
+        "gmeow:copyrightStatusInCopyrightEuOrphanWork",
+        "gmeow:copyrightStatusInCopyrightNonCommercialUse",
+        "gmeow:copyrightStatusInCopyrightRightsholderUnlocatable",
+        "gmeow:copyrightStatusNoCopyrightContractualRestrictions",
+        "gmeow:copyrightStatusNoCopyrightNonCommercialOnly",
+        "gmeow:copyrightStatusNoCopyrightOtherLegalRestrictions",
+        "gmeow:copyrightStatusNoCopyrightUnitedStates",
+        "gmeow:copyrightStatusNoKnownCopyright",
+        "gmeow:copyrightStatusNotEvaluated",
+        "gmeow:copyrightStatusPublicDomain",
+        "gmeow:copyrightStatusUndetermined"
+      ],
+      "type": "string"
+    },
+    "CoreAffectDimensionEnum": {
+      "enum": [
+        "gmeow:dimensionArousal",
+        "gmeow:dimensionDominance",
+        "gmeow:dimensionUnpredictability",
+        "gmeow:dimensionValence"
+      ],
+      "type": "string"
+    },
     "Correspondence": {
       "properties": {
         "@annotation": {
@@ -6435,6 +6764,14 @@
         "gmeow:correspondingTarget"
       ],
       "type": "object"
+    },
+    "CoverageDepthEnum": {
+      "enum": [
+        "gmeow:coverageDepthPassingMention",
+        "gmeow:coverageDepthRoutineFiling",
+        "gmeow:coverageDepthSignificantCoverage"
+      ],
+      "type": "string"
     },
     "CreativeDerivation": {
       "properties": {
@@ -6522,29 +6859,11 @@
         "gmeow:derivationType": {
           "anyOf": [
             {
-              "$comment": "gmeow:DerivationType has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/DerivationTypeEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:DerivationType has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/DerivationTypeEnum"
               },
               "type": "array"
             }
@@ -6552,6 +6871,32 @@
         }
       },
       "type": "object"
+    },
+    "CreativeWorkTypeEnum": {
+      "enum": [
+        "gmeow:workTypeAudiovisual",
+        "gmeow:workTypeCartographic",
+        "gmeow:workTypeChoreographic",
+        "gmeow:workTypeDataset",
+        "gmeow:workTypeFilm",
+        "gmeow:workTypeLiterary",
+        "gmeow:workTypeMusical",
+        "gmeow:workTypeNarrative",
+        "gmeow:workTypePhotographic",
+        "gmeow:workTypeSoftware",
+        "gmeow:workTypeVisual",
+        "gmeow:workTypeWritten"
+      ],
+      "type": "string"
+    },
+    "CredenceLevelEnum": {
+      "enum": [
+        "gmeow:credenceCertain",
+        "gmeow:credenceLikely",
+        "gmeow:credencePossible",
+        "gmeow:credenceUnspecified"
+      ],
+      "type": "string"
     },
     "Credential": {
       "properties": {
@@ -6662,6 +7007,16 @@
       },
       "type": "object"
     },
+    "CriterionDomainEnum": {
+      "enum": [
+        "gmeow:criterionDomainAesthetic",
+        "gmeow:criterionDomainFactual",
+        "gmeow:criterionDomainRelational",
+        "gmeow:criterionDomainSafety",
+        "gmeow:criterionDomainStylistic"
+      ],
+      "type": "string"
+    },
     "CrossNodeGlutWitness": {
       "properties": {
         "@annotation": {
@@ -6753,29 +7108,11 @@
         "gmeow:walletScheme": {
           "anyOf": [
             {
-              "$comment": "gmeow:WalletScheme has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/WalletSchemeEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:WalletScheme has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/WalletSchemeEnum"
               },
               "type": "array"
             }
@@ -7074,6 +7411,33 @@
       },
       "type": "object"
     },
+    "DatingMethodEnum": {
+      "enum": [
+        "gmeow:datingMethodAminoAcidRacemization",
+        "gmeow:datingMethodDendrochronology",
+        "gmeow:datingMethodElectronSpinResonance",
+        "gmeow:datingMethodOpticallyStimulatedLuminescence",
+        "gmeow:datingMethodPaleomagnetism",
+        "gmeow:datingMethodPotassiumArgon",
+        "gmeow:datingMethodRadiocarbon",
+        "gmeow:datingMethodStratigraphicCorrelation",
+        "gmeow:datingMethodThermoluminescence",
+        "gmeow:datingMethodUraniumLead"
+      ],
+      "type": "string"
+    },
+    "DayOfWeekEnum": {
+      "enum": [
+        "gmeow:dayFriday",
+        "gmeow:dayMonday",
+        "gmeow:daySaturday",
+        "gmeow:daySunday",
+        "gmeow:dayThursday",
+        "gmeow:dayTuesday",
+        "gmeow:dayWednesday"
+      ],
+      "type": "string"
+    },
     "DegreeOfFreedom": {
       "properties": {
         "@annotation": {
@@ -7158,6 +7522,32 @@
         "gmeow:dofStatus"
       ],
       "type": "object"
+    },
+    "DeonticModalityEnum": {
+      "enum": [
+        "gmeow:deonticObligation",
+        "gmeow:deonticPermission",
+        "gmeow:deonticProhibition",
+        "gmeow:deonticRecommendation"
+      ],
+      "type": "string"
+    },
+    "DepictionContextEnum": {
+      "enum": [
+        "gmeow:depictionContextActionShot",
+        "gmeow:depictionContextCandid",
+        "gmeow:depictionContextChildhood",
+        "gmeow:depictionContextEvent",
+        "gmeow:depictionContextFamily",
+        "gmeow:depictionContextFormal",
+        "gmeow:depictionContextNow",
+        "gmeow:depictionContextPortrait",
+        "gmeow:depictionContextProfessional",
+        "gmeow:depictionContextSelfPortrait",
+        "gmeow:depictionContextSocial",
+        "gmeow:depictionContextWork"
+      ],
+      "type": "string"
     },
     "DepictionUsage": {
       "properties": {
@@ -7269,6 +7659,42 @@
       },
       "type": "object"
     },
+    "DerivationKindEnum": {
+      "enum": [
+        "gmeow:derivationAffixation",
+        "gmeow:derivationBackFormation",
+        "gmeow:derivationBorrowing",
+        "gmeow:derivationCalque",
+        "gmeow:derivationClipping",
+        "gmeow:derivationCompounding",
+        "gmeow:derivationFolkEtymology",
+        "gmeow:derivationInheritance",
+        "gmeow:derivationReanalysis",
+        "gmeow:derivationReconstruction",
+        "gmeow:derivationSemanticShift",
+        "gmeow:derivationSoundChange",
+        "gmeow:derivationSpellingChange",
+        "gmeow:derivationUnknownOrigin"
+      ],
+      "type": "string"
+    },
+    "DerivationTypeEnum": {
+      "enum": [
+        "gmeow:derivationTypeArrangement",
+        "gmeow:derivationTypeContrafact",
+        "gmeow:derivationTypeCover",
+        "gmeow:derivationTypeInterpolation",
+        "gmeow:derivationTypeMashup",
+        "gmeow:derivationTypeOrchestration",
+        "gmeow:derivationTypeParody",
+        "gmeow:derivationTypeQuotation",
+        "gmeow:derivationTypeRemix",
+        "gmeow:derivationTypeSample",
+        "gmeow:derivationTypeTranscription",
+        "gmeow:derivationTypeVariation"
+      ],
+      "type": "string"
+    },
     "DerivedAffectIntensityObservation": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -7347,6 +7773,52 @@
         "gmeow:intentionGoal"
       ],
       "type": "object"
+    },
+    "DeterminacyEnum": {
+      "enum": [
+        "gmeow:determinacyCrisp",
+        "gmeow:determinacyDisputed",
+        "gmeow:determinacyFuzzy",
+        "gmeow:determinacyProbabilistic",
+        "gmeow:determinacyVague"
+      ],
+      "type": "string"
+    },
+    "DeterminationForceEnum": {
+      "enum": [
+        "gmeow:forceAdvisory",
+        "gmeow:forceBinding",
+        "gmeow:forceProvisional"
+      ],
+      "type": "string"
+    },
+    "DeterminationStatusEnum": {
+      "enum": [
+        "gmeow:determinationConstrained",
+        "gmeow:determinationDelegatedEnvironment",
+        "gmeow:determinationDelegatedPerformer",
+        "gmeow:determinationDelegatedProcess",
+        "gmeow:determinationFixed",
+        "gmeow:determinationFree"
+      ],
+      "type": "string"
+    },
+    "DiagnosticSeverityEnum": {
+      "enum": [
+        "gmeow:severityError",
+        "gmeow:severityInfo",
+        "gmeow:severityNote",
+        "gmeow:severityWarning"
+      ],
+      "type": "string"
+    },
+    "DiagnosticStandpointEnum": {
+      "enum": [
+        "gmeow:standpointAdvisory",
+        "gmeow:standpointBinding",
+        "gmeow:standpointPerspectival"
+      ],
+      "type": "string"
     },
     "Diastolic": {
       "properties": {
@@ -7707,6 +8179,56 @@
       },
       "type": "object"
     },
+    "DimensionFamilyEnum": {
+      "enum": [
+        "gmeow:familyAppraisal",
+        "gmeow:familyCoreAffect"
+      ],
+      "type": "string"
+    },
+    "DisclosurePolicyEnum": {
+      "enum": [
+        "gmeow:policyInternalOnly",
+        "gmeow:policyNeverPublic",
+        "gmeow:policyPublicCareful",
+        "gmeow:policyPublicOnlyWithIndependentSource",
+        "gmeow:policyPublicSafe",
+        "gmeow:policySensitive"
+      ],
+      "type": "string"
+    },
+    "DistanceMetricEnum": {
+      "enum": [
+        "gmeow:distanceMetricCosine",
+        "gmeow:distanceMetricDotProduct",
+        "gmeow:distanceMetricEuclidean"
+      ],
+      "type": "string"
+    },
+    "DocCoverageDimensionEnum": {
+      "enum": [
+        "gmeow:dimAlignment",
+        "gmeow:dimAnnotationCoat",
+        "gmeow:dimCompetencyRationale",
+        "gmeow:dimDefinition",
+        "gmeow:dimExample",
+        "gmeow:dimFixturePair",
+        "gmeow:dimLabel",
+        "gmeow:dimLinkageCoverage",
+        "gmeow:dimLossJudgmentSound",
+        "gmeow:dimLossLedgerRow",
+        "gmeow:dimProseQuality",
+        "gmeow:dimProvenanceHonesty",
+        "gmeow:dimRealizedState",
+        "gmeow:dimScopeNote",
+        "gmeow:dimTestReach",
+        "gmeow:dimThesisSentence",
+        "gmeow:dimTranslationCoverage",
+        "gmeow:dimUsageAdvice",
+        "gmeow:dimWorkedInstance"
+      ],
+      "type": "string"
+    },
     "DocEvidence": {
       "properties": {
         "@annotation": {
@@ -7771,6 +8293,44 @@
         "gmeow:docGroundedBy"
       ],
       "type": "object"
+    },
+    "DocEvidenceKindEnum": {
+      "enum": [
+        "gmeow:docEvidenceKindCompetency",
+        "gmeow:docEvidenceKindDiagnostics",
+        "gmeow:docEvidenceKindFixture",
+        "gmeow:docEvidenceKindLoss",
+        "gmeow:docEvidenceKindProvenance"
+      ],
+      "type": "string"
+    },
+    "DocFixtureKindEnum": {
+      "enum": [
+        "gmeow:docFixtureKindCounterExample",
+        "gmeow:docFixtureKindWellformed"
+      ],
+      "type": "string"
+    },
+    "DocMaturityEnum": {
+      "enum": [
+        "gmeow:docMaturityBasic",
+        "gmeow:docMaturityFull",
+        "gmeow:docMaturityMaximal",
+        "gmeow:docMaturityMinimal"
+      ],
+      "type": "string"
+    },
+    "DocumentationConcernEnum": {
+      "enum": [
+        "gmeow:concernDisclosure",
+        "gmeow:concernFrames",
+        "gmeow:concernGTSPackaging",
+        "gmeow:concernIdentifiersCoreference",
+        "gmeow:concernProvenanceEvidence",
+        "gmeow:concernStandpoints",
+        "gmeow:concernStatementMetadata"
+      ],
+      "type": "string"
     },
     "DocumentedTerm": {
       "properties": {
@@ -8060,29 +8620,11 @@
         "gmeow:hasDefeatStatus": {
           "anyOf": [
             {
-              "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/JustificationStatusEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/JustificationStatusEnum"
               },
               "type": "array"
             }
@@ -8456,29 +8998,11 @@
         "gmeow:hasDefeatStatus": {
           "anyOf": [
             {
-              "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/JustificationStatusEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:JustificationStatus has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/JustificationStatusEnum"
               },
               "type": "array"
             }
@@ -8772,6 +9296,19 @@
       ],
       "type": "object"
     },
+    "DynamicsValueEnum": {
+      "enum": [
+        "gmeow:dynamicsF",
+        "gmeow:dynamicsFf",
+        "gmeow:dynamicsFff",
+        "gmeow:dynamicsMf",
+        "gmeow:dynamicsMp",
+        "gmeow:dynamicsP",
+        "gmeow:dynamicsPp",
+        "gmeow:dynamicsPpp"
+      ],
+      "type": "string"
+    },
     "Embedding": {
       "properties": {
         "@annotation": {
@@ -8794,16 +9331,7 @@
           ]
         },
         "gmeow:distanceMetric": {
-          "$comment": "gmeow:DistanceMetric has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/DistanceMetricEnum"
         },
         "gmeow:embeddingModel": {
           "anyOf": [
@@ -8980,6 +9508,21 @@
       ],
       "type": "object"
     },
+    "EmotionTypeEnum": {
+      "enum": [
+        "gmeow:emotionAnger",
+        "gmeow:emotionAnticipation",
+        "gmeow:emotionDisgust",
+        "gmeow:emotionFear",
+        "gmeow:emotionJoy",
+        "gmeow:emotionSadness",
+        "gmeow:emotionSaudade",
+        "gmeow:emotionSchadenfreude",
+        "gmeow:emotionSurprise",
+        "gmeow:emotionTrust"
+      ],
+      "type": "string"
+    },
     "Employment": {
       "properties": {
         "@annotation": {
@@ -9004,29 +9547,11 @@
         "gmeow:employmentType": {
           "anyOf": [
             {
-              "$comment": "gmeow:EmploymentType has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/EmploymentTypeEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:EmploymentType has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/EmploymentTypeEnum"
               },
               "type": "array"
             }
@@ -9121,6 +9646,18 @@
       },
       "type": "object"
     },
+    "EmploymentTypeEnum": {
+      "enum": [
+        "gmeow:employmentTypeApprentice",
+        "gmeow:employmentTypeContract",
+        "gmeow:employmentTypeFreelance",
+        "gmeow:employmentTypeFullTime",
+        "gmeow:employmentTypeIntern",
+        "gmeow:employmentTypePartTime",
+        "gmeow:employmentTypeVolunteer"
+      ],
+      "type": "string"
+    },
     "Entity": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -9193,6 +9730,16 @@
       ],
       "type": "object"
     },
+    "EpistemicStandardEnum": {
+      "enum": [
+        "gmeow:standardLegalBeyondReasonableDoubt",
+        "gmeow:standardLegalClearAndConvincing",
+        "gmeow:standardLegalPreponderance",
+        "gmeow:standardOrdinary",
+        "gmeow:standardScientific"
+      ],
+      "type": "string"
+    },
     "EtymologicalDerivation": {
       "properties": {
         "@annotation": {
@@ -9217,29 +9764,11 @@
         "gmeow:derivationKind": {
           "anyOf": [
             {
-              "$comment": "gmeow:DerivationKind has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/DerivationKindEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:DerivationKind has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/DerivationKindEnum"
               },
               "type": "array"
             }
@@ -9309,6 +9838,14 @@
         }
       },
       "type": "object"
+    },
+    "EvaluationVerdictEnum": {
+      "enum": [
+        "gmeow:verdictHeld",
+        "gmeow:verdictNotHeld",
+        "gmeow:verdictUndetermined"
+      ],
+      "type": "string"
     },
     "Event": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -9512,6 +10049,126 @@
       },
       "type": "object"
     },
+    "EventTypeEnum": {
+      "enum": [
+        "gmeow:eventTypeAcquisition",
+        "gmeow:eventTypeAdoption",
+        "gmeow:eventTypeAgentEpisode",
+        "gmeow:eventTypeAnnulment",
+        "gmeow:eventTypeAudit",
+        "gmeow:eventTypeBaptism",
+        "gmeow:eventTypeBarMitzvah",
+        "gmeow:eventTypeBatMitzvah",
+        "gmeow:eventTypeBirth",
+        "gmeow:eventTypeBuild",
+        "gmeow:eventTypeBullshit",
+        "gmeow:eventTypeBurial",
+        "gmeow:eventTypeCensus",
+        "gmeow:eventTypeCensusActivity",
+        "gmeow:eventTypeChristening",
+        "gmeow:eventTypeClinicalTrial",
+        "gmeow:eventTypeCodeReview",
+        "gmeow:eventTypeCommit",
+        "gmeow:eventTypeConcert",
+        "gmeow:eventTypeConfirmation",
+        "gmeow:eventTypeCreation",
+        "gmeow:eventTypeCremation",
+        "gmeow:eventTypeDJSet",
+        "gmeow:eventTypeDeath",
+        "gmeow:eventTypeDeception",
+        "gmeow:eventTypeDestruction",
+        "gmeow:eventTypeDisinformation",
+        "gmeow:eventTypeDissolution",
+        "gmeow:eventTypeDistortion",
+        "gmeow:eventTypeDivorce",
+        "gmeow:eventTypeEmigration",
+        "gmeow:eventTypeEngagement",
+        "gmeow:eventTypeExcavation",
+        "gmeow:eventTypeExpressionCreation",
+        "gmeow:eventTypeFabrication",
+        "gmeow:eventTypeFirstCommunion",
+        "gmeow:eventTypeForgery",
+        "gmeow:eventTypeFuneral",
+        "gmeow:eventTypeGraduation",
+        "gmeow:eventTypeHiring",
+        "gmeow:eventTypeImageAnnotation",
+        "gmeow:eventTypeImageCapture",
+        "gmeow:eventTypeImageProcessing",
+        "gmeow:eventTypeImageScanning",
+        "gmeow:eventTypeImmigration",
+        "gmeow:eventTypeImpersonation",
+        "gmeow:eventTypeInhabitationTransition",
+        "gmeow:eventTypeJamSession",
+        "gmeow:eventTypeLie",
+        "gmeow:eventTypeManifestationProduction",
+        "gmeow:eventTypeMarriage",
+        "gmeow:eventTypeMerge",
+        "gmeow:eventTypeMerger",
+        "gmeow:eventTypeMigration",
+        "gmeow:eventTypeMilitaryService",
+        "gmeow:eventTypeMusicalPerformance",
+        "gmeow:eventTypeNameChange",
+        "gmeow:eventTypeNaturalization",
+        "gmeow:eventTypeOmission",
+        "gmeow:eventTypeOrdination",
+        "gmeow:eventTypeOverdub",
+        "gmeow:eventTypePaltering",
+        "gmeow:eventTypeProbate",
+        "gmeow:eventTypePromotion",
+        "gmeow:eventTypePush",
+        "gmeow:eventTypeRecordingSession",
+        "gmeow:eventTypeReflection",
+        "gmeow:eventTypeRehearsal",
+        "gmeow:eventTypeRelease",
+        "gmeow:eventTypeRename",
+        "gmeow:eventTypeResidence",
+        "gmeow:eventTypeResignation",
+        "gmeow:eventTypeRetirement",
+        "gmeow:eventTypeSelfDeception",
+        "gmeow:eventTypeSeparation",
+        "gmeow:eventTypeSoundcheck",
+        "gmeow:eventTypeSpinOff",
+        "gmeow:eventTypeSplit",
+        "gmeow:eventTypeSupersession",
+        "gmeow:eventTypeSurvey",
+        "gmeow:eventTypeTake",
+        "gmeow:eventTypeTermination",
+        "gmeow:eventTypeTransfer",
+        "gmeow:eventTypeTransmission",
+        "gmeow:eventTypeWill",
+        "gmeow:eventTypeWorkConception"
+      ],
+      "type": "string"
+    },
+    "EvidenceClassEnum": {
+      "enum": [
+        "gmeow:evidenceANECDOTAL",
+        "gmeow:evidenceFamilyNarrative",
+        "gmeow:evidenceGeneratedReport",
+        "gmeow:evidenceIndependentTradePress",
+        "gmeow:evidenceLegalFiling",
+        "gmeow:evidenceNewspaperLead",
+        "gmeow:evidenceOcrExtract",
+        "gmeow:evidenceOfficialSource",
+        "gmeow:evidencePrivateCorrespondence",
+        "gmeow:evidencePrivateScan",
+        "gmeow:evidencePublicRegistry",
+        "gmeow:evidenceRUMOR",
+        "gmeow:evidenceRawArchive",
+        "gmeow:evidenceSELF",
+        "gmeow:evidenceSelfControlledSite",
+        "gmeow:evidenceSourceCodeArchive",
+        "gmeow:evidenceVERIFIED"
+      ],
+      "type": "string"
+    },
+    "ExceptionTypeEnum": {
+      "enum": [
+        "gmeow:exceptionTypeCancellation",
+        "gmeow:exceptionTypeRescheduling"
+      ],
+      "type": "string"
+    },
     "Execution": {
       "properties": {
         "@annotation": {
@@ -9622,6 +10279,17 @@
       },
       "type": "object"
     },
+    "ExecutionStatusEnum": {
+      "enum": [
+        "gmeow:executionStatusCancelled",
+        "gmeow:executionStatusFailed",
+        "gmeow:executionStatusPending",
+        "gmeow:executionStatusRunning",
+        "gmeow:executionStatusSkipped",
+        "gmeow:executionStatusSucceeded"
+      ],
+      "type": "string"
+    },
     "Exemplar": {
       "properties": {
         "@annotation": {
@@ -9655,6 +10323,14 @@
         "gmeow:exemplarPolarity"
       ],
       "type": "object"
+    },
+    "ExemplarPolarityEnum": {
+      "enum": [
+        "gmeow:polarityCautionary",
+        "gmeow:polarityNegative",
+        "gmeow:polarityPositive"
+      ],
+      "type": "string"
     },
     "Expression": {
       "properties": {
@@ -9712,6 +10388,18 @@
         "gmeow:hasReferenceFrame"
       ],
       "type": "object"
+    },
+    "ExpressionLanguageEnum": {
+      "enum": [
+        "gmeow:exprLangCedar",
+        "gmeow:exprLangCel",
+        "gmeow:exprLangProse",
+        "gmeow:exprLangRego",
+        "gmeow:exprLangShacl",
+        "gmeow:exprLangSparqlAsk",
+        "gmeow:exprLangXacml"
+      ],
+      "type": "string"
     },
     "ExtractedRelationship": {
       "properties": {
@@ -9787,18 +10475,18 @@
           ]
         },
         "gmeow:feedPostingKind": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/FeedPostingKindEnum"
         }
       },
       "type": "object"
+    },
+    "FeedPostingKindEnum": {
+      "enum": [
+        "gmeow:feedPostingKindBlog",
+        "gmeow:feedPostingKindMicroblog",
+        "gmeow:feedPostingKindSocial"
+      ],
+      "type": "string"
     },
     "FinancialAccount": {
       "allOf": [
@@ -9942,6 +10630,15 @@
       },
       "type": "object"
     },
+    "FinancialAccountTypeEnum": {
+      "enum": [
+        "gmeow:accountTypeBank",
+        "gmeow:accountTypeCredit",
+        "gmeow:accountTypeInvestment",
+        "gmeow:accountTypeWallet"
+      ],
+      "type": "string"
+    },
     "FinancialTransaction": {
       "properties": {
         "@annotation": {
@@ -10071,29 +10768,11 @@
         "gmeow:findingSeverity": {
           "anyOf": [
             {
-              "$comment": "gmeow:DiagnosticSeverity has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/DiagnosticSeverityEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:DiagnosticSeverity has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/DiagnosticSeverityEnum"
               },
               "type": "array"
             }
@@ -10216,6 +10895,69 @@
       ],
       "type": "object"
     },
+    "FormFunctionEnum": {
+      "enum": [
+        "gmeow:formFunctionAlap",
+        "gmeow:formFunctionBridge",
+        "gmeow:formFunctionChorus",
+        "gmeow:formFunctionDevelopment",
+        "gmeow:formFunctionDrop",
+        "gmeow:formFunctionExposition",
+        "gmeow:formFunctionGat",
+        "gmeow:formFunctionIntro",
+        "gmeow:formFunctionOutro",
+        "gmeow:formFunctionRecapitulation",
+        "gmeow:formFunctionRiff",
+        "gmeow:formFunctionVerse"
+      ],
+      "type": "string"
+    },
+    "FrameKindEnum": {
+      "enum": [
+        "gmeow:frameKindAnalytical",
+        "gmeow:frameKindCartesian",
+        "gmeow:frameKindConfigurationSpace",
+        "gmeow:frameKindCylindrical",
+        "gmeow:frameKindGeocoding",
+        "gmeow:frameKindGeodetic",
+        "gmeow:frameKindGrid",
+        "gmeow:frameKindHilbert",
+        "gmeow:frameKindLatentSpace",
+        "gmeow:frameKindLinear",
+        "gmeow:frameKindLinearSequence",
+        "gmeow:frameKindManifold",
+        "gmeow:frameKindNarrative",
+        "gmeow:frameKindPhaseSpace",
+        "gmeow:frameKindPolar",
+        "gmeow:frameKindScalar",
+        "gmeow:frameKindTemporal",
+        "gmeow:frameKindTopological"
+      ],
+      "type": "string"
+    },
+    "FrameRealmEnum": {
+      "enum": [
+        "gmeow:frameRealmBiological",
+        "gmeow:frameRealmCelestial",
+        "gmeow:frameRealmColourspace",
+        "gmeow:frameRealmCurrency",
+        "gmeow:frameRealmIndoor",
+        "gmeow:frameRealmLinguistic",
+        "gmeow:frameRealmMathematical",
+        "gmeow:frameRealmMeasurement",
+        "gmeow:frameRealmMusicAnalysis",
+        "gmeow:frameRealmMusicalPitch",
+        "gmeow:frameRealmMusicalTime",
+        "gmeow:frameRealmNarrative",
+        "gmeow:frameRealmPerceptual",
+        "gmeow:frameRealmPsychological",
+        "gmeow:frameRealmRobotic",
+        "gmeow:frameRealmTemporal",
+        "gmeow:frameRealmTerrestrial",
+        "gmeow:frameRealmVirtual"
+      ],
+      "type": "string"
+    },
     "GTSDocument": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -10240,6 +10982,18 @@
         }
       },
       "type": "object"
+    },
+    "GTSProfileEnum": {
+      "enum": [
+        "gmeow:gtsProfileAiPackage",
+        "gmeow:gtsProfileBundle",
+        "gmeow:gtsProfileDist",
+        "gmeow:gtsProfileEvidence",
+        "gmeow:gtsProfileGeneric",
+        "gmeow:gtsProfileImage",
+        "gmeow:gtsProfileOpaque"
+      ],
+      "type": "string"
     },
     "GTSSegment": {
       "properties": {
@@ -10284,29 +11038,11 @@
         "gmeow:gtsProfile": {
           "anyOf": [
             {
-              "$comment": "gmeow:GTSProfile has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/GTSProfileEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:GTSProfile has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/GTSProfileEnum"
               },
               "type": "array"
             }
@@ -10337,6 +11073,13 @@
         "gmeow:gtsSegmentIndex"
       ],
       "type": "object"
+    },
+    "GateVerdictEnum": {
+      "enum": [
+        "gmeow:gateCollected",
+        "gmeow:gateFatal"
+      ],
+      "type": "string"
     },
     "Gender": {
       "allOf": [
@@ -10451,6 +11194,22 @@
         }
       },
       "type": "object"
+    },
+    "GenderEnum": {
+      "enum": [
+        "gmeow:genderAgender",
+        "gmeow:genderBigender",
+        "gmeow:genderDemiboy",
+        "gmeow:genderDemigirl",
+        "gmeow:genderGenderfluid",
+        "gmeow:genderGenderqueer",
+        "gmeow:genderMan",
+        "gmeow:genderNonBinary",
+        "gmeow:genderQuestioning",
+        "gmeow:genderTwoSpirit",
+        "gmeow:genderWoman"
+      ],
+      "type": "string"
     },
     "GenderExpression": {
       "allOf": [
@@ -10767,6 +11526,16 @@
       },
       "type": "object"
     },
+    "GenderExpressionStyleEnum": {
+      "enum": [
+        "gmeow:expressionAndrogynous",
+        "gmeow:expressionFeminine",
+        "gmeow:expressionFluid",
+        "gmeow:expressionMasculine",
+        "gmeow:expressionNeutral"
+      ],
+      "type": "string"
+    },
     "GenderIdentity": {
       "allOf": [
         {
@@ -11016,6 +11785,22 @@
       ],
       "type": "object"
     },
+    "GenerativeProcessKindEnum": {
+      "enum": [
+        "gmeow:generativeProcessKindAlgorithmic",
+        "gmeow:generativeProcessKindPhasing",
+        "gmeow:generativeProcessKindRuleBased",
+        "gmeow:generativeProcessKindStochastic",
+        "gmeow:generativeProcessKindVerbalScore"
+      ],
+      "type": "string"
+    },
+    "GenericQualityEnum": {
+      "enum": [
+        "gmeow:pressure"
+      ],
+      "type": "string"
+    },
     "Geocode": {
       "properties": {
         "@annotation": {
@@ -11053,6 +11838,17 @@
         "gmeow:geocodeFrame"
       ],
       "type": "object"
+    },
+    "GeometryTypeEnum": {
+      "enum": [
+        "gmeow:geometryTypeLineString",
+        "gmeow:geometryTypeMultiLineString",
+        "gmeow:geometryTypeMultiPoint",
+        "gmeow:geometryTypeMultiPolygon",
+        "gmeow:geometryTypePoint",
+        "gmeow:geometryTypePolygon"
+      ],
+      "type": "string"
     },
     "GmnCompaction": {
       "properties": {
@@ -11101,6 +11897,13 @@
         "gmeow:vantage"
       ],
       "type": "object"
+    },
+    "GmnCompartmentEnum": {
+      "enum": [
+        "gmeow:gmnCompartmentNato",
+        "gmeow:gmnCompartmentPartner"
+      ],
+      "type": "string"
     },
     "GmnDictionary": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -11413,6 +12216,30 @@
       ],
       "type": "object"
     },
+    "GmnFixityEnum": {
+      "enum": [
+        "gmeow:gmnFixityBracketing",
+        "gmeow:gmnFixityInfix",
+        "gmeow:gmnFixityPostfix",
+        "gmeow:gmnFixityPrefix"
+      ],
+      "type": "string"
+    },
+    "GmnRingCriterionEnum": {
+      "enum": [
+        "gmeow:gmnCriterionAutomatedUnreviewed",
+        "gmeow:gmnCriterionHumanReviewed"
+      ],
+      "type": "string"
+    },
+    "GmnRingLevelEnum": {
+      "enum": [
+        "gmeow:gmnLevelCore",
+        "gmeow:gmnLevelRestricted",
+        "gmeow:gmnLevelTrusted"
+      ],
+      "type": "string"
+    },
     "GmnSecurityRing": {
       "properties": {
         "@annotation": {
@@ -11528,6 +12355,30 @@
       ],
       "type": "object"
     },
+    "GmnSecurityRingEnum": {
+      "enum": [
+        "gmeow:gmnRingCore",
+        "gmeow:gmnRingNato",
+        "gmeow:gmnRingRestricted",
+        "gmeow:gmnRingTrusted"
+      ],
+      "type": "string"
+    },
+    "GmnSigilRoleEnum": {
+      "enum": [
+        "gmeow:gmnSigilClaim",
+        "gmeow:gmnSigilDefeater",
+        "gmeow:gmnSigilEvidence",
+        "gmeow:gmnSigilLangAst",
+        "gmeow:gmnSigilLogic",
+        "gmeow:gmnSigilMath",
+        "gmeow:gmnSigilModal",
+        "gmeow:gmnSigilProcess",
+        "gmeow:gmnSigilProof",
+        "gmeow:gmnSigilStandpoint"
+      ],
+      "type": "string"
+    },
     "Goal": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -11552,6 +12403,59 @@
         }
       },
       "type": "object"
+    },
+    "GovernanceModelEnum": {
+      "enum": [
+        "gmeow:governanceBDFL",
+        "gmeow:governanceCorporate",
+        "gmeow:governanceDAO",
+        "gmeow:governanceFoundation",
+        "gmeow:governanceMeritocracy"
+      ],
+      "type": "string"
+    },
+    "GrammaticalAspectEnum": {
+      "enum": [
+        "gmeow:aspectNone",
+        "gmeow:aspectPerfective",
+        "gmeow:aspectPerfectiveProgressive",
+        "gmeow:aspectProgressive"
+      ],
+      "type": "string"
+    },
+    "GrammaticalTenseEnum": {
+      "enum": [
+        "gmeow:tenseFuture",
+        "gmeow:tenseNone",
+        "gmeow:tensePast",
+        "gmeow:tensePresent"
+      ],
+      "type": "string"
+    },
+    "GranularityLevelEnum": {
+      "enum": [
+        "gmeow:granularityAddress",
+        "gmeow:granularityCentury",
+        "gmeow:granularityCity",
+        "gmeow:granularityCountry",
+        "gmeow:granularityDay",
+        "gmeow:granularityDecade",
+        "gmeow:granularityMonth",
+        "gmeow:granularityPoint",
+        "gmeow:granularityRegion",
+        "gmeow:granularityYear"
+      ],
+      "type": "string"
+    },
+    "GraphBoxRoleEnum": {
+      "enum": [
+        "gmeow:boxABox",
+        "gmeow:boxCBox",
+        "gmeow:boxConfigBox",
+        "gmeow:boxRBox",
+        "gmeow:boxTBox"
+      ],
+      "type": "string"
     },
     "GrooveProfile": {
       "properties": {
@@ -11605,15 +12509,7 @@
           ]
         },
         "gmeow:grooveKind": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/GrooveProfileKindEnum"
         }
       },
       "required": [
@@ -11622,6 +12518,35 @@
         "gmeow:grooveKind"
       ],
       "type": "object"
+    },
+    "GrooveProfileKindEnum": {
+      "enum": [
+        "gmeow:grooveProfileKindMeasured",
+        "gmeow:grooveProfileKindPositionOffsets",
+        "gmeow:grooveProfileKindSwingRatio"
+      ],
+      "type": "string"
+    },
+    "GroupOperatorEnum": {
+      "enum": [
+        "gmeow:operatorAll",
+        "gmeow:operatorAny",
+        "gmeow:operatorNone"
+      ],
+      "type": "string"
+    },
+    "HarmonicFunctionEnum": {
+      "enum": [
+        "gmeow:harmonicFunctionDominant",
+        "gmeow:harmonicFunctionGermanSixth",
+        "gmeow:harmonicFunctionLeadingTone",
+        "gmeow:harmonicFunctionMediant",
+        "gmeow:harmonicFunctionSubdominant",
+        "gmeow:harmonicFunctionSubmediant",
+        "gmeow:harmonicFunctionSupertonic",
+        "gmeow:harmonicFunctionTonic"
+      ],
+      "type": "string"
     },
     "Hazard": {
       "properties": {
@@ -11972,6 +12897,46 @@
       },
       "type": "object"
     },
+    "HonorificClassEnum": {
+      "enum": [
+        "gmeow:honorificClassAcademic",
+        "gmeow:honorificClassClerical",
+        "gmeow:honorificClassJudicial",
+        "gmeow:honorificClassMilitary",
+        "gmeow:honorificClassNoble",
+        "gmeow:honorificClassSocial"
+      ],
+      "type": "string"
+    },
+    "HonorificEnum": {
+      "enum": [
+        "gmeow:honorificDame",
+        "gmeow:honorificDr",
+        "gmeow:honorificHon",
+        "gmeow:honorificLady",
+        "gmeow:honorificLord",
+        "gmeow:honorificMr",
+        "gmeow:honorificMrs",
+        "gmeow:honorificMs",
+        "gmeow:honorificMx",
+        "gmeow:honorificProf",
+        "gmeow:honorificRev",
+        "gmeow:honorificSama",
+        "gmeow:honorificSan",
+        "gmeow:honorificSayyid",
+        "gmeow:honorificSir",
+        "gmeow:honorificSmt",
+        "gmeow:honorificSri"
+      ],
+      "type": "string"
+    },
+    "HonorificPositionEnum": {
+      "enum": [
+        "gmeow:honorificPositionPrefix",
+        "gmeow:honorificPositionSuffix"
+      ],
+      "type": "string"
+    },
     "Identifier": {
       "properties": {
         "@annotation": {
@@ -12096,29 +13061,11 @@
         "gmeow:continuityVerdict": {
           "anyOf": [
             {
-              "$comment": "gmeow:ContinuityVerdict has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/ContinuityVerdictEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:ContinuityVerdict has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/ContinuityVerdictEnum"
               },
               "type": "array"
             }
@@ -12304,6 +13251,14 @@
       },
       "type": "object"
     },
+    "IndexAlgorithmEnum": {
+      "enum": [
+        "gmeow:indexAlgorithmFlat",
+        "gmeow:indexAlgorithmHnsw",
+        "gmeow:indexAlgorithmIvf"
+      ],
+      "type": "string"
+    },
     "InferenceApplication": {
       "properties": {
         "@annotation": {
@@ -12458,6 +13413,15 @@
       ],
       "type": "object"
     },
+    "InferenceModeEnum": {
+      "enum": [
+        "gmeow:modeAbduction",
+        "gmeow:modeAnalogical",
+        "gmeow:modeDeduction",
+        "gmeow:modeInduction"
+      ],
+      "type": "string"
+    },
     "InhabitationConfiguration": {
       "properties": {
         "@annotation": {
@@ -12610,6 +13574,13 @@
         }
       },
       "type": "object"
+    },
+    "InhabitationLocusKindEnum": {
+      "enum": [
+        "gmeow:locusSelf",
+        "gmeow:locusVessel"
+      ],
+      "type": "string"
     },
     "InhabitationTenure": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -13152,6 +14123,34 @@
       ],
       "type": "object"
     },
+    "InstrumentModificationEnum": {
+      "enum": [
+        "gmeow:instrumentModificationCapo",
+        "gmeow:instrumentModificationElectrified",
+        "gmeow:instrumentModificationExtendedRange",
+        "gmeow:instrumentModificationMute",
+        "gmeow:instrumentModificationPrepared",
+        "gmeow:instrumentModificationScordatura"
+      ],
+      "type": "string"
+    },
+    "InstrumentTypeEnum": {
+      "enum": [
+        "gmeow:instrumentTypeAdaptedGuitar",
+        "gmeow:instrumentTypeDoubleBass",
+        "gmeow:instrumentTypeDrumKit",
+        "gmeow:instrumentTypeElectricGuitar",
+        "gmeow:instrumentTypeGamelan",
+        "gmeow:instrumentTypeModularSynth",
+        "gmeow:instrumentTypePiano",
+        "gmeow:instrumentTypeSitar",
+        "gmeow:instrumentTypeTabla",
+        "gmeow:instrumentTypeTurntables",
+        "gmeow:instrumentTypeViolin",
+        "gmeow:instrumentTypeVoice"
+      ],
+      "type": "string"
+    },
     "Intention": {
       "allOf": [
         {
@@ -13297,6 +14296,15 @@
       },
       "type": "object"
     },
+    "InvitationStatusEnum": {
+      "enum": [
+        "gmeow:invitationStatusAccepted",
+        "gmeow:invitationStatusDeclined",
+        "gmeow:invitationStatusNeedsAction",
+        "gmeow:invitationStatusTentative"
+      ],
+      "type": "string"
+    },
     "Invoice": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -13321,6 +14329,16 @@
         }
       },
       "type": "object"
+    },
+    "InvoiceStatusEnum": {
+      "enum": [
+        "gmeow:invoiceStatusCancelled",
+        "gmeow:invoiceStatusDraft",
+        "gmeow:invoiceStatusOverdue",
+        "gmeow:invoiceStatusPaid",
+        "gmeow:invoiceStatusSent"
+      ],
+      "type": "string"
     },
     "Item": {
       "properties": {
@@ -13535,6 +14553,25 @@
         }
       },
       "type": "object"
+    },
+    "JustificationStatusEnum": {
+      "enum": [
+        "gmeow:justificationStatusDefeated",
+        "gmeow:justificationStatusGettier",
+        "gmeow:justificationStatusRebutted",
+        "gmeow:justificationStatusUndercut",
+        "gmeow:justificationStatusUndermined"
+      ],
+      "type": "string"
+    },
+    "KeySchemeEnum": {
+      "enum": [
+        "gmeow:keySchemeNostr",
+        "gmeow:keySchemePGP",
+        "gmeow:keySchemeSSH",
+        "gmeow:keySchemeX509"
+      ],
+      "type": "string"
     },
     "KinRelationship": {
       "properties": {
@@ -13836,29 +14873,11 @@
         "gmeow:underStandard": {
           "anyOf": [
             {
-              "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/EpistemicStandardEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/EpistemicStandardEnum"
               },
               "type": "array"
             }
@@ -13866,6 +14885,15 @@
         }
       },
       "type": "object"
+    },
+    "KnowledgeLevelEnum": {
+      "enum": [
+        "gmeow:knowledgeAware",
+        "gmeow:knowledgeKnowsAbout",
+        "gmeow:knowledgeMastered",
+        "gmeow:knowledgeUnderstands"
+      ],
+      "type": "string"
     },
     "KnowledgeProficiency": {
       "properties": {
@@ -13934,29 +14962,11 @@
         "gmeow:knowledgeProficiencyLevel": {
           "anyOf": [
             {
-              "$comment": "gmeow:KnowledgeLevel has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/KnowledgeLevelEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:KnowledgeLevel has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/KnowledgeLevelEnum"
               },
               "type": "array"
             }
@@ -13965,29 +14975,11 @@
         "gmeow:knowledgeProficiencyScale": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProficiencyScale has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/ProficiencyScaleEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:ProficiencyScale has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/ProficiencyScaleEnum"
               },
               "type": "array"
             }
@@ -14038,6 +15030,13 @@
         }
       },
       "type": "object"
+    },
+    "LabelSetDecisionRuleEnum": {
+      "enum": [
+        "gmeow:decisionArgmax",
+        "gmeow:decisionIndependentThreshold"
+      ],
+      "type": "string"
     },
     "LandTenure": {
       "properties": {
@@ -14148,6 +15147,18 @@
         }
       },
       "type": "object"
+    },
+    "LandTenureTypeEnum": {
+      "enum": [
+        "gmeow:tenureTypeCrownLease",
+        "gmeow:tenureTypeEasement",
+        "gmeow:tenureTypeFreehold",
+        "gmeow:tenureTypeLeasehold",
+        "gmeow:tenureTypeMortgage",
+        "gmeow:tenureTypeOwnership",
+        "gmeow:tenureTypeUsufruct"
+      ],
+      "type": "string"
     },
     "Language": {
       "allOf": [
@@ -14329,6 +15340,55 @@
       },
       "type": "object"
     },
+    "LanguageChangeTypeEnum": {
+      "enum": [
+        "gmeow:changeBorrowing",
+        "gmeow:changeExtinction",
+        "gmeow:changeGrammaticalChange",
+        "gmeow:changeLanguageContact",
+        "gmeow:changeLexicalInnovation",
+        "gmeow:changeMerger",
+        "gmeow:changeRevitalization",
+        "gmeow:changeRevival",
+        "gmeow:changeSemanticDrift",
+        "gmeow:changeSoundShift",
+        "gmeow:changeSpellingReform",
+        "gmeow:changeSplit",
+        "gmeow:changeStandardization"
+      ],
+      "type": "string"
+    },
+    "LanguageModalityEnum": {
+      "enum": [
+        "gmeow:modalityMachine",
+        "gmeow:modalityMultimodal",
+        "gmeow:modalitySigned",
+        "gmeow:modalitySpoken",
+        "gmeow:modalityTactile",
+        "gmeow:modalityWhistled",
+        "gmeow:modalityWritten"
+      ],
+      "type": "string"
+    },
+    "LanguageOriginEnum": {
+      "enum": [
+        "gmeow:originAiGenerated",
+        "gmeow:originConstructedArtistic",
+        "gmeow:originConstructedAuxiliary",
+        "gmeow:originConstructedEngineered",
+        "gmeow:originConstructedRitual",
+        "gmeow:originCreole",
+        "gmeow:originFormal",
+        "gmeow:originMarkup",
+        "gmeow:originMixed",
+        "gmeow:originNatural",
+        "gmeow:originPidgin",
+        "gmeow:originProgramming",
+        "gmeow:originQuery",
+        "gmeow:originReconstructed"
+      ],
+      "type": "string"
+    },
     "LanguageState": {
       "properties": {
         "@annotation": {
@@ -14439,6 +15499,58 @@
       },
       "type": "object"
     },
+    "LanguageStatusEnum": {
+      "enum": [
+        "gmeow:statusConstructedActive",
+        "gmeow:statusDormant",
+        "gmeow:statusEmerging",
+        "gmeow:statusExtinct",
+        "gmeow:statusHistorical",
+        "gmeow:statusLiving",
+        "gmeow:statusProposed",
+        "gmeow:statusRevived"
+      ],
+      "type": "string"
+    },
+    "LanguageVarietyKindEnum": {
+      "enum": [
+        "gmeow:kindCreole",
+        "gmeow:kindDialect",
+        "gmeow:kindIdiolect",
+        "gmeow:kindJargon",
+        "gmeow:kindKoine",
+        "gmeow:kindLanguage",
+        "gmeow:kindLinguaFranca",
+        "gmeow:kindLocalizedVariant",
+        "gmeow:kindPidgin",
+        "gmeow:kindRegister",
+        "gmeow:kindSlang",
+        "gmeow:kindSociolect",
+        "gmeow:kindStandard"
+      ],
+      "type": "string"
+    },
+    "LearningEventTypeEnum": {
+      "enum": [
+        "gmeow:learningBeingTaught",
+        "gmeow:learningConceptFormation",
+        "gmeow:learningConsolidation",
+        "gmeow:learningSkillAcquisition",
+        "gmeow:learningTransfer",
+        "gmeow:learningUnlearning"
+      ],
+      "type": "string"
+    },
+    "LearningPathEnum": {
+      "enum": [
+        "gmeow:pathAuditAiOrGraphRag",
+        "gmeow:pathModelAContestedClaim",
+        "gmeow:pathModelAPerson",
+        "gmeow:pathPublishWebStructuredData",
+        "gmeow:pathShipOfflineGtsDocs"
+      ],
+      "type": "string"
+    },
     "LedgerAccount": {
       "properties": {
         "@annotation": {
@@ -14506,29 +15618,11 @@
         "gmeow:ledgerAccountType": {
           "anyOf": [
             {
-              "$comment": "gmeow:LedgerAccountType has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/LedgerAccountTypeEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:LedgerAccountType has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/LedgerAccountTypeEnum"
               },
               "type": "array"
             }
@@ -14536,6 +15630,16 @@
         }
       },
       "type": "object"
+    },
+    "LedgerAccountTypeEnum": {
+      "enum": [
+        "gmeow:ledgerAccountTypeAsset",
+        "gmeow:ledgerAccountTypeEquity",
+        "gmeow:ledgerAccountTypeExpense",
+        "gmeow:ledgerAccountTypeLiability",
+        "gmeow:ledgerAccountTypeRevenue"
+      ],
+      "type": "string"
     },
     "LedgerEvent": {
       "properties": {
@@ -14606,6 +15710,16 @@
       },
       "type": "object"
     },
+    "LedgerFinalityStatusEnum": {
+      "enum": [
+        "gmeow:finalityStatusConfirmed",
+        "gmeow:finalityStatusFinalized",
+        "gmeow:finalityStatusOrphaned",
+        "gmeow:finalityStatusPending",
+        "gmeow:finalityStatusReorged"
+      ],
+      "type": "string"
+    },
     "LedgerTransaction": {
       "properties": {
         "@annotation": {
@@ -14675,6 +15789,58 @@
       },
       "type": "object"
     },
+    "LeftOperandEnum": {
+      "enum": [
+        "gmeow:leftOpAbsolutePosition",
+        "gmeow:leftOpAbsoluteSize",
+        "gmeow:leftOpAbsoluteSpatialPosition",
+        "gmeow:leftOpAbsoluteTemporalPosition",
+        "gmeow:leftOpCount",
+        "gmeow:leftOpDateTime",
+        "gmeow:leftOpDelayPeriod",
+        "gmeow:leftOpDeliveryChannel",
+        "gmeow:leftOpDevice",
+        "gmeow:leftOpElapsedTime",
+        "gmeow:leftOpEvent",
+        "gmeow:leftOpFileFormat",
+        "gmeow:leftOpIndustry",
+        "gmeow:leftOpLanguage",
+        "gmeow:leftOpMedia",
+        "gmeow:leftOpMeteredTime",
+        "gmeow:leftOpPayAmount",
+        "gmeow:leftOpPercentage",
+        "gmeow:leftOpProduct",
+        "gmeow:leftOpPurpose",
+        "gmeow:leftOpRecipient",
+        "gmeow:leftOpRelativePosition",
+        "gmeow:leftOpRelativeSize",
+        "gmeow:leftOpRelativeSpatialPosition",
+        "gmeow:leftOpRelativeTemporalPosition",
+        "gmeow:leftOpResolution",
+        "gmeow:leftOpSpatial",
+        "gmeow:leftOpSpatialCoordinates",
+        "gmeow:leftOpSystem",
+        "gmeow:leftOpSystemDevice",
+        "gmeow:leftOpTimeInterval",
+        "gmeow:leftOpUnitOfCount",
+        "gmeow:leftOpVersion",
+        "gmeow:leftOpVirtualLocation"
+      ],
+      "type": "string"
+    },
+    "LexicalFormTypeEnum": {
+      "enum": [
+        "gmeow:formNormalized",
+        "gmeow:formReconstructed",
+        "gmeow:formRendered",
+        "gmeow:formSigned",
+        "gmeow:formSpoken",
+        "gmeow:formTranslated",
+        "gmeow:formTransliterated",
+        "gmeow:formWritten"
+      ],
+      "type": "string"
+    },
     "License": {
       "properties": {
         "@annotation": {
@@ -14699,29 +15865,11 @@
         "gmeow:licenseFamily": {
           "anyOf": [
             {
-              "$comment": "gmeow:LicenseFamily has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/LicenseFamilyEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:LicenseFamily has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/LicenseFamilyEnum"
               },
               "type": "array"
             }
@@ -14940,6 +16088,17 @@
         "gmeow:licensor"
       ],
       "type": "object"
+    },
+    "LicenseFamilyEnum": {
+      "enum": [
+        "gmeow:licenseFamilyCC",
+        "gmeow:licenseFamilyCopyleft",
+        "gmeow:licenseFamilyDual",
+        "gmeow:licenseFamilyPermissive",
+        "gmeow:licenseFamilyProprietary",
+        "gmeow:licenseFamilyPublicDomain"
+      ],
+      "type": "string"
     },
     "Location": {
       "allOf": [
@@ -15207,29 +16366,11 @@
         "gmeow:constraintLogic": {
           "anyOf": [
             {
-              "$comment": "gmeow:ConstraintLogic has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/ConstraintLogicEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:ConstraintLogic has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/ConstraintLogicEnum"
               },
               "type": "array"
             }
@@ -15293,6 +16434,16 @@
         "gmeow:dimension": {}
       },
       "type": "object"
+    },
+    "MaintenanceStatusEnum": {
+      "enum": [
+        "gmeow:statusAbandoned",
+        "gmeow:statusActive",
+        "gmeow:statusDeprecated",
+        "gmeow:statusEOL",
+        "gmeow:statusMaintained"
+      ],
+      "type": "string"
     },
     "Manifestation": {
       "properties": {
@@ -15365,6 +16516,29 @@
       ],
       "type": "object"
     },
+    "ManifestationFormatEnum": {
+      "enum": [
+        "gmeow:formatAudiobook",
+        "gmeow:formatCD",
+        "gmeow:formatCassette",
+        "gmeow:formatComicIssue",
+        "gmeow:formatDigitalFile",
+        "gmeow:formatEPUB",
+        "gmeow:formatHardcover",
+        "gmeow:formatLosslessDigitalAudio",
+        "gmeow:formatMEI",
+        "gmeow:formatMIDIFile",
+        "gmeow:formatMusicXML",
+        "gmeow:formatPDF",
+        "gmeow:formatPaperback",
+        "gmeow:formatPrintedScore",
+        "gmeow:formatStreamingAudio",
+        "gmeow:formatVinyl",
+        "gmeow:formatWebPage",
+        "gmeow:formatWebSerial"
+      ],
+      "type": "string"
+    },
     "Mark": {
       "properties": {
         "@annotation": {
@@ -15433,6 +16607,15 @@
         }
       },
       "type": "object"
+    },
+    "MaximViolationTypeEnum": {
+      "enum": [
+        "gmeow:maximViolationManner",
+        "gmeow:maximViolationQuality",
+        "gmeow:maximViolationQuantity",
+        "gmeow:maximViolationRelation"
+      ],
+      "type": "string"
     },
     "MeasuredValue": {
       "properties": {
@@ -15515,16 +16698,7 @@
           ]
         },
         "gmeow:observationMethod": {
-          "$comment": "gmeow:ObservationMethod has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/ObservationMethodEnum"
         }
       },
       "required": [
@@ -15653,6 +16827,33 @@
       ],
       "type": "object"
     },
+    "MemoryKindEnum": {
+      "enum": [
+        "gmeow:memoryKindEpisodic",
+        "gmeow:memoryKindProcedural",
+        "gmeow:memoryKindSemantic",
+        "gmeow:memoryKindWorking"
+      ],
+      "type": "string"
+    },
+    "MentalProcessTypeEnum": {
+      "enum": [
+        "gmeow:processAffectiveExperience",
+        "gmeow:processAttention",
+        "gmeow:processAudit",
+        "gmeow:processDeliberation",
+        "gmeow:processDreaming",
+        "gmeow:processExport",
+        "gmeow:processImagining",
+        "gmeow:processLearning",
+        "gmeow:processMindWandering",
+        "gmeow:processPerception",
+        "gmeow:processReasoning",
+        "gmeow:processRecollection",
+        "gmeow:processTraining"
+      ],
+      "type": "string"
+    },
     "MentalReferenceFrame": {
       "properties": {
         "@annotation": {
@@ -15770,6 +16971,28 @@
       ],
       "type": "object"
     },
+    "MessageKeywordEnum": {
+      "enum": [
+        "gmeow:keywordAnswered",
+        "gmeow:keywordDraft",
+        "gmeow:keywordFlagged",
+        "gmeow:keywordForwarded",
+        "gmeow:keywordJunk",
+        "gmeow:keywordSeen"
+      ],
+      "type": "string"
+    },
+    "MessageKindEnum": {
+      "enum": [
+        "gmeow:messageKindAutoGenerated",
+        "gmeow:messageKindBounce",
+        "gmeow:messageKindCalendarInvitation",
+        "gmeow:messageKindDeliveryStatusNotification",
+        "gmeow:messageKindFeedbackReport",
+        "gmeow:messageKindReadReceipt"
+      ],
+      "type": "string"
+    },
     "MessageParticipant": {
       "properties": {
         "@annotation": {
@@ -15856,29 +17079,11 @@
         "gmeow:participantRole": {
           "anyOf": [
             {
-              "$comment": "gmeow:MessageParticipantRole has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/MessageParticipantRoleEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:MessageParticipantRole has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/MessageParticipantRoleEnum"
               },
               "type": "array"
             }
@@ -15886,6 +17091,26 @@
         }
       },
       "type": "object"
+    },
+    "MessageParticipantRoleEnum": {
+      "enum": [
+        "gmeow:messageRoleBcc",
+        "gmeow:messageRoleCc",
+        "gmeow:messageRoleDeliveredTo",
+        "gmeow:messageRoleEnvelopeFrom",
+        "gmeow:messageRoleEnvelopeTo",
+        "gmeow:messageRoleErrorsTo",
+        "gmeow:messageRoleFrom",
+        "gmeow:messageRoleOriginalTo",
+        "gmeow:messageRoleReplyTo",
+        "gmeow:messageRoleResentCc",
+        "gmeow:messageRoleResentFrom",
+        "gmeow:messageRoleResentTo",
+        "gmeow:messageRoleReturnPath",
+        "gmeow:messageRoleSender",
+        "gmeow:messageRoleTo"
+      ],
+      "type": "string"
     },
     "MeterAssignment": {
       "properties": {
@@ -16074,6 +17299,19 @@
         "gmeow:metricGroupOrder"
       ],
       "type": "object"
+    },
+    "MetricKindEnum": {
+      "enum": [
+        "gmeow:metricCosine",
+        "gmeow:metricEditDistance",
+        "gmeow:metricEuclidean",
+        "gmeow:metricGeodesic",
+        "gmeow:metricGraphHops",
+        "gmeow:metricLogarithmic",
+        "gmeow:metricPositionalDistance",
+        "gmeow:metricSymplectic"
+      ],
+      "type": "string"
     },
     "MetricModulation": {
       "properties": {
@@ -16304,6 +17542,23 @@
         "gmeow:mitigationMeasure"
       ],
       "type": "object"
+    },
+    "MitigationStatusEnum": {
+      "enum": [
+        "gmeow:mitigationActive",
+        "gmeow:mitigationProposed",
+        "gmeow:mitigationRetired"
+      ],
+      "type": "string"
+    },
+    "ModalForceEnum": {
+      "enum": [
+        "gmeow:modalForceActual",
+        "gmeow:modalForceCounterfactual",
+        "gmeow:modalForceNecessary",
+        "gmeow:modalForcePossible"
+      ],
+      "type": "string"
     },
     "ModelCard": {
       "properties": {
@@ -16740,6 +17995,30 @@
       ],
       "type": "object"
     },
+    "MotifKindEnum": {
+      "enum": [
+        "gmeow:motifKindLeitmotif",
+        "gmeow:motifKindRunningGag",
+        "gmeow:motifKindSymbol",
+        "gmeow:motifKindTaleType",
+        "gmeow:motifKindTheme",
+        "gmeow:motifKindTrope"
+      ],
+      "type": "string"
+    },
+    "MultipartTypeEnum": {
+      "enum": [
+        "gmeow:multipartTypeAlternative",
+        "gmeow:multipartTypeDigest",
+        "gmeow:multipartTypeEncrypted",
+        "gmeow:multipartTypeMixed",
+        "gmeow:multipartTypeParallel",
+        "gmeow:multipartTypeRelated",
+        "gmeow:multipartTypeReport",
+        "gmeow:multipartTypeSigned"
+      ],
+      "type": "string"
+    },
     "MusicAnalysisClaim": {
       "properties": {
         "@annotation": {
@@ -16807,29 +18086,11 @@
         "gmeow:analysisProperty": {
           "anyOf": [
             {
-              "$comment": "gmeow:AnalysisProperty has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/AnalysisPropertyEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:AnalysisProperty has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/AnalysisPropertyEnum"
               },
               "type": "array"
             }
@@ -16882,6 +18143,22 @@
         "gmeow:vantage"
       ],
       "type": "object"
+    },
+    "MusicalParameterEnum": {
+      "enum": [
+        "gmeow:musicalParameterDuration",
+        "gmeow:musicalParameterDynamics",
+        "gmeow:musicalParameterInstrumentation",
+        "gmeow:musicalParameterLocation",
+        "gmeow:musicalParameterOrder",
+        "gmeow:musicalParameterPerformerCount",
+        "gmeow:musicalParameterPitch",
+        "gmeow:musicalParameterSoundContent",
+        "gmeow:musicalParameterTacet",
+        "gmeow:musicalParameterTempo",
+        "gmeow:musicalParameterTimbre"
+      ],
+      "type": "string"
     },
     "MusicalSegment": {
       "properties": {
@@ -16953,32 +18230,10 @@
           ]
         },
         "gmeow:frameKind": {
-          "const": {
-            "@id": "gmeow:frameKindScalar"
-          },
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/FrameKindEnum"
         },
         "gmeow:frameRealm": {
-          "const": {
-            "@id": "gmeow:frameRealmMusicalTime"
-          },
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/FrameRealmEnum"
         },
         "gmeow:hasAxis": {
           "properties": {
@@ -17199,6 +18454,74 @@
         }
       },
       "type": "object"
+    },
+    "NamePartTypeEnum": {
+      "enum": [
+        "gmeow:namePartAgnomen",
+        "gmeow:namePartBirthOrderName",
+        "gmeow:namePartBirthSurname",
+        "gmeow:namePartClanName",
+        "gmeow:namePartCognomen",
+        "gmeow:namePartCourtesyName",
+        "gmeow:namePartExtension",
+        "gmeow:namePartGenerationName",
+        "gmeow:namePartGenerationalOrdinal",
+        "gmeow:namePartGenerationalSuffix",
+        "gmeow:namePartGiven",
+        "gmeow:namePartHonorificPrefix",
+        "gmeow:namePartHonorificSuffix",
+        "gmeow:namePartHouseName",
+        "gmeow:namePartInitial",
+        "gmeow:namePartIsm",
+        "gmeow:namePartKunya",
+        "gmeow:namePartLaqab",
+        "gmeow:namePartMaternalSurname",
+        "gmeow:namePartMatronymic",
+        "gmeow:namePartMiddle",
+        "gmeow:namePartMononym",
+        "gmeow:namePartNasab",
+        "gmeow:namePartNickname",
+        "gmeow:namePartNisba",
+        "gmeow:namePartNomen",
+        "gmeow:namePartParticle",
+        "gmeow:namePartPaternalSurname",
+        "gmeow:namePartPatronymic",
+        "gmeow:namePartPraenomen",
+        "gmeow:namePartReligiousName",
+        "gmeow:namePartStem",
+        "gmeow:namePartSurname",
+        "gmeow:namePartTeknonym"
+      ],
+      "type": "string"
+    },
+    "NamePurposeEnum": {
+      "enum": [
+        "gmeow:namePurposeBirth",
+        "gmeow:namePurposeCeremonial",
+        "gmeow:namePurposeChosen",
+        "gmeow:namePurposeDeadname",
+        "gmeow:namePurposeEndonym",
+        "gmeow:namePurposeExonym",
+        "gmeow:namePurposeGlossonym",
+        "gmeow:namePurposeLegal",
+        "gmeow:namePurposeNickname",
+        "gmeow:namePurposeOnlineHandle",
+        "gmeow:namePurposePenStage",
+        "gmeow:namePurposeProfessional",
+        "gmeow:namePurposeRegnal",
+        "gmeow:namePurposeReligious",
+        "gmeow:namePurposeSuperseded"
+      ],
+      "type": "string"
+    },
+    "NameRegisterEnum": {
+      "enum": [
+        "gmeow:registerCasual",
+        "gmeow:registerFormal",
+        "gmeow:registerIntimate",
+        "gmeow:registerProfessional"
+      ],
+      "type": "string"
     },
     "NameUsage": {
       "properties": {
@@ -17575,6 +18898,17 @@
       },
       "type": "object"
     },
+    "NarrationModeEnum": {
+      "enum": [
+        "gmeow:narrationDirect",
+        "gmeow:narrationDream",
+        "gmeow:narrationFlashback",
+        "gmeow:narrationHypothetical",
+        "gmeow:narrationMentioned",
+        "gmeow:narrationUnreliable"
+      ],
+      "type": "string"
+    },
     "NarrationUsage": {
       "properties": {
         "@annotation": {
@@ -17645,16 +18979,7 @@
           ]
         },
         "gmeow:narrativeFrameLinkRelation": {
-          "$comment": "gmeow:NarrativeFrameRelation has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/NarrativeFrameRelationEnum"
         },
         "gmeow:narrativeFrameLinkSource": {
           "anyOf": [
@@ -17699,6 +19024,17 @@
         "gmeow:narrativeFrameLinkTarget"
       ],
       "type": "object"
+    },
+    "NarrativeFrameRelationEnum": {
+      "enum": [
+        "gmeow:relationAdaptationOf",
+        "gmeow:relationAlternateContinuity",
+        "gmeow:relationCanon",
+        "gmeow:relationCrossover",
+        "gmeow:relationExpandedUniverse",
+        "gmeow:relationFanon"
+      ],
+      "type": "string"
     },
     "NarrativePosition": {
       "properties": {
@@ -17776,6 +19112,26 @@
       ],
       "type": "object"
     },
+    "NarrativeRoleEnum": {
+      "enum": [
+        "gmeow:roleAntagonist",
+        "gmeow:roleConfidant",
+        "gmeow:roleFoil",
+        "gmeow:roleLoveInterest",
+        "gmeow:roleMentor",
+        "gmeow:roleNarratingVoice",
+        "gmeow:roleProtagonist",
+        "gmeow:roleTrickster"
+      ],
+      "type": "string"
+    },
+    "NarrativeTimeAxisEnum": {
+      "enum": [
+        "gmeow:axisDiscourseTime",
+        "gmeow:axisStoryTime"
+      ],
+      "type": "string"
+    },
     "NarrativeTimeFrame": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -17800,6 +19156,16 @@
         }
       },
       "type": "object"
+    },
+    "NeoRiemannianOperationEnum": {
+      "enum": [
+        "gmeow:neoRiemannianL",
+        "gmeow:neoRiemannianN",
+        "gmeow:neoRiemannianP",
+        "gmeow:neoRiemannianR",
+        "gmeow:neoRiemannianS"
+      ],
+      "type": "string"
     },
     "NetworkAddress": {
       "properties": {
@@ -17838,6 +19204,18 @@
         "gmeow:networkAddressFrame"
       ],
       "type": "object"
+    },
+    "NetworkAddressTypeEnum": {
+      "enum": [
+        "gmeow:networkAddressTypeBGP",
+        "gmeow:networkAddressTypeDNS",
+        "gmeow:networkAddressTypeIPv4",
+        "gmeow:networkAddressTypeIPv6",
+        "gmeow:networkAddressTypeMAC",
+        "gmeow:networkAddressTypePort",
+        "gmeow:networkAddressTypeURL"
+      ],
+      "type": "string"
     },
     "Node": {
       "allOf": [
@@ -27297,6 +28675,31 @@
               "@type": {
                 "anyOf": [
                   {
+                    "const": "logic:Formula"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:Formula"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:Formula"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
                     "const": "logic:FreshnessGuard"
                   },
                   {
@@ -27514,6 +28917,31 @@
           },
           "then": {
             "$ref": "#/$defs/logic:SectionAcceptanceWitness"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "logic:TermCarrier"
+                  },
+                  {
+                    "contains": {
+                      "const": "logic:TermCarrier"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/logic:TermCarrier"
           }
         },
         {
@@ -32446,29 +33874,11 @@
         "gmeow:notationUsageRole": {
           "anyOf": [
             {
-              "$comment": "gmeow:NotationUsageRole has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/NotationUsageRoleEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:NotationUsageRole has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/NotationUsageRoleEnum"
               },
               "type": "array"
             }
@@ -32519,6 +33929,18 @@
         }
       },
       "type": "object"
+    },
+    "NotationUsageRoleEnum": {
+      "enum": [
+        "gmeow:notationRoleCipher",
+        "gmeow:notationRoleCommunication",
+        "gmeow:notationRoleEncoding",
+        "gmeow:notationRoleExpression",
+        "gmeow:notationRoleRepresentation",
+        "gmeow:notationRoleShorthand",
+        "gmeow:notationRoleTranscription"
+      ],
+      "type": "string"
     },
     "Note": {
       "anyOf": [
@@ -32620,6 +34042,22 @@
       },
       "type": "object"
     },
+    "ObservablePropertyEnum": {
+      "enum": [
+        "gmeow:observablePropertyAirQualityIndex",
+        "gmeow:observablePropertyAtmosphericPressure",
+        "gmeow:observablePropertyHumidity",
+        "gmeow:observablePropertyLightIntensity",
+        "gmeow:observablePropertyLoudness",
+        "gmeow:observablePropertyRadiationLevel",
+        "gmeow:observablePropertyRoughness",
+        "gmeow:observablePropertySoundPressureLevel",
+        "gmeow:observablePropertyTemperature",
+        "gmeow:observablePropertyTimbre",
+        "gmeow:observablePropertyTimingDeviation"
+      ],
+      "type": "string"
+    },
     "Observation": {
       "properties": {
         "@annotation": {
@@ -32716,6 +34154,48 @@
       },
       "type": "object"
     },
+    "ObservationMethodEnum": {
+      "enum": [
+        "gmeow:methodComputationalModel",
+        "gmeow:methodDirectObservation",
+        "gmeow:methodExpertJudgement",
+        "gmeow:methodGNSSRTK",
+        "gmeow:methodGPS",
+        "gmeow:methodInstrumentalReading",
+        "gmeow:methodLiDAR",
+        "gmeow:methodLlmExtraction",
+        "gmeow:methodNliDerivation",
+        "gmeow:methodPhotogrammetry",
+        "gmeow:methodRemoteSensing",
+        "gmeow:methodStreaming",
+        "gmeow:methodSurvey",
+        "gmeow:methodTotalStation"
+      ],
+      "type": "string"
+    },
+    "ObservationTypeEnum": {
+      "enum": [
+        "gmeow:observationTypeDerived",
+        "gmeow:observationTypeIdentity",
+        "gmeow:observationTypeKinship",
+        "gmeow:observationTypeMeasurement",
+        "gmeow:observationTypeNaming",
+        "gmeow:observationTypeRights",
+        "gmeow:observationTypeSensory",
+        "gmeow:observationTypeSimulation",
+        "gmeow:observationTypeStandpoint",
+        "gmeow:observationTypeStreaming"
+      ],
+      "type": "string"
+    },
+    "OpacityReasonEnum": {
+      "enum": [
+        "gmeow:opacityDamaged",
+        "gmeow:opacityMissingKey",
+        "gmeow:opacityUnknownCodec"
+      ],
+      "type": "string"
+    },
     "OpaqueFrame": {
       "properties": {
         "@annotation": {
@@ -32740,29 +34220,11 @@
         "gmeow:opacityReason": {
           "anyOf": [
             {
-              "$comment": "gmeow:OpacityReason has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/OpacityReasonEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:OpacityReason has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/OpacityReasonEnum"
               },
               "type": "array"
             }
@@ -32838,6 +34300,16 @@
         }
       },
       "type": "object"
+    },
+    "OrderStatusEnum": {
+      "enum": [
+        "gmeow:orderStatusCancelled",
+        "gmeow:orderStatusConfirmed",
+        "gmeow:orderStatusDelivered",
+        "gmeow:orderStatusPending",
+        "gmeow:orderStatusShipped"
+      ],
+      "type": "string"
     },
     "Organization": {
       "allOf": [
@@ -33018,6 +34490,17 @@
         }
       },
       "type": "object"
+    },
+    "OrganizationTypeEnum": {
+      "enum": [
+        "gmeow:organizationTypeAssociation",
+        "gmeow:organizationTypeCollaboration",
+        "gmeow:organizationTypeCompany",
+        "gmeow:organizationTypeEducationalInstitution",
+        "gmeow:organizationTypeGovernmentBody",
+        "gmeow:organizationTypeNonprofit"
+      ],
+      "type": "string"
     },
     "Orientation": {
       "anyOf": [
@@ -33658,6 +35141,16 @@
       ],
       "type": "object"
     },
+    "OrnamentProfileKindEnum": {
+      "enum": [
+        "gmeow:ornamentProfileKindBaroqueAgrement",
+        "gmeow:ornamentProfileKindGamaka",
+        "gmeow:ornamentProfileKindGraceNote",
+        "gmeow:ornamentProfileKindJazzTurn",
+        "gmeow:ornamentProfileKindMordent"
+      ],
+      "type": "string"
+    },
     "ParentChildRelationship": {
       "properties": {
         "@annotation": {
@@ -33768,6 +35261,39 @@
       },
       "type": "object"
     },
+    "ParticipantRoleEnum": {
+      "enum": [
+        "gmeow:roleAccompanist",
+        "gmeow:roleAgent",
+        "gmeow:roleAttendee",
+        "gmeow:roleBeneficiary",
+        "gmeow:roleBeneficiaryOfDeception",
+        "gmeow:roleConductor",
+        "gmeow:roleDeceived",
+        "gmeow:roleDeceiver",
+        "gmeow:roleDupe",
+        "gmeow:roleEmployee",
+        "gmeow:roleEmployer",
+        "gmeow:roleEnsembleMember",
+        "gmeow:roleImproviser",
+        "gmeow:roleIntermediary",
+        "gmeow:roleLearner",
+        "gmeow:roleOfficiant",
+        "gmeow:roleOrganizer",
+        "gmeow:roleParticipantPrincipal",
+        "gmeow:rolePayee",
+        "gmeow:rolePayer",
+        "gmeow:rolePerformer",
+        "gmeow:roleProducer",
+        "gmeow:roleSessionMusician",
+        "gmeow:roleSoloist",
+        "gmeow:roleSpinDoctor",
+        "gmeow:roleTransmitter",
+        "gmeow:roleVictim",
+        "gmeow:roleWitness"
+      ],
+      "type": "string"
+    },
     "Participation": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -33792,6 +35318,16 @@
         }
       },
       "type": "object"
+    },
+    "PaymentMethodEnum": {
+      "enum": [
+        "gmeow:paymentMethodBankTransfer",
+        "gmeow:paymentMethodCash",
+        "gmeow:paymentMethodCheque",
+        "gmeow:paymentMethodCreditCard",
+        "gmeow:paymentMethodCrypto"
+      ],
+      "type": "string"
     },
     "PerformanceDecision": {
       "properties": {
@@ -33972,6 +35508,19 @@
         "gmeow:participationRole"
       ],
       "type": "object"
+    },
+    "PeriodTypeEnum": {
+      "enum": [
+        "gmeow:periodTypeFiscalYear",
+        "gmeow:periodTypeGeologicAge",
+        "gmeow:periodTypeGeologicEon",
+        "gmeow:periodTypeGeologicEpoch",
+        "gmeow:periodTypeGeologicEra",
+        "gmeow:periodTypeGeologicPeriod",
+        "gmeow:periodTypeHistoricalDynasty",
+        "gmeow:periodTypeHistoricalEra"
+      ],
+      "type": "string"
     },
     "Permission": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -34284,6 +35833,23 @@
         "gmeow:personaRegister"
       ],
       "type": "object"
+    },
+    "PhysicalCarrierTypeEnum": {
+      "enum": [
+        "gmeow:carrierBone",
+        "gmeow:carrierCoin",
+        "gmeow:carrierManuscript",
+        "gmeow:carrierMetal",
+        "gmeow:carrierOstracon",
+        "gmeow:carrierPapyrus",
+        "gmeow:carrierPotterySherd",
+        "gmeow:carrierSeal",
+        "gmeow:carrierStela",
+        "gmeow:carrierTablet",
+        "gmeow:carrierWallInscription",
+        "gmeow:carrierWood"
+      ],
+      "type": "string"
     },
     "PhysicalObject": {
       "allOf": [
@@ -34702,15 +36268,7 @@
           ]
         },
         "gmeow:collectionKind": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/PitchCollectionKindEnum"
         },
         "gmeow:collectionPartOrder": {
           "anyOf": [
@@ -34737,6 +36295,22 @@
         "gmeow:collectionKind"
       ],
       "type": "object"
+    },
+    "PitchCollectionKindEnum": {
+      "enum": [
+        "gmeow:pitchCollectionKindJins",
+        "gmeow:pitchCollectionKindMaqam",
+        "gmeow:pitchCollectionKindMode",
+        "gmeow:pitchCollectionKindModeOfLimitedTransposition",
+        "gmeow:pitchCollectionKindPCSet",
+        "gmeow:pitchCollectionKindPathet",
+        "gmeow:pitchCollectionKindRaga",
+        "gmeow:pitchCollectionKindRowSeries",
+        "gmeow:pitchCollectionKindScale",
+        "gmeow:pitchCollectionKindSpectrumCollection",
+        "gmeow:pitchCollectionKindThaat"
+      ],
+      "type": "string"
     },
     "PitchCollectionMembership": {
       "properties": {
@@ -35218,6 +36792,14 @@
       ],
       "type": "object"
     },
+    "PitchTrajectoryInterpolationKindEnum": {
+      "enum": [
+        "gmeow:interpolationExponential",
+        "gmeow:interpolationLinearCents",
+        "gmeow:interpolationStochasticByReference"
+      ],
+      "type": "string"
+    },
     "PitchValue": {
       "properties": {
         "@annotation": {
@@ -35336,6 +36918,49 @@
         }
       },
       "type": "object"
+    },
+    "PlaceTypeEnum": {
+      "enum": [
+        "gmeow:placeTypeAdministrativeArea",
+        "gmeow:placeTypeBuilding",
+        "gmeow:placeTypeCity",
+        "gmeow:placeTypeCountry",
+        "gmeow:placeTypeFloor",
+        "gmeow:placeTypeNaturalFeature",
+        "gmeow:placeTypeNeighborhood",
+        "gmeow:placeTypeParcel",
+        "gmeow:placeTypePointOfInterest",
+        "gmeow:placeTypePremises",
+        "gmeow:placeTypeRegion",
+        "gmeow:placeTypeRoom",
+        "gmeow:placeTypeSite",
+        "gmeow:placeTypeThoroughfare"
+      ],
+      "type": "string"
+    },
+    "PlayingTechniqueEnum": {
+      "enum": [
+        "gmeow:playingTechniqueArco",
+        "gmeow:playingTechniqueBentNote",
+        "gmeow:playingTechniqueColLegno",
+        "gmeow:playingTechniqueGrowl",
+        "gmeow:playingTechniqueHarmonics",
+        "gmeow:playingTechniqueKonnakol",
+        "gmeow:playingTechniqueMultiphonics",
+        "gmeow:playingTechniquePizzicato",
+        "gmeow:playingTechniquePreparedPiano",
+        "gmeow:playingTechniqueSlap",
+        "gmeow:playingTechniqueTapping"
+      ],
+      "type": "string"
+    },
+    "PolarityEnum": {
+      "enum": [
+        "gmeow:polarityAffirm",
+        "gmeow:polarityDeny",
+        "gmeow:polaritySuspend"
+      ],
+      "type": "string"
     },
     "Pose": {
       "properties": {
@@ -35590,29 +37215,11 @@
         "gmeow:postingDirection": {
           "anyOf": [
             {
-              "$comment": "gmeow:PostingDirection has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/PostingDirectionEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:PostingDirection has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/PostingDirectionEnum"
               },
               "type": "array"
             }
@@ -35663,6 +37270,13 @@
         }
       },
       "type": "object"
+    },
+    "PostingDirectionEnum": {
+      "enum": [
+        "gmeow:postingDirectionCredit",
+        "gmeow:postingDirectionDebit"
+      ],
+      "type": "string"
     },
     "PrecedenceTenure": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -35833,6 +37447,71 @@
         }
       },
       "type": "object"
+    },
+    "ProcedureTypeEnum": {
+      "enum": [
+        "gmeow:procedureTypeAgentFlow",
+        "gmeow:procedureTypeBusinessProcess",
+        "gmeow:procedureTypeCiBuild",
+        "gmeow:procedureTypeDataPipeline",
+        "gmeow:procedureTypeIngestion",
+        "gmeow:procedureTypeLabProtocol",
+        "gmeow:procedureTypeRecipe",
+        "gmeow:procedureTypeResearchPlan"
+      ],
+      "type": "string"
+    },
+    "ProficiencyLevelEnum": {
+      "enum": [
+        "gmeow:assessedBeginner",
+        "gmeow:assessedCompetent",
+        "gmeow:assessedExpert",
+        "gmeow:cefrA1",
+        "gmeow:cefrA2",
+        "gmeow:cefrB1",
+        "gmeow:cefrB2",
+        "gmeow:cefrC1",
+        "gmeow:cefrC2",
+        "gmeow:dreyfusAdvancedBeginner",
+        "gmeow:dreyfusCompetent",
+        "gmeow:dreyfusExpert",
+        "gmeow:dreyfusNovice",
+        "gmeow:dreyfusProficient",
+        "gmeow:levelHeritage",
+        "gmeow:levelNative",
+        "gmeow:nihAdvanced",
+        "gmeow:nihBeginner",
+        "gmeow:nihExpert",
+        "gmeow:nihIntermediate"
+      ],
+      "type": "string"
+    },
+    "ProficiencyModalityEnum": {
+      "enum": [
+        "gmeow:profModalityComprehension",
+        "gmeow:profModalityListening",
+        "gmeow:profModalityOverall",
+        "gmeow:profModalityReading",
+        "gmeow:profModalitySigning",
+        "gmeow:profModalitySpeaking",
+        "gmeow:profModalityWriting"
+      ],
+      "type": "string"
+    },
+    "ProficiencyScaleEnum": {
+      "enum": [
+        "gmeow:scaleACTFL",
+        "gmeow:scaleAssessed",
+        "gmeow:scaleBloomRevised",
+        "gmeow:scaleCEFR",
+        "gmeow:scaleDreyfus",
+        "gmeow:scaleILR",
+        "gmeow:scaleKnowledgeDepth",
+        "gmeow:scaleNIH",
+        "gmeow:scaleSOLO",
+        "gmeow:scaleSelfReported"
+      ],
+      "type": "string"
     },
     "Profile": {
       "properties": {
@@ -36114,6 +37793,47 @@
         }
       },
       "type": "object"
+    },
+    "ProjectionContextEnum": {
+      "enum": [
+        "gmeow:consumerAdviceCatalog",
+        "gmeow:consumerAgentMemory",
+        "gmeow:consumerFoafExport",
+        "gmeow:consumerInternalArchive",
+        "gmeow:consumerPublicSite",
+        "gmeow:consumerResearchQueue",
+        "gmeow:consumerSchemaOrgJsonLd",
+        "gmeow:consumerWikidata",
+        "gmeow:consumerWikipedia"
+      ],
+      "type": "string"
+    },
+    "ProjectionLossEnum": {
+      "enum": [
+        "gmeow:lossDropsDynamics",
+        "gmeow:lossDropsInstrumentation",
+        "gmeow:lossDropsMicrotiming",
+        "gmeow:lossDropsPerformerCount",
+        "gmeow:lossDropsSpatialSoundContext",
+        "gmeow:lossDropsSpectralDerivation",
+        "gmeow:lossDropsTacet",
+        "gmeow:lossDropsTimbre",
+        "gmeow:lossDropsTraversalConstraints",
+        "gmeow:lossDropsTuningFrame",
+        "gmeow:lossQuantizesPitchTo12Edo",
+        "gmeow:lossQuantizesTimeToRationalGrid",
+        "gmeow:lossSymbolizesContinuousTrajectory"
+      ],
+      "type": "string"
+    },
+    "PromptRoleEnum": {
+      "enum": [
+        "gmeow:promptRoleAssistant",
+        "gmeow:promptRoleSystem",
+        "gmeow:promptRoleTool",
+        "gmeow:promptRoleUser"
+      ],
+      "type": "string"
     },
     "PronounSet": {
       "allOf": [
@@ -36407,6 +38127,57 @@
       },
       "type": "object"
     },
+    "QualityAxisEnum": {
+      "enum": [
+        "gmeow:axisDocMaturity",
+        "gmeow:axisDocumentation",
+        "gmeow:axisFlagshipCounterExampleDepth",
+        "gmeow:axisGmn1Coverage",
+        "gmeow:axisMaximalGrounding",
+        "gmeow:axisMaximalInformation",
+        "gmeow:axisMaximalLinkage",
+        "gmeow:axisMaximalProjection",
+        "gmeow:axisOptimalTesting",
+        "gmeow:axisProseQuality",
+        "gmeow:axisProvenanceHonesty",
+        "gmeow:axisReasonerDerived",
+        "gmeow:axisShapeMigration",
+        "gmeow:axisTranslationCoverage"
+      ],
+      "type": "string"
+    },
+    "QualityDimensionEnum": {
+      "enum": [
+        "gmeow:qualityDimensionCompleteness",
+        "gmeow:qualityDimensionCounterExampleDepth",
+        "gmeow:qualityDimensionDocumentation",
+        "gmeow:qualityDimensionGrounding",
+        "gmeow:qualityDimensionInferentialDensity",
+        "gmeow:qualityDimensionLineage",
+        "gmeow:qualityDimensionLinkage",
+        "gmeow:qualityDimensionLogicalConsistency",
+        "gmeow:qualityDimensionPositionalAccuracy",
+        "gmeow:qualityDimensionProjection",
+        "gmeow:qualityDimensionProseQuality",
+        "gmeow:qualityDimensionProvenanceHonesty",
+        "gmeow:qualityDimensionTemporalAccuracy",
+        "gmeow:qualityDimensionTesting",
+        "gmeow:qualityDimensionThematicAccuracy",
+        "gmeow:qualityDimensionTopologicalConsistency",
+        "gmeow:qualityDimensionTranslationCoverage"
+      ],
+      "type": "string"
+    },
+    "QualityTierEnum": {
+      "enum": [
+        "gmeow:tierExemplified",
+        "gmeow:tierGrounded",
+        "gmeow:tierLinked",
+        "gmeow:tierMaximal",
+        "gmeow:tierRegistered"
+      ],
+      "type": "string"
+    },
     "Quantity": {
       "properties": {
         "@annotation": {
@@ -36466,6 +38237,16 @@
       ],
       "type": "object"
     },
+    "QuestionTypeEnum": {
+      "enum": [
+        "gmeow:typeAlternative",
+        "gmeow:typeHow",
+        "gmeow:typePolar",
+        "gmeow:typeWh",
+        "gmeow:typeWhy"
+      ],
+      "type": "string"
+    },
     "ReadingOrder": {
       "properties": {
         "@annotation": {
@@ -36489,6 +38270,27 @@
         }
       },
       "type": "object"
+    },
+    "RealizationModeEnum": {
+      "enum": [
+        "gmeow:realizationModeImprovised",
+        "gmeow:realizationModeMachineGenerated",
+        "gmeow:realizationModeNotated",
+        "gmeow:realizationModeOral",
+        "gmeow:realizationModePerformed"
+      ],
+      "type": "string"
+    },
+    "RecipeEnum": {
+      "enum": [
+        "gmeow:recipeContestedOrAttributedFacts",
+        "gmeow:recipeDocumentsAndSchemaOrg",
+        "gmeow:recipeEventsAndParticipants",
+        "gmeow:recipeGraphRagDatasetLineage",
+        "gmeow:recipeOfflineGtsDistribution",
+        "gmeow:recipePersonNamesAndDisplay"
+      ],
+      "type": "string"
     },
     "ReferenceFrame": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -36537,16 +38339,7 @@
           ]
         },
         "gmeow:selectorType": {
-          "$comment": "gmeow:SelectorType has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/SelectorTypeEnum"
         },
         "gmeow:selectorValue": {
           "anyOf": [
@@ -36573,6 +38366,16 @@
         "gmeow:selectorValue"
       ],
       "type": "object"
+    },
+    "RegisterEnum": {
+      "enum": [
+        "gmeow:registerBrandVoice",
+        "gmeow:registerCeremonial",
+        "gmeow:registerClinical",
+        "gmeow:registerPrivate",
+        "gmeow:registerPublic"
+      ],
+      "type": "string"
     },
     "RegulatoryOverlay": {
       "properties": {
@@ -36683,6 +38486,35 @@
         }
       },
       "type": "object"
+    },
+    "RegulatoryOverlayTypeEnum": {
+      "enum": [
+        "gmeow:overlayTypeAerodromeTrafficZone",
+        "gmeow:overlayTypeAirway",
+        "gmeow:overlayTypeAlertArea",
+        "gmeow:overlayTypeCivilTimeZone",
+        "gmeow:overlayTypeContiguousZone",
+        "gmeow:overlayTypeContinentalShelf",
+        "gmeow:overlayTypeControlZone",
+        "gmeow:overlayTypeCustomsZone",
+        "gmeow:overlayTypeElectoralDistrict",
+        "gmeow:overlayTypeFishingZone",
+        "gmeow:overlayTypeFlightInformationRegion",
+        "gmeow:overlayTypeHighSeas",
+        "gmeow:overlayTypeMarineProtectedArea",
+        "gmeow:overlayTypeMilitaryOperationsArea",
+        "gmeow:overlayTypeNOTAM",
+        "gmeow:overlayTypePostalZone",
+        "gmeow:overlayTypeProtectedArea",
+        "gmeow:overlayTypeRestrictedAirspace",
+        "gmeow:overlayTypeSanctions",
+        "gmeow:overlayTypeTaxDistrict",
+        "gmeow:overlayTypeTerminalControlArea",
+        "gmeow:overlayTypeTerritorialSea",
+        "gmeow:overlayTypeWarningArea",
+        "gmeow:overlayTypeZoning"
+      ],
+      "type": "string"
     },
     "Release": {
       "allOf": [
@@ -36930,6 +38762,14 @@
       },
       "type": "object"
     },
+    "ReminderActionEnum": {
+      "enum": [
+        "gmeow:reminderActionAudio",
+        "gmeow:reminderActionDisplay",
+        "gmeow:reminderActionEmail"
+      ],
+      "type": "string"
+    },
     "Repository": {
       "allOf": [
         {
@@ -37079,6 +38919,17 @@
       ],
       "type": "object"
     },
+    "RepositoryTypeEnum": {
+      "enum": [
+        "gmeow:repoTypeFossil",
+        "gmeow:repoTypeGit",
+        "gmeow:repoTypeHg",
+        "gmeow:repoTypeJJ",
+        "gmeow:repoTypePijul",
+        "gmeow:repoTypeSVN"
+      ],
+      "type": "string"
+    },
     "RetrievalEvent": {
       "properties": {
         "@annotation": {
@@ -37118,6 +38969,59 @@
       ],
       "type": "object"
     },
+    "RightsActionEnum": {
+      "enum": [
+        "gmeow:actionAcceptTracking",
+        "gmeow:actionAggregate",
+        "gmeow:actionAnnotate",
+        "gmeow:actionAnonymize",
+        "gmeow:actionArchive",
+        "gmeow:actionAttribute",
+        "gmeow:actionCommercialize",
+        "gmeow:actionCompensate",
+        "gmeow:actionConcurrentUse",
+        "gmeow:actionDelete",
+        "gmeow:actionDerive",
+        "gmeow:actionDigitize",
+        "gmeow:actionDisplay",
+        "gmeow:actionDistribute",
+        "gmeow:actionEnsureExclusivity",
+        "gmeow:actionExecute",
+        "gmeow:actionExtract",
+        "gmeow:actionGive",
+        "gmeow:actionGrantUse",
+        "gmeow:actionInclude",
+        "gmeow:actionIndex",
+        "gmeow:actionInform",
+        "gmeow:actionInstall",
+        "gmeow:actionLease",
+        "gmeow:actionLend",
+        "gmeow:actionModify",
+        "gmeow:actionMove",
+        "gmeow:actionNextPolicy",
+        "gmeow:actionObtainConsent",
+        "gmeow:actionPlay",
+        "gmeow:actionPresent",
+        "gmeow:actionPrint",
+        "gmeow:actionProcessPersonalData",
+        "gmeow:actionRead",
+        "gmeow:actionReproduce",
+        "gmeow:actionRetainNotice",
+        "gmeow:actionReviewPolicy",
+        "gmeow:actionSell",
+        "gmeow:actionShareAlike",
+        "gmeow:actionStream",
+        "gmeow:actionSynchronize",
+        "gmeow:actionTextToSpeech",
+        "gmeow:actionTransfer",
+        "gmeow:actionTransform",
+        "gmeow:actionTranslate",
+        "gmeow:actionUninstall",
+        "gmeow:actionUse",
+        "gmeow:actionWatermark"
+      ],
+      "type": "string"
+    },
     "RightsStatement": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
@@ -37142,6 +39046,20 @@
         }
       },
       "type": "object"
+    },
+    "RightsTypeEnum": {
+      "enum": [
+        "gmeow:rightsTypeCopyright",
+        "gmeow:rightsTypeDatabaseRight",
+        "gmeow:rightsTypeIndustrialDesign",
+        "gmeow:rightsTypeMoralRights",
+        "gmeow:rightsTypePatent",
+        "gmeow:rightsTypePlantBreedersRights",
+        "gmeow:rightsTypeRelatedRights",
+        "gmeow:rightsTypeTradeSecret",
+        "gmeow:rightsTypeTrademark"
+      ],
+      "type": "string"
     },
     "RoleInNarrative": {
       "properties": {
@@ -37319,6 +39237,41 @@
       },
       "type": "object"
     },
+    "RomanticOrientationValueEnum": {
+      "enum": [
+        "gmeow:romanticAromantic",
+        "gmeow:romanticBiromantic",
+        "gmeow:romanticDemiromantic",
+        "gmeow:romanticHeteroromantic",
+        "gmeow:romanticHomoromantic",
+        "gmeow:romanticPanromantic",
+        "gmeow:romanticQueerromantic",
+        "gmeow:romanticQuestioning"
+      ],
+      "type": "string"
+    },
+    "RouteKindEnum": {
+      "enum": [
+        "gmeow:routeKindAccessible",
+        "gmeow:routeKindCitation",
+        "gmeow:routeKindDependency",
+        "gmeow:routeKindFlight",
+        "gmeow:routeKindNetwork",
+        "gmeow:routeKindSocial",
+        "gmeow:routeKindTransit",
+        "gmeow:routeKindWalking"
+      ],
+      "type": "string"
+    },
+    "RsvpStatusEnum": {
+      "enum": [
+        "gmeow:rsvpStatusAccepted",
+        "gmeow:rsvpStatusDeclined",
+        "gmeow:rsvpStatusNeedsAction",
+        "gmeow:rsvpStatusTentative"
+      ],
+      "type": "string"
+    },
     "Rule": {
       "properties": {
         "@annotation": {
@@ -37343,29 +39296,11 @@
         "gmeow:ruleAction": {
           "anyOf": [
             {
-              "$comment": "gmeow:RightsAction has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/RightsActionEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:RightsAction has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/RightsActionEnum"
               },
               "type": "array"
             }
@@ -37373,6 +39308,15 @@
         }
       },
       "type": "object"
+    },
+    "SLSALevelEnum": {
+      "enum": [
+        "gmeow:slsaLevel1",
+        "gmeow:slsaLevel2",
+        "gmeow:slsaLevel3",
+        "gmeow:slsaLevel4"
+      ],
+      "type": "string"
     },
     "ScalarQuantity": {
       "properties": {
@@ -37432,6 +39376,13 @@
         "gmeow:unit"
       ],
       "type": "object"
+    },
+    "ScalePolarityEnum": {
+      "enum": [
+        "gmeow:polarityBipolar",
+        "gmeow:polarityUnipolar"
+      ],
+      "type": "string"
     },
     "SceneGraphEdge": {
       "properties": {
@@ -37542,6 +39493,26 @@
         }
       },
       "type": "object"
+    },
+    "SceneRelationTypeEnum": {
+      "enum": [
+        "gmeow:sceneRelationAbove",
+        "gmeow:sceneRelationBelow",
+        "gmeow:sceneRelationEating",
+        "gmeow:sceneRelationFarFrom",
+        "gmeow:sceneRelationHolding",
+        "gmeow:sceneRelationInside",
+        "gmeow:sceneRelationLeftOf",
+        "gmeow:sceneRelationNear",
+        "gmeow:sceneRelationPartOf",
+        "gmeow:sceneRelationPlaying",
+        "gmeow:sceneRelationRiding",
+        "gmeow:sceneRelationRightOf",
+        "gmeow:sceneRelationSameAs",
+        "gmeow:sceneRelationTouching",
+        "gmeow:sceneRelationWearing"
+      ],
+      "type": "string"
     },
     "ScheduleException": {
       "properties": {
@@ -37656,6 +39627,14 @@
         }
       },
       "type": "object"
+    },
+    "SchenkerLevelEnum": {
+      "enum": [
+        "gmeow:schenkerLevelBackground",
+        "gmeow:schenkerLevelForeground",
+        "gmeow:schenkerLevelMiddleground"
+      ],
+      "type": "string"
     },
     "ScoreAnchor": {
       "properties": {
@@ -37819,6 +39798,17 @@
       ],
       "type": "object"
     },
+    "ScoreSemanticsEnum": {
+      "enum": [
+        "gmeow:scoreCalibratedProbability",
+        "gmeow:scoreEntailment",
+        "gmeow:scoreLogit",
+        "gmeow:scoreMargin",
+        "gmeow:scoreSigmoid",
+        "gmeow:scoreSoftmax"
+      ],
+      "type": "string"
+    },
     "ScriptLanguageAttribution": {
       "properties": {
         "@annotation": {
@@ -37951,6 +39941,22 @@
       },
       "type": "object"
     },
+    "SegmentKindEnum": {
+      "enum": [
+        "gmeow:segmentKindCell",
+        "gmeow:segmentKindColor",
+        "gmeow:segmentKindDrone",
+        "gmeow:segmentKindFragment",
+        "gmeow:segmentKindLoop",
+        "gmeow:segmentKindMotif",
+        "gmeow:segmentKindPhrase",
+        "gmeow:segmentKindRiff",
+        "gmeow:segmentKindSection",
+        "gmeow:segmentKindTalea",
+        "gmeow:segmentKindToneEventContainer"
+      ],
+      "type": "string"
+    },
     "SegmentTransformation": {
       "properties": {
         "@annotation": {
@@ -38035,6 +40041,40 @@
       ],
       "type": "object"
     },
+    "SelectorTypeEnum": {
+      "enum": [
+        "gmeow:selectorTypeCocoRleMask",
+        "gmeow:selectorTypeDicomSegMask",
+        "gmeow:selectorTypeFractionalRectangle",
+        "gmeow:selectorTypePixelMask",
+        "gmeow:selectorTypePixelRectangle",
+        "gmeow:selectorTypePolygonPath",
+        "gmeow:selectorTypeRunLengthEncoded",
+        "gmeow:selectorTypeSvgPath",
+        "gmeow:selectorTypeWebAnnotationFragment"
+      ],
+      "type": "string"
+    },
+    "SeniorityLevelEnum": {
+      "enum": [
+        "gmeow:seniorityEntry",
+        "gmeow:seniorityExecutive",
+        "gmeow:seniorityLead",
+        "gmeow:seniorityMid",
+        "gmeow:senioritySenior"
+      ],
+      "type": "string"
+    },
+    "SensitivityLevelEnum": {
+      "enum": [
+        "gmeow:sensitivityConfidential",
+        "gmeow:sensitivityInternal",
+        "gmeow:sensitivityPublic",
+        "gmeow:sensitivityRestricted",
+        "gmeow:sensitivitySensitivePersonal"
+      ],
+      "type": "string"
+    },
     "SensoryEnvironment": {
       "properties": {
         "@annotation": {
@@ -38102,6 +40142,18 @@
       },
       "type": "object"
     },
+    "SensoryModalityEnum": {
+      "enum": [
+        "gmeow:sensoryModalityAirQuality",
+        "gmeow:sensoryModalityAuditory",
+        "gmeow:sensoryModalityGustatory",
+        "gmeow:sensoryModalityOlfactory",
+        "gmeow:sensoryModalityTactile",
+        "gmeow:sensoryModalityThermal",
+        "gmeow:sensoryModalityVisual"
+      ],
+      "type": "string"
+    },
     "SensoryObservation": {
       "properties": {
         "@annotation": {
@@ -38124,16 +40176,7 @@
           ]
         },
         "gmeow:observationMethod": {
-          "$comment": "gmeow:ObservationMethod has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/ObservationMethodEnum"
         }
       },
       "required": [
@@ -38245,6 +40288,33 @@
         "gmeow:inReferenceAssembly"
       ],
       "type": "object"
+    },
+    "SequenceFeatureTypeEnum": {
+      "enum": [
+        "gmeow:sequenceFeatureTypeCDS",
+        "gmeow:sequenceFeatureTypeChromosome",
+        "gmeow:sequenceFeatureTypeExon",
+        "gmeow:sequenceFeatureTypeGene",
+        "gmeow:sequenceFeatureTypeIntron",
+        "gmeow:sequenceFeatureTypeSNP"
+      ],
+      "type": "string"
+    },
+    "ServiceStatusEnum": {
+      "enum": [
+        "gmeow:serviceStatusLive",
+        "gmeow:serviceStatusShutDown"
+      ],
+      "type": "string"
+    },
+    "SeverityLevelEnum": {
+      "enum": [
+        "gmeow:severityCatastrophic",
+        "gmeow:severityMinor",
+        "gmeow:severityModerate",
+        "gmeow:severitySevere"
+      ],
+      "type": "string"
     },
     "SexAssignedAtBirth": {
       "allOf": [
@@ -38492,6 +40562,15 @@
       },
       "type": "object"
     },
+    "SexAssignedAtBirthEnum": {
+      "enum": [
+        "gmeow:saabFemale",
+        "gmeow:saabIntersex",
+        "gmeow:saabMale",
+        "gmeow:saabUnknown"
+      ],
+      "type": "string"
+    },
     "SexualOrientation": {
       "properties": {
         "@annotation": {
@@ -38636,6 +40715,37 @@
       },
       "type": "object"
     },
+    "SexualOrientationValueEnum": {
+      "enum": [
+        "gmeow:orientAsexual",
+        "gmeow:orientBisexual",
+        "gmeow:orientDemisexual",
+        "gmeow:orientHeterosexual",
+        "gmeow:orientHomosexual",
+        "gmeow:orientPansexual",
+        "gmeow:orientQueer",
+        "gmeow:orientQuestioning"
+      ],
+      "type": "string"
+    },
+    "SignatureSchemeEnum": {
+      "enum": [
+        "gmeow:signatureSchemeBls12381",
+        "gmeow:signatureSchemeECDSAP256",
+        "gmeow:signatureSchemeECDSASecp256k1",
+        "gmeow:signatureSchemeEd25519",
+        "gmeow:signatureSchemeRSASHA256"
+      ],
+      "type": "string"
+    },
+    "SiteTypeEnum": {
+      "enum": [
+        "gmeow:siteTypeBranch",
+        "gmeow:siteTypeHeadquarters",
+        "gmeow:siteTypeRegistered"
+      ],
+      "type": "string"
+    },
     "SkillProficiency": {
       "properties": {
         "@annotation": {
@@ -38703,29 +40813,11 @@
         "gmeow:skillProficiencyLevel": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProficiencyLevel has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/ProficiencyLevelEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:ProficiencyLevel has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/ProficiencyLevelEnum"
               },
               "type": "array"
             }
@@ -38765,29 +40857,11 @@
         "gmeow:skillProficiencyScale": {
           "anyOf": [
             {
-              "$comment": "gmeow:ProficiencyScale has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/ProficiencyScaleEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:ProficiencyScale has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/ProficiencyScaleEnum"
               },
               "type": "array"
             }
@@ -39181,6 +41255,21 @@
       },
       "type": "object"
     },
+    "SourceIndependenceEnum": {
+      "enum": [
+        "gmeow:sourceIndependenceIndependent",
+        "gmeow:sourceIndependenceSelfOrIssuerOriginated"
+      ],
+      "type": "string"
+    },
+    "SourceTierEnum": {
+      "enum": [
+        "gmeow:sourceTierPrimary",
+        "gmeow:sourceTierSecondary",
+        "gmeow:sourceTierTertiary"
+      ],
+      "type": "string"
+    },
     "SourceTree": {
       "allOf": [
         {
@@ -39339,16 +41428,7 @@
           ]
         },
         "gmeow:aggregationFunction": {
-          "$comment": "gmeow:AggregationFunction has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/AggregationFunctionEnum"
         },
         "gmeow:minimumPopulation": {
           "anyOf": [
@@ -39571,6 +41651,16 @@
       },
       "type": "object"
     },
+    "StandpointModalityEnum": {
+      "enum": [
+        "gmeow:bullshit",
+        "gmeow:conceivable",
+        "gmeow:probable",
+        "gmeow:refuted",
+        "gmeow:unequivocal"
+      ],
+      "type": "string"
+    },
     "StandpointTenure": {
       "properties": {
         "@annotation": {
@@ -39661,6 +41751,36 @@
         "gmeow:tenureStandpoint"
       ],
       "type": "object"
+    },
+    "StepTypeEnum": {
+      "enum": [
+        "gmeow:stepTypeAtomic",
+        "gmeow:stepTypeBranch",
+        "gmeow:stepTypeEnd",
+        "gmeow:stepTypeParallel",
+        "gmeow:stepTypeStart",
+        "gmeow:stepTypeSubprocess"
+      ],
+      "type": "string"
+    },
+    "StorageMediumEnum": {
+      "enum": [
+        "gmeow:storageMediumCloudService",
+        "gmeow:storageMediumContentAddressed",
+        "gmeow:storageMediumLocalFilesystem",
+        "gmeow:storageMediumObjectStore",
+        "gmeow:storageMediumPhysicalDisk",
+        "gmeow:storageMediumRemovableMedia"
+      ],
+      "type": "string"
+    },
+    "StrandOrientationEnum": {
+      "enum": [
+        "gmeow:strandBoth",
+        "gmeow:strandForward",
+        "gmeow:strandReverse"
+      ],
+      "type": "string"
     },
     "Stream": {
       "properties": {
@@ -39915,29 +42035,11 @@
         "gmeow:supportUnderStandard": {
           "anyOf": [
             {
-              "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/EpistemicStandardEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:EpistemicStandard has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/EpistemicStandardEnum"
               },
               "type": "array"
             }
@@ -39945,6 +42047,38 @@
         }
       },
       "type": "object"
+    },
+    "SupportPolarityEnum": {
+      "enum": [
+        "gmeow:polarityNeutral",
+        "gmeow:polarityRefutes",
+        "gmeow:polaritySupports"
+      ],
+      "type": "string"
+    },
+    "SupportStatusEnum": {
+      "enum": [
+        "gmeow:supportBoth",
+        "gmeow:supportNeither",
+        "gmeow:supportOpposed",
+        "gmeow:supportSupported"
+      ],
+      "type": "string"
+    },
+    "SymbolicSystemKindEnum": {
+      "enum": [
+        "gmeow:symbolicKindCommunicationConvention",
+        "gmeow:symbolicKindCryptographic",
+        "gmeow:symbolicKindEmoji",
+        "gmeow:symbolicKindEncoding",
+        "gmeow:symbolicKindGesture",
+        "gmeow:symbolicKindMathematical",
+        "gmeow:symbolicKindMusical",
+        "gmeow:symbolicKindPlatformConvention",
+        "gmeow:symbolicKindStenographic",
+        "gmeow:symbolicKindTranscription"
+      ],
+      "type": "string"
     },
     "Systolic": {
       "properties": {
@@ -40089,22 +42223,22 @@
           ]
         },
         "gmeow:taskStatus": {
-          "$comment": "gmeow:TaskStatus has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/TaskStatusEnum"
         }
       },
       "required": [
         "gmeow:taskStatus"
       ],
       "type": "object"
+    },
+    "TaskStatusEnum": {
+      "enum": [
+        "gmeow:taskStatusCancelled",
+        "gmeow:taskStatusCompleted",
+        "gmeow:taskStatusInProgress",
+        "gmeow:taskStatusNotStarted"
+      ],
+      "type": "string"
     },
     "Teaching": {
       "properties": {
@@ -40302,6 +42436,15 @@
       },
       "type": "object"
     },
+    "TempoMapKindEnum": {
+      "enum": [
+        "gmeow:tempoMapKindConstant",
+        "gmeow:tempoMapKindCurve",
+        "gmeow:tempoMapKindLinearRamp",
+        "gmeow:tempoMapKindMeasured"
+      ],
+      "type": "string"
+    },
     "TempoMapSegment": {
       "properties": {
         "@annotation": {
@@ -40373,15 +42516,7 @@
           "type": "object"
         },
         "gmeow:segmentTempoMapKind": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/TempoMapKindEnum"
         },
         "gmeow:tempoMapSegmentOf": {
           "properties": {
@@ -40428,29 +42563,11 @@
         "gmeow:frameKind": {
           "anyOf": [
             {
-              "$comment": "gmeow:FrameKind has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/FrameKindEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:FrameKind has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/FrameKindEnum"
               },
               "type": "array"
             }
@@ -40459,29 +42576,11 @@
         "gmeow:frameRealm": {
           "anyOf": [
             {
-              "$comment": "gmeow:FrameRealm has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/FrameRealmEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:FrameRealm has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/FrameRealmEnum"
               },
               "type": "array"
             }
@@ -40543,22 +42642,41 @@
           ]
         },
         "gmeow:observationMethod": {
-          "$comment": "gmeow:ObservationMethod has no NodeShape; node reference only",
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/ObservationMethodEnum"
         }
       },
       "required": [
         "gmeow:observationMethod"
       ],
       "type": "object"
+    },
+    "TemporalPrecisionEnum": {
+      "enum": [
+        "gmeow:precisionCirca",
+        "gmeow:precisionDay",
+        "gmeow:precisionDecade",
+        "gmeow:precisionMonth",
+        "gmeow:precisionYear"
+      ],
+      "type": "string"
+    },
+    "TermStabilityEnum": {
+      "enum": [
+        "gmeow:stabilityDeprecated",
+        "gmeow:stabilityExperimental",
+        "gmeow:stabilityStable"
+      ],
+      "type": "string"
+    },
+    "TimbreDescriptorEnum": {
+      "enum": [
+        "gmeow:timbreDescriptorBreathy",
+        "gmeow:timbreDescriptorBright",
+        "gmeow:timbreDescriptorDark",
+        "gmeow:timbreDescriptorGritty",
+        "gmeow:timbreDescriptorHollow"
+      ],
+      "type": "string"
     },
     "TimeInterval": {
       "properties": {
@@ -40706,15 +42824,7 @@
           "type": "object"
         },
         "gmeow:timeMappingKind": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/TimeMappingKindEnum"
         }
       },
       "required": [
@@ -40723,6 +42833,15 @@
         "gmeow:timeMappingKind"
       ],
       "type": "object"
+    },
+    "TimeMappingKindEnum": {
+      "enum": [
+        "gmeow:timeMappingKindSyncUnsynchronized",
+        "gmeow:timeMappingKindTempoCanon",
+        "gmeow:timeMappingKindTempoMap",
+        "gmeow:timeMappingKindTuplet"
+      ],
+      "type": "string"
     },
     "TimeZone": {
       "properties": {
@@ -41031,6 +43150,16 @@
       },
       "type": "object"
     },
+    "TrademarkStatusEnum": {
+      "enum": [
+        "gmeow:trademarkStatusCancelled",
+        "gmeow:trademarkStatusExpired",
+        "gmeow:trademarkStatusPending",
+        "gmeow:trademarkStatusRegistered",
+        "gmeow:trademarkStatusUnregistered"
+      ],
+      "type": "string"
+    },
     "Trajectory": {
       "properties": {
         "@annotation": {
@@ -41069,6 +43198,39 @@
       ],
       "type": "object"
     },
+    "TransactionStatusEnum": {
+      "enum": [
+        "gmeow:transactionStatusCompleted",
+        "gmeow:transactionStatusFailed",
+        "gmeow:transactionStatusPending",
+        "gmeow:transactionStatusReversed"
+      ],
+      "type": "string"
+    },
+    "TransactionTypeEnum": {
+      "enum": [
+        "gmeow:transactionTypeDeposit",
+        "gmeow:transactionTypeFee",
+        "gmeow:transactionTypeInterest",
+        "gmeow:transactionTypePayment",
+        "gmeow:transactionTypeRefund",
+        "gmeow:transactionTypeTransfer",
+        "gmeow:transactionTypeWithdrawal"
+      ],
+      "type": "string"
+    },
+    "TransformCodecEnum": {
+      "enum": [
+        "gmeow:codecBase64",
+        "gmeow:codecBase85",
+        "gmeow:codecCoseEncrypt0",
+        "gmeow:codecGzip",
+        "gmeow:codecIdentity",
+        "gmeow:codecLzma2",
+        "gmeow:codecZstd"
+      ],
+      "type": "string"
+    },
     "TransformationType": {
       "properties": {
         "@annotation": {
@@ -41102,6 +43264,41 @@
         }
       },
       "type": "object"
+    },
+    "TransformationTypeEnum": {
+      "enum": [
+        "gmeow:transformAugmentation",
+        "gmeow:transformDiminution",
+        "gmeow:transformInversion",
+        "gmeow:transformOctaveDisplacement",
+        "gmeow:transformOrnamentation",
+        "gmeow:transformPhaseShift",
+        "gmeow:transformQuotation",
+        "gmeow:transformReaccentuation",
+        "gmeow:transformReduction",
+        "gmeow:transformRetrograde",
+        "gmeow:transformSpectralCompression",
+        "gmeow:transformTimbreReorchestration",
+        "gmeow:transformTransposition"
+      ],
+      "type": "string"
+    },
+    "TransliterationSchemeEnum": {
+      "enum": [
+        "gmeow:schemeBGNPCGN",
+        "gmeow:schemeHepburn",
+        "gmeow:schemeIAST",
+        "gmeow:schemeIPA",
+        "gmeow:schemeISO15919",
+        "gmeow:schemeISO233",
+        "gmeow:schemeKunreiShiki",
+        "gmeow:schemeMcCuneReischauer",
+        "gmeow:schemeNihonShiki",
+        "gmeow:schemePinyin",
+        "gmeow:schemeRevisedRomanization",
+        "gmeow:schemeWadeGiles"
+      ],
+      "type": "string"
     },
     "TransparencyLogEntry": {
       "properties": {
@@ -41522,6 +43719,14 @@
       },
       "type": "object"
     },
+    "TruthDirectednessEnum": {
+      "enum": [
+        "gmeow:truthAimed",
+        "gmeow:truthIndifferent",
+        "gmeow:truthStrategic"
+      ],
+      "type": "string"
+    },
     "TuningSystem": {
       "properties": {
         "@annotation": {
@@ -41563,29 +43768,10 @@
           ]
         },
         "gmeow:frameKind": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/FrameKindEnum"
         },
         "gmeow:frameRealm": {
-          "const": {
-            "@id": "gmeow:frameRealmMusicalPitch"
-          },
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/FrameRealmEnum"
         },
         "gmeow:requiresHost": {
           "anyOf": [
@@ -41607,15 +43793,7 @@
           ]
         },
         "gmeow:tuningKind": {
-          "properties": {
-            "@id": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "@id"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/TuningSystemKindEnum"
         }
       },
       "required": [
@@ -41625,6 +43803,19 @@
         "gmeow:tuningKind"
       ],
       "type": "object"
+    },
+    "TuningSystemKindEnum": {
+      "enum": [
+        "gmeow:tuningSystemKindAdaptive",
+        "gmeow:tuningSystemKindEqualDivision",
+        "gmeow:tuningSystemKindInstrumentRelative",
+        "gmeow:tuningSystemKindJustIntonation",
+        "gmeow:tuningSystemKindSpectralDerived",
+        "gmeow:tuningSystemKindTablatureRelative",
+        "gmeow:tuningSystemKindUnpitched",
+        "gmeow:tuningSystemKindWellTemperament"
+      ],
+      "type": "string"
     },
     "UsageAttestation": {
       "properties": {
@@ -41712,6 +43903,14 @@
       },
       "type": "object"
     },
+    "VerdictLatticeRelationEnum": {
+      "enum": [
+        "gmeow:VerdictEquivalent",
+        "gmeow:VerdictIncomparable",
+        "gmeow:VerdictWeaker"
+      ],
+      "type": "string"
+    },
     "VerificationResult": {
       "properties": {
         "@annotation": {
@@ -41736,29 +43935,11 @@
         "gmeow:hasVerificationStatus": {
           "anyOf": [
             {
-              "$comment": "gmeow:VerificationStatus has no NodeShape; node reference only",
-              "properties": {
-                "@id": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "@id"
-              ],
-              "type": "object"
+              "$ref": "#/$defs/VerificationStatusEnum"
             },
             {
               "items": {
-                "$comment": "gmeow:VerificationStatus has no NodeShape; node reference only",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+                "$ref": "#/$defs/VerificationStatusEnum"
               },
               "type": "array"
             }
@@ -41766,6 +43947,18 @@
         }
       },
       "type": "object"
+    },
+    "VerificationStatusEnum": {
+      "enum": [
+        "gmeow:verificationStatusExpired",
+        "gmeow:verificationStatusFailed",
+        "gmeow:verificationStatusFinalityPending",
+        "gmeow:verificationStatusPolicyFailed",
+        "gmeow:verificationStatusRevoked",
+        "gmeow:verificationStatusUnverified",
+        "gmeow:verificationStatusVerified"
+      ],
+      "type": "string"
     },
     "VersionMembership": {
       "properties": {
@@ -41908,6 +44101,44 @@
       },
       "type": "object"
     },
+    "VersionRoleEnum": {
+      "enum": [
+        "gmeow:roleCanonical",
+        "gmeow:roleCollected",
+        "gmeow:roleDeprecated",
+        "gmeow:roleDraft",
+        "gmeow:roleLTS",
+        "gmeow:roleLatest",
+        "gmeow:rolePublished",
+        "gmeow:roleRevised",
+        "gmeow:roleStable",
+        "gmeow:roleVariant",
+        "gmeow:roleWithdrawn",
+        "gmeow:roleYanked"
+      ],
+      "type": "string"
+    },
+    "VersionScaleEnum": {
+      "enum": [
+        "gmeow:scaleMajor",
+        "gmeow:scaleMinor",
+        "gmeow:scaleTrivial"
+      ],
+      "type": "string"
+    },
+    "VirtualLocationTypeEnum": {
+      "enum": [
+        "gmeow:virtualLocationTypeChatSpace",
+        "gmeow:virtualLocationTypeMetaverseRoom",
+        "gmeow:virtualLocationTypeOnlineForum",
+        "gmeow:virtualLocationTypeSocialMediaPage",
+        "gmeow:virtualLocationTypeStreamingChannel",
+        "gmeow:virtualLocationTypeVideoConference",
+        "gmeow:virtualLocationTypeVirtualEventSpace",
+        "gmeow:virtualLocationTypeWebsite"
+      ],
+      "type": "string"
+    },
     "Voice": {
       "properties": {
         "@annotation": {
@@ -41935,6 +44166,15 @@
       },
       "type": "object"
     },
+    "WalletSchemeEnum": {
+      "enum": [
+        "gmeow:walletSchemeBTC",
+        "gmeow:walletSchemeETH",
+        "gmeow:walletSchemeSOL",
+        "gmeow:walletSchemeXMR"
+      ],
+      "type": "string"
+    },
     "WebPage": {
       "properties": {
         "@annotation": {
@@ -41959,6 +44199,13 @@
         "gmeow:pagePrincipalSubject": {}
       },
       "type": "object"
+    },
+    "WeightingPolicyEnum": {
+      "enum": [
+        "gmeow:weightingEqualCoreAffect",
+        "gmeow:weightingValenceDominant"
+      ],
+      "type": "string"
     },
     "lang:ComposedForm": {
       "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
@@ -43991,6 +46238,31 @@
       ],
       "type": "object"
     },
+    "logic:Formula": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "logic:FreshnessGuard": {
       "properties": {
         "@annotation": {
@@ -44954,6 +47226,31 @@
       "required": [
         "logic:dischargesSectionObligation"
       ],
+      "type": "object"
+    },
+    "logic:TermCarrier": {
+      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        }
+      },
       "type": "object"
     },
     "math:AlgebraicStructure": {

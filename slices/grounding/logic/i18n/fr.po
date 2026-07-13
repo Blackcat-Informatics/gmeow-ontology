@@ -1,0 +1,326 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: logic, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# This initial catalog deliberately covers the typed-IR exemplar introduced in this uplift.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|rdfs:label"
+msgid "Rule"
+msgstr "Règle"
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|skos:definition"
+msgid "A productive Horn or stratified-negation derivation whose logic:head is entailed when every positive logic:body atom holds, every logic:negatedBody atom is absent in its declared closure, and every guard succeeds. It is not a general logic:Formula or an integrity logic:Constraint: constructs outside the rule fragment remain formula trees and are carried as projection residue rather than approximated."
+msgstr "Une dérivation productive de Horn ou à négation stratifiée dont la logic:head est entraînée lorsque chaque atome positif de logic:body est satisfait, que chaque atome de logic:negatedBody est absent de sa clôture déclarée et que chaque garde réussit. Il ne s'agit ni d'une logic:Formula générale ni d'une logic:Constraint d'intégrité : les constructions extérieures au fragment des règles restent des arbres de formules et sont transportées comme résidus de projection plutôt qu'approximées."
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|skos:example"
+msgid "A rule can derive ex:ancestor(x,z) from ex:parent(x,y) and ex:ancestor(y,z), with its variables bound positively in the body."
+msgstr "Une règle peut dériver ex:ancestor(x,z) de ex:parent(x,y) et ex:ancestor(y,z), ses variables étant liées positivement dans le corps."
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:avoidWhen"
+msgid "Do not encode disjunction, strong negation, or an unstratified negative cycle as a Horn rule."
+msgstr "Ne pas encoder une disjonction, une négation forte ou un cycle négatif non stratifié sous forme de règle de Horn."
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:howToUse"
+msgid "Provide one head, the positive and optional stratified-negative body atoms, and any explicit guards or aggregate specification."
+msgstr "Fournir une tête, les atomes positifs du corps et les éventuels atomes négatifs stratifiés, ainsi que toute garde explicite ou spécification d'agrégat."
+
+msgctxt "https://blackcatinformatics.ca/logic/Rule|gmeow:useWhen"
+msgid "Use for productive Horn, existential-rule, or stratified-negation derivations."
+msgstr "Utiliser pour les dérivations productives de Horn, à règles existentielles ou à négation stratifiée."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|rdfs:label"
+msgid "Term Carrier"
+msgstr "Porteur de terme"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|skos:definition"
+msgid "An ordered slot in an atomic formula's logic:argument list or a quantifier's logic:quantifiedVariable block. It carries exactly one zero-based logic:termIndex and exactly one value kind: logic:termIri, logic:termVariable, logic:termLiteral, or logic:termSequenceMarker. It is not the term value itself; it is the RDF node that preserves the value's kind and position independently of triple order."
+msgstr "Un emplacement ordonné dans la liste logic:argument d'une formule atomique ou dans le bloc logic:quantifiedVariable d'un quantificateur. Il porte exactement un logic:termIndex commençant à zéro et exactement un genre de valeur : logic:termIri, logic:termVariable, logic:termLiteral ou logic:termSequenceMarker. Ce n'est pas la valeur du terme elle-même, mais le nœud RDF qui conserve son genre et sa position indépendamment de l'ordre des triplets."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|skos:example"
+msgid "An atom's second argument can be represented by a carrier with logic:termIndex 1 and logic:termVariable 'object'."
+msgstr "Le deuxième argument d'un atome peut être représenté par un porteur ayant logic:termIndex 1 et logic:termVariable 'object'."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:avoidWhen"
+msgid "Do not place two value kinds on one carrier or infer its position from Turtle serialization order."
+msgstr "Ne pas placer deux genres de valeurs sur un même porteur ni déduire sa position de l'ordre de sérialisation Turtle."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:howToUse"
+msgid "Assign one contiguous zero-based index and one of the four exclusive term-value predicates."
+msgstr "Attribuer un indice contigu commençant à zéro et l'un des quatre prédicats exclusifs de valeur de terme."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrier|gmeow:useWhen"
+msgid "Use for each ordered atom argument and each ordered quantifier binding."
+msgstr "Utiliser pour chaque argument atomique ordonné et chaque liaison ordonnée de quantificateur."
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|rdfs:label"
+msgid "Formula Constructor Constraint"
+msgstr "Contrainte de constructeur de formule"
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|skos:definition"
+msgid "Requires every logic:Formula to select exactly one constructor family: atomic relation, strong negation, conjunction, disjunction, material implication (keyed by logic:antecedent), biconditional, universal quantification, or existential quantification. It does not choose among serialized operands; it prevents one node from having two incompatible logical meanings."
+msgstr "Exige que chaque logic:Formula sélectionne exactement une famille de constructeurs : relation atomique, négation forte, conjonction, disjonction, implication matérielle (signalée par logic:antecedent), biconditionnelle, quantification universelle ou quantification existentielle. Elle ne choisit pas parmi les opérandes sérialisés ; elle empêche qu'un même nœud ait deux significations logiques incompatibles."
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|skos:example"
+msgid "A node with both logic:relation and logic:not violates this constraint because it cannot be both an atom and a negation."
+msgstr "Un nœud portant à la fois logic:relation et logic:not viole cette contrainte, car il ne peut être simultanément un atome et une négation."
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:avoidWhen"
+msgid "Do not use this constraint to limit how many operands a selected constructor carries; arity is a separate typed-IR invariant."
+msgstr "Ne pas employer cette contrainte pour limiter le nombre d'opérandes d'un constructeur sélectionné ; l'arité constitue un invariant distinct de l'IR typé."
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:howToUse"
+msgid "Validate every authored formula tree before lowering it; reject a focus node unless exactly one listed constructor predicate is present."
+msgstr "Valider chaque arbre de formule produit avant son abaissement ; rejeter le nœud focal sauf si exactement un des prédicats constructeurs énumérés est présent."
+
+msgctxt "https://blackcatinformatics.ca/logic/FormulaConstructorConstraint|gmeow:useWhen"
+msgid "Use when validating canonical RDF formula trees before parsing, canonicalization, or projection."
+msgstr "Utiliser lors de la validation des arbres de formules RDF canoniques avant analyse, canonisation ou projection."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|rdfs:label"
+msgid "Implication Consequent Constraint"
+msgstr "Contrainte du conséquent d'implication"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|skos:definition"
+msgid "Requires a logic:Formula carrying logic:antecedent to carry logic:consequent as the ordered second operand of the same material implication. It is not a rule that derives a consequent; it is a structural integrity condition on the implication node."
+msgstr "Exige qu'une logic:Formula portant logic:antecedent porte aussi logic:consequent comme second opérande ordonné de la même implication matérielle. Ce n'est pas une règle qui dérive un conséquent, mais une condition d'intégrité structurelle du nœud d'implication."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|skos:example"
+msgid "An implication node with an antecedent atom but no consequent formula violates this constraint."
+msgstr "Un nœud d'implication ayant un atome antécédent mais aucune formule conséquente viole cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:avoidWhen"
+msgid "Do not read the required edge as logical modus ponens; it only completes the serialized constructor."
+msgstr "Ne pas interpréter l'arête requise comme un modus ponens logique ; elle ne fait que compléter le constructeur sérialisé."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:howToUse"
+msgid "When logic:antecedent is present, require one resource-valued logic:consequent before constructing Formula::Implies."
+msgstr "Lorsque logic:antecedent est présent, exiger un logic:consequent à valeur de ressource avant de construire Formula::Implies."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationConsequentConstraint|gmeow:useWhen"
+msgid "Use when validating the ordered pair that encodes material implication."
+msgstr "Utiliser lors de la validation de la paire ordonnée qui encode l'implication matérielle."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|rdfs:label"
+msgid "Implication Antecedent Constraint"
+msgstr "Contrainte de l'antécédent d'implication"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|skos:definition"
+msgid "Requires a logic:Formula carrying logic:consequent to carry logic:antecedent as the ordered first operand of the same material implication. It is not an inverse entailment from conclusion to premise; it is the reverse structural completeness check for the serialized pair."
+msgstr "Exige qu'une logic:Formula portant logic:consequent porte aussi logic:antecedent comme premier opérande ordonné de la même implication matérielle. Ce n'est pas un entraînement inverse de la conclusion vers la prémisse, mais le contrôle réciproque de complétude structurelle de la paire sérialisée."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|skos:example"
+msgid "A formula node with a consequent formula but no antecedent formula violates this constraint."
+msgstr "Un nœud de formule ayant une formule conséquente mais aucune formule antécédente viole cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:avoidWhen"
+msgid "Do not use the constraint to infer that a consequent semantically entails its antecedent."
+msgstr "Ne pas employer cette contrainte pour inférer qu'un conséquent entraîne sémantiquement son antécédent."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:howToUse"
+msgid "When logic:consequent is present, require one resource-valued logic:antecedent before constructing Formula::Implies."
+msgstr "Lorsque logic:consequent est présent, exiger un logic:antecedent à valeur de ressource avant de construire Formula::Implies."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImplicationAntecedentConstraint|gmeow:useWhen"
+msgid "Use with logic:ImplicationConsequentConstraint to validate both halves of an implication."
+msgstr "Utiliser avec logic:ImplicationConsequentConstraint pour valider les deux moitiés d'une implication."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|rdfs:label"
+msgid "Term Carrier Value Constraint"
+msgstr "Contrainte de valeur du porteur de terme"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|skos:definition"
+msgid "Requires every logic:TermCarrier to carry exactly one term-value kind: IRI, variable, literal, or sequence marker. It does not constrain the carrier's ordinal; logic:termIndex and list-level contiguity are checked independently."
+msgstr "Exige que chaque logic:TermCarrier porte exactement un genre de valeur de terme : IRI, variable, littéral ou marqueur de séquence. Elle ne contraint pas l'ordinal du porteur ; logic:termIndex et la contiguïté au niveau de la liste sont vérifiés séparément."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|skos:example"
+msgid "A carrier with both logic:termIri ex:a and logic:termVariable 'a' violates this constraint even though the spellings resemble one another."
+msgstr "Un porteur ayant à la fois logic:termIri ex:a et logic:termVariable 'a' viole cette contrainte, même si leurs graphies se ressemblent."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:avoidWhen"
+msgid "Do not collapse IRI, variable, literal, and sequence-marker values into a shared string field; their kinds affect formula meaning."
+msgstr "Ne pas réduire les valeurs IRI, variable, littéral et marqueur de séquence à un champ textuel commun ; leur genre influe sur le sens de la formule."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:howToUse"
+msgid "Reject a carrier unless exactly one of the four term-value predicates has exactly one value."
+msgstr "Rejeter un porteur sauf si exactement un des quatre prédicats de valeur de terme possède exactement une valeur."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierValueConstraint|gmeow:useWhen"
+msgid "Use whenever an RDF argument or quantifier-binding carrier is reconstructed as a typed IR term."
+msgstr "Utiliser chaque fois qu'un argument RDF ou un porteur de liaison de quantificateur est reconstruit comme terme d'IR typé."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|rdfs:label"
+msgid "Term Carrier Index Constraint"
+msgstr "Contrainte d'indice du porteur de terme"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|skos:definition"
+msgid "Requires every declared logic:TermCarrier to carry a logic:termIndex. It is not the list-level ordering check: uniqueness and zero-based contiguity are verified across all sibling carriers by the typed-IR frontend."
+msgstr "Exige que chaque logic:TermCarrier déclaré porte un logic:termIndex. Ce n'est pas le contrôle d'ordre au niveau de la liste : l'unicité et la contiguïté à partir de zéro sont vérifiées sur l'ensemble des porteurs frères par le frontal de l'IR typé."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|skos:example"
+msgid "A logic:TermCarrier with logic:termVariable 'x' but no logic:termIndex violates this constraint."
+msgstr "Un logic:TermCarrier ayant logic:termVariable 'x' mais aucun logic:termIndex viole cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:avoidWhen"
+msgid "Do not infer an omitted index from RDF statement order, which has no semantic ordering."
+msgstr "Ne pas déduire un indice omis de l'ordre des énoncés RDF, qui ne porte aucun ordre sémantique."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:howToUse"
+msgid "Require one non-negative integer index on each carrier, then validate the sibling index set as 0 through n minus 1."
+msgstr "Exiger un indice entier non négatif sur chaque porteur, puis valider l'ensemble des indices frères comme allant de 0 à n moins 1."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermCarrierIndexConstraint|gmeow:useWhen"
+msgid "Use when validating ordered argument lists and quantifier binding blocks."
+msgstr "Utiliser lors de la validation des listes ordonnées d'arguments et des blocs de liaison de quantificateurs."
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|rdfs:label"
+msgid "Literal Datatype Constraint"
+msgstr "Contrainte de type de données du littéral"
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|skos:definition"
+msgid "Requires a carrier with logic:termLiteralDatatype to carry logic:termLiteral, so a datatype IRI can never float without the lexical literal it types. It does not require a datatype for every literal; absence denotes a plain literal."
+msgstr "Exige qu'un porteur ayant logic:termLiteralDatatype porte aussi logic:termLiteral, afin qu'un IRI de type de données ne puisse jamais flotter sans le littéral lexical qu'il type. Elle n'exige pas un type de données pour chaque littéral ; l'absence désigne un littéral simple."
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|skos:example"
+msgid "A carrier with logic:termLiteralDatatype xsd:integer but no logic:termLiteral violates this constraint."
+msgstr "Un porteur ayant logic:termLiteralDatatype xsd:integer mais aucun logic:termLiteral viole cette contrainte."
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:avoidWhen"
+msgid "Do not attach logic:termLiteralDatatype to an IRI, variable, or sequence-marker carrier."
+msgstr "Ne pas attacher logic:termLiteralDatatype à un porteur d'IRI, de variable ou de marqueur de séquence."
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:howToUse"
+msgid "Accept zero or one datatype IRI only on a carrier whose sole value kind is logic:termLiteral."
+msgstr "N'accepter zéro ou un IRI de type de données que sur un porteur dont l'unique genre de valeur est logic:termLiteral."
+
+msgctxt "https://blackcatinformatics.ca/logic/LiteralDatatypeConstraint|gmeow:useWhen"
+msgid "Use when reconstructing typed literal terms from their lexical and datatype components."
+msgstr "Utiliser lors de la reconstruction de termes littéraux typés à partir de leurs composantes lexicale et de type de données."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|rdfs:label"
+msgid "Constraint Sugar"
+msgstr "Sucre syntaxique de contrainte"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|skos:definition"
+msgid "An authoring descriptor that the logic frontend expands into one canonical logic:Constraint with a reified integrity formula. A constraint-sugar record names a closed validation pattern and its parameters; it is not itself a logic:Formula AST node, so formula constructor checks never mistake validation metadata for an object-level sentence."
+msgstr "Un descripteur de création que le frontal logique développe en une unique logic:Constraint canonique munie d'une formule d'intégrité réifiée. Un enregistrement de sucre syntaxique nomme un motif de validation fermé et ses paramètres ; il n'est pas lui-même un nœud d'AST logic:Formula, de sorte que les contrôles des constructeurs de formules ne confondent jamais les métadonnées de validation avec une phrase du niveau objet."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|skos:example"
+msgid "A logic:ChoiceGroupConstraint record can require exactly one of two predicates without being treated as either operand of the formula it compiles."
+msgstr "Un enregistrement logic:ChoiceGroupConstraint peut exiger exactement l'un de deux prédicats sans être traité comme l'un des opérandes de la formule qu'il compile."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:avoidWhen"
+msgid "Do not use a sugar class when the integrity condition needs a formula shape the selected closed pattern cannot preserve."
+msgstr "Ne pas utiliser une classe de sucre syntaxique lorsque la condition d'intégrité exige une forme de formule que le motif fermé choisi ne peut préserver."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:howToUse"
+msgid "Select the narrowest sugar subclass, provide its target and pattern parameters, and inspect the compiled logic:Constraint projection."
+msgstr "Choisir la sous-classe de sucre syntaxique la plus étroite, fournir sa cible et les paramètres du motif, puis examiner la projection logic:Constraint compilée."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConstraintSugar|gmeow:useWhen"
+msgid "Use for a supported closed-world validation pattern whose canonical expansion is deterministic."
+msgstr "Utiliser pour un motif de validation en monde fermé pris en charge dont le développement canonique est déterministe."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|rdfs:label"
+msgid "Conversion Target"
+msgstr "Cible de conversion"
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:definition"
+msgid "A legal output language for a lowering: every emitted construct must inhabit this target, while anything it cannot express remains explicit flagged residue. It is not a logic:ProjectionTarget, which requests a presentation of an answer; a conversion target instead delimits the IR or dialect into which canonical content may be legalized."
+msgstr "Un langage de sortie légal pour un abaissement : toute construction émise doit appartenir à cette cible, tandis que ce qu'elle ne peut exprimer reste un résidu explicite et signalé. Ce n'est pas une logic:ProjectionTarget, qui demande une présentation d'une réponse ; une cible de conversion délimite plutôt l'IR ou le dialecte dans lequel le contenu canonique peut être légalisé."
+
+msgctxt "https://blackcatinformatics.ca/logic/ConversionTarget|skos:example"
+msgid "logic:RelationalCore a logic:ConversionTarget ."
+msgstr "Par exemple : logic:RelationalCore a logic:ConversionTarget ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|rdfs:label"
+msgid "Choice Group Constraint"
+msgstr "Contrainte de groupe de choix"
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:definition"
+msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de cardinalité d'un groupe de choix (P1) : une cible logic:onClass, un ensemble de prédicats logic:choicePredicate et un logic:choiceMode ('exactly-one', 'at-most-one' ou l'alias 'exactly-one-of-N'). Le compilateur le développe en une logic:Constraint canonique dont l'intégrité est la formule XOR ou au-plus portant sur l'exigence existentielle de chaque prédicat. Réservé au frontal : ce n'est pas un nouveau genre de nœud, seulement un raccourci de création."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|skos:example"
+msgid "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
+msgstr "Exemple : ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|rdfs:label"
+msgid "Guarded Implication Constraint"
+msgstr "Contrainte d'implication gardée"
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:definition"
+msgid "Compact sugar for a guarded-implication constraint (P2): a logic:onClass target, a logic:trigger predicate (optionally pinned to a logic:triggerValue), and one or more logic:requires companion predicates. Expands to a canonical logic:Constraint ∀this. C(this) ∧ trigger(this, …) → ∃ companion. Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte d'implication gardée (P2) : une cible logic:onClass, un prédicat logic:trigger éventuellement fixé par logic:triggerValue et un ou plusieurs prédicats compagnons logic:requires. Il se développe en une logic:Constraint canonique ∀x. C(x) ∧ trigger(x, …) → ∃ compagnon. Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/GuardedImplicationConstraint|skos:example"
+msgid "ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
+msgstr "Exemple : ex:datedApproval a logic:GuardedImplicationConstraint ; logic:onClass ex:Submission ; logic:trigger ex:approved ; logic:requires ex:approvalDate ."
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|rdfs:label"
+msgid "Disjunctive Requiredness Constraint"
+msgstr "Contrainte d'obligation disjonctive"
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:definition"
+msgid "Compact sugar for a disjunctive-requiredness constraint (P3): a logic:onClass target and a set of logic:anyOf predicates, at least one of which is required. Expands to a canonical logic:Constraint ∀this. C(this) → (∃p1 ∨ … ∨ ∃pn). Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte d'obligation disjonctive (P3) : une cible logic:onClass et un ensemble de prédicats logic:anyOf dont au moins un est requis. Il se développe en une logic:Constraint canonique ∀x. C(x) → (∃p1 ∨ … ∨ ∃pn). Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/DisjunctiveRequirednessConstraint|skos:example"
+msgid "ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
+msgstr "Exemple : ex:contactRoute a logic:DisjunctiveRequirednessConstraint ; logic:onClass ex:Contact ; logic:anyOf ex:email, ex:phone ."
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|rdfs:label"
+msgid "Path Value Type Constraint"
+msgstr "Contrainte de type des valeurs de chemin"
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:definition"
+msgid "Compact sugar for a path-value type-membership constraint (P4): a logic:onClass target, a logic:valuePath predicate, and a required logic:valueClass. Expands to a canonical logic:Constraint ∀this. C(this) → ∀v. P(this,v) → D(v). Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte d'appartenance de type des valeurs d'un chemin (P4) : une cible logic:onClass, un prédicat logic:valuePath et une logic:valueClass requise. Il se développe en une logic:Constraint canonique ∀x. C(x) → ∀v. P(x,v) → D(v). Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/PathValueTypeConstraint|skos:example"
+msgid "ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
+msgstr "Exemple : ex:memberType a logic:PathValueTypeConstraint ; logic:onClass ex:Team ; logic:valuePath ex:member ; logic:valueClass ex:Person ."
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|rdfs:label"
+msgid "Cross Node Constraint"
+msgstr "Contrainte entre nœuds"
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:definition"
+msgid "Compact sugar for a cross-node co-occurrence / inequality constraint (P5): a logic:onClass target and two roles (logic:roleA, logic:roleB) that must, per logic:crossMode, either 'co-occur' (be present together) or 'differ' (never bind the same value). Expands to a canonical logic:Constraint whose integrity is the bi-implication (co-occur) or the join + inequality (differ, via the logic:termEqual filter relation). Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de cooccurrence ou d'inégalité entre nœuds (P5) : une cible logic:onClass et deux rôles, logic:roleA et logic:roleB, qui doivent selon logic:crossMode soit coexister, soit différer sans jamais lier la même valeur. Il se développe en une logic:Constraint canonique dont l'intégrité est la bi-implication ou la jointure avec inégalité au moyen de logic:termEqual. Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/CrossNodeConstraint|skos:example"
+msgid "ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
+msgstr "Exemple : ex:reviewRoles a logic:CrossNodeConstraint ; logic:onClass ex:Review ; logic:roleA ex:author ; logic:roleB ex:reviewer ; logic:crossMode \"differ\" ."
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|rdfs:label"
+msgid "Forbidden Pattern Constraint"
+msgstr "Contrainte de motif interdit"
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:definition"
+msgid "Compact sugar for a forbidden-pattern constraint (P7): a logic:onClass target and a logic:forbiddenPredicate (optionally pinned to a logic:forbiddenValue). Expands to a canonical logic:Constraint ∀this. C(this) → ¬∃b. forbidden(this,b) (or the pinned-value form ¬ forbidden(this, value)). Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de motif interdit (P7) : une cible logic:onClass et un logic:forbiddenPredicate éventuellement fixé à une logic:forbiddenValue. Il se développe en une logic:Constraint canonique ∀x. C(x) → ¬∃b. forbidden(x,b), ou dans la forme à valeur fixe ¬ forbidden(x, value). Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/ForbiddenPatternConstraint|skos:example"
+msgid "ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
+msgstr "Exemple : ex:noDeprecatedCode a logic:ForbiddenPatternConstraint ; logic:onClass ex:Submission ; logic:forbiddenPredicate ex:deprecatedCode ."
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|rdfs:label"
+msgid "Aggregate Constraint"
+msgstr "Contrainte d'agrégat"
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:definition"
+msgid "Compact sugar for an aggregate-comparison constraint (P6): a logic:onClass target, an aggregate over a path (logic:aggFunction, optional logic:aggDistinct, logic:aggPath), a logic:aggComparator, and a logic:aggCompareTo right-hand side (a compared property IRI, or a literal). Expands to a canonical logic:Constraint carrying both the honest reified FOL integrity and a structured aggregate satellite, lowered to a SELECT $this … GROUP BY $this HAVING(…) sh:SPARQLConstraint. Frontend-only authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de comparaison d'agrégat (P6) : une cible logic:onClass, un agrégat sur un chemin avec logic:aggFunction, logic:aggDistinct facultatif et logic:aggPath, un logic:aggComparator et un opérande droit logic:aggCompareTo, IRI de propriété comparée ou littéral. Il se développe en une logic:Constraint canonique portant l'intégrité FOL réifiée et un satellite d'agrégat structuré, abaissé en sh:SPARQLConstraint avec regroupement et condition d'agrégat. Raccourci de création réservé au frontal."
+
+msgctxt "https://blackcatinformatics.ca/logic/AggregateConstraint|skos:example"
+msgid "ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
+msgstr "Exemple : ex:minimumMembers a logic:AggregateConstraint ; logic:onClass ex:Team ; logic:aggFunction \"COUNT\" ; logic:aggPath ex:member ; logic:aggComparator \">=\" ; logic:aggCompareTo 2 ."
