@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the models-and-inference class-inventory competency question. A worked
+# inference scene naming one object of each models/estimation/inference kind: the estimation
+# chain (a math:Estimand targeted through math:estimatesEstimand, a math:Estimator applied
+# through math:estimator, and the math:Estimate they produce), the summary and contrast
+# objects (a math:Statistic, a math:StatisticalContrast), a math:ModelAssumption, the process
+# (a math:InferenceRun) and the plan/design apparatus it follows (a math:AnalysisPlan, a
+# math:ExperimentalDesign, a math:RandomizationScheme), the testing pair (a
+# math:HypothesisTest, a math:SamplingDistribution), a math:EffectSize, and the forecast
+# objects (a math:Prediction, a math:PredictionInterval, a math:ToleranceInterval). The
+# estimate is wired to its estimand and estimator through PRE-EXISTING edges (math:estimator,
+# math:estimatesEstimand) so the scene is a coherent estimation, not a bag of types; every
+# individual still carries exactly ONE asserted type so the reasoning-free class-inventory
+# query returns one row per object. Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+# The estimation chain: estimand -> estimator -> estimate.
+ex:estimand a math:Estimand .
+ex:estimator a math:Estimator .
+ex:estimate a math:Estimate ;
+    math:estimatesEstimand ex:estimand ;
+    math:estimator ex:estimator .
+
+# Summary and contrast.
+ex:statistic a math:Statistic .
+ex:contrast a math:StatisticalContrast .
+
+# A posited assumption of the model behind the fit.
+ex:assumption a math:ModelAssumption .
+
+# The process and the plan / design apparatus it follows.
+ex:run a math:InferenceRun .
+ex:plan a math:AnalysisPlan .
+ex:design a math:ExperimentalDesign .
+ex:randomization a math:RandomizationScheme .
+
+# The testing pair.
+ex:test a math:HypothesisTest .
+ex:sampdist a math:SamplingDistribution .
+
+# A standardized effect magnitude.
+ex:effect a math:EffectSize .
+
+# The forecast objects.
+ex:prediction a math:Prediction .
+ex:predInterval a math:PredictionInterval .
+ex:tolInterval a math:ToleranceInterval .

@@ -1,0 +1,26 @@
+# Competency question: "What hypothesis, null distribution, and tail/sidedness produced
+# this p-value, and was it adjusted for multiplicity?" Exercises the inference-and-results
+# spine: a math:PValue names the math:NullHypothesis it is computed under
+# (math:nullHypothesis), the math:Distribution it is measured against (math:nullDistribution,
+# here a math:SamplingDistribution), and its math:Sidedness (math:alternativeSidedness) —
+# the frame that makes P(T ≥ t | H0) unambiguous. Its multiplicity handling is
+# LEFT-JOINed (OPTIONAL): a p-value MAY name the adjustment applied to it
+# (math:pValueAdjustment) and the family of comparisons it is controlled over
+# (math:multipleComparisonFamily), so "was it adjusted for multiplicity, and over what
+# family" is answerable rather than implicit. The adjustment/family columns are
+# legitimately unbound for an unadjusted p-value (BindingOptional); over the fixture they
+# ARE bound, so the answer states the p-value's null, distribution, sidedness, AND its
+# Benjamini–Hochberg adjustment over its comparison family. Scoped to the fixture
+# namespace so the answer is exactly the single framing row.
+PREFIX math:  <https://blackcatinformatics.ca/math/>
+
+SELECT ?pvalue ?nullHypothesis ?nullDistribution ?sidedness ?adjustment ?family WHERE {
+    ?pvalue a math:PValue ;
+            math:nullHypothesis ?nullHypothesis ;
+            math:nullDistribution ?nullDistribution ;
+            math:alternativeSidedness ?sidedness .
+    OPTIONAL { ?pvalue math:pValueAdjustment ?adjustment . }
+    OPTIONAL { ?pvalue math:multipleComparisonFamily ?family . }
+    FILTER(STRSTARTS(STR(?pvalue), "http://example.org/math/"))
+}
+ORDER BY ?pvalue ?nullHypothesis

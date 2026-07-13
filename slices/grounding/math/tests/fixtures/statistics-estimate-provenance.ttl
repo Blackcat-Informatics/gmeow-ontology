@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# ABox fixture for the models-and-estimation competency question "estimate provenance". A
+# process → result scene: a math:InferenceRun (a gmeow:Activity) fits the data
+# (math:fittedToData) — a math:DatasetMatrix — and produces (gmeow:wasGeneratedBy) a
+# math:Estimate that names its math:Estimator (math:estimator) and its math:Estimand
+# (math:estimatesEstimand). A math:FittedModel fitted to the same data carries a
+# math:ModelAssumption (math:modelAssumption). The query keys on the estimate and returns
+# the whole provenance chain — data, model, estimator, estimand, assumption, and producing
+# run. Unioned onto the merged ontology by gmeow:cqDataFile.
+@prefix math:  <https://blackcatinformatics.ca/math/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/math/> .
+
+# The process — the analysis run that fit the data and produced the estimate.
+ex:analysisRun a math:InferenceRun , gmeow:Activity ;
+    math:fittedToData ex:trialData .
+
+# The data, held by reference.
+ex:trialData a math:DatasetMatrix .
+
+# The result object — an estimate linked to its estimator, estimand, and producing run.
+ex:treatmentEffectEstimate a math:Estimate ;
+    math:estimator ex:olsEstimator ;
+    math:estimatesEstimand ex:averageTreatmentEffect ;
+    gmeow:wasGeneratedBy ex:analysisRun .
+
+ex:olsEstimator a math:Estimator .
+ex:averageTreatmentEffect a math:Estimand .
+
+# The fitted model over the same data, specified by its formula and carrying its
+# stated assumption.
+ex:trialFittedModel a math:FittedModel ;
+    math:fittedToData ex:trialData ;
+    math:modelFormula ex:trialFormula ;
+    math:modelAssumption ex:normalErrors .
+
+ex:trialFormula a math:ModelFormula ;
+    math:argumentSlot ex:trialSlot0 .
+ex:trialSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:trialResponse .
+ex:trialResponse a math:VariableExpression .
+
+ex:normalErrors a math:ModelAssumption .

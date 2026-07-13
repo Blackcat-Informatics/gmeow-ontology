@@ -4908,10 +4908,18 @@
     sh:targetClass <https://blackcatinformatics.ca/math/AutomorphismGroup> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/automorphismGroupOf> ; sh:minCount 1 ] .
 
+<https://blackcatinformatics.ca/math/BayesianResult-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/BayesianResult> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] .
+
 <https://blackcatinformatics.ca/math/BindingExpression-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/BindingExpression> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/argumentSlot> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/boundVariable> ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+<https://blackcatinformatics.ca/math/CalibrationDiagnostic-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/CalibrationDiagnostic> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/math/StabilityCalibrationRecord> ] .
 
 <https://blackcatinformatics.ca/math/Chart-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/Chart> ;
@@ -4965,12 +4973,24 @@
     sh:targetClass <https://blackcatinformatics.ca/math/Distribution> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/distributionFamily> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/DistributionFamily> ] ; sh:qualifiedMinCount 1 ] .
 
+<https://blackcatinformatics.ca/math/EffectSize-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/EffectSize> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] .
+
 <https://blackcatinformatics.ca/math/Embedding-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/Embedding> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/targetSpace> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/embeddingModel> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/embeddingSource> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/embeddingFunction> ; sh:minCount 1 ] .
+
+<https://blackcatinformatics.ca/math/Estimand-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Estimand> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] .
+
+<https://blackcatinformatics.ca/math/Estimate-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Estimate> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] .
 
 <https://blackcatinformatics.ca/math/FittedModel-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/FittedModel> ;
@@ -4980,6 +5000,11 @@
 <https://blackcatinformatics.ca/math/FormalVerificationResult-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/FormalVerificationResult> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] .
+
+<https://blackcatinformatics.ca/math/FrequentistResult-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/FrequentistResult> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/math/BayesianResult> ] .
 
 <https://blackcatinformatics.ca/math/Function-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/Function> ;
@@ -5001,6 +5026,10 @@
     sh:targetClass <https://blackcatinformatics.ca/math/Homomorphism> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/preservationLaw> ; sh:minCount 1 ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/preservedOperation> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/Operation> ] ; sh:qualifiedMinCount 1 ] .
+
+<https://blackcatinformatics.ca/math/InferenceRun-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/math/InferenceRun> ;
+    sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] .
 
 <https://blackcatinformatics.ca/math/IngestRun-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/IngestRun> ;

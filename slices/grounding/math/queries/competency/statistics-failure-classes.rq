@@ -1,0 +1,18 @@
+# Competency question: "What are the statistics conformance-failure classes, each shown by an
+# ill-formed exemplar?" Exercises the failure vocabulary of the STATISTICS charter: each way a
+# statistical object can be ill-formed is a first-class subclass of math:MathConformanceFailure
+# that the slice's SHACL shapes raise. The fixture instantiates one exemplar of each failure,
+# and the reasoning-free query reads back each exemplar's asserted failure type. Scoped so the
+# exemplar is fixture-local and the type is math:. Over the fixture the answer is exactly the
+# nine statistics failure classes {math:UnderspecifiedEstimate, math:ImplicitMissingness,
+# math:IllFramedPValue, math:IntervalKindConflation, math:IncompleteConfidenceInterval,
+# math:IncompleteCredibleInterval, math:UnframedEffectSize, math:UnanchoredDiagnostic,
+# math:CalibrationSenseConflation}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?exemplar ?failure WHERE {
+    ?exemplar a ?failure .
+    FILTER(STRSTARTS(STR(?exemplar), "http://example.org/math/"))
+    FILTER(STRSTARTS(STR(?failure), "https://blackcatinformatics.ca/math/"))
+}
+ORDER BY ?exemplar
