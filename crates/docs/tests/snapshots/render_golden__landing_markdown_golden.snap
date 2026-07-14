@@ -6,7 +6,7 @@ expression: "to_markdown(&model, &Page::Landing)"
 
 Version **16**.
 
-This site documents **4768** vocabulary terms across **82** slices.
+This site documents **4772** vocabulary terms across **82** slices.
 
 ## I want to…
 
@@ -28,7 +28,7 @@ This site documents **4768** vocabulary terms across **82** slices.
 | Category | Terms |
 | --- | --- |
 | [Classes](classes/index.md) | 1489 |
-| [Properties](properties/index.md) | 2583 |
+| [Properties](properties/index.md) | 2587 |
 | [Individuals](individuals/index.md) | 695 |
 | [Datatypes](datatypes/index.md) | 1 |
 
@@ -40,7 +40,7 @@ This site documents **4768** vocabulary terms across **82** slices.
 - [Examples](examples/index.md) — 154 worked examples.
 - [External ontologies](external-ontologies/index.md) — 1582 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)
-- [What GMEOW enforces](enforced-constraints/index.md) — 52 validation rules the toolchain enforces.
+- [What GMEOW enforces](enforced-constraints/index.md) — 54 validation rules the toolchain enforces.
 - [Recipes](recipes/index.md) — 6 task-oriented adoption recipes.
 - [Learning paths](learning-paths/index.md) — 5 curated adoption journeys.
 - [What is this?](four-boxes/index.md) — the ABox/TBox/RBox/CBox/ConfigBox doctrine.
