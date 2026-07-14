@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A well-formed conformance fixture for gmeow:FixtureExternalWidget: an instance
+# that MUST validate. Paired with the counter-example so dimFixturePair can be
+# present for the widget term.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/fixture-external-slice/conformance/> .
+
+ex:wellformedWidget
+    a gmeow:FixtureExternalWidget ;
+    gmeow:name "A well-formed fixture widget instance."@x-gmeow-english .

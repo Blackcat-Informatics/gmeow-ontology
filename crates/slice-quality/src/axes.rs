@@ -22,7 +22,7 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use regex::Regex;
 
 use crate::graph::{self, all_lits, g, id, instances_of, one_iri, one_lit};
-use crate::score::{AxisScore, ScoreContext, advisory};
+use crate::score::{AxisScore, ScoreContext, ScoringEnv, advisory};
 
 /// A measurement primitive: score the slice and surface advisories.
 pub type Primitive = fn(&ScoreContext) -> AxisScore;
@@ -1345,23 +1345,41 @@ fn gmn1_coverage_source_paths(slice_dir: &Path) -> Vec<std::path::PathBuf> {
 /// structural gates catch independently), scores the crate's neutral vacuous 1.0
 /// with an advisory naming the reason, never a silent false-positive "fully covered".
 fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
-    let Some(root) = repo_root_of(&ctx.slice_dir) else {
-        return AxisScore {
-            score: 1.0,
-            findings: vec![advisory(
-                "slice-quality.gmn1-coverage.no-repo-root",
-                "the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
-            )],
-        };
-    };
-    let Some(dict) = gmn1_dictionary(&root) else {
-        return AxisScore {
-            score: 1.0,
-            findings: vec![advisory(
-                "slice-quality.gmn1-coverage.no-dictionary",
-                "the shared gmeow:gmnDictV1 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
-            )],
-        };
+    // The dictionary source branches on the scoring environment; the coverage
+    // measurement TAIL below (source paths → Gmn0Model → measure_coverage → findings)
+    // is shared by both arms. `repo_dict` is deferred-init: it holds the on-disk
+    // dictionary the Repo arm reads, kept alive so the shared tail can borrow it.
+    let repo_dict;
+    let dict: &GmnDictionary = match &ctx.env {
+        // Repo mode is the verbatim pre-seam behaviour: resolve the repo root, read
+        // the shared on-disk dictionary, and carry the tolerant no-repo-root /
+        // no-dictionary advisories (a malformed checkout other structural gates catch).
+        ScoringEnv::Repo => {
+            let Some(root) = repo_root_of(&ctx.slice_dir) else {
+                return AxisScore {
+                    score: 1.0,
+                    findings: vec![advisory(
+                        "slice-quality.gmn1-coverage.no-repo-root",
+                        "the slice directory carries no resolvable slices/ path prefix — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
+                    )],
+                };
+            };
+            let Some(dict) = gmn1_dictionary(&root) else {
+                return AxisScore {
+                    score: 1.0,
+                    findings: vec![advisory(
+                        "slice-quality.gmn1-coverage.no-dictionary",
+                        "the shared gmeow:gmnDictV1 dictionary (slices/grounding/lang/module.ttl) failed to load — GMN-1 coverage cannot be measured (vacuous 1.0).".to_owned(),
+                    )],
+                };
+            };
+            repo_dict = dict;
+            &repo_dict
+        }
+        // Bundle mode uses the embedded dictionary directly: it was already loaded and
+        // validated at bundle-construction time (a corrupt wheel hard-failed there), so
+        // this arm has no tolerant no-dictionary advisory — it always has a valid dict.
+        ScoringEnv::Bundle(dict) => dict.as_ref(),
     };
 
     let paths = gmn1_coverage_source_paths(&ctx.slice_dir);
@@ -1375,7 +1393,7 @@ fn gmn1_coverage_axis(ctx: &ScoreContext) -> AxisScore {
     };
 
     let model = Gmn0Model::from_dataset(&ds);
-    let report = measure_coverage(&model, &dict);
+    let report = measure_coverage(&model, dict);
     let score = report.fraction();
     let findings = if report.covered < report.total {
         vec![advisory(
