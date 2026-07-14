@@ -220,12 +220,38 @@ impl Stage for ValidateStage {
             })?
             .span_index()?;
         crate::ingest::enrich_findings_with_spans(&mut report, &spans);
-        // Attach the DSL-authored remediation prose onto each finding through the
-        // annotate-by-fingerprint seam (D1): resolve each finding's code to the rule
-        // catalogue's remediation guidance and hang it on the finding via
-        // `DiagLedger::annotate`, so the RENDERED SARIF `fixes` (and CLI/HTML "how to
-        // fix" lines) are the genuine product of the annotate API, not a bypass.
-        gmeow_validate::remediation::attach_remediations(&mut report);
+        // The single proof-carrying enrichment pass (Part 1): populate rule identity
+        // (catalog help URIs) onto `report.rules`, then attach the registry-authored
+        // remediation prose onto each finding through the annotate-by-fingerprint seam
+        // (D1) — resolve each finding's code to the rule catalogue's remediation
+        // guidance and hang it on the finding via `DiagLedger::annotate`, so the
+        // RENDERED SARIF `fixes` (and CLI/HTML "how to fix" lines) are the genuine
+        // product of the annotate API, not a bypass. Shared with the CLI consumer path
+        // (`gmeow_validate::data_validate::run`) so the two surfaces cannot drift.
+        //
+        // Per-term usage guidance (Part 3) additionally needs an `&RdfDataset` to scan;
+        // this stage runs before `stage-constraint-catalog` (it consumes only
+        // `stage-source-load`, a sibling of `stage-reason` in the DAG, not a
+        // descendant), so no bundle carrying the generated `gmeow:ValidationRule`
+        // catalog is in scope here — the rule-governing-term key honestly resolves
+        // to nothing on this path. The authored source graph IS in scope (already
+        // consumed above as `source_graph`), so it is parsed once more and passed as
+        // BOTH the bundle and the subject: `documented_terms` guidance (prose authored
+        // directly on ontology terms) still resolves fully, and the rule-governing-term
+        // key stays an honest, structurally-guaranteed absence rather than a fabricated
+        // join. No new `consumes()` edge: this is the SAME `stage-source-load` product
+        // already declared.
+        let source_dataset = purrdf::parse_dataset(source_graph, "application/n-quads", None)
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!("source graph parse (guidance join): {e}"),
+                })
+            })?;
+        gmeow_validate::enrich::enrich_findings(
+            &mut report,
+            source_dataset.as_ref(),
+            source_dataset.as_ref(),
+        );
         // Build the reasoner-derived gate-verdict program ONCE from the authored source
         // graph (the base-graph bytes carry the logic + diagnostics slices, hence the
         // authored logic:ruleGateFatalVerdict rule + the gmeow:categoryBlocking wiring).
@@ -389,6 +415,85 @@ ex:RequiredShape a sh:NodeShape ;
         assert!(
             finding.anchor_non_trivial,
             "the focus node is a NonTrivial anchor the glut join can fire on"
+        );
+    }
+
+    /// Task 7 Part C (adversary F1, cross-surface parity/drift guard): the FULL
+    /// `ValidateStage::run` (not just `validate_source_graph`, which returns
+    /// BEFORE the enrichment call) routes its report through the SAME
+    /// `gmeow_validate::enrich::enrich_findings` the CLI/consumer
+    /// `data_validate::run` path calls
+    /// (`crates/validate/tests/proof_carrying_findings.rs`'s
+    /// `cross_surface_parity_cli_path_is_enriched`), so the two consumer surfaces
+    /// cannot silently drift apart — the original bug this whole feature fixes.
+    /// Falsifiable: removing the `enrich_findings` call at the bottom of
+    /// `ValidateStage::run` (this file) makes both assertions below fail.
+    #[test]
+    fn stage_validate_run_is_enriched_matching_the_cli_path() {
+        use purrdf::RdfDatasetBuilder;
+
+        let repo = mock_repo(
+            r#"
+@prefix ex: <https://example.test/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ex:RequiredShape a sh:NodeShape ;
+    sh:targetNode ex:thing ;
+    sh:property [
+        sh:path ex:required ;
+        sh:minCount 1 ;
+        sh:message "required value is missing" ;
+    ] .
+"#,
+        );
+
+        // A minimal `stage-source-load` product: an empty base graph (mirrors the
+        // existing `validate_source_graph(repo.path(), b"")` fixtures) plus the
+        // digest-pinned `REP_SPAN_TABLE` blob every downstream consumer of the
+        // span table requires present (`StageProduct::span_index`).
+        let dataset = RdfDatasetBuilder::new().freeze().expect("empty dataset");
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(BASE_GRAPH_PATH.to_string(), Vec::new());
+        let span_index = crate::ingest::SpanIndex::new();
+        let span_blob = serde_json::to_vec(&span_index).expect("encode span index");
+        let bundle = crate::bundle::bundle_from_artifacts_over_with_rep_blob(
+            dataset,
+            artifacts,
+            DatasetProvenance::new(),
+            crate::stages::carrier::REP_SPAN_TABLE,
+            "application/json",
+            span_blob,
+        );
+        let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-source-load".to_string(), product);
+        let input = StageInput {
+            root: repo.path(),
+            upstream: &upstream,
+        };
+
+        let output = ValidateStage::new().run(input).expect("validate stage run");
+        let json_bytes = output
+            .product
+            .artifact(SHACL_JSON_PATH)
+            .expect("shacl.json artifact on the stage product");
+        let report: Report =
+            serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+
+        assert!(
+            !report.rules.is_empty(),
+            "ValidateStage::run must populate report.rules (rule_catalog::populate_rules), \
+             matching the CLI data_validate::run path"
+        );
+        let finding = report
+            .findings
+            .iter()
+            .find(|f| f.code == "shacl.MinCountConstraintComponent")
+            .expect("the SHACL minCount finding");
+        assert!(
+            !finding.remediation.is_empty(),
+            "the pipeline validate-stage report must carry a remediation, matching the CLI \
+             path: {finding:?}"
         );
     }
 }
