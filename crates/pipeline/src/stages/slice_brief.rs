@@ -37,9 +37,9 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
+use purrdf::RdfDataset;
 
-use gmeow_slice_brief::{BriefInputs, assemble_packet};
+use gmeow_slice_brief::{BriefInputs, assemble_packet, defined_terms};
 use gmeow_slice_quality::graph;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -52,9 +52,6 @@ const CHUNK: usize = 25;
 
 /// The number of same-slice exemplar coats each packet seeks.
 const EXEMPLAR_TARGET: usize = 3;
-
-/// The `rdfs:isDefinedBy` IRI (the slice-membership predicate).
-const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 
 /// The `slice_brief` pipeline stage — a leaf compute node. It consumes no upstream
 /// product (it reads the authored slice sources directly) and attaches the single
@@ -215,27 +212,6 @@ fn slice_plan(slice_dir: &Path) -> Result<SlicePlan, gmeow_errors::Diag> {
         term_count: terms.len(),
         tiers,
     })
-}
-
-/// Every IRI subject the slice defines (`rdfs:isDefinedBy` the slice IRI, excluding the
-/// slice individual itself), sorted ascending and deduped — mirrors the library's private
-/// `assemble::defined_terms`, so this stage's batch count matches its partition.
-fn defined_terms(ds: &RdfDataset, slice_iri: &str) -> Vec<String> {
-    let (Some(pred), Some(slice_id)) =
-        (graph::id(ds, RDFS_IS_DEFINED_BY), graph::id(ds, slice_iri))
-    else {
-        return Vec::new();
-    };
-    let mut out: Vec<String> = ds
-        .quads_for_pattern(None, Some(pred), Some(slice_id), GraphMatch::Any)
-        .filter_map(|q| match ds.resolve(q.s) {
-            TermRef::Iri(iri) if iri != slice_iri => Some(iri.to_owned()),
-            _ => None,
-        })
-        .collect();
-    out.sort_unstable();
-    out.dedup();
-    out
 }
 
 /// Recursively collect existing files with extension `ext` under `dir` into `out`.
