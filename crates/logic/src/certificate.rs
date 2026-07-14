@@ -269,6 +269,34 @@ impl CoherenceOutcome {
         }
     }
 
+    /// Payload-free `Refused` check over the SAME trichotomy gate as
+    /// [`Self::class_local_name_for`] — `true` iff that lookup would answer
+    /// `"Refused"` (a witnessed forbidden violation in a CONCLUSIVE check).
+    ///
+    /// A tool surface that renders BOTH a `class_local_name` label AND a separate
+    /// boolean coherence flag (e.g. `run_verify_graph`'s `coherent`) MUST derive the
+    /// boolean from this — never from an independent signal (such as
+    /// "did any bad-example query match") — or the two fields can disagree: a
+    /// conclusive glut that happens not to trip a bad-example query would otherwise
+    /// render `class_local_name: "Refused"` alongside `coherent: true`, a
+    /// self-contradictory proof-carrying envelope.
+    pub fn is_refused_for(
+        result: &ReasoningResult,
+        contradiction_policy: ContradictionPolicy,
+    ) -> bool {
+        let forbidden_violation_present = !contradiction_policy.glut_permitted()
+            && !result.provenance.contradiction_witnesses.is_empty();
+        let fragment_present = result.provenance.certified_fragment.is_some();
+        matches!(
+            Self::classify(
+                result.is_conclusive(),
+                forbidden_violation_present,
+                fragment_present,
+            ),
+            Gate::Refused
+        )
+    }
+
     /// The carried payload, whatever the outcome.
     pub fn payload(&self) -> &CoherencePayload {
         match self {
