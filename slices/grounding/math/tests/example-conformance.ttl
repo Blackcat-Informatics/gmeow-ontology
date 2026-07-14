@@ -93,6 +93,19 @@ ex:ecSetBothExtents a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example carries both math:hasElement and math:memberCondition on one set (the SPARQL constraint of math:SetExtentShape), so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:AmbiguousSetExtent)." .
 
+# === Rule 6b: an interval names both endpoints and both endpoint inclusions = #
+
+ex:ecIntervalFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/interval-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two well-formed math:Interval individuals — a half-open bounded interval [0, 1) (lower closed, upper open) and an unbounded interval (0, +∞) whose upper endpoint is the pole math:PositiveInfinity — each name both endpoints and both endpoint inclusions, satisfying math:IntervalShape, and validate with no findings." .
+
+ex:ecIntervalMissingInclusion a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/interval-missing-inclusion.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:upperInclusion on a math:Interval (sh:minCount 1 on math:IntervalShape, derived from the exact-one math:upperInclusion restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedInterval). It names both endpoints and its lower inclusion, so the missing upper inclusion is the single isolated violation." .
+
 # === Rule 7: a function declares its domain and codomain =================== #
 
 ex:ecFunctionFramed a gmeow:ExampleConformance ;

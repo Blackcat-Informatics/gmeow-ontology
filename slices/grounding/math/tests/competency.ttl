@@ -150,6 +150,40 @@ ex:rowAllNaturals a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "set" ; gmeow:cellValueIri exf:allNaturals ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "cardinality" ; gmeow:cellValueIri math:alephNull ] .
 
+# === Q4b — an ordered interval's endpoints and endpoint inclusions ========== #
+
+ex:cqIntervalEndpointsAndInclusion a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/interval-endpoints-and-inclusion.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each ordered interval reports both endpoints and, for each end, whether it is closed (included) or open (excluded); over the fixture the answer is exactly {halfOpenUnit → 0 closed, 1 open; positiveReals → 0 open, +∞ (math:PositiveInfinity) open}. Endpoints are projected as strings so a finite literal and a pole IRI share one column." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqIntervalShape ;
+    gmeow:cqExpectRow ex:rowHalfOpenUnit , ex:rowPositiveReals .
+
+ex:cqIntervalShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "interval" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "lower" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "lowerIncl" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "upper" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "upperIncl" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowHalfOpenUnit a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exf:halfOpenUnit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lower" ; gmeow:cellValueLiteral "0.0" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lowerIncl" ; gmeow:cellValueIri math:closedEndpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upper" ; gmeow:cellValueLiteral "1.0" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upperIncl" ; gmeow:cellValueIri math:openEndpoint ] .
+
+ex:rowPositiveReals a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "interval" ; gmeow:cellValueIri exf:positiveReals ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lower" ; gmeow:cellValueLiteral "0.0" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "lowerIncl" ; gmeow:cellValueIri math:openEndpoint ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upper" ; gmeow:cellValueLiteral "https://blackcatinformatics.ca/math/PositiveInfinity" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "upperIncl" ; gmeow:cellValueIri math:openEndpoint ] .
+
 # === Q5 — named constants and their anchors ================================ #
 
 ex:cqNamedConstantsAndAnchors a gmeow:CompetencyQuestion ;

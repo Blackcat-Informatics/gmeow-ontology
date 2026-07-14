@@ -144,6 +144,28 @@ gmeow:eqMathExtendedRealLine a gmeow:TermEquivalence ;
     gmeow:comment "math:ExtendedRealLine is the signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}; wd:Q1416516 (extended real number line) names the same two-point compactification concept. closeMatch, not identity: the GMEOW term is a system individual carrying the adjunction machinery (its poles and subsystem edges), a close but non-invertible counterpart of the bare Wikidata concept — the same rung the finite number systems take." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
+# --- Ordered intervals → Wikidata / OpenMath (concept identity) ------------- #
+
+gmeow:eqMathIntervalWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Interval ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q185148 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "interval" ;
+    gmeow:comment "math:Interval is the ordered real interval { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }; wd:Q185148 (interval, 'subset of an ordered set consisting of all elements between two given endpoints') names the same order-theoretic concept. closeMatch, not identity: the GMEOW class is the specialization over the extended real line carrying its endpoints and both endpoint inclusions, a close but non-invertible counterpart of the general ordered-set concept." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathIntervalOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Interval ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/interval1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.85 ;
+    gmeow:objectLabel "OpenMath interval1 (ordered intervals)" ;
+    gmeow:comment "math:Interval aligns to the OpenMath interval1 content dictionary, whose symbols interval_cc, interval_oo, interval_oc, and interval_co carry exactly the four closed/open endpoint-inclusion combinations math:lowerInclusion and math:upperInclusion express. closeMatch, full IRI by reference to the CD page (curl-validated HTTP 200)." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
 # --- Algebraic-structure classes → Wikidata (concept identity) ------------- #
 # Each math: structure class denotes the same concept as its Wikidata item — a
 # clean 1:1 identity (the class IS the concept "group", "ring", …), so
