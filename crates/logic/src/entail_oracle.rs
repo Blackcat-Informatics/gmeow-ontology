@@ -139,6 +139,17 @@ pub fn consistency(edb: &RdfDataset) -> (bool, Vec<String>) {
     (unsat.is_empty(), unsat)
 }
 
+/// The global-consistency verdict derived from a [`consistency`] `(flag, unsat)`
+/// tuple, WITHOUT re-running the tableau. `true` iff the tuple is not the ABox-clash
+/// sentinel `(false, [])`: `consistency` returns an EMPTY `unsat` on a global
+/// inconsistency (the early `EntailError::Inconsistent` return), so a non-empty
+/// `unsat` (`(false, [X…])`) is a consistent ontology that merely has empty classes,
+/// and `(true, [])` is fully consistent. This is the shared contract the per-world
+/// consistency cross-check folds so it need not re-derive the tableau it already ran.
+pub fn global_consistent_verdict(flag: bool, unsat: &[String]) -> bool {
+    flag || !unsat.is_empty()
+}
+
 /// The **global** consistency verdict for `edb` at OWL-Direct tableau depth — a
 /// thin, boolean-only view over [`consistency`] for the world-scoped cross-check.
 ///
@@ -150,10 +161,7 @@ pub fn consistency(edb: &RdfDataset) -> (bool, Vec<String>) {
 /// the bundle is globally consistent iff every world is.
 pub fn globally_consistent(edb: &RdfDataset) -> bool {
     let (flag, unsat) = consistency(edb);
-    // A `false` flag is a global inconsistency ONLY when it is not explained by
-    // class unsatisfiability (an empty class): `(false, [])` is an ABox clash;
-    // `(false, [X…])` is a consistent ontology that merely has empty classes.
-    flag || !unsat.is_empty()
+    global_consistent_verdict(flag, &unsat)
 }
 
 #[cfg(test)]
