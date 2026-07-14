@@ -32,7 +32,7 @@ use gmeow_logic::reason::reason_all_budgeted;
 use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::result_rdf::{
     ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
-    project_reasoning_result,
+    project_conjecture_withdrawal, project_reasoning_result,
 };
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
 use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result};
@@ -1995,6 +1995,25 @@ impl McpServer {
                 ],
             ),
             tool(
+                "refute_conjecture",
+                "Author-withdraw a stored conjecture — the store_conjecture compensation (P10, \
+                 as revise_belief compensates store_claim), executed as a Transaction-Logic \
+                 transaction on the withdrawConjecture schema. It APPENDS a compensating \
+                 author-withdrawn segment to the append-only conjecture library, flipping the \
+                 node's effective logic:conjectureLifecycleState to logic:ConjectureWithdrawn \
+                 (recorded, never deleted — prior segments stay intact). conjecture_id is the \
+                 stored logic:Conjecture node IRI; reason is an optional author note. The TR \
+                 precondition — the conjecture is still in the library and NOT already \
+                 withdrawn — is decided from the live library state by segment order, so an \
+                 unknown id or an already-withdrawn node is rejected before any write. Pass \
+                 dry_run=true for a non-committing sandbox run (verdict only, nothing written).",
+                &[
+                    ("conjecture_id", "string"),
+                    ("reason", "string"),
+                    ("dry_run", "boolean"),
+                ],
+            ),
+            tool(
                 "recall",
                 "Recall stored memory claims.",
                 &[
@@ -2122,6 +2141,7 @@ impl McpServer {
             "store_claim" => self.tool_store_claim(args),
             "conjecture_test" => self.tool_conjecture_test(args),
             "store_conjecture" => self.tool_store_conjecture(args),
+            "refute_conjecture" => self.tool_refute_conjecture(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
             "counter_examples" => self.tool_counter_examples(args),
@@ -2773,6 +2793,99 @@ impl McpServer {
             "witness": witness_json,
             "conjecture": out.node_iri,
             "transaction": txn_json(&out.receipt),
+        })
+        .to_string())
+    }
+
+    /// `refute_conjecture` — the compensating author-WITHDRAWAL counterpart of
+    /// `store_conjecture` (P10, exactly as `revise_belief` compensates `store_claim`). It
+    /// appends one compensating "author-withdrawn" segment to the append-only conjecture
+    /// library, flipping the target node's EFFECTIVE `logic:conjectureLifecycleState` to
+    /// `logic:ConjectureWithdrawn` — recorded, never deleted; the prior segments stay intact.
+    ///
+    /// The write is a REAL TR gate on the `withdrawConjecture` schema, whose precondition —
+    /// the conjecture is still in the library and NOT already withdrawn — is DERIVED from the
+    /// live library state read back by SEGMENT ORDER ([`read_conjecture_library`], R3): the
+    /// `conjectureInLibrary` situation obtains iff the node exists and its effective state is
+    /// not yet `Withdrawn`. An unknown id or an already-withdrawn node yields an empty start
+    /// state, so the executional-entailment run FAILS the commit and the tool returns
+    /// `ok:false` before writing. `dry_run=true` witnesses the hypothetical commit and appends
+    /// nothing.
+    fn tool_refute_conjecture(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let conjecture_id = required_str(args, "conjecture_id")?;
+        let reason = optional_str(args, "reason").unwrap_or("");
+        let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
+
+        // Read the library's EFFECTIVE state by segment order (last-writer-wins). The node is
+        // withdrawable iff it is a stored conjecture whose effective state is not already
+        // Withdrawn — the `del(conjectureInLibrary)` of a prior withdrawal retired it.
+        let path = conjecture_path()?;
+        let library = read_conjecture_library(&path)?;
+        let effective = library.get(conjecture_id).copied();
+        let exists = effective.is_some();
+        let in_library = matches!(
+            effective,
+            Some(state) if state != ConjectureLifecycleState::Withdrawn
+        );
+
+        // The precondition `conjectureInLibrary` obtains iff the node is present and not yet
+        // withdrawn — the engine's executional entailment over THIS derived start state is the
+        // commit gate (an absent situation fails the run; no synthetic boolean).
+        let mut obtains: Vec<&str> = Vec::new();
+        if in_library {
+            obtains.push(MCP_CONJECTURE_IN_LIBRARY);
+        }
+        let receipt = execute_memory_txn(MCP_WITHDRAW_CONJECTURE_SCHEMA, &obtains, dry_run)?;
+        match &receipt {
+            TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
+                let detail = if !exists {
+                    format!("unknown conjecture id: {conjecture_id}")
+                } else {
+                    format!("conjecture already withdrawn: {conjecture_id}")
+                };
+                return Ok(json!({
+                    "ok": false,
+                    "error": format!("withdrawConjecture precondition unmet: {detail}"),
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            // Sandbox run: the compensating verdict is witnessed, nothing is appended.
+            TxReceipt::HypotheticalSuccess { .. } => {
+                return Ok(json!({
+                    "ok": true,
+                    "dry_run": true,
+                    "conjecture": conjecture_id,
+                    "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+                    "transaction": txn_json(&receipt),
+                })
+                .to_string());
+            }
+            TxReceipt::CommittedSuccess { .. } => {}
+        }
+
+        // Committed: APPEND the compensating author-withdrawal segment (the target node re-
+        // marked `ConjectureWithdrawn`, author reason, reviewer-asserted provenance), then a
+        // cold-auditable trajectory segment keyed to a content-addressed call id. Both are
+        // NEW segments — the library is append-only, so no prior segment's bytes are touched.
+        let nt_body = project_conjecture_withdrawal(conjecture_id, reason);
+        write_conjecture_segment(&path, &nt_body)?;
+        let call_id = format!(
+            "urn:gmeow:conjecture-call:{}",
+            sha256_hex(format!("withdraw\u{1}{conjecture_id}\u{1}{reason}").as_bytes())
+        );
+        write_audit_segment(
+            &path,
+            &call_id,
+            MCP_WITHDRAW_CONJECTURE_SCHEMA,
+            &[MCP_CONJECTURE_IN_LIBRARY],
+            "1970-01-01T00:00:00Z",
+        )?;
+        Ok(json!({
+            "ok": true,
+            "conjecture": conjecture_id,
+            "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+            "transaction": txn_json(&receipt),
         })
         .to_string())
     }
@@ -3502,6 +3615,7 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
                 "term"
                     | "text"
                     | "claim_id"
+                    | "conjecture_id"
                     | "path"
                     | "target_iri"
                     | "data"
@@ -3952,6 +4066,15 @@ const MCP_PERSIST_CONJECTURE_SCHEMA: &str =
 const MCP_CONJECTURE_VERDICT_PRESENTED: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/conjectureVerdictPresented";
 
+/// The `withdrawConjecture` action schema + its precondition situation, defined by
+/// `mcp-action-policy.ttl`. The compensating author-withdrawal counterpart of
+/// `persistConjecture` (P10, `logic:compensation`): the precondition — the conjecture is
+/// still in the library (not already withdrawn) — gates the compensating append.
+const MCP_WITHDRAW_CONJECTURE_SCHEMA: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/withdrawConjecture";
+const MCP_CONJECTURE_IN_LIBRARY: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/conjectureInLibrary";
+
 /// The single, fixed ISOLATED scenario world every conjecture test reasons in. The KB the
 /// caller supplies is re-homed into this world (so the world-scoped DL calculus joins the
 /// KB facts with the asserted / evaluated candidate), and the run is inherently isolated —
@@ -4334,6 +4457,152 @@ fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<
         .open(path)?;
     file.write_all(&segment)?;
     Ok(())
+}
+
+/// A per-segment collector for [`read_conjecture_library`]: it captures each GTS segment's
+/// term table and quads IN FILE (append) ORDER, so a `logic:conjectureLifecycleState`
+/// supersession can be resolved as last-writer-wins by SEGMENT ORDER.
+///
+/// Order is the ONLY sound disambiguator here (R3). The unioned dataset a plain
+/// `import_gts_events` yields carries EVERY state a node ever held at once — after a store
+/// then a refute, one node holds both its engine verdict (`Open`/`Corroborated`/`Refuted…`)
+/// AND `ConjectureWithdrawn` — and `gmeow:atTime` cannot break the tie either, because every
+/// audit segment stamps the SAME fixed determinism epoch. The streaming reader
+/// (`read_to_sink` with `allow_segments = true`) is the one path that preserves per-segment
+/// identity: each appended `GtsWriter` blob reads back as its own segment, delivered in
+/// append order, so folding the lifecycle assertions in that order makes the LAST one win.
+#[derive(Default)]
+struct ConjectureSegments {
+    /// One row per segment, indexed by segment order.
+    segments: Vec<ConjectureSegmentRows>,
+    /// The first reader diagnostic, if any — any diagnostic is a HARD read failure (no
+    /// silent partial read of a corrupt library).
+    diagnostic: Option<String>,
+}
+
+/// One segment's captured rows: its segment-local term table and its `(s, p, o)` quads.
+#[derive(Default)]
+struct ConjectureSegmentRows {
+    /// Segment-local term id → interned term (ids are dense from 0 within a segment).
+    terms: Vec<Option<GtsTerm>>,
+    /// `(subject, predicate, object)` segment-local term ids (the graph slot is dropped —
+    /// the conjecture library writes only default-graph triples).
+    quads: Vec<(usize, usize, usize)>,
+}
+
+impl ConjectureSegments {
+    /// The rows for `index`, growing the segment vector so an out-of-order or sparse
+    /// segment index still lands in its own slot.
+    fn seg(&mut self, index: usize) -> &mut ConjectureSegmentRows {
+        if index >= self.segments.len() {
+            self.segments
+                .resize_with(index + 1, ConjectureSegmentRows::default);
+        }
+        &mut self.segments[index]
+    }
+}
+
+impl purrdf::gts::reader::StreamingSink for ConjectureSegments {
+    fn term(&mut self, segment_index: usize, term_id: usize, term: &GtsTerm) {
+        let rows = self.seg(segment_index);
+        if term_id >= rows.terms.len() {
+            rows.terms.resize(term_id + 1, None);
+        }
+        rows.terms[term_id] = Some(term.clone());
+    }
+
+    fn quad(&mut self, segment_index: usize, quad: purrdf::gts::model::Quad) {
+        let (subject, predicate, object, _graph) = quad;
+        self.seg(segment_index)
+            .quads
+            .push((subject, predicate, object));
+    }
+
+    fn diagnostic(&mut self, diagnostic: &purrdf::gts::model::Diagnostic) {
+        if self.diagnostic.is_none() {
+            self.diagnostic = Some(format!("{}: {}", diagnostic.code, diagnostic.detail));
+        }
+    }
+}
+
+/// Read the append-only conjecture library at `path`, resolving each stored
+/// `logic:Conjecture` node's **EFFECTIVE** `logic:conjectureLifecycleState` by SEGMENT
+/// ORDER (last writer wins — see [`ConjectureSegments`] for why order, not the union or
+/// `gmeow:atTime`, is the only sound key). A node typed `logic:Conjecture` in any segment is
+/// in the library; its effective state is the object of the LAST lifecycle assertion for it
+/// in append order. A missing library file is an EMPTY library (a first-ever refute of an
+/// unknown id), not an error; any reader diagnostic or a torn trailing item is a HARD FAIL.
+fn read_conjecture_library(
+    path: &Path,
+) -> gmeow_errors::Result<BTreeMap<String, ConjectureLifecycleState>> {
+    let bytes = match fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
+        Err(e) => return Err(e.into()),
+    };
+
+    let mut sink = ConjectureSegments::default();
+    let result = purrdf::gts::reader::read_to_sink(&bytes, true, None, &mut sink);
+    if let Some(diag) = sink.diagnostic.take() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("conjecture library read diagnostic: {diag}"),
+        }));
+    }
+    if let Some(first) = result.diagnostics.first() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "conjecture library read diagnostic: {}: {}",
+                first.code, first.detail
+            ),
+        }));
+    }
+    if let Some(offset) = result.torn {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("conjecture library has a torn trailing item at byte {offset}"),
+        }));
+    }
+
+    let conjecture_iri = format!("{LOGIC_NAMESPACE}Conjecture");
+    let lifecycle_iri = format!("{LOGIC_NAMESPACE}conjectureLifecycleState");
+
+    let mut is_conjecture: BTreeSet<String> = BTreeSet::new();
+    let mut effective: BTreeMap<String, ConjectureLifecycleState> = BTreeMap::new();
+
+    // Fold the segments in FILE ORDER — a later segment's lifecycle assertion for a node
+    // supersedes an earlier one, so `insert` (last-writer-wins) IS the supersession rule.
+    for seg in &sink.segments {
+        let resolve_iri = |id: usize| -> Option<&str> {
+            seg.terms
+                .get(id)?
+                .as_ref()
+                .filter(|term| term.kind == GtsTermKind::Iri)
+                .and_then(|term| term.value.as_deref())
+        };
+        for &(subject, predicate, object) in &seg.quads {
+            let (Some(subj), Some(pred)) = (resolve_iri(subject), resolve_iri(predicate)) else {
+                continue;
+            };
+            if pred == RDF_TYPE {
+                if resolve_iri(object) == Some(conjecture_iri.as_str()) {
+                    is_conjecture.insert(subj.to_owned());
+                }
+            } else if pred == lifecycle_iri
+                && let Some(obj) = resolve_iri(object)
+                && let Some(local) = obj.strip_prefix(LOGIC_NAMESPACE)
+                && let Some(state) = ConjectureLifecycleState::from_local(local)
+            {
+                effective.insert(subj.to_owned(), state);
+            }
+        }
+    }
+
+    // A node is in the library iff it was typed `logic:Conjecture`; every such node carries a
+    // lifecycle state (REQUIRED by logic:ConjectureShape), so the intersection is exactly the
+    // library's conjecture set paired with its effective, segment-order-resolved state.
+    Ok(effective
+        .into_iter()
+        .filter(|(node, _)| is_conjecture.contains(node))
+        .collect())
 }
 
 /// Parse the candidate `logic:` document and extract exactly ONE candidate [`Formula`]: the
@@ -5969,6 +6238,10 @@ mod tests {
             "revise_belief",
             json!({"claim_id": "urn:gmeow:assertion:none", "dry_run": true}),
         );
+        call_args.insert(
+            "refute_conjecture",
+            json!({"conjecture_id": "urn:gmeow:conjecture:none", "dry_run": true}),
+        );
         // Documentation-surface tools: real terms that carry live data in the shipped
         // bundle (gmeow:Activity documents fixtures, gmeow:Entity grounds
         // entailments); competency_questions dispatches in its whole-index form.
@@ -6811,6 +7084,255 @@ mod tests {
         ));
         assert_eq!(committed["ok"], true);
         assert!(path.exists() && fs::metadata(&path).unwrap().len() > 0);
+    }
+
+    /// Store a real conjecture through the shipped `store_conjecture` tool and return its
+    /// content-addressed node IRI (the shared setup for the refute tests below).
+    fn store_one_conjecture(server: &McpServer, cls: &str) -> String {
+        let resp = text_payload(server.call_tool_result(
+            "store_conjecture",
+            &json!({
+                "formula": forall_horn_candidate(cls),
+                "kb": open_kb(cls),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(resp["ok"], true, "store must succeed: {resp}");
+        assert_eq!(resp["verdict"]["lifecycle"], "open");
+        resp["conjecture"].as_str().expect("node iri").to_string()
+    }
+
+    #[test]
+    fn refute_conjecture_withdraws_and_appends_author_segment() {
+        // store_conjecture then refute_conjecture its node IRI: the library gains a NEW
+        // append-only segment marking that node ConjectureWithdrawn with the author reason;
+        // the reader's EFFECTIVE lifecycle is now Withdrawn; the PRIOR segment bytes are
+        // byte-for-byte intact (append-only, never mutated).
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let node = store_one_conjecture(&server, "B");
+        // Before withdrawal the effective state is the engine verdict (Open), never Withdrawn.
+        let before = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            before.get(&node).copied(),
+            Some(ConjectureLifecycleState::Open)
+        );
+        let prior = fs::read(&path).expect("library bytes before refute");
+
+        let resp = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "author retired this line of inquiry"}),
+        ));
+        assert_eq!(resp["ok"], true, "the withdrawal must commit: {resp}");
+        assert_eq!(resp["conjecture"], node);
+        assert_eq!(resp["lifecycle"], "withdrawn");
+        assert_eq!(resp["transaction"]["committed"], true);
+        assert_eq!(resp["transaction"]["succeeded"], true);
+
+        // The EFFECTIVE lifecycle (segment order) is now Withdrawn.
+        let after = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            after.get(&node).copied(),
+            Some(ConjectureLifecycleState::Withdrawn),
+            "the effective lifecycle after refute must be Withdrawn"
+        );
+
+        // Append-only: the file GREW and the prior bytes are an untouched prefix.
+        let now = fs::read(&path).expect("library bytes after refute");
+        assert!(
+            now.len() > prior.len(),
+            "the withdrawal must append new bytes"
+        );
+        assert_eq!(
+            &now[..prior.len()],
+            &prior[..],
+            "prior segment bytes must be byte-for-byte intact (append-only)"
+        );
+
+        // The author reason literal round-trips out of the unioned library.
+        let dataset = read_conjectures(&path);
+        assert!(
+            dataset.owned_quads().any(|q| {
+                q.subject == RdfTerm::iri(node.clone())
+                    && q.predicate == format!("{LOGIC_NS}withdrawalReason")
+                    && matches!(
+                        q.object,
+                        RdfTerm::Literal(ref lit)
+                            if lit.lexical_form == "author retired this line of inquiry"
+                    )
+            }),
+            "the author withdrawal reason must be recoverable from the library"
+        );
+        // The withdrawal is reviewer-asserted, never engine-produced.
+        assert!(
+            dataset.owned_quads().any(|q| {
+                q.subject == RdfTerm::iri(node.clone())
+                    && q.predicate == format!("{LOGIC_NS}verdictProvenance")
+                    && q.object == RdfTerm::iri(format!("{LOGIC_NS}VerdictReviewerAsserted"))
+            }),
+            "the withdrawal must carry VerdictReviewerAsserted provenance"
+        );
+    }
+
+    #[test]
+    fn refute_conjecture_second_withdraw_rejected_by_segment_order() {
+        // store -> withdraw -> withdraw again the SAME node: the second refute is rejected as
+        // precondition-unmet because the EFFECTIVE state is already Withdrawn, decided by
+        // SEGMENT ORDER (the last lifecycle assertion), not by the union or gmeow:atTime. The
+        // rejected call appends NOTHING (the library stays byte-for-byte identical).
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let node = store_one_conjecture(&server, "B");
+        let first = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "first withdrawal"}),
+        ));
+        assert_eq!(
+            first["ok"], true,
+            "the first withdrawal must commit: {first}"
+        );
+        let after_first = fs::read(&path).expect("library bytes after first withdrawal");
+
+        let second = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "second withdrawal"}),
+        ));
+        assert_eq!(
+            second["ok"], false,
+            "a second withdrawal must be rejected: {second}"
+        );
+        assert_eq!(second["transaction"]["committed"], true);
+        assert_eq!(second["transaction"]["succeeded"], false);
+        assert!(
+            second["error"]
+                .as_str()
+                .is_some_and(|e| e.contains("already withdrawn")),
+            "the rejection must name the already-withdrawn precondition: {second}"
+        );
+        // The rejected call wrote nothing.
+        let after_second = fs::read(&path).expect("library bytes after rejected withdrawal");
+        assert_eq!(
+            after_first, after_second,
+            "a rejected withdrawal must append nothing to the library"
+        );
+    }
+
+    #[test]
+    fn refute_conjecture_unknown_id_rejected() {
+        // An unknown conjecture_id (nothing stored) fails the TR gate (empty start state) and
+        // returns ok:false before any write — the library file is never created.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        assert!(!path.exists(), "library must not exist before the call");
+        let resp = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": "https://blackcatinformatics.ca/gmeow/graph/conjecture/ghost"}),
+        ));
+        assert_eq!(resp["ok"], false, "an unknown id must be rejected: {resp}");
+        assert!(
+            resp["error"]
+                .as_str()
+                .is_some_and(|e| e.contains("unknown conjecture id")),
+            "the rejection must name the unknown id: {resp}"
+        );
+        assert!(
+            !path.exists(),
+            "a rejected withdrawal of an unknown id must write nothing"
+        );
+    }
+
+    #[test]
+    fn refute_conjecture_dry_run_writes_nothing() {
+        // dry_run=true witnesses the hypothetical commit (lifecycle withdrawn, committed:false)
+        // but appends NOTHING — the library file stays byte-unchanged.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let node = store_one_conjecture(&server, "B");
+        let before = fs::read(&path).expect("library bytes before dry run");
+
+        let resp = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "sandbox", "dry_run": true}),
+        ));
+        assert_eq!(resp["ok"], true, "the dry run must succeed: {resp}");
+        assert_eq!(resp["dry_run"], true);
+        assert_eq!(resp["lifecycle"], "withdrawn");
+        assert_eq!(resp["transaction"]["committed"], false);
+
+        // Nothing appended: bytes unchanged AND the effective lifecycle is still Open.
+        let after = fs::read(&path).expect("library bytes after dry run");
+        assert_eq!(before, after, "a dry run must write nothing to the library");
+        let library = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            library.get(&node).copied(),
+            Some(ConjectureLifecycleState::Open),
+            "a dry run must not change the effective lifecycle"
+        );
+    }
+
+    #[test]
+    fn read_conjecture_library_resolves_effective_state_by_segment_order() {
+        // The reader resolves the effective lifecycle purely by SEGMENT ORDER (last writer
+        // wins) — NOT by the union (which would carry both states at once) and NOT by
+        // gmeow:atTime (every segment shares the fixed determinism epoch). Two nodes are
+        // written with OPPOSITE last-writer states to prove position alone decides: the state
+        // that "sounds terminal" (Withdrawn) does NOT win unless it is written LAST.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_conjecture();
+
+        let base = "https://blackcatinformatics.ca/gmeow/graph/conjecture/";
+        let reopened = format!("{base}reopened");
+        let retired = format!("{base}retired");
+        let ty = format!("<{reopened}> <{RDF_TYPE_IRI}> <{LOGIC_NS}Conjecture> .\n");
+        let ty2 = format!("<{retired}> <{RDF_TYPE_IRI}> <{LOGIC_NS}Conjecture> .\n");
+        let lc = |node: &str, state: &str| {
+            format!("<{node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}{state}> .\n")
+        };
+
+        // `reopened`: Withdrawn FIRST, then Open — Open is last, so Open must win.
+        write_conjecture_segment(
+            &path,
+            &format!("{ty}{}", lc(&reopened, "ConjectureWithdrawn")),
+        )
+        .unwrap();
+        // `retired`: Open FIRST, then Withdrawn — Withdrawn is last, so Withdrawn must win.
+        write_conjecture_segment(&path, &format!("{ty2}{}", lc(&retired, "ConjectureOpen")))
+            .unwrap();
+        write_conjecture_segment(&path, &lc(&reopened, "ConjectureOpen")).unwrap();
+        write_conjecture_segment(&path, &lc(&retired, "ConjectureWithdrawn")).unwrap();
+
+        let library = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            library.get(&reopened).copied(),
+            Some(ConjectureLifecycleState::Open),
+            "the LAST segment (Open) must win even though a prior segment said Withdrawn"
+        );
+        assert_eq!(
+            library.get(&retired).copied(),
+            Some(ConjectureLifecycleState::Withdrawn),
+            "the LAST segment (Withdrawn) must win over the prior Open"
+        );
     }
 
     /// A candidate authored as a REIFIED GROUND binary atom — the exact `logic:relation` /
