@@ -37,10 +37,11 @@ pub const DISCIPLINE_FRAME_COMPLETENESS: &str = "discipline/frame-completeness";
 /// `crates/validate/src/validate_all.rs` — non-conforming-with-no-results guard.
 pub const SHACL_NONCONFORMING: &str = "shacl.nonconforming";
 /// `crates/pipeline/src/stages/validate.rs` — a conforming run's informational
-/// success record (emitted so the stage's attach delta is never empty). A
-/// STATIC row of its own, not a `shacl.` family member: a "validation passed"
-/// record is not a constraint violation and must never inherit the family's
-/// "repair the data" fix prose.
+/// success record (emitted so the stage's attach delta is never empty). Declared
+/// here so `remediation_for` resolves it to an honest `None` instead of inheriting
+/// the `shacl.` family's "repair the data" fix prose — a "validation passed" record
+/// is not a constraint violation. Deliberately NOT a `STATIC_RULES` row: a success
+/// sentinel is not an enforced constraint, so it never enters the constraint catalog.
 pub const SHACL_CLEAN: &str = "shacl.clean";
 /// Family base for `format!("shacl.{ConstraintComponentLocalName}")`
 /// (`crates/validate/src/findings.rs`).
