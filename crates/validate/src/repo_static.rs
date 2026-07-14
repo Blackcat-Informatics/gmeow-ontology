@@ -78,6 +78,7 @@ pub fn check_repo_static(root: &Path) -> RepoStaticReport {
     // Its production semantics are proven now over the live tree by
     // `declarative_gate_flags_the_live_legacy_corpus`.
     check_authored_shex_purity(root, &mut report);
+    check_hand_authored_shapes_ratchet(root, &mut report);
     check_no_generated_read_in_pipeline_stages(root, &mut report);
     check_no_first_party_error_crate_deps(root, &mut report);
     check_no_string_result_error_type(root, &mut report);
@@ -497,6 +498,101 @@ fn check_authored_shex_purity(root: &Path, report: &mut RepoStaticReport) {
              logic: canon, PROJECTED to generated/ (Principle 17), never hand-authored \
              (design/LOGIC-VALIDATION.md)"
         ));
+    }
+}
+
+/// The pinned census (Principle 17) of slices that still ship a hand-authored `shapes.ttl` — the
+/// legacy per-slice SHACL surface predating the `logic:`-grounded migration
+/// (`docs/MIGRATING-SHAPES-TO-LOGIC.md`). The set is **shrink-only**: as a slice's obligations are
+/// grounded in the `logic:` canon and re-projected, its `shapes.ttl` is deleted (mirroring
+/// `slices/grounding/math`'s retirement) and this list may be trimmed to match — tidy
+/// follow-through, not required for [`check_hand_authored_shapes_ratchet`] to pass. What must
+/// NEVER happen is growth: a hand-authored `shapes.ttl` appearing in a slice absent from this list
+/// is a second source of validation truth. Subset-or-equal (not strict equality) is the
+/// deliberate choice — a retirement PR that deletes a `shapes.ttl` but forgets to trim its entry
+/// here must still pass (shrinkage never reds the gate); only an unlisted ADDITION reds.
+const PINNED_HAND_AUTHORED_SHAPES_TTL: &[&str] = &[
+    "slices/core/ai/shapes.ttl",
+    "slices/core/concepts/shapes.ttl",
+    "slices/core/diagnostics/shapes.ttl",
+    "slices/core/documentation/shapes.ttl",
+    "slices/core/epistemics/shapes.ttl",
+    "slices/core/gts/shapes.ttl",
+    "slices/core/inference/shapes.ttl",
+    "slices/core/inhabitation/shapes.ttl",
+    "slices/core/kernel/shapes.ttl",
+    "slices/core/learning/shapes.ttl",
+    "slices/core/notation/shapes.ttl",
+    "slices/core/pipeline/shapes.ttl",
+    "slices/core/rights/shapes.ttl",
+    "slices/core/standpoint/shapes.ttl",
+    "slices/core/temporal/shapes.ttl",
+    "slices/extensions/agentic/shapes.ttl",
+    "slices/extensions/graphrag/shapes.ttl",
+    "slices/extensions/model-serving/shapes.ttl",
+    "slices/extensions/music/shapes.ttl",
+    "slices/grounding/lang/shapes.ttl",
+];
+
+/// Enumerate every hand-authored `shapes.ttl` under `slices/<group>/<slice>/shapes.ttl` — the
+/// two-directory-level shape [`PINNED_HAND_AUTHORED_SHAPES_TTL`] pins and the migration tooling
+/// (`dev_shapes`) scans. Returns forward-slash, repo-relative paths, sorted. Only the direct
+/// `<group>/<slice>/shapes.ttl` position is scanned (not an arbitrary-depth walk): that is the
+/// only position a slice's own `shapes.ttl` can occupy, so this stays a precise census rather
+/// than the broader legacy-shape-block walk `dev_shapes` does for migration bookkeeping.
+fn hand_authored_shapes_ttl_census(root: &Path) -> Vec<String> {
+    let mut found = Vec::new();
+    let slices_dir = root.join("slices");
+    let Ok(groups) = fs::read_dir(&slices_dir) else {
+        return found;
+    };
+    let mut group_dirs: Vec<PathBuf> = groups
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .filter(|p| p.is_dir() && !p.is_symlink())
+        .collect();
+    group_dirs.sort();
+    for group in group_dirs {
+        let Ok(slices) = fs::read_dir(&group) else {
+            continue;
+        };
+        let mut slice_dirs: Vec<PathBuf> = slices
+            .filter_map(|e| e.ok().map(|e| e.path()))
+            .filter(|p| p.is_dir() && !p.is_symlink())
+            .collect();
+        slice_dirs.sort();
+        for slice in slice_dirs {
+            let candidate = slice.join("shapes.ttl");
+            if candidate.is_file() && !candidate.is_symlink() {
+                found.push(slash_path(
+                    candidate.strip_prefix(root).unwrap_or(&candidate),
+                ));
+            }
+        }
+    }
+    found.sort();
+    found
+}
+
+/// The shrink-only `shapes.ttl` ratchet (Principle 17): the live census
+/// ([`hand_authored_shapes_ttl_census`]) must be a SUBSET-OR-EQUAL of the pinned allowlist
+/// ([`PINNED_HAND_AUTHORED_SHAPES_TTL`]). Any live entry absent from the pin is a hand-authored
+/// `shapes.ttl` that appeared in a slice never authorized to carry one — a new second source of
+/// validation truth — and fails hard, pointing at `docs/MIGRATING-SHAPES-TO-LOGIC.md`.
+fn check_hand_authored_shapes_ratchet(root: &Path, report: &mut RepoStaticReport) {
+    let pinned: BTreeSet<&str> = PINNED_HAND_AUTHORED_SHAPES_TTL.iter().copied().collect();
+    for rel in hand_authored_shapes_ttl_census(root) {
+        if !pinned.contains(rel.as_str()) {
+            report.error(format!(
+                "{rel}: a hand-authored shapes.ttl exists in a slice outside the pinned \
+                 shrink-only census (PINNED_HAND_AUTHORED_SHAPES_TTL in \
+                 crates/validate/src/repo_static.rs) — the set of slices shipping a \
+                 hand-authored shapes.ttl only ever SHRINKS as obligations are grounded in the \
+                 logic: canon and re-projected (Principle 17); a new hand-authored shapes.ttl is \
+                 a forbidden second source of validation truth. Ground its obligations in \
+                 logic: and retire it — see docs/MIGRATING-SHAPES-TO-LOGIC.md — rather than \
+                 adding it to the pin"
+            ));
+        }
     }
 }
 
@@ -2035,6 +2131,73 @@ mod tests {
             "an authored .shex surface must be flagged; got {:?}",
             dirty.errors
         );
+    }
+
+    // ── shrink-only shapes.ttl ratchet ───────────────────────────────────
+
+    #[test]
+    fn shapes_ratchet_passes_when_census_is_empty_or_pinned() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+
+        // No slices/ dir at all → empty census, passes.
+        let mut none = RepoStaticReport::default();
+        check_hand_authored_shapes_ratchet(root, &mut none);
+        assert!(none.ok(), "{:?}", none.errors);
+
+        // A shapes.ttl in a slice that IS on the pin → passes.
+        write(&root.join("slices/core/ai/shapes.ttl"), "");
+        let mut pinned = RepoStaticReport::default();
+        check_hand_authored_shapes_ratchet(root, &mut pinned);
+        assert!(pinned.ok(), "{:?}", pinned.errors);
+    }
+
+    #[test]
+    fn shapes_ratchet_flags_a_shapes_ttl_outside_the_pin() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        // "affect" is not in PINNED_HAND_AUTHORED_SHAPES_TTL.
+        write(&root.join("slices/core/affect/shapes.ttl"), "");
+
+        let mut report = RepoStaticReport::default();
+        check_hand_authored_shapes_ratchet(root, &mut report);
+        assert!(
+            report.errors.iter().any(|e| {
+                e.contains("slices/core/affect/shapes.ttl")
+                    && e.contains("MIGRATING-SHAPES-TO-LOGIC.md")
+            }),
+            "an unpinned shapes.ttl must be flagged and point at the migration doc; got {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn shapes_ratchet_permits_shrinkage_without_touching_the_pin() {
+        // Deleting a pinned slice's shapes.ttl (a retirement, e.g. slices/grounding/math's) must
+        // never fail the gate even though the pin itself was not trimmed — subset-or-equal, not
+        // strict equality.
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        fs::create_dir_all(root.join("slices/grounding")).unwrap();
+        let mut report = RepoStaticReport::default();
+        check_hand_authored_shapes_ratchet(root, &mut report);
+        assert!(report.ok(), "{:?}", report.errors);
+    }
+
+    #[test]
+    fn live_hand_authored_shapes_ttl_census_is_subset_or_equal_of_the_pin() {
+        // Direct exercise of the invariant described on PINNED_HAND_AUTHORED_SHAPES_TTL: the live
+        // repo's census may shrink relative to the pin (retirements land without a pin edit) but
+        // must never grow beyond it.
+        let pinned: BTreeSet<&str> = PINNED_HAND_AUTHORED_SHAPES_TTL.iter().copied().collect();
+        let live = hand_authored_shapes_ttl_census(live_repo_root());
+        for rel in &live {
+            assert!(
+                pinned.contains(rel.as_str()),
+                "{rel}: a hand-authored shapes.ttl exists outside the pinned shrink-only \
+                 census — see docs/MIGRATING-SHAPES-TO-LOGIC.md before adding a new one",
+            );
+        }
     }
 
     // ── generated/-read ban ─────────────────────────────────────────────
