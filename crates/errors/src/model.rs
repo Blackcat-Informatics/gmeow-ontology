@@ -7,7 +7,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use crate::diag::{Advice, Remediation};
+use crate::diag::{Advice, Guidance, Remediation};
 
 /// Serde skip-helper: `true` for `false` so a defaulted `bool` flag stays out of
 /// the wire form (keeps existing JSON/SARIF goldens byte-unchanged).
@@ -382,7 +382,7 @@ pub struct Rule {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub help_uri: Option<String>,
-    /// The standing, DSL-authored `gmeow:ruleRemediation` fix guidance for this
+    /// The standing, registry-authored `gmeow:ruleRemediation` fix guidance for this
     /// rule — the "how to fix a violation" prose the doc/catalog graph carries per
     /// code, joined onto the report's rule registry by the producer so the
     /// renderer can surface it once per finding code. `None` when the rule authors
@@ -410,7 +410,7 @@ impl Rule {
         }
     }
 
-    /// Attach the DSL-authored `gmeow:ruleRemediation` fix guidance.
+    /// Attach the registry-authored `gmeow:ruleRemediation` fix guidance.
     pub fn with_remediation(mut self, remediation: impl Into<String>) -> Self {
         self.remediation = Some(remediation.into());
         self
@@ -495,7 +495,7 @@ pub struct Finding {
     /// hand-built findings that carry no structured advice.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub advice: Vec<Advice>,
-    /// DSL-authored remediations projected from the witness node — the "how to fix"
+    /// registry-authored remediations projected from the witness node — the "how to fix"
     /// payload rendered into SARIF `fixes` and the CLI/HTML remediation line. Empty
     /// when the finding's rule authors no remediation (never fabricated).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -576,6 +576,18 @@ pub struct Finding {
     /// when it IS present (it rides only the full-fidelity JSON `Report`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub documented_terms: Vec<String>,
+    /// Per-term usage guidance (howToUse/useWhen/avoidWhen) joined from the bundle
+    /// documentation graph. Empty when the finding's rule/documented terms author
+    /// none (never fabricated).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub guidance: Vec<Guidance>,
+    /// The logic-world quad-reifier IRIs this finding's verdict derives FROM
+    /// (`gmeow:findingDerivedFromQuad`) — the explain-skeleton cited IRIs of the
+    /// reasoned quads that fired. A SEPARATE edge from `antecedents`/`root_cause`
+    /// (which are finding-fingerprint IRIs); never conflated with them. Empty for
+    /// non-reasoned findings.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub derived_from_quads: Vec<String>,
 }
 
 impl Finding {
@@ -604,6 +616,8 @@ impl Finding {
             standpoint: None,
             attributions: Vec::new(),
             documented_terms: Vec::new(),
+            guidance: Vec::new(),
+            derived_from_quads: Vec::new(),
         }
     }
 
@@ -631,6 +645,33 @@ impl Finding {
     /// per-term diagnostics join reads it; the SARIF/RDF/HTML projections do not.
     pub fn with_documented_term(mut self, term_iri: impl Into<String>) -> Self {
         self.documented_terms.push(term_iri.into());
+        self
+    }
+
+    /// Attach a per-term [`Guidance`] claim (howToUse/useWhen/avoidWhen), joined
+    /// from the bundle documentation graph. Never fabricated: only ever called
+    /// with a claim projected verbatim from the graph.
+    pub fn with_guidance(mut self, guidance: Guidance) -> Self {
+        self.guidance.push(guidance);
+        self
+    }
+
+    /// Attach a per-term [`Guidance`] claim in place (the non-chainable twin of
+    /// [`with_guidance`](Finding::with_guidance), mirroring
+    /// [`add_location`](Finding::add_location)'s in-place style).
+    pub fn push_guidance(&mut self, guidance: Guidance) {
+        self.guidance.push(guidance);
+    }
+
+    /// Attach the quad-reifier IRIs (`gmeow:findingDerivedFromQuad`) this
+    /// finding's verdict derives from — the explain-skeleton citations of the
+    /// reasoned quads that fired.
+    pub fn with_derived_from_quads(
+        mut self,
+        quads: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        self.derived_from_quads
+            .extend(quads.into_iter().map(Into::into));
         self
     }
 
@@ -688,6 +729,20 @@ impl Finding {
         // projects the same byte sequence regardless of attach order.
         self.documented_terms.sort();
         self.documented_terms.dedup();
+        // The explain-skeleton derivation edges are content-addressed IRIs; sort+dedup
+        // them so the projected graph is deterministic regardless of attach order.
+        self.derived_from_quads.sort();
+        self.derived_from_quads.dedup();
+        // Per-term guidance claims can reach a finding via the ledger merge path,
+        // which appends them in diagnostic arrival order — so sort+dedup them on the
+        // same `(modality, term_iri, text)` identity the enrich join uses, keeping the
+        // projected SARIF/RDF byte sequence deterministic regardless of attach order.
+        self.guidance.sort_by(|a, b| {
+            (a.modality as u8, &a.term_iri, &a.text).cmp(&(b.modality as u8, &b.term_iri, &b.text))
+        });
+        self.guidance.dedup_by(|a, b| {
+            a.modality == b.modality && a.term_iri == b.term_iri && a.text == b.text
+        });
     }
 }
 
@@ -928,5 +983,64 @@ mod tests {
         let tagged = Finding::new(Severity::Error, "c", "m")
             .with_category(FindingCategory::ContradictionWitness);
         assert_eq!(bare.sort_key(), tagged.sort_key());
+    }
+
+    #[test]
+    fn normalize_orders_and_dedups_guidance() {
+        use crate::diag::{GuidanceModality, GuidanceSource};
+        use crate::grade::Standpoint;
+
+        let claim = |modality, term: &str, text: &str, source| Guidance {
+            modality,
+            source,
+            term_iri: term.to_owned(),
+            text: text.to_owned(),
+            standpoint: Standpoint::Advisory,
+            help_uri: None,
+        };
+
+        // Guidance can reach a finding via the ledger merge in arrival order, so
+        // build it deliberately unsorted, with one duplicate that differs only in the
+        // non-identity fields (`source`/`help_uri`) — it must collapse to one.
+        let mut finding = Finding::new(Severity::Warning, "c", "m")
+            .with_guidance(claim(
+                GuidanceModality::AvoidWhen,
+                "gmeow:B",
+                "avoid B",
+                GuidanceSource::DocumentedTerm,
+            ))
+            .with_guidance(claim(
+                GuidanceModality::HowToUse,
+                "gmeow:A",
+                "use A",
+                GuidanceSource::DocumentedTerm,
+            ));
+        // A second surfacing of the how-to-use claim from the rule-governing key,
+        // carrying a help URI — same `(modality, term_iri, text)`, so a duplicate.
+        finding.push_guidance(Guidance {
+            help_uri: Some("https://example/anchor".to_owned()),
+            source: GuidanceSource::RuleGoverningTerm,
+            ..claim(
+                GuidanceModality::HowToUse,
+                "gmeow:A",
+                "use A",
+                GuidanceSource::DocumentedTerm,
+            )
+        });
+
+        finding.normalize();
+
+        // Sorted on `(modality as u8, term_iri, text)`: HowToUse(0) before
+        // AvoidWhen(2), and the duplicate how-to-use claim collapsed to one.
+        assert_eq!(finding.guidance.len(), 2);
+        assert_eq!(finding.guidance[0].modality, GuidanceModality::HowToUse);
+        assert_eq!(finding.guidance[0].term_iri, "gmeow:A");
+        assert_eq!(finding.guidance[1].modality, GuidanceModality::AvoidWhen);
+        assert_eq!(finding.guidance[1].term_iri, "gmeow:B");
+
+        // Idempotent: a second normalize is a no-op — the canonical form is stable.
+        let before = finding.guidance.clone();
+        finding.normalize();
+        assert_eq!(finding.guidance, before);
     }
 }

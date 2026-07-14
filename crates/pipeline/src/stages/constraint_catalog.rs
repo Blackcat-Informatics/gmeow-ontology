@@ -260,6 +260,17 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, gmeow_errors::Diag>
             &format!("{GMEOW}ruleCategory"),
             &finding_category_iri(&seed),
         );
+        // `gmeow:ruleRemediation` — the registry-authored rule-level fix prose. Honest
+        // absence: a code on the remediation-allowlist (`RuleSeed.remediation ==
+        // None`) emits no triple at all, never an empty/placeholder literal.
+        if let Some(remediation) = seed.remediation {
+            quad_str(
+                &mut out,
+                &iri,
+                &format!("{GMEOW}ruleRemediation"),
+                remediation,
+            );
+        }
 
         // ── Resolved enrichment (graph-sourced; OMIT when nothing resolves) ─────
         match seed.code {
@@ -431,5 +442,57 @@ mod tests {
         let a = render_constraint_catalog(&root).expect("render a");
         let b = render_constraint_catalog(&root).expect("render b");
         assert_eq!(a, b, "constraint catalog render must be byte-deterministic");
+    }
+
+    /// Task 7 Part B (adversary F2/N1): the projection producer
+    /// [`build_catalog_nquads`] (called directly with the REAL registry seeds —
+    /// deterministic, no `make regenerate` dependency: it reads straight off the
+    /// authored ontology sources on disk) emits a `gmeow:ruleRemediation` triple
+    /// for EVERY enforced rule whose code is NOT on
+    /// [`gmeow_validate::rule_catalog::REMEDIATION_ABSENT`], and NO such triple
+    /// for a code that IS on the allowlist — the honest-absence twin. Falsifiable:
+    /// if the `if let Some(remediation) = seed.remediation` guard in
+    /// `build_catalog_nquads` were dropped (or a remediation were fabricated for
+    /// an allowlisted code), this test fails.
+    #[test]
+    fn every_enforced_rule_carries_remediation_except_the_honest_absence_allowlist() {
+        use gmeow_validate::rule_catalog::REMEDIATION_ABSENT;
+
+        let root = repo_root();
+        let dataset = load_authored_no_imports(&root).expect("load authored dataset");
+        let nq = build_catalog_nquads(&dataset).expect("build catalog n-quads");
+
+        let mut checked_present = 0usize;
+        let mut checked_absent = 0usize;
+        for seed in all_rules() {
+            let iri = rule_iri(&seed);
+            let prefix = format!("<{iri}> <{GMEOW}ruleRemediation> ");
+            let has_remediation_triple = nq.lines().any(|line| line.starts_with(&prefix));
+            if REMEDIATION_ABSENT.contains(&seed.code) {
+                assert!(
+                    !has_remediation_triple,
+                    "honest-absence code {} (rule {iri}) must carry NO gmeow:ruleRemediation \
+                     triple in the projection",
+                    seed.code
+                );
+                checked_absent += 1;
+            } else {
+                assert!(
+                    has_remediation_triple,
+                    "enforced rule {iri} (code {}) must carry a gmeow:ruleRemediation triple \
+                     in the projection",
+                    seed.code
+                );
+                checked_present += 1;
+            }
+        }
+        assert!(
+            checked_absent > 0,
+            "the honest-absence allowlist must cover at least one seed in this catalog"
+        );
+        assert!(
+            checked_present > 0,
+            "at least one enforced rule must carry a projected remediation"
+        );
     }
 }

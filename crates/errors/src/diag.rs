@@ -133,6 +133,68 @@ pub struct Advice {
     pub help_uri: Option<String>,
 }
 
+/// The modality of per-term usage guidance projected onto a finding.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum GuidanceModality {
+    HowToUse,
+    UseWhen,
+    AvoidWhen,
+}
+
+impl GuidanceModality {
+    /// The human-readable label prefix the CLI/HTML surfaces render beside the
+    /// guidance text (e.g. `"  ↳ how to use: <text>"`).
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::HowToUse => "how to use",
+            Self::UseWhen => "use when",
+            Self::AvoidWhen => "avoid when",
+        }
+    }
+
+    /// The local name of the matching `gmeow:finding*` RDF predicate this
+    /// modality projects to, mirroring the `gmeow:` DSL vocabulary
+    /// (`gmeow:findingHowToUse` / `gmeow:findingUseWhen` / `gmeow:findingAvoidWhen`).
+    pub fn predicate_local(self) -> &'static str {
+        match self {
+            Self::HowToUse => "findingHowToUse",
+            Self::UseWhen => "findingUseWhen",
+            Self::AvoidWhen => "findingAvoidWhen",
+        }
+    }
+
+    /// The pinned SARIF `properties` key this modality projects to — part of the
+    /// sorted, deterministic `gmeow.*` property key schema.
+    pub fn sarif_key(self) -> &'static str {
+        match self {
+            Self::HowToUse => "gmeow.howToUse",
+            Self::UseWhen => "gmeow.useWhen",
+            Self::AvoidWhen => "gmeow.avoidWhen",
+        }
+    }
+}
+
+/// Where a guidance claim's governing term came from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum GuidanceSource {
+    RuleGoverningTerm,
+    DocumentedTerm,
+}
+
+/// One per-term usage-guidance claim projected verbatim from the bundle
+/// documentation graph — NEVER fabricated at render time; honest absence
+/// (a finding whose terms author none carries no Guidance).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Guidance {
+    pub modality: GuidanceModality,
+    pub source: GuidanceSource,
+    pub term_iri: String,
+    pub text: String,
+    pub standpoint: Standpoint,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub help_uri: Option<String>,
+}
+
 /// A source region a mechanical edit touches — the SARIF `region` /
 /// `deletedRegion` coordinates (1-based). Every coordinate is a genuine partial
 /// function: a whole-line replacement carries no column, an insertion carries a
@@ -176,7 +238,7 @@ pub struct ArtifactChange {
     pub replacement: String,
 }
 
-/// A standpoint-bearing *remediation*: the DSL-authored "how to fix this"
+/// A standpoint-bearing *remediation*: the registry-authored "how to fix this"
 /// guidance projected onto a finding (`gmeow:findingRemediation`). Unlike a plain
 /// [`Advice`] suggestion, a remediation can carry a concrete [`ArtifactChange`]
 /// that becomes a SARIF `fix` with `artifactChanges`. The `artifact_change` is a
@@ -307,9 +369,18 @@ pub struct DiagInner {
     pub source_ctx: SourceContext,
     pub attributions: Vec<DiagnosticAttribution>,
     pub advice: Vec<Advice>,
-    /// DSL-authored remediations (the "how to fix" payload projected as
+    /// registry-authored remediations (the "how to fix" payload projected as
     /// `gmeow:findingRemediation` and rendered into SARIF `fixes`).
     pub remediation: Vec<Remediation>,
+    /// Per-term usage guidance (howToUse/useWhen/avoidWhen) joined from the bundle
+    /// documentation graph — projected onto
+    /// [`Finding::guidance`](crate::model::Finding), never fabricated at render
+    /// time.
+    pub guidance: Vec<Guidance>,
+    /// The logic-world quad-reifier IRIs this diagnostic's verdict derives FROM
+    /// (`gmeow:findingDerivedFromQuad`) — the explain-skeleton cited IRIs of the
+    /// reasoned quads that fired. Empty for a non-reasoned diagnostic.
+    pub derived_from_quads: Vec<String>,
     pub labels: Vec<Label>,
     pub tags: Vec<String>,
     /// The DOCUMENTED ontology terms this diagnostic structurally concerns (a SHACL
@@ -344,6 +415,8 @@ impl Diag {
             attributions: Vec::new(),
             advice: Vec::new(),
             remediation: Vec::new(),
+            guidance: Vec::new(),
+            derived_from_quads: Vec::new(),
             labels: Vec::new(),
             tags: Vec::new(),
             documented_terms: Vec::new(),
@@ -465,9 +538,27 @@ impl Diag {
         self.0.advice.push(advice);
         self
     }
-    /// Attach a DSL-authored [`Remediation`] (the "how to fix" payload).
+    /// Attach a registry-authored [`Remediation`] (the "how to fix" payload).
     pub fn with_remediation(mut self, remediation: Remediation) -> Self {
         self.0.remediation.push(remediation);
+        self
+    }
+    /// Attach a per-term [`Guidance`] claim (howToUse/useWhen/avoidWhen), joined
+    /// from the bundle documentation graph.
+    pub fn with_guidance(mut self, guidance: Guidance) -> Self {
+        self.0.guidance.push(guidance);
+        self
+    }
+    /// Attach the quad-reifier IRIs (`gmeow:findingDerivedFromQuad`) this
+    /// diagnostic's verdict derives from — the explain-skeleton citations of the
+    /// reasoned quads that fired.
+    pub fn with_derived_from_quads(
+        mut self,
+        quads: impl IntoIterator<Item = impl Into<String>>,
+    ) -> Self {
+        self.0
+            .derived_from_quads
+            .extend(quads.into_iter().map(Into::into));
         self
     }
     pub fn with_label(mut self, label: Label) -> Self {
