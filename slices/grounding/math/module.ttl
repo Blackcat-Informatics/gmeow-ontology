@@ -5989,11 +5989,6 @@ math:Theorem rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:roleInTheory ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
     gmeow:enforcesFailureClass math:UngroundedTheoremClaim .
 
-math:FlagshipScenario rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:demonstratedByExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty math:demonstratedByCompetency ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:guardedByCounterExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty math:enforcesFailureClass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 # A filtration stage pairs exactly one threshold with exactly one structure; a
 # confidence interval carries its lower AND upper endpoint (min two bounds); a
@@ -7836,10 +7831,6 @@ math:LogicLoweringDeclaredConstraint
 <https://blackcatinformatics.ca/math/Norm> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/inducedByForm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/GramMatrix> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/representsForm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/SymmetricBilinearForm> ] .
 <https://blackcatinformatics.ca/math/GramMatrix> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/inBasis> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Basis> ] .
-<https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/demonstratedByExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/demonstratedByCompetency> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/guardedByCounterExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/enforcesFailureClass> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # A math:SetBuilderExpression's math:memberCondition must be a resource denoting a
 # logic: formula (a blank node or IRI), not an opaque literal string (a path node-kind
@@ -7873,16 +7864,37 @@ math:FormalVerificationResultGroundingConstraint
     logic:formalizes math:FormalVerificationResult ;
     logic:message "A math:FormalVerificationResult must be the gmeow:observationResult of some observation; an ungrounded verification result is ill-formed." .
 
-# A math:FlagshipScenario's math:enforcesFailureClass must name a class that transitively
-# rdfs:subClassOf the conformance-failure root — a transitive reachability constraint.
+# The math: slice's THIN failure-range gate for gmeow:FlagshipScenario (the canonical
+# grounding of the retired math:FlagshipScenarioShape): a scenario whose
+# gmeow:enforcesFailureClass names a math:-namespaced class must name a
+# math:MathConformanceFailure subclass (rdfs:subClassOf+, checked by value). The gate is
+# NAMESPACE-SCOPED because every grounding slice contributes its own failure-range gate
+# over the SAME shared gmeow:FlagshipScenario class: an unscoped gate would demand every
+# scenario's failure class reach EVERY slice's root at once — mutually unsatisfiable on
+# the union graph — so each slice validates exactly the failure classes it owns.
 math:FlagshipScenarioFailureClassConstraint
-    a logic:TransitiveReachabilityConstraint ;
-    logic:onClass math:FlagshipScenario ;
-    logic:viaPredicate math:enforcesFailureClass ;
-    logic:pathPredicate rdfs:subClassOf ;
-    logic:reachTarget math:MathConformanceFailure ;
-    logic:formalizes math:FlagshipScenario ;
-    logic:message "A math:FlagshipScenario's math:enforcesFailureClass must transitively rdfs:subClassOf math:MathConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
+    a logic:Constraint ;
+    rdfs:label "Flagship scenario failure-range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The math: slice's thin failure-range gate: a gmeow:FlagshipScenario whose gmeow:enforcesFailureClass names a math:-namespaced class must name a math:MathConformanceFailure subclass (transitively, by rdfs:subClassOf). Namespace-scoped so the three grounding slices' failure-range gates coexist over the one shared gmeow:FlagshipScenario class; a scenario enforcing a math: class that is not a conformance failure is unwired (math:UnwiredFlagshipScenario)."@x-gmeow-english ;
+    logic:formalizes math:FlagshipScenarioShape ;
+    gmeow:enforcesFailureClass math:UnwiredFlagshipScenario ;
+    logic:message "A gmeow:FlagshipScenario's gmeow:enforcesFailureClass naming a math: class must name a math:MathConformanceFailure subclass — the typed failure its counter-example raises; naming a math: class that is not a conformance failure leaves the scenario unwired (math:UnwiredFlagshipScenario)." ;
+    logic:integrity math:fsrForall .
+math:fsrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] ;
+    logic:forall math:fsrImpl .
+math:fsrImpl a logic:Formula ; logic:antecedent math:fsrGuard ; logic:consequent math:fsrReach .
+math:fsrGuard a logic:Formula ; logic:and math:fsrType , math:fsrEdge , math:fsrNs .
+math:fsrType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FlagshipScenario ] .
+math:fsrEdge a logic:Formula ; logic:relation gmeow:enforcesFailureClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] .
+math:fsrNs a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/math/" ] .
+math:fsrReach a logic:Formula ; logic:relation logic:transitiveReach ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri rdfs:subClassOf ] , [ logic:termIndex 2 ; logic:termIri math:MathConformanceFailure ] .
 
 # A math:Set is given extensionally (math:hasElement) or intensionally
 # (math:memberCondition), not silently both without a declared equality: a node
@@ -7916,7 +7928,8 @@ math:PreservationLawNodeKindConstraint
     logic:onClass math:Homomorphism ;
     logic:valuePath math:preservationLaw ;
     logic:nodeKind "BlankNodeOrIRI" ;
-    logic:formalizes math:Homomorphism ;
+    logic:formalizes math:PreservationLawShape ;
+    gmeow:enforcesFailureClass math:StringOnlyPreservationLaw ;
     logic:message "A math:Homomorphism must name its math:preservationLaw as a resource denoting a logic: formula, not an opaque literal string (math:StringOnlyPreservationLaw)." .
 
 # =========================================================================== #
@@ -7968,7 +7981,8 @@ math:ChartDimensionMatchConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:Chart's target coordinate space dimension equals its manifold's dimension."@x-gmeow-english ;
-    logic:formalizes math:Chart ;
+    logic:formalizes math:ChartDimensionShape ;
+    gmeow:enforcesFailureClass math:DimensionMismatch ;
     logic:message "A math:Chart's target coordinate space dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
     logic:integrity math:cdForall .
 math:cdForall a logic:Formula ;
@@ -8006,7 +8020,8 @@ math:E8WeylOrderConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:RootSystem with the E8 fingerprint (240 roots, rank 8) declares a math:weylGroup of math:groupOrder 696729600."@x-gmeow-english ;
-    logic:formalizes math:RootSystem ;
+    logic:formalizes math:E8WeylOrderShape ;
+    gmeow:enforcesFailureClass math:WrongE8WeylOrder ;
     logic:message "A math:RootSystem with the E8 fingerprint (math:rootCount 240, math:rootSystemRank 8) must declare a math:weylGroup of math:groupOrder 696729600 — the order of W(E8); a different order corrupts the flagship invariant and is rejected." ;
     logic:integrity math:e8Forall .
 math:e8Forall a logic:Formula ;
@@ -8138,9 +8153,10 @@ math:msA7 a logic:Formula ; logic:relation logic:termDistinct ;
 
 # =========================================================================== #
 # Procedural constraints (#1194) — geometry dimension-consistency and formal-
-# verification grounding shapes from slices/grounding/math/shapes.ttl, authored
-# as raw logic:Formula integrity trees (Principle 17). The authored SHACL shapes
-# stay; these are the canonical logic: projection.
+# verification obligations (formerly hand-authored SHACL blocks in the slice's
+# retired legacy shapes.ttl), authored as raw logic:Formula integrity trees
+# (Principle 17). These are the canonical logic: records; their SHACL twins are
+# projected to generated/shapes/procedural-constraints.ttl.
 # =========================================================================== #
 
 # A math:TangentSpace's math:spaceDimension must equal its manifold's
@@ -8509,3 +8525,413 @@ math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Theorem> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/roleInTheory" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/VariableOccurrence> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/declaredVariable" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/WeightTensor> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/inParameterSpace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# =========================================================================== #
+# Task-4 grounding (#1449) — the canonical OWL antecedents and logic: records  #
+# that retire the last twenty legacy shapes.ttl blocks. Every axiom below is a #
+# closed-world ValidationOnly reading projected to                             #
+# generated/shapes/validation-shapes.ttl; every record projects its exact      #
+# procedural twin to generated/shapes/procedural-constraints.ttl and names the #
+# retired legacy shape through logic:formalizes (equivalence-before-deletion). #
+# =========================================================================== #
+
+# --- Probability layer ------------------------------------------------------ #
+
+# Rule P1 (retires math:ProbabilityValueRangeShape's facet): any concrete
+# gmeow:quantityValue of a math:ProbabilityValue lies in the closed unit interval
+# [0, 1] — a faceted-range antecedent (no owl:onDatatype: the bound constrains the
+# magnitude whatever numeric datatype carries it, exactly as the legacy facet did).
+math:ProbabilityValue rdfs:subClassOf [ a owl:Restriction ; owl:onProperty gmeow:quantityValue ;
+    owl:allValuesFrom [ owl:withRestrictions ( [ xsd:minInclusive 0 ] [ xsd:maxInclusive 1 ] ) ] ] .
+
+# Rule P3 (retires math:ProbabilityValueFramedShape): a probability value names its
+# reference frame OR its probability model — the either-of-these-properties existence
+# obligation, authored as the union of two bare existential restrictions and projected
+# to the node-level sh:or over required paths.
+math:ProbabilityValue rdfs:subClassOf [ owl:unionOf (
+    [ a owl:Restriction ; owl:onProperty gmeow:hasReferenceFrame ; owl:someValuesFrom owl:Thing ]
+    [ a owl:Restriction ; owl:onProperty logic:probabilityModel ; owl:someValuesFrom owl:Thing ] ) ] .
+
+# The typed-failure twin of Rule P1: the record carrying math:ProbabilityOutOfBounds for
+# the retired range shape (the class annotation on math:ProbabilityValue is owned by the
+# scale-conflation gate, so the finer failure identity rides this exact record).
+math:ProbabilityValueRangeConstraint
+    a logic:Constraint ;
+    rdfs:label "Probability-value range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:ProbabilityValueRangeShape: any concrete gmeow:quantityValue a math:ProbabilityValue carries lies in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)."@x-gmeow-english ;
+    logic:formalizes math:ProbabilityValueRangeShape ;
+    gmeow:enforcesFailureClass math:ProbabilityOutOfBounds ;
+    logic:message "A math:ProbabilityValue's gmeow:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." ;
+    logic:integrity math:pvrForall .
+math:pvrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall math:pvrImpl .
+math:pvrImpl a logic:Formula ; logic:antecedent math:pvrGuard ; logic:consequent math:pvrInUnit .
+math:pvrGuard a logic:Formula ; logic:and math:pvrType , math:pvrValue .
+math:pvrType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:ProbabilityValue ] .
+math:pvrValue a logic:Formula ; logic:relation gmeow:quantityValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+math:pvrInUnit a logic:Formula ; logic:and math:pvrGe , math:pvrLe .
+math:pvrGe a logic:Formula ; logic:relation logic:termGreaterEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] .
+math:pvrLe a logic:Formula ; logic:relation logic:termLessEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:integer ] .
+
+# The typed-failure twin of Rule P3: at-least-one of the frame/model alternatives,
+# carrying math:UnframedProbabilityValue for the retired framing shape.
+math:ProbabilityValueFramedConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "Probability-value framing constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:ProbabilityValueFramedShape: a math:ProbabilityValue names its probability frame (gmeow:hasReferenceFrame) or its probability model (logic:probabilityModel) — at least one alternative present. A probability value is a framed quantity object, never a bare literal (math:UnframedProbabilityValue)."@x-gmeow-english ;
+    logic:onClass math:ProbabilityValue ;
+    logic:choicePredicate gmeow:hasReferenceFrame , logic:probabilityModel ;
+    logic:choiceMode "at-least-one" ;
+    logic:formalizes math:ProbabilityValueFramedShape ;
+    gmeow:enforcesFailureClass math:UnframedProbabilityValue ;
+    logic:message "A math:ProbabilityValue must name its probability frame (gmeow:hasReferenceFrame) or its probability model (logic:probabilityModel); a probability that names neither is an unframed bare literal (math:UnframedProbabilityValue)." .
+
+# Rule P10 (retires math:ConfidenceAsProbabilityConstraint the shape): a probability
+# value carrying a logic:confidence declares the logic:probabilityModel that turns a
+# confidence into a probability — the guarded-implication form.
+math:ConfidenceAsProbabilityDeclaredConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Confidence-as-probability declared-mapping constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:ConfidenceAsProbabilityConstraint shape: a math:ProbabilityValue that carries a logic:confidence must declare a logic:probabilityModel — the mapping from confidence to probability. The logic: probability/confidence boundary is enforced, not eroded (math:ConfidenceAsProbability)."@x-gmeow-english ;
+    logic:onClass math:ProbabilityValue ;
+    logic:trigger logic:confidence ;
+    logic:requires logic:probabilityModel ;
+    logic:formalizes math:ConfidenceAsProbabilityConstraint ;
+    gmeow:enforcesFailureClass math:ConfidenceAsProbability ;
+    logic:message "A math:ProbabilityValue that carries a logic:confidence must declare a logic:probabilityModel — the mapping from confidence to probability; a probability derived from a confidence score with no declared mapping erodes the probability/confidence boundary and is ill-formed (math:ConfidenceAsProbability)." .
+
+# Rule P6b (retires math:DistributionParameterizationShape): a distribution that
+# SUPPLIES parameters names its parameterization; a non-parametric distribution (no
+# supplied parameters) is not rejected — the trigger keys parametricity by presence.
+math:DistributionParameterizationDeclaredConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Distribution parameterization-declared constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:DistributionParameterizationShape: any math:Distribution that supplies a math:hasDistributionParameter also names its math:distributionParameterization — the explicit convention fixing which parametric form of its family those parameters fill (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    logic:onClass math:Distribution ;
+    logic:trigger math:hasDistributionParameter ;
+    logic:requires math:distributionParameterization ;
+    logic:formalizes math:DistributionParameterizationShape ;
+    gmeow:enforcesFailureClass math:MissingDistributionParameterization ;
+    logic:message "A math:Distribution that supplies a math:hasDistributionParameter must name its math:distributionParameterization — the explicit convention fixing which parametric form of its family is meant; a supplied parameter with a silent default parameterization is ill-formed (math:MissingDistributionParameterization)." .
+
+# Rule P7 (retires math:ParameterRoleCardinalityConstraint the shape) — two exact halves
+# of "each required role is supplied exactly once": a required role with NO supplying
+# parameter (unfilled), and a required role supplied by TWO DISTINCT parameters
+# (overfilled). Together they reject any cardinality other than one.
+math:ParameterRoleUnfilledConstraint
+    a logic:Constraint ;
+    rdfs:label "Distribution parameter-role unfilled constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "One half of the canonical grounding of the retired math:ParameterRoleCardinalityConstraint shape: every math:DistributionParameterRole the distribution's math:distributionParameterization requires is supplied by AT LEAST one math:hasDistributionParameter -> math:parameterRole parameter; a required role left unfilled is ill-formed (math:DistributionParameterRoleCardinality)."@x-gmeow-english ;
+    logic:formalizes math:ParameterRoleCardinalityConstraint ;
+    gmeow:enforcesFailureClass math:DistributionParameterRoleCardinality ;
+    logic:message "A math:Distribution must supply each math:DistributionParameterRole its math:distributionParameterization requires through math:hasDistributionParameter -> math:parameterRole; a required role supplied zero times is ill-formed (math:DistributionParameterRoleCardinality)." ;
+    logic:integrity math:pruForall .
+math:pruForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:pruImpl .
+math:pruImpl a logic:Formula ; logic:antecedent math:pruGuard ; logic:consequent math:pruNot .
+math:pruGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:Distribution ] .
+math:pruNot a logic:Formula ; logic:not math:pruExists .
+math:pruExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pz" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] ;
+    logic:exists math:pruBody .
+math:pruBody a logic:Formula ; logic:and math:pruA1 , math:pruA2 , math:pruNoSupply .
+math:pruA1 a logic:Formula ; logic:relation math:distributionParameterization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pz" ] .
+math:pruA2 a logic:Formula ; logic:relation math:requiresParameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pz" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:pruNoSupply a logic:Formula ; logic:not math:pruSupplied .
+math:pruSupplied a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "param" ] ;
+    logic:exists math:pruSupplyBody .
+math:pruSupplyBody a logic:Formula ; logic:and math:pruS1 , math:pruS2 .
+math:pruS1 a logic:Formula ; logic:relation math:hasDistributionParameter ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "param" ] .
+math:pruS2 a logic:Formula ; logic:relation math:parameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "param" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+
+math:ParameterRoleOverfilledConstraint
+    a logic:Constraint ;
+    rdfs:label "Distribution parameter-role overfilled constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The other half of the canonical grounding of the retired math:ParameterRoleCardinalityConstraint shape: no math:DistributionParameterRole the distribution's math:distributionParameterization requires is supplied by TWO DISTINCT parameters; a role filled twice is ill-formed (math:DistributionParameterRoleCardinality)."@x-gmeow-english ;
+    logic:formalizes math:ParameterRoleCardinalityConstraint ;
+    gmeow:enforcesFailureClass math:DistributionParameterRoleCardinality ;
+    logic:message "A math:Distribution must not supply a required math:DistributionParameterRole through two distinct math:hasDistributionParameter parameters; a role filled twice is ill-formed (math:DistributionParameterRoleCardinality)." ;
+    logic:integrity math:proForall .
+math:proForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:proImpl .
+math:proImpl a logic:Formula ; logic:antecedent math:proGuard ; logic:consequent math:proNot .
+math:proGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:Distribution ] .
+math:proNot a logic:Formula ; logic:not math:proExists .
+math:proExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pz" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] ,
+                             [ logic:termIndex 2 ; logic:termVariable "p1" ] , [ logic:termIndex 3 ; logic:termVariable "p2" ] ;
+    logic:exists math:proBody .
+math:proBody a logic:Formula ; logic:and math:proA1 , math:proA2 , math:proA3 , math:proA4 , math:proA5 , math:proA6 , math:proA7 .
+math:proA1 a logic:Formula ; logic:relation math:distributionParameterization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pz" ] .
+math:proA2 a logic:Formula ; logic:relation math:requiresParameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pz" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:proA3 a logic:Formula ; logic:relation math:hasDistributionParameter ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p1" ] .
+math:proA4 a logic:Formula ; logic:relation math:parameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p1" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:proA5 a logic:Formula ; logic:relation math:hasDistributionParameter ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p2" ] .
+math:proA6 a logic:Formula ; logic:relation math:parameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p2" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:proA7 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p1" ] , [ logic:termIndex 1 ; logic:termVariable "p2" ] .
+
+# --- Statistical inference --------------------------------------------------- #
+
+# The p-value frame vocabulary (retires math:IllFramedPValueShape and
+# math:AlternativeSidednessValueShape): the class-level failure annotation, the
+# closed sidedness value set (owl:oneOf, projected to sh:in), and the raw frame gate.
+math:PValue gmeow:enforcesFailureClass math:IllFramedPValue .
+math:PValue rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:alternativeSidedness ;
+    owl:allValuesFrom [ owl:oneOf ( math:oneSidedAlternative math:twoSidedAlternative math:greaterAlternative math:lessAlternative math:exactTail math:midPTail ) ] ] .
+
+math:PValueFrameConstraint
+    a logic:Constraint ;
+    rdfs:label "P-value frame constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:IllFramedPValueShape: a math:PValue carries the whole frame that makes P(T >= t | H0) well-defined — a test (a math:testStatistic and/or the math:HypothesisTest whose math:pValue it is), a math:nullHypothesis, a math:nullDistribution, and a tail-or-sidedness (math:tailDefinition or math:alternativeSidedness). A p-value missing any arm is ambiguous and ill-formed (math:IllFramedPValue)."@x-gmeow-english ;
+    logic:formalizes math:IllFramedPValueShape ;
+    gmeow:enforcesFailureClass math:IllFramedPValue ;
+    logic:message "A math:PValue must carry its test (a math:testStatistic or the math:HypothesisTest whose math:pValue it is), its math:nullHypothesis, its math:nullDistribution, and a math:tailDefinition or math:alternativeSidedness; a p-value missing any of these is ambiguous and ill-formed (math:IllFramedPValue)." ;
+    logic:integrity math:pvfForall .
+math:pvfForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:pvfImpl .
+math:pvfImpl a logic:Formula ; logic:antecedent math:pvfGuard ; logic:consequent math:pvfFrame .
+math:pvfGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:PValue ] .
+math:pvfFrame a logic:Formula ; logic:and math:pvfTestArm , math:pvfNullHyp , math:pvfNullDist , math:pvfTailArm .
+math:pvfTestArm a logic:Formula ; logic:or math:pvfStat , math:pvfTest .
+math:pvfStat a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ts" ] ;
+    logic:exists math:pvfStatAtom .
+math:pvfStatAtom a logic:Formula ; logic:relation math:testStatistic ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ts" ] .
+math:pvfTest a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] ;
+    logic:exists math:pvfTestBody .
+math:pvfTestBody a logic:Formula ; logic:and math:pvfTestType , math:pvfTestEdge .
+math:pvfTestType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri math:HypothesisTest ] .
+math:pvfTestEdge a logic:Formula ; logic:relation math:pValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:pvfNullHyp a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "nh" ] ;
+    logic:exists math:pvfNullHypAtom .
+math:pvfNullHypAtom a logic:Formula ; logic:relation math:nullHypothesis ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "nh" ] .
+math:pvfNullDist a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "nd" ] ;
+    logic:exists math:pvfNullDistAtom .
+math:pvfNullDistAtom a logic:Formula ; logic:relation math:nullDistribution ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "nd" ] .
+math:pvfTailArm a logic:Formula ; logic:or math:pvfTail , math:pvfSide .
+math:pvfTail a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "td" ] ;
+    logic:exists math:pvfTailAtom .
+math:pvfTailAtom a logic:Formula ; logic:relation math:tailDefinition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "td" ] .
+math:pvfSide a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sd" ] ;
+    logic:exists math:pvfSideAtom .
+math:pvfSideAtom a logic:Formula ; logic:relation math:alternativeSidedness ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
+
+# Missingness is modelled, never implied (retires math:ImplicitMissingnessShape).
+math:MissingnessMechanismDeclaredConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Missingness mechanism-declared constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:ImplicitMissingnessShape: a math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) must name the math:MissingnessMechanism (MCAR/MAR/MNAR) an analysis depending on it rests on (math:ImplicitMissingness)."@x-gmeow-english ;
+    logic:onClass math:StatisticalVariable ;
+    logic:trigger math:hasMissingnessIndicator ;
+    logic:requires math:missingnessMechanism ;
+    logic:formalizes math:ImplicitMissingnessShape ;
+    gmeow:enforcesFailureClass math:ImplicitMissingness ;
+    logic:message "A math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) must declare the math:MissingnessMechanism an analysis depending on it rests on, through math:missingnessMechanism; a variable that depends on missing data but names no MCAR/MAR/MNAR mechanism assumes one implicitly and is ill-formed (math:ImplicitMissingness)." .
+
+# A confidence interval is never also a credible interval (retires
+# math:IntervalKindConflationShape — the declarative sh:not pair already rides the
+# projected math:ConfidenceInterval class shape via the paradigm-parent disjointness;
+# this record carries the finer typed failure identity, math:IntervalKindConflation).
+math:IntervalKindConflationConstraint
+    a logic:ForbiddenPatternConstraint ;
+    rdfs:label "Interval-kind conflation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:IntervalKindConflationShape: a math:ConfidenceInterval is NOT also typed math:CredibleInterval — frequentist coverage and Bayesian posterior mass are different result kinds held disjoint through their paradigm parents; typing one node as both conflates them (math:IntervalKindConflation)."@x-gmeow-english ;
+    logic:onClass math:ConfidenceInterval ;
+    logic:forbiddenPredicate rdf:type ;
+    logic:forbiddenValue math:CredibleInterval ;
+    logic:formalizes math:IntervalKindConflationShape ;
+    gmeow:enforcesFailureClass math:IntervalKindConflation ;
+    logic:message "A math:ConfidenceInterval must not also be a math:CredibleInterval — frequentist coverage and Bayesian posterior mass are different result kinds held disjoint through their paradigm parents; typing one node as both conflates them (math:IntervalKindConflation)." .
+
+# An estimate fixes WHAT it estimates (retires the sh:or arm of
+# math:UnderspecifiedEstimateShape): the estimand and/or the estimated parameter —
+# the either-of-these-properties existence obligation.
+math:Estimate rdfs:subClassOf [ owl:unionOf (
+    [ a owl:Restriction ; owl:onProperty math:estimatesEstimand ; owl:someValuesFrom owl:Thing ]
+    [ a owl:Restriction ; owl:onProperty math:estimatedParameter ; owl:someValuesFrom owl:Thing ] ) ] .
+
+# A random variable carries a probability context (retires the sh:or arm of
+# math:RandomVariableScopedShape): a distribution, or a domain that is itself a
+# probability space — the qualified branch makes this a procedural record.
+math:RandomVariableContextConstraint
+    a logic:Constraint ;
+    rdfs:label "Random-variable probability-context constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:RandomVariableScopedShape's context arm: a math:RandomVariable carries a probability context — a math:hasDistribution, or a math:randomVariableDomain that is itself a math:ProbabilitySpace; a variable with neither is unscoped (math:UnscopedRandomVariable)."@x-gmeow-english ;
+    logic:formalizes math:RandomVariableScopedShape ;
+    gmeow:enforcesFailureClass math:UnscopedRandomVariable ;
+    logic:message "A math:RandomVariable must carry a probability context — a math:hasDistribution, or a math:randomVariableDomain that is itself a math:ProbabilitySpace; a variable with neither is unscoped (math:UnscopedRandomVariable)." ;
+    logic:integrity math:rvcForall .
+math:rvcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:rvcImpl .
+math:rvcImpl a logic:Formula ; logic:antecedent math:rvcGuard ; logic:consequent math:rvcContext .
+math:rvcGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:RandomVariable ] .
+math:rvcContext a logic:Formula ; logic:or math:rvcDist , math:rvcSpace .
+math:rvcDist a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists math:rvcDistAtom .
+math:rvcDistAtom a logic:Formula ; logic:relation math:hasDistribution ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+math:rvcSpace a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "dom" ] ;
+    logic:exists math:rvcSpaceBody .
+math:rvcSpaceBody a logic:Formula ; logic:and math:rvcDomAtom , math:rvcDomType .
+math:rvcDomAtom a logic:Formula ; logic:relation math:randomVariableDomain ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dom" ] .
+math:rvcDomType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dom" ] , [ logic:termIndex 1 ; logic:termIri math:ProbabilitySpace ] .
+
+# --- Measure and dimension ---------------------------------------------------- #
+
+# A measure's total mass is a non-negative number or math:PositiveInfinity (retires the
+# value-disjunction arm of math:MeasureShape — the extended-real branch is procedural).
+math:MeasureTotalMassValueConstraint
+    a logic:Constraint ;
+    rdfs:label "Measure total-mass value constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:MeasureShape's value disjunction: a math:Measure's math:totalMass is a non-negative numeric literal OR the extended-real individual math:PositiveInfinity; any other value is ill-formed (math:IncompleteMeasure)."@x-gmeow-english ;
+    logic:formalizes math:MeasureShape ;
+    gmeow:enforcesFailureClass math:IncompleteMeasure ;
+    logic:message "A math:Measure's math:totalMass must be a non-negative numeric literal or math:PositiveInfinity; a measure whose total mass is neither is ill-formed (math:IncompleteMeasure)." ;
+    logic:integrity math:mtmForall .
+math:mtmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall math:mtmImpl .
+math:mtmImpl a logic:Formula ; logic:antecedent math:mtmGuard ; logic:consequent math:mtmValue .
+math:mtmGuard a logic:Formula ; logic:and math:mtmType , math:mtmMass .
+math:mtmType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:Measure ] .
+math:mtmMass a logic:Formula ; logic:relation math:totalMass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+math:mtmValue a logic:Formula ; logic:or math:mtmFinite , math:mtmInfinite .
+math:mtmFinite a logic:Formula ; logic:and math:mtmLit , math:mtmNonNeg .
+math:mtmLit a logic:Formula ; logic:relation logic:termIsLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] .
+math:mtmNonNeg a logic:Formula ; logic:relation logic:termGreaterEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] .
+math:mtmInfinite a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri math:PositiveInfinity ] .
+
+# A dimension-exponent cell (retires math:DimensionExponentShape's residue): the base
+# dimension is UNIVERSALLY a math:BaseDimension (never a derived one — sh:class), and
+# the denominator is never the integer zero (sh:not [ sh:hasValue 0 ]).
+math:DimensionExponent rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:exponentOfDimension ;
+    owl:allValuesFrom math:BaseDimension ] .
+math:DimensionExponent rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:exponentDenominator ;
+    owl:allValuesFrom [ owl:complementOf [ owl:hasValue "0"^^xsd:integer ] ] ] .
+[ a logic:ClosureEntry ; logic:onClass math:DimensionExponent ; logic:closureKey "https://blackcatinformatics.ca/math/exponentOfDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# An exact rational carrier has a non-zero denominator (retires
+# math:RationalValueShape's residue): p/0 is undefined.
+math:RationalValue rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:denominator ;
+    owl:allValuesFrom [ owl:complementOf [ owl:hasValue "0"^^xsd:integer ] ] ] .
+
+# --- Persistence lifetimes ---------------------------------------------------- #
+
+# A persistence lifetime declares both endpoints exactly once (retires
+# math:PersistenceLifetimeShape): the max-qualified exact-one siblings (the #1194
+# reasoner-safe form) bound each endpoint above, the diesAt universal carrier +
+# class-scoped closure requires the death endpoint, and the named-death record carries
+# the IRI-valued-death tightening (math:diesAt stays a bare rdf:Property by design —
+# its range spans a finite quantity individual and math:PositiveInfinity).
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:diesAt ;
+    owl:allValuesFrom owl:Thing ] .
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:diesAt ;
+    owl:maxQualifiedCardinality "1"^^xsd:integer ; owl:onClass owl:Thing ] .
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:bornAt ;
+    owl:maxQualifiedCardinality "1"^^xsd:integer ; owl:onClass owl:Thing ] .
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:overFiltration ;
+    owl:maxQualifiedCardinality "1"^^xsd:integer ; owl:onClass owl:Thing ] .
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:persistenceFeature ;
+    owl:maxQualifiedCardinality "1"^^xsd:integer ; owl:onClass owl:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass math:PersistenceLifetime ; logic:closureKey "https://blackcatinformatics.ca/math/diesAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+math:PersistenceDeathNamedConstraint
+    a logic:Constraint ;
+    rdfs:label "Persistence-lifetime named-death constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:PersistenceLifetimeShape's death node-kind: a math:PersistenceLifetime's math:diesAt names an IRI individual — the finite gmeow:Quantity death threshold or math:PositiveInfinity — never a blank node or a bare literal (math:UnderspecifiedPersistenceLifetime)."@x-gmeow-english ;
+    logic:formalizes math:PersistenceLifetimeShape ;
+    gmeow:enforcesFailureClass math:UnderspecifiedPersistenceLifetime ;
+    logic:message "A math:PersistenceLifetime's math:diesAt must name an IRI individual — the finite gmeow:Quantity death threshold, or math:PositiveInfinity for an essential feature; a blank or literal death is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
+    logic:integrity math:pdnForall .
+math:pdnForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall math:pdnImpl .
+math:pdnImpl a logic:Formula ; logic:antecedent math:pdnGuard ; logic:consequent math:pdnIri .
+math:pdnGuard a logic:Formula ; logic:and math:pdnType , math:pdnDies .
+math:pdnType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:PersistenceLifetime ] .
+math:pdnDies a logic:Formula ; logic:relation math:diesAt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+math:pdnIri a logic:Formula ; logic:relation logic:termIsIri ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] .
+
+# --- Binder AST: the math->logic: lowering seam ------------------------------- #
+
+# The lowering declares its denotation and preservation (retires
+# math:LogicLoweringShape's declarative arm): the anonymous-restriction domains give
+# every subject of math:compilesToLogicFormula its two required companions, read
+# closed-world under the explicit opt-in below (the procedural twin,
+# math:LogicLoweringDeclaredConstraint, already carries the typed failure identity).
+math:compilesToLogicFormula rdfs:domain [ a owl:Restriction ; owl:onProperty math:denotationKind ; owl:minCardinality "1"^^xsd:integer ] .
+math:compilesToLogicFormula rdfs:domain [ a owl:Restriction ; owl:onProperty math:logicLoweringPreservation ; owl:minCardinality "1"^^xsd:integer ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/math/compilesToLogicFormula" ; logic:closureValue logic:ClosedWorldClosure ] .

@@ -16,5 +16,5 @@ ex:pc1Meaning a math:ResidualInterpretationClaim ;
     gmeow:observationResult ex:themeFormula .
 
 ex:pc1 a math:PrincipalComponent .
-ex:analystFrame a gmeow:Standpoint .
+ex:analystFrame a gmeow:Standpoint , gmeow:Entity .
 ex:themeFormula a logic:MetaLevelFormula .

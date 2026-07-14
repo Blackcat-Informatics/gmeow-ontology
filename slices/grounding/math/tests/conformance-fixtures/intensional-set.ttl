@@ -14,4 +14,6 @@ ex:evenNumbers a math:SetBuilderExpression ;
     math:memberCondition ex:evenFormula .
 
 ex:evenFormula a logic:Formula ;
-    rdfs:label "x mod 2 = 0"@x-gmeow-english .
+    rdfs:label "x mod 2 = 0"@x-gmeow-english ;
+    logic:relation ex:isEvenRelation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] .
