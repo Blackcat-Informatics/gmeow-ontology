@@ -8,15 +8,20 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
+
+use purrdf::RdfDataset;
 
 use gmeow_cli_core::{Reporter, report_diag};
+use gmeow_errors::dag::DagNode;
 use gmeow_errors::grade::{Belnap, BoundedLattice};
 use gmeow_errors::model::Finding;
 use gmeow_errors::{
     Diag, FindingCategory, Grade, ResultExt, Severity, Standpoint, define_diag_kind,
 };
 use gmeow_pipeline::diagnostics_reader::{
-    FindingIndex, explain_finding, minimal_fatal_cut, read_findings, render_shared_dag, verdict,
+    FindingIndex, WitnessIndex, WitnessRecord, explain_finding, explain_witness, minimal_fatal_cut,
+    read_findings, read_invented_witnesses, render_shared_dag, verdict,
 };
 
 use crate::{BUNDLE_GTS, NAMESPACE};
@@ -1760,18 +1765,20 @@ define_diag_kind! {
 /// graph. Reads the segments into a dataset that PRESERVES named graphs
 /// (`dataset_from_gts_graph`, not the flattening loader), which the reader then
 /// projects — a flattened dataset would drop the graph label and read empty.
-fn finding_index(bytes: &[u8]) -> gmeow_errors::Result<FindingIndex> {
+/// Fold the GTS snapshot bytes into the graph-preserving dataset the diagnostics
+/// readers project. Shared by the finding index and the invented-witness index so a
+/// single `explain` reads both off one dataset.
+fn diagnostics_dataset(bytes: &[u8]) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let graph = purrdf::gts::read_all_segments(bytes).map_err(|e| {
         Diag::of_kind(crate::error::SourceReadFailed {
             detail: format!("cannot read GTS segments: {e}"),
         })
     })?;
-    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).map_err(|e| {
+    purrdf::gts::dataset_from_gts_graph(&graph).map_err(|e| {
         Diag::of_kind(crate::error::RdfPipelineFailed {
             detail: format!("cannot fold GTS dataset: {e}"),
         })
-    })?;
-    read_findings(&dataset).ctx("cannot read graph/diagnostics")
+    })
 }
 
 /// The always-emitted substrate algebra: the ledger [`verdict`] and the
@@ -1857,12 +1864,95 @@ fn render_anchor_section(
     }
 }
 
+/// The bounded proof height of a witness derivation tree — its min-proof-height over
+/// the invented-null sub-forest: a leaf null (no frontier binding that is itself a
+/// null) is height 1; a null is `1 + max(child heights)`.
+fn witness_height(node: &DagNode<String, WitnessRecord>) -> u32 {
+    1 + node.children.iter().map(witness_height).max().unwrap_or(0)
+}
+
+/// Render a reconstructed invented-null derivation tree, printing a shared antecedent
+/// IN FULL the first time and as a `↑ see <iri>` back-reference on every subsequent
+/// visit (mirroring [`render_shared_dag`] for the witness plane).
+fn render_witness_dag(root: &DagNode<String, WitnessRecord>) -> String {
+    fn render_node(
+        node: &DagNode<String, WitnessRecord>,
+        visited: &mut std::collections::BTreeSet<String>,
+        out: &mut String,
+    ) {
+        let indent = "  ".repeat(node.depth as usize + 1);
+        if visited.contains(&node.key) {
+            out.push_str(&format!("{indent}↑ see {}\n", node.key));
+            return;
+        }
+        visited.insert(node.key.clone());
+        out.push_str(&format!(
+            "{indent}{} [via {}] ordinal {}\n",
+            node.key, node.payload.rule_iri, node.payload.ordinal
+        ));
+        for child in &node.children {
+            render_node(child, visited, out);
+        }
+    }
+    let mut out = String::new();
+    let mut visited = std::collections::BTreeSet::new();
+    render_node(root, &mut visited, &mut out);
+    out
+}
+
+/// Render the explanation of a chase-invented null (Skolem witness): its firing rule,
+/// existential ordinal, frontier binding(s), and bounded proof height, plus the
+/// derivation tree re-descended over the SHARED [`gmeow_errors::dag::walk`] engine.
+fn render_witness(
+    witnesses: &WitnessIndex,
+    target: &str,
+    record: &WitnessRecord,
+) -> Result<String, Diag> {
+    let mut out = String::new();
+    out.push_str(&format!("invented witness {target}\n"));
+    out.push_str(&format!("  firing rule  {}\n", record.rule_iri));
+    out.push_str(&format!("  ordinal      {}\n", record.ordinal));
+    out.push_str(&format!("  predicate    {}\n", record.predicate));
+    let frontier = record.frontier.join(", ");
+    out.push_str(&format!(
+        "  frontier     {}\n",
+        if frontier.is_empty() {
+            "(none)"
+        } else {
+            &frontier
+        }
+    ));
+    let dag = explain_witness(witnesses, target).map_err(|e| {
+        Diag::of_kind(ExplainWalkFailed {
+            target: target.to_owned(),
+            detail: e.to_string(),
+        })
+    })?;
+    out.push_str(&format!(
+        "  proof height {} (bounded min-proof-height over the invented-null sub-derivation)\n",
+        witness_height(&dag)
+    ));
+    out.push_str("witness derivation DAG:\n");
+    out.push_str(&render_witness_dag(&dag));
+    Ok(out)
+}
+
 /// Render the full explanation of an `explain` target — the production rendering
 /// path `explain` prints. A finding fingerprint IRI walks its provenance DAG; an
-/// anchor IRI resolves the cluster and walks each member. BOTH always append the
+/// anchor IRI resolves the cluster and walks each member; a chase-invented null
+/// (skolem IRI) decomposes its Skolem recipe. Finding/anchor always append the
 /// substrate algebra. An unknown/malformed target is a hard [`Diag`] fail — never
 /// an empty DAG returned as success.
-fn render_explanation(index: &FindingIndex, target: &str) -> Result<String, Diag> {
+fn render_explanation(
+    index: &FindingIndex,
+    witnesses: &WitnessIndex,
+    target: &str,
+) -> Result<String, Diag> {
+    // A chase-invented null resolves to the invented-witness plane; a skolem IRI with
+    // no record falls through to the finding/anchor dispatch and its hard fail below.
+    if let Some(record) = witnesses.get(target) {
+        return render_witness(witnesses, target, record);
+    }
     let is_finding = index.get(target).is_some();
     let cluster: Vec<String> = index
         .findings
@@ -1935,7 +2025,17 @@ pub fn explain(reporter: &dyn Reporter, target_iri: String, file: Option<PathBuf
         Ok(b) => b,
         Err(code) => return code,
     };
-    let index = match finding_index(&bytes) {
+    let dataset = match diagnostics_dataset(&bytes) {
+        Ok(d) => d,
+        Err(msg) => {
+            return fail(
+                reporter,
+                "gmeow-cli.explain.read-diagnostics",
+                msg.to_string(),
+            );
+        }
+    };
+    let index = match read_findings(&dataset).ctx("cannot read graph/diagnostics") {
         Ok(i) => i,
         Err(msg) => {
             return fail(
@@ -1945,7 +2045,17 @@ pub fn explain(reporter: &dyn Reporter, target_iri: String, file: Option<PathBuf
             );
         }
     };
-    match render_explanation(&index, &target_iri) {
+    let witnesses = match read_invented_witnesses(&dataset).ctx("cannot read invented witnesses") {
+        Ok(w) => w,
+        Err(msg) => {
+            return fail(
+                reporter,
+                "gmeow-cli.explain.read-diagnostics",
+                msg.to_string(),
+            );
+        }
+    };
+    match render_explanation(&index, &witnesses, &target_iri) {
         Ok(text) => {
             print!("{text}");
             0
@@ -1967,7 +2077,8 @@ mod explain_tests {
         // loss-ledger / projection-loss witnesses populate it even when clean). If
         // it is empty, explain has nothing to walk on the shippable surface — a
         // blocker to surface, not to paper over.
-        let index = finding_index(BUNDLE_GTS).expect("read diagnostics from shipped bundle");
+        let dataset = diagnostics_dataset(BUNDLE_GTS).expect("fold shipped bundle diagnostics");
+        let index = read_findings(&dataset).expect("read diagnostics from shipped bundle");
         assert!(
             !index.is_empty(),
             "shipped bundle graph/diagnostics carries NO findings — explain has no real witness to walk"
@@ -1983,7 +2094,9 @@ mod explain_tests {
         let real_code = index.get(&real_iri).expect("finding present").code.clone();
 
         // The production rendering path returns the finding's IRI + code + verdict.
-        let text = render_explanation(&index, &real_iri).expect("render a real finding");
+        let witnesses = WitnessIndex::default();
+        let text =
+            render_explanation(&index, &witnesses, &real_iri).expect("render a real finding");
         assert!(text.contains(&real_iri), "output names the finding IRI");
         assert!(text.contains(&real_code), "output names the finding code");
         assert!(
@@ -2006,13 +2119,87 @@ mod explain_tests {
         // An unknown target is a hard fail: Err from the renderer AND a non-zero
         // exit through the command surface — never an empty DAG returned as 0.
         assert!(
-            render_explanation(&index, "not-a-real-iri").is_err(),
+            render_explanation(&index, &witnesses, "not-a-real-iri").is_err(),
             "an unknown target is a hard fail"
         );
         assert_ne!(
             explain(reporter.as_ref(), "not-a-real-iri".to_owned(), None),
             0,
             "an unknown target exits non-zero"
+        );
+    }
+
+    #[test]
+    fn explain_decomposes_an_invented_witness_and_hard_fails_unknown_skolem() {
+        use std::collections::BTreeMap;
+
+        // A two-level invented-null derivation: `outer` is invented on a frontier
+        // that is ITSELF the invented null `inner` — the recursive descent edge.
+        let outer = "https://blackcatinformatics.ca/gmeow/skolem/outer";
+        let inner = "https://blackcatinformatics.ca/gmeow/skolem/inner";
+        let mut map: BTreeMap<String, WitnessRecord> = BTreeMap::new();
+        map.insert(
+            inner.to_owned(),
+            WitnessRecord {
+                witness: inner.to_owned(),
+                rule_iri: "https://blackcatinformatics.ca/gmeow/rule/inner".to_owned(),
+                ordinal: 0,
+                predicate: "https://blackcatinformatics.ca/logic/demonstratesChaseWitness"
+                    .to_owned(),
+                frontier: vec!["https://example.org/seed".to_owned()],
+            },
+        );
+        map.insert(
+            outer.to_owned(),
+            WitnessRecord {
+                witness: outer.to_owned(),
+                rule_iri: "https://blackcatinformatics.ca/gmeow/rule/outer".to_owned(),
+                ordinal: 1,
+                predicate: "https://blackcatinformatics.ca/logic/demonstratesChaseWitness"
+                    .to_owned(),
+                frontier: vec![inner.to_owned()],
+            },
+        );
+        let witnesses = WitnessIndex { witnesses: map };
+        let findings = FindingIndex::default();
+
+        // The witness branch decomposes the recipe: rule, ordinal, frontier binding,
+        // and the bounded proof height over the invented-null sub-derivation (2, since
+        // `outer` descends into `inner`).
+        let text =
+            render_explanation(&findings, &witnesses, outer).expect("explain the invented witness");
+        assert!(
+            text.contains("invented witness"),
+            "labels the witness: {text}"
+        );
+        assert!(
+            text.contains("rule/outer"),
+            "prints the firing rule: {text}"
+        );
+        assert!(
+            text.contains("ordinal      1"),
+            "prints the ordinal: {text}"
+        );
+        assert!(text.contains(inner), "prints the frontier binding: {text}");
+        assert!(
+            text.contains("proof height 2"),
+            "bounded proof height over the sub-derivation: {text}"
+        );
+        assert!(
+            text.contains("witness derivation DAG:"),
+            "renders the derivation tree: {text}"
+        );
+
+        // A skolem IRI with NO record falls through to the finding/anchor dispatch and
+        // its hard fail — never an empty derivation returned as success (AC2).
+        assert!(
+            render_explanation(
+                &findings,
+                &witnesses,
+                "https://blackcatinformatics.ca/gmeow/skolem/missing"
+            )
+            .is_err(),
+            "an unknown skolem IRI is a hard fail"
         );
     }
 }
