@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-slice-brief"
+description = "Assembles a gmeow:AuthoringPacket for a batch of a slice's terms: definition + axioms + bounded neighbourhood + definitional closure, same-slice exemplars, and cross-ontology / cross-lingual grounding, emitted as canonical turtle, JSON, and human text"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords = ["authoring", "ontology", "slices", "grounding", "gmeow"]
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+purrdf.workspace = true
+gmeow-errors = { path = "../errors" }
+# The per-slice term graph loader (`dataset_from_paths`) + the shared RDF-reading
+# helpers (`graph::instances_of`, `graph::g`) the partition reuses.
+gmeow-slice-quality = { path = "../slice-quality" }
+# The `.po` translation index (`i18n::Translations`) the cross-lingual JOIN reads and
+# the localizable-predicate authority (`i18n_compile::LOCALIZABLE_PREDICATES`).
+gmeow-docs = { path = "../docs" }
+# The oxigraph-free `DslView` reader + the SSSOM `EquivalenceCell` loader
+# (`projections::sssom::equivalence_cells`) the external-mapped grounding reuses.
+gmeow-logic-compile = { path = "../logic-compile" }
+# sha256 over the packet's semantic body (matches the repo's content-address choice
+# for the canonical-rdf12 reifier IRIs); byte-stable, no volatile fields.
+sha2 = "0.10"

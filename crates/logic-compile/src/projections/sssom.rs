@@ -77,11 +77,11 @@ const SSSOM_ALWAYS: &[&str] = &[
 /// `logic:Correspondence` transpiler materializes one typed node per cell from THE SAME
 /// extraction the SSSOM renderer reads — no second, drifting read of the store.
 #[derive(Debug, Clone)]
-pub(crate) struct EquivalenceCell {
-    pub(crate) subject: String,
-    pub(crate) predicate: String,
-    pub(crate) obj: String,
-    pub(crate) confidence: Option<f64>,
+pub struct EquivalenceCell {
+    pub subject: String,
+    pub predicate: String,
+    pub obj: String,
+    pub confidence: Option<f64>,
     pub(crate) justification: Option<String>,
     comment: String,
     /// Structured per-correspondence drop notes (`gmeow:lossyDrop`) — the specific
@@ -91,7 +91,7 @@ pub(crate) struct EquivalenceCell {
     lossy_drops: Vec<String>,
     sssom_file: String,
     subject_label: String,
-    object_label: String,
+    pub object_label: String,
 }
 
 /// Per-file SSSOM header metadata (`gmeow:MappingSet`).
@@ -390,7 +390,7 @@ pub fn alignment_terms(view: &DslView) -> BTreeSet<String> {
 /// Every `gmeow:TermEquivalence` cell discovered over `view`, in extraction order — the
 /// frontend transpiler's input. Shares [`extract_equivalences`] with the SSSOM renderer,
 /// so the typed correspondence set and the rendered TSV read the store identically.
-pub(crate) fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
+pub fn equivalence_cells(view: &DslView) -> Vec<EquivalenceCell> {
     let mut out = Vec::new();
     extract_equivalences(view, &mut out);
     out
