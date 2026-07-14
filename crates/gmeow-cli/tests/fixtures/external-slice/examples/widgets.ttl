@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked instances of the fixture classes. Every quad here is under a
+# registered namespace (gmeow:, rdf:, ex: → http://example.org/) with a literal
+# or registered-IRI object, so all of these GMN-0 quads are codec-covered; only
+# the single unregistered rdfs:seeAlso quad in module.ttl stays uncovered.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/> .
+
+ex:demoWidget
+    a gmeow:FixtureExternalWidget ;
+    gmeow:name "Demo Widget"@x-gmeow-english .
+
+ex:demoGadget
+    a gmeow:FixtureExternalGadget ;
+    gmeow:name "Demo Gadget"@x-gmeow-english .
