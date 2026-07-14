@@ -427,3 +427,38 @@ STANDING EXCEPTION (the only one carried out of stage 2):
 - term_loss = None off-repo (D3) — unchanged: correct-by-construction lower bound on
   the LossLedgerRow/LossJudgmentSound dims for a genuinely-lossy foreign slice,
   documented in axis_external. Acceptable boundary; no action.
+
+## 2026-07-14 — issue #1533 (slice authoring factory B: gmeow:AuthoringPacket + brief)
+
+- **Stereotype diverges from the issue's literal wording (user-decided).** The issue
+  text mandated `gmeow:AuthoringPacket a logic:Kind , owl:Class`. Delivered instead as
+  `logic:AbstractIndividualType , owl:Class` subClassOf `logic:AbstractIndividual`, by
+  explicit user decision (AskUserQuestion, 2026-07-14). Rationale: an authoring packet is
+  a curated abstract information/value structure — a sibling of gmeow:Recipe /
+  gmeow:LearningPath in its home slice — NOT a rigid real-world sortal, so `logic:Kind`
+  (the CalendarSystem-style rigid-object stereotype) would misclassify it. `logic:Kind`
+  is also internally inconsistent with the guides slice's own modeling of authoring-support
+  types. Deliberate divergence from the stated wording, recorded honestly; not weaker,
+  just ontologically correct.
+
+- **MCP `slice_brief` tool NOT delivered here — workstream boundary (#1536), user-decided.**
+  The issue phrases the MCP surface as "and/or served via MCP". By explicit user decision
+  it is left to workstream E (#1536), whose sole purpose is the MCP surface. The
+  gmeow-slice-brief library is factored so #1536 calls it directly. This is a workstream
+  boundary, not a scope-down of #1533's own criteria (the type + projection + CLI headline
+  is delivered and functions end-to-end without it).
+
+- **Formal batch contract NOT delivered here — workstream boundary (#1537), user-decided.**
+  `--axis` / `--batch` ship a WORKING provisional deterministic partition (sorted term IRIs,
+  25-term chunks, axis = local-name-prefix filter, out-of-range = hard Err). The FORMAL
+  batch contract is workstream F (#1537). The issue's own `--axis`/`--batch` criterion IS
+  satisfied in-PR; only the formalization defers, by explicit user decision.
+
+- **Briefs projection materialized as a SINGLE consolidated sparse fold, not per-slice files.**
+  generated/briefs/authoring-packets.nt holds every slice's packets in one
+  formal-context-sparse N-Triples projection (present cross-lingual/cross-ontology
+  incidences + per-packet absence margin counts; absent and always-present-English cells
+  are the derivable complement, never materialized). This is a deliberate design choice to
+  keep the projection bounded (~7 MB, same order as generated/quality) and to avoid
+  fragile per-slice attach coupling; it is not a scope reduction — full per-term absence
+  detail remains available on the `gmeow slice brief --format json` surface.
