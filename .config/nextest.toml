@@ -566,6 +566,55 @@ filter = 'package(gmeow-pipeline) & test(/stages::docs_render::tests::diagnostic
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
+# The big-cell example-conformance datatest cases (the grounding lanes: math ~156
+# cells, lang ~90, logic ~34) fan their cells across an
+# available_parallelism()-wide worker pool (`run_conformance_file` in
+# crates/slicetest/src/exec.rs), each cell a whole-surface SHACL run. Solo the
+# cost scales down with pool width (math measured ~12 s with four dedicated
+# cores, ~1 s at full machine width), but nextest schedules the ~150 sibling
+# slicetest cases concurrently, so on a few-core runner every worker gets a
+# fraction of a core and the wall time balloons far past the 25 s budget (math
+# measured 73 s at four cores under default sibling parallelism) —
+# pure scheduler oversubscription, not test cost. `threads-required` makes the
+# pool's core appetite visible to nextest: each of these cases reserves every
+# runner slot and gets the dedicated cores its pool sized itself for. Only these
+# three lanes queue for the whole runner; the small-cell slice cases stay fully
+# parallel.
+filter = 'package(gmeow-slicetest) & test(/run_conformance_file::grounding\//)'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+# The ON-gate whole-ontology-union conformance tests that route through the
+# sharded validator (`validate_dataset_sharded` in
+# crates/validate/tests/conformance_support/mod.rs), which fans the focus stream
+# across an available_parallelism()-wide worker pool: the two profiles
+# open-value-guard orphan cases, the three consumer-advisory annotation tests,
+# and creative_works' frameless-Expression frame-requirement case (the whole
+# on-gate sharded-union family, not just the members that happened to trip on a
+# given run). Solo each is comfortably under budget (~10 s), but under nextest's
+# default sibling parallelism every concurrent member spawns its own full-width
+# pool, the workers oversubscribe the runner's cores, and the family rides the
+# 25 s cliff (measured 29.5 s at four cores) — the same worker-pool
+# oversubscription mechanism as the slicetest lanes above. Reserve every runner
+# slot so each pool gets the cores it sized itself for; only these six tests
+# queue for the whole runner, and the fixture-only conformance cases (including
+# the shared conformance_support:: unit tests compiled into these binaries) stay
+# fully parallel.
+filter = 'package(gmeow-validate) & ( (binary(consumer_advisory_shape) & !test(/conformance_support::/)) | (binary(conformance_profiles) & test(/open_value_guard_violates_on_orphan_(dimension|realm)/)) | (binary(conformance_creative_works) & test(frameless_expression_fails_frame_requirement)) )'
+threads-required = "num-cpus"
+
+[[profile.default.overrides]]
+# The MCP validate_local parity+correspondence test folds the WHOLE shipped
+# bundle and drives the Tier-1 validation surface once per candidate
+# counter-example fixture before its parity assertion. It is solo-fast (well
+# under budget) but rode the 25 s cliff under full-parallelism contention — the
+# same solo-fast, fix-not-off-gate class as fanout_parity above — so serialize
+# it under the `engine` memory group so its bundle-scale validation does not
+# contend with concurrent chases and full-DAG work in the same shard.
+filter = 'package(gmeow-pipeline) & test(/mcp::tests::validate_local_enrichment_parity_and_correspondence/)'
+test-group = 'engine'
+
+[[profile.default.overrides]]
 # Mapping-stage integration tests run the full `compile_mappings` registry check.
 # They are now on-gate and under budget, but concurrent full mapping compiles are
 # redundant and can contend for the same cache/filesystem work. Keep them
