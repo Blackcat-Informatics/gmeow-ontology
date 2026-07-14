@@ -76,37 +76,44 @@ const GMEOW_SLICE_CLASS: &str = "https://blackcatinformatics.ca/gmeow/Slice";
 /// are `<img>`-embedded, so the site's external CSS never reaches them. Hard-fails on
 /// a [`purrdf::viz::VizError`] (message names the diagram) — never a placeholder.
 fn graph_svg(
-    edges: &[(String, String, String)],
+    edges: Vec<(String, String, String)>,
     nodes: &[&str],
     class_iri: &str,
     title: &str,
 ) -> String {
     let iri = |s: &str| TermValue::Iri(s.to_string());
     let mut quads: Vec<VizInputQuad> = edges
-        .iter()
+        .into_iter()
         .map(|(s, p, o)| VizInputQuad {
-            subject: iri(s),
-            predicate: p.clone(),
-            object: iri(o),
+            subject: TermValue::Iri(s),
+            predicate: p,
+            object: TermValue::Iri(o),
             graph_name: None,
         })
         .collect();
     // Any node not incident to an edge would not be projected — emit an `rdf:type`
     // marker so it still renders (deterministic: `nodes` is IRI-sorted by callers).
-    let present: BTreeSet<&str> = edges
+    // `edges` was consumed above, so orphan detection borrows the already-built
+    // `quads` instead; the marker quads are staged into a temporary `Vec` so the
+    // `present` borrow ends before `quads` is mutated.
+    let present: BTreeSet<&str> = quads
         .iter()
-        .flat_map(|(s, _, o)| [s.as_str(), o.as_str()])
+        .flat_map(|q| match (&q.subject, &q.object) {
+            (TermValue::Iri(s), TermValue::Iri(o)) => [s.as_str(), o.as_str()],
+            _ => unreachable!("graph_svg only builds IRI subject/object quads"),
+        })
         .collect();
-    for node in nodes {
-        if !present.contains(node) {
-            quads.push(VizInputQuad {
-                subject: iri(node),
-                predicate: RDF_TYPE.to_string(),
-                object: iri(class_iri),
-                graph_name: None,
-            });
-        }
-    }
+    let orphans: Vec<VizInputQuad> = nodes
+        .iter()
+        .filter(|node| !present.contains(*node))
+        .map(|node| VizInputQuad {
+            subject: iri(node),
+            predicate: RDF_TYPE.to_string(),
+            object: iri(class_iri),
+            graph_name: None,
+        })
+        .collect();
+    quads.extend(orphans);
 
     let input = VizGraphInput {
         quads,
@@ -149,7 +156,7 @@ pub fn slice_dependency_svg(model: &DocsModel) -> String {
         })
         .collect();
     let nodes: Vec<&str> = model.slices.iter().map(|s| s.iri.as_str()).collect();
-    graph_svg(&edges, &nodes, GMEOW_SLICE_CLASS, "Slice dependency graph")
+    graph_svg(edges, &nodes, GMEOW_SLICE_CLASS, "Slice dependency graph")
 }
 
 /// Render the dogfooded build-pipeline DAG (`model.pipeline`) as a deterministic
@@ -300,7 +307,7 @@ pub fn slice_local_svg(model: &DocsModel, slice_iri: &str) -> String {
     edges.sort();
     edges.dedup();
     graph_svg(
-        &edges,
+        edges,
         &[slice_iri],
         GMEOW_SLICE_CLASS,
         &format!("Dependencies for slice {}", local_name(slice_iri)),
@@ -348,7 +355,7 @@ pub fn term_neighbourhood_svg(term: &DocTerm) -> String {
     edges.sort();
     edges.dedup();
     graph_svg(
-        &edges,
+        edges,
         &[term.iri.as_str()],
         RDFS_RESOURCE,
         &format!("Neighbourhood for term {}", local_name(&term.iri)),
