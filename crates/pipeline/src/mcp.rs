@@ -91,6 +91,70 @@ const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
 /// path), never a silently truncated graph.
 const MAX_VERIFY_OVERLAY_QUADS: usize = 100_000;
 
+/// The forward-chase derivation-step budget every agent-facing reasoning tool
+/// (`verify_graph`, `explain_quad`, `conjecture_test`, `store_conjecture`) runs under when
+/// the caller OMITS `max_steps`. R4 forbids exposing an unbudgeted
+/// Turing-complete evaluation to an agent loop, so an omitted `max_steps` is never `None`
+/// (unbounded) on these paths — see [`governed_budget`].
+///
+/// Deliberately SMALL, not just finite: [`reason_all_budgeted`] only skips the expensive DL
+/// consistency post-pass while the governor actually CUTS the chase
+/// ([`gmeow_logic::reason::reason_all_budgeted`]'s `BudgetExhausted` branch); once
+/// `max_steps` reaches the true closure size the run instead COMPLETES and pays the full DL
+/// consistency scan — on the shipped bundle that is the same ~500 s whole-graph cost the
+/// off-gate `whole_bundle_coherence_gate_*` suite measures, an unusable default latency for
+/// an interactive agent call. 64 mirrors the value the sibling `explain_quad_*_heavy_offgate`
+/// tests already use for this exact reason ("a small governor budget already derives
+/// IRI-object quads... a larger budget explodes the closure without adding coverage") and is
+/// empirically well below the shipped bundle's true closure size (measured: `max_steps: 100`
+/// still exhausts the budget in ~15 s; `max_steps: 500` reaches the true closure and falls
+/// into the ~500 s DL post-pass).
+const DEFAULT_MAX_STEPS: u64 = 64;
+
+/// The hard ceiling no agent-supplied `max_steps` may exceed, on the same tools as
+/// [`DEFAULT_MAX_STEPS`]. Tied to [`MAX_VERIFY_OVERLAY_QUADS`] — the pre-reasoning overlay
+/// EDB quad ceiling already governing `verify_graph` — so the post-EDB forward-chase step
+/// budget rides the same order of magnitude as the bounded starting EDB it chases over. A
+/// caller-supplied value above this is CLAMPED down, never honored past the ceiling. Unlike
+/// the small [`DEFAULT_MAX_STEPS`], this ceiling is reached only by an agent's OWN explicit,
+/// informed request for a deeper (possibly slow, but always finite) evaluation — never by an
+/// omitted argument.
+const HARD_MAX_STEPS: u64 = MAX_VERIFY_OVERLAY_QUADS as u64;
+
+/// The answer-binding cap every agent-facing reasoning tool runs under when the caller
+/// OMITS `max_answers`; see [`DEFAULT_MAX_STEPS`]. Matches its scale: both bound the same
+/// "generous but small" no-args default.
+const DEFAULT_MAX_ANSWERS: usize = 64;
+
+/// The hard ceiling no agent-supplied `max_answers` may exceed, on the same tools as
+/// [`DEFAULT_MAX_ANSWERS`]. Matches [`MAX_VERIFY_OVERLAY_QUADS`] in order of magnitude —
+/// the same "generous but bounded" scale as every other agent-facing ceiling in this file.
+const HARD_MAX_ANSWERS: usize = MAX_VERIFY_OVERLAY_QUADS;
+
+/// Build a governed [`Budget`] for an agent-facing MCP tool call — the ONLY way any
+/// `tool_*` wrapper in this file may construct a `Budget` (R4: never expose an
+/// unbudgeted Turing-complete evaluation to an agent loop).
+///
+/// * An omitted (`None`) user value falls back to the finite default
+///   ([`DEFAULT_MAX_STEPS`] / [`DEFAULT_MAX_ANSWERS`]).
+/// * A supplied user value is CLAMPED to the hard ceiling ([`HARD_MAX_STEPS`] /
+///   [`HARD_MAX_ANSWERS`]) — the caller may only LOWER the bound, never raise it past the
+///   server-side cap.
+///
+/// Both returned fields are therefore always `Some`: this helper can never produce the
+/// unbounded `Budget { max_answers: None, max_steps: None }` an omitted-args call used to
+/// build.
+fn governed_budget(max_steps: Option<u64>, max_answers: Option<usize>) -> Budget {
+    let max_steps = max_steps.unwrap_or(DEFAULT_MAX_STEPS).min(HARD_MAX_STEPS);
+    let max_answers = max_answers
+        .unwrap_or(DEFAULT_MAX_ANSWERS)
+        .min(HARD_MAX_ANSWERS);
+    Budget {
+        max_answers: Some(max_answers),
+        max_steps: Some(max_steps),
+    }
+}
+
 /// SELECT the counter-example conformance fixtures from the documentation graph: the
 /// fixture IRI, its authored violation code, the full Turtle body, its label, the
 /// authored outcome/rationale, and each referenced documented term (repeatable).
@@ -2404,10 +2468,9 @@ impl McpServer {
         let path = required_str(args, "path")?;
         let max_steps = optional_step_count(args, "max_steps")?;
         let max_answers = optional_limit(args, "max_answers")?;
-        let budget = Budget {
-            max_answers,
-            max_steps,
-        };
+        // R4: NEVER build an unbudgeted `Budget{None,None}` from omitted
+        // agent args — `governed_budget` defaults+clamps to a finite server-side ceiling.
+        let budget = governed_budget(max_steps, max_answers);
         Ok(self.view.verify_graph_json(path, &budget))
     }
 
@@ -2433,10 +2496,10 @@ impl McpServer {
         let obj_n3 = object_term_n3(object_value, object_kind, object_datatype)?;
 
         let max_steps = optional_step_count(args, "max_steps")?;
-        let budget = Budget {
-            max_answers: None,
-            max_steps,
-        };
+        // R4: `explain_quad` never exposes `max_answers`, but
+        // `governed_budget` still stamps a finite default there — no field of the
+        // constructed `Budget` is ever `None` on an agent-facing path.
+        let budget = governed_budget(max_steps, None);
         Ok(self
             .view
             .explain_quad_json(subject, predicate, &obj_n3, graph, &budget))
@@ -2720,6 +2783,12 @@ impl McpServer {
         let math_conjecture = optional_str(args, "math_conjecture");
         let max_steps = optional_step_count(args, "max_steps")?;
         let max_answers = optional_limit(args, "max_answers")?;
+        // R4: NEVER build an unbudgeted `Budget{None,None}` from omitted
+        // agent args — `governed_budget` defaults+clamps to a finite server-side ceiling.
+        // The CLI's `gmeow conjecture test` shares `run_conjecture_test_pure` but calls it
+        // directly with its own (possibly unbounded) args — this governance is scoped to
+        // the agent-facing MCP wrapper.
+        let budget = governed_budget(max_steps, max_answers);
 
         // The parse → test → project path is the SHARED evaluation core (also behind
         // `store_conjecture` and the CLI). This tool never TR-gates and never appends — it is
@@ -2729,8 +2798,8 @@ impl McpServer {
             kb_ttl: kb_src,
             standpoint,
             math_conjecture,
-            max_steps,
-            max_answers,
+            max_steps: budget.max_steps,
+            max_answers: budget.max_answers,
         })?;
 
         let witness_json = out.witness.as_ref().map(|w| {
@@ -2773,6 +2842,12 @@ impl McpServer {
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
         let max_steps = optional_step_count(args, "max_steps")?;
         let max_answers = optional_limit(args, "max_answers")?;
+        // R4: NEVER build an unbudgeted `Budget{None,None}` from omitted
+        // agent args — `governed_budget` defaults+clamps to a finite server-side ceiling.
+        // The CLI's `gmeow conjecture test` shares `run_conjecture_test` but calls it
+        // directly with its own (possibly unbounded) args — this governance is scoped to
+        // the agent-facing MCP wrapper.
+        let budget = governed_budget(max_steps, max_answers);
 
         // The parse → test → project → TR-gate → persist path is the SHARED persisting core
         // (also behind the CLI `gmeow conjecture test`); the tool is a thin wrapper rendering
@@ -2783,8 +2858,8 @@ impl McpServer {
             standpoint,
             math_conjecture,
             dry_run,
-            max_steps,
-            max_answers,
+            max_steps: budget.max_steps,
+            max_answers: budget.max_answers,
         })?;
 
         // The five-field verdict summary + witness, rendered for every response path.
@@ -5989,6 +6064,77 @@ mod tests {
         // computation axis records the budget exhaustion.
         assert_eq!(out["completeness"], "incomplete", "{out}");
         assert_eq!(out["evaluation"], "budget-exhausted", "{out}");
+        drop(overlay_dir);
+    }
+
+    /// R4: OMITTING `max_steps`/`max_answers` entirely must NEVER run an
+    /// unbounded Turing-complete chase — `governed_budget` stamps the finite
+    /// `DEFAULT_MAX_STEPS` server-side ceiling on every agent-facing call, never `None`.
+    /// The real bundle's full DL closure is far larger than `DEFAULT_MAX_STEPS` (the sibling
+    /// `verify_graph_budget_cut_yields_attestation_never_certificate_heavy_offgate` above
+    /// already shows even `max_steps: 1` cuts it), so a call that omits the args entirely
+    /// must land on the SAME governed, non-conclusive `CoherenceCheckAttestation` —
+    /// `budget-exhausted` / `incomplete` — never a conclusive certificate an unbounded chase
+    /// would be needed to produce.
+    #[test]
+    fn verify_graph_omitted_max_steps_is_governed_not_unbounded_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        // The exact agent-omission shape R4 forbids treating as unbounded: no `max_steps`,
+        // no `max_answers` key at all in the call args.
+        let out = text_payload(server.call_tool_result("verify_graph", &json!({"path": path_str})));
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        assert_eq!(
+            out["class_local_name"], "CoherenceCheckAttestation",
+            "an omitted-max_steps call over the large bundle union must still be GOVERNED \
+             (budget-cut) by the default server-side ceiling, never a conclusive certificate \
+             that only an unbounded chase could produce: {out}"
+        );
+        assert_ne!(
+            out["class_local_name"], "CoherenceCertificate",
+            "an omitted-max_steps call must NEVER run to an unbounded conclusive closure: {out}"
+        );
+        assert_eq!(
+            out["completeness"], "incomplete",
+            "the default ceiling must cut the real bundle's closure: {out}"
+        );
+        assert_eq!(
+            out["evaluation"], "budget-exhausted",
+            "the omitted max_steps must resolve to the finite DEFAULT_MAX_STEPS, never \
+             None/unbounded: {out}"
+        );
+
+        // The grounded judgment's own carried budget usage confirms the finite ceiling: the
+        // consumed step count is bounded by (and the declared allowance matches) the SAME
+        // DEFAULT_MAX_STEPS `governed_budget` stamps — never absent (which would mean
+        // unbounded).
+        let judgment = out["judgment_nquads"]
+            .as_str()
+            .expect("judgment_nquads string");
+        let parsed = gmeow_logic::result_rdf::parse_reasoning_graph(judgment)
+            .expect("judgment_nquads parses as a reasoning-result graph");
+        assert_eq!(
+            parsed.provenance.consumed_budget.allowance,
+            Some(DEFAULT_MAX_STEPS),
+            "the grounded judgment must declare the DEFAULT_MAX_STEPS allowance, never an \
+             absent (unbounded) allowance: {judgment}"
+        );
+        assert!(
+            parsed.provenance.consumed_budget.consumed <= DEFAULT_MAX_STEPS,
+            "consumed steps must never exceed the declared default allowance: {judgment}"
+        );
         drop(overlay_dir);
     }
 
