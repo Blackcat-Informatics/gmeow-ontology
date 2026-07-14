@@ -73,6 +73,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
 | A `math:Interval` names both endpoints and both endpoint inclusions (inclusion is never silently omitted) | SHACL Core | `math:UnderspecifiedInterval` |
 | A `math:Function` declares its domain and codomain | SHACL Core | `math:UnframedFunction` |
+| A `math:PiecewiseFunction` declares at least one `math:hasPiece`, and every `math:FunctionPiece` names exactly one `math:pieceDomain` (a `math:Interval`) | SHACL Core | `math:UnderspecifiedPiecewiseFunction` |
 
 ### Algebra rules
 
@@ -157,6 +158,22 @@ quantification over families or an appeal to finiteness is second-order. These g
 enforce declaration discipline (the property is declared, not assumed), not
 satisfaction of the law against a model.
 
+The qualitative **analytic** properties of a function follow the same discipline.
+Monotonicity, non-affinity, convexity, and boundedness are each a real first-order
+`logic:Formula` (`math:strictMonotonicityLaw` … `math:constantMapLaw`,
+`math:nonAffinityLaw`, `math:convexityLaw` — the honestly-expressible midpoint form,
+its λ-general residue disclosed rather than faked — and `math:boundednessLaw`), so a
+`math:MonotonicityKind` or a `math:AnalyticProperty` is a quantified statement over
+the reified real/value signature, never a bare token (`math:UnbackedAnalyticProperty`).
+**Smoothness** (C^∞ / real-analyticity) is the analytic charter's second-order
+property — it quantifies over the infinite family of *all* derivatives, which is not
+first-order axiomatizable — so, exactly as compactness is, it is not faked as a
+formula but carried as an honest loss-ledger boundary (`math:smoothnessBoundary`,
+`logic:expressivenessBoundary logic:SecondOrder`, `logic:preservationKind logic:Unsupported`),
+reusing the existing preservation vocabulary verbatim (Principle 17). This is the
+explicit-expressiveness-boundary arm: the residue is disclosed in the ledger, never
+silent prose.
+
 | Rule | Primary gate | Failure class |
 |---|---|---|
 | Each `math:ArgumentSlot` has exactly one index and one expression | SHACL Core | `math:MalformedArgumentSlot` |
@@ -169,6 +186,7 @@ satisfaction of the law against a model.
 | A `math:Series`/`math:Sequence` carries a `math:Convergence` naming what it converges to and the mode | SHACL Core | `math:UnderspecifiedConvergence` |
 | A `math:LimitResult` names its `math:limitOutcome`, and its `math:limitResultValue` agrees with that outcome (a finite value for `math:convergesFinitely`; `math:PositiveInfinity`/`math:NegativeInfinity` for the divergent poles; none for `math:divergesWithoutLimit`) | SHACL Core (missing outcome); SHACL-SPARQL (`math:LimitResultOutcomeValueConstraint`, the outcome↔value agreement) | `math:UnderspecifiedLimitResult` |
 | Continuity/connectedness/separation(T0–T4) are declared, not assumed — each backed by a first-order `logic:Formula` law; compactness backed by a `logic:SecondOrder` boundary record | SHACL Core (backed by `math:continuityLaw`/`math:connectednessLaw`/the separation laws; `math:compactnessBoundary`) | `math:UndeclaredTopologicalProperty` |
+| Every `math:AnalyticProperty` resolves through `math:definingLaw` to a real first-order `logic:Formula` (`math:nonAffinityLaw`, `math:convexityLaw`, `math:boundednessLaw`) or an honest `logic:SecondOrder` boundary record (`math:smoothnessBoundary`) — a monotonicity/analytic claim is never a bare flag | SHACL-SPARQL (`math:AnalyticPropertyBackedConstraint`, a class-guarded existence of `math:definingLaw`) | `math:UnbackedAnalyticProperty` |
 | A `math:Manifold` declares its dimension and its structure kind | SHACL Core | `math:UnderspecifiedManifold` |
 | A `math:Chart` names its domain, coordinate map, and target coordinate space | SHACL Core | `math:UnderspecifiedChart` |
 | A chart's target space (and a tangent space) has the same dimension as its manifold | SHACL-SPARQL | `math:DimensionMismatch` |

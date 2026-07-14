@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Competency question: "For each piecewise function, what are its pieces, over which
+# sub-domain (interval) does each hold, and what qualitative analytic behaviour does
+# each carry?" This exercises the piecewise ladder: a math:PiecewiseFunction names one
+# or more math:FunctionPiece parts through math:hasPiece, each naming exactly one
+# math:pieceDomain (a math:Interval). The qualitative behaviour a piece carries —
+# math:hasMonotonicity (a math:MonotonicityKind) or math:hasBound (the near-zero
+# plateau's ε) — is LEFT-JOINed, so a piece that carries one but not the other still
+# appears with its sub-domain. Over the fixture the answer is exactly the two pieces
+# {leftPiece over leftInterval, strictly decreasing; rightPiece over rightInterval,
+# bound 0.001}.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?function ?piece ?domain ?monotonicity ?bound WHERE {
+    ?function a math:PiecewiseFunction ;
+              math:hasPiece ?piece .
+    ?piece math:pieceDomain ?domain .
+    OPTIONAL { ?piece math:hasMonotonicity ?monotonicity }
+    OPTIONAL { ?piece math:hasBound ?boundRaw }
+    BIND(STR(?boundRaw) AS ?bound)
+}
+ORDER BY ?function ?piece

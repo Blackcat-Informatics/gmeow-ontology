@@ -6088,6 +6088,636 @@ math:UnwiredFlagshipScenario
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
+# PIECEWISE FUNCTIONS AND QUALITATIVE ANALYTIC LAWS                            #
+# (realizes design/MATHEMATICS-NUMBERS-AND-SETS.md §"Relations and functions"  #
+# for the piecewise ladder and design/MATHEMATICS-ANALYSIS-AND-GEOMETRY.md     #
+# §"Calculus and analysis" for the first-order analytic laws and the honest    #
+# second-order smoothness boundary). A piecewise function is a function given   #
+# by pieces, each a sub-behaviour on a domain restriction; the qualitative      #
+# analytic properties (monotonicity, non-affinity, convexity, boundedness) are  #
+# each backed by a REAL first-order logic:Formula defining law, exactly as      #
+# math:continuityLaw/math:connectednessLaw are, while smoothness — genuinely    #
+# second-order (it quantifies over the infinite family of derivatives) — is     #
+# carried as an honest logic:expressivenessBoundary record, exactly as          #
+# math:compactnessBoundary is. Every MonotonicityKind and every AnalyticProperty#
+# individual resolves through math:definingLaw to a real law or a boundary,     #
+# never a bare type (math:UnbackedAnalyticProperty).                            #
+# =========================================================================== #
+
+# --- Piecewise functions ---------------------------------------------------- #
+
+math:PiecewiseFunction
+    a owl:Class ;
+    rdfs:subClassOf math:Function ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Piecewise Function"@x-gmeow-english ;
+    skos:definition "A function defined by pieces: a math:Function whose behaviour is given not by one closed form but by a family of math:FunctionPiece parts, each a sub-behaviour over its own domain restriction. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction); it additionally names one or more pieces through math:hasPiece. A piecewise function declaring NO piece says nothing about what it computes and is ill-formed (math:UnderspecifiedPiecewiseFunction). The pieces partition (or cover) the domain; each piece names the sub-domain it governs through math:pieceDomain and, where it has an explicit form, its behaviour through math:pieceExpression — so the classic split f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0} is data (two pieces over two intervals), not prose. It is not a math:ClosedFormFunction (one expression in one formal argument); it is the case-split generalization, and a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) rather than a full expression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:FunctionPiece
+    a owl:Class ;
+    rdfs:subClassOf math:MathematicalObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Function Piece"@x-gmeow-english ;
+    skos:definition "One piece of a math:PiecewiseFunction: a domain restriction paired with the sub-behaviour that holds on it. A subclass of math:MathematicalObject named by a piecewise function through math:hasPiece. It names EXACTLY ONE sub-domain through math:pieceDomain (a math:Interval — the sub-domain the piece governs), and, where the piece has an explicit closed form, its behaviour through math:pieceExpression (a math:MathematicalExpression); a piece whose behaviour is qualitative rather than symbolic carries instead a math:hasMonotonicity or a math:hasBound. A piece that names no math:pieceDomain does not say WHERE it applies and is ill-formed (the exactly-one math:pieceDomain gate). The piece is the case-split cell: the interval says over which points the cell holds, the expression or the qualitative marker says what the function does there."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hasPiece
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has piece"@x-gmeow-english ;
+    skos:definition "Relates a math:PiecewiseFunction to one of its math:FunctionPiece parts. Domain math:PiecewiseFunction, range math:FunctionPiece (stated in prose). A piecewise function names one or more pieces (≥ 1, unbounded — a function has at least one piece, and may have arbitrarily many); a piecewise function with no piece is ill-formed (math:UnderspecifiedPiecewiseFunction)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:pieceDomain
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "piece domain"@x-gmeow-english ;
+    skos:definition "Relates a math:FunctionPiece to the math:Interval it governs — the sub-domain over which the piece's behaviour holds. Domain math:FunctionPiece, range math:Interval (stated in prose). Each piece names exactly one piece-domain; a piece without it does not say where it applies and is ill-formed. The interval is a fully-formed math:Interval (both endpoints and both inclusions), so a half-open cell [0, 1) is distinguished from the closed cell [0, 1]."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:pieceExpression
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "piece expression"@x-gmeow-english ;
+    skos:definition "Relates a math:FunctionPiece to the math:MathematicalExpression giving its behaviour on its piece-domain — the closed form the function takes on that cell. Domain math:FunctionPiece, range math:MathematicalExpression (stated in prose). At most one; it is optional because a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) instead of an explicit expression, but a piece never carries two conflicting expressions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Monotonicity — the open vocabulary of monotonic behaviours ------------- #
+
+math:MonotonicityKind
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Monotonicity Kind"@x-gmeow-english ;
+    skos:definition "The kind of monotonic behaviour a function (or a math:FunctionPiece) exhibits over an ordered domain — one of math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing, or math:constant. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration), so a new monotonic sort joins by minting an individual. Each kind is NOT a bare token: it resolves through math:definingLaw to a real first-order logic:Formula stating what the kind MEANS as an ordering condition on the function's values — math:strictMonotonicityLaw for math:strictlyDecreasing, math:strictIncreaseLaw for math:strictlyIncreasing, and so on — so 'this piece is strictly decreasing' is a quantified statement over the reified real/value signature, not prose. A function names its monotonicity through math:hasMonotonicity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hasMonotonicity
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has monotonicity"@x-gmeow-english ;
+    skos:definition "Relates a math:Function (or a math:FunctionPiece) to the math:MonotonicityKind classifying its monotonic behaviour over its ordered domain. Domain math:Function or math:FunctionPiece, range math:MonotonicityKind (stated in prose). The declared, checkable bearer of monotonicity: monotonicity is stated here, and the named kind carries the first-order defining law (math:definingLaw) that fixes its meaning, so a monotonicity claim is always backed by a real logic:Formula, never a flag."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:strictlyDecreasing
+    a owl:NamedIndividual , math:MonotonicityKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "strictly decreasing"@x-gmeow-english ;
+    rdfs:seeAlso math:strictMonotonicityLaw ;
+    math:definingLaw math:strictMonotonicityLaw ;
+    skos:definition "Strictly decreasing monotonicity: x < y entails f(x) > f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictMonotonicityLaw (rdfs:seeAlso), so the kind is a real quantified ordering condition on the function's values, not a bare token."@x-gmeow-english .
+
+math:strictlyIncreasing
+    a owl:NamedIndividual , math:MonotonicityKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "strictly increasing"@x-gmeow-english ;
+    rdfs:seeAlso math:strictIncreaseLaw ;
+    math:definingLaw math:strictIncreaseLaw ;
+    skos:definition "Strictly increasing monotonicity: x < y entails f(x) < f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictIncreaseLaw (rdfs:seeAlso), the order-preserving mirror of math:strictMonotonicityLaw."@x-gmeow-english .
+
+math:nonIncreasing
+    a owl:NamedIndividual , math:MonotonicityKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "non-increasing"@x-gmeow-english ;
+    rdfs:seeAlso math:monotoneNonIncreaseLaw ;
+    math:definingLaw math:monotoneNonIncreaseLaw ;
+    skos:definition "Non-increasing (weakly decreasing) monotonicity: x < y entails f(x) ≥ f(y) for all points x, y of the domain — the function never rises. Its defining law is the first-order logic:Formula math:monotoneNonIncreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictMonotonicityLaw."@x-gmeow-english .
+
+math:nonDecreasing
+    a owl:NamedIndividual , math:MonotonicityKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "non-decreasing"@x-gmeow-english ;
+    rdfs:seeAlso math:monotoneNonDecreaseLaw ;
+    math:definingLaw math:monotoneNonDecreaseLaw ;
+    skos:definition "Non-decreasing (weakly increasing) monotonicity: x < y entails f(x) ≤ f(y) for all points x, y of the domain — the function never falls. Its defining law is the first-order logic:Formula math:monotoneNonDecreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictIncreaseLaw."@x-gmeow-english .
+
+math:constant
+    a owl:NamedIndividual , math:MonotonicityKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "constant"@x-gmeow-english ;
+    rdfs:seeAlso math:constantMapLaw ;
+    math:definingLaw math:constantMapLaw ;
+    skos:definition "Constant monotonicity: f(x) = f(y) for all points x, y of the domain — the function's value never changes. The degenerate limit of both weak sorts. Its defining law is the first-order logic:Formula math:constantMapLaw (rdfs:seeAlso), which requires any two of the function's values to be equal."@x-gmeow-english .
+
+# --- Analytic properties — the open vocabulary of qualitative analytic claims  #
+
+math:AnalyticProperty
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Analytic Property"@x-gmeow-english ;
+    skos:definition "A qualitative analytic property a function may bear — non-affinity, convexity, boundedness, smoothness. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration); a function declares one through math:hasAnalyticProperty. Every analytic property MUST resolve through math:definingLaw to a real first-order logic:Formula (math:nonAffinity → math:nonAffinityLaw, math:convexity → math:convexityLaw, math:boundedness → math:boundednessLaw) OR — for a genuinely higher-order property — to an honest logic:expressivenessBoundary record (math:smoothness → math:smoothnessBoundary). A bare analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty): an analytic property is a quantified statement about the function's values, never a flag."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:hasAnalyticProperty
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has analytic property"@x-gmeow-english ;
+    skos:definition "Relates a math:Function (or a math:FunctionPiece) to a math:AnalyticProperty it bears — its non-affinity, convexity, boundedness, or smoothness. Domain math:Function or math:FunctionPiece, range math:AnalyticProperty (stated in prose). The declared bearer of a qualitative analytic claim; because the named property carries its defining law or boundary (math:definingLaw), the claim is always backed by a real logic:Formula or an honest recorded boundary, never a bare flag."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:nonAffinity
+    a owl:NamedIndividual , math:AnalyticProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "non-affinity"@x-gmeow-english ;
+    rdfs:seeAlso math:nonAffinityLaw ;
+    math:definingLaw math:nonAffinityLaw ;
+    skos:definition "Non-affinity: the function is NOT an affine map — its graph is not a straight line, so there exist three domain points, one an affine combination of the other two, whose graph points fail to be collinear. Its defining law is the first-order logic:Formula math:nonAffinityLaw (rdfs:seeAlso), which witnesses the collinearity failure existentially, mirroring the existential/negation shape of math:connectednessLaw."@x-gmeow-english .
+
+math:convexity
+    a owl:NamedIndividual , math:AnalyticProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "convexity"@x-gmeow-english ;
+    rdfs:seeAlso math:convexityLaw ;
+    math:definingLaw math:convexityLaw ;
+    skos:definition "Convexity: the function lies on or below its chords — the midpoint of the graph over any two points is at least as high as the graph at the midpoint of those points. Its defining law is the first-order logic:Formula math:convexityLaw (rdfs:seeAlso), authored in the honestly-expressible MIDPOINT-convexity form f((x+y)/2) ≤ (f(x)+f(y))/2: the full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of weights λ and needs scalar arithmetic on the values, so the midpoint form (reifying the midpoint as an uninterpreted relation, never an invented arithmetic function symbol) is the faithful first-order fragment; the λ-general residue is disclosed, not faked."@x-gmeow-english .
+
+math:boundedness
+    a owl:NamedIndividual , math:AnalyticProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "boundedness"@x-gmeow-english ;
+    rdfs:seeAlso math:boundednessLaw ;
+    math:definingLaw math:boundednessLaw ;
+    skos:definition "Boundedness on an interval: the function's absolute value stays within a declared bound ε over a declared interval — the near-zero plateau's defining VALUE property, |f(x)| ≤ ε for every x in the interval. Its defining law is the first-order logic:Formula math:boundednessLaw (rdfs:seeAlso). It is the VALUE property (a bound on the function's magnitude), distinct from measure dominance (a bound on an integral); the bound ε is named through math:hasBound and the interval it holds on through math:boundOnInterval."@x-gmeow-english .
+
+math:smoothness
+    a owl:NamedIndividual , math:AnalyticProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "smoothness"@x-gmeow-english ;
+    rdfs:seeAlso math:smoothnessBoundary ;
+    math:definingLaw math:smoothnessBoundary ;
+    skos:definition "Smoothness (C^∞ / real-analyticity): the function has derivatives of EVERY order. Unlike its siblings math:nonAffinity, math:convexity, and math:boundedness — each backed by a real first-order logic:Formula — smoothness is genuinely SECOND-ORDER: it quantifies over the infinite family of all derivatives, which is not first-order axiomatizable. So it is NOT faked as a first-order law but backed by the honest recorded boundary math:smoothnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:definingLaw and rdfs:seeAlso. This exercises the explicit expressiveness-boundary arm: a real boundary carried in the loss ledger, never silent prose."@x-gmeow-english .
+
+math:hasBound
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has bound"@x-gmeow-english ;
+    skos:definition "Relates a math:Function (or a math:FunctionPiece) to the bound ε on its magnitude — the value such that |f(x)| ≤ ε holds over the declared interval. Domain math:Function or math:FunctionPiece, range a finite non-negative numeric literal (stated in prose); an owl:DatatypeProperty, because a magnitude bound is always a finite number, never a pole. The bound is the ε of the boundedness law math:boundednessLaw; the interval over which it holds is named through math:boundOnInterval. A near-zero plateau declares a small ε here."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:boundOnInterval
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "bound on interval"@x-gmeow-english ;
+    skos:definition "Relates a math:Function (or a math:FunctionPiece) to the math:Interval over which its math:hasBound ε holds. Domain math:Function or math:FunctionPiece, range math:Interval (stated in prose). Together with math:hasBound it grounds the boundedness law math:boundednessLaw: |f(x)| ≤ ε for every x in this interval. A bound stated without the interval it holds on is incomplete — the boundedness claim is scoped to a region, never global by default."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Reified relation atoms for the analytic laws (HiLog reflection) --------- #
+# Each relation atom used inside an analytic law's logic:Formula AST is declared
+# as a logic:Type individual with an ⟺ gloss, exactly as math:openSetRel /
+# math:isContinuousRel are for the continuity law. Ordering, value, midpoint,
+# affine-combination, collinearity, and absolute-bound relations are DERIVED
+# constructions (no asserted first-class property is minted for them), reflecting
+# the same discipline math:preimageRel / math:disjointRel / math:coversSpaceRel use;
+# math:hasMonotonicityRel, math:hasAnalyticPropertyRel, math:hasBoundRel, and
+# math:boundOnIntervalRel reflect the asserted properties they name (rdfs:seeAlso).
+
+math:hasMonotonicityRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "hasMonotonicity(f, k) ⟺ function f is declared to have monotonicity kind k"@x-gmeow-english ;
+    rdfs:seeAlso math:hasMonotonicity ;
+    skos:definition "The HiLog reflection of math:hasMonotonicity as a binary relation individual, so the monotonicity laws can predicate 'f has monotonicity kind k' inside a logic:Formula atom, with the kind supplied as a logic:termIri constant. Reflects the existing math:hasMonotonicity declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:hasAnalyticPropertyRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "hasAnalyticProperty(f, p) ⟺ function f is declared to bear analytic property p"@x-gmeow-english ;
+    rdfs:seeAlso math:hasAnalyticProperty ;
+    skos:definition "The HiLog reflection of math:hasAnalyticProperty as a binary relation individual, so the non-affinity and convexity laws can guard on 'f bears analytic property p' inside a logic:Formula atom, with the property supplied as a logic:termIri constant. Reflects the existing math:hasAnalyticProperty declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:functionValueRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "functionValue(f, x, v) ⟺ f(x) = v"@x-gmeow-english ;
+    skos:definition "The function-application relation the analytic laws quantify over: functionValue(f, x, v) holds exactly when the function f takes the value v at the point x, i.e. f(x) = v. A ternary HiLog relation individual so the laws can name a function's value at a point inside a logic:Formula atom; no first-class asserted property is minted, because application value is a derived construction over the function's graph, not authored data."@x-gmeow-english .
+
+math:lessThanRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "lessThan(x, y) ⟺ x < y"@x-gmeow-english ;
+    skos:definition "The strict order relation the monotonicity laws quantify over: lessThan(x, y) holds exactly when x precedes y in the real order. A binary HiLog relation individual so the laws can compare two domain points inside a logic:Formula atom; no first-class asserted property is minted, because the real order is a derived construction, not authored data."@x-gmeow-english .
+
+math:greaterThanRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "greaterThan(x, y) ⟺ x > y"@x-gmeow-english ;
+    skos:definition "The strict converse-order relation the monotonicity laws quantify over: greaterThan(x, y) holds exactly when x follows y in the real order. A binary HiLog relation individual so the laws can state that a strictly-decreasing function's values reverse the order inside a logic:Formula atom; no first-class asserted property is minted, because the real order is a derived construction, not authored data."@x-gmeow-english .
+
+math:lessOrEqualRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "lessOrEqual(x, y) ⟺ x ≤ y"@x-gmeow-english ;
+    skos:definition "The non-strict order relation the non-decreasing and convexity laws quantify over: lessOrEqual(x, y) holds exactly when x does not exceed y in the real order. A binary HiLog relation individual; no first-class asserted property is minted, because the real order is a derived construction, not authored data."@x-gmeow-english .
+
+math:greaterOrEqualRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "greaterOrEqual(x, y) ⟺ x ≥ y"@x-gmeow-english ;
+    skos:definition "The non-strict converse-order relation the non-increasing law quantifies over: greaterOrEqual(x, y) holds exactly when x is not below y in the real order. A binary HiLog relation individual; no first-class asserted property is minted, because the real order is a derived construction, not authored data."@x-gmeow-english .
+
+math:realEqualRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "realEqual(x, y) ⟺ x = y"@x-gmeow-english ;
+    skos:definition "The value-equality relation the constant-map law quantifies over: realEqual(x, y) holds exactly when x and y are the same real value. A binary HiLog relation individual so the constant-map law can require any two of a function's values to be equal inside a logic:Formula atom; no first-class asserted property is minted, because value equality is a derived construction, not authored data."@x-gmeow-english .
+
+math:midpointRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "midpoint(m, a, b) ⟺ m = (a + b) / 2"@x-gmeow-english ;
+    skos:definition "The midpoint relation the convexity law quantifies over: midpoint(m, a, b) holds exactly when m is the arithmetic midpoint of a and b. A ternary HiLog relation individual — an uninterpreted RELATION, not an arithmetic function symbol smuggled into the term language — so the honestly-expressible midpoint form of convexity, f((x+y)/2) ≤ (f(x)+f(y))/2, stays first-order, reifying the midpoint the same way math:preimageRel reifies the preimage."@x-gmeow-english .
+
+math:affineCombinationRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "affineCombination(z, x, y) ⟺ z lies strictly between x and y on the line"@x-gmeow-english ;
+    skos:definition "The betweenness relation the non-affinity law quantifies over: affineCombination(z, x, y) holds exactly when z is a proper affine combination of x and y — a point strictly between them on the real line. A ternary HiLog relation individual (an uninterpreted geometric relation, never an invented arithmetic function) so the non-affinity law can witness a graph point over an interior point of a chord inside a logic:Formula atom."@x-gmeow-english .
+
+math:collinearRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "collinear(x₁, y₁, x₂, y₂, x₃, y₃) ⟺ the three plane points (x₁,y₁), (x₂,y₂), (x₃,y₃) are collinear"@x-gmeow-english ;
+    skos:definition "The collinearity relation the non-affinity law quantifies over: collinear over the three graph points (x₁,y₁), (x₂,y₂), (x₃,y₃) holds exactly when they lie on one straight line. A six-argument HiLog relation individual (an uninterpreted geometric relation over plane points, never an invented arithmetic function) so the non-affinity law states that the three witnessing graph points are NOT collinear inside a negated logic:Formula atom."@x-gmeow-english .
+
+math:inIntervalRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "inInterval(x, I) ⟺ point x lies in interval I"@x-gmeow-english ;
+    skos:definition "The interval-membership relation the boundedness law quantifies over: inInterval(x, I) holds exactly when the point x belongs to the math:Interval I, respecting its endpoint inclusions. A binary HiLog relation individual so the boundedness law can scope its bound to the interval's points inside a logic:Formula atom; no first-class asserted property is minted, because membership in an ordered interval is a derived construction over its endpoints, not authored data."@x-gmeow-english .
+
+math:hasBoundRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "hasBound(f, ε) ⟺ function f declares magnitude bound ε"@x-gmeow-english ;
+    rdfs:seeAlso math:hasBound ;
+    skos:definition "The HiLog reflection of math:hasBound as a binary relation individual, so the boundedness law can predicate 'f declares the magnitude bound ε' inside a logic:Formula atom. Reflects the existing math:hasBound declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:boundOnIntervalRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "boundOnInterval(f, I) ⟺ function f's bound holds on interval I"@x-gmeow-english ;
+    rdfs:seeAlso math:boundOnInterval ;
+    skos:definition "The HiLog reflection of math:boundOnInterval as a binary relation individual, so the boundedness law can predicate 'f's declared bound holds on interval I' inside a logic:Formula atom. Reflects the existing math:boundOnInterval declaration (rdfs:seeAlso), minting no second relation."@x-gmeow-english .
+
+math:absBoundRel
+    a logic:Type ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "absBound(v, ε) ⟺ |v| ≤ ε"@x-gmeow-english ;
+    skos:definition "The absolute-bound relation the boundedness law states as its consequent: absBound(v, ε) holds exactly when the magnitude of v does not exceed ε, i.e. |v| ≤ ε. A binary HiLog relation individual so the boundedness law can conclude that a bounded function's value at any interior point is within ε inside a logic:Formula atom; no first-class asserted property is minted, because the absolute-value comparison is a derived construction, not authored data."@x-gmeow-english .
+
+# --- Law: strict monotonic decrease ----------------------------------------- #
+# ∀f,x,y,u,v: hasMonotonicity(f, strictlyDecreasing) ∧ lessThan(x,y)
+#   ∧ functionValue(f,x,u) ∧ functionValue(f,y,v) → greaterThan(u,v)
+# The defining law of math:strictlyDecreasing, authored as a first-order
+# logic:Formula exactly as math:continuityLaw authors its hard law: a strictly
+# decreasing function reverses the order of its values.
+math:strictMonotonicityLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "strict monotonic decrease: x < y entails f(x) > f(y)"@x-gmeow-english ;
+    skos:definition "The defining law of math:strictlyDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly decreasing, if x < y and f takes value u at x and v at y, then u > v. math: expresses the law; logic: owns reasoning over it. A sibling of math:continuityLaw in the same first-order style; the monotonicity a strictly-decreasing piece carries, backed by a real law rather than a bare token."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "y" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "u" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "v" ] ;
+    logic:forall math:strictMonotonicityImpl .
+
+math:strictMonotonicityImpl a logic:Formula ;
+    logic:antecedent math:strictMonotonicityAnte ;
+    logic:consequent math:strictMonotonicityCons .
+
+math:strictMonotonicityAnte a logic:Formula ;
+    logic:and math:smA1 , math:smA2 , math:smA3 , math:smA4 .
+
+math:smA1 a logic:Formula ; logic:relation math:hasMonotonicityRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri math:strictlyDecreasing ] .
+math:smA2 a logic:Formula ; logic:relation math:lessThanRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+math:smA3 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "u" ] .
+math:smA4 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+
+math:strictMonotonicityCons a logic:Formula ; logic:relation math:greaterThanRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "u" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+# --- Law: strict monotonic increase ----------------------------------------- #
+# ∀f,x,y,u,v: hasMonotonicity(f, strictlyIncreasing) ∧ lessThan(x,y)
+#   ∧ functionValue(f,x,u) ∧ functionValue(f,y,v) → lessThan(u,v)
+math:strictIncreaseLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "strict monotonic increase: x < y entails f(x) < f(y)"@x-gmeow-english ;
+    skos:definition "The defining law of math:strictlyIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly increasing, if x < y and f takes value u at x and v at y, then u < v. The order-preserving mirror of math:strictMonotonicityLaw."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "y" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "u" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "v" ] ;
+    logic:forall math:strictIncreaseImpl .
+
+math:strictIncreaseImpl a logic:Formula ;
+    logic:antecedent math:strictIncreaseAnte ;
+    logic:consequent math:strictIncreaseCons .
+
+math:strictIncreaseAnte a logic:Formula ;
+    logic:and math:siA1 , math:siA2 , math:siA3 , math:siA4 .
+
+math:siA1 a logic:Formula ; logic:relation math:hasMonotonicityRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri math:strictlyIncreasing ] .
+math:siA2 a logic:Formula ; logic:relation math:lessThanRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+math:siA3 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "u" ] .
+math:siA4 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+
+math:strictIncreaseCons a logic:Formula ; logic:relation math:lessThanRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "u" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+# --- Law: non-increase (weak decrease) -------------------------------------- #
+# ∀f,x,y,u,v: hasMonotonicity(f, nonIncreasing) ∧ lessThan(x,y)
+#   ∧ functionValue(f,x,u) ∧ functionValue(f,y,v) → greaterOrEqual(u,v)
+math:monotoneNonIncreaseLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "non-increase: x < y entails f(x) ≥ f(y)"@x-gmeow-english ;
+    skos:definition "The defining law of math:nonIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-increasing, if x < y and f takes value u at x and v at y, then u ≥ v — the function never rises. The non-strict counterpart of math:strictMonotonicityLaw."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "y" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "u" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "v" ] ;
+    logic:forall math:monotoneNonIncreaseImpl .
+
+math:monotoneNonIncreaseImpl a logic:Formula ;
+    logic:antecedent math:monotoneNonIncreaseAnte ;
+    logic:consequent math:monotoneNonIncreaseCons .
+
+math:monotoneNonIncreaseAnte a logic:Formula ;
+    logic:and math:niA1 , math:niA2 , math:niA3 , math:niA4 .
+
+math:niA1 a logic:Formula ; logic:relation math:hasMonotonicityRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri math:nonIncreasing ] .
+math:niA2 a logic:Formula ; logic:relation math:lessThanRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+math:niA3 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "u" ] .
+math:niA4 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+
+math:monotoneNonIncreaseCons a logic:Formula ; logic:relation math:greaterOrEqualRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "u" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+# --- Law: non-decrease (weak increase) -------------------------------------- #
+# ∀f,x,y,u,v: hasMonotonicity(f, nonDecreasing) ∧ lessThan(x,y)
+#   ∧ functionValue(f,x,u) ∧ functionValue(f,y,v) → lessOrEqual(u,v)
+math:monotoneNonDecreaseLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "non-decrease: x < y entails f(x) ≤ f(y)"@x-gmeow-english ;
+    skos:definition "The defining law of math:nonDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-decreasing, if x < y and f takes value u at x and v at y, then u ≤ v — the function never falls. The non-strict counterpart of math:strictIncreaseLaw."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "y" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "u" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "v" ] ;
+    logic:forall math:monotoneNonDecreaseImpl .
+
+math:monotoneNonDecreaseImpl a logic:Formula ;
+    logic:antecedent math:monotoneNonDecreaseAnte ;
+    logic:consequent math:monotoneNonDecreaseCons .
+
+math:monotoneNonDecreaseAnte a logic:Formula ;
+    logic:and math:ndA1 , math:ndA2 , math:ndA3 , math:ndA4 .
+
+math:ndA1 a logic:Formula ; logic:relation math:hasMonotonicityRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri math:nonDecreasing ] .
+math:ndA2 a logic:Formula ; logic:relation math:lessThanRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] .
+math:ndA3 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "u" ] .
+math:ndA4 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+
+math:monotoneNonDecreaseCons a logic:Formula ; logic:relation math:lessOrEqualRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "u" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+# --- Law: constant map ------------------------------------------------------ #
+# ∀f,x,y,u,v: hasMonotonicity(f, constant) ∧ functionValue(f,x,u)
+#   ∧ functionValue(f,y,v) → realEqual(u,v)
+# No order atom: a constant function's value is the same at ANY two points.
+math:constantMapLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "constant: f(x) = f(y) for all x, y"@x-gmeow-english ;
+    skos:definition "The defining law of math:constant as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared constant, if f takes value u at x and v at y, then u = v — its value never changes, regardless of the order of x and y. The degenerate limit of both weak monotonicity sorts, so it carries no order atom."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "y" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "u" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "v" ] ;
+    logic:forall math:constantMapImpl .
+
+math:constantMapImpl a logic:Formula ;
+    logic:antecedent math:constantMapAnte ;
+    logic:consequent math:constantMapCons .
+
+math:constantMapAnte a logic:Formula ;
+    logic:and math:cmA1 , math:cmA2 , math:cmA3 .
+
+math:cmA1 a logic:Formula ; logic:relation math:hasMonotonicityRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri math:constant ] .
+math:cmA2 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "u" ] .
+math:cmA3 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+
+math:constantMapCons a logic:Formula ; logic:relation math:realEqualRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "u" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+
+# --- Law: non-affinity ------------------------------------------------------ #
+# ∀f: hasAnalyticProperty(f, nonAffinity) → ∃x,y,z,u,v,w:
+#   functionValue(f,x,u) ∧ functionValue(f,y,v) ∧ functionValue(f,z,w)
+#   ∧ affineCombination(z,x,y) ∧ ¬collinear(x,u,y,v,z,w)
+# The defining law of math:nonAffinity, authored as a first-order logic:Formula
+# whose consequent is an EXISTENTIAL witness of a collinearity failure, mirroring
+# the existential/negation shape of math:connectednessLaw: a non-affine function
+# has three graph points — one over an interior point of a chord — off the line.
+math:nonAffinityLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "non-affinity: the graph has three non-collinear points over a chord"@x-gmeow-english ;
+    skos:definition "The defining law of math:nonAffinity as a first-order logic:Formula over the reified real/value signature: for a function f declared non-affine, there exist domain points x, y, z with z a proper affine combination of x and y, and graph values u = f(x), v = f(y), w = f(z), such that the three plane points (x,u), (y,v), (z,w) are NOT collinear. math: expresses the law; logic: owns reasoning over it. It uses logic:exists and logic:not exactly as math:connectednessLaw does; the midpoint/affine combination and collinearity are reified as uninterpreted relations, never invented arithmetic functions."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ;
+    logic:forall math:nonAffinityImpl .
+
+math:nonAffinityImpl a logic:Formula ;
+    logic:antecedent math:nonAffinityAnte ;
+    logic:consequent math:nonAffinityWitness .
+
+math:nonAffinityAnte a logic:Formula ; logic:relation math:hasAnalyticPropertyRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri math:nonAffinity ] .
+
+math:nonAffinityWitness a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "y" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "z" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "u" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "v" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "w" ] ;
+    logic:exists math:nonAffinityWitnessBody .
+
+math:nonAffinityWitnessBody a logic:Formula ;
+    logic:and math:naA1 , math:naA2 , math:naA3 , math:naA4 , math:naA5 .
+
+math:naA1 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "u" ] .
+math:naA2 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+math:naA3 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "z" ] , [ logic:termIndex 2 ; logic:termVariable "w" ] .
+math:naA4 a logic:Formula ; logic:relation math:affineCombinationRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "z" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "y" ] .
+math:naA5 a logic:Formula ; logic:not math:naCollinear .
+
+math:naCollinear a logic:Formula ; logic:relation math:collinearRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] , [ logic:termIndex 2 ; logic:termVariable "y" ] , [ logic:termIndex 3 ; logic:termVariable "v" ] , [ logic:termIndex 4 ; logic:termVariable "z" ] , [ logic:termIndex 5 ; logic:termVariable "w" ] .
+
+# --- Law: convexity (honestly-expressible midpoint form) -------------------- #
+# ∀f: hasAnalyticProperty(f, convexity) → ∀x,y,m,u,v,w,z:
+#   functionValue(f,x,u) ∧ functionValue(f,y,v) ∧ midpoint(m,x,y)
+#   ∧ functionValue(f,m,w) ∧ midpoint(z,u,v) → lessOrEqual(w,z)
+# i.e. f((x+y)/2) ≤ (f(x)+f(y))/2. The full λ-chord inequality quantifies over
+# the continuum of weights λ and needs scalar arithmetic on the values; the
+# midpoint form is the faithful first-order fragment (the midpoint reified as an
+# uninterpreted relation), the λ-general residue disclosed rather than faked.
+math:convexityLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "convexity (midpoint form): f((x+y)/2) ≤ (f(x)+f(y))/2"@x-gmeow-english ;
+    skos:definition "The defining law of math:convexity as a first-order logic:Formula over the reified real/value signature, in the honestly-expressible MIDPOINT form: for a function f declared convex, for all x, y with domain midpoint m = (x+y)/2 and value midpoint z = (f(x)+f(y))/2, the value w = f(m) satisfies w ≤ z. math: expresses the law; logic: owns reasoning over it. The full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of λ and needs scalar arithmetic on values, exceeding the first-order fragment without inventing arithmetic function symbols; the midpoint form (reifying the midpoint as the uninterpreted relation math:midpointRel, as math:preimageRel reifies the preimage) is the faithful first-order law, and the λ-general residue is disclosed here, never silently faked."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ;
+    logic:forall math:convexityOuterImpl .
+
+math:convexityOuterImpl a logic:Formula ;
+    logic:antecedent math:convexityGuard ;
+    logic:consequent math:convexityInner .
+
+math:convexityGuard a logic:Formula ; logic:relation math:hasAnalyticPropertyRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termIri math:convexity ] .
+
+math:convexityInner a logic:Formula ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "y" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "m" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "u" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "v" ] ,
+        [ logic:termIndex 5 ; logic:termVariable "w" ] ,
+        [ logic:termIndex 6 ; logic:termVariable "z" ] ;
+    logic:forall math:convexityInnerImpl .
+
+math:convexityInnerImpl a logic:Formula ;
+    logic:antecedent math:convexityChordAnte ;
+    logic:consequent math:convexityChordCons .
+
+math:convexityChordAnte a logic:Formula ;
+    logic:and math:cxA1 , math:cxA2 , math:cxA3 , math:cxA4 , math:cxA5 .
+
+math:cxA1 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "u" ] .
+math:cxA2 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "y" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+math:cxA3 a logic:Formula ; logic:relation math:midpointRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "m" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "y" ] .
+math:cxA4 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "m" ] , [ logic:termIndex 2 ; logic:termVariable "w" ] .
+math:cxA5 a logic:Formula ; logic:relation math:midpointRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "z" ] , [ logic:termIndex 1 ; logic:termVariable "u" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+
+math:convexityChordCons a logic:Formula ; logic:relation math:lessOrEqualRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ] , [ logic:termIndex 1 ; logic:termVariable "z" ] .
+
+# --- Law: boundedness on an interval ---------------------------------------- #
+# ∀f,e,I,x,v: hasBound(f,e) ∧ boundOnInterval(f,I) ∧ inInterval(x,I)
+#   ∧ functionValue(f,x,v) → absBound(v,e)
+# i.e. |f(x)| ≤ ε for every x in the declared interval — the near-zero plateau's
+# defining VALUE property, distinct from measure dominance over an integral.
+math:boundednessLaw
+    a logic:Formula ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "boundedness: |f(x)| ≤ ε for every x in the interval"@x-gmeow-english ;
+    skos:definition "The defining law of math:boundedness as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declaring a magnitude bound ε (math:hasBound) that holds on an interval I (math:boundOnInterval), if x lies in I and f takes value v at x, then |v| ≤ ε. math: expresses the law; logic: owns reasoning over it. It is the near-zero plateau's defining VALUE property — a bound on the function's magnitude — distinct from measure dominance (a bound on an integral); the bound is scoped to a region, never global by default."@x-gmeow-english ;
+    logic:quantifiedVariable
+        [ logic:termIndex 0 ; logic:termVariable "f" ] ,
+        [ logic:termIndex 1 ; logic:termVariable "e" ] ,
+        [ logic:termIndex 2 ; logic:termVariable "I" ] ,
+        [ logic:termIndex 3 ; logic:termVariable "x" ] ,
+        [ logic:termIndex 4 ; logic:termVariable "v" ] ;
+    logic:forall math:boundednessImpl .
+
+math:boundednessImpl a logic:Formula ;
+    logic:antecedent math:boundednessAnte ;
+    logic:consequent math:boundednessCons .
+
+math:boundednessAnte a logic:Formula ;
+    logic:and math:bdA1 , math:bdA2 , math:bdA3 , math:bdA4 .
+
+math:bdA1 a logic:Formula ; logic:relation math:hasBoundRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+math:bdA2 a logic:Formula ; logic:relation math:boundOnIntervalRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "I" ] .
+math:bdA3 a logic:Formula ; logic:relation math:inIntervalRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ] , [ logic:termIndex 1 ; logic:termVariable "I" ] .
+math:bdA4 a logic:Formula ; logic:relation math:functionValueRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "x" ] , [ logic:termIndex 2 ; logic:termVariable "v" ] .
+
+math:boundednessCons a logic:Formula ; logic:relation math:absBoundRel ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termVariable "e" ] .
+
+# --- Boundary: smoothness — an honest recorded second-order boundary --------- #
+# Smoothness (C^∞ / real-analyticity) quantifies over the INFINITE FAMILY of all
+# derivatives, so — unlike math:nonAffinityLaw/math:convexityLaw/math:boundednessLaw,
+# which ARE first-order — it has NO first-order logic:Formula to author. It is
+# recorded here as an honest loss-ledger boundary carrying logic:expressivenessBoundary
+# logic:SecondOrder and logic:preservationKind logic:Unsupported, exactly as
+# math:compactnessBoundary is, and never faked as a first-order formula.
+math:smoothnessBoundary
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "smoothness: an honest recorded second-order boundary (no first-order formula)"@x-gmeow-english ;
+    logic:expressivenessBoundary logic:SecondOrder ;
+    logic:preservationKind logic:Unsupported ;
+    skos:definition "The loss-ledger boundary record backing math:smoothness: smoothness (C^∞ / real-analyticity, 'the function has derivatives of every order') is genuinely second-order — it ∀-quantifies over the INFINITE FAMILY of all derivatives {f, f′, f″, …}, a quantification over an unbounded family of functions that is not first-order axiomatizable. HiLog reflection could reify a single derivative, but 'for all n, the n-th derivative exists' ranges over the whole family, so a first-order witness would be an unsound uninterpreted predicate. Hence smoothness is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never silent prose (Principle 17). Contrast its siblings math:nonAffinityLaw, math:convexityLaw, and math:boundednessLaw, which ARE first-order logic:Formula laws, exactly as math:compactnessBoundary contrasts with math:continuityLaw and math:connectednessLaw."@x-gmeow-english .
+
+# --- Task-7 conformance-failure classes ------------------------------------- #
+
+math:UnderspecifiedPiecewiseFunction
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Piecewise Function"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:PiecewiseFunction declares no math:hasPiece (min-count 1) — a piecewise function is defined BY its pieces, so one with none says nothing about what it computes and is ill-formed. Distinct from math:UnframedFunction (a function missing its domain/codomain, which a piecewise function inherits): this failure is the missing-piece gate specific to the piecewise ladder."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnbackedAnalyticProperty
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Unbacked Analytic Property"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
 # Declarative constraint axioms (grounding slices) — the closed-world cardinality/
 # class/datatype/value obligations that the hand-authored shapes.ttl NodeShapes
 # state are authored here once as OWL restriction axioms and PROJECTED to
@@ -6344,6 +6974,21 @@ math:FlagshipScenario rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:demonstratedByCompetency ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:guardedByCounterExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
     [ a owl:Restriction ; owl:onProperty math:enforcesFailureClass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# A math:PiecewiseFunction requires at least one math:hasPiece (min 1, unbounded —
+# a function has one or more pieces); a piecewise function with no piece is
+# math:UnderspecifiedPiecewiseFunction. Authored as a bare min-qualified restriction
+# exactly like math:Series/math:seriesTerm, so it needs no N-Triples max sibling.
+math:PiecewiseFunction rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:hasPiece ; owl:minQualifiedCardinality 1 ; owl:onClass math:FunctionPiece ] .
+
+# A math:FunctionPiece requires EXACTLY ONE math:pieceDomain (a math:Interval — the
+# sub-domain the piece governs) and AT MOST ONE math:pieceExpression. The pieceDomain
+# max-qualified half pairs with the N-Triples min-qualified sibling in the appendix
+# below (exact-one; missing → the pieceDomain gate); math:pieceExpression is 0..1.
+math:FunctionPiece rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:pieceDomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Interval ] ,
+    [ a owl:Restriction ; owl:onProperty math:pieceExpression ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MathematicalExpression ] .
 
 # =========================================================================== #
 # PROBABILITY LAYER — Kolmogorov spine, distributions, dependency models,      #
@@ -8108,6 +8753,20 @@ math:LogicLoweringDeclaredConstraint
     logic:formalizes math:LogicLoweringShape ;
     logic:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:denotationKind and its math:logicLoweringPreservation; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)." .
 
+# math:AnalyticProperty — every analytic-property individual MUST resolve to a real
+# first-order logic:Formula or an honest logic:expressivenessBoundary through
+# math:definingLaw; a bare analytic-property claim backed by no law is ill-formed
+# (math:UnbackedAnalyticProperty). A class-guarded existence: every math:AnalyticProperty
+# requires a math:definingLaw. Lowers to a sh:sparql constraint (shacl.SPARQLConstraintComponent).
+math:AnalyticPropertyBackedConstraint
+    a logic:GuardedImplicationConstraint ;
+    logic:onClass math:AnalyticProperty ;
+    logic:trigger rdf:type ;
+    logic:triggerValue math:AnalyticProperty ;
+    logic:requires math:definingLaw ;
+    logic:formalizes math:AnalyticProperty ;
+    logic:message "A math:AnalyticProperty must resolve to a real first-order logic:Formula or an honest logic:expressivenessBoundary through math:definingLaw; an analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty)." .
+
 # exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/math/Number> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/inNumberSystem> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/NumberSystem> ] .
@@ -8176,6 +8835,9 @@ math:LogicLoweringDeclaredConstraint
 <https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/demonstratedByCompetency> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/guardedByCounterExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
 <https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/enforcesFailureClass> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+# math:FunctionPiece — the min-qualified sibling restoring sh:minCount for the exact-one
+# math:pieceDomain antecedent (the max-qualified half is in the Turtle block above).
+<https://blackcatinformatics.ca/math/FunctionPiece> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/pieceDomain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Interval> ] .
 
 # A math:SetBuilderExpression's math:memberCondition must be a resource denoting a
 # logic: formula (a blank node or IRI), not an opaque literal string (a path node-kind

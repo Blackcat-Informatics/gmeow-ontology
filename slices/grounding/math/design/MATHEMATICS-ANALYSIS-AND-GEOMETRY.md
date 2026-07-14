@@ -63,6 +63,41 @@ becomes analysis: derivatives are maps of function spaces
 ([`MATHEMATICS-NUMBERS-AND-SETS.md`](MATHEMATICS-NUMBERS-AND-SETS.md)), and integration is the measure
 charter's operator.
 
+The **qualitative analytic properties** a function or a `math:FunctionPiece`
+([`MATHEMATICS-NUMBERS-AND-SETS.md`](MATHEMATICS-NUMBERS-AND-SETS.md)) carries — its monotonicity,
+non-affinity, convexity, and boundedness — are each backed by a **real first-order `logic:Formula`
+defining law**, exactly as continuity and connectedness are, and never by a bare flag. Monotonicity is an
+open vocabulary of `math:MonotonicityKind` individuals (`math:strictlyIncreasing`, `math:strictlyDecreasing`,
+`math:nonIncreasing`, `math:nonDecreasing`, `math:constant`), each resolving through `math:definingLaw` to a
+law over the reified real/value signature: `math:strictMonotonicityLaw` states `x < y ⇒ f(x) > f(y)`,
+`math:strictIncreaseLaw` its order-preserving mirror, and the weak/constant laws their `≥`/`≤`/`=`
+counterparts. The remaining analytic properties are an open `math:AnalyticProperty` vocabulary a function
+declares through `math:hasAnalyticProperty`: `math:nonAffinity` is backed by `math:nonAffinityLaw`, which
+**existentially witnesses** a collinearity failure (three graph points, one over an interior point of a
+chord, off the line) using `logic:exists`/`logic:not` exactly as `math:connectednessLaw` does;
+`math:boundedness` is backed by `math:boundednessLaw` — the near-zero plateau's defining **value** property
+`|f(x)| ≤ ε` over a declared `math:boundOnInterval`, distinct from measure dominance over an integral.
+Convexity is the one property whose textbook statement exceeds the first-order fragment: the full
+λ-chord inequality `f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y)` quantifies over the **continuum** of weights `λ` and
+needs scalar arithmetic on the values. Rather than invent arithmetic function symbols to fake
+first-orderness, `math:convexityLaw` is authored in the **honestly-expressible midpoint form**
+`f((x+y)/2) ≤ (f(x)+f(y))/2`, reifying the midpoint as the uninterpreted relation `math:midpointRel`
+(as `math:preimageRel` reifies the preimage); the λ-general residue is disclosed, never silently faked.
+Every relation atom these laws predicate over — ordering, function value, midpoint, affine combination,
+collinearity, absolute bound — is declared as a `logic:Type` reflection individual with an `⟺` gloss,
+exactly as `math:openSetRel` is for continuity.
+
+**Smoothness** (C^∞ / real-analyticity — "derivatives of every order") is the lone analytic property that
+is **genuinely second-order**: it quantifies over the infinite family of *all* derivatives `{f, f′, f″, …}`,
+which is not first-order axiomatizable. So, exactly like compactness in the topology section, it is not
+faked as a formula but carried as an honest loss-ledger boundary `math:smoothnessBoundary`
+(`logic:expressivenessBoundary logic:SecondOrder`, `logic:preservationKind logic:Unsupported`), referenced
+by the `math:smoothness` marker through `math:definingLaw` and `rdfs:seeAlso`. The discriminant is the same:
+quantification over individual points and values is first-order over the reified signature; quantification
+over an infinite family of functions is second-order. Every `math:MonotonicityKind` and every
+`math:AnalyticProperty` individual therefore resolves through `math:definingLaw` to a real law or a recorded
+boundary — never a bare token (`math:UnbackedAnalyticProperty`).
+
 ## Topology
 
 Core classes: `math:TopologicalSpace` (from the object layer), `math:OpenSet`, `math:ClosedSet`,

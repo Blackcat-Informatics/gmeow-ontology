@@ -1213,3 +1213,251 @@ msgstr "Forme close non liée"
 msgctxt "https://blackcatinformatics.ca/math/UnboundClosedForm|skos:definition"
 msgid "The failure raised when a math:ClosedFormFunction does not declare both its math:definingExpression (the body AST) and its math:formalArgument (the abstraction variable's declaration). A closed-form function is an explicit expression in one formal argument; a closed form missing its body or its formal argument does not say what it computes or over which variable, and is ill-formed. Its tunable math:functionParameters are 0..n and unconstrained — only the body and the formal argument are required."
 msgstr "L'échec levé lorsqu'une math:ClosedFormFunction ne déclare pas à la fois sa math:definingExpression (l'AST du corps) et son math:formalArgument (la déclaration de la variable d'abstraction). Une fonction en forme close est une expression explicite en un argument formel ; une forme close à laquelle manque son corps ou son argument formel ne dit pas ce qu'elle calcule ni sur quelle variable, et est mal formée. Ses math:functionParameter réglables sont 0..n et non contraints — seuls le corps et l'argument formel sont requis."
+
+msgctxt "https://blackcatinformatics.ca/math/PiecewiseFunction|rdfs:label"
+msgid "Piecewise Function"
+msgstr "Fonction définie par morceaux"
+
+msgctxt "https://blackcatinformatics.ca/math/PiecewiseFunction|skos:definition"
+msgid "A function defined by pieces: a math:Function whose behaviour is given not by one closed form but by a family of math:FunctionPiece parts, each a sub-behaviour over its own domain restriction. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction); it additionally names one or more pieces through math:hasPiece. A piecewise function declaring NO piece says nothing about what it computes and is ill-formed (math:UnderspecifiedPiecewiseFunction). The pieces partition (or cover) the domain; each piece names the sub-domain it governs through math:pieceDomain and, where it has an explicit form, its behaviour through math:pieceExpression — so the classic split f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0} is data (two pieces over two intervals), not prose. It is not a math:ClosedFormFunction (one expression in one formal argument); it is the case-split generalization, and a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) rather than a full expression."
+msgstr "Une fonction définie par morceaux : une math:Function dont le comportement est donné non par une forme close unique mais par une famille de parties math:FunctionPiece, chacune un sous-comportement sur sa propre restriction de domaine. Une sous-classe de math:Function, elle hérite donc de l'obligation de déclarer son math:domain et son math:codomain (une fonction sans cadre est math:UnframedFunction) ; elle nomme en outre un ou plusieurs morceaux via math:hasPiece. Une fonction définie par morceaux ne déclarant AUCUN morceau ne dit rien de ce qu'elle calcule et est mal formée (math:UnderspecifiedPiecewiseFunction). Les morceaux partitionnent (ou recouvrent) le domaine ; chaque morceau nomme le sous-domaine qu'il gouverne via math:pieceDomain et, lorsqu'il a une forme explicite, son comportement via math:pieceExpression — ainsi la partition classique f(x) = {x² pour x < 0 ; e⁻ˣ pour x ≥ 0} est une donnée (deux morceaux sur deux intervalles), non de la prose. Ce n'est pas une math:ClosedFormFunction (une expression en un argument formel) ; c'est la généralisation par cas, et un morceau peut porter un comportement analytique qualitatif (math:hasMonotonicity, math:hasBound) plutôt qu'une expression complète."
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionPiece|rdfs:label"
+msgid "Function Piece"
+msgstr "Morceau de fonction"
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionPiece|skos:definition"
+msgid "One piece of a math:PiecewiseFunction: a domain restriction paired with the sub-behaviour that holds on it. A subclass of math:MathematicalObject named by a piecewise function through math:hasPiece. It names EXACTLY ONE sub-domain through math:pieceDomain (a math:Interval — the sub-domain the piece governs), and, where the piece has an explicit closed form, its behaviour through math:pieceExpression (a math:MathematicalExpression); a piece whose behaviour is qualitative rather than symbolic carries instead a math:hasMonotonicity or a math:hasBound. A piece that names no math:pieceDomain does not say WHERE it applies and is ill-formed (the exactly-one math:pieceDomain gate). The piece is the case-split cell: the interval says over which points the cell holds, the expression or the qualitative marker says what the function does there."
+msgstr "Un morceau d'une math:PiecewiseFunction : une restriction de domaine appariée au sous-comportement qui y vaut. Une sous-classe de math:MathematicalObject nommée par une fonction définie par morceaux via math:hasPiece. Il nomme EXACTEMENT UN sous-domaine via math:pieceDomain (un math:Interval — le sous-domaine que le morceau gouverne) et, lorsque le morceau a une forme close explicite, son comportement via math:pieceExpression (une math:MathematicalExpression) ; un morceau dont le comportement est qualitatif plutôt que symbolique porte à la place un math:hasMonotonicity ou un math:hasBound. Un morceau ne nommant aucun math:pieceDomain ne dit pas OÙ il s'applique et est mal formé (l'obligation d'exactement un math:pieceDomain). Le morceau est la cellule de la partition par cas : l'intervalle dit sur quels points la cellule vaut, l'expression ou le marqueur qualitatif dit ce que la fonction y fait."
+
+msgctxt "https://blackcatinformatics.ca/math/hasPiece|rdfs:label"
+msgid "has piece"
+msgstr "possède le morceau"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPiece|skos:definition"
+msgid "Relates a math:PiecewiseFunction to one of its math:FunctionPiece parts. Domain math:PiecewiseFunction, range math:FunctionPiece (stated in prose). A piecewise function names one or more pieces (≥ 1, unbounded — a function has at least one piece, and may have arbitrarily many); a piecewise function with no piece is ill-formed (math:UnderspecifiedPiecewiseFunction)."
+msgstr "Relie une math:PiecewiseFunction à l'une de ses parties math:FunctionPiece. Domaine math:PiecewiseFunction, portée math:FunctionPiece (précisé en prose). Une fonction définie par morceaux nomme un ou plusieurs morceaux (≥ 1, non borné — une fonction a au moins un morceau, et peut en avoir un nombre quelconque) ; une fonction définie par morceaux sans morceau est mal formée (math:UnderspecifiedPiecewiseFunction)."
+
+msgctxt "https://blackcatinformatics.ca/math/pieceDomain|rdfs:label"
+msgid "piece domain"
+msgstr "domaine du morceau"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceDomain|skos:definition"
+msgid "Relates a math:FunctionPiece to the math:Interval it governs — the sub-domain over which the piece's behaviour holds. Domain math:FunctionPiece, range math:Interval (stated in prose). Each piece names exactly one piece-domain; a piece without it does not say where it applies and is ill-formed. The interval is a fully-formed math:Interval (both endpoints and both inclusions), so a half-open cell [0, 1) is distinguished from the closed cell [0, 1]."
+msgstr "Relie un math:FunctionPiece au math:Interval qu'il gouverne — le sous-domaine sur lequel le comportement du morceau vaut. Domaine math:FunctionPiece, portée math:Interval (précisé en prose). Chaque morceau nomme exactement un domaine de morceau ; un morceau sans lui ne dit pas où il s'applique et est mal formé. L'intervalle est un math:Interval pleinement formé (les deux extrémités et les deux inclusions), de sorte qu'une cellule semi-ouverte [0, 1) se distingue de la cellule fermée [0, 1]."
+
+msgctxt "https://blackcatinformatics.ca/math/pieceExpression|rdfs:label"
+msgid "piece expression"
+msgstr "expression du morceau"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceExpression|skos:definition"
+msgid "Relates a math:FunctionPiece to the math:MathematicalExpression giving its behaviour on its piece-domain — the closed form the function takes on that cell. Domain math:FunctionPiece, range math:MathematicalExpression (stated in prose). At most one; it is optional because a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) instead of an explicit expression, but a piece never carries two conflicting expressions."
+msgstr "Relie un math:FunctionPiece à la math:MathematicalExpression donnant son comportement sur son domaine de morceau — la forme close que la fonction prend sur cette cellule. Domaine math:FunctionPiece, portée math:MathematicalExpression (précisé en prose). Au plus une ; elle est optionnelle car un morceau peut porter un comportement analytique qualitatif (math:hasMonotonicity, math:hasBound) au lieu d'une expression explicite, mais un morceau ne porte jamais deux expressions contradictoires."
+
+msgctxt "https://blackcatinformatics.ca/math/MonotonicityKind|rdfs:label"
+msgid "Monotonicity Kind"
+msgstr "Genre de monotonie"
+
+msgctxt "https://blackcatinformatics.ca/math/MonotonicityKind|skos:definition"
+msgid "The kind of monotonic behaviour a function (or a math:FunctionPiece) exhibits over an ordered domain — one of math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing, or math:constant. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration), so a new monotonic sort joins by minting an individual. Each kind is NOT a bare token: it resolves through math:definingLaw to a real first-order logic:Formula stating what the kind MEANS as an ordering condition on the function's values — math:strictMonotonicityLaw for math:strictlyDecreasing, math:strictIncreaseLaw for math:strictlyIncreasing, and so on — so 'this piece is strictly decreasing' is a quantified statement over the reified real/value signature, not prose. A function names its monotonicity through math:hasMonotonicity."
+msgstr "Le genre de comportement monotone qu'une fonction (ou un math:FunctionPiece) présente sur un domaine ordonné — l'un de math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing ou math:constant. Un vocabulaire OUVERT de math:NamedIndividuals (jamais une énumération owl:oneOf), de sorte qu'un nouveau genre monotone rejoint en frappant un individu. Chaque genre n'est PAS un jeton nu : il se résout via math:definingLaw en une véritable logic:Formula du premier ordre énonçant ce que le genre SIGNIFIE comme condition d'ordre sur les valeurs de la fonction — math:strictMonotonicityLaw pour math:strictlyDecreasing, math:strictIncreaseLaw pour math:strictlyIncreasing, et ainsi de suite — de sorte que « ce morceau est strictement décroissant » est un énoncé quantifié sur la signature réels/valeurs réifiée, non de la prose. Une fonction nomme sa monotonie via math:hasMonotonicity."
+
+msgctxt "https://blackcatinformatics.ca/math/hasMonotonicity|rdfs:label"
+msgid "has monotonicity"
+msgstr "possède la monotonie"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMonotonicity|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the math:MonotonicityKind classifying its monotonic behaviour over its ordered domain. Domain math:Function or math:FunctionPiece, range math:MonotonicityKind (stated in prose). The declared, checkable bearer of monotonicity: monotonicity is stated here, and the named kind carries the first-order defining law (math:definingLaw) that fixes its meaning, so a monotonicity claim is always backed by a real logic:Formula, never a flag."
+msgstr "Relie une math:Function (ou un math:FunctionPiece) au math:MonotonicityKind classant son comportement monotone sur son domaine ordonné. Domaine math:Function ou math:FunctionPiece, portée math:MonotonicityKind (précisé en prose). Le porteur déclaré et vérifiable de la monotonie : la monotonie est énoncée ici, et le genre nommé porte la loi définitoire du premier ordre (math:definingLaw) fixant sa signification, de sorte qu'une revendication de monotonie est toujours étayée par une véritable logic:Formula, jamais par un drapeau."
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyDecreasing|rdfs:label"
+msgid "strictly decreasing"
+msgstr "strictement décroissant"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyDecreasing|skos:definition"
+msgid "Strictly decreasing monotonicity: x < y entails f(x) > f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictMonotonicityLaw (rdfs:seeAlso), so the kind is a real quantified ordering condition on the function's values, not a bare token."
+msgstr "Monotonie strictement décroissante : x < y entraîne f(x) > f(y) pour tous points x, y du domaine. Sa loi définitoire est la logic:Formula du premier ordre math:strictMonotonicityLaw (rdfs:seeAlso), de sorte que le genre est une véritable condition d'ordre quantifiée sur les valeurs de la fonction, non un jeton nu."
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyIncreasing|rdfs:label"
+msgid "strictly increasing"
+msgstr "strictement croissant"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyIncreasing|skos:definition"
+msgid "Strictly increasing monotonicity: x < y entails f(x) < f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictIncreaseLaw (rdfs:seeAlso), the order-preserving mirror of math:strictMonotonicityLaw."
+msgstr "Monotonie strictement croissante : x < y entraîne f(x) < f(y) pour tous points x, y du domaine. Sa loi définitoire est la logic:Formula du premier ordre math:strictIncreaseLaw (rdfs:seeAlso), le miroir préservant l'ordre de math:strictMonotonicityLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/nonIncreasing|rdfs:label"
+msgid "non-increasing"
+msgstr "non croissant"
+
+msgctxt "https://blackcatinformatics.ca/math/nonIncreasing|skos:definition"
+msgid "Non-increasing (weakly decreasing) monotonicity: x < y entails f(x) ≥ f(y) for all points x, y of the domain — the function never rises. Its defining law is the first-order logic:Formula math:monotoneNonIncreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictMonotonicityLaw."
+msgstr "Monotonie non croissante (faiblement décroissante) : x < y entraîne f(x) ≥ f(y) pour tous points x, y du domaine — la fonction ne monte jamais. Sa loi définitoire est la logic:Formula du premier ordre math:monotoneNonIncreaseLaw (rdfs:seeAlso), la contrepartie non stricte de math:strictMonotonicityLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/nonDecreasing|rdfs:label"
+msgid "non-decreasing"
+msgstr "non décroissant"
+
+msgctxt "https://blackcatinformatics.ca/math/nonDecreasing|skos:definition"
+msgid "Non-decreasing (weakly increasing) monotonicity: x < y entails f(x) ≤ f(y) for all points x, y of the domain — the function never falls. Its defining law is the first-order logic:Formula math:monotoneNonDecreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictIncreaseLaw."
+msgstr "Monotonie non décroissante (faiblement croissante) : x < y entraîne f(x) ≤ f(y) pour tous points x, y du domaine — la fonction ne descend jamais. Sa loi définitoire est la logic:Formula du premier ordre math:monotoneNonDecreaseLaw (rdfs:seeAlso), la contrepartie non stricte de math:strictIncreaseLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/constant|rdfs:label"
+msgid "constant"
+msgstr "constant"
+
+msgctxt "https://blackcatinformatics.ca/math/constant|skos:definition"
+msgid "Constant monotonicity: f(x) = f(y) for all points x, y of the domain — the function's value never changes. The degenerate limit of both weak sorts. Its defining law is the first-order logic:Formula math:constantMapLaw (rdfs:seeAlso), which requires any two of the function's values to be equal."
+msgstr "Monotonie constante : f(x) = f(y) pour tous points x, y du domaine — la valeur de la fonction ne change jamais. La limite dégénérée des deux genres faibles. Sa loi définitoire est la logic:Formula du premier ordre math:constantMapLaw (rdfs:seeAlso), qui exige que deux quelconques des valeurs de la fonction soient égales."
+
+msgctxt "https://blackcatinformatics.ca/math/AnalyticProperty|rdfs:label"
+msgid "Analytic Property"
+msgstr "Propriété analytique"
+
+msgctxt "https://blackcatinformatics.ca/math/AnalyticProperty|skos:definition"
+msgid "A qualitative analytic property a function may bear — non-affinity, convexity, boundedness, smoothness. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration); a function declares one through math:hasAnalyticProperty. Every analytic property MUST resolve through math:definingLaw to a real first-order logic:Formula (math:nonAffinity → math:nonAffinityLaw, math:convexity → math:convexityLaw, math:boundedness → math:boundednessLaw) OR — for a genuinely higher-order property — to an honest logic:expressivenessBoundary record (math:smoothness → math:smoothnessBoundary). A bare analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty): an analytic property is a quantified statement about the function's values, never a flag."
+msgstr "Une propriété analytique qualitative qu'une fonction peut porter — non-affinité, convexité, bornitude, régularité (lissité). Un vocabulaire OUVERT de math:NamedIndividuals (jamais une énumération owl:oneOf) ; une fonction en déclare une via math:hasAnalyticProperty. Toute propriété analytique DOIT se résoudre via math:definingLaw en une véritable logic:Formula du premier ordre (math:nonAffinity → math:nonAffinityLaw, math:convexity → math:convexityLaw, math:boundedness → math:boundednessLaw) OU — pour une propriété authentiquement d'ordre supérieur — en un enregistrement honnête de frontière logic:expressivenessBoundary (math:smoothness → math:smoothnessBoundary). Une revendication de propriété analytique nue, étayée par aucune loi ni frontière, est mal formée (math:UnbackedAnalyticProperty) : une propriété analytique est un énoncé quantifié sur les valeurs de la fonction, jamais un drapeau."
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnalyticProperty|rdfs:label"
+msgid "has analytic property"
+msgstr "possède la propriété analytique"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnalyticProperty|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to a math:AnalyticProperty it bears — its non-affinity, convexity, boundedness, or smoothness. Domain math:Function or math:FunctionPiece, range math:AnalyticProperty (stated in prose). The declared bearer of a qualitative analytic claim; because the named property carries its defining law or boundary (math:definingLaw), the claim is always backed by a real logic:Formula or an honest recorded boundary, never a bare flag."
+msgstr "Relie une math:Function (ou un math:FunctionPiece) à une math:AnalyticProperty qu'elle porte — sa non-affinité, convexité, bornitude ou régularité. Domaine math:Function ou math:FunctionPiece, portée math:AnalyticProperty (précisé en prose). Le porteur déclaré d'une revendication analytique qualitative ; parce que la propriété nommée porte sa loi définitoire ou sa frontière (math:definingLaw), la revendication est toujours étayée par une véritable logic:Formula ou une frontière honnêtement enregistrée, jamais par un drapeau nu."
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinity|rdfs:label"
+msgid "non-affinity"
+msgstr "non-affinité"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinity|skos:definition"
+msgid "Non-affinity: the function is NOT an affine map — its graph is not a straight line, so there exist three domain points, one an affine combination of the other two, whose graph points fail to be collinear. Its defining law is the first-order logic:Formula math:nonAffinityLaw (rdfs:seeAlso), which witnesses the collinearity failure existentially, mirroring the existential/negation shape of math:connectednessLaw."
+msgstr "Non-affinité : la fonction n'est PAS une application affine — son graphe n'est pas une droite, de sorte qu'il existe trois points du domaine, l'un une combinaison affine des deux autres, dont les points du graphe échouent à être alignés. Sa loi définitoire est la logic:Formula du premier ordre math:nonAffinityLaw (rdfs:seeAlso), qui témoigne existentiellement de l'échec d'alignement, reflétant la forme existentielle/négation de math:connectednessLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/convexity|rdfs:label"
+msgid "convexity"
+msgstr "convexité"
+
+msgctxt "https://blackcatinformatics.ca/math/convexity|skos:definition"
+msgid "Convexity: the function lies on or below its chords — the midpoint of the graph over any two points is at least as high as the graph at the midpoint of those points. Its defining law is the first-order logic:Formula math:convexityLaw (rdfs:seeAlso), authored in the honestly-expressible MIDPOINT-convexity form f((x+y)/2) ≤ (f(x)+f(y))/2: the full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of weights λ and needs scalar arithmetic on the values, so the midpoint form (reifying the midpoint as an uninterpreted relation, never an invented arithmetic function symbol) is the faithful first-order fragment; the λ-general residue is disclosed, not faked."
+msgstr "Convexité : la fonction se situe sur ou sous ses cordes — le milieu du graphe au-dessus de deux points quelconques est au moins aussi haut que le graphe au milieu de ces points. Sa loi définitoire est la logic:Formula du premier ordre math:convexityLaw (rdfs:seeAlso), rédigée dans la forme de convexité au POINT MILIEU honnêtement exprimable f((x+y)/2) ≤ (f(x)+f(y))/2 : l'inégalité de corde λ complète f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifie sur le continuum des poids λ et requiert de l'arithmétique scalaire sur les valeurs, de sorte que la forme du point milieu (réifiant le milieu comme une relation non interprétée, jamais un symbole de fonction arithmétique inventé) est le fragment fidèle du premier ordre ; le résidu λ général est divulgué, non falsifié."
+
+msgctxt "https://blackcatinformatics.ca/math/boundedness|rdfs:label"
+msgid "boundedness"
+msgstr "bornitude"
+
+msgctxt "https://blackcatinformatics.ca/math/boundedness|skos:definition"
+msgid "Boundedness on an interval: the function's absolute value stays within a declared bound ε over a declared interval — the near-zero plateau's defining VALUE property, |f(x)| ≤ ε for every x in the interval. Its defining law is the first-order logic:Formula math:boundednessLaw (rdfs:seeAlso). It is the VALUE property (a bound on the function's magnitude), distinct from measure dominance (a bound on an integral); the bound ε is named through math:hasBound and the interval it holds on through math:boundOnInterval."
+msgstr "Bornitude sur un intervalle : la valeur absolue de la fonction reste dans une borne déclarée ε sur un intervalle déclaré — la propriété de VALEUR définitoire du plateau proche de zéro, |f(x)| ≤ ε pour tout x dans l'intervalle. Sa loi définitoire est la logic:Formula du premier ordre math:boundednessLaw (rdfs:seeAlso). C'est la propriété de VALEUR (une borne sur la magnitude de la fonction), distincte de la domination de mesure (une borne sur une intégrale) ; la borne ε est nommée via math:hasBound et l'intervalle sur lequel elle vaut via math:boundOnInterval."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothness|rdfs:label"
+msgid "smoothness"
+msgstr "régularité (lissité)"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothness|skos:definition"
+msgid "Smoothness (C^∞ / real-analyticity): the function has derivatives of EVERY order. Unlike its siblings math:nonAffinity, math:convexity, and math:boundedness — each backed by a real first-order logic:Formula — smoothness is genuinely SECOND-ORDER: it quantifies over the infinite family of all derivatives, which is not first-order axiomatizable. So it is NOT faked as a first-order law but backed by the honest recorded boundary math:smoothnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:definingLaw and rdfs:seeAlso. This exercises the explicit expressiveness-boundary arm: a real boundary carried in the loss ledger, never silent prose."
+msgstr "Régularité (lissité C^∞ / analyticité réelle) : la fonction a des dérivées de TOUT ordre. Contrairement à ses sœurs math:nonAffinity, math:convexity et math:boundedness — chacune étayée par une véritable logic:Formula du premier ordre — la régularité est authentiquement du SECOND ORDRE : elle quantifie sur la famille infinie de toutes les dérivées, ce qui n'est pas axiomatisable au premier ordre. Elle n'est donc PAS falsifiée en loi du premier ordre mais étayée par la frontière honnêtement enregistrée math:smoothnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), référencée via math:definingLaw et rdfs:seeAlso. Cela exerce le bras explicite de frontière d'expressivité : une véritable frontière portée dans le registre des pertes, jamais de la prose silencieuse."
+
+msgctxt "https://blackcatinformatics.ca/math/hasBound|rdfs:label"
+msgid "has bound"
+msgstr "possède la borne"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBound|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the bound ε on its magnitude — the value such that |f(x)| ≤ ε holds over the declared interval. Domain math:Function or math:FunctionPiece, range a finite non-negative numeric literal (stated in prose); an owl:DatatypeProperty, because a magnitude bound is always a finite number, never a pole. The bound is the ε of the boundedness law math:boundednessLaw; the interval over which it holds is named through math:boundOnInterval. A near-zero plateau declares a small ε here."
+msgstr "Relie une math:Function (ou un math:FunctionPiece) à la borne ε sur sa magnitude — la valeur telle que |f(x)| ≤ ε vaut sur l'intervalle déclaré. Domaine math:Function ou math:FunctionPiece, portée un littéral numérique fini non négatif (précisé en prose) ; une owl:DatatypeProperty, car une borne de magnitude est toujours un nombre fini, jamais un pôle. La borne est le ε de la loi de bornitude math:boundednessLaw ; l'intervalle sur lequel elle vaut est nommé via math:boundOnInterval. Un plateau proche de zéro déclare ici un petit ε."
+
+msgctxt "https://blackcatinformatics.ca/math/boundOnInterval|rdfs:label"
+msgid "bound on interval"
+msgstr "borne sur l'intervalle"
+
+msgctxt "https://blackcatinformatics.ca/math/boundOnInterval|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the math:Interval over which its math:hasBound ε holds. Domain math:Function or math:FunctionPiece, range math:Interval (stated in prose). Together with math:hasBound it grounds the boundedness law math:boundednessLaw: |f(x)| ≤ ε for every x in this interval. A bound stated without the interval it holds on is incomplete — the boundedness claim is scoped to a region, never global by default."
+msgstr "Relie une math:Function (ou un math:FunctionPiece) au math:Interval sur lequel sa borne ε de math:hasBound vaut. Domaine math:Function ou math:FunctionPiece, portée math:Interval (précisé en prose). Avec math:hasBound elle fonde la loi de bornitude math:boundednessLaw : |f(x)| ≤ ε pour tout x dans cet intervalle. Une borne énoncée sans l'intervalle sur lequel elle vaut est incomplète — la revendication de bornitude est cadrée à une région, jamais globale par défaut."
+
+msgctxt "https://blackcatinformatics.ca/math/strictMonotonicityLaw|rdfs:label"
+msgid "strict monotonic decrease: x < y entails f(x) > f(y)"
+msgstr "décroissance monotone stricte : x < y entraîne f(x) > f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/strictMonotonicityLaw|skos:definition"
+msgid "The defining law of math:strictlyDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly decreasing, if x < y and f takes value u at x and v at y, then u > v. math: expresses the law; logic: owns reasoning over it. A sibling of math:continuityLaw in the same first-order style; the monotonicity a strictly-decreasing piece carries, backed by a real law rather than a bare token."
+msgstr "La loi définitoire de math:strictlyDecreasing comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée strictement décroissante, si x < y et f prend la valeur u en x et v en y, alors u > v. math: exprime la loi ; logic: possède le raisonnement sur elle. Une sœur de math:continuityLaw dans le même style du premier ordre ; la monotonie qu'un morceau strictement décroissant porte, étayée par une véritable loi plutôt qu'un jeton nu."
+
+msgctxt "https://blackcatinformatics.ca/math/strictIncreaseLaw|rdfs:label"
+msgid "strict monotonic increase: x < y entails f(x) < f(y)"
+msgstr "croissance monotone stricte : x < y entraîne f(x) < f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/strictIncreaseLaw|skos:definition"
+msgid "The defining law of math:strictlyIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly increasing, if x < y and f takes value u at x and v at y, then u < v. The order-preserving mirror of math:strictMonotonicityLaw."
+msgstr "La loi définitoire de math:strictlyIncreasing comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée strictement croissante, si x < y et f prend la valeur u en x et v en y, alors u < v. Le miroir préservant l'ordre de math:strictMonotonicityLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonIncreaseLaw|rdfs:label"
+msgid "non-increase: x < y entails f(x) ≥ f(y)"
+msgstr "non-croissance : x < y entraîne f(x) ≥ f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonIncreaseLaw|skos:definition"
+msgid "The defining law of math:nonIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-increasing, if x < y and f takes value u at x and v at y, then u ≥ v — the function never rises. The non-strict counterpart of math:strictMonotonicityLaw."
+msgstr "La loi définitoire de math:nonIncreasing comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée non croissante, si x < y et f prend la valeur u en x et v en y, alors u ≥ v — la fonction ne monte jamais. La contrepartie non stricte de math:strictMonotonicityLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonDecreaseLaw|rdfs:label"
+msgid "non-decrease: x < y entails f(x) ≤ f(y)"
+msgstr "non-décroissance : x < y entraîne f(x) ≤ f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonDecreaseLaw|skos:definition"
+msgid "The defining law of math:nonDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-decreasing, if x < y and f takes value u at x and v at y, then u ≤ v — the function never falls. The non-strict counterpart of math:strictIncreaseLaw."
+msgstr "La loi définitoire de math:nonDecreasing comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée non décroissante, si x < y et f prend la valeur u en x et v en y, alors u ≤ v — la fonction ne descend jamais. La contrepartie non stricte de math:strictIncreaseLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/constantMapLaw|rdfs:label"
+msgid "constant: f(x) = f(y) for all x, y"
+msgstr "constante : f(x) = f(y) pour tous x, y"
+
+msgctxt "https://blackcatinformatics.ca/math/constantMapLaw|skos:definition"
+msgid "The defining law of math:constant as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared constant, if f takes value u at x and v at y, then u = v — its value never changes, regardless of the order of x and y. The degenerate limit of both weak monotonicity sorts, so it carries no order atom."
+msgstr "La loi définitoire de math:constant comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarée constante, si f prend la valeur u en x et v en y, alors u = v — sa valeur ne change jamais, quel que soit l'ordre de x et y. La limite dégénérée des deux genres de monotonie faible, elle ne porte donc aucun atome d'ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinityLaw|rdfs:label"
+msgid "non-affinity: the graph has three non-collinear points over a chord"
+msgstr "non-affinité : le graphe a trois points non alignés au-dessus d'une corde"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinityLaw|skos:definition"
+msgid "The defining law of math:nonAffinity as a first-order logic:Formula over the reified real/value signature: for a function f declared non-affine, there exist domain points x, y, z with z a proper affine combination of x and y, and graph values u = f(x), v = f(y), w = f(z), such that the three plane points (x,u), (y,v), (z,w) are NOT collinear. math: expresses the law; logic: owns reasoning over it. It uses logic:exists and logic:not exactly as math:connectednessLaw does; the midpoint/affine combination and collinearity are reified as uninterpreted relations, never invented arithmetic functions."
+msgstr "La loi définitoire de math:nonAffinity comme une logic:Formula du premier ordre sur la signature réels/valeurs réifiée : pour une fonction f déclarée non affine, il existe des points du domaine x, y, z avec z une combinaison affine propre de x et y, et des valeurs du graphe u = f(x), v = f(y), w = f(z), telles que les trois points du plan (x,u), (y,v), (z,w) ne sont PAS alignés. math: exprime la loi ; logic: possède le raisonnement sur elle. Elle utilise logic:exists et logic:not exactement comme le fait math:connectednessLaw ; le milieu / la combinaison affine et l'alignement sont réifiés comme des relations non interprétées, jamais des fonctions arithmétiques inventées."
+
+msgctxt "https://blackcatinformatics.ca/math/convexityLaw|rdfs:label"
+msgid "convexity (midpoint form): f((x+y)/2) ≤ (f(x)+f(y))/2"
+msgstr "convexité (forme au point milieu) : f((x+y)/2) ≤ (f(x)+f(y))/2"
+
+msgctxt "https://blackcatinformatics.ca/math/convexityLaw|skos:definition"
+msgid "The defining law of math:convexity as a first-order logic:Formula over the reified real/value signature, in the honestly-expressible MIDPOINT form: for a function f declared convex, for all x, y with domain midpoint m = (x+y)/2 and value midpoint z = (f(x)+f(y))/2, the value w = f(m) satisfies w ≤ z. math: expresses the law; logic: owns reasoning over it. The full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of λ and needs scalar arithmetic on values, exceeding the first-order fragment without inventing arithmetic function symbols; the midpoint form (reifying the midpoint as the uninterpreted relation math:midpointRel, as math:preimageRel reifies the preimage) is the faithful first-order law, and the λ-general residue is disclosed here, never silently faked."
+msgstr "La loi définitoire de math:convexity comme une logic:Formula du premier ordre sur la signature réels/valeurs réifiée, dans la forme au POINT MILIEU honnêtement exprimable : pour une fonction f déclarée convexe, pour tous x, y de milieu du domaine m = (x+y)/2 et milieu des valeurs z = (f(x)+f(y))/2, la valeur w = f(m) satisfait w ≤ z. math: exprime la loi ; logic: possède le raisonnement sur elle. L'inégalité de corde λ complète f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifie sur le continuum des λ et requiert de l'arithmétique scalaire sur les valeurs, dépassant le fragment du premier ordre sans inventer de symboles de fonction arithmétique ; la forme au point milieu (réifiant le milieu comme la relation non interprétée math:midpointRel, comme math:preimageRel réifie la préimage) est la loi fidèle du premier ordre, et le résidu λ général est divulgué ici, jamais falsifié silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/math/boundednessLaw|rdfs:label"
+msgid "boundedness: |f(x)| ≤ ε for every x in the interval"
+msgstr "bornitude : |f(x)| ≤ ε pour tout x dans l'intervalle"
+
+msgctxt "https://blackcatinformatics.ca/math/boundednessLaw|skos:definition"
+msgid "The defining law of math:boundedness as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declaring a magnitude bound ε (math:hasBound) that holds on an interval I (math:boundOnInterval), if x lies in I and f takes value v at x, then |v| ≤ ε. math: expresses the law; logic: owns reasoning over it. It is the near-zero plateau's defining VALUE property — a bound on the function's magnitude — distinct from measure dominance (a bound on an integral); the bound is scoped to a region, never global by default."
+msgstr "La loi définitoire de math:boundedness comme une logic:Formula du premier ordre universellement quantifiée sur la signature réels/valeurs réifiée : pour une fonction f déclarant une borne de magnitude ε (math:hasBound) valant sur un intervalle I (math:boundOnInterval), si x est dans I et f prend la valeur v en x, alors |v| ≤ ε. math: exprime la loi ; logic: possède le raisonnement sur elle. C'est la propriété de VALEUR définitoire du plateau proche de zéro — une borne sur la magnitude de la fonction — distincte de la domination de mesure (une borne sur une intégrale) ; la borne est cadrée à une région, jamais globale par défaut."
+
+msgctxt "https://blackcatinformatics.ca/math/smoothnessBoundary|rdfs:label"
+msgid "smoothness: an honest recorded second-order boundary (no first-order formula)"
+msgstr "régularité : une frontière du second ordre honnêtement enregistrée (aucune formule du premier ordre)"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothnessBoundary|skos:definition"
+msgid "The loss-ledger boundary record backing math:smoothness: smoothness (C^∞ / real-analyticity, 'the function has derivatives of every order') is genuinely second-order — it ∀-quantifies over the INFINITE FAMILY of all derivatives {f, f′, f″, …}, a quantification over an unbounded family of functions that is not first-order axiomatizable. HiLog reflection could reify a single derivative, but 'for all n, the n-th derivative exists' ranges over the whole family, so a first-order witness would be an unsound uninterpreted predicate. Hence smoothness is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never silent prose (Principle 17). Contrast its siblings math:nonAffinityLaw, math:convexityLaw, and math:boundednessLaw, which ARE first-order logic:Formula laws, exactly as math:compactnessBoundary contrasts with math:continuityLaw and math:connectednessLaw."
+msgstr "L'enregistrement de frontière du registre des pertes étayant math:smoothness : la régularité (lissité C^∞ / analyticité réelle, « la fonction a des dérivées de tout ordre ») est authentiquement du second ordre — elle quantifie universellement sur la FAMILLE INFINIE de toutes les dérivées {f, f′, f″, …}, une quantification sur une famille non bornée de fonctions qui n'est pas axiomatisable au premier ordre. La réflexion HiLog pourrait réifier une seule dérivée, mais « pour tout n, la n-ième dérivée existe » parcourt toute la famille, de sorte qu'un témoin du premier ordre serait un prédicat non interprété non fondé. La régularité est donc portée comme une frontière honnête (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), le résidu divulgué dans le registre et jamais de la prose silencieuse (Principe 17). Contraste avec ses sœurs math:nonAffinityLaw, math:convexityLaw et math:boundednessLaw, qui SONT des lois logic:Formula du premier ordre, exactement comme math:compactnessBoundary contraste avec math:continuityLaw et math:connectednessLaw."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedPiecewiseFunction|rdfs:label"
+msgid "Underspecified Piecewise Function"
+msgstr "Fonction définie par morceaux sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedPiecewiseFunction|skos:definition"
+msgid "The failure raised when a math:PiecewiseFunction declares no math:hasPiece (min-count 1) — a piecewise function is defined BY its pieces, so one with none says nothing about what it computes and is ill-formed. Distinct from math:UnframedFunction (a function missing its domain/codomain, which a piecewise function inherits): this failure is the missing-piece gate specific to the piecewise ladder."
+msgstr "L'échec levé lorsqu'une math:PiecewiseFunction ne déclare aucun math:hasPiece (min-count 1) — une fonction définie par morceaux est définie PAR ses morceaux, de sorte qu'une sans aucun ne dit rien de ce qu'elle calcule et est mal formée. Distinct de math:UnframedFunction (une fonction sans son domaine/codomaine, dont une fonction définie par morceaux hérite) : cet échec est la barrière du morceau manquant propre à l'échelle des morceaux."
+
+msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|rdfs:label"
+msgid "Unbacked Analytic Property"
+msgstr "Propriété analytique non étayée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|skos:definition"
+msgid "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."
+msgstr "L'échec levé lorsqu'une math:AnalyticProperty ne se résout en aucune loi définitoire — elle ne porte aucun arc math:definingLaw vers une véritable logic:Formula du premier ordre (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) ni vers un enregistrement honnête de frontière logic:expressivenessBoundary (math:smoothnessBoundary). Une revendication de monotonie ou de propriété analytique DOIT être étayée par une véritable loi ou une frontière enregistrée, jamais un drapeau nu ; un jeton de propriété analytique nu est inauthorable par construction. Appliqué par la logic:Constraint d'existence gardée math:AnalyticPropertyBackedConstraint (toute math:AnalyticProperty requiert un math:definingLaw), abaissée en une contrainte SHACL sh:sparql."

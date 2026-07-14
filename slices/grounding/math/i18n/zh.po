@@ -1213,3 +1213,251 @@ msgstr "未绑定闭形式"
 msgctxt "https://blackcatinformatics.ca/math/UnboundClosedForm|skos:definition"
 msgid "The failure raised when a math:ClosedFormFunction does not declare both its math:definingExpression (the body AST) and its math:formalArgument (the abstraction variable's declaration). A closed-form function is an explicit expression in one formal argument; a closed form missing its body or its formal argument does not say what it computes or over which variable, and is ill-formed. Its tunable math:functionParameters are 0..n and unconstrained — only the body and the formal argument are required."
 msgstr "当一个 math:ClosedFormFunction 未同时声明其 math:definingExpression（主体 AST）与其 math:formalArgument（抽象变量的声明）时所引发的失败。闭形式函数是一个在单一形式参数上的显式表达式；缺少主体或形式参数的闭形式不说明它计算什么、也不说明就哪个变量，是病态的。其可调的 math:functionParameter 为 0..n 且不受约束——只有主体与形式参数是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/math/PiecewiseFunction|rdfs:label"
+msgid "Piecewise Function"
+msgstr "分段函数"
+
+msgctxt "https://blackcatinformatics.ca/math/PiecewiseFunction|skos:definition"
+msgid "A function defined by pieces: a math:Function whose behaviour is given not by one closed form but by a family of math:FunctionPiece parts, each a sub-behaviour over its own domain restriction. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction); it additionally names one or more pieces through math:hasPiece. A piecewise function declaring NO piece says nothing about what it computes and is ill-formed (math:UnderspecifiedPiecewiseFunction). The pieces partition (or cover) the domain; each piece names the sub-domain it governs through math:pieceDomain and, where it has an explicit form, its behaviour through math:pieceExpression — so the classic split f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0} is data (two pieces over two intervals), not prose. It is not a math:ClosedFormFunction (one expression in one formal argument); it is the case-split generalization, and a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) rather than a full expression."
+msgstr "分段函数：一个 math:Function，其行为不是由单一闭式给出，而是由一族 math:FunctionPiece 部分给出，每一部分是其自身定义域限制上的子行为。它是 math:Function 的子类，因此继承声明其 math:domain 与 math:codomain 的义务（无框架的函数是 math:UnframedFunction）；它另外通过 math:hasPiece 命名一个或多个分段。不声明任何分段的分段函数没有说明它计算什么，是不良构的（math:UnderspecifiedPiecewiseFunction）。这些分段划分（或覆盖）定义域；每个分段通过 math:pieceDomain 命名它所支配的子域，并在其有显式形式时通过 math:pieceExpression 命名其行为——因此经典分段 f(x) = {x² 当 x < 0；e⁻ˣ 当 x ≥ 0} 是数据（两个区间上的两个分段），而非散文。它不是 math:ClosedFormFunction（一个形式参数中的一个表达式）；它是按情形的推广，一个分段可以承载定性解析行为（math:hasMonotonicity、math:hasBound）而非完整表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionPiece|rdfs:label"
+msgid "Function Piece"
+msgstr "函数分段"
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionPiece|skos:definition"
+msgid "One piece of a math:PiecewiseFunction: a domain restriction paired with the sub-behaviour that holds on it. A subclass of math:MathematicalObject named by a piecewise function through math:hasPiece. It names EXACTLY ONE sub-domain through math:pieceDomain (a math:Interval — the sub-domain the piece governs), and, where the piece has an explicit closed form, its behaviour through math:pieceExpression (a math:MathematicalExpression); a piece whose behaviour is qualitative rather than symbolic carries instead a math:hasMonotonicity or a math:hasBound. A piece that names no math:pieceDomain does not say WHERE it applies and is ill-formed (the exactly-one math:pieceDomain gate). The piece is the case-split cell: the interval says over which points the cell holds, the expression or the qualitative marker says what the function does there."
+msgstr "math:PiecewiseFunction 的一个分段：一个定义域限制与在其上成立的子行为相配对。它是 math:MathematicalObject 的子类，由分段函数通过 math:hasPiece 命名。它通过 math:pieceDomain 命名恰好一个子域（一个 math:Interval——该分段所支配的子域），并在该分段有显式闭式时通过 math:pieceExpression 命名其行为（一个 math:MathematicalExpression）；行为为定性而非符号的分段则改为承载 math:hasMonotonicity 或 math:hasBound。不命名任何 math:pieceDomain 的分段没有说明它在何处适用，是不良构的（恰好一个 math:pieceDomain 的约束）。分段是按情形划分的单元：区间说明该单元在哪些点上成立，表达式或定性标记说明函数在那里做什么。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPiece|rdfs:label"
+msgid "has piece"
+msgstr "具有分段"
+
+msgctxt "https://blackcatinformatics.ca/math/hasPiece|skos:definition"
+msgid "Relates a math:PiecewiseFunction to one of its math:FunctionPiece parts. Domain math:PiecewiseFunction, range math:FunctionPiece (stated in prose). A piecewise function names one or more pieces (≥ 1, unbounded — a function has at least one piece, and may have arbitrarily many); a piecewise function with no piece is ill-formed (math:UnderspecifiedPiecewiseFunction)."
+msgstr "将一个 math:PiecewiseFunction 关联到它的某个 math:FunctionPiece 部分。定义域 math:PiecewiseFunction，值域 math:FunctionPiece（以散文说明）。分段函数命名一个或多个分段（≥ 1，无上界——一个函数至少有一个分段，并可有任意多个）；没有分段的分段函数是不良构的（math:UnderspecifiedPiecewiseFunction）。"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceDomain|rdfs:label"
+msgid "piece domain"
+msgstr "分段定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceDomain|skos:definition"
+msgid "Relates a math:FunctionPiece to the math:Interval it governs — the sub-domain over which the piece's behaviour holds. Domain math:FunctionPiece, range math:Interval (stated in prose). Each piece names exactly one piece-domain; a piece without it does not say where it applies and is ill-formed. The interval is a fully-formed math:Interval (both endpoints and both inclusions), so a half-open cell [0, 1) is distinguished from the closed cell [0, 1]."
+msgstr "将一个 math:FunctionPiece 关联到它所支配的 math:Interval——该分段行为成立的子域。定义域 math:FunctionPiece，值域 math:Interval（以散文说明）。每个分段命名恰好一个分段定义域；没有它的分段没有说明它在何处适用，是不良构的。该区间是一个完整成形的 math:Interval（两个端点与两个包含关系），因此半开单元 [0, 1) 与闭单元 [0, 1] 得以区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceExpression|rdfs:label"
+msgid "piece expression"
+msgstr "分段表达式"
+
+msgctxt "https://blackcatinformatics.ca/math/pieceExpression|skos:definition"
+msgid "Relates a math:FunctionPiece to the math:MathematicalExpression giving its behaviour on its piece-domain — the closed form the function takes on that cell. Domain math:FunctionPiece, range math:MathematicalExpression (stated in prose). At most one; it is optional because a piece may carry qualitative analytic behaviour (math:hasMonotonicity, math:hasBound) instead of an explicit expression, but a piece never carries two conflicting expressions."
+msgstr "将一个 math:FunctionPiece 关联到给出其在分段定义域上行为的 math:MathematicalExpression——函数在该单元上所取的闭式。定义域 math:FunctionPiece，值域 math:MathematicalExpression（以散文说明）。至多一个；它是可选的，因为一个分段可以承载定性解析行为（math:hasMonotonicity、math:hasBound）而非显式表达式，但一个分段绝不承载两个相互冲突的表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/MonotonicityKind|rdfs:label"
+msgid "Monotonicity Kind"
+msgstr "单调性种类"
+
+msgctxt "https://blackcatinformatics.ca/math/MonotonicityKind|skos:definition"
+msgid "The kind of monotonic behaviour a function (or a math:FunctionPiece) exhibits over an ordered domain — one of math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing, or math:constant. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration), so a new monotonic sort joins by minting an individual. Each kind is NOT a bare token: it resolves through math:definingLaw to a real first-order logic:Formula stating what the kind MEANS as an ordering condition on the function's values — math:strictMonotonicityLaw for math:strictlyDecreasing, math:strictIncreaseLaw for math:strictlyIncreasing, and so on — so 'this piece is strictly decreasing' is a quantified statement over the reified real/value signature, not prose. A function names its monotonicity through math:hasMonotonicity."
+msgstr "一个函数（或 math:FunctionPiece）在有序定义域上呈现的单调行为的种类——为 math:strictlyIncreasing、math:strictlyDecreasing、math:nonIncreasing、math:nonDecreasing 或 math:constant 之一。这是 math:NamedIndividual 的一个开放词汇（绝非 owl:oneOf 枚举），因此新的单调类别通过铸造一个个体即可加入。每个类别都不是裸标记：它通过 math:definingLaw 解析为一条真实的一阶 logic:Formula，陈述该类别作为函数值上的序条件所意味的内容——math:strictlyDecreasing 对应 math:strictMonotonicityLaw，math:strictlyIncreasing 对应 math:strictIncreaseLaw，依此类推——因此“该分段严格递减”是关于具体化的实数/值签名的量化陈述，而非散文。函数通过 math:hasMonotonicity 命名其单调性。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMonotonicity|rdfs:label"
+msgid "has monotonicity"
+msgstr "具有单调性"
+
+msgctxt "https://blackcatinformatics.ca/math/hasMonotonicity|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the math:MonotonicityKind classifying its monotonic behaviour over its ordered domain. Domain math:Function or math:FunctionPiece, range math:MonotonicityKind (stated in prose). The declared, checkable bearer of monotonicity: monotonicity is stated here, and the named kind carries the first-order defining law (math:definingLaw) that fixes its meaning, so a monotonicity claim is always backed by a real logic:Formula, never a flag."
+msgstr "将一个 math:Function（或 math:FunctionPiece）关联到对其在有序定义域上单调行为进行分类的 math:MonotonicityKind。定义域 math:Function 或 math:FunctionPiece，值域 math:MonotonicityKind（以散文说明）。单调性的已声明、可核查的承载者：单调性在此陈述，且所命名的类别承载确定其含义的一阶定义律（math:definingLaw），因此单调性主张始终由真实的 logic:Formula 支撑，绝非由标志支撑。"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyDecreasing|rdfs:label"
+msgid "strictly decreasing"
+msgstr "严格递减"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyDecreasing|skos:definition"
+msgid "Strictly decreasing monotonicity: x < y entails f(x) > f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictMonotonicityLaw (rdfs:seeAlso), so the kind is a real quantified ordering condition on the function's values, not a bare token."
+msgstr "严格递减单调性：对定义域中所有点 x、y，x < y 蕴含 f(x) > f(y)。其定义律是一阶 logic:Formula math:strictMonotonicityLaw（rdfs:seeAlso），因此该类别是关于函数值的真实量化序条件，而非裸标记。"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyIncreasing|rdfs:label"
+msgid "strictly increasing"
+msgstr "严格递增"
+
+msgctxt "https://blackcatinformatics.ca/math/strictlyIncreasing|skos:definition"
+msgid "Strictly increasing monotonicity: x < y entails f(x) < f(y) for all points x, y of the domain. Its defining law is the first-order logic:Formula math:strictIncreaseLaw (rdfs:seeAlso), the order-preserving mirror of math:strictMonotonicityLaw."
+msgstr "严格递增单调性：对定义域中所有点 x、y，x < y 蕴含 f(x) < f(y)。其定义律是一阶 logic:Formula math:strictIncreaseLaw（rdfs:seeAlso），即 math:strictMonotonicityLaw 保序的镜像。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonIncreasing|rdfs:label"
+msgid "non-increasing"
+msgstr "非递增"
+
+msgctxt "https://blackcatinformatics.ca/math/nonIncreasing|skos:definition"
+msgid "Non-increasing (weakly decreasing) monotonicity: x < y entails f(x) ≥ f(y) for all points x, y of the domain — the function never rises. Its defining law is the first-order logic:Formula math:monotoneNonIncreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictMonotonicityLaw."
+msgstr "非递增（弱递减）单调性：对定义域中所有点 x、y，x < y 蕴含 f(x) ≥ f(y)——函数从不上升。其定义律是一阶 logic:Formula math:monotoneNonIncreaseLaw（rdfs:seeAlso），即 math:strictMonotonicityLaw 的非严格对应。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonDecreasing|rdfs:label"
+msgid "non-decreasing"
+msgstr "非递减"
+
+msgctxt "https://blackcatinformatics.ca/math/nonDecreasing|skos:definition"
+msgid "Non-decreasing (weakly increasing) monotonicity: x < y entails f(x) ≤ f(y) for all points x, y of the domain — the function never falls. Its defining law is the first-order logic:Formula math:monotoneNonDecreaseLaw (rdfs:seeAlso), the non-strict counterpart of math:strictIncreaseLaw."
+msgstr "非递减（弱递增）单调性：对定义域中所有点 x、y，x < y 蕴含 f(x) ≤ f(y)——函数从不下降。其定义律是一阶 logic:Formula math:monotoneNonDecreaseLaw（rdfs:seeAlso），即 math:strictIncreaseLaw 的非严格对应。"
+
+msgctxt "https://blackcatinformatics.ca/math/constant|rdfs:label"
+msgid "constant"
+msgstr "常值"
+
+msgctxt "https://blackcatinformatics.ca/math/constant|skos:definition"
+msgid "Constant monotonicity: f(x) = f(y) for all points x, y of the domain — the function's value never changes. The degenerate limit of both weak sorts. Its defining law is the first-order logic:Formula math:constantMapLaw (rdfs:seeAlso), which requires any two of the function's values to be equal."
+msgstr "常值单调性：对定义域中所有点 x、y，f(x) = f(y)——函数的值从不改变。两种弱单调类别的退化极限。其定义律是一阶 logic:Formula math:constantMapLaw（rdfs:seeAlso），它要求函数的任意两个值相等。"
+
+msgctxt "https://blackcatinformatics.ca/math/AnalyticProperty|rdfs:label"
+msgid "Analytic Property"
+msgstr "解析性质"
+
+msgctxt "https://blackcatinformatics.ca/math/AnalyticProperty|skos:definition"
+msgid "A qualitative analytic property a function may bear — non-affinity, convexity, boundedness, smoothness. An OPEN vocabulary of math:NamedIndividuals (never an owl:oneOf enumeration); a function declares one through math:hasAnalyticProperty. Every analytic property MUST resolve through math:definingLaw to a real first-order logic:Formula (math:nonAffinity → math:nonAffinityLaw, math:convexity → math:convexityLaw, math:boundedness → math:boundednessLaw) OR — for a genuinely higher-order property — to an honest logic:expressivenessBoundary record (math:smoothness → math:smoothnessBoundary). A bare analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty): an analytic property is a quantified statement about the function's values, never a flag."
+msgstr "一个函数可承载的定性解析性质——非仿射性、凸性、有界性、光滑性。这是 math:NamedIndividual 的一个开放词汇（绝非 owl:oneOf 枚举）；函数通过 math:hasAnalyticProperty 声明其一。任何解析性质都必须通过 math:definingLaw 解析为真实的一阶 logic:Formula（math:nonAffinity → math:nonAffinityLaw、math:convexity → math:convexityLaw、math:boundedness → math:boundednessLaw），或——对真正高阶的性质——解析为诚实的 logic:expressivenessBoundary 边界记录（math:smoothness → math:smoothnessBoundary）。没有任何定律或边界支撑的裸解析性质主张是不良构的（math:UnbackedAnalyticProperty）：解析性质是关于函数值的量化陈述，绝非标志。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnalyticProperty|rdfs:label"
+msgid "has analytic property"
+msgstr "具有解析性质"
+
+msgctxt "https://blackcatinformatics.ca/math/hasAnalyticProperty|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to a math:AnalyticProperty it bears — its non-affinity, convexity, boundedness, or smoothness. Domain math:Function or math:FunctionPiece, range math:AnalyticProperty (stated in prose). The declared bearer of a qualitative analytic claim; because the named property carries its defining law or boundary (math:definingLaw), the claim is always backed by a real logic:Formula or an honest recorded boundary, never a bare flag."
+msgstr "将一个 math:Function（或 math:FunctionPiece）关联到它所承载的 math:AnalyticProperty——其非仿射性、凸性、有界性或光滑性。定义域 math:Function 或 math:FunctionPiece，值域 math:AnalyticProperty（以散文说明）。定性解析主张的已声明承载者；由于所命名的性质承载其定义律或边界（math:definingLaw），该主张始终由真实的 logic:Formula 或诚实记录的边界支撑，绝非由裸标志支撑。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinity|rdfs:label"
+msgid "non-affinity"
+msgstr "非仿射性"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinity|skos:definition"
+msgid "Non-affinity: the function is NOT an affine map — its graph is not a straight line, so there exist three domain points, one an affine combination of the other two, whose graph points fail to be collinear. Its defining law is the first-order logic:Formula math:nonAffinityLaw (rdfs:seeAlso), which witnesses the collinearity failure existentially, mirroring the existential/negation shape of math:connectednessLaw."
+msgstr "非仿射性：函数不是仿射映射——其图像不是直线，故存在三个定义域点，其中之一是另两点的仿射组合，而它们的图像点未能共线。其定义律是一阶 logic:Formula math:nonAffinityLaw（rdfs:seeAlso），它以存在方式见证共线性的失败，镜像 math:connectednessLaw 的存在/否定形式。"
+
+msgctxt "https://blackcatinformatics.ca/math/convexity|rdfs:label"
+msgid "convexity"
+msgstr "凸性"
+
+msgctxt "https://blackcatinformatics.ca/math/convexity|skos:definition"
+msgid "Convexity: the function lies on or below its chords — the midpoint of the graph over any two points is at least as high as the graph at the midpoint of those points. Its defining law is the first-order logic:Formula math:convexityLaw (rdfs:seeAlso), authored in the honestly-expressible MIDPOINT-convexity form f((x+y)/2) ≤ (f(x)+f(y))/2: the full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of weights λ and needs scalar arithmetic on the values, so the midpoint form (reifying the midpoint as an uninterpreted relation, never an invented arithmetic function symbol) is the faithful first-order fragment; the λ-general residue is disclosed, not faked."
+msgstr "凸性：函数位于其弦上或弦下——任意两点上图像的中点至少与这两点中点处的图像一样高。其定义律是一阶 logic:Formula math:convexityLaw（rdfs:seeAlso），以可诚实表达的中点凸性形式 f((x+y)/2) ≤ (f(x)+f(y))/2 编写：完整的 λ 弦不等式 f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) 在权重 λ 的连续统上量化并需要对值作标量算术，因此中点形式（将中点具体化为一个未解释的关系，绝非杜撰的算术函数符号）是忠实的一阶片段；λ 一般情形的残余被披露，而非伪造。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundedness|rdfs:label"
+msgid "boundedness"
+msgstr "有界性"
+
+msgctxt "https://blackcatinformatics.ca/math/boundedness|skos:definition"
+msgid "Boundedness on an interval: the function's absolute value stays within a declared bound ε over a declared interval — the near-zero plateau's defining VALUE property, |f(x)| ≤ ε for every x in the interval. Its defining law is the first-order logic:Formula math:boundednessLaw (rdfs:seeAlso). It is the VALUE property (a bound on the function's magnitude), distinct from measure dominance (a bound on an integral); the bound ε is named through math:hasBound and the interval it holds on through math:boundOnInterval."
+msgstr "区间上的有界性：函数的绝对值在声明的区间上保持在声明的界 ε 之内——近零平台的定义性数值性质，对区间中每个 x 有 |f(x)| ≤ ε。其定义律是一阶 logic:Formula math:boundednessLaw（rdfs:seeAlso）。它是数值性质（对函数量值的界），有别于测度支配（对积分的界）；界 ε 通过 math:hasBound 命名，其成立所在的区间通过 math:boundOnInterval 命名。"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothness|rdfs:label"
+msgid "smoothness"
+msgstr "光滑性"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothness|skos:definition"
+msgid "Smoothness (C^∞ / real-analyticity): the function has derivatives of EVERY order. Unlike its siblings math:nonAffinity, math:convexity, and math:boundedness — each backed by a real first-order logic:Formula — smoothness is genuinely SECOND-ORDER: it quantifies over the infinite family of all derivatives, which is not first-order axiomatizable. So it is NOT faked as a first-order law but backed by the honest recorded boundary math:smoothnessBoundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), referenced through math:definingLaw and rdfs:seeAlso. This exercises the explicit expressiveness-boundary arm: a real boundary carried in the loss ledger, never silent prose."
+msgstr "光滑性（C^∞ / 实解析性）：函数具有任意阶的导数。与其姊妹 math:nonAffinity、math:convexity 和 math:boundedness——各由真实一阶 logic:Formula 支撑——不同，光滑性是真正的二阶性质：它在所有导数的无穷族上量化，而这在一阶中不可公理化。因此它不被伪造为一阶定律，而由诚实记录的边界 math:smoothnessBoundary（logic:expressivenessBoundary logic:SecondOrder、logic:preservationKind logic:Unsupported）支撑，经由 math:definingLaw 与 rdfs:seeAlso 引用。这实践了显式表达力边界之臂：一个承载于损失账本中的真实边界，绝非无声的散文。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBound|rdfs:label"
+msgid "has bound"
+msgstr "具有界"
+
+msgctxt "https://blackcatinformatics.ca/math/hasBound|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the bound ε on its magnitude — the value such that |f(x)| ≤ ε holds over the declared interval. Domain math:Function or math:FunctionPiece, range a finite non-negative numeric literal (stated in prose); an owl:DatatypeProperty, because a magnitude bound is always a finite number, never a pole. The bound is the ε of the boundedness law math:boundednessLaw; the interval over which it holds is named through math:boundOnInterval. A near-zero plateau declares a small ε here."
+msgstr "将一个 math:Function（或 math:FunctionPiece）关联到其量值上的界 ε——使得 |f(x)| ≤ ε 在声明区间上成立的值。定义域 math:Function 或 math:FunctionPiece，值域为有限非负数值字面量（以散文说明）；一个 owl:DatatypeProperty，因为量值界始终是有限数，绝非极点。该界是有界性定律 math:boundednessLaw 的 ε；其成立所在的区间通过 math:boundOnInterval 命名。近零平台在此声明一个很小的 ε。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundOnInterval|rdfs:label"
+msgid "bound on interval"
+msgstr "区间上的界"
+
+msgctxt "https://blackcatinformatics.ca/math/boundOnInterval|skos:definition"
+msgid "Relates a math:Function (or a math:FunctionPiece) to the math:Interval over which its math:hasBound ε holds. Domain math:Function or math:FunctionPiece, range math:Interval (stated in prose). Together with math:hasBound it grounds the boundedness law math:boundednessLaw: |f(x)| ≤ ε for every x in this interval. A bound stated without the interval it holds on is incomplete — the boundedness claim is scoped to a region, never global by default."
+msgstr "将一个 math:Function（或 math:FunctionPiece）关联到其 math:hasBound 之 ε 界成立所在的 math:Interval。定义域 math:Function 或 math:FunctionPiece，值域 math:Interval（以散文说明）。它与 math:hasBound 一起奠定有界性定律 math:boundednessLaw：对该区间中每个 x 有 |f(x)| ≤ ε。未附带其成立区间的界是不完整的——有界性主张被限定于某一区域，绝非默认全局。"
+
+msgctxt "https://blackcatinformatics.ca/math/strictMonotonicityLaw|rdfs:label"
+msgid "strict monotonic decrease: x < y entails f(x) > f(y)"
+msgstr "严格单调递减：x < y 蕴含 f(x) > f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/strictMonotonicityLaw|skos:definition"
+msgid "The defining law of math:strictlyDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly decreasing, if x < y and f takes value u at x and v at y, then u > v. math: expresses the law; logic: owns reasoning over it. A sibling of math:continuityLaw in the same first-order style; the monotonicity a strictly-decreasing piece carries, backed by a real law rather than a bare token."
+msgstr "math:strictlyDecreasing 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为严格递减的函数 f，若 x < y 且 f 在 x 取值 u、在 y 取值 v，则 u > v。math: 表达定律；logic: 拥有对其的推理。它是 math:continuityLaw 在同一一阶风格下的姊妹；严格递减分段所承载的单调性，由真实定律而非裸标记支撑。"
+
+msgctxt "https://blackcatinformatics.ca/math/strictIncreaseLaw|rdfs:label"
+msgid "strict monotonic increase: x < y entails f(x) < f(y)"
+msgstr "严格单调递增：x < y 蕴含 f(x) < f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/strictIncreaseLaw|skos:definition"
+msgid "The defining law of math:strictlyIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared strictly increasing, if x < y and f takes value u at x and v at y, then u < v. The order-preserving mirror of math:strictMonotonicityLaw."
+msgstr "math:strictlyIncreasing 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为严格递增的函数 f，若 x < y 且 f 在 x 取值 u、在 y 取值 v，则 u < v。即 math:strictMonotonicityLaw 保序的镜像。"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonIncreaseLaw|rdfs:label"
+msgid "non-increase: x < y entails f(x) ≥ f(y)"
+msgstr "非递增：x < y 蕴含 f(x) ≥ f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonIncreaseLaw|skos:definition"
+msgid "The defining law of math:nonIncreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-increasing, if x < y and f takes value u at x and v at y, then u ≥ v — the function never rises. The non-strict counterpart of math:strictMonotonicityLaw."
+msgstr "math:nonIncreasing 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为非递增的函数 f，若 x < y 且 f 在 x 取值 u、在 y 取值 v，则 u ≥ v——函数从不上升。即 math:strictMonotonicityLaw 的非严格对应。"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonDecreaseLaw|rdfs:label"
+msgid "non-decrease: x < y entails f(x) ≤ f(y)"
+msgstr "非递减：x < y 蕴含 f(x) ≤ f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/monotoneNonDecreaseLaw|skos:definition"
+msgid "The defining law of math:nonDecreasing as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared non-decreasing, if x < y and f takes value u at x and v at y, then u ≤ v — the function never falls. The non-strict counterpart of math:strictIncreaseLaw."
+msgstr "math:nonDecreasing 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为非递减的函数 f，若 x < y 且 f 在 x 取值 u、在 y 取值 v，则 u ≤ v——函数从不下降。即 math:strictIncreaseLaw 的非严格对应。"
+
+msgctxt "https://blackcatinformatics.ca/math/constantMapLaw|rdfs:label"
+msgid "constant: f(x) = f(y) for all x, y"
+msgstr "常值：对所有 x、y 有 f(x) = f(y)"
+
+msgctxt "https://blackcatinformatics.ca/math/constantMapLaw|skos:definition"
+msgid "The defining law of math:constant as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declared constant, if f takes value u at x and v at y, then u = v — its value never changes, regardless of the order of x and y. The degenerate limit of both weak monotonicity sorts, so it carries no order atom."
+msgstr "math:constant 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明为常值的函数 f，若 f 在 x 取值 u、在 y 取值 v，则 u = v——无论 x 与 y 的次序如何，其值从不改变。它是两种弱单调类别的退化极限，故不承载任何序原子。"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinityLaw|rdfs:label"
+msgid "non-affinity: the graph has three non-collinear points over a chord"
+msgstr "非仿射性：图像在一条弦上有三个不共线的点"
+
+msgctxt "https://blackcatinformatics.ca/math/nonAffinityLaw|skos:definition"
+msgid "The defining law of math:nonAffinity as a first-order logic:Formula over the reified real/value signature: for a function f declared non-affine, there exist domain points x, y, z with z a proper affine combination of x and y, and graph values u = f(x), v = f(y), w = f(z), such that the three plane points (x,u), (y,v), (z,w) are NOT collinear. math: expresses the law; logic: owns reasoning over it. It uses logic:exists and logic:not exactly as math:connectednessLaw does; the midpoint/affine combination and collinearity are reified as uninterpreted relations, never invented arithmetic functions."
+msgstr "math:nonAffinity 的定义律，是关于具体化实数/值签名的一阶 logic:Formula：对声明为非仿射的函数 f，存在定义域点 x、y、z，其中 z 是 x 与 y 的真仿射组合，且图像值 u = f(x)、v = f(y)、w = f(z)，使得平面上三点 (x,u)、(y,v)、(z,w) 不共线。math: 表达定律；logic: 拥有对其的推理。它像 math:connectednessLaw 一样使用 logic:exists 与 logic:not；中点/仿射组合与共线性被具体化为未解释的关系，绝非杜撰的算术函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/convexityLaw|rdfs:label"
+msgid "convexity (midpoint form): f((x+y)/2) ≤ (f(x)+f(y))/2"
+msgstr "凸性（中点形式）：f((x+y)/2) ≤ (f(x)+f(y))/2"
+
+msgctxt "https://blackcatinformatics.ca/math/convexityLaw|skos:definition"
+msgid "The defining law of math:convexity as a first-order logic:Formula over the reified real/value signature, in the honestly-expressible MIDPOINT form: for a function f declared convex, for all x, y with domain midpoint m = (x+y)/2 and value midpoint z = (f(x)+f(y))/2, the value w = f(m) satisfies w ≤ z. math: expresses the law; logic: owns reasoning over it. The full λ-chord inequality f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) quantifies over the continuum of λ and needs scalar arithmetic on values, exceeding the first-order fragment without inventing arithmetic function symbols; the midpoint form (reifying the midpoint as the uninterpreted relation math:midpointRel, as math:preimageRel reifies the preimage) is the faithful first-order law, and the λ-general residue is disclosed here, never silently faked."
+msgstr "math:convexity 的定义律，是关于具体化实数/值签名、以可诚实表达的中点形式给出的一阶 logic:Formula：对声明为凸的函数 f，对所有 x、y，其定义域中点 m = (x+y)/2、值中点 z = (f(x)+f(y))/2，值 w = f(m) 满足 w ≤ z。math: 表达定律；logic: 拥有对其的推理。完整的 λ 弦不等式 f(λx+(1−λ)y) ≤ λf(x)+(1−λ)f(y) 在 λ 的连续统上量化并需要对值作标量算术，超出一阶片段且不杜撰算术函数符号；中点形式（将中点具体化为未解释关系 math:midpointRel，正如 math:preimageRel 将原像具体化）是忠实的一阶定律，而 λ 一般情形的残余在此披露，绝非无声伪造。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundednessLaw|rdfs:label"
+msgid "boundedness: |f(x)| ≤ ε for every x in the interval"
+msgstr "有界性：对区间中每个 x 有 |f(x)| ≤ ε"
+
+msgctxt "https://blackcatinformatics.ca/math/boundednessLaw|skos:definition"
+msgid "The defining law of math:boundedness as a universally-quantified first-order logic:Formula over the reified real/value signature: for a function f declaring a magnitude bound ε (math:hasBound) that holds on an interval I (math:boundOnInterval), if x lies in I and f takes value v at x, then |v| ≤ ε. math: expresses the law; logic: owns reasoning over it. It is the near-zero plateau's defining VALUE property — a bound on the function's magnitude — distinct from measure dominance (a bound on an integral); the bound is scoped to a region, never global by default."
+msgstr "math:boundedness 的定义律，是关于具体化实数/值签名的全称量化一阶 logic:Formula：对声明了在区间 I（math:boundOnInterval）上成立的量值界 ε（math:hasBound）的函数 f，若 x 在 I 中且 f 在 x 取值 v，则 |v| ≤ ε。math: 表达定律；logic: 拥有对其的推理。它是近零平台的定义性数值性质——对函数量值的界——有别于测度支配（对积分的界）；该界被限定于某一区域，绝非默认全局。"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothnessBoundary|rdfs:label"
+msgid "smoothness: an honest recorded second-order boundary (no first-order formula)"
+msgstr "光滑性：一个诚实记录的二阶边界（无一阶公式）"
+
+msgctxt "https://blackcatinformatics.ca/math/smoothnessBoundary|skos:definition"
+msgid "The loss-ledger boundary record backing math:smoothness: smoothness (C^∞ / real-analyticity, 'the function has derivatives of every order') is genuinely second-order — it ∀-quantifies over the INFINITE FAMILY of all derivatives {f, f′, f″, …}, a quantification over an unbounded family of functions that is not first-order axiomatizable. HiLog reflection could reify a single derivative, but 'for all n, the n-th derivative exists' ranges over the whole family, so a first-order witness would be an unsound uninterpreted predicate. Hence smoothness is carried as an honest boundary (logic:expressivenessBoundary logic:SecondOrder, logic:preservationKind logic:Unsupported), residue disclosed in the ledger and never silent prose (Principle 17). Contrast its siblings math:nonAffinityLaw, math:convexityLaw, and math:boundednessLaw, which ARE first-order logic:Formula laws, exactly as math:compactnessBoundary contrasts with math:continuityLaw and math:connectednessLaw."
+msgstr "支撑 math:smoothness 的损失账本边界记录：光滑性（C^∞ / 实解析性，“函数具有任意阶导数”）是真正的二阶——它对所有导数的无穷族 {f, f′, f″, …} 作全称量化，这是对一个无界函数族的量化，在一阶中不可公理化。HiLog 反射可以具体化单个导数，但“对所有 n，第 n 阶导数存在”遍历整个族，因此一阶见证将是一个不可靠的未解释谓词。故光滑性作为一个诚实边界承载（logic:expressivenessBoundary logic:SecondOrder、logic:preservationKind logic:Unsupported），残余在账本中披露而绝非无声散文（原则 17）。这与其姊妹 math:nonAffinityLaw、math:convexityLaw 和 math:boundednessLaw 形成对照，后三者是一阶 logic:Formula 定律，正如 math:compactnessBoundary 与 math:continuityLaw 及 math:connectednessLaw 形成对照。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedPiecewiseFunction|rdfs:label"
+msgid "Underspecified Piecewise Function"
+msgstr "欠指定的分段函数"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedPiecewiseFunction|skos:definition"
+msgid "The failure raised when a math:PiecewiseFunction declares no math:hasPiece (min-count 1) — a piecewise function is defined BY its pieces, so one with none says nothing about what it computes and is ill-formed. Distinct from math:UnframedFunction (a function missing its domain/codomain, which a piecewise function inherits): this failure is the missing-piece gate specific to the piecewise ladder."
+msgstr "当一个 math:PiecewiseFunction 不声明任何 math:hasPiece（最小基数 1）时引发的失败——分段函数由其分段所定义，故没有任何分段者未说明它计算什么，是不良构的。它有别于 math:UnframedFunction（缺少定义域/陪域的函数，分段函数会继承之）：此失败是分段阶梯特有的缺失分段门。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|rdfs:label"
+msgid "Unbacked Analytic Property"
+msgstr "无支撑的解析性质"
+
+msgctxt "https://blackcatinformatics.ca/math/UnbackedAnalyticProperty|skos:definition"
+msgid "The failure raised when a math:AnalyticProperty resolves to no defining law — it carries no math:definingLaw edge to a real first-order logic:Formula (math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) nor to an honest logic:expressivenessBoundary record (math:smoothnessBoundary). A monotonicity or analytic-property claim MUST be backed by a real law or a recorded boundary, never a bare flag; a bare analytic-property token is unauthorable by construction. Enforced by the guarded-existence logic:Constraint math:AnalyticPropertyBackedConstraint (every math:AnalyticProperty requires a math:definingLaw), lowered to a SHACL sh:sparql constraint."
+msgstr "当一个 math:AnalyticProperty 不解析为任何定义律时引发的失败——它既不携带指向真实一阶 logic:Formula（math:nonAffinityLaw、math:convexityLaw、math:boundednessLaw）的 math:definingLaw 弧，也不携带指向诚实 logic:expressivenessBoundary 边界记录（math:smoothnessBoundary）的弧。单调性或解析性质主张必须由真实定律或已记录边界支撑，绝非裸标志；裸解析性质标记在构造上不可编写。由受护存在性 logic:Constraint math:AnalyticPropertyBackedConstraint（每个 math:AnalyticProperty 都要求一个 math:definingLaw）强制执行，降级为 SHACL sh:sparql 约束。"

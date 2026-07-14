@@ -1778,3 +1778,49 @@ gmeow:eqMathPosteriorDistribution a gmeow:TermEquivalence ;
     gmeow:objectLabel "posterior probability" ;
     gmeow:comment "math:PosteriorDistribution is the distribution over a parameter after data, proportional to prior times likelihood; wd:Q278079 (posterior probability) is the posterior probability distribution used in Bayesian statistics. Identity, so skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+# --- Task-7 analytic vocabulary → Wikidata (curl-verified QIDs) ------------- #
+# math:PiecewiseFunction is class-to-class identity (skos:exactMatch); the analytic
+# properties and the monotonicity-kind vocabulary correspond to the Wikidata function
+# CONCEPTS but as a property/kind, not the function class itself, so the honest rung is
+# skos:closeMatch. QIDs verified against the Wikidata search API on authoring.
+
+gmeow:eqMathPiecewiseFunction a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:PiecewiseFunction ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q2037833 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "piecewise function" ;
+    gmeow:comment "math:PiecewiseFunction is a function defined by pieces, each a sub-behaviour over its own interval; wd:Q2037833 (piecewise function) is defined identically ('function which is defined by multiple sub-functions each over its own interval'). Class-to-class identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathConvexity a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:convexity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q319913 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "convex function" ;
+    gmeow:comment "math:convexity is the analytic PROPERTY (a function lies on or below its chords), backed by math:convexityLaw; wd:Q319913 (convex function) is the function that bears it ('real function with secant line between points above the graph'). Property to function-class, close but not invertibly identical, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathMonotonicityKind a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:MonotonicityKind ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q194404 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "monotonic function" ;
+    gmeow:comment "math:MonotonicityKind is the vocabulary classifying a function's monotonic behaviour (strictly increasing/decreasing, non-increasing/decreasing, constant); wd:Q194404 (monotonic function) is the function that preserves or reverses the order. Classifier to function-concept, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathSmoothness a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:smoothness ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q868473 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "smooth function" ;
+    gmeow:comment "math:smoothness is the analytic PROPERTY (derivatives of every order), carried as the honest second-order boundary math:smoothnessBoundary; wd:Q868473 (smooth function) is the function 'having derivatives of any order' that bears it. Property to function-class, so skos:closeMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
