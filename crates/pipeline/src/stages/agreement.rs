@@ -186,9 +186,10 @@ pub(crate) fn render_agreement_matrix(
             .to_string(),
     );
     lines.push(
-        "declined to grade (an out-of-fragment conclusion shape), tallied across all corpora."
+        "declined to grade (an out-of-fragment conclusion shape), tallied across corpora carrying"
             .to_string(),
     );
+    lines.push("structured gap shapes.".to_string());
     lines.push(String::new());
     if gap_shape_totals.is_empty() {
         lines.push("_(none in the committed corpus)_".to_string());

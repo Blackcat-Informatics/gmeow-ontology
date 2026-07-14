@@ -180,6 +180,23 @@ impl CapabilityGapShape {
     pub fn is_reasoner_fragment_gap(&self) -> bool {
         !matches!(self, CapabilityGapShape::VendoringMultiGoal)
     }
+
+    /// The local name of the `gmeow:GapShape` OWL individual this variant reifies as —
+    /// the SINGLE authority tying the ontology's closed `gmeow:GapShape` value class to
+    /// this enum, so `slices/core/diagnostics/module.ttl` and the Rust taxonomy can
+    /// never drift apart. Used by the conformance reifier
+    /// ([`gmeow_conformance::divergence::emit_capability_gap_nq`]) to mint the
+    /// `gmeow:gapShape` object IRI (`{GMEOW}{local}`).
+    #[must_use]
+    pub fn ontology_individual_local(&self) -> &'static str {
+        match self {
+            CapabilityGapShape::RoleAssertion => "GapShapeRoleAssertion",
+            CapabilityGapShape::ExistentialWitness => "GapShapeExistentialWitness",
+            CapabilityGapShape::NativeCoverage => "GapShapeNativeCoverage",
+            CapabilityGapShape::Malformed => "GapShapeMalformed",
+            CapabilityGapShape::VendoringMultiGoal => "GapShapeVendoringMultiGoal",
+        }
+    }
 }
 
 /// The structured reason a conclusion falls outside the soundly-refutable fragment.
@@ -763,6 +780,34 @@ mod tests {
         assert!(
             err.message().contains("reserved entailment IRI"),
             "expected a reserved-namespace hard fail, got {err}"
+        );
+    }
+
+    /// [`CapabilityGapShape::ontology_individual_local`] is the single naming
+    /// authority for the `gmeow:GapShape` individuals: every variant maps to a
+    /// distinct local name, and [`CapabilityGapShape::is_reasoner_fragment_gap`]
+    /// is true for exactly the first four (reasoner-fragment gaps), false only for
+    /// `VendoringMultiGoal` (a vendoring-format limit, not a reasoner gap).
+    #[test]
+    fn ontology_individual_locals_are_five_distinct_and_match_fragment_gap_flag() {
+        let locals: BTreeSet<&'static str> = CapabilityGapShape::ALL
+            .iter()
+            .map(CapabilityGapShape::ontology_individual_local)
+            .collect();
+        assert_eq!(
+            locals.len(),
+            5,
+            "all 5 CapabilityGapShape variants must map to distinct gmeow:GapShape locals"
+        );
+        for shape in &CapabilityGapShape::ALL[..4] {
+            assert!(
+                shape.is_reasoner_fragment_gap(),
+                "{shape:?} must be a reasoner-fragment gap"
+            );
+        }
+        assert!(
+            !CapabilityGapShape::VendoringMultiGoal.is_reasoner_fragment_gap(),
+            "VendoringMultiGoal is a vendoring-format limit, not a reasoner-fragment gap"
         );
     }
 
