@@ -1038,9 +1038,33 @@ fn ref_to_name(reference: &str, defkey_to_class: &BTreeMap<String, String>) -> S
         .unwrap_or_else(|| py_type_name(target, "GmeowModel"))
 }
 
+/// Extract the `StrEnum` member VALUE from one JSON-Schema `enum` member.
+///
+/// purrdf's value-schema convention (`purrdf::shapes::instance::project_value`,
+/// shared with the `sh:in` enum emitter so a value and its enum member can never
+/// drift) encodes an IRI/blank-node member as `{"@id": curie}` and a lang-tagged
+/// or non-native typed literal as `{"@value": lexical, ...}`; plain strings and
+/// numeric/boolean scalars stay bare. A `StrEnum` member is the identifying
+/// string, so unwrap an object member to its inner `@id`/`@value` — never the
+/// serialized object (that is how a bumped `sh:in` enum used to yield a member
+/// like `"{\"@id\":\"gmeow:...\"}"`). Bare strings and scalars pass through
+/// unchanged (our value-vocabulary enums stay bare CURIEs).
+fn enum_member_value(v: &Value) -> String {
+    match v {
+        Value::String(s) => s.clone(),
+        Value::Object(map) => match (map.get("@id"), map.get("@value")) {
+            (Some(Value::String(id)), _) => id.clone(),
+            (_, Some(Value::String(lexical))) => lexical.clone(),
+            _ => v.to_string(),
+        },
+        other => other.to_string(),
+    }
+}
+
 /// Register (once) and name the `StrEnum` for an `{"enum": [...]}` schema. Member
-/// VALUES are the full IRIs/CURIEs/literals verbatim; two members sharing a value
-/// is a HARD FAIL (StrEnum would silently alias them).
+/// VALUES are the identifying IRI/CURIE/literal (object members unwrapped to
+/// their `@id`/`@value` inner string via [`enum_member_value`]); two members
+/// sharing a value is a HARD FAIL (StrEnum would silently alias them).
 fn register_enum(
     obj: &serde_json::Map<String, Value>,
     ctx: &mut FieldCtx<'_>,
@@ -1056,14 +1080,7 @@ fn register_enum(
     let mut values: Vec<String> = obj
         .get("enum")
         .and_then(Value::as_array)
-        .map(|a| {
-            a.iter()
-                .map(|v| match v.as_str() {
-                    Some(s) => s.to_owned(),
-                    None => v.to_string(),
-                })
-                .collect()
-        })
+        .map(|a| a.iter().map(enum_member_value).collect())
         .unwrap_or_default();
     values.sort();
     values.dedup();
@@ -2480,5 +2497,38 @@ mod tests {
             init.contains("from .__about__ import __version__ as __version__"),
             "__init__.py must re-export __version__ from __about__.py"
         );
+    }
+
+    /// A `sh:in` enum member arrives from purrdf's value-schema convention as a
+    /// JSON-LD node object `{"@id": curie}` (and a lang/typed literal as
+    /// `{"@value": lexical, ...}`). The StrEnum VALUE must be the inner
+    /// identifying string, never the serialized object — regression anchor for
+    /// the purrdf 0.6.0 `sh:in`-enum object-encoding bump that otherwise yields a
+    /// member value of `"{\"@id\":\"gmeow:...\"}"`.
+    #[test]
+    fn enum_member_value_unwraps_id_and_value_objects() {
+        // IRI node object → its @id CURIE (the openEHR defining-code case).
+        assert_eq!(
+            enum_member_value(
+                &json!({ "@id": "gmeow:openehr/bloodpressure/terminology/local/at0010" })
+            ),
+            "gmeow:openehr/bloodpressure/terminology/local/at0010"
+        );
+        // Typed / lang literal object → its @value lexical.
+        assert_eq!(
+            enum_member_value(&json!({ "@value": "mmHg", "@type": "xsd:string" })),
+            "mmHg"
+        );
+        assert_eq!(
+            enum_member_value(&json!({ "@value": "haut", "@language": "fr" })),
+            "haut"
+        );
+        // Bare string / scalar members (our value-vocabulary enums) pass through.
+        assert_eq!(
+            enum_member_value(&json!("math:twoSidedAlternative")),
+            "math:twoSidedAlternative"
+        );
+        assert_eq!(enum_member_value(&json!(1)), "1");
+        assert_eq!(enum_member_value(&json!(true)), "true");
     }
 }
