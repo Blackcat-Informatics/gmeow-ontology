@@ -12,7 +12,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::cache::{PipelineCache, stage_key};
 use crate::loader::{PipelineSpec, StageSpec, bind};
 use crate::node::{
-    ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput, StageProduct,
+    CachePolicy, ENGINE_RESOURCE, SINK_CAPABILITY, SOURCE_ORIGIN, Stage, StageInput, StageOutput,
+    StageProduct,
 };
 use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
@@ -461,6 +462,7 @@ struct ComputeStage {
     capabilities: Vec<String>,
     consumes: Vec<String>,
     resources: Vec<String>,
+    cache_policy: CachePolicy,
     runs: Arc<AtomicUsize>,
 }
 
@@ -476,6 +478,9 @@ impl Stage for ComputeStage {
     }
     fn resources(&self) -> &[String] {
         &self.resources
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        self.cache_policy
     }
     fn impl_version(&self) -> &str {
         "v1"
@@ -503,6 +508,7 @@ fn compute_registry(spec: &PipelineSpec, runs: &Arc<AtomicUsize>) -> StageRegist
                 capabilities: s.capabilities.clone(),
                 consumes: s.consumes.clone(),
                 resources: s.resources.clone(),
+                cache_policy: CachePolicy::Persistent,
                 runs: Arc::clone(runs),
             }) as Arc<dyn Stage>,
         );
@@ -554,6 +560,50 @@ fn scheduler_runs_diamond_and_caches() {
     assert_eq!(
         first.combined_digest, second.combined_digest,
         "warm-cache run is identical"
+    );
+}
+
+#[test]
+fn recompute_policy_reruns_the_stage_but_keeps_downstream_cache_hits() {
+    let spec = PipelineSpec {
+        id: "recompute-policy".to_owned(),
+        stages: vec![spec("source", &[]), spec("sink", &["source"])],
+    };
+    let graph = spec.validate().unwrap();
+    let runs = Arc::new(AtomicUsize::new(0));
+    let mut registry = StageRegistry::new();
+    for stage in &spec.stages {
+        registry.register(
+            stage.impl_key.clone(),
+            Arc::new(ComputeStage {
+                id: stage.id.clone(),
+                capabilities: stage.capabilities.clone(),
+                consumes: stage.consumes.clone(),
+                resources: stage.resources.clone(),
+                cache_policy: if stage.id == "source" {
+                    CachePolicy::Recompute
+                } else {
+                    CachePolicy::Persistent
+                },
+                runs: Arc::clone(&runs),
+            }) as Arc<dyn Stage>,
+        );
+    }
+    let bound = bind(&spec, &graph, &registry).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open(dir.path(), 2).unwrap();
+
+    let cold = run(&graph, &bound, &mut ctx).unwrap();
+    let warm = run(&graph, &bound, &mut ctx).unwrap();
+
+    assert_eq!(runs.load(Ordering::SeqCst), 3, "source reruns; sink hits");
+    assert_eq!(cold.combined_digest, warm.combined_digest);
+    assert_eq!(
+        warm.stage_timings
+            .iter()
+            .map(|timing| (timing.stage_id.as_str(), timing.cached))
+            .collect::<Vec<_>>(),
+        vec![("source", false), ("sink", true)]
     );
 }
 
