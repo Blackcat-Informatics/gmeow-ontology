@@ -387,7 +387,10 @@ pub fn run_consistency_crosscheck(
         .iter()
         .filter(|r| r.detail.starts_with(ORACLE_UNDECIDED))
         .count();
-    let agree = ledger.agree - oracle_supplement - oracle_undecided;
+    let agree = ledger
+        .agree
+        .saturating_sub(oracle_supplement)
+        .saturating_sub(oracle_undecided);
     let native_only = ledger.native_only;
     let oracle_only = ledger.oracle_only;
 
