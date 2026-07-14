@@ -112,6 +112,16 @@ pub enum CoherenceOutcome {
     Refused(CoherencePayload),
 }
 
+/// The bare trichotomy the completeness gate ([`CoherenceOutcome::classify`])
+/// decides — payload-free, so it can back both the payload-carrying
+/// [`CoherenceOutcome`] variant and the payload-free
+/// [`CoherenceOutcome::class_local_name_for`] lookup from the ONE decision.
+enum Gate {
+    Certificate,
+    Attestation,
+    Refused,
+}
+
 impl CoherenceOutcome {
     /// Build the outcome from a [`ReasoningResult`] and the bundle-level identity.
     ///
@@ -182,29 +192,80 @@ impl CoherenceOutcome {
         };
 
         let conclusive = result.is_conclusive();
-        if !payload.forbidden_violations.is_empty() {
-            // A forbidden integrity violation refutes coherence. A CONCLUSIVE check
-            // that found one is a flat refusal — no coherence artifact issues. A
-            // NON-conclusive check that ran into one cannot refute coherence wholesale
-            // (it never completed the search), but it must still DISCLOSE what it
-            // found: it issues a CoherenceCheckAttestation carrying the
-            // logic:forbiddenViolationWitness set (the property's real producer). Only
-            // a bounded check can carry a non-empty forbidden set on an issued
-            // artifact; a certificate's set is necessarily empty.
+        let forbidden_violation_present = !payload.forbidden_violations.is_empty();
+        let fragment_present = payload.certified_fragment.is_some();
+        Ok(
+            match Self::classify(conclusive, forbidden_violation_present, fragment_present) {
+                Gate::Refused => Self::Refused(payload),
+                Gate::Certificate => Self::Certificate(payload),
+                Gate::Attestation => Self::Attestation(payload),
+            },
+        )
+    }
+
+    /// The pure trichotomy decision, shared by [`Self::from_reasoning_result`] (which
+    /// wraps the winning variant around a full [`CoherencePayload`]) and
+    /// [`Self::class_local_name_for`] (a payload-free class lookup for callers that
+    /// need only the label) — ONE gate, never re-derived ad hoc by a caller.
+    ///
+    /// * a forbidden violation refutes coherence. A CONCLUSIVE check that found one
+    ///   is a flat refusal — no coherence artifact issues. A NON-conclusive check
+    ///   that ran into one cannot refute coherence wholesale (it never completed the
+    ///   search), but it must still DISCLOSE what it found: it issues an attestation
+    ///   carrying the `logic:forbiddenViolationWitness` set. Only a bounded check can
+    ///   carry a non-empty forbidden set on an issued artifact; a certificate's set
+    ///   is necessarily empty;
+    /// * else a conclusive, violation-free check certifies — but ONLY over a NAMED
+    ///   certified fragment;
+    /// * else (non-conclusive, or conclusive but fragment-less) the strongest honest
+    ///   claim is the weaker attestation. A certificate is NEVER emitted
+    ///   fragment-less.
+    fn classify(
+        conclusive: bool,
+        forbidden_violation_present: bool,
+        fragment_present: bool,
+    ) -> Gate {
+        if forbidden_violation_present {
             if conclusive {
-                Ok(Self::Refused(payload))
+                Gate::Refused
             } else {
-                Ok(Self::Attestation(payload))
+                Gate::Attestation
             }
-        } else if conclusive && payload.certified_fragment.is_some() {
-            // A conclusive, violation-free check certifies — but ONLY over a NAMED
-            // certified fragment. With a fragment it is a real certificate.
-            Ok(Self::Certificate(payload))
+        } else if conclusive && fragment_present {
+            Gate::Certificate
         } else {
-            // Either the check was non-conclusive, or it was conclusive but named no
-            // certified fragment: in both cases the strongest honest claim is the
-            // weaker attestation. A certificate is NEVER emitted fragment-less.
-            Ok(Self::Attestation(payload))
+            Gate::Attestation
+        }
+    }
+
+    /// Payload-free class-local-name lookup over the SAME trichotomy gate as
+    /// [`Self::from_reasoning_result`] — for callers (the MCP tool surface,
+    /// `crates/pipeline/src/mcp.rs`) that need only the completeness-class LABEL, not
+    /// the full scoped [`CoherencePayload`] (bundle hash, axiom hashes, issue
+    /// timestamp, …) `from_reasoning_result` requires. Reusing this gate — rather than
+    /// re-deriving `is_conclusive()`/fragment/violation checks per call site — is what
+    /// guarantees `run_verify_graph` and `run_explain_quad` can never diverge on
+    /// whether an inconsistent-but-conclusive closure earns a `CoherenceCertificate`.
+    ///
+    /// Returns `"Refused"` for a witnessed forbidden violation in a CONCLUSIVE check.
+    /// This differs from [`Self::class_local_name`] (which returns `None` for a
+    /// refusal, because no RDF artifact issues for one) — this is a tool-surface
+    /// label a caller can render directly, not an RDF class name.
+    pub fn class_local_name_for(
+        result: &ReasoningResult,
+        contradiction_policy: ContradictionPolicy,
+    ) -> &'static str {
+        let forbidden_violation_present = !contradiction_policy.glut_permitted()
+            && !result.provenance.contradiction_witnesses.is_empty();
+        let fragment_present = result.provenance.certified_fragment.is_some();
+        match Self::classify(
+            result.is_conclusive(),
+            forbidden_violation_present,
+            fragment_present,
+        ) {
+            Gate::Refused => "Refused",
+            Gate::Certificate => "CoherenceCertificate",
+            Gate::Attestation => "CoherenceCheckAttestation",
         }
     }
 
