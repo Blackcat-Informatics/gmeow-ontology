@@ -152,13 +152,6 @@ jobs:
           path: .cache/pipeline-test-fixtures
           key: compile-logic-fixture-v1-${{ runner.os }}-${{ hashFiles('crates/**/*.rs', 'Cargo.lock', 'ontology/gmeow.ttl', 'slices/*/*/module.ttl', 'imports/**/*.ttl', 'validations/openehr-bloodpressure/Blutdruck.opt', 'validations/openehr-test-datatypes/TestAllDatatypes.opt', 'slices/grounding/logic/examples/predicate-paths.ttl') }}
 
-      # Six assertion-only compile-logic tests inspect the same deterministic
-      # whole-repo StageProduct. Prime its production-codec, content-addressed
-      # fixture once per runner; one separate test still executes the stage
-      # directly, retaining uncached integration teeth.
-      - name: Prime compile-logic fixture cache
-        run: cargo nextest run -p gmeow-pipeline -E 'test(compile_logic_fixture_is_primed)' --no-tests fail
-
       - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
         run: cargo nextest run --profile ci --workspace --partition count:${{ matrix.shard }}/3
 

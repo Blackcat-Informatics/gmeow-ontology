@@ -808,7 +808,9 @@ fn logic_graph_dataset(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::OpenOptions;
     use std::sync::OnceLock;
+    use std::time::{Duration, Instant};
 
     use crate::cache::{BUILD_FINGERPRINT, PipelineCache, stage_key};
     use crate::scheduler::input_files_digest;
@@ -826,9 +828,10 @@ mod tests {
     /// Nextest runs each test in a separate process, so an in-process `OnceLock`
     /// alone cannot prevent every test from rebuilding the real repository's full
     /// logic projection. Reuse the production cache codec and its fail-closed build
-    /// fingerprint/input digest instead. The gate primes this once before nextest;
-    /// a plain `cargo test` still builds safely on a genuine miss. One sibling test
-    /// deliberately calls the stage directly, retaining uncached end-to-end teeth.
+    /// fingerprint/input digest instead. On a genuine miss, an atomic lock elects
+    /// one test process to build while its siblings wait for the persisted product;
+    /// no separate cargo prime invocation is needed. One sibling test deliberately
+    /// calls the stage directly, retaining uncached end-to-end teeth.
     fn compile_logic_fixture() -> StageProduct {
         static PRODUCT: OnceLock<StageProduct> = OnceLock::new();
         PRODUCT
@@ -846,16 +849,72 @@ mod tests {
 
                 let cache_base = root.join(".cache/pipeline-test-fixtures");
                 let fingerprint = &BUILD_FINGERPRINT[..16];
-                if let Ok(entries) = std::fs::read_dir(&cache_base) {
-                    for entry in entries.flatten() {
-                        if entry.file_name().to_string_lossy() != fingerprint {
-                            let _ = std::fs::remove_dir_all(entry.path());
-                        }
-                    }
-                }
-                let mut cache = PipelineCache::open(cache_base.join(fingerprint))
-                    .expect("open compile-logic fixture cache");
+                let cache_dir = cache_base.join(fingerprint);
+                std::fs::create_dir_all(&cache_dir)
+                    .expect("create compile-logic fixture cache directory");
+                let cache =
+                    PipelineCache::open(&cache_dir).expect("open compile-logic fixture cache");
                 if let Some(product) = cache.get(&key).expect("read compile-logic fixture cache") {
+                    return product;
+                }
+
+                // Keep the election file outside the Actions-cached product tree:
+                // a cancelled job must not archive and restore a live-looking lock.
+                let lock_dir = root.join(".cache/pipeline-test-fixture-locks");
+                std::fs::create_dir_all(&lock_dir)
+                    .expect("create compile-logic fixture lock directory");
+                let lock_path = lock_dir.join(format!("{fingerprint}.lock"));
+                let started = Instant::now();
+                let _lock = loop {
+                    match OpenOptions::new()
+                        .write(true)
+                        .create_new(true)
+                        .open(&lock_path)
+                    {
+                        Ok(_) => break FixtureBuildLock(lock_path.clone()),
+                        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                            // The elected process publishes through PipelineCache's atomic
+                            // index/content writes. Check for that product before sleeping.
+                            let cache = PipelineCache::open(&cache_dir)
+                                .expect("reopen compile-logic fixture cache while waiting");
+                            if let Some(product) = cache
+                                .get(&key)
+                                .expect("read compile-logic fixture cache while waiting")
+                            {
+                                return product;
+                            }
+
+                            // A killed test can leave only the empty election file behind.
+                            // The normal stage is a sub-25-second gate test; five minutes is
+                            // therefore safely stale without masking a live slow test.
+                            let stale = std::fs::metadata(&lock_path)
+                                .and_then(|meta| meta.modified())
+                                .and_then(|modified| {
+                                    modified.elapsed().map_err(std::io::Error::other)
+                                })
+                                .is_ok_and(|age| age > Duration::from_secs(300));
+                            if stale {
+                                let _ = std::fs::remove_file(&lock_path);
+                                continue;
+                            }
+                            assert!(
+                                started.elapsed() < Duration::from_secs(360),
+                                "timed out waiting for compile-logic fixture builder"
+                            );
+                            std::thread::sleep(Duration::from_millis(50));
+                        }
+                        Err(error) => panic!("acquire compile-logic fixture lock: {error}"),
+                    }
+                };
+
+                // Another process may have published between our first miss and lock
+                // acquisition. Recheck before paying the stage cost.
+                let mut cache =
+                    PipelineCache::open(&cache_dir).expect("reopen elected fixture cache");
+                if let Some(product) = cache
+                    .get(&key)
+                    .expect("recheck elected compile-logic fixture cache")
+                {
                     return product;
                 }
 
@@ -875,8 +934,16 @@ mod tests {
             .clone()
     }
 
-    /// Cheap after the first content state; explicitly selected before the full
-    /// nextest run so independent test processes all observe the warm fixture.
+    struct FixtureBuildLock(PathBuf);
+
+    impl Drop for FixtureBuildLock {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_file(&self.0);
+        }
+    }
+
+    /// Proves the content-addressed fixture itself remains readable; on a cold
+    /// nextest run this test may also be the process elected to populate it.
     #[test]
     fn compile_logic_fixture_is_primed() {
         let product = compile_logic_fixture();
