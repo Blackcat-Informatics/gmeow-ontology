@@ -371,11 +371,10 @@ failure-output = "immediate-final"
 
 [profile.ci]
 inherits = "default"
-# GitHub's four-core hosted runners let the ungrouped repo-scale compile,
-# validation, and CLI tests contend four-wide, inflating otherwise sub-budget
-# tests past the 25 s wall-clock policy. Two workers preserve every test while
-# matching the memory-aware engine group and keeping per-test timing meaningful.
-test-threads = 2
+# GitHub's four-core hosted runners keep their full worker pool. Repo-scale
+# tests reserve two slots through the overrides below, so no more than two of
+# them contend at once while inexpensive tests can still fill the remaining
+# capacity. This preserves every test without globally serializing leaf tests.
 junit = { path = "junit.xml" }
 fail-fast = false
 
@@ -394,11 +393,11 @@ fail-fast = false
 # EACH test in its own process, so an in-process guard cannot cap how many multi-GB
 # chase PROCESSES run at once. On the 16 GB CI runner the available CPU count is four
 # (4), so up to 4 concurrent chases could OOM-thrash. This group caps concurrent engine
-# tests to 2; the fast leaf-crate tests (rdf/shacl/validate/docs/diagnostics) and
-# the ~360 fast gmeow-logic unit tests stay fully parallel.
+# tests to two: each engine test reserves two slots from this four-slot group.
+# The fast leaf-crate tests and ~360 fast gmeow-logic units stay fully parallel.
 [test-groups]
-engine = { max-threads = 2 }
-mapping-stage = { max-threads = 1 }
+engine = { max-threads = 4 }
+mapping-stage = { max-threads = 2 }
 
 [[profile.default.overrides]]
 # The whole gmeow-conformance datatest harness plus every gmeow-logic test that
@@ -407,6 +406,7 @@ mapping-stage = { max-threads = 1 }
 # foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
 filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/materialize|reason|verify|certify|oracle/))'
 test-group = 'engine'
+threads-required = 2
 
 [[profile.default.overrides]]
 # gmeow-pipeline's executor / parity tests exercise full-DAG paths. Keep them
@@ -421,6 +421,7 @@ test-group = 'engine'
 # bias is fix-not-off-gate for a test this cheap standalone.
 filter = 'package(gmeow-pipeline) & binary(/fold_parity|end_to_end|dag_dogfood|fanout_parity/)'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -433,6 +434,7 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 # runaway cliff; the JUnit budget gate still enforces the 25 s policy.
 filter = 'package(gmeow-logic) & binary(ontology_entailments)'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -456,6 +458,7 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # terminate-after backstop, not the expected runtime.
 filter = 'package(gmeow-logic) & binary(coherence_gate)'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -471,6 +474,7 @@ slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" 
 # tests in the binary use the tiny rubric fixture and stay fully parallel.
 filter = 'package(gmeow-slice-quality) & test(scores_the_logic_slice_green_vs_advisory)'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -487,6 +491,7 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # nothing that runs (the binary is filtered out), so this is a no-op there.
 filter = 'package(gmeow-validate) & binary(conformance_affect_producer_union) & test(/twin_/)'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -503,6 +508,7 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # concurrent chases.
 filter = 'package(gmeow-pipeline) & ( (binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts)) | test(/stages::export::tests::export_produces_structurally_valid_artifacts|stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle|stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier|stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/) )'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -514,6 +520,7 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # terminate cliff the other full-fold reasoning tests use.
 filter = 'package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/)'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -537,6 +544,7 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # 25 s policy still holds; the longer terminate cliff is only a runaway backstop.
 filter = 'package(gmeow-pipeline) & test(/stages::carrier::docs_try_it_golden/)'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -548,6 +556,7 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # measured ~100 s.
 filter = 'package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/)'
 test-group = 'engine'
+threads-required = 2
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
 
 [[profile.default.overrides]]
@@ -566,4 +575,21 @@ slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" 
 # serialized; the JUnit budget gate still enforces the 25 s policy.
 filter = 'package(gmeow-pipeline) & test(/stages::mappings::tests::(sssom_emits_and_overlaps_byte_identically_with_committed|edoal_and_sparql_emit_byte_identically_with_committed|standpoint_and_dsl_stats_emit_byte_identically_with_committed|fno_is_well_formed_ntriples|prefix_set_projections_are_emitted_and_parse|list_functions_are_emitted_and_parse)/)'
 test-group = 'mapping-stage'
+threads-required = 2
 slow-timeout = { period = "300s", "terminate-after" = 2, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# Non-reasoning tests that still load or render the whole committed bundle,
+# whole documentation model, or whole SHACL corpus. On a four-core runner each
+# reserves two worker slots: at most two repo-scale tests overlap, while leaf
+# units retain four-way parallelism. Membership follows architectural seams
+# rather than elapsed-time allowlists, so growth does not require chasing the
+# most recent test name that happened to cross the budget.
+filter = '''
+  (package(gmeow-pipeline) & test(/mcp::tests|stages::export::tests/)) |
+  (package(gmeow-pipeline) & test(/stages::compile_logic::tests::compile_logic_stage_emits_every_product/)) |
+  (package(gmeow-docs) & binary(/describe_bundle_language|mdbook_render/)) |
+  (package(gmeow-validate) & binary(/consumer_advisory_shape|conformance_profiles|conformance_creative_works/)) |
+  (package(gmeow-cli) & test(/describe_names_a_known_term|verify_allow_unsigned_needs_no_external_gts_on_path|describe_json_format_is_valid_card_json/))
+'''
+threads-required = 2

@@ -122,12 +122,42 @@ jobs:
         if: ${{ matrix.shard == 1 }}
         run: cargo clippy --all-targets -- -D warnings
 
+      # The fixture is ~600 MB as raw JSON but highly compressible. Actions/cache
+      # stores it compressed, avoiding the 3–4 minute cold model + three-language
+      # render on every shard after the first run for a content state. This key is
+      # exact (no prefix restore): it covers the same authored inputs and local
+      # implementation sources as `fixture::cache_key`. The in-process key remains
+      # authoritative, so even an accidentally over-broad workflow restore can
+      # only miss and rebuild; it cannot serve a stale envelope.
+      - name: Cache docs-model fixture
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/docs-fixture
+          key: docs-fixture-v2-${{ runner.os }}-${{ hashFiles('slices/**', 'shapes/**', 'i18n/**', 'queries/**', 'docs/four-boxes.md', 'metadata/gmeow-self.ttl', 'dsl/mappings/mapping-sets.ttl', 'generated/catalog/constraint-catalog.nq', 'generated/catalog/term-content-manifest.nq', 'crates/docs/src/**', 'crates/docs/templates/**', 'crates/docs/assets/**', 'crates/docs/Cargo.toml', 'crates/errors/src/**', 'crates/errors/Cargo.toml', 'crates/logic-compile/src/**', 'crates/logic-compile/Cargo.toml', 'crates/validate/src/**', 'crates/validate/Cargo.toml', 'Cargo.lock') }}
+
       # Build the gmeow-docs model fixture once so every docs test loads it warm.
       # Without this each docs test rebuilds the ~12 s DocsModel in its own process
       # and concurrent rebuilds contend past the 25 s budget. Primed single-threaded
       # here (uncharged), the docs tests then load the content-addressed cache fast.
       - name: Prime docs-model fixture cache
         run: cargo run -q --package gmeow-docs --example prime-docs-fixture
+
+      # The serialized StageProduct is only ~10 MB. An exact workflow key avoids
+      # rebuilding it on all three runners when neither compiler code nor declared
+      # stage inputs changed. The embedded BUILD_FINGERPRINT + input digest remains
+      # authoritative and turns any toolchain/key mismatch into a cold miss.
+      - name: Cache compile-logic fixture
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/pipeline-test-fixtures
+          key: compile-logic-fixture-v1-${{ runner.os }}-${{ hashFiles('crates/**/*.rs', 'Cargo.lock', 'ontology/gmeow.ttl', 'slices/*/*/module.ttl', 'imports/**/*.ttl', 'validations/openehr-bloodpressure/Blutdruck.opt', 'validations/openehr-test-datatypes/TestAllDatatypes.opt', 'slices/grounding/logic/examples/predicate-paths.ttl') }}
+
+      # Six assertion-only compile-logic tests inspect the same deterministic
+      # whole-repo StageProduct. Prime its production-codec, content-addressed
+      # fixture once per runner; one separate test still executes the stage
+      # directly, retaining uncached integration teeth.
+      - name: Prime compile-logic fixture cache
+        run: cargo nextest run -p gmeow-pipeline -E 'test(compile_logic_fixture_is_primed)' --no-tests fail
 
       - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
         run: cargo nextest run --profile ci --workspace --partition count:${{ matrix.shard }}/3

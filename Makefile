@@ -137,6 +137,7 @@ rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without 
 
 rust-test: rust-build ## Run the Rust workspace tests and doctests.
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
+	cargo nextest run -p gmeow-pipeline -E 'test(compile_logic_fixture_is_primed)' --no-tests fail
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
@@ -332,6 +333,7 @@ doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
 rust-gate: rust-build carrier-purity ## Warm Rust once, then run the carrier-purity gate, clippy, nextest, the 25s budget gate, and doctests serially.
 	cargo clippy --all-targets -- -D warnings
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
+	cargo nextest run -p gmeow-pipeline -E 'test(compile_logic_fixture_is_primed)' --no-tests fail
 	cargo nextest run --profile ci $(RUST_TEST_WORKSPACE_ARGS) $(NEXTEST_PARTITION_ARG)
 	cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 	cargo test --doc $(RUST_TEST_WORKSPACE_ARGS)
@@ -421,6 +423,7 @@ validate-wasm-pkg-test: validate-wasm-pkg ## Build the validator npm package and
 
 maint-rust-heavy: rust-build ## Run the Rust suite INCLUDING the off-gate heavy tests (maint-heavy profile).
 	cargo run -q --package gmeow-docs --example prime-docs-fixture
+	cargo nextest run -p gmeow-pipeline -E 'test(compile_logic_fixture_is_primed)' --no-tests fail
 	cargo nextest run --profile maint-heavy $(NEXTEST_PARTITION_ARG)
 	$(MAKE) maint-dev-cli-heavy
 
