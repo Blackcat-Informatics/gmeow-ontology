@@ -231,13 +231,13 @@ ex:ecMeasureMissingMass a gmeow:ExampleConformance ;
 ex:ecExtendedRealSigned a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/extended-real-signed.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "Two signed-extended-real slots — one holding the pole math:NegativeInfinity, one a finite negative xsd:double — are objects of math:extendedRealValue that satisfy the three-arm sh:or of math:ExtendedRealShape (finite numeric literal / math:PositiveInfinity / math:NegativeInfinity) and validate with no findings." .
+    gmeow:conformanceRationale "Two signed-extended-real slots — one holding the pole math:NegativeInfinity, one a finite negative xsd:double — are objects of math:extendedRealValue that satisfy the logic: gate math:ExtendedRealValueConstraint (a literal, or one of the two poles) and validate with no findings." .
 
 ex:ecExtendedRealMalformed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/extended-real-malformed.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.OrConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example puts a non-numeric string in a math:extendedRealValue slot, so the object satisfies none of the three sh:or arms of math:ExtendedRealShape; validation MUST emit shacl.OrConstraintComponent and NO other finding (math:MalformedExtendedReal)." .
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example puts a non-literal IRI that is neither pole in a math:extendedRealValue slot, so the object is neither a literal nor one of the two poles the logic: gate math:ExtendedRealValueConstraint allows; validation MUST emit shacl.SPARQLConstraintComponent (the projected sh:SPARQLConstraint) and NO other finding (math:MalformedExtendedReal)." .
 
 # === Rule 16: a probability measure has total mass one ====================== #
 

@@ -424,32 +424,10 @@ math:MeasureShape
         sh:message "A math:Measure must declare exactly one math:totalMass — a non-negative number or math:PositiveInfinity; a measure without its total mass is ill-formed." ;
     ] .
 
-# Rule 15b — a signed-extended-real slot holds a finite number or one of the two poles.
-# Mirrors the math:totalMass sh:or idiom (finite literal / math:PositiveInfinity), but on
-# the SIGNED extended real line ℝ̄: the finite branch admits negatives, and math:NegativeInfinity
-# joins math:PositiveInfinity as an accepted pole. Targets the object of math:extendedRealValue,
-# so the value in the slot is the focus node; a bad node fails all three arms and trips
-# shacl.OrConstraintComponent (math:MalformedExtendedReal).
-math:ExtendedRealShape
-    a sh:NodeShape ;
-    rdfs:label "Signed extended-real value shape"@x-gmeow-english ;
-    skos:definition "SHACL constraint for a signed-extended-real slot — the object of math:extendedRealValue, a value on the extended real line ℝ̄ = ℝ ∪ {−∞, +∞}. It is EITHER a finite numeric literal of either sign OR the pole math:PositiveInfinity OR the pole math:NegativeInfinity. A slot holding anything else — a non-numeric literal or an IRI that is neither pole — is a malformed extended real."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
-    gmeow:enforcesFailureClass math:MalformedExtendedReal ;
-    sh:targetObjectsOf math:extendedRealValue ;
-    sh:or (
-        [ sh:nodeKind sh:Literal ;
-          sh:or (
-              [ sh:datatype xsd:double ]
-              [ sh:datatype xsd:decimal ]
-              [ sh:datatype xsd:integer ]
-              [ sh:datatype xsd:float ]
-          ) ]
-        [ sh:hasValue math:PositiveInfinity ]
-        [ sh:hasValue math:NegativeInfinity ]
-    ) ;
-    sh:severity sh:Violation ;
-    sh:message "A signed-extended-real value must be a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; anything else is a malformed extended real." .
+# Rule 15b (the signed-extended-real slot check) is authored in logic:, not here: the
+# "finite literal OR one of the two poles" disjunction is a logic:Constraint
+# (math:ExtendedRealValueConstraint) in module.ttl, projected to a sh:SPARQLConstraint —
+# a hand sh:NodeShape would be a forbidden second source of truth (projection-purity gate).
 
 # Rule 16 — a probability measure has total mass one.
 math:ProbabilityMeasureShape
