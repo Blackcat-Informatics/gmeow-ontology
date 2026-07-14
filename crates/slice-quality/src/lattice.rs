@@ -7,7 +7,7 @@
 //! of the per-axis grades. The advice weight never enters here — a weighted meet
 //! would be an ad-hoc average and would break the ratchet-is-lattice-order law.
 
-use crate::model::{Axis, AxisGrade, Rubric, SliceAssessment, Tier};
+use crate::model::{Axis, AxisGrade, MeasurementStandard, SliceAssessment, Tier};
 
 /// Grade a single axis: the earned tier is the highest tier whose floor the
 /// measured `score` meets; if it meets no floor it sits at the ladder bottom.
@@ -15,7 +15,7 @@ use crate::model::{Axis, AxisGrade, Rubric, SliceAssessment, Tier};
 /// `score` is clamped to 0.0–1.0. Thresholds are consulted in descending floor
 /// order so the first met floor is the strongest tier earned.
 #[must_use]
-pub fn grade_axis(axis: &Axis, score: f64, rubric: &Rubric) -> AxisGrade {
+pub fn grade_axis(axis: &Axis, score: f64, standard: &MeasurementStandard) -> AxisGrade {
     let score = score.clamp(0.0, 1.0);
 
     // Candidate tiers (threshold.tier resolved against the ladder), sorted by
@@ -23,7 +23,7 @@ pub fn grade_axis(axis: &Axis, score: f64, rubric: &Rubric) -> AxisGrade {
     let mut candidates: Vec<(&Tier, f64)> = axis
         .thresholds
         .iter()
-        .filter_map(|t| rubric.tier(&t.tier_iri).map(|tier| (tier, t.floor)))
+        .filter_map(|t| standard.tier(&t.tier_iri).map(|tier| (tier, t.floor)))
         .collect();
     candidates.sort_by(|a, b| b.0.rank.cmp(&a.0.rank).then(a.0.iri.cmp(&b.0.iri)));
 
@@ -34,7 +34,7 @@ pub fn grade_axis(axis: &Axis, score: f64, rubric: &Rubric) -> AxisGrade {
 
     // No floor met → the ladder bottom (the honest floor grade).
     let tier = earned
-        .or_else(|| rubric.bottom_tier().cloned())
+        .or_else(|| standard.bottom_tier().cloned())
         .unwrap_or_else(|| Tier {
             iri: format!("{}tierRegistered", crate::model::GMEOW),
             label: "Registered".to_owned(),
@@ -54,13 +54,13 @@ pub fn grade_axis(axis: &Axis, score: f64, rubric: &Rubric) -> AxisGrade {
 /// the ladder bottom (a slice with no measurable axis is at the floor, never
 /// silently "maximal").
 #[must_use]
-pub fn meet(grades: &[AxisGrade], rubric: &Rubric) -> Tier {
+pub fn meet(grades: &[AxisGrade], standard: &MeasurementStandard) -> Tier {
     grades
         .iter()
         .map(|g| &g.tier)
         .min()
         .cloned()
-        .or_else(|| rubric.bottom_tier().cloned())
+        .or_else(|| standard.bottom_tier().cloned())
         .unwrap_or_else(|| Tier {
             iri: format!("{}tierRegistered", crate::model::GMEOW),
             label: "Registered".to_owned(),
@@ -74,12 +74,16 @@ pub fn meet(grades: &[AxisGrade], rubric: &Rubric) -> Tier {
 /// the primary object; the roll-up is its meet. Axes are graded in rubric order
 /// for determinism.
 #[must_use]
-pub fn assess(slice: &str, scores: &[(&Axis, f64)], rubric: &Rubric) -> SliceAssessment {
+pub fn assess(
+    slice: &str,
+    scores: &[(&Axis, f64)],
+    standard: &MeasurementStandard,
+) -> SliceAssessment {
     let grades: Vec<AxisGrade> = scores
         .iter()
-        .map(|(axis, score)| grade_axis(axis, *score, rubric))
+        .map(|(axis, score)| grade_axis(axis, *score, standard))
         .collect();
-    let rollup = meet(&grades, rubric);
+    let rollup = meet(&grades, standard);
     SliceAssessment {
         slice: slice.to_owned(),
         grades,
@@ -141,19 +145,16 @@ mod tests {
         }
     }
 
-    fn rubric() -> Rubric {
-        Rubric {
+    fn standard() -> MeasurementStandard {
+        MeasurementStandard {
             tiers: ladder(),
             axes: vec![],
-            exemptions: vec![],
-            commitments: vec![],
-            tier_floors: vec![],
         }
     }
 
     #[test]
     fn score_below_all_floors_is_bottom_tier() {
-        let r = rubric();
+        let r = standard();
         let a = axis("ex:a", 1.0);
         let g = grade_axis(&a, 0.10, &r);
         assert_eq!(g.tier.rank, 0, "0.10 meets no floor → Registered");
@@ -161,7 +162,7 @@ mod tests {
 
     #[test]
     fn score_earns_the_strongest_met_tier() {
-        let r = rubric();
+        let r = standard();
         let a = axis("ex:a", 1.0);
         assert_eq!(grade_axis(&a, 0.60, &r).tier.rank, 1, "0.60 → Grounded");
         assert_eq!(grade_axis(&a, 0.80, &r).tier.rank, 2, "0.80 → Linked");
@@ -170,7 +171,7 @@ mod tests {
 
     #[test]
     fn meet_caps_at_the_weakest_axis_and_weight_never_leaks() {
-        let r = rubric();
+        let r = standard();
         // Eight Maximal axes with tiny weight, one Registered axis with huge weight.
         let strong = axis("ex:strong", 0.01);
         let weak = axis("ex:weak", 1000.0);
@@ -185,7 +186,7 @@ mod tests {
 
     #[test]
     fn empty_grades_meet_to_bottom_not_maximal() {
-        let r = rubric();
+        let r = standard();
         let assessment = assess("ex:empty", &[], &r);
         assert_eq!(
             assessment.rollup.rank, 0,
