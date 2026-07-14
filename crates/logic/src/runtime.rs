@@ -321,6 +321,10 @@ const NOT_BACKWARD_SOURCE: &[(&str, &str)] = &[
         "truth-maintenance derivation graph, consumed by foundation.rs — forward evaluator support, not backward dispatch",
     ),
     (
+        "entail.rs",
+        "native entailment-by-refutation (A ⊨ C iff premise ∪ ¬C inconsistent) composed over dl_consistency — forward consistency reduction, not backward query dispatch",
+    ),
+    (
         "entail_crosscheck.rs",
         "native vs entail-oracle OWL-RL subsumption divergence cross-check — forward reasoning-oracle gate, not backward dispatch",
     ),

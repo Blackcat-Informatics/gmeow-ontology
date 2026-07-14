@@ -1,5 +1,40 @@
 # Recorded deficiencies (append-only honest skip log)
 
+## 2026-07-14 — W3C entailment corpus is self-authored, not upstream-vendored
+
+The plan's "broaden the reasoner's W3C entailment coverage" set out to vendor the
+upstream W3C OWL 2 profile suites and the classic RDFCore RDF/RDFS entailment suite
+in place. The coverage spike proved this is not achievable by the inline-only
+vendoring path: those suites express their entailment PREMISES and CONCLUSIONS as
+reference documents (`mf:action`/`mf:result` IRIs, `test:inputDocument`/
+`outputDocument`), not inline RDF/XML — so an in-place re-vendor grades ~0 entailment
+cases AND a live re-fetch drifts the archive-pinned consistency corpus. Per the
+plan's STOP-and-ask binary, the maintainer chose to author a small in-repo
+both-inline entailment corpus (`entailment-mini`, like `tptp-mini`/`ontouml-mini`)
+graded end-to-end by the `dl_entails` reduction. This delivers a real, drift-free,
+non-vacuous coverage floor (4 graded cases + 2 honest structured-gap cases) but does
+NOT grade the upstream suites themselves. Actually grading them needs a bounded
+IRI-reference document resolver + fetching the full W3C test file tree and
+reconciling live-vs-archive drift — a separate, upstream-availability-dependent
+effort that is NOT done here.
+
+## 2026-07-14 — `gmeow:gapShape` shipped as a matrix breakdown, not an OWL individual
+
+The plan had two dogfooding items for the capability-gap boundary: (1) reify it as a
+`gmeow:CapabilityGap` OWL individual carrying an enumerated `gmeow:gapShape` in
+`graph/conformance`/`gmeow.gts`, and (2) ship a drift-gated `gmeow:gapShape`
+breakdown consumer in `generated/agreement-matrix.md`. Item (2) — the binding
+Finding-B "producer needs a consumer" requirement — is DELIVERED: the structured gap
+shape is produced (divergence `profile.json`), carried (the tally carrier), and
+rendered as the drift-gated "Capability gaps (by shape)" matrix section (byte-gated),
+plus queried by `entailment_mini_gate`. Item (1) — the separate `gmeow:CapabilityGap`
+OWL individual + `module.ttl` ontology terms — was NOT added: threading it through
+the 26 `ExternalComparison` construction sites and adding SHACL-validated ontology
+terms carried real determinism/regeneration risk against the remaining budget, and
+the binding requirement is already met by the shipped matrix consumer. The gap-shape
+data is therefore first-class structured data in the shipped matrix, but not yet an
+OWL individual in the conformance graph.
+
 ## 2026-07-12 (stage2 exit) — final `make check` blocked by a full shared disk
 
 The confirming end-of-stage `make check` could NOT be run to completion locally:
