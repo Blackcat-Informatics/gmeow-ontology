@@ -19,5 +19,7 @@ ex:completeHe a math:HomomorphicEncryptionScheme ;
     math:noiseModel ex:gaussianNoise .
 
 ex:ctMul a math:Operation .
-ex:heLaw a logic:Formula .
+ex:heLaw a logic:Formula ;
+    logic:relation ex:homomorphicallyPreservesRelation ;
+    logic:argument [ logic:termIndex 0 ; logic:termIri ex:completeHe ] , [ logic:termIndex 1 ; logic:termIri ex:ctMul ] .
 ex:gaussianNoise a math:Operation .

@@ -7622,6 +7622,18 @@ logic:ForbiddenPatternConstraint
     gmeow:howToUse "Name the target class and forbidden predicate, adding a fixed forbidden value only when other values on that predicate remain legal."@x-gmeow-english ;
     gmeow:useWhen "Use when a focus must not carry a predicate at all or must exclude one specific predicate value."@x-gmeow-english .
 
+logic:ValueRangeConstraint
+    a owl:Class ;
+    rdfs:subClassOf logic:ConstraintSugar ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Value Range Constraint"@x-gmeow-english ;
+    skos:definition "Compact sugar for a numeric value-range constraint (P8): a logic:onClass target, a logic:valuePath predicate, and an inclusive lower (logic:minInclusiveBound) and/or upper (logic:maxInclusiveBound) literal bound every value on that path must satisfy. Expands to a canonical logic:Constraint ∀this,v. C(this) ∧ P(this,v) → min ≤ v ∧ v ≤ max and lowers declaratively to sh:minInclusive/sh:maxInclusive on the target class shape. It is the decidable, validation-only home of a bounded range — NOT an OWL faceted-datatype axiom, which the native reasoner cannot decide once a literal is asserted on the constrained path: it validates and never entails. Frontend-only authoring shortcut."@x-gmeow-english ;
+    skos:example "ex:unitInterval a logic:ValueRangeConstraint ; logic:onClass ex:Probability ; logic:valuePath ex:magnitude ; logic:minInclusiveBound 0 ; logic:maxInclusiveBound 1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a value-range constraint for an exclusive endpoint, a string-length or pattern facet, or a comparison between two properties of one focus; those need the string-pattern or comparison forms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Name the target class, the value path, and at least one inclusive literal bound; the compiled condition flags any value outside the closed interval."@x-gmeow-english ;
+    gmeow:useWhen "Use when every numeric value of one direct predicate on a class must lie in a closed interval under closed-world validation."@x-gmeow-english .
+
 logic:AggregateConstraint
     a owl:Class ;
     rdfs:subClassOf logic:ConstraintSugar ;
@@ -7734,6 +7746,20 @@ logic:forbiddenValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "forbidden value"@x-gmeow-english ;
     skos:definition "An optional fixed object value that narrows a logic:ForbiddenPatternConstraint to forbid only forbiddenPredicate(this, value) rather than any value on the predicate. An IRI or a literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:minInclusiveBound
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "min inclusive bound"@x-gmeow-english ;
+    skos:definition "The inclusive lower literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be greater than or equal to this literal (projected to sh:minInclusive on the target class shape). At least one of the two inclusive bounds must be present."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:maxInclusiveBound
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "max inclusive bound"@x-gmeow-english ;
+    skos:definition "The inclusive upper literal bound of a logic:ValueRangeConstraint: every value on the constraint's logic:valuePath must be less than or equal to this literal (projected to sh:maxInclusive on the target class shape). At least one of the two inclusive bounds must be present."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:aggFunction
@@ -10035,28 +10061,17 @@ logic:ChaseAcceptanceWitness
     gmeow:enforcesFailureClass logic:UncertifiedChase .
 
 # =========================================================================== #
-# Authored procedural-constraint records (grounding slices). Each compact
-# logic:Constraint sugar record is compiled here (the canonical logic: terminal)
-# and PROJECTED to generated/shapes/procedural-constraints.ttl as a
-# sh:SPARQLConstraint carrying logic:formalizes the grounding term it enforces
-# (Principle 17 — logic: is canonical, SHACL is the projection). Only the
-# forward-from-focus fragment (P1-P7 / aggregate) is expressible here; genuinely
-# cross-node / arithmetic / inverse-path / property-path grounding conditions have
-# no range-restricted guarded SPARQL-constraint form and stay as the hand-authored
-# sh:sparql shapes in each slice's shapes.ttl.
+# Authored procedural-constraint records live in the slice that OWNS the
+# grounding term they enforce (e.g. math:RationalValueDenominatorNonZeroConstraint
+# in slices/grounding/math). Each compact logic:Constraint sugar record is
+# compiled into the canonical logic: terminal and PROJECTED to
+# generated/shapes/procedural-constraints.ttl as a sh:SPARQLConstraint carrying
+# logic:formalizes the grounding term it enforces (Principle 17 — logic: is
+# canonical, SHACL is the projection). Only the forward-from-focus fragment
+# (P1-P7 / aggregate) is expressible; genuinely cross-node / arithmetic /
+# inverse-path / property-path grounding conditions have no range-restricted
+# guarded SPARQL-constraint form and stay in the canon as flagged residue.
 # =========================================================================== #
-
-# math:RationalValue — a zero math:denominator is not a rational value (p/0 is
-# undefined; math:ZeroDenominator). A forbidden-pattern constraint pinned to the
-# value 0: the projected sh:SPARQLConstraint selects any rational carrying
-# math:denominator 0.
-logic:RationalValueNonZeroDenominatorConstraint
-    a logic:ForbiddenPatternConstraint ;
-    logic:onClass math:RationalValue ;
-    logic:forbiddenPredicate math:denominator ;
-    logic:forbiddenValue 0 ;
-    logic:formalizes math:RationalValue ;
-    logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." .
 
 logic:valuePredicate
     a owl:ObjectProperty ;
@@ -10273,7 +10288,7 @@ logic:UnwiredFlagshipScenario
 logic:FlagshipScenarioFailureClassConstraint
     a logic:Constraint ;
     rdfs:label "Flagship scenario failure-class constraint"@x-gmeow-english ;
-    skos:definition "Requires every failure class named by a logic-slice flagship scenario to be a logic:LogicConformanceFailure or one of its subclasses."@x-gmeow-english ;
+    skos:definition "Requires every logic:-namespaced failure class named by a flagship scenario to be a logic:LogicConformanceFailure or one of its subclasses. Namespace-scoped: the three grounding slices each contribute a failure-range gate over the ONE shared gmeow:FlagshipScenario class, so each validates exactly the failure classes it owns — an unscoped gate would demand every scenario reach every slice's root at once."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:UnwiredFlagshipScenario ;
@@ -10284,11 +10299,13 @@ logic:fsfcForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] ;
     logic:forall logic:fsfcImpl .
 logic:fsfcImpl a logic:Formula ; logic:antecedent logic:fsfcGuard ; logic:consequent logic:fsfcMembership .
-logic:fsfcGuard a logic:Formula ; logic:and logic:fsfcType , logic:fsfcFailurePath .
+logic:fsfcGuard a logic:Formula ; logic:and logic:fsfcType , logic:fsfcFailurePath , logic:fsfcNsGuard .
 logic:fsfcType a logic:Formula ; logic:relation rdf:type ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FlagshipScenario ] .
 logic:fsfcFailurePath a logic:Formula ; logic:relation gmeow:enforcesFailureClass ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] .
+logic:fsfcNsGuard a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/logic/" ] .
 logic:fsfcMembership a logic:Formula ; logic:relation rdfs:subClassOf ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri logic:LogicConformanceFailure ] .
 

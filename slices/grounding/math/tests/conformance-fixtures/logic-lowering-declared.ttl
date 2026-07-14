@@ -18,4 +18,6 @@ ex:pythagoreanEq a math:MathematicalExpression ;
     math:logicLoweringPreservation logic:ExactPreservation .
 
 ex:pythagoreanFormula a logic:Formula ;
-    rdfs:label "Pythagorean logic: formula target of the lowering"@x-gmeow-english .
+    rdfs:label "Pythagorean logic: formula target of the lowering"@x-gmeow-english ;
+    logic:relation ex:pythagoreanEqualityRelation ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ] , [ logic:termIndex 1 ; logic:termVariable "b" ] , [ logic:termIndex 2 ; logic:termVariable "c" ] .
