@@ -388,13 +388,19 @@ pub fn conjecture_test(
     let has_proof = semantics_available && redundant;
     let conclusive = with_phi.is_conclusive() && !budget_tripped;
 
-    // (4a) The base-consistency guard, now leg-aware. A base inconsistent SPECIFICALLY about
-    //      the candidate (it entails φ AND refutes φ) is a genuine within-standpoint glut and
-    //      is testable → falls through to a `Both` verdict. A base inconsistent for reasons
-    //      UNRELATED to the candidate (it does not entail φ, or does not genuinely refute it)
-    //      cannot host a meaningful test — ex falso would make every proposition both entailed
-    //      and refuted — so it stays a hard error.
-    if !base.is_consistent() && !(has_proof && has_counterproof) {
+    // (4a) The base-consistency guard, now leg-aware AND budget-aware. A base inconsistent
+    //      SPECIFICALLY about the candidate (it entails φ AND refutes φ) is a genuine
+    //      within-standpoint glut and is testable → falls through to a `Both` verdict. A base
+    //      inconsistent for reasons UNRELATED to the candidate (it does not entail φ, or does
+    //      not genuinely refute it) cannot host a meaningful test — ex falso would make every
+    //      proposition both entailed and refuted — so it stays a hard error, BUT ONLY when the
+    //      chase ran to a genuine conclusion (`!budget_tripped`). When the budget cut the `φ`
+    //      chase short, `has_proof`/`has_counterproof` are artifacts of truncation, not a
+    //      decided absence of the glut relation — a truncated leg could still have gone on to
+    //      find both. Treating that as ex falso would surface a hard `Err` for what is really an
+    //      honest non-conclusion, so a tripped budget always falls through to the
+    //      budget-exhausted `Undetermined` classification below instead.
+    if !budget_tripped && !base.is_consistent() && !(has_proof && has_counterproof) {
         return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
             detail: format!(
                 "conjecture_test: the scenario KB in world <{scenario_world}> is ALREADY \

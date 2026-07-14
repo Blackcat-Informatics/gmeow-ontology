@@ -569,6 +569,50 @@ fn already_inconsistent_kb_is_hard_error() {
     );
 }
 
+// ── Test 7b: same foreign inconsistency, but budget-tripped ⇒ non-conclusion, NOT Err ──
+
+#[test]
+fn budget_tripped_foreign_inconsistency_is_undetermined_not_ex_falso_error() {
+    // Identical scenario KB to `already_inconsistent_kb_is_hard_error` — a:A, a:B, and
+    // A disjointWith B force a into owl:Nothing, a glut UNRELATED to the candidate a:C — but
+    // this time the budget is so tight (`max_answers: Some(0)`) that it trips BEFORE the `φ`
+    // leg can be treated as having run to a genuine conclusion: the base's derived closure
+    // already carries one non-EDB axiom (`a rdf:type owl:Nothing`), which alone exceeds a
+    // zero answer ceiling. A truncated chase over an apparently-inconsistent base must NOT
+    // be ex-falso'd into a hard `Err` — `has_proof`/`has_counterproof` being false could be an
+    // artifact of the cut, not a decided absence of the glut relation — so the correct verdict
+    // is the honest budget-exhausted non-conclusion (`Undetermined`/`Open`/`Unknown`), exactly
+    // like any other budget-truncated run (contrast `budget_truncation_is_budget_exhausted_open_unknown`).
+    let store = kb(&[
+        (IND_A, TYPE, A_CLS),
+        (IND_A, TYPE, B_CLS),
+        (A_CLS, DISJOINT, B_CLS),
+    ]);
+    let candidate = binary_atom(TYPE, IND_A, C_CLS);
+    let budget = Budget {
+        max_answers: Some(0),
+        max_steps: None,
+    };
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &budget).expect(
+        "a budget-tripped run over an apparently-inconsistent base must be a non-conclusion, \
+         never the ex-falso hard error",
+    );
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::BudgetExhausted,
+        "the answer ceiling must be the reason this run did not reach a conclusion"
+    );
+    assert_eq!(
+        ans.verdict.information,
+        InformationState::Undetermined,
+        "a budget-truncated leg over an inconsistent-looking base is undetermined, never a \
+         decided Belnap quadrant"
+    );
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Open);
+    assert_eq!(ans.discharge, ConjectureDischarge::Unknown);
+}
+
 // ── Test 8: isolation — the input KB dataset is never mutated ─────────────────
 
 #[test]
