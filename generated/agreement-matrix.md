@@ -18,13 +18,14 @@ re-asserts) is compared to the corpus's published expected verdict.
 
 | corpus | lane | cases | agree | corpus-only | dl-gap | agree rate |
 |---|---|---|---|---|---|---|
+| entailment-mini | a | 4 | 4 | 0 | 0 | 100.0% |
 | ontouml-mini | a | 8 | 8 | 0 | 0 | 100.0% |
 | szs-mini | a | 3 | 2 | 0 | 1 | 66.7% |
 | tptp-mini | a | 6 | 6 | 0 | 0 | 100.0% |
 | w3c-mini | a | 2 | 2 | 0 | 0 | 100.0% |
 | w3c-owl2-el | a | 19 | 19 | 0 | 0 | 100.0% |
 | w3c-owl2-full | a | 261 | 261 | 0 | 0 | 100.0% |
-| **TOTAL** | — | 299 | 298 | 0 | 1 | **99.7%** |
+| **TOTAL** | — | 303 | 302 | 0 | 1 | **99.7%** |
 
 ## Documented divergences (native EL intentionally differs — not defects)
 
@@ -34,7 +35,18 @@ both are documented, intended, and excluded from the headline agreement rate abo
 
 | corpus | cases | agree | corpus-only (documented) | dl-gap |
 |---|---|---|---|---|
+| entailment-mini-divergence | 2 | 0 | 0 | 2 |
 | w3c-owl2-el-divergence | 2 | 0 | 0 | 2 |
 | w3c-owl2-full-divergence | 154 | 0 | 0 | 154 |
 
-6 agreement-expected corpus(es), 2 documented-divergence corpus(es).
+## Capability gaps (by shape)
+
+The structured `gmeow:gapShape` of every divergence case the native reasoner honestly
+declined to grade (an out-of-fragment conclusion shape), tallied across all corpora.
+
+| gap shape | count |
+|---|---|
+| multi-triple | 1 |
+| role-assertion | 1 |
+
+7 agreement-expected corpus(es), 3 documented-divergence corpus(es).
