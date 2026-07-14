@@ -11,7 +11,7 @@ use gmeow_validate::rule_catalog::help_uri_for;
 
 use crate::graph::{self, instances_of};
 use crate::model::{Axis, AxisGrade, MeasurementStandard, SliceAssessment};
-use crate::score::{ScoreContext, advisory};
+use crate::score::{ScoreContext, ScoringEnv, advisory};
 use crate::{axes, lattice};
 
 /// Advice-ranking KIND: an axis-level advice template (the rubric's
@@ -164,7 +164,15 @@ pub fn score_slice_with_standard(
     let paths = slice_ttl_paths(slice_dir);
     let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
     let ds = crate::dataset_from_paths(&path_refs)?;
-    let ctx = ScoreContext::new(slice_iri.clone(), slice_dir.to_path_buf(), &ds);
+    // This in-repo scoring worker always sources the two repo-anchored axes from
+    // the surrounding checkout — byte-identical to the pre-seam behaviour. A later
+    // task threads a real `env` through for the embedded-bundle path.
+    let ctx = ScoreContext::new(
+        slice_iri.clone(),
+        slice_dir.to_path_buf(),
+        &ds,
+        ScoringEnv::Repo,
+    );
 
     let mut scores: Vec<(&Axis, f64)> = Vec::with_capacity(standard.axes.len());
     // Each entry is (axis_iri, axis_weight, advice_kind, finding). `advice_kind`
