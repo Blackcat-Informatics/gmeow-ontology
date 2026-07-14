@@ -3800,6 +3800,13 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
                     | "predicate"
                     | "object_value"
                     | "graph"
+                    // G11: `conjecture_test` / `store_conjecture` enforce these three via
+                    // `required_str` at call time (see `tool_conjecture_test` /
+                    // `tool_store_conjecture`) — the advertised schema must match, or a client
+                    // sees an OPTIONAL arg it then gets a runtime error for omitting.
+                    | "formula"
+                    | "kb"
+                    | "standpoint"
             );
             // Carve-outs: an arg whose shared name is required everywhere else is
             // OPTIONAL for a specific tool, so marking it required THERE would advertise
@@ -5396,6 +5403,67 @@ mod tests {
         assert!(dev_tools.contains("\"constitution\""));
         assert!(dev_tools.contains("\"slice_quality\""));
         assert!(dev.resources_result().to_string().contains("constitution"));
+    }
+
+    #[test]
+    fn conjecture_tool_schemas_advertise_their_enforced_required_args() {
+        // G11 (CodeRabbit Major): `conjecture_test` / `store_conjecture` enforce `formula`,
+        // `kb`, `standpoint` via `required_str` at call time (see `tool_conjecture_test` /
+        // `tool_store_conjecture`); `refute_conjecture` enforces only `conjecture_id`. The
+        // advertised `inputSchema.required` array must list EXACTLY what the tool body
+        // enforces — otherwise a client sees an arg marked OPTIONAL and only discovers it is
+        // mandatory from a runtime error (the dishonest-schema gap this test closes).
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let tools_result = server.tools_result();
+        let tools = tools_result["tools"].as_array().expect("tools array");
+
+        let required_of = |name: &str| -> BTreeSet<String> {
+            let tool = tools
+                .iter()
+                .find(|t| t["name"] == name)
+                .unwrap_or_else(|| panic!("tool {name} must be advertised"));
+            tool["inputSchema"]["required"]
+                .as_array()
+                .unwrap_or_else(|| panic!("{name} must advertise a required array"))
+                .iter()
+                .map(|v| {
+                    v.as_str()
+                        .expect("required entries are strings")
+                        .to_string()
+                })
+                .collect()
+        };
+
+        for name in ["conjecture_test", "store_conjecture"] {
+            let required = required_of(name);
+            for arg in ["formula", "kb", "standpoint"] {
+                assert!(
+                    required.contains(arg),
+                    "{name} enforces `{arg}` via required_str at call time but does not \
+                     advertise it as required: {required:?}"
+                );
+            }
+        }
+
+        let refute_required = required_of("refute_conjecture");
+        assert!(
+            refute_required.contains("conjecture_id"),
+            "refute_conjecture enforces `conjecture_id` via required_str but does not advertise \
+             it as required: {refute_required:?}"
+        );
+        // `reason` / `dry_run` are read with `optional_str` / `optional_bool_checked` at the
+        // call site, so advertising them as required would be dishonest the other way.
+        assert!(
+            !refute_required.contains("reason"),
+            "refute_conjecture's `reason` is optional at call time; must not be advertised as \
+             required: {refute_required:?}"
+        );
+        assert!(
+            !refute_required.contains("dry_run"),
+            "refute_conjecture's `dry_run` is optional at call time; must not be advertised as \
+             required: {refute_required:?}"
+        );
     }
 
     #[test]
