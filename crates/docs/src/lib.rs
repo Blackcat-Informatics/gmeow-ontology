@@ -51,6 +51,6 @@ pub use model::{
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{
-    Page, Site, okf_doc_reference, render_site, render_site_lang, render_site_lang_exec, to_html,
-    to_markdown,
+    Page, Site, okf_doc_reference, render_purrdf_diagrams, render_site, render_site_lang,
+    render_site_lang_exec, render_site_lang_exec_with_diagrams, to_html, to_markdown,
 };
