@@ -733,6 +733,16 @@ impl Finding {
         // them so the projected graph is deterministic regardless of attach order.
         self.derived_from_quads.sort();
         self.derived_from_quads.dedup();
+        // Per-term guidance claims can reach a finding via the ledger merge path,
+        // which appends them in diagnostic arrival order — so sort+dedup them on the
+        // same `(modality, term_iri, text)` identity the enrich join uses, keeping the
+        // projected SARIF/RDF byte sequence deterministic regardless of attach order.
+        self.guidance.sort_by(|a, b| {
+            (a.modality as u8, &a.term_iri, &a.text).cmp(&(b.modality as u8, &b.term_iri, &b.text))
+        });
+        self.guidance.dedup_by(|a, b| {
+            a.modality == b.modality && a.term_iri == b.term_iri && a.text == b.text
+        });
     }
 }
 
@@ -973,5 +983,64 @@ mod tests {
         let tagged = Finding::new(Severity::Error, "c", "m")
             .with_category(FindingCategory::ContradictionWitness);
         assert_eq!(bare.sort_key(), tagged.sort_key());
+    }
+
+    #[test]
+    fn normalize_orders_and_dedups_guidance() {
+        use crate::diag::{GuidanceModality, GuidanceSource};
+        use crate::grade::Standpoint;
+
+        let claim = |modality, term: &str, text: &str, source| Guidance {
+            modality,
+            source,
+            term_iri: term.to_owned(),
+            text: text.to_owned(),
+            standpoint: Standpoint::Advisory,
+            help_uri: None,
+        };
+
+        // Guidance can reach a finding via the ledger merge in arrival order, so
+        // build it deliberately unsorted, with one duplicate that differs only in the
+        // non-identity fields (`source`/`help_uri`) — it must collapse to one.
+        let mut finding = Finding::new(Severity::Warning, "c", "m")
+            .with_guidance(claim(
+                GuidanceModality::AvoidWhen,
+                "gmeow:B",
+                "avoid B",
+                GuidanceSource::DocumentedTerm,
+            ))
+            .with_guidance(claim(
+                GuidanceModality::HowToUse,
+                "gmeow:A",
+                "use A",
+                GuidanceSource::DocumentedTerm,
+            ));
+        // A second surfacing of the how-to-use claim from the rule-governing key,
+        // carrying a help URI — same `(modality, term_iri, text)`, so a duplicate.
+        finding.push_guidance(Guidance {
+            help_uri: Some("https://example/anchor".to_owned()),
+            source: GuidanceSource::RuleGoverningTerm,
+            ..claim(
+                GuidanceModality::HowToUse,
+                "gmeow:A",
+                "use A",
+                GuidanceSource::DocumentedTerm,
+            )
+        });
+
+        finding.normalize();
+
+        // Sorted on `(modality as u8, term_iri, text)`: HowToUse(0) before
+        // AvoidWhen(2), and the duplicate how-to-use claim collapsed to one.
+        assert_eq!(finding.guidance.len(), 2);
+        assert_eq!(finding.guidance[0].modality, GuidanceModality::HowToUse);
+        assert_eq!(finding.guidance[0].term_iri, "gmeow:A");
+        assert_eq!(finding.guidance[1].modality, GuidanceModality::AvoidWhen);
+        assert_eq!(finding.guidance[1].term_iri, "gmeow:B");
+
+        // Idempotent: a second normalize is a no-op — the canonical form is stable.
+        let before = finding.guidance.clone();
+        finding.normalize();
+        assert_eq!(finding.guidance, before);
     }
 }
