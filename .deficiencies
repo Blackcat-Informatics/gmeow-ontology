@@ -384,3 +384,43 @@ object-form members + the pydantic unwrap that answers it). Reconciling purrdf's
 sh:in object-form inside the JSON Schema against the bare pydantic closed record is a
 separate sh:in-path question, not a value_vocab correctness defect, and is out of
 scope for a dependency-bump PR.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-14 — #1531 A1 stage-2 exit gate (supersedes the earlier #1531 block above)
+
+Stage-2 gap remediation ran a gap-analyzer + a binding completion-adversary. The
+first adversary pass returned FINDINGS-OPEN with one decisive DARK finding; the
+exit-gate adversary pass returned PASS (every acceptance criterion
+DEMONSTRATED-IN-PRODUCTION, zero open findings). Net changes to the earlier notes:
+
+- F1 (DARK) RESOLVED — the stage-1 "wheel-shippable = library surface, subcommand
+  owned by A2/#1532" descope was REVERSED. The subcommand was BUILT this stage:
+  `gmeow slice quality <dir>` (crates/gmeow-cli) routes through
+  `score_external_slice_bytes(BUNDLE_GTS, dir)` and was demonstrated scoring an
+  external slice from the shipped binary with no `slices/` checkout. That earlier
+  library-only deferral is therefore VOID, not carried forward.
+
+- DocMaturity numeric-fidelity note (D2) RESOLVED — the off-repo fraction is now
+  pinned to an exact oracle in slice_quality_bundle.rs (0.75 = 9/12 with the exact
+  covered/missing dimension sets), replacing the earlier structural-only assertion.
+
+- Merged-into-main verification (D4) RESOLVED — origin/main (purrdf 0.6.0, #1540)
+  was merged INTO the branch, `make regenerate` run once (zero generated drift),
+  and the FULL `make check` run to completion GREEN (exit 0) at merge commit
+  0c68b8cf4, including the slice-quality ratchet gate (committed floors monotonic
+  vs the merge base, 0 coherence violations). No budget/bench gate trip this run.
+
+STANDING EXCEPTION (the only one carried out of stage 2):
+
+- RUBRIC_MODULE literal-retirement clause (R1) — NOT delivered as literally written;
+  the constant is KEPT as the ratchet gate's floor-source (deleting it would newly
+  enforce pipeline-slice floors and break byte-neutrality). Discharged by route-(b)
+  human sign-off recorded in the earlier #1531 block above (AskUserQuestion,
+  2026-07-14, "Keep it; scope R1 to the scoring loader"). The completion-adversary
+  accepted this as route-(b) discharged but flagged that the sign-off was recorded
+  by a prior session; the stage-2 session surfaced it to the user for explicit
+  reconfirmation before declaring ready-for-stage-3.
+
+- term_loss = None off-repo (D3) — unchanged: correct-by-construction lower bound on
+  the LossLedgerRow/LossJudgmentSound dims for a genuinely-lossy foreign slice,
+  documented in axis_external. Acceptable boundary; no action.
