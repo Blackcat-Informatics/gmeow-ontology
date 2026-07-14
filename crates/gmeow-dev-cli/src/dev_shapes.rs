@@ -41,6 +41,7 @@ use crate::dev_common::{fail, project_root};
 
 const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
 const SH_SPARQL: &str = "http://www.w3.org/ns/shacl#sparql";
+const SH_OR: &str = "http://www.w3.org/ns/shacl#or";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The projected validation-shape surface, relative to the repo root.
 const PROJECTED_REL: &str = "generated/shapes/validation-shapes.ttl";
@@ -343,11 +344,13 @@ impl OracleCtx {
             unsupported: read.unsupported.clone(),
         };
         let read = &stripped;
-        // A residue that is ONLY `sh:sparql` is grounded when the shape's target class carries a
-        // projected `logic:` constraint shape.
+        // A residue that is ONLY `sh:sparql` / `sh:or` constructs is grounded when an EXACT
+        // `logic:formalizes <legacy-shape-IRI>` record projects it onto the canonical
+        // constraint/procedural surface (`sh:or` joined `sh:sparql` here for the disjunctive
+        // obligations — a value-branch `sh:or` a record replicates procedurally).
         let sparql_only_residue_grounded = |unsupported: &[String]| {
             !unsupported.is_empty()
-                && unsupported.iter().all(|p| p == SH_SPARQL)
+                && unsupported.iter().all(|p| p == SH_SPARQL || p == SH_OR)
                 && self.formalized_shapes.contains(iri)
         };
         let formalized_failure_matches = || match &read.ir.failure_class {
@@ -356,6 +359,16 @@ impl OracleCtx {
                 .formalized_failure_classes
                 .get(iri)
                 .is_some_and(|actual| actual.len() == 1 && actual.contains(expected)),
+        };
+        // The record-anchored failure identity: the legacy shape's typed failure class is
+        // preserved by an exact `logic:formalizes <legacy-shape-IRI>` record carrying EXACTLY
+        // that class. A multi-shape class target aggregates to ONE projected declarative shape
+        // carrying ONE failure class, so a finer legacy obligation's typed identity rides its
+        // formalizing record instead of the (necessarily single) class annotation.
+        let failure_preserved_by_record = || {
+            read.ir.failure_class.is_some()
+                && self.formalized_shapes.contains(iri)
+                && formalized_failure_matches()
         };
         // A legacy class shape whose every constraint is a functional max-count (+ credited
         // existence min) has NO projected `targetClass` peer, because `owl:FunctionalProperty`
@@ -411,7 +424,14 @@ impl OracleCtx {
                 None => Verdict::NoProjectedPeer,
             },
             Some((_, proj)) => {
-                if read.ir.failure_class != proj.ir.failure_class {
+                // A differing typed failure class is admissible ONLY through the record-anchored
+                // identity: an exact `logic:formalizes` record carrying the legacy class. Such a
+                // shape can never be plain `Equiv` — its deletion clearance rests on the record,
+                // so it is decided by the grounded-residue path below.
+                let record_backed = failure_preserved_by_record();
+                let failure_via_record =
+                    read.ir.failure_class != proj.ir.failure_class && record_backed;
+                if read.ir.failure_class != proj.ir.failure_class && !failure_via_record {
                     return Verdict::NotEquiv(format!(
                         "typed failure class differs: legacy={:?}, projected={:?}",
                         read.ir.failure_class, proj.ir.failure_class
@@ -420,10 +440,22 @@ impl OracleCtx {
                 // Fold only functional-property maxima. A legacy minimum is never invented here:
                 // it must already be present in the projected IR. This prevents a hand-authored
                 // `sh:minCount` from receiving credit merely because the legacy shape asserted it.
+                // The fold is CREDIT-ONLY: it fires only when the legacy shape authored the SAME
+                // per-path bound the functional shape carries. A legacy shape that authored NO max
+                // must never be compared against a folded one — the functional bound rides its own
+                // global `sh:targetSubjectsOf` shape whether or not the legacy block exists, so
+                // attributing it to the class comparison would manufacture a spurious tightening.
                 let mut proj_ir = proj.ir.clone();
                 for pc in proj_ir.properties.iter_mut() {
+                    let legacy_max = read
+                        .ir
+                        .properties
+                        .iter()
+                        .find(|lp| lp.path == pc.path)
+                        .and_then(|lp| lp.max_count);
                     if pc.max_count.is_none()
                         && let Some(&m) = self.functional_max.get(&pc.path)
+                        && legacy_max == Some(m)
                     {
                         pc.max_count = Some(m);
                     }
@@ -453,6 +485,41 @@ impl OracleCtx {
                         }
                     }
                 }
+                // Record-backed node-kind tightening: a legacy `sh:nodeKind sh:IRI` on a path
+                // whose projected peer carries only the weaker `sh:BlankNodeOrIRI` (the
+                // `owl:allValuesFrom owl:Thing` carrier) is credited ONLY when an exact
+                // `logic:formalizes <legacy-shape-IRI>` record with the legacy failure class
+                // exists — the record's projected procedural twin carries the IRI-only
+                // tightening (the same trust anchor that grounds sh:sparql residue). Any credit
+                // marks the shape record-grounded, never plain `Equiv`.
+                let mut record_credit_used = false;
+                if record_backed {
+                    for pc in proj_ir.properties.iter_mut() {
+                        let legacy_iri_nk = read.ir.properties.iter().any(|lp| {
+                            lp.path == pc.path
+                                && lp.components.iter().any(|c| {
+                                    matches!(
+                                        c,
+                                        ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)
+                                    )
+                                })
+                        });
+                        let proj_bnode_or_iri = pc.components.iter().any(|c| {
+                            matches!(
+                                c,
+                                ConstraintComponent::NodeKindShacl(ShaclNodeKind::BlankNodeOrIri)
+                            )
+                        });
+                        let proj_iri = pc.components.iter().any(|c| {
+                            matches!(c, ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri))
+                        });
+                        if legacy_iri_nk && proj_bnode_or_iri && !proj_iri {
+                            pc.components
+                                .push(ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri));
+                            record_credit_used = true;
+                        }
+                    }
+                }
                 // Add functional/existence-covered legacy paths the projected class shape omits
                 // ENTIRELY (a functional max-1 rides only its `sh:targetSubjectsOf` shape).
                 for lp in &read.ir.properties {
@@ -478,9 +545,37 @@ impl OracleCtx {
                     .retain(|c| read.ir.node_components.contains(c));
                 let v = oracle(read, &proj_ir);
                 let grounded = grounds(read, &proj_ir, &v);
+                if failure_via_record {
+                    // Record-anchored clearance: the projected declarative surface must enforce
+                    // at least everything the covered legacy fragment does (the Galois soundness
+                    // direction — a stricter aggregate peer, whose extra bounds were proven by
+                    // the sibling blocks that contributed them, is admissible), and any residue
+                    // must be exactly the sh:sparql / sh:or constructs the exact record projects.
+                    return if v.legacy_subsumed_by_projected
+                        && (v.unsupported.is_empty()
+                            || sparql_only_residue_grounded(&v.unsupported))
+                    {
+                        Verdict::EquivGroundedResidue
+                    } else if !v.legacy_subsumed_by_projected {
+                        Verdict::NotEquiv(format!(
+                            "record-formalized shape's covered fragment is not subsumed by the \
+                             projected peer: {}",
+                            v.reason
+                        ))
+                    } else {
+                        Verdict::EquivResidue(v.unsupported.clone())
+                    };
+                }
                 if grounded && !v.residue_bearing {
-                    Verdict::Equiv
-                } else if grounded && sparql_only_residue_grounded(&v.unsupported) {
+                    if record_credit_used {
+                        Verdict::EquivGroundedResidue
+                    } else {
+                        Verdict::Equiv
+                    }
+                } else if grounded
+                    && sparql_only_residue_grounded(&v.unsupported)
+                    && formalized_failure_matches()
+                {
                     Verdict::EquivGroundedResidue
                 } else if grounded {
                     Verdict::EquivResidue(v.unsupported.clone())
@@ -697,9 +792,6 @@ fn class_owner_modules(root: &Path) -> BTreeMap<String, PathBuf> {
 
 const OWL_THING: &str = "http://www.w3.org/2002/07/owl#Thing";
 const RDFS_LITERAL: &str = "http://www.w3.org/2000/01/rdf-schema#Literal";
-/// The GMEOW authoring namespace the derive dogfoods (mirrors `frontend.rs` `GMEOW_NS`): only a
-/// class in this namespace owns a projected validation shape.
-const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 
 /// The reasoner-safe OWL a shape lowers to: class-level `rdfs:subClassOf` restriction / node axioms
 /// (routed to the target class's owner module) and per-property `owl:FunctionalProperty` declarations
@@ -721,6 +813,26 @@ fn is_facet(c: &ConstraintComponent) -> bool {
             | ConstraintComponent::NumericRange { .. }
             | ConstraintComponent::PrecisionRange { .. }
     )
+}
+
+/// Whether a component constrains the path's values to LITERALS: a literal `sh:hasValue`, an
+/// `sh:datatype`, `sh:nodeKind sh:Literal`, a datatype facet (length/numeric/precision/datetime
+/// range), `sh:languageIn`, or an `sh:in` set with a literal member. Such a path can never satisfy
+/// `owl:allValuesFrom owl:Thing` (the derive projects it to `sh:nodeKind sh:BlankNodeOrIRI`, which
+/// rejects every literal), so no owl:Thing carrier may be emitted for it.
+fn constrains_to_literals(c: &ConstraintComponent) -> bool {
+    is_facet(c)
+        || matches!(
+            c,
+            ConstraintComponent::HasValue(ShapeValue::Literal { .. })
+                | ConstraintComponent::Datatype(_)
+                | ConstraintComponent::NodeKindShacl(ShaclNodeKind::Literal)
+                | ConstraintComponent::DateTimeRange { .. }
+                | ConstraintComponent::LanguageIn(_)
+        )
+        || matches!(c, ConstraintComponent::In(vals) if vals
+            .iter()
+            .any(|v| matches!(v, ShapeValue::Literal { .. })))
 }
 
 /// A `<K> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <P> ; owl:<pred> <filler> ] .` axiom.
@@ -745,8 +857,9 @@ fn required_path_closure(k: &str, p: &str) -> String {
 /// family, which is conditionally out of the reasoner's EL/DL fragment). Anything with no
 /// reasoner-safe antecedent — a pattern, a non-class `sh:not`, a value-keyed / cross-node condition,
 /// an uncredited bare `sh:nodeKind`, a max ≠ 1 count, a property that cannot be corpus-consistently
-/// functional — is recorded as residue for targeted authoring (a FOL family or a `logic:formalizes`
-/// backing), never emitted as an out-of-fragment axiom.
+/// functional, a bare existence on a path that is not a declared `owl:ObjectProperty` — is recorded
+/// as residue for targeted authoring (a FOL family or a `logic:formalizes` backing), never emitted
+/// as an out-of-fragment or category-error axiom.
 fn reasoner_safe_emit(
     k: &str,
     ir: &ValidationShapeIr,
@@ -787,18 +900,16 @@ fn reasoner_safe_emit(
             _ => None,
         });
         let min_present = pc.min_count.is_some_and(|m| m >= 1);
-        if min_present {
-            class_stmts.push(required_path_closure(k, p));
-        }
 
         // The type/range filler + its restriction predicate. A datatype grounds to a BARE
         // `owl:allValuesFrom <D>` — the facet vocabulary (numeric/length range) is out of the
         // reasoner's fragment and is recorded as residue below, never emitted.
+        let mut universal_filler: Option<String> = None;
         if let Some(c) = &class_c {
             // Data-soundness gate: a class obligation the real data violates would red `make validate`
             // once projected + enforced (the hand-authored shape was never enforced). Skip it.
             if data.class_obligation_conforms(k, p, c) {
-                class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{c}>")));
+                universal_filler = Some(c.clone());
             } else {
                 residue.push(format!("{p}: sh:class {c} — example data has a non-conforming value (would red make validate); left ungrounded"));
             }
@@ -810,20 +921,38 @@ fn reasoner_safe_emit(
             let recognized =
                 dt.starts_with("http://www.w3.org/2001/XMLSchema#") || dt == RDFS_LITERAL;
             if recognized || data.class_obligation_conforms(k, p, dt) {
-                class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{dt}>")));
+                universal_filler = Some(dt.clone());
             } else {
                 residue.push(format!("{p}: datatype {dt} derives to sh:class (unrecognised by the projector) and the data has a literal value; left ungrounded"));
             }
         } else if let Some(nk) = &nodekind_filler {
-            class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{nk}>")));
+            universal_filler = Some(nk.clone());
         } else if min_present {
-            // Bare existence with no class/datatype/node-kind filler.
-            class_stmts.push(restriction(
-                k,
-                p,
-                "allValuesFrom",
-                &format!("<{OWL_THING}>"),
-            ));
+            // Bare existence with no class/datatype/node-kind filler. The vacuous
+            // `owl:allValuesFrom owl:Thing` carrier is sound ONLY for a declared
+            // owl:ObjectProperty (GMEOW individuals are IRI-named, so the derived
+            // `sh:nodeKind sh:BlankNodeOrIRI` enforces nothing new). On a datatype-valued or
+            // untyped path the same axiom is a category error — the derived node-kind rejects
+            // every literal value — so the un-projectable existence is residue instead.
+            if object_properties.contains(p) && !pc.components.iter().any(constrains_to_literals) {
+                universal_filler = Some(OWL_THING.to_owned());
+            } else {
+                residue.push(format!(
+                    "{p}: sh:minCount on a non-object (literal-valued) path — owl:allValuesFrom \
+                     owl:Thing would derive sh:nodeKind sh:BlankNodeOrIRI and reject every literal; \
+                     left as residue"
+                ));
+            }
+        }
+        if let Some(f) = &universal_filler {
+            class_stmts.push(restriction(k, p, "allValuesFrom", &format!("<{f}>")));
+            // The class-scoped closed-world authority projects `sh:minCount 1` ONLY when it rides
+            // an `owl:allValuesFrom` restriction on the same (class, path); without the carrier the
+            // entry is inert AND its bare `closureKey` opts the property's rdfs:domain/range into
+            // the closed-world reading — a global side effect no legacy class shape asked for.
+            if min_present {
+                class_stmts.push(required_path_closure(k, p));
+            }
         }
 
         // At-most-one is credited ONLY when the property is ALREADY declared owl:FunctionalProperty
@@ -1332,11 +1461,12 @@ pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
                 skipped += 1;
                 continue;
             };
-            // The derive only emits validation shapes for GMEOW-namespace classes
-            // (frontend.rs `GMEOW_NS` dogfooding guard). A shape targeting a math:/lang:/logic:
-            // class can never be reproduced by the projector, so injecting OWL for it is inert —
-            // skip it (it needs a derive dogfooding extension or a logic: backing instead).
-            if !k.starts_with(GMEOW_NS) {
+            // The derive only emits validation shapes for classes/properties in an authoring
+            // namespace (`gmeow_logic_compile::frontend::AUTHORING_NAMESPACES` — the single
+            // dogfooding-boundary authority, covering `gmeow:`/`math:`/`lang:`/`logic:`). A shape
+            // targeting a genuinely external namespace (imported ontologies such as gUFO/FOAF)
+            // can never be reproduced by the projector, so injecting OWL for it is inert — skip it.
+            if !gmeow_logic_compile::frontend::is_authoring_namespace(k) {
                 println!(
                     "  [SKIP non-dogfooded-namespace] {} ({})",
                     short_iri(iri),
@@ -1638,5 +1768,201 @@ mod tests {
         assert_eq!(projected.len(), 1);
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("share target"));
+    }
+
+    /// The record-anchored clearance: a finer legacy shape whose typed failure class differs
+    /// from the (single) class-annotation failure of the aggregate projected peer is grounded
+    /// when an EXACT `logic:formalizes <legacy-shape-IRI>` record carries the legacy class and
+    /// the projected peer subsumes the covered fragment.
+    #[test]
+    fn record_anchored_failure_identity_grounds_a_finer_legacy_shape() {
+        use gmeow_logic_compile::ir::ShaclNodeKind;
+        let target = ShapeTarget::Class("https://example.test/Widget".to_owned());
+        // Projected aggregate peer: nodeKind + minCount on the path, class-level failure class.
+        let proj_ir = ValidationShapeIr::new(
+            "https://example.test/Widget-shape",
+            target.clone(),
+            vec![
+                PropertyConstraintIr::new(
+                    "https://example.test/law",
+                    Some(1),
+                    None,
+                    Some(ConstraintProvenance::OwlRestriction),
+                    vec![ConstraintComponent::NodeKindShacl(
+                        ShaclNodeKind::BlankNodeOrIri,
+                    )],
+                )
+                .unwrap(),
+            ],
+            None,
+        )
+        .unwrap()
+        .with_failure_class("https://example.test/CoarseFailure")
+        .unwrap();
+        // Legacy finer shape: only the nodeKind (no minCount), a FINER failure class.
+        let legacy_ir = ValidationShapeIr::new(
+            "https://example.test/LawShape",
+            target.clone(),
+            vec![
+                PropertyConstraintIr::new(
+                    "https://example.test/law",
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::NodeKindShacl(
+                        ShaclNodeKind::BlankNodeOrIri,
+                    )],
+                )
+                .unwrap(),
+            ],
+            None,
+        )
+        .unwrap()
+        .with_failure_class("https://example.test/FineFailure")
+        .unwrap();
+        let read = ShapeRead {
+            ir: legacy_ir,
+            unsupported: vec![],
+        };
+        let mut projected = BTreeMap::new();
+        projected.insert(
+            target.clone(),
+            (
+                "https://example.test/Widget-shape".to_owned(),
+                ShapeRead {
+                    ir: proj_ir,
+                    unsupported: vec![],
+                },
+            ),
+        );
+        let mut ctx = OracleCtx {
+            projected,
+            functional_max: BTreeMap::new(),
+            formalized_shapes: std::collections::BTreeSet::new(),
+            formalized_failure_classes: BTreeMap::new(),
+            object_properties: std::collections::BTreeSet::new(),
+        };
+        // WITHOUT the record: the differing failure class blocks deletion.
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        assert!(
+            matches!(v, Verdict::NotEquiv(ref r) if r.contains("failure class")),
+            "{}",
+            v.label()
+        );
+        // WITH the exact formalizes record carrying the legacy class: grounded.
+        ctx.formalized_shapes
+            .insert("https://example.test/LawShape".to_owned());
+        ctx.formalized_failure_classes.insert(
+            "https://example.test/LawShape".to_owned(),
+            std::iter::once("https://example.test/FineFailure".to_owned()).collect(),
+        );
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        assert!(matches!(v, Verdict::EquivGroundedResidue), "{}", v.label());
+        // A record carrying the WRONG failure class never clears the block.
+        ctx.formalized_failure_classes.insert(
+            "https://example.test/LawShape".to_owned(),
+            std::iter::once("https://example.test/OtherFailure".to_owned()).collect(),
+        );
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        assert!(
+            matches!(v, Verdict::NotEquiv(_)),
+            "a wrong-class record must not clear deletion: {}",
+            v.label()
+        );
+    }
+
+    const K: &str = "https://example.test/Constant";
+    const P: &str = "https://example.test/isExact";
+
+    fn empty_data() -> InstanceData {
+        InstanceData {
+            types: BTreeMap::new(),
+            edges: BTreeMap::new(),
+            literal_edges: std::collections::BTreeSet::new(),
+        }
+    }
+
+    fn min_plus_hasvalue_shape() -> ValidationShapeIr {
+        let pc = PropertyConstraintIr::new(
+            P,
+            Some(1),
+            None,
+            Some(ConstraintProvenance::OwlRestriction),
+            vec![ConstraintComponent::HasValue(ShapeValue::Literal {
+                lexical: "true".to_owned(),
+                datatype: Some("http://www.w3.org/2001/XMLSchema#boolean".to_owned()),
+                lang: None,
+            })],
+        )
+        .expect("property constraint builds");
+        ValidationShapeIr::new(
+            "https://example.test/ConstantShape".to_owned(),
+            ShapeTarget::Class(K.to_owned()),
+            vec![pc],
+            None,
+        )
+        .expect("shape IR builds")
+    }
+
+    #[test]
+    fn datatype_valued_existence_never_fabricates_owl_thing() {
+        // A shape on a declared owl:DatatypeProperty (i.e. NOT in the object-property set) with
+        // only minCount + a literal sh:hasValue: `owl:allValuesFrom owl:Thing` derives
+        // `sh:nodeKind sh:BlankNodeOrIRI`, which every literal value violates — the existence
+        // must be residue, with no fabricated axiom and no inert closure entry.
+        let empty = std::collections::BTreeSet::new();
+        let emit = reasoner_safe_emit(K, &min_plus_hasvalue_shape(), &empty, &empty, &empty_data());
+        assert!(
+            emit.class_stmts.iter().all(|s| !s.contains(OWL_THING)),
+            "fabricated owl:Thing axiom on a datatype-valued path: {:?}",
+            emit.class_stmts
+        );
+        assert!(
+            emit.class_stmts.iter().all(|s| !s.contains("ClosureEntry")),
+            "closure entry without an allValuesFrom carrier is inert: {:?}",
+            emit.class_stmts
+        );
+        assert!(
+            emit.residue.iter().any(|r| r.contains("sh:minCount")),
+            "the un-projectable existence must be named as residue: {:?}",
+            emit.residue
+        );
+    }
+
+    #[test]
+    fn object_property_existence_keeps_the_owl_thing_carrier() {
+        // The same bare existence on a declared owl:ObjectProperty stays sound: values are
+        // IRI-named individuals, so the owl:Thing carrier (+ its closure entry) is emitted.
+        let pc = PropertyConstraintIr::new(
+            P,
+            Some(1),
+            None,
+            Some(ConstraintProvenance::OwlRestriction),
+            vec![],
+        )
+        .expect("property constraint builds");
+        let ir = ValidationShapeIr::new(
+            "https://example.test/ConstantShape".to_owned(),
+            ShapeTarget::Class(K.to_owned()),
+            vec![pc],
+            None,
+        )
+        .expect("shape IR builds");
+        let functional = std::collections::BTreeSet::new();
+        let objects: std::collections::BTreeSet<String> = std::iter::once(P.to_owned()).collect();
+        let emit = reasoner_safe_emit(K, &ir, &functional, &objects, &empty_data());
+        assert!(
+            emit.class_stmts
+                .iter()
+                .any(|s| s.contains(&format!("allValuesFrom <{OWL_THING}>"))),
+            "object-property existence keeps its universal carrier: {:?}",
+            emit.class_stmts
+        );
+        assert!(
+            emit.class_stmts.iter().any(|s| s.contains("ClosureEntry")),
+            "the carrier's closure entry projects the sh:minCount: {:?}",
+            emit.class_stmts
+        );
+        assert!(emit.residue.is_empty(), "residue: {:?}", emit.residue);
     }
 }

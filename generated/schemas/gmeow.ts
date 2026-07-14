@@ -659,8 +659,16 @@ export enum AxisFloorCommitmentEnum {
     afc_logic_axisTranslationCoverage = "afc-logic-axisTranslationCoverage",
     afc_math_axisDocMaturity = "afc-math-axisDocMaturity",
     afc_math_axisDocumentation = "afc-math-axisDocumentation",
+    afc_math_axisFlagshipCounterExampleDepth = "afc-math-axisFlagshipCounterExampleDepth",
     afc_math_axisGmn1Coverage = "afc-math-axisGmn1Coverage",
+    afc_math_axisMaximalGrounding = "afc-math-axisMaximalGrounding",
+    afc_math_axisMaximalInformation = "afc-math-axisMaximalInformation",
+    afc_math_axisMaximalLinkage = "afc-math-axisMaximalLinkage",
+    afc_math_axisMaximalProjection = "afc-math-axisMaximalProjection",
+    afc_math_axisOptimalTesting = "afc-math-axisOptimalTesting",
     afc_math_axisProseQuality = "afc-math-axisProseQuality",
+    afc_math_axisProvenanceHonesty = "afc-math-axisProvenanceHonesty",
+    afc_math_axisReasonerDerived = "afc-math-axisReasonerDerived",
     afc_math_axisShapeMigration = "afc-math-axisShapeMigration",
     afc_math_axisTranslationCoverage = "afc-math-axisTranslationCoverage",
     afc_mentation_axisDocMaturity = "afc-mentation-axisDocMaturity",
@@ -926,6 +934,7 @@ export enum BranchConditionTypeEnum {
 
 export enum BuildDataFlowEnum {
     pipeline_dataflow_reason_compile_logic = "pipeline-dataflow-reason-compile-logic",
+    pipeline_dataflow_validate_compile_logic = "pipeline-dataflow-validate-compile-logic",
 }
 
 export enum CadastralReferenceTypeEnum {

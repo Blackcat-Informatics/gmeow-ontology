@@ -336,6 +336,15 @@ pub enum ConstraintComponent {
     /// `owl:disjointUnionOf` class expression — a focus value must satisfy EXACTLY ONE branch.
     /// Each element is one branch; branches sorted at construction.
     Xone(Vec<ConstraintComponent>),
+    /// A NODE-level disjunction over required property paths
+    /// (`sh:or ( [ sh:path P1 ; sh:minCount 1 ] [ sh:path P2 ; sh:minCount 1 ] … )`): the focus
+    /// node must carry AT LEAST ONE of the alternative predicates. The closed-world reading of a
+    /// class-level `rdfs:subClassOf [ owl:unionOf ( [ owl:onProperty P1 ; owl:someValuesFrom
+    /// owl:Thing ] … ) ]` axiom (an either-of-these-properties existence obligation). Unlike
+    /// [`ConstraintComponent::Or`] — whose branches constrain one property's VALUES — each branch
+    /// here names a whole property path required with `sh:minCount 1`. Paths sorted + deduped at
+    /// construction. Meaningful only in a shape's node-level component list.
+    OrProperties(Vec<String>),
 }
 
 impl ConstraintComponent {
@@ -418,6 +427,17 @@ impl ConstraintComponent {
                     b.normalize()?;
                 }
                 branches.sort_by_cached_key(ConstraintComponent::content_key);
+            }
+            ConstraintComponent::OrProperties(paths) => {
+                paths.sort();
+                paths.dedup();
+                if paths.len() < 2 {
+                    return Err(Diag::of_kind(crate::error::Validation {
+                        detail: "ConstraintComponent::OrProperties: a property disjunction needs \
+                                at least two distinct alternative paths"
+                            .to_owned(),
+                    }));
+                }
             }
             _ => {}
         }
@@ -516,6 +536,9 @@ impl ConstraintComponent {
                     "xone={}",
                     key_list(branches.iter().map(ConstraintComponent::content_key))
                 )
+            }
+            ConstraintComponent::OrProperties(paths) => {
+                format!("orprops={}", key_list(paths.iter().cloned()))
             }
         }
     }
