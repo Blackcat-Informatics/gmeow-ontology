@@ -657,10 +657,11 @@ gmeow:stage-export-json-schema
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: json schema"@x-gmeow-english ;
-    skos:definition "Compile the hand-authored SHACL shape union into a closed-world JSON Schema (draft 2020-12) and an OpenAPI 3.1 document via the native emitter (crates/shacl), retiring the LinkML-derived JSON Schema. A source-reading leaf: it reads the shape files directly and consumes no upstream product, so the snapshot stage folds its fresh output into the schemas-archive blob."@x-gmeow-english ;
+    skos:definition "Compile the SHACL shape union into a closed-world JSON Schema (draft 2020-12) and an OpenAPI 3.1 document via the native emitter (crates/shacl), retiring the LinkML-derived JSON Schema. The shape union folds in the stage-compile-logic-derived generated/shapes/validation-shapes.ttl (the OWL-restriction node-shape projection), a pipeline product rather than an authored source, so this leaf gmeow:dataflowConsumes gmeow:stage-compile-logic: the edge orders it after the producer (the shape union it reads is fresh) and keys its cache on the producer digest, so a newly-derived node shape reflows the schema in one pass — the validation-shapes.ttl freshness rule. The snapshot stage folds its fresh output into the schemas-archive blob."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
+    gmeow:dataflowConsumes gmeow:stage-compile-logic ;
     gmeow:stageImpl "json_schema" ;
     gmeow:producesFormat "json-schema" .
 
@@ -668,10 +669,11 @@ gmeow:stage-export-pydantic
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: pydantic models"@x-gmeow-english ;
-    skos:definition "Render the Pydantic v2 model package (gmeow_models/<slice>.py) — a functional documentation surface — from the same SHACL shape compilation the JSON-Schema leaf runs, joined with the documentation model for docstrings, so a model's model_json_schema() agrees with the packed JSON Schema by construction. A source-reading leaf: it reads the shape files and the documentation sources directly and consumes no upstream product; the sink folds its fresh output into the models-python blob and the package tree ships as the gmeow-ontology wheel source."@x-gmeow-english ;
+    skos:definition "Render the Pydantic v2 model package (gmeow_models/<slice>.py) — a functional documentation surface — from the same SHACL shape compilation the JSON-Schema leaf runs, joined with the documentation model for docstrings, so a model's model_json_schema() agrees with the packed JSON Schema by construction. The shared shape union folds in the stage-compile-logic-derived generated/shapes/validation-shapes.ttl, so — like the JSON-Schema leaf — it gmeow:dataflowConsumes gmeow:stage-compile-logic for freshness (ordered after the producer, cache keyed on its digest, so a newly-derived node shape reaches the co-derived model in one pass — the validation-shapes.ttl freshness rule). The sink folds its fresh output into the models-python blob and the package tree ships as the gmeow-ontology wheel source."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
+    gmeow:dataflowConsumes gmeow:stage-compile-logic ;
     gmeow:stageImpl "pydantic" ;
     gmeow:producesFormat "pydantic" .
 

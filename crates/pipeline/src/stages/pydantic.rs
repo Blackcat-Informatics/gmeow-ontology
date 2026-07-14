@@ -50,6 +50,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
+use std::sync::LazyLock;
 
 use serde_json::Value;
 
@@ -1876,11 +1877,20 @@ fn render_readme(modules: &[RenderedModule], version: &str) -> Vec<u8> {
 /// The committed on-disk root of the shipped package (the wheel source tree).
 pub const PACKAGE_ROOT: &str = "packages/python/gmeow_models";
 
-/// The `stage-export-pydantic` export-leaf stage: a source-reading leaf (like
-/// `stage-export-json-schema`) that renders the Pydantic model package from the
-/// shape union + docs model. Its artifacts are written to disk under
-/// [`PACKAGE_DISK_PREFIX`] (the wheel source) and folded into the `models-python`
-/// blob by the carrier.
+/// The single upstream product this leaf consumes: `stage-compile-logic`, whose
+/// output includes the derived `generated/shapes/validation-shapes.ttl` the shape
+/// union folds in. Same freshness edge as `stage-export-json-schema` — orders this
+/// leaf after the producer and keys its cache on the producer digest, so a
+/// newly-derived node shape reaches the co-derived Pydantic model in one pass.
+static PYDANTIC_CONSUMES: LazyLock<Vec<String>> =
+    LazyLock::new(|| vec!["stage-compile-logic".to_string()]);
+
+/// The `stage-export-pydantic` export-leaf stage: renders the Pydantic model
+/// package from the shape union + docs model. Because the shape union includes the
+/// compile-logic-derived `validation-shapes.ttl`, it `consumes()`
+/// `stage-compile-logic` for freshness (like `stage-export-json-schema`). Its
+/// artifacts are written to disk under [`PACKAGE_DISK_PREFIX`] (the wheel source)
+/// and folded into the `models-python` blob by the carrier.
 pub struct PydanticStage;
 
 impl Stage for PydanticStage {
@@ -1888,10 +1898,17 @@ impl Stage for PydanticStage {
         "stage-export-pydantic"
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        // Depends on stage-compile-logic (producer of the derived
+        // validation-shapes.ttl folded into the shape union) so it runs after it and
+        // keys its cache on the producer digest — the validation-shapes.ttl freshness
+        // rule, matching stage-export-json-schema.
+        &PYDANTIC_CONSUMES
     }
     fn impl_version(&self) -> &str {
-        "pydantic.v1"
+        // v2: took the stage-compile-logic consumes edge so a newly-derived node
+        // shape reflows the model in one pass (was v1, an independent leaf keyed on a
+        // stale pre-pass validation-shapes.ttl). The bump busts old edge-less cache.
+        "pydantic.v2-compile-logic-freshness"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The emitter reads BOTH the shape union (constraints) and the docs model

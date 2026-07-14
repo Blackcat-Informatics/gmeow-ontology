@@ -10,11 +10,19 @@
 //! via the native emitter (`purrdf::shapes::json_schema::compile`) — no external
 //! toolkit, no Python.
 //!
-//! Like `frame_shapes`, this is a source-reading export leaf: it declares the
-//! authored shape files as cache inputs and `consumes()` nothing, so it runs as
-//! an independent phase-1 ExportLeaf. Output is byte-deterministic (the emitter
-//! sorts every collection), so it is compared byte-for-byte to the committed
-//! `generated/schemas/gmeow.schema.json` / `gmeow.openapi.json`.
+//! It reads the SHACL shape union, which includes the compile-logic-derived
+//! `generated/shapes/validation-shapes.ttl` (the OWL-restriction → node-shape
+//! projection). That file is a pipeline PRODUCT, not an authored source, so this
+//! leaf `consumes()` `stage-compile-logic`: the edge orders it after the producer
+//! (the on-disk shape union it reads is guaranteed fresh) and folds the producer's
+//! output digest into its cache key, so a newly-derived shape reflows the schema in
+//! a SINGLE pass. Without the edge it ran as an independent phase-1 leaf whose cache
+//! key was computed from the STALE pre-pass copy of `validation-shapes.ttl` — the
+//! stale-disk-fold class this repo guards against everywhere else (the same freshness
+//! rule the carrier/gts-sink apply to `validation-shapes.ttl`). Output is
+//! byte-deterministic (the emitter sorts every collection), so it is compared
+//! byte-for-byte to the committed `generated/schemas/gmeow.schema.json` /
+//! `gmeow.openapi.json`.
 //!
 //! SHACL constructs with no JSON Schema equivalent (`sh:sparql` etc.) are never
 //! silently skipped: the emitter records each as a `LossRecord`, which this leaf
@@ -22,8 +30,17 @@
 
 use std::collections::BTreeMap;
 use std::path::Path;
+use std::sync::LazyLock;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+
+/// The single upstream product this leaf consumes: `stage-compile-logic`, whose
+/// output includes the derived `generated/shapes/validation-shapes.ttl` this leaf
+/// reads through the shape union. The edge exists for FRESHNESS (ordering + cache
+/// key on the producer digest), not because the run reads the product in memory —
+/// the shape union is loaded off the now-guaranteed-fresh disk copy.
+static JSON_SCHEMA_CONSUMES: LazyLock<Vec<String>> =
+    LazyLock::new(|| vec!["stage-compile-logic".to_string()]);
 
 /// Committed logical path of the native JSON Schema (draft 2020-12).
 pub const JSON_SCHEMA_PATH: &str = "generated/schemas/gmeow.schema.json";
@@ -64,17 +81,26 @@ impl Stage for JsonSchemaStage {
         "stage-export-json-schema"
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        // Depends on stage-compile-logic (the producer of the derived
+        // validation-shapes.ttl the shape union folds in) so it runs AFTER it and
+        // keys its cache on the producer's output digest — the validation-shapes.ttl
+        // freshness rule. See the module doc.
+        &JSON_SCHEMA_CONSUMES
     }
     fn impl_version(&self) -> &str {
-        "json_schema.v1"
+        // v2: took the stage-compile-logic consumes edge so a newly-derived node
+        // shape reflows the schema in one pass (was v1, an independent leaf whose
+        // cache key read a stale pre-pass validation-shapes.ttl). The bump busts any
+        // cache entry written under the old, edge-less key.
+        "json_schema.v2-compile-logic-freshness"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The shape union (`shapes/*.ttl` minus lints + `generated/shapes/*.ttl`
         // + `slices/*/*/shapes.ttl`) is exactly the source set the emitter reads.
-        // Declaring those as cache inputs keeps `consumes() == []` (no DAG edge)
-        // while busting the cache whenever any shape file changes — the same
-        // pattern frame_shapes uses for its authored sources. The value-vocabulary
+        // The authored members bust the cache on edit; the derived
+        // `generated/shapes/validation-shapes.ttl` member is read FRESH because the
+        // `stage-compile-logic` consumes edge orders this leaf after the producer
+        // (its digest also enters the cache key via that edge). The value-vocabulary
         // enrichment ALSO reads the ontology ABox (`slices/**/module.ttl`), so those
         // sources bust the cache too — a new vocabulary member must reflow the schema.
         let mut files = purrdf::shapes::shape_union::shape_files(root)
