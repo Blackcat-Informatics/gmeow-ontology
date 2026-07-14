@@ -1344,6 +1344,16 @@ impl McpView {
     ///   certified fragment) the strongest honest claim is the strictly-weaker
     ///   `CoherenceCheckAttestation` — NEVER a certificate.
     ///
+    /// # The `coherent` boolean agrees with `class_local_name` by construction
+    ///
+    /// `coherent` is `!completeness_refused(&result) && report.ok()` — the SAME
+    /// `CoherenceOutcome` gate that decides `class_local_name`, ANDed with the
+    /// bad-example verify findings. It is NEVER `report.ok()` alone: a conclusive DL
+    /// glut that happens not to trip any bad-example verify query would otherwise
+    /// leave `report.ok()` true while `class_local_name` reads `"Refused"` — a
+    /// self-contradictory envelope. Routing both fields through one shared outcome
+    /// makes `coherent:true` alongside `class_local_name:"Refused"` unrepresentable.
+    ///
     /// [`ReasoningResult::is_conclusive`]: gmeow_logic::result::ReasoningResult::is_conclusive
     fn run_verify_graph(&self, overlay_path: &str, budget: &Budget) -> gmeow_errors::Result<Value> {
         let path = Path::new(overlay_path);
@@ -1402,6 +1412,16 @@ impl McpView {
         // ran into one (it discloses what it found without refuting wholesale).
         let class_local_name = completeness_class(&result);
 
+        // `coherent` MUST be derived from the SAME `completeness_refused` gate that
+        // decided `class_local_name`, combined with the bad-example verify findings —
+        // never from `report.ok()` alone. A conclusive DL glut that happens to trip
+        // no bad-example verify query still leaves `report.ok()` true, but the shared
+        // gate REFUSES it; without this combination `coherent:true` could render
+        // alongside `class_local_name:"Refused"`, a self-contradictory envelope
+        // (CodeRabbit gap G4). `coherent` is true only when BOTH the shared outcome
+        // permits it (non-refuting) AND no bad-example finding fired.
+        let coherent = !completeness_refused(&result) && report.ok();
+
         // cited_iris: the DerivationRef cited-IRI surface when the verdict carries a
         // proof/counterproof, unioned with each finding's structured
         // `Finding::cited_iris` (the genuine `TermValue::Iri` bindings the offending
@@ -1446,7 +1466,7 @@ impl McpView {
             "completeness": result.completeness.wire(),
             "evaluation": result.evaluation.wire(),
             "error_count": report.error_count(),
-            "coherent": report.ok(),
+            "coherent": coherent,
             "findings": findings,
             "cited_iris": cited_iris.into_iter().collect::<Vec<_>>(),
             "judgment_nquads": judgment_nquads,
@@ -3864,6 +3884,18 @@ fn ambiguous_term_err(term: &str, candidates: &[String]) -> gmeow_errors::Diag {
 /// whether a genuine certificate is warranted.
 fn completeness_class(result: &ReasoningResult) -> &'static str {
     CoherenceOutcome::class_local_name_for(result, ContradictionPolicy::DEFAULT)
+}
+
+/// `true` iff [`completeness_class`] would answer `"Refused"` for `result` — the
+/// SAME gate, under the SAME default policy, exposed as a boolean for
+/// [`McpView::run_verify_graph`]'s `coherent` field. Deriving `coherent` from this
+/// (rather than from an independent signal such as "did any bad-example verify
+/// query match") is what guarantees `coherent` and `class_local_name` can never
+/// disagree: a conclusive DL glut that trips no bad-example query still REFUSES via
+/// this gate, so `coherent` is forced `false` in lockstep with `class_local_name`
+/// being `"Refused"` — never `coherent:true` alongside `class:Refused`.
+fn completeness_refused(result: &ReasoningResult) -> bool {
+    CoherenceOutcome::is_refused_for(result, ContradictionPolicy::DEFAULT)
 }
 
 /// Read the SCOPED COHERENCE CERTIFICATE carried in the bundle's `graph/attestations`
@@ -9473,6 +9505,121 @@ mod tests {
             out["class_local_name"], "Refused",
             "a witnessed forbidden violation in a CONCLUSIVE closure is a flat refusal, per \
              the SAME CoherenceOutcome gate the bundle-level coherence certifier uses: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// CodeRabbit gap G4 (HIGH): `verify_graph`'s `coherent` field MUST agree with
+    /// `class_local_name` — both MUST be derived from the SAME `CoherenceOutcome`
+    /// gate, never from two independent signals.
+    ///
+    /// The overlay carries a genuine DL glut via plain PAIRWISE `owl:disjointWith`
+    /// (A ⊑ B, A ⊑ C, B disjointWith C, x : A forces x into owl:Nothing) —
+    /// DELIBERATELY not an `owl:AllDisjointClasses` set, so the ONE bad-example
+    /// verify query that could independently catch a disjoint-axis violation
+    /// (`class-in-two-disjoint-axes.rq`, which matches only `owl:AllDisjointClasses`
+    /// membership) does NOT fire: `report.ok()` is true. Before the G4 fix,
+    /// `coherent` was read straight from `report.ok()`, so this exact fixture would
+    /// render the self-contradictory `coherent:true` alongside
+    /// `class_local_name:"Refused"`. The fix routes `coherent` through the SAME
+    /// shared `completeness_refused` gate that decides `class_local_name`, so the
+    /// two fields can never disagree.
+    ///
+    /// Fast (a tiny synthetic canon + a 4-quad overlay, not the real corpus): on-gate,
+    /// not `_heavy_offgate`.
+    #[test]
+    fn verify_graph_coherent_never_disagrees_with_refused_class() {
+        use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+
+        // The header-only canon PLUS the `axis-not-disjoint.rq` bad-example query's
+        // own required orthogonality matrix (an `owl:AllDisjointClasses` set naming
+        // the seven fixed identity axes) — otherwise that unrelated bad-example
+        // query fires on ANY header-only canon (it demands the matrix exist at all),
+        // which would make `report.ok()` false for a reason having nothing to do
+        // with this test's glut and defeat the falsifiability of the assertion below.
+        let doc = "<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
+             _:axdisj <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AllDisjointClasses> .\n\
+             _:axdisj <http://www.w3.org/2002/07/owl#members> _:axlist0 .\n\
+             _:axlist0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/GenderIdentity> .\n\
+             _:axlist0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist1 .\n\
+             _:axlist1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/GenderExpression> .\n\
+             _:axlist1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist2 .\n\
+             _:axlist2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth> .\n\
+             _:axlist2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist3 .\n\
+             _:axlist3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/SexualOrientation> .\n\
+             _:axlist3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist4 .\n\
+             _:axlist4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/RomanticOrientation> .\n\
+             _:axlist4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist5 .\n\
+             _:axlist5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/PronounSet> .\n\
+             _:axlist5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist6 .\n\
+             _:axlist6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/Honorific> .\n\
+             _:axlist6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .\n";
+        let dataset = dataset_of(doc);
+        let mut builder = SnapshotBuilder::new();
+        builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit tiny header-only canon");
+
+        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+
+        // The glut: same shape as `verify_graph_inconsistent_but_conclusive_never_
+        // certifies`, but PAIRWISE `owl:disjointWith` on classes NOT named in the
+        // orthogonality matrix above — so neither `axis-not-disjoint.rq` (satisfied
+        // by the matrix) nor `class-in-two-disjoint-axes.rq` (requires
+        // `owl:AllDisjointClasses` membership, which g4B/g4C never join) can match.
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("glut-no-bad-example-match.ttl");
+        fs::write(
+            &overlay_path,
+            "<http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4B> .\n\
+             <http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4C> .\n\
+             <http://gmeowtest.example/g4B> <http://www.w3.org/2002/07/owl#disjointWith> <http://gmeowtest.example/g4C> .\n\
+             <http://gmeowtest.example/g4x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/g4A> .\n",
+        )
+        .unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 64})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        assert_eq!(
+            out["evaluation"], "completed",
+            "the fixture's tiny closure must be CONCLUSIVE (not budget-cut) for this to be a \
+             faithful proof: {out}"
+        );
+
+        // The class label refutes coherence via the DL glut...
+        assert_eq!(
+            out["class_local_name"], "Refused",
+            "a witnessed forbidden violation in a CONCLUSIVE closure is a flat refusal: {out}"
+        );
+        // ...and `coherent` MUST agree — never `coherent:true` alongside
+        // `class_local_name:"Refused"`, even though no bad-example verify query
+        // fired on this fixture's pairwise `owl:disjointWith` shape.
+        assert_eq!(
+            out["coherent"], false,
+            "coherent must be false whenever class_local_name is Refused, regardless of \
+             whether any bad-example verify query matched: {out}"
         );
         drop(overlay_dir);
     }
