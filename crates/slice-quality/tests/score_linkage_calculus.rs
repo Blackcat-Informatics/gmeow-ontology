@@ -12,7 +12,7 @@
 use std::path::PathBuf;
 
 use gmeow_slice_quality::axes;
-use gmeow_slice_quality::score::ScoreContext;
+use gmeow_slice_quality::score::{ScoreContext, ScoringEnv};
 
 /// A read-only snapshot of an [`axes`] result, decoupled from the internal finding shape.
 struct AxisScoreView {
@@ -60,6 +60,7 @@ impl Fixture {
             "https://blackcatinformatics.ca/gmeow/slices/fixture".to_owned(),
             self.dir.clone(),
             &ds,
+            ScoringEnv::Repo,
         );
         let primitive = axes::resolve("linkage_axis").unwrap();
         let s = primitive(&ctx);

@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# A well-formed FIXTURE slice used to prove the wheel's zero-config
+# external-slice scoring (gmeow_slice_quality::score_external_slice) end-to-end
+# against the embedded gmeow.gts bundle. It is deliberately NOT under any
+# slices/ directory: it is a foreign slice pulled in on its own, with no repo
+# checkout around it. Its IRI is a stable, clearly-fixture IRI.
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/fixture-external-slice>
+    a gmeow:Slice ;
+    rdfs:label "fixture-external-slice"@x-gmeow-english ;
+    skos:definition "A well-formed fixture slice scored by the gmeow wheel's external-slice quality engine against the embedded bundle standards; it deliberately scores strictly between 0 and 1 on the GMN-1 coverage, documentation-maturity, and translation axes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture-external-slice> ;
+    dcterms:title "Fixture External Slice"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore .

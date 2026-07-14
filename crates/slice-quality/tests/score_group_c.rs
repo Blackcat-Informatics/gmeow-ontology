@@ -7,7 +7,7 @@
 use std::path::{Path, PathBuf};
 
 use gmeow_slice_quality::axes;
-use gmeow_slice_quality::score::ScoreContext;
+use gmeow_slice_quality::score::{ScoreContext, ScoringEnv};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -33,6 +33,7 @@ fn ctx(ds: &purrdf::RdfDataset) -> ScoreContext<'_> {
         "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric".to_owned(),
         slice_dir(),
         ds,
+        ScoringEnv::Repo,
     )
 }
 
@@ -149,7 +150,12 @@ fn translation_denominator_is_every_localizable_literal_not_just_label_and_defin
     // decisive discriminator that the denominator widened past label+definition.
     let (dir, iri) = literal_fixture("gap", false);
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
-    let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(iri, dir.clone(), &ds));
+    let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri,
+        dir.clone(),
+        &ds,
+        ScoringEnv::Repo,
+    ));
     assert!(
         tr.score < 1.0,
         "an untranslated skos:example must drop the score below 1.0 (widened denominator); \
@@ -160,8 +166,12 @@ fn translation_denominator_is_every_localizable_literal_not_just_label_and_defin
     // Control: translate the example too → every localizable literal covered → 1.0.
     let (dir2, iri2) = literal_fixture("full", true);
     let ds2 = gmeow_slice_quality::dataset_from_paths(&[&dir2.join("module.ttl")]).unwrap();
-    let tr2 =
-        axes::resolve("translation_axis").unwrap()(&ScoreContext::new(iri2, dir2.clone(), &ds2));
+    let tr2 = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri2,
+        dir2.clone(),
+        &ds2,
+        ScoringEnv::Repo,
+    ));
     assert_eq!(
         tr2.score, 1.0,
         "with every localizable literal translated in fr+cmn the score is a perfect 1.0, got {}",
@@ -201,7 +211,12 @@ fn translation_axis_does_not_credit_copied_english() {
     }
 
     let ds = gmeow_slice_quality::dataset_from_paths(&[&dir.join("module.ttl")]).unwrap();
-    let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(iri, dir.clone(), &ds));
+    let tr = axes::resolve("translation_axis").unwrap()(&ScoreContext::new(
+        iri,
+        dir.clone(),
+        &ds,
+        ScoringEnv::Repo,
+    ));
     assert_eq!(
         tr.score,
         1.0 / 3.0,

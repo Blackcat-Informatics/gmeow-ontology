@@ -3115,7 +3115,20 @@ impl McpServer {
         let root = self.root_path()?;
         let rel = required_str(args, "path")?;
         let slice_dir = resolve_slice_dir(&root, rel)?;
-        let report = gmeow_slice_quality::report::score_slice(&root, &slice_dir).map_err(|e| {
+        // Load the floor-free measurement standard from the repo rubric, then score
+        // the one slice against it in repo mode (byte-identical to the deleted
+        // repo-coupled `score_slice`).
+        let standard = gmeow_slice_quality::repo_measurement_standard(&root).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("slice_quality: {e}"),
+            })
+        })?;
+        let report = gmeow_slice_quality::report::score_slice_with_standard(
+            &slice_dir,
+            &standard,
+            gmeow_slice_quality::ScoringEnv::Repo,
+        )
+        .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Mcp {
                 message: format!("slice_quality: {e}"),
             })
