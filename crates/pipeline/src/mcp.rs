@@ -630,6 +630,12 @@ pub struct McpView {
     /// parsed dataset. Held behind an `Arc<[u8]>` so cloning the view is cheap
     /// and the (potentially large) bundle is never copied.
     gts: Arc<[u8]>,
+    /// The bundle's parsed Tier-1 data-graph shape union, decoded ONCE from the
+    /// raw snapshot bytes on the first `validate_local` call and shared by every
+    /// subsequent call. The bundle decode + shape parse dominates a Tier-1 run
+    /// (whole-bundle seconds vs the milliseconds the validation itself takes),
+    /// and the shapes are immutable per bundle (see [`Self::tier1_shapes`]).
+    tier1_shapes: OnceLock<gmeow_validate::data_validate::Tier1Shapes>,
 }
 
 impl McpView {
@@ -650,6 +656,7 @@ impl McpView {
             documentation: OnceLock::new(),
             modeled_defs: OnceLock::new(),
             gts,
+            tier1_shapes: OnceLock::new(),
         })
     }
 
@@ -1446,6 +1453,21 @@ impl McpView {
         }))
     }
 
+    /// The bundle's parsed Tier-1 data-graph shape union
+    /// ([`gmeow_validate::data_validate::Tier1Shapes`]), decoded once from the
+    /// raw snapshot bytes and cached for every `validate_local` call. Unlike the
+    /// ancillary `modeled_defs`, a bundle whose `shapes-archive` blob is missing
+    /// or malformed is a HARD FAIL surfaced to the caller — the failure is never
+    /// cached, so a (theoretically impossible) transient failure never poisons
+    /// the view.
+    fn tier1_shapes(&self) -> gmeow_errors::Result<&gmeow_validate::data_validate::Tier1Shapes> {
+        if let Some(shapes) = self.tier1_shapes.get() {
+            return Ok(shapes);
+        }
+        let built = gmeow_validate::data_validate::Tier1Shapes::from_gts(&self.gts)?;
+        Ok(self.tier1_shapes.get_or_init(|| built))
+    }
+
     /// Run `f` over the terms collected for `requested`, collecting (and caching)
     /// on first use per requested-tag list.
     fn with_terms<R>(&self, requested: Vec<String>, f: impl FnOnce(&[Term]) -> R) -> R {
@@ -2028,7 +2050,7 @@ impl McpServer {
             }));
         }
 
-        // Tier-1 SHACL + disciplines always run (fast, ~1s). The Tier-2 semantic
+        // Tier-1 SHACL + disciplines always run (fast). The Tier-2 semantic
         // pass — reasoning over the user data unioned with the whole bundle's
         // axioms — is opt-in via `deep` (default false), exactly like
         // `gmeow validate --deep`: it is powerful but reasons over the entire
@@ -2036,11 +2058,21 @@ impl McpServer {
         // structural conformance is not enough. When enabled, a contract-invalid
         // input is emitted by the engine as a hard Error finding — surfaced here
         // verbatim, never post-processed away.
+        //
+        // This server is a RESIDENT bundle consumer: it already imported the
+        // snapshot to the carrier dataset at startup and caches the parsed Tier-1
+        // shape union on first use, so it drives the shared `run_with` composition
+        // (the exact `gmeow validate` semantics) without re-decoding the whole
+        // bundle on every call.
         let deep = optional_bool(args, "deep").unwrap_or(false);
-        let report = gmeow_validate::data_validate::run(
+        let report = gmeow_validate::data_validate::run_with(
+            gmeow_validate::data_validate::BundleParts {
+                gts_bytes: self.view.gts_bytes(),
+                shapes: self.view.tier1_shapes()?,
+                dataset: self.view.dataset.as_ref(),
+            },
             data.as_bytes(),
             canonical,
-            self.view.gts_bytes(),
             MCP_NAMESPACE,
             VALIDATE_LOCAL_ORIGIN,
             deep,
@@ -4612,10 +4644,16 @@ mod tests {
     /// The candidate for each code is the SAME one the enrichment join attaches:
     /// `fixture_maps` keys a code to the lexicographically-first fixture IRI carrying
     /// it, so selecting by `code → (first-fixture IRI, its text)` guarantees the
-    /// attached counter-example's text equals the payload we validate. Returns
+    /// attached counter-example's text equals the payload we validate. `tier1` is
+    /// the production Tier-1 core (the [`run_tier1`] engine over ONE decode of the
+    /// shipped bundle — decoding the whole bundle per candidate would multiply the
+    /// dominant cost without strengthening anything). Returns
     /// `(fixture_iri, code, text)`. Panics with the observed codes if NONE reproduces
     /// (a real blocker, not a soft skip).
-    fn select_reproducing_counter_example(server: &McpServer) -> (String, String, String) {
+    fn select_reproducing_counter_example(
+        server: &McpServer,
+        tier1: &gmeow_validate::data_validate::Tier1Shapes,
+    ) -> (String, String, String) {
         let rows = server
             .view
             .docs_select_rows(COUNTER_EXAMPLE_FIXTURE_QUERY)
@@ -4644,14 +4682,14 @@ mod tests {
             "the shipped bundle carries NO bound counter-example fixtures"
         );
         for (code, (iri, text)) in &by_code {
-            let report = gmeow_validate::data_validate::run_tier1(
-                text.as_bytes(),
-                "turtle",
-                server.view.gts_bytes(),
-                MCP_NAMESPACE,
-                VALIDATE_LOCAL_ORIGIN,
-            )
-            .expect("tier-1 validate the fixture body");
+            let report = tier1
+                .validate(
+                    text.as_bytes(),
+                    "turtle",
+                    MCP_NAMESPACE,
+                    VALIDATE_LOCAL_ORIGIN,
+                )
+                .expect("tier-1 validate the fixture body");
             if report.findings.iter().any(|f| &f.code == code) {
                 return (iri.clone(), code.clone(), text.clone());
             }
@@ -4679,19 +4717,27 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let server = consumer_server();
-        let (fixture_iri, code, text) = select_reproducing_counter_example(&server);
+        // The reference side's OWN bundle decode (the `run_tier1` core), built once
+        // and independent of anything the tool caches: the selection loop and the
+        // reference run below share it, while the tool decodes its own from the
+        // snapshot bytes — decoding the same immutable bundle a third time per
+        // side would only re-test the decoder, not the tool.
+        let tier1_shapes =
+            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
+                .expect("parse the shipped bundle's Tier-1 shape union");
+        let (fixture_iri, code, text) = select_reproducing_counter_example(&server, &tier1_shapes);
         eprintln!("validate_local test selected fixture={fixture_iri} code={code}");
         let help_uri = gmeow_validate::rule_catalog::help_uri_for(&code);
 
-        // The CLI core: Tier-1 (the same `run_tier1` `gmeow validate` drives).
-        let tier1 = gmeow_validate::data_validate::run_tier1(
-            text.as_bytes(),
-            "turtle",
-            server.view.gts_bytes(),
-            MCP_NAMESPACE,
-            VALIDATE_LOCAL_ORIGIN,
-        )
-        .expect("tier-1 validate");
+        // The CLI core: Tier-1 (the same engine `gmeow validate`'s `run_tier1` drives).
+        let tier1 = tier1_shapes
+            .validate(
+                text.as_bytes(),
+                "turtle",
+                MCP_NAMESPACE,
+                VALIDATE_LOCAL_ORIGIN,
+            )
+            .expect("tier-1 validate");
         let tier1_codes = codes_of(&tier1);
 
         // Drive the REAL tool by DISPATCH BY NAME (deep defaults to false → fast).
@@ -4851,7 +4897,11 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let server = consumer_server();
-        let (_fixture_iri, _code, text) = select_reproducing_counter_example(&server);
+        let tier1_shapes =
+            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
+                .expect("parse the shipped bundle's Tier-1 shape union");
+        let (_fixture_iri, _code, text) =
+            select_reproducing_counter_example(&server, &tier1_shapes);
         let enriched = text_payload(
             server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
         );
@@ -4888,17 +4938,20 @@ mod tests {
             env::remove_var("GMEOW_LANG");
         }
         let server = consumer_server();
-        let (_iri, _code, text) = select_reproducing_counter_example(&server);
+        let tier1_shapes =
+            gmeow_validate::data_validate::Tier1Shapes::from_gts(server.view.gts_bytes())
+                .expect("parse the shipped bundle's Tier-1 shape union");
+        let (_iri, _code, text) = select_reproducing_counter_example(&server, &tier1_shapes);
 
         // The CLI Tier-1 surface the deep run must preserve.
-        let tier1 = gmeow_validate::data_validate::run_tier1(
-            text.as_bytes(),
-            "turtle",
-            server.view.gts_bytes(),
-            MCP_NAMESPACE,
-            VALIDATE_LOCAL_ORIGIN,
-        )
-        .expect("tier-1 validate");
+        let tier1 = tier1_shapes
+            .validate(
+                text.as_bytes(),
+                "turtle",
+                MCP_NAMESPACE,
+                VALIDATE_LOCAL_ORIGIN,
+            )
+            .expect("tier-1 validate");
         let tier1_codes = codes_of(&tier1);
 
         // Explicitly request the Tier-2 pass via the `deep` arg.
