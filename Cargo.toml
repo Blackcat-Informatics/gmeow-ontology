@@ -88,6 +88,12 @@ members = [
 
 
 
+    # Authoring-packet brief assembler: gathers, for one batch of a slice's
+    # terms, its definition + axioms + bounded neighbourhood + definitional closure,
+    # same-slice exemplars, and cross-ontology / cross-lingual grounding, emitted as
+    # canonical turtle, JSON, and human text. A leaf library both the pipeline stage
+    # and the `gmeow slice brief` CLI call.
+    "crates/slice-brief",
     "crates/slicetest",
     # Per-slice quality report + opinionated uplift advisor: the shared kernel
     # that reads the ontology-resident slice-quality rubric and scores a slice

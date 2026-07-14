@@ -1857,6 +1857,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-slice-brief"
+version = "0.1.0"
+dependencies = [
+ "gmeow-docs",
+ "gmeow-errors",
+ "gmeow-logic-compile",
+ "gmeow-slice-quality",
+ "purrdf",
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "gmeow-slice-quality"
 version = "0.1.0"
 dependencies = [

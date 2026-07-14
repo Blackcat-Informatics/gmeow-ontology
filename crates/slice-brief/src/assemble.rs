@@ -1,0 +1,608 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! The single canonical assembly of a [`AuthoringPacket`]. Every step is
+//! deterministic: term partition is IRI-sorted, every neighbour/closure set is
+//! `BTreeSet`-ordered, exemplar order is `(tier desc, IRI asc)`, and the grounding
+//! cross-table is emitted in a fixed `(term, attribute, predicate)` order — so a
+//! packet assembled twice from identical inputs is identical.
+
+use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::path::{Path, PathBuf};
+
+use gmeow_docs::i18n::Translations;
+use gmeow_docs::i18n_compile::LOCALIZABLE_PREDICATES;
+use gmeow_logic_compile::ingest::DslView;
+use gmeow_logic_compile::projections::sssom::equivalence_cells;
+use gmeow_slice_quality::dataset_from_paths;
+use gmeow_slice_quality::graph;
+use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
+
+use crate::error;
+use crate::model::{
+    Annotation, AuthoringPacket, ClosureEntry, CoveredTerm, GroundingAttribute, GroundingCell,
+    ObjTerm, Triple,
+};
+use crate::{digest, ns};
+
+/// The interim partition chunk size (`~25` terms per batch).
+const CHUNK: usize = 25;
+
+/// The injected inputs to a single packet assembly. Exemplar tiers are injected by
+/// the caller (dependency inversion), so the library never picks a scoring
+/// authority: the pipeline passes tiers from the in-pipeline `gmeow:QualityAssessment`
+/// product; the CLI passes tiers from the bundle scorer.
+pub struct BriefInputs<'a> {
+    /// The slice directory (holding `manifest.ttl`, `module.ttl`, …).
+    pub slice_dir: &'a Path,
+    /// The subdomain axis to filter terms by (local-name prefix). `None` = whole slice.
+    pub axis: Option<&'a str>,
+    /// The zero-based batch index of the `CHUNK`-term chunk to cover. `None` with no
+    /// axis = the whole slice as one packet (batch 0).
+    pub batch: Option<u32>,
+    /// `term-IRI -> quality tier rank` (higher = better). Empty => no exemplars.
+    pub exemplar_tiers: &'a BTreeMap<String, i64>,
+    /// The number of exemplar coats to seek.
+    pub exemplar_target: usize,
+}
+
+/// Assemble the authoring packet for `inputs`.
+///
+/// # Errors
+/// Hard-fails if the slice cannot be read, declares no `gmeow:Slice`, or the batch
+/// request is out of range. A missing translation / external mapping is NOT an
+/// error — it is recorded as an explicit "absent" grounding cell.
+pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPacket> {
+    let slice_dir = inputs.slice_dir;
+
+    // The slice graph (module + examples + tests) PLUS the alignment linkage under
+    // `mappings/` the external-grounding JOIN needs — `slice_ttl_paths` omits the
+    // latter, so it is gathered explicitly here.
+    let mut paths = gmeow_slice_quality::report::slice_ttl_paths(slice_dir);
+    collect_ttl(&slice_dir.join("mappings"), &mut paths);
+    paths.sort();
+    paths.dedup();
+    let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
+    let ds = dataset_from_paths(&path_refs)?;
+
+    // Slice identity comes from `manifest.ttl`, which is NOT part of the slice graph.
+    let manifest = slice_dir.join("manifest.ttl");
+    let mds = dataset_from_paths(&[manifest.as_path()])?;
+    let slice_iri = graph::instances_of(&mds, &graph::g("Slice"))
+        .into_iter()
+        .next()
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(error::Partition {
+                detail: format!("{} declares no gmeow:Slice", manifest.display()),
+            })
+        })?;
+
+    // 1. PARTITION.
+    let terms_all = defined_terms(&ds, &slice_iri);
+    let filtered: Vec<String> = match inputs.axis {
+        Some(ax) => terms_all
+            .iter()
+            .filter(|t| ns::local_name(t).starts_with(ax))
+            .cloned()
+            .collect(),
+        None => terms_all.clone(),
+    };
+    let (batch_index, covered_iris): (u32, Vec<String>) = match (inputs.axis, inputs.batch) {
+        (None, None) => (0, filtered.clone()),
+        _ => {
+            let b = inputs.batch.unwrap_or(0);
+            let start = (b as usize) * CHUNK;
+            if start >= filtered.len() {
+                return Err(gmeow_errors::Diag::of_kind(error::Partition {
+                    detail: format!(
+                        "batch {b} out of range: term {start} >= {} filtered term(s) in slice {slice_iri}\
+                         {}",
+                        filtered.len(),
+                        inputs
+                            .axis
+                            .map(|a| format!(" (axis \"{a}\")"))
+                            .unwrap_or_default()
+                    ),
+                }));
+            }
+            let end = (start + CHUNK).min(filtered.len());
+            (b, filtered[start..end].to_vec())
+        }
+    };
+    let covered_set: BTreeSet<&String> = covered_iris.iter().collect();
+
+    // 2. PER-TERM CONTENT.
+    let terms: Vec<CoveredTerm> = covered_iris
+        .iter()
+        .map(|iri| build_covered_term(&ds, iri))
+        .collect();
+
+    // 3. EXEMPLARS (injected tiers; no scoring authority in the library).
+    let mut cand: Vec<(i64, String)> = terms_all
+        .iter()
+        .filter_map(|t| {
+            inputs
+                .exemplar_tiers
+                .get(t)
+                .filter(|&&r| r > 0)
+                .map(|&r| (r, t.clone()))
+        })
+        .collect();
+    cand.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+    let found = cand.len().min(inputs.exemplar_target);
+    let exemplars: Vec<String> = cand
+        .into_iter()
+        .take(inputs.exemplar_target)
+        .map(|(_, t)| t)
+        .collect();
+    let exemplar_shortfall = inputs.exemplar_target.saturating_sub(found);
+
+    // Alignment linkage (external + relations for the disagreement check).
+    let view = DslView::new(&ds);
+    let cells = equivalence_cells(&view);
+    let mut ext_by_subject: BTreeMap<String, Vec<ExtCell>> = BTreeMap::new();
+    let mut by_ext_target: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut related: BTreeSet<(String, String)> = BTreeSet::new();
+    for c in &cells {
+        let subj_covered = covered_set.contains(&c.subject);
+        if ns::is_internal(&c.obj) {
+            if subj_covered && covered_set.contains(&c.obj) {
+                related.insert(ordered_pair(&c.subject, &c.obj));
+            }
+        } else {
+            if subj_covered {
+                ext_by_subject
+                    .entry(c.subject.clone())
+                    .or_default()
+                    .push(ExtCell {
+                        obj: c.obj.clone(),
+                        predicate: c.predicate.clone(),
+                        object_label: c.object_label.clone(),
+                        confidence: c.confidence,
+                    });
+                by_ext_target
+                    .entry(c.obj.clone())
+                    .or_default()
+                    .insert(c.subject.clone());
+            }
+        }
+    }
+    for subjects in by_ext_target.values() {
+        let v: Vec<&String> = subjects.iter().collect();
+        for i in 0..v.len() {
+            for j in (i + 1)..v.len() {
+                related.insert(ordered_pair(v[i], v[j]));
+            }
+        }
+    }
+    for cell_vec in ext_by_subject.values_mut() {
+        cell_vec.sort_by(|a, b| {
+            a.predicate
+                .cmp(&b.predicate)
+                .then_with(|| a.obj.cmp(&b.obj))
+        });
+    }
+
+    // 5/6. CROSS-LINGUAL JOIN inputs.
+    let catalog = purrdf::slice::SliceCatalog::discover(
+        slice_dir,
+        purrdf::SliceVocab::for_namespace(ns::GMEOW),
+    )
+    .map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!(
+                "{}: slice-catalog discovery failed: {e}",
+                slice_dir.display()
+            ),
+        })
+    })?;
+    let translations = Translations::from_catalog(&catalog);
+    let langs = [GroundingAttribute::Fr, GroundingAttribute::Zh];
+
+    // Translation-disagreement map: (term, lang, predicate-curie) -> counterpart term.
+    let mut conflict_map: BTreeMap<(String, &'static str, String), String> = BTreeMap::new();
+    for (a, b) in &related {
+        for attr in langs {
+            let lang = attr.lang().expect("language attribute");
+            for pred in LOCALIZABLE_PREDICATES {
+                let va = translations.lookup(a, pred, lang);
+                let vb = translations.lookup(b, pred, lang);
+                if let (Some(x), Some(y)) = (va, vb)
+                    && x != y
+                {
+                    let key = ns::curie(pred);
+                    conflict_map
+                        .entry((a.clone(), lang, key.clone()))
+                        .or_insert_with(|| b.clone());
+                    conflict_map
+                        .entry((b.clone(), lang, key))
+                        .or_insert_with(|| a.clone());
+                }
+            }
+        }
+    }
+
+    // Packet identity (mint before cells, which reference it).
+    let axis_seg = inputs
+        .axis
+        .map(ns::safe_segment)
+        .unwrap_or_else(|| "whole".to_string());
+    let packet_iri = format!("{slice_iri}/authoring-packet/{axis_seg}/batch-{batch_index}");
+
+    // 4/5/6. GROUNDING CELLS.
+    let mut grounding: Vec<GroundingCell> = Vec::new();
+    for term in &terms {
+        let seg = ns::safe_segment(ns::local_name(&term.iri));
+        // English is always present (the source language).
+        grounding.push(GroundingCell {
+            cell_iri: format!("{packet_iri}/cell/{seg}/en"),
+            term: term.iri.clone(),
+            attribute: GroundingAttribute::En,
+            present: true,
+            predicate: None,
+            value: None,
+            external_entity: None,
+            external_label: None,
+            align_predicate: None,
+            confidence: None,
+            conflict: false,
+            conflict_with: None,
+        });
+        // fr / zh, one cell per (localizable predicate present on the term).
+        let preds = term_localizable_predicates(term);
+        for attr in langs {
+            let lang = attr.lang().expect("language attribute");
+            for pred in &preds {
+                let curie = ns::curie(pred);
+                let pred_seg = ns::safe_segment(&curie);
+                let hit = translations.lookup(&term.iri, pred, lang);
+                let (conflict, conflict_with) =
+                    match conflict_map.get(&(term.iri.clone(), lang, curie.clone())) {
+                        Some(other) if hit.is_some() => (true, Some(other.clone())),
+                        _ => (false, None),
+                    };
+                grounding.push(GroundingCell {
+                    cell_iri: format!("{packet_iri}/cell/{seg}/{}/{pred_seg}", attr.tag()),
+                    term: term.iri.clone(),
+                    attribute: attr,
+                    present: hit.is_some(),
+                    predicate: Some(curie),
+                    value: hit.map(str::to_string),
+                    external_entity: None,
+                    external_label: None,
+                    align_predicate: None,
+                    confidence: None,
+                    conflict,
+                    conflict_with,
+                });
+            }
+        }
+        // external-mapped: one present cell per mapping, or one explicit-absent cell.
+        match ext_by_subject.get(&term.iri) {
+            Some(cell_vec) if !cell_vec.is_empty() => {
+                for (i, ext) in cell_vec.iter().enumerate() {
+                    grounding.push(GroundingCell {
+                        cell_iri: format!("{packet_iri}/cell/{seg}/external/{i}"),
+                        term: term.iri.clone(),
+                        attribute: GroundingAttribute::ExternalMapped,
+                        present: true,
+                        predicate: None,
+                        value: None,
+                        external_entity: Some(ext.obj.clone()),
+                        external_label: (!ext.object_label.is_empty())
+                            .then(|| ext.object_label.clone()),
+                        align_predicate: Some(ns::local_name(&ext.predicate).to_string()),
+                        confidence: ext.confidence,
+                        conflict: false,
+                        conflict_with: None,
+                    });
+                }
+            }
+            _ => grounding.push(GroundingCell {
+                cell_iri: format!("{packet_iri}/cell/{seg}/external/absent"),
+                term: term.iri.clone(),
+                attribute: GroundingAttribute::ExternalMapped,
+                present: false,
+                predicate: None,
+                value: None,
+                external_entity: None,
+                external_label: None,
+                align_predicate: None,
+                confidence: None,
+                conflict: false,
+                conflict_with: None,
+            }),
+        }
+    }
+    // exemplar attribute cells: one present cell per exemplar term.
+    for ex in &exemplars {
+        let seg = ns::safe_segment(ns::local_name(ex));
+        grounding.push(GroundingCell {
+            cell_iri: format!("{packet_iri}/cell/{seg}/exemplar"),
+            term: ex.clone(),
+            attribute: GroundingAttribute::Exemplar,
+            present: true,
+            predicate: None,
+            value: None,
+            external_entity: None,
+            external_label: None,
+            align_predicate: None,
+            confidence: None,
+            conflict: false,
+            conflict_with: None,
+        });
+    }
+    grounding.sort_by(|a, b| {
+        (
+            &a.term,
+            a.attribute,
+            a.predicate.as_deref().unwrap_or(""),
+            &a.cell_iri,
+        )
+            .cmp(&(
+                &b.term,
+                b.attribute,
+                b.predicate.as_deref().unwrap_or(""),
+                &b.cell_iri,
+            ))
+    });
+
+    // 7. DIGEST over the semantic body only.
+    let digest = digest::packet_digest(&slice_iri, inputs.axis, batch_index, &terms, &grounding);
+
+    Ok(AuthoringPacket {
+        packet_iri,
+        source_slice: slice_iri,
+        axis: inputs.axis.map(str::to_string),
+        batch: batch_index,
+        digest,
+        term_count: terms.len(),
+        exemplar_shortfall,
+        terms,
+        exemplars,
+        grounding,
+    })
+}
+
+/// One external-mapped alignment cell for a covered term (the external half of a
+/// `gmeow:TermEquivalence`).
+struct ExtCell {
+    obj: String,
+    predicate: String,
+    object_label: String,
+    confidence: Option<f64>,
+}
+
+/// The `(min, max)` string-ordered pair — the canonical key of an equivalence
+/// relation so `(a,b)` and `(b,a)` are the same relation.
+fn ordered_pair(a: &str, b: &str) -> (String, String) {
+    if a <= b {
+        (a.to_string(), b.to_string())
+    } else {
+        (b.to_string(), a.to_string())
+    }
+}
+
+/// Every IRI subject the slice defines (`rdfs:isDefinedBy` the slice IRI, excluding
+/// the slice individual itself), sorted ascending and deduped.
+fn defined_terms(ds: &RdfDataset, slice_iri: &str) -> Vec<String> {
+    let (Some(pred), Some(slice_id)) = (
+        graph::id(ds, ns::RDFS_IS_DEFINED_BY),
+        graph::id(ds, slice_iri),
+    ) else {
+        return Vec::new();
+    };
+    let mut out: Vec<String> = ds
+        .quads_for_pattern(None, Some(pred), Some(slice_id), GraphMatch::Any)
+        .filter_map(|q| match ds.resolve(q.s) {
+            TermRef::Iri(iri) if iri != slice_iri => Some(iri.to_owned()),
+            _ => None,
+        })
+        .collect();
+    out.sort_unstable();
+    out.dedup();
+    out
+}
+
+/// The localizable annotation predicates the term actually carries an English coat
+/// value for (sorted, deduped) — the set the fr/zh JOIN iterates.
+fn term_localizable_predicates(term: &CoveredTerm) -> Vec<String> {
+    let localizable: HashSet<&str> = LOCALIZABLE_PREDICATES.iter().copied().collect();
+    let mut preds: BTreeSet<String> = BTreeSet::new();
+    for a in &term.coat {
+        if localizable.contains(a.predicate.as_str()) {
+            preds.insert(a.predicate.clone());
+        }
+    }
+    preds.into_iter().collect()
+}
+
+/// Build the full authoring content of one covered term.
+fn build_covered_term(ds: &RdfDataset, iri: &str) -> CoveredTerm {
+    let mut coat: BTreeSet<Annotation> = BTreeSet::new();
+    let mut axioms: BTreeSet<Triple> = BTreeSet::new();
+    let mut blank_stack: Vec<purrdf::TermId> = Vec::new();
+
+    if let Some(tid) = graph::id(ds, iri) {
+        for q in ds.quads_for_pattern(Some(tid), None, None, GraphMatch::Any) {
+            let TermRef::Iri(pred) = ds.resolve(q.p) else {
+                continue;
+            };
+            let pred = pred.to_owned();
+            match ds.resolve(q.o) {
+                TermRef::Literal {
+                    lexical,
+                    datatype,
+                    language,
+                    ..
+                } => {
+                    if pred == ns::GMEOW_DEFINITION_DIGEST {
+                        continue; // content-address metadata, not part of the coat
+                    }
+                    let _ = datatype; // coat carries lexical + language; datatype elided
+                    coat.insert(Annotation {
+                        predicate: pred,
+                        language: language.map(str::to_string),
+                        value: lexical.to_owned(),
+                    });
+                }
+                other => {
+                    if let TermRef::Blank { .. } = other {
+                        blank_stack.push(q.o);
+                    }
+                    axioms.insert(Triple {
+                        predicate: pred,
+                        object: obj_term(ds, q.o),
+                    });
+                }
+            }
+        }
+    }
+
+    // depth-1 CBD: the blank-node closure reachable from the term's axioms.
+    let mut neighbors: BTreeSet<Triple> = BTreeSet::new();
+    let mut visited: HashSet<String> = HashSet::new();
+    while let Some(bid) = blank_stack.pop() {
+        let key = match ds.resolve(bid) {
+            TermRef::Blank { label, .. } => label.to_owned(),
+            _ => continue,
+        };
+        if !visited.insert(key) {
+            continue;
+        }
+        for q in ds.quads_for_pattern(Some(bid), None, None, GraphMatch::Any) {
+            let TermRef::Iri(pred) = ds.resolve(q.p) else {
+                continue;
+            };
+            if let TermRef::Blank { .. } = ds.resolve(q.o) {
+                blank_stack.push(q.o);
+            }
+            neighbors.insert(Triple {
+                predicate: pred.to_owned(),
+                object: obj_term(ds, q.o),
+            });
+        }
+    }
+
+    let coat: Vec<Annotation> = coat.into_iter().collect();
+    let axioms: Vec<Triple> = axioms.into_iter().collect();
+    let neighbors: Vec<Triple> = neighbors.into_iter().collect();
+
+    let label = coat
+        .iter()
+        .find(|a| a.predicate == ns::RDFS_LABEL)
+        .map(|a| a.value.clone());
+    let definition = coat
+        .iter()
+        .find(|a| a.predicate == ns::SKOS_DEFINITION)
+        .map(|a| a.value.clone());
+
+    // definitional-dependency closure: label + definition of every referenced term.
+    let mut refs: BTreeSet<String> = BTreeSet::new();
+    for t in axioms.iter().chain(neighbors.iter()) {
+        if let ObjTerm::Iri(i) = &t.object
+            && i != iri
+        {
+            refs.insert(i.clone());
+        }
+    }
+    let mut closure: Vec<ClosureEntry> = Vec::new();
+    for r in refs {
+        let Some(rid) = graph::id(ds, &r) else {
+            continue;
+        };
+        let rlabel = graph::id(ds, ns::RDFS_LABEL).and_then(|p| graph::one_lit(ds, rid, p));
+        let rdef = graph::id(ds, ns::SKOS_DEFINITION).and_then(|p| graph::one_lit(ds, rid, p));
+        if rlabel.is_some() || rdef.is_some() {
+            closure.push(ClosureEntry {
+                iri: r,
+                label: rlabel,
+                definition: rdef,
+            });
+        }
+    }
+
+    let definition_digest = graph::id(ds, ns::GMEOW_DEFINITION_DIGEST)
+        .and_then(|p| graph::id(ds, iri).and_then(|tid| graph::one_lit(ds, tid, p)));
+
+    let content_digest = digest::term_content_digest(&digest::TermDigestInput {
+        iri,
+        definition_digest,
+        label: &label,
+        definition: &definition,
+        coat: &coat,
+        axioms: &axioms,
+        neighbors: &neighbors,
+        closure: &closure,
+    });
+
+    CoveredTerm {
+        iri: iri.to_string(),
+        label,
+        definition,
+        coat,
+        axioms,
+        neighbors,
+        closure,
+        content_digest,
+    }
+}
+
+/// Resolve an object term id to an owned [`ObjTerm`]. A quoted-triple object (RDF
+/// 1.2) is kept losslessly as its rendered form under the IRI variant rather than
+/// silently dropped.
+fn obj_term(ds: &RdfDataset, oid: purrdf::TermId) -> ObjTerm {
+    match ds.resolve(oid) {
+        TermRef::Iri(i) => ObjTerm::Iri(i.to_owned()),
+        TermRef::Blank { label, .. } => ObjTerm::Blank(label.to_owned()),
+        TermRef::Literal {
+            lexical,
+            datatype,
+            language,
+            ..
+        } => ObjTerm::Literal {
+            lexical: lexical.to_owned(),
+            datatype: resolve_iri(ds, datatype).unwrap_or_else(|| ns::XSD_STRING.to_string()),
+            language: language.map(str::to_string),
+        },
+        TermRef::Triple { s, p, o } => ObjTerm::Iri(format!(
+            "<<{} {} {}>>",
+            term_render(ds, s),
+            term_render(ds, p),
+            term_render(ds, o)
+        )),
+    }
+}
+
+/// The IRI string of a term id, if it resolves to an IRI.
+fn resolve_iri(ds: &RdfDataset, id: purrdf::TermId) -> Option<String> {
+    match ds.resolve(id) {
+        TermRef::Iri(i) => Some(i.to_owned()),
+        _ => None,
+    }
+}
+
+/// A compact rendering of a term id for a quoted-triple object.
+fn term_render(ds: &RdfDataset, id: purrdf::TermId) -> String {
+    match ds.resolve(id) {
+        TermRef::Iri(i) => format!("<{i}>"),
+        TermRef::Blank { label, .. } => format!("_:{label}"),
+        TermRef::Literal { lexical, .. } => format!("\"{lexical}\""),
+        TermRef::Triple { .. } => "<<...>>".to_string(),
+    }
+}
+
+/// Recursively collect existing `.ttl` files under `dir` into `out`.
+fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for entry in rd.flatten() {
+        let p = entry.path();
+        if p.is_dir() {
+            collect_ttl(&p, out);
+        } else if p.extension().is_some_and(|x| x == "ttl") {
+            out.push(p);
+        }
+    }
+}
