@@ -438,74 +438,91 @@ gmeow:floorTier
     gmeow:useWhen "Use on a per-slice tier floor to name the minimum roll-up tier the slice may declare."@x-gmeow-english .
 
 #################################################################
+# The owned partition of the ISO 19157 quality vocabulary
+#################################################################
+
+gmeow:SliceQualityDimension
+    a logic:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    rdfs:label "Slice Quality Dimension"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:QualityDimension ;
+    skos:definition "The subset of ISO 19157 data-quality dimensions this rubric owns and actually assesses: the slice-engineering dimensions that measure a slice-as-dataset's own quality (grounding, inferential density, linkage, projection, testing, documentation, prose, provenance honesty, translation coverage, counter-example depth) — GMEOW dogfooding its own measurement stack on the slices that build it. It is a proper SUBSET of the gmeow:QualityDimension open vocabulary, co-equal with and never privileged over the geospatial ISO dimensions (positional/temporal/thematic accuracy, completeness, consistency, lineage) the rubric does not assess. As a partition class it names WHICH dimensions the rubric owns; the dimensions themselves stay individuals, extended by minting a fresh individual — never a per-dimension subclass (Principle 9)."@x-gmeow-english ;
+    skos:example "gmeow:qualityDimensionGrounding a gmeow:SliceQualityDimension ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the geospatial ISO dimensions the rubric does not score under it (they stay plain gmeow:QualityDimension), avoid minting a per-dimension subclass beneath it (dimensions are individuals), and avoid reading it as a privileged super-axis — it is one co-equal partition of the shared open vocabulary, not a rank above the rest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type each slice-engineering dimension the rubric assesses as gmeow:SliceQualityDimension, reference it from an axis's gmeow:axisDimension, and narrow the rubric Profile's gmeow:profileOpenValue to this class so only the owned dimensions sit in the profile's value space; extend the owned set by minting a fresh individual of this class rather than a subclass."@x-gmeow-english ;
+    gmeow:useWhen "Use as the owned partition of the data-quality axis — the slice-engineering dimensions the slice-quality rubric actually scores when it assesses a slice as its own dataset, distinct from the geospatial ISO dimensions it leaves unassessed."@x-gmeow-english .
+
+#################################################################
 # Minted quality dimensions (extend the ISO 19157 open vocab)
 #################################################################
 
 gmeow:qualityDimensionGrounding
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "grounding"@x-gmeow-english ;
     skos:definition "The data-quality dimension for maximal grounding on the triad — how thoroughly a slice's concepts are grounded in logic/math/lang rather than left as bare domain terms (Principle 19)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionInferentialDensity
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "inferential density"@x-gmeow-english ;
     skos:definition "The data-quality dimension for reasoner-derived inference — whether a slice's authored axioms are load-bearing under the reasoner (not re-derivable once left out) and its declared class-disjointness counter-examples actually clash, measured by the native reasoner rather than by text heuristics."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionLinkage
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "linkage"@x-gmeow-english ;
     skos:definition "The data-quality dimension for maximal linkage — mapping presence at honest rungs, authority links, and correspondence-calculus adoption over a slice's alignment surface."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionProjection
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "projection"@x-gmeow-english ;
     skos:definition "The data-quality dimension for maximal projection — whether a slice ships the projection-source surfaces its content requires (SHACL shapes for its structural constraints, a mappings file for its external links), the sources from which lossy projections and their loss-ledger entries derive (Principles 4/7/17)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionTesting
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "testing"@x-gmeow-english ;
     skos:definition "The data-quality dimension for optimal testing — per-term test reach: whether each of a slice's terms is exercised by at least one test cell or competency query (SLICE_GUIDE §9; SLICE_QA)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionDocumentation
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "documentation"@x-gmeow-english ;
     skos:definition "The data-quality dimension for documentation completeness — whether a slice carries a narrative docs.md thesis; the docs-pipeline coverage dimensions and the per-slice documentation-maturity standard remain exempt until their producers land."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionProseQuality
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "prose quality"@x-gmeow-english ;
     skos:definition "The data-quality dimension for the quality of human-facing prose — boundary-stating definitions and worked-triple examples on a slice's TBox terms (SLICE_GUIDE §6.2/§6.6)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionProvenanceHonesty
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "provenance honesty"@x-gmeow-english ;
     skos:definition "The data-quality dimension for rationale provenance honesty — whether a rationale states the ontological reason an axiom holds rather than naming a test artifact as its justification. A test is evidence that an axiom holds, never the reason why, so a test-naming rationale is a category error the advisor flags (SLICE_GUIDE §6.6)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionTranslationCoverage
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "translation coverage"@x-gmeow-english ;
     skos:definition "The data-quality dimension for translation coverage — the fraction of every localizable literal the slice authors (each (term, predicate) over the localizable predicates: labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names) carrying audited translations, measured per language, with full coverage requiring English, French, and Mandarin."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionCounterExampleDepth
-    a gmeow:QualityDimension ;
+    a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "counter-example depth"@x-gmeow-english ;
     skos:definition "The data-quality dimension for flagship counter-example reasoner-depth — the fraction of a slice's gmeow:FlagshipScenario individuals whose guarding counter-example is reasoner-driven (the native solver observes the missing entailment at reasoning-runtime) rather than discharged by a structural/SHACL well-formedness proxy. It is NOT counter-example presence (that is the flagship wiring shape): it measures the DEPTH at which the negative space is proven (Principle 17/18)."@x-gmeow-english ;
@@ -834,7 +851,7 @@ gmeow:sliceQualityRubric
         gmeow:axisAdviceTemplate ,
         gmeow:axisWeight ,
         gmeow:axisContextScope ;
-    gmeow:profileOpenValue gmeow:QualityDimension ,
+    gmeow:profileOpenValue gmeow:SliceQualityDimension ,
         gmeow:AxisContextScope .
 
 #################################################################
