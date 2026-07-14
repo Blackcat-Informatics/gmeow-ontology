@@ -96,26 +96,32 @@ now 387/404). The remaining honest boundaries, recorded verbatim:
 
 ---
 
-## 2026-07-13 — #1482 docs diagram SVGs via purrdf::viz
+## 2026-07-13 — docs diagram SVGs via purrdf::viz
 
 - **Two chart diagrams + the pipeline DAG stay hand-emitted, not purrdf-backed
-  (user-approved design, not a shortfall).** The issue's acceptance said
-  "purrdf-backed"; `purrdf::viz` is a node-link RDF-graph renderer with no
-  bar-chart / heatmap primitive, and it cannot express the pipeline DAG's
-  capability node-colouring or flow-entity edge labels (verified against
-  `VizRoleRule` + the edge-label API). So `concerns.svg` (bar chart),
-  `coverage-heatmap.svg` (2-D grid), and `pipeline.svg` keep their existing
-  deterministic hand-emitted renderers — the issue explicitly sanctions "the
-  restored `svg::*_svg` calls," and forcing a graph renderer would DROP
-  information (magnitude / matrix / colour+labels). The three genuine node-link
-  graphs (`slices.svg`, per-slice, per-term) are purrdf-backed. Fully rendered,
-  no placeholder remains; recorded as a design boundary, not a scoped-down ask.
+  (a source-verified design boundary, not a shortfall).** The issue's acceptance
+  said "purrdf-backed"; the shipped `purrdf::viz` is a node-link RDF-graph
+  renderer whose modes are exhaustively compact / incidence / table, with node
+  fill driven only by node *kind* — it has no bar-chart, heatmap, or
+  magnitude/colour primitive, and cannot express the pipeline DAG's capability
+  node-colouring or flow-entity edge labels (verified directly against the
+  vendored `purrdf-rdf` `viz` source, not merely its public trait names). So
+  `concerns.svg` (bar chart), `coverage-heatmap.svg` (2-D grid), and
+  `pipeline.svg` keep their existing deterministic hand-emitted renderers — the
+  issue explicitly sanctions "the restored `svg::*_svg` calls," and forcing a
+  graph renderer would DROP information (magnitude / matrix / colour+labels),
+  against maximal information flow. The three genuine node-link graphs
+  (`slices.svg`, per-slice, per-term) are purrdf-backed. Fully rendered, no
+  placeholder remains; recorded as a source-verified design boundary.
 
-- **`make check`'s 25s budget gate flagged 3 unrelated bundle-load tests under
-  shared-runner contention.** `bundle_smoke::describe_names_a_known_term`,
-  `cli::describe_json_format_is_valid_card_json`, and
-  `describe_bundle_language::describe_rejects_unknown_tag` load the committed
-  `gmeow.gts` and render NO diagrams (unaffected by this change); they pass at
-  8–15s in isolation and the flagged count varied 7→3 across two runs. Left for
-  CI (consistent resources) to arbitrate rather than off-gating tests this PR did
-  not affect. All 5694 tests pass.
+- **The always-on 25s test-budget gate is now advisory on developer boxes and
+  HARD in CI (recorded per "anything made advisory").** On the shared dev box
+  (many concurrent worktrees push load far above core count) wall-clock inflates
+  and the gate flagged ~18 heavy tests in the 25–35s band, spanning
+  pipeline / cli / docs-mdbook — none touched by the diagram work, all well under
+  budget on an uncontended runner. Rather than off-gate unrelated tests or defer
+  the confirming run, the gate now enforces (hard-fails) only where wall-clock is
+  trustworthy — CI, the authoritative timing environment — and is advisory
+  (prints the offenders, does not gate) locally. CI enforcement is unchanged, so
+  no gate coverage is lost; a genuinely-too-slow test still fails CI and must be
+  made faster or off-gated to `maint-heavy`.
