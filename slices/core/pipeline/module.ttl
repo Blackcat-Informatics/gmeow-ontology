@@ -1032,6 +1032,7 @@ gmeow:stage-docs-render
 
 gmeow:stage-snapshot
     gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/attestations> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/diagnostics/logic-compile.nq> ,
