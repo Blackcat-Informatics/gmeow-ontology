@@ -25,8 +25,11 @@ use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
 use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
+use gmeow_logic::explain::{self, LazyExplanationIndex, Row, reifier_from_row};
+use gmeow_logic::provenance::{reifier_from_strings, term_display};
 use gmeow_logic::query_ir::Budget;
 use gmeow_logic::reason::reason_all_budgeted;
+use gmeow_logic::result::ReasoningResult;
 use gmeow_logic::result_rdf::{
     ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
     project_reasoning_result,
@@ -41,7 +44,7 @@ use purrdf::gts::examples::agent_memory::{
 };
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
 use purrdf::gts::writer::Writer as GtsWriter;
-use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 use sha2::{Digest, Sha256};
 
 use crate::stages::export::{self, ConsumerResolution, FoldView, Term};
@@ -1326,19 +1329,15 @@ impl McpView {
         // class strings are the `module.ttl` class local names certificate.rs mints
         // (`CoherenceCertificate` / `CoherenceCheckAttestation`) plus the
         // `CoherenceOutcome::Refused` variant name — reused, never per-tool-invented.
-        let conclusive = result.is_conclusive();
-        let class_local_name = if !result.is_consistent() {
-            // A witnessed DL glut refutes coherence when conclusive; a budget-cut check
-            // that met one can only attest (it never completed the search).
-            if conclusive {
-                "Refused"
-            } else {
-                "CoherenceCheckAttestation"
-            }
-        } else if conclusive {
-            "CoherenceCertificate"
+        // A witnessed DL glut refutes coherence when the search was CONCLUSIVE (only
+        // then can it flatly `Refused`); otherwise the strongest honest claim is the
+        // shared completeness gate — a certificate for a conclusive closure, the
+        // strictly-weaker attestation for a budget-cut one. The completeness leg is
+        // the ONE helper `run_explain_quad` also reads, so the two never diverge.
+        let class_local_name = if !result.is_consistent() && result.is_conclusive() {
+            "Refused"
         } else {
-            "CoherenceCheckAttestation"
+            completeness_class(&result)
         };
 
         // cited_iris: the DerivationRef cited-IRI surface when the verdict carries a
@@ -1386,6 +1385,100 @@ impl McpView {
             "findings": findings,
             "cited_iris": cited_iris.into_iter().collect::<Vec<_>>(),
             "judgment_nquads": judgment_nquads,
+        }))
+    }
+
+    /// Run [`Self::run_explain_quad`] and render its proof-carrying envelope; an
+    /// error (bad object surface, quad-not-in-closure, cross-world ambiguity, or a
+    /// faithfulness violation) becomes the `{ok:false, error}` failure envelope,
+    /// EXACTLY like [`Self::verify_graph_json`].
+    fn explain_quad_json(
+        &self,
+        subject: &str,
+        predicate: &str,
+        obj_n3: &str,
+        graph: &str,
+        budget: &Budget,
+    ) -> String {
+        match self.run_explain_quad(subject, predicate, obj_n3, graph, budget) {
+            Ok(value) => value.to_string(),
+            Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
+        }
+    }
+
+    /// Reconstruct the FAITHFUL cited-IRI derivation skeleton for ONE arbitrary quad
+    /// `(subject, predicate, obj_n3)` in world `graph`, over the bundle's governed
+    /// forward closure. DISTINCT from [`Self::explain_finding_json`], which walks the
+    /// pre-computed `graph/diagnostics` projection: this tool reconstructs the proof
+    /// directly from the reasoner's premise-provenance, for any quad the closure
+    /// entails (not only a published finding).
+    ///
+    /// CONTRACT (enforced here, not just documented):
+    /// * the closure runs THROUGH [`reason_all_budgeted`] (the mid-chase step
+    ///   governor), never the unbudgeted [`gmeow_logic::reason::reason_all`], so the
+    ///   agent-driven target can never trigger an unbounded Turing-complete chase;
+    /// * the target is located by its content-addressed reifier, WORLD-DISAMBIGUATED
+    ///   by `graph` — a reifier shared across worlds that `graph` does not resolve to
+    ///   exactly one row is a HARD FAIL (never an arbitrary pick), and a reifier no
+    ///   row carries is a HARD FAIL `quad not in closure` (never an empty-but-ok proof);
+    /// * only the SINGLE requested target is reconstructed
+    ///   ([`LazyExplanationIndex::explain_one`], never `explain_all`), so the agent
+    ///   never offloads whole-closure proof reconstruction onto the tool;
+    /// * every cited IRI is re-checked against the full proof trace
+    ///   ([`explain::assert_faithful`]) — a fabricated citation cannot escape.
+    fn run_explain_quad(
+        &self,
+        subject: &str,
+        predicate: &str,
+        obj_n3: &str,
+        graph: &str,
+        budget: &Budget,
+    ) -> gmeow_errors::Result<Value> {
+        // The target's content-addressed reifier over the SAME canonical N3 object
+        // surface `explain::Row` carries (`term_display`), so it joins the row set.
+        let target_reifier = reifier_from_strings(subject, predicate, obj_n3);
+
+        // GOVERNED closure over the whole bundle — reason_all_budgeted CUTS the chase
+        // mid-flight on a budget breach (a non-conclusive verdict), NEVER reason_all.
+        let result = reason_all_budgeted(self.dataset.as_ref(), budget)?;
+
+        // The ONE row builder shared with `explanations_for_result`; this tool indexes
+        // it and explains exactly one target (not the whole-closure `explain_all`).
+        let rows = explain::rows_for_result(&result)?;
+        let target_index = locate_explain_target(&rows, &target_reifier, graph)?;
+
+        let explanation = LazyExplanationIndex::new(&rows).explain_one(target_index)?;
+        // A fabricated cited IRI must never escape — re-verify against the full trace.
+        explain::assert_faithful(&explanation, &rows)?;
+
+        let step_skeleton: Vec<Value> = explanation
+            .step_skeleton
+            .iter()
+            .map(|step| {
+                json!({
+                    "derivation_id": step.derivation_id,
+                    "rule_iri": step.rule_iri,
+                    "subject_iri": step.subject_iri,
+                    "predicate_iri": step.predicate_iri,
+                    "obj_n3": step.obj_n3,
+                    "graph_iri": step.graph_iri,
+                    "is_asserted": step.is_asserted,
+                    "depth": step.depth,
+                    "source_step_ids": step.source_step_ids,
+                    "term_iris": step.term_iris,
+                })
+            })
+            .collect();
+
+        Ok(json!({
+            "ok": true,
+            "faithful": true,
+            "markdown": explain::render_markdown(&explanation),
+            "cited_iris": explanation.cited_iris.iter().cloned().collect::<Vec<_>>(),
+            "step_skeleton": step_skeleton,
+            "world_iri": explanation.world_iri,
+            "completeness": completeness_class(&result),
+            "judgment_nquads": project_reasoning_result(&result),
         }))
     }
 
@@ -1789,6 +1882,37 @@ impl McpServer {
                 ],
             ),
             tool(
+                "explain_quad",
+                "Reconstruct the FAITHFUL cited-IRI derivation skeleton for ONE arbitrary quad \
+                 the bundle's reasoned closure entails: the target `(subject, predicate, \
+                 object_value)` in named graph `graph`. Reasons over the bundle under the \
+                 mid-chase step governor (max_steps bounds the derivation budget), locates the \
+                 target by its content-addressed reifier WORLD-DISAMBIGUATED by `graph`, then \
+                 reconstructs and re-verifies ONLY that quad's proof tree. Returns the DFS \
+                 step_skeleton (target first, each step carrying its rule, derivation id, \
+                 (S,P,O), world, asserted flag, depth, antecedent step ids, and cited term \
+                 IRIs), the complete cited_iris set, a Markdown rendering, the world_iri, the \
+                 completeness class (CoherenceCertificate for a conclusive closure, \
+                 CoherenceCheckAttestation for a budget-cut one), and judgment_nquads (the \
+                 grounded logic:ReasoningResult). `object_kind` is `iri` or `literal` (inferred \
+                 from object_value when omitted); `object_datatype` types a literal object. This \
+                 is DISTINCT from explain_finding: explain_finding addresses a PUBLISHED \
+                 diagnostic by its fingerprint/anchor IRI over the graph/diagnostics projection, \
+                 while explain_quad proves an arbitrary entailed quad from the reasoner's premise \
+                 provenance. A quad the closure does not entail, or a reifier shared across \
+                 worlds that `graph` does not resolve, is a hard error (never an empty-but-ok \
+                 proof).",
+                &[
+                    ("subject", "string"),
+                    ("predicate", "string"),
+                    ("object_value", "string"),
+                    ("object_kind", "string"),
+                    ("object_datatype", "string"),
+                    ("graph", "string"),
+                    ("max_steps", "integer"),
+                ],
+            ),
+            tool(
                 "validate_local",
                 "Validate an inline RDF graph against the bundled GMEOW shapes and disciplines \
                  (the same core as `gmeow validate`), then CLOSE THE LOOP: every finding is \
@@ -1972,6 +2096,7 @@ impl McpServer {
             "docs_search" => self.tool_docs_search(args),
             "query_local" => self.tool_query_local(args),
             "verify_graph" => self.tool_verify_graph(args),
+            "explain_quad" => self.tool_explain_quad(args),
             "validate_local" => self.tool_validate_local(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
@@ -2212,6 +2337,37 @@ impl McpServer {
             max_steps,
         };
         Ok(self.view.verify_graph_json(path, &budget))
+    }
+
+    /// Reconstruct the FAITHFUL cited-IRI derivation skeleton for one quad in the
+    /// bundle's governed closure, returning the proof-carrying envelope. A thin
+    /// wrapper over [`McpView::run_explain_quad`]: it validates the required quad
+    /// components, builds the canonical N3 object surface (Step B) from the structured
+    /// `object_value` / `object_kind` / `object_datatype` args, reads the `max_steps`
+    /// governor, and delegates the reason/locate/explain/faithfulness discipline to
+    /// the view core (one implementation).
+    ///
+    /// This is the CONSUMER quad-explainer — distinct from `explain_finding`, which
+    /// addresses a published diagnostic by its fingerprint/anchor IRI.
+    fn tool_explain_quad(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let subject = required_str(args, "subject")?;
+        let predicate = required_str(args, "predicate")?;
+        let object_value = required_str(args, "object_value")?;
+        let graph = required_str(args, "graph")?;
+        // `object_kind` is optional: an explicit `iri`/`literal` overrides, else it is
+        // inferred from the object surface. `object_datatype` types a literal only.
+        let object_kind = optional_str(args, "object_kind");
+        let object_datatype = optional_str(args, "object_datatype");
+        let obj_n3 = object_term_n3(object_value, object_kind, object_datatype)?;
+
+        let max_steps = optional_step_count(args, "max_steps")?;
+        let budget = Budget {
+            max_answers: None,
+            max_steps,
+        };
+        Ok(self
+            .view
+            .explain_quad_json(subject, predicate, &obj_n3, graph, &budget))
     }
 
     /// Validate an inline RDF `data` graph (in `format`) against the bundle's own
@@ -3117,7 +3273,18 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
         .filter_map(|(prop, _)| {
             let required_by_name = matches!(
                 *prop,
-                "term" | "text" | "claim_id" | "path" | "target_iri" | "data" | "format" | "query"
+                "term"
+                    | "text"
+                    | "claim_id"
+                    | "path"
+                    | "target_iri"
+                    | "data"
+                    | "format"
+                    | "query"
+                    | "subject"
+                    | "predicate"
+                    | "object_value"
+                    | "graph"
             );
             // Carve-outs: an arg whose shared name is required everywhere else is
             // OPTIONAL for a specific tool, so marking it required THERE would advertise
@@ -3249,6 +3416,187 @@ fn ambiguous_term_err(term: &str, candidates: &[String]) -> gmeow_errors::Diag {
             candidates.join(" / ")
         ),
     })
+}
+
+/// The proof-carrying completeness class of a governed reasoning `result`, shared by
+/// [`McpView::run_verify_graph`] and [`McpView::run_explain_quad`]: a CONCLUSIVE
+/// closure (a completed run OR a complete-for-fragment answer,
+/// [`ReasoningResult::is_conclusive`]) earns the strong `CoherenceCertificate` class;
+/// a budget-cut / non-conclusive closure can only make the strictly-weaker
+/// `CoherenceCheckAttestation` claim — never a certificate. `run_verify_graph`
+/// further downgrades a *conclusive* certificate to `Refused` when the closure
+/// witnesses a forbidden glut (the coherence leg an explanation has no analogue of).
+/// The class strings are the `module.ttl` local names `certificate.rs` mints, reused
+/// here so the tool surface never invents a per-tool vocabulary.
+fn completeness_class(result: &ReasoningResult) -> &'static str {
+    if result.is_conclusive() {
+        "CoherenceCertificate"
+    } else {
+        "CoherenceCheckAttestation"
+    }
+}
+
+/// Build the canonical N3 object surface for `explain_quad` — the EXACT byte form a
+/// [`Row`]'s `obj` carries ([`term_display`] of the object [`TermValue`]) — so the
+/// target reifier joins the reasoner's row set. Reuses the SAME serializer the row
+/// builder feeds off (`gmeow_logic::provenance::term_display`); it never hand-rolls a
+/// second quoting/escaping surface (a mismatch would forge a false "not in closure").
+///
+/// `kind` is `iri` or `literal`; when the caller omits it, it is inferred from the
+/// object surface ([`infer_object_kind`]). `datatype` types a literal only — pairing
+/// it with an `iri` object is a contradictory request and a HARD FAIL, as is any
+/// `kind` other than `iri`/`literal`.
+fn object_term_n3(
+    value: &str,
+    kind: Option<&str>,
+    datatype: Option<&str>,
+) -> gmeow_errors::Result<String> {
+    let kind = kind.unwrap_or_else(|| infer_object_kind(value));
+    let term = match kind {
+        "iri" => {
+            if datatype.is_some() {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message:
+                        "explain_quad: object_datatype is only valid for object_kind=literal, \
+                              not an IRI object"
+                            .to_owned(),
+                }));
+            }
+            TermValue::iri(value)
+        }
+        "literal" => match datatype {
+            Some(dt) => TermValue::typed_literal(value, dt),
+            None => TermValue::simple_literal(value),
+        },
+        other => {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "explain_quad: object_kind must be `iri` or `literal`, got `{other}`"
+                ),
+            }));
+        }
+    };
+    Ok(term_display(&term))
+}
+
+/// Infer whether a bare `object_value` is an IRI or a literal when the caller omits
+/// `object_kind`. An absolute IRI carries a URI scheme (`ALPHA *( ALPHA / DIGIT / "+"
+/// / "-" / "." ) ":"`) and no ASCII whitespace and is not a quoted literal; anything
+/// else is a literal lexical form. The inference is only a convenience default — a
+/// mis-inference cannot corrupt a result: a wrong reifier simply fails to join the
+/// closure and HARD-FAILS as "not in closure", never a fabricated proof.
+fn infer_object_kind(value: &str) -> &'static str {
+    if is_absolute_iri_shape(value) {
+        "iri"
+    } else {
+        "literal"
+    }
+}
+
+/// `true` iff `value` has the shape of an absolute IRI: a non-empty
+/// `ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )` scheme followed by `:`, with no ASCII
+/// whitespace and no leading `"` (which would mark a literal).
+fn is_absolute_iri_shape(value: &str) -> bool {
+    if value.starts_with('"') || value.chars().any(|c| c.is_ascii_whitespace()) {
+        return false;
+    }
+    let Some(colon) = value.find(':') else {
+        return false;
+    };
+    if colon == 0 {
+        return false;
+    }
+    let mut scheme = value[..colon].chars();
+    let first = scheme.next().expect("colon>0 guarantees a scheme char");
+    first.is_ascii_alphabetic()
+        && scheme.all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.'))
+}
+
+/// Locate the single row in `rows` whose reifier is `target_reifier` in world
+/// `graph`, WORLD-DISAMBIGUATING the join (R1). The reifier alone is not a unique key:
+/// the same `(S, P, O)` in two worlds shares a reifier, so the intended world must be
+/// supplied.
+///
+/// * No row (in any world) carries the reifier → HARD FAIL `quad not in closure`.
+/// * `graph` resolves to exactly one row → that row.
+/// * `graph` resolves to no row but the reifier lives in exactly one OTHER world →
+///   HARD FAIL `quad not in closure` naming that world (the caller asked the wrong one).
+/// * The reifier spans MORE THAN ONE world and `graph` does not resolve it to exactly
+///   one row → HARD FAIL ambiguity (never an arbitrary pick).
+///
+/// When `graph` resolves to several rows but the reifier lives in ONLY that world, the
+/// engine's `(graph, reifier)` identity is last-wins; this returns that same last row
+/// so the reconstructed root matches the index's resolution deterministically.
+fn locate_explain_target(
+    rows: &[Row],
+    target_reifier: &str,
+    graph: &str,
+) -> gmeow_errors::Result<usize> {
+    let matches: Vec<usize> = rows
+        .iter()
+        .enumerate()
+        .filter(|(_, row)| reifier_from_row(row) == target_reifier)
+        .map(|(index, _)| index)
+        .collect();
+    if matches.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "explain_quad: quad not in closure — reifier <{target_reifier}> matches no \
+                 derived or asserted quad in the reasoned bundle (check the (subject, predicate, \
+                 object) surface and the max_steps budget)"
+            ),
+        }));
+    }
+    // The distinct worlds the reifier appears in (sorted, for a deterministic message).
+    let worlds: BTreeSet<&str> = matches
+        .iter()
+        .map(|&index| rows[index].graph.as_str())
+        .collect();
+    // The requested world's matching rows, in input order (last = the engine identity).
+    let in_world: Vec<usize> = matches
+        .iter()
+        .copied()
+        .filter(|&index| rows[index].graph == graph)
+        .collect();
+
+    let ambiguity = || {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "explain_quad: ambiguous quad — reifier <{target_reifier}> matches quads in {} \
+                 distinct worlds ({}); the supplied graph <{graph}> does not resolve it to \
+                 exactly one row. Re-issue with graph set to the intended world.",
+                worlds.len(),
+                worlds.iter().copied().collect::<Vec<_>>().join(", ")
+            ),
+        })
+    };
+
+    match in_world.len() {
+        1 => Ok(in_world[0]),
+        0 => {
+            if worlds.len() > 1 {
+                Err(ambiguity())
+            } else {
+                let other = worlds.iter().next().copied().unwrap_or_default();
+                Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "explain_quad: quad not in closure — reifier <{target_reifier}> matches a \
+                         quad in world <{other}>, not the supplied graph <{graph}>"
+                    ),
+                }))
+            }
+        }
+        // The requested world carries the reifier on several rows. If the reifier ALSO
+        // spans other worlds it is genuinely ambiguous; otherwise the engine identity is
+        // last-wins, so we deterministically explain that last row.
+        _ => {
+            if worlds.len() > 1 {
+                Err(ambiguity())
+            } else {
+                Ok(*in_world.last().expect("len > 1 has a last"))
+            }
+        }
+    }
 }
 
 fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
@@ -4908,6 +5256,365 @@ mod tests {
             "the grounded judgment's evaluation axis must match the envelope: {out}"
         );
         drop(overlay_dir);
+    }
+
+    // ── explain_quad ──────────────────────────────────────────────────────────
+
+    /// A synthetic explain row for the fast disambiguation / N3 unit tests.
+    fn synthetic_row(graph: &str, subject: &str, predicate: &str, obj: &str) -> Row {
+        Row {
+            graph: graph.to_owned(),
+            subject: subject.to_owned(),
+            predicate: predicate.to_owned(),
+            obj: obj.to_owned(),
+            derivation_id: "urn:ex:deriv".to_owned(),
+            rule_iri: "urn:ex:rule".to_owned(),
+            source_quad_ids: Vec::new(),
+        }
+    }
+
+    /// FAST (on-gate) unit test of the world-disambiguation helper on synthetic rows:
+    /// a reifier shared across two worlds resolves to exactly the row in the supplied
+    /// graph; a non-resolving graph over that multi-world reifier is an ambiguity HARD
+    /// FAIL (never an arbitrary pick); a reifier no row carries is `not in closure`.
+    #[test]
+    fn explain_quad_disambiguation_resolves_by_graph_and_hard_fails_across_worlds() {
+        let (world_a, world_b) = ("urn:ex:world-a", "urn:ex:world-b");
+        let (s, p, o) = ("urn:ex:s", "urn:ex:p", "<urn:ex:o>");
+        let rows = vec![
+            synthetic_row(world_a, s, p, o),
+            synthetic_row(world_b, s, p, o),
+        ];
+        let reifier = reifier_from_row(&rows[0]);
+        assert_eq!(
+            reifier,
+            reifier_from_row(&rows[1]),
+            "identical (S,P,O) shares a reifier across worlds"
+        );
+
+        // The supplied graph disambiguates to exactly one row.
+        assert_eq!(locate_explain_target(&rows, &reifier, world_a).unwrap(), 0);
+        assert_eq!(locate_explain_target(&rows, &reifier, world_b).unwrap(), 1);
+
+        // A non-resolving graph over a multi-world reifier → ambiguity hard fail.
+        let ambiguous = locate_explain_target(&rows, &reifier, "urn:ex:world-c").unwrap_err();
+        assert!(
+            ambiguous.to_string().contains("ambiguous"),
+            "a cross-world reifier without a resolving graph must be ambiguous: {ambiguous}"
+        );
+
+        // A reifier no row carries → not in closure (never an arbitrary pick).
+        let missing = locate_explain_target(
+            &rows,
+            "https://blackcatinformatics.ca/gmeow/reifier/deadbeef",
+            world_a,
+        )
+        .unwrap_err();
+        assert!(
+            missing.to_string().contains("not in closure"),
+            "an unknown reifier must be `not in closure`: {missing}"
+        );
+    }
+
+    /// FAST (on-gate): a single-world reifier queried in the WRONG world is
+    /// `not in closure`, and the error names the world the quad actually lives in.
+    #[test]
+    fn explain_quad_wrong_single_world_is_not_in_closure() {
+        let rows = vec![synthetic_row(
+            "urn:ex:world-a",
+            "urn:ex:s",
+            "urn:ex:p",
+            "<urn:ex:o>",
+        )];
+        let reifier = reifier_from_row(&rows[0]);
+        let err = locate_explain_target(&rows, &reifier, "urn:ex:other-world").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("not in closure"), "{msg}");
+        assert!(
+            msg.contains("urn:ex:world-a"),
+            "names the actual world: {msg}"
+        );
+    }
+
+    /// FAST (on-gate): the canonical object N3 surface `explain_quad` builds is
+    /// byte-identical to what a `Row.obj` carries (`term_display`), across IRI, plain
+    /// literal, and typed literal; a bad `object_kind` and an `object_datatype` on an
+    /// IRI object are HARD FAILS; and the omitted-kind inference is deterministic.
+    #[test]
+    fn explain_quad_object_n3_is_the_canonical_row_surface() {
+        // IRI object → `<iri>` (explicit and inferred).
+        assert_eq!(
+            object_term_n3("urn:ex:o", Some("iri"), None).unwrap(),
+            "<urn:ex:o>"
+        );
+        assert_eq!(
+            object_term_n3("urn:ex:o", None, None).unwrap(),
+            "<urn:ex:o>"
+        );
+        // Plain literal → `"lex"` (xsd:string elided, exactly like term_display).
+        assert_eq!(
+            object_term_n3("hello", Some("literal"), None).unwrap(),
+            "\"hello\""
+        );
+        // A bare non-IRI value with whitespace is inferred as a literal.
+        assert_eq!(
+            object_term_n3("just text", None, None).unwrap(),
+            "\"just text\""
+        );
+        // Typed literal → `"lex"^^<dt>`.
+        assert_eq!(
+            object_term_n3(
+                "5",
+                Some("literal"),
+                Some("http://www.w3.org/2001/XMLSchema#integer")
+            )
+            .unwrap(),
+            "\"5\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+        // The N3 surface must MATCH what a Row built from the same TermValue carries.
+        let iri_display = term_display(&TermValue::iri("urn:ex:o"));
+        assert_eq!(
+            object_term_n3("urn:ex:o", Some("iri"), None).unwrap(),
+            iri_display
+        );
+
+        // A non-iri/literal kind is a hard error.
+        assert!(object_term_n3("x", Some("bnode"), None).is_err());
+        // A datatype on an IRI object is a contradictory request — hard error.
+        assert!(object_term_n3("urn:ex:o", Some("iri"), Some("http://x")).is_err());
+    }
+
+    /// Reason the shipped bundle under `max_steps` and return the premise-closed
+    /// explain rows — the SAME row set `run_explain_quad` reconstructs a target from.
+    fn reasoned_rows(server: &McpServer, max_steps: u64) -> Vec<Row> {
+        let budget = Budget {
+            max_answers: None,
+            max_steps: Some(max_steps),
+        };
+        let result = reason_all_budgeted(server.view.dataset.as_ref(), &budget)
+            .expect("the shipped bundle reasons under the governor");
+        explain::rows_for_result(&result).expect("rows build from the reasoning result")
+    }
+
+    /// The first row satisfying `pred` whose `(graph, reifier)` identity is UNIQUE in
+    /// `rows`, so `explain_quad` resolves to exactly that row (never a duplicate).
+    fn find_unique_row(rows: &[Row], pred: impl Fn(&Row) -> bool) -> Option<&Row> {
+        let mut counts: HashMap<(String, String), usize> = HashMap::new();
+        for row in rows {
+            *counts
+                .entry((row.graph.clone(), reifier_from_row(row)))
+                .or_default() += 1;
+        }
+        rows.iter()
+            .find(|row| pred(row) && counts[&(row.graph.clone(), reifier_from_row(row))] == 1)
+    }
+
+    /// HEAVY (off-gate): a DERIVED quad in the reasoned bundle closure explains to a
+    /// non-empty skeleton (target first, `is_asserted:false`, firing rule preserved),
+    /// a non-empty cited-IRI set that includes the target's reifier, and `faithful:true`.
+    #[test]
+    fn explain_quad_explains_a_derived_quad_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // A small governor budget already derives IRI-object quads (subsumption /
+        // typing) while the mid-chase cut keeps the whole-bundle reason bounded — a
+        // larger budget explodes the closure without adding coverage.
+        let max_steps = 64u64;
+        let rows = reasoned_rows(&server, max_steps);
+        let derived = find_unique_row(&rows, |row| {
+            row.rule_iri != gmeow_logic::provenance::ASSERT_RULE_IRI
+                && row.obj.starts_with('<')
+                && row.obj.ends_with('>')
+        })
+        .expect("the reasoned bundle must derive at least one unique IRI-object quad");
+        let object_value = derived.obj[1..derived.obj.len() - 1].to_owned();
+
+        let out = text_payload(server.call_tool_result(
+            "explain_quad",
+            &json!({
+                "subject": derived.subject,
+                "predicate": derived.predicate,
+                "object_value": object_value,
+                "object_kind": "iri",
+                "graph": derived.graph,
+                "max_steps": max_steps,
+            }),
+        ));
+        assert_eq!(out["ok"], true, "explain_quad must succeed: {out}");
+        assert_eq!(out["faithful"], true, "the proof must be faithful: {out}");
+        let steps = out["step_skeleton"]
+            .as_array()
+            .expect("step_skeleton array");
+        assert!(
+            !steps.is_empty(),
+            "a derived quad has a non-empty skeleton: {out}"
+        );
+        assert_eq!(
+            steps[0]["is_asserted"], false,
+            "the target step is derived: {out}"
+        );
+        assert_eq!(
+            steps[0]["rule_iri"].as_str().unwrap(),
+            derived.rule_iri,
+            "the target step preserves the firing rule: {out}"
+        );
+        let cited = out["cited_iris"].as_array().expect("cited_iris array");
+        assert!(!cited.is_empty(), "cited_iris must be non-empty: {out}");
+        let reifier = reifier_from_row(derived);
+        assert!(
+            cited.iter().any(|c| c.as_str() == Some(reifier.as_str())),
+            "the target reifier must be cited (the reifier matches the request): {out}"
+        );
+        assert_eq!(
+            steps[0]["obj_n3"].as_str().unwrap(),
+            derived.obj,
+            "the target step's object N3 matches the row surface: {out}"
+        );
+    }
+
+    /// HEAVY (off-gate): an ASSERTED (EDB) quad explains to a SINGLE step with
+    /// `is_asserted:true` and `rule_iri` = the assert-rule IRI.
+    #[test]
+    fn explain_quad_explains_an_asserted_quad_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Asserted rows are present regardless of chase depth, so a tiny budget suffices.
+        let max_steps = 8u64;
+        let rows = reasoned_rows(&server, max_steps);
+        let asserted = find_unique_row(&rows, |row| {
+            row.rule_iri == gmeow_logic::provenance::ASSERT_RULE_IRI
+                && row.obj.starts_with('<')
+                && row.obj.ends_with('>')
+        })
+        .expect("the reasoned bundle must carry a unique asserted IRI-object quad");
+        let object_value = asserted.obj[1..asserted.obj.len() - 1].to_owned();
+
+        let out = text_payload(server.call_tool_result(
+            "explain_quad",
+            &json!({
+                "subject": asserted.subject,
+                "predicate": asserted.predicate,
+                "object_value": object_value,
+                "object_kind": "iri",
+                "graph": asserted.graph,
+                "max_steps": max_steps,
+            }),
+        ));
+        assert_eq!(out["ok"], true, "explain_quad must succeed: {out}");
+        assert_eq!(out["faithful"], true, "the proof must be faithful: {out}");
+        let steps = out["step_skeleton"]
+            .as_array()
+            .expect("step_skeleton array");
+        assert_eq!(
+            steps.len(),
+            1,
+            "an asserted quad is a single leaf step: {out}"
+        );
+        assert_eq!(steps[0]["is_asserted"], true, "the leaf is asserted: {out}");
+        assert_eq!(
+            steps[0]["rule_iri"].as_str().unwrap(),
+            gmeow_logic::provenance::ASSERT_RULE_IRI,
+            "the asserted leaf carries the assert-rule IRI: {out}"
+        );
+    }
+
+    /// HEAVY (off-gate): a quad the closure does not entail is a HARD FAIL
+    /// (`ok:false` + `not in closure`), NEVER an empty-but-ok proof.
+    #[test]
+    fn explain_quad_hard_fails_on_a_quad_not_in_closure_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let out = text_payload(server.call_tool_result(
+            "explain_quad",
+            &json!({
+                "subject": "urn:ex:not-a-real-bundle-subject",
+                "predicate": "urn:ex:not-a-real-bundle-predicate",
+                "object_value": "urn:ex:not-a-real-bundle-object",
+                "object_kind": "iri",
+                "graph": "urn:ex:not-a-real-world",
+                "max_steps": 8,
+            }),
+        ));
+        assert_eq!(out["ok"], false, "a bogus quad must hard-fail: {out}");
+        assert!(
+            out["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("not in closure"),
+            "the error must say the quad is not in the closure: {out}"
+        );
+    }
+
+    /// HEAVY (off-gate): `judgment_nquads` grounds the `logic:ReasoningResult` node
+    /// and round-trips through the shared reasoning-graph reader.
+    #[test]
+    fn explain_quad_judgment_nquads_grounds_the_reasoning_result_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let max_steps = 8u64;
+        let rows = reasoned_rows(&server, max_steps);
+        let asserted = find_unique_row(&rows, |row| {
+            row.rule_iri == gmeow_logic::provenance::ASSERT_RULE_IRI
+                && row.obj.starts_with('<')
+                && row.obj.ends_with('>')
+        })
+        .expect("the reasoned bundle must carry a unique asserted IRI-object quad");
+        let object_value = asserted.obj[1..asserted.obj.len() - 1].to_owned();
+
+        let out = text_payload(server.call_tool_result(
+            "explain_quad",
+            &json!({
+                "subject": asserted.subject,
+                "predicate": asserted.predicate,
+                "object_value": object_value,
+                "object_kind": "iri",
+                "graph": asserted.graph,
+                "max_steps": max_steps,
+            }),
+        ));
+        assert_eq!(out["ok"], true, "explain_quad must succeed: {out}");
+        let judgment = out["judgment_nquads"]
+            .as_str()
+            .expect("judgment_nquads string");
+        assert!(
+            judgment.contains("<https://blackcatinformatics.ca/logic/ReasoningResult>"),
+            "the judgment must ground a logic:ReasoningResult node: {judgment}"
+        );
+        let parsed = gmeow_logic::result_rdf::parse_reasoning_graph(judgment)
+            .expect("judgment_nquads parses as a reasoning-result graph");
+        // The grounded judgment carries a defined completeness axis (round-trip honesty).
+        assert!(
+            !parsed.completeness.wire().is_empty(),
+            "the grounded judgment must carry a completeness axis: {judgment}"
+        );
     }
 
     /// Full MCP protocol conformance over the real JSON-RPC dispatch: the
