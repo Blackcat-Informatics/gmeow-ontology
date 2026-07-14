@@ -26,10 +26,13 @@ use serde_json::{Value, json};
 use gmeow_errors::ResultExt;
 use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
 use gmeow_logic::query_ir::Budget;
+use gmeow_logic::reason::reason_all_budgeted;
 use gmeow_logic::result_rdf::{
     ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
+    project_reasoning_result,
 };
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
+use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term as IrTerm};
 use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
@@ -75,6 +78,15 @@ const VALIDATE_LOCAL_ORIGIN: &str = "mcp:validate_local";
 /// A larger payload is a HARD FAIL with a finding-style error — never silently
 /// truncated (a truncated RDF graph would mis-parse and mislead).
 const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
+
+/// The pre-reasoning hard ceiling on the `verify_graph` overlay size (quad count).
+/// An overlay larger than this is REFUSED before any reasoning runs, so an
+/// agent-supplied external annex can never push the governed forward closure past a
+/// bounded starting EDB. 100_000 quads is a generous local-graph bound — far above
+/// any hand-authored annex — yet keeps the `bundle ∪ overlay` EDB, and thus the
+/// budgeted chase over it, bounded. Exceeding it is a HARD FAIL (the bounded agent
+/// path), never a silently truncated graph.
+const MAX_VERIFY_OVERLAY_QUADS: usize = 100_000;
 
 /// SELECT the counter-example conformance fixtures from the documentation graph: the
 /// fixture IRI, its authored violation code, the full Turtle body, its label, the
@@ -1217,6 +1229,166 @@ impl McpView {
         sparql_result_to_json(result)
     }
 
+    /// Run the native reasoned-graph verify over the bundle canon UNIONED with a
+    /// READ-ONLY external overlay loaded from `overlay_path`, returning the
+    /// proof-carrying JSON envelope under `"ok"`. See [`Self::run_verify_graph`] for
+    /// the read-only / external-annex contract and the completeness-gate judgment.
+    fn verify_graph_json(&self, overlay_path: &str, budget: &Budget) -> String {
+        match self.run_verify_graph(overlay_path, budget) {
+            Ok(value) => value.to_string(),
+            Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
+        }
+    }
+
+    /// Reason-and-verify `bundle ∪ overlay`, where `overlay` is the user's LOCAL
+    /// lower-tier graph file, loaded as a READ-ONLY external annex, then return a
+    /// PROOF-CARRYING judgment: the completeness-gated coherence class, the two
+    /// completeness/evaluation axes, the reasoned-graph verify findings, the cited
+    /// IRIs, and the grounded `logic:ReasoningResult` N-Quads.
+    ///
+    /// CONTRACT (enforced here, not just documented) — the SAME overlay discipline as
+    /// [`Self::run_local_query`]:
+    /// * the overlay is loaded into its own transient dataset from `overlay_path`;
+    ///   the signed canon (`self.dataset`) is pushed VERBATIM and is NEVER mutated;
+    /// * every overlay quad is dual-copied — one into the default graph (so the DL
+    ///   calculus and the flat verify queries read `bundle ∪ overlay`) and one
+    ///   re-homed under the external-provenance graph [`EXTERNAL_OVERLAY_GRAPH`] — but
+    ///   the whole union is transient and DROPPED after the call: never persisted,
+    ///   never folded into `gmeow.gts`, never written back to the canon or the overlay;
+    /// * the forward closure runs THROUGH [`reason_all_budgeted`] (the mid-chase step
+    ///   governor), never the unbudgeted [`gmeow_logic::reason::reason_all`], so an
+    ///   agent-influenced union can never run an unbounded Turing-complete closure;
+    /// * an overlay exceeding [`MAX_VERIFY_OVERLAY_QUADS`] is a HARD FAIL BEFORE any
+    ///   reasoning (the bounded agent path), never a truncated graph.
+    ///
+    /// # Completeness-gate judgment (`class_local_name`)
+    ///
+    /// The class is the T2 completeness-gate trichotomy read straight off the DL
+    /// verdict `result` (the SAME predicates [`crate::McpView`]'s coherence certifier
+    /// reads via `certificate.rs`, so the two never diverge):
+    /// * a witnessed DL contradiction (`!result.is_consistent()`, the forbidden glut
+    ///   under the default forbid-glut policy) REFUTES coherence — but only a
+    ///   CONCLUSIVE check flatly `Refused`s; a budget-cut check that ran into it can
+    ///   only attest;
+    /// * else a CONCLUSIVE ([`ReasoningResult::is_conclusive`]) violation-free closure
+    ///   `CoherenceCertificate`s;
+    /// * else (a budget-cut / non-conclusive closure) the strongest honest claim is
+    ///   the strictly-weaker `CoherenceCheckAttestation` — NEVER a certificate.
+    ///
+    /// [`ReasoningResult::is_conclusive`]: gmeow_logic::result::ReasoningResult::is_conclusive
+    fn run_verify_graph(&self, overlay_path: &str, budget: &Budget) -> gmeow_errors::Result<Value> {
+        let path = Path::new(overlay_path);
+        // Media from the file extension (ttl/nt/nq/trig/rdf/…); an unknown extension
+        // HARD-FAILS in `parse_dataset` (no silent fallback), exactly as query_local.
+        let media = path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(str::to_ascii_lowercase)
+            .unwrap_or_else(|| "text/turtle".to_string());
+        let bytes = fs::read(path).with_ctx(|| format!("read overlay {overlay_path}"))?;
+        let overlay = purrdf::parse_dataset(&bytes, &media, None)
+            .with_ctx(|| format!("parse overlay {overlay_path}"))?;
+
+        // Pre-reasoning hard bound: refuse an oversized overlay before reasoning.
+        let overlay_quads = overlay.quad_count();
+        if overlay_quads > MAX_VERIFY_OVERLAY_QUADS {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "verify_graph: overlay {overlay_path} carries {overlay_quads} quads, \
+                     exceeding the {MAX_VERIFY_OVERLAY_QUADS} quad ceiling; split the annex \
+                     and verify the parts (no silent truncation)"
+                ),
+            }));
+        }
+
+        // Build the transient union EXACTLY as run_local_query: canon verbatim, then
+        // each overlay quad dual-copied (default graph + external-provenance graph).
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        builder.push_dataset(self.dataset.as_ref());
+        let external = purrdf::RdfTerm::Iri(EXTERNAL_OVERLAY_GRAPH.to_string());
+        for quad in overlay.owned_quads() {
+            let mut in_default = quad.clone();
+            in_default.graph_name = None;
+            builder.push_owned_quad(&in_default);
+            let mut tagged = quad;
+            tagged.graph_name = Some(external.clone());
+            builder.push_owned_quad(&tagged);
+        }
+        let union = builder.freeze()?;
+
+        // GOVERNED closure — reason_all_budgeted CUTS the forward chase mid-flight; a
+        // budget-cut returns a non-conclusive BudgetExhausted/Incomplete/Undetermined
+        // verdict (never a wrong `supported`/`both`). NEVER reason_all.
+        let result = reason_all_budgeted(&union, budget)?;
+        let report = verify_with_reasoning_result(&union, &result, &embedded_verify_queries())?;
+
+        // The T2 completeness-gate trichotomy over `result` (see the method docs). The
+        // class strings are the `module.ttl` class local names certificate.rs mints
+        // (`CoherenceCertificate` / `CoherenceCheckAttestation`) plus the
+        // `CoherenceOutcome::Refused` variant name — reused, never per-tool-invented.
+        let conclusive = result.is_conclusive();
+        let class_local_name = if !result.is_consistent() {
+            // A witnessed DL glut refutes coherence when conclusive; a budget-cut check
+            // that met one can only attest (it never completed the search).
+            if conclusive {
+                "Refused"
+            } else {
+                "CoherenceCheckAttestation"
+            }
+        } else if conclusive {
+            "CoherenceCertificate"
+        } else {
+            "CoherenceCheckAttestation"
+        };
+
+        // cited_iris: the DerivationRef cited-IRI surface when the verdict carries a
+        // proof/counterproof, unioned with the IRIs the findings reference (extracted
+        // from each finding's message + detail). Sorted, deduplicated via the BTreeSet.
+        let mut cited_iris: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        if let Some(proof) = &result.provenance.proof {
+            cited_iris.extend(proof.cited_iris.iter().cloned());
+        }
+        if let Some(counterproof) = &result.provenance.counterproof {
+            cited_iris.extend(counterproof.cited_iris.iter().cloned());
+        }
+        for finding in &report.findings {
+            collect_bracketed_iris(&finding.message, &mut cited_iris);
+            if let Some(detail) = &finding.detail {
+                collect_bracketed_iris(detail, &mut cited_iris);
+            }
+        }
+
+        let findings: Vec<Value> = report
+            .findings
+            .iter()
+            .map(|f| {
+                json!({
+                    "code": f.code,
+                    "severity": f.severity.as_str(),
+                    "message": f.message,
+                    "detail": f.detail,
+                })
+            })
+            .collect();
+
+        // The grounded RDF judgment: the ReasoningResult node projected to N-Triples
+        // (a subset of N-Quads) so an agent can reason over the verdict itself — its
+        // completeness/evaluation axes and consumed budget ride the node.
+        let judgment_nquads = project_reasoning_result(&result);
+
+        Ok(json!({
+            "ok": true,
+            "class_local_name": class_local_name,
+            "completeness": result.completeness.wire(),
+            "evaluation": result.evaluation.wire(),
+            "error_count": report.error_count(),
+            "coherent": report.ok(),
+            "findings": findings,
+            "cited_iris": cited_iris.into_iter().collect::<Vec<_>>(),
+            "judgment_nquads": judgment_nquads,
+        }))
+    }
+
     /// Explain a diagnostic witness over the bundle's `graph/diagnostics` named
     /// graph, addressed by its fingerprint IRI (a finding) or its anchor IRI (a
     /// cluster). Rehydrates the [`FindingIndex`] through the SAME native SPARQL
@@ -1592,6 +1764,31 @@ impl McpServer {
                 &[("path", "string"), ("query", "string")],
             ),
             tool(
+                "verify_graph",
+                "Reason over the bundle UNIONED with a READ-ONLY local overlay graph file \
+                 (path), then run the native reasoned-graph verify (the bad-example negative \
+                 tests + non-entailment obligations) and return a PROOF-CARRYING judgment. \
+                 The overlay is loaded as an EXTERNAL, read-only annex exactly like \
+                 query_local: its triples join the reasoning default world (bundle \u{222a} \
+                 overlay, also isolable via GRAPH <urn:gmeow:mcp:overlay:external>) but are \
+                 NEVER merged into the signed gmeow: canon and NEVER written back to disk; the \
+                 whole union is transient and discarded after the call. The forward closure \
+                 runs under a mid-chase step governor: max_steps bounds the derivation budget \
+                 and max_answers the answer cap. The response carries class_local_name \
+                 (CoherenceCertificate for a conclusive coherent closure, \
+                 CoherenceCheckAttestation for a budget-cut closure, Refused for a witnessed \
+                 forbidden contradiction), the completeness/evaluation axes, the verify \
+                 findings, the cited IRIs, and judgment_nquads (the grounded \
+                 logic:ReasoningResult). An overlay exceeding the size ceiling or an unknown \
+                 file extension is a hard error. Accepts Turtle / TriG / N-Triples / N-Quads / \
+                 RDF-XML by file extension.",
+                &[
+                    ("path", "string"),
+                    ("max_steps", "integer"),
+                    ("max_answers", "integer"),
+                ],
+            ),
+            tool(
                 "validate_local",
                 "Validate an inline RDF graph against the bundled GMEOW shapes and disciplines \
                  (the same core as `gmeow validate`), then CLOSE THE LOOP: every finding is \
@@ -1774,6 +1971,7 @@ impl McpServer {
             "query_docs" => self.tool_query_docs(args),
             "docs_search" => self.tool_docs_search(args),
             "query_local" => self.tool_query_local(args),
+            "verify_graph" => self.tool_verify_graph(args),
             "validate_local" => self.tool_validate_local(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
@@ -1998,6 +2196,22 @@ impl McpServer {
         let path = required_str(args, "path")?;
         let query = required_str(args, "query")?;
         Ok(self.view.query_local_json(path, query))
+    }
+
+    /// Reason-and-verify the bundle UNIONED with a READ-ONLY local overlay graph file,
+    /// returning the proof-carrying judgment envelope. A thin wrapper over
+    /// [`McpView::run_verify_graph`]: it reads the `path` and the `max_steps` /
+    /// `max_answers` budget off the args and delegates the whole overlay/union/govern/
+    /// verify/judge discipline to the view core (one implementation).
+    fn tool_verify_graph(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let path = required_str(args, "path")?;
+        let max_steps = optional_step_count(args, "max_steps")?;
+        let max_answers = optional_limit(args, "max_answers")?;
+        let budget = Budget {
+            max_answers,
+            max_steps,
+        };
+        Ok(self.view.verify_graph_json(path, &budget))
     }
 
     /// Validate an inline RDF `data` graph (in `format`) against the bundle's own
@@ -2863,6 +3077,37 @@ impl ExpandHome for PathBuf {
             return Path::new(&home).join(rest);
         }
         self
+    }
+}
+
+/// Collect the angle-bracketed IRIs (`<iri>`) appearing in `text` into `out`. The
+/// reasoned-graph verify findings render their offending bindings as N3 terms
+/// (`var=<iri>`, `"lit"`, …), so the IRIs a finding references are recoverable as the
+/// `<…>`-delimited spans that carry a scheme separator — the cited-IRI surface a
+/// reasoned-graph verify finding exposes when it carries no structured DerivationRef.
+fn collect_bracketed_iris(text: &str, out: &mut std::collections::BTreeSet<String>) {
+    let bytes = text.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'<' {
+            // Skip the RDF-1.2 triple-term opener `<<`; the inner `<iri>` spans are
+            // caught on the following iterations.
+            if i + 1 < bytes.len() && bytes[i + 1] == b'<' {
+                i += 1;
+                continue;
+            }
+            if let Some(rel) = text[i + 1..].find('>') {
+                let inner = &text[i + 1..i + 1 + rel];
+                // A genuine IRI carries a scheme separator; never record an empty `<>`
+                // or a stray bracket.
+                if !inner.is_empty() && inner.contains(':') {
+                    out.insert(inner.to_owned());
+                }
+                i = i + 1 + rel + 1;
+                continue;
+            }
+        }
+        i += 1;
     }
 }
 
@@ -4436,6 +4681,232 @@ mod tests {
         assert!(Memory::new(&memory_path).claims().unwrap().is_empty());
         assert!(!memory_path.exists());
         drop(mem_dir);
+        drop(overlay_dir);
+    }
+
+    /// verify_graph fires the matching `verify.<stem>` finding on a known bad-example
+    /// overlay: a doxastic state whose asserted `gmeow:credence` is out of `[0,1]` — the
+    /// exact violation `queries/verify/credence-out-of-range.rq` is a negative test for.
+    /// The overlay joins the reasoning default world and the flat verify query matches it,
+    /// so the response `findings` carries `verify.credence-out-of-range`.
+    #[test]
+    fn verify_graph_fires_on_a_bad_example_overlay_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("bad-credence.ttl");
+        // A credence out of [0,1] is the credence-out-of-range bad example. `5` is
+        // numeric and > 1, so the negative test returns an offending row.
+        let overlay_ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <urn:ex:bad-credence-state> gmeow:credence 5 .\n";
+        fs::write(&overlay_path, overlay_ttl).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        // A tiny step budget: the credence negative test fires from the ASSERTED union
+        // graph regardless of closure depth, so the budget keeps the test fast.
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 8})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        let codes: Vec<String> = out["findings"]
+            .as_array()
+            .expect("findings array")
+            .iter()
+            .map(|f| f["code"].as_str().unwrap_or_default().to_owned())
+            .collect();
+        assert!(
+            codes.iter().any(|c| c == "verify.credence-out-of-range"),
+            "the credence bad example must fire verify.credence-out-of-range: {out}"
+        );
+        assert!(
+            out["error_count"].as_u64().unwrap_or(0) >= 1,
+            "the violation must count as an error finding: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// Overlay isolation: verify_graph builds a TRANSIENT union and drops it — the signed
+    /// canon `McpView::dataset` is never mutated. After the call the canon Arc is the SAME
+    /// allocation with the SAME quad count, and the overlay file is byte-unchanged (the
+    /// external annex is read-only and never merged into or written back from the canon).
+    #[test]
+    fn verify_graph_leaves_the_canon_dataset_untouched_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        let overlay_ttl = "<urn:ex:probe-s> <urn:ex:probe-p> <urn:ex:probe-o> .\n";
+        fs::write(&overlay_path, overlay_ttl).unwrap();
+        let overlay_before = fs::read(&overlay_path).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let before_ptr = Arc::as_ptr(&server.view.dataset);
+        let before_count = server.view.dataset.quad_count();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 4})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+
+        // Canon Arc identity + quad count are unchanged — the union was transient.
+        assert!(
+            std::ptr::eq(Arc::as_ptr(&server.view.dataset), before_ptr),
+            "the signed canon Arc must not be swapped by verify_graph"
+        );
+        assert_eq!(
+            server.view.dataset.quad_count(),
+            before_count,
+            "the signed canon quad count must be unchanged (overlay never merged)"
+        );
+        // The overlay probe triple never leaks into the canon graphs.
+        let leaked = server.view.dataset.quads().any(|q| {
+            matches!(
+                server.view.dataset.resolve(q.s),
+                purrdf::prelude::TermRef::Iri(iri) if iri == "urn:ex:probe-s"
+            )
+        });
+        assert!(
+            !leaked,
+            "overlay triple must not appear in the signed canon"
+        );
+        // Read-only: the overlay file is byte-for-byte unchanged.
+        assert_eq!(fs::read(&overlay_path).unwrap(), overlay_before);
+        drop(overlay_dir);
+    }
+
+    /// A budget-cut closure yields the strictly-weaker ATTESTATION, never a certificate:
+    /// a `max_steps` of 1 cuts the forward chase over the large bundle union mid-flight,
+    /// so `reason_all_budgeted` returns a non-conclusive BudgetExhausted / Incomplete
+    /// verdict. The completeness gate then MUST render `CoherenceCheckAttestation` with a
+    /// non-conclusive completeness axis — a certificate is impossible on an incomplete search.
+    #[test]
+    fn verify_graph_budget_cut_yields_attestation_never_certificate_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        assert_eq!(
+            out["class_local_name"], "CoherenceCheckAttestation",
+            "a budget-cut closure must attest, never certify: {out}"
+        );
+        assert_ne!(
+            out["class_local_name"], "CoherenceCertificate",
+            "a budget-cut closure must NEVER render a certificate: {out}"
+        );
+        // The completeness axis is non-conclusive (the mid-chase cut → Incomplete), and the
+        // computation axis records the budget exhaustion.
+        assert_eq!(out["completeness"], "incomplete", "{out}");
+        assert_eq!(out["evaluation"], "budget-exhausted", "{out}");
+        drop(overlay_dir);
+    }
+
+    /// An overlay exceeding `MAX_VERIFY_OVERLAY_QUADS` is a HARD FAIL — the bounded agent
+    /// path — refused BEFORE any reasoning runs, never a silently truncated graph.
+    #[test]
+    fn verify_graph_rejects_an_oversized_overlay() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("oversized.ttl");
+        // One distinct triple over the ceiling — the smallest overlay that trips it.
+        let mut body = String::with_capacity((MAX_VERIFY_OVERLAY_QUADS + 1) * 40);
+        for i in 0..=MAX_VERIFY_OVERLAY_QUADS {
+            body.push_str(&format!("<urn:ex:s{i}> <urn:ex:p> <urn:ex:o{i}> .\n"));
+        }
+        fs::write(&overlay_path, &body).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(
+            out["ok"], false,
+            "an oversized overlay must hard-fail: {out}"
+        );
+        assert!(
+            out["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("exceeding"),
+            "the error must name the ceiling breach: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// The grounded RDF judgment: `judgment_nquads` carries the `logic:ReasoningResult`
+    /// node and round-trips through the shared reasoning-graph parser, so an agent can
+    /// reason over the verdict itself. Its evaluation axis matches the JSON envelope's.
+    #[test]
+    fn verify_graph_judgment_nquads_grounds_the_reasoning_result_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        let judgment = out["judgment_nquads"]
+            .as_str()
+            .expect("judgment_nquads string");
+        assert!(
+            judgment.contains("<https://blackcatinformatics.ca/logic/ReasoningResult>"),
+            "the judgment must ground a logic:ReasoningResult node: {judgment}"
+        );
+        // It parses back through the shared reasoning-graph reader (round-trip honesty),
+        // and its evaluation axis matches the envelope's.
+        let parsed = gmeow_logic::result_rdf::parse_reasoning_graph(judgment)
+            .expect("judgment_nquads parses as a reasoning-result graph");
+        assert_eq!(
+            parsed.evaluation.wire(),
+            out["evaluation"].as_str().unwrap(),
+            "the grounded judgment's evaluation axis must match the envelope: {out}"
+        );
         drop(overlay_dir);
     }
 
