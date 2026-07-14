@@ -1,0 +1,17 @@
+# Competency question: "What is the closed-form body, formal argument, and frame of
+# each closed-form function?"  This exercises the rule that a math:ClosedFormFunction
+# gives a curve by an explicit math:definingExpression AST over one math:formalArgument,
+# with a declared math:domain and math:codomain (both mandatory, so a strict BGP).
+# Over the worked example examples/closed-form-functions.ttl the answer is the single
+# closed form f(x) = a·x + 1: body ex:linearBody, formal argument ex:xDeclaration,
+# frame ℝ → ℝ.
+PREFIX math: <https://blackcatinformatics.ca/math/>
+
+SELECT ?function ?definingExpression ?formalArgument ?domain ?codomain WHERE {
+    ?function a math:ClosedFormFunction ;
+              math:definingExpression ?definingExpression ;
+              math:formalArgument ?formalArgument ;
+              math:domain ?domain ;
+              math:codomain ?codomain .
+}
+ORDER BY ?function

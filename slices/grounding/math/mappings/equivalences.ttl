@@ -166,6 +166,106 @@ gmeow:eqMathIntervalOM a gmeow:TermEquivalence ;
     gmeow:comment "math:Interval aligns to the OpenMath interval1 content dictionary, whose symbols interval_cc, interval_oo, interval_oc, and interval_co carry exactly the four closed/open endpoint-inclusion combinations math:lowerInclusion and math:upperInclusion express. closeMatch, full IRI by reference to the CD page (curl-validated HTTP 200)." ;
     gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
 
+# --- Arithmetic operators → OpenMath (content-dictionary symbols) ----------- #
+# Each arithmetic operator individual denotes the same operation as its OpenMath
+# content-dictionary symbol (arith1 for the algebraic operators, transc1 for the
+# logarithm). closeMatch, full IRI by reference to the CD page (curl-validated
+# HTTP 200 July 2026): the GMEOW individual carries a math: signature over number
+# systems the bare CD symbol does not, so the correspondence is close, not
+# invertible identity. The slice previously anchored these in prose only.
+
+gmeow:eqMathAdditionOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Addition ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 plus" ;
+    gmeow:comment "math:Addition is the binary addition operator (+); the OpenMath arith1 symbol plus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathSubtractionOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Subtraction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 minus" ;
+    gmeow:comment "math:Subtraction is the binary subtraction operator (−); the OpenMath arith1 symbol minus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathMultiplicationOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Multiplication ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 times" ;
+    gmeow:comment "math:Multiplication is the binary multiplication operator (×); the OpenMath arith1 symbol times is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathDivisionOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Division ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 divide" ;
+    gmeow:comment "math:Division is the binary division operator (÷); the OpenMath arith1 symbol divide is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathExponentiationOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Exponentiation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 power" ;
+    gmeow:comment "math:Exponentiation is the exponentiation operator (a^b); the OpenMath arith1 symbol power is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathRootOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Root ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 root" ;
+    gmeow:comment "math:Root is the root operator (the b-th root of a); the OpenMath arith1 symbol root is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathLogarithmOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Logarithm ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/transc1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath transc1 log" ;
+    gmeow:comment "math:Logarithm is the logarithm operator (log_b of a); the OpenMath transc1 symbol log is the same operation. closeMatch by reference to the transc1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+gmeow:eqMathNegationOM a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Negation ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject <https://openmath.org/cd/arith1.xhtml> ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "OpenMath arith1 unary_minus" ;
+    gmeow:comment "math:Negation is the unary additive-inverse operator (−x); the OpenMath arith1 symbol unary_minus is the same operation. closeMatch by reference to the arith1 CD page." ;
+    gmeow:sssomFile "gmeow-openmath.sssom.tsv" .
+
+# --- Closed-form function → Wikidata (concept identity) --------------------- #
+
+gmeow:eqMathClosedFormFunctionWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ClosedFormFunction ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q777407 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "closed-form expression" ;
+    gmeow:comment "math:ClosedFormFunction is a function given by an explicit closed-form expression in one formal argument; wd:Q777407 (closed-form expression, 'mathematical formula built with arithmetic operations and other previously defined functions') names the closed-form expression concept the function's body IS. closeMatch, not identity: the GMEOW class is the function abstracted over that expression (carrying its formal argument, parameters, domain, and codomain), a close but non-invertible counterpart of the bare expression concept. QID curl-validated July 2026." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 # --- Algebraic-structure classes → Wikidata (concept identity) ------------- #
 # Each math: structure class denotes the same concept as its Wikidata item — a
 # clean 1:1 identity (the class IS the concept "group", "ring", …), so

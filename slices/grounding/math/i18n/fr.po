@@ -1123,3 +1123,93 @@ msgstr "Évaluation de mesure sous-spécifiée"
 msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|skos:definition"
 msgid "The failure raised when a math:MeasureEvaluation does not name all three of the measure it evaluates (math:evaluatedMeasure), the measurable subset it evaluates over (math:measuredSubset), and the resulting mass (math:measureResult). An evaluation μ(A) is the mass one named measure assigns one named subset; without the measure, the subset, and the result it does not say which measure, of which subset, gave which value, so it cannot be compared against another evaluation and is ill-formed."
 msgstr "L'échec levé lorsqu'une math:MeasureEvaluation ne nomme pas la totalité de ses trois éléments — la mesure qu'elle évalue (math:evaluatedMeasure), le sous-ensemble mesurable sur lequel elle l'évalue (math:measuredSubset) et la masse résultante (math:measureResult). Une évaluation μ(A) est la masse qu'une mesure nommée attribue à un sous-ensemble nommé ; sans la mesure, le sous-ensemble et le résultat, elle ne dit pas quelle mesure, de quel sous-ensemble, a donné quelle valeur, de sorte qu'elle ne peut être comparée à une autre évaluation et est mal formée."
+
+# --- Closed-form expression algebra (the closed-form function facility) ------ #
+
+msgctxt "https://blackcatinformatics.ca/math/NumberLiteral|rdfs:label"
+msgid "Number Literal"
+msgstr "Littéral numérique"
+
+msgctxt "https://blackcatinformatics.ca/math/NumberLiteral|skos:definition"
+msgid "The numeric-literal leaf of an expression AST: the expression node denoting a specific math:Number — the 1 in (1 − x), the constant 2 in 2·x, the exponents in a closed form. It carries its value through math:literalValue, which points at a well-formed math:Number (situated in a number system through math:inNumberSystem). Distinct from a bare RDF literal: a math:NumberLiteral is an expression node (a subclass of math:MathematicalExpression), so it can fill a math:slotExpression, whereas a raw literal cannot. Distinct too from a math:MathematicalConstant such as π: a constant is a named exact number object, while a NumberLiteral is a syntactic leaf of a formula that names the number it denotes. See MATHEMATICS-NUMBERS-AND-SETS.md for the number-system grounding its math:literalValue rests on."
+msgstr "La feuille littérale-numérique d'un AST d'expression : le nœud d'expression désignant un math:Number précis — le 1 dans (1 − x), la constante 2 dans 2·x, les exposants d'une forme close. Il porte sa valeur via math:literalValue, qui pointe vers un math:Number bien formé (situé dans un système de nombres via math:inNumberSystem). Distinct d'un littéral RDF nu : un math:NumberLiteral est un nœud d'expression (une sous-classe de math:MathematicalExpression), il peut donc remplir un math:slotExpression, ce qu'un littéral brut ne peut pas. Distinct aussi d'une math:MathematicalConstant telle que π : une constante est un objet-nombre exact nommé, tandis qu'un NumberLiteral est une feuille syntaxique d'une formule qui nomme le nombre qu'elle désigne. Voir MATHEMATICS-NUMBERS-AND-SETS.md pour l'ancrage dans le système de nombres sur lequel repose son math:literalValue."
+
+msgctxt "https://blackcatinformatics.ca/math/literalValue|rdfs:label"
+msgid "literal value"
+msgstr "valeur littérale"
+
+msgctxt "https://blackcatinformatics.ca/math/literalValue|skos:definition"
+msgid "The number a math:NumberLiteral leaf denotes: relates a math:NumberLiteral expression node to the math:Number it stands for. Domain math:NumberLiteral, range math:Number (stated in prose). The value is a well-formed math:Number situated in a number system, not a bare RDF literal — this is the seam by which a syntactic literal leaf of a formula names an exact numeric object rather than carrying an opaque decimal."
+msgstr "Le nombre qu'une feuille math:NumberLiteral désigne : relie un nœud d'expression math:NumberLiteral au math:Number qu'il représente. Domaine math:NumberLiteral, image math:Number (énoncé en prose). La valeur est un math:Number bien formé situé dans un système de nombres, non un littéral RDF nu — c'est la couture par laquelle une feuille littérale syntaxique d'une formule nomme un objet numérique exact plutôt que de porter une décimale opaque."
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|rdfs:label"
+msgid "negation"
+msgstr "négation"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|skos:definition"
+msgid "The unary additive-inverse operator (−x): the single-operand negation that flips a value's sign, so a term like x⁻ᵖ is math:Exponentiation applied to x and math:Negation applied to p. Distinct from binary math:Subtraction (which takes two operands); −x is math:Negation(x). Signature ℝ̄ → ℝ̄ over the signed extended real line: it carries the two poles, mapping math:PositiveInfinity to math:NegativeInfinity and back, so −(+∞) = −∞ is stated rather than undefined. OpenMath arith1 unary_minus."
+msgstr "L'opérateur unaire d'inverse additif (−x) : la négation à opérande unique qui inverse le signe d'une valeur, de sorte qu'un terme comme x⁻ᵖ est math:Exponentiation appliqué à x et math:Negation appliqué à p. Distinct de la math:Subtraction binaire (qui prend deux opérandes) ; −x est math:Negation(x). Signature ℝ̄ → ℝ̄ sur la droite réelle achevée signée : elle porte les deux pôles, envoyant math:PositiveInfinity sur math:NegativeInfinity et inversement, de sorte que −(+∞) = −∞ est énoncé plutôt qu'indéfini. OpenMath arith1 unary_minus."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|rdfs:label"
+msgid "operator domain"
+msgstr "domaine de l'opérateur"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|skos:definition"
+msgid "The number system an operator's operands are drawn from — the source of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its domain is unframed (math:UnframedOperator). Distinct from math:domain (a function's or relation's source set): math:operatorDomain frames the operator symbol itself, over the number-system tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and the signed extended real line ℝ̄)."
+msgstr "Le système de nombres d'où sont tirés les opérandes d'un opérateur — la source de sa signature. Domaine math:ArithmeticOperation, image math:NumberSystem (énoncé en prose). Chaque math:ArithmeticOperation en nomme exactement un ; un opérateur sans son domaine est non cadré (math:UnframedOperator). Distinct de math:domain (l'ensemble source d'une fonction ou d'une relation) : math:operatorDomain cadre le symbole d'opérateur lui-même, sur la tour des systèmes de nombres ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (et la droite réelle achevée signée ℝ̄)."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|rdfs:label"
+msgid "operator codomain"
+msgstr "codomaine de l'opérateur"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|skos:definition"
+msgid "The number system an operator's result lies in — the target of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its codomain is unframed (math:UnframedOperator). The declared target may be wider than the operator's domain — a real even root or a real logarithm lands in ℂ, so math:Root and math:Logarithm frame math:realNumbers → math:complexNumbers honestly rather than pretending the result stays real."
+msgstr "Le système de nombres où se trouve le résultat d'un opérateur — la cible de sa signature. Domaine math:ArithmeticOperation, image math:NumberSystem (énoncé en prose). Chaque math:ArithmeticOperation en nomme exactement un ; un opérateur sans son codomaine est non cadré (math:UnframedOperator). La cible déclarée peut être plus large que le domaine de l'opérateur — une racine réelle d'ordre pair ou un logarithme réel aboutit dans ℂ, si bien que math:Root et math:Logarithm cadrent math:realNumbers → math:complexNumbers honnêtement plutôt que de prétendre que le résultat reste réel."
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedOperator|rdfs:label"
+msgid "Unframed Operator"
+msgstr "Opérateur non cadré"
+
+msgctxt "https://blackcatinformatics.ca/math/UnframedOperator|skos:definition"
+msgid "The failure raised when a math:ArithmeticOperation does not declare both its math:operatorDomain and its math:operatorCodomain — the number system its operands are drawn from and the system its result lies in. An operator is not a bare glyph; every arithmetic operator carries its signature over the number-system tower, so an operator missing either half of its signature is ill-formed."
+msgstr "L'échec levé lorsqu'une math:ArithmeticOperation ne déclare pas à la fois son math:operatorDomain et son math:operatorCodomain — le système de nombres d'où sont tirés ses opérandes et celui où se trouve son résultat. Un opérateur n'est pas un simple glyphe ; tout opérateur arithmétique porte sa signature sur la tour des systèmes de nombres, de sorte qu'un opérateur auquel manque l'une ou l'autre moitié de sa signature est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedFormFunction|rdfs:label"
+msgid "Closed-Form Function"
+msgstr "Fonction en forme close"
+
+msgctxt "https://blackcatinformatics.ca/math/ClosedFormFunction|skos:definition"
+msgid "A function given by an explicit closed-form expression in one formal argument over tunable parameters: the general facility for stating a parameterized curve — for example T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — natively as a math:MathematicalExpression AST rather than as an opaque string. A subclass of math:Function, so it inherits the requirement to declare its math:domain and math:codomain (an unframed one is math:UnframedFunction). It additionally names its body through math:definingExpression (the expression AST) and its abstraction variable's declaration through math:formalArgument, and it distinguishes that formal argument from its fitted parameters, each declared through math:functionParameter — so in T(x) the argument x and the parameters A, B, C, p, q are separate declarations, not conflated. A closed form missing its body or its formal argument is ill-formed (math:UnboundClosedForm). It is a general facility supporting ANY curve, not a hardwired one; a concrete curve such as T(x) is an instance authored elsewhere."
+msgstr "Une fonction donnée par une expression en forme close explicite en un argument formel sur des paramètres réglables : la facilité générale pour énoncer une courbe paramétrée — par exemple T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — nativement comme un AST math:MathematicalExpression plutôt que comme une chaîne opaque. Une sous-classe de math:Function, elle hérite donc de l'obligation de déclarer son math:domain et son math:codomain (une fonction non cadrée est math:UnframedFunction). Elle nomme en outre son corps via math:definingExpression (l'AST d'expression) et la déclaration de sa variable d'abstraction via math:formalArgument, et elle distingue cet argument formel de ses paramètres ajustés, chacun déclaré via math:functionParameter — de sorte que dans T(x) l'argument x et les paramètres A, B, C, p, q sont des déclarations distinctes, non confondues. Une forme close à laquelle manque son corps ou son argument formel est mal formée (math:UnboundClosedForm). C'est une facilité générale prenant en charge N'IMPORTE QUELLE courbe, non une courbe figée ; une courbe concrète telle que T(x) est une instance rédigée ailleurs."
+
+msgctxt "https://blackcatinformatics.ca/math/definingExpression|rdfs:label"
+msgid "defining expression"
+msgstr "expression définissante"
+
+msgctxt "https://blackcatinformatics.ca/math/definingExpression|skos:definition"
+msgid "The body AST of a function given in closed form: relates a math:Function to the math:MathematicalExpression that is its explicit closed-form body. Domain math:Function, range math:MathematicalExpression (stated in prose). Every math:ClosedFormFunction names exactly one; a closed form without a body does not say what it computes and is ill-formed (math:UnboundClosedForm). The body is a structured expression tree, never a display string — the argument and the parameters enter it as math:VariableExpression leaves resolving to the function's math:formalArgument and math:functionParameters."
+msgstr "L'AST du corps d'une fonction donnée en forme close : relie une math:Function à la math:MathematicalExpression qui est son corps en forme close explicite. Domaine math:Function, image math:MathematicalExpression (énoncé en prose). Chaque math:ClosedFormFunction en nomme exactement un ; une forme close sans corps ne dit pas ce qu'elle calcule et est mal formée (math:UnboundClosedForm). Le corps est un arbre d'expression structuré, jamais une chaîne d'affichage — l'argument et les paramètres y entrent comme des feuilles math:VariableExpression qui se résolvent vers le math:formalArgument et les math:functionParameter de la fonction."
+
+msgctxt "https://blackcatinformatics.ca/math/formalArgument|rdfs:label"
+msgid "formal argument"
+msgstr "argument formel"
+
+msgctxt "https://blackcatinformatics.ca/math/formalArgument|skos:definition"
+msgid "The abstraction variable of a closed-form function — the x in f(x): relates a math:ClosedFormFunction to the math:VariableDeclaration that is its formal argument. Domain math:ClosedFormFunction, range math:VariableDeclaration (typically a math:FreeVariableDeclaration, since the argument is free in the body; stated in prose). Every math:ClosedFormFunction names exactly one; a closed form without a formal argument does not say over which variable it abstracts and is ill-formed (math:UnboundClosedForm). It is the one declaration the function is a function OF, distinguished from the fitted math:functionParameters it is tuned by."
+msgstr "La variable d'abstraction d'une fonction en forme close — le x dans f(x) : relie une math:ClosedFormFunction à la math:VariableDeclaration qui est son argument formel. Domaine math:ClosedFormFunction, image math:VariableDeclaration (typiquement une math:FreeVariableDeclaration, puisque l'argument est libre dans le corps ; énoncé en prose). Chaque math:ClosedFormFunction en nomme exactement un ; une forme close sans argument formel ne dit pas sur quelle variable elle abstrait et est mal formée (math:UnboundClosedForm). C'est l'unique déclaration DONT la fonction est fonction, distinguée des math:functionParameter ajustés par lesquels elle est réglée."
+
+msgctxt "https://blackcatinformatics.ca/math/functionParameter|rdfs:label"
+msgid "function parameter"
+msgstr "paramètre de fonction"
+
+msgctxt "https://blackcatinformatics.ca/math/functionParameter|skos:definition"
+msgid "A tunable parameter of a closed-form function — one of the A, B, C, p, q that fix a particular curve within the family: relates a math:ClosedFormFunction to a math:VariableDeclaration that is a fitted parameter. Domain math:ClosedFormFunction, range math:VariableDeclaration (stated in prose). Unconstrained cardinality (0..n): a curve may have no parameters or many. A parameter is held fixed while the math:formalArgument varies, which is exactly what distinguishes the argument the function is OF from the parameters it is tuned BY; both enter the math:definingExpression as math:VariableExpression leaves."
+msgstr "Un paramètre réglable d'une fonction en forme close — l'un des A, B, C, p, q qui fixent une courbe particulière au sein de la famille : relie une math:ClosedFormFunction à une math:VariableDeclaration qui est un paramètre ajusté. Domaine math:ClosedFormFunction, image math:VariableDeclaration (énoncé en prose). Cardinalité non contrainte (0..n) : une courbe peut n'avoir aucun paramètre ou en avoir plusieurs. Un paramètre est maintenu fixe tandis que le math:formalArgument varie, ce qui est exactement ce qui distingue l'argument DONT la fonction est fonction des paramètres PAR lesquels elle est réglée ; les deux entrent dans la math:definingExpression comme des feuilles math:VariableExpression."
+
+msgctxt "https://blackcatinformatics.ca/math/UnboundClosedForm|rdfs:label"
+msgid "Unbound Closed Form"
+msgstr "Forme close non liée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnboundClosedForm|skos:definition"
+msgid "The failure raised when a math:ClosedFormFunction does not declare both its math:definingExpression (the body AST) and its math:formalArgument (the abstraction variable's declaration). A closed-form function is an explicit expression in one formal argument; a closed form missing its body or its formal argument does not say what it computes or over which variable, and is ill-formed. Its tunable math:functionParameters are 0..n and unconstrained — only the body and the formal argument are required."
+msgstr "L'échec levé lorsqu'une math:ClosedFormFunction ne déclare pas à la fois sa math:definingExpression (l'AST du corps) et son math:formalArgument (la déclaration de la variable d'abstraction). Une fonction en forme close est une expression explicite en un argument formel ; une forme close à laquelle manque son corps ou son argument formel ne dit pas ce qu'elle calcule ni sur quelle variable, et est mal formée. Ses math:functionParameter réglables sont 0..n et non contraints — seuls le corps et l'argument formel sont requis."

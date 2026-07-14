@@ -18,6 +18,8 @@
 # The authored algebra-law witness elements (examples/*.ttl): the native reasoningLogic
 # lane queries the consequents the four laws DERIVE over these witnesses.
 @prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
+# The worked closed-form example (examples/closed-form-functions.ttl).
+@prefix exm:   <https://blackcatinformatics.ca/gmeow/examples/math/> .
 
 # === Q1 — number system and exactness ====================================== #
 
@@ -124,6 +126,92 @@ ex:rowSuccessor a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "injective" ; gmeow:cellValueLiteral "true" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "surjective" ; gmeow:cellValueLiteral "false" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "bijective" ; gmeow:cellValueLiteral "false" ] .
+
+# === Q3b — a closed-form function's body, formal argument, and frame ======== #
+
+ex:cqClosedFormDefiningExpression a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/closed-form-defining-expression.rq" ;
+    gmeow:cqDataFile "examples/closed-form-functions.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A closed-form function reports its body AST (math:definingExpression), its formal argument (math:formalArgument), and its frame (math:domain / math:codomain); over the worked example the answer is exactly the single closed form f(x) = a·x + 1 with body exm:linearBody, formal argument exm:xDeclaration, and frame ℝ → ℝ." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqClosedFormShape ;
+    gmeow:cqExpectRow ex:rowLinearForm .
+
+ex:cqClosedFormShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "function" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "definingExpression" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "formalArgument" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "domain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "codomain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLinearForm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "function" ; gmeow:cellValueIri exm:linearForm ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "definingExpression" ; gmeow:cellValueIri exm:linearBody ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "formalArgument" ; gmeow:cellValueIri exm:xDeclaration ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "domain" ; gmeow:cellValueIri math:realNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "codomain" ; gmeow:cellValueIri math:realNumbers ] .
+
+# === Q3c — the arithmetic operators and their signatures =================== #
+
+ex:cqOperatorSignatures a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/operator-signatures.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Every arithmetic operator reports its signature over the number-system tower through math:operatorDomain and math:operatorCodomain; over the module the answer is exactly the eight framed operators — Addition, Subtraction, Multiplication, Division, and Exponentiation over ℝ → ℝ, Root and Logarithm over ℝ → ℂ, and the unary Negation over the signed extended real line ℝ̄ → ℝ̄." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqOperatorSignatureShape ;
+    gmeow:cqExpectRow ex:rowOpAddition , ex:rowOpSubtraction , ex:rowOpMultiplication ,
+        ex:rowOpDivision , ex:rowOpExponentiation , ex:rowOpRoot , ex:rowOpLogarithm , ex:rowOpNegation .
+
+ex:cqOperatorSignatureShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "operator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operatorDomain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operatorCodomain" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowOpAddition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Addition ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorDomain" ; gmeow:cellValueIri math:realNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorCodomain" ; gmeow:cellValueIri math:realNumbers ] .
+
+ex:rowOpSubtraction a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Subtraction ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorDomain" ; gmeow:cellValueIri math:realNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorCodomain" ; gmeow:cellValueIri math:realNumbers ] .
+
+ex:rowOpMultiplication a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Multiplication ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorDomain" ; gmeow:cellValueIri math:realNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorCodomain" ; gmeow:cellValueIri math:realNumbers ] .
+
+ex:rowOpDivision a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Division ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorDomain" ; gmeow:cellValueIri math:realNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorCodomain" ; gmeow:cellValueIri math:realNumbers ] .
+
+ex:rowOpExponentiation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Exponentiation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorDomain" ; gmeow:cellValueIri math:realNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorCodomain" ; gmeow:cellValueIri math:realNumbers ] .
+
+ex:rowOpRoot a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Root ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorDomain" ; gmeow:cellValueIri math:realNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorCodomain" ; gmeow:cellValueIri math:complexNumbers ] .
+
+ex:rowOpLogarithm a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Logarithm ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorDomain" ; gmeow:cellValueIri math:realNumbers ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorCodomain" ; gmeow:cellValueIri math:complexNumbers ] .
+
+ex:rowOpNegation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Negation ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorDomain" ; gmeow:cellValueIri math:ExtendedRealLine ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operatorCodomain" ; gmeow:cellValueIri math:ExtendedRealLine ] .
 
 # === Q4 — set cardinality ================================================== #
 
