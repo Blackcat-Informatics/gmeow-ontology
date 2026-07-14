@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+gmeow:FixtureWidget
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/fixture-single> ;
+    rdfs:label "Fixture Widget"@x-gmeow-english ;
+    skos:definition "A minimal documented class carried by the single-slice fixture: it has a label and a definition (so dimLabel and dimDefinition are covered) but no realized-state table entry (so dimRealizedState is missed)."@x-gmeow-english .
