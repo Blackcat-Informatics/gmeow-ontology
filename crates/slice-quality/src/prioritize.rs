@@ -119,7 +119,7 @@ fn capping_axis(axes: &[AxisRank]) -> Option<AxisRank> {
 ///   4. capping axis IRI ascending, then slice IRI ascending (determinism).
 #[must_use]
 pub fn prioritize(inputs: &[SliceInput], rubric: &Rubric) -> Vec<SliceProfile> {
-    let bottom_rank = rubric.bottom_tier().map_or(0, |t| t.rank);
+    let bottom_rank = rubric.standard.bottom_tier().map_or(0, |t| t.rank);
 
     // Project every slice onto the canonical rubric-axis order.
     let mut rows: Vec<SliceProfile> = inputs
@@ -132,6 +132,7 @@ pub fn prioritize(inputs: &[SliceInput], rubric: &Rubric) -> Vec<SliceProfile> {
                 .map(|g| (g.axis_iri.as_str(), g.tier.rank))
                 .collect();
             let axes: Vec<AxisRank> = rubric
+                .standard
                 .axes
                 .iter()
                 .map(|axis| AxisRank {
@@ -245,7 +246,9 @@ fn local_name(iri: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{Axis, AxisGrade, ContextScope, Tier};
+    use crate::model::{
+        Axis, AxisGrade, ContextScope, GovernanceFloors, MeasurementStandard, Tier,
+    };
 
     fn tier(rank: i64) -> Tier {
         Tier {
@@ -271,11 +274,11 @@ mod tests {
     /// A rubric with three axes a/b/c and a five-rung ladder.
     fn rubric(axes: Vec<Axis>) -> Rubric {
         Rubric {
-            tiers: (0..5).map(tier).collect(),
-            axes,
-            exemptions: vec![],
-            commitments: vec![],
-            tier_floors: vec![],
+            standard: MeasurementStandard {
+                tiers: (0..5).map(tier).collect(),
+                axes,
+            },
+            floors: GovernanceFloors::default(),
         }
     }
 
