@@ -97,3 +97,10 @@ name = "el_divergence_gate"
 # silently-decided verdict. Offline + deterministic + sub-second.
 [[test]]
 name = "tptp_divergence_gate"
+
+# The entailment-mini coverage-floor + divergence gate: asserts the native
+# `dl_entails` reduction grades at least the pinned number of both-inline W3C-style
+# entailment cases (the executable coverage floor for deliverable a), and pins the
+# honest structured-gap divergence set + its recorded `gmeow:gapShape` tokens.
+[[test]]
+name = "entailment_mini_gate"
