@@ -17,22 +17,12 @@ from ._base import ConfiguredBaseModel
 
 class QualityDimensionEnum(StrEnum):
     qualityDimensionCompleteness = "gmeow:qualityDimensionCompleteness"
-    qualityDimensionCounterExampleDepth = "gmeow:qualityDimensionCounterExampleDepth"
-    qualityDimensionDocumentation = "gmeow:qualityDimensionDocumentation"
-    qualityDimensionGrounding = "gmeow:qualityDimensionGrounding"
-    qualityDimensionInferentialDensity = "gmeow:qualityDimensionInferentialDensity"
     qualityDimensionLineage = "gmeow:qualityDimensionLineage"
-    qualityDimensionLinkage = "gmeow:qualityDimensionLinkage"
     qualityDimensionLogicalConsistency = "gmeow:qualityDimensionLogicalConsistency"
     qualityDimensionPositionalAccuracy = "gmeow:qualityDimensionPositionalAccuracy"
-    qualityDimensionProjection = "gmeow:qualityDimensionProjection"
-    qualityDimensionProseQuality = "gmeow:qualityDimensionProseQuality"
-    qualityDimensionProvenanceHonesty = "gmeow:qualityDimensionProvenanceHonesty"
     qualityDimensionTemporalAccuracy = "gmeow:qualityDimensionTemporalAccuracy"
-    qualityDimensionTesting = "gmeow:qualityDimensionTesting"
     qualityDimensionThematicAccuracy = "gmeow:qualityDimensionThematicAccuracy"
     qualityDimensionTopologicalConsistency = "gmeow:qualityDimensionTopologicalConsistency"
-    qualityDimensionTranslationCoverage = "gmeow:qualityDimensionTranslationCoverage"
 
 
 class QualityAssessment(ConfiguredBaseModel):

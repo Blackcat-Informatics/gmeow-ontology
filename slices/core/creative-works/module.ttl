@@ -129,7 +129,6 @@ gmeow:Expression
     skos:definition "A realization of a gmeow:Work in a specific language, script, notation, or arrangement. The original-language text, a translation, and an audiobook narration are distinct Expressions of one Work. The realizing language/notation is carried as a reference frame (gmeow:hasReferenceFrame), not as a subclass. Identity changes when the language, notation, or arrangement differs."@x-gmeow-english ;
     skos:example "ex:hamletGermanTranslation a gmeow:Expression ; gmeow:realizes ex:hamlet ; gmeow:hasReferenceFrame ex:germanLanguage ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the language-neutral abstract creation (that is gmeow:Work) and for an edition/format/release (that is gmeow:Manifestation — a paperback is not a new Expression unless its text differs); carry the realizing language as a frame, never as a subclass (Principle 9)."@x-gmeow-english ;
-    gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Link to the Work with gmeow:realizes, declare the realizing language/notation with gmeow:hasReferenceFrame (required-frame, P11), and let editions hang below via gmeow:embodiedIn; for music set gmeow:realizationMode rather than splitting into notated/performed subclasses."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:hasReferenceFrame ;
