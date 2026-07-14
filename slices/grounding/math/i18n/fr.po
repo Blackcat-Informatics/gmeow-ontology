@@ -1075,3 +1075,51 @@ msgstr "facteur conforme"
 msgctxt "https://blackcatinformatics.ca/math/conformalFactor|skos:definition"
 msgid "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an owl:ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."
 msgstr "Relie une math:ConformalCompactification à son facteur conforme de remise à l'échelle Ω — une fonction positive qui multiplie la métrique de sorte que la distance métrique non bornée devienne finie au bord tout en préservant les angles. Domaine math:ConformalCompactification, portée une math:Function ou math:Quantity positive (un individu, jamais un simple littéral — donc une owl:ObjectProperty, non une propriété de type de données) (précisé en prose). Toute compactification conforme en nomme exactement un ; une sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|rdfs:label"
+msgid "Measurable Set"
+msgstr "Ensemble mesurable"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|skos:definition"
+msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
+msgstr "Un sous-ensemble mesurable : un élément de la math:SigmaAlgebra d'un math:MeasurableSpace — l'un des sous-ensembles clos par complémentation et union dénombrable que la σ-algèbre rassemble, et donc le genre de sous-ensemble auquel une math:Measure peut attribuer une masse. C'est l'argument individuel A d'une évaluation μ(A) : là où un math:MeasurableSpace est le sol entier (X, Σ) sur lequel une mesure agit, un ensemble mesurable en est un morceau mesurable, la bande ou la région dont une math:MeasureEvaluation lit la masse. Partagé avec la charte des probabilités, où un ensemble mesurable est un événement."
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|rdfs:label"
+msgid "Measure Evaluation"
+msgstr "Évaluation de mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|skos:definition"
+msgid "The structured evaluation μ(A) of a measure on a named measurable subset, reified as a first-class object: it names the measure through math:evaluatedMeasure, the subset through math:measuredSubset (a math:MeasurableSet), and the resulting mass through math:measureResult (a finite non-negative number or math:PositiveInfinity, NEVER math:NegativeInfinity — a measure is non-negative). It is NOT the whole-space math:totalMass, which is the measure of the ENTIRE space μ(X): a measure evaluation is the measure of a NAMED subset A ⊆ X, so distinct subsets of one measure can be evaluated and compared side by side — the Lebesgue mass of a two-ball μ(B²) against that of a three-ball μ(B³), or the probability of one event against another. Naming all three of measure, subset, and result is what makes μ(A) a queryable datum rather than a display string; an evaluation missing any of the three is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "L'évaluation structurée μ(A) d'une mesure sur un sous-ensemble mesurable nommé, réifiée comme objet de première classe : elle nomme la mesure via math:evaluatedMeasure, le sous-ensemble via math:measuredSubset (un math:MeasurableSet) et la masse résultante via math:measureResult (un nombre fini non négatif ou math:PositiveInfinity, JAMAIS math:NegativeInfinity — une mesure est non négative). Ce n'est PAS la math:totalMass de l'espace entier, qui est la mesure de l'espace TOUT ENTIER μ(X) : une évaluation de mesure est la mesure d'un sous-ensemble NOMMÉ A ⊆ X, de sorte que des sous-ensembles distincts d'une même mesure peuvent être évalués et comparés côte à côte — la masse de Lebesgue d'une boule bidimensionnelle μ(B²) face à celle d'une boule tridimensionnelle μ(B³), ou la probabilité d'un événement face à un autre. Nommer les trois — la mesure, le sous-ensemble et le résultat — est ce qui fait de μ(A) une donnée interrogeable plutôt qu'une chaîne d'affichage ; une évaluation à laquelle manque l'un des trois est mal formée (math:UnderspecifiedMeasureEvaluation)."
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|rdfs:label"
+msgid "evaluated measure"
+msgstr "mesure évaluée"
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|skos:definition"
+msgid "Names the math:Measure a math:MeasureEvaluation reads — the μ in μ(A). Domain math:MeasureEvaluation, range math:Measure (stated in prose). Every evaluation names exactly one; an evaluation without the measure it evaluates does not say whose mass it reports and is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "Nomme la math:Measure qu'une math:MeasureEvaluation lit — le μ dans μ(A). Domaine math:MeasureEvaluation, portée math:Measure (précisé en prose). Toute évaluation en nomme exactement une ; une évaluation sans la mesure qu'elle évalue ne dit pas de quelle masse elle rend compte et est mal formée (math:UnderspecifiedMeasureEvaluation)."
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|rdfs:label"
+msgid "measured subset"
+msgstr "sous-ensemble mesuré"
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|skos:definition"
+msgid "Names the math:MeasurableSet a math:MeasureEvaluation assigns mass to — the A in μ(A). Domain math:MeasureEvaluation, range math:MeasurableSet (stated in prose). Every evaluation names exactly one; naming the subset is what lets two evaluations of one measure over different subsets be compared, so an evaluation without its subset is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "Nomme le math:MeasurableSet auquel une math:MeasureEvaluation attribue une masse — le A dans μ(A). Domaine math:MeasureEvaluation, portée math:MeasurableSet (précisé en prose). Toute évaluation en nomme exactement un ; nommer le sous-ensemble est ce qui permet de comparer deux évaluations d'une même mesure sur des sous-ensembles différents, de sorte qu'une évaluation sans son sous-ensemble est mal formée (math:UnderspecifiedMeasureEvaluation)."
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|rdfs:label"
+msgid "measure result"
+msgstr "résultat de mesure"
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|skos:definition"
+msgid "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)."
+msgstr "La masse qu'une math:MeasureEvaluation lit — la valeur de μ(A), un nombre fini non négatif ou le réel étendu math:PositiveInfinity, JAMAIS math:NegativeInfinity car une mesure est non négative. Domaine math:MeasureEvaluation, portée un littéral numérique non négatif ou math:PositiveInfinity (précisé en prose). Comme math:totalMass, c'est une rdf:Property, non une owl:ObjectProperty ni une owl:DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (la masse finie) et un individu (math:PositiveInfinity) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Toute évaluation en nomme exactement un ; une évaluation sans son résultat est mal formée (math:UnderspecifiedMeasureEvaluation), et un résultat de math:NegativeInfinity est une violation de non-négativité (math:MalformedExtendedReal ou math:UnderspecifiedMeasureEvaluation)."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|rdfs:label"
+msgid "Underspecified Measure Evaluation"
+msgstr "Évaluation de mesure sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|skos:definition"
+msgid "The failure raised when a math:MeasureEvaluation does not name all three of the measure it evaluates (math:evaluatedMeasure), the measurable subset it evaluates over (math:measuredSubset), and the resulting mass (math:measureResult). An evaluation μ(A) is the mass one named measure assigns one named subset; without the measure, the subset, and the result it does not say which measure, of which subset, gave which value, so it cannot be compared against another evaluation and is ill-formed."
+msgstr "L'échec levé lorsqu'une math:MeasureEvaluation ne nomme pas la totalité de ses trois éléments — la mesure qu'elle évalue (math:evaluatedMeasure), le sous-ensemble mesurable sur lequel elle l'évalue (math:measuredSubset) et la masse résultante (math:measureResult). Une évaluation μ(A) est la masse qu'une mesure nommée attribue à un sous-ensemble nommé ; sans la mesure, le sous-ensemble et le résultat, elle ne dit pas quelle mesure, de quel sous-ensemble, a donné quelle valeur, de sorte qu'elle ne peut être comparée à une autre évaluation et est mal formée."

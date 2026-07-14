@@ -67,6 +67,21 @@ ex:expectation a math:Integral ;
     math:withRespectTo ex:coinMeasure .
 ex:densityFn a math:MeasurableFunction .
 
+# Q6a — two measure evaluations μ(A) of one measure over two measurable subsets, each
+# naming its measure, subset, and finite non-negative result. Unlike the whole-space
+# math:totalMass +∞ of the same measure, μ(unitInterval) = 1 and μ(doubleInterval) = 2
+# are comparable side by side.
+ex:unitInterval a math:MeasurableSet .
+ex:doubleInterval a math:MeasurableSet .
+ex:lengthOfUnit a math:MeasureEvaluation ;
+    math:evaluatedMeasure ex:lengthMeasure ;
+    math:measuredSubset ex:unitInterval ;
+    math:measureResult "1.0"^^xsd:double .
+ex:lengthOfDouble a math:MeasureEvaluation ;
+    math:evaluatedMeasure ex:lengthMeasure ;
+    math:measuredSubset ex:doubleInterval ;
+    math:measureResult "2.0"^^xsd:double .
+
 # Q8/Q9 — two commensurable energy quantities (same derived dimension) and the
 # homogeneous dimensional expression that sums them.
 ex:energyDim a math:DerivedDimension ;

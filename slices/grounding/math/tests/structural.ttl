@@ -380,13 +380,28 @@ ex:saMeasureDimensionFailures a gmeow:StructuralAssertion ;
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     math:IncompleteMeasure               rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedMeasureEvaluation rdfs:subClassOf math:MathConformanceFailure .
     math:ProbabilityMeasureMassViolation rdfs:subClassOf math:MathConformanceFailure .
     math:IncompleteIntegral              rdfs:subClassOf math:MathConformanceFailure .
     math:UndimensionedQuantity           rdfs:subClassOf math:MathConformanceFailure .
     math:MalformedDimension              rdfs:subClassOf math:MathConformanceFailure .
     math:DimensionalInhomogeneity        rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each measure-and-dimension hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — including the reasoned math:DimensionalInhomogeneity — is a typed, queryable object." .
+    gmeow:saRationale "Each measure-and-dimension hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — including the underspecified subset evaluation and the reasoned math:DimensionalInhomogeneity — is a typed, queryable object." .
+
+# --- 17b. math:MeasureEvaluation requires all three of its roles (MUST) ---
+ex:saMeasureEvaluationRolesRequired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:MeasureEvaluation rdfs:subClassOf [ owl:onProperty math:evaluatedMeasure ; owl:minQualifiedCardinality 1 ; owl:onClass math:Measure ] .
+    math:MeasureEvaluation rdfs:subClassOf [ owl:onProperty math:measuredSubset ; owl:minQualifiedCardinality 1 ; owl:onClass math:MeasurableSet ] .
+    math:MeasureEvaluation rdfs:subClassOf [ owl:onProperty math:measureResult ; owl:minQualifiedCardinality 1 ] .
+}""" ;
+    gmeow:saRationale "A math:MeasureEvaluation MUST carry a required (min-qualified-one) owl:Restriction on EACH of its three roles — math:evaluatedMeasure (onClass math:Measure), math:measuredSubset (onClass math:MeasurableSet), and math:measureResult — so an evaluation μ(A) that does not say which measure, of which subset, gave which result is math:UnderspecifiedMeasureEvaluation. This reifies μ(A) as a comparable datum, distinct from the whole-space math:totalMass. An evaluation missing any role restriction fails this assertion." .
 
 # --- Analysis & geometry subsumption invariants (ANALYSIS-AND-GEOMETRY) ----- #
 

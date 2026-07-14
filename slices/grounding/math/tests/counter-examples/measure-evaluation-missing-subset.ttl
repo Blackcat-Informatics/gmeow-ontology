@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:MeasureEvaluationShape: a math:MeasureEvaluation that names
+# the measure it evaluates (math:evaluatedMeasure) and its resulting mass
+# (math:measureResult) but OMITS the measurable subset it weighs (math:measuredSubset,
+# sh:minCount 1 derived from the exact-one math:measuredSubset restriction). Without the
+# subset the datum does not say WHICH subset A the mass μ(A) belongs to, so it cannot be
+# compared against another evaluation. Validation MUST emit
+# shacl.MinCountConstraintComponent (math:UnderspecifiedMeasureEvaluation) and NO other
+# finding — the other two roles are present and the result is a finite non-negative
+# literal, so the missing subset is the single isolated violation. Bound by
+# ex:ecMeasureEvaluationMissingSubset.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:subsetlessEvaluation a math:MeasureEvaluation ;
+    math:evaluatedMeasure ex:volumeMeasure ;
+    math:measureResult "2.0"^^xsd:double .
+
+ex:volumeMeasure a math:LebesgueMeasure , math:Measure ;
+    math:measureOn ex:space ;
+    math:totalMass math:PositiveInfinity .
+
+ex:space a math:MeasurableSpace .

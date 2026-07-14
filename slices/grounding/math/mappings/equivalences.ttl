@@ -707,6 +707,16 @@ gmeow:eqMathSigmaAlgebra a gmeow:TermEquivalence ;
     gmeow:comment "math:SigmaAlgebra is a collection of subsets closed under complement and countable union; wd:Q217357 (σ-algebra) is the same structure. Identity, so skos:exactMatch." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
+gmeow:eqMathMeasurableSet a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:MeasurableSet ;
+    gmeow:alignPredicate skos:exactMatch ;
+    gmeow:alignObject wd:Q3054889 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 1.0 ;
+    gmeow:objectLabel "measurable set" ;
+    gmeow:comment "math:MeasurableSet is an element of the σ-algebra of a measurable space — one measurable subset, the kind of subset a measure can weigh; wd:Q3054889 (measurable set, 'an element of the sigma-algebra of a measurable space') is the same concept. Identity, so skos:exactMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 gmeow:eqMathLebesgueMeasure a gmeow:TermEquivalence ;
     gmeow:alignSubject math:LebesgueMeasure ;
     gmeow:alignPredicate skos:exactMatch ;

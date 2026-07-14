@@ -358,6 +358,37 @@ ex:rowLengthMeasure a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mass" ; gmeow:cellValueLiteral "https://blackcatinformatics.ca/math/PositiveInfinity" ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "isProbability" ; gmeow:cellValueLiteral "false" ] .
 
+# === Q12a — measure evaluation: its measure, measured subset, and result ===== #
+
+ex:cqMeasureEvaluationSubsetAndResult a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/measure-evaluation-subset-and-result.rq" ;
+    gmeow:cqDataFile "tests/fixtures/bedrock.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "Each reified measure evaluation μ(A) reports the measure it evaluates, the measurable subset it weighs, and the resulting mass — so the mass of a NAMED subset is a comparable datum distinct from the whole-space math:totalMass. Over the fixture the answer is exactly the two evaluations of one measure {lengthOfUnit → lengthMeasure over unitInterval, result 1.0; lengthOfDouble → lengthMeasure over doubleInterval, result 2.0}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqMeasureEvaluationShape ;
+    gmeow:cqExpectRow ex:rowLengthOfUnit , ex:rowLengthOfDouble .
+
+ex:cqMeasureEvaluationShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "evaluation" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "measure" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "subset" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "result" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowLengthOfUnit a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:lengthOfUnit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "measure" ; gmeow:cellValueIri exf:lengthMeasure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subset" ; gmeow:cellValueIri exf:unitInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueLiteral "1.0" ] .
+
+ex:rowLengthOfDouble a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "evaluation" ; gmeow:cellValueIri exf:lengthOfDouble ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "measure" ; gmeow:cellValueIri exf:lengthMeasure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "subset" ; gmeow:cellValueIri exf:doubleInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "result" ; gmeow:cellValueLiteral "2.0" ] .
+
 # === Q13 — integral: integrand, domain, and measure ======================== #
 
 ex:cqIntegralFraming a gmeow:CompetencyQuestion ;
