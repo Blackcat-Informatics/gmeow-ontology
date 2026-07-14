@@ -92,6 +92,19 @@ const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
 /// path), never a silently truncated graph.
 const MAX_VERIFY_OVERLAY_QUADS: usize = 100_000;
 
+/// The pre-*read* hard ceiling on the `verify_graph` overlay file size (raw bytes on
+/// disk), checked via [`std::fs::metadata`] BEFORE the file is ever `fs::read` into
+/// memory. [`MAX_VERIFY_OVERLAY_QUADS`] alone bounds the PARSED quad count, but that
+/// check only runs AFTER the whole file has already been loaded and parsed — so an
+/// agent-supplied overlay path pointing at a huge file (or a file with a single
+/// enormous literal that parses to very few quads) could exhaust memory before the
+/// quad ceiling ever gets a chance to refuse it. 16 MiB is generous — the existing
+/// 100,000-quad ceiling, serialized as short synthetic IRIs/literals, tops out around
+/// ~4 MiB, and no hand-authored local annex plausibly approaches this — yet it bounds
+/// the raw bytes read into memory to a fixed, small multiple of that. Exceeding it is
+/// a HARD FAIL BEFORE the read (the bounded agent path), never a truncated read.
+const MAX_VERIFY_OVERLAY_BYTES: u64 = 16 * 1024 * 1024;
+
 /// The forward-chase derivation-step budget every agent-facing reasoning tool
 /// (`verify_graph`, `explain_quad`, `conjecture_test`, `store_conjecture`) runs under when
 /// the caller OMITS `max_steps`. R4 forbids exposing an unbudgeted
@@ -1326,6 +1339,10 @@ impl McpView {
     /// * the forward closure runs THROUGH [`reason_all_budgeted`] (the mid-chase step
     ///   governor), never the unbudgeted [`gmeow_logic::reason::reason_all`], so an
     ///   agent-influenced union can never run an unbounded Turing-complete closure;
+    /// * an overlay whose file size exceeds [`MAX_VERIFY_OVERLAY_BYTES`] is a HARD FAIL
+    ///   BEFORE it is even `fs::read` into memory — a stat, not a read, refuses an
+    ///   oversized file (or a file with one enormous literal) before the bytes ever
+    ///   land in the process;
     /// * an overlay exceeding [`MAX_VERIFY_OVERLAY_QUADS`] is a HARD FAIL BEFORE any
     ///   reasoning (the bounded agent path), never a truncated graph.
     ///
@@ -1364,6 +1381,25 @@ impl McpView {
             .and_then(|ext| ext.to_str())
             .map(str::to_ascii_lowercase)
             .unwrap_or_else(|| "text/turtle".to_string());
+
+        // Pre-READ hard bound: stat (not read) the file and refuse an oversized
+        // overlay BEFORE it is ever loaded into memory. Statting is O(1) — it never
+        // touches the file's contents — so a huge file (or one enormous literal) is
+        // refused without the multi-megabyte `fs::read` + parse the quad ceiling below
+        // would otherwise require to even measure it.
+        let overlay_bytes = fs::metadata(path)
+            .with_ctx(|| format!("stat overlay {overlay_path}"))?
+            .len();
+        if overlay_bytes > MAX_VERIFY_OVERLAY_BYTES {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "verify_graph: overlay {overlay_path} is {overlay_bytes} bytes, \
+                     exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte ceiling BEFORE any read; \
+                     split the annex and verify the parts (no silent truncation)"
+                ),
+            }));
+        }
+
         let bytes = fs::read(path).with_ctx(|| format!("read overlay {overlay_path}"))?;
         let overlay = purrdf::parse_dataset(&bytes, &media, None)
             .with_ctx(|| format!("parse overlay {overlay_path}"))?;
@@ -6245,6 +6281,79 @@ mod tests {
                 .unwrap_or_default()
                 .contains("exceeding"),
             "the error must name the ceiling breach: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// The R4 byte gate: an overlay FILE exceeding `MAX_VERIFY_OVERLAY_BYTES` is
+    /// refused via `fs::metadata` (a stat) BEFORE it is ever `fs::read` into memory or
+    /// handed to the parser — so a huge file can never exhaust memory before the
+    /// post-parse `MAX_VERIFY_OVERLAY_QUADS` ceiling gets a chance to run. The filler
+    /// here is a single deliberately-oversized comment line, NOT well-formed RDF that
+    /// would parse into many quads: if the byte gate did not run before the read/parse
+    /// (i.e. this fix regressed), the file would still parse successfully (as an
+    /// empty, all-comment document) and `verify_graph` would return `ok:true` instead
+    /// of hard-failing on the byte ceiling, so this test would catch the regression
+    /// either way — and it must never OOM proving it.
+    #[test]
+    fn verify_graph_rejects_an_overlay_over_the_byte_ceiling_before_read() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("oversized-bytes.ttl");
+        // One byte over the ceiling — the smallest overlay that trips it. A single
+        // `#`-prefixed line is cheap to build (one allocation, no per-quad
+        // formatting) and never parses into any quads.
+        let filler = vec![b'#'; (MAX_VERIFY_OVERLAY_BYTES + 1) as usize];
+        fs::write(&overlay_path, &filler).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(
+            out["ok"], false,
+            "an overlay over the byte ceiling must hard-fail: {out}"
+        );
+        let error = out["error"].as_str().unwrap_or_default();
+        assert!(
+            error.contains(&MAX_VERIFY_OVERLAY_BYTES.to_string()) && error.contains("byte"),
+            "the error must name the byte limit: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// A normal, well-under-ceiling overlay still succeeds through both the byte gate
+    /// and the quad gate — the byte cap must never reject a legitimate small annex.
+    #[test]
+    fn verify_graph_accepts_a_normal_small_overlay() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("small.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(
+            out["ok"], true,
+            "a normal small overlay must succeed: {out}"
         );
         drop(overlay_dir);
     }
