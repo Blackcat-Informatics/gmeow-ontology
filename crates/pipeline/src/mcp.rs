@@ -1955,7 +1955,26 @@ impl McpServer {
             ),
             tool(
                 "conjecture_test",
-                "Test a candidate logic: formula against a KB and, TR-gated on the \
+                "Test — a PURE hypothetical evaluation of a candidate logic: formula against a \
+                 KB: compute and return the engine verdict, but NEVER TR-commit and NEVER \
+                 append to the conjecture library. formula is a Turtle logic: document naming \
+                 one candidate; kb is a Turtle KB; standpoint is the required reified scope \
+                 (P9); math_conjecture optionally names the math:Conjecture twin. max_steps / \
+                 max_answers optionally bound the isolated scenario evaluation (a \
+                 derived-closure-size ceiling: exceeding it stamps BudgetExhausted → lifecycle \
+                 open). For the committing counterpart, see store_conjecture.",
+                &[
+                    ("formula", "string"),
+                    ("kb", "string"),
+                    ("standpoint", "string"),
+                    ("math_conjecture", "string"),
+                    ("max_steps", "integer"),
+                    ("max_answers", "integer"),
+                ],
+            ),
+            tool(
+                "store_conjecture",
+                "Store — evaluate a candidate logic: formula against a KB and, TR-gated on the \
                  persistConjecture schema (the executional-entailment verdict gates the \
                  commit), APPEND the engine verdict to the append-only conjecture library. \
                  formula is a Turtle logic: document naming one candidate; kb is a Turtle KB; \
@@ -1963,7 +1982,8 @@ impl McpServer {
                  names the math:Conjecture twin. max_steps / max_answers optionally bound the \
                  isolated scenario evaluation (a derived-closure-size ceiling: exceeding it \
                  stamps BudgetExhausted → lifecycle open). Pass dry_run=true for a \
-                 non-committing sandbox run (verdict only, nothing written).",
+                 non-committing sandbox run (verdict only, nothing written) — a \
+                 hypothetical-commit witness.",
                 &[
                     ("formula", "string"),
                     ("kb", "string"),
@@ -2101,6 +2121,7 @@ impl McpServer {
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
             "conjecture_test" => self.tool_conjecture_test(args),
+            "store_conjecture" => self.tool_store_conjecture(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
             "counter_examples" => self.tool_counter_examples(args),
@@ -2622,9 +2643,10 @@ impl McpServer {
         Ok(response)
     }
 
-    /// The production consumer that closes the conjecture-and-refutation path: test a
-    /// candidate `logic:` formula against a KB, project the engine verdict, and — TR-gated on
-    /// the `persistConjecture` schema — APPEND it to the append-only conjecture library.
+    /// `conjecture_test` — the issue's "test" leg: a PURE hypothetical evaluation of a
+    /// candidate `logic:` formula against a KB. Computes and returns the projected engine
+    /// verdict; NEVER TR-commits and NEVER appends to the conjecture library. For the
+    /// committing counterpart ("store"), see [`Self::tool_store_conjecture`].
     ///
     /// `formula` is a Turtle `logic:` document naming the candidate (exactly one top-level
     /// `logic:Formula`, or exactly one ground `logic:` axiom lifted to a binary atom); `kb`
@@ -2632,9 +2654,60 @@ impl McpServer {
     /// scope (Principle 9); `math_conjecture` optionally names the `math:Conjecture` twin so
     /// the statement is bridged to the runtime `logic:Conjecture` node via
     /// `math:conjectureUnderTest` (on every verdict) and a refutation's counterexample is
-    /// re-exposed via `math:hasCounterexample`; `dry_run=true` computes and returns the verdict
-    /// but WRITES NOTHING.
+    /// re-exposed via `math:hasCounterexample`.
     fn tool_conjecture_test(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let formula_src = required_str(args, "formula")?;
+        let kb_src = required_str(args, "kb")?;
+        let standpoint = required_str(args, "standpoint")?;
+        let math_conjecture = optional_str(args, "math_conjecture");
+        let max_steps = optional_step_count(args, "max_steps")?;
+        let max_answers = optional_limit(args, "max_answers")?;
+
+        // The parse → test → project path is the SHARED evaluation core (also behind
+        // `store_conjecture` and the CLI). This tool never TR-gates and never appends — it is
+        // a thin wrapper rendering the pure verdict as the JSON response.
+        let out = run_conjecture_test_pure(&ConjectureRunPureInput {
+            formula_ttl: formula_src,
+            kb_ttl: kb_src,
+            standpoint,
+            math_conjecture,
+            max_steps,
+            max_answers,
+        })?;
+
+        let witness_json = out.witness.as_ref().map(|w| {
+            json!({
+                "individual": w.individual,
+                "world": w.world,
+                "premises": w.premises,
+            })
+        });
+        let verdict_json = json!({
+            "information": out.information,
+            "evaluation": out.evaluation,
+            "completeness": out.completeness,
+            "lifecycle": out.lifecycle,
+            "discharge": out.discharge,
+        });
+
+        Ok(json!({
+            "ok": true,
+            "verdict": verdict_json,
+            "witness": witness_json,
+            "conjecture": out.node_iri,
+        })
+        .to_string())
+    }
+
+    /// `store_conjecture` — the issue's "store" leg: test a candidate `logic:` formula against
+    /// a KB, project the engine verdict, and — TR-gated on the `persistConjecture` schema —
+    /// APPEND it to the append-only conjecture library. Runs the SAME evaluation as
+    /// `conjecture_test`; the difference is entirely in the tail (TR-gate + persist).
+    ///
+    /// `formula` / `kb` / `standpoint` / `math_conjecture` are as `conjecture_test`;
+    /// `dry_run=true` computes and returns the verdict (via a hypothetical TR commit) but
+    /// WRITES NOTHING.
+    fn tool_store_conjecture(&self, args: &Value) -> gmeow_errors::Result<String> {
         let formula_src = required_str(args, "formula")?;
         let kb_src = required_str(args, "kb")?;
         let standpoint = required_str(args, "standpoint")?;
@@ -2643,8 +2716,9 @@ impl McpServer {
         let max_steps = optional_step_count(args, "max_steps")?;
         let max_answers = optional_limit(args, "max_answers")?;
 
-        // The parse → test → project → TR-gate → persist path is the SHARED core; the tool is a
-        // thin wrapper rendering its outcome as the JSON response.
+        // The parse → test → project → TR-gate → persist path is the SHARED persisting core
+        // (also behind the CLI `gmeow conjecture test`); the tool is a thin wrapper rendering
+        // its outcome as the JSON response.
         let out = run_conjecture_test(&ConjectureRunInput {
             formula_ttl: formula_src,
             kb_ttl: kb_src,
@@ -2839,18 +2913,47 @@ impl McpView {
 }
 
 // --------------------------------------------------------------------------- //
-// The shared conjecture-test core (one implementation, two surfaces).
+// The shared conjecture-test core (one evaluation implementation, three surfaces).
 //
-// Both the private MCP tool `tool_conjecture_test` and the public
-// `gmeow conjecture test` CLI subcommand call [`run_conjecture_test`]: the
-// SINGLE parse → test → project → TR-gate → persist path. Neither surface
-// re-implements it; the MCP wrapper renders the returned summary as JSON, the
-// CLI renders it as human-readable text.
+// [`evaluate_conjecture`] is the SINGLE parse → test → project path: it parses the candidate
+// document and KB, re-homes the KB into the isolated scenario world, runs the native engine,
+// and projects the verdict to deterministic N-Triples. Nothing calls the engine or the
+// projector a second time.
+//
+// Two public entries sit on top of it, matching the issue's test / store decomposition:
+//   - [`run_conjecture_test_pure`] — the "test" leg: evaluate only, NEVER TR-gate, NEVER
+//     persist. Behind the MCP `conjecture_test` tool.
+//   - [`run_conjecture_test`] — the "store" leg: evaluate, then TR-gate on the
+//     `persistConjecture` schema and, on a committed precondition-met run, APPEND the verdict
+//     to the append-only conjecture library. Behind the MCP `store_conjecture` tool AND the
+//     public `gmeow conjecture test` CLI subcommand (unchanged CLI behavior).
+// Neither surface re-implements the evaluation; each renders its own outcome (JSON / text).
 // --------------------------------------------------------------------------- //
 
-/// The inputs to one conjecture test: the candidate `logic:` Turtle document, the KB Turtle
-/// it is tested against, the REQUIRED reified standpoint scope (Principle 9), an optional
-/// `math:Conjecture` twin, and whether the run is a sandbox (`dry_run`, writes nothing).
+/// The inputs shared by both evaluation entries: the candidate `logic:` Turtle document, the
+/// KB Turtle it is tested against, the REQUIRED reified standpoint scope (Principle 9), an
+/// optional `math:Conjecture` twin, and the optional derived-closure budget.
+pub struct ConjectureRunPureInput<'a> {
+    /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
+    pub formula_ttl: &'a str,
+    /// The KB the candidate is tested against, as Turtle.
+    pub kb_ttl: &'a str,
+    /// The required reified standpoint scope IRI (Principle 9).
+    pub standpoint: &'a str,
+    /// Optionally, the `math:Conjecture` twin IRI so a refutation's counterexample is
+    /// re-exposed via `math:hasCounterexample`.
+    pub math_conjecture: Option<&'a str>,
+    /// Optional post-hoc derived-closure-size ceiling on the isolated scenario evaluation: when
+    /// the derived (non-EDB) closure exceeds this many steps the run is stamped `BudgetExhausted`
+    /// → lifecycle Open → discharge Unknown. `None` = unbounded.
+    pub max_steps: Option<u64>,
+    /// Optional post-hoc derived-closure-size ceiling in answer bindings; see
+    /// [`max_steps`](Self::max_steps). `None` = unbounded.
+    pub max_answers: Option<usize>,
+}
+
+/// The inputs to one PERSISTING conjecture test: [`ConjectureRunPureInput`]'s fields plus
+/// whether the run is a sandbox (`dry_run`, writes nothing).
 pub struct ConjectureRunInput<'a> {
     /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
     pub formula_ttl: &'a str,
@@ -2863,16 +2966,15 @@ pub struct ConjectureRunInput<'a> {
     pub math_conjecture: Option<&'a str>,
     /// When true, compute and return the verdict but WRITE NOTHING to the library.
     pub dry_run: bool,
-    /// Optional post-hoc derived-closure-size ceiling on the isolated scenario evaluation: when
-    /// the derived (non-EDB) closure exceeds this many steps the run is stamped `BudgetExhausted`
-    /// → lifecycle Open → discharge Unknown. `None` = unbounded.
+    /// Optional post-hoc derived-closure-size ceiling; see
+    /// [`ConjectureRunPureInput::max_steps`]. `None` = unbounded.
     pub max_steps: Option<u64>,
-    /// Optional post-hoc derived-closure-size ceiling in answer bindings; see
-    /// [`max_steps`](Self::max_steps). `None` = unbounded.
+    /// Optional post-hoc derived-closure-size ceiling; see
+    /// [`ConjectureRunPureInput::max_answers`]. `None` = unbounded.
     pub max_answers: Option<usize>,
 }
 
-/// A refutation's contradiction witness, flattened for both response surfaces.
+/// A refutation's contradiction witness, flattened for every response surface.
 pub struct ConjectureRunWitness {
     /// The individual forced into a clash.
     pub individual: String,
@@ -2880,6 +2982,28 @@ pub struct ConjectureRunWitness {
     pub world: String,
     /// The premise triples that witness the clash, each rendered `"s p o"`.
     pub premises: Vec<String>,
+}
+
+/// The outcome of a [`run_conjecture_test_pure`] call: the projected verdict facets, the
+/// refutation witness (when refuted), the content-addressed node IRI, and the projected
+/// N-Triples body. Nothing is ever committed or persisted on this path.
+pub struct ConjecturePureOutput {
+    /// The epistemic lifecycle wire value (`open` | `corroborated` | `refuted-in-standpoint`).
+    pub lifecycle: String,
+    /// The Belnap information-state wire value.
+    pub information: String,
+    /// The evaluation-axis wire value.
+    pub evaluation: String,
+    /// The completeness-axis wire value.
+    pub completeness: String,
+    /// The discharge carrier local name (`ObligationDischarged` | `ObligationUnknown`).
+    pub discharge: String,
+    /// The refutation witness, present exactly when refuted.
+    pub witness: Option<ConjectureRunWitness>,
+    /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
+    pub node_iri: String,
+    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    pub verdict_nt: String,
 }
 
 /// The outcome of a [`run_conjecture_test`] call: the projected verdict facets, the refutation
@@ -2914,34 +3038,39 @@ pub struct ConjectureRunOutput {
     pub receipt: TxReceipt,
 }
 
-/// Run one conjecture test end-to-end: parse the candidate document and KB, re-home the KB
-/// into the isolated scenario world, run the native engine, project the verdict to
-/// deterministic N-Triples, TR-gate the write on the `persistConjecture` schema, and — on a
-/// committed, precondition-met run — APPEND the verdict segment plus a cold-auditable
-/// trajectory segment to the append-only conjecture library.
-///
-/// This is the single shared core behind both the MCP `conjecture_test` tool and the
-/// `gmeow conjecture test` CLI subcommand. It never mutates the caller's KB (isolation is
-/// inherent) and, on a `dry_run` or a precondition-unmet run, writes nothing.
+/// The shared evaluation core's result: everything computed by parsing, testing, and
+/// projecting one conjecture verdict, before either public entry decides what to do with it.
+struct ConjectureEvaluation {
+    lifecycle: String,
+    information: String,
+    evaluation: String,
+    completeness: String,
+    discharge: String,
+    witness: Option<ConjectureRunWitness>,
+    node_iri: String,
+    verdict_nt: String,
+    /// The candidate's content-addressing key, needed by the persisting tail's audit call id.
+    content_key: String,
+}
+
+/// Parse the candidate document and KB, re-home the KB into the isolated scenario world, run
+/// the native engine, and project the verdict to deterministic N-Triples. The SINGLE
+/// evaluation path shared by [`run_conjecture_test_pure`] and [`run_conjecture_test`] — neither
+/// TR-gates nor writes anything; that is each caller's own tail.
 ///
 /// # Errors
 ///
 /// Returns an error if the candidate document does not name exactly one candidate formula, if
-/// the KB does not parse, if the native engine fails (see [`conjecture_test`]), or if the TR
-/// transaction or the library append fails.
-pub fn run_conjecture_test(
-    input: &ConjectureRunInput,
-) -> gmeow_errors::Result<ConjectureRunOutput> {
-    let ConjectureRunInput {
-        formula_ttl,
-        kb_ttl,
-        standpoint,
-        math_conjecture,
-        dry_run,
-        max_steps,
-        max_answers,
-    } = *input;
-
+/// the KB does not parse, if the native engine fails (see [`conjecture_test`]), or if a
+/// refutation names a compound candidate with no soundly-derivable forbidden predicate.
+fn evaluate_conjecture(
+    formula_ttl: &str,
+    kb_ttl: &str,
+    standpoint: &str,
+    math_conjecture: Option<&str>,
+    max_steps: Option<u64>,
+    max_answers: Option<usize>,
+) -> gmeow_errors::Result<ConjectureEvaluation> {
     // (1) Parse the candidate document and extract exactly one candidate formula.
     let candidate = parse_candidate_formula(formula_ttl)?;
 
@@ -3024,8 +3153,105 @@ pub fn run_conjecture_test(
     let completeness = verdict.completeness.wire().to_string();
     let discharge = answer.discharge.local_name().to_string();
 
+    Ok(ConjectureEvaluation {
+        lifecycle,
+        information,
+        evaluation,
+        completeness,
+        discharge,
+        witness,
+        node_iri,
+        verdict_nt,
+        content_key,
+    })
+}
+
+/// Run one conjecture test PURELY — the issue's "test" leg: evaluate the candidate against the
+/// KB and project the verdict, but NEVER TR-gate and NEVER append to the conjecture library.
+/// Behind the MCP `conjecture_test` tool. For the committing counterpart ("store"), see
+/// [`run_conjecture_test`].
+///
+/// # Errors
+///
+/// See [`evaluate_conjecture`].
+pub fn run_conjecture_test_pure(
+    input: &ConjectureRunPureInput,
+) -> gmeow_errors::Result<ConjecturePureOutput> {
+    let ConjectureRunPureInput {
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        max_steps,
+        max_answers,
+    } = *input;
+    let eval = evaluate_conjecture(
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        max_steps,
+        max_answers,
+    )?;
+    Ok(ConjecturePureOutput {
+        lifecycle: eval.lifecycle,
+        information: eval.information,
+        evaluation: eval.evaluation,
+        completeness: eval.completeness,
+        discharge: eval.discharge,
+        witness: eval.witness,
+        node_iri: eval.node_iri,
+        verdict_nt: eval.verdict_nt,
+    })
+}
+
+/// Run one conjecture test end-to-end — the issue's "store" leg: evaluate the candidate
+/// against the KB (see [`evaluate_conjecture`]), TR-gate the write on the `persistConjecture`
+/// schema, and — on a committed, precondition-met run — APPEND the verdict segment plus a
+/// cold-auditable trajectory segment to the append-only conjecture library.
+///
+/// This is the shared persisting core behind both the MCP `store_conjecture` tool and the
+/// `gmeow conjecture test` CLI subcommand. It never mutates the caller's KB (isolation is
+/// inherent) and, on a `dry_run` or a precondition-unmet run, writes nothing.
+///
+/// # Errors
+///
+/// Returns an error if [`evaluate_conjecture`] fails, or if the TR transaction or the library
+/// append fails.
+pub fn run_conjecture_test(
+    input: &ConjectureRunInput,
+) -> gmeow_errors::Result<ConjectureRunOutput> {
+    let ConjectureRunInput {
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        dry_run,
+        max_steps,
+        max_answers,
+    } = *input;
+
+    let ConjectureEvaluation {
+        lifecycle,
+        information,
+        evaluation,
+        completeness,
+        discharge,
+        witness,
+        node_iri,
+        verdict_nt,
+        content_key,
+    } = evaluate_conjecture(
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        max_steps,
+        max_answers,
+    )?;
+
     // (5) TR-gate the write on the persistConjecture schema. The precondition — a verdict has
-    //     been presented — obtains once the engine returns a verdict (step 3).
+    //     been presented — obtains once the engine returns a verdict (evaluation above).
     let obtains = [MCP_CONJECTURE_VERDICT_PRESENTED];
     let receipt = execute_memory_txn(MCP_PERSIST_CONJECTURE_SCHEMA, &obtains, dry_run)?;
 
@@ -5727,6 +5953,14 @@ mod tests {
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
                 "standpoint": "http://ex/standpoint/probe",
+            }),
+        );
+        call_args.insert(
+            "store_conjecture",
+            json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/probe",
                 "dry_run": true,
             }),
         );
@@ -6402,7 +6636,51 @@ mod tests {
     }
 
     #[test]
-    fn conjecture_test_refutes_and_persists_with_witness() {
+    fn conjecture_test_is_pure_and_writes_nothing() {
+        // R3a: the "test" leg (`conjecture_test`) is a PURE hypothetical evaluation. Driving it
+        // with a candidate that, under the OLD single-tool surface, would have persisted a
+        // refutation must still return the full verdict envelope while leaving the library file
+        // byte-unchanged (here: absent) — no TR gate, no append, ever.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        assert!(!path.exists(), "library must not exist before the call");
+        let resp = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(resp["ok"], true, "the pure test must succeed: {resp}");
+        assert_eq!(resp["verdict"]["lifecycle"], "refuted-in-standpoint");
+        assert_eq!(resp["witness"]["individual"], "http://ex/a");
+        let node = resp["conjecture"].as_str().expect("node iri").to_string();
+        assert!(!node.is_empty());
+        // No persist/transaction section at all on this surface.
+        assert!(
+            resp.get("transaction").is_none(),
+            "conjecture_test must never render a transaction section: {resp}"
+        );
+        assert!(
+            resp.get("committed").is_none(),
+            "conjecture_test must never render a committed flag: {resp}"
+        );
+
+        // The library file is BYTE-UNCHANGED (still absent): no TR gate, no append.
+        assert!(
+            !path.exists(),
+            "a pure conjecture_test call must write nothing to the library"
+        );
+    }
+
+    #[test]
+    fn store_conjecture_refutes_and_persists_with_witness() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let (_env, _cg) = ConjEnvGuard::set();
         let (_mem, _mp) = temp_memory();
@@ -6415,7 +6693,7 @@ mod tests {
             "library must not exist before the first persist"
         );
         let resp = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
@@ -6452,8 +6730,8 @@ mod tests {
     }
 
     #[test]
-    fn conjecture_test_bridges_math_twin_via_conjecture_under_test() {
-        // Driving the real MCP `conjecture_test` tool (the shared conjecture-test core) with a
+    fn store_conjecture_bridges_math_twin_via_conjecture_under_test() {
+        // Driving the real MCP `store_conjecture` tool (the shared conjecture-test core) with a
         // `math_conjecture` must persist the always-present structural twin bridge
         // `<math> math:conjectureUnderTest <logic:Conjecture-node>` (domain math:Conjecture,
         // range logic:Conjecture) — readable back out of the append-only GTS library.
@@ -6466,7 +6744,7 @@ mod tests {
 
         let math_iri = "https://blackcatinformatics.ca/math/conjecture/goldbach";
         let resp = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
@@ -6491,7 +6769,9 @@ mod tests {
     }
 
     #[test]
-    fn conjecture_test_dry_run_writes_nothing() {
+    fn store_conjecture_dry_run_writes_nothing() {
+        // The `dry_run` witness on `store_conjecture` is a HYPOTHETICAL commit: the verdict and
+        // TR receipt are computed exactly as a real commit would be, but nothing is appended.
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let (_env, _cg) = ConjEnvGuard::set();
         let (_mem, _mp) = temp_memory();
@@ -6500,7 +6780,7 @@ mod tests {
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
 
         let resp = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
@@ -6518,6 +6798,19 @@ mod tests {
             !path.exists() || fs::metadata(&path).unwrap().len() == 0,
             "a dry run must write nothing to the library"
         );
+
+        // A second, committing call on the SAME candidate now appends for real: the dry run
+        // above left the library byte-unchanged, so this is the library's FIRST segment.
+        let committed = text_payload(server.call_tool_result(
+            "store_conjecture",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(committed["ok"], true);
+        assert!(path.exists() && fs::metadata(&path).unwrap().len() > 0);
     }
 
     /// A candidate authored as a REIFIED GROUND binary atom — the exact `logic:relation` /
@@ -6611,7 +6904,9 @@ mod tests {
     fn conjecture_test_budget_bound_forces_open_via_the_mcp_surface() {
         // GAP G1: the `max_steps` / `max_answers` bound is reachable from the SHIPPED MCP
         // surface (not just the logic-crate unit test). A run whose derived closure exceeds the
-        // ceiling is truncated → evaluation budget-exhausted → lifecycle open → discharge Unknown.
+        // ceiling is truncated → evaluation budget-exhausted → lifecycle open → discharge
+        // Unknown. This is a PURE assertion on `conjecture_test`: no persist tail exists on
+        // this surface at all, so the library stays absent throughout.
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let (_env, _cg) = ConjEnvGuard::set();
         let (_mem, _mp) = temp_memory();
@@ -6626,7 +6921,6 @@ mod tests {
                 "formula": forall_horn_candidate("C"),
                 "kb": multi_trigger_kb("C"),
                 "standpoint": "http://ex/standpoint/alice",
-                "dry_run": true,
             }),
         ));
         assert_eq!(unbounded["ok"], true);
@@ -6642,7 +6936,6 @@ mod tests {
                 "formula": forall_horn_candidate("C"),
                 "kb": multi_trigger_kb("C"),
                 "standpoint": "http://ex/standpoint/alice",
-                "dry_run": true,
                 "max_steps": 1,
             }),
         ));
@@ -6670,7 +6963,6 @@ mod tests {
                 "formula": forall_horn_candidate("C"),
                 "kb": multi_trigger_kb("C"),
                 "standpoint": "http://ex/standpoint/alice",
-                "dry_run": true,
                 "max_answers": 1,
             }),
         ));
@@ -6678,14 +6970,61 @@ mod tests {
             bounded_answers["verdict"]["evaluation"], "budget-exhausted",
             "max_answers must impose the same ceiling: {bounded_answers}"
         );
+        // `conjecture_test` is PURE: none of these calls ever touch the library.
         assert!(
-            !path.exists() || fs::metadata(&path).unwrap().len() == 0,
-            "these dry runs must write nothing"
+            !path.exists(),
+            "conjecture_test calls must write nothing to the library"
         );
     }
 
     #[test]
-    fn conjecture_persists_are_append_only() {
+    fn store_conjecture_budget_bound_forces_open_and_still_persists() {
+        // R3b acceptance: a budget-exhausted `store_conjecture` (committing) must still yield
+        // the non-conclusive verdict — lifecycle open, discharge Unknown — via the governor,
+        // NEVER a false discharge, even though the run commits and appends to the library.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        assert!(!path.exists());
+        let bounded = text_payload(server.call_tool_result(
+            "store_conjecture",
+            &json!({
+                "formula": forall_horn_candidate("C"),
+                "kb": multi_trigger_kb("C"),
+                "standpoint": "http://ex/standpoint/alice",
+                "max_steps": 1,
+            }),
+        ));
+        assert_eq!(
+            bounded["ok"], true,
+            "a budget-exhausted commit must still compute+persist a verdict: {bounded}"
+        );
+        assert_eq!(bounded["verdict"]["evaluation"], "budget-exhausted");
+        assert_eq!(
+            bounded["verdict"]["lifecycle"], "open",
+            "never a false discharge: budget-exhausted must stay Open: {bounded}"
+        );
+        assert_eq!(bounded["verdict"]["discharge"], "ObligationUnknown");
+        assert_eq!(bounded["transaction"]["committed"], true);
+
+        // The non-conclusive verdict is still a real, committed, append-only segment.
+        assert!(
+            path.exists() && fs::metadata(&path).unwrap().len() > 0,
+            "a committed budget-exhausted run must still append its Open verdict"
+        );
+        let node = bounded["conjecture"]
+            .as_str()
+            .expect("node iri")
+            .to_string();
+        assert!(conjecture_nodes(read_conjectures(&path).as_ref()).contains(&node));
+    }
+
+    #[test]
+    fn store_conjecture_persists_are_append_only() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let (_env, _cg) = ConjEnvGuard::set();
         let (_mem, _mp) = temp_memory();
@@ -6694,7 +7033,7 @@ mod tests {
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
 
         text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
@@ -6707,7 +7046,7 @@ mod tests {
 
         // A DISTINCT conjecture (different head class) appends a second segment.
         text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("C"),
                 "kb": open_kb("C"),
@@ -6729,7 +7068,7 @@ mod tests {
     }
 
     #[test]
-    fn conjecture_library_is_isolated_from_the_base_kb() {
+    fn store_conjecture_library_is_isolated_from_the_base_kb() {
         // R2: the caller's KB text is unchanged by the call, and the library is a DISTINCT
         // file the reasoner never folds into its base graph.
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
@@ -6742,7 +7081,7 @@ mod tests {
         let kb = refuting_kb("B");
         let kb_before = kb.clone();
         text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": kb,
@@ -6750,7 +7089,7 @@ mod tests {
             }),
         ));
         // The KB argument the tool was given is an owned String — the tool cannot mutate the
-        // caller's copy. (Isolation is inherent: conjecture_test borrows and copies the KB.)
+        // caller's copy. (Isolation is inherent: store_conjecture borrows and copies the KB.)
         assert_eq!(kb_before, refuting_kb("B"));
         // The conjecture library is a distinct file, NOT the memory store, and never the base
         // reasoning graph (reason reads graph_dataset(), never conjecture_path()).
@@ -6775,7 +7114,7 @@ mod tests {
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
 
         let a = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("C"),
                 "kb": open_kb("C"),
@@ -6783,7 +7122,7 @@ mod tests {
             }),
         ));
         let b = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("C"),
                 "kb": open_kb("C"),
@@ -6812,7 +7151,7 @@ mod tests {
         // Two refuted (B, D disjoint) and two open (C, E unrelated).
         for cls in ["B", "D"] {
             let r = text_payload(server.call_tool_result(
-                "conjecture_test",
+                "store_conjecture",
                 &json!({
                     "formula": forall_horn_candidate(cls),
                     "kb": refuting_kb(cls),
@@ -6823,7 +7162,7 @@ mod tests {
         }
         for cls in ["C", "E"] {
             let r = text_payload(server.call_tool_result(
-                "conjecture_test",
+                "store_conjecture",
                 &json!({
                     "formula": forall_horn_candidate(cls),
                     "kb": open_kb(cls),
