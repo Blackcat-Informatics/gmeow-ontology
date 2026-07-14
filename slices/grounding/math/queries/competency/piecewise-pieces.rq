@@ -17,6 +17,7 @@ SELECT ?function ?piece ?domain ?monotonicity ?bound WHERE {
     ?function a math:PiecewiseFunction ;
               math:hasPiece ?piece .
     ?piece math:pieceDomain ?domain .
+    FILTER(STRSTARTS(STR(?function), "http://example.org/math/"))
     OPTIONAL { ?piece math:hasMonotonicity ?monotonicity }
     OPTIONAL { ?piece math:hasBound ?boundRaw }
     BIND(STR(?boundRaw) AS ?bound)
