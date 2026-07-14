@@ -60,7 +60,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | model-serving | extension | extensions | 6 | 4 | 13 | 0 | 4 | - | full |
-| music | extension | extensions | 13 | 59 | 126 | 0 | 1 | - | full |
+| music | extension | extensions | 14 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 10 | 16 | 37 | 0 | 1 | 53/53 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 1 | - | full |
@@ -79,7 +79,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | sensory | extension | extensions | 3 | 4 | 6 | 0 | 1 | - | full |
 | sensory-environment | extension | extensions | 4 | 5 | 11 | 0 | 1 | - | full |
 | sexuality | core | core | 2 | 4 | 4 | 0 | 1 | 8/8 | full |
-| slice-quality-rubric | core | core | 5 | 7 | 18 | 0 | 1 | 25/25 | full |
+| slice-quality-rubric | core | core | 5 | 8 | 18 | 0 | 1 | 26/26 | full |
 | software | extension | extensions | 10 | 33 | 53 | 0 | 1 | - | full |
 | sources | core | core | 1 | 0 | 3 | 0 | 1 | 3/3 | full |
 | standpoint | core | core | 3 | 11 | 22 | 0 | 1 | 23/33 | full |
@@ -89,4 +89,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 1459/2281 core class/property terms.
+**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 1460/2282 core class/property terms.

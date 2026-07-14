@@ -4205,6 +4205,10 @@ classes:
     - skillProficiencyLevel
     - skillProficiencyOf
     - skillProficiencyScale
+  SliceQualityDimension:
+    class_uri: https://blackcatinformatics.ca/gmeow/SliceQualityDimension
+    title: Slice Quality Dimension
+    is_a: QualityDimension
   SliceTierFloor:
     class_uri: https://blackcatinformatics.ca/gmeow/SliceTierFloor
     title: Slice Tier Floor
@@ -18169,6 +18173,18 @@ enums:
       leipzigCitation:
         meaning: https://blackcatinformatics.ca/gmeow/leipzigCitation
         title: Leipzig plane conformance citation
+      shruti22DivisionCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/shruti22DivisionCitation
+        title: 22-śruti division citation
+      shruti22PlacementCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/shruti22PlacementCitation
+        title: 22-śruti śuddha placement citation
+      shruti22RatioCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/shruti22RatioCitation
+        title: 22-śruti JI ratio citation
+      yamanRagaCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/yamanRagaCitation
+        title: Raga Yaman degree-selection citation
   CitationIntentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
     permissible_values:
@@ -18694,6 +18710,18 @@ enums:
       leipzigWork:
         meaning: https://blackcatinformatics.ca/gmeow/leipzigWork
         title: the Leipzig Glossing Rules
+      workNatyashastra:
+        meaning: https://blackcatinformatics.ca/gmeow/workNatyashastra
+        title: the Nāṭyaśāstra
+      workRagasOfNorthernIndianMusic:
+        meaning: https://blackcatinformatics.ca/gmeow/workRagasOfNorthernIndianMusic
+        title: The Ragas of Northern Indian Music
+      workRagsOfNorthIndianMusic:
+        meaning: https://blackcatinformatics.ca/gmeow/workRagsOfNorthIndianMusic
+        title: The Rāgs of North Indian Music
+      workSangitaratnakara:
+        meaning: https://blackcatinformatics.ca/gmeow/workSangitaratnakara
+        title: the Saṅgītaratnākara
   CreativeWorkTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CreativeWorkType
     permissible_values:
@@ -22813,6 +22841,9 @@ enums:
       pitchCollectionRastMaqam:
         meaning: https://blackcatinformatics.ca/gmeow/pitchCollectionRastMaqam
         title: Rast maqam on C
+      pitchCollectionShruti22:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchCollectionShruti22
+        title: 22-śruti gamut
       pitchCollectionWustaJinsG:
         meaning: https://blackcatinformatics.ca/gmeow/pitchCollectionWustaJinsG
         title: Wusta jins on G
@@ -22927,6 +22958,72 @@ enums:
       membershipRastThirdTurkish:
         meaning: https://blackcatinformatics.ca/gmeow/membershipRastThirdTurkish
         title: Rast third per Turkish theory
+      membershipShruti00:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti00
+        title: 22-śruti degree 0 membership
+      membershipShruti01:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti01
+        title: 22-śruti degree 1 membership
+      membershipShruti02:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti02
+        title: 22-śruti degree 2 membership
+      membershipShruti03:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti03
+        title: 22-śruti degree 3 membership
+      membershipShruti04:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti04
+        title: 22-śruti degree 4 membership
+      membershipShruti05:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti05
+        title: 22-śruti degree 5 membership
+      membershipShruti06:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti06
+        title: 22-śruti degree 6 membership
+      membershipShruti07:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti07
+        title: 22-śruti degree 7 membership
+      membershipShruti08:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti08
+        title: 22-śruti degree 8 membership
+      membershipShruti09:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti09
+        title: 22-śruti degree 9 membership
+      membershipShruti10:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti10
+        title: 22-śruti degree 10 membership
+      membershipShruti11:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti11
+        title: 22-śruti degree 11 membership
+      membershipShruti12:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti12
+        title: 22-śruti degree 12 membership
+      membershipShruti13:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti13
+        title: 22-śruti degree 13 membership
+      membershipShruti14:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti14
+        title: 22-śruti degree 14 membership
+      membershipShruti15:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti15
+        title: 22-śruti degree 15 membership
+      membershipShruti16:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti16
+        title: 22-śruti degree 16 membership
+      membershipShruti17:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti17
+        title: 22-śruti degree 17 membership
+      membershipShruti18:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti18
+        title: 22-śruti degree 18 membership
+      membershipShruti19:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti19
+        title: 22-śruti degree 19 membership
+      membershipShruti20:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti20
+        title: 22-śruti degree 20 membership
+      membershipShruti21:
+        meaning: https://blackcatinformatics.ca/gmeow/membershipShruti21
+        title: 22-śruti degree 21 membership
       membershipWustaJinsGA:
         meaning: https://blackcatinformatics.ca/gmeow/membershipWustaJinsGA
         title: Wusta Jins GA membership
@@ -23113,6 +23210,72 @@ enums:
       pitchValueJI7Over4:
         meaning: https://blackcatinformatics.ca/gmeow/pitchValueJI7Over4
         title: just-intonation 7/4
+      pitchValueShruti00:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti00
+        title: 22-śruti degree 0 (1/1)
+      pitchValueShruti01:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti01
+        title: 22-śruti degree 1 (256/243)
+      pitchValueShruti02:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti02
+        title: 22-śruti degree 2 (16/15)
+      pitchValueShruti03:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti03
+        title: 22-śruti degree 3 (10/9)
+      pitchValueShruti04:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti04
+        title: 22-śruti degree 4 (9/8)
+      pitchValueShruti05:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti05
+        title: 22-śruti degree 5 (32/27)
+      pitchValueShruti06:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti06
+        title: 22-śruti degree 6 (6/5)
+      pitchValueShruti07:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti07
+        title: 22-śruti degree 7 (5/4)
+      pitchValueShruti08:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti08
+        title: 22-śruti degree 8 (81/64)
+      pitchValueShruti09:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti09
+        title: 22-śruti degree 9 (4/3)
+      pitchValueShruti10:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti10
+        title: 22-śruti degree 10 (27/20)
+      pitchValueShruti11:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti11
+        title: 22-śruti degree 11 (45/32)
+      pitchValueShruti12:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti12
+        title: 22-śruti degree 12 (729/512)
+      pitchValueShruti13:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti13
+        title: 22-śruti degree 13 (3/2)
+      pitchValueShruti14:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti14
+        title: 22-śruti degree 14 (128/81)
+      pitchValueShruti15:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti15
+        title: 22-śruti degree 15 (8/5)
+      pitchValueShruti16:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti16
+        title: 22-śruti degree 16 (5/3)
+      pitchValueShruti17:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti17
+        title: 22-śruti degree 17 (27/16)
+      pitchValueShruti18:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti18
+        title: 22-śruti degree 18 (16/9)
+      pitchValueShruti19:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti19
+        title: 22-śruti degree 19 (9/5)
+      pitchValueShruti20:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti20
+        title: 22-śruti degree 20 (15/8)
+      pitchValueShruti21:
+        meaning: https://blackcatinformatics.ca/gmeow/pitchValueShruti21
+        title: 22-śruti degree 21 (243/128)
   PlaceTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PlaceType
     permissible_values:
@@ -23617,54 +23780,24 @@ enums:
       qualityDimensionCompleteness:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionCompleteness
         title: completeness
-      qualityDimensionCounterExampleDepth:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionCounterExampleDepth
-        title: counter-example depth
-      qualityDimensionDocumentation:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation
-        title: documentation
-      qualityDimensionGrounding:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionGrounding
-        title: grounding
-      qualityDimensionInferentialDensity:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionInferentialDensity
-        title: inferential density
       qualityDimensionLineage:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionLineage
         title: lineage
-      qualityDimensionLinkage:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionLinkage
-        title: linkage
       qualityDimensionLogicalConsistency:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionLogicalConsistency
         title: logical consistency
       qualityDimensionPositionalAccuracy:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionPositionalAccuracy
         title: positional accuracy
-      qualityDimensionProjection:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProjection
-        title: projection
-      qualityDimensionProseQuality:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProseQuality
-        title: prose quality
-      qualityDimensionProvenanceHonesty:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProvenanceHonesty
-        title: provenance honesty
       qualityDimensionTemporalAccuracy:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTemporalAccuracy
         title: temporal accuracy
-      qualityDimensionTesting:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTesting
-        title: testing
       qualityDimensionThematicAccuracy:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionThematicAccuracy
         title: thematic accuracy
       qualityDimensionTopologicalConsistency:
         meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTopologicalConsistency
         title: topological consistency
-      qualityDimensionTranslationCoverage:
-        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTranslationCoverage
-        title: translation coverage
   QualityTierEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/QualityTier
     permissible_values:
@@ -24721,6 +24854,39 @@ enums:
       siteTypeRegistered:
         meaning: https://blackcatinformatics.ca/gmeow/siteTypeRegistered
         title: registered
+  SliceQualityDimensionEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/SliceQualityDimension
+    permissible_values:
+      qualityDimensionCounterExampleDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionCounterExampleDepth
+        title: counter-example depth
+      qualityDimensionDocumentation:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation
+        title: documentation
+      qualityDimensionGrounding:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionGrounding
+        title: grounding
+      qualityDimensionInferentialDensity:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionInferentialDensity
+        title: inferential density
+      qualityDimensionLinkage:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionLinkage
+        title: linkage
+      qualityDimensionProjection:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProjection
+        title: projection
+      qualityDimensionProseQuality:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProseQuality
+        title: prose quality
+      qualityDimensionProvenanceHonesty:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionProvenanceHonesty
+        title: provenance honesty
+      qualityDimensionTesting:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTesting
+        title: testing
+      qualityDimensionTranslationCoverage:
+        meaning: https://blackcatinformatics.ca/gmeow/qualityDimensionTranslationCoverage
+        title: translation coverage
   SliceTierFloorEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/SliceTierFloor
     permissible_values:
@@ -25369,6 +25535,9 @@ enums:
       tuningSystemQuarterCommaMeantone:
         meaning: https://blackcatinformatics.ca/gmeow/tuningSystemQuarterCommaMeantone
         title: quarter-comma meantone
+      tuningSystemShruti22:
+        meaning: https://blackcatinformatics.ca/gmeow/tuningSystemShruti22
+        title: 22-śruti Hindustani tuning
       tuningSystemSlendro:
         meaning: https://blackcatinformatics.ca/gmeow/tuningSystemSlendro
         title: slendro
