@@ -1000,6 +1000,10 @@ enum CelestialReferenceOriginEnum {
 enum CitationActEnum {
   ipaChartCitation
   leipzigCitation
+  shruti22DivisionCitation
+  shruti22PlacementCitation
+  shruti22RatioCitation
+  yamanRagaCitation
 }
 
 enum CitationIntentEnum {
@@ -1219,6 +1223,10 @@ enum CoverageDepthEnum {
 enum CreativeWorkEnum {
   ipaChartWork
   leipzigWork
+  workNatyashastra
+  workRagasOfNorthernIndianMusic
+  workRagsOfNorthIndianMusic
+  workSangitaratnakara
 }
 
 enum CreativeWorkTypeEnum {
@@ -2916,6 +2924,7 @@ enum PitchCollectionEnum {
   pitchCollectionRastJinsC
   pitchCollectionRastJinsHighC
   pitchCollectionRastMaqam
+  pitchCollectionShruti22
   pitchCollectionWustaJinsG
   pitchCollectionYamanRaga
 }
@@ -2958,6 +2967,28 @@ enum PitchCollectionMembershipEnum {
   membershipRastJinsCTonic
   membershipRastThirdArabic
   membershipRastThirdTurkish
+  membershipShruti00
+  membershipShruti01
+  membershipShruti02
+  membershipShruti03
+  membershipShruti04
+  membershipShruti05
+  membershipShruti06
+  membershipShruti07
+  membershipShruti08
+  membershipShruti09
+  membershipShruti10
+  membershipShruti11
+  membershipShruti12
+  membershipShruti13
+  membershipShruti14
+  membershipShruti15
+  membershipShruti16
+  membershipShruti17
+  membershipShruti18
+  membershipShruti19
+  membershipShruti20
+  membershipShruti21
   membershipWustaJinsGA
   membershipWustaJinsGBHalfFlat
   membershipWustaJinsGC
@@ -3034,6 +3065,28 @@ enum PitchValueEnum {
   pitchValueC4Fixture
   pitchValueG4Fixture
   pitchValueJI7Over4
+  pitchValueShruti00
+  pitchValueShruti01
+  pitchValueShruti02
+  pitchValueShruti03
+  pitchValueShruti04
+  pitchValueShruti05
+  pitchValueShruti06
+  pitchValueShruti07
+  pitchValueShruti08
+  pitchValueShruti09
+  pitchValueShruti10
+  pitchValueShruti11
+  pitchValueShruti12
+  pitchValueShruti13
+  pitchValueShruti14
+  pitchValueShruti15
+  pitchValueShruti16
+  pitchValueShruti17
+  pitchValueShruti18
+  pitchValueShruti19
+  pitchValueShruti20
+  pitchValueShruti21
 }
 
 enum PlaceTypeEnum {
@@ -3236,22 +3289,12 @@ enum QualityAxisEnum {
 
 enum QualityDimensionEnum {
   qualityDimensionCompleteness
-  qualityDimensionCounterExampleDepth
-  qualityDimensionDocumentation
-  qualityDimensionGrounding
-  qualityDimensionInferentialDensity
   qualityDimensionLineage
-  qualityDimensionLinkage
   qualityDimensionLogicalConsistency
   qualityDimensionPositionalAccuracy
-  qualityDimensionProjection
-  qualityDimensionProseQuality
-  qualityDimensionProvenanceHonesty
   qualityDimensionTemporalAccuracy
-  qualityDimensionTesting
   qualityDimensionThematicAccuracy
   qualityDimensionTopologicalConsistency
-  qualityDimensionTranslationCoverage
 }
 
 enum QualityTierEnum {
@@ -3676,6 +3719,19 @@ enum SiteTypeEnum {
   siteTypeRegistered
 }
 
+enum SliceQualityDimensionEnum {
+  qualityDimensionCounterExampleDepth
+  qualityDimensionDocumentation
+  qualityDimensionGrounding
+  qualityDimensionInferentialDensity
+  qualityDimensionLinkage
+  qualityDimensionProjection
+  qualityDimensionProseQuality
+  qualityDimensionProvenanceHonesty
+  qualityDimensionTesting
+  qualityDimensionTranslationCoverage
+}
+
 enum SliceTierFloorEnum {
   stf_lang
   stf_logic
@@ -3962,6 +4018,7 @@ enum TuningSystemEnum {
   tuningSystemPelog
   tuningSystemPythagorean
   tuningSystemQuarterCommaMeantone
+  tuningSystemShruti22
   tuningSystemSlendro
 }
 
@@ -8849,6 +8906,11 @@ type SkillProficiency {
   skillProficiencyLevel: ProficiencyLevel
   skillProficiencyOf: Skill
   skillProficiencyScale: ProficiencyScale
+}
+
+type SliceQualityDimension {
+  id: String
+  iri: String
 }
 
 type SliceTierFloor {

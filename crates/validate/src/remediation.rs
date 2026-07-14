@@ -156,6 +156,63 @@ mod tests {
         );
     }
 
+    /// D2b: a "validation passed" success record must never carry a "how to fix"
+    /// remediation. `shacl.clean` used to slip through the `shacl.` family match
+    /// (there being no static row of its own) and pick up the family's generic
+    /// "repair the data so it satisfies the violated SHACL constraint shape"
+    /// prose plus a dead help URI — dishonest on an Info-severity record that
+    /// reports zero findings. `shacl.clean` is now its own STATIC_RULES row on
+    /// the honest-absence allowlist, so it must resolve to no remediation at all,
+    /// while a REAL violation code (a genuine discipline violation, and a real
+    /// Error-severity SHACL violation) must still receive its remediation — the
+    /// fix must not over-broadly suppress genuine guidance.
+    #[test]
+    fn shacl_clean_success_record_gets_no_remediation() {
+        let mut report = Report::new("shacl");
+        // Mirrors the production emit site (crates/pipeline/src/stages/validate.rs).
+        report.add_finding(Finding::new(
+            Severity::Info,
+            "shacl.clean",
+            "SHACL validation passed: no findings",
+        ));
+        // A real discipline violation alongside it, to prove the fix is not
+        // over-broad.
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "discipline/relator-mediation",
+            "relator does not mediate both relata",
+        ));
+        // A real Error-severity SHACL violation, to confirm the fix does not
+        // suppress genuine SHACL-family remediations either.
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "shacl.MinCountConstraintComponent",
+            "missing required value",
+        ));
+        attach_remediations(&mut report);
+
+        let clean = &report.findings[0];
+        assert!(
+            clean.remediation.is_empty(),
+            "a `shacl.clean` success record must never receive a remediation: {:?}",
+            clean.remediation
+        );
+
+        let discipline = &report.findings[1];
+        assert_eq!(
+            discipline.remediation.len(),
+            1,
+            "a real discipline violation must still receive its remediation"
+        );
+
+        let shacl_violation = &report.findings[2];
+        assert_eq!(
+            shacl_violation.remediation.len(),
+            1,
+            "a real SHACL violation must still receive its remediation"
+        );
+    }
+
     #[test]
     fn attached_remediation_standpoint_reaches_the_rendered_sarif_fix() {
         // End-to-end: annotate → the rendered SARIF carries a `fixes` entry whose

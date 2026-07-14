@@ -51,7 +51,7 @@ gmeow:ExpressionFrameRequirementShape
         sh:path gmeow:hasReferenceFrame ;
         sh:minCount 1 ;
         sh:nodeKind sh:IRI ;
-        sh:severity sh:Warning ;
+        sh:severity sh:Violation ;
         sh:message "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)." ;
     ] .
 
