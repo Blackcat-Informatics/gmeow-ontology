@@ -290,8 +290,11 @@ pub fn classify_consistency(
     let native_consistent = native.consistent;
     // The oracle is globally consistent unless it reported an ABox clash `(false,
     // [])`. `(false, [X…])` (unsatisfiable-but-unpopulated classes) is a consistent
-    // ontology globally; those empty classes are handled per-class below.
-    let oracle_global_consistent = oracle.0 || !oracle.1.is_empty();
+    // ontology globally; those empty classes are handled per-class below. This
+    // defers to `entail_oracle::global_consistent_verdict` as the single contract
+    // authority: `consistency` guarantees a global inconsistency yields an empty
+    // unsat list, so a populated list is never a global inconsistency.
+    let oracle_global_consistent = entail_oracle::global_consistent_verdict(oracle.0, &oracle.1);
     let global = match (native_consistent, oracle_global_consistent) {
         (true, true) => LedgerRow {
             kind: DivergenceKind::Agree,
