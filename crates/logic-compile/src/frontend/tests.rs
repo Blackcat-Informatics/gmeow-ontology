@@ -1216,6 +1216,123 @@ fn all_components(shapes: &[ValidationShapeIr]) -> Vec<ConstraintComponent> {
 }
 
 #[test]
+fn derive_anonymous_one_of_filler_lowers_to_sh_in() {
+    // An allValuesFrom whose filler is an anonymous enumeration `[ owl:oneOf ( a b ) ]` reads
+    // closed-world as a value set on the path (`sh:in`), never a class-membership check.
+    let ds = shape_dataset(
+        "g:Trial a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:sidedness ; \
+           owl:allValuesFrom [ owl:oneOf ( g:oneSided g:twoSided ) ] ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let comps = all_components(&shapes);
+    assert!(
+        comps.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::In(vs) if vs.len() == 2
+        )),
+        "expected an sh:in over the two enumerated individuals: {comps:?}"
+    );
+}
+
+#[test]
+fn derive_union_of_bare_existential_restrictions_lowers_to_or_properties() {
+    // `K ⊑ (∃p1.Thing ⊔ ∃p2.Thing)` — the either-of-these-properties existence obligation —
+    // reads closed-world as the node-level property-alternatives disjunction.
+    let ds = shape_dataset(
+        "g:Framed a owl:Class ; rdfs:subClassOf [ owl:unionOf ( \
+           [ a owl:Restriction ; owl:onProperty g:hasFrame ; owl:someValuesFrom owl:Thing ] \
+           [ a owl:Restriction ; owl:onProperty g:hasModel ; owl:someValuesFrom owl:Thing ] ) ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let framed = shapes
+        .iter()
+        .find(|s| s.iri.contains("Framed"))
+        .expect("Framed shape derived");
+    assert!(
+        framed.node_components.iter().any(|c| matches!(
+            c,
+            ConstraintComponent::OrProperties(paths)
+                if paths.len() == 2
+                    && paths.iter().any(|p| p.ends_with("hasFrame"))
+                    && paths.iter().any(|p| p.ends_with("hasModel"))
+        )),
+        "expected an OrProperties node component: {:?}",
+        framed.node_components
+    );
+    // The emitted SHACL carries the node-level sh:or over sh:path branches.
+    let ttl = crate::projections::shapes::project_validation_shape_shacl(framed);
+    assert!(
+        ttl.contains(
+            "sh:or ( [ sh:path <https://blackcatinformatics.ca/gmeow/hasFrame> ; sh:minCount 1 ]"
+        ),
+        "{ttl}"
+    );
+}
+
+#[test]
+fn derive_union_with_a_non_existential_member_stays_in_the_canon() {
+    // A union carrying a NAMED-class member is a genuine class disjunction — it must NOT be
+    // partially read as a property-alternatives disjunction.
+    let ds = shape_dataset(
+        "g:Mixed a owl:Class ; rdfs:subClassOf [ owl:unionOf ( \
+           [ a owl:Restriction ; owl:onProperty g:hasFrame ; owl:someValuesFrom owl:Thing ] \
+           g:NamedAlternative ) ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes.iter().any(|s| s
+            .node_components
+            .iter()
+            .any(|c| matches!(c, ConstraintComponent::OrProperties(_)))),
+        "a mixed union must not derive a partial property disjunction: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_blank_restriction_domain_lowers_to_subjects_of_property_shape() {
+    // A ClosedWorldClosure-opted-in property whose rdfs:domain is an anonymous restriction
+    // `[ owl:onProperty q ; owl:minCardinality 1 ]` derives the required-companion condition on
+    // the SubjectsOf(P) domain shape: every subject of P carries at least one q.
+    let ds = shape_dataset(
+        "g:lowersTo a owl:ObjectProperty ; \
+           rdfs:domain [ a owl:Restriction ; owl:onProperty g:denotation ; owl:minCardinality 1 ] . \
+         [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; \
+           <https://blackcatinformatics.ca/logic/closureKey> \"https://blackcatinformatics.ca/gmeow/lowersTo\" ; \
+           <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let domain_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("lowersTo")))
+        .expect("a SubjectsOf(lowersTo) domain shape is derived");
+    assert!(
+        domain_shape
+            .properties
+            .iter()
+            .any(|p| p.path.ends_with("denotation") && p.min_count == Some(1)),
+        "expected a min-1 companion property on the domain shape: {domain_shape:?}"
+    );
+}
+
+#[test]
+fn derive_blank_restriction_domain_without_opt_in_derives_nothing() {
+    // Without the ClosedWorldClosure opt-in, an anonymous restriction domain stays open-world:
+    // no SubjectsOf shape is derived (domain/range are inference axioms by default).
+    let ds = shape_dataset(
+        "g:lowersTo a owl:ObjectProperty ; \
+           rdfs:domain [ a owl:Restriction ; owl:onProperty g:denotation ; owl:minCardinality 1 ] .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        !shapes
+            .iter()
+            .any(|s| matches!(&s.target, ShapeTarget::SubjectsOf(p) if p.ends_with("lowersTo"))),
+        "an un-opted-in anonymous domain must derive no shape: {shapes:?}"
+    );
+}
+
+#[test]
 fn derive_datatype_target_lowers_to_sh_datatype_not_sh_class() {
     // A someValuesFrom whose target is a datatype must NOT become sh:class — a literal is never
     // an instance of a class, so sh:class would flag every focus node. It becomes sh:datatype.
