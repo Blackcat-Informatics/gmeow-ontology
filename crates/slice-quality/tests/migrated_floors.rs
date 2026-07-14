@@ -42,8 +42,8 @@ fn golden_rows(name: &str) -> Vec<String> {
 
 #[test]
 fn every_pre_migration_axis_floor_is_reproduced_bit_exactly() {
-    let rubric = gmeow_slice_quality::load_repo_rubric(&repo_root())
-        .expect("the committed rubric slice must load");
+    let floors = gmeow_slice_quality::load_repo_floors(&repo_root())
+        .expect("the committed rubric floors must load");
     let rows = golden_rows("migrated-axis-floors.golden.tsv");
     assert_eq!(rows.len(), 164, "the frozen axis-floor golden has 164 rows");
 
@@ -60,8 +60,7 @@ fn every_pre_migration_axis_floor_is_reproduced_bit_exactly() {
             .unwrap_or_else(|_| panic!("golden floor {floor_str:?} parses as f64"))
             .to_bits();
 
-        let found = rubric
-            .floors
+        let found = floors
             .commitments
             .iter()
             .find(|c| c.slice == slice && local_name(&c.axis) == axis_local)
@@ -79,8 +78,8 @@ fn every_pre_migration_axis_floor_is_reproduced_bit_exactly() {
 
 #[test]
 fn every_pre_migration_tier_floor_is_reproduced() {
-    let rubric = gmeow_slice_quality::load_repo_rubric(&repo_root())
-        .expect("the committed rubric slice must load");
+    let floors = gmeow_slice_quality::load_repo_floors(&repo_root())
+        .expect("the committed rubric floors must load");
     let rows = golden_rows("migrated-tier-floors.golden.tsv");
     assert_eq!(rows.len(), 5, "the frozen tier-floor golden has 5 rows");
 
@@ -92,8 +91,7 @@ fn every_pre_migration_tier_floor_is_reproduced() {
             "golden tier-floor row is <slice-iri>\\t<tier-local>: {row:?}"
         );
         let (slice, tier_local) = (cols[0], cols[1]);
-        let found = rubric
-            .floors
+        let found = floors
             .tier_floors
             .iter()
             .find(|f| f.slice == slice)

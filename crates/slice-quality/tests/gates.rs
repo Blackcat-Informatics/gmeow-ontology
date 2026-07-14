@@ -23,7 +23,9 @@ fn repo_root() -> PathBuf {
 }
 
 fn rubric() -> Rubric {
-    gmeow_slice_quality::load_repo_rubric(&repo_root()).unwrap()
+    let module = repo_root().join("slices/core/slice-quality-rubric/module.ttl");
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module]).unwrap();
+    gmeow_slice_quality::rubric::load_rubric(&ds).unwrap()
 }
 
 /// Walk `.rs` files under `dir`, calling `f` with each file's text.
