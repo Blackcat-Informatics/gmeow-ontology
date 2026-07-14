@@ -47,3 +47,7 @@ pub mod paths;
 pub mod profile;
 pub mod run;
 pub mod serialize;
+/// The one vendored-corpus contract (`corpus.json` schema + license gate) shared by
+/// both the `cases/external/` correctness family and the `cases/bench/` performance
+/// family — see [`vendored`] for the single-root, single-gate statement.
+pub mod vendored;
