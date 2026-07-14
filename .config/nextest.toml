@@ -330,6 +330,25 @@
 #     contention. Focused export renderer/schema tests stay on-gate, and every committed
 #     export remains byte-drift-gated by `make check-generated`; the exhaustive structural
 #     sweep remains on `maint-heavy`.
+#   - gmeow-pipeline mcp::tests::verify_graph_*_heavy_offgate (~50 s each): the
+#     `verify_graph` MCP tool reasons over the WHOLE committed `gmeow.gts` unioned with a
+#     small overlay, then runs the native reasoned-graph verify pass (flatten the whole
+#     bundle default graph + evaluate every embedded bad-example query) — irreducibly the
+#     `make verify` cost, the same whole-committed-bundle O(bundle size) class as the
+#     conformance round-trip above, not fixture cost. No coverage leaves the gate: the
+#     fast ceiling-rejection path stays on-gate (verify_graph_rejects_an_oversized_overlay,
+#     which refuses before any reasoning), the tool's declaration/dispatch stays covered by
+#     the on-gate tools/list mode-gating golden, and the four whole-bundle judgment cases
+#     (bad-example firing, canon isolation, budget-cut attestation, grounded judgment
+#     N-Quads) run on `maint-heavy`.
+#   - gmeow-pipeline mcp::tests::explain_quad_*_heavy_offgate: the `explain_quad` MCP tool
+#     reasons over the WHOLE committed `gmeow.gts` under the mid-chase governor, then
+#     reconstructs a single quad's proof — the same O(bundle size) whole-committed-bundle
+#     class as verify_graph, not fixture cost. No coverage leaves the gate: the
+#     disambiguation helper (cross-world ambiguity / wrong-world / not-in-closure), the
+#     canonical object-N3 surface, and the bad-object-kind hard fail run as FAST on-gate
+#     unit tests over synthetic rows; only the derived/asserted/not-in-closure/judgment
+#     cases that require a real whole-bundle reason run on `maint-heavy`.
 default-filter = '''
   not (
     (package(gmeow-validate) & test(/deep_surfaces_entailed_inconsistency.*heavy_offgate/))
@@ -362,6 +381,8 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
     | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
     | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
+    | (package(gmeow-pipeline) & test(/mcp::tests::verify_graph_.*_heavy_offgate/))
+    | (package(gmeow-pipeline) & test(/mcp::tests::explain_quad_.*_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
     | (package(gmeow-pipeline) & test(/stages::export::tests::export_produces_structurally_valid_artifacts/))
