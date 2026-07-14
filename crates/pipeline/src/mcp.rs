@@ -2996,88 +2996,100 @@ impl McpServer {
         let conjecture_id = required_str(args, "conjecture_id")?;
         let reason = optional_str(args, "reason").unwrap_or("");
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
-
-        // Read the library's EFFECTIVE state by segment order (last-writer-wins). The node is
-        // withdrawable iff it is a stored conjecture whose effective state is not already
-        // Withdrawn — the `del(conjectureInLibrary)` of a prior withdrawal retired it.
         let path = conjecture_path()?;
-        let library = read_conjecture_library(&path)?;
-        let effective = library.get(conjecture_id).copied();
-        let exists = effective.is_some();
-        let in_library = matches!(
-            effective,
-            Some(state) if state != ConjectureLifecycleState::Withdrawn
-        );
 
-        // The precondition `conjectureInLibrary` obtains iff the node is present and not yet
-        // withdrawn — the engine's executional entailment over THIS derived start state is the
-        // commit gate (an absent situation fails the run; no synthetic boolean).
-        let mut obtains: Vec<&str> = Vec::new();
-        if in_library {
-            obtains.push(MCP_CONJECTURE_IN_LIBRARY);
-        }
-        let receipt = execute_memory_txn(MCP_WITHDRAW_CONJECTURE_SCHEMA, &obtains, dry_run)?;
-        // T1: the compensating withdrawal's OWN grounded RDF projection — content-addressed on
-        // (conjecture_id, reason), pure and side-effect-free — computed once here so BOTH the
-        // hypothetical (dry-run) and committed success paths can carry it under the SAME
-        // `judgment_nquads` key the read tools and the other two conjecture tools use. The
-        // precondition-unmet path below deliberately does NOT carry it: no withdrawal was
-        // validly grounded (unknown id, or already withdrawn), so emitting this body there
-        // would fabricate a judgment about a state change that never obtained.
-        let nt_body = project_conjecture_withdrawal(conjecture_id, reason);
-        match &receipt {
-            TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
-                let detail = if !exists {
-                    format!("unknown conjecture id: {conjecture_id}")
-                } else {
-                    format!("conjecture already withdrawn: {conjecture_id}")
-                };
-                return Ok(json!({
-                    "ok": false,
-                    "error": format!("withdrawConjecture precondition unmet: {detail}"),
-                    "transaction": txn_json(&receipt),
-                })
-                .to_string());
-            }
-            // Sandbox run: the compensating verdict is witnessed, nothing is appended.
-            TxReceipt::HypotheticalSuccess { .. } => {
-                return Ok(json!({
-                    "ok": true,
-                    "dry_run": true,
-                    "conjecture": conjecture_id,
-                    "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
-                    "transaction": txn_json(&receipt),
-                    "judgment_nquads": nt_body,
-                })
-                .to_string());
-            }
-            TxReceipt::CommittedSuccess { .. } => {}
-        }
+        // The read (library's EFFECTIVE state, by segment order) → precondition-check → (on a
+        // real commit) library-append → audit-append sequence runs ENTIRELY inside ONE held
+        // exclusive lock (`with_conjecture_lock`, CodeRabbit Major): without it, two concurrent
+        // `refute_conjecture` calls against the same id could both read "not yet withdrawn",
+        // both pass the precondition, and both commit a withdrawal segment (lost-update). The
+        // lock forces the second caller to observe the FIRST caller's already-committed
+        // `ConjectureWithdrawn` state before it decides anything.
+        with_conjecture_lock(&path, || {
+            // Read the library's EFFECTIVE state by segment order (last-writer-wins). The node
+            // is withdrawable iff it is a stored conjecture whose effective state is not already
+            // Withdrawn — the `del(conjectureInLibrary)` of a prior withdrawal retired it.
+            let library = read_conjecture_library(&path)?;
+            let effective = library.get(conjecture_id).copied();
+            let exists = effective.is_some();
+            let in_library = matches!(
+                effective,
+                Some(state) if state != ConjectureLifecycleState::Withdrawn
+            );
 
-        // Committed: APPEND the compensating author-withdrawal segment (the target node re-
-        // marked `ConjectureWithdrawn`, author reason, reviewer-asserted provenance), then a
-        // cold-auditable trajectory segment keyed to a content-addressed call id. Both are
-        // NEW segments — the library is append-only, so no prior segment's bytes are touched.
-        write_conjecture_segment(&path, &nt_body)?;
-        let call_id = format!(
-            "urn:gmeow:conjecture-call:{}",
-            sha256_hex(format!("withdraw\u{1}{conjecture_id}\u{1}{reason}").as_bytes())
-        );
-        write_audit_segment(
-            &path,
-            &call_id,
-            MCP_WITHDRAW_CONJECTURE_SCHEMA,
-            &[MCP_CONJECTURE_IN_LIBRARY],
-            "1970-01-01T00:00:00Z",
-        )?;
-        Ok(json!({
-            "ok": true,
-            "conjecture": conjecture_id,
-            "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
-            "transaction": txn_json(&receipt),
-            "judgment_nquads": nt_body,
+            // The precondition `conjectureInLibrary` obtains iff the node is present and not yet
+            // withdrawn — the engine's executional entailment over THIS derived start state is
+            // the commit gate (an absent situation fails the run; no synthetic boolean).
+            let mut obtains: Vec<&str> = Vec::new();
+            if in_library {
+                obtains.push(MCP_CONJECTURE_IN_LIBRARY);
+            }
+            let receipt = execute_memory_txn(MCP_WITHDRAW_CONJECTURE_SCHEMA, &obtains, dry_run)?;
+            // T1: the compensating withdrawal's OWN grounded RDF projection — content-addressed
+            // on (conjecture_id, reason), pure and side-effect-free — computed once here so BOTH
+            // the hypothetical (dry-run) and committed success paths can carry it under the SAME
+            // `judgment_nquads` key the read tools and the other two conjecture tools use. The
+            // precondition-unmet path below deliberately does NOT carry it: no withdrawal was
+            // validly grounded (unknown id, or already withdrawn), so emitting this body there
+            // would fabricate a judgment about a state change that never obtained.
+            let nt_body = project_conjecture_withdrawal(conjecture_id, reason);
+            match &receipt {
+                TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
+                    let detail = if !exists {
+                        format!("unknown conjecture id: {conjecture_id}")
+                    } else {
+                        format!("conjecture already withdrawn: {conjecture_id}")
+                    };
+                    return Ok(json!({
+                        "ok": false,
+                        "error": format!("withdrawConjecture precondition unmet: {detail}"),
+                        "transaction": txn_json(&receipt),
+                    })
+                    .to_string());
+                }
+                // Sandbox run: the compensating verdict is witnessed, nothing is appended.
+                TxReceipt::HypotheticalSuccess { .. } => {
+                    return Ok(json!({
+                        "ok": true,
+                        "dry_run": true,
+                        "conjecture": conjecture_id,
+                        "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+                        "transaction": txn_json(&receipt),
+                        "judgment_nquads": nt_body,
+                    })
+                    .to_string());
+                }
+                TxReceipt::CommittedSuccess { .. } => {}
+            }
+
+            // Committed: APPEND the compensating author-withdrawal segment (the target node
+            // re-marked `ConjectureWithdrawn`, author reason, reviewer-asserted provenance)
+            // TOGETHER with its cold-auditable trajectory segment (keyed to a content-addressed
+            // call id) as ONE atomic file replace — so a failure building or committing either
+            // segment can never leave the withdrawal applied without its audit record, or vice
+            // versa. The library is still append-only overall: no PRIOR segment's bytes are
+            // touched, only new bytes are added.
+            let withdrawal_segment = build_conjecture_verdict_segment(&nt_body)?;
+            let call_id = format!(
+                "urn:gmeow:conjecture-call:{}",
+                sha256_hex(format!("withdraw\u{1}{conjecture_id}\u{1}{reason}").as_bytes())
+            );
+            let audit_segment = build_audit_segment(
+                &call_id,
+                MCP_WITHDRAW_CONJECTURE_SCHEMA,
+                &[MCP_CONJECTURE_IN_LIBRARY],
+                "1970-01-01T00:00:00Z",
+            );
+            append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
+            Ok(json!({
+                "ok": true,
+                "conjecture": conjecture_id,
+                "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+                "transaction": txn_json(&receipt),
+                "judgment_nquads": nt_body,
+            })
+            .to_string())
         })
-        .to_string())
     }
 
     fn tool_validate(&self) -> gmeow_errors::Result<String> {
@@ -3583,21 +3595,25 @@ pub fn run_conjecture_test(
         TxReceipt::CommittedSuccess { .. } => {}
     }
 
-    // (6) Committed: APPEND the verdict segment to the append-only library, then record a
-    //     cold-auditable trajectory segment keyed to a content-addressed call id.
+    // (6) Committed: APPEND the verdict segment plus its cold-auditable trajectory segment
+    //     (keyed to a content-addressed call id) to the append-only library — TOGETHER, as ONE
+    //     atomic file replace under ONE held lock, so a failure building or committing either
+    //     segment can never leave the library holding the verdict without its audit record.
     let path = conjecture_path()?;
-    write_conjecture_segment(&path, &out.verdict_nt)?;
+    let verdict_segment = build_conjecture_verdict_segment(&out.verdict_nt)?;
     let call_id = format!(
         "urn:gmeow:conjecture-call:{}",
         sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
     );
-    write_audit_segment(
-        &path,
+    let audit_segment = build_audit_segment(
         &call_id,
         MCP_PERSIST_CONJECTURE_SCHEMA,
         &obtains,
         "1970-01-01T00:00:00Z",
-    )?;
+    );
+    with_conjecture_lock(&path, || {
+        append_conjecture_segments(&path, &[verdict_segment, audit_segment])
+    })?;
     out.committed = true;
     Ok(out)
 }
@@ -4609,6 +4625,26 @@ fn write_audit_segment(
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
+    let segment = build_audit_segment(call_id, schema_iri, obtains, at_time);
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(memory_path)?;
+    file.write_all(&segment)?;
+    Ok(())
+}
+
+/// Build one trajectory-audit context segment's serialized bytes — the PURE, side-effect-free
+/// half of [`write_audit_segment`], factored out so the conjecture-library commit path can
+/// build the verdict segment AND its audit segment in memory and commit both together via
+/// [`append_conjecture_segments`] (one atomic replace), rather than two separate appends where
+/// the second can fail after the first has already landed.
+fn build_audit_segment(
+    call_id: &str,
+    schema_iri: &str,
+    obtains: &[&str],
+    at_time: &str,
+) -> Vec<u8> {
     let anchor = format!("{call_id}#turn");
     let start = format!("{call_id}#start");
 
@@ -4647,14 +4683,7 @@ fn write_audit_segment(
     let mut writer = GtsWriter::new("ai-package");
     writer.add_terms(&terms);
     writer.add_quads(&quads);
-    let segment = writer.to_bytes();
-
-    let mut file = fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(memory_path)?;
-    file.write_all(&segment)?;
-    Ok(())
+    writer.to_bytes()
 }
 
 // ── Conjecture-library persistence (append-only GTS ai-package, TR-gated) ─────
@@ -4779,12 +4808,14 @@ fn intern_nt_term(
     id
 }
 
-/// Append one conjecture-verdict segment (the `project_conjecture_verdict` N-Triples body) to
-/// the append-only library at `path`, as a GTS `ai-package` segment. The body is parsed into
-/// `(subject, predicate, object)` triples, interned as GTS terms (IRIs, blank nodes, and
-/// typed literals with their datatype), and written via [`GtsWriter`]. Prior segment bytes
-/// are NEVER mutated — the file is opened `create + append`, mirroring [`write_audit_segment`].
-fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
+/// Build one conjecture-verdict segment (the `project_conjecture_verdict` N-Triples body) as
+/// a GTS `ai-package` segment's serialized bytes — the PURE, side-effect-free half of the old
+/// `write_conjecture_segment`. The body is parsed into `(subject, predicate, object)` triples,
+/// interned as GTS terms (IRIs, blank nodes, and typed literals with their datatype), and
+/// written via [`GtsWriter`]. Building the bytes is separated from appending them so a caller
+/// can assemble MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory
+/// and commit them together as one atomic file replace — see [`append_conjecture_segments`].
+fn build_conjecture_verdict_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
     let mut seen: HashMap<String, usize> = HashMap::new();
@@ -4821,19 +4852,84 @@ fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<
     let mut writer = GtsWriter::new("ai-package");
     writer.add_terms(&terms);
     writer.add_quads(&quads);
-    let segment = writer.to_bytes();
+    Ok(writer.to_bytes())
+}
 
-    if let Some(parent) = path
+/// The sidecar advisory-lock path for the conjecture library at `library_path`: the library
+/// path with a literal `.lock` suffix appended (e.g. `conjectures.gts` → `conjectures.gts.lock`).
+/// The lock file's own bytes are never read; it exists solely as a stable `flock`/`LockFileEx`
+/// target that survives the library file being replaced out from under it by
+/// [`append_conjecture_segments`]'s atomic rename (an `flock` on the DATA file itself would be
+/// silently dropped by a rename-replace, since the lock is bound to the inode, not the path).
+fn conjecture_lock_path(library_path: &Path) -> PathBuf {
+    let mut os = library_path.as_os_str().to_owned();
+    os.push(".lock");
+    PathBuf::from(os)
+}
+
+/// Acquire ONE exclusive, cross-process advisory lock on `library_path`'s sidecar `.lock` file
+/// for the duration of `f`, serializing every conjecture-library operation — reads, precondition
+/// checks, and appends alike — against every other process/thread doing the same. Callers that
+/// must read-then-decide-then-write (e.g. `refute_conjecture`'s "is this id still in the library
+/// and not yet withdrawn?" precondition) run the ENTIRE read → check → append sequence inside
+/// `f`, so two concurrent callers can no longer both observe the pre-write state and both commit
+/// (the lost-update / double-write race CodeRabbit flagged). The lock is released when the guard
+/// file handle drops at the end of this call, regardless of whether `f` succeeded.
+fn with_conjecture_lock<T>(
+    library_path: &Path,
+    f: impl FnOnce() -> gmeow_errors::Result<T>,
+) -> gmeow_errors::Result<T> {
+    if let Some(parent) = library_path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
     {
         fs::create_dir_all(parent)?;
     }
-    let mut file = fs::OpenOptions::new()
+    let lock_path = conjecture_lock_path(library_path);
+    let lock_file = fs::OpenOptions::new()
         .create(true)
-        .append(true)
-        .open(path)?;
-    file.write_all(&segment)?;
+        .truncate(false)
+        .write(true)
+        .open(&lock_path)?;
+    // Blocking exclusive lock (`flock(LOCK_EX)` / `LockFileEx` exclusive) — a concurrent
+    // holder blocks here rather than racing past a TOCTOU window.
+    lock_file.lock()?;
+    let result = f();
+    let _ = lock_file.unlock();
+    result
+}
+
+/// Atomically commit `segments` (each an already-serialized GTS `ai-package` segment, in order)
+/// to the conjecture library at `path`, ALL-OR-NOTHING: the new file contents — the library's
+/// current bytes (if any) followed by every segment in `segments`, in order — are assembled
+/// ENTIRELY in memory, then committed via a same-directory temp file + `fsync` + atomic rename.
+/// A rename either lands the WHOLE new file or leaves the PRIOR file completely untouched — so
+/// if anything fails partway (e.g. the audit segment's bytes can't be built, or the temp write
+/// fails), the library is never left holding some but not all of `segments` (closing the "audit
+/// append fails, library append is left applied" half of the CodeRabbit gap). The caller MUST
+/// already hold the conjecture-library lock (see [`with_conjecture_lock`]) — this function does
+/// not lock by itself, so it can be called once per commit even when it writes >1 segment.
+fn append_conjecture_segments(path: &Path, segments: &[Vec<u8>]) -> gmeow_errors::Result<()> {
+    let mut bytes = match fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Vec::new(),
+        Err(e) => return Err(e.into()),
+    };
+    for segment in segments {
+        bytes.extend_from_slice(segment);
+    }
+
+    let dir = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .map_or_else(|| PathBuf::from("."), PathBuf::from);
+    let mut tmp = tempfile::Builder::new()
+        .prefix(".conjectures-")
+        .suffix(".tmp")
+        .tempfile_in(&dir)?;
+    tmp.write_all(&bytes)?;
+    tmp.as_file().sync_all()?;
+    tmp.persist(path)?;
     Ok(())
 }
 
@@ -5095,6 +5191,19 @@ mod tests {
     use super::*;
     use std::ffi::OsString;
     use std::sync::{Mutex, OnceLock};
+
+    /// Append one hand-built conjecture-verdict segment to the append-only library at `path`,
+    /// as a GTS `ai-package` segment, via the SAME locked/atomic commit path production code
+    /// uses ([`with_conjecture_lock`] + [`append_conjecture_segments`]). Test-only: it seeds a
+    /// library file with a single segment so segment-order-resolution tests
+    /// ([`read_conjecture_library`]) can be driven without going through a full `store_conjecture`
+    /// engine run. Production call sites build BOTH the verdict segment and its audit segment
+    /// and commit them together via [`append_conjecture_segments`] directly (one atomic replace
+    /// covering both), rather than through this single-segment helper.
+    fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
+        let segment = build_conjecture_verdict_segment(nt_body)?;
+        with_conjecture_lock(path, || append_conjecture_segments(path, &[segment]))
+    }
 
     static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
@@ -8173,6 +8282,197 @@ mod tests {
             library.get(&node).copied(),
             Some(ConjectureLifecycleState::Open),
             "a dry run must not change the effective lifecycle"
+        );
+    }
+
+    #[test]
+    fn store_conjecture_and_refute_round_trip_keep_library_and_audit_consistent() {
+        // G9 (CodeRabbit Major): store_conjecture and refute_conjecture must each land their
+        // library segment AND their audit segment TOGETHER — never one without the other. Drive
+        // the real `call_tool_result` surface for both tools and, after EACH commit, assert the
+        // library dataset carries BOTH the verdict/withdrawal triples AND the matching
+        // `logic:instantiatesSchema` audit marker for that same call — round-tripping cleanly.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let node = store_one_conjecture(&server, "B");
+        let after_store = read_conjectures(&path);
+        assert!(
+            conjecture_nodes(&after_store).contains(&node),
+            "the store's library segment must be present after the commit"
+        );
+        assert!(
+            after_store.owned_quads().any(|q| {
+                q.predicate == LOGIC_INSTANTIATES_SCHEMA
+                    && q.object == RdfTerm::iri(MCP_PERSIST_CONJECTURE_SCHEMA)
+            }),
+            "the store's audit segment must be present in the SAME commit as its library \
+             segment (no library-without-audit gap): {after_store:?}"
+        );
+
+        let refute = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "round-trip proof"}),
+        ));
+        assert_eq!(refute["ok"], true, "the withdrawal must commit: {refute}");
+
+        let after_refute = read_conjectures(&path);
+        let library = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            library.get(&node).copied(),
+            Some(ConjectureLifecycleState::Withdrawn),
+            "the round-trip's effective state must be Withdrawn"
+        );
+        assert!(
+            after_refute.owned_quads().any(|q| {
+                q.predicate == LOGIC_INSTANTIATES_SCHEMA
+                    && q.object == RdfTerm::iri(MCP_WITHDRAW_CONJECTURE_SCHEMA)
+            }),
+            "the refute's audit segment must be present in the SAME commit as its withdrawal \
+             segment: {after_refute:?}"
+        );
+        // The store's audit marker is STILL there too — append-only, nothing overwritten.
+        assert!(
+            after_refute.owned_quads().any(|q| {
+                q.predicate == LOGIC_INSTANTIATES_SCHEMA
+                    && q.object == RdfTerm::iri(MCP_PERSIST_CONJECTURE_SCHEMA)
+            }),
+            "the store's audit marker must survive the later refute commit"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn conjecture_persist_is_all_or_nothing_on_a_failed_commit() {
+        // G9 (CodeRabbit Major): forcing the atomic-replace write to fail PARTWAY (the temp file
+        // for the combined library+audit bytes can't even be created) must leave the library
+        // BYTE-UNCHANGED — never holding the library segment without its audit segment (or vice
+        // versa), because both are assembled in memory and committed via ONE rename. This
+        // simulates the "audit append fails after the library append already landed" half of the
+        // gap: with the fix, there is no such partial state to observe.
+        use std::os::unix::fs::PermissionsExt;
+
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_conjecture();
+
+        // Seed the library with one already-committed segment (as if a prior store succeeded).
+        let seed_node = "https://blackcatinformatics.ca/gmeow/graph/conjecture/seed";
+        let seed_nt = format!(
+            "<{seed_node}> <{RDF_TYPE_IRI}> <{LOGIC_NS}Conjecture> .\n\
+             <{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureOpen> .\n"
+        );
+        write_conjecture_segment(&path, &seed_nt).unwrap();
+        let before = fs::read(&path).expect("seeded library bytes");
+        assert!(!before.is_empty());
+
+        // Make the library's directory read-only: the existing `.lock` sidecar can still be
+        // opened (it already exists), but `append_conjecture_segments` can no longer create the
+        // same-directory temp file its atomic rename depends on — an I/O failure squarely inside
+        // the combined library+audit commit, after both segments' bytes are already built.
+        let dir = path
+            .parent()
+            .expect("library has a parent dir")
+            .to_path_buf();
+        let original_mode = fs::metadata(&dir).unwrap().permissions().mode();
+        fs::set_permissions(&dir, fs::Permissions::from_mode(0o555)).expect("chmod read-only");
+
+        let outcome = (|| -> gmeow_errors::Result<()> {
+            let lib_segment = build_conjecture_verdict_segment(&format!(
+                "<{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureWithdrawn> .\n"
+            ))?;
+            let audit_segment = build_audit_segment(
+                "urn:gmeow:conjecture-call:simulated-failure",
+                MCP_WITHDRAW_CONJECTURE_SCHEMA,
+                &[MCP_CONJECTURE_IN_LIBRARY],
+                "1970-01-01T00:00:00Z",
+            );
+            with_conjecture_lock(&path, || {
+                append_conjecture_segments(&path, &[lib_segment, audit_segment])
+            })
+        })();
+
+        // Restore permissions unconditionally before asserting, so the tempdir can still clean
+        // itself up even if an assertion below panics.
+        fs::set_permissions(&dir, fs::Permissions::from_mode(original_mode))
+            .expect("chmod restore");
+
+        assert!(
+            outcome.is_err(),
+            "the forced I/O failure must surface as an error, not a silent partial write"
+        );
+        let after = fs::read(&path).expect("library bytes after the failed commit");
+        assert_eq!(
+            before, after,
+            "a failed combined library+audit commit must leave the library BYTE-UNCHANGED \
+             (all-or-nothing) — never holding one segment without the other"
+        );
+        let library = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            library.get(seed_node).copied(),
+            Some(ConjectureLifecycleState::Open),
+            "the seed's state must still be Open — the failed withdrawal must not have applied"
+        );
+    }
+
+    #[test]
+    fn conjecture_lock_serializes_concurrent_writers() {
+        // G9 (CodeRabbit Major): `with_conjecture_lock` must provide REAL mutual exclusion, not
+        // just an in-process convention a second caller could sidestep — so this test opens the
+        // SAME sidecar `.lock` file from two INDEPENDENT `std::fs::File` descriptors (one per
+        // thread), mirroring how two separate OS processes would each open it themselves. Since
+        // `flock` locks are scoped to the OPEN FILE DESCRIPTION (not the process), two distinct
+        // descriptors contending on the same path exercise the identical kernel mechanism that
+        // serializes real cross-process `store_conjecture` / `refute_conjecture` callers.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_conjecture();
+
+        let (started_tx, started_rx) = std::sync::mpsc::channel::<()>();
+        let (release_tx, release_rx) = std::sync::mpsc::channel::<()>();
+        let holder_path = path.clone();
+        let holder = std::thread::spawn(move || {
+            with_conjecture_lock(&holder_path, || {
+                started_tx.send(()).expect("signal lock acquired");
+                release_rx.recv().expect("wait for release signal");
+                Ok(())
+            })
+            .expect("holder must acquire and release cleanly")
+        });
+        started_rx
+            .recv_timeout(std::time::Duration::from_secs(5))
+            .expect("the holder thread must acquire the lock");
+
+        let waiter_done = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let waiter_done_writer = waiter_done.clone();
+        let waiter_path = path.clone();
+        let waiter = std::thread::spawn(move || {
+            with_conjecture_lock(&waiter_path, || {
+                waiter_done_writer.store(true, std::sync::atomic::Ordering::SeqCst);
+                Ok(())
+            })
+            .expect("waiter must eventually acquire and release cleanly")
+        });
+
+        // While the holder still owns the lock, the waiter's OWN, independently-opened file
+        // descriptor must be blocked — proving this is a real `flock`, not an in-process no-op.
+        std::thread::sleep(std::time::Duration::from_millis(250));
+        assert!(
+            !waiter_done.load(std::sync::atomic::Ordering::SeqCst),
+            "a second, independently-opened lock attempt must still be blocked while the first \
+             holder is inside its critical section"
+        );
+
+        release_tx.send(()).expect("release the holder");
+        holder.join().expect("holder thread must not panic");
+        waiter.join().expect("waiter thread must not panic");
+        assert!(
+            waiter_done.load(std::sync::atomic::Ordering::SeqCst),
+            "the second lock attempt must complete once the first holder releases"
         );
     }
 
