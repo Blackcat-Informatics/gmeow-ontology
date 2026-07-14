@@ -1462,6 +1462,88 @@ pub fn slice_quality_seed_ceilings() -> i32 {
     0
 }
 
+/// `gmeow-dev slice-quality-projection-debt` — a live migration dashboard over the
+/// projection-vocabulary ratchet: for every (slice, guarded vocab) with either a
+/// LIVE measured ungrounded residue or a committed ceiling, print the measured
+/// count, the effective ceiling, and the headroom between them.
+///
+/// `measured` is computed on every run through
+/// `gmeow_slice_quality::measure_repo_residues` — the SAME shared counter the
+/// ratchet gate reads — so this report can never diverge from what the gate would
+/// see. It is NEVER persisted as a `SoundUnder` projection: unlike the committed
+/// ceiling ABox, a live scan result is entailed by no resident individual, so
+/// folding it into the bundle as a projection would be a false loss judgment (the
+/// pipeline's `projection_ceilings` stage folds only the resident ceiling/
+/// vocabulary TSVs, never this scan). REPORT-ONLY: this command always exits 0 —
+/// it never gates `make check` (that is `slice-quality-gate`'s job) — and its
+/// output is never fed back into a ceiling; a ceiling is lowered only by a
+/// deliberate hand-edit of the committed individual after a genuine measured
+/// migration, never by tuning it toward this report's numbers.
+pub fn slice_quality_projection_debt() -> i32 {
+    let root = project_root();
+    let rubric = match repo_rubric(&root) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-projection-debt: {e}")),
+    };
+
+    let vocabularies = rubric.floors.vocabularies;
+    if vocabularies.is_empty() {
+        return fail(
+            "slice-quality-projection-debt: no gmeow:ProjectionVocabulary individuals loaded from the rubric — the guarded projection-vocabulary registry must be loaded before residue can be measured",
+        );
+    }
+    let ceilings = rubric.floors.ceilings;
+
+    // The SAME shared counter the ratchet gate reads — this report can never
+    // diverge from what the gate would see.
+    let measured = match gmeow_slice_quality::measure_repo_residues(&root, &vocabularies) {
+        Ok(m) => m,
+        Err(e) => return fail(format!("slice-quality-projection-debt: {e}")),
+    };
+
+    // Every (slice, vocab) cell with EITHER a measured residue OR a committed
+    // ceiling — the union of the two key sets, sorted by (slice, vocab).
+    let mut cells: std::collections::BTreeSet<(String, String)> =
+        measured.keys().cloned().collect();
+    for ceiling in &ceilings {
+        cells.insert((ceiling.slice.clone(), ceiling.vocab_prefix.clone()));
+    }
+
+    println!("slice\tvocab\tmeasured\tceiling\theadroom");
+    let mut total_measured: u64 = 0;
+    let mut total_headroom: i64 = 0;
+    let mut at_ceiling: u64 = 0;
+    for (slice, vocab_prefix) in &cells {
+        let measured_count = measured
+            .get(&(slice.clone(), vocab_prefix.clone()))
+            .copied()
+            .unwrap_or(0);
+        let default_ceiling = vocabularies
+            .iter()
+            .find(|v| &v.prefix == vocab_prefix)
+            .map_or(0, |v| v.default_ceiling);
+        let ceiling_count = ceilings
+            .iter()
+            .find(|c| &c.slice == slice && &c.vocab_prefix == vocab_prefix)
+            .map_or(default_ceiling, |c| c.count);
+        let headroom = i64::try_from(ceiling_count).unwrap_or(i64::MAX)
+            - i64::try_from(measured_count).unwrap_or(i64::MAX);
+
+        println!("{slice}\t{vocab_prefix}\t{measured_count}\t{ceiling_count}\t{headroom}");
+
+        total_measured += measured_count;
+        total_headroom += headroom;
+        if headroom == 0 {
+            at_ceiling += 1;
+        }
+    }
+    println!(
+        "# total measured={total_measured} total headroom={total_headroom} at-ceiling={at_ceiling} cells={}",
+        cells.len()
+    );
+    0
+}
+
 #[cfg(test)]
 mod min_tier_tests {
     use super::*;
