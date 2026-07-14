@@ -8,6 +8,7 @@
 //! packet assembled twice from identical inputs is identical.
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::ops::Range;
 use std::path::{Path, PathBuf};
 
 use gmeow_docs::i18n::Translations;
@@ -25,8 +26,36 @@ use crate::model::{
 };
 use crate::{digest, ns};
 
-/// The interim partition chunk size (`~25` terms per batch).
-const CHUNK: usize = 25;
+/// The SINGLE canonical partition chunk size (`~25` terms per batch). Both
+/// [`assemble_packet`]'s own partition and the pipeline `slice_brief` stage's batch
+/// enumeration ([`batch_count`]) read this one constant — re-exported from the crate
+/// root — so the CLI and the projection can never partition a slice's terms
+/// differently.
+pub const CHUNK: usize = 25;
+
+/// The number of `CHUNK`-sized batches a slice with `filtered_len` (axis-)filtered
+/// defined terms partitions into (`0` for an empty slice). This is the SINGLE
+/// canonical batch-enumeration arithmetic: the pipeline `slice_brief` stage calls it
+/// (via the crate root re-export) to know how many packets to materialize per slice,
+/// rather than re-deriving `div_ceil(CHUNK)` against a second copy of `CHUNK`.
+#[must_use]
+pub fn batch_count(filtered_len: usize) -> usize {
+    filtered_len.div_ceil(CHUNK)
+}
+
+/// The half-open term-index range batch `batch` covers within a `filtered_len`-term
+/// (axis-)filtered, IRI-sorted term list, or `None` if `batch` is out of range
+/// (`batch * CHUNK >= filtered_len`). The single canonical partition-range
+/// arithmetic underlying [`assemble_packet`]'s batch slice.
+#[must_use]
+pub fn batch_range(batch: usize, filtered_len: usize) -> Option<Range<usize>> {
+    let start = batch * CHUNK;
+    if start >= filtered_len {
+        return None;
+    }
+    let end = (start + CHUNK).min(filtered_len);
+    Some(start..end)
+}
 
 /// The six authoring "coat" predicates whose per-term presence count IS the
 /// completeness tier (annotation completeness): `rdfs:label`, `skos:definition`,
@@ -91,12 +120,12 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
         (None, None) => (0, filtered.clone()),
         _ => {
             let b = inputs.batch.unwrap_or(0);
-            let start = (b as usize) * CHUNK;
-            if start >= filtered.len() {
+            let Some(range) = batch_range(b as usize, filtered.len()) else {
                 return Err(gmeow_errors::Diag::of_kind(error::Partition {
                     detail: format!(
-                        "batch {b} out of range: term {start} >= {} filtered term(s) in slice {slice_iri}\
+                        "batch {b} out of range: term {} >= {} filtered term(s) in slice {slice_iri}\
                          {}",
+                        (b as usize) * CHUNK,
                         filtered.len(),
                         inputs
                             .axis
@@ -104,9 +133,8 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
                             .unwrap_or_default()
                     ),
                 }));
-            }
-            let end = (start + CHUNK).min(filtered.len());
-            (b, filtered[start..end].to_vec())
+            };
+            (b, filtered[range].to_vec())
         }
     };
     let covered_set: BTreeSet<&String> = covered_iris.iter().collect();
@@ -782,5 +810,66 @@ mod collect_ttl_tests {
         );
 
         let _ = std::fs::remove_file(&marker_file);
+    }
+}
+
+#[cfg(test)]
+mod partition_tests {
+    use super::{CHUNK, batch_count, batch_range};
+
+    /// An empty (zero-term) slice partitions into zero batches, and every batch
+    /// index is out of range.
+    #[test]
+    fn empty_slice_has_zero_batches() {
+        assert_eq!(batch_count(0), 0, "an empty slice must have zero batches");
+        assert_eq!(
+            batch_range(0, 0),
+            None,
+            "batch 0 of an empty slice must be out of range"
+        );
+    }
+
+    /// A term count that is an EXACT multiple of `CHUNK` partitions into exactly
+    /// `len / CHUNK` full batches — no trailing empty batch.
+    #[test]
+    fn exact_multiple_has_no_remainder_batch() {
+        let len = CHUNK * 3;
+        assert_eq!(
+            batch_count(len),
+            3,
+            "an exact multiple of CHUNK must partition into len / CHUNK batches"
+        );
+        assert_eq!(batch_range(0, len), Some(0..CHUNK));
+        assert_eq!(batch_range(1, len), Some(CHUNK..(2 * CHUNK)));
+        assert_eq!(batch_range(2, len), Some((2 * CHUNK)..len));
+        assert_eq!(
+            batch_range(3, len),
+            None,
+            "the batch just past an exact multiple must be out of range"
+        );
+    }
+
+    /// A term count with a nonzero remainder over `CHUNK` gets one extra, short
+    /// final batch covering only the remainder.
+    #[test]
+    fn remainder_gets_a_short_final_batch() {
+        let len = CHUNK * 2 + 7;
+        assert_eq!(
+            batch_count(len),
+            3,
+            "a remainder must round the batch count up (ceil)"
+        );
+        assert_eq!(batch_range(0, len), Some(0..CHUNK));
+        assert_eq!(batch_range(1, len), Some(CHUNK..(2 * CHUNK)));
+        assert_eq!(
+            batch_range(2, len),
+            Some((2 * CHUNK)..len),
+            "the final batch must be short, covering only the remainder"
+        );
+        assert_eq!(
+            batch_range(3, len),
+            None,
+            "past the last (short) batch must be out of range"
+        );
     }
 }
