@@ -1600,6 +1600,7 @@ dependencies = [
  "gmeow-logic-compile",
  "gmeow-music",
  "gmeow-pipeline",
+ "gmeow-slice-quality",
  "gmeow-validate",
  "predicates",
  "purrdf",
@@ -3390,9 +3391,9 @@ checksum = "007d8adb5ddab6f8e3f491ac63566a7d5002cc7ed73901f72057943fa71ae1ae"
 
 [[package]]
 name = "purrdf"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c8ce7b7d949aec51a07314419318ce16438a19891faf1a44faeda18f26bffda"
+checksum = "38cb88d2508ead4613282397d52efb951ff449fe3ba2022841e6ec9504377540"
 dependencies = [
  "purrdf-entail",
  "purrdf-events",
@@ -3411,9 +3412,9 @@ dependencies = [
 
 [[package]]
 name = "purrdf-core"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a4da2fc727bc01ae68c37899583afc4ba6a567418dd7615dfaff9a48a0a5bd3"
+checksum = "a853acde5e3209c0ff50110bf0e7fa7a5d530c295989b87666fcc1c7104bfbc2"
 dependencies = [
  "ahash",
  "csv",
@@ -3425,9 +3426,9 @@ dependencies = [
 
 [[package]]
 name = "purrdf-entail"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "964f7047a2229daa1eda1a91696698a1680445aad3b7fbfba447c76aec70275c"
+checksum = "2bdd4b39e8cb08f1bc0d6143e0c747fb6aea1476650ba786c7577ab2c150c506"
 dependencies = [
  "ahash",
  "hashbrown 0.15.5",
@@ -3437,22 +3438,25 @@ dependencies = [
 
 [[package]]
 name = "purrdf-events"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a26356b2f3cafe3bc8912d747bcf6c6bee13362eea1c07e9415d7029afd95c68"
+checksum = "92b34ed647fe60c027a8a297efadd61c8c4f44b79a32ed8f5afc83dc0b931e04"
 
 [[package]]
 name = "purrdf-gts"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6292173c45f0cf609197ee9c19e2cae8c908af1fd9bca14192d925f012ea9ed8"
+checksum = "0ba268e1dedd8d069d18be04fa62dde6f7735be5416c05224019b1caae8c22a3"
 dependencies = [
  "aes-gcm",
+ "ahash",
  "blake3",
  "ciborium",
  "ed25519-dalek",
+ "fastrand",
  "filetime",
  "flate2",
+ "purrdf-events",
  "rayon",
  "serde",
  "sha1",
@@ -3463,15 +3467,15 @@ dependencies = [
 
 [[package]]
 name = "purrdf-iri"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e37d96e7f9685e39b94b1268480c612822e3acd00ee769ae5304c192d490a3f3"
+checksum = "69df357a3ed764c748486edf5e96920647ed90b3a147ba2a2964fb901be62fcf"
 
 [[package]]
 name = "purrdf-rdf"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f70c8649effc7b4e093bc0a22da0565e5dfd28a26d73230dc19514776031fd8"
+checksum = "a677aeee923e7cd57a25241d6cbe05519d8e78b92f82f955311afe4dd9d1eab7"
 dependencies = [
  "ahash",
  "ciborium",
@@ -3490,13 +3494,14 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml_ng",
+ "sha2",
 ]
 
 [[package]]
 name = "purrdf-shapes"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "038fe0543affa9be097b18e0d26073565c889b08d44b9f7e84fe863e71945faa"
+checksum = "6b493a397eb949d29e1265516f0782c72e13adb86596822f8c4433a61ed1b442"
 dependencies = [
  "purrdf-rdf",
  "purrdf-sparql-algebra",
@@ -3509,9 +3514,9 @@ dependencies = [
 
 [[package]]
 name = "purrdf-shex"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ad4310048b009ff77205fa0396c35456182be0667bca0a151acc91a6c695338"
+checksum = "b0d9836169a969d658c159ece390c2aa9acec2af1169f9b275c50b5caf536410"
 dependencies = [
  "purrdf-core",
  "purrdf-iri",
@@ -3523,9 +3528,9 @@ dependencies = [
 
 [[package]]
 name = "purrdf-slice"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "374d3c40a347d204b080c89d4bbee1757ce4e043dc629cf3d82a606985888add"
+checksum = "fa245bbcd7e78ff24bedd6234c7721bda12709a7e8a8fb4ca18e0e3b3420ba08"
 dependencies = [
  "hex",
  "petgraph",
@@ -3539,9 +3544,9 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-algebra"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63ec4736cc0638b9fb1ce6797a6e4d51d47f238a61f1246793a89f0d6018b860"
+checksum = "bae51c7cb378c68f4855a9fffa12dda4892bf59b2d925d10a074087385eb20d4"
 dependencies = [
  "memchr",
  "purrdf-iri",
@@ -3551,9 +3556,9 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-eval"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "71edb24d5cd10b82306e7cc46b33775c5e9747e10fff54824400efcbc2a89292"
+checksum = "b850803b3481963b40e6316e5c988cd02d2c1c2ee01953c8705facbd85519c4b"
 dependencies = [
  "ahash",
  "getrandom 0.3.4",
@@ -3574,18 +3579,18 @@ dependencies = [
 
 [[package]]
 name = "purrdf-sparql-results"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4b94cb11f0bf754928b726166135758e90d4a7943dd249b2bb924367a12edec"
+checksum = "8dac5cedb65da9908fd4a92354d060f62b453dae2851a41428f6b7e77843aaa4"
 dependencies = [
  "purrdf-core",
 ]
 
 [[package]]
 name = "purrdf-validate"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d692759c87f159d3a67ff72c0c9db8953b7613bdf6413e582b1b134fded7498"
+checksum = "2730377c1214859c489e34979f94f613942b7b617021c47f56040e0c2943df43"
 dependencies = [
  "purrdf-core",
  "purrdf-iri",
@@ -3597,9 +3602,9 @@ dependencies = [
 
 [[package]]
 name = "purrdf-xsd"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a00ecd297de48e5465a88d65041fc594da479fd2a91a8edb0a0359feb483e8f9"
+checksum = "5a6b64c1fb3e3fab4daa85c546fc5753619cd935dcc2edcee643dd9f1aaceb64"
 
 [[package]]
 name = "pxfm"
@@ -4376,6 +4381,7 @@ version = "0.0.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "af7b9352cd002e0abc4d70cbf06656c8edd93f74a7f00fdafdb36c5a3bcd67ce"
 dependencies = [
+ "fastrand",
  "twox-hash",
 ]
 

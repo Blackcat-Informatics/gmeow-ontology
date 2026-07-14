@@ -29,13 +29,15 @@ pub mod score;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
+use gmeow_lang_bridge::GmnDictionary;
 use purrdf::RdfDataset;
 use rayon::prelude::*;
 
 pub use model::{
-    Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, Rubric, SliceAssessment,
-    SliceTierFloorCommitment, Threshold, Tier,
+    Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, GovernanceFloors,
+    MeasurementStandard, Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
 };
+pub use score::ScoringEnv;
 
 /// The repo-wide slice-quality sweep products, scored in one pass over the discovered
 /// slice set: the RDF assessment graph and the diagnostics report that backs JSON/SARIF/HTML
@@ -86,15 +88,47 @@ pub fn dataset_from_paths(paths: &[&Path]) -> gmeow_errors::Result<Arc<RdfDatase
     })
 }
 
-/// Load the rubric from the canonical rubric slice under `repo_root`.
+/// The canonical rubric module, relative to `repo_root` — the single on-disk file
+/// the whole rubric (measurement standard + governance floors) is loaded from.
+const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
+
+/// Load the whole rubric from the canonical rubric slice under `repo_root`. This is
+/// an INTERNAL helper: its two roles are exposed separately — SCORING reads only the
+/// floor-free [`MeasurementStandard`] (`repo_rubric(root)?.standard`, used by the
+/// sweep), and the ratchet gate reads only the [`GovernanceFloors`]
+/// ([`load_repo_floors`]). No consumer holds the conflated whole.
 ///
 /// # Errors
 /// Returns a message if the rubric module cannot be read or is structurally
 /// incomplete (a missing tier ladder, an axis without a producer, etc.).
-pub fn load_repo_rubric(repo_root: &Path) -> gmeow_errors::Result<Rubric> {
-    let module = repo_root.join("slices/core/slice-quality-rubric/module.ttl");
+fn repo_rubric(repo_root: &Path) -> gmeow_errors::Result<Rubric> {
+    let module = repo_root.join(RUBRIC_MODULE);
     let ds = dataset_from_paths(&[&module])?;
     rubric::load_rubric(&ds)
+}
+
+/// Load ONLY the governance floors (dated exemptions + committed axis/tier floors)
+/// from the canonical rubric slice under `repo_root` — the ratchet gate's and the
+/// pipeline governance tooling's floor source. Scoring never reads these; this is
+/// the floor half of the segregated rubric ([`GovernanceFloors`]).
+///
+/// # Errors
+/// Returns a message if the rubric module cannot be read or is structurally
+/// incomplete (the same hard-fail conditions as loading the whole rubric).
+pub fn load_repo_floors(repo_root: &Path) -> gmeow_errors::Result<GovernanceFloors> {
+    Ok(repo_rubric(repo_root)?.floors)
+}
+
+/// Load ONLY the floor-free measurement standard (tier ladder + axes) from the
+/// canonical rubric slice under `repo_root` — the scoring half of the segregated
+/// rubric ([`MeasurementStandard`]). The ratchet gate never reads this; scoring
+/// (the sweep and the MCP advisory tool) never reads the floors.
+///
+/// # Errors
+/// Returns a message if the rubric module cannot be read or is structurally
+/// incomplete (the same hard-fail conditions as loading the whole rubric).
+pub fn repo_measurement_standard(repo_root: &Path) -> gmeow_errors::Result<MeasurementStandard> {
+    Ok(repo_rubric(repo_root)?.standard)
 }
 
 /// Every `slices/<group>/<name>/` directory that holds a `manifest.ttl` — the slice
@@ -125,7 +159,7 @@ pub fn discover_slice_dirs(slices_root: &Path) -> Vec<PathBuf> {
 }
 
 /// Every authored `.ttl` the quality sweep reads across all slices: the rubric module,
-/// each slice's `manifest.ttl`, and the files [`report::score_slice`] ingests per slice
+/// each slice's `manifest.ttl`, and the files [`report::score_slice_with_standard`] ingests per slice
 /// (`module.ttl`, `examples/`, `tests/`) — PLUS the `DocMaturity` axis's own real inputs
 /// (`crates/slice-quality/src/doc_maturity.rs`), which are NOT covered by
 /// [`report::slice_ttl_paths`]: each slice's `docs.md` (the `ThesisSentence` /
@@ -151,7 +185,7 @@ pub fn discover_slice_dirs(slices_root: &Path) -> Vec<PathBuf> {
 /// enforces. Per-slice files (`docs.md`, `i18n/*.po`, …) are legitimately optional and
 /// are silently omitted when absent.
 pub fn scored_source_files(repo_root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
-    let mut files = vec![repo_root.join("slices/core/slice-quality-rubric/module.ttl")];
+    let mut files = vec![repo_root.join(RUBRIC_MODULE)];
     let constraint_catalog = repo_root.join("generated/catalog/constraint-catalog.nq");
     if !constraint_catalog.is_file() {
         return Err(gmeow_errors::Diag::of_kind(error::Io {
@@ -200,7 +234,7 @@ fn doc_maturity_i18n_paths(slice_dir: &Path) -> Vec<PathBuf> {
 /// # Errors
 /// Hard-fails if the rubric or ANY discovered slice cannot be scored.
 pub fn assessment_artifacts(repo_root: &Path) -> gmeow_errors::Result<AssessmentArtifacts> {
-    let rubric = load_repo_rubric(repo_root)?;
+    let rubric = repo_rubric(repo_root)?;
     let dirs = discover_slice_dirs(&repo_root.join("slices"));
     if dirs.is_empty() {
         return Err(gmeow_errors::Diag::of_kind(error::Report {
@@ -264,7 +298,7 @@ fn score_slices_with_rubric_timed(
     doc_maturity::prime_repo_facts(repo_root);
     let score = |dir: &PathBuf| {
         let started = std::time::Instant::now();
-        let result = report::score_slice_with_rubric(dir, rubric.clone());
+        let result = report::score_slice_with_standard(dir, &rubric.standard, ScoringEnv::Repo);
         let slice = dir
             .strip_prefix(repo_root)
             .unwrap_or(dir)
@@ -297,6 +331,80 @@ fn score_slices_with_rubric_timed(
 /// slice cannot be scored.
 pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
     Ok(assessment_artifacts(repo_root)?.nquads)
+}
+
+// -----------------------------------------------------------------------------
+// The consumer-wheel scoring entry point.
+// -----------------------------------------------------------------------------
+
+/// The two shipped standards a consumer scores a foreign slice against, flattened out
+/// of a `gmeow.gts` wheel ONCE: the floor-free [`MeasurementStandard`] the lattice
+/// scorer reads, and the shared `gmn1` [`GmnDictionary`] the `gmn1_coverage` axis
+/// covers against. Both are required shipped inputs — [`Self::from_gts`] hard-fails a
+/// corrupt wheel rather than degrade to a vacuous score. Reuse one instance across
+/// many slices to avoid re-flattening the bundle per slice.
+///
+/// This path reads the bundle bytes and the external slice directory ONLY — never any
+/// surrounding repo checkout, so a slice pulled in on its own scores identically
+/// wherever it lives.
+pub struct BundleStandards {
+    standard: MeasurementStandard,
+    gmn_dict: Arc<GmnDictionary>,
+}
+
+impl BundleStandards {
+    /// Flatten the bundle + load the [`MeasurementStandard`] AND the shared `gmn1`
+    /// dictionary ONCE.
+    ///
+    /// # Errors
+    /// HARD FAILS on a corrupt wheel: a bundle that cannot be flattened, a missing or
+    /// structurally-incomplete rubric, or a dictionary that is not a valid bijection —
+    /// all required shipped inputs, never papered over with a fallback.
+    pub fn from_gts(bundle_gts: &[u8]) -> gmeow_errors::Result<Self> {
+        let ds = purrdf::gts::flattened_dataset_from_bytes(bundle_gts).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("cannot flatten gmeow.gts bundle: {e}"),
+            })
+        })?;
+        let standard = rubric::load_rubric(&ds)?.standard;
+        let gmn_dict = Arc::new(GmnDictionary::from_dataset(&ds).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Rubric {
+                detail: format!("bundle gmn1 dictionary failed to load: {}", e.0),
+            })
+        })?);
+        Ok(Self { standard, gmn_dict })
+    }
+}
+
+/// Score an external slice directory against the standards flattened from a bundle
+/// (reuse one [`BundleStandards`] across many slices). Reads the bundle-carried
+/// standards + the external `slice_dir` ONLY — never a repo checkout.
+///
+/// # Errors
+/// As [`report::score_slice_with_standard`].
+pub fn score_external_slice(
+    std: &BundleStandards,
+    slice_dir: &Path,
+) -> gmeow_errors::Result<report::SliceReport> {
+    report::score_slice_with_standard(
+        slice_dir,
+        &std.standard,
+        ScoringEnv::Bundle(std.gmn_dict.clone()),
+    )
+}
+
+/// Score an external slice directory straight from bundle bytes — the one-slice
+/// convenience over [`BundleStandards::from_gts`] + [`score_external_slice`]. Prefer
+/// the two-step form when scoring many slices from one bundle (it flattens once).
+///
+/// # Errors
+/// HARD FAILS on a corrupt wheel (as [`BundleStandards::from_gts`]) or an unscorable
+/// slice (as [`score_external_slice`]).
+pub fn score_external_slice_bytes(
+    bundle_gts: &[u8],
+    slice_dir: &Path,
+) -> gmeow_errors::Result<report::SliceReport> {
+    score_external_slice(&BundleStandards::from_gts(bundle_gts)?, slice_dir)
 }
 
 #[cfg(test)]

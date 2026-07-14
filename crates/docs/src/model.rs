@@ -2095,6 +2095,39 @@ impl DocsModel {
         apply_term_manifest(&mut model, root)?;
         Ok(model)
     }
+
+    /// Build a documentation model scoped to EXACTLY ONE external slice directory —
+    /// the whole slice rooted at `slice_dir`, never a repo-wide `slices/` sweep.
+    /// [`SliceCatalog::discover`] stops recursing at the first `manifest.ttl` it
+    /// meets, so pointing it straight at one slice dir yields a catalog with
+    /// exactly one [`SliceRecord`] scoped to `slice_dir`. slice-quality's
+    /// DocMaturity axis reads this to measure a foreign slice's documentation
+    /// coverage from that slice's OWN files (`module.ttl`, `docs.md`,
+    /// `examples/*.ttl`, …), never the host repo's.
+    ///
+    /// This deliberately returns a bare [`from_catalog`](Self::from_catalog) model.
+    /// The repo-only enrichments `discover` layers on afterward (constraint
+    /// catalog, term content manifest, root SHACL shapes, four-boxes prose, concept
+    /// DOI, `cqQueryFile` resolution) do NOT feed the per-term / per-slice coverage
+    /// dimension computation in [`crate::coverage`], so a `from_catalog` model is
+    /// full-fidelity for maturity scoring. `central_mapping_sets` is empty (`&[]`):
+    /// a foreign slice carries its own mapping sets, and no cross-slice publication
+    /// header is in scope here.
+    ///
+    /// The resulting model's [`term_loss`](Self::term_loss) is `None`, and that is a
+    /// DELIBERATE, correct scope boundary — a not-applicable fact, NEVER an
+    /// "unknown" or "failed" join. The dynamic per-term projection-loss ledger is a
+    /// `stage-mappings` product; a foreign slice pulled in on its own was never
+    /// compiled through the pipeline, so it has no dynamic projection-loss rows to
+    /// attach. The STATIC [`loss_targets`](Self::loss_targets) discovered from the
+    /// slice's own `examples/*.ttl` still populate, so `applicable_lossy` remains
+    /// driven honestly by the slice's authored content.
+    pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
+        let catalog =
+            SliceCatalog::discover(slice_dir, purrdf::SliceVocab::for_namespace(GMEOW_NS))?;
+        let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
+        Ok(Self::from_catalog(&catalog, &ownership, &[]))
+    }
 }
 
 /// The prior-independent provenance a term carries in the committed manifest.

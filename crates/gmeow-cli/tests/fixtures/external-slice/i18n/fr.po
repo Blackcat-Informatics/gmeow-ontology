@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Partial French translation catalog for the fixture slice: only the
+# FixtureExternalWidget term's label + definition are translated (2 of the 4
+# localizable literals the slice authors), so the translation axis measures
+# strictly below 1.0 for fr — and cmn ships no catalog at all.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FixtureExternalWidget|rdfs:label"
+msgid "Fixture External Widget"
+msgstr "Composant externe de démonstration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FixtureExternalWidget|skos:definition"
+msgid "A grounded fixture class demonstrating a documented, foundation-stereotyped term the external-slice quality engine can score."
+msgstr "Une classe ancrée illustrant un terme documenté et stéréotypé que le moteur qualité pour tranches externes sait évaluer."

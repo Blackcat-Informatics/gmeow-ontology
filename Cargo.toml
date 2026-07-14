@@ -126,7 +126,7 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-purrdf = "0.5"
+purrdf = "0.6"
 
 [workspace.package]
 version = "0.1.0"
