@@ -36,7 +36,6 @@
 //! that exceed the native fragment are the Lane-B (`make -C validations/classic-cross-check validate`)
 //! destination, graded live on top of the convention established here.
 
-pub mod corpus;
 pub mod lower;
 pub mod manifest;
 pub mod ontouml;
@@ -44,9 +43,6 @@ pub mod status;
 pub mod szs;
 pub mod tptp;
 
-pub use corpus::{
-    CorpusMeta, Lane, audit_vendorable, lane_for_case, load_corpus_meta, parse_corpus_meta,
-};
 pub use lower::runner_verdict_json;
 pub use manifest::{
     ManifestEntry, ManifestTestKind, OntologyDoc, manifest_entries, parse_test_manifest,

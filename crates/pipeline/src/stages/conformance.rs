@@ -174,7 +174,7 @@ pub(crate) fn agreement_tallies_json(
             corpus_only,
             dl_gap,
         } = agreement_tally(corpus, comparisons);
-        let meta = gmeow_conformance::external::load_corpus_meta(
+        let meta = gmeow_conformance::vendored::load_corpus_meta(
             &external.join(corpus).join("corpus.json"),
         )
         .map_err(|e| stage_err(&format!("load corpus.json lane for {corpus}: {e}")))?;
