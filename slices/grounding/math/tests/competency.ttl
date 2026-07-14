@@ -20,6 +20,9 @@
 @prefix exa:   <https://blackcatinformatics.ca/gmeow/examples/math/algebra/> .
 # The worked closed-form example (examples/closed-form-functions.ttl).
 @prefix exm:   <https://blackcatinformatics.ca/gmeow/examples/math/> .
+# The two flagship signed-radial-field scenes (examples/signed-radial-field-*.ttl).
+@prefix rqf:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/> .
+@prefix rcf:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/> .
 
 # === Q1 — number system and exactness ====================================== #
 
@@ -2209,3 +2212,112 @@ ex:rowAnalyticNonAffinity a gmeow:ExpectedRow ;
 ex:rowAnalyticSmoothness a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri math:smoothness ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "backing" ; gmeow:cellValueIri math:smoothnessBoundary ] .
+
+# === Task 8 — the two flagship signed-radial-field scenes =================== #
+# The qualitative scene: the whole target recovered with NO closed form. The seven
+# rows are the two divergent poles, the plateau bound, and the four ring masses.
+ex:cqRadialFieldQualitative a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/radial-field-qualitative.rq" ;
+    gmeow:cqDataFile "examples/signed-radial-field-qualitative.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The qualitative flagship scene models a signed radial field on a compactified Lorentzian 2-plane WITHOUT any equation; the competency proves the whole story is recoverable as data. Over the scene the answer is exactly the seven rows: the central singularity limit → math:PositiveInfinity (R′), the infinity limit → math:NegativeInfinity, the Ring-2 plateau bound 0.01, and the four ring measure evaluations {μ(Ring 0)=0.1, μ(Ring 1)=0.25, μ(Ring 2)=0.55, μ(Ring 3)=0.1} — Ring 2 the strictly-dominant plateau band. Values are projected as strings so the pole IRIs, the bound, and the masses share one column." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqRadialQualShape ;
+    gmeow:cqExpectRow ex:rowRadialCentre , ex:rowRadialInfinity , ex:rowRadialPlateau ,
+        ex:rowRadialRing0 , ex:rowRadialRing1 , ex:rowRadialRing2 , ex:rowRadialRing3 .
+
+ex:cqRadialQualShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "aspect" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ,
+        [ logic:columnVariable "item" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnBinding logic:BindingRequired ; logic:columnDatatype xsd:string ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRadialCentre a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueLiteral "central-singularity" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri rqf:centreLimit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "https://blackcatinformatics.ca/math/PositiveInfinity" ] .
+
+ex:rowRadialInfinity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueLiteral "infinity-asymptote" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri rqf:infinityLimit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "https://blackcatinformatics.ca/math/NegativeInfinity" ] .
+
+ex:rowRadialPlateau a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueLiteral "plateau-bound" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri rqf:ring2Piece ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "0.01" ] .
+
+ex:rowRadialRing0 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueLiteral "ring-measure" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri rqf:ring0Measure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "0.1" ] .
+
+ex:rowRadialRing1 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueLiteral "ring-measure" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri rqf:ring1Measure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "0.25" ] .
+
+ex:rowRadialRing2 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueLiteral "ring-measure" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri rqf:ring2Measure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "0.55" ] .
+
+ex:rowRadialRing3 a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "aspect" ; gmeow:cellValueLiteral "ring-measure" ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "item" ; gmeow:cellValueIri rqf:ring3Measure ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueLiteral "0.1" ] .
+
+# The closed-form scene: the exact operator tree of T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C
+# recovered node by node — nine math:ApplicationExpression nodes with their operators.
+ex:cqRadialFieldClosedForm a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/radial-field-closed-form.rq" ;
+    gmeow:cqDataFile "examples/signed-radial-field-closed-form.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The closed-form flagship scene stores the exact signed compactified curve T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C as a structured AST; the competency recovers the operator tree by traversing math:argumentSlot/math:slotExpression to arbitrary depth. Over the scene the answer is exactly the nine operator nodes: rcf:cfBodyAdd → math:Addition, rcf:cfOuterSub → math:Subtraction, rcf:cfTermA and rcf:cfTermB → math:Multiplication, rcf:cfPowX and rcf:cfPowOneMinusX → math:Exponentiation, rcf:cfOneMinusX → math:Subtraction, and rcf:cfNegP and rcf:cfNegQ → math:Negation — the operand structure recovered node by node." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqRadialCFShape ;
+    gmeow:cqExpectRow ex:rowCFBodyAdd , ex:rowCFOuterSub , ex:rowCFTermA , ex:rowCFPowX ,
+        ex:rowCFNegP , ex:rowCFTermB , ex:rowCFPowOneMinusX , ex:rowCFOneMinusX , ex:rowCFNegQ .
+
+ex:cqRadialCFShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "node" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "operator" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCFBodyAdd a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfBodyAdd ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Addition ] .
+
+ex:rowCFOuterSub a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfOuterSub ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Subtraction ] .
+
+ex:rowCFTermA a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfTermA ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Multiplication ] .
+
+ex:rowCFPowX a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfPowX ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Exponentiation ] .
+
+ex:rowCFNegP a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfNegP ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Negation ] .
+
+ex:rowCFTermB a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfTermB ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Multiplication ] .
+
+ex:rowCFPowOneMinusX a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfPowOneMinusX ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Exponentiation ] .
+
+ex:rowCFOneMinusX a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfOneMinusX ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Subtraction ] .
+
+ex:rowCFNegQ a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "node" ; gmeow:cellValueIri rcf:cfNegQ ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "operator" ; gmeow:cellValueIri math:Negation ] .

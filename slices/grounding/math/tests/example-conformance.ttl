@@ -1123,3 +1123,15 @@ ex:ecDependencyModelApproximateLossy a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/dependency-model-approximate-lossy.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
     gmeow:conformanceRationale "A reasoning-facing math:FactorGraph whose math:probabilityModelLowering into logic:DependencyModel carries a NON-exact logic:preservationKind (logic:SoundUnderApproximation) with its dropped constructs enumerated through logic:unsupportedConstruct exercises the lossy branch of the lowering seam; it carries no SHACL target shape and validates with no findings, dogfooding the loss ledger on the non-exact polarity." .
+
+# === Task 8: the two co-equal flagship signed-radial-field scenes conform ==== #
+
+ex:ecRadialFieldQualitative a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/signed-radial-field-qualitative.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The qualitative flagship scene — a signed radial field on a compactified Lorentzian (1,1) 2-plane modelled WITHOUT any equation — is well-formed: the (1,1) signature satisfies the metric-signature dimension and Lorentzian timelike-direction gates (1 + 1 = 2), the four ring intervals each name both endpoints and both inclusions, the field is a framed math:PiecewiseFunction (math:domain plus math:codomain math:ExtendedRealLine plus four pieces), the two divergent limits carry structured math:LimitResults on the poles, and the four subset measure evaluations name their measure, measurable subset, and mass; it validates with no findings." .
+
+ex:ecRadialFieldClosedForm a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/signed-radial-field-closed-form.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The closed-form flagship scene — the SAME field given exactly by T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — is well-formed: the field is typed both math:ClosedFormFunction and math:PiecewiseFunction, declares its frame (math:domain plus math:codomain math:ExtendedRealLine), its body AST (math:definingExpression), its formal argument x and five parameters A, B, C, p, q, and its four ring pieces; every defining-expression variable leaf resolves to the formal argument or a declared parameter; and it carries the same rings, divergent limits, and dominant-plateau measure evaluations as its qualitative twin. It validates with no findings." .

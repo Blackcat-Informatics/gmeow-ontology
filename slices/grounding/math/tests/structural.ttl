@@ -1102,3 +1102,91 @@ ASK {
     math:UnbackedAnalyticProperty rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
     gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function (rdfs:subClassOf), so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two Task-7 hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each subclass math:MathConformanceFailure, so each violation is a typed, queryable object like every other math: failure." .
+
+# --- Task 8 — the two co-equal flagship signed-radial-field scenes ---------- #
+
+# The qualitative scene is well-framed AND carries ZERO closed-form apparatus (MUST).
+# The field is a framed math:PiecewiseFunction (domain, codomain math:ExtendedRealLine,
+# ≥ 1 piece), it is NOT a math:ClosedFormFunction, and NO subject anywhere in the
+# radial-qual scene carries a math:definingExpression or a math:ClosedFormFunction
+# typing — the equation-free path is genuinely equation-free. This executes the
+# qualitative-sufficiency claim as a query, scoped to the scene's namespace.
+ex:saRadialQualNoClosedForm a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rqf: <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/>
+ASK {
+    rqf:signedRadialFieldQual a math:PiecewiseFunction ;
+        math:domain ?d ;
+        math:codomain math:ExtendedRealLine ;
+        math:hasPiece ?p .
+    FILTER NOT EXISTS { rqf:signedRadialFieldQual a math:ClosedFormFunction }
+    FILTER NOT EXISTS {
+        ?s ?pp ?oo .
+        FILTER(STRSTARTS(STR(?s), "https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/"))
+        { ?s a math:ClosedFormFunction } UNION { ?s math:definingExpression ?e }
+    }
+}""" ;
+    gmeow:saRationale "The qualitative flagship scene MUST model the signed radial field WITHOUT any closed form: its field is a framed math:PiecewiseFunction declaring BOTH math:domain and math:codomain math:ExtendedRealLine and at least one math:hasPiece, it is NOT a math:ClosedFormFunction, and NO subject in the radial-qual namespace carries a math:ClosedFormFunction typing or a math:definingExpression. This runs the qualitative-sufficiency claim as an executable FILTER NOT EXISTS over the scene, proving the equation-free path is genuinely equation-free rather than merely described as such." .
+
+# Ring 2 strictly dominates the spatial measure in the qualitative scene (MUST).
+# The dominance is an executed numeric inequality: no other radial-qual measure
+# evaluation's math:measureResult is ≥ Ring 2's, so Ring 2 is strictly the largest.
+ex:saRadialQualRing2Dominates a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rqf: <https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/>
+ASK {
+    rqf:ring2Measure math:measureResult ?m2 .
+    FILTER NOT EXISTS {
+        ?other a math:MeasureEvaluation ;
+               math:measureResult ?mo .
+        FILTER(STRSTARTS(STR(?other), "https://blackcatinformatics.ca/gmeow/examples/math/radial-qual/"))
+        FILTER(?other != rqf:ring2Measure)
+        FILTER(?mo >= ?m2)
+    }
+}""" ;
+    gmeow:saRationale "In the qualitative scene the near-zero plateau on Ring 2 is the volume-dominant band: its measure evaluation's math:measureResult MUST strictly exceed every other ring's. The cell EXECUTES the inequality — it fails if any other radial-qual math:MeasureEvaluation has a math:measureResult numerically ≥ Ring 2's — so the dominance is checked arithmetic, not prose. Over the scene the four masses are {0.1, 0.25, 0.55, 0.1} and 0.55 is strictly largest." .
+
+# In the closed-form scene, every defining-expression variable leaf resolves to the
+# formal argument or a declared parameter (MUST) — the Task-6 leaf-linkage pattern
+# scoped to this scene's field. Every math:VariableExpression reachable from the body
+# resolves, via math:variableOccurrence/math:declaredVariable, to ex:xDecl (the formal
+# argument) or one of A, B, C, p, q (the declared parameters); no leaf is unbound.
+ex:saRadialCFLeafLinkage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rcf: <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/>
+ASK {
+    rcf:signedRadialFieldCF a math:ClosedFormFunction .
+    FILTER NOT EXISTS {
+        rcf:signedRadialFieldCF math:definingExpression/(math:argumentSlot/math:slotExpression)* ?leaf .
+        ?leaf a math:VariableExpression ;
+              math:variableOccurrence/math:declaredVariable ?decl .
+        FILTER NOT EXISTS { rcf:signedRadialFieldCF math:formalArgument ?decl }
+        FILTER NOT EXISTS { rcf:signedRadialFieldCF math:functionParameter ?decl }
+    }
+}""" ;
+    gmeow:saRationale "Over the closed-form flagship scene, every math:VariableExpression leaf reachable from T(x)'s math:definingExpression (following math:argumentSlot/math:slotExpression to arbitrary AST depth) MUST resolve, via math:variableOccurrence/math:declaredVariable, to a declaration that is EITHER the field's math:formalArgument (x) OR one of its math:functionParameters (A, B, C, p, q) — no leaf refers to a variable the closed form does not abstract over or tune by. This is the Task-6 leaf-linkage gate scoped to the signed compactified curve, executed as a transitive FILTER NOT EXISTS over the scene." .
+
+# Ring 2 strictly dominates the spatial measure in the closed-form scene (MUST) —
+# the same executed inequality, so the dominant-plateau reading holds on BOTH paths.
+ex:saRadialCFRing2Dominates a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rcf: <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/>
+ASK {
+    rcf:ring2Measure math:measureResult ?m2 .
+    FILTER NOT EXISTS {
+        ?other a math:MeasureEvaluation ;
+               math:measureResult ?mo .
+        FILTER(STRSTARTS(STR(?other), "https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/"))
+        FILTER(?other != rcf:ring2Measure)
+        FILTER(?mo >= ?m2)
+    }
+}""" ;
+    gmeow:saRationale "The closed-form scene carries the same four ring measure evaluations as its qualitative twin, so the same dominance MUST hold: Ring 2's math:measureResult strictly exceeds every other radial-cf ring's, executed as the numeric FILTER inequality. Pinning the dominance on BOTH paths proves the two co-equal demonstrators agree on the volume-dominant plateau — the equation entails what the qualitative markers assert." .
