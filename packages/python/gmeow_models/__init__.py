@@ -352,6 +352,7 @@ __all__ = [
     "GTSDocument",
     "GTSProfileEnum",
     "GTSSegment",
+    "GapShapeEnum",
     "GateVerdictEnum",
     "Gender",
     "GenderEnum",
