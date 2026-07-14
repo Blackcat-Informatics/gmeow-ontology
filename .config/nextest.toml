@@ -128,6 +128,19 @@
 #     same module (up_project_lifts_consumer_vocab_to_gmeow,
 #     harvest_reasoned_types_needs_world_colocation), and both bundle-scale tests
 #     stay on-gate on `maint-heavy`.
+#   - gmeow-pipeline stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier:
+#     ~15 s standalone but 25.3-26.5 s under full-parallelism contention. It parses
+#     the WHOLE fanned-out dist/gmeow.jsonld, re-serializes it through the
+#     JSON-LD-star carrier, re-parses that, and canonicalizes BOTH datasets —
+#     irreducibly O(bundle size), the same whole-committed-bundle class as
+#     fanout_parity / end_to_end above. The math shape-migration grounding (#1449:
+#     the retired shapes.ttl's canonical OWL antecedents + logic: records and their
+#     projections) grew the bundle and nudged it past budget on bundle-size alone,
+#     not fixture cost. No coverage class leaves the gate: the SAME parse/serialize
+#     round-trip machinery runs on-gate over the committed
+#     generated/statements/gmeow.rdf12.ttl artifact (committed_rdf12_statements
+#     round-trip test in the same module), and the dist full-graph twin stays
+#     on-gate on `maint-heavy`.
 #   - gmeow-docs extract_roundtrip::rendered_tree_is_disk_faithful: 32.6 s. It
 #     drives the real `render::write_site` over the WHOLE (primed) documentation
 #     site — writing every page to disk and reading each back to prove the on-disk
@@ -161,6 +174,8 @@
 #     render helpers remain on-gate, committed docs remain byte-drift-gated, and the four
 #     exhaustive renders run on `maint-heavy`.
 #   - gmeow-cli cli::project_unknown_view_fails + cli::describe_env_language_rejected_if_unknown
+#     + cli::describe_json_format_is_valid_card_json
+#     + bundle_smoke::describe_names_a_known_term
 #     + gmeow-dev-cli cli_parity::project_view_over_the_snapshot:
 #     3-5 s standalone but 27.5-32.2 s under full-parallelism CI contention. Each
 #     drives the CLI to load / describe / project-a-view over the WHOLE committed
@@ -168,8 +183,13 @@
 #     irreducibly O(bundle size) — the identical whole-committed-bundle class as
 #     the build_writes_serializations / export / project_schema_org_view siblings
 #     above. The lang: total-prose-lift + GMN-graft surface plus the conjecture-
-#     library logic:/math: term growth grew the bundle and nudged these three
-#     siblings over the same 25 s cliff on bundle-size alone, not fixture cost.
+#     library logic:/math: term growth grew the bundle and nudged these
+#     siblings over the same 25 s cliff on bundle-size alone, not fixture cost;
+#     the math shape-migration grounding (#1449) then tipped the two remaining
+#     describe-over-the-whole-bundle members (`describe_json_format_is_valid_card_json`
+#     at 25.2 s, `bundle_smoke::describe_names_a_known_term` at 25.5-25.9 s under
+#     contention) over the same cliff, so the whole class is carved out rather
+#     than the cases that happened to trip on a given run.
 #     Coverage stays: the CLI project/describe surface keeps its fixture-scale
 #     reject/parity coverage on-gate in the same binaries, the serializations are
 #     drift-gated via `make check-generated`, and all three stay on-gate on
@@ -337,7 +357,8 @@ default-filter = '''
     | (package(gmeow-foundation-corpus) & test(/imported_graph_conforms_to_shapes/))
     | (package(gmeow-validate) & (binary(conformance_finance) | binary(conformance_agentic) | binary(conformance_ai_claims) | binary(conformance_music_analysis) | binary(conformance_math_producers) | binary(conformance_affect_producer_union)))
     | (package(gmeow-dev-cli) & binary(cli_parity) & (test(build_writes_serializations) | test(project_view_over_the_snapshot)))
-    | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown) | test(describe_resolves_grounding_curies) | test(describe_resolves_grounding_full_iris) | test(describe_known_term_renders_prose) | test(describe_unknown_language_fails_with_available_list) | test(describe_toon_format_emits_toon)))
+    | (package(gmeow-cli) & binary(cli) & (test(export_respects_language_selector) | test(project_schema_org_view_filter) | test(project_unknown_view_fails) | test(describe_env_language_rejected_if_unknown) | test(describe_resolves_grounding_curies) | test(describe_resolves_grounding_full_iris) | test(describe_known_term_renders_prose) | test(describe_unknown_language_fails_with_available_list) | test(describe_toon_format_emits_toon) | test(describe_json_format_is_valid_card_json)))
+    | (package(gmeow-cli) & binary(bundle_smoke) & test(describe_names_a_known_term))
     | (package(gmeow-docs) & binary(extract_roundtrip) & test(rendered_tree_is_disk_faithful))
     | (package(gmeow-pipeline) & test(/quality_assessment_graph_rides_the_self_description_carrier_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/stages::carrier::term_entailments_tests::term_entailments_are_non_vacuous_on_the_real_repo/))
@@ -354,6 +375,7 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
     | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
     | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
+    | (package(gmeow-pipeline) & test(/stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier/))
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
     | (package(gmeow-pipeline) & test(/stages::export::tests::export_produces_structurally_valid_artifacts/))

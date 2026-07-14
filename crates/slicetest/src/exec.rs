@@ -170,12 +170,74 @@ pub fn run_structural_file(path: &Path) -> Result<()> {
 pub fn run_conformance_file(path: &Path) -> Result<()> {
     let spec = dsl::load_spec(path)?;
     let slice_dir = paths::slice_dir(path);
+    // Every cell validates against the SAME enforcing surface (the slice module + the
+    // canonical shape set), and a migrated slice's surface is the whole generated
+    // validation/constraint/procedural projection, so the per-cell whole-surface SHACL
+    // runs dominate the file's wall time. The cells are independent, so fan them across
+    // a bounded set of SHARE-NOTHING worker threads: each worker parses its OWN module
+    // dataset and shape set (the purrdf SPARQL layer carries interior-mutable caches
+    // that must never be shared across threads), pays that setup once per WORKER (not
+    // once per cell), and the results are aggregated in the spec's authored order.
+    let shape_paths = paths::shapes_files(&slice_dir);
+    let shapes_ttl = shape_paths
+        .iter()
+        .map(|path| {
+            std::fs::read_to_string(path).map_err(|e| {
+                Diag::of_kind(DatasetRead {
+                    detail: format!("cannot read {}: {e}", path.display()),
+                })
+            })
+        })
+        .collect::<Result<Vec<_>>>()?
+        .join("\n");
+    // Surface a malformed shape set / module ONCE, as a typed diagnostic, before fanning out.
+    parse_shapes(&shapes_ttl).map_err(|e| {
+        Diag::of_kind(ShapeValidation {
+            detail: format!("parsing slice shapes: {e}"),
+        })
+    })?;
+    native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
+        Diag::of_kind(DatasetRead {
+            detail: format!("building module dataset: {e}"),
+        })
+    })?;
+    let workers = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1)
+        .min(spec.conformance.len().max(1));
+    let cells: Vec<&ExampleConformance> = spec.conformance.iter().collect();
+    let mut results: Vec<(usize, Result<()>)> = std::thread::scope(|scope| {
+        let mut handles = Vec::with_capacity(workers);
+        for w in 0..workers {
+            let cells = &cells;
+            let slice_dir = &slice_dir;
+            let shapes_ttl = &shapes_ttl;
+            handles.push(scope.spawn(move || {
+                let shapes =
+                    parse_shapes(shapes_ttl).expect("slice shapes reparse (already parsed once)");
+                let module = native_query::dataset_from_file(&paths::module_file(slice_dir))
+                    .expect("module dataset reparse (already parsed once)");
+                let mut out = Vec::new();
+                for (i, ec) in cells.iter().enumerate() {
+                    if i % workers == w {
+                        out.push((i, run_conformance_cell(ec, slice_dir, &module, &shapes)));
+                    }
+                }
+                out
+            }));
+        }
+        handles
+            .into_iter()
+            .flat_map(|h| h.join().expect("conformance worker thread joins"))
+            .collect()
+    });
+    results.sort_by_key(|(i, _)| *i);
     aggregate(
         path,
         "example-conformance",
-        spec.conformance
-            .iter()
-            .map(|ec| (ec.iri.as_str(), run_conformance_cell(ec, &slice_dir))),
+        results
+            .into_iter()
+            .map(|(i, r)| (spec.conformance[i].iri.as_str(), r)),
     )
 }
 
@@ -599,30 +661,12 @@ fn example_ttls(examples_dir: &Path) -> Result<Vec<PathBuf>> {
 
 // ── Example conformance ─────────────────────────────────────────────────────────
 
-fn run_conformance_cell(ec: &ExampleConformance, slice_dir: &Path) -> Result<()> {
-    let module = native_query::dataset_from_file(&paths::module_file(slice_dir)).map_err(|e| {
-        Diag::of_kind(DatasetRead {
-            detail: format!("building module dataset: {e}"),
-        })
-    })?;
-    let shape_paths = paths::shapes_files(slice_dir);
-    let shapes_ttl = shape_paths
-        .iter()
-        .map(|path| {
-            std::fs::read_to_string(path).map_err(|e| {
-                Diag::of_kind(DatasetRead {
-                    detail: format!("cannot read {}: {e}", path.display()),
-                })
-            })
-        })
-        .collect::<Result<Vec<_>>>()?
-        .join("\n");
-    let shapes = parse_shapes(&shapes_ttl).map_err(|e| {
-        Diag::of_kind(ShapeValidation {
-            detail: format!("parsing slice shapes: {e}"),
-        })
-    })?;
-
+fn run_conformance_cell(
+    ec: &ExampleConformance,
+    slice_dir: &Path,
+    module: &Arc<RdfDataset>,
+    shapes: &purrdf::shapes::shapes::Shapes,
+) -> Result<()> {
     let example_path = paths::example_file(slice_dir, &ec.file);
     let example = native_query::dataset_from_file(&example_path).map_err(|e| {
         Diag::of_kind(DatasetRead {
@@ -634,8 +678,8 @@ fn run_conformance_cell(ec: &ExampleConformance, slice_dir: &Path) -> Result<()>
     // instead of an in-place insert/remove overlay we UNION the module and example
     // into a fresh dataset (blanks standardized apart) and validate that — exactly
     // the validation-path example idiom, no shared store to restore.
-    let data = union(&[module, example]);
-    let report = validate_dataset(&data, &shapes).map_err(|e| {
+    let data = union(&[module.clone(), example]);
+    let report = validate_dataset(&data, shapes).map_err(|e| {
         Diag::of_kind(ShapeValidation {
             detail: format!("native SHACL validation failed: {e}"),
         })
