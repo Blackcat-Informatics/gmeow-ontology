@@ -4,6 +4,9 @@ Refer to [AGENTS.md](./AGENTS.md) in the project root for the canonical tech sta
 
 The regeneration pipeline is governed by [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout. It is canonical for any work touching `crates/pipeline` or any artifact under `generated/`: every such artifact must be a projection of `gmeow.gts`.
 
+"make regenerate" is VERY expensive - you make ONLY run it if required or as part of stage3.
+"make check" is VERY expensive - run it ONLY when you have to - ideally once in each stage.
+
 Rust optimization and advanced-language-feature work is governed by
 [`docs/RUST-OPTIMIZATION.md`](./docs/RUST-OPTIMIZATION.md): measure first,
 preserve deterministic output, prefer Rust-native data/dispatch/ownership
