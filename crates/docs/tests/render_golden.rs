@@ -378,15 +378,15 @@ fn concern_overview_svg_golden() {
 
 #[test]
 fn term_neighbourhood_svg_golden() {
-    // The per-term neighbourhood SVG is small; lock its structural head (open
-    // tag, title, background, centre + first flank nodes). Determinism is
-    // asserted separately by `svg_is_pure`.
+    // The per-term neighbourhood SVG is small and bounded; lock it IN FULL. Unlike
+    // the head-only goldens, this captures node/edge ordering — the one place a
+    // per-process hash seed could reorder output — so the committed-vs-fresh-process
+    // comparison itself discriminates cross-process determinism (reinforcing the
+    // bundle fold/parity gate). `svg_is_pure` covers within-process purity.
     let model = common::cached_model();
     let term = neighbourhood_term(&model);
     assert!(svg::term_has_neighbourhood(term));
-    let svg_doc = svg::term_neighbourhood_svg(term);
-    let head: String = svg_doc.lines().take(12).collect::<Vec<_>>().join("\n");
-    insta::assert_snapshot!(head);
+    insta::assert_snapshot!(svg::term_neighbourhood_svg(term));
 }
 
 #[test]
