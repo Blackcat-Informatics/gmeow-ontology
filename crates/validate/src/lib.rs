@@ -74,7 +74,7 @@ pub mod dsl;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod dsl_shacl;
 // The single proof-carrying enrichment entry point (`enrich_findings`) over a
-// consumer Report — attaches rule identity + DSL-authored remediation. Reused by
+// consumer Report — attaches rule identity + registry-authored remediation. Reused by
 // the CLI validate/verify path and the pipeline validate stage so the two
 // surfaces cannot drift.
 #[cfg(not(target_arch = "wasm32"))]

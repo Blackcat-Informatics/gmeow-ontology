@@ -259,7 +259,7 @@ pub fn run(
     }
 
     // The single proof-carrying enrichment pass: rule identity (catalog help URIs)
-    // + DSL-authored remediation + per-term usage guidance on every finding, so the
+    // + registry-authored remediation + per-term usage guidance on every finding, so the
     // CLI consumer report carries the same enrichment as the pipeline validate
     // stage. The bundle carries the constraint-catalog `gmeow:ValidationRule`
     // nodes (the rule-governing-term key); the user's own data graph is the

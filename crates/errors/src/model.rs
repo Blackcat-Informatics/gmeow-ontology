@@ -382,7 +382,7 @@ pub struct Rule {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub help_uri: Option<String>,
-    /// The standing, DSL-authored `gmeow:ruleRemediation` fix guidance for this
+    /// The standing, registry-authored `gmeow:ruleRemediation` fix guidance for this
     /// rule — the "how to fix a violation" prose the doc/catalog graph carries per
     /// code, joined onto the report's rule registry by the producer so the
     /// renderer can surface it once per finding code. `None` when the rule authors
@@ -410,7 +410,7 @@ impl Rule {
         }
     }
 
-    /// Attach the DSL-authored `gmeow:ruleRemediation` fix guidance.
+    /// Attach the registry-authored `gmeow:ruleRemediation` fix guidance.
     pub fn with_remediation(mut self, remediation: impl Into<String>) -> Self {
         self.remediation = Some(remediation.into());
         self
@@ -495,7 +495,7 @@ pub struct Finding {
     /// hand-built findings that carry no structured advice.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub advice: Vec<Advice>,
-    /// DSL-authored remediations projected from the witness node — the "how to fix"
+    /// registry-authored remediations projected from the witness node — the "how to fix"
     /// payload rendered into SARIF `fixes` and the CLI/HTML remediation line. Empty
     /// when the finding's rule authors no remediation (never fabricated).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

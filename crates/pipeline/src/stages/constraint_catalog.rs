@@ -260,7 +260,7 @@ fn build_catalog_nquads(dataset: &Dataset) -> Result<String, gmeow_errors::Diag>
             &format!("{GMEOW}ruleCategory"),
             &finding_category_iri(&seed),
         );
-        // `gmeow:ruleRemediation` — the DSL-authored rule-level fix prose. Honest
+        // `gmeow:ruleRemediation` — the registry-authored rule-level fix prose. Honest
         // absence: a code on the remediation-allowlist (`RuleSeed.remediation ==
         // None`) emits no triple at all, never an empty/placeholder literal.
         if let Some(remediation) = seed.remediation {

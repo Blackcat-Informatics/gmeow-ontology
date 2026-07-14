@@ -238,7 +238,7 @@ pub struct ArtifactChange {
     pub replacement: String,
 }
 
-/// A standpoint-bearing *remediation*: the DSL-authored "how to fix this"
+/// A standpoint-bearing *remediation*: the registry-authored "how to fix this"
 /// guidance projected onto a finding (`gmeow:findingRemediation`). Unlike a plain
 /// [`Advice`] suggestion, a remediation can carry a concrete [`ArtifactChange`]
 /// that becomes a SARIF `fix` with `artifactChanges`. The `artifact_change` is a
@@ -369,7 +369,7 @@ pub struct DiagInner {
     pub source_ctx: SourceContext,
     pub attributions: Vec<DiagnosticAttribution>,
     pub advice: Vec<Advice>,
-    /// DSL-authored remediations (the "how to fix" payload projected as
+    /// registry-authored remediations (the "how to fix" payload projected as
     /// `gmeow:findingRemediation` and rendered into SARIF `fixes`).
     pub remediation: Vec<Remediation>,
     /// Per-term usage guidance (howToUse/useWhen/avoidWhen) joined from the bundle
@@ -538,7 +538,7 @@ impl Diag {
         self.0.advice.push(advice);
         self
     }
-    /// Attach a DSL-authored [`Remediation`] (the "how to fix" payload).
+    /// Attach a registry-authored [`Remediation`] (the "how to fix" payload).
     pub fn with_remediation(mut self, remediation: Remediation) -> Self {
         self.0.remediation.push(remediation);
         self

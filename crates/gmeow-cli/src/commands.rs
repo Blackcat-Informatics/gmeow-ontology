@@ -289,7 +289,7 @@ pub fn verify(
     }
 
     // 5. The single proof-carrying enrichment pass over the unified report:
-    // rule identity + DSL-authored remediation + per-term usage guidance +
+    // rule identity + registry-authored remediation + per-term usage guidance +
     // derivation, so verify renders every enrichment identically to validate. The
     // bundle IS both the rule-catalog graph and the `documented_terms` subject.
     let bundle_ds = match purrdf::import_gts_events(&bytes) {
