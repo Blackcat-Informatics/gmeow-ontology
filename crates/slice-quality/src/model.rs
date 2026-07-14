@@ -148,22 +148,21 @@ pub struct SliceTierFloorCommitment {
     pub tier: String,
 }
 
-/// The whole rubric loaded from the slice — axes, tiers, exemptions, and floors.
+/// The floor-free measurement standard SCORING reads: the tier ladder and the
+/// quality axes (with their producers, dimensions, thresholds, weights, scopes, and
+/// advice). This is EVERYTHING the lattice scorer ([`crate::lattice::assess`] /
+/// `grade_axis` / `meet`) and the axis primitives consult — never a governance
+/// floor. Splitting it out of [`Rubric`] gives scoring a floor-free projection
+/// (interface segregation): a scorer cannot reach a committed floor, only measure.
 #[derive(Debug, Clone, Default)]
-pub struct Rubric {
+pub struct MeasurementStandard {
     /// The tier ladder, sorted ascending by rank.
     pub tiers: Vec<Tier>,
     /// The quality axes, sorted by IRI for deterministic iteration.
     pub axes: Vec<Axis>,
-    /// The dated exemptions.
-    pub exemptions: Vec<Exemption>,
-    /// The committed per-slice, per-axis measured-score floors, sorted by IRI.
-    pub commitments: Vec<AxisFloorCommitment>,
-    /// The committed per-slice roll-up tier floors, sorted by IRI.
-    pub tier_floors: Vec<SliceTierFloorCommitment>,
 }
 
-impl Rubric {
+impl MeasurementStandard {
     /// The floor tier (least rank), if the ladder is non-empty.
     #[must_use]
     pub fn bottom_tier(&self) -> Option<&Tier> {
@@ -175,6 +174,32 @@ impl Rubric {
     pub fn tier(&self, iri: &str) -> Option<&Tier> {
         self.tiers.iter().find(|t| t.iri == iri)
     }
+}
+
+/// The governance data the RATCHET GATE reads: the dated axis exemptions and the two
+/// committed floor sets (`gmeow:AxisFloorCommitment` measured-score floors and
+/// `gmeow:SliceTierFloor` roll-up tier floors). SCORING never reads any of these —
+/// they gate a measured score, they never produce one.
+#[derive(Debug, Clone, Default)]
+pub struct GovernanceFloors {
+    /// The dated exemptions.
+    pub exemptions: Vec<Exemption>,
+    /// The committed per-slice, per-axis measured-score floors, sorted by IRI.
+    pub commitments: Vec<AxisFloorCommitment>,
+    /// The committed per-slice roll-up tier floors, sorted by IRI.
+    pub tier_floors: Vec<SliceTierFloorCommitment>,
+}
+
+/// The whole rubric loaded from the slice: the floor-free measurement `standard`
+/// scoring reads and the governance `floors` the ratchet gate reads. The two
+/// concerns are segregated so a scorer is handed only [`MeasurementStandard`], never
+/// a path to a committed floor.
+#[derive(Debug, Clone, Default)]
+pub struct Rubric {
+    /// The measurement standard scoring reads (tier ladder + axes).
+    pub standard: MeasurementStandard,
+    /// The governance floors the ratchet gate reads (exemptions + committed floors).
+    pub floors: GovernanceFloors,
 }
 
 /// The grade one axis earned on a slice: its measured score and the resulting tier.

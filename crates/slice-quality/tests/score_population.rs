@@ -6,7 +6,7 @@
 use std::path::PathBuf;
 
 use gmeow_slice_quality::axes;
-use gmeow_slice_quality::score::{ScoreContext, slice_terms};
+use gmeow_slice_quality::score::{ScoreContext, ScoringEnv, slice_terms};
 use purrdf::RdfDataset;
 
 const LOGIC_SLICE: &str = "https://blackcatinformatics.ca/gmeow/slices/logic";
@@ -75,7 +75,7 @@ fn population_has_no_namespace_fallback_when_ownership_is_absent() {
 
 fn grounding_score(ttl: &str, slice_iri: &str) -> gmeow_slice_quality::score::AxisScore {
     let ds = parse(ttl);
-    let ctx = ScoreContext::new(slice_iri.to_owned(), PathBuf::new(), &ds);
+    let ctx = ScoreContext::new(slice_iri.to_owned(), PathBuf::new(), &ds, ScoringEnv::Repo);
     axes::resolve("grounding_axis").expect("producer exists")(&ctx)
 }
 
