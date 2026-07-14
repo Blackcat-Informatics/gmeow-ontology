@@ -7905,6 +7905,40 @@ math:cdA4 a logic:Formula ; logic:relation math:spaceDimension ;
 math:cdA5 a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "md" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
 
+# A signed-extended-real slot (math:extendedRealValue) holds a value on the extended real
+# line ℝ̄ = ℝ ∪ {−∞, +∞}: a finite numeric literal of either sign, or one of the two poles
+# math:PositiveInfinity / math:NegativeInfinity. The strongest cleanly-expressible logic:
+# form is "the object is a LITERAL (its finite-numeric branch) OR is one of the two poles":
+# a literal-nodekind allowance (logic:termIsLiteral) joined by logic:or to a two-member
+# value-set membership (logic:termIn) over the poles. This catches a non-literal object (an
+# IRI or blank node) that is neither pole — the math:MalformedExtendedReal case. No single
+# sugar fits the literal-OR-one-of-two-individuals disjunction, so it is a raw formula, and
+# the guard math:extendedRealValue(?s, this) puts the slot value (this) in object position
+# so the projected twin targets sh:targetObjectsOf math:extendedRealValue.
+math:ExtendedRealValueConstraint
+    a logic:Constraint ;
+    rdfs:label "Signed extended-real value constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: the object of math:extendedRealValue — a value on the extended real line ℝ̄ = ℝ ∪ {−∞, +∞} — is a literal (its finite numeric branch) or one of the two poles math:PositiveInfinity / math:NegativeInfinity; a non-literal object that is neither pole is not a point of ℝ̄."@x-gmeow-english ;
+    logic:formalizes math:extendedRealValue ;
+    logic:message "The object of math:extendedRealValue must be a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; a non-literal value (an IRI or blank node) that is neither pole is not a point of the extended real line ℝ̄ (math:MalformedExtendedReal)." ;
+    logic:integrity math:erForall .
+math:erForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                             [ logic:termIndex 1 ; logic:termVariable "s" ] ;
+    logic:forall math:erImpl .
+math:erImpl a logic:Formula ; logic:antecedent math:erGuard ; logic:consequent math:erDisj .
+math:erGuard a logic:Formula ; logic:relation math:extendedRealValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:erDisj a logic:Formula ; logic:or math:erLiteral , math:erPole .
+math:erLiteral a logic:Formula ; logic:relation logic:termIsLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] .
+math:erPole a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                   [ logic:termIndex 1 ; logic:termIri math:PositiveInfinity ] ,
+                   [ logic:termIndex 2 ; logic:termIri math:NegativeInfinity ] .
+
 # A math:RootSystem carrying the E8 fingerprint (240 roots in rank 8) must declare
 # a math:weylGroup whose math:groupOrder is 696,729,600 — the order of W(E8); a
 # different order corrupts the flagship invariant. A value-guarded inequality —
