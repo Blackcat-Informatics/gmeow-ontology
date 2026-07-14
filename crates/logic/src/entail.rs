@@ -279,6 +279,85 @@ fn classify(subject: &Node, predicate: &str, object: &Node) -> Result<Conclusion
     }
 }
 
+/// Classify every conclusion triple into a refutable [`ConclusionShape`], returning
+/// the first structured [`EntailmentGap`] shape on any un-refutable triple. An empty
+/// conclusion yields an empty vector (trivially entailed — `A ⊨ ∅`).
+fn classify_conclusion(conclusion: &RdfDataset) -> Result<Vec<ConclusionShape>, EntailmentGap> {
+    let mut shapes: Vec<ConclusionShape> = Vec::new();
+    for q in conclusion.quads() {
+        let TermRef::Iri(pred) = conclusion.resolve(q.p) else {
+            return Err(EntailmentGap {
+                shape: GapShape::Malformed,
+                detail: "conclusion triple has a non-IRI predicate".to_string(),
+            });
+        };
+        let subject = node_of(conclusion.resolve(q.s));
+        let object = node_of(conclusion.resolve(q.o));
+        match classify(&subject, pred, &object) {
+            Ok(shape) => shapes.push(shape),
+            Err(gap_shape) => {
+                return Err(EntailmentGap {
+                    shape: gap_shape,
+                    detail: format!(
+                        "conclusion component on predicate {pred:?} is outside the \
+                         soundly-refutable fragment ({})",
+                        gap_shape.as_token()
+                    ),
+                });
+            }
+        }
+    }
+    Ok(shapes)
+}
+
+/// The single-goal reduction of a conclusion for VENDORING it as one committed
+/// consistency case whose `input.nq` is `premise ∪ ¬C`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum VendorReduction {
+    /// A single-triple conclusion: the negation triples to union with the premise's
+    /// world. The reduced EDB (premise ∪ these) is inconsistent iff the premise
+    /// entails the conclusion — a single native consistency check.
+    Single(Vec<(String, String, String)>),
+    /// A conjunctive multi-triple conclusion: decidable (by [`dl_entails`]) but as
+    /// *n* independent consistency checks, so it cannot be frozen as one `input.nq`.
+    MultiGoal,
+    /// The conclusion is outside the soundly-refutable fragment.
+    Gap(EntailmentGap),
+}
+
+/// Reduce a conclusion for vendoring as one committed consistency case.
+///
+/// A single refutable triple yields [`VendorReduction::Single`] (the negation triples
+/// to union with the premise's world); a conjunctive multi-triple conclusion is
+/// [`VendorReduction::MultiGoal`] (decidable, but not as one EDB); an un-refutable or
+/// empty conclusion is [`VendorReduction::Gap`].
+///
+/// # Errors
+/// Hard-fails only on the reserved-namespace soundness guard.
+pub fn reduce_for_vendoring(
+    premise: &RdfDataset,
+    conclusion: &RdfDataset,
+) -> Result<VendorReduction, Diag> {
+    let shapes = match classify_conclusion(conclusion) {
+        Ok(shapes) => shapes,
+        Err(gap) => return Ok(VendorReduction::Gap(gap)),
+    };
+    match shapes.as_slice() {
+        [] => Ok(VendorReduction::Gap(EntailmentGap {
+            shape: GapShape::Malformed,
+            detail: "empty conclusion (nothing to vendor as a refutation case)".to_string(),
+        })),
+        [shape] => {
+            let mut input_iris: BTreeSet<String> = BTreeSet::new();
+            collect_iris(premise, &mut input_iris);
+            collect_iris(conclusion, &mut input_iris);
+            let minter = Minter::new(&input_iris)?;
+            Ok(VendorReduction::Single(negate(shape, &minter)))
+        }
+        _ => Ok(VendorReduction::MultiGoal),
+    }
+}
+
 /// Collect every IRI (subject, predicate, object, graph) in `ds` into `out`.
 fn collect_iris(ds: &RdfDataset, out: &mut BTreeSet<String>) {
     for q in ds.quads() {
@@ -341,43 +420,16 @@ pub fn dl_entails(
     premise: &RdfDataset,
     conclusion: &RdfDataset,
 ) -> Result<EntailmentVerdict, Diag> {
-    // Collect the conclusion triples (across every graph) as owned shape nodes.
-    let mut conclusion_triples: Vec<(Node, String, Node)> = Vec::new();
-    for q in conclusion.quads() {
-        let TermRef::Iri(pred) = conclusion.resolve(q.p) else {
-            // A non-IRI predicate cannot be a well-formed conclusion assertion.
-            return Ok(EntailmentVerdict::Gap(EntailmentGap {
-                shape: GapShape::Malformed,
-                detail: "conclusion triple has a non-IRI predicate".to_string(),
-            }));
-        };
-        let s = node_of(conclusion.resolve(q.s));
-        let o = node_of(conclusion.resolve(q.o));
-        conclusion_triples.push((s, pred.to_owned(), o));
-    }
-
-    // A ⊨ ∅ — the empty conclusion is trivially entailed.
-    if conclusion_triples.is_empty() {
-        return Ok(EntailmentVerdict::Entailed);
-    }
-
     // Classify every conclusion component; any un-refutable shape makes the whole
     // (conjunctive) conclusion an honest gap.
-    let mut shapes: Vec<ConclusionShape> = Vec::with_capacity(conclusion_triples.len());
-    for (s, p, o) in &conclusion_triples {
-        match classify(s, p, o) {
-            Ok(shape) => shapes.push(shape),
-            Err(gap_shape) => {
-                return Ok(EntailmentVerdict::Gap(EntailmentGap {
-                    shape: gap_shape,
-                    detail: format!(
-                        "conclusion component on predicate {p:?} is outside the soundly-refutable \
-                         fragment ({})",
-                        gap_shape.as_token()
-                    ),
-                }));
-            }
-        }
+    let shapes = match classify_conclusion(conclusion) {
+        Ok(shapes) => shapes,
+        Err(gap) => return Ok(EntailmentVerdict::Gap(gap)),
+    };
+
+    // A ⊨ ∅ — the empty conclusion is trivially entailed.
+    if shapes.is_empty() {
+        return Ok(EntailmentVerdict::Entailed);
     }
 
     // Build the sound minter over the whole input vocabulary (hard-fail on a reserved

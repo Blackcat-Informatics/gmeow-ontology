@@ -105,6 +105,7 @@ fn main() -> gmeow_errors::Result<()> {
     let mut manifest: Option<PathBuf> = None;
     let mut vendor_el: Option<(PathBuf, PathBuf)> = None;
     let mut vendor_full: Option<(PathBuf, PathBuf)> = None;
+    let mut vendor_entailment: Option<(PathBuf, PathBuf)> = None;
     let mut vendor_tptp: Option<PathBuf> = None;
     let mut vendor_ontouml: Option<PathBuf> = None;
     let mut grade_suite: Option<(PathBuf, String, PathBuf)> = None;
@@ -128,6 +129,11 @@ fn main() -> gmeow_errors::Result<()> {
                 let input = PathBuf::from(next(&mut args, "--vendor-full")?);
                 let out = PathBuf::from(next(&mut args, "--vendor-full <out-dir>")?);
                 vendor_full = Some((input, out));
+            }
+            "--vendor-entailment" => {
+                let input = PathBuf::from(next(&mut args, "--vendor-entailment")?);
+                let out = PathBuf::from(next(&mut args, "--vendor-entailment <out-dir>")?);
+                vendor_entailment = Some((input, out));
             }
             "--vendor-tptp" => {
                 vendor_tptp = Some(PathBuf::from(next(
@@ -185,6 +191,7 @@ fn main() -> gmeow_errors::Result<()> {
         + manifest.is_some() as u8
         + vendor_el.is_some() as u8
         + vendor_full.is_some() as u8
+        + vendor_entailment.is_some() as u8
         + vendor_tptp.is_some() as u8
         + vendor_ontouml.is_some() as u8
         + grade_suite.is_some() as u8
@@ -204,6 +211,12 @@ fn main() -> gmeow_errors::Result<()> {
     // the pre-existing arity.
     if let Some((input, out)) = vendor_full {
         return vendor_full_corpus(&input, &out);
+    }
+
+    // `--vendor-entailment` shares the same Lane-A vendoring path, bound to the
+    // self-authored inline entailment-mini manifest and its self-authored metadata.
+    if let Some((input, out)) = vendor_entailment {
+        return vendor_entailment_corpus(&input, &out);
     }
 
     match (
@@ -858,6 +871,197 @@ fn lower_entry(
     })
 }
 
+/// The outcome of lowering one entailment manifest entry (`A ⊨ C`) for vendoring.
+enum EntailmentLowering {
+    /// The native reasoner decided the entailment: the reduced EDB (`premise ∪ ¬C`),
+    /// world-scoped, plus the native consistency verdict on it (the verdict the
+    /// conformance harness reproduces by re-running `dl_consistency` on `input.nq`).
+    Decided {
+        slug: String,
+        world_iri: String,
+        input_nq: String,
+        quad_count: usize,
+        native_status: &'static str,
+        premise_xml: String,
+    },
+    /// The native reasoner cannot soundly grade this entailment as one consistency
+    /// case: a structured gap (a multi-goal conjunction, a role/existential/malformed
+    /// conclusion, or a native coverage gap). Carries the premise-only world-scoped
+    /// EDB for the divergence bucket, plus the structured `gmeow:gapShape` token.
+    Gap {
+        slug: String,
+        world_iri: String,
+        input_nq: String,
+        quad_count: usize,
+        gap_shape: &'static str,
+        premise_xml: String,
+    },
+    /// The entry is not lowerable (unparsable, or a non-inline premise/conclusion).
+    Skip,
+}
+
+/// Build the reduced default-graph dataset `premise ∪ negation` (the negation triples
+/// are all IRIs) by serializing the premise's default graph to N-Triples, appending
+/// the negation triples, and re-parsing — so purrdf owns all term encoding.
+fn build_reduced_dataset(
+    premise: &purrdf::RdfDataset,
+    negation: &[(String, String, String)],
+) -> gmeow_errors::Result<std::sync::Arc<purrdf::RdfDataset>> {
+    let nt_bytes = purrdf::serialize_dataset(
+        premise,
+        "application/n-triples",
+        purrdf::SerializeGraph::DefaultGraph,
+    )
+    .map_err(|e| ce(format!("premise N-Triples serialize failed: {e}")))?;
+    let mut nt =
+        String::from_utf8(nt_bytes).map_err(|_| ce("premise N-Triples not UTF-8".to_string()))?;
+    for (s, p, o) in negation {
+        nt.push_str(&format!("<{s}> <{p}> <{o}> .\n"));
+    }
+    purrdf::parse_dataset(nt.as_bytes(), "application/n-triples", None)
+        .map_err(|e| ce(format!("reduced EDB re-parse failed: {e}")))
+}
+
+/// Lower one entailment manifest entry into either a decided reduced-EDB consistency
+/// case (single-triple conclusion the native path grades) or a structured gap.
+fn lower_entailment_entry(
+    entry: &gmeow_conformance::external::ManifestEntry,
+    world_iri_prefix: &str,
+) -> EntailmentLowering {
+    let slug = to_slug(&entry.name);
+    let world_iri = format!("{world_iri_prefix}{slug}/w");
+
+    let premise_xml = match &entry.action {
+        Some(OntologyDoc::InlineRdfXml(xml)) => xml.clone(),
+        _ => {
+            println!("SKIP {slug}: entailment premise is not inline RDF/XML (Lane-B)");
+            return EntailmentLowering::Skip;
+        }
+    };
+    let conclusion_xml = match &entry.result {
+        Some(OntologyDoc::InlineRdfXml(xml)) => xml.clone(),
+        _ => {
+            println!("SKIP {slug}: entailment conclusion is not inline RDF/XML (Lane-B)");
+            return EntailmentLowering::Skip;
+        }
+    };
+
+    let premise_ds = match purrdf::parse_dataset(
+        premise_xml.as_bytes(),
+        "application/rdf+xml",
+        Some("http://example.org/"),
+    ) {
+        Ok(ds) => ds,
+        Err(e) => {
+            println!("SKIP {slug}: entailment premise unparsable: {e}");
+            return EntailmentLowering::Skip;
+        }
+    };
+    let conclusion_ds = match purrdf::parse_dataset(
+        conclusion_xml.as_bytes(),
+        "application/rdf+xml",
+        Some("http://example.org/"),
+    ) {
+        Ok(ds) => ds,
+        Err(e) => {
+            println!("SKIP {slug}: entailment conclusion unparsable: {e}");
+            return EntailmentLowering::Skip;
+        }
+    };
+
+    // Premise-only world-scoped EDB — the divergence-bucket input.nq for a gap case.
+    let (premise_nq, premise_qc) = match premise_ds_to_world_nquads(premise_ds.as_ref(), &world_iri)
+    {
+        Ok(r) => r,
+        Err(e) => {
+            println!("SKIP {slug}: entailment premise N-Quads build failed: {e}");
+            return EntailmentLowering::Skip;
+        }
+    };
+
+    match gmeow_logic::entail::reduce_for_vendoring(premise_ds.as_ref(), conclusion_ds.as_ref()) {
+        Err(e) => {
+            // The reserved-namespace soundness guard fired — refuse, never guess.
+            println!("SKIP {slug}: entailment reduction hard-failed: {e}");
+            EntailmentLowering::Skip
+        }
+        Ok(gmeow_logic::entail::VendorReduction::Gap(gap)) => EntailmentLowering::Gap {
+            slug,
+            world_iri,
+            input_nq: premise_nq,
+            quad_count: premise_qc,
+            gap_shape: gap.shape.as_token(),
+            premise_xml,
+        },
+        Ok(gmeow_logic::entail::VendorReduction::MultiGoal) => EntailmentLowering::Gap {
+            slug,
+            world_iri,
+            input_nq: premise_nq,
+            quad_count: premise_qc,
+            gap_shape: "multi-triple",
+            premise_xml,
+        },
+        Ok(gmeow_logic::entail::VendorReduction::Single(negation)) => {
+            let reduced_ds = match build_reduced_dataset(premise_ds.as_ref(), &negation) {
+                Ok(d) => d,
+                Err(e) => {
+                    println!("SKIP {slug}: reduced EDB build failed: {e}");
+                    return EntailmentLowering::Skip;
+                }
+            };
+            let (input_nq, quad_count) =
+                match premise_ds_to_world_nquads(reduced_ds.as_ref(), &world_iri) {
+                    Ok(r) => r,
+                    Err(e) => {
+                        println!("SKIP {slug}: reduced EDB N-Quads build failed: {e}");
+                        return EntailmentLowering::Skip;
+                    }
+                };
+            let world_ds = match purrdf::dataset_from_bytes(
+                input_nq.as_bytes(),
+                purrdf::NativeRdfFormat::NQuads,
+            ) {
+                Ok(d) => d,
+                Err(e) => {
+                    println!("SKIP {slug}: reduced EDB round-trip failed: {e}");
+                    return EntailmentLowering::Skip;
+                }
+            };
+            let verdict = match gmeow_logic::reason::dl_consistency(world_ds.as_ref()) {
+                Ok(v) => v,
+                Err(e) => {
+                    println!("SKIP {slug}: reduced EDB dl_consistency failed: {e}");
+                    return EntailmentLowering::Skip;
+                }
+            };
+            if !verdict.gaps.is_empty() {
+                // The native path admits a coverage gap on the reduced EDB.
+                return EntailmentLowering::Gap {
+                    slug,
+                    world_iri,
+                    input_nq: premise_nq,
+                    quad_count: premise_qc,
+                    gap_shape: "native-coverage",
+                    premise_xml,
+                };
+            }
+            let native_status = if verdict.consistent {
+                "consistent"
+            } else {
+                "inconsistent"
+            };
+            EntailmentLowering::Decided {
+                slug,
+                world_iri,
+                input_nq,
+                quad_count,
+                native_status,
+                premise_xml,
+            }
+        }
+    }
+}
+
 /// The W3C SPDX header prepended to every vendored source/stub file.
 const W3C_SPDX_HEADER: &str = "# SPDX-FileCopyrightText: 2009 W3C (Massachusetts Institute of Technology, ERCIM, Keio, Beihang)\n# SPDX-License-Identifier: W3C\n";
 
@@ -872,6 +1076,11 @@ struct CaseVerdicts<'a> {
     /// The native token (`consistent` / `inconsistent` / `incomplete`), recorded
     /// in `profile.json` as the frozen native decision for divergence cases.
     native_token: &'a str,
+    /// For an entailment case the native reasoner could not soundly grade, the
+    /// structured `gmeow:gapShape` token (from [`gmeow_logic::entail::GapShape`]) —
+    /// recorded in `profile.json` so the pipeline reifier can project it as first-class
+    /// `gmeow:CapabilityGap` data. `None` for a decided (consistency or entailment) case.
+    gap_shape: Option<&'a str>,
 }
 
 /// The honest-DlGap divergence bucket sibling of the Lane-A `out_dir`:
@@ -924,6 +1133,9 @@ fn write_case(
         "w3c_published_verdict",
         serde_json::json!(verdicts.published_status),
     );
+    if let Some(shape) = verdicts.gap_shape {
+        profile.insert("gap_shape", serde_json::json!(shape));
+    }
     let profile_json = serde_json::to_string_pretty(&profile)
         .map_err(|e| ce(format!("serialize profile.json for {slug}: {e}")))?
         + "\n";
@@ -1105,9 +1317,10 @@ fn parse_consistency_entries(
             }
         }
     }
-    let entailment_skipped = entailment_entries.len();
     println!(
-        "INFO: {entailment_skipped} entailment tests skipped (Lane-B scope, need conclusion-negation)"
+        "INFO: {} consistency + {} entailment entries parsed (entailment graded by refutation)",
+        consistency_entries.len(),
+        entailment_entries.len()
     );
     Ok((consistency_entries, entailment_entries))
 }
@@ -1117,18 +1330,20 @@ fn parse_consistency_entries(
 /// Reads `<input_rdf>` (RDF/XML), keeps only ConsistencyTest / InconsistencyTest
 /// entries, runs the native DL consistency path on each, and emits the ones the
 /// native path decides AND agrees with the W3C declared outcome.
+#[allow(clippy::too_many_arguments)]
 fn vendor_lane_a_from_manifest(
     input_rdf: &Path,
     out_dir: &Path,
     corpus_name: &str,
     source_url: &str,
     refresh_command: &str,
+    spdx_license: &str,
+    version_or_commit: &str,
 ) -> gmeow_errors::Result<()> {
     let divergence_name = format!("{corpus_name}-divergence");
     let base_iri = format!("https://gmeow.example/{corpus_name}/");
 
-    let (consistency_entries, entailment_entries_lane_b) = parse_consistency_entries(input_rdf)?;
-    let entailment_skipped = entailment_entries_lane_b.len();
+    let (consistency_entries, entailment_entries) = parse_consistency_entries(input_rdf)?;
 
     // The honest-DlGap divergence bucket is a SIBLING of the Lane-A out_dir: every
     // case the native path cannot soundly decide (`gaps` non-empty → `incomplete`)
@@ -1222,6 +1437,7 @@ fn vendor_lane_a_from_manifest(
                     committed_status: "incomplete",
                     published_status: declared_status,
                     native_token: "incomplete",
+                    gap_shape: None,
                 },
             )?;
             divergence_vendored += 1;
@@ -1254,6 +1470,7 @@ fn vendor_lane_a_from_manifest(
                     committed_status: native_status,
                     published_status: declared_status,
                     native_token: native_status,
+                    gap_shape: None,
                 },
             )?;
             divergence_vendored += 1;
@@ -1282,19 +1499,121 @@ fn vendor_lane_a_from_manifest(
                 committed_status: declared_status,
                 published_status: declared_status,
                 native_token: native_status,
+                gap_shape: None,
             },
         )?;
         vendored += 1;
         println!("EMIT {slug}: {declared_status}");
     }
 
+    // ── Grade the ENTAILMENT tests (`A ⊨ C`) by refutation ────────────────────
+    // Each entailment entry is reduced to the consistency of `premise ∪ ¬conclusion`
+    // (the native `dl_entails` reduction). A single-triple conclusion is frozen as one
+    // reduced-EDB consistency case the harness re-decides; a multi-goal / role /
+    // existential / malformed / native-coverage conclusion is an honest structured gap
+    // vendored to the divergence bucket with its `gmeow:gapShape` token.
+    let mut entailment_vendored: usize = 0;
+    let mut entailment_gap: usize = 0;
+    for entry in &entailment_entries {
+        let (otest_type, declared_status) = match entry.kind {
+            ManifestTestKind::PositiveEntailment => ("PositiveEntailmentTest", "inconsistent"),
+            ManifestTestKind::NegativeEntailment => ("NegativeEntailmentTest", "consistent"),
+            _ => continue,
+        };
+        match lower_entailment_entry(entry, &base_iri) {
+            EntailmentLowering::Skip => {
+                skipped_unparsable += 1;
+            }
+            EntailmentLowering::Gap {
+                slug,
+                world_iri,
+                input_nq,
+                quad_count,
+                gap_shape,
+                premise_xml,
+            } => {
+                write_case(
+                    &divergence_dir,
+                    &divergence_name,
+                    &slug,
+                    &world_iri,
+                    &input_nq,
+                    quad_count as u64,
+                    otest_type,
+                    Some(&premise_xml),
+                    &CaseVerdicts {
+                        committed_status: "incomplete",
+                        published_status: declared_status,
+                        native_token: "incomplete",
+                        gap_shape: Some(gap_shape),
+                    },
+                )?;
+                divergence_vendored += 1;
+                entailment_gap += 1;
+                println!("ENTAIL-GAP {slug}: {gap_shape} (W3C declares {declared_status})");
+            }
+            EntailmentLowering::Decided {
+                slug,
+                world_iri,
+                input_nq,
+                quad_count,
+                native_status,
+                premise_xml,
+            } => {
+                if native_status != declared_status {
+                    write_case(
+                        &divergence_dir,
+                        &divergence_name,
+                        &slug,
+                        &world_iri,
+                        &input_nq,
+                        quad_count as u64,
+                        otest_type,
+                        Some(&premise_xml),
+                        &CaseVerdicts {
+                            committed_status: native_status,
+                            published_status: declared_status,
+                            native_token: native_status,
+                            gap_shape: None,
+                        },
+                    )?;
+                    divergence_vendored += 1;
+                    skipped_disagree += 1;
+                    println!(
+                        "ENTAIL-DIVERGENCE {slug}: native {native_status}, W3C declares {declared_status} (CorpusOnly)"
+                    );
+                } else {
+                    write_case(
+                        out_dir,
+                        corpus_name,
+                        &slug,
+                        &world_iri,
+                        &input_nq,
+                        quad_count as u64,
+                        otest_type,
+                        Some(&premise_xml),
+                        &CaseVerdicts {
+                            committed_status: declared_status,
+                            published_status: declared_status,
+                            native_token: native_status,
+                            gap_shape: None,
+                        },
+                    )?;
+                    entailment_vendored += 1;
+                    vendored += 1;
+                    println!("ENTAIL-EMIT {slug}: {declared_status}");
+                }
+            }
+        }
+    }
+
     // ── Write corpus.json for both buckets ────────────────────────────────────
     let corpus_json = format!(
         "{{\n  \
         \"name\": \"{corpus_name}\",\n  \
-        \"spdx_license\": \"W3C\",\n  \
+        \"spdx_license\": \"{spdx_license}\",\n  \
         \"source_url\": \"{source_url}\",\n  \
-        \"version_or_commit\": \"w3c-2009-11-archive\",\n  \
+        \"version_or_commit\": \"{version_or_commit}\",\n  \
         \"refresh_command\": \"{refresh_command}\",\n  \
         \"lane\": \"a\"\n}}\n"
     );
@@ -1308,9 +1627,9 @@ fn vendor_lane_a_from_manifest(
     let divergence_corpus_json = format!(
         "{{\n  \
         \"name\": \"{divergence_name}\",\n  \
-        \"spdx_license\": \"W3C\",\n  \
+        \"spdx_license\": \"{spdx_license}\",\n  \
         \"source_url\": \"{source_url}\",\n  \
-        \"version_or_commit\": \"w3c-2009-11-archive\",\n  \
+        \"version_or_commit\": \"{version_or_commit}\",\n  \
         \"refresh_command\": \"{refresh_command}\",\n  \
         \"lane\": \"divergence\"\n}}\n"
     );
@@ -1318,8 +1637,12 @@ fn vendor_lane_a_from_manifest(
         .map_err(|e| ce(format!("cannot write divergence corpus.json: {e}")))?;
 
     // ── Print final summary ───────────────────────────────────────────────────
+    // COVERAGE SPIKE: `entailment_vendored` is the pinned non-gap floor count — the
+    // number of previously-ungradeable entailment tests now graded with a real
+    // (non-gap) native verdict agreeing with W3C. `entailment_gap` is the honest
+    // capability boundary (multi-goal / role / existential / native-coverage).
     println!(
-        "vendored={vendored} divergence_vendored={divergence_vendored} skipped_disagree={skipped_disagree} skipped_unparsable={skipped_unparsable} entailment_skipped={entailment_skipped}"
+        "vendored={vendored} divergence_vendored={divergence_vendored} skipped_disagree={skipped_disagree} skipped_unparsable={skipped_unparsable} entailment_vendored={entailment_vendored} entailment_gap={entailment_gap}"
     );
 
     Ok(())
@@ -1335,6 +1658,26 @@ fn vendor_el_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()
         "w3c-owl2-el",
         "https://www.w3.org/2009/11/owl-test/profile-EL.rdf",
         "curl -sSL https://www.w3.org/2009/11/owl-test/profile-EL.rdf -o .tmp/w3c-owl2/profile-EL.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-el .tmp/w3c-owl2/profile-EL.rdf conformance/logic/cases/external/w3c-owl2-el",
+        "W3C",
+        "w3c-2009-11-archive",
+    )
+}
+
+/// Vendor the self-authored, license-clean **entailment-mini** corpus: a small set of
+/// W3C-`otest:`-style entailment tests carrying BOTH an inline premise and an inline
+/// conclusion, so the native `dl_entails` reduction grades them end-to-end. Unlike the
+/// upstream OWL 2 profile suites (whose entailment premises/conclusions are reference
+/// documents the inline path cannot grade), this authored source is fully inline and
+/// gives the entailment lane a non-vacuous, drift-free coverage floor.
+fn vendor_entailment_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<()> {
+    vendor_lane_a_from_manifest(
+        input_rdf,
+        out_dir,
+        "entailment-mini",
+        "gmeow-self-authored",
+        "cargo run -p gmeow-conformance --bin ingest-external -- --vendor-entailment conformance/logic/cases/external/entailment-mini/_source.rdf conformance/logic/cases/external/entailment-mini",
+        "CC-BY-4.0",
+        "gmeow-self-authored-1",
     )
 }
 
@@ -1350,6 +1693,8 @@ fn vendor_full_corpus(input_rdf: &Path, out_dir: &Path) -> gmeow_errors::Result<
         "w3c-owl2-full",
         "https://www.w3.org/2009/11/owl-test/all.rdf",
         "curl -sSL https://www.w3.org/2009/11/owl-test/all.rdf -o .tmp/w3c-owl2/all.rdf && cargo run -p gmeow-conformance --bin ingest-external -- --vendor-full .tmp/w3c-owl2/all.rdf conformance/logic/cases/external/w3c-owl2-full",
+        "W3C",
+        "w3c-2009-11-archive",
     )
 }
 

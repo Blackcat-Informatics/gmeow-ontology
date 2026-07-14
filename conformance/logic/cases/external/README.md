@@ -179,6 +179,43 @@ make maint-tptp-corpus TPTP_SUBSET_URL=<decidable-subset-tarball>
 A problem the native fragment cannot decide is recorded as an honest `DlGap` row —
 the documented path from the tiny committed Lane-A corpus to the full set.
 
+## Entailment (refutation) corpus
+
+`entailment-mini/` is a self-authored, license-clean corpus of W3C
+`otest:`-style **entailment** tests (`PositiveEntailmentTest` /
+`NegativeEntailmentTest`), each carrying BOTH an inline RDF/XML premise
+(`otest:rdfXmlPremiseOntology`) and an inline RDF/XML conclusion
+(`otest:rdfXmlConclusionOntology`). An entailment `A ⊨ C` is decided by
+**refutation**: it holds iff `premise ∪ ¬C` is inconsistent (the native
+`gmeow_logic::entail::dl_entails` reduction, the same one the `gmeow entails` CLI
+ships). The vendored case's `input.nq` IS that reduced EDB, so the conformance
+harness reproduces the frozen verdict by re-running `dl_consistency`:
+
+- a `PositiveEntailmentTest` whose entailment holds reduces to `inconsistent`;
+- a `NegativeEntailmentTest` reduces to `consistent`.
+
+The negation is minted by the shared calculus in a reserved namespace
+(`https://blackcatinformatics.ca/logic/entail/reserved#`) with a content-addressed
+suffix — sound for arbitrary IRIs, and the minter hard-fails if the input
+vocabulary already contains a reserved IRI. Regenerate with:
+
+```sh
+cargo run -p gmeow-conformance --bin ingest-external -- --vendor-entailment \
+  conformance/logic/cases/external/entailment-mini/_source.rdf \
+  conformance/logic/cases/external/entailment-mini
+```
+
+A conclusion outside the soundly-refutable single-EDB fragment — a **multi-triple**
+conjunction (`A ⊨ {t₁…tₙ}` needs `n` independent refutations, not one EDB), or a
+**role assertion** (role negation is not EL-expressible) — is an honest structured
+gap vendored to `entailment-mini-divergence/` with its `gmeow:gapShape` token in
+`profile.json` (the data the pipeline reifies as `gmeow:CapabilityGap`). The
+`entailment_mini_gate` test pins the non-gap coverage floor and the exact gap set.
+
+The upstream W3C OWL 2 / RDFCore entailment suites express their premises and
+conclusions as **reference documents** (not inline), so they are graded live only
+in the non-required Lane-B lane, never vendored here.
+
 ## Licensing & vendoring policy
 
 Cases are **not** part of the published CC BY 4.0 ontology, but committing them still
