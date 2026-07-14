@@ -7,20 +7,19 @@
 //! The generated `gmeow:ProfileOpenValueUseConstraintProceduralConstraintShape`
 //! (a `sh:SPARQLTarget` selecting each profile's `gmeow:profileOpenValue`
 //! individuals, firing `SPARQLConstraintComponent` when the value is referenced
-//! by no `gmeow:profileDescriptor`) currently emits at `sh:Warning`; a later task
-//! migrates it to `sh:Violation`. This test is the executable witness for WHY that
-//! migration bites: it drives a synthetic `ValidationResult` at the POST-migration
-//! severity (`ShaclSeverity::Violation`) through the REAL lowering
-//! `gmeow_validate::findings::diag_from_shacl` — the same production surface that
-//! interns SHACL results into canonical [`Diag`]s — and shows the interned [`Grade`]
-//! is the gate-fatal up-set corner `(Error, DataShapeViolation, Binding)`, so
+//! by no `gmeow:profileDescriptor`) emits at `sh:Violation`. This test is the
+//! executable witness for WHY that severity is gate-fatal: it drives a synthetic
+//! `ValidationResult` at that severity (`ShaclSeverity::Violation`) through the REAL
+//! lowering `gmeow_validate::findings::diag_from_shacl` — the same production surface
+//! that interns SHACL results into canonical [`Diag`]s — and shows the interned
+//! [`Grade`] is the gate-fatal up-set corner `(Error, DataShapeViolation, Binding)`, so
 //! `gmeow_errors::grade::gate` calls it `Fatal`.
 //!
 //! The verdict is NOT hand-asserted: the three-axis grade is DERIVED by the real
 //! `severity_from_shacl` / `DataShapeViolation` / `standpoint_from_shacl` mapping
-//! inside `diag_from_shacl`. This is deterministic and passes NOW — it exercises the
-//! morphism the Warning→Violation flip relies on, independent of the live generated
-//! shape's current severity.
+//! inside `diag_from_shacl`. This is deterministic — it exercises the morphism the
+//! open-value guard's fatal severity relies on, independent of the live generated
+//! shape's severity.
 
 use gmeow_errors::grade::{FindingCategory, GateVerdict, Grade, Severity, Standpoint, gate};
 use gmeow_validate::findings::diag_from_shacl;
