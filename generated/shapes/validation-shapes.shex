@@ -5436,6 +5436,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/logic/Event-shape> {
 }
 
+# targetClass <https://blackcatinformatics.ca/logic/ExistentialChaseDemonstrand> (associate via ShapeMap)
+<https://blackcatinformatics.ca/logic/ExistentialChaseDemonstrand-shape> {
+  <https://blackcatinformatics.ca/logic/demonstratesChaseWitness> IRI ;
+}
+
 # targetClass <https://blackcatinformatics.ca/logic/FormalizationCandidate> (associate via ShapeMap)
 <https://blackcatinformatics.ca/logic/FormalizationCandidate-shape> {
   <https://blackcatinformatics.ca/logic/candidateScope> <http://www.w3.org/2001/XMLSchema#string> + ;

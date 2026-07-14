@@ -4600,6 +4600,10 @@
     sh:targetClass <https://blackcatinformatics.ca/logic/Event> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/logic/Situation> ] .
 
+<https://blackcatinformatics.ca/logic/ExistentialChaseDemonstrand-shape> a sh:NodeShape ;
+    sh:targetClass <https://blackcatinformatics.ca/logic/ExistentialChaseDemonstrand> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/logic/demonstratesChaseWitness> ; sh:class <https://blackcatinformatics.ca/logic/ChaseWitnessLeaf> ] .
+
 <https://blackcatinformatics.ca/logic/FormalizationCandidate-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/logic/FormalizationCandidate> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/logic/candidateScope> ; sh:minCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#string> ] ;

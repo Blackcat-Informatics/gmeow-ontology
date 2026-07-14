@@ -476,6 +476,7 @@ __all__ = [
     "Logic_CounterfactualAcceptanceWitness",
     "Logic_Endurant",
     "Logic_Event",
+    "Logic_ExistentialChaseDemonstrand",
     "Logic_FormalizationCandidate",
     "Logic_Formula",
     "Logic_FreshnessGuard",
