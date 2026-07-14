@@ -419,7 +419,10 @@ STANDING EXCEPTION (the only one carried out of stage 2):
   2026-07-14, "Keep it; scope R1 to the scoring loader"). The completion-adversary
   accepted this as route-(b) discharged but flagged that the sign-off was recorded
   by a prior session; the stage-2 session surfaced it to the user for explicit
-  reconfirmation before declaring ready-for-stage-3.
+  reconfirmation before declaring ready-for-stage-3. RECONFIRMED by the
+  maintainer at the stage-2 exit (2026-07-14): "Confirm — keep it scoped" (keep
+  RUBRIC_MODULE as the gate floor-source; R1 scoped to the scoring loader).
+  Route-(b) discharge stands; adversary PASS unchanged.
 
 - term_loss = None off-repo (D3) — unchanged: correct-by-construction lower bound on
   the LossLedgerRow/LossJudgmentSound dims for a genuinely-lossy foreign slice,
