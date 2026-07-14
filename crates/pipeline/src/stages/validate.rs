@@ -536,6 +536,39 @@ ex:RequiredShape a sh:NodeShape ;
         let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert("stage-source-load".to_string(), product);
+        // The stage consumes the four shape producers fail-closed (the
+        // stale-disk-fold class): every generated union member must arrive as a
+        // fresh product byte, so the fixture supplies header-only members.
+        for (producer, rels) in [
+            (
+                "stage-compile-logic",
+                &[
+                    crate::stages::compile_logic::VALIDATION_SHAPES_TTL_PATH,
+                    crate::stages::compile_logic::PROCEDURAL_CONSTRAINTS_PATH,
+                ][..],
+            ),
+            (
+                "stage-export-constraint-shapes",
+                &[crate::stages::constraint_shapes::CONSTRAINT_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-frame-shapes",
+                &[crate::stages::frame_shapes::FRAME_SHAPES_PATH][..],
+            ),
+            (
+                "stage-export-result-shapes",
+                &[crate::stages::result_shapes::RESULT_SHAPES_PATH][..],
+            ),
+        ] {
+            let artifacts: BTreeMap<String, Vec<u8>> = rels
+                .iter()
+                .map(|rel| ((*rel).to_string(), b"# generated\n".to_vec()))
+                .collect();
+            upstream.insert(
+                producer.to_string(),
+                StageProduct::from_artifacts(producer, artifacts),
+            );
+        }
         let input = StageInput {
             root: repo.path(),
             upstream: &upstream,
