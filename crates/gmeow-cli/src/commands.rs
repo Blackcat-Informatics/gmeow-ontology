@@ -2002,9 +2002,11 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
 /// directory, computed over the slice's OWN sources (module.ttl, mappings/, i18n/).
 ///
 /// The per-term exemplar tiers come from the SINGLE canonical library tiering
-/// [`gmeow_slice_brief::completeness_tiers`] — the same function the `slice_brief`
-/// pipeline stage uses — so an in-repo slice's live CLI brief and its committed
-/// `generated/briefs/authoring-packets.nt` projection tier terms identically. A
+/// [`gmeow_slice_brief::exemplar_tiers`] — the same function the `slice_brief`
+/// pipeline stage uses, gated by SHACL per-term conformance against the SAME repo
+/// shape union — so an in-repo slice's live CLI brief and its committed
+/// `generated/briefs/authoring-packets.nt` projection tier terms identically. The repo
+/// root (holding `generated/shapes/`) is resolved by walking up from the slice dir. A
 /// `--batch` out of range returns a typed hard failure through [`fail`] (a non-zero
 /// exit), never a panic or an empty packet.
 pub fn slice_brief(
@@ -2014,7 +2016,32 @@ pub fn slice_brief(
     batch: Option<u32>,
     format: &str,
 ) -> i32 {
-    let tiers = match gmeow_slice_brief::completeness_tiers(dir) {
+    // Resolve the repo root and load the SHACL shape union the pipeline gates against,
+    // so the CLI's exemplar tiering matches the committed projection in a checkout.
+    let repo_root = match gmeow_slice_brief::resolve_repo_root(dir) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.repo-root",
+                format!("cannot resolve repo root for {}: {e}", dir.display()),
+            );
+        }
+    };
+    let shapes = match gmeow_slice_brief::load_shape_union(&repo_root) {
+        Ok(s) => s,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.brief.shapes",
+                format!(
+                    "cannot load SHACL shape union from {}: {e}",
+                    repo_root.display()
+                ),
+            );
+        }
+    };
+    let tiers = match gmeow_slice_brief::exemplar_tiers(dir, &shapes) {
         Ok(t) => t,
         Err(e) => {
             return fail(

@@ -10,14 +10,18 @@
 //! product. For each slice discovered under `slices/` (the SINGLE discovery authority
 //! [`gmeow_slice_quality::discover_slice_dirs`], shared with the quality sweep) it:
 //!
-//! 1. computes a per-term **exemplar tier** = ANNOTATION COMPLETENESS — the count of the
-//!    six authoring coat predicates present on the term (`rdfs:label`, `skos:definition`,
-//!    `skos:example`, `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse`) via the SINGLE
-//!    canonical library tiering [`gmeow_slice_brief::completeness_tiers`], shared with the
-//!    `gmeow slice brief` CLI so an in-repo slice's CLI brief and its committed projection
-//!    tier terms identically. It is a deterministic, source-only reading (no scoring infra,
-//!    no bundle) that the library injects as the exemplar authority (dependency inversion —
-//!    the library never picks a scoring authority);
+//! 1. computes a per-term **exemplar tier** GATED by SHACL per-term conformance — a term
+//!    is eligible (rank > 0) iff it passed the validation gate (validating the slice's
+//!    authoring dataset against the repo shape union yields NO `sh:Violation`-severity
+//!    result naming it as focus node) AND carries a non-empty coat; the rank ORDERS the
+//!    conforming terms by coat completeness (the count of the six authoring coat predicates
+//!    present: `rdfs:label`, `skos:definition`, `skos:example`, `gmeow:useWhen`,
+//!    `gmeow:avoidWhen`, `gmeow:howToUse`) — via the SINGLE canonical library tiering
+//!    [`gmeow_slice_brief::exemplar_tiers`], shared with the `gmeow slice brief` CLI so an
+//!    in-repo slice's CLI brief and its committed projection tier terms identically. The
+//!    shape union is loaded ONCE per stage run and threaded into every slice's tiering; the
+//!    library injects the result as the exemplar authority (dependency inversion — the
+//!    library never picks a scoring authority);
 //! 2. partitions the slice's sorted defined terms into `~25`-term batches and calls
 //!    [`gmeow_slice_brief::assemble_packet`] for each batch `0..N`; and
 //! 3. parses every packet's canonical turtle and UNIONs them all into ONE dataset rooted
@@ -100,7 +104,10 @@ impl Stage for SliceBriefStage {
         // would ship a stale packet in gmeow.gts). `assemble_packet` reads, per slice: the
         // slice graph (module.ttl + examples/ + tests/, via `slice_ttl_paths`), the slice
         // identity (manifest.ttl), the alignment linkage (mappings/*.ttl), and the
-        // translation catalogs (i18n/*.po). Declare every one of them.
+        // translation catalogs (i18n/*.po). The exemplar tiering additionally gates terms
+        // against the SHACL shape union, so every shape file in that union
+        // (`purrdf::shapes::shape_union::shape_files`) is an input too — a changed shape
+        // can flip a term's conformance and hence which exemplars ship. Declare them all.
         let slices_root = root.join("slices");
         let mut files: Vec<PathBuf> = Vec::new();
         for slice_dir in gmeow_slice_quality::discover_slice_dirs(&slices_root) {
@@ -112,17 +119,26 @@ impl Stage for SliceBriefStage {
             collect_ext(&slice_dir.join("mappings"), "ttl", &mut files)?;
             collect_ext(&slice_dir.join("i18n"), "po", &mut files)?;
         }
+        files.extend(purrdf::shapes::shape_union::shape_files(root).map_err(|e| {
+            stage_err(&format!(
+                "cannot enumerate the SHACL shape union for the cache key: {e}"
+            ))
+        })?);
         files.sort();
         files.dedup();
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let slices_root = input.root.join("slices");
+        // Load the SHACL shape union ONCE per stage run (not per slice): every slice's
+        // exemplar tiering gates its terms against this same union, matching the live
+        // `make validate` gate and the `gmeow slice brief` CLI.
+        let shapes = gmeow_slice_brief::load_shape_union(input.root)?;
         // Iterate slices in the SINGLE discovery authority's sorted order (dogfooding
         // coherence with the quality sweep) so the unioned corpus is byte-stable.
         let mut graphs: Vec<std::sync::Arc<RdfDataset>> = Vec::new();
         for slice_dir in gmeow_slice_quality::discover_slice_dirs(&slices_root) {
-            let plan = slice_plan(&slice_dir)?;
+            let plan = slice_plan(&slice_dir, &shapes)?;
             // A slice with zero authorable terms contributes zero packets (skip, no error).
             if plan.term_count == 0 {
                 continue;
@@ -166,15 +182,19 @@ struct SlicePlan {
 /// Load one slice's graph the SAME way [`assemble_packet`] does (module + examples +
 /// tests + mappings), find its defined terms (for the batch enumeration), and take each
 /// term's exemplar tier from the SINGLE canonical library tiering
-/// [`gmeow_slice_brief::completeness_tiers`] (annotation completeness). The defined-term
-/// set and its ordering match `assemble`'s internal partition, so the batch count derived
+/// [`gmeow_slice_brief::exemplar_tiers`] — SHACL per-term conformance gated against the
+/// pre-loaded shape union `shapes`, ordered by coat completeness. The defined-term set
+/// and its ordering match `assemble`'s internal partition, so the batch count derived
 /// here lines up with `assemble_packet`'s partition exactly.
 ///
 /// # Errors
-/// Hard-fails if the slice graph cannot be read, or the `manifest.ttl` declares no
+/// Hard-fails if the slice graph cannot be read, the `manifest.ttl` declares no
 /// `gmeow:Slice` (a malformed slice — never a silent skip; `assemble_packet` hard-fails
-/// on the same condition).
-fn slice_plan(slice_dir: &Path) -> Result<SlicePlan, gmeow_errors::Diag> {
+/// on the same condition), or SHACL validation errors.
+fn slice_plan(
+    slice_dir: &Path,
+    shapes: &gmeow_slice_brief::ShapeUnion,
+) -> Result<SlicePlan, gmeow_errors::Diag> {
     // Match `assemble_packet`'s dataset: slice graph PLUS the alignment linkage under
     // `mappings/` (`slice_ttl_paths` omits the latter).
     let mut paths = gmeow_slice_quality::report::slice_ttl_paths(slice_dir);
@@ -199,10 +219,11 @@ fn slice_plan(slice_dir: &Path) -> Result<SlicePlan, gmeow_errors::Diag> {
 
     let terms = defined_terms(&ds, &slice_iri);
 
-    // Per-term exemplar tier = annotation completeness — computed by the SINGLE
-    // canonical library tiering so this pipeline projection and the `gmeow slice
-    // brief` CLI tier terms identically.
-    let tiers = gmeow_slice_brief::completeness_tiers(slice_dir)?;
+    // Per-term exemplar tier = SHACL per-term conformance gate (eligibility) ordered by
+    // coat completeness — computed by the SINGLE canonical library tiering against the
+    // pre-loaded shape union so this pipeline projection and the `gmeow slice brief` CLI
+    // tier terms identically.
+    let tiers = gmeow_slice_brief::exemplar_tiers(slice_dir, shapes)?;
 
     Ok(SlicePlan {
         term_count: terms.len(),

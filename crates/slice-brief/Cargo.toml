@@ -31,3 +31,8 @@ gmeow-logic-compile = { path = "../logic-compile" }
 # sha256 over the packet's semantic body (matches the repo's content-address choice
 # for the canonical-rdf12 reifier IRIs); byte-stable, no volatile fields.
 sha2 = "0.10"
+
+[dev-dependencies]
+# Scratch slice fixtures for the SHACL-gated exemplar tiering tests (a temp dir with a
+# bespoke manifest/module and a bespoke shape set), auto-cleaned on drop.
+tempfile = "3"

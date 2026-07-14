@@ -57,13 +57,14 @@ pub fn batch_range(batch: usize, filtered_len: usize) -> Option<Range<usize>> {
     Some(start..end)
 }
 
-/// The six authoring "coat" predicates whose per-term presence count IS the
-/// completeness tier (annotation completeness): `rdfs:label`, `skos:definition`,
+/// The six authoring "coat" predicates whose per-term presence count is a term's
+/// coat-completeness (annotation completeness): `rdfs:label`, `skos:definition`,
 /// `skos:example`, `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse`. Fully
-/// qualified so the reading is source-only and stable. This is the SINGLE canonical
-/// tiering — both the pipeline stage and the `gmeow slice brief` CLI derive their
-/// injected exemplar tiers from [`completeness_tiers`], so an in-repo slice's CLI
-/// brief and its committed projection tier identically.
+/// qualified so the reading is source-only and stable. Within the SHACL-conforming
+/// terms this count is the ORDERING key of the SINGLE canonical exemplar tiering
+/// ([`exemplar_tiers`]) — both the pipeline stage and the `gmeow slice brief` CLI
+/// derive their injected exemplar tiers from it, so an in-repo slice's CLI brief and
+/// its committed projection tier identically.
 const COAT_PREDICATES: [&str; 6] = [
     "http://www.w3.org/2000/01/rdf-schema#label",
     "http://www.w3.org/2004/02/skos/core#definition",
@@ -74,9 +75,12 @@ const COAT_PREDICATES: [&str; 6] = [
 ];
 
 /// The injected inputs to a single packet assembly. Exemplar tiers are injected by
-/// the caller (dependency inversion), so the library never picks a scoring
-/// authority: the pipeline passes tiers from the in-pipeline `gmeow:QualityAssessment`
-/// product; the CLI passes tiers from the bundle scorer.
+/// the caller (dependency inversion), so the library never picks a scoring authority.
+/// Both callers inject the SAME authority — [`exemplar_tiers`] — whose ranks are
+/// GATED by SHACL per-term conformance (a term is eligible iff it passed the
+/// validation gate — no `sh:Violation`-severity result names it as focus node) and
+/// ORDERED by coat completeness. A term with any shape violation is rank `0` and is
+/// never surfaced: exemplars are coats that "passed the quality gates".
 pub struct BriefInputs<'a> {
     /// The slice directory (holding `manifest.ttl`, `module.ttl`, …).
     pub slice_dir: &'a Path,
@@ -101,7 +105,7 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
     let slice_dir = inputs.slice_dir;
 
     // The slice authoring dataset (module + examples + tests + mappings) and the
-    // slice identity — loaded through the SHARED helpers so `completeness_tiers`
+    // slice identity — loaded through the SHARED helpers so `exemplar_tiers`
     // and this assembly read byte-identical inputs.
     let ds = load_slice_dataset(slice_dir)?;
     let slice_iri = slice_identity(slice_dir)?;
@@ -426,7 +430,7 @@ fn ordered_pair(a: &str, b: &str) -> (String, String) {
 /// the slice graph (module + examples + tests, via `slice_ttl_paths`) PLUS the
 /// alignment linkage under `mappings/` the external-grounding JOIN needs
 /// (`slice_ttl_paths` omits the latter, so it is gathered explicitly). This is the
-/// SINGLE dataset-loading path both the packet assembly and [`completeness_tiers`]
+/// SINGLE dataset-loading path both the packet assembly and [`exemplar_tiers`]
 /// go through, so their inputs are byte-identical.
 ///
 /// # Errors
@@ -442,7 +446,7 @@ fn load_slice_dataset(slice_dir: &Path) -> gmeow_errors::Result<std::sync::Arc<R
 
 /// The slice's identity IRI — the sole `gmeow:Slice` individual declared by
 /// `manifest.ttl` (which is NOT part of the slice graph). Shared by the packet
-/// assembly and [`completeness_tiers`] so both agree on the slice IRI.
+/// assembly and [`exemplar_tiers`] so both agree on the slice IRI.
 ///
 /// # Errors
 /// Hard-fails if `manifest.ttl` cannot be read or declares no `gmeow:Slice`.
@@ -459,38 +463,132 @@ fn slice_identity(slice_dir: &Path) -> gmeow_errors::Result<String> {
         })
 }
 
-/// The SINGLE canonical per-term completeness tiering, shared by the pipeline stage
-/// and the `gmeow slice brief` CLI. Loads the slice's authoring dataset the same way
-/// [`assemble_packet`] does, enumerates the slice's defined terms, and maps each term
-/// IRI to its **completeness count** — the number of the six authoring coat
-/// predicates ([`COAT_PREDICATES`]: `rdfs:label`, `skos:definition`, `skos:example`,
-/// `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse`) present on the term. This is
-/// a deterministic, source-only reading (no scoring infra, no bundle) intended to be
-/// injected as [`BriefInputs::exemplar_tiers`], so an in-repo slice's CLI brief and
-/// its committed pipeline projection tier terms identically.
+/// A pre-loaded SHACL shape union, assembled once via [`load_shape_union`] and reused
+/// across per-slice [`exemplar_tiers`] calls so the pipeline stage never reloads the
+/// shape files per slice.
+pub type ShapeUnion = purrdf::shapes::shapes::Shapes;
+
+/// Load the repo's SHACL shape union ONCE — the same union the live `make validate`
+/// gate enforces (`purrdf::shapes::shape_union::load_shapes`) — for reuse across
+/// per-slice [`exemplar_tiers`] calls. The pipeline stage loads it once per `run()`
+/// and threads it into every slice's tiering; the CLI loads it once for the single
+/// slice it briefs. Both therefore gate exemplars against a byte-identical shape
+/// union, preserving CLI↔pipeline parity in a checkout.
 ///
 /// # Errors
-/// Hard-fails if the slice graph cannot be read, or `manifest.ttl` declares no
-/// `gmeow:Slice` (a malformed slice — never a silent skip).
-pub fn completeness_tiers(slice_dir: &Path) -> gmeow_errors::Result<BTreeMap<String, i64>> {
+/// Hard-fails if the shape union cannot be assembled (e.g. `generated/shapes/` is
+/// missing — the shape gate is a REQUIRED input, never silently skipped or degraded
+/// to an ungated tiering).
+pub fn load_shape_union(repo_root: &Path) -> gmeow_errors::Result<ShapeUnion> {
+    purrdf::shapes::shape_union::load_shapes(repo_root)
+        .map(|(_dataset, shapes)| shapes)
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!(
+                    "{}: SHACL shape-union load failed: {e}",
+                    repo_root.display()
+                ),
+            })
+        })
+}
+
+/// Walk up from `slice_dir` to the repo root — the nearest ancestor carrying the
+/// generated SHACL shape directory (`generated/shapes/`) that [`load_shape_union`]
+/// reads. In an in-repo checkout this resolves to the SAME root the pipeline threads
+/// as its `input.root`, so the `gmeow slice brief` CLI gates exemplars against the
+/// same shape union as the committed pipeline projection.
+///
+/// # Errors
+/// Hard-fails if no ancestor carries `generated/shapes/` — the slice is not inside a
+/// gmeow checkout, so there is no shape gate to run (never silently degrade to an
+/// ungated tiering).
+pub fn resolve_repo_root(slice_dir: &Path) -> gmeow_errors::Result<PathBuf> {
+    let start = slice_dir
+        .canonicalize()
+        .unwrap_or_else(|_| slice_dir.to_path_buf());
+    for ancestor in start.ancestors() {
+        if ancestor.join("generated").join("shapes").is_dir() {
+            return Ok(ancestor.to_path_buf());
+        }
+    }
+    Err(gmeow_errors::Diag::of_kind(error::Io {
+        detail: format!(
+            "{}: no ancestor carries generated/shapes/ — cannot resolve the SHACL shape \
+             union required to gate exemplars by per-term conformance",
+            slice_dir.display()
+        ),
+    }))
+}
+
+/// The SINGLE canonical per-term exemplar tiering, shared by the pipeline `slice_brief`
+/// stage and the `gmeow slice brief` CLI. A term is an ELIGIBLE exemplar iff it PASSED
+/// the SHACL validation gate — validating the slice's authoring dataset (loaded exactly
+/// as [`assemble_packet`] loads it) against the repo shape union `shapes` yields NO
+/// `sh:Violation`-severity result naming it as focus node — AND it carries a non-empty
+/// authoring coat. Within the conforming set, coat completeness (the count of the six
+/// [`COAT_PREDICATES`] present, `0..=6`) is the ORDERING key, so a fuller conforming
+/// coat outranks a sparser one.
+///
+/// Concretely the returned `term-IRI -> rank` map sets
+/// `rank = if term conforms { completeness_count(0..=6) } else { 0 }`. Selection in
+/// [`assemble_packet`] gates on `rank > 0`, so a term with ANY shape violation (rank
+/// `0`) is never surfaced as an exemplar, and neither is a conforming-but-empty coat.
+/// This makes every surfaced exemplar provably a coat that passed the validation gate
+/// — not merely a source-only completeness count that could hide a shape violation.
+///
+/// Conformance is computed as the ABSENCE of a violating result (SHACL emits
+/// violations, not affirmative per-node conforms flags), so a term's eligibility is
+/// its complement in the violating-focus-node set. Deterministic: the dataset load,
+/// term enumeration, and validation are all deterministic, so the pipeline projection
+/// and the live CLI brief tier an in-repo slice's terms identically.
+///
+/// # Errors
+/// Hard-fails if the slice graph cannot be read, `manifest.ttl` declares no
+/// `gmeow:Slice`, or SHACL validation errors (a malformed slice / shape — never a
+/// silent skip).
+pub fn exemplar_tiers(
+    slice_dir: &Path,
+    shapes: &ShapeUnion,
+) -> gmeow_errors::Result<BTreeMap<String, i64>> {
     let ds = load_slice_dataset(slice_dir)?;
     let slice_iri = slice_identity(slice_dir)?;
     let terms = defined_terms(&ds, &slice_iri);
+
+    // The SHACL per-term conformance gate: validate the slice's authoring dataset
+    // against the repo shape union and collect the focus-node term IRIs that carry a
+    // Violation-severity result. A term "passed the gate" iff it is NOT in this set.
+    let report = purrdf::shapes::engine::validate_dataset(&ds, shapes).map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("{}: SHACL validation failed: {e}", slice_dir.display()),
+        })
+    })?;
+    let violating: BTreeSet<String> = report
+        .results
+        .iter()
+        .filter(|r| r.severity == purrdf::shapes::report::Severity::Violation)
+        .map(purrdf::shapes::report::ValidationResult::focus_value)
+        .collect();
 
     let pred_ids: Vec<Option<purrdf::TermId>> =
         COAT_PREDICATES.iter().map(|p| graph::id(&ds, p)).collect();
     let mut tiers: BTreeMap<String, i64> = BTreeMap::new();
     for term in &terms {
-        let Some(tid) = graph::id(&ds, term) else {
-            continue;
-        };
-        let mut count = 0i64;
-        for pid in pred_ids.iter().flatten() {
-            if graph::has_any(&ds, tid, *pid) {
-                count += 1;
+        // A violating term is ineligible (rank 0) regardless of coat completeness; a
+        // conforming term ranks by the count of coat predicates present.
+        let rank = if violating.contains(term) {
+            0
+        } else if let Some(tid) = graph::id(&ds, term) {
+            let mut count = 0i64;
+            for pid in pred_ids.iter().flatten() {
+                if graph::has_any(&ds, tid, *pid) {
+                    count += 1;
+                }
             }
-        }
-        tiers.insert(term.clone(), count);
+            count
+        } else {
+            0
+        };
+        tiers.insert(term.clone(), rank);
     }
     Ok(tiers)
 }
