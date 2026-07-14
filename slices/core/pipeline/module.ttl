@@ -485,6 +485,7 @@ gmeow:pipeline-build
         gmeow:stage-export-frame-shapes ,
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-governance-floors ,
+        gmeow:stage-export-projection-ceilings ,
         gmeow:stage-export-result-shapes ,
         gmeow:stage-validate-result-shape-composition ,
         gmeow:stage-export-json-schema ,
@@ -830,6 +831,17 @@ gmeow:stage-export-governance-floors
     gmeow:stageImpl "governance_floors" ;
     gmeow:producesFormat "governance-floors-tsv" .
 
+gmeow:stage-export-projection-ceilings
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: projection ceilings"@x-gmeow-english ;
+    skos:definition "Project the ontology-resident projection-vocabulary ratchet (gmeow:ProjectionCeilingCommitment per committed (slice, vocabulary) ungrounded-residue ceiling, gmeow:ProjectionVocabulary per guarded logic:-subsumable projection surface) to their two lossy TSVs under generated/governance/ — the P4/P17 projection of the ceiling ratchet otherwise hand-authored as governance/*.tsv. The ontology is canonical; a human LOWERS a ceiling by editing the commitment individual, never the generated TSV."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "projection_ceilings" ;
+    gmeow:producesFormat "projection-ceilings-tsv" .
+
 gmeow:stage-export-result-shapes
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
@@ -997,6 +1009,7 @@ gmeow:stage-gts-sink
         gmeow:stage-export-result-shapes ,
         gmeow:stage-export-constraint-shapes ,
         gmeow:stage-export-governance-floors ,
+        gmeow:stage-export-projection-ceilings ,
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,

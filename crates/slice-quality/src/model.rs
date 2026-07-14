@@ -227,6 +227,17 @@ impl CountKind {
             _ => None,
         }
     }
+
+    /// The `gmeow:vocabularyCountKind` individual's local name this variant round-trips
+    /// to — the exact inverse of [`Self::from_local`].
+    #[must_use]
+    pub fn as_local(&self) -> &'static str {
+        match self {
+            Self::Shape => "countKindShape",
+            Self::TypedAxiom => "countKindTypedAxiom",
+            Self::NonRdfSurface => "countKindNonRdfSurface",
+        }
+    }
 }
 
 /// A guarded `logic:`-subsumable projection vocabulary — a `gmeow:ProjectionVocabulary`
