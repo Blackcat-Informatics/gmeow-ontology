@@ -31,7 +31,7 @@ use purrdf::{
 #[cfg(test)]
 use rayon::prelude::*;
 
-use crate::node::{Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::statements::RDF12_PATH;
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -2897,6 +2897,12 @@ impl Stage for SnapshotStage {
     }
     fn consumes(&self) -> &[String] {
         &self.consumes
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // The aggregate snapshot is cheaper to assemble from its live upstream
+        // carriers than to deserialize and reparse its full canonical projection.
+        // Recompute preserves the complete fold and all downstream drift checks.
+        CachePolicy::Recompute
     }
     /// The named graphs this stage attaches to the carrier (its delta), from the
     /// single Rust-side attach table; mirrored by the slice module.ttl gmeow:attachesGraph

@@ -1824,6 +1824,7 @@ dependencies = [
  "ahash",
  "arrow-array",
  "arrow-schema",
+ "bincode",
  "blake3",
  "bytes",
  "ciborium",

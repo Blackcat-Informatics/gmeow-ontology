@@ -29,7 +29,7 @@ use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_result};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, RdfTerm};
 
 use crate::bundle::PipelineHandle;
-use crate::node::{ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
+use crate::node::{CachePolicy, ENGINE_RESOURCE, Stage, StageInput, StageOutput, StageProduct};
 
 /// COMMITTED logical path of the native told-vs-inferred closure (RDF 1.2). This is
 /// the SOLE reasoning pass: it reasons once over the object-level EDB
@@ -271,6 +271,13 @@ impl Stage for ReasonStage {
     }
     fn resources(&self) -> &[String] {
         &self.resources
+    }
+    fn cache_policy(&self) -> CachePolicy {
+        // This product carries the full closure plus several large report lanes.
+        // Structural cache hydration must parse that closure and re-derive its typed
+        // handle serially; the native reasoner rebuilds it faster from the already-live
+        // compile product. Recompute keeps every reasoning and diagnostics gate active.
+        CachePolicy::Recompute
     }
     fn consumed_entities(&self) -> &[(String, Vec<String>)] {
         &self.entities
