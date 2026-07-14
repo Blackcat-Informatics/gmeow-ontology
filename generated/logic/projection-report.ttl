@@ -11015,6 +11015,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:310c4ad93a3a58cc> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:31291e2f5d153fc8>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:31291e2f5d153fc8" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:31291e2f5d153fc8/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-rendering:31291e2f5d153fc8" ;
+    gmeow:lossyDrop "docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisFlagshipCounterExampleDepth ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:31291e2f5d153fc8> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:31ad4449c4a8be17>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-rendering:31ad4449c4a8be17" ;
@@ -11155,6 +11171,22 @@
     gmeow:lossySourceTerm gmeow:leftOpRelativeSize ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:3309acfd324d9931> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:339013867d271050>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:339013867d271050" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:339013867d271050/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-rendering:339013867d271050" ;
+    gmeow:lossyDrop "docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisProvenanceHonesty ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:339013867d271050> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:33bc1baaef73019a>
@@ -12380,6 +12412,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:567f2957460c804c> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:56c29fd89af825ee>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:56c29fd89af825ee" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:56c29fd89af825ee/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-rendering:56c29fd89af825ee" ;
+    gmeow:lossyDrop "docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalProjection ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:56c29fd89af825ee> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:56ecf447f465005c>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-rendering:56ecf447f465005c" ;
@@ -12481,6 +12529,22 @@
     gmeow:lossySourceTerm gmeow:axisMaximalGrounding ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5acd6b8c9d8b78b0> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5aec82fee6d5a57c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:5aec82fee6d5a57c" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5aec82fee6d5a57c/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-rendering:5aec82fee6d5a57c" ;
+    gmeow:lossyDrop "docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalInformation ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5aec82fee6d5a57c> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5b0f2e69fd89418b>
@@ -15405,6 +15469,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:aa8878c6de5bfa5d> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:aa93779dc98c8289>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:aa93779dc98c8289" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:aa93779dc98c8289/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-rendering:aa93779dc98c8289" ;
+    gmeow:lossyDrop "docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalGrounding ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:aa93779dc98c8289> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ab4626afd3d754cf>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-rendering:ab4626afd3d754cf" ;
@@ -16216,6 +16296,22 @@
     gmeow:lossySourceTerm gmeow:axisDocumentation ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bcae03adf11f74bf> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bcf7b827f81c235d>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:bcf7b827f81c235d" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bcf7b827f81c235d/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-rendering:bcf7b827f81c235d" ;
+    gmeow:lossyDrop "docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisOptimalTesting ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bcf7b827f81c235d> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bd78633570a1493a>
@@ -17872,6 +17968,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eb5da18ea14fdbcb> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eb818c7c6339472e>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:eb818c7c6339472e" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eb818c7c6339472e/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-rendering:eb818c7c6339472e" ;
+    gmeow:lossyDrop "docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisReasonerDerived ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eb818c7c6339472e> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ec2a81ff48a7de8f>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-rendering:ec2a81ff48a7de8f" ;
@@ -17893,6 +18005,22 @@
     rdfs:label "lang-docs-rendering:ec530d2d658de70f" ;
     gmeow:lossyDrop "actual: docs page rendering (zh, https://blackcatinformatics.ca/math/greaterAlternative): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ec9f5e845ffa8286>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-rendering:ec9f5e845ffa8286" ;
+    gmeow:lossyDrop "actual: docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ec9f5e845ffa8286/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-rendering:ec9f5e845ffa8286" ;
+    gmeow:lossyDrop "docs page rendering (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage): 2 target surface(s); derived preservation = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalLinkage ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ec9f5e845ffa8286> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eca34cab483c12aa>
@@ -20983,6 +21111,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:310c4ad93a3a58cc> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:31291e2f5d153fc8>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:31291e2f5d153fc8" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:31291e2f5d153fc8/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-translation:31291e2f5d153fc8" ;
+    gmeow:lossyDrop "docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisFlagshipCounterExampleDepth ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:31291e2f5d153fc8> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:31ad4449c4a8be17>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-translation:31ad4449c4a8be17" ;
@@ -21123,6 +21267,22 @@
     gmeow:lossySourceTerm gmeow:leftOpRelativeSize ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:3309acfd324d9931> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:339013867d271050>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:339013867d271050" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:339013867d271050/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-translation:339013867d271050" ;
+    gmeow:lossyDrop "docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisProvenanceHonesty ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:339013867d271050> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:33bc1baaef73019a>
@@ -22348,6 +22508,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:567f2957460c804c> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:56c29fd89af825ee>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:56c29fd89af825ee" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:56c29fd89af825ee/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-translation:56c29fd89af825ee" ;
+    gmeow:lossyDrop "docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalProjection ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:56c29fd89af825ee> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:56ecf447f465005c>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-translation:56ecf447f465005c" ;
@@ -22449,6 +22625,22 @@
     gmeow:lossySourceTerm gmeow:axisMaximalGrounding ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5acd6b8c9d8b78b0> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:5aec82fee6d5a57c>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:5aec82fee6d5a57c" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:5aec82fee6d5a57c/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-translation:5aec82fee6d5a57c" ;
+    gmeow:lossyDrop "docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalInformation ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5aec82fee6d5a57c> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5b0f2e69fd89418b>
@@ -25373,6 +25565,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:aa8878c6de5bfa5d> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:aa93779dc98c8289>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:aa93779dc98c8289" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:aa93779dc98c8289/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-translation:aa93779dc98c8289" ;
+    gmeow:lossyDrop "docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalGrounding ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:aa93779dc98c8289> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ab4626afd3d754cf>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-translation:ab4626afd3d754cf" ;
@@ -26184,6 +26392,22 @@
     gmeow:lossySourceTerm gmeow:axisDocumentation ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bcae03adf11f74bf> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:bcf7b827f81c235d>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:bcf7b827f81c235d" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:bcf7b827f81c235d/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-translation:bcf7b827f81c235d" ;
+    gmeow:lossyDrop "docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisOptimalTesting ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bcf7b827f81c235d> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bd78633570a1493a>
@@ -27840,6 +28064,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:eb5da18ea14fdbcb> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:eb818c7c6339472e>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:eb818c7c6339472e" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:eb818c7c6339472e/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-translation:eb818c7c6339472e" ;
+    gmeow:lossyDrop "docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisReasonerDerived ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:eb818c7c6339472e> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ec2a81ff48a7de8f>
     a logic:ProjectionTarget ;
     rdfs:label "lang-docs-translation:ec2a81ff48a7de8f" ;
@@ -27861,6 +28101,22 @@
     rdfs:label "lang-docs-translation:ec530d2d658de70f" ;
     gmeow:lossyDrop "actual: docs page translation roll-up (zh, https://blackcatinformatics.ca/math/greaterAlternative) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:ec9f5e845ffa8286>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-docs-translation:ec9f5e845ffa8286" ;
+    gmeow:lossyDrop "actual: docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-docs-translation:ec9f5e845ffa8286/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-docs-translation:ec9f5e845ffa8286" ;
+    gmeow:lossyDrop "docs page translation roll-up (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage) over 2 unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalLinkage ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ec9f5e845ffa8286> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-docs-translation:eca34cab483c12aa>
@@ -28894,7 +29150,7 @@
 <https://blackcatinformatics.ca/logic/target/lang-translation-doc:fr>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation-doc:fr" ;
-    gmeow:lossyDrop "actual: document roll-up over 689 translation unit(s); weakest-dominates join = logic:ValidationOnly" ;
+    gmeow:lossyDrop "actual: document roll-up over 705 translation unit(s); weakest-dominates join = logic:ValidationOnly" ;
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
@@ -29774,6 +30030,22 @@
     rdfs:label "lang-translation:0f5bfed037a38e02" ;
     gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/math/DerivedVariable|skos:definition)" ;
     logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:0f7ba917f04d6560>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:0f7ba917f04d6560" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:0f7ba917f04d6560/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:0f7ba917f04d6560" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection|rdfs:label)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalProjection ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:0f7ba917f04d6560> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:0f95f111634f4c40>
@@ -31177,6 +31449,22 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:28382880efd6d489>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:28382880efd6d489" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:28382880efd6d489/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:28382880efd6d489" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage|skos:definition)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalLinkage ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:28382880efd6d489> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:28a6d2025e0f4850>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:28a6d2025e0f4850" ;
@@ -32532,6 +32820,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:3f71c21e9e9364d7> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:3fd7f31837cda109>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:3fd7f31837cda109" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:3fd7f31837cda109/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:3fd7f31837cda109" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|skos:definition)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisReasonerDerived ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:3fd7f31837cda109> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:405962442a8437c8>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:405962442a8437c8" ;
@@ -32746,6 +33050,22 @@
     gmeow:lossySourceTerm gmeow:actionSell ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:4497982cf3e1382c> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:44a25ca7eefb5f1e>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:44a25ca7eefb5f1e" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:44a25ca7eefb5f1e/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:44a25ca7eefb5f1e" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth|rdfs:label)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisFlagshipCounterExampleDepth ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:44a25ca7eefb5f1e> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:450355174e56b003>
@@ -34717,6 +35037,22 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:6845515a9eda605f>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:6845515a9eda605f" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:6845515a9eda605f/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:6845515a9eda605f" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth|skos:definition)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisFlagshipCounterExampleDepth ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:6845515a9eda605f> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:687d0904f0c678c9>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:687d0904f0c678c9" ;
@@ -35191,6 +35527,22 @@
     rdfs:label "lang-translation:7165a0e72c44a55e" ;
     gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/math/ModelComparison|rdfs:label)" ;
     logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:718d6b34ae90931a>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:718d6b34ae90931a" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:718d6b34ae90931a/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:718d6b34ae90931a" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting|rdfs:label)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisOptimalTesting ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:718d6b34ae90931a> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:71bdb7cae81033f6>
@@ -36196,6 +36548,22 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:85d71df675ff73f0>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:85d71df675ff73f0" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:85d71df675ff73f0/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:85d71df675ff73f0" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting|skos:definition)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisOptimalTesting ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:85d71df675ff73f0> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:860b2ba021ea629f>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:860b2ba021ea629f" ;
@@ -37028,6 +37396,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:943ecf39669e3dd5> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:946edde1dc749273>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:946edde1dc749273" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:946edde1dc749273/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:946edde1dc749273" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty|rdfs:label)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisProvenanceHonesty ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:946edde1dc749273> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:947bea7608e03463>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:947bea7608e03463" ;
@@ -37656,6 +38040,22 @@
     rdfs:label "lang-translation:9ee9f2abec694d14" ;
     gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/math/usedAnalysisPlan|rdfs:label)" ;
     logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:9eeccb2737859a9a>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:9eeccb2737859a9a" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:9eeccb2737859a9a/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:9eeccb2737859a9a" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty|skos:definition)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisProvenanceHonesty ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:9eeccb2737859a9a> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:9f5135a8c6df9703>
@@ -38288,6 +38688,22 @@
     logic:complexityClass "n/a" ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:abdf39e51ca773c4>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:abdf39e51ca773c4" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:abdf39e51ca773c4/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:abdf39e51ca773c4" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage|rdfs:label)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalLinkage ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:abdf39e51ca773c4> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:ac1d11f8ae6bbae8>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:ac1d11f8ae6bbae8" ;
@@ -38376,6 +38792,22 @@
     rdfs:label "lang-translation:af20e4bb50e6168a" ;
     gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/math/AnalysisPlan|rdfs:label)" ;
     logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:af21429a43554437>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:af21429a43554437" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:af21429a43554437/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:af21429a43554437" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation|rdfs:label)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalInformation ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:af21429a43554437> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:af541c8e7d96fcd9>
@@ -38493,6 +38925,22 @@
     rdfs:label "lang-translation:b10a379d9fb75d74" ;
     gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (zh, https://blackcatinformatics.ca/math/targetTime|skos:definition)" ;
     logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:b10fef0cd2f357a5>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:b10fef0cd2f357a5" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:b10fef0cd2f357a5/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:b10fef0cd2f357a5" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding|rdfs:label)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalGrounding ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:b10fef0cd2f357a5> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:b1118b90a8617811>
@@ -39387,6 +39835,22 @@
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:c0a22d3468a1a36e> ;
     logic:preservationKind logic:ValidationOnly .
 
+<https://blackcatinformatics.ca/logic/target/lang-translation:c0b2ecb3e42549ea>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:c0b2ecb3e42549ea" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:c0b2ecb3e42549ea/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:c0b2ecb3e42549ea" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection|skos:definition)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalProjection ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:c0b2ecb3e42549ea> ;
+    logic:preservationKind logic:ValidationOnly .
+
 <https://blackcatinformatics.ca/logic/target/lang-translation:c0c724717580e4fe>
     a logic:ProjectionTarget ;
     rdfs:label "lang-translation:c0c724717580e4fe" ;
@@ -39615,6 +40079,22 @@
     gmeow:lossySourceTerm gmeow:exemptionProducer ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:c41ad222f51416e2> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:c481df84dbf3be63>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:c481df84dbf3be63" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|rdfs:label)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:c481df84dbf3be63/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:c481df84dbf3be63" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|rdfs:label)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisReasonerDerived ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:c481df84dbf3be63> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:c4c9824dfa885b3c>
@@ -40210,6 +40690,22 @@
     gmeow:lossySourceTerm gmeow:Prohibition ;
     logic:complexityClass "n/a" ;
     logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:d0056d814e01564c> ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:d01a11af2cfb21a0>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:d01a11af2cfb21a0" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:d01a11af2cfb21a0/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:d01a11af2cfb21a0" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation|skos:definition)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalInformation ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:d01a11af2cfb21a0> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:d0b6ce749d4002a9>
@@ -42235,6 +42731,22 @@
     rdfs:label "lang-translation:f2a06936f088447b" ;
     gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/math/UnitPolicy|rdfs:label)" ;
     logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:f2a610e789893f63>
+    a logic:ProjectionTarget ;
+    rdfs:label "lang-translation:f2a610e789893f63" ;
+    gmeow:lossyDrop "actual: unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding|skos:definition)" ;
+    logic:complexityClass "n/a" ;
+    logic:preservationKind logic:ValidationOnly .
+
+<https://blackcatinformatics.ca/logic/target/lang-translation:f2a610e789893f63/termloss/https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding>
+    a logic:TermProjectionLoss ;
+    rdfs:label "lang-translation:f2a610e789893f63" ;
+    gmeow:lossyDrop "unanalyzed surface pair: sense/register preservation not machine-verified (fr, https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding|skos:definition)" ;
+    gmeow:lossySourceTerm gmeow:afc-math-axisMaximalGrounding ;
+    logic:complexityClass "n/a" ;
+    logic:lossOfTarget <https://blackcatinformatics.ca/logic/target/lang-translation:f2a610e789893f63> ;
     logic:preservationKind logic:ValidationOnly .
 
 <https://blackcatinformatics.ca/logic/target/lang-translation:f2c0e6b08d59f81f>
@@ -94549,6 +95061,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:300242c6c7bab12d> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:3066a1b44a174ed6> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:310c4ad93a3a58cc> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:31291e2f5d153fc8> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:31ad4449c4a8be17> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:31b9729e3a9a3963> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:3207feb774df673b> ,
@@ -94559,6 +95072,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:32a210c0622e2b3f> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:32f33aef48ffd8f2> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:3309acfd324d9931> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:339013867d271050> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:33bc1baaef73019a> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:34435bce2dc4e7c9> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:345e52c14ab9c05b> ,
@@ -94654,6 +95168,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:561016cfc7f9f270> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:56309abcd66a57df> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:567f2957460c804c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:56c29fd89af825ee> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:56ecf447f465005c> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:576878dc823803c2> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:57a99dcc988dc179> ,
@@ -94661,6 +95176,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:58387df63d02fd41> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:59d8e15a647f13d5> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5acd6b8c9d8b78b0> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5aec82fee6d5a57c> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5b0f2e69fd89418b> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5b1d46be4c915141> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:5bcb30343282827a> ,
@@ -94883,6 +95399,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:aa5703954a6c9acf> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:aa87cde9c278b245> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:aa8878c6de5bfa5d> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:aa93779dc98c8289> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ab4626afd3d754cf> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ab7ff5f6f4d3eb4d> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ab8b08288b68d365> ,
@@ -94940,6 +95457,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bc75ba3e8cc79bde> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bc9750d40987ac67> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bcae03adf11f74bf> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bcf7b827f81c235d> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bd78633570a1493a> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bdbcc65ef56efcbf> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:bdbddf452311c0c2> ,
@@ -95067,8 +95585,10 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eaa7a5874b18adba> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eaada1a56205a84d> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eb5da18ea14fdbcb> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eb818c7c6339472e> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ec2a81ff48a7de8f> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ec530d2d658de70f> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ec9f5e845ffa8286> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:eca34cab483c12aa> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ece1e190dc5537e1> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-rendering:ed90419f672c360e> ,
@@ -95307,6 +95827,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:300242c6c7bab12d> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:3066a1b44a174ed6> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:310c4ad93a3a58cc> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:31291e2f5d153fc8> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:31ad4449c4a8be17> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:31b9729e3a9a3963> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:3207feb774df673b> ,
@@ -95317,6 +95838,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:32a210c0622e2b3f> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:32f33aef48ffd8f2> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:3309acfd324d9931> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:339013867d271050> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:33bc1baaef73019a> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:34435bce2dc4e7c9> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:345e52c14ab9c05b> ,
@@ -95412,6 +95934,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:561016cfc7f9f270> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:56309abcd66a57df> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:567f2957460c804c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:56c29fd89af825ee> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:56ecf447f465005c> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:576878dc823803c2> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:57a99dcc988dc179> ,
@@ -95419,6 +95942,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:58387df63d02fd41> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:59d8e15a647f13d5> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5acd6b8c9d8b78b0> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5aec82fee6d5a57c> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5b0f2e69fd89418b> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5b1d46be4c915141> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:5bcb30343282827a> ,
@@ -95641,6 +96165,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:aa5703954a6c9acf> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:aa87cde9c278b245> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:aa8878c6de5bfa5d> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:aa93779dc98c8289> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ab4626afd3d754cf> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ab7ff5f6f4d3eb4d> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ab8b08288b68d365> ,
@@ -95698,6 +96223,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bc75ba3e8cc79bde> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bc9750d40987ac67> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bcae03adf11f74bf> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bcf7b827f81c235d> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bd78633570a1493a> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bdbcc65ef56efcbf> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:bdbddf452311c0c2> ,
@@ -95825,8 +96351,10 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:eaa7a5874b18adba> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:eaada1a56205a84d> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:eb5da18ea14fdbcb> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:eb818c7c6339472e> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ec2a81ff48a7de8f> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ec530d2d658de70f> ,
+        <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ec9f5e845ffa8286> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:eca34cab483c12aa> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ece1e190dc5537e1> ,
         <https://blackcatinformatics.ca/logic/target/lang-docs-translation:ed90419f672c360e> ,
@@ -95981,6 +96509,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:0ef70977e0f0e856> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:0f4a37b20d07feea> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:0f5bfed037a38e02> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:0f7ba917f04d6560> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:0f95f111634f4c40> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:0fdf8f7144e19063> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:0fee8a9eb344c5aa> ,
@@ -96104,6 +96633,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:27926cdc80643209> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:27b4541f5d4e974b> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:27e940318d2c4275> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:28382880efd6d489> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:28a6d2025e0f4850> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:297030f4bfcd7ce4> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:29eb3c7c1b96f576> ,
@@ -96214,6 +96744,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:3eee20e19fd742a8> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:3f159ebc8dfe6a87> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:3f71c21e9e9364d7> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:3fd7f31837cda109> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:405962442a8437c8> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:40c50004489e6346> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:40eb775ef28cd943> ,
@@ -96232,6 +96763,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:448898ef311c61b1> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:44952e1c1290d5cb> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:4497982cf3e1382c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:44a25ca7eefb5f1e> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:450355174e56b003> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:451432df87291622> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:451be739f88b1284> ,
@@ -96404,6 +96936,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:67a91e65776761a2> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:67c2b657b19dfa89> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:67d2cf295911b5b6> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:6845515a9eda605f> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:687d0904f0c678c9> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:68a62b93fa906170> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:68c87018d199c5d7> ,
@@ -96445,6 +96978,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:710b2bff8829d6d1> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:7156009ca13da8e4> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:7165a0e72c44a55e> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:718d6b34ae90931a> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:71bdb7cae81033f6> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:71f87a85d70c589b> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:7237fb6cade238ff> ,
@@ -96533,6 +97067,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:8589196da67d5578> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:85b1eef3cc03bdb5> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:85c27e6309e2414f> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:85d71df675ff73f0> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:860b2ba021ea629f> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:87333f8812ceb636> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:873cd267cfe5084e> ,
@@ -96603,6 +97138,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:93964bc4fe794dd9> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:93cb31cabbadb233> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:943ecf39669e3dd5> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:946edde1dc749273> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:947bea7608e03463> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:94a940a6dcac94ec> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:94bb5fa1593f18e0> ,
@@ -96657,6 +97193,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:9e9c51dd378ded1e> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:9edfa4a556e23846> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:9ee9f2abec694d14> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:9eeccb2737859a9a> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:9f5135a8c6df9703> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:9f668a8329a16712> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:9f74809b35190f5a> ,
@@ -96711,6 +97248,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:aae71f0a88c34e24> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:ab8692334c5c96ac> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:aba38f5328e5a65d> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:abdf39e51ca773c4> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:ac1d11f8ae6bbae8> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:ad3946b5c0445c16> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:ad6ed88fcf063aae> ,
@@ -96720,6 +97258,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:ae640ffbaef5f7c3> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:af192b657803845d> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:af20e4bb50e6168a> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:af21429a43554437> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:af541c8e7d96fcd9> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:af87fbe45d26959a> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:afbee87b1b09d913> ,
@@ -96729,6 +97268,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:b0a390762f8d474b> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:b0fceac9b0190a70> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:b10a379d9fb75d74> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:b10fef0cd2f357a5> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:b1118b90a8617811> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:b16f093e166efc73> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:b19c75b09a86aec9> ,
@@ -96805,6 +97345,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:c032dc6bcc9b6427> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c055a5d9355bb30d> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c0a22d3468a1a36e> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:c0b2ecb3e42549ea> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c0c724717580e4fe> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c0d08dfc71331461> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c12807e74e2ee6a6> ,
@@ -96825,6 +97366,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:c35cee24964cceb6> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c38205f8c3c59749> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c41ad222f51416e2> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:c481df84dbf3be63> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c4c9824dfa885b3c> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c4e8f27528f93712> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:c50574f93b1fb577> ,
@@ -96874,6 +97416,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:cfa938a314447183> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:cffc9793527d80d0> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:d0056d814e01564c> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:d01a11af2cfb21a0> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:d0b6ce749d4002a9> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:d0e0cfaf96b5af58> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:d0fda6d509ab5d82> ,
@@ -97045,6 +97588,7 @@ logic:projection-report
         <https://blackcatinformatics.ca/logic/target/lang-translation:f255fc79d11515d0> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:f28816bdc680d86b> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:f2a06936f088447b> ,
+        <https://blackcatinformatics.ca/logic/target/lang-translation:f2a610e789893f63> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:f2c0e6b08d59f81f> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:f37f8977eb5c678e> ,
         <https://blackcatinformatics.ca/logic/target/lang-translation:f39b578faa448c29> ,
