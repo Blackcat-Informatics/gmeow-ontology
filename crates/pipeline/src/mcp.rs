@@ -2879,6 +2879,10 @@ impl McpServer {
             "verdict": verdict_json,
             "witness": witness_json,
             "conjecture": out.node_iri,
+            // T1: the same grounded-judgment key/shape `verify_graph`/`explain_quad` carry —
+            // here the embedded `logic:ReasoningResult` the engine's verdict was read from,
+            // wrapped in the content-addressed `logic:Conjecture` node.
+            "judgment_nquads": out.verdict_nt,
         })
         .to_string())
     }
@@ -2935,6 +2939,10 @@ impl McpServer {
             "discharge": out.discharge,
         });
 
+        // T1: the verdict — and its grounded `judgment_nquads` projection — was ALREADY
+        // computed by `evaluate_conjecture` before the TR gate ran, so it is available (and
+        // carried) on every path below, including precondition-unmet: the engine's judgment
+        // about the candidate is real regardless of whether the persist itself succeeded.
         if let Some(reason) = &out.precondition_unmet {
             return Ok(json!({
                 "ok": false,
@@ -2942,6 +2950,7 @@ impl McpServer {
                 "verdict": verdict_json,
                 "witness": witness_json,
                 "transaction": txn_json(&out.receipt),
+                "judgment_nquads": out.verdict_nt,
             })
             .to_string());
         }
@@ -2953,6 +2962,7 @@ impl McpServer {
                 "witness": witness_json,
                 "conjecture": out.node_iri,
                 "transaction": txn_json(&out.receipt),
+                "judgment_nquads": out.verdict_nt,
             })
             .to_string());
         }
@@ -2963,6 +2973,7 @@ impl McpServer {
             "witness": witness_json,
             "conjecture": out.node_iri,
             "transaction": txn_json(&out.receipt),
+            "judgment_nquads": out.verdict_nt,
         })
         .to_string())
     }
@@ -3006,6 +3017,14 @@ impl McpServer {
             obtains.push(MCP_CONJECTURE_IN_LIBRARY);
         }
         let receipt = execute_memory_txn(MCP_WITHDRAW_CONJECTURE_SCHEMA, &obtains, dry_run)?;
+        // T1: the compensating withdrawal's OWN grounded RDF projection — content-addressed on
+        // (conjecture_id, reason), pure and side-effect-free — computed once here so BOTH the
+        // hypothetical (dry-run) and committed success paths can carry it under the SAME
+        // `judgment_nquads` key the read tools and the other two conjecture tools use. The
+        // precondition-unmet path below deliberately does NOT carry it: no withdrawal was
+        // validly grounded (unknown id, or already withdrawn), so emitting this body there
+        // would fabricate a judgment about a state change that never obtained.
+        let nt_body = project_conjecture_withdrawal(conjecture_id, reason);
         match &receipt {
             TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
                 let detail = if !exists {
@@ -3028,6 +3047,7 @@ impl McpServer {
                     "conjecture": conjecture_id,
                     "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
                     "transaction": txn_json(&receipt),
+                    "judgment_nquads": nt_body,
                 })
                 .to_string());
             }
@@ -3038,7 +3058,6 @@ impl McpServer {
         // marked `ConjectureWithdrawn`, author reason, reviewer-asserted provenance), then a
         // cold-auditable trajectory segment keyed to a content-addressed call id. Both are
         // NEW segments — the library is append-only, so no prior segment's bytes are touched.
-        let nt_body = project_conjecture_withdrawal(conjecture_id, reason);
         write_conjecture_segment(&path, &nt_body)?;
         let call_id = format!(
             "urn:gmeow:conjecture-call:{}",
@@ -3056,6 +3075,7 @@ impl McpServer {
             "conjecture": conjecture_id,
             "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
             "transaction": txn_json(&receipt),
+            "judgment_nquads": nt_body,
         })
         .to_string())
     }
@@ -7744,6 +7764,28 @@ mod tests {
             "conjecture_test must never render a committed flag: {resp}"
         );
 
+        // T1 (G7): the grounded judgment travels on the SAME `judgment_nquads` key
+        // `verify_graph`/`explain_quad` carry — even on this pure, nothing-persisted path —
+        // and round-trips through the shared reader as a real `logic:Conjecture` node
+        // embedding a non-empty `logic:ReasoningResult`.
+        let judgment = resp["judgment_nquads"]
+            .as_str()
+            .expect("conjecture_test must carry a judgment_nquads string");
+        assert!(
+            !judgment.trim().is_empty(),
+            "judgment_nquads must not be empty"
+        );
+        let record = gmeow_logic::result_rdf::parse_conjecture_verdict(judgment)
+            .expect("judgment_nquads must parse as a conjecture-verdict graph");
+        assert_eq!(
+            record.lifecycle,
+            ConjectureLifecycleState::RefutedInStandpoint
+        );
+        assert!(
+            !project_reasoning_result(&record.verdict).trim().is_empty(),
+            "the embedded logic:ReasoningResult body must be non-empty"
+        );
+
         // The library file is BYTE-UNCHANGED (still absent): no TR gate, no append.
         assert!(
             !path.exists(),
@@ -7871,6 +7913,27 @@ mod tests {
             "a dry run must write nothing to the library"
         );
 
+        // T1 (G7): `store_conjecture`'s dry-run path STILL carries the grounded judgment under
+        // the SAME `judgment_nquads` key the read tools and `conjecture_test` use — a
+        // hypothetical persist is not a hypothetical verdict; the engine really ran.
+        let judgment = resp["judgment_nquads"]
+            .as_str()
+            .expect("store_conjecture dry-run must carry a judgment_nquads string");
+        assert!(
+            !judgment.trim().is_empty(),
+            "judgment_nquads must not be empty"
+        );
+        let record = gmeow_logic::result_rdf::parse_conjecture_verdict(judgment)
+            .expect("judgment_nquads must parse as a conjecture-verdict graph");
+        assert_eq!(
+            record.lifecycle,
+            ConjectureLifecycleState::RefutedInStandpoint
+        );
+        assert!(
+            !project_reasoning_result(&record.verdict).trim().is_empty(),
+            "the embedded logic:ReasoningResult body must be non-empty"
+        );
+
         // A second, committing call on the SAME candidate now appends for real: the dry run
         // above left the library byte-unchanged, so this is the library's FIRST segment.
         let committed = text_payload(server.call_tool_result(
@@ -7883,6 +7946,13 @@ mod tests {
         ));
         assert_eq!(committed["ok"], true);
         assert!(path.exists() && fs::metadata(&path).unwrap().len() > 0);
+        // The committed path carries judgment_nquads too.
+        assert!(
+            committed["judgment_nquads"]
+                .as_str()
+                .is_some_and(|s| !s.trim().is_empty()),
+            "the committed store_conjecture response must also carry judgment_nquads: {committed}"
+        );
     }
 
     /// Store a real conjecture through the shipped `store_conjecture` tool and return its
@@ -7932,6 +8002,14 @@ mod tests {
         assert_eq!(resp["lifecycle"], "withdrawn");
         assert_eq!(resp["transaction"]["committed"], true);
         assert_eq!(resp["transaction"]["succeeded"], true);
+        // T1 (G7): the compensating withdrawal carries its own grounded RDF projection under
+        // the SAME `judgment_nquads` key — the target node re-marked ConjectureWithdrawn.
+        assert!(
+            resp["judgment_nquads"]
+                .as_str()
+                .is_some_and(|s| s.contains("ConjectureWithdrawn")),
+            "refute_conjecture must carry judgment_nquads naming ConjectureWithdrawn: {resp}"
+        );
 
         // The EFFECTIVE lifecycle (segment order) is now Withdrawn.
         let after = read_conjecture_library(&path).unwrap();
@@ -8077,6 +8155,15 @@ mod tests {
         assert_eq!(resp["dry_run"], true);
         assert_eq!(resp["lifecycle"], "withdrawn");
         assert_eq!(resp["transaction"]["committed"], false);
+        // T1 (G7): the hypothetical withdrawal still carries judgment_nquads — the RDF
+        // projection is pure and side-effect-free, so witnessing it costs nothing written.
+        assert!(
+            resp["judgment_nquads"]
+                .as_str()
+                .is_some_and(|s| s.contains("ConjectureWithdrawn")),
+            "refute_conjecture dry-run must carry judgment_nquads naming ConjectureWithdrawn: \
+             {resp}"
+        );
 
         // Nothing appended: bytes unchanged AND the effective lifecycle is still Open.
         let after = fs::read(&path).expect("library bytes after dry run");
