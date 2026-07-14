@@ -6,8 +6,10 @@
 //!
 //! For each covered term the packet gathers its definition and axioms, its bounded
 //! graph neighbourhood (a depth-1 CBD) and definitional-dependency closure, a handful
-//! of same-slice exemplar coats (their quality tiers are **injected** by the caller —
-//! the library never picks a scoring authority), the term's cross-ontology grounding
+//! of same-slice exemplar coats (their tiers are **injected** by the caller, so the
+//! library never picks a scoring authority — both callers inject [`exemplar_tiers`],
+//! whose eligibility is GATED by SHACL per-term conformance and ordered by coat
+//! completeness), the term's cross-ontology grounding
 //! (SSSOM `gmeow:TermEquivalence` alignments), and its cross-lingual grounding
 //! (`fr`/`zh` translations JOINed from the per-slice `.po` catalogs). A missing
 //! translation or external mapping is a RECORDED explicit "absent" cell, never a
@@ -37,8 +39,8 @@ pub mod render;
 pub mod turtle;
 
 pub use assemble::{
-    BriefInputs, CHUNK, assemble_packet, batch_count, batch_range, completeness_tiers,
-    defined_terms,
+    BriefInputs, CHUNK, ShapeUnion, assemble_packet, batch_count, batch_range, defined_terms,
+    exemplar_tiers, load_shape_union, resolve_repo_root,
 };
 pub use model::{
     Annotation, AuthoringPacket, ClosureEntry, CoveredTerm, GroundingAttribute, GroundingCell,
