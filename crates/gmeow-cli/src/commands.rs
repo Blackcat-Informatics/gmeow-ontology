@@ -2064,6 +2064,48 @@ pub fn explain(reporter: &dyn Reporter, target_iri: String, file: Option<PathBuf
     }
 }
 
+// ── slice quality ────────────────────────────────────────────────────────────
+
+/// `gmeow slice quality` — score an EXTERNAL slice directory against the embedded
+/// `gmeow.gts` bundle's rubric (no repo checkout, no generator inputs, no
+/// network): the wheel-shippable consumer runtime entry point for
+/// [`gmeow_slice_quality::score_external_slice_bytes`].
+pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str) -> i32 {
+    let report = match gmeow_slice_quality::score_external_slice_bytes(BUNDLE_GTS, dir) {
+        Ok(r) => r,
+        Err(e) => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.quality.score",
+                format!("cannot score {}: {e}", dir.display()),
+            );
+        }
+    };
+    let rendered = match format {
+        "human" => Ok(report.render_text()),
+        "json" => gmeow_errors::render::to_json(&report.to_report()),
+        "sarif" => gmeow_errors::render::to_sarif(&report.to_report()),
+        other => {
+            return fail(
+                reporter,
+                "gmeow-cli.slice.quality.unknown-format",
+                format!("unknown --format {other:?}: expected human, json, or sarif"),
+            );
+        }
+    };
+    match rendered {
+        Ok(text) => {
+            print!("{text}");
+            0
+        }
+        Err(e) => fail(
+            reporter,
+            "gmeow-cli.slice.quality.render",
+            format!("cannot render slice-quality report: {e}"),
+        ),
+    }
+}
+
 #[cfg(test)]
 mod explain_tests {
     use gmeow_cli_core::{ConsoleMode, reporter_for};

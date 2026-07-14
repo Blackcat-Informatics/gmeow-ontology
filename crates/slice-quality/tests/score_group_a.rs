@@ -10,7 +10,7 @@
 use std::path::{Path, PathBuf};
 
 use gmeow_slice_quality::axes;
-use gmeow_slice_quality::score::ScoreContext;
+use gmeow_slice_quality::score::{ScoreContext, ScoringEnv};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -39,6 +39,7 @@ fn provenance_honesty_is_perfect_on_its_own_exemplar() {
         "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric".to_owned(),
         slice_dir(),
         &ds,
+        ScoringEnv::Repo,
     );
     let prov = axes::resolve("provenance_honesty").unwrap()(&ctx);
     assert_eq!(
@@ -60,6 +61,7 @@ fn group_a_axes_produce_real_scores() {
         "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric".to_owned(),
         slice_dir(),
         &ds,
+        ScoringEnv::Repo,
     );
     assert!(!ctx.terms.is_empty(), "the slice has authored terms");
 

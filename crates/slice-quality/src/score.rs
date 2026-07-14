@@ -9,11 +9,36 @@
 //! output is always about the one target slice, whatever the read scope.
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use gmeow_errors::{Finding, Severity, Standpoint};
+use gmeow_lang_bridge::GmnDictionary;
 use purrdf::RdfDataset;
 
 use crate::graph;
+
+/// Where the two repo-anchored axes (`gmn1_coverage`, `DocMaturity`) source their
+/// wide-scope inputs — the shared `slices/grounding/lang/` dictionary and the
+/// documentation model — from.
+///
+/// The repo-anchored axes read more than the one slice's own `.ttl`: they need a
+/// dictionary and a documentation model that normally live in the surrounding
+/// checkout. This seam lets a foreign slice pulled in on its own (with no repo
+/// around it) instead carry those inputs in an embedded bundle. Every in-repo
+/// caller stays [`ScoringEnv::Repo`], byte-for-byte the pre-seam behaviour.
+#[derive(Clone)]
+pub enum ScoringEnv {
+    /// Source wide-scope inputs from the surrounding repo checkout (the verbatim
+    /// pre-seam behaviour): read `slices/grounding/lang/module.ttl` off disk and
+    /// build the documentation model with a repo-wide `slices/` sweep.
+    Repo,
+    /// Source wide-scope inputs from an embedded bundle. The carried dictionary is
+    /// ALREADY loaded and validated (constructed with `?` at bundle-build time, so a
+    /// corrupt wheel hard-fails there): the `gmn1_coverage` arm uses it directly with
+    /// no tolerant advisory. `DocMaturity` ignores the payload and builds a fresh
+    /// single-slice model from the slice's own directory.
+    Bundle(Arc<GmnDictionary>),
+}
 
 /// Everything an axis primitive may read about the slice under assessment.
 pub struct ScoreContext<'a> {
@@ -26,19 +51,27 @@ pub struct ScoreContext<'a> {
     /// The slice's own authored term IRIs (typed subjects `rdfs:isDefinedBy`
     /// the slice), sorted — the population most per-term axes score over.
     pub terms: Vec<String>,
+    /// Where the two repo-anchored axes source their wide-scope inputs.
+    pub env: ScoringEnv,
 }
 
 impl<'a> ScoreContext<'a> {
     /// Build a context for `slice_iri`, computing the slice's own term set from
     /// the graph (subjects whose `rdfs:isDefinedBy` is the slice IRI).
     #[must_use]
-    pub fn new(slice_iri: String, slice_dir: PathBuf, graph: &'a RdfDataset) -> Self {
+    pub fn new(
+        slice_iri: String,
+        slice_dir: PathBuf,
+        graph: &'a RdfDataset,
+        env: ScoringEnv,
+    ) -> Self {
         let terms = slice_terms(graph, &slice_iri);
         Self {
             slice_iri,
             slice_dir,
             graph,
             terms,
+            env,
         }
     }
 }

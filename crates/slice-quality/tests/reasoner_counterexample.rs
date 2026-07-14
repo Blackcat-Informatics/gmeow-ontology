@@ -19,7 +19,7 @@
 use std::path::PathBuf;
 
 use gmeow_slice_quality::reasoner::reasoner_axis;
-use gmeow_slice_quality::score::ScoreContext;
+use gmeow_slice_quality::score::{ScoreContext, ScoringEnv};
 
 /// A read-only snapshot of the reasoner axis result.
 struct View {
@@ -129,6 +129,7 @@ impl Fixture {
             "https://blackcatinformatics.ca/gmeow/slices/fixture".to_owned(),
             self.dir.clone(),
             &ds,
+            ScoringEnv::Repo,
         );
         let s = reasoner_axis(&ctx);
         View {
@@ -248,6 +249,7 @@ fn structural_only_counterexample_is_not_a_logical_obligation() {
         "https://blackcatinformatics.ca/gmeow/slices/fixture".to_owned(),
         dir.clone(),
         &ds,
+        ScoringEnv::Repo,
     );
     let s = reasoner_axis(&ctx);
 

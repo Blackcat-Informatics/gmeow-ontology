@@ -256,6 +256,25 @@ pub enum Commands {
         #[command(subcommand)]
         command: ConjectureCommands,
     },
+    /// GMEOW slice-quality tools: score an external slice directory against the embedded bundle.
+    Slice {
+        #[command(subcommand)]
+        command: SliceCommands,
+    },
+}
+
+/// The `gmeow slice` nested subcommands.
+#[derive(Debug, Subcommand)]
+pub enum SliceCommands {
+    /// Score an external slice directory against the embedded gmeow.gts bundle
+    /// (no repo checkout required) and render its quality report.
+    Quality {
+        /// Path to the external slice directory to score.
+        dir: PathBuf,
+        /// Output serialization: `human` (default), `json`, or `sarif`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
+    },
 }
 
 /// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
@@ -484,6 +503,11 @@ pub fn run() -> i32 {
                 max_steps,
                 max_answers,
             ),
+        },
+        Commands::Slice { command } => match command {
+            SliceCommands::Quality { dir, format } => {
+                commands::slice_quality(reporter, &dir, &format)
+            }
         },
     }
 }
