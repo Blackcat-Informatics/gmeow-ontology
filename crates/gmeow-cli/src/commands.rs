@@ -2202,4 +2202,53 @@ mod explain_tests {
             "an unknown skolem IRI is a hard fail"
         );
     }
+
+    #[test]
+    fn explain_decomposes_a_chase_invented_null_in_the_shipped_bundle() {
+        // AC2 on the PRODUCTION surface: the shipped gmeow.gts carries chase-invented
+        // nulls; `gmeow explain <skolem-iri>` decomposes one over the real bundle,
+        // reading its skolem IRI FROM the bundle (never hand-built).
+        let dataset = diagnostics_dataset(BUNDLE_GTS).expect("fold shipped bundle diagnostics");
+        let witnesses = read_invented_witnesses(&dataset).expect("read shipped invented witnesses");
+        assert!(
+            !witnesses.is_empty(),
+            "the shipped bundle carries NO chase-invented null — explain(witness) has \
+             nothing to decompose on the production surface"
+        );
+        let iri = witnesses
+            .witnesses
+            .keys()
+            .next()
+            .expect("a shipped invented null")
+            .clone();
+        let findings = read_findings(&dataset).expect("read shipped findings");
+
+        let text = render_explanation(&findings, &witnesses, &iri)
+            .expect("explain a shipped invented null");
+        assert!(
+            text.contains("invented witness"),
+            "labels the witness: {text}"
+        );
+        assert!(
+            text.contains("firing rule"),
+            "prints the firing rule: {text}"
+        );
+        assert!(text.contains("ordinal"), "prints the ordinal: {text}");
+        assert!(
+            text.contains("frontier"),
+            "prints the frontier binding: {text}"
+        );
+        assert!(
+            text.contains("proof height"),
+            "prints the bounded proof height: {text}"
+        );
+
+        // The shipped invented null explains with exit 0 through the i32 command surface.
+        let reporter = reporter_for(ConsoleMode::Text);
+        assert_eq!(
+            explain(reporter.as_ref(), iri, None),
+            0,
+            "a shipped chase-invented null explains successfully"
+        );
+    }
 }
