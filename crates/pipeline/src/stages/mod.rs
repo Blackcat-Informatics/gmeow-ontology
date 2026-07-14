@@ -84,6 +84,9 @@ pub mod schemas;
 // Shared identifier / text helpers lifted out of `schemas` so the LinkML/TS/GraphQL
 // renderer and the Pydantic package emitter share ONE copy of each rule.
 pub(crate) mod schema_ident;
+// The authoring-packet corpus producer: assembles a gmeow:AuthoringPacket per in-repo
+// slice batch and folds the union into the carrier as graph/authoring-briefs.
+pub mod slice_brief;
 pub mod source_load;
 pub mod statements;
 // Shared value-vocabulary enum enrichment for the SHACL→JSON-Schema/Pydantic surfaces.
@@ -106,6 +109,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
     registry.register("mappings", Arc::new(mappings::MappingsStage::new()));
+    registry.register("slice-brief", Arc::new(slice_brief::SliceBriefStage::new()));
     registry.register(
         "math_producers",
         Arc::new(math_producers::MathProducersStage::new()),

@@ -172,6 +172,10 @@ pub fn full_spec() -> PipelineSpec {
         // producer's deterministic RDF graph to the carrier (folded into gmeow.gts by
         // stage-snapshot).
         st("stage-math-producers", "math_producers", &[]),
+        // Leaf compute: assemble a gmeow:AuthoringPacket per in-repo slice batch and
+        // attach the union as graph/authoring-briefs (folded into gmeow.gts by
+        // stage-snapshot). It reads the authored slice sources directly — no upstream.
+        st("stage-slice-brief", "slice-brief", &[]),
         st("stage-mappings", "mappings", &["stage-compile-logic"]),
         st_reason(
             "stage-reason",
@@ -251,6 +255,9 @@ pub fn full_spec() -> PipelineSpec {
                 // folded into gmeow.gts.
                 "stage-math-producers",
                 "stage-reason",
+                // The authoring-packet corpus (graph/authoring-briefs), folded into
+                // gmeow.gts and its fanout twin generated/briefs/authoring-packets.nt.
+                "stage-slice-brief",
                 // The self-description named graphs (authored default / imports / metadata
                 // / alignments / slice-analysis / verify / provenance): the presenter reads
                 // them off this product instead of re-loading + re-canonicalizing sources.

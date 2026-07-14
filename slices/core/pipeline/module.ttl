@@ -444,6 +444,7 @@ gmeow:pipeline-build
         gmeow:stage-compile-logic ,
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
+        gmeow:stage-slice-brief ,
         gmeow:stage-reason ,
         gmeow:stage-gts-compose ,
         gmeow:stage-validate ,
@@ -531,6 +532,16 @@ gmeow:stage-math-producers
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "math_producers" .
+
+gmeow:stage-slice-brief
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "slice-brief"@x-gmeow-english ;
+    skos:definition "Assemble a gmeow:AuthoringPacket for every in-repo slice batch — the term definitions and axioms, the bounded graph neighbourhood, the same-slice exemplar coats, and the cross-ontology / cross-lingual grounding cross-table — and fold the union into the carrier as the graph/authoring-briefs corpus, so the shippable authoring deliverable rides in gmeow.gts (and its fanout twin generated/briefs/authoring-packets.nt) rather than living only behind a test-side gate. A leaf compute stage: it consumes no upstream product — it reads the authored slice sources (module, examples, tests, mappings, and i18n translation catalogs) directly, and injects a source-only per-term annotation-completeness tier as the exemplar authority."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:precondition gmeow:stageInputsAvailable ;
+    logic:capability gmeow:stageExecutorCapability ;
+    gmeow:stageImpl "slice-brief" .
 
 gmeow:stage-reason
     a gmeow:PipelineStage ;
@@ -646,6 +657,7 @@ gmeow:stage-snapshot
         gmeow:stage-mappings ,
         gmeow:stage-math-producers ,
         gmeow:stage-reason ,
+        gmeow:stage-slice-brief ,
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
         gmeow:stage-term-manifest ,
@@ -1003,6 +1015,10 @@ gmeow:stage-math-producers
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/pvalue-tri-slice> ,
         <https://blackcatinformatics.ca/gmeow/graph/math-producers/r-bridge> .
 
+gmeow:stage-slice-brief
+    gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/authoring-briefs> .
+
 gmeow:stage-mappings
     gmeow:attachesGraph
         <https://blackcatinformatics.ca/gmeow/graph/alignments> ,
@@ -1032,6 +1048,7 @@ gmeow:stage-docs-render
 
 gmeow:stage-snapshot
     gmeow:attachesGraph
+        <https://blackcatinformatics.ca/gmeow/graph/fanout/briefs/authoring-packets.nt> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq> ,
         <https://blackcatinformatics.ca/gmeow/graph/fanout/diagnostics/logic-compile.nq> ,
@@ -1117,6 +1134,7 @@ gmeow:stage-snapshot
 # =========================================================================== #
 
 gmeow:pipeline-build gmeow:fanoutExtracts
+    gmeow:fanout-briefs-authoring-packets ,
     gmeow:fanout-catalog-constraint-catalog ,
     gmeow:fanout-catalog-term-content-manifest ,
     gmeow:fanout-diagnostics-logic-compile ,
@@ -1134,6 +1152,14 @@ gmeow:pipeline-build gmeow:fanoutExtracts
     gmeow:fanout-profiles ,
     gmeow:fanout-research-objects ,
     gmeow:fanout-edoal-projections .
+
+gmeow:fanout-briefs-authoring-packets a gmeow:FanoutExtraction ;
+    rdfs:label "fanout briefs authoring packets"@x-gmeow-english ;
+    skos:definition "Fanout reconstruction row: the committed path generated/briefs/authoring-packets.nt is rebuilt from the shipped gmeow.gts as a RDF-fanout named-graph fold serialized as N-Triples. One row of the gmeow:fanoutExtracts path-to-representative bijection the superset gate enforces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:extractsPath "generated/briefs/authoring-packets.nt" ; gmeow:extractsMatch "exact" ;
+    gmeow:extractsGraphFamily "rdf-fanout" ; gmeow:extractsForm "ntriples" .
 
 gmeow:fanout-catalog-constraint-catalog a gmeow:FanoutExtraction ;
     rdfs:label "fanout catalog constraint catalog"@x-gmeow-english ;
