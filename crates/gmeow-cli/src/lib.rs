@@ -91,7 +91,8 @@ pub enum Commands {
         /// GTS snapshot to inspect (default: bundled gmeow.gts).
         file: Option<PathBuf>,
     },
-    /// Verify GTS signatures and the source-free ontology checks.
+    /// Verify GTS signatures, the reasoned deep-semantic pass, and the source-free
+    /// ontology-completeness checks, rendered as one proof-carrying report.
     Verify {
         /// GTS snapshot to verify (default: bundled gmeow.gts).
         file: Option<PathBuf>,
@@ -101,6 +102,9 @@ pub enum Commands {
         /// Permit unsigned local snapshots.
         #[arg(long = "allow-unsigned")]
         allow_unsigned: bool,
+        /// Output for the unified report: `human`, `sarif`, or `json`.
+        #[arg(long = "format", short = 'f', default_value = "human")]
+        format: String,
     },
     /// Consumer verification of a signed release bundle.
     #[command(name = "verify-release-bundle")]
@@ -381,11 +385,13 @@ pub fn run() -> i32 {
             file,
             trusted_key,
             allow_unsigned,
+            format,
         } => commands::verify(
             reporter,
             file.as_deref(),
             trusted_key.as_deref(),
             allow_unsigned,
+            &format,
         ),
         Commands::VerifyReleaseBundle { bundle, public_key } => {
             commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())

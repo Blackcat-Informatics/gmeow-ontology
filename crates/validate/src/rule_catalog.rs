@@ -308,6 +308,20 @@ pub const STATIC_RULES: &[(&str, Severity, Enforcement)] = &[
         Severity::Error,
         Enforcement::Governance,
     ),
+    // ── Bundle ontology completeness (`gmeow verify`) — governance-ish ──
+    // Non-blocking Warnings: a bundle that passes `gmeow verify` today carries
+    // zero missing labels/definitions, so these never change a clean bundle's
+    // exit code (they were previously informational `println!` rows).
+    (
+        codes::ONTOLOGY_MISSING_LABEL,
+        Severity::Warning,
+        Enforcement::Governance,
+    ),
+    (
+        codes::ONTOLOGY_MISSING_DEFINITION,
+        Severity::Warning,
+        Enforcement::Governance,
+    ),
     // ── Input well-formedness ──
     (codes::EXAMPLE_PARSE, Severity::Error, Enforcement::Parse),
 ];
@@ -563,6 +577,15 @@ pub const REMEDIATIONS: &[(&str, &str)] = &[
     (
         codes::STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP,
         "Adjust the RDF-1.2 statement so the OWL round-trip is lossless, or record the loss in the projection-loss ledger.",
+    ),
+    // ── Bundle ontology completeness (`gmeow verify`) ──
+    (
+        codes::ONTOLOGY_MISSING_LABEL,
+        "Add an rdfs:label to the term so it names itself in the documented vocabulary.",
+    ),
+    (
+        codes::ONTOLOGY_MISSING_DEFINITION,
+        "Add a skos:definition to the term so its meaning is documented in the vocabulary.",
     ),
     // ── Input well-formedness ──
     (
