@@ -41,6 +41,7 @@ use crate::dev_common::{fail, project_root};
 
 const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
 const SH_SPARQL: &str = "http://www.w3.org/ns/shacl#sparql";
+const SH_OR: &str = "http://www.w3.org/ns/shacl#or";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The projected validation-shape surface, relative to the repo root.
 const PROJECTED_REL: &str = "generated/shapes/validation-shapes.ttl";
@@ -343,11 +344,13 @@ impl OracleCtx {
             unsupported: read.unsupported.clone(),
         };
         let read = &stripped;
-        // A residue that is ONLY `sh:sparql` is grounded when the shape's target class carries a
-        // projected `logic:` constraint shape.
+        // A residue that is ONLY `sh:sparql` / `sh:or` constructs is grounded when an EXACT
+        // `logic:formalizes <legacy-shape-IRI>` record projects it onto the canonical
+        // constraint/procedural surface (`sh:or` joined `sh:sparql` here for the disjunctive
+        // obligations — a value-branch `sh:or` a record replicates procedurally).
         let sparql_only_residue_grounded = |unsupported: &[String]| {
             !unsupported.is_empty()
-                && unsupported.iter().all(|p| p == SH_SPARQL)
+                && unsupported.iter().all(|p| p == SH_SPARQL || p == SH_OR)
                 && self.formalized_shapes.contains(iri)
         };
         let formalized_failure_matches = || match &read.ir.failure_class {
@@ -356,6 +359,16 @@ impl OracleCtx {
                 .formalized_failure_classes
                 .get(iri)
                 .is_some_and(|actual| actual.len() == 1 && actual.contains(expected)),
+        };
+        // The record-anchored failure identity: the legacy shape's typed failure class is
+        // preserved by an exact `logic:formalizes <legacy-shape-IRI>` record carrying EXACTLY
+        // that class. A multi-shape class target aggregates to ONE projected declarative shape
+        // carrying ONE failure class, so a finer legacy obligation's typed identity rides its
+        // formalizing record instead of the (necessarily single) class annotation.
+        let failure_preserved_by_record = || {
+            read.ir.failure_class.is_some()
+                && self.formalized_shapes.contains(iri)
+                && formalized_failure_matches()
         };
         // A legacy class shape whose every constraint is a functional max-count (+ credited
         // existence min) has NO projected `targetClass` peer, because `owl:FunctionalProperty`
@@ -411,7 +424,14 @@ impl OracleCtx {
                 None => Verdict::NoProjectedPeer,
             },
             Some((_, proj)) => {
-                if read.ir.failure_class != proj.ir.failure_class {
+                // A differing typed failure class is admissible ONLY through the record-anchored
+                // identity: an exact `logic:formalizes` record carrying the legacy class. Such a
+                // shape can never be plain `Equiv` — its deletion clearance rests on the record,
+                // so it is decided by the grounded-residue path below.
+                let record_backed = failure_preserved_by_record();
+                let failure_via_record =
+                    read.ir.failure_class != proj.ir.failure_class && record_backed;
+                if read.ir.failure_class != proj.ir.failure_class && !failure_via_record {
                     return Verdict::NotEquiv(format!(
                         "typed failure class differs: legacy={:?}, projected={:?}",
                         read.ir.failure_class, proj.ir.failure_class
@@ -465,6 +485,41 @@ impl OracleCtx {
                         }
                     }
                 }
+                // Record-backed node-kind tightening: a legacy `sh:nodeKind sh:IRI` on a path
+                // whose projected peer carries only the weaker `sh:BlankNodeOrIRI` (the
+                // `owl:allValuesFrom owl:Thing` carrier) is credited ONLY when an exact
+                // `logic:formalizes <legacy-shape-IRI>` record with the legacy failure class
+                // exists — the record's projected procedural twin carries the IRI-only
+                // tightening (the same trust anchor that grounds sh:sparql residue). Any credit
+                // marks the shape record-grounded, never plain `Equiv`.
+                let mut record_credit_used = false;
+                if record_backed {
+                    for pc in proj_ir.properties.iter_mut() {
+                        let legacy_iri_nk = read.ir.properties.iter().any(|lp| {
+                            lp.path == pc.path
+                                && lp.components.iter().any(|c| {
+                                    matches!(
+                                        c,
+                                        ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri)
+                                    )
+                                })
+                        });
+                        let proj_bnode_or_iri = pc.components.iter().any(|c| {
+                            matches!(
+                                c,
+                                ConstraintComponent::NodeKindShacl(ShaclNodeKind::BlankNodeOrIri)
+                            )
+                        });
+                        let proj_iri = pc.components.iter().any(|c| {
+                            matches!(c, ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri))
+                        });
+                        if legacy_iri_nk && proj_bnode_or_iri && !proj_iri {
+                            pc.components
+                                .push(ConstraintComponent::NodeKindShacl(ShaclNodeKind::Iri));
+                            record_credit_used = true;
+                        }
+                    }
+                }
                 // Add functional/existence-covered legacy paths the projected class shape omits
                 // ENTIRELY (a functional max-1 rides only its `sh:targetSubjectsOf` shape).
                 for lp in &read.ir.properties {
@@ -490,9 +545,37 @@ impl OracleCtx {
                     .retain(|c| read.ir.node_components.contains(c));
                 let v = oracle(read, &proj_ir);
                 let grounded = grounds(read, &proj_ir, &v);
+                if failure_via_record {
+                    // Record-anchored clearance: the projected declarative surface must enforce
+                    // at least everything the covered legacy fragment does (the Galois soundness
+                    // direction — a stricter aggregate peer, whose extra bounds were proven by
+                    // the sibling blocks that contributed them, is admissible), and any residue
+                    // must be exactly the sh:sparql / sh:or constructs the exact record projects.
+                    return if v.legacy_subsumed_by_projected
+                        && (v.unsupported.is_empty()
+                            || sparql_only_residue_grounded(&v.unsupported))
+                    {
+                        Verdict::EquivGroundedResidue
+                    } else if !v.legacy_subsumed_by_projected {
+                        Verdict::NotEquiv(format!(
+                            "record-formalized shape's covered fragment is not subsumed by the \
+                             projected peer: {}",
+                            v.reason
+                        ))
+                    } else {
+                        Verdict::EquivResidue(v.unsupported.clone())
+                    };
+                }
                 if grounded && !v.residue_bearing {
-                    Verdict::Equiv
-                } else if grounded && sparql_only_residue_grounded(&v.unsupported) {
+                    if record_credit_used {
+                        Verdict::EquivGroundedResidue
+                    } else {
+                        Verdict::Equiv
+                    }
+                } else if grounded
+                    && sparql_only_residue_grounded(&v.unsupported)
+                    && formalized_failure_matches()
+                {
                     Verdict::EquivGroundedResidue
                 } else if grounded {
                     Verdict::EquivResidue(v.unsupported.clone())
@@ -1685,6 +1768,107 @@ mod tests {
         assert_eq!(projected.len(), 1);
         assert_eq!(errors.len(), 1);
         assert!(errors[0].contains("share target"));
+    }
+
+    /// The record-anchored clearance: a finer legacy shape whose typed failure class differs
+    /// from the (single) class-annotation failure of the aggregate projected peer is grounded
+    /// when an EXACT `logic:formalizes <legacy-shape-IRI>` record carries the legacy class and
+    /// the projected peer subsumes the covered fragment.
+    #[test]
+    fn record_anchored_failure_identity_grounds_a_finer_legacy_shape() {
+        use gmeow_logic_compile::ir::ShaclNodeKind;
+        let target = ShapeTarget::Class("https://example.test/Widget".to_owned());
+        // Projected aggregate peer: nodeKind + minCount on the path, class-level failure class.
+        let proj_ir = ValidationShapeIr::new(
+            "https://example.test/Widget-shape",
+            target.clone(),
+            vec![
+                PropertyConstraintIr::new(
+                    "https://example.test/law",
+                    Some(1),
+                    None,
+                    Some(ConstraintProvenance::OwlRestriction),
+                    vec![ConstraintComponent::NodeKindShacl(
+                        ShaclNodeKind::BlankNodeOrIri,
+                    )],
+                )
+                .unwrap(),
+            ],
+            None,
+        )
+        .unwrap()
+        .with_failure_class("https://example.test/CoarseFailure")
+        .unwrap();
+        // Legacy finer shape: only the nodeKind (no minCount), a FINER failure class.
+        let legacy_ir = ValidationShapeIr::new(
+            "https://example.test/LawShape",
+            target.clone(),
+            vec![
+                PropertyConstraintIr::new(
+                    "https://example.test/law",
+                    None,
+                    None,
+                    None,
+                    vec![ConstraintComponent::NodeKindShacl(
+                        ShaclNodeKind::BlankNodeOrIri,
+                    )],
+                )
+                .unwrap(),
+            ],
+            None,
+        )
+        .unwrap()
+        .with_failure_class("https://example.test/FineFailure")
+        .unwrap();
+        let read = ShapeRead {
+            ir: legacy_ir,
+            unsupported: vec![],
+        };
+        let mut projected = BTreeMap::new();
+        projected.insert(
+            target.clone(),
+            (
+                "https://example.test/Widget-shape".to_owned(),
+                ShapeRead {
+                    ir: proj_ir,
+                    unsupported: vec![],
+                },
+            ),
+        );
+        let mut ctx = OracleCtx {
+            projected,
+            functional_max: BTreeMap::new(),
+            formalized_shapes: std::collections::BTreeSet::new(),
+            formalized_failure_classes: BTreeMap::new(),
+            object_properties: std::collections::BTreeSet::new(),
+        };
+        // WITHOUT the record: the differing failure class blocks deletion.
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        assert!(
+            matches!(v, Verdict::NotEquiv(ref r) if r.contains("failure class")),
+            "{}",
+            v.label()
+        );
+        // WITH the exact formalizes record carrying the legacy class: grounded.
+        ctx.formalized_shapes
+            .insert("https://example.test/LawShape".to_owned());
+        ctx.formalized_failure_classes.insert(
+            "https://example.test/LawShape".to_owned(),
+            std::iter::once("https://example.test/FineFailure".to_owned()).collect(),
+        );
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        assert!(matches!(v, Verdict::EquivGroundedResidue), "{}", v.label());
+        // A record carrying the WRONG failure class never clears the block.
+        ctx.formalized_failure_classes.insert(
+            "https://example.test/LawShape".to_owned(),
+            std::iter::once("https://example.test/OtherFailure".to_owned()).collect(),
+        );
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        assert!(
+            matches!(v, Verdict::NotEquiv(_)),
+            "a wrong-class record must not clear deletion: {}",
+            v.label()
+        );
     }
 
     const K: &str = "https://example.test/Constant";

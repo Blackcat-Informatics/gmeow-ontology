@@ -1599,6 +1599,17 @@ pub fn derive_validation_shapes(
                 return Some(ConstraintComponent::Xone(branches));
             }
         }
+        // An enumerated filler (`owl:oneOf ( a b … )` on an anonymous class) → `sh:in ( a b … )`:
+        // every value of the path must be one of the enumerated individuals. IRI members only —
+        // a literal member would make the expression a data range, which the facet arm owns.
+        if let Some(head) = value(store, fs, &p_oneof) {
+            let members = read_iri_list(store, &head);
+            if !members.is_empty() {
+                return Some(ConstraintComponent::In(
+                    members.into_iter().map(ShapeValue::Iri).collect(),
+                ));
+            }
+        }
         match value(store, fs, &p_complement) {
             Some(Node::Iri(d)) => classify(&d).map(|cc| ConstraintComponent::Not(Box::new(cc))),
             Some(inner @ Node::Blank { .. }) => {
@@ -1686,6 +1697,40 @@ pub fn derive_validation_shapes(
             let Some(restr_subj) = term_as_subject(&restr) else {
                 continue;
             };
+            // A blank superclass carrying `owl:unionOf ( [ owl:onProperty P1 ; owl:someValuesFrom
+            // owl:Thing ] … )` — an either-of-these-properties existence obligation — reads
+            // closed-world as the node-level `sh:or` over required property paths
+            // ([`ConstraintComponent::OrProperties`]). Only the exact all-branches-are-bare-
+            // existential form is read; any other union member (a named class, a qualified
+            // filler) leaves the whole expression in the canon, never a partial disjunction.
+            if value(store, &restr_subj, &p_on).is_none()
+                && let Some(head) = value(store, &restr_subj, &p_unionof)
+            {
+                let members = read_list_member_subjects(store, &head);
+                let mut paths: Vec<String> = Vec::with_capacity(members.len());
+                let mut all_bare_existentials = !members.is_empty();
+                for m in &members {
+                    let on_p = value(store, m, &p_on);
+                    let filler = value(store, m, &p_some);
+                    match (on_p, filler) {
+                        (Some(Node::Iri(p)), Some(Node::Iri(f)))
+                            if f == owl_thing && !optouts.contains(&p) =>
+                        {
+                            paths.push(p);
+                        }
+                        _ => {
+                            all_bare_existentials = false;
+                            break;
+                        }
+                    }
+                }
+                if all_bare_existentials && paths.len() >= 2 {
+                    entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
+                        .1
+                        .push(ConstraintComponent::OrProperties(paths));
+                }
+                continue;
+            }
             // A restriction constrains exactly one property; skip a malformed one with no
             // IRI-valued `owl:onProperty`.
             let Some(Node::Iri(on)) = value(store, &restr_subj, &p_on) else {
@@ -2095,6 +2140,53 @@ pub fn derive_validation_shapes(
                         .1
                         .push(cc);
                 }
+            }
+            // rdfs:domain [ owl:Restriction on Q ] → a SubjectsOf(P) PROPERTY condition: every
+            // subject of P belongs to the anonymous restriction class, i.e. satisfies the
+            // restriction on Q (the required-companion pattern: "a node lowered through P must
+            // also declare Q"). Read closed-world only under the same explicit ClosedWorldClosure
+            // opt-in that gates the named-domain shape, with unqualified cardinality and
+            // named-class/datatype fillers — any other anonymous domain expression stays in the
+            // canon.
+            for c in objects(store, &p_subj, &p_domain) {
+                let Some(domain_subj) = term_as_subject(&c) else {
+                    continue;
+                };
+                if !subject_is_blank(&domain_subj) {
+                    continue;
+                }
+                let Some(Node::Iri(on_q)) = value(store, &domain_subj, &p_on) else {
+                    continue;
+                };
+                if optouts.contains(&on_q) {
+                    continue;
+                }
+                let mut comps: Vec<ConstraintComponent> = Vec::new();
+                for vp in [&p_some, &p_all] {
+                    if let Some(Node::Iri(cv)) = value(store, &domain_subj, vp)
+                        && let Some(cc) = classify(&cv)
+                    {
+                        comps.push(cc);
+                    }
+                }
+                let exact = card_of(&domain_subj, &p_card);
+                let (mut lo, mut hi) = (
+                    card_of(&domain_subj, &p_mincard),
+                    card_of(&domain_subj, &p_maxcard),
+                );
+                if let Some(n) = exact {
+                    lo = Some(n);
+                    hi = Some(n);
+                }
+                if comps.is_empty() && lo.is_none() && hi.is_none() {
+                    continue;
+                }
+                let provenance =
+                    (lo.is_some() || hi.is_some()).then_some(ConstraintProvenance::OwlRestriction);
+                let pc = PropertyConstraintIr::new(&on_q, lo, hi, provenance, comps)?;
+                entry_for(&mut acc, ShapeTarget::SubjectsOf(p.clone()))
+                    .2
+                    .push(pc);
             }
             // rdfs:range C → an ObjectsOf(P) node condition (every object of P satisfies it).
             for c in objects(store, &p_subj, &p_range) {
@@ -3389,8 +3481,9 @@ fn finalize_sugar(
 }
 
 /// P1 — choice-group cardinality: a target class + a set of predicates + a mode
-/// (`exactly-one` / `at-most-one`; `exactly-one-of-N` is an alias of `exactly-one`). Expands to
-/// the XOR / at-most formula over `∃`-requiredness of each predicate.
+/// (`exactly-one` / `at-most-one` / `at-least-one`; `exactly-one-of-N` is an alias of
+/// `exactly-one`). Expands to the XOR / at-most / at-least formula over `∃`-requiredness of
+/// each predicate.
 fn read_choice_group(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
     let class = sugar_target_class(store, node)?;
     let preds = sugar_iri_list(store, node, "choicePredicate");
@@ -3418,6 +3511,15 @@ fn read_choice_group(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result
             }
             Formula::Or(branches)
         }
+        "at-least-one" => {
+            // OR over i of ∃pᵢ — at least one alternative predicate present (the disjunctive
+            // existence obligation: a node missing EVERY alternative violates).
+            let mut branches = Vec::with_capacity(preds.len());
+            for i in 0..preds.len() {
+                branches.push(ex(i)?);
+            }
+            Formula::Or(branches)
+        }
         "at-most-one" => {
             // AND over pairs (i<j) of ¬(∃pᵢ ∧ ∃pⱼ) — no two predicates present together.
             let mut pairs = Vec::new();
@@ -3434,7 +3536,8 @@ fn read_choice_group(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result
         }
         other => {
             return Err(sugar_err(format!(
-                "logic:choiceMode '{other}' must be exactly-one / at-most-one / exactly-one-of-N"
+                "logic:choiceMode '{other}' must be exactly-one / at-most-one / at-least-one / \
+                 exactly-one-of-N"
             )));
         }
     };
