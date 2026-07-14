@@ -197,22 +197,20 @@ ASK {
 }""" ;
     gmeow:saRationale "A math:ClosedFormFunction MUST carry a required (min-qualified-one) owl:Restriction on EACH of math:definingExpression and math:formalArgument, so a closed form always says what it computes (its body AST) and over which variable it abstracts (its formal argument); a closed form dropping either is math:UnboundClosedForm. Its math:functionParameter is deliberately unconstrained (0..n)." .
 
-# --- 3e. Every variable leaf of a closed form resolves to its argument or a parameter (MUST) ---
+# --- 3e. Every variable leaf of a closed form resolves to its argument or a parameter (MUST-NOT) ---
 ex:saClosedFormLeafLinkage a gmeow:StructuralAssertion ;
-    gmeow:saPolarity gmeow:must ;
+    gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModuleAndExamples ;
     gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
 ASK {
-    ?cf a math:ClosedFormFunction .
-    FILTER NOT EXISTS {
-        ?cf math:definingExpression/(math:argumentSlot/math:slotExpression)* ?leaf .
-        ?leaf a math:VariableExpression ;
-              math:variableOccurrence/math:declaredVariable ?decl .
-        FILTER NOT EXISTS { ?cf math:formalArgument ?decl }
-        FILTER NOT EXISTS { ?cf math:functionParameter ?decl }
-    }
+    ?cf a math:ClosedFormFunction ;
+        math:definingExpression/(math:argumentSlot/math:slotExpression)* ?leaf .
+    ?leaf a math:VariableExpression ;
+          math:variableOccurrence/math:declaredVariable ?decl .
+    FILTER NOT EXISTS { ?cf math:formalArgument ?decl }
+    FILTER NOT EXISTS { ?cf math:functionParameter ?decl }
 }""" ;
-    gmeow:saRationale "Over the worked example, every math:VariableExpression leaf reachable from a math:ClosedFormFunction's math:definingExpression (following math:argumentSlot/math:slotExpression to arbitrary AST depth) MUST resolve, via math:variableOccurrence/math:declaredVariable, to a declaration that is EITHER the function's math:formalArgument OR one of its math:functionParameters — no leaf refers to a variable the closed form does not abstract over or tune by. This is authored as a structural cell over the authored fixture because the general runtime gate is a transitive AST traversal that exceeds the guarded fragment (the runtime residue is recorded as structural-only)." .
+    gmeow:saRationale "NO math:ClosedFormFunction may carry a defining-expression variable leaf that resolves to neither its formal argument nor a declared parameter. Universally over the fixture, for EVERY math:ClosedFormFunction and EVERY math:VariableExpression leaf reachable from its math:definingExpression (following math:argumentSlot/math:slotExpression to arbitrary AST depth), the leaf's declaration — resolved via math:variableOccurrence/math:declaredVariable — MUST be EITHER the function's math:formalArgument OR one of its math:functionParameters. This MUST-NOT cell matches any offending leaf directly, so a single broken closed form is caught even when other closed forms are clean. This is authored as a structural cell over the authored fixture because the general runtime gate is a transitive AST traversal that exceeds the guarded fragment (the runtime residue is recorded as structural-only)." .
 
 # --- 4. No math: property asserts an EL-forbidden OWL characteristic (MUST-NOT) ---
 ex:saNoForbiddenCharacteristics a gmeow:StructuralAssertion ;
