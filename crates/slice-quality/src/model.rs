@@ -188,6 +188,96 @@ pub struct GovernanceFloors {
     pub commitments: Vec<AxisFloorCommitment>,
     /// The committed per-slice roll-up tier floors, sorted by IRI.
     pub tier_floors: Vec<SliceTierFloorCommitment>,
+    /// The guarded projection-vocabulary set the ratchet gate counts residue
+    /// against — `gmeow:ProjectionVocabulary` individuals, sorted by prefix. Loaded
+    /// by a later change; empty until the ontology-resident loader lands.
+    pub vocabularies: Vec<ProjectionVocabulary>,
+    /// The committed per-(slice, vocabulary) residue ceilings —
+    /// `gmeow:ProjectionCeilingCommitment` individuals, sorted by IRI. Loaded by a
+    /// later change; empty until the ontology-resident loader lands.
+    pub ceilings: Vec<ProjectionCeilingCommitment>,
+}
+
+/// How a guarded [`ProjectionVocabulary`]'s hand-authored constructs are recognized
+/// in a slice's TTL surface — a `gmeow:vocabularyCountKind` individual. Drives which
+/// enumeration [`crate::counting::enumerate`] runs for that vocab.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CountKind {
+    /// SHACL-shaped: counted by structural role (typed `sh:NodeShape`/`sh:PropertyShape`
+    /// plus subjects of `sh:path`/`sh:sparql`/`sh:rule`, so an anonymous nested property
+    /// shape is caught, not just a typed top-level shape).
+    Shape,
+    /// A typed-axiom projection vocabulary (gUFO, FnO, BFO, DOLCE, EDOAL, SSSOM):
+    /// counted by distinct triples whose predicate or object IRI falls in the vocab's
+    /// namespace(s).
+    TypedAxiom,
+    /// A non-RDF surface (Datalog, Prolog, N3): structurally 0 in TTL slices. These
+    /// registry entries are documentary-only — never enforced, never counted.
+    NonRdfSurface,
+}
+
+impl CountKind {
+    /// Resolve a `gmeow:vocabularyCountKind` individual's local name.
+    #[must_use]
+    pub fn from_local(local: &str) -> Option<Self> {
+        match local {
+            "countKindShape" => Some(Self::Shape),
+            "countKindTypedAxiom" => Some(Self::TypedAxiom),
+            "countKindNonRdfSurface" => Some(Self::NonRdfSurface),
+            _ => None,
+        }
+    }
+}
+
+/// A guarded `logic:`-subsumable projection vocabulary — a `gmeow:ProjectionVocabulary`
+/// individual. Per Principle 17, OWL, SHACL, gUFO, BFO, DOLCE, and the alignment stack
+/// (SSSOM, EDOAL, FnO) are generated lossy projections of `logic:`; each guarded vocab
+/// here names one such projection surface, how its hand-authored constructs are
+/// recognized ([`CountKind`]), and the by-reference bridge predicates that are exempt
+/// from the ratchet (Principle 5, foundational alignment is "MORE is always BETTER").
+#[derive(Debug, Clone, PartialEq)]
+pub struct ProjectionVocabulary {
+    /// The short vocabulary prefix (`sh`, `gufo`, `bfo`, `dul`, `fno`, `edoal`, `sssom`,
+    /// `datalog`, `prolog`, `n3`) — the ceiling-commitment join key.
+    pub prefix: String,
+    /// The vocabulary's IRI namespace prefix(es). A `Vec` because a vocab may be
+    /// authored under aliased namespaces (DOLCE's `dul`/`dolce-lite` variants) — any
+    /// IRI starting with ANY listed namespace counts as belonging to this vocab.
+    pub namespaces: Vec<String>,
+    /// The `logic:` core IRI this vocabulary is a generated lossy projection of
+    /// (`gmeow:vocabularySubsumedBy`) — the Principle 17 subsumption witness.
+    pub subsumed_by: String,
+    /// How authored constructs are recognized in this vocab's surface.
+    pub count_kind: CountKind,
+    /// The ceiling a slice with no explicit [`ProjectionCeilingCommitment`] for this
+    /// vocab is held to (`gmeow:vocabularyDefaultCeiling`) — `0` for every guarded
+    /// vocab, so a slice's first ungrounded use of a previously-absent vocab reds the
+    /// gate instead of silently passing.
+    pub default_ceiling: u64,
+    /// The `logic:PreservationKind` local name this projection carries in the loss
+    /// ledger (`gmeow:vocabularyPreservation`).
+    pub preservation: String,
+    /// The by-reference alignment/bridge predicate IRIs this vocab exempts from the
+    /// residue when the triple's object resolves to an EXTERNAL (non-`gmeow:`)
+    /// namespace (`gmeow:vocabularyAlignmentPredicate`) — e.g. `skos:*Match`,
+    /// `rdfs:seeAlso`, `owl:equivalentClass`, `rdf:type`, `rdfs:subClassOf`.
+    pub alignment_predicates: Vec<String>,
+}
+
+/// A committed per-(slice, vocabulary) ungrounded-residue ceiling — a
+/// `gmeow:ProjectionCeilingCommitment` individual. The gate enforces it as a
+/// lower-only ratchet, the inverse polarity of [`AxisFloorCommitment`]: the slice's
+/// measured residue for `vocab_prefix` may never exceed `count`, and `count` itself
+/// may only fall (or be removed) across a base-vs-working comparison, never rise.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ProjectionCeilingCommitment {
+    /// The slice IRI the ceiling is committed against (`gmeow:ceilingSlice`).
+    pub slice: String,
+    /// The vocabulary prefix the ceiling caps (`gmeow:ceilingVocabulary`), joining
+    /// against [`ProjectionVocabulary::prefix`].
+    pub vocab_prefix: String,
+    /// The committed maximum ungrounded-residue count (`gmeow:ceilingCount`).
+    pub count: u64,
 }
 
 /// The whole rubric loaded from the slice: the floor-free measurement `standard`

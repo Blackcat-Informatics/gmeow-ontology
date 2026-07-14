@@ -641,6 +641,7 @@ mod tests {
                 }],
                 commitments: vec![],
                 tier_floors: vec![],
+                ..Default::default()
             },
         };
         // Producer not in-repo → not stale.
@@ -687,6 +688,7 @@ mod tests {
                 }],
                 commitments: vec![],
                 tier_floors: vec![],
+                ..Default::default()
             },
         };
         let errs = completeness_gate(&rubric);
@@ -925,6 +927,7 @@ mod tests {
                 exemptions: vec![],
                 commitments,
                 tier_floors,
+                ..Default::default()
             },
         }
     }

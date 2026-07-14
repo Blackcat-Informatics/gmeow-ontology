@@ -322,6 +322,10 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
             exemptions,
             commitments,
             tier_floors,
+            // The projection-vocabulary ratchet's guarded set and ceilings are not
+            // yet loaded from the ontology-resident ABox (a later change adds that
+            // loader); the counter and its data model land first.
+            ..Default::default()
         },
     })
 }
