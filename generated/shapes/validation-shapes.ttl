@@ -4962,8 +4962,8 @@
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/MalformedDimension> ;
     sh:targetClass <https://blackcatinformatics.ca/math/DimensionExponent> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/exponentNumerator> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/math/exponentDenominator> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/math/exponentOfDimension> ; sh:maxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/BaseDimension> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/BaseDimension> ] ; sh:qualifiedMinCount 1 ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/exponentDenominator> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ; sh:not [ sh:hasValue "0"^^<http://www.w3.org/2001/XMLSchema#integer> ] ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/exponentOfDimension> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/math/BaseDimension> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/BaseDimension> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/BaseDimension> ] ; sh:qualifiedMinCount 1 ] .
 
 <https://blackcatinformatics.ca/math/DimensionalExpression-shape> a sh:NodeShape ;
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/MalformedDimension> ;
@@ -4999,6 +4999,7 @@
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/UnderspecifiedEstimate> ;
     sh:targetClass <https://blackcatinformatics.ca/math/Estimate> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/gmeow/Observation> ] ;
+    sh:or ( [ sh:path <https://blackcatinformatics.ca/math/estimatedParameter> ; sh:minCount 1 ] [ sh:path <https://blackcatinformatics.ca/math/estimatesEstimand> ; sh:minCount 1 ] ) ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/estimator> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
 <https://blackcatinformatics.ca/math/Filtration-shape> a sh:NodeShape ;
@@ -5151,12 +5152,18 @@
     sh:property [ sh:path <https://blackcatinformatics.ca/math/principalComponent> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/explainedVarianceRatio> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] .
 
+<https://blackcatinformatics.ca/math/PValue-shape> a sh:NodeShape ;
+    <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/IllFramedPValue> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/PValue> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/alternativeSidedness> ; sh:in ( <https://blackcatinformatics.ca/math/exactTail> <https://blackcatinformatics.ca/math/greaterAlternative> <https://blackcatinformatics.ca/math/lessAlternative> <https://blackcatinformatics.ca/math/midPTail> <https://blackcatinformatics.ca/math/oneSidedAlternative> <https://blackcatinformatics.ca/math/twoSidedAlternative> ) ] .
+
 <https://blackcatinformatics.ca/math/PersistenceLifetime-shape> a sh:NodeShape ;
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/UnderspecifiedPersistenceLifetime> ;
     sh:targetClass <https://blackcatinformatics.ca/math/PersistenceLifetime> ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/math/bornAt> ; sh:minCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/math/overFiltration> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/math/Filtration> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/math/persistenceFeature> ; sh:minCount 1 ; sh:class <https://blackcatinformatics.ca/math/HomologyGroup> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/bornAt> ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/diesAt> ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:BlankNodeOrIRI ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/overFiltration> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/math/Filtration> ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/persistenceFeature> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/math/HomologyGroup> ] .
 
 <https://blackcatinformatics.ca/math/ProbabilityEvent-shape> a sh:NodeShape ;
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/ProbabilityEventOccurrentConflation> ;
@@ -5179,7 +5186,9 @@
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/ProbabilityScaleConflation> ;
     sh:targetClass <https://blackcatinformatics.ca/math/ProbabilityValue> ;
     sh:not [ sh:class <https://blackcatinformatics.ca/math/OddsValue> ] ;
-    sh:not [ sh:class <https://blackcatinformatics.ca/math/LogOddsValue> ] .
+    sh:not [ sh:class <https://blackcatinformatics.ca/math/LogOddsValue> ] ;
+    sh:or ( [ sh:path <https://blackcatinformatics.ca/gmeow/hasReferenceFrame> ; sh:minCount 1 ] [ sh:path <https://blackcatinformatics.ca/logic/probabilityModel> ; sh:minCount 1 ] ) ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/quantityValue> ; sh:minInclusive 0 ; sh:maxInclusive 1 ] .
 
 <https://blackcatinformatics.ca/math/ProofCheckActivity-shape> a sh:NodeShape ;
     sh:targetClass <https://blackcatinformatics.ca/math/ProofCheckActivity> ;
@@ -5200,7 +5209,7 @@
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/ZeroDenominator> ;
     sh:targetClass <https://blackcatinformatics.ca/math/RationalValue> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/numerator> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] ;
-    sh:property [ sh:path <https://blackcatinformatics.ca/math/denominator> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ] .
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/denominator> ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype <http://www.w3.org/2001/XMLSchema#integer> ; sh:not [ sh:hasValue "0"^^<http://www.w3.org/2001/XMLSchema#integer> ] ] .
 
 <https://blackcatinformatics.ca/math/ResidualInterpretationClaim-shape> a sh:NodeShape ;
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/ResidualMeaningAsProperty> ;
@@ -5263,3 +5272,8 @@
     <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://blackcatinformatics.ca/math/UnframedWeightTensor> ;
     sh:targetClass <https://blackcatinformatics.ca/math/WeightTensor> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/math/inParameterSpace> ; sh:minCount 1 ; sh:maxCount 1 ; sh:class <https://blackcatinformatics.ca/math/ParameterSpace> ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/ParameterSpace> ] ; sh:qualifiedMaxCount 1 ; sh:qualifiedValueShape [ sh:class <https://blackcatinformatics.ca/math/ParameterSpace> ] ; sh:qualifiedMinCount 1 ] .
+
+<https://blackcatinformatics.ca/math/compilesToLogicFormula-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/math/compilesToLogicFormula> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/denotationKind> ; sh:minCount 1 ] ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/math/logicLoweringPreservation> ; sh:minCount 1 ] .

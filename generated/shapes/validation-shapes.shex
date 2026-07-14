@@ -5849,7 +5849,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 <https://blackcatinformatics.ca/math/DimensionExponent-shape> {
   <https://blackcatinformatics.ca/math/exponentNumerator> <http://www.w3.org/2001/XMLSchema#integer> ;
   <https://blackcatinformatics.ca/math/exponentDenominator> <http://www.w3.org/2001/XMLSchema#integer> ;
-  <https://blackcatinformatics.ca/math/exponentOfDimension> IRI {0,1} ;
+  <https://blackcatinformatics.ca/math/exponentOfDimension> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/DimensionalExpression> (associate via ShapeMap)
@@ -6032,11 +6032,17 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/math/explainedVarianceRatio> NONLITERAL + ;
 }
 
+# targetClass <https://blackcatinformatics.ca/math/PValue> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/PValue-shape> {
+  <https://blackcatinformatics.ca/math/alternativeSidedness> [<https://blackcatinformatics.ca/math/exactTail> <https://blackcatinformatics.ca/math/greaterAlternative> <https://blackcatinformatics.ca/math/lessAlternative> <https://blackcatinformatics.ca/math/midPTail> <https://blackcatinformatics.ca/math/oneSidedAlternative> <https://blackcatinformatics.ca/math/twoSidedAlternative>] ;
+}
+
 # targetClass <https://blackcatinformatics.ca/math/PersistenceLifetime> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/PersistenceLifetime-shape> {
-  <https://blackcatinformatics.ca/math/bornAt> NONLITERAL + ;
-  <https://blackcatinformatics.ca/math/overFiltration> IRI + ;
-  <https://blackcatinformatics.ca/math/persistenceFeature> IRI + ;
+  <https://blackcatinformatics.ca/math/bornAt> NONLITERAL ;
+  <https://blackcatinformatics.ca/math/diesAt> NONLITERAL ;
+  <https://blackcatinformatics.ca/math/overFiltration> IRI ;
+  <https://blackcatinformatics.ca/math/persistenceFeature> IRI ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ProbabilityEvent> (associate via ShapeMap)
@@ -6057,6 +6063,7 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 # targetClass <https://blackcatinformatics.ca/math/ProbabilityValue> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/ProbabilityValue-shape> {
+  <https://blackcatinformatics.ca/gmeow/quantityValue> MININCLUSIVE 0 MAXINCLUSIVE 1 ;
 }
 
 # targetClass <https://blackcatinformatics.ca/math/ProofCheckActivity> (associate via ShapeMap)
@@ -6140,4 +6147,10 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 # targetClass <https://blackcatinformatics.ca/math/WeightTensor> (associate via ShapeMap)
 <https://blackcatinformatics.ca/math/WeightTensor-shape> {
   <https://blackcatinformatics.ca/math/inParameterSpace> IRI ;
+}
+
+# targetSubjectsOf <https://blackcatinformatics.ca/math/compilesToLogicFormula> (associate via ShapeMap)
+<https://blackcatinformatics.ca/math/compilesToLogicFormula-domain-shape> {
+  <https://blackcatinformatics.ca/math/denotationKind> . + ;
+  <https://blackcatinformatics.ca/math/logicLoweringPreservation> . + ;
 }

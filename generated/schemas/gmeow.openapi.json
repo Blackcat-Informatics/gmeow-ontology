@@ -28323,31 +28323,6 @@
                 "@type": {
                   "anyOf": [
                     {
-                      "const": "math:FlagshipScenario"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:FlagshipScenario"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:FlagshipScenario"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
                       "const": "math:FormalVerificationResult"
                     },
                     {
@@ -46325,6 +46300,7 @@
             ]
           },
           "math:exponentDenominator": {
+            "$comment": "a sh:not constraint on property math:exponentDenominator was dropped (no lossless value-schema projection)",
             "anyOf": [
               {
                 "type": "integer"
@@ -46362,11 +46338,23 @@
               }
             ]
           },
-          "math:exponentOfDimension": {}
+          "math:exponentOfDimension": {
+            "$comment": "external class https://blackcatinformatics.ca/math/BaseDimension",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:exponentDenominator",
-          "math:exponentNumerator"
+          "math:exponentNumerator",
+          "math:exponentOfDimension"
         ],
         "type": "object"
       },
@@ -46837,6 +46825,82 @@
             }
           }
         ],
+        "anyOf": [
+          {
+            "properties": {
+              "@annotation": {
+                "$ref": "#/$defs/Annotation"
+              },
+              "@id": {
+                "type": "string"
+              },
+              "@type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                ]
+              },
+              "math:estimatedParameter": {
+                "anyOf": [
+                  {},
+                  {
+                    "items": {},
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "math:estimatedParameter"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "@annotation": {
+                "$ref": "#/$defs/Annotation"
+              },
+              "@id": {
+                "type": "string"
+              },
+              "@type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                ]
+              },
+              "math:estimatesEstimand": {
+                "anyOf": [
+                  {},
+                  {
+                    "items": {},
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "math:estimatesEstimand"
+            ],
+            "type": "object"
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -47117,31 +47181,6 @@
           "math:fittedToData",
           "math:modelFormula"
         ],
-        "type": "object"
-      },
-      "math:FlagshipScenario": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          }
-        },
         "type": "object"
       },
       "math:FormalVerificationResult": {
@@ -48969,6 +49008,7 @@
         "type": "object"
       },
       "math:PersistenceLifetime": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -48988,119 +49028,8 @@
                 "type": "array"
               }
             ]
-          },
-          "math:bornAt": {
-            "anyOf": [
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          },
-          "math:overFiltration": {
-            "anyOf": [
-              {
-                "anyOf": [
-                  {
-                    "$ref": "#/$defs/math:Filtration"
-                  },
-                  {
-                    "properties": {
-                      "@id": {
-                        "type": "string"
-                      }
-                    },
-                    "required": [
-                      "@id"
-                    ],
-                    "type": "object"
-                  }
-                ]
-              },
-              {
-                "items": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/$defs/math:Filtration"
-                    },
-                    {
-                      "properties": {
-                        "@id": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "@id"
-                      ],
-                      "type": "object"
-                    }
-                  ]
-                },
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
-          },
-          "math:persistenceFeature": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/HomologyGroup",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "items": {
-                  "$comment": "external class https://blackcatinformatics.ca/math/HomologyGroup",
-                  "properties": {
-                    "@id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "@id"
-                  ],
-                  "type": "object"
-                },
-                "minItems": 1,
-                "type": "array"
-              }
-            ]
           }
         },
-        "required": [
-          "math:bornAt",
-          "math:overFiltration",
-          "math:persistenceFeature"
-        ],
         "type": "object"
       },
       "math:ProbabilityEvent": {
