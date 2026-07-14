@@ -427,3 +427,56 @@ STANDING EXCEPTION (the only one carried out of stage 2):
 - term_loss = None off-repo (D3) — unchanged: correct-by-construction lower bound on
   the LossLedgerRow/LossJudgmentSound dims for a genuinely-lossy foreign slice,
   documented in axis_external. Acceptable boundary; no action.
+
+================================================================================
+Issue #1544 — signed compactified radial field math grounding (stage 1)
+Date: 2026-07-14
+
+HONEST SKIP LOG (nothing below is papered over; several WILL fail CI by design):
+
+- GATE ENFORCEMENT / harness blast radius (WILL FAIL CI): slicetest paths.rs was
+  changed to union a slice's local shapes.ttl with the generated derived shapes so
+  the new logic:/OWL-authored math gates actually enforce. This regressed ~11
+  pre-existing cross-slice math conformance cells (ecHomomorphismLawful,
+  ecHeSchemeComplete, ecPValueTriSlice, ecVerificationResultGrounded/Produced,
+  ecIntensionalSet, ecLogicLoweringDeclared, ecResidualMeaningObserved,
+  ecPersistenceCalibratedEmbedding, ecIngestRunGrounded, ecFlagshipCanonical) that
+  DO conform in the full merged bundle (make validate is clean) but fail per-cell
+  isolation because whole-repo derived shapes over-constrain cross-slice stub
+  nodes. Per maintainer direction (2026-07-14) this PR lands terms + harness only;
+  the harness refinement (scope derived shapes to slice-owned targets) and the
+  repo-wide sh:/owl:-removal migration are a tracked follow-on. NOT fixed here.
+
+- example_sweep (WILL FAIL CI): the three new examples
+  (signed-radial-field-{qualitative,closed-form}.ttl, closed-form-functions.ttl)
+  are SHACL-non-conformant in standalone closed-world isolation (shared module
+  individuals untyped standalone; Interval/MeasurableSet ⊑ Set only under module
+  axioms) — the same class already allowlisted for the sibling math examples. NOT
+  added to NON_CONFORMANT here (no green-gating).
+
+- docs insta goldens (WILL FAIL CI): search-index / llms.txt / class/competency/
+  linkage indexes / coverage-ratchet baseline drift from the new vocabulary. NOT
+  re-blessed here.
+
+- Extended-real value gate (math:ExtendedRealValueConstraint): under-approximates —
+  a NON-numeric literal in a signed-extended-real slot passes; the logic: guarded
+  fragment has no numeric-datatype test (only termIsLiteral/termIsIri/termIn). The
+  non-literal-must-be-a-pole case IS enforced.
+
+- Measure non-negativity (math:MeasureResultNonNegativeConstraint): forbids a
+  math:NegativeInfinity result but NOT a finite-negative literal — no numeric
+  lower-bound sugar exists in the logic: fragment.
+
+- Convexity law (math:convexityLaw): authored as midpoint-convexity
+  f((x+y)/2) ≤ (f(x)+f(y))/2, not the full λ-chord inequality — the continuum of λ
+  needs scalar arithmetic beyond the first-order guarded fragment. Disclosed in the
+  law definition; not faked, not carried as a boundary.
+
+- Closed-form leaf-linkage: the general runtime gate over arbitrary AST depth is a
+  structural.ttl MUST cell over authored instances (transitive traversal exceeds
+  the guarded fragment), not a live logic:Constraint.
+
+- gmeow:FlagshipScenario NOT registered for the radial-field scenes (the facility
+  needs a native Rust producer + a single enforceable hard-rule failure; positive-
+  capability scenes have neither). The scenes carry the full non-flagship test
+  surface (conformance + competency + structural) instead.

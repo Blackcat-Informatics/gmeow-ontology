@@ -103,8 +103,8 @@ ex:ecIntervalFramed a gmeow:ExampleConformance ;
 ex:ecIntervalMissingInclusion a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/interval-missing-inclusion.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example omits math:upperInclusion on a math:Interval (sh:minCount 1 on math:IntervalShape, derived from the exact-one math:upperInclusion restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedInterval). It names both endpoints and its lower inclusion, so the missing upper inclusion is the single isolated violation." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:upperInclusion on a math:Interval (sh:qualifiedMinCount 1 onClass math:EndpointInclusion on math:IntervalShape, derived from the exact-one qualified math:upperInclusion restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnderspecifiedInterval). It names both endpoints and its lower inclusion, so the missing upper inclusion is the single isolated violation." .
 
 # === Rule 7: a function declares its domain and codomain =================== #
 
@@ -129,8 +129,8 @@ ex:ecPiecewiseComplete a gmeow:ExampleConformance ;
 ex:ecPiecewiseNoPieces a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/piecewise-no-pieces.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example is a math:PiecewiseFunction naming its math:domain and math:codomain but declaring no math:hasPiece (sh:minCount 1). A piecewise function is defined by its pieces; one with none is ill-formed, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedPiecewiseFunction)." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:PiecewiseFunction naming its math:domain and math:codomain but declaring no math:hasPiece (sh:qualifiedMinCount 1 onClass math:FunctionPiece). A piecewise function is defined by its pieces; one with none is ill-formed, so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnderspecifiedPiecewiseFunction)." .
 
 # === Rule 7b: a closed-form function names its body and its formal argument == #
 
@@ -142,16 +142,16 @@ ex:ecClosedFormFramed a gmeow:ExampleConformance ;
 ex:ecClosedFormMissingBody a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/closed-form-missing-defining-expression.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example omits math:definingExpression on a math:ClosedFormFunction (sh:minCount 1, derived from the exact-one math:definingExpression restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnboundClosedForm). It names its domain, codomain, and formal argument, so the missing body is the single isolated violation." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:definingExpression on a math:ClosedFormFunction (sh:qualifiedMinCount 1 onClass math:MathematicalExpression, derived from the exact-one qualified math:definingExpression restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnboundClosedForm). It names its domain, codomain, and formal argument, so the missing body is the single isolated violation." .
 
 # === Rule 7c: an arithmetic operator carries its full signature ============= #
 
 ex:ecOperatorMissingCodomain a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/operator-missing-codomain.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example omits math:operatorCodomain on a math:ArithmeticOperation individual (sh:minCount 1, derived from the exact-one math:operatorCodomain restriction on the class), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedOperator). It names its math:operatorDomain, so the missing codomain is the single isolated violation." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:operatorCodomain on a math:ArithmeticOperation individual (sh:qualifiedMinCount 1 onClass math:NumberSystem, derived from the exact-one qualified math:operatorCodomain restriction on the class), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnframedOperator). It names its math:operatorDomain, so the missing codomain is the single isolated violation." .
 
 # === Rule 8: an algebraic structure declares carrier, operation, and axioms = #
 
@@ -283,8 +283,8 @@ ex:ecMeasureEvaluationFramed a gmeow:ExampleConformance ;
 ex:ecMeasureEvaluationMissingSubset a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/measure-evaluation-missing-subset.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example omits math:measuredSubset on a math:MeasureEvaluation that names its evaluated measure and a finite non-negative result (sh:minCount 1 on math:MeasureEvaluationShape, derived from the exact-one math:measuredSubset restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedMeasureEvaluation)." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:measuredSubset on a math:MeasureEvaluation that names its evaluated measure and a finite non-negative result (sh:qualifiedMinCount 1 onClass math:MeasurableSet on math:MeasureEvaluationShape, derived from the exact-one qualified math:measuredSubset restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnderspecifiedMeasureEvaluation)." .
 
 # === Rule 15b: a signed-extended-real slot is finite or one of the two poles = #
 
@@ -465,8 +465,8 @@ ex:ecLimitResultFramed a gmeow:ExampleConformance ;
 ex:ecLimitResultMissingOutcome a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/limit-result-missing-outcome.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example omits math:limitOutcome on a math:LimitResult (sh:minCount 1 on math:LimitResultShape, derived from the exact-one math:limitOutcome restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedLimitResult). It carries no math:limitResultValue, so the outcome↔value agreement stays vacuously satisfied and the missing outcome is isolated." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:limitOutcome on a math:LimitResult (sh:qualifiedMinCount 1 onClass math:LimitOutcome on math:LimitResultShape, derived from the exact-one qualified math:limitOutcome restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnderspecifiedLimitResult). It carries no math:limitResultValue, so the outcome↔value agreement stays vacuously satisfied and the missing outcome is isolated." .
 
 # Topology: continuity declared, not assumed.
 ex:ecContinuousMapDeclared a gmeow:ExampleConformance ;
@@ -565,8 +565,8 @@ ex:ecCompactificationFramed a gmeow:ExampleConformance ;
 ex:ecCompactificationMissingBoundary a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/counter-examples/compactification-missing-boundary.ttl" ;
     gmeow:expectedOutcome gmeow:violates ;
-    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
-    gmeow:conformanceRationale "The counter-example omits math:boundaryAtInfinity on a math:Compactification that names its original space, compactifying map, and compactified space (sh:minCount 1 on math:CompactificationShape, derived from the exact-one math:boundaryAtInfinity restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedCompactification). It is a plain math:Compactification so no conformal-factor obligation applies and the other three roles are present, making the missing boundary the single isolated violation." .
+    gmeow:expectedViolationCode "shacl.QualifiedMinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:boundaryAtInfinity on a math:Compactification that names its original space, compactifying map, and compactified space (sh:qualifiedMinCount 1 onClass math:BoundaryAtInfinity on math:CompactificationShape, derived from the exact-one qualified math:boundaryAtInfinity restriction), so validation MUST emit shacl.QualifiedMinCountConstraintComponent and NO other finding (math:UnderspecifiedCompactification). It is a plain math:Compactification so no conformal-factor obligation applies and the other three roles are present (its math:originalSpace is typed math:Set so the compactifying map's domain frame is satisfied), making the missing boundary the single isolated violation." .
 
 # Algebraic topology: a homology group is a fully-framed abelian group.
 ex:ecHomologyGroupFramed a gmeow:ExampleConformance ;

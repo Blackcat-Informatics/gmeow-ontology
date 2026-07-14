@@ -22,7 +22,7 @@ ex:boundarylessCompactification a math:Compactification ;
     math:compactifyingMap ex:radialCompactifyingMap ;
     math:compactifiedSpace ex:compactifiedRadialInterval .
 
-ex:radialHalfLine a math:TopologicalSpace .
+ex:radialHalfLine a math:TopologicalSpace , math:Set .
 
 ex:radialCompactifyingMap a math:CoordinateMap ;
     math:domain ex:radialHalfLine ;
