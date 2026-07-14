@@ -1474,6 +1474,13 @@ math:SigmaAlgebra
     skos:definition "A σ-algebra over a set: a collection of subsets closed under complement and countable union (and hence countable intersection), containing the whole set. The measurable sets of a math:MeasurableSpace — the events a math:Measure can assign mass to. Shared with the probability charter, where the σ-algebra is the event space of a probability space."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:MeasurableSet
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Measurable Set"@x-gmeow-english ;
+    skos:definition "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 math:Measure
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
@@ -1503,6 +1510,13 @@ math:ProbabilityMeasure
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Probability Measure"@x-gmeow-english ;
     skos:definition "A probability measure: a math:Measure of total mass one (math:totalMass 1). The probability bridge — the probability charter specializes this class rather than re-minting it, so a probability space is a math:MeasurableSpace carrying a probability measure and an expectation is a math:Integral against it. A probability measure that does not have total mass one is ill-formed (math:ProbabilityMeasureMassViolation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:MeasureEvaluation
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Measure Evaluation"@x-gmeow-english ;
+    skos:definition "The structured evaluation μ(A) of a measure on a named measurable subset, reified as a first-class object: it names the measure through math:evaluatedMeasure, the subset through math:measuredSubset (a math:MeasurableSet), and the resulting mass through math:measureResult (a finite non-negative number or math:PositiveInfinity, NEVER math:NegativeInfinity — a measure is non-negative). It is NOT the whole-space math:totalMass, which is the measure of the ENTIRE space μ(X): a measure evaluation is the measure of a NAMED subset A ⊆ X, so distinct subsets of one measure can be evaluated and compared side by side — the Lebesgue mass of a two-ball μ(B²) against that of a three-ball μ(B³), or the probability of one event against another. Naming all three of measure, subset, and result is what makes μ(A) a queryable datum rather than a display string; an evaluation missing any of the three is ill-formed (math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:MeasurableFunction
@@ -1664,6 +1678,14 @@ math:IncompleteMeasure
     skos:definition "The failure raised when a math:Measure does not declare the measurable space it acts on (math:measureOn) or its total mass (math:totalMass, a finite non-negative number or math:PositiveInfinity). A measure without its space and mass is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:UnderspecifiedMeasureEvaluation
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Measure Evaluation"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:MeasureEvaluation does not name all three of the measure it evaluates (math:evaluatedMeasure), the measurable subset it evaluates over (math:measuredSubset), and the resulting mass (math:measureResult). An evaluation μ(A) is the mass one named measure assigns one named subset; without the measure, the subset, and the result it does not say which measure, of which subset, gave which value, so it cannot be compared against another evaluation and is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 math:ProbabilityMeasureMassViolation
     a owl:Class ;
     rdfs:subClassOf math:MathConformanceFailure ;
@@ -1746,6 +1768,27 @@ math:withRespectTo
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "with respect to"@x-gmeow-english ;
     skos:definition "Names the math:Measure a math:Integral integrates against — the μ in ∫_D f dμ. Domain math:Integral, range math:Measure (stated in prose). Every integral names exactly one; it is the single measure property of an integral (an expectation integrates against a probability measure). The homogeneity gate combines the integrand's dimension with this measure's to check the integral's declared result dimension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:evaluatedMeasure
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "evaluated measure"@x-gmeow-english ;
+    skos:definition "Names the math:Measure a math:MeasureEvaluation reads — the μ in μ(A). Domain math:MeasureEvaluation, range math:Measure (stated in prose). Every evaluation names exactly one; an evaluation without the measure it evaluates does not say whose mass it reports and is ill-formed (math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:measuredSubset
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "measured subset"@x-gmeow-english ;
+    skos:definition "Names the math:MeasurableSet a math:MeasureEvaluation assigns mass to — the A in μ(A). Domain math:MeasureEvaluation, range math:MeasurableSet (stated in prose). Every evaluation names exactly one; naming the subset is what lets two evaluations of one measure over different subsets be compared, so an evaluation without its subset is ill-formed (math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:measureResult
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "measure result"@x-gmeow-english ;
+    skos:definition "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Dimension properties --------------------------------------------------- #
@@ -6018,6 +6061,11 @@ math:Measure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:measureOn ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MeasurableSpace ] ,
     [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+math:MeasureEvaluation rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:evaluatedMeasure ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Measure ] ,
+    [ a owl:Restriction ; owl:onProperty math:measuredSubset ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MeasurableSet ] ,
+    [ a owl:Restriction ; owl:onProperty math:measureResult ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
 # A probability measure is exactly a measure of total mass one — a typed value-equality
 # obligation on the inherited math:totalMass, derived to sh:hasValue 1.
 math:ProbabilityMeasure rdfs:subClassOf
@@ -7957,6 +8005,9 @@ math:LogicLoweringDeclaredConstraint
 <https://blackcatinformatics.ca/math/AlgebraicStructure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/underlyingSet> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Set> ] .
 <https://blackcatinformatics.ca/math/Measure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/measureOn> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/MeasurableSpace> ] .
 <https://blackcatinformatics.ca/math/Measure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/totalMass> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/MeasureEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/evaluatedMeasure> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Measure> ] .
+<https://blackcatinformatics.ca/math/MeasureEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/measuredSubset> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/MeasurableSet> ] .
+<https://blackcatinformatics.ca/math/MeasureEvaluation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/measureResult> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/Integral> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/integrand> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/MeasurableFunction> ] .
 <https://blackcatinformatics.ca/math/Integral> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/integrationDomain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/Integral> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/withRespectTo> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Measure> ] .
@@ -8062,6 +8113,19 @@ math:DimensionExponentDenominatorNonZeroConstraint
     logic:forbiddenValue "0"^^xsd:integer ;
     logic:formalizes math:DimensionExponent ;
     logic:message "A math:DimensionExponent must declare a non-zero integer math:exponentDenominator; a zero denominator is not a rational power (math:MalformedDimension)." .
+
+# A math:MeasureEvaluation's math:measureResult must be non-negative: a measure
+# assigns non-negative extended-real mass, so μ(A) is a finite non-negative number
+# or math:PositiveInfinity, NEVER the negative pole math:NegativeInfinity (a forbidden
+# pinned-value pattern — the focus must not carry math:measureResult math:NegativeInfinity,
+# the individual the logic:forbiddenValue sugar pins because it is an IRI value).
+math:MeasureResultNonNegativeConstraint
+    a logic:ForbiddenPatternConstraint ;
+    logic:onClass math:MeasureEvaluation ;
+    logic:forbiddenPredicate math:measureResult ;
+    logic:forbiddenValue math:NegativeInfinity ;
+    logic:formalizes math:MeasureEvaluation ;
+    logic:message "A math:MeasureEvaluation's math:measureResult must be a finite non-negative number or math:PositiveInfinity; a measure is non-negative, so the negative pole math:NegativeInfinity is not a mass (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)." .
 
 # A math:Homomorphism's math:preservationLaw must be a resource denoting a logic:
 # formula (a blank node or IRI), not an opaque literal string (a path node-kind

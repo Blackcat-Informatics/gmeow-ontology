@@ -103,6 +103,8 @@ Lean mathlib (structural, by reference).
 |---|---|---|
 | A `math:Measure` declares its measurable space and total mass (a non-negative number or `math:PositiveInfinity`) | SHACL Core | `math:IncompleteMeasure` |
 | A `math:ProbabilityMeasure` has total mass one | SHACL Core | `math:ProbabilityMeasureMassViolation` |
+| A `math:MeasureEvaluation` names all three of its evaluated measure, measured subset, and result (so μ(A) is comparable, not a display string) | SHACL Core | `math:UnderspecifiedMeasureEvaluation` |
+| A `math:MeasureEvaluation`'s `math:measureResult` is non-negative — a finite non-negative number or `math:PositiveInfinity`, never `math:NegativeInfinity` (a measure is non-negative) | SHACL-SPARQL (`math:MeasureResultNonNegativeConstraint`, the `logic:` forbidden-value gate) | `math:UnderspecifiedMeasureEvaluation` |
 | A `math:Integral` names its integrand, domain, and the measure it integrates against | SHACL Core | `math:IncompleteIntegral` |
 | Every `math:Quantity` carries a `math:Dimension` | SHACL Core | `math:UndimensionedQuantity` |
 | A `math:DerivedDimension` declares a non-empty exponent structure, each cell raising a `math:BaseDimension` to an exact-rational power, and a `math:DimensionalExpression` combines at least two operands | SHACL Core | `math:MalformedDimension` |

@@ -1075,3 +1075,51 @@ msgstr "共形因子"
 msgctxt "https://blackcatinformatics.ca/math/conformalFactor|skos:definition"
 msgid "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an owl:ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."
 msgstr "将一个 math:ConformalCompactification 关联到其共形重标度因子 Ω——一个正函数，对度量作乘法，使无界的度量距离在边界处变为有限，同时保留角度。定义域 math:ConformalCompactification，值域为一个正的 math:Function 或 math:Quantity（一个个体，绝非裸字面量——因而是一个 owl:ObjectProperty 而非数据类型属性）（以散文说明）。每个共形紧化恰命名一个；缺少它的一个是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|rdfs:label"
+msgid "Measurable Set"
+msgstr "可测集"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasurableSet|skos:definition"
+msgid "A measurable subset: an element of the math:SigmaAlgebra of a math:MeasurableSpace — one of the subsets closed under complement and countable union that the σ-algebra collects, and so the kind of subset a math:Measure can assign mass to. It is the individual argument A of an evaluation μ(A): where a math:MeasurableSpace is the whole ground (X, Σ) a measure acts over, a measurable set is one measurable piece of it, the band or region whose mass a math:MeasureEvaluation reads off. Shared with the probability charter, where a measurable set is an event."
+msgstr "一个可测子集：math:MeasurableSpace 的 math:SigmaAlgebra 的一个元素——即该 σ-代数所收集的、对补运算和可数并封闭的子集之一，因而是一个 math:Measure 可以赋予质量的那种子集。它是求值 μ(A) 的个体自变量 A：math:MeasurableSpace 是一个测度在其上作用的整个基底 (X, Σ)，而一个可测集是它的一块可测部分，是一个 math:MeasureEvaluation 读取其质量的那条带或那个区域。与概率宪章共享，在那里一个可测集就是一个事件。"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|rdfs:label"
+msgid "Measure Evaluation"
+msgstr "测度求值"
+
+msgctxt "https://blackcatinformatics.ca/math/MeasureEvaluation|skos:definition"
+msgid "The structured evaluation μ(A) of a measure on a named measurable subset, reified as a first-class object: it names the measure through math:evaluatedMeasure, the subset through math:measuredSubset (a math:MeasurableSet), and the resulting mass through math:measureResult (a finite non-negative number or math:PositiveInfinity, NEVER math:NegativeInfinity — a measure is non-negative). It is NOT the whole-space math:totalMass, which is the measure of the ENTIRE space μ(X): a measure evaluation is the measure of a NAMED subset A ⊆ X, so distinct subsets of one measure can be evaluated and compared side by side — the Lebesgue mass of a two-ball μ(B²) against that of a three-ball μ(B³), or the probability of one event against another. Naming all three of measure, subset, and result is what makes μ(A) a queryable datum rather than a display string; an evaluation missing any of the three is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "一个测度在一个具名可测子集上的结构化求值 μ(A)，被具体化为一等对象：它通过 math:evaluatedMeasure 命名测度，通过 math:measuredSubset（一个 math:MeasurableSet）命名子集，通过 math:measureResult 命名所得质量（一个有限的非负数或 math:PositiveInfinity，绝不是 math:NegativeInfinity——测度是非负的）。它不是整个空间的 math:totalMass，后者是整个空间的测度 μ(X)：一次测度求值是一个具名子集 A ⊆ X 的测度，因此同一测度的不同子集可以被求值并并排比较——一个二维球的勒贝格质量 μ(B²) 对一个三维球的 μ(B³)，或一个事件的概率对另一个的概率。同时命名测度、子集和结果三者，正是使 μ(A) 成为一条可查询的数据而非一个显示字符串；缺少三者之一的求值是病态的（math:UnderspecifiedMeasureEvaluation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|rdfs:label"
+msgid "evaluated measure"
+msgstr "被求值测度"
+
+msgctxt "https://blackcatinformatics.ca/math/evaluatedMeasure|skos:definition"
+msgid "Names the math:Measure a math:MeasureEvaluation reads — the μ in μ(A). Domain math:MeasureEvaluation, range math:Measure (stated in prose). Every evaluation names exactly one; an evaluation without the measure it evaluates does not say whose mass it reports and is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "命名一个 math:MeasureEvaluation 所读取的 math:Measure——μ(A) 中的 μ。定义域 math:MeasureEvaluation，值域 math:Measure（以散文说明）。每次求值恰命名一个；一个没有其所求值测度的求值不说明它报告的是谁的质量，是病态的（math:UnderspecifiedMeasureEvaluation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|rdfs:label"
+msgid "measured subset"
+msgstr "被测子集"
+
+msgctxt "https://blackcatinformatics.ca/math/measuredSubset|skos:definition"
+msgid "Names the math:MeasurableSet a math:MeasureEvaluation assigns mass to — the A in μ(A). Domain math:MeasureEvaluation, range math:MeasurableSet (stated in prose). Every evaluation names exactly one; naming the subset is what lets two evaluations of one measure over different subsets be compared, so an evaluation without its subset is ill-formed (math:UnderspecifiedMeasureEvaluation)."
+msgstr "命名一个 math:MeasureEvaluation 向其赋予质量的 math:MeasurableSet——μ(A) 中的 A。定义域 math:MeasureEvaluation，值域 math:MeasurableSet（以散文说明）。每次求值恰命名一个；命名子集正是使同一测度在不同子集上的两次求值得以比较之所在，因此一个没有其子集的求值是病态的（math:UnderspecifiedMeasureEvaluation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|rdfs:label"
+msgid "measure result"
+msgstr "测度结果"
+
+msgctxt "https://blackcatinformatics.ca/math/measureResult|skos:definition"
+msgid "The mass a math:MeasureEvaluation reads off — the value of μ(A), a finite non-negative number or the extended-real math:PositiveInfinity, NEVER math:NegativeInfinity because a measure is non-negative. Domain math:MeasureEvaluation, range a non-negative numeric literal or math:PositiveInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite mass) and an individual (math:PositiveInfinity): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every evaluation names exactly one; an evaluation without its result is ill-formed (math:UnderspecifiedMeasureEvaluation), and a result of math:NegativeInfinity is a non-negativity violation (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)."
+msgstr "一个 math:MeasureEvaluation 所读取的质量——μ(A) 的值，一个有限的非负数或扩展实数 math:PositiveInfinity，绝不是 math:NegativeInfinity，因为测度是非负的。定义域 math:MeasureEvaluation，值域为一个非负数值字面量或 math:PositiveInfinity（以散文说明）。与 math:totalMass 一样，它是一个 rdf:Property，而非 owl:ObjectProperty 或 owl:DatatypeProperty，恰恰因为其值域同时跨越一个数据类型字面量（有限质量）和一个个体（math:PositiveInfinity）：两种 DL 属性种类都不能兼容两者，因此诚实的 RDF 超类型承载扩展实数值域而无 DL 矛盾。每次求值恰命名一个；一个没有其结果的求值是病态的（math:UnderspecifiedMeasureEvaluation），而 math:NegativeInfinity 的结果是一个非负性违规（math:MalformedExtendedReal 或 math:UnderspecifiedMeasureEvaluation）。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|rdfs:label"
+msgid "Underspecified Measure Evaluation"
+msgstr "欠定的测度求值"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedMeasureEvaluation|skos:definition"
+msgid "The failure raised when a math:MeasureEvaluation does not name all three of the measure it evaluates (math:evaluatedMeasure), the measurable subset it evaluates over (math:measuredSubset), and the resulting mass (math:measureResult). An evaluation μ(A) is the mass one named measure assigns one named subset; without the measure, the subset, and the result it does not say which measure, of which subset, gave which value, so it cannot be compared against another evaluation and is ill-formed."
+msgstr "当一个 math:MeasureEvaluation 未同时命名其三者——它所求值的测度（math:evaluatedMeasure）、它在其上求值的可测子集（math:measuredSubset）以及所得质量（math:measureResult）——时所引发的失败。一次求值 μ(A) 是一个具名测度赋予一个具名子集的质量；没有测度、子集和结果，它就不说明哪个测度、对哪个子集、给出了哪个值，因此无法与另一次求值比较，是病态的。"

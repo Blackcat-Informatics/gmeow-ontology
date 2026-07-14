@@ -239,6 +239,19 @@ ex:ecMeasureMissingMass a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:totalMass on a math:Measure (sh:minCount 1 on math:MeasureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:IncompleteMeasure)." .
 
+# === Rule 15a: a measure evaluation names its measure, subset, and result ==== #
+
+ex:ecMeasureEvaluationFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/measure-evaluation-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two math:MeasureEvaluation objects of one measure over two different measurable subsets, each naming all three roles — math:evaluatedMeasure, math:measuredSubset (a math:MeasurableSet), and a finite non-negative math:measureResult — satisfy math:MeasureEvaluationShape (and the non-negativity gate math:MeasureResultNonNegativeConstraint) and validate with no findings; μ(regionA) = 2 and μ(regionB) = 5 are comparable, distinct from the whole-space math:totalMass +∞." .
+
+ex:ecMeasureEvaluationMissingSubset a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/measure-evaluation-missing-subset.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:measuredSubset on a math:MeasureEvaluation that names its evaluated measure and a finite non-negative result (sh:minCount 1 on math:MeasureEvaluationShape, derived from the exact-one math:measuredSubset restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedMeasureEvaluation)." .
+
 # === Rule 15b: a signed-extended-real slot is finite or one of the two poles = #
 
 ex:ecExtendedRealSigned a gmeow:ExampleConformance ;
