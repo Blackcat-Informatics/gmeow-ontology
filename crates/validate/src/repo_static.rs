@@ -540,11 +540,27 @@ const PINNED_HAND_AUTHORED_SHAPES_TTL: &[&str] = &[
 /// `<group>/<slice>/shapes.ttl` position is scanned (not an arbitrary-depth walk): that is the
 /// only position a slice's own `shapes.ttl` can occupy, so this stays a precise census rather
 /// than the broader legacy-shape-block walk `dev_shapes` does for migration bookkeeping.
-fn hand_authored_shapes_ttl_census(root: &Path) -> Vec<String> {
+///
+/// `slices/` is a REQUIRED source tree (every real checkout carries it), not one of several
+/// optional scan roots — unlike the peer `check_projection_*` gates, which legitimately skip a
+/// same-named directory that is merely one of several alternative sources. A missing or
+/// unreadable `slices/` (or a group directory that vanishes mid-scan) is therefore a HARD FAIL
+/// (`.goals`: "a missing required thing is a HARD FAIL"), not a silent empty census — an empty
+/// census is a subset of any pin and would otherwise let `check_hand_authored_shapes_ratchet`
+/// pass on a broken repo. Matches the `read_required`/`collect_ttl_files` idiom: push an error
+/// onto `report` and stop (or skip just the affected group) rather than fail open.
+fn hand_authored_shapes_ttl_census(root: &Path, report: &mut RepoStaticReport) -> Vec<String> {
     let mut found = Vec::new();
     let slices_dir = root.join("slices");
-    let Ok(groups) = fs::read_dir(&slices_dir) else {
-        return found;
+    let groups = match fs::read_dir(&slices_dir) {
+        Ok(groups) => groups,
+        Err(err) => {
+            report.error(format!(
+                "{}: cannot read required directory: {err}",
+                slices_dir.display()
+            ));
+            return found;
+        }
     };
     let mut group_dirs: Vec<PathBuf> = groups
         .filter_map(|e| e.ok().map(|e| e.path()))
@@ -552,8 +568,12 @@ fn hand_authored_shapes_ttl_census(root: &Path) -> Vec<String> {
         .collect();
     group_dirs.sort();
     for group in group_dirs {
-        let Ok(slices) = fs::read_dir(&group) else {
-            continue;
+        let slices = match fs::read_dir(&group) {
+            Ok(slices) => slices,
+            Err(err) => {
+                report.error(format!("{}: cannot read directory: {err}", group.display()));
+                continue;
+            }
         };
         let mut slice_dirs: Vec<PathBuf> = slices
             .filter_map(|e| e.ok().map(|e| e.path()))
@@ -580,7 +600,7 @@ fn hand_authored_shapes_ttl_census(root: &Path) -> Vec<String> {
 /// validation truth — and fails hard, pointing at `docs/MIGRATING-SHAPES-TO-LOGIC.md`.
 fn check_hand_authored_shapes_ratchet(root: &Path, report: &mut RepoStaticReport) {
     let pinned: BTreeSet<&str> = PINNED_HAND_AUTHORED_SHAPES_TTL.iter().copied().collect();
-    for rel in hand_authored_shapes_ttl_census(root) {
+    for rel in hand_authored_shapes_ttl_census(root, report) {
         if !pinned.contains(rel.as_str()) {
             report.error(format!(
                 "{rel}: a hand-authored shapes.ttl exists in a slice outside the pinned \
@@ -1552,6 +1572,10 @@ mod tests {
             &root.join("Makefile"),
             "check:\n\t$(MAKE) lint\nlint:\n\ttrue\n",
         );
+        // `slices/` is a REQUIRED source tree (hand_authored_shapes_ttl_census hard-fails
+        // when it is missing/unreadable) — an empty directory satisfies the requirement
+        // without pinning any hand-authored shapes.ttl.
+        fs::create_dir_all(root.join("slices")).unwrap();
     }
 
     #[test]
@@ -2136,11 +2160,39 @@ mod tests {
     // ── shrink-only shapes.ttl ratchet ───────────────────────────────────
 
     #[test]
+    fn shapes_ratchet_hard_fails_when_slices_dir_is_missing() {
+        // `slices/` is a REQUIRED source tree. The fail-open bug this guards against: an
+        // absent/unreadable `slices/` used to make `hand_authored_shapes_ttl_census` return an
+        // empty `Vec` silently, and an empty census is trivially a subset of
+        // PINNED_HAND_AUTHORED_SHAPES_TTL, so the ratchet PASSED on a broken repo (.goals: "a
+        // missing required thing is a HARD FAIL", never a silent pass).
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path();
+        // Deliberately no `slices/` dir at all.
+
+        let mut report = RepoStaticReport::default();
+        check_hand_authored_shapes_ratchet(root, &mut report);
+        assert!(
+            !report.ok(),
+            "a missing required slices/ dir must hard-fail the gate, not pass silently"
+        );
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("slices") && e.contains("cannot read required directory")),
+            "{:?}",
+            report.errors
+        );
+    }
+
+    #[test]
     fn shapes_ratchet_passes_when_census_is_empty_or_pinned() {
         let temp = tempfile::tempdir().unwrap();
         let root = temp.path();
 
-        // No slices/ dir at all → empty census, passes.
+        // An empty (but present) slices/ dir → empty census, passes.
+        fs::create_dir_all(root.join("slices")).unwrap();
         let mut none = RepoStaticReport::default();
         check_hand_authored_shapes_ratchet(root, &mut none);
         assert!(none.ok(), "{:?}", none.errors);
@@ -2190,7 +2242,13 @@ mod tests {
         // repo's census may shrink relative to the pin (retirements land without a pin edit) but
         // must never grow beyond it.
         let pinned: BTreeSet<&str> = PINNED_HAND_AUTHORED_SHAPES_TTL.iter().copied().collect();
-        let live = hand_authored_shapes_ttl_census(live_repo_root());
+        let mut report = RepoStaticReport::default();
+        let live = hand_authored_shapes_ttl_census(live_repo_root(), &mut report);
+        assert!(
+            report.ok(),
+            "the live repo's slices/ tree must be readable: {:?}",
+            report.errors
+        );
         for rel in &live {
             assert!(
                 pinned.contains(rel.as_str()),
