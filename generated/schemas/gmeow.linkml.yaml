@@ -17268,12 +17268,36 @@ enums:
       afc-math-axisDocumentation:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisDocumentation
         title: axis-floor commitment — math / axisDocumentation
+      afc-math-axisFlagshipCounterExampleDepth:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth
+        title: axis-floor commitment — math / axisFlagshipCounterExampleDepth
       afc-math-axisGmn1Coverage:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisGmn1Coverage
         title: axis-floor commitment — math / axisGmn1Coverage
+      afc-math-axisMaximalGrounding:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding
+        title: axis-floor commitment — math / axisMaximalGrounding
+      afc-math-axisMaximalInformation:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation
+        title: axis-floor commitment — math / axisMaximalInformation
+      afc-math-axisMaximalLinkage:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage
+        title: axis-floor commitment — math / axisMaximalLinkage
+      afc-math-axisMaximalProjection:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection
+        title: axis-floor commitment — math / axisMaximalProjection
+      afc-math-axisOptimalTesting:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting
+        title: axis-floor commitment — math / axisOptimalTesting
       afc-math-axisProseQuality:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisProseQuality
         title: axis-floor commitment — math / axisProseQuality
+      afc-math-axisProvenanceHonesty:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty
+        title: axis-floor commitment — math / axisProvenanceHonesty
+      afc-math-axisReasonerDerived:
+        meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived
+        title: axis-floor commitment — math / axisReasonerDerived
       afc-math-axisShapeMigration:
         meaning: https://blackcatinformatics.ca/gmeow/afc-math-axisShapeMigration
         title: axis-floor commitment — math / axisShapeMigration
@@ -18045,6 +18069,9 @@ enums:
       pipeline-dataflow-reason-compile-logic:
         meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-reason-compile-logic
         title: 'dataflow: compile-logic → reason'
+      pipeline-dataflow-validate-compile-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-dataflow-validate-compile-logic
+        title: 'dataflow: compile-logic → validate'
   CadastralReferenceTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CadastralReferenceType
     permissible_values:

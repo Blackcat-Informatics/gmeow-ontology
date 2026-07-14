@@ -35,7 +35,7 @@ ex:wfWas       a lang:WordForm ; lang:inSignSystem ex:english .
 ex:wfMagnitude a lang:WordForm ; lang:inSignSystem ex:english .
 
 ex:pvalueAnalysis a lang:Analysis .
-ex:pvalueSentence a lang:ComposedForm ;
+ex:pvalueSentence a lang:ComposedForm , lang:Form ;
     lang:inSignSystem ex:english ;
     lang:compositionLevel lang:sentenceLevel ;
     lang:inAnalysis ex:pvalueAnalysis ;
@@ -62,6 +62,8 @@ ex:pvalueSurface a lang:SurfaceForm ;
     lang:realizes ex:pvalueSentence .
 
 # lang -> logic: the denotation whose target IS the logic:Formula.
+lang:denotesLogicFormula a lang:DenotationKind .
+lang:parsedLevel a lang:AnalysisLevel .
 ex:pvalueDenotation a lang:Denotation ;
     lang:denotedForm ex:pvalueSentence ;
     lang:denotationKind lang:denotesLogicFormula ;
@@ -119,4 +121,4 @@ ex:pvalueObservation a gmeow:Observation ;
     gmeow:observedFeature ex:tTestPValue ;
     gmeow:observationResult ex:tTestPValue ;
     gmeow:wasGeneratedBy ex:inferenceRun .
-ex:analystStandpoint a gmeow:Standpoint .
+ex:analystStandpoint a gmeow:Standpoint , gmeow:Entity .

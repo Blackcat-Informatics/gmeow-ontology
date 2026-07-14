@@ -659,8 +659,16 @@ enum AxisFloorCommitmentEnum {
   afc_logic_axisTranslationCoverage
   afc_math_axisDocMaturity
   afc_math_axisDocumentation
+  afc_math_axisFlagshipCounterExampleDepth
   afc_math_axisGmn1Coverage
+  afc_math_axisMaximalGrounding
+  afc_math_axisMaximalInformation
+  afc_math_axisMaximalLinkage
+  afc_math_axisMaximalProjection
+  afc_math_axisOptimalTesting
   afc_math_axisProseQuality
+  afc_math_axisProvenanceHonesty
+  afc_math_axisReasonerDerived
   afc_math_axisShapeMigration
   afc_math_axisTranslationCoverage
   afc_mentation_axisDocMaturity
@@ -926,6 +934,7 @@ enum BranchConditionTypeEnum {
 
 enum BuildDataFlowEnum {
   pipeline_dataflow_reason_compile_logic
+  pipeline_dataflow_validate_compile_logic
 }
 
 enum CadastralReferenceTypeEnum {

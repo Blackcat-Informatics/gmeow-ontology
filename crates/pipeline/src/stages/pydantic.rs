@@ -43,14 +43,16 @@
 //! Anything else (a class in no documented slice, no gmeow path, and no authored
 //! ecosystem namespace) is a HARD FAIL.
 //!
-//! The public entry point [`render_models_python`] is invoked by the
-//! [`PydanticStage`] production leaf (`stage-export-pydantic`); the carrier folds
-//! its output into the `models-python` blob and writes the package tree to
-//! [`PACKAGE_DISK_PREFIX`] on disk.
+//! The [`PydanticStage`] production leaf (`stage-export-pydantic`) renders through
+//! [`render_models_python_from_shapes`] over the FRESH shape union
+//! ([`crate::stages::shape_union_fresh`] — the generated members are THIS run's
+//! consumed product bytes, never a stale disk read); the standalone
+//! `gmeow-dev export-docs --format pydantic` entry ([`render_models_python`]) reads
+//! the committed union. The carrier folds the stage output into the `models-python`
+//! blob and writes the package tree to [`PACKAGE_DISK_PREFIX`] on disk.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
-use std::sync::LazyLock;
 
 use serde_json::Value;
 
@@ -365,17 +367,30 @@ pub fn render_models_python_package(
     Ok(render_models_python(root)?.artifacts)
 }
 
-/// Render the `gmeow_models` Pydantic package from the repo's shape union.
+/// Render the Pydantic package from the COMMITTED (on-disk) shape union — the
+/// standalone `make docs` / `export-docs` entry, which runs post-pipeline against
+/// the fanout-refreshed committed files. The in-DAG [`PydanticStage`] must NOT use
+/// this: it routes through [`crate::stages::shape_union_fresh::load_shapes_fresh`]
+/// so the union's generated members are THIS run's product bytes (the
+/// stale-disk-fold class).
+pub(crate) fn render_models_python(root: &Path) -> Result<ModelsPython, gmeow_errors::Diag> {
+    let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(root)
+        .map_err(|m| err(format!("load shape union: {m}")))?;
+    render_models_python_from_shapes(root, &shapes)
+}
+
+/// Render the `gmeow_models` Pydantic package from an already-loaded shape union.
 ///
 /// Deterministic: every collection is `BTreeMap`/sorted, there are no timestamps,
 /// and the `$defs` iteration order is the compiler's sorted key order.
-pub(crate) fn render_models_python(root: &Path) -> Result<ModelsPython, gmeow_errors::Diag> {
-    // 1. THE co-derivation point: load the shape union and compile it with the
-    //    exact call the JSON-Schema stage makes, so both surfaces read one `$defs`.
-    let (_store, shapes) = purrdf::shapes::shape_union::load_shapes(root)
-        .map_err(|m| err(format!("load shape union: {m}")))?;
+pub(crate) fn render_models_python_from_shapes(
+    root: &Path,
+    shapes: &purrdf::shapes::shapes::Shapes,
+) -> Result<ModelsPython, gmeow_errors::Diag> {
+    // 1. THE co-derivation point: compile the shape union with the exact call the
+    //    JSON-Schema stage makes, so both surfaces read one `$defs`.
     let ns = gmeow_json_schema_namespaces();
-    let compiled = purrdf::shapes::json_schema::compile(&shapes, &ns);
+    let compiled = purrdf::shapes::json_schema::compile(shapes, &ns);
     let mut schema: Value = serde_json::from_str(&compiled.schema_json)
         .map_err(|e| err(format!("parse compiled JSON Schema: {e}")))?;
 
@@ -1877,51 +1892,68 @@ fn render_readme(modules: &[RenderedModule], version: &str) -> Vec<u8> {
 /// The committed on-disk root of the shipped package (the wheel source tree).
 pub const PACKAGE_ROOT: &str = "packages/python/gmeow_models";
 
-/// The single upstream product this leaf consumes: `stage-compile-logic`, whose
-/// output includes the derived `generated/shapes/validation-shapes.ttl` the shape
-/// union folds in. Same freshness edge as `stage-export-json-schema` — orders this
-/// leaf after the producer and keys its cache on the producer digest, so a
-/// newly-derived node shape reaches the co-derived Pydantic model in one pass.
-static PYDANTIC_CONSUMES: LazyLock<Vec<String>> =
-    LazyLock::new(|| vec!["stage-compile-logic".to_string()]);
+/// The `stage-export-pydantic` export-leaf stage: a fresh-union leaf (like
+/// `stage-export-json-schema`) that renders the Pydantic model package from the
+/// shape union + docs model, with the union's `generated/shapes/*.ttl` members
+/// sourced from THIS run's consumed producer products (never the stale committed
+/// files — the stale-disk-fold class). Its artifacts are written to disk under
+/// [`PACKAGE_DISK_PREFIX`] (the wheel source) and folded into the `models-python`
+/// blob by the carrier.
+pub struct PydanticStage {
+    consumes: Vec<String>,
+}
 
-/// The `stage-export-pydantic` export-leaf stage: renders the Pydantic model
-/// package from the shape union + docs model. Because the shape union includes the
-/// compile-logic-derived `validation-shapes.ttl`, it `consumes()`
-/// `stage-compile-logic` for freshness (like `stage-export-json-schema`). Its
-/// artifacts are written to disk under [`PACKAGE_DISK_PREFIX`] (the wheel source)
-/// and folded into the `models-python` blob by the carrier.
-pub struct PydanticStage;
+impl PydanticStage {
+    /// Construct the stage. It reads the AUTHORED shape/docs sources from disk and
+    /// consumes the four generated-shape producers so the compiled union folds THIS
+    /// run's fresh `generated/shapes/*.ttl` bytes.
+    pub fn new() -> Self {
+        Self {
+            consumes: crate::stages::shape_union_fresh::producer_consumes(),
+        }
+    }
+}
+
+impl Default for PydanticStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for PydanticStage {
     fn id(&self) -> &str {
         "stage-export-pydantic"
     }
     fn consumes(&self) -> &[String] {
-        // Depends on stage-compile-logic (producer of the derived
-        // validation-shapes.ttl folded into the shape union) so it runs after it and
-        // keys its cache on the producer digest — the validation-shapes.ttl freshness
-        // rule, matching stage-export-json-schema.
-        &PYDANTIC_CONSUMES
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v2: took the stage-compile-logic consumes edge so a newly-derived node
-        // shape reflows the model in one pass (was v1, an independent leaf keyed on a
-        // stale pre-pass validation-shapes.ttl). The bump busts old edge-less cache.
-        "pydantic.v2-compile-logic-freshness"
+        // v2: the union's generated/shapes/*.ttl members are product-sourced from the
+        // consumed producer stages (shape_union_fresh) instead of read off disk, so a
+        // shape-source edit reaches the emitted package in ONE regenerate.
+        "pydantic.v2-fresh-shape-union"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-        // The emitter reads BOTH the shape union (constraints) and the docs model
-        // (prose/digests/slice routing), so both source sets bust this leaf's cache.
-        let mut files = purrdf::shapes::shape_union::shape_files(root)
-            .map_err(|m| err(format!("shape files: {m}")))?;
+        // The emitter reads BOTH the AUTHORED half of the shape union (constraints)
+        // and the docs model (prose/digests/slice routing), so both source sets bust
+        // this leaf's cache. The GENERATED union members are NOT declared: they are
+        // product-sourced off the consumed producer stages, whose product digests
+        // already key the cache (a `generated/` path here would itself be the
+        // stale-disk-fold bug class).
+        let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
         files.extend(docs_source_files(root));
         files.sort();
         files.dedup();
         Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let rendered = render_models_python(input.root)?;
+        let fresh = crate::stages::shape_union_fresh::fresh_generated_shape_members(
+            self.id(),
+            input.upstream,
+        )?;
+        let (_store, shapes) =
+            crate::stages::shape_union_fresh::load_shapes_fresh(input.root, &fresh)?;
+        let rendered = render_models_python_from_shapes(input.root, &shapes)?;
         // Key every member at its on-disk package path (the wheel source tree); the
         // carrier strips the prefix back to the package-relative blob member key.
         let artifacts: BTreeMap<String, Vec<u8>> = rendered

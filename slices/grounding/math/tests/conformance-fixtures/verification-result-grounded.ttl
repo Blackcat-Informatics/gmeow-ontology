@@ -13,5 +13,6 @@
 ex:qed a math:FormalVerificationResult .
 ex:obs a gmeow:Observation ;
     gmeow:observationResult ex:qed ;
+    gmeow:observedFeature ex:qed ;
     gmeow:vantage ex:checker .
-ex:checker a gmeow:Standpoint .
+ex:checker a gmeow:Standpoint , gmeow:Entity .

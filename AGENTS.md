@@ -302,7 +302,12 @@ stay in the normal gate, even when they were first discovered during
 is justified by an inline comment there. Adding a new off-gate exception requires
 a comment in that filter AND a one-line entry here.
 
-Default off-gate groups (reevaluated 2026-06-29): `gmeow-validate`
+Default off-gate groups (reevaluated 2026-06-29; `gmeow-cli`
+`cli::describe_json_format_is_valid_card_json` and
+`bundle_smoke::describe_names_a_known_term` joined their already-carved
+describe-over-the-whole-bundle class 2026-07-13 for the same bundle-size
+reason, with fixture-scale describe coverage retained on-gate and both on
+`maint-heavy`): `gmeow-validate`
 `deep_surfaces_entailed_inconsistency_tier1_misses_heavy_offgate` (30.705 s
 locally in `make maint-rust-heavy`; the consumer `gmeow validate --deep` AC1
 reasons over user data merged with the whole bundled TBox via the native
