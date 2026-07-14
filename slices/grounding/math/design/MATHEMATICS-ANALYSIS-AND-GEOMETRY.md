@@ -260,6 +260,29 @@ The manifold declares dimension and structure kind; the chart names its coordina
 the Lorentzian metric is a tensor field — all math-side, ready for a physics slice to build spacetime
 frames on top.
 
+## The flagship demonstrator — a signed radial field on a compactified Lorentzian 2-plane
+
+Two co-equal worked scenes (`examples/signed-radial-field-qualitative.ttl` and
+`examples/signed-radial-field-closed-form.ttl`) model the *same* target: a signed extended-real field
+on a Lorentzian (1,1) 2-plane whose radial half-line is conformally compactified onto the open chart
+x ∈ (0, 1). The field runs to +∞ at the central singularity (x → 0⁺, the ideal value R′), declines
+strictly outward across four ring bands, spends a broad near-zero plateau on Ring 2 that *dominates*
+the spatial measure, and runs to −∞ at compactified infinity (x → 1⁻). The **qualitative** scene
+proves the whole target is expressible from the existing term surface with **no equation** — four
+`math:FunctionPiece` bands over `math:Interval`s, strict outward `math:hasMonotonicity`, a Ring-2
+`math:hasBound` plateau, two structured divergent `math:LimitResult`s on the poles, and four
+comparable `math:MeasureEvaluation`s whose masses make Ring 2 strictly the largest. The
+**closed-form** scene gives the exact curve T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C as a structured
+`math:definingExpression` AST (a `math:ClosedFormFunction` that is also a `math:PiecewiseFunction`),
+every variable leaf resolving to the formal argument x or a declared parameter, and re-derives the
+same rings, limits, and dominant-plateau measure. Together they demonstrate that a downstream
+consumer slice can carry such a field without private substitutes — via qualitative structure or via
+the exact form, interchangeably. The reading is left purely mathematical here: a downstream consumer
+may interpret the central singularity, the outward decline, the flat far field, and the −∞ barrier
+physically (a gravitational well, a potential, a far field, a repulsive edge), but that reading lives
+entirely downstream and is never asserted math-side — the slice states only a signed extended-real
+field over a compactified line.
+
 ## Shape and lint gates
 
 Catalogued in [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md): a derivative/limit/series

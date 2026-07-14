@@ -1,0 +1,415 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# FLAGSHIP worked example (closed-form path) — the SAME signed radial field on a
+# compactified Lorentzian 2-plane as examples/signed-radial-field-qualitative.ttl,
+# now given EXACTLY by its defining equation
+#
+#     T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C          (A, B, C, p, q all > 0)
+#
+# built as a structured math:definingExpression AST over the committed closed-form
+# algebra — nothing rebuilt. As x → 0⁺ the term A·x⁻ᵖ → +∞ (the central singularity,
+# the ideal value R′); as x → 1⁻ the term −B·(1−x)⁻q → −∞ (the asymptote at
+# compactified infinity); between them T declines strictly and flattens toward the
+# offset C across the broad middle band (the near-zero plateau). The two paths are
+# co-equal: this one recovers the exact form; the qualitative sibling recovers the
+# same rings, limits, and dominant-plateau measure WITHOUT any equation. Neither is
+# privileged.
+#
+# This is PURE MATH. A downstream consumer slice may read A·x⁻ᵖ as a central-well
+# potential, −B·(1−x)⁻q as a far-field repulsive barrier, and C as a baseline offset,
+# but that physical reading lives entirely downstream and is never asserted here.
+#
+# The field is typed BOTH math:ClosedFormFunction (it has an exact body over one
+# formal argument x and five fitted parameters A, B, C, p, q) AND math:PiecewiseFunction
+# (its ring bands are pieces). Every variable leaf of the body resolves to the formal
+# argument or a declared parameter, so it satisfies the closed-form leaf-linkage gate.
+# Scene-scoped IRIs (the radial-cf/ namespace) keep it clash-free against its sibling.
+# It validates cleanly under the global gate.
+
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://blackcatinformatics.ca/gmeow/examples/math/radial-cf/> .
+
+# --- The Lorentzian (1,1) 2-plane the field lives on ------------------------- #
+ex:radialPlane a math:LorentzianManifold ;
+    rdfs:label "The Lorentzian (1,1) radial 2-plane"@x-gmeow-english ;
+    math:manifoldDimension 2 ;
+    math:manifoldStructureKind math:lorentzianStructure ;
+    math:metricTensor ex:radialMetric .
+
+ex:radialMetric a math:MetricTensor ;
+    rdfs:label "The metric tensor of the radial 2-plane"@x-gmeow-english ;
+    math:tensorFieldOn ex:radialPlane ;
+    math:metricSignature ex:radialSignature .
+
+ex:radialSignature a math:MetricSignature ;
+    rdfs:label "Metric signature (1, 1)"@x-gmeow-english ;
+    math:signaturePositive 1 ;
+    math:signatureNegative 1 .
+
+# --- The conformal compactification of the radial half-line ----------------- #
+ex:radialCompactification a math:ConformalCompactification ;
+    rdfs:label "Conformal compactification of the radial half-line onto x ∈ (0, 1)"@x-gmeow-english ;
+    math:originalSpace ex:radialHalfLine ;
+    math:compactifyingMap ex:radialCompactifyingMap ;
+    math:compactifiedSpace ex:compactifiedChart ;
+    math:boundaryAtInfinity ex:radialIdealBoundary ;
+    math:conformalFactor ex:radialConformalFactor .
+
+ex:radialHalfLine a math:TopologicalSpace ;
+    rdfs:label "The unbounded radial half-line"@x-gmeow-english .
+
+ex:radialCompactifyingMap a math:CoordinateMap ;
+    rdfs:label "The compactifying embedding onto x ∈ (0, 1)"@x-gmeow-english ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:compactifiedChart .
+
+ex:compactifiedChart a math:Interval ;
+    rdfs:label "The compactified radial chart x ∈ (0, 1)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:radialIdealBoundary a math:BoundaryAtInfinity ;
+    rdfs:label "The ideal point at compactified infinity x = 1"@x-gmeow-english .
+
+ex:radialConformalFactor a math:Function ;
+    rdfs:label "The conformal factor rescaling the radial metric"@x-gmeow-english ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:positiveReals .
+
+ex:positiveReals a math:Set ;
+    rdfs:label "the positive reals"@x-gmeow-english .
+
+# --- Rings 0–3: four interval bands partitioning the open chart (0, 1) -------- #
+ex:ring0 a math:Interval , math:MeasurableSet ;
+    rdfs:label "Ring 0 — the innermost band (0, 0.1) abutting the centre singularity"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "0.1"^^xsd:double ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:ring1 a math:Interval , math:MeasurableSet ;
+    rdfs:label "Ring 1 — the near band [0.1, 0.35)"@x-gmeow-english ;
+    math:lowerEndpoint "0.1"^^xsd:double ;
+    math:upperEndpoint "0.35"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:ring2 a math:Interval , math:MeasurableSet ;
+    rdfs:label "Ring 2 — the broad near-zero plateau band [0.35, 0.9)"@x-gmeow-english ;
+    math:lowerEndpoint "0.35"^^xsd:double ;
+    math:upperEndpoint "0.9"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:ring3 a math:Interval , math:MeasurableSet ;
+    rdfs:label "Ring 3 — the outer band [0.9, 1) abutting the ideal boundary"@x-gmeow-english ;
+    math:lowerEndpoint "0.9"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+# --- The signed radial field — closed form AND piecewise -------------------- #
+# T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C, over the formal argument x and the five parameters
+# A, B, C, p, q. It declares its frame (domain = the (0, 1) chart-set, codomain =
+# math:ExtendedRealLine), its body AST (math:definingExpression ex:cfBodyAdd), its
+# formal argument, its five parameters, and its four ring pieces.
+ex:signedRadialFieldCF a math:ClosedFormFunction , math:PiecewiseFunction ;
+    rdfs:label "T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C — the signed radial field, exactly"@x-gmeow-english ;
+    math:domain ex:radialFieldDomain ;
+    math:codomain math:ExtendedRealLine ;
+    math:formalArgument ex:xDecl ;
+    math:functionParameter ex:aDecl , ex:bDecl , ex:cDecl , ex:pDecl , ex:qDecl ;
+    math:definingExpression ex:cfBodyAdd ;
+    math:hasPiece ex:ring0Piece , ex:ring1Piece , ex:ring2Piece , ex:ring3Piece ;
+    math:hasMonotonicity math:strictlyDecreasing ;
+    math:hasAnalyticProperty math:nonAffinity .
+
+ex:radialFieldDomain a math:Set ;
+    rdfs:label "The compactified open chart (0, 1) as the field's domain set"@x-gmeow-english .
+
+# The formal argument x (the abstraction variable the field is OF).
+ex:xDecl a math:FreeVariableDeclaration ;
+    rdfs:label "x — the formal argument (compactified radius)"@x-gmeow-english .
+
+# The five fitted parameters, each > 0 (stated in prose): A, B, C scale/offset,
+# p, q the two divergence exponents.
+ex:aDecl a math:FreeVariableDeclaration ;
+    rdfs:label "A — the central-well scale (> 0)"@x-gmeow-english .
+ex:bDecl a math:FreeVariableDeclaration ;
+    rdfs:label "B — the far-field barrier scale (> 0)"@x-gmeow-english .
+ex:cDecl a math:FreeVariableDeclaration ;
+    rdfs:label "C — the baseline offset (> 0)"@x-gmeow-english .
+ex:pDecl a math:FreeVariableDeclaration ;
+    rdfs:label "p — the centre divergence exponent (> 0)"@x-gmeow-english .
+ex:qDecl a math:FreeVariableDeclaration ;
+    rdfs:label "q — the infinity divergence exponent (> 0)"@x-gmeow-english .
+
+# --- The defining-expression AST — T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C -------------- #
+# Root: Addition( Subtraction( A·x⁻ᵖ , B·(1−x)⁻q ) , C ). Subtraction and
+# Exponentiation are non-commutative, so operand order is load-bearing: the minuend
+# A·x⁻ᵖ is slot 0 and the subtrahend B·(1−x)⁻q is slot 1; each power names its base
+# at slot 0 and its (negated) exponent at slot 1; and 1−x names the literal 1 at
+# slot 0 and x at slot 1.
+ex:cfBodyAdd a math:ApplicationExpression ;
+    rdfs:label "(A·x⁻ᵖ − B·(1−x)⁻q) + C"@x-gmeow-english ;
+    math:operator math:Addition ;
+    math:argumentSlot ex:addSlot0 , ex:addSlot1 .
+
+ex:addSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:cfOuterSub .
+ex:addSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:cExpr .
+
+# The outer difference A·x⁻ᵖ − B·(1−x)⁻q (minuend at slot 0, subtrahend at slot 1).
+ex:cfOuterSub a math:ApplicationExpression ;
+    rdfs:label "A·x⁻ᵖ − B·(1−x)⁻q"@x-gmeow-english ;
+    math:operator math:Subtraction ;
+    math:argumentSlot ex:subSlot0 , ex:subSlot1 .
+
+ex:subSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:cfTermA .
+ex:subSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:cfTermB .
+
+# The central-well term A·x⁻ᵖ = Multiplication(A, x⁻ᵖ).
+ex:cfTermA a math:ApplicationExpression ;
+    rdfs:label "A·x⁻ᵖ"@x-gmeow-english ;
+    math:operator math:Multiplication ;
+    math:argumentSlot ex:termASlot0 , ex:termASlot1 .
+
+ex:termASlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:aExpr .
+ex:termASlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:cfPowX .
+
+# x⁻ᵖ = Exponentiation(x, Negation(p)) — base x at slot 0, negated exponent at slot 1.
+ex:cfPowX a math:ApplicationExpression ;
+    rdfs:label "x⁻ᵖ"@x-gmeow-english ;
+    math:operator math:Exponentiation ;
+    math:argumentSlot ex:powXSlot0 , ex:powXSlot1 .
+
+ex:powXSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:xExprPow .
+ex:powXSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:cfNegP .
+
+# −p = Negation(p).
+ex:cfNegP a math:ApplicationExpression ;
+    rdfs:label "−p"@x-gmeow-english ;
+    math:operator math:Negation ;
+    math:argumentSlot ex:negPSlot0 .
+
+ex:negPSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:pExpr .
+
+# The far-field barrier term B·(1−x)⁻q = Multiplication(B, (1−x)⁻q).
+ex:cfTermB a math:ApplicationExpression ;
+    rdfs:label "B·(1−x)⁻q"@x-gmeow-english ;
+    math:operator math:Multiplication ;
+    math:argumentSlot ex:termBSlot0 , ex:termBSlot1 .
+
+ex:termBSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:bExpr .
+ex:termBSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:cfPowOneMinusX .
+
+# (1−x)⁻q = Exponentiation(Subtraction(1, x), Negation(q)) — base 1−x, exponent −q.
+ex:cfPowOneMinusX a math:ApplicationExpression ;
+    rdfs:label "(1−x)⁻q"@x-gmeow-english ;
+    math:operator math:Exponentiation ;
+    math:argumentSlot ex:powOmxSlot0 , ex:powOmxSlot1 .
+
+ex:powOmxSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:cfOneMinusX .
+ex:powOmxSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:cfNegQ .
+
+# 1−x = Subtraction(1, x) — the literal 1 at slot 0, x at slot 1.
+ex:cfOneMinusX a math:ApplicationExpression ;
+    rdfs:label "1−x"@x-gmeow-english ;
+    math:operator math:Subtraction ;
+    math:argumentSlot ex:omxSlot0 , ex:omxSlot1 .
+
+ex:omxSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:oneLiteral .
+ex:omxSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:xExprSub .
+
+# −q = Negation(q).
+ex:cfNegQ a math:ApplicationExpression ;
+    rdfs:label "−q"@x-gmeow-english ;
+    math:operator math:Negation ;
+    math:argumentSlot ex:negQSlot0 .
+
+ex:negQSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:qExpr .
+
+# --- The variable leaves — each resolves to the formal argument or a parameter - #
+# x occurs twice (in x⁻ᵖ and in 1−x): two occurrences, both declaring ex:xDecl.
+ex:xExprPow a math:VariableExpression ;
+    rdfs:label "x (in x⁻ᵖ)"@x-gmeow-english ;
+    math:variableOccurrence ex:xOccPow .
+ex:xOccPow a math:VariableOccurrence ;
+    math:declaredVariable ex:xDecl ;
+    math:occursInScope ex:cfPowX .
+
+ex:xExprSub a math:VariableExpression ;
+    rdfs:label "x (in 1−x)"@x-gmeow-english ;
+    math:variableOccurrence ex:xOccSub .
+ex:xOccSub a math:VariableOccurrence ;
+    math:declaredVariable ex:xDecl ;
+    math:occursInScope ex:cfOneMinusX .
+
+ex:aExpr a math:VariableExpression ;
+    rdfs:label "A"@x-gmeow-english ;
+    math:variableOccurrence ex:aOcc .
+ex:aOcc a math:VariableOccurrence ;
+    math:declaredVariable ex:aDecl ;
+    math:occursInScope ex:cfTermA .
+
+ex:bExpr a math:VariableExpression ;
+    rdfs:label "B"@x-gmeow-english ;
+    math:variableOccurrence ex:bOcc .
+ex:bOcc a math:VariableOccurrence ;
+    math:declaredVariable ex:bDecl ;
+    math:occursInScope ex:cfTermB .
+
+ex:cExpr a math:VariableExpression ;
+    rdfs:label "C"@x-gmeow-english ;
+    math:variableOccurrence ex:cOcc .
+ex:cOcc a math:VariableOccurrence ;
+    math:declaredVariable ex:cDecl ;
+    math:occursInScope ex:cfBodyAdd .
+
+ex:pExpr a math:VariableExpression ;
+    rdfs:label "p"@x-gmeow-english ;
+    math:variableOccurrence ex:pOcc .
+ex:pOcc a math:VariableOccurrence ;
+    math:declaredVariable ex:pDecl ;
+    math:occursInScope ex:cfNegP .
+
+ex:qExpr a math:VariableExpression ;
+    rdfs:label "q"@x-gmeow-english ;
+    math:variableOccurrence ex:qOcc .
+ex:qOcc a math:VariableOccurrence ;
+    math:declaredVariable ex:qDecl ;
+    math:occursInScope ex:cfNegQ .
+
+# The constant 1: a numeric-literal leaf denoting the exact real number 1.
+ex:oneLiteral a math:NumberLiteral ;
+    rdfs:label "1"@x-gmeow-english ;
+    math:literalValue ex:oneNumber .
+ex:oneNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
+
+# --- The four ring pieces (same bands as the qualitative scene) ------------- #
+ex:ring0Piece a math:FunctionPiece ;
+    rdfs:label "Ring 0 piece — near the centre singularity"@x-gmeow-english ;
+    math:pieceDomain ex:ring0 .
+
+ex:ring1Piece a math:FunctionPiece ;
+    rdfs:label "Ring 1 piece — the near band"@x-gmeow-english ;
+    math:pieceDomain ex:ring1 .
+
+ex:ring2Piece a math:FunctionPiece ;
+    rdfs:label "Ring 2 piece — the broad near-zero plateau"@x-gmeow-english ;
+    math:pieceDomain ex:ring2 ;
+    math:hasAnalyticProperty math:boundedness ;
+    math:hasBound "0.01"^^xsd:double ;
+    math:boundOnInterval ex:ring2 .
+
+ex:ring3Piece a math:FunctionPiece ;
+    rdfs:label "Ring 3 piece — the outer band running to −∞"@x-gmeow-english ;
+    math:pieceDomain ex:ring3 .
+
+# --- The two divergent limits, now entailed by the form --------------------- #
+ex:centreSingularity a math:MathematicalObject ;
+    rdfs:label "The central singularity at x = 0"@x-gmeow-english .
+
+ex:centreLimit a math:Limit ;
+    rdfs:label "The centre limit: A·x⁻ᵖ → +∞ (R′) as x → 0⁺"@x-gmeow-english ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:signedRadialFieldCF ;
+    math:limitPoint ex:centreSingularity ;
+    math:limitMode math:limitFromRight ;
+    math:hasLimitResult ex:centreLimitResult .
+
+ex:centreLimitResult a math:LimitResult ;
+    rdfs:label "R′ — the positive-infinite value at the centre"@x-gmeow-english ;
+    math:limitOutcome math:divergesToPositiveInfinity ;
+    math:limitResultValue math:PositiveInfinity .
+
+ex:infinityLimit a math:Limit ;
+    rdfs:label "The infinity limit: −B·(1−x)⁻q → −∞ as x → 1⁻"@x-gmeow-english ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:signedRadialFieldCF ;
+    math:limitPoint ex:radialIdealBoundary ;
+    math:limitMode math:limitFromLeft ;
+    math:hasLimitResult ex:infinityLimitResult .
+
+ex:infinityLimitResult a math:LimitResult ;
+    rdfs:label "The negative-infinite asymptote at compactified infinity"@x-gmeow-english ;
+    math:limitOutcome math:divergesToNegativeInfinity ;
+    math:limitResultValue math:NegativeInfinity .
+
+# --- Four subset measure evaluations — Ring 2 strictly dominates ------------- #
+ex:radialMeasure a math:Measure ;
+    rdfs:label "The length measure on the compactified radial line"@x-gmeow-english ;
+    math:measureOn ex:radialMeasurableSpace ;
+    math:totalMass 1 .
+
+ex:radialMeasurableSpace a math:MeasurableSpace ;
+    rdfs:label "The compactified radial line as a measurable space"@x-gmeow-english ;
+    math:measurableSpaceOf ex:radialUnderlyingSet , ex:radialSigmaAlgebra .
+
+ex:radialUnderlyingSet a math:Set ;
+    rdfs:label "the underlying point set of the compactified line"@x-gmeow-english .
+
+ex:radialSigmaAlgebra a math:SigmaAlgebra ;
+    rdfs:label "the Borel σ-algebra on the compactified line"@x-gmeow-english .
+
+ex:ring0Measure a math:MeasureEvaluation ;
+    rdfs:label "μ(Ring 0) = 0.1"@x-gmeow-english ;
+    math:evaluatedMeasure ex:radialMeasure ;
+    math:measuredSubset ex:ring0 ;
+    math:measureResult "0.1"^^xsd:double .
+
+ex:ring1Measure a math:MeasureEvaluation ;
+    rdfs:label "μ(Ring 1) = 0.25"@x-gmeow-english ;
+    math:evaluatedMeasure ex:radialMeasure ;
+    math:measuredSubset ex:ring1 ;
+    math:measureResult "0.25"^^xsd:double .
+
+ex:ring2Measure a math:MeasureEvaluation ;
+    rdfs:label "μ(Ring 2) = 0.55 — the dominant plateau band"@x-gmeow-english ;
+    math:evaluatedMeasure ex:radialMeasure ;
+    math:measuredSubset ex:ring2 ;
+    math:measureResult "0.55"^^xsd:double .
+
+ex:ring3Measure a math:MeasureEvaluation ;
+    rdfs:label "μ(Ring 3) = 0.1"@x-gmeow-english ;
+    math:evaluatedMeasure ex:radialMeasure ;
+    math:measuredSubset ex:ring3 ;
+    math:measureResult "0.1"^^xsd:double .
