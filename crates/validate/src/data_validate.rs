@@ -66,6 +66,12 @@ enum DeepPassError {
     /// The declared contradiction-policy contract is garbled; this is INVALID
     /// INPUT and must cause a hard-fail `Severity::Error` finding.
     ContractResolution(String),
+    /// A reasoning verdict named a clash quad whose explain-skeleton derivation
+    /// could not be built (the index build failed after a real verdict) or located
+    /// (the witness references a quad absent from the result). This is an INTERNAL
+    /// INVARIANT VIOLATION and must cause a hard-fail `Severity::Error` finding — it
+    /// must NOT be downgraded to the graceful `Unavailable` advisory.
+    Derivation(String),
     /// The deep pass could not run for an infrastructure / availability reason;
     /// this degrades gracefully to a `Severity::Note` advisory.
     Unavailable(String),
@@ -284,6 +290,12 @@ pub fn run(
 ///   This is INVALID INPUT (no-optionality discipline): folded as a
 ///   `validate.deep.contract-invalid` `Severity::Error` finding that FAILS the
 ///   gate. It must NOT be downgraded to an advisory note.
+///
+/// - [`DeepPassError::Derivation`]: a reasoning verdict referenced a clash quad
+///   whose explain-skeleton derivation could not be built or located. This is an
+///   INTERNAL INVARIANT VIOLATION (no-optionality discipline): folded as a
+///   `validate.deep.derivation-unresolved` `Severity::Error` finding that FAILS the
+///   gate. It must NOT be downgraded to an advisory note.
 #[cfg(not(target_arch = "wasm32"))]
 fn run_deep_pass(
     gts_bytes: &[u8],
@@ -314,6 +326,26 @@ fn run_deep_pass(
                     "deep semantic pass: bundle carries a garbled \
                      logic:admissibleValuation that cannot be resolved as a \
                      contradiction policy — the gate is hard-failed: {msg}"
+                ),
+            )
+            .with_tool("validate");
+            finding.add_location(Location {
+                path: Some(origin.to_owned()),
+                ..Location::default()
+            });
+            report.add_finding(finding);
+        }
+        Err(DeepPassError::Derivation(msg)) => {
+            // HARD FAIL: a reasoning verdict referenced a clash quad whose
+            // explain-skeleton derivation could not be built or located — an
+            // internal invariant violation. It must surface as a Severity::Error
+            // finding, NEVER be downgraded to the graceful Unavailable note.
+            let mut finding = Finding::new(
+                Severity::Error,
+                crate::codes::VALIDATE_DEEP_DERIVATION_UNRESOLVED,
+                format!(
+                    "deep semantic pass: a reasoning verdict could not be joined to its \
+                     explain-skeleton derivation — the gate is hard-failed: {msg}"
                 ),
             )
             .with_tool("validate");
@@ -373,6 +405,16 @@ fn deep_consistency_findings(
         .map_err(|d| DeepPassError::Unavailable(d.message().to_string()))?;
     let result = gmeow_logic::reason::reason_all_with_data(bundle.dataset.as_ref(), user.as_ref())
         .map_err(|e| DeepPassError::Unavailable(format!("native reasoning failed: {e}")))?;
+    // Build the faithful cited-quad-reifier derivation skeletons for the SAME result.
+    // A build failure AFTER the reasoner produced a real verdict is an internal
+    // invariant violation (a cycle or unresolved antecedent in the proof trace), NOT
+    // an infrastructure availability failure: it maps to the hard-fail `Derivation`
+    // variant, never the graceful `Unavailable` note.
+    let explanations = gmeow_logic::explain::explanations_for_result(&result).map_err(|e| {
+        DeepPassError::Derivation(format!(
+            "explanation-skeleton build failed after a real verdict (internal invariant): {e}"
+        ))
+    })?;
     // The governing contradiction policy is READ from the bundle's declared
     // logic:ReasoningContract (logic:admissibleValuation), not pinned: no contract /
     // no valuation ⇒ conservative classical DEFAULT (a glut IS owl:Nothing); multiple
@@ -387,7 +429,8 @@ fn deep_consistency_findings(
         bundle.dataset.as_ref(),
     )
     .map_err(|e| DeepPassError::ContractResolution(format!("contract resolution failed: {e}")))?;
-    crate::validate_all::fold_reasoning_result(&result, policy, report);
+    crate::validate_all::fold_reasoning_result(&result, policy, &explanations, report)
+        .map_err(|e| DeepPassError::Derivation(e.message))?;
     Ok(())
 }
 
