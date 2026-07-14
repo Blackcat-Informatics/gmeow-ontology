@@ -469,7 +469,12 @@ pub fn completeness_tiers(slice_dir: &Path) -> gmeow_errors::Result<BTreeMap<Str
 
 /// Every IRI subject the slice defines (`rdfs:isDefinedBy` the slice IRI, excluding
 /// the slice individual itself), sorted ascending and deduped.
-fn defined_terms(ds: &RdfDataset, slice_iri: &str) -> Vec<String> {
+///
+/// This is the SINGLE canonical slice-membership rule: the pipeline's `slice_brief`
+/// stage calls this exact function (via the crate root re-export) rather than keeping
+/// a second copy, so the two callers can never drift on what counts as "in the slice".
+#[must_use]
+pub fn defined_terms(ds: &RdfDataset, slice_iri: &str) -> Vec<String> {
     let (Some(pred), Some(slice_id)) = (
         graph::id(ds, ns::RDFS_IS_DEFINED_BY),
         graph::id(ds, slice_iri),

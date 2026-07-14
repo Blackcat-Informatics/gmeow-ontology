@@ -36,7 +36,7 @@ pub mod ns;
 pub mod render;
 pub mod turtle;
 
-pub use assemble::{BriefInputs, assemble_packet, completeness_tiers};
+pub use assemble::{BriefInputs, assemble_packet, completeness_tiers, defined_terms};
 pub use model::{
     Annotation, AuthoringPacket, ClosureEntry, CoveredTerm, GroundingAttribute, GroundingCell,
     GroundingMargins, ObjTerm, Triple,
