@@ -371,6 +371,11 @@ failure-output = "immediate-final"
 
 [profile.ci]
 inherits = "default"
+# GitHub's four-core hosted runners let the ungrouped repo-scale compile,
+# validation, and CLI tests contend four-wide, inflating otherwise sub-budget
+# tests past the 25 s wall-clock policy. Two workers preserve every test while
+# matching the memory-aware engine group and keeping per-test timing meaningful.
+test-threads = 2
 junit = { path = "junit.xml" }
 fail-fast = false
 
