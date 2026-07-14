@@ -4036,6 +4036,19 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
                     ),
                 }));
             }
+            // The SAME subject typed BOTH logic:CoherenceCertificate and
+            // logic:CoherenceCheckAttestation is ambiguous — a hard fail, never a
+            // silent first-wins pick of whichever `rdf:type` triple the dataset's
+            // quad order happened to surface first.
+            Some((_, existing_class)) if *existing_class != class_local => {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "coherence_certificate: coherence subject {subject} is typed BOTH \
+                         logic:CoherenceCertificate and logic:CoherenceCheckAttestation in \
+                         {graph}; an ambiguously-typed coherence artifact is a hard failure"
+                    ),
+                }));
+            }
             Some(_) => {}
             None => carried = Some((subject, class_local)),
         }
@@ -4141,15 +4154,61 @@ fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors:
         }
     }
 
-    // bundle_hash / axiom_hashes are the load-bearing tamper surface — a bundle that
-    // carries a typed coherence subject but no bundle identity is corrupt, not partial.
-    let Some(bundle_hash) = bundle_hash else {
-        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+    // 4. STRICT VALIDATION — every field [`CoherenceOutcome::to_nquads`]
+    //    (`crates/logic/src/certificate.rs`) writes UNCONDITIONALLY on every issued
+    //    certificate/attestation subject is REQUIRED here, with the exact cardinality
+    //    the producer guarantees. A carried subject missing one of these is a CORRUPT
+    //    artifact, not a partial one — returning `ok:true` with a null/empty field would
+    //    silently launder that corruption past the caller (no-silent-degradation, `.goals`).
+    //    Each hard-fail names the missing predicate so the caller can act on it.
+    let missing = |field: &str| -> gmeow_errors::Diag {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
             message: format!(
-                "coherence_certificate: coherence subject {subject} carries no \
-                 logic:bundleHash (corrupt coherence artifact)"
+                "coherence_certificate: coherence subject {subject} carries no logic:{field} \
+                 (malformed coherence artifact)"
             ),
-        }));
+        })
+    };
+    // bundle_hash / axiom_hashes are the load-bearing tamper surface. `axiomHash` rides
+    // per-axiom-bearing-graph (`per_graph_axiom_hashes`), which hashes EVERY named graph in
+    // the dataset the certificate was computed over — a real bundle always has at least one,
+    // so an empty set here is corruption, not a legitimately-empty producer output.
+    let Some(bundle_hash) = bundle_hash.filter(|v| !v.is_empty()) else {
+        return Err(missing("bundleHash"));
+    };
+    if axiom_hashes.is_empty() {
+        return Err(missing("axiomHash"));
+    }
+    let Some(contract_hash) = contract_hash.filter(|v| !v.is_empty()) else {
+        return Err(missing("contractHash"));
+    };
+    let Some(engine) = engine.filter(|v| !v.is_empty()) else {
+        return Err(missing("engine"));
+    };
+    let Some(contradiction_policy) = contradiction_policy else {
+        return Err(missing("contradictionPolicy"));
+    };
+    // logic:summarizesResult is written unconditionally (M2, single-valued) and is the
+    // only path to the two completeness-gate axes below; its absence is corruption.
+    if result_node.is_none() {
+        return Err(missing("summarizesResult"));
+    }
+    // logic:certifiedFragment is the ONE conditionally-required field: the completeness
+    // gate (`certificate.rs::classify`) downgrades any fragment-less conclusive check to
+    // an attestation, so a producer NEVER emits a `CoherenceCertificate` subject without
+    // one — require it only for that class, exactly matching producer cardinality.
+    if class_local == "CoherenceCertificate"
+        && certified_fragment.as_deref().is_none_or(str::is_empty)
+    {
+        return Err(missing("certifiedFragment"));
+    }
+    // The two completeness-gate axes ride the linked result node unconditionally
+    // (`resultEvaluation` / `resultCompleteness`) — required alongside it.
+    let Some(completeness) = completeness else {
+        return Err(missing("resultCompleteness"));
+    };
+    let Some(evaluation) = evaluation else {
+        return Err(missing("resultEvaluation"));
     };
 
     Ok(json!({
@@ -9667,6 +9726,39 @@ mod tests {
             .expect("parse coherence N-Quads")
     }
 
+    /// Build the lightest `McpView` that can drive the REAL production entry point
+    /// ([`McpView::coherence_certificate_json`], the exact method
+    /// `tool_coherence_certificate` calls) over hand-crafted `graph/attestations`
+    /// N-Quads — without paying for a full `emit_gts`/`SnapshotBuilder` round trip
+    /// (reserved for the `_heavy_offgate` whole-bundle test). `McpView::from_dataset`
+    /// only needs the ontology header for `export::fold_meta`; the raw `gts` bytes it
+    /// also stores are unused by `coherence_certificate_json`, so an empty `Arc<[u8]>`
+    /// is honest (never a fabricated placeholder read by the surface under test).
+    fn view_of(nquads: &str) -> McpView {
+        let header = "<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n";
+        let doc = format!("{header}{nquads}");
+        McpView::from_dataset(dataset_of(&doc), Arc::from(Vec::<u8>::new()))
+            .expect("construct McpView over the crafted certificate fixture")
+    }
+
+    /// Simulate a producer that failed to write exactly ONE required predicate: strip
+    /// every N-Quads line mentioning the bracket-delimited `logic:<local>` predicate
+    /// IRI, leaving every other quad (including the subject's `rdf:type`) intact. The
+    /// bracket delimiters make the match exact — no risk of one predicate's local name
+    /// being a substring of another's.
+    fn strip_predicate(nquads: &str, local: &str) -> String {
+        let token = format!("<{LOGIC_NAMESPACE}{local}>");
+        let mut out = nquads
+            .lines()
+            .filter(|line| !line.contains(&token))
+            .collect::<Vec<_>>()
+            .join("\n");
+        out.push('\n');
+        out
+    }
+
     /// The carrier folds a CONCLUSIVE, fragment-scoped, violation-free closure as a real
     /// `logic:CoherenceCertificate`; the read tool surfaces `issues_certificate:true`, the
     /// certificate class, and the pinned bundle_hash / per-graph axiom_hashes VERBATIM (the
@@ -9829,6 +9921,127 @@ mod tests {
                 .contains("more than one distinct coherence subject"),
             "the hard fail names the ambiguity: {err}"
         );
+    }
+
+    /// G10 (MEDIUM, CodeRabbit): a SINGLE coherence subject typed BOTH
+    /// `logic:CoherenceCertificate` and `logic:CoherenceCheckAttestation` is an
+    /// ambiguous, malformed artifact and must hard-fail — REGRESSION GUARD for the
+    /// exact gap this test closes: the ambiguity check used to compare only the
+    /// SUBJECT IRI (`existing != subject`), so two `rdf:type` triples on the SAME
+    /// subject fell through to the silent `Some(_) => {}` no-op arm and first-wins
+    /// picked whichever `rdf:type` the dataset's quad iteration order surfaced first.
+    /// Drives the REAL production entry point (`McpView::coherence_certificate_json`).
+    #[test]
+    fn coherence_certificate_json_hard_fails_on_a_dual_typed_subject() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("fragment:dual"),
+            ),
+            "blake3:bundle-dual".to_owned(),
+            ["blake3:axioms-dual".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        let nquads = outcome.to_nquads(graph);
+
+        // Splice in a SECOND `rdf:type` triple on the SAME subject, typing it the
+        // strictly-weaker Attestation class too — the malformed dual-typed artifact.
+        let subject_line = nquads
+            .lines()
+            .find(|l| l.contains("22-rdf-syntax-ns#type") && l.contains("CoherenceCertificate"))
+            .expect("the fixture carries the certificate's rdf:type triple");
+        let subject = subject_line
+            .split_whitespace()
+            .next()
+            .expect("rdf:type triple has a subject");
+        let dual_typed = format!(
+            "{nquads}{subject} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+             <{LOGIC_NAMESPACE}CoherenceCheckAttestation> <{graph}> .\n"
+        );
+
+        let view = view_of(&dual_typed);
+        let out: Value = serde_json::from_str(&view.coherence_certificate_json())
+            .expect("coherence_certificate_json returns valid JSON");
+        assert_eq!(
+            out["ok"], false,
+            "a dual-typed subject must hard-fail, never first-win a class: {out}"
+        );
+        let error = out["error"].as_str().unwrap_or_default();
+        assert!(
+            error.contains("typed BOTH"),
+            "the hard fail names the ambiguous dual typing: {error}"
+        );
+    }
+
+    /// G10 (MEDIUM, CodeRabbit): every producer-REQUIRED field the tool extracts must
+    /// be present with the producer's exact cardinality — a bundle missing ANY of them
+    /// is a CORRUPT artifact and must hard-fail (`ok:false`) naming the missing
+    /// predicate, never `ok:true` with a null/empty field silently laundering the gap
+    /// (no-silent-degradation, `.goals`). Drives the REAL production entry point
+    /// (`McpView::coherence_certificate_json`, the exact method
+    /// `tool_coherence_certificate` calls) over a battery of certificates each missing
+    /// exactly one predicate [`CoherenceOutcome::to_nquads`] otherwise always writes.
+    #[test]
+    fn coherence_certificate_json_hard_fails_on_each_missing_required_field() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("fragment:required"),
+            ),
+            "blake3:bundle-required".to_owned(),
+            ["blake3:axioms-required".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        assert!(
+            outcome.issues_certificate(),
+            "the fixture must be a real certificate (so certifiedFragment is exercised too)"
+        );
+        let full = outcome.to_nquads(graph);
+
+        // Every predicate the producer writes UNCONDITIONALLY on a CoherenceCertificate
+        // subject (bundleHash/axiomHash/contractHash/engine/contradictionPolicy/
+        // summarizesResult/certifiedFragment) plus the two axes carried on the linked
+        // result node (resultCompleteness/resultEvaluation) — one case per field.
+        let required_predicates = [
+            "bundleHash",
+            "axiomHash",
+            "contractHash",
+            "engine",
+            "contradictionPolicy",
+            "summarizesResult",
+            "certifiedFragment",
+            "resultCompleteness",
+            "resultEvaluation",
+        ];
+        for predicate in required_predicates {
+            let stripped = strip_predicate(&full, predicate);
+            let view = view_of(&stripped);
+            let out: Value = serde_json::from_str(&view.coherence_certificate_json())
+                .expect("coherence_certificate_json returns valid JSON");
+            assert_eq!(
+                out["ok"], false,
+                "stripping logic:{predicate} must hard-fail, not ok:true with a null field: {out}"
+            );
+            let error = out["error"].as_str().unwrap_or_default();
+            assert!(
+                error.contains(predicate),
+                "the hard fail for a missing logic:{predicate} must name it: {error}"
+            );
+        }
     }
 
     /// Drive the REAL `coherence_certificate` tool through `call_tool_result` over a bundle
