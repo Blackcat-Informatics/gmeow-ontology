@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: CC-BY-4.0
 #
 # Declarative example-conformance fixtures for the mathematics slice — the test-DSL
-# twin of the SHACL shapes in slices/grounding/math/shapes.ttl ("this instance
-# must validate, that counter-example must be rejected"). The harness
-# (crates/slicetest run_conformance_cell) validates mathematics/module.ttl + the one
-# bound gmeow:exampleFile against mathematics/shapes.ttl and compares finding codes.
+# twin of the slice's validation surface ("this instance must validate, that
+# counter-example must be rejected"). The slice's legacy shapes.ttl is retired: the
+# harness (crates/slicetest run_conformance_cell) validates mathematics/module.ttl +
+# the one bound gmeow:exampleFile against the canonical generated projections
+# (generated/shapes/{validation-shapes,constraint-shapes,procedural-constraints}.ttl)
+# and compares finding codes.
 #
 # Each counter-example isolates ONE violation, so the (fixture, code) pair pins the
 # specific constraint. The conforming fixtures live under tests/conformance-fixtures/

@@ -492,8 +492,10 @@ fn explain_with_index(
 
 // ── Reasoning-result bridge ────────────────────────────────────────────────────
 
-/// Build the faithful cited-IRI derivation skeletons for every derived (and
-/// asserted) quad in a reasoning result.
+/// Build the premise-closed [`Row`] set for a reasoning result — the SINGLE
+/// row-building implementation shared by [`explanations_for_result`] (which then
+/// explains every row) and the bounded single-target `explain(witness)` consumers
+/// (which index the set and [`LazyExplanationIndex::explain_one`] exactly one).
 ///
 /// Each [`InferredAxiom`](crate::reason::InferredAxiom) is mapped to one explain
 /// [`Row`]: the world becomes the row `graph`; the axiom's `(subject, predicate,
@@ -527,20 +529,12 @@ fn explain_with_index(
 /// closure the derivation tree would cite an antecedent reifier with no backing row —
 /// a spurious [`ExplainError::UnresolvedReifier`] on a perfectly sound verdict.
 ///
-/// Returns OWNED [`Explanation`]s (the [`Row`] buffer is built and consumed
-/// internally) so a caller need not hold the borrow — sidestepping the
-/// [`LazyExplanationIndex`] borrow-lifetime problem entirely.
-///
 /// # Errors
 ///
-/// Propagates any [`ExplainError`] from reconstructing a quad's derivation tree —
-/// an unresolved antecedent reifier ([`ExplainError::UnresolvedReifier`]) or a cycle
-/// in the proof trace ([`ExplainError::Cycle`]). When the reasoner has already
-/// produced a real verdict, either is an INTERNAL INVARIANT VIOLATION, and the
-/// verdict-folding callers HARD-FAIL on it rather than degrading to an advisory.
-pub fn explanations_for_result(
-    result: &crate::result::ReasoningResult,
-) -> Result<Vec<Explanation>, ExplainError> {
+/// This never fails today (row assembly is total); it returns [`Result`] so its
+/// contract stays aligned with the explanation engine it feeds and can carry a
+/// future decode error without a signature break.
+pub fn rows_for_result(result: &crate::result::ReasoningResult) -> Result<Vec<Row>, ExplainError> {
     let assert_rule = ASSERT_RULE_IRI.to_owned();
     let mut rows: Vec<Row> = Vec::with_capacity(result.inferred().len());
     // The `(world, reifier)` identities already carried by a row, so a premise is
@@ -612,7 +606,31 @@ pub fn explanations_for_result(
     }
     rows.extend(synthesized);
 
-    LazyExplanationIndex::new(&rows).explain_all()
+    Ok(rows)
+}
+
+/// Build the faithful cited-IRI derivation skeletons for every derived (and
+/// asserted) quad in a reasoning result.
+///
+/// A thin composition over the ONE row builder: [`rows_for_result`] materializes the
+/// premise-closed [`Row`] set, then [`explain_all`] reconstructs each quad's proof.
+///
+/// Returns OWNED [`Explanation`]s (the [`Row`] buffer is built and consumed
+/// internally) so a caller need not hold the borrow — sidestepping the
+/// [`LazyExplanationIndex`] borrow-lifetime problem entirely.
+///
+/// # Errors
+///
+/// Propagates any [`ExplainError`] from reconstructing a quad's derivation tree —
+/// an unresolved antecedent reifier ([`ExplainError::UnresolvedReifier`]) or a cycle
+/// in the proof trace ([`ExplainError::Cycle`]). When the reasoner has already
+/// produced a real verdict, either is an INTERNAL INVARIANT VIOLATION, and the
+/// verdict-folding callers HARD-FAIL on it rather than degrading to an advisory.
+pub fn explanations_for_result(
+    result: &crate::result::ReasoningResult,
+) -> Result<Vec<Explanation>, ExplainError> {
+    let rows = rows_for_result(result)?;
+    explain_all(&rows)
 }
 
 /// Normalize a reasoning premise's object to the canonical N3 surface a [`Row`]'s

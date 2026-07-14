@@ -8,6 +8,7 @@
 # Bound by ex:ecIngestRunGrounded.
 @prefix math:  <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <http://example.org/math/> .
 
 ex:run a math:RIngestRun ;
@@ -16,8 +17,14 @@ ex:run a math:RIngestRun ;
     logic:instantiatesPlan ex:plan ;
     math:ingestCorrespondence ex:corr .
 ex:srcWitness a math:MathematicalObject ; logic:loadBearing true .
-ex:schema a logic:ActionSchema .
-ex:plan a logic:Plan .
+ex:schema a logic:ActionSchema ;
+    logic:capability ex:parseCapability ;
+    logic:precondition ex:sourceAvailable .
+ex:plan a logic:Plan ;
+    logic:planGoal ex:ingestGoal ;
+    logic:planSuccessMode ex:allStepsSucceed .
+ex:ingestGoal a gmeow:Goal .
+ex:allStepsSucceed a logic:PlanSuccessMode .
 ex:corr a logic:Correspondence ;
     logic:morphismClass logic:LossyLens ;
     logic:mnemomorphic true .

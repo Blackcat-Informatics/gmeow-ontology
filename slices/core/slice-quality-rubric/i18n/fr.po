@@ -736,3 +736,67 @@ msgstr "Le module de rubrique de qualité des slices GMEOW — classes, proprié
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric|rdfs:comment"
 msgid "The slice-quality rubric module — the ontology-resident, data-driven rubric the gmeow-dev slice-quality advisor binds to. Quality axes, the lattice tier ladder, per-tier score thresholds, advice text, read-scope coeffects, and dated exemptions are all individuals here; Rust ships only a closed set of measurement primitives the axis descriptors name (the Profile rubric-as-data pattern). Grades form a bounded lattice grounded in logic:QualityValue: the roll-up tier is the UNWEIGHTED meet of the per-axis grades, the ratchet is the lattice order, and the scalar tier is a lossy projection of the full per-axis grade vector.\n\nThis slice is its own self-application capstone: it must itself score Maximal on the rubric it defines, and its rationales name no test artifact — it is the exemplar of the provenance-honesty rule it introduces."
 msgstr "Le module de rubrique de qualité des slices — la rubrique résidant dans l'ontologie et pilotée par les données à laquelle se lie le conseiller de qualité des slices gmeow-dev. Les axes de qualité, l'échelle de paliers en treillis, les seuils de score par palier, le texte de conseil, les coeffets de portée de lecture et les exemptions datées sont tous des individus ici ; Rust ne livre qu'un ensemble fermé de primitives de mesure que les descripteurs d'axes nomment (le motif Profile « rubrique en tant que données »). Les grades forment un treillis borné ancré dans logic:QualityValue : le palier agrégé est la borne inférieure NON PONDÉRÉE des grades par axe, le cliquet est l'ordre du treillis, et le palier scalaire est une projection avec perte du vecteur complet des grades par axe.\n\nCette slice est son propre point d'orgue d'auto-application : elle doit elle-même obtenir Maximal sur la rubrique qu'elle définit, et ses justifications ne nomment aucun artefact de test — elle est l'exemplaire de la règle d'honnêteté de provenance qu'elle introduit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth|rdfs:label"
+msgid "axis-floor commitment — math / axisFlagshipCounterExampleDepth"
+msgstr "engagement de plancher d'axe — math / axisFlagshipCounterExampleDepth"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisFlagshipCounterExampleDepth|skos:definition"
+msgid "The committed raise-only measured-score floor for the axisFlagshipCounterExampleDepth quality axis on the math slice; the gate reds if the slice's measured score falls below it."
+msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisFlagshipCounterExampleDepth sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding|rdfs:label"
+msgid "axis-floor commitment — math / axisMaximalGrounding"
+msgstr "engagement de plancher d'axe — math / axisMaximalGrounding"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalGrounding|skos:definition"
+msgid "The committed raise-only measured-score floor for the axisMaximalGrounding quality axis on the math slice; the gate reds if the slice's measured score falls below it."
+msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisMaximalGrounding sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation|rdfs:label"
+msgid "axis-floor commitment — math / axisMaximalInformation"
+msgstr "engagement de plancher d'axe — math / axisMaximalInformation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalInformation|skos:definition"
+msgid "The committed raise-only measured-score floor for the axisMaximalInformation quality axis on the math slice; the gate reds if the slice's measured score falls below it."
+msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisMaximalInformation sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage|rdfs:label"
+msgid "axis-floor commitment — math / axisMaximalLinkage"
+msgstr "engagement de plancher d'axe — math / axisMaximalLinkage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalLinkage|skos:definition"
+msgid "The committed raise-only measured-score floor for the axisMaximalLinkage quality axis on the math slice; the gate reds if the slice's measured score falls below it."
+msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisMaximalLinkage sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection|rdfs:label"
+msgid "axis-floor commitment — math / axisMaximalProjection"
+msgstr "engagement de plancher d'axe — math / axisMaximalProjection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisMaximalProjection|skos:definition"
+msgid "The committed raise-only measured-score floor for the axisMaximalProjection quality axis on the math slice; the gate reds if the slice's measured score falls below it."
+msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisMaximalProjection sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting|rdfs:label"
+msgid "axis-floor commitment — math / axisOptimalTesting"
+msgstr "engagement de plancher d'axe — math / axisOptimalTesting"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisOptimalTesting|skos:definition"
+msgid "The committed raise-only measured-score floor for the axisOptimalTesting quality axis on the math slice; the gate reds if the slice's measured score falls below it."
+msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisOptimalTesting sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty|rdfs:label"
+msgid "axis-floor commitment — math / axisProvenanceHonesty"
+msgstr "engagement de plancher d'axe — math / axisProvenanceHonesty"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisProvenanceHonesty|skos:definition"
+msgid "The committed raise-only measured-score floor for the axisProvenanceHonesty quality axis on the math slice; the gate reds if the slice's measured score falls below it."
+msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisProvenanceHonesty sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|rdfs:label"
+msgid "axis-floor commitment — math / axisReasonerDerived"
+msgstr "engagement de plancher d'axe — math / axisReasonerDerived"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|skos:definition"
+msgid "The committed raise-only measured-score floor for the axisReasonerDerived quality axis on the math slice; the gate reds if the slice's measured score falls below it."
+msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisReasonerDerived sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."

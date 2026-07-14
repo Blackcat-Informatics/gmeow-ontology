@@ -569,6 +569,50 @@ fn already_inconsistent_kb_is_hard_error() {
     );
 }
 
+// ── Test 7b: same foreign inconsistency, but budget-tripped ⇒ non-conclusion, NOT Err ──
+
+#[test]
+fn budget_tripped_foreign_inconsistency_is_undetermined_not_ex_falso_error() {
+    // Identical scenario KB to `already_inconsistent_kb_is_hard_error` — a:A, a:B, and
+    // A disjointWith B force a into owl:Nothing, a glut UNRELATED to the candidate a:C — but
+    // this time the budget is so tight (`max_answers: Some(0)`) that it trips BEFORE the `φ`
+    // leg can be treated as having run to a genuine conclusion: the base's derived closure
+    // already carries one non-EDB axiom (`a rdf:type owl:Nothing`), which alone exceeds a
+    // zero answer ceiling. A truncated chase over an apparently-inconsistent base must NOT
+    // be ex-falso'd into a hard `Err` — `has_proof`/`has_counterproof` being false could be an
+    // artifact of the cut, not a decided absence of the glut relation — so the correct verdict
+    // is the honest budget-exhausted non-conclusion (`Undetermined`/`Open`/`Unknown`), exactly
+    // like any other budget-truncated run (contrast `budget_truncation_is_budget_exhausted_open_unknown`).
+    let store = kb(&[
+        (IND_A, TYPE, A_CLS),
+        (IND_A, TYPE, B_CLS),
+        (A_CLS, DISJOINT, B_CLS),
+    ]);
+    let candidate = binary_atom(TYPE, IND_A, C_CLS);
+    let budget = Budget {
+        max_answers: Some(0),
+        max_steps: None,
+    };
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &budget).expect(
+        "a budget-tripped run over an apparently-inconsistent base must be a non-conclusion, \
+         never the ex-falso hard error",
+    );
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::BudgetExhausted,
+        "the answer ceiling must be the reason this run did not reach a conclusion"
+    );
+    assert_eq!(
+        ans.verdict.information,
+        InformationState::Undetermined,
+        "a budget-truncated leg over an inconsistent-looking base is undetermined, never a \
+         decided Belnap quadrant"
+    );
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Open);
+    assert_eq!(ans.discharge, ConjectureDischarge::Unknown);
+}
+
 // ── Test 8: isolation — the input KB dataset is never mutated ─────────────────
 
 #[test]
@@ -659,4 +703,75 @@ fn lifecycle_and_discharge_local_names_round_trip() {
         ConjectureDischarge::Discharged.local_name(),
         "ObligationDischarged"
     );
+}
+
+// ── Rule-program candidate: the GOVERNED forward chase cuts it mid-flight ──────
+
+#[test]
+fn rule_program_candidate_step_budget_cuts_the_forward_chase_not_a_post_hoc_ceiling() {
+    // A KB with a subclass chain gives the forward DL closure several committed derivations
+    // (A⊑C, A⊑D, B⊑D, x:B, x:C, x:D). A NON-TRIVIAL formula candidate (a ∀-Horn implication)
+    // takes the program path, which is now evaluated through the SAME forward-chase governor
+    // as the ground path (`reason_program_budgeted`). A tiny max_steps must cut the chase
+    // mid-flight and surface the non-conclusive budget-exhausted Open/Unknown lifecycle —
+    // reported through the real governor status, never a post-hoc `derived_closure_size`
+    // comparison after a full run.
+    let store = kb(&[
+        (A_CLS, SUBCLASS, B_CLS),
+        (B_CLS, SUBCLASS, C_CLS),
+        (C_CLS, SUBCLASS, D_CLS),
+        (IND_X, TYPE, A_CLS),
+    ]);
+    // A formula (not a ground atom) → the rule-program branch of conjecture_test.
+    let candidate = forall_horn(KNOWS, ALICE, TRUSTS, BOB);
+    let budget = Budget {
+        max_answers: None,
+        max_steps: Some(1),
+    };
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &budget)
+        .expect("governed rule-program conjecture test");
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::BudgetExhausted,
+        "the forward chase was cut mid-flight by the step governor"
+    );
+    assert_eq!(ans.verdict.information, InformationState::Undetermined);
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Open);
+    assert_eq!(ans.discharge, ConjectureDischarge::Unknown);
+    // The consumed budget is the governor's REAL committed-derivation count (≤ ceiling),
+    // never the derived-closure-size fiction the deleted post-hoc ceiling used.
+    assert!(
+        ans.verdict.provenance.consumed_budget.consumed <= 1,
+        "consumed steps ({}) must respect the max_steps ceiling",
+        ans.verdict.provenance.consumed_budget.consumed
+    );
+}
+
+#[test]
+fn rule_program_candidate_with_ample_step_budget_completes_normally() {
+    // The SAME formula candidate over a KB with no subclass chain has a trivially-small
+    // forward closure, so a generous ceiling never trips the governor: the run completes and
+    // the ∀-Horn's fired consequence corroborates it (identical to the ungoverned path).
+    let store = kb(&[(SAM_P, KNOWS, ALICE)]);
+    let candidate = forall_horn(KNOWS, ALICE, TRUSTS, BOB);
+    let ans = conjecture_test(
+        &store,
+        SCN,
+        &candidate,
+        STANDPOINT,
+        &[],
+        &Budget {
+            max_answers: None,
+            max_steps: Some(1_000_000),
+        },
+    )
+    .expect("governed rule-program conjecture test with an ample budget");
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::Completed,
+        "an ample ceiling never trips the governor"
+    );
+    assert_ne!(ans.verdict.information, InformationState::Undetermined);
 }
