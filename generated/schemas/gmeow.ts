@@ -1000,6 +1000,10 @@ export enum CelestialReferenceOriginEnum {
 export enum CitationActEnum {
     ipaChartCitation = "ipaChartCitation",
     leipzigCitation = "leipzigCitation",
+    shruti22DivisionCitation = "shruti22DivisionCitation",
+    shruti22PlacementCitation = "shruti22PlacementCitation",
+    shruti22RatioCitation = "shruti22RatioCitation",
+    yamanRagaCitation = "yamanRagaCitation",
 }
 
 export enum CitationIntentEnum {
@@ -1219,6 +1223,10 @@ export enum CoverageDepthEnum {
 export enum CreativeWorkEnum {
     ipaChartWork = "ipaChartWork",
     leipzigWork = "leipzigWork",
+    workNatyashastra = "workNatyashastra",
+    workRagasOfNorthernIndianMusic = "workRagasOfNorthernIndianMusic",
+    workRagsOfNorthIndianMusic = "workRagsOfNorthIndianMusic",
+    workSangitaratnakara = "workSangitaratnakara",
 }
 
 export enum CreativeWorkTypeEnum {

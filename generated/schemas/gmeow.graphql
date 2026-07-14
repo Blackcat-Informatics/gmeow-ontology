@@ -1000,6 +1000,10 @@ enum CelestialReferenceOriginEnum {
 enum CitationActEnum {
   ipaChartCitation
   leipzigCitation
+  shruti22DivisionCitation
+  shruti22PlacementCitation
+  shruti22RatioCitation
+  yamanRagaCitation
 }
 
 enum CitationIntentEnum {
@@ -1219,6 +1223,10 @@ enum CoverageDepthEnum {
 enum CreativeWorkEnum {
   ipaChartWork
   leipzigWork
+  workNatyashastra
+  workRagasOfNorthernIndianMusic
+  workRagsOfNorthIndianMusic
+  workSangitaratnakara
 }
 
 enum CreativeWorkTypeEnum {

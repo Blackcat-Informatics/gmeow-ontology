@@ -18173,6 +18173,18 @@ enums:
       leipzigCitation:
         meaning: https://blackcatinformatics.ca/gmeow/leipzigCitation
         title: Leipzig plane conformance citation
+      shruti22DivisionCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/shruti22DivisionCitation
+        title: 22-śruti division citation
+      shruti22PlacementCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/shruti22PlacementCitation
+        title: 22-śruti śuddha placement citation
+      shruti22RatioCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/shruti22RatioCitation
+        title: 22-śruti JI ratio citation
+      yamanRagaCitation:
+        meaning: https://blackcatinformatics.ca/gmeow/yamanRagaCitation
+        title: Raga Yaman degree-selection citation
   CitationIntentEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CitationIntent
     permissible_values:
@@ -18698,6 +18710,18 @@ enums:
       leipzigWork:
         meaning: https://blackcatinformatics.ca/gmeow/leipzigWork
         title: the Leipzig Glossing Rules
+      workNatyashastra:
+        meaning: https://blackcatinformatics.ca/gmeow/workNatyashastra
+        title: the Nāṭyaśāstra
+      workRagasOfNorthernIndianMusic:
+        meaning: https://blackcatinformatics.ca/gmeow/workRagasOfNorthernIndianMusic
+        title: The Ragas of Northern Indian Music
+      workRagsOfNorthIndianMusic:
+        meaning: https://blackcatinformatics.ca/gmeow/workRagsOfNorthIndianMusic
+        title: The Rāgs of North Indian Music
+      workSangitaratnakara:
+        meaning: https://blackcatinformatics.ca/gmeow/workSangitaratnakara
+        title: the Saṅgītaratnākara
   CreativeWorkTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CreativeWorkType
     permissible_values:

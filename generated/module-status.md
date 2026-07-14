@@ -60,7 +60,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | mentation | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
 | metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | model-serving | extension | extensions | 6 | 4 | 13 | 0 | 4 | - | full |
-| music | extension | extensions | 13 | 59 | 126 | 0 | 1 | - | full |
+| music | extension | extensions | 14 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 10 | 16 | 37 | 0 | 1 | 53/53 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
 | norms | extension | extensions | 10 | 25 | 56 | 0 | 1 | - | full |

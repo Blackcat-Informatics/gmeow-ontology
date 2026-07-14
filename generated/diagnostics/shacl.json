@@ -5,14 +5,7 @@
       "severity": "info",
       "code": "shacl.clean",
       "message": "SHACL validation passed: no findings",
-      "tool": "shacl",
-      "remediation": [
-        {
-          "text": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
-          "standpoint": "binding",
-          "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-clean"
-        }
-      ]
+      "tool": "shacl"
     }
   ],
   "metadata": {
