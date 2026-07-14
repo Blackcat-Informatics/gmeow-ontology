@@ -561,52 +561,12 @@ mod tests {
         );
     }
 
-    #[test]
-    fn production_chase_certificate_folds_into_diagnostics_graph_and_nodes() {
-        let nq = br#"
-<http://example.org/R> <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/p> <http://gmeow.example/w> .
-<http://example.org/R> <http://www.w3.org/2002/07/owl#someValuesFrom> <http://example.org/C> <http://gmeow.example/w> .
-<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/R> <http://gmeow.example/w> .
-"#;
-        let reasoned = reason_artifacts(nq).expect("production existential reason");
-        let finding = reasoned
-            .chase_report
-            .findings
-            .iter()
-            .find(|finding| finding.code == "chase.certificate.weakly-acyclic")
-            .expect("the production chase certificate is surfaced");
-        assert!(
-            finding
-                .message
-                .contains("existential edge(s), none in a cycle")
-                && !finding.message.contains("0 existential edge(s)"),
-            "production certificate evidence must be non-vacuous: {finding:?}"
-        );
-
-        let dataset = reason_dataset(
-            &reasoned.closure,
-            &reasoned.result,
-            &reasoned.chase_report,
-            &reasoned.witness_derivations,
-        )
-        .expect("certificate diagnostics dataset");
-        let diagnostics = dataset.project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
-        assert!(diagnostics.owned_quads().any(|quad| {
-            quad.predicate == "https://blackcatinformatics.ca/gmeow/findingCode"
-                && matches!(
-                    quad.object,
-                    RdfTerm::Literal(ref literal)
-                        if literal.lexical_form == "chase.certificate.weakly-acyclic"
-                )
-        }));
-        let nodes =
-            crate::stages::diag_render::finding_nodes(&reasoned.chase_report, "stage-reason");
-        assert_eq!(
-            nodes.len(),
-            2,
-            "the run-ledger projection must retain the native contract and certificate"
-        );
-    }
+    // The synthetic in-crate fold test that hand-built an `example.org` existential EDB
+    // and asserted the certificate's free-text edge message was RETIRED (AC3):
+    // its fold demonstration is now the non-vacuous golden over REAL sources
+    // (`tests/chase_certificate_golden.rs`, structured), the witness projection is
+    // covered by `invented_witness_skeletons_land_in_diagnostics_and_certificate_cites_them`
+    // below, and `finding_nodes` node-count rendering by `diag_render`'s own tests.
 
     #[test]
     fn invented_witness_skeletons_land_in_diagnostics_and_certificate_cites_them() {

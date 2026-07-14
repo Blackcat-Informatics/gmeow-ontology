@@ -806,4 +806,28 @@ mod tests {
         assert_eq!(verdict(&index), GateVerdict::Collected);
         assert!(minimal_fatal_cut(&index).is_empty());
     }
+
+    #[test]
+    fn witness_explain_reuses_the_shared_dag_walk_engine() {
+        // One machinery over one plane: the invented-null explain descends via
+        // the ONE shared `gmeow_errors::dag::walk` engine — the same one `explain_finding`
+        // uses — a second entry point, never a hand-rolled parallel walker. Scope the
+        // check to the `explain_witness` body region (before the test module) so the
+        // assertion does not match its own source.
+        let src = include_str!("diagnostics_reader.rs");
+        let after = src
+            .split_once("pub fn explain_witness")
+            .expect("explain_witness present")
+            .1;
+        let body = after
+            .split_once("\npub fn ")
+            .map(|(head, _)| head)
+            .unwrap_or(after);
+        let walk_call = format!("{}(", "walk");
+        assert!(
+            body.contains(&walk_call),
+            "explain_witness must descend via the shared gmeow_errors::dag::walk engine, \
+             not a hand-rolled recursion"
+        );
+    }
 }
