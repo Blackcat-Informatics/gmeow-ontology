@@ -24,7 +24,7 @@ ex:radialCompactification a math:ConformalCompactification ;
     math:boundaryAtInfinity ex:radialIdealBoundary ;
     math:conformalFactor ex:radialConformalFactor .
 
-ex:radialHalfLine a math:TopologicalSpace .
+ex:radialHalfLine a math:TopologicalSpace , math:Set .
 
 ex:radialCompactifyingMap a math:CoordinateMap ;
     math:domain ex:radialHalfLine ;

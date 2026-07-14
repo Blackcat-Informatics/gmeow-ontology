@@ -61,19 +61,26 @@ pub fn module_file(slice_dir: &Path) -> PathBuf {
     slice_dir.join("module.ttl")
 }
 
-/// The SHACL surfaces enforcing one slice. During migration this is the local
-/// `<slice>/shapes.ttl`; after equivalence-proven deletion it is the canonical generated
-/// validation plus declarative-constraint and procedural projections.
+/// The SHACL surfaces enforcing one slice. A slice mid-migration keeps a local
+/// `<slice>/shapes.ttl` AND is enforced by the canonical generated projections of its
+/// `logic:`/OWL-authored gates: both surfaces are loaded together so a newly
+/// `logic:`-authored gate is enforced *before* the local file is retired
+/// (equivalence-before-deletion — the committed local shapes are the golden oracle the
+/// projector reproduces, per LOGIC-VALIDATION.md). After the local file is deleted the
+/// generated projections are the sole authority.
 pub fn shapes_files(slice_dir: &Path) -> Vec<PathBuf> {
+    let generated = vec![
+        repo_root().join("generated/shapes/validation-shapes.ttl"),
+        repo_root().join("generated/shapes/constraint-shapes.ttl"),
+        repo_root().join("generated/shapes/procedural-constraints.ttl"),
+    ];
     let local = slice_dir.join("shapes.ttl");
     if local.is_file() {
-        vec![local]
+        let mut both = vec![local];
+        both.extend(generated);
+        both
     } else {
-        vec![
-            repo_root().join("generated/shapes/validation-shapes.ttl"),
-            repo_root().join("generated/shapes/constraint-shapes.ttl"),
-            repo_root().join("generated/shapes/procedural-constraints.ttl"),
-        ]
+        generated
     }
 }
 

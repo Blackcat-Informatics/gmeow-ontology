@@ -62,7 +62,7 @@ ex:radialCompactification a math:ConformalCompactification ;
     math:boundaryAtInfinity ex:radialIdealBoundary ;
     math:conformalFactor ex:radialConformalFactor .
 
-ex:radialHalfLine a math:TopologicalSpace ;
+ex:radialHalfLine a math:TopologicalSpace , math:Set ;
     rdfs:label "The unbounded radial half-line"@x-gmeow-english .
 
 ex:radialCompactifyingMap a math:CoordinateMap ;
@@ -170,13 +170,26 @@ ex:ring3Piece a math:FunctionPiece ;
 ex:centreSingularity a math:MathematicalObject ;
     rdfs:label "The central singularity at x = 0"@x-gmeow-english .
 
+# As a math:BindingExpression the limit binds its approach variable (the compactified
+# radius x it drives to 0⁺) through math:boundVariable and names its body — the field
+# whose limit is taken — through an indexed math:argumentSlot. This is binding structure,
+# not an equation: the qualitative scene stays free of any closed form.
 ex:centreLimit a math:Limit ;
     rdfs:label "The centre limit: the field → +∞ (R′) as x → 0⁺"@x-gmeow-english ;
     math:operator math:limitBinder ;
     math:limitOf ex:signedRadialFieldQual ;
     math:limitPoint ex:centreSingularity ;
     math:limitMode math:limitFromRight ;
+    math:boundVariable ex:centreLimitVar ;
+    math:argumentSlot ex:centreLimitSlot0 ;
     math:hasLimitResult ex:centreLimitResult .
+
+ex:centreLimitVar a math:VariableDeclaration ;
+    rdfs:label "x — the approach variable of the centre limit (x → 0⁺)"@x-gmeow-english .
+
+ex:centreLimitSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:signedRadialFieldQual .
 
 ex:centreLimitResult a math:LimitResult ;
     rdfs:label "R′ — the positive-infinite value at the centre"@x-gmeow-english ;
@@ -190,7 +203,16 @@ ex:infinityLimit a math:Limit ;
     math:limitOf ex:signedRadialFieldQual ;
     math:limitPoint ex:radialIdealBoundary ;
     math:limitMode math:limitFromLeft ;
+    math:boundVariable ex:infinityLimitVar ;
+    math:argumentSlot ex:infinityLimitSlot0 ;
     math:hasLimitResult ex:infinityLimitResult .
+
+ex:infinityLimitVar a math:VariableDeclaration ;
+    rdfs:label "x — the approach variable of the infinity limit (x → 1⁻)"@x-gmeow-english .
+
+ex:infinityLimitSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:signedRadialFieldQual .
 
 ex:infinityLimitResult a math:LimitResult ;
     rdfs:label "The negative-infinite asymptote at compactified infinity"@x-gmeow-english ;
