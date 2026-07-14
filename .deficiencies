@@ -462,3 +462,40 @@ STANDING EXCEPTION (the only one carried out of stage 2):
 - term_loss = None off-repo (D3) — unchanged: correct-by-construction lower bound on
   the LossLedgerRow/LossJudgmentSound dims for a genuinely-lossy foreign slice,
   documented in axis_external. Acceptable boundary; no action.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-14 — #930 stage-2 exit gate (native entailment remnant; PR #1548)
+
+Stage-2 gap remediation ran a gap-analyzer + a binding completion-adversary. The
+first adversary pass returned FINDINGS-OPEN. Findings F2 (gmeow:CapabilityGap
+reification), F3 (full-corpus soundness gate) and quality gaps #5–#9 were BUILT this
+stage (not deferred) — the earlier same-session self-clears to this log for those
+items are VOID, superseded by the shipped code. Two records remain:
+
+STANDING EXCEPTION (owner-ratified, the only scope reduction carried out of stage 2):
+
+- F1/F4 (SILENT NARROWING) — the in-repo entailment deliverable grades a self-authored
+  `entailment-mini` corpus (4 Lane-A + 2 structured-gap cases), NOT the upstream W3C
+  OWL2-EL/Full or classic RDFCore/RDFS entailment suites. Grading the upstream suites
+  in place requires a bounded IRI-reference document resolver + fetching the full W3C
+  test tree — a separate, upstream-availability-dependent effort. RATIFIED by the
+  maintainer at the stage-2 gate (2026-07-14, verbatim: "Ratify entailment-mini as
+  final scope"): the self-authored `entailment-mini` corpus is the accepted FINAL
+  in-repo deliverable for #930; the upstream-suite grading (IRI-reference resolver +
+  W3C-tree fetch) is owned by the external purrdf#9 delivery, not this repo. The
+  earlier headline scope (W3C SPARQL 1.1/1.2 · RDF-canon · IRI · syntax suites +
+  rdflib LSP gate) was owner-re-homed to purrdf#9 in dated pre-session comments
+  (2026-07-02, 2026-07-08). F4: #930's "Closes" validity depends on purrdf#9's suites
+  being green on the #668 agreement matrix — owner-confirmed; not verifiable from this
+  repo. The completion-adversary exit gate accepts F1/F4 as human-signed-off.
+
+CORRECTED SPEC (not a defect — a contract overreach caught and honestly recorded):
+
+- subPropertyOf (contract C2 "subclass/subproperty covered") — the plan's Completeness
+  Contract listed `rdfs:subPropertyOf` as a refutable ConclusionShape. It is NOT: the
+  negation of `C rdfs:subPropertyOf D` is `∃x,y.(C(x,y) ∧ ¬D(x,y))`, whose role
+  complement `¬D` is not EL-expressible, so it cannot be soundly refuted. `classify`
+  (crates/logic/src/entail.rs) correctly routes it to a `GapShape::RoleAssertion`
+  gap — the SOUND choice, never a wrong answer. The contract's "subproperty" claim is
+  dropped from the covered-shapes set; subproperty is a genuine role-assertion gap in
+  the native EL fragment.
