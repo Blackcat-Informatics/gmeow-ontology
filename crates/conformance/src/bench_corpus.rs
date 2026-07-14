@@ -378,10 +378,11 @@ fn parse_fixture_term(text: &str) -> gmeow_errors::Result<FixtureTerm> {
     })
 }
 
-/// The engine-benchmark corpus root, `conformance/logic/cases/bench/`.
+/// The engine-benchmark corpus root, `conformance/logic/cases/bench/` — the `bench`
+/// family under the single shared [`vendored_corpus_root`](crate::paths::vendored_corpus_root).
 #[must_use]
 pub fn bench_cases_root() -> PathBuf {
-    crate::paths::cases_root().join("bench")
+    crate::paths::vendored_corpus_root().join("bench")
 }
 
 /// Enumerate and load every committed bench case under [`bench_cases_root`],
