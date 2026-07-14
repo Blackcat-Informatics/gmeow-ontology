@@ -100,3 +100,50 @@ ASK {
     gmeow:timbreObservationResult a owl:ObjectProperty , owl:FunctionalProperty .
 }""" ;
     gmeow:saRationale "gmeow:timbreObservationResult MUST be an owl:ObjectProperty and owl:FunctionalProperty — an Observation assigns exactly one timbre descriptor to the observed ToneEvent." .
+
+# ── W1 frame-relativity fidelity guards (CONSTITUTION P11) ─────────────────────
+# The śruti-22 Raga Yaman port is frame-relative to gmeow:tuningSystemShruti22.
+# These positive guards pin that port so it cannot silently regress when the
+# Expression frame-requirement shape migrates severity (Warning→Violation): the
+# canonical content must ALREADY carry its frames, independent of the shape's grade.
+
+ex:saYamanExpressionsCarryShruti22Frame a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:fixtureRagaYamanImprovised1975 a gmeow:Expression ;
+        gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 .
+    gmeow:fixtureRagaYamanOralExpression a gmeow:Expression ;
+        gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 .
+    gmeow:fixtureRagaYamanPerformed1960 a gmeow:Expression ;
+        gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 .
+    gmeow:fixtureRagaYamanPerformed1980 a gmeow:Expression ;
+        gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 .
+}""" ;
+    gmeow:saRationale "The four Raga Yaman Expressions (oral, performed 1960, improvised 1975, performed 1980) MUST each carry gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 — the śruti-22 port is frame-relative (P11) and its Expressions must satisfy the frame requirement by their own content, not by the shape's severity." .
+
+ex:saTuningSystemShruti22Exists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:tuningSystemShruti22 a gmeow:TuningSystem ;
+        gmeow:degreeCount "22"^^xsd:nonNegativeInteger .
+}""" ;
+    gmeow:saRationale "gmeow:tuningSystemShruti22 MUST exist as a gmeow:TuningSystem with gmeow:degreeCount 22 — the frame the Yaman Expressions and pitch values are relative to; the target of the frame reference must itself be the well-formed 22-degree śruti system." .
+
+ex:saYamanMembersAreShruti22Pitches a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?membership gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
+        gmeow:membershipPitch ?pitch .
+    FILTER NOT EXISTS {
+        ?pitch a gmeow:PitchValue ;
+            gmeow:hasTuningFrame gmeow:tuningSystemShruti22 .
+    }
+}""" ;
+    gmeow:saRationale "NO membership of gmeow:pitchCollectionYamanRaga may resolve (via gmeow:membershipPitch) to anything other than a gmeow:PitchValue whose gmeow:hasTuningFrame is gmeow:tuningSystemShruti22 — a dynamic universal (FILTER NOT EXISTS over the type+frame pattern, not a hand-listed pitch set), so a Yaman member added with a missing or wrong tuning frame trips it." .

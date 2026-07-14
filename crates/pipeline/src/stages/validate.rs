@@ -66,6 +66,23 @@ fn diagnostics_report(report: &purrdf::shapes::report::ValidationReport) -> Repo
             .with_tool("shacl"),
         );
     }
+    // A clean, conforming run still produced a validation report. Emit one
+    // informational record so the diagnostics projection — and therefore this stage's
+    // `graph/diagnostics` + `diagnostics:nodes` attach delta — is never empty. The
+    // per-stage attach delta must be stable whether or not the corpus carries
+    // violations: a zero-findings validation is a report, not an absence (no-optionality
+    // / hard-fail — an empty delta would trip the AttachDrift guard). This is the
+    // conforming twin of the non-conforming fallback above.
+    if out.findings.is_empty() && report.conforms {
+        out.add_finding(
+            Finding::new(
+                Severity::Info,
+                "shacl.clean",
+                "SHACL validation passed: no findings",
+            )
+            .with_tool("shacl"),
+        );
+    }
     out.metadata
         .insert("shaclGatePassed".to_owned(), json!(out.ok()));
     out.metadata

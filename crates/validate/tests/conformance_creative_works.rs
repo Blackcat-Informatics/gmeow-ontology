@@ -163,6 +163,37 @@ fn creative_works(#[case] case: Case) {
     case.run();
 }
 
+/// The full frame-relativity IRI of the Expression frame carrier — the `sh:path` the
+/// generated `gmeow:ExpressionFrameRequirementShape` constrains (`sh:minCount 1`).
+const HAS_REFERENCE_FRAME: &str = "https://blackcatinformatics.ca/gmeow/hasReferenceFrame";
+
+/// W1 falsifying regression (CONSTITUTION P11 frame-relativity): a `gmeow:Expression`
+/// asserted with NO `gmeow:hasReferenceFrame` is REJECTED — the generated
+/// `gmeow:ExpressionFrameRequirementShape` (`sh:path gmeow:hasReferenceFrame`,
+/// `sh:minCount 1`, `MinCountConstraintComponent`) flags the frameless Expression on
+/// the LIVE production shape union (`.shape_union()`, the corpus `gmeow validate`
+/// runs).
+///
+/// The frame requirement is a hard `sh:Violation`: `gmeow:Expression` carries no
+/// `gmeow:ruleSeverity`, so its `gmeow:requiresFrame` shape generates at binding
+/// severity. [`Case::fails_on_path`] (which filters to `sh:Violation`) therefore both
+/// witnesses the frame `MinCountConstraintComponent` on the exact path AND guards the
+/// promotion — if the class ever regains `gmeow:ruleSeverity "advisory"`, the shape
+/// reverts to `sh:Warning`, no Violation fires on this path, and this test reds.
+#[test]
+fn frameless_expression_fails_frame_requirement() {
+    Case::inline(format!(
+        "{PREFIXES}\
+ex:x a gmeow:Expression .
+ex:x rdfs:label \"Frameless Expression\" .
+"
+    ))
+    .shape_union()
+    .fails()
+    .fails_on_path(HAS_REFERENCE_FRAME, "MinCountConstraintComponent")
+    .run();
+}
+
 /// Each WEMI tier class (Work, Expression, Manifestation, Item) has
 /// gmeow:InformationObject in its transitive rdfs:subClassOf closure — a live
 /// graph traversal over the merged ontology, not a single-module ASK.
