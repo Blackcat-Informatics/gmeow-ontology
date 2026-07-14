@@ -2540,19 +2540,35 @@
             "anyOf": [
               {
                 "enum": [
-                  "gmeow:openehr/bloodpressure/terminology/local/at0010",
-                  "gmeow:openehr/bloodpressure/terminology/local/at0011",
-                  "gmeow:openehr/bloodpressure/terminology/local/at0012",
-                  "gmeow:openehr/bloodpressure/terminology/local/at0013"
+                  {
+                    "@id": "gmeow:openehr/bloodpressure/terminology/local/at0010"
+                  },
+                  {
+                    "@id": "gmeow:openehr/bloodpressure/terminology/local/at0011"
+                  },
+                  {
+                    "@id": "gmeow:openehr/bloodpressure/terminology/local/at0012"
+                  },
+                  {
+                    "@id": "gmeow:openehr/bloodpressure/terminology/local/at0013"
+                  }
                 ]
               },
               {
                 "items": {
                   "enum": [
-                    "gmeow:openehr/bloodpressure/terminology/local/at0010",
-                    "gmeow:openehr/bloodpressure/terminology/local/at0011",
-                    "gmeow:openehr/bloodpressure/terminology/local/at0012",
-                    "gmeow:openehr/bloodpressure/terminology/local/at0013"
+                    {
+                      "@id": "gmeow:openehr/bloodpressure/terminology/local/at0010"
+                    },
+                    {
+                      "@id": "gmeow:openehr/bloodpressure/terminology/local/at0011"
+                    },
+                    {
+                      "@id": "gmeow:openehr/bloodpressure/terminology/local/at0012"
+                    },
+                    {
+                      "@id": "gmeow:openehr/bloodpressure/terminology/local/at0013"
+                    }
                   ]
                 },
                 "type": "array"
@@ -2810,13 +2826,17 @@
             "anyOf": [
               {
                 "enum": [
-                  "gmeow:openehr/bloodpressure/terminology/openehr/433"
+                  {
+                    "@id": "gmeow:openehr/bloodpressure/terminology/openehr/433"
+                  }
                 ]
               },
               {
                 "items": {
                   "enum": [
-                    "gmeow:openehr/bloodpressure/terminology/openehr/433"
+                    {
+                      "@id": "gmeow:openehr/bloodpressure/terminology/openehr/433"
+                    }
                   ]
                 },
                 "type": "array"
@@ -47634,23 +47654,47 @@
             "anyOf": [
               {
                 "enum": [
-                  "math:exactTail",
-                  "math:greaterAlternative",
-                  "math:lessAlternative",
-                  "math:midPTail",
-                  "math:oneSidedAlternative",
-                  "math:twoSidedAlternative"
+                  {
+                    "@id": "math:exactTail"
+                  },
+                  {
+                    "@id": "math:greaterAlternative"
+                  },
+                  {
+                    "@id": "math:lessAlternative"
+                  },
+                  {
+                    "@id": "math:midPTail"
+                  },
+                  {
+                    "@id": "math:oneSidedAlternative"
+                  },
+                  {
+                    "@id": "math:twoSidedAlternative"
+                  }
                 ]
               },
               {
                 "items": {
                   "enum": [
-                    "math:exactTail",
-                    "math:greaterAlternative",
-                    "math:lessAlternative",
-                    "math:midPTail",
-                    "math:oneSidedAlternative",
-                    "math:twoSidedAlternative"
+                    {
+                      "@id": "math:exactTail"
+                    },
+                    {
+                      "@id": "math:greaterAlternative"
+                    },
+                    {
+                      "@id": "math:lessAlternative"
+                    },
+                    {
+                      "@id": "math:midPTail"
+                    },
+                    {
+                      "@id": "math:oneSidedAlternative"
+                    },
+                    {
+                      "@id": "math:twoSidedAlternative"
+                    }
                   ]
                 },
                 "type": "array"
@@ -48825,13 +48869,17 @@
             "anyOf": [
               {
                 "enum": [
-                  "gmeow:openehr/testdatatypes/terminology/openehr/433"
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/openehr/433"
+                  }
                 ]
               },
               {
                 "items": {
                   "enum": [
-                    "gmeow:openehr/testdatatypes/terminology/openehr/433"
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/openehr/433"
+                    }
                   ]
                 },
                 "type": "array"
@@ -49262,17 +49310,29 @@
             "anyOf": [
               {
                 "enum": [
-                  "gmeow:openehr/testdatatypes/terminology/local/at0007",
-                  "gmeow:openehr/testdatatypes/terminology/local/at0008",
-                  "gmeow:openehr/testdatatypes/terminology/local/at0009"
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/local/at0007"
+                  },
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/local/at0008"
+                  },
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/local/at0009"
+                  }
                 ]
               },
               {
                 "items": {
                   "enum": [
-                    "gmeow:openehr/testdatatypes/terminology/local/at0007",
-                    "gmeow:openehr/testdatatypes/terminology/local/at0008",
-                    "gmeow:openehr/testdatatypes/terminology/local/at0009"
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/local/at0007"
+                    },
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/local/at0008"
+                    },
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/local/at0009"
+                    }
                   ]
                 },
                 "type": "array"
@@ -49839,17 +49899,29 @@
             "anyOf": [
               {
                 "enum": [
-                  "gmeow:openehr/testdatatypes/terminology/local/at0014",
-                  "gmeow:openehr/testdatatypes/terminology/local/at0015",
-                  "gmeow:openehr/testdatatypes/terminology/local/at0016"
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/local/at0014"
+                  },
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/local/at0015"
+                  },
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/local/at0016"
+                  }
                 ]
               },
               {
                 "items": {
                   "enum": [
-                    "gmeow:openehr/testdatatypes/terminology/local/at0014",
-                    "gmeow:openehr/testdatatypes/terminology/local/at0015",
-                    "gmeow:openehr/testdatatypes/terminology/local/at0016"
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/local/at0014"
+                    },
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/local/at0015"
+                    },
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/local/at0016"
+                    }
                   ]
                 },
                 "type": "array"
@@ -51086,17 +51158,29 @@
             "anyOf": [
               {
                 "enum": [
-                  "gmeow:openehr/testdatatypes/terminology/IANA_media-types/application/dicom",
-                  "gmeow:openehr/testdatatypes/terminology/IANA_media-types/image/jpeg",
-                  "gmeow:openehr/testdatatypes/terminology/IANA_media-types/image/png"
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/IANA_media-types/application/dicom"
+                  },
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/IANA_media-types/image/jpeg"
+                  },
+                  {
+                    "@id": "gmeow:openehr/testdatatypes/terminology/IANA_media-types/image/png"
+                  }
                 ]
               },
               {
                 "items": {
                   "enum": [
-                    "gmeow:openehr/testdatatypes/terminology/IANA_media-types/application/dicom",
-                    "gmeow:openehr/testdatatypes/terminology/IANA_media-types/image/jpeg",
-                    "gmeow:openehr/testdatatypes/terminology/IANA_media-types/image/png"
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/IANA_media-types/application/dicom"
+                    },
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/IANA_media-types/image/jpeg"
+                    },
+                    {
+                      "@id": "gmeow:openehr/testdatatypes/terminology/IANA_media-types/image/png"
+                    }
                   ]
                 },
                 "type": "array"
@@ -51857,7 +51941,7 @@
   },
   "info": {
     "title": "PURRDF",
-    "version": "0.5.0"
+    "version": "0.6.0"
   },
   "openapi": "3.1.0",
   "paths": {
