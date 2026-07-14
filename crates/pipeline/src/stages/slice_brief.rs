@@ -39,16 +39,11 @@ use std::path::{Path, PathBuf};
 
 use purrdf::RdfDataset;
 
-use gmeow_slice_brief::{BriefInputs, assemble_packet, defined_terms};
+use gmeow_slice_brief::{BriefInputs, assemble_packet, batch_count, defined_terms};
 use gmeow_slice_quality::graph;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 use crate::stages::carrier::{GRAPH_AUTHORING_BRIEFS, parse_into_graph};
-
-/// The interim partition chunk size — MUST match the library's private `assemble::CHUNK`
-/// so this stage's batch enumeration lines up with `assemble_packet`'s partition exactly
-/// (batch `n` covers `n*CHUNK .. (n+1)*CHUNK`).
-const CHUNK: usize = 25;
 
 /// The number of same-slice exemplar coats each packet seeks.
 const EXEMPLAR_TARGET: usize = 3;
@@ -132,9 +127,10 @@ impl Stage for SliceBriefStage {
             if plan.term_count == 0 {
                 continue;
             }
-            // batch n covers terms n*CHUNK .. (n+1)*CHUNK; n*CHUNK < term_count for every
-            // n < n_batches, so every batch index passed to assemble_packet is in range.
-            let n_batches = plan.term_count.div_ceil(CHUNK);
+            // The SINGLE canonical batch-enumeration arithmetic (`gmeow_slice_brief::batch_count`,
+            // sharing `assemble::CHUNK` with `assemble_packet`'s own partition) — every batch
+            // index `0..n_batches` this derives is in range for `assemble_packet`.
+            let n_batches = batch_count(plan.term_count);
             for n in 0..n_batches {
                 let packet = assemble_packet(&BriefInputs {
                     slice_dir: &slice_dir,
