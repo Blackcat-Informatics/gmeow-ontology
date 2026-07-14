@@ -119,6 +119,18 @@ pub fn load_repo_floors(repo_root: &Path) -> gmeow_errors::Result<GovernanceFloo
     Ok(repo_rubric(repo_root)?.floors)
 }
 
+/// Load ONLY the floor-free measurement standard (tier ladder + axes) from the
+/// canonical rubric slice under `repo_root` — the scoring half of the segregated
+/// rubric ([`MeasurementStandard`]). The ratchet gate never reads this; scoring
+/// (the sweep and the MCP advisory tool) never reads the floors.
+///
+/// # Errors
+/// Returns a message if the rubric module cannot be read or is structurally
+/// incomplete (the same hard-fail conditions as loading the whole rubric).
+pub fn repo_measurement_standard(repo_root: &Path) -> gmeow_errors::Result<MeasurementStandard> {
+    Ok(repo_rubric(repo_root)?.standard)
+}
+
 /// Every `slices/<group>/<name>/` directory that holds a `manifest.ttl` — the slice
 /// set the quality sweep scores, in deterministic (sorted) order. This is the SINGLE
 /// discovery authority shared by the dev CLI sweep, the ratchet gate, and the pipeline
@@ -173,7 +185,7 @@ pub fn discover_slice_dirs(slices_root: &Path) -> Vec<PathBuf> {
 /// enforces. Per-slice files (`docs.md`, `i18n/*.po`, …) are legitimately optional and
 /// are silently omitted when absent.
 pub fn scored_source_files(repo_root: &Path) -> gmeow_errors::Result<Vec<PathBuf>> {
-    let mut files = vec![repo_root.join("slices/core/slice-quality-rubric/module.ttl")];
+    let mut files = vec![repo_root.join(RUBRIC_MODULE)];
     let constraint_catalog = repo_root.join("generated/catalog/constraint-catalog.nq");
     if !constraint_catalog.is_file() {
         return Err(gmeow_errors::Diag::of_kind(error::Io {
