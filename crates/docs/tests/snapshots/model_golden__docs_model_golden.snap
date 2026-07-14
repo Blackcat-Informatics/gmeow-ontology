@@ -6,10 +6,10 @@ expression: summary
   "title": "GMEOW Ontology Documentation",
   "version": "16",
   "slice_count": 82,
-  "term_count": 4764,
-  "dependency_edge_count": 1157,
+  "term_count": 4765,
+  "dependency_edge_count": 1158,
   "term_count_by_category": {
-    "Class": 1487,
+    "Class": 1488,
     "Datatype": 1,
     "Individual": 695,
     "Property": 2581

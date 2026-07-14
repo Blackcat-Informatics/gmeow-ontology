@@ -1610,7 +1610,7 @@ ex:RequiredShape a sh:NodeShape ;
     }
 
     /// A fixture repo whose one shape CONFORMS over the empty source graph (minCount 0),
-    /// so `stage-validate` produces zero diagnostics.
+    /// so `stage-validate` produces only the informational `shacl.clean` record.
     fn conforming_repo() -> tempfile::TempDir {
         let repo = tempfile::tempdir().unwrap();
         write(
@@ -1651,15 +1651,23 @@ ex:RequiredShape a sh:NodeShape ;
             conforming.product.artifact(SHACL_RDF_PATH),
             "a triggered SHACL violation must change the shacl.nq artifact"
         );
-        // And the run-ledger node set differs: the violation contributes a node, the
-        // conforming run contributes none.
+        // And the run-ledger node set differs: the violation contributes real finding
+        // nodes; the conforming run contributes exactly the one informational
+        // `shacl.clean` record that keeps stage-validate's graph/diagnostics attach delta
+        // stable on a clean corpus (a zero-findings validation is a report, not an absence).
         assert!(
             !violating.diags.is_empty(),
             "the violating run must contribute run-ledger nodes"
         );
-        assert!(
-            conforming.diags.is_empty(),
-            "the conforming run must contribute NO run-ledger nodes"
+        assert_eq!(
+            conforming.diags.len(),
+            1,
+            "the conforming run contributes exactly the shacl.clean record"
+        );
+        assert_eq!(
+            conforming.diags[0].grade.severity,
+            gmeow_errors::Severity::Info,
+            "the conforming run's sole node is the informational shacl.clean record"
         );
         assert_ne!(
             violating.diags, conforming.diags,

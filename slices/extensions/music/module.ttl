@@ -1841,6 +1841,7 @@ gmeow:fixtureRagaYamanImprovised1975
     rdfs:label "Raga Yaman improvised expression, 1975"@x-gmeow-english ;
     skos:definition "An improvised Expression of Raga Yaman from 1975."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 ;
     gmeow:realizationMode gmeow:realizationModeImprovised ;
     gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
     gmeow:wasDerivedFrom gmeow:fixtureRagaYamanPerformed1960 .
@@ -1894,6 +1895,7 @@ gmeow:fixtureRagaYamanOralExpression
     rdfs:label "Raga Yaman oral expression"@x-gmeow-english ;
     skos:definition "An oral-tradition Expression of Raga Yaman with no required notated form."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 ;
     gmeow:realizationMode gmeow:realizationModeOral ;
     gmeow:realizes gmeow:fixtureOralRagaYamanWork .
 
@@ -1903,6 +1905,7 @@ gmeow:fixtureRagaYamanPerformed1960
     rdfs:label "Raga Yaman performed expression, 1960"@x-gmeow-english ;
     skos:definition "A performed Expression of Raga Yaman from 1960."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 ;
     gmeow:realizationMode gmeow:realizationModePerformed ;
     gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
     gmeow:wasDerivedFrom gmeow:fixtureRagaYamanOralExpression .
@@ -1913,6 +1916,7 @@ gmeow:fixtureRagaYamanPerformed1980
     rdfs:label "Raga Yaman performed expression, 1980"@x-gmeow-english ;
     skos:definition "A performed Expression of Raga Yaman from 1980."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasReferenceFrame gmeow:tuningSystemShruti22 ;
     gmeow:realizationMode gmeow:realizationModePerformed ;
     gmeow:realizes gmeow:fixtureOralRagaYamanWork ;
     gmeow:wasDerivedFrom gmeow:fixtureRagaYamanImprovised1975 .
@@ -3406,6 +3410,248 @@ gmeow:membershipRole
     skos:definition "The role the pitch plays in this collection (tonic/finalis, vādī, samvādī, ghammāz, ascent-only, descent-only, ornamental, or generic member). Functional per relator: one role per membership."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+gmeow:membershipShruti00
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 0 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti00 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 0 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti00 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis .
+
+gmeow:membershipShruti01
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 1 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti01 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 1 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti01 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti02
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 2 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti02 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 2 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti02 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti03
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 3 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti03 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 3 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti03 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti04
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 4 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti04 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 4 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti04 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti05
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 5 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti05 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 5 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti05 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti06
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 6 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti06 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 6 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti06 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti07
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 7 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti07 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 7 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti07 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti08
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 8 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti08 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 8 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti08 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti09
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 9 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti09 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 9 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti09 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti10
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 10 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti10 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 10 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti10 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti11
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 11 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti11 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 11 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti11 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti12
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 12 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti12 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 12 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti12 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti13
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 13 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti13 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 13 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti13 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti14
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 14 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti14 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 14 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti14 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti15
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 15 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti15 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 15 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti15 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti16
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 16 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti16 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 16 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti16 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti17
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 17 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti17 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 17 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti17 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti18
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 18 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti18 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 18 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti18 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti19
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 19 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti19 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 19 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti19 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti20
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 20 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti20 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 20 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti20 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
+gmeow:membershipShruti21
+    a gmeow:PitchCollectionMembership ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 21 membership"@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti21 in pitchCollectionShruti22."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:membershipCollection gmeow:pitchCollectionShruti22 ;
+    gmeow:membershipDegreeIndex 21 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti21 ;
+    gmeow:membershipRole gmeow:collectionMemberRoleMember .
+
 gmeow:membershipWustaJinsGA
     a gmeow:PitchCollectionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
@@ -3454,77 +3700,77 @@ gmeow:membershipYamanA
     a gmeow:PitchCollectionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Yaman A membership"@x-gmeow-english ;
-    skos:definition "Membership of pitchValue12EDOA4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti17 (Dha, 27/16) in pitchCollectionYamanRaga."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
     gmeow:membershipDegreeIndex 5 ;
-    gmeow:membershipPitch gmeow:pitchValue12EDOA4 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti17 ;
     gmeow:membershipRole gmeow:collectionMemberRoleMember .
 
 gmeow:membershipYamanB
     a gmeow:PitchCollectionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Yaman B membership"@x-gmeow-english ;
-    skos:definition "Membership of pitchValue12EDOB4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti20 (Ni, 15/8) in pitchCollectionYamanRaga."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
     gmeow:membershipDegreeIndex 6 ;
-    gmeow:membershipPitch gmeow:pitchValue12EDOB4 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti20 ;
     gmeow:membershipRole gmeow:collectionMemberRoleMember .
 
 gmeow:membershipYamanC
     a gmeow:PitchCollectionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Yaman C membership"@x-gmeow-english ;
-    skos:definition "Membership of pitchValue12EDOOrigin in pitchCollectionYamanRaga."@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti00 (Sa, 1/1) in pitchCollectionYamanRaga."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
     gmeow:membershipDegreeIndex 0 ;
-    gmeow:membershipPitch gmeow:pitchValue12EDOOrigin ;
+    gmeow:membershipPitch gmeow:pitchValueShruti00 ;
     gmeow:membershipRole gmeow:collectionMemberRoleTonicFinalis .
 
 gmeow:membershipYamanD
     a gmeow:PitchCollectionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Yaman D membership"@x-gmeow-english ;
-    skos:definition "Membership of pitchValue12EDOD4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti04 (Re, 9/8) in pitchCollectionYamanRaga."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
     gmeow:membershipDegreeIndex 1 ;
-    gmeow:membershipPitch gmeow:pitchValue12EDOD4 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti04 ;
     gmeow:membershipRole gmeow:collectionMemberRoleSamvadi .
 
 gmeow:membershipYamanE
     a gmeow:PitchCollectionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Yaman E membership"@x-gmeow-english ;
-    skos:definition "Membership of pitchValue12EDOE4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti07 (Ga, 5/4) in pitchCollectionYamanRaga."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
     gmeow:membershipDegreeIndex 2 ;
-    gmeow:membershipPitch gmeow:pitchValue12EDOE4 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti07 ;
     gmeow:membershipRole gmeow:collectionMemberRoleMember .
 
 gmeow:membershipYamanFSharp
     a gmeow:PitchCollectionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Yaman FSharp membership"@x-gmeow-english ;
-    skos:definition "Membership of pitchValue12EDOFSharp4 in pitchCollectionYamanRaga."@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti11 (Ma tīvra, 45/32) in pitchCollectionYamanRaga."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
     gmeow:membershipDegreeIndex 3 ;
-    gmeow:membershipPitch gmeow:pitchValue12EDOFSharp4 ;
+    gmeow:membershipPitch gmeow:pitchValueShruti11 ;
     gmeow:membershipRole gmeow:collectionMemberRoleMember .
 
 gmeow:membershipYamanG
     a gmeow:PitchCollectionMembership ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Yaman G membership"@x-gmeow-english ;
-    skos:definition "Membership of pitchValue12EDOFifth in pitchCollectionYamanRaga."@x-gmeow-english ;
+    skos:definition "Membership of pitchValueShruti13 (Pa, 3/2) in pitchCollectionYamanRaga."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:membershipCollection gmeow:pitchCollectionYamanRaga ;
     gmeow:membershipDegreeIndex 4 ;
-    gmeow:membershipPitch gmeow:pitchValue12EDOFifth ;
+    gmeow:membershipPitch gmeow:pitchValueShruti13 ;
     gmeow:membershipRole gmeow:collectionMemberRoleVadi .
 
 gmeow:meterAssignment44
@@ -4382,6 +4628,15 @@ gmeow:pitchCollectionRastMaqam
         gmeow:pitchCollectionRastJinsHighC ,
         gmeow:pitchCollectionWustaJinsG .
 
+gmeow:pitchCollectionShruti22
+    a gmeow:PitchCollection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti gamut"@x-gmeow-english ;
+    skos:definition "The full 22-śruti gamut of the Hindustani 22-śruti tuning frame, gathering the 22 ordered 5-limit just-intonation śruti pitch values (degrees 0-21) of pitchValueShruti00..pitchValueShruti21."@x-gmeow-english ;
+    gmeow:cites gmeow:workRagasOfNorthernIndianMusic ;
+    gmeow:collectionKind gmeow:pitchCollectionKindScale ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:pitchCollectionWustaJinsG
     a gmeow:PitchCollection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
@@ -4395,7 +4650,8 @@ gmeow:pitchCollectionYamanRaga
     a gmeow:PitchCollection ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Raga Yaman"@x-gmeow-english ;
-    skos:definition "A simplified Hindustani Raga Yaman (Kalyan) seed in 12-EDO, illustrating vādī, samvādī, and member roles."@x-gmeow-english ;
+    skos:definition "A simplified Hindustani Raga Yaman (Kalyan) seed in the 22-śruti just-intonation frame, illustrating vādī, samvādī, and member roles."@x-gmeow-english ;
+    gmeow:cites gmeow:workRagsOfNorthIndianMusic ;
     gmeow:collectionKind gmeow:pitchCollectionKindRaga ;
     gmeow:graphBoxRole gmeow:boxABox .
 
@@ -4768,6 +5024,248 @@ gmeow:pitchValueJI7Over4
     gmeow:hasTuningFrame gmeow:tuningSystemJustIntonation ;
     gmeow:ratioDenominator 4 ;
     gmeow:ratioNumerator 7 .
+
+gmeow:pitchValueShruti00
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 0 (1/1)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 0 of the 22-śruti frame, ratio 1/1 — the tonic Sa (Shadja)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 0 ;
+    gmeow:ratioDenominator 1 ;
+    gmeow:ratioNumerator 1 .
+
+gmeow:pitchValueShruti01
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 1 (256/243)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 1 of the 22-śruti frame, ratio 256/243 above Sa (Pythagorean limma, komal Re position)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 1 ;
+    gmeow:ratioDenominator 243 ;
+    gmeow:ratioNumerator 256 .
+
+gmeow:pitchValueShruti02
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 2 (16/15)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 2 of the 22-śruti frame, ratio 16/15 above Sa (just diatonic semitone, komal Re)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 2 ;
+    gmeow:ratioDenominator 15 ;
+    gmeow:ratioNumerator 16 .
+
+gmeow:pitchValueShruti03
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 3 (10/9)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 3 of the 22-śruti frame, ratio 10/9 above Sa (minor whole tone, lower Re)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 3 ;
+    gmeow:ratioDenominator 9 ;
+    gmeow:ratioNumerator 10 .
+
+gmeow:pitchValueShruti04
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 4 (9/8)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 4 of the 22-śruti frame, ratio 9/8 above Sa — the śuddha Re (Rishabha), major whole tone."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 4 ;
+    gmeow:ratioDenominator 8 ;
+    gmeow:ratioNumerator 9 .
+
+gmeow:pitchValueShruti05
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 5 (32/27)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 5 of the 22-śruti frame, ratio 32/27 above Sa (Pythagorean minor third, komal Ga position)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 5 ;
+    gmeow:ratioDenominator 27 ;
+    gmeow:ratioNumerator 32 .
+
+gmeow:pitchValueShruti06
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 6 (6/5)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 6 of the 22-śruti frame, ratio 6/5 above Sa (just minor third, komal Ga)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 6 ;
+    gmeow:ratioDenominator 5 ;
+    gmeow:ratioNumerator 6 .
+
+gmeow:pitchValueShruti07
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 7 (5/4)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 7 of the 22-śruti frame, ratio 5/4 above Sa — the śuddha Ga (Gandhara), just major third."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 7 ;
+    gmeow:ratioDenominator 4 ;
+    gmeow:ratioNumerator 5 .
+
+gmeow:pitchValueShruti08
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 8 (81/64)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 8 of the 22-śruti frame, ratio 81/64 above Sa (Pythagorean major third)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 8 ;
+    gmeow:ratioDenominator 64 ;
+    gmeow:ratioNumerator 81 .
+
+gmeow:pitchValueShruti09
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 9 (4/3)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 9 of the 22-śruti frame, ratio 4/3 above Sa — the śuddha Ma (Madhyama), just perfect fourth."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 9 ;
+    gmeow:ratioDenominator 3 ;
+    gmeow:ratioNumerator 4 .
+
+gmeow:pitchValueShruti10
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 10 (27/20)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 10 of the 22-śruti frame, ratio 27/20 above Sa (acute fourth)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 10 ;
+    gmeow:ratioDenominator 20 ;
+    gmeow:ratioNumerator 27 .
+
+gmeow:pitchValueShruti11
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 11 (45/32)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 11 of the 22-śruti frame, ratio 45/32 above Sa — the tīvra Ma (sharp Madhyama), just augmented fourth of Yaman."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 11 ;
+    gmeow:ratioDenominator 32 ;
+    gmeow:ratioNumerator 45 .
+
+gmeow:pitchValueShruti12
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 12 (729/512)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 12 of the 22-śruti frame, ratio 729/512 above Sa (Pythagorean tritone)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 12 ;
+    gmeow:ratioDenominator 512 ;
+    gmeow:ratioNumerator 729 .
+
+gmeow:pitchValueShruti13
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 13 (3/2)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 13 of the 22-śruti frame, ratio 3/2 above Sa — the Pa (Pancama), just perfect fifth."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 13 ;
+    gmeow:ratioDenominator 2 ;
+    gmeow:ratioNumerator 3 .
+
+gmeow:pitchValueShruti14
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 14 (128/81)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 14 of the 22-śruti frame, ratio 128/81 above Sa (Pythagorean minor sixth, komal Dha position)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 14 ;
+    gmeow:ratioDenominator 81 ;
+    gmeow:ratioNumerator 128 .
+
+gmeow:pitchValueShruti15
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 15 (8/5)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 15 of the 22-śruti frame, ratio 8/5 above Sa (just minor sixth, komal Dha)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 15 ;
+    gmeow:ratioDenominator 5 ;
+    gmeow:ratioNumerator 8 .
+
+gmeow:pitchValueShruti16
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 16 (5/3)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 16 of the 22-śruti frame, ratio 5/3 above Sa (just major sixth, śuddha Dha)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 16 ;
+    gmeow:ratioDenominator 3 ;
+    gmeow:ratioNumerator 5 .
+
+gmeow:pitchValueShruti17
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 17 (27/16)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 17 of the 22-śruti frame, ratio 27/16 above Sa — the śuddha Dha (Dhaivata), Pythagorean major sixth used in Yaman."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 17 ;
+    gmeow:ratioDenominator 16 ;
+    gmeow:ratioNumerator 27 .
+
+gmeow:pitchValueShruti18
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 18 (16/9)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 18 of the 22-śruti frame, ratio 16/9 above Sa (Pythagorean minor seventh, komal Ni position)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 18 ;
+    gmeow:ratioDenominator 9 ;
+    gmeow:ratioNumerator 16 .
+
+gmeow:pitchValueShruti19
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 19 (9/5)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 19 of the 22-śruti frame, ratio 9/5 above Sa (just minor seventh, komal Ni)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 19 ;
+    gmeow:ratioDenominator 5 ;
+    gmeow:ratioNumerator 9 .
+
+gmeow:pitchValueShruti20
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 20 (15/8)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 20 of the 22-śruti frame, ratio 15/8 above Sa — the śuddha Ni (Nishada), just major seventh used in Yaman."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 20 ;
+    gmeow:ratioDenominator 8 ;
+    gmeow:ratioNumerator 15 .
+
+gmeow:pitchValueShruti21
+    a gmeow:PitchValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti degree 21 (243/128)"@x-gmeow-english ;
+    skos:definition "The śruti at degree 21 of the 22-śruti frame, ratio 243/128 above Sa (Pythagorean major seventh)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasTuningFrame gmeow:tuningSystemShruti22 ;
+    gmeow:pitchDegree 21 ;
+    gmeow:ratioDenominator 128 ;
+    gmeow:ratioNumerator 243 .
 
 gmeow:pivotSourceValue
     a owl:DatatypeProperty ,
@@ -6415,6 +6913,107 @@ gmeow:tuningSystemQuarterCommaMeantone
     gmeow:hasMetricKind gmeow:metricLogarithmic ;
     gmeow:requiresHost false ;
     gmeow:tuningKind gmeow:tuningSystemKindWellTemperament .
+
+gmeow:tuningSystemShruti22
+    a gmeow:TuningSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti Hindustani tuning"@x-gmeow-english ;
+    skos:definition "The Hindustani 22-śruti reference frame: the octave partitioned into 22 unequal 5-limit just-intonation intervals (śrutis), the pitch space of rāga performance. One TuningSystem among many (Principle 9)."@x-gmeow-english ;
+    gmeow:cites gmeow:workNatyashastra ,
+        gmeow:workSangitaratnakara ;
+    gmeow:degreeCount "22"^^xsd:nonNegativeInteger ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:dividedIntervalDenominator 1 ;
+    gmeow:dividedIntervalNumerator 2 ;
+    gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:frameRealm gmeow:frameRealmMusicalPitch ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasAxis gmeow:axisPitch ;
+    gmeow:hasMetricKind gmeow:metricLogarithmic ;
+    gmeow:primeLimit "5"^^xsd:nonNegativeInteger ;
+    gmeow:requiresHost false ;
+    gmeow:tuningKind gmeow:tuningSystemKindJustIntonation .
+
+# --- Scholarly grounding for the 22-śruti division and its JI ratios -------- #
+# The 22-śruti division/degree placement and the 5-limit JI ratio interpretation
+# are cited scholarly judgments, not bare assertions.
+# Each cited gmeow:CreativeWork is imported by reference (never re-minted) and
+# wired to the frame it grounds via the flat gmeow:cites edge above, typed by a
+# reified gmeow:CitationAct where the citation's intent must be first-class —
+# mirroring the lang slice's gmeow:ipaChart / gmeow:leipzigGlossingRules pattern.
+
+gmeow:workNatyashastra
+    a gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "the Nāṭyaśāstra"@x-gmeow-english ;
+    skos:definition "The Nāṭyaśāstra, attributed to Bharata Muni (c. 200 BCE – 200 CE): the ancient Sanskrit treatise on dramaturgy and music whose chapter 28 (the jātyadhyāya) sets out the dvāviṃśati-śruti — the 22-śruti division of the octave — and the śruti-svara relationship. The source of the 22-fold division gmeow:tuningSystemShruti22 formalizes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "Nāṭyaśāstra"@x-gmeow-english .
+
+gmeow:workSangitaratnakara
+    a gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "the Saṅgītaratnākara"@x-gmeow-english ;
+    skos:definition "The Saṅgītaratnākara, composed by Śārṅgadeva in the 13th century CE: the classical treatise that systematizes which śruti each svara occupies — the 4-3-2-4-4-3-2 śuddha placement across Sa-Re-Ga-Ma-Pa-Dha-Ni. The source of the śruti-degree assignment gmeow:tuningSystemShruti22's śuddha swaras follow."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "Saṅgītaratnākara"@x-gmeow-english .
+
+gmeow:workRagasOfNorthernIndianMusic
+    a gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "The Ragas of Northern Indian Music"@x-gmeow-english ;
+    skos:definition "Alain Daniélou's The Ragas of Northern Indian Music (1968): a modern authority providing a 5-limit just-intonation ratio interpretation of the 22 śrutis. The source of the numeric gmeow:ratioNumerator/gmeow:ratioDenominator values gmeow:pitchCollectionShruti22's pitchValueShruti00..pitchValueShruti21 members carry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "The Ragas of Northern Indian Music"@x-gmeow-english .
+
+gmeow:workRagsOfNorthIndianMusic
+    a gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "The Rāgs of North Indian Music"@x-gmeow-english ;
+    skos:definition "N. A. Jairazbhoy's The Rāgs of North Indian Music: Their Structure and Evolution (1971): the authority establishing the Kalyan-thaat, tīvra-Ma identity of Raga Yaman that gmeow:pitchCollectionYamanRaga's degree selection (0/4/7/11/13/17/20) follows."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:title "The Rāgs of North Indian Music: Their Structure and Evolution"@x-gmeow-english .
+
+gmeow:shruti22DivisionCitation
+    a gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti division citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that the 22-śruti tuning frame's division of the octave into 22 śrutis is derived from the Nāṭyaśāstra's dvāviṃśati-śruti chapter."@x-gmeow-english ;
+    gmeow:citationIntent gmeow:intentDerivedFrom ;
+    gmeow:citedEntity gmeow:workNatyashastra ;
+    gmeow:citingEntity gmeow:tuningSystemShruti22 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:shruti22PlacementCitation
+    a gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti śuddha placement citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that the 22-śruti tuning frame's śuddha svara-to-degree placement is derived from the Saṅgītaratnākara's classical systematization."@x-gmeow-english ;
+    gmeow:citationIntent gmeow:intentDerivedFrom ;
+    gmeow:citedEntity gmeow:workSangitaratnakara ;
+    gmeow:citingEntity gmeow:tuningSystemShruti22 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:shruti22RatioCitation
+    a gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "22-śruti JI ratio citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that the 5-limit just-intonation ratio values of the 22-śruti gamut are drawn from Daniélou's The Ragas of Northern Indian Music as their data source."@x-gmeow-english ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity gmeow:workRagasOfNorthernIndianMusic ;
+    gmeow:citingEntity gmeow:pitchCollectionShruti22 ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:yamanRagaCitation
+    a gmeow:CitationAct ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
+    rdfs:label "Raga Yaman degree-selection citation"@x-gmeow-english ;
+    skos:definition "The typed citation act recording that Raga Yaman's Kalyan-thaat, tīvra-Ma degree selection is drawn from Jairazbhoy's The Rāgs of North Indian Music as its data source."@x-gmeow-english ;
+    gmeow:citationIntent gmeow:intentCitesAsDataSource ;
+    gmeow:citedEntity gmeow:workRagsOfNorthIndianMusic ;
+    gmeow:citingEntity gmeow:pitchCollectionYamanRaga ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:tuningSystemSlendro
     a gmeow:TuningSystem ;
