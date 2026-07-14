@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for gmeow:InventedWitnessShape — a chase-minted Skolem
+# witness carrying exactly ONE gmeow:existentialOrdinal, the documented
+# invariant on gmeow:existentialOrdinal's own definition ("Single-valued per
+# gmeow:InventedWitness"). gmeow:InventedWitnessShape's sh:maxCount 1 on
+# gmeow:existentialOrdinal is satisfied, so validation emits no findings.
+# Bound by tests/example-conformance.ttl (ex:ecInventedWitnessSingleOrdinal,
+# gmeow:conforms). Lives under tests/ (NOT examples/) so the global
+# make validate gate never loads it.
+#
+# The trailing `gmeow:existentialOrdinal a owl:DatatypeProperty .` triple
+# restates a fact already carried by diagnostics/module.ttl (harmless
+# duplication) so THIS FILE's own term-reference set names the property, not
+# only the class — the docs-coverage fixture-pair dimension credits a term by
+# its CURIE appearing as a subject/object NamedNode in the fixture, and
+# gmeow:existentialOrdinal is otherwise used only as a PREDICATE below.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:witnessSingleOrdinal
+    a gmeow:InventedWitness ;
+    gmeow:existentialOrdinal "0"^^xsd:nonNegativeInteger .
+
+gmeow:existentialOrdinal a owl:DatatypeProperty .

@@ -38,3 +38,16 @@ ex:ecGateFatalMissing a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The finding meets the gate-fatal up-set antecedent (severity error, category projecting to gmeow:blockingBlocking, standpoint binding) but LACKS gmeow:findingGateVerdict gmeow:gateFatal, so gmeow:GateFatalUpsetShape's sh:sparql constraint MUST emit shacl.SPARQLConstraintComponent and no other finding — proving the shape discriminates the up-set boundary (non-vacuous)." .
+
+# --- Conforming: an invented witness with exactly one existential ordinal ------
+ex:ecInventedWitnessSingleOrdinal a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/invented-witness-single-ordinal.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The chase-minted witness carries exactly one gmeow:existentialOrdinal, satisfying gmeow:InventedWitnessShape's sh:maxCount 1 — the documented invariant that the ordinal is single-valued per gmeow:InventedWitness — so validation emits no findings." .
+
+# --- Violating: an invented witness with TWO conflicting existential ordinals --
+ex:ecInventedWitnessTwoOrdinals a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/invented-witness-two-ordinals.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxCountConstraintComponent" ;
+    gmeow:conformanceRationale "The chase-minted witness carries TWO distinct gmeow:existentialOrdinal values, violating gmeow:InventedWitnessShape's sh:maxCount 1 — a single Skolem witness discharges exactly one existential head-variable position of its firing rule, never two — so validation MUST emit shacl.MaxCountConstraintComponent and no other finding." .
