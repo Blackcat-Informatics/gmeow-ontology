@@ -550,7 +550,8 @@ gmeow:GateVerdict gmeow:proseSurface gmeow:gatePolicyProse .
 #
 # A rule carries authored fix guidance ONCE (gmeow:ruleRemediation); each finding
 # of that rule projects it as gmeow:findingRemediation, the sibling of
-# gmeow:findingSuggestion / gmeow:findingHelpUri. The prose is DSL-authored and
+# gmeow:findingSuggestion / gmeow:findingHelpUri. The prose is authored in the
+# validator rule registry (crates/validate) and projected into the bundle, then
 # rendered verbatim into SARIF fixes / JSON / human output, NEVER fabricated at
 # render time (a render-time invention would be an unattributable claim).
 # ════════════════════════════════════════════════════════════════════════════
@@ -561,12 +562,12 @@ gmeow:ruleRemediation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "rule remediation"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The standing, rule-level remediation guidance of an enforced check — the DSL-authored prose that tells a reader how to fix a violation of the rule, carried once on the gmeow:ValidationRule and projected onto each of its findings as gmeow:findingRemediation. The sibling of gmeow:ruleHelpUri: where the help URI points OUT to the catalog, ruleRemediation carries the fix text IN. It is authored in the DSL and rendered verbatim into the SARIF result fixes, the flat JSON, and the human CLI/HTML output; it is NEVER fabricated at render time — a finding with no authored remediation carries none rather than an invented suggestion."@x-gmeow-english ;
+    skos:definition "The standing, rule-level remediation guidance of an enforced check — the prose that tells a reader how to fix a violation of the rule, authored in the validator rule registry (the `REMEDIATIONS` catalog of crates/validate) and projected into the bundle once on the gmeow:ValidationRule, then onto each of its findings as gmeow:findingRemediation. The sibling of gmeow:ruleHelpUri: where the help URI points OUT to the catalog, ruleRemediation carries the fix text IN. It is rendered verbatim into the SARIF result fixes, the flat JSON, and the human CLI/HTML output; it is NEVER fabricated at render time — a finding with no authored remediation carries none rather than an invented suggestion."@x-gmeow-english ;
     skos:example "ex:ruleRelatorMediation gmeow:ruleRemediation \"Introduce the mediating relator and attach both relata through gmeow:mediates.\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid fabricating it at render time (it is DSL-authored; a rule with no authored guidance carries no remediation) and avoid confusing it with gmeow:ruleHelpUri (the outward catalog link) or gmeow:ruleCode (the identity); ruleRemediation is the standing fix prose the rule's findings project."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating it at render time (it is authored in the validator rule registry and projected into the bundle; a rule with no authored guidance carries no remediation) and avoid confusing it with gmeow:ruleHelpUri (the outward catalog link) or gmeow:ruleCode (the identity); ruleRemediation is the standing fix prose the rule's findings project."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Author it once on the gmeow:ValidationRule as the fix guidance for the code; project it onto every gmeow:Finding of the rule as gmeow:findingRemediation, and render it as the SARIF fixes description, the JSON remediation field, and the CLI/HTML 'how to fix' line."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the standing, DSL-authored fix guidance of an enforced check on its ValidationRule — the rule-level source every finding's remediation projects from."@x-gmeow-english .
+    gmeow:howToUse "Author it once in the validator rule registry as the fix guidance for the code, project it onto the gmeow:ValidationRule; project it further onto every gmeow:Finding of the rule as gmeow:findingRemediation, and render it as the SARIF fixes description, the JSON remediation field, and the CLI/HTML 'how to fix' line."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the standing fix guidance of an enforced check — authored in the validator rule registry and projected into the bundle onto its ValidationRule — the rule-level source every finding's remediation projects from."@x-gmeow-english .
 
 gmeow:findingRemediation
     a owl:DatatypeProperty ;
@@ -574,7 +575,7 @@ gmeow:findingRemediation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding remediation"@x-gmeow-english ;
     rdfs:range xsd:string ;
-    skos:definition "The occurrence projection of gmeow:ruleRemediation onto a finding — the DSL-authored fix guidance of the finding's rule, carried on the gmeow:Finding so every surface (SARIF fixes, JSON, CLI, HTML) can render 'how to fix this' beside the message. The sibling of gmeow:findingSuggestion (occurrence advice) and gmeow:findingHelpUri (the rule's outward link): findingRemediation is the standing remediation prose resolved onto the occurrence. It is projected verbatim from the rule's gmeow:ruleRemediation, NEVER fabricated at render time; a finding whose rule authors no remediation carries none."@x-gmeow-english ;
+    skos:definition "The occurrence projection of gmeow:ruleRemediation onto a finding — the fix guidance of the finding's rule, authored in the validator rule registry and projected into the bundle, carried on the gmeow:Finding so every surface (SARIF fixes, JSON, CLI, HTML) can render 'how to fix this' beside the message. The sibling of gmeow:findingSuggestion (occurrence advice) and gmeow:findingHelpUri (the rule's outward link): findingRemediation is the standing remediation prose resolved onto the occurrence. It is projected verbatim from the rule's gmeow:ruleRemediation, NEVER fabricated at render time; a finding whose rule authors no remediation carries none."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingRemediation \"Introduce the mediating relator and attach both relata through gmeow:mediates.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing it at render time (project it from the rule's gmeow:ruleRemediation, never fabricate) and avoid conflating it with gmeow:findingSuggestion (per-occurrence advice) or gmeow:findingMessage (the description of what went wrong); findingRemediation is the projected fix guidance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -590,6 +591,66 @@ gmeow:findingRemediation
 # two DIFFERENT-code findings at the SAME source anchor share it — the join the
 # same-fingerprint merge (which keys on code) structurally cannot make.
 # ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingHowToUse
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding how to use"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:howToUse guidance onto the finding — the HOW-facet modeling recipe (companion properties, relators, statement metadata, or projection checks) carried on the gmeow:Finding so CLI/HTML/SARIF/LSP can render 'how to use this term' beside the message. Projected verbatim from the term's gmeow:howToUse in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no how-to-use guidance carries none."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingHowToUse \"Attach the mediating relator via gmeow:mediates before asserting the relationship.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:howToUse) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose); findingHowToUse is the term's own usage recipe, not the rule's fix guidance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Join a finding's rule to its governing term (or fall back to a documented term) and project that term's gmeow:howToUse onto the finding as gmeow:findingHowToUse; render it as usage guidance beside the message."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's governing/documented term's HOW-facet usage guidance on the occurrence, so a consumer sees how the term is normally used without re-resolving the term."@x-gmeow-english .
+
+gmeow:findingUseWhen
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding use when"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:useWhen guidance onto the finding — the WHEN-facet modeling situation the term should be used in, carried on the gmeow:Finding. Projected verbatim from the term's gmeow:useWhen in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no use-when guidance carries none."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingUseWhen \"Use gmeow:Kind for rigid sortal categories.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:useWhen) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose) or gmeow:findingHowToUse (the HOW facet); findingUseWhen is the term's WHEN-facet usage guidance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Join a finding's rule to its governing term (or fall back to a documented term) and project that term's gmeow:useWhen onto the finding as gmeow:findingUseWhen; render it beside the message."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's governing/documented term's WHEN-facet usage guidance on the occurrence, so a consumer sees the modeling situation the term is meant for without re-resolving the term."@x-gmeow-english .
+
+gmeow:findingAvoidWhen
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding avoid when"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The occurrence projection of a finding's governing or documented term's gmeow:avoidWhen guidance onto the finding — the conditions under which the term should NOT be used (or should be promoted to a more precise construct), carried on the gmeow:Finding. Projected verbatim from the term's gmeow:avoidWhen in the bundle documentation graph, NEVER fabricated at render time; a finding whose governing/documented terms author no avoid-when guidance carries none."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingAvoidWhen \"Avoid gmeow:Kind for phase-sortals that change over the bearer's lifetime.\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing it at render time (project it verbatim from the governing/documented term's gmeow:avoidWhen) and avoid conflating it with gmeow:findingRemediation (the rule's authored fix prose) or gmeow:findingUseWhen (the positive WHEN facet); findingAvoidWhen is the term's negative-scope usage guidance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Join a finding's rule to its governing term (or fall back to a documented term) and project that term's gmeow:avoidWhen onto the finding as gmeow:findingAvoidWhen; render it beside the message."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry a finding's governing/documented term's negative-scope usage guidance on the occurrence, so a consumer sees when NOT to use the term without re-resolving it."@x-gmeow-english .
+
+# ════════════════════════════════════════════════════════════════════════════
+# The explain-skeleton derivation edge for a reasoned-quad finding.
+#
+# Distinct from gmeow:findingAntecedent (a finding-to-finding provenance edge
+# keyed on fingerprint IRIs): gmeow:findingDerivedFromQuad points at the
+# logic-world REASONED-QUAD reifier IRIs a finding's verdict derives from — the
+# explain-skeleton citations the reasoner emits, never a finding-to-finding edge.
+# ════════════════════════════════════════════════════════════════════════════
+
+gmeow:findingDerivedFromQuad
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:label "finding derived from quad"@x-gmeow-english ;
+    skos:definition "The logic-world quad-reifier IRIs a reasoned-quad finding's verdict derives FROM — the explain-skeleton cited IRIs of the reasoned quads that fired to produce the verdict. Distinct from gmeow:findingAntecedent (a finding-to-finding provenance edge keyed on fingerprint IRIs): findingDerivedFromQuad points at REASONED-QUAD reifier IRIs, never at another finding. Projected from the reasoner's explain skeleton, never fabricated at render time; empty for a finding that is not the outcome of a reasoning pass. The range is left open (like gmeow:findingAnchor): the value is a quad-reifier IRI, not a typed class in this slice."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingDerivedFromQuad <https://blackcatinformatics.ca/gmeow/quad/9f2c> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at another finding (that is gmeow:findingAntecedent) and avoid fabricating it when no reasoning pass produced the verdict; findingDerivedFromQuad is the reasoner's own explain-skeleton citation, never an invented edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Project each cited quad-reifier IRI from the reasoner's explain skeleton onto the finding as gmeow:findingDerivedFromQuad; render the set beside the finding as the reasoned-derivation citation."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the reasoner's explain-skeleton cited quad-reifier IRIs on a reasoned-quad finding, distinct from the finding-to-finding gmeow:findingAntecedent provenance edge."@x-gmeow-english .
 
 gmeow:findingAntecedent
     a owl:ObjectProperty ;

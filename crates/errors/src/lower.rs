@@ -75,6 +75,8 @@ pub(crate) fn lower(
         attributions: inner.attributions.clone(),
         advice: inner.advice.clone(),
         remediation: inner.remediation.clone(),
+        guidance: inner.guidance.clone(),
+        derived_from_quads: inner.derived_from_quads.clone(),
         labels: inner.labels.clone(),
         tags: inner.tags.clone(),
         documented_terms: inner.documented_terms.clone(),

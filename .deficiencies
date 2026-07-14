@@ -94,6 +94,63 @@ now 387/404). The remaining honest boundaries, recorded verbatim:
   in-repo enrichment should be retired. Fully functional today; noted as a
   bridge, not a shortfall.
 
+────────────────────────────────────────────────────────────────────────────
+2026-07-13 — off-gate OWL-Direct consistency differential
+
+- GREEN-PATH PRODUCTION-SURFACE RUN NOT DEMONSTRATED IN STAGE 1. The acceptance
+  criterion "`gmeow-dev reason-consistency-crosscheck` exits 0 on the committed
+  bundle" was NOT executed to completion. The whole-bundle per-world OWL-Direct
+  tableau does not finish within a ~10-minute window (killed at SIGKILL, no
+  output): the large worlds (e.g. graph/reasoning) hit the 120s/world budget.
+  The feature is FULLY built and wired (not stubbed); the end-to-end bundle run
+  is assigned to stage2/stage3 per the plan, but it has not yet been observed to
+  exit 0 on real data. Do not claim the green path is demonstrated until stage2/3
+  runs it.
+
+- EMPIRICAL VALUE DENSITY UNCHARACTERIZED / LIKELY LIMITED. Because the large,
+  clash-bearing worlds probably exceed the 120s budget, they become non-failing
+  `oracle-undecided` rows. The lane is correct and honest (green today; fails only
+  on OracleOnly among worlds the oracle DID decide), but its real differential
+  bite likely concentrates on the tractable worlds. The decided/supplement/
+  undecided distribution on the committed bundle is unknown. The 120s default
+  budget may be mistuned for a lane intended to complete; revisit in stage2/3.
+
+- OracleOnly FAIL PATH HAS NO NATURAL END-TO-END TRIGGER. A sound native engine
+  produces no OracleOnly on real data, so the fail path is exercised only by
+  feeding the production `classify_consistency` seam a crafted regression pair —
+  not through `run_consistency_crosscheck(bundle)`. By design (anti-regression
+  tripwire), but the top-level function's fail branch is not covered end-to-end.
+
+- LEAKED WORKER THREADS ON TIMEOUT. `materialize_dl` is uninterruptible; a
+  budget-exceeded world's worker runs to completion and dies only at process
+  exit. Bounded to one live at a time (sequential), but finished-not-joined
+  thread memory accumulates across a full sweep. Acceptable for a one-shot maint
+  lane; a hazard if ever looped.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-13 — off-gate OWL-Direct consistency differential RETIRED/REMOVED
+
+The independent off-gate OWL-Direct consistency differential (the `native ↔
+purrdf-entail` tableau consistency arm, its `gmeow-dev
+reason-consistency-crosscheck` command, and the `make
+maint-reason-consistency-crosscheck` lane) was RETIRED and REMOVED. Running it
+against the committed bundle proved it empirically intractable at bundle scale,
+in two independent ways that make it unusable as a lane:
+
+- An uncatchable stack overflow inside the per-world OWL-Direct tableau aborts
+  the whole lane (it cannot be trapped and recovered — it takes the process
+  down), and once that was worked around the sweep spiralled on uninterruptible
+  leaked worker threads that accumulate and burn CPU without the whole-bundle
+  sweep ever completing (16+ minutes with no completion, multiple concurrent
+  NP-hard workers in flight).
+
+What remains and is UNAFFECTED:
+
+- Native's own consistency verdict stays on-gate via `reason-verify`
+  (`ReasoningResult::is_consistent`) — the on-gate consistency authority.
+- The independent OWL-RL SUBSUMPTION cross-check (`gmeow-dev reason-crosscheck`
+  / `make reason-crosscheck`) is a DIFFERENT arm and is fully preserved on-gate.
+
 ---
 
 ## 2026-07-13 — docs diagram SVGs via purrdf::viz
@@ -167,6 +224,134 @@ reason/verify/validate are green. The following are recorded honestly:
    rather than left as an uncited judgment. The just-intonation ratios are the
    standard 5-limit Yaman values; the citation grounds the index placement in the
    classical authorities. Not a deferral — strengthened, not skipped.
+
+================================================================================
+2026-07-14 — issue #1310 (proof-carrying findings: finding-attached remediation +
+explanation-backed feedback), stage 2
+================================================================================
+
+All three parts (P1 rule-authored remediation, P2 explain-skeleton derivation, P3
+per-term guidance join), verify true-parity, and the projected DSL vocabulary were
+DEMONSTRATED-IN-PRODUCTION by the completion-adversary driving the real gmeow CLI on
+GTS bundle input (human/SARIF/JSON) and inspecting the shipped gmeow.gts — PASS, no
+open findings. All 5727 Rust tests pass; make regenerate is idempotent. Two gap-
+analysis MEDIUM gaps were fixed on the production surface (guidance normalize
+determinism; 24 stale "DSL-authored" → "registry-authored" comments). The following
+is recorded honestly:
+
+1. gmeow-test-budget gate (25s/test) NOT locally green — ENVIRONMENTAL, delegated
+   to CI's clean runner (human-signed-off exception). SAME recurring artifact as
+   issue #1517's entry above.
+   - Evidence it is load, not this branch: over the three make-check/rust-gate runs
+     the over-budget SET was UNSTABLE (3, then 4, then 3 tests; one run included an
+     untouched gmeow-pipeline mcp::startup test), and the offenders are whole-bundle
+     load/serialize tests (cli::describe_names_a_known_term, cli::describe_json_
+     format_is_valid_card_json, pipeline::yaml_ld::dist_jsonld_roundtrips_through_
+     carrier) measured at 11-16 s IN ISOLATION but inflated to 26-31 s under the
+     shared 32-core box's load average ~15-17. None was introduced by #1310 (the
+     branch's pre-merge diff contains none of those test names; bundle_smoke.rs
+     changes touched only verify_* assertion strings). dist_jsonld already carries
+     an engine-group serialize override in .config/nextest.toml and STILL breached
+     locally under load — engine-grouping cannot yield a green gate at load ~16.
+   - Why not fixed here: the affected tests are cross-cutting and unrelated to
+     #1310's diagnostics scope; the bundle growth driving them over the cliff is
+     overwhelmingly main's 18 merged commits, and the 25 s budget gate was itself
+     freshly hardened on main (a708f69). Moving unrelated tests off-gate or into a
+     serialize group inside a feature PR would modify shared CI infra + AGENTS.md
+     for tests outside this issue and could mask a genuine main-side budget-vs-
+     bundle-growth tension that is the maintainer's to decide. CI (dedicated
+     runner) is the authoritative budget evaluator.
+   - Human decision (2026-07-14): when presented with the four resolution options
+     (off-gate the offenders / engine-group serialize / escalate-don't-touch-infra /
+     retry-when-idle), the maintainer interrupted with "Ignore" — i.e. do NOT modify
+     the gate config, treat it as the environmental flake it is, and proceed. No
+     .config/nextest.toml or AGENTS.md change was made.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-13 — consistency-oracle retirement, stage-2 exit gate
+
+- LOCAL `make check` TRIPS ONLY THE ENVIRONMENTAL 25s-WALL-CLOCK BUDGET GATE.
+  Every functional test passes (0 failures across 5702 tests). The sole non-green
+  is `gmeow-test-budget.over-budget`: 32 bundle-loading tests (gmeow-pipeline
+  mcp/cli/docs — all UNRELATED to the removed arm) exceeded the 25s always-on
+  budget while the shared 32-core box was at load average 16–30 (a concurrent
+  NP-hard measurement run + regenerate + check). This branch's diff is a PURE
+  DELETION (−1221 lines), which cannot slow other tests; the bundle growth that
+  pushes these loaders over the cliff came from integrating main, not from this
+  change. This is the same CI-delegated environmental gate already recorded above
+  for a prior branch; CI's dedicated clean runner is the authoritative budget
+  evaluator. The completion-adversary exit gate independently exercised every
+  surface touching the removed arm and confirmed green (subsumption-oracle tests
+  6/6, `reason-verify` exit 0, `reason-crosscheck` exit 0 with 0 oracle-only /
+  0 dl-gap) with no real (non-timeout) failure.
+
+## 2026-07-14 — issue #1529 (purrdf 0.6.0 bump)
+### G4: value_vocab bare-CURIE enum vs sh:in object-form enum — VERIFIED NOT A REACHABLE DEFECT
+
+Producer: `crates/pipeline/src/stages/value_vocab.rs`. `enrich_value_vocab_enums`
+emits each open value vocabulary as a standalone bare-string enum `$def`
+(`value_vocab.rs:254`: `json!({ "type": "string", "enum": v.members.clone() })`,
+members = sorted BARE CURIEs from `derive_value_vocabs`/`compact_iri`,
+`value_vocab.rs:145`) and REPOINTS every value-vocabulary-ranged property — which
+purrdf compiles as a node-reference `$def` `{"type":"object","properties":{"@id":…}}`
+(`is_node_reference`, `value_vocab.rs:193`) — at that bare-string enum
+(`repoint_to_enum`, `value_vocab.rs:215`). So the enum'd field IS an object property
+(a node reference), which was the exact configuration flagged as a potential bug.
+
+Instance form actually observed (the DECIDING evidence). The closed-record instance
+schema is the generated pydantic model, and it types a value-vocabulary-ranged field
+as a BARE `StrEnum`, NOT an `{"@id":…}` node object:
+
+  packages/python/gmeow_models/accessibility.py:18-25  AccessibilityFacetEnum(StrEnum) whose members are bare CURIEs (facetVisual = "gmeow:facetVisual", …)
+  packages/python/gmeow_models/accessibility.py:62     assertionFacet: list[AccessibilityFacetEnum] | None   (VALUE-VOCAB object property → BARE StrEnum string)
+  packages/python/gmeow_models/accessibility.py:64     assertionSubject: list[Entity] | None                 (NON-value-vocab object property → the Entity model, i.e. an {"@id":…} node)
+
+The contrast on lines 62 vs 64 is the whole finding: a value-vocabulary-ranged
+object property is DELIBERATELY projected as a bare CURIE string in the closed
+record (the vocabulary IS the StrEnum), whereas an ordinary object property keeps
+the `{"@id":…}` node form. The packed JSON Schema agrees term-for-term:
+generated/schemas/gmeow.schema.json:111-121 (AccessibilityFacetEnum = bare-string
+enum) is referenced by :39-51 (gmeow:assertionFacet → anyOf[$ref …Enum, array]),
+while the non-value-vocab :65-107 (gmeow:assertionSubject) keeps the object
+`{"@id":…}` node shape. A pydantic-produced closed record — `model_dump(by_alias=True)`
+→ `{"gmeow:assertionFacet": ["gmeow:facetVisual"], "gmeow:assertionSubject": [{"@id": …}]}`
+— validates CLEANLY against schema.json: the bare-string facet matches the bare
+enum, the subject matches the node-reference `$def`. The bare enum matches its own
+instance form exactly, so no closed-world validation can fail.
+
+Why the two encodings differ in schema.json (and why it is not value_vocab's defect).
+The sh:in object-form members (`{"@id": "math:twoSidedAlternative"}`,
+gmeow.schema.json:49854-49903 on math:alternativeSidedness) are purrdf 0.6.0's RAW
+SHACL-shape-compiler output; the value_vocab enums are injected by the pipeline
+AFTER purrdf compilation, in the bare form that matches the pydantic StrEnum
+contract. The bump's own branch reconciles the pydantic surface by UNWRAPPING the
+object-form sh:in members back to bare StrEnum values (commit 1290b4e52; see
+packages/python/gmeow_models/math.py:19-25 Math_PValueAlternativeSidednessEnum whose
+members are bare CURIEs "math:twoSidedAlternative"). That unwrap proves the intended
+closed-record instance form is BARE for BOTH families — so value_vocab's bare
+encoding is the CONSISTENT one; it is purrdf's object-form sh:in members left
+inside the JSON Schema (not value_vocab) that are the outlier vs the pydantic-authoritative
+bare closed record. Changing value_vocab to emit object form would INTRODUCE the very
+failure feared here: a bare, pydantic-produced closed record
+(`["gmeow:facetVisual"]`) would then fail an `{"@id":…}` enum.
+
+Reachability. No in-repo consumer feeds an object-form JSON-LD instance against a
+value_vocab bare enum. `crates/validate/src/instance.rs` (`validate_instance`, the
+`gmeow validate --schema` engine) is a generic user-supplied-instance validator, not
+an instance projector; the only in-repo schema.json instance check
+(crates/pipeline/src/stages/yaml_ld.rs `annotation_fragment_validates_against_json_schema`)
+validates an `@annotation` fragment, never a value-vocab field. The closed-record
+instance projector IS the pydantic model, whose value-vocab fields are bare by
+construction. So an object-form-vs-bare-enum mismatch on a value_vocab field is
+UNREACHABLE in the closed-record universe.
+
+Pre-existing / out of scope. `value_vocab.rs` is UNCHANGED by this branch
+(`git log main..HEAD -- crates/pipeline/src/stages/value_vocab.rs` is empty); the
+bare encoding predates the bump. The bump only changed the sh:in path (purrdf 0.6.0
+object-form members + the pydantic unwrap that answers it). Reconciling purrdf's raw
+sh:in object-form inside the JSON Schema against the bare pydantic closed record is a
+separate sh:in-path question, not a value_vocab correctness defect, and is out of
+scope for a dependency-bump PR.
 
 ## 2026-07-14 — math shape-grounding packet (branch paudley/1449-math-shape-migration)
 
