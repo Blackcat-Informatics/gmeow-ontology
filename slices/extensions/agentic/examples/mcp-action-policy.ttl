@@ -193,3 +193,30 @@ ex:recall a logic:ActionSchema ;
     rdfs:comment "A read action: precondition + capability but NO compensation, because reading changes no state. Typed as a plain logic:ActionSchema rather than logic:McpActionSchema for exactly this reason — the MCP-action policy's compensation requirement would be vacuous on a read."@x-gmeow-english ;
     logic:capability   ex:memoryReadCapability ;
     logic:precondition ex:memoryReadable .
+
+# --------------------------------------------------------------------------- #
+# The proof-carrying diagnostics READ triad — explain_quad, verify_graph,
+# coherence_certificate. Each is a plain read action over the bundle/memory
+# world: it derives and returns a proof envelope (grounding, verdict, or
+# certificate) but writes nothing, so — exactly like recall — each is a plain
+# logic:ActionSchema (NOT logic:McpActionSchema): precondition + capability,
+# NO effect, NO compensation, because reading changes no state.
+# --------------------------------------------------------------------------- #
+
+ex:explainQuad a logic:ActionSchema ;
+    rdfs:label "explain_quad — derive the grounding proof for one quad"@x-gmeow-english ;
+    rdfs:comment "A read action: reconstructs the reasoning path (asserted or derived, with antecedents) that grounds a single quad in the reasoner's closure. NO compensation — deriving and returning a proof changes no state."@x-gmeow-english ;
+    logic:capability   ex:memoryReadCapability ;
+    logic:precondition ex:memoryReadable .
+
+ex:verifyGraph a logic:ActionSchema ;
+    rdfs:label "verify_graph — check an overlay graph against the reasoner"@x-gmeow-english ;
+    rdfs:comment "A read action: reasons over the canon bundle unioned with a caller-supplied overlay and reports the proof-carrying verdict. NO compensation — verification changes no state; the transient union is dropped after the call."@x-gmeow-english ;
+    logic:capability   ex:memoryReadCapability ;
+    logic:precondition ex:memoryReadable .
+
+ex:coherenceCertificate a logic:ActionSchema ;
+    rdfs:label "coherence_certificate — surface the bundle's coherence certificate"@x-gmeow-english ;
+    rdfs:comment "A read action: surfaces the coherence certificate or attestation already carried by the bundle. NO compensation — reading a carried certificate changes no state."@x-gmeow-english ;
+    logic:capability   ex:memoryReadCapability ;
+    logic:precondition ex:memoryReadable .
