@@ -11,7 +11,9 @@ use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 use gmeow_slice_quality::gate::{binding_gate, completeness_gate};
-use gmeow_slice_quality::model::{Axis, ContextScope, Rubric};
+use gmeow_slice_quality::model::{
+    Axis, ContextScope, GovernanceFloors, MeasurementStandard, Rubric,
+};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -21,7 +23,9 @@ fn repo_root() -> PathBuf {
 }
 
 fn rubric() -> Rubric {
-    gmeow_slice_quality::load_repo_rubric(&repo_root()).unwrap()
+    let module = repo_root().join("slices/core/slice-quality-rubric/module.ttl");
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module]).unwrap();
+    gmeow_slice_quality::rubric::load_rubric(&ds).unwrap()
 }
 
 /// Walk `.rs` files under `dir`, calling `f` with each file's text.
@@ -98,11 +102,11 @@ fn binding_gate_reds_on_prefix_producer_against_real_source() {
         "the prefix is not itself a defined item"
     );
     let rubric = Rubric {
-        tiers: vec![],
-        axes: vec![mk_axis("grounding_ax")],
-        exemptions: vec![],
-        commitments: vec![],
-        tier_floors: vec![],
+        standard: MeasurementStandard {
+            tiers: vec![],
+            axes: vec![mk_axis("grounding_ax")],
+        },
+        floors: GovernanceFloors::default(),
     };
     let errs = binding_gate(&rubric, |s| symbols.contains(s));
     assert!(
@@ -118,11 +122,11 @@ fn binding_gate_reds_on_producer_with_no_axes_item() {
     // binding gate, even against the real resolver.
     let symbols = primitive_symbols();
     let rubric = Rubric {
-        tiers: vec![],
-        axes: vec![mk_axis("no_such_primitive_symbol")],
-        exemptions: vec![],
-        commitments: vec![],
-        tier_floors: vec![],
+        standard: MeasurementStandard {
+            tiers: vec![],
+            axes: vec![mk_axis("no_such_primitive_symbol")],
+        },
+        floors: GovernanceFloors::default(),
     };
     let errs = binding_gate(&rubric, |s| symbols.contains(s));
     assert!(

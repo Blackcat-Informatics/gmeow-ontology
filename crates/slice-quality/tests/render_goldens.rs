@@ -24,7 +24,17 @@
 use std::path::{Path, PathBuf};
 
 use gmeow_errors::render::{to_json, to_sarif};
-use gmeow_slice_quality::report::{SliceReport, score_slice};
+use gmeow_slice_quality::ScoringEnv;
+use gmeow_slice_quality::report::{SliceReport, score_slice_with_standard};
+
+/// Score a slice against the repo rubric's measurement standard, in repo mode — the
+/// in-repo replacement for the retired `score_slice(root, dir)`.
+fn score(root: &Path, dir: &Path) -> gmeow_errors::Result<SliceReport> {
+    let module = root.join("slices/core/slice-quality-rubric/module.ttl");
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module])?;
+    let standard = gmeow_slice_quality::rubric::load_rubric(&ds)?.standard;
+    score_slice_with_standard(dir, &standard, ScoringEnv::Repo)
+}
 
 /// The env var that flips the test into bless mode: write the produced output back
 /// to the golden files instead of asserting against them.
@@ -79,7 +89,7 @@ fn assert_no_machine_paths(name: &str, produced: &str) {
 
 #[test]
 fn four_renderings_match_committed_byte_goldens() {
-    let report = score_slice(&repo_root(), &fixture_dir()).expect("the fixture slice scores");
+    let report = score(&repo_root(), &fixture_dir()).expect("the fixture slice scores");
     let goldens = goldens_dir();
     let bless = std::env::var(UPDATE_ENV).is_ok_and(|v| !v.is_empty() && v != "0");
 
@@ -125,8 +135,8 @@ fn read_golden(dir: &Path, name: &str) -> Vec<u8> {
 fn renderings_are_byte_identical_across_two_calls() {
     // Determinism is a hard requirement: the tool is a gate input and a golden
     // source. Two independent scorings of the same fixture must render identically.
-    let a = score_slice(&repo_root(), &fixture_dir()).expect("scores");
-    let b = score_slice(&repo_root(), &fixture_dir()).expect("scores");
+    let a = score(&repo_root(), &fixture_dir()).expect("scores");
+    let b = score(&repo_root(), &fixture_dir()).expect("scores");
     let ra = render_all(&a);
     let rb = render_all(&b);
     for ((name, bytes_a), (_, bytes_b)) in ra.iter().zip(rb.iter()) {

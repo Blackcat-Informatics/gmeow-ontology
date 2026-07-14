@@ -70,9 +70,14 @@ fn exemption_producer_for(surface: &str) -> Option<&'static str> {
 #[must_use]
 pub fn binding_gate(rubric: &Rubric, resolves: impl Fn(&str) -> bool) -> Vec<String> {
     let implemented: BTreeSet<&str> = axes::IMPLEMENTED.iter().copied().collect();
-    let bound: BTreeSet<&str> = rubric.axes.iter().map(|a| a.producer.as_str()).collect();
+    let bound: BTreeSet<&str> = rubric
+        .standard
+        .axes
+        .iter()
+        .map(|a| a.producer.as_str())
+        .collect();
     let mut errs = Vec::new();
-    for axis in &rubric.axes {
+    for axis in &rubric.standard.axes {
         let producer = axis.producer.as_str();
         if !implemented.contains(producer) {
             errs.push(format!(
@@ -105,6 +110,7 @@ pub fn binding_gate(rubric: &Rubric, resolves: impl Fn(&str) -> bool) -> Vec<Str
 pub fn completeness_gate(rubric: &Rubric) -> Vec<String> {
     let mut errs = Vec::new();
     let exemption_producers: BTreeSet<&str> = rubric
+        .floors
         .exemptions
         .iter()
         .map(|e| e.producer.as_str())
@@ -124,7 +130,7 @@ pub fn completeness_gate(rubric: &Rubric) -> Vec<String> {
             ));
         }
     }
-    for ex in &rubric.exemptions {
+    for ex in &rubric.floors.exemptions {
         if ex.axis_iri.is_empty() {
             errs.push(format!("exemption {} names no axis", ex.iri));
         }
@@ -140,7 +146,7 @@ pub fn completeness_gate(rubric: &Rubric) -> Vec<String> {
         if ex.producer.is_empty() {
             errs.push(format!("exemption {} names no producer symbol", ex.iri));
         }
-        if !rubric.axes.iter().any(|a| a.iri == ex.axis_iri) {
+        if !rubric.standard.axes.iter().any(|a| a.iri == ex.axis_iri) {
             errs.push(format!(
                 "exemption {} exempts unknown axis {}",
                 ex.iri, ex.axis_iri
@@ -156,6 +162,7 @@ pub fn completeness_gate(rubric: &Rubric) -> Vec<String> {
 #[must_use]
 pub fn stale_exemptions(rubric: &Rubric, resolves: impl Fn(&str) -> bool) -> Vec<String> {
     rubric
+        .floors
         .exemptions
         .iter()
         .filter(|e| resolves(&e.producer))
@@ -359,11 +366,16 @@ pub fn declared_tier(slice_dir: &Path, rubric: &Rubric) -> gmeow_errors::Result<
     };
     match one_iri(&ds, sid, pred) {
         None => Ok(None),
-        Some(tier_iri) => rubric.tier(&tier_iri).cloned().map(Some).ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Gate {
-                detail: format!("{slice_iri} declares unknown quality tier {tier_iri}"),
-            })
-        }),
+        Some(tier_iri) => rubric
+            .standard
+            .tier(&tier_iri)
+            .cloned()
+            .map(Some)
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::Gate {
+                    detail: format!("{slice_iri} declares unknown quality tier {tier_iri}"),
+                })
+            }),
     }
 }
 
@@ -381,7 +393,7 @@ fn local_name(iri: &str) -> &str {
 /// reuses [`crate::lattice::grade_axis`] and adds no new grading path.
 #[must_use]
 pub fn axis_floor_implied_tier(axis: &Axis, floor: f64, rubric: &Rubric) -> Tier {
-    crate::lattice::grade_axis(axis, floor, rubric).tier
+    crate::lattice::grade_axis(axis, floor, &rubric.standard).tier
 }
 
 /// Which of the two coherence sub-checks a [`CoherenceViolation`] records.
@@ -433,15 +445,16 @@ pub struct CoherenceViolation {
 #[must_use]
 pub fn evaluate_coherence(rubric: &Rubric) -> Vec<CoherenceViolation> {
     let mut out = Vec::new();
-    for tf in &rubric.tier_floors {
+    for tf in &rubric.floors.tier_floors {
         // The tier floor's ladder tier. An unresolvable floorTier is a HARD FAIL the
         // caller's `tier_floors_from_rubric` raises before this runs; here it is a
         // skip so this pure fn never panics on a rubric the caller already rejected.
-        let Some(t_tier) = rubric.tier(&tf.tier) else {
+        let Some(t_tier) = rubric.standard.tier(&tf.tier) else {
             continue;
         };
         // This slice's committed axis floors, in rubric-commitment order.
         let slice_floors: Vec<&AxisFloorCommitment> = rubric
+            .floors
             .commitments
             .iter()
             .filter(|c| c.slice == tf.slice)
@@ -452,7 +465,7 @@ pub fn evaluate_coherence(rubric: &Rubric) -> Vec<CoherenceViolation> {
         // Grade each axis floor to its implied tier, checking the backing invariant.
         let mut implied: Vec<Tier> = Vec::with_capacity(slice_floors.len());
         for c in &slice_floors {
-            let Some(axis) = rubric.axes.iter().find(|a| a.iri == c.axis) else {
+            let Some(axis) = rubric.standard.axes.iter().find(|a| a.iri == c.axis) else {
                 continue; // an axis floor naming no rubric axis cannot be graded
             };
             let a_tier = axis_floor_implied_tier(axis, c.floor, rubric);
@@ -475,8 +488,9 @@ pub fn evaluate_coherence(rubric: &Rubric) -> Vec<CoherenceViolation> {
             implied.push(a_tier);
         }
         // TIGHTNESS — only when the slice is floored on EVERY rubric axis.
-        let floored_all_axes = !rubric.axes.is_empty()
+        let floored_all_axes = !rubric.standard.axes.is_empty()
             && rubric
+                .standard
                 .axes
                 .iter()
                 .all(|a| slice_floors.iter().any(|c| c.axis == a.iri));
@@ -514,6 +528,7 @@ fn t_tier_label(tier: &Tier) -> &str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::{GovernanceFloors, MeasurementStandard};
 
     #[test]
     fn undeclared_slice_always_passes() {
@@ -558,11 +573,11 @@ mod tests {
         // a producer left in IMPLEMENTED but whose backing fn is gone must red.
         let axes: Vec<crate::model::Axis> = axes::IMPLEMENTED.iter().map(|p| mk_axis(p)).collect();
         let rubric = Rubric {
-            tiers: vec![],
-            axes,
-            exemptions: vec![],
-            commitments: vec![],
-            tier_floors: vec![],
+            standard: MeasurementStandard {
+                tiers: vec![],
+                axes,
+            },
+            floors: GovernanceFloors::default(),
         };
         // Every producer resolves → green (bijection holds and all resolve).
         assert!(
@@ -593,11 +608,11 @@ mod tests {
         // matched `fn grounding_axis`).
         let real: BTreeSet<&str> = axes::IMPLEMENTED.iter().copied().collect();
         let rubric = Rubric {
-            tiers: vec![],
-            axes: vec![mk_axis("grounding_ax")],
-            exemptions: vec![],
-            commitments: vec![],
-            tier_floors: vec![],
+            standard: MeasurementStandard {
+                tiers: vec![],
+                axes: vec![mk_axis("grounding_ax")],
+            },
+            floors: GovernanceFloors::default(),
         };
         let errs = binding_gate(&rubric, |s| real.contains(s));
         assert!(
@@ -612,17 +627,21 @@ mod tests {
     fn staleness_reds_when_producer_resolves() {
         use crate::model::Exemption;
         let rubric = Rubric {
-            tiers: vec![],
-            axes: vec![],
-            exemptions: vec![Exemption {
-                iri: "ex:e".to_owned(),
-                axis_iri: "ex:a".to_owned(),
-                reason: "unlanded".to_owned(),
-                date: "2026-07-07".to_owned(),
-                producer: "DocMaturity".to_owned(),
-            }],
-            commitments: vec![],
-            tier_floors: vec![],
+            standard: MeasurementStandard {
+                tiers: vec![],
+                axes: vec![],
+            },
+            floors: GovernanceFloors {
+                exemptions: vec![Exemption {
+                    iri: "ex:e".to_owned(),
+                    axis_iri: "ex:a".to_owned(),
+                    reason: "unlanded".to_owned(),
+                    date: "2026-07-07".to_owned(),
+                    producer: "DocMaturity".to_owned(),
+                }],
+                commitments: vec![],
+                tier_floors: vec![],
+            },
         };
         // Producer not in-repo → not stale.
         assert!(stale_exemptions(&rubric, |_| false).is_empty());
@@ -654,17 +673,21 @@ mod tests {
             advice: String::new(),
         };
         let rubric = Rubric {
-            tiers: vec![],
-            axes: vec![axis],
-            exemptions: vec![Exemption {
-                iri: "ex:e".to_owned(),
-                axis_iri: "ex:a".to_owned(),
-                reason: "   ".to_owned(),
-                date: "2026-07-08".to_owned(),
-                producer: "DocMaturity".to_owned(),
-            }],
-            commitments: vec![],
-            tier_floors: vec![],
+            standard: MeasurementStandard {
+                tiers: vec![],
+                axes: vec![axis],
+            },
+            floors: GovernanceFloors {
+                exemptions: vec![Exemption {
+                    iri: "ex:e".to_owned(),
+                    axis_iri: "ex:a".to_owned(),
+                    reason: "   ".to_owned(),
+                    date: "2026-07-08".to_owned(),
+                    producer: "DocMaturity".to_owned(),
+                }],
+                commitments: vec![],
+                tier_floors: vec![],
+            },
         };
         let errs = completeness_gate(&rubric);
         assert!(
@@ -894,11 +917,15 @@ mod tests {
         tier_floors: Vec<crate::model::SliceTierFloorCommitment>,
     ) -> Rubric {
         Rubric {
-            tiers: co_ladder(),
-            axes,
-            exemptions: vec![],
-            commitments,
-            tier_floors,
+            standard: MeasurementStandard {
+                tiers: co_ladder(),
+                axes,
+            },
+            floors: GovernanceFloors {
+                exemptions: vec![],
+                commitments,
+                tier_floors,
+            },
         }
     }
 
