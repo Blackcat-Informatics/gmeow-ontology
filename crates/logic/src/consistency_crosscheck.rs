@@ -60,13 +60,18 @@
 //! [`materialize_dl`](purrdf::entail::materialize_dl) has NO cancellation path, so
 //! each world's oracle tableau runs on a worker thread read with `recv_timeout`. A
 //! world exceeding [`ORACLE_BUDGET`] emits a NON-failing `oracle-undecided` row
-//! (recorded and loud, never a silent skip) and the run moves on, leaving the
-//! uninterruptible worker to die. The budget is a genuine give-up-and-record
-//! threshold: NP-hardness must never redden the gate, or the lane would be
-//! born-red at bundle scale regardless of consistency. Worlds are processed
-//! SEQUENTIALLY (not via rayon), bounding leaked uninterruptible workers to one at
-//! a time.
+//! (recorded and loud, never a silent skip) and the run moves on — but the
+//! budget-exceeded worker is uninterruptible and keeps running in the background,
+//! unjoined. Worlds are dispatched SEQUENTIALLY (not via rayon), but sequential
+//! *dispatch* does NOT bound concurrent *leaked* workers: because a timed-out
+//! worker is never joined, finished-but-unjoined and still-running workers can
+//! ACCUMULATE across consecutive timeouts and run CONCURRENTLY, which can saturate
+//! CPU on exactly the hard bundle where timeouts cluster. A process-global live
+//! worker counter ([`LIVE_ORACLE_WORKERS`]) makes this accumulation observable: a
+//! loud `stderr` warning fires whenever more than one oracle worker is live at
+//! once.
 
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::{RecvTimeoutError, channel};
 use std::thread;
 use std::time::Duration;
@@ -104,6 +109,14 @@ const ORACLE_UNDECIDED: &str = "oracle-undecided";
 /// (non-failing) and the leaked worker is left to die. Sized for the off-gate
 /// maintainer lane, where a per-world OWL-Direct tableau may be arbitrarily hard.
 pub const ORACLE_BUDGET: Duration = Duration::from_secs(120);
+
+/// Process-global count of oracle-tableau worker threads currently live
+/// (spawned but not yet finished computing). Since [`oracle_within_budget`]
+/// never joins a timed-out worker, this counter is the ONLY honest observable
+/// for the leaked-worker accumulation the watchdog cannot prevent: it is
+/// incremented when a worker starts and decremented when it finishes, whether
+/// or not anyone is still listening for its result.
+static LIVE_ORACLE_WORKERS: AtomicUsize = AtomicUsize::new(0);
 
 /// The full outcome of one consistency cross-check run: the classified
 /// [`DivergenceLedger`], the strict [`LedgerVerdict`] over it, and calibration
@@ -167,8 +180,13 @@ pub fn oracle_undecided_row(world: &str, budget: Duration) -> LedgerRow {
 /// This is the production watchdog seam. `materialize_dl` has no cancellation
 /// path, so on a budget miss we return [`WatchdogOutcome::Undecided`] and leave the
 /// worker thread to run to completion and die on its own (its result is discarded
-/// when the receiver is dropped). Running worlds sequentially bounds leaked workers
-/// to one at a time.
+/// when the receiver is dropped). That worker is uninterruptible and is never
+/// joined, so it keeps running in the background after we give up on it; because
+/// dispatch across worlds is sequential but leaked workers are not, unjoined
+/// workers from consecutive timeouts can ACCUMULATE and run CONCURRENTLY,
+/// saturating CPU on exactly the hard bundle where timeouts cluster. This is
+/// tracked via [`LIVE_ORACLE_WORKERS`]: a budget miss with more than one worker
+/// still live emits a loud `stderr` warning naming the accumulation.
 ///
 /// # Errors
 ///
@@ -184,13 +202,27 @@ where
 {
     let (tx, rx) = channel();
     thread::spawn(move || {
+        LIVE_ORACLE_WORKERS.fetch_add(1, Ordering::SeqCst);
+        let result = compute();
+        LIVE_ORACLE_WORKERS.fetch_sub(1, Ordering::SeqCst);
         // A send error means the receiver already gave up (budget elapsed); the
         // computed verdict is simply discarded.
-        let _ = tx.send(compute());
+        let _ = tx.send(result);
     });
     match rx.recv_timeout(budget) {
         Ok(verdict) => Ok(WatchdogOutcome::Decided(verdict)),
-        Err(RecvTimeoutError::Timeout) => Ok(WatchdogOutcome::Undecided),
+        Err(RecvTimeoutError::Timeout) => {
+            let live = LIVE_ORACLE_WORKERS.load(Ordering::SeqCst);
+            if live > 1 {
+                eprintln!(
+                    "WARNING: oracle budget exceeded with {live} oracle-tableau workers now \
+                     live (leaked uninterruptible workers are ACCUMULATING and running \
+                     CONCURRENTLY — this can saturate CPU; see the consistency_crosscheck \
+                     module docs)"
+                );
+            }
+            Ok(WatchdogOutcome::Undecided)
+        }
         Err(RecvTimeoutError::Disconnected) => Err(crosscheck_err(
             "the OWL-Direct consistency oracle worker panicked (a hard fail): the tableau \
              materialization did not return a verdict"
