@@ -1054,9 +1054,44 @@ fn ref_to_name(reference: &str, defkey_to_class: &BTreeMap<String, String>) -> S
         .unwrap_or_else(|| py_type_name(target, "GmeowModel"))
 }
 
+/// Extract the `StrEnum` member VALUE from one JSON-Schema `enum` member.
+///
+/// purrdf's value-schema convention (`purrdf::shapes::instance::project_value`,
+/// shared with the `sh:in` enum emitter so a value and its enum member can never
+/// drift) encodes an IRI/blank-node member as `{"@id": curie}` and a lang-tagged
+/// or non-native typed literal as `{"@value": lexical, ...}`; plain strings and
+/// numeric/boolean scalars stay bare. A `StrEnum` member is the identifying
+/// string, so unwrap an object member to its inner `@id`/`@value` — never the
+/// serialized object (that is how a bumped `sh:in` enum used to yield a member
+/// like `"{\"@id\":\"gmeow:...\"}"`). Bare strings and numeric/boolean scalars
+/// pass through unchanged (our value-vocabulary enums stay bare CURIEs). An
+/// object with neither a string `@id` nor a string `@value`, or a `null`/array
+/// member, is not a shape purrdf's value-schema convention produces — it is a
+/// HARD FAIL (never silently re-serialized back into a StrEnum value).
+fn enum_member_value(v: &Value) -> Result<String, gmeow_errors::Diag> {
+    match v {
+        Value::String(s) => Ok(s.clone()),
+        Value::Number(_) | Value::Bool(_) => Ok(v.to_string()),
+        Value::Object(map) => match (map.get("@id"), map.get("@value")) {
+            (Some(Value::String(id)), _) => Ok(id.clone()),
+            (_, Some(Value::String(lexical))) => Ok(lexical.clone()),
+            _ => Err(err(format!(
+                "enum member {v} is an object with neither a string \"@id\" nor a string \
+                 \"@value\" — not a shape purrdf's value-schema convention produces; refusing to \
+                 silently serialize it into a StrEnum value"
+            ))),
+        },
+        Value::Null | Value::Array(_) => Err(err(format!(
+            "enum member {v} is null or a nested array — not a valid StrEnum member; refusing to \
+             silently serialize it into a StrEnum value"
+        ))),
+    }
+}
+
 /// Register (once) and name the `StrEnum` for an `{"enum": [...]}` schema. Member
-/// VALUES are the full IRIs/CURIEs/literals verbatim; two members sharing a value
-/// is a HARD FAIL (StrEnum would silently alias them).
+/// VALUES are the identifying IRI/CURIE/literal (object members unwrapped to
+/// their `@id`/`@value` inner string via [`enum_member_value`]); two members
+/// sharing a value is a HARD FAIL (StrEnum would silently alias them).
 fn register_enum(
     obj: &serde_json::Map<String, Value>,
     ctx: &mut FieldCtx<'_>,
@@ -1069,18 +1104,13 @@ fn register_enum(
     if ctx.enums.contains_key(&name) {
         return Ok(name);
     }
-    let mut values: Vec<String> = obj
-        .get("enum")
-        .and_then(Value::as_array)
-        .map(|a| {
-            a.iter()
-                .map(|v| match v.as_str() {
-                    Some(s) => s.to_owned(),
-                    None => v.to_string(),
-                })
-                .collect()
-        })
-        .unwrap_or_default();
+    let mut values: Vec<String> = match obj.get("enum").and_then(Value::as_array) {
+        Some(a) => a
+            .iter()
+            .map(enum_member_value)
+            .collect::<Result<Vec<_>, _>>()?,
+        None => Vec::new(),
+    };
     values.sort();
     values.dedup();
 
@@ -2529,5 +2559,53 @@ mod tests {
             init.contains("from .__about__ import __version__ as __version__"),
             "__init__.py must re-export __version__ from __about__.py"
         );
+    }
+
+    /// A `sh:in` enum member arrives from purrdf's value-schema convention as a
+    /// JSON-LD node object `{"@id": curie}` (and a lang/typed literal as
+    /// `{"@value": lexical, ...}`). The StrEnum VALUE must be the inner
+    /// identifying string, never the serialized object — regression anchor for
+    /// the purrdf 0.6.0 `sh:in`-enum object-encoding bump that otherwise yields a
+    /// member value of `"{\"@id\":\"gmeow:...\"}"`.
+    #[test]
+    fn enum_member_value_unwraps_id_and_value_objects() {
+        // IRI node object → its @id CURIE (the openEHR defining-code case).
+        assert_eq!(
+            enum_member_value(
+                &json!({ "@id": "gmeow:openehr/bloodpressure/terminology/local/at0010" })
+            )
+            .unwrap(),
+            "gmeow:openehr/bloodpressure/terminology/local/at0010"
+        );
+        // Typed / lang literal object → its @value lexical.
+        assert_eq!(
+            enum_member_value(&json!({ "@value": "mmHg", "@type": "xsd:string" })).unwrap(),
+            "mmHg"
+        );
+        assert_eq!(
+            enum_member_value(&json!({ "@value": "haut", "@language": "fr" })).unwrap(),
+            "haut"
+        );
+        // Bare string / scalar members (our value-vocabulary enums) pass through.
+        assert_eq!(
+            enum_member_value(&json!("math:twoSidedAlternative")).unwrap(),
+            "math:twoSidedAlternative"
+        );
+        assert_eq!(enum_member_value(&json!(1)).unwrap(), "1");
+        assert_eq!(enum_member_value(&json!(true)).unwrap(), "true");
+    }
+
+    /// An object with neither a string `@id` nor a string `@value`, or a
+    /// `null`/array member, is not a shape purrdf's value-schema convention
+    /// produces — `enum_member_value` must hard-fail rather than silently
+    /// serialize it into a StrEnum value (that is exactly the bug the
+    /// unwrapping above fixes; a fallthrough re-introduces it for any shape
+    /// that slips through the recognized cases).
+    #[test]
+    fn enum_member_value_hard_fails_on_unrecognized_shapes() {
+        assert!(enum_member_value(&json!({ "foo": "bar" })).is_err());
+        assert!(enum_member_value(&json!({ "@id": 5 })).is_err());
+        assert!(enum_member_value(&json!(null)).is_err());
+        assert!(enum_member_value(&json!(["x"])).is_err());
     }
 }

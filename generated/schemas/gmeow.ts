@@ -5612,12 +5612,15 @@ export interface Finding extends Observation {
     crossNodeGlutWith?: Finding[],
     findingAnchor?: string[],
     findingAntecedent?: Finding[],
+    findingAvoidWhen?: string[],
     findingCategory?: string[],
     findingCluster?: FindingCluster[],
     findingCode?: string,
+    findingDerivedFromQuad?: string[],
     findingGateVerdict?: GateVerdict[],
     findingHasAntecedent?: Finding[],
     findingHelpUri?: string[],
+    findingHowToUse?: string[],
     findingLocation?: string[],
     findingMessage?: string,
     findingRemediation?: string[],
@@ -5627,6 +5630,7 @@ export interface Finding extends Observation {
     findingSuggestion?: string[],
     findingTool?: string[],
     findingTraces?: Finding[],
+    findingUseWhen?: string[],
 }
 
 export interface FindingCluster {

@@ -348,3 +348,96 @@ fn faithfulness_rejects_fabricated_cited_iri() {
         assert_faithful(&exp, &rows).expect_err("a cited IRI outside the trace must be rejected");
     assert_eq!(err.cited_iri, fabricated);
 }
+
+// ── Reasoning-result bridge (`explanations_for_result`) ─────────────────────────
+
+/// The bridge maps a real reasoning result to owned explanations: reasoning over
+/// `A ⊑ B, B ⊑ C` derives the transitive `A ⊑ C`, whose explanation must carry a
+/// NON-EMPTY cited-IRI set that includes the two asserted antecedents' reifiers —
+/// the faithful 2-step derivation surfaced through the production reasoner.
+#[test]
+fn explanations_for_result_carries_faithful_two_step_derivation() {
+    use crate::provenance::reifier_from_strings;
+    use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+
+    const W: &str = "http://gmeow.example/w";
+    const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const A: &str = "http://gmeow.example/A";
+    const B: &str = "http://gmeow.example/B";
+    const C: &str = "http://gmeow.example/C";
+
+    let quad = |s: &str, o: &str| {
+        RdfQuad::new(RdfTerm::iri(s), SUBCLASS, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
+    };
+    let mut builder = RdfDatasetBuilder::new();
+    builder.push_owned_quad(&quad(A, B));
+    builder.push_owned_quad(&quad(B, C));
+    let edb = builder.freeze().expect("valid edb");
+
+    let result = crate::reason::reason_all(edb.as_ref()).expect("reason_all must decide");
+    let explanations =
+        explanations_for_result(&result).expect("explanations must build for a real verdict");
+
+    // The derived transitive quad A ⊑ C (object rendered as its N3 IRI surface).
+    let object_c = format!("<{C}>");
+    let derived = explanations
+        .iter()
+        .find(|e| {
+            let target = &e.step_skeleton[0];
+            target.subject_iri == A && target.predicate_iri == SUBCLASS && target.obj_n3 == object_c
+        })
+        .expect("the transitive A ⊑ C derivation must have an explanation");
+
+    // A genuine 2-step derivation: a non-empty cited set that names both asserted
+    // antecedent reifiers.
+    assert!(
+        !derived.cited_iris.is_empty(),
+        "the derived quad's cited-IRI set must be non-empty"
+    );
+    let r_ab = reifier_from_strings(A, SUBCLASS, &format!("<{B}>"));
+    let r_bc = reifier_from_strings(B, SUBCLASS, &format!("<{C}>"));
+    assert!(
+        derived.cited_iris.contains(&r_ab) && derived.cited_iris.contains(&r_bc),
+        "the derived quad must cite BOTH asserted antecedent reifiers; cited: {:?}",
+        derived.cited_iris
+    );
+    // Its own target reifier is cited too, and the world is the citation root.
+    assert!(derived.cited_iris.contains(&derived.target_quad_reifier));
+    assert!(derived.cited_iris.contains(W));
+}
+
+/// An asserted (EDB) axiom maps to a leaf explanation: the assert-rule fires, the
+/// tree is a single step, and the cited set is exactly the one asserted quad's
+/// surface (never an unresolved-antecedent error).
+#[test]
+fn explanations_for_result_asserted_fact_is_a_leaf() {
+    use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+
+    const W: &str = "http://gmeow.example/w";
+    const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+    const A: &str = "http://gmeow.example/A";
+    const B: &str = "http://gmeow.example/B";
+
+    let mut builder = RdfDatasetBuilder::new();
+    builder.push_owned_quad(
+        &RdfQuad::new(RdfTerm::iri(A), SUBCLASS, RdfTerm::iri(B)).in_graph(RdfTerm::iri(W)),
+    );
+    let edb = builder.freeze().expect("valid edb");
+
+    let result = crate::reason::reason_all(edb.as_ref()).expect("reason_all must decide");
+    let explanations = explanations_for_result(&result).expect("explanations must build");
+
+    let asserted = explanations
+        .iter()
+        .find(|e| e.step_skeleton[0].subject_iri == A)
+        .expect("the asserted A ⊑ B quad must have an explanation");
+    assert!(
+        asserted.step_skeleton[0].is_asserted,
+        "an EDB axiom's target step is asserted (rule = logic:assert)"
+    );
+    assert_eq!(
+        asserted.step_skeleton.len(),
+        1,
+        "an asserted fact is a leaf: exactly one step (no antecedent subtree)"
+    );
+}

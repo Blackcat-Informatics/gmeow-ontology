@@ -1552,7 +1552,10 @@ logic:Relator
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Relator"@x-gmeow-english ;
     skos:definition "A truthmaker of a material relation: an objectified relationship — a marriage, an employment, an enrolment — that mediates two or more relata and existentially depends on each of them. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp); the relation it grounds holds in virtue of the Relator existing."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:avoidWhen "Avoid using it for a comparative relation that holds directly in virtue of the relata's qualities with no mediating truthmaker (model that as logic:ComparativeRelationshipType instead), and avoid leaving a concrete subclass whose instances mediate fewer than two distinct entities — that is the RelComp violation this class exists to forbid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Subclass logic:Relator for every reified relationship kind (gmeow:Agreement, gmeow:Membership, …) and bind each relatum through logic:mediates so a concrete instance reaches at least two distinct entities, either via two distinct mediation roles or via a single non-functional role that reaches two or more on its own."@x-gmeow-english ;
+    gmeow:useWhen "Use to model an objectified relationship that mediates two or more relata and existentially depends on each of them — a marriage, an employment, an enrolment — whose own existence is what grounds the material relation, as opposed to a relation that holds directly from the relata's qualities."@x-gmeow-english .
 
 logic:ResourcePolicy
     a owl:Class ;

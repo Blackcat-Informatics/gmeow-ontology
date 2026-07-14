@@ -429,13 +429,38 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 );
             }
         }
-        // The DSL-authored remediation payload (gmeow:findingRemediation) — the
+        // The registry-authored remediation payload (gmeow:findingRemediation) — the
         // "how to fix" prose, projected verbatim, never fabricated.
         for remediation in &finding.remediation {
             triple(
                 &subject,
                 &format!("{GMEOW}findingRemediation"),
                 &format!("\"{}\"", nq_escape(&remediation.text)),
+                &mut lines,
+            );
+        }
+        // Per-term usage guidance (howToUse/useWhen/avoidWhen), joined from the
+        // bundle documentation graph — projected verbatim onto its modality's
+        // matching gmeow:finding{HowToUse,UseWhen,AvoidWhen} predicate, never
+        // fabricated.
+        for guidance in &finding.guidance {
+            triple(
+                &subject,
+                &format!("{GMEOW}{}", guidance.modality.predicate_local()),
+                &format!("\"{}\"", nq_escape(&guidance.text)),
+                &mut lines,
+            );
+        }
+        // The reasoner's explain-skeleton quad-derivation citations
+        // (gmeow:findingDerivedFromQuad) — a SEPARATE edge from
+        // gmeow:findingAntecedent (finding-to-finding, keyed on fingerprint IRIs):
+        // this points at REASONED-QUAD reifier IRIs, so the object is an IRI, never
+        // a literal.
+        for quad_iri in &finding.derived_from_quads {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingDerivedFromQuad"),
+                &format!("<{quad_iri}>"),
                 &mut lines,
             );
         }
@@ -627,7 +652,7 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
     for suggestion in &finding.suggestions {
         out.push(format!("  ↳ suggestion: {suggestion}"));
     }
-    // DSL-authored remediations — the "how to fix" payload (never fabricated).
+    // registry-authored remediations — the "how to fix" payload (never fabricated).
     for remediation in &finding.remediation {
         out.push(format!("  ↳ how to fix: {}", remediation.text));
         if let Some(uri) = &remediation.help_uri {
@@ -647,6 +672,16 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
         if let Some(how_to_use) = &rule.how_to_use {
             out.push(format!("  ↳ how to use: {how_to_use}"));
         }
+    }
+    // Per-term usage guidance (howToUse/useWhen/avoidWhen) joined from the bundle
+    // documentation graph and projected verbatim onto the finding — never
+    // fabricated, so a finding whose terms author none renders no lines.
+    for guidance in &finding.guidance {
+        out.push(format!(
+            "  ↳ {}: {}",
+            guidance.modality.label(),
+            guidance.text
+        ));
     }
     // Reasoner-derived meta-findings carried on the finding (present only after the
     // meta-reasoning fold has run and been read back): the shared root cause and
@@ -735,6 +770,20 @@ fn derivation_lines(by_iri: &BTreeMap<&str, &Finding>, finding: &Finding) -> Vec
     lines
 }
 
+/// The reasoner's explain-skeleton citation lines: one indented line per
+/// `gmeow:findingDerivedFromQuad` reifier IRI this finding's verdict derives
+/// from. A SEPARATE edge from the antecedent witness-DAG walked by
+/// [`derivation_lines`] (finding-to-finding, keyed on fingerprint IRIs) — this
+/// cites reasoned-quad reifier IRIs instead, never another finding. Empty for a
+/// finding that is not the outcome of a reasoning pass.
+fn derived_from_quad_lines(finding: &Finding) -> Vec<String> {
+    finding
+        .derived_from_quads
+        .iter()
+        .map(|iri| format!("  ↳ derived from: {iri}"))
+        .collect()
+}
+
 /// Render a compact terminal-safe plain-text report — the FULL per-finding form
 /// (one message line each, plus suggestion/help lines).
 ///
@@ -752,6 +801,9 @@ pub fn to_text(report: &Report) -> String {
         // The witness-DAG derivation/explain section, walked via the one shared
         // DAG engine over the report's finding graph (index built once above).
         lines.extend(derivation_lines(&by_iri, finding));
+        // The reasoner's explain-skeleton quad-derivation citations — a SEPARATE
+        // edge from the antecedent witness-DAG above.
+        lines.extend(derived_from_quad_lines(finding));
     }
     // The report-level 'N findings share root R' cluster grouping (empty unless the
     // meta-reasoning fold has run and been read back onto the findings).
@@ -876,7 +928,7 @@ pub fn to_html(report: &Report) -> String {
             }
             msg_cell.push_str("</ul>");
         }
-        // DSL-authored remediations (the "how to fix" payload, never fabricated).
+        // registry-authored remediations (the "how to fix" payload, never fabricated).
         for remediation in &finding.remediation {
             msg_cell.push_str(&format!(
                 "<p class=\"remediation\">how to fix: {}</p>",
@@ -904,6 +956,15 @@ pub fn to_html(report: &Report) -> String {
                 ));
             }
         }
+        // Per-term usage guidance (howToUse/useWhen/avoidWhen) joined from the
+        // bundle documentation graph and projected verbatim — never fabricated.
+        for guidance in &finding.guidance {
+            msg_cell.push_str(&format!(
+                "<p class=\"remediation\">{}: {}</p>",
+                escape_html(guidance.modality.label()),
+                escape_html(&guidance.text)
+            ));
+        }
         // Reasoner-derived meta-findings carried on the finding.
         if let Some(root) = &finding.root_cause {
             msg_cell.push_str(&format!(
@@ -926,6 +987,15 @@ pub fn to_html(report: &Report) -> String {
             // cited antecedent.
             for line in derivation.iter().skip(1) {
                 msg_cell.push_str(&format!("<li>{}</li>", escape_html(line.trim())));
+            }
+            msg_cell.push_str("</ul>");
+        }
+        // The reasoner's explain-skeleton quad-derivation citations — a SEPARATE
+        // edge from the antecedent witness-DAG rendered above.
+        if !finding.derived_from_quads.is_empty() {
+            msg_cell.push_str("<ul class=\"derived-from-quad\">");
+            for iri in &finding.derived_from_quads {
+                msg_cell.push_str(&format!("<li>derived from: {}</li>", escape_html(iri)));
             }
             msg_cell.push_str("</ul>");
         }
@@ -1153,11 +1223,37 @@ fn sarif_result(finding: &Finding) -> Value {
     if !finding.suggestions.is_empty() {
         props.insert("gmeow.suggestions".to_owned(), json!(finding.suggestions));
     }
+    // Per-term usage guidance (howToUse/useWhen/avoidWhen), grouped by modality
+    // under its PINNED SARIF key (`gmeow.howToUse`/`gmeow.useWhen`/
+    // `gmeow.avoidWhen`) as a string array — `props` is a `serde_json::Map`
+    // (BTreeMap-backed; this crate carries no `preserve_order` feature), so the
+    // serialized key order is alphabetical regardless of insertion order,
+    // keeping byte-diffed goldens deterministic. Absent when the finding carries
+    // no guidance.
+    let mut guidance_by_modality: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    for guidance in &finding.guidance {
+        guidance_by_modality
+            .entry(guidance.modality.sarif_key())
+            .or_default()
+            .push(guidance.text.as_str());
+    }
+    for (key, texts) in guidance_by_modality {
+        props.insert(key.to_owned(), json!(texts));
+    }
+    // The reasoner's explain-skeleton quad-derivation citations, under the
+    // PINNED key `gmeow.derivedFromQuad` — a SEPARATE edge from the antecedent
+    // witness-DAG (which rides `relatedLocations`, not `properties`).
+    if !finding.derived_from_quads.is_empty() {
+        props.insert(
+            "gmeow.derivedFromQuad".to_owned(),
+            json!(finding.derived_from_quads),
+        );
+    }
     if !props.is_empty() {
         result["properties"] = serde_json::Value::Object(props);
     }
 
-    // DSL-authored remediations become SARIF `fixes`: one fix per remediation,
+    // registry-authored remediations become SARIF `fixes`: one fix per remediation,
     // its `description.text` the remediation prose, with `artifactChanges` present
     // ONLY when the remediation carries a concrete mechanical edit (an honest
     // absence otherwise — most rules are prose-only). Any artifact URI is routed
@@ -1169,7 +1265,7 @@ fn sarif_result(finding: &Finding) -> Value {
     result
 }
 
-/// Render one DSL-authored [`Remediation`](crate::diag::Remediation) as a SARIF
+/// Render one registry-authored [`Remediation`](crate::diag::Remediation) as a SARIF
 /// `fix`. The `description.text` is the remediation prose; `artifactChanges` is
 /// emitted ONLY when the remediation carries a mechanical
 /// [`ArtifactChange`](crate::diag::ArtifactChange) whose artifact URI passes the
@@ -2305,6 +2401,84 @@ mod tests {
         let bare_text = to_text(&bare_report);
         assert!(!bare_text.contains("rule remediation:"));
         assert!(!bare_text.contains("how to use:"));
+    }
+
+    #[test]
+    fn text_renders_per_term_guidance_and_derivation_citations() {
+        // D2c/D2b (Task 2): the three per-term Guidance modalities projected onto
+        // `finding.guidance` all render, and each `finding.derived_from_quads`
+        // reifier IRI renders a derivation-citation line — a SEPARATE surface from
+        // the finding-fingerprint `antecedents`/`root_cause` edges, which this test
+        // also asserts stay untouched by populating derived_from_quads.
+        use crate::diag::{Guidance, GuidanceModality, GuidanceSource};
+        let quad_iri = "https://blackcatinformatics.ca/gmeow/quad/9f2c";
+        let mut finding =
+            Finding::new(Severity::Error, "diag.justified", "boom").with_tool("validate");
+        finding.finding_iri = Some(CHILD_IRI.to_owned());
+        finding.push_guidance(Guidance {
+            modality: GuidanceModality::HowToUse,
+            source: GuidanceSource::RuleGoverningTerm,
+            term_iri: "https://blackcatinformatics.ca/gmeow/mediates".to_owned(),
+            text: "attach the relator via gmeow:mediates".to_owned(),
+            standpoint: Standpoint::Binding,
+            help_uri: None,
+        });
+        finding.push_guidance(Guidance {
+            modality: GuidanceModality::UseWhen,
+            source: GuidanceSource::DocumentedTerm,
+            term_iri: "https://blackcatinformatics.ca/gmeow/Kind".to_owned(),
+            text: "use gmeow:Kind for rigid sortal categories".to_owned(),
+            standpoint: Standpoint::Perspectival,
+            help_uri: None,
+        });
+        finding.push_guidance(Guidance {
+            modality: GuidanceModality::AvoidWhen,
+            source: GuidanceSource::DocumentedTerm,
+            term_iri: "https://blackcatinformatics.ca/gmeow/Kind".to_owned(),
+            text: "avoid gmeow:Kind for phase-sortals".to_owned(),
+            standpoint: Standpoint::Advisory,
+            help_uri: None,
+        });
+        finding = finding.with_derived_from_quads([quad_iri]);
+
+        // CRITICAL namespace guard: derived_from_quads is a SEPARATE edge from the
+        // finding-fingerprint antecedents/root_cause — populating it must NEVER
+        // populate those fields.
+        assert!(
+            finding.antecedents.is_empty(),
+            "derived_from_quads must not populate antecedents"
+        );
+        assert!(
+            finding.root_cause.is_none(),
+            "derived_from_quads must not populate root_cause"
+        );
+
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+        let text = to_text(&report);
+
+        assert!(
+            text.contains("how to use: attach the relator via gmeow:mediates"),
+            "expected the HowToUse guidance line: {text}"
+        );
+        assert!(
+            text.contains("use when: use gmeow:Kind for rigid sortal categories"),
+            "expected the UseWhen guidance line: {text}"
+        );
+        assert!(
+            text.contains("avoid when: avoid gmeow:Kind for phase-sortals"),
+            "expected the AvoidWhen guidance line: {text}"
+        );
+        assert!(
+            text.contains(&format!("derived from: {quad_iri}")),
+            "expected the derivation-citation line: {text}"
+        );
+
+        // The same namespace separation must hold on the NORMALIZED report too
+        // (normalize() must never fold derived_from_quads into antecedents).
+        let normalized = report.normalized();
+        assert!(normalized.findings[0].antecedents.is_empty());
+        assert!(normalized.findings[0].root_cause.is_none());
     }
 
     #[test]
