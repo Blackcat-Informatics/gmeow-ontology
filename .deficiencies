@@ -284,3 +284,35 @@ is recorded honestly:
   surface touching the removed arm and confirmed green (subsumption-oracle tests
   6/6, `reason-verify` exit 0, `reason-crosscheck` exit 0 with 0 oracle-only /
   0 dl-gap) with no real (non-timeout) failure.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-14 — #1531 (A1: de-wire slice-quality engine + wheel-shippable)
+
+- R1 LITERAL "retire the RUBRIC_MODULE constant" WAS SCOPED DOWN, with explicit
+  user approval. #1531's R1 text says to remove `load_repo_rubric` AND the
+  `RUBRIC_MODULE` constant. The adversary found `RUBRIC_MODULE` is NOT an engine
+  symbol — it is the ratchet GATE's floor-source path in
+  `crates/pipeline/src/stages/governance_floors.rs` and
+  `crates/gmeow-dev-cli/src/dev_slice_quality.rs`. Deleting it would newly enforce
+  the pipeline-slice floors → change gate behavior → break #1531's own byte-neutral
+  acceptance. The user (AskUserQuestion, 2026-07-14) chose "Keep it; scope R1 to the
+  scoring loader": `load_repo_rubric` + `score_slice` are deleted from the engine
+  (scoring/consumer path fully de-wired to the bundle), but the gate's
+  `RUBRIC_MODULE` floor-source is KEPT for neutrality. So R1's RUBRIC_MODULE clause
+  is NOT delivered as literally written — delivered as consumer-path de-wiring only.
+  Floor-source unification is tracked in the spawned issue #1539.
+
+- DocMaturity off-repo is FULL-FIDELITY-SHAPED but its exact numeric fraction is
+  NOT pinned against a known-good baseline. The `from_slice_dir` model skips
+  `discover`'s repo-only enrichments; I verified by code-reading (not a numeric
+  oracle) that none feed coverage. AC1 asserts non-vacuity + a real missing-dimension
+  advisory, not the exact fraction.
+
+- `term_loss = None` off-repo: a foreign slice can never earn the LossLedgerRow /
+  LossJudgmentSound dimensions DYNAMICALLY (it never ran stage-mappings), so external
+  DocMaturity is a lower bound on those two dims for a genuinely-lossy foreign slice.
+  Correct-by-construction (static loss_targets still count); documented in axis_external.
+
+- Task 5 did NOT integrate current origin/main before the zero-drift neutrality
+  regenerate — the proof is against the branch base (de7e8fd92), not main-merged.
+  The merged-into-main verification is stage2/3's job (per .baseline / the plan).
