@@ -705,7 +705,8 @@ gmeow:InventedWitness
     gmeow:useWhen "Use to mark the object of a reasoned head quad p(x, null) as a chase-invented existential null — the structured, queryable proof that the native existential chase fired to discharge a C ⊑ ∃p.D obligation."@x-gmeow-english .
 
 gmeow:existentialOrdinal
-    a owl:DatatypeProperty ;
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
     rdfs:domain gmeow:InventedWitness ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "existential ordinal"@x-gmeow-english ;
