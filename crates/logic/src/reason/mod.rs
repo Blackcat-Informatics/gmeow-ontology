@@ -61,6 +61,21 @@ impl ChaseCertificate {
 /// re-running the chase.
 pub use crate::physical::WitnessDerivation;
 
+/// The content-addressed standard-RDF-reification node IRI for a head quad
+/// `⟨subject predicate obj⟩`.
+///
+/// A thin `pub` shim over the crate-internal reifier recipe
+/// ([`crate::provenance::reifier_from_strings`]) so a downstream projector (the
+/// pipeline's chase-witness diagnostics fold) can address the SAME reifier node the
+/// explanation plane already mints — without widening the internal helper.
+/// `subject` and `predicate` are bare IRI strings (this wraps them in `<…>`);
+/// `obj_n3` is the object already in canonical N3 form (`<iri>` for an IRI object,
+/// `"lex"^^<dt>` for a literal) and is used verbatim.
+#[must_use]
+pub fn reifier_iri(subject: &str, predicate: &str, obj_n3: &str) -> String {
+    crate::provenance::reifier_from_strings(subject, predicate, obj_n3)
+}
+
 /// The single production reasoning run and the existential termination evidence
 /// generated while constructing its result.
 #[derive(Debug, Clone, PartialEq)]
