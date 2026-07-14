@@ -1454,7 +1454,7 @@ impl McpView {
         // no bad-example verify query still leaves `report.ok()` true, but the shared
         // gate REFUSES it; without this combination `coherent:true` could render
         // alongside `class_local_name:"Refused"`, a self-contradictory envelope
-        // (CodeRabbit gap G4). `coherent` is true only when BOTH the shared outcome
+        // `coherent` is true only when BOTH the shared outcome
         // permits it (non-refuting) AND no bad-example finding fired.
         let coherent = !completeness_refused(&result) && report.ok();
 
@@ -3000,7 +3000,7 @@ impl McpServer {
 
         // The read (library's EFFECTIVE state, by segment order) → precondition-check → (on a
         // real commit) library-append → audit-append sequence runs ENTIRELY inside ONE held
-        // exclusive lock (`with_conjecture_lock`, CodeRabbit Major): without it, two concurrent
+        // exclusive lock (`with_conjecture_lock`): without it, two concurrent
         // `refute_conjecture` calls against the same id could both read "not yet withdrawn",
         // both pass the precondition, and both commit a withdrawal segment (lost-update). The
         // lock forces the second caller to observe the FIRST caller's already-committed
@@ -4952,7 +4952,7 @@ fn conjecture_lock_path(library_path: &Path) -> PathBuf {
 /// must read-then-decide-then-write (e.g. `refute_conjecture`'s "is this id still in the library
 /// and not yet withdrawn?" precondition) run the ENTIRE read → check → append sequence inside
 /// `f`, so two concurrent callers can no longer both observe the pre-write state and both commit
-/// (the lost-update / double-write race CodeRabbit flagged). The lock is released when the guard
+/// (the lost-update / double-write race). The lock is released when the guard
 /// file handle drops at the end of this call, regardless of whether `f` succeeded.
 fn with_conjecture_lock<T>(
     library_path: &Path,
@@ -4985,7 +4985,7 @@ fn with_conjecture_lock<T>(
 /// A rename either lands the WHOLE new file or leaves the PRIOR file completely untouched — so
 /// if anything fails partway (e.g. the audit segment's bytes can't be built, or the temp write
 /// fails), the library is never left holding some but not all of `segments` (closing the "audit
-/// append fails, library append is left applied" half of the CodeRabbit gap). The caller MUST
+/// append fails, library append is left applied" failure mode). The caller MUST
 /// already hold the conjecture-library lock (see [`with_conjecture_lock`]) — this function does
 /// not lock by itself, so it can be called once per commit even when it writes >1 segment.
 fn append_conjecture_segments(path: &Path, segments: &[Vec<u8>]) -> gmeow_errors::Result<()> {
@@ -5420,7 +5420,7 @@ mod tests {
 
     #[test]
     fn conjecture_tool_schemas_advertise_their_enforced_required_args() {
-        // G11 (CodeRabbit Major): `conjecture_test` / `store_conjecture` enforce `formula`,
+        // `conjecture_test` / `store_conjecture` enforce `formula`,
         // `kb`, `standpoint` via `required_str` at call time (see `tool_conjecture_test` /
         // `tool_store_conjecture`); `refute_conjecture` enforces only `conjecture_id`. The
         // advertised `inputSchema.required` array must list EXACTLY what the tool body
@@ -5710,7 +5710,7 @@ mod tests {
         assert!(policy.contains(TXN_WORLD));
     }
 
-    /// T3 (issue 1312 dogfood): the proof-carrying diagnostics tool surface
+    /// Dogfood the proof-carrying diagnostics tool surface
     /// (`explain_quad`, `verify_graph`, `coherence_certificate`, `store_conjecture` /
     /// `refute_conjecture`) must be REPRESENTED in the canonical action theory the engine
     /// actually parses, not merely documented. This asserts against the projected N-Quads
@@ -8427,7 +8427,7 @@ mod tests {
 
     #[test]
     fn store_conjecture_and_refute_round_trip_keep_library_and_audit_consistent() {
-        // G9 (CodeRabbit Major): store_conjecture and refute_conjecture must each land their
+        // store_conjecture and refute_conjecture must each land their
         // library segment AND their audit segment TOGETHER — never one without the other. Drive
         // the real `call_tool_result` surface for both tools and, after EACH commit, assert the
         // library dataset carries BOTH the verdict/withdrawal triples AND the matching
@@ -8488,7 +8488,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn conjecture_persist_is_all_or_nothing_on_a_failed_commit() {
-        // G9 (CodeRabbit Major): forcing the atomic-replace write to fail PARTWAY (the temp file
+        // forcing the atomic-replace write to fail PARTWAY (the temp file
         // for the combined library+audit bytes can't even be created) must leave the library
         // BYTE-UNCHANGED — never holding the library segment without its audit segment (or vice
         // versa), because both are assembled in memory and committed via ONE rename. This
@@ -8561,7 +8561,7 @@ mod tests {
 
     #[test]
     fn conjecture_lock_serializes_concurrent_writers() {
-        // G9 (CodeRabbit Major): `with_conjecture_lock` must provide REAL mutual exclusion, not
+        // `with_conjecture_lock` must provide REAL mutual exclusion, not
         // just an in-process convention a second caller could sidestep — so this test opens the
         // SAME sidecar `.lock` file from two INDEPENDENT `std::fs::File` descriptors (one per
         // thread), mirroring how two separate OS processes would each open it themselves. Since
@@ -10004,7 +10004,7 @@ mod tests {
         );
     }
 
-    /// G10 (MEDIUM, CodeRabbit): a SINGLE coherence subject typed BOTH
+    /// A SINGLE coherence subject typed BOTH
     /// `logic:CoherenceCertificate` and `logic:CoherenceCheckAttestation` is an
     /// ambiguous, malformed artifact and must hard-fail — REGRESSION GUARD for the
     /// exact gap this test closes: the ambiguity check used to compare only the
@@ -10061,7 +10061,7 @@ mod tests {
         );
     }
 
-    /// G10 (MEDIUM, CodeRabbit): every producer-REQUIRED field the tool extracts must
+    /// Every producer-REQUIRED field the tool extracts must
     /// be present with the producer's exact cardinality — a bundle missing ANY of them
     /// is a CORRUPT artifact and must hard-fail (`ok:false`) naming the missing
     /// predicate, never `ok:true` with a null/empty field silently laundering the gap
@@ -10207,7 +10207,7 @@ mod tests {
         assert_eq!(out, again, "the certificate read is deterministic");
     }
 
-    /// G3 (HIGH, CodeRabbit): an INCONSISTENT-but-CONCLUSIVE closure must never
+    /// An INCONSISTENT-but-CONCLUSIVE closure must never
     /// surface as `CoherenceCertificate` on the tool surface — `completeness_class`
     /// used to return `CoherenceCertificate` for ANY `is_conclusive()` result, with no
     /// check for a named certified fragment or for the absence of a forbidden
@@ -10307,7 +10307,7 @@ mod tests {
         drop(overlay_dir);
     }
 
-    /// CodeRabbit gap G4 (HIGH): `verify_graph`'s `coherent` field MUST agree with
+    /// `verify_graph`'s `coherent` field MUST agree with
     /// `class_local_name` — both MUST be derived from the SAME `CoherenceOutcome`
     /// gate, never from two independent signals.
     ///
