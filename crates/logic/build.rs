@@ -67,11 +67,15 @@ fn main() {
 /// Collect `*.rq` files directly under `dir` into `by_stem`, keyed by the file
 /// basename without `.rq`. Panics on a stem collision: two source files
 /// producing the same stem would silently shadow one query's coverage in the
-/// embedded set, which is worse than a loud build failure.
+/// embedded set, which is worse than a loud build failure. `dir` is always a
+/// path the caller has already confirmed exists (the top-level
+/// `queries/verify` root, or a per-slice `queries/verify` subdir just checked
+/// with `is_dir()`), so a `read_dir` failure here is a real I/O/permissions
+/// error, not an expected "no such directory" — it must fail loud rather than
+/// silently yielding an empty (falsely-passing) verify query set.
 fn collect_rq(dir: &Path, by_stem: &mut BTreeMap<String, PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return;
-    };
+    let entries = std::fs::read_dir(dir)
+        .unwrap_or_else(|e| panic!("failed to read verify query dir {}: {e}", dir.display()));
     let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
     paths.sort();
     for path in paths {
@@ -96,11 +100,15 @@ fn collect_rq(dir: &Path, by_stem: &mut BTreeMap<String, PathBuf>) {
 
 /// Recurse `slices/**`, collecting `queries/verify/*.rq` under every directory
 /// (at any depth) that has one — mirrors `slices/<group>/<slice>/queries/verify/`
-/// without hardcoding the two-level group/slice shape.
+/// without hardcoding the two-level group/slice shape. `dir` is always either
+/// the required `slices/` workspace root or a subdirectory this function just
+/// enumerated from a successful parent `read_dir`, so a failure here is a real
+/// I/O/permissions error, not an expected "no such directory" — it must fail
+/// loud rather than silently truncating the recursion (and thus the embedded
+/// verify query set).
 fn collect_slice_verify(dir: &Path, by_stem: &mut BTreeMap<String, PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else {
-        return;
-    };
+    let entries = std::fs::read_dir(dir)
+        .unwrap_or_else(|e| panic!("failed to read slices dir {}: {e}", dir.display()));
     let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
     paths.sort();
     for path in paths {
