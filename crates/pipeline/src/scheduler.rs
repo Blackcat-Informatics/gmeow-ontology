@@ -667,7 +667,7 @@ fn check_lane(
 /// folds each file's repo-relative logical path AND its bytes (sorted by path, so
 /// it is order-independent); a declared file that cannot be read HARD-fails — a
 /// missing required input is never silently treated as "unchanged" (no-optionality).
-fn input_files_digest(
+pub(crate) fn input_files_digest(
     stage: &dyn Stage,
     root: &Path,
 ) -> Result<Option<String>, gmeow_errors::Diag> {

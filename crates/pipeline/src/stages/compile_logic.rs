@@ -808,6 +808,10 @@ fn logic_graph_dataset(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::OnceLock;
+
+    use crate::cache::{BUILD_FINGERPRINT, PipelineCache, stage_key};
+    use crate::scheduler::input_files_digest;
 
     fn repo_root() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -815,6 +819,68 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
+    }
+
+    /// Cross-process, content-addressed fixture for the assertion-only tests below.
+    ///
+    /// Nextest runs each test in a separate process, so an in-process `OnceLock`
+    /// alone cannot prevent every test from rebuilding the real repository's full
+    /// logic projection. Reuse the production cache codec and its fail-closed build
+    /// fingerprint/input digest instead. The gate primes this once before nextest;
+    /// a plain `cargo test` still builds safely on a genuine miss. One sibling test
+    /// deliberately calls the stage directly, retaining uncached end-to-end teeth.
+    fn compile_logic_fixture() -> StageProduct {
+        static PRODUCT: OnceLock<StageProduct> = OnceLock::new();
+        PRODUCT
+            .get_or_init(|| {
+                let root = repo_root();
+                let stage = CompileLogicStage::new();
+                let source_digest =
+                    input_files_digest(&stage, &root).expect("digest compile-logic fixture inputs");
+                let key = stage_key(
+                    stage.id(),
+                    stage.impl_version(),
+                    &[],
+                    source_digest.as_deref(),
+                );
+
+                let cache_base = root.join(".cache/pipeline-test-fixtures");
+                let fingerprint = &BUILD_FINGERPRINT[..16];
+                if let Ok(entries) = std::fs::read_dir(&cache_base) {
+                    for entry in entries.flatten() {
+                        if entry.file_name().to_string_lossy() != fingerprint {
+                            let _ = std::fs::remove_dir_all(entry.path());
+                        }
+                    }
+                }
+                let mut cache = PipelineCache::open(cache_base.join(fingerprint))
+                    .expect("open compile-logic fixture cache");
+                if let Some(product) = cache.get(&key).expect("read compile-logic fixture cache") {
+                    return product;
+                }
+
+                let upstream = BTreeMap::new();
+                let product = stage
+                    .run(StageInput {
+                        root: &root,
+                        upstream: &upstream,
+                    })
+                    .expect("build compile-logic fixture")
+                    .product;
+                cache
+                    .put(&key, &product)
+                    .expect("persist compile-logic fixture");
+                product
+            })
+            .clone()
+    }
+
+    /// Cheap after the first content state; explicitly selected before the full
+    /// nextest run so independent test processes all observe the warm fixture.
+    #[test]
+    fn compile_logic_fixture_is_primed() {
+        let product = compile_logic_fixture();
+        assert_eq!(product.stage_id, "stage-compile-logic");
     }
 
     /// The stage emits all nine projection artifacts plus the four diagnostics
@@ -955,15 +1021,8 @@ mod tests {
     /// must NOT leak into the shapes as an inverted regex — it is ledger-only.
     #[test]
     fn test_datatypes_opt_ordinal_and_datetime_flow_into_shape_surface() {
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let arts = out.product.artifacts();
+        let product = compile_logic_fixture();
+        let arts = product.artifacts();
         let ttl = std::str::from_utf8(&arts[VALIDATION_SHAPES_TTL_PATH]).expect("shapes ttl utf8");
         // The second OPT's shapes reached the surface (its distinct base IRI).
         assert!(
@@ -1072,15 +1131,8 @@ mod tests {
     #[test]
     fn stage_pins_logic_handle_re_derivable_to_isomorphic_ir() {
         use crate::bundle::PipelineHandle;
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
         let entry = bundle
             .handle(GRAPH_LOGIC)
             .expect("the stage pins a Logic handle to graph/logic");
@@ -1095,8 +1147,7 @@ mod tests {
         };
 
         // Re-derive the program from the backing graph/logic exactly as the cache does.
-        let canonical_ttl = out
-            .product
+        let canonical_ttl = product
             .artifact(CANONICAL_RDF12_PATH)
             .expect("canonical rdf12 artifact");
         let ds = parse_dataset(canonical_ttl, "text/turtle", None).expect("parse backing graph");
@@ -1149,15 +1200,8 @@ mod tests {
     #[test]
     fn stage_pins_relational_core_handle_re_derivable_to_equal_dialect() {
         use gmeow_logic_compile::relational_core::parse_relational_core;
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
         let entry = bundle
             .handle(GRAPH_RELATIONAL_CORE)
             .expect("the stage pins a RelationalCore handle to graph/relational-core");
@@ -1179,8 +1223,7 @@ mod tests {
 
         // Re-derive the dialect from the backing graph exactly as the cache does, off
         // the committed N-Triples projection artifact.
-        let nt = out
-            .product
+        let nt = product
             .artifact(RELATIONAL_CORE_PATH)
             .expect("relational-core artifact");
         let ds = parse_dataset(nt, "application/n-triples", None).expect("parse backing graph");
@@ -1228,15 +1271,8 @@ mod tests {
     /// the consumer side.
     #[test]
     fn downstream_consumer_reads_the_handle_without_re_lowering() {
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
 
         // The CONSUMER path: take the typed handle. This is the ONLY way the dialect is
         // obtained downstream — there is no second `lower_program` call here.
@@ -1255,8 +1291,7 @@ mod tests {
         );
         // And it is the SAME content as the committed projection the producer emitted —
         // i.e. the producer lowered once and that single result rides both faces.
-        let nt = out
-            .product
+        let nt = product
             .artifact(RELATIONAL_CORE_PATH)
             .expect("projection artifact");
         let re_derived = gmeow_logic_compile::relational_core::parse_relational_core(
@@ -1283,15 +1318,8 @@ mod tests {
     #[test]
     fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
         use gmeow_logic_compile::projections::correspondence::parse_correspondence;
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
         let entry = bundle
             .handle(GRAPH_CORRESPONDENCE)
             .expect("the stage pins a Correspondence handle to graph/correspondence");
@@ -1306,8 +1334,7 @@ mod tests {
         };
 
         // The committed projection artifact: the load-bearing alignment correctness point.
-        let nt = out
-            .product
+        let nt = product
             .artifact(CORRESPONDENCE_PATH)
             .expect("correspondence artifact");
         let nt_str = std::str::from_utf8(nt).expect("utf8");
@@ -1346,15 +1373,8 @@ mod tests {
     #[test]
     fn stage_correspondence_overclaim_gate_rejects_equivalence() {
         use gmeow_logic_compile::projections::correspondence::assert_no_overclaim_correspondence;
-        let root = repo_root();
-        let upstream = BTreeMap::new();
-        let out = CompileLogicStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &upstream,
-            })
-            .expect("compile-logic stage");
-        let bundle = out.product.bundle();
+        let product = compile_logic_fixture();
+        let bundle = product.bundle();
         let entry = bundle.handle(GRAPH_CORRESPONDENCE).expect("handle present");
         let PipelineHandle::Correspondence(program) = &entry.payload else {
             panic!("Correspondence arm");
