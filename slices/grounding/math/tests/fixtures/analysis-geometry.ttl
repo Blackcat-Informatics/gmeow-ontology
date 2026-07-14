@@ -141,3 +141,33 @@ exf:tempVar a math:VariableDeclaration .
 exf:coolingResult a math:LimitResult ;
     math:limitOutcome math:divergesToNegativeInfinity ;
     math:limitResultValue math:NegativeInfinity .
+
+# --- Q7: a conformal compactification names its four roles + conformal factor
+# The unbounded radial half-line r ∈ [0, ∞) conformally compactified to the bounded
+# interval ρ ∈ [0, 1] by ρ = r/(1+r) (Ω = 1/(1+r)), adjoining the ideal point r = +∞.
+exf:radialCompactification a math:ConformalCompactification ;
+    math:originalSpace exf:radialHalfLine ;
+    math:compactifyingMap exf:radialCompactifyingMap ;
+    math:compactifiedSpace exf:compactifiedRadialInterval ;
+    math:boundaryAtInfinity exf:radialIdealBoundary ;
+    math:conformalFactor exf:radialConformalFactor .
+
+exf:radialHalfLine a math:TopologicalSpace .
+
+exf:radialCompactifyingMap a math:CoordinateMap ;
+    math:domain exf:radialHalfLine ;
+    math:codomain exf:compactifiedRadialInterval .
+
+exf:compactifiedRadialInterval a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:closedEndpoint .
+
+exf:radialIdealBoundary a math:BoundaryAtInfinity .
+
+exf:radialConformalFactor a math:Function ;
+    math:domain exf:radialHalfLine ;
+    math:codomain exf:positiveReals .
+
+exf:positiveReals a math:Set .

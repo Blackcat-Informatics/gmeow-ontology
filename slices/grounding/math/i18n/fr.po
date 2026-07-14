@@ -1003,3 +1003,75 @@ msgstr "Rôle de variable"
 msgctxt "https://blackcatinformatics.ca/math/VariableRole|skos:definition"
 msgid "A variable role: the analytical part a math:StatisticalVariable plays in a model — outcome, predictor, covariate, weight, stratum, cluster, or offset. A subclass of math:MathematicalObject naming the role a variable holds rather than an intrinsic property of the column, so the same measured variable can be an outcome in one model and a predictor in another without changing the data. A variable's role is a first-class object so a model's structure is queryable, never read off a naming convention."
 msgstr "Un rôle de variable : la part analytique qu'une math:StatisticalVariable joue dans un modèle — issue, prédicteur, covariable, poids, strate, grappe ou décalage. Une sous-classe de math:MathematicalObject nommant le rôle qu'une variable tient plutôt qu'une propriété intrinsèque de la colonne, de sorte que la même variable mesurée puisse être une issue dans un modèle et un prédicteur dans un autre sans changer les données. Le rôle d'une variable est un objet de première classe afin que la structure d'un modèle soit interrogeable, jamais lue sur une convention de nommage."
+
+msgctxt "https://blackcatinformatics.ca/math/Compactification|rdfs:label"
+msgid "Compactification"
+msgstr "Compactification"
+
+msgctxt "https://blackcatinformatics.ca/math/Compactification|skos:definition"
+msgid "A compactification: a structured record embedding an unbounded space in a bounded (compact) one as a dense subset, so the points the original space runs off toward are adjoined as a boundary at infinity. It names FOUR roles — the original unbounded space through math:originalSpace, the embedding/map through math:compactifyingMap, the resulting bounded space through math:compactifiedSpace, and the boundary added at infinity through math:boundaryAtInfinity. It is NOT any one construction — not the one-point (Alexandroff) versus Stone–Čech distinction per se — but the general structured record every such construction instantiates; a compactification missing any of the four roles is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Une compactification : un enregistrement structuré plongeant un espace non borné dans un espace borné (compact) comme sous-ensemble dense, de sorte que les points vers lesquels l'espace original s'échappe soient adjoints comme un bord à l'infini. Elle nomme QUATRE rôles — l'espace non borné original via math:originalSpace, le plongement/l'application via math:compactifyingMap, l'espace borné résultant via math:compactifiedSpace, et le bord ajouté à l'infini via math:boundaryAtInfinity. Ce n'est PAS une construction particulière — non la distinction en un point (Alexandroff) versus Stone–Čech en soi — mais l'enregistrement structuré général que toute telle construction instancie ; une compactification à laquelle manque l'un des quatre rôles est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/ConformalCompactification|rdfs:label"
+msgid "Conformal Compactification"
+msgstr "Compactification conforme"
+
+msgctxt "https://blackcatinformatics.ca/math/ConformalCompactification|skos:definition"
+msgid "A conformal (Penrose-style) compactification: the specialization whose math:compactifyingMap is angle-preserving (conformal), carrying a math:conformalFactor Ω that rescales the metric so the points at infinity sit at a finite conformal boundary. A subclass of math:Compactification; it additionally names its math:conformalFactor — a conformal compactification missing it is ill-formed (math:UnderspecifiedCompactification). This is the correct general home for embedding a math:LorentzianManifold's radial chart's infinity as a finite boundary: the conformal factor sends the unbounded metric distance to a finite rescaled one while preserving the causal (angle) structure the Lorentzian metric carries. The metric and its rescaling stay math-side; a spacetime's Penrose diagram is a downstream physics reading of this math object."
+msgstr "Une compactification conforme (à la Penrose) : la spécialisation dont la math:compactifyingMap préserve les angles (conforme), portant un math:conformalFactor Ω qui remet à l'échelle la métrique de sorte que les points à l'infini se situent à un bord conforme fini. Une sous-classe de math:Compactification ; elle nomme en outre son math:conformalFactor — une compactification conforme à laquelle il manque est mal formée (math:UnderspecifiedCompactification). C'est le bon foyer général pour plonger l'infini de la carte radiale d'une math:LorentzianManifold comme un bord fini : le facteur conforme envoie la distance métrique non bornée vers une distance remise à l'échelle finie tout en préservant la structure causale (angulaire) que porte la métrique lorentzienne. La métrique et sa remise à l'échelle restent du côté mathématique ; le diagramme de Penrose d'un espace-temps est une lecture physique en aval de cet objet mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryAtInfinity|rdfs:label"
+msgid "Boundary at Infinity"
+msgstr "Bord à l'infini"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryAtInfinity|skos:definition"
+msgid "The boundary a compactification adjoins at infinity: the ideal points — the conformal boundary — the original unbounded space approaches but never reaches, made a first-class object rather than an informal edge. Named by a math:Compactification through math:boundaryAtInfinity. For a math:ConformalCompactification it is where the math:conformalFactor vanishes; for the radial half-line r ∈ [0, ∞) it is the single ideal point r = +∞."
+msgstr "Le bord qu'une compactification adjoint à l'infini : les points idéaux — le bord conforme — dont l'espace non borné original s'approche sans jamais les atteindre, fait un objet de première classe plutôt qu'un bord informel. Nommé par une math:Compactification via math:boundaryAtInfinity. Pour une math:ConformalCompactification, c'est là où le math:conformalFactor s'annule ; pour la demi-droite radiale r ∈ [0, ∞), c'est l'unique point idéal r = +∞."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedCompactification|rdfs:label"
+msgid "Underspecified Compactification"
+msgstr "Compactification sous-spécifiée"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedCompactification|skos:definition"
+msgid "The failure raised when a math:Compactification does not name all four of its roles — its original space (math:originalSpace), its compactifying map (math:compactifyingMap), its compactified space (math:compactifiedSpace), and its boundary at infinity (math:boundaryAtInfinity) — or when a math:ConformalCompactification additionally omits its math:conformalFactor. A compactification that does not say what it embeds, by which map, into what, and with which boundary at infinity is ill-formed. Mirrors math:UnderspecifiedManifold and math:UnderspecifiedChart."
+msgstr "L'échec levé lorsqu'une math:Compactification ne nomme pas la totalité de ses quatre rôles — son espace original (math:originalSpace), son application de compactification (math:compactifyingMap), son espace compactifié (math:compactifiedSpace) et son bord à l'infini (math:boundaryAtInfinity) — ou lorsqu'une math:ConformalCompactification omet en outre son math:conformalFactor. Une compactification qui ne dit pas ce qu'elle plonge, par quelle application, dans quoi, et avec quel bord à l'infini est mal formée. Reflète math:UnderspecifiedManifold et math:UnderspecifiedChart."
+
+msgctxt "https://blackcatinformatics.ca/math/originalSpace|rdfs:label"
+msgid "original space"
+msgstr "espace original"
+
+msgctxt "https://blackcatinformatics.ca/math/originalSpace|skos:definition"
+msgid "Relates a math:Compactification to the original unbounded space it embeds — the space whose points at infinity the compactification adjoins as a boundary. Domain math:Compactification, range a math:TopologicalSpace or math:Manifold (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:Compactification à l'espace non borné original qu'elle plonge — l'espace dont les points à l'infini la compactification adjoint comme un bord. Domaine math:Compactification, portée un math:TopologicalSpace ou math:Manifold (précisé en prose). Toute compactification en nomme exactement un ; une compactification sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/compactifyingMap|rdfs:label"
+msgid "compactifying map"
+msgstr "application de compactification"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifyingMap|skos:definition"
+msgid "Relates a math:Compactification to the embedding taking its original space into the compactified one — a math:Function (a math:CoordinateMap when it coordinatizes), angle-preserving for a math:ConformalCompactification. Domain math:Compactification, range math:Function (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:Compactification au plongement portant son espace original dans l'espace compactifié — une math:Function (une math:CoordinateMap lorsqu'elle coordonne), préservant les angles pour une math:ConformalCompactification. Domaine math:Compactification, portée math:Function (précisé en prose). Toute compactification en nomme exactement un ; une compactification sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/compactifiedSpace|rdfs:label"
+msgid "compactified space"
+msgstr "espace compactifié"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifiedSpace|skos:definition"
+msgid "Relates a math:Compactification to the resulting bounded (compact) space — the image the embedding lands in together with the adjoined boundary at infinity. Domain math:Compactification, range a math:TopologicalSpace (a math:Interval for a compactified half-line) (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:Compactification à l'espace borné (compact) résultant — l'image dans laquelle le plongement atterrit avec le bord à l'infini adjoint. Domaine math:Compactification, portée un math:TopologicalSpace (un math:Interval pour une demi-droite compactifiée) (précisé en prose). Toute compactification en nomme exactement un ; une compactification sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/boundaryAtInfinity|rdfs:label"
+msgid "boundary at infinity"
+msgstr "bord à l'infini"
+
+msgctxt "https://blackcatinformatics.ca/math/boundaryAtInfinity|skos:definition"
+msgid "Relates a math:Compactification to the math:BoundaryAtInfinity it adjoins — the ideal points at infinity the original space approaches but never reaches. Domain math:Compactification, range math:BoundaryAtInfinity (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:Compactification au math:BoundaryAtInfinity qu'elle adjoint — les points idéaux à l'infini dont l'espace original s'approche sans jamais les atteindre. Domaine math:Compactification, portée math:BoundaryAtInfinity (précisé en prose). Toute compactification en nomme exactement un ; une compactification sans lui est mal formée (math:UnderspecifiedCompactification)."
+
+msgctxt "https://blackcatinformatics.ca/math/conformalFactor|rdfs:label"
+msgid "conformal factor"
+msgstr "facteur conforme"
+
+msgctxt "https://blackcatinformatics.ca/math/conformalFactor|skos:definition"
+msgid "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an owl:ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "Relie une math:ConformalCompactification à son facteur conforme de remise à l'échelle Ω — une fonction positive qui multiplie la métrique de sorte que la distance métrique non bornée devienne finie au bord tout en préservant les angles. Domaine math:ConformalCompactification, portée une math:Function ou math:Quantity positive (un individu, jamais un simple littéral — donc une owl:ObjectProperty, non une propriété de type de données) (précisé en prose). Toute compactification conforme en nomme exactement un ; une sans lui est mal formée (math:UnderspecifiedCompactification)."

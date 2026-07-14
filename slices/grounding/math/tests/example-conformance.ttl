@@ -497,6 +497,18 @@ ex:ecMetricSignatureDimensionMismatch a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example's metric signature (3, 2) sums to 5 on a dimension-4 manifold (the p + q SPARQL constraint of math:MetricSignatureDimensionShape), so validation MUST emit shacl.SPARQLConstraintComponent (math:DimensionMismatch)." .
 
+# Conformal geometry: a compactification names all four roles (+ conformal factor).
+ex:ecCompactificationFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/compactification-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ConformalCompactification naming all four compactification roles — math:originalSpace, math:compactifyingMap, math:compactifiedSpace, and math:boundaryAtInfinity — plus its conformal-only math:conformalFactor (the radial half-line r ∈ [0, ∞) conformally compactified to [0, 1] by ρ = r/(1+r)) satisfies math:CompactificationShape and validates with no findings." .
+
+ex:ecCompactificationMissingBoundary a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/compactification-missing-boundary.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:boundaryAtInfinity on a math:Compactification that names its original space, compactifying map, and compactified space (sh:minCount 1 on math:CompactificationShape, derived from the exact-one math:boundaryAtInfinity restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedCompactification). It is a plain math:Compactification so no conformal-factor obligation applies and the other three roles are present, making the missing boundary the single isolated violation." .
+
 # Algebraic topology: a homology group is a fully-framed abelian group.
 ex:ecHomologyGroupFramed a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/homology-group-framed.ttl" ;

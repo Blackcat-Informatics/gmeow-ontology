@@ -3552,6 +3552,86 @@ math:signatureNegative
     skos:definition "The count q of negative eigenvalues (timelike directions in the +−−− convention) of a math:MetricSignature. Domain math:MetricSignature, range xsd:nonNegativeInteger (stated in prose). A Lorentzian signature has exactly one negative (or, dually, exactly one positive) — the timelike direction spacetime is built on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+# --- Conformal geometry and compactification -------------------------------- #
+#
+# A compactification embeds an unbounded space in a bounded (compact) one as a
+# dense subset, adjoining the points the original space runs off toward as a
+# boundary at infinity. The structured record names FOUR roles — the original
+# unbounded space, the embedding/map, the resulting bounded space, and the
+# boundary at infinity — and a compactification missing any of the four is
+# ill-formed. The conformal (Penrose-style) specialization carries an
+# angle-preserving map and a conformal factor Ω rescaling the metric so infinity
+# sits at a finite boundary; it is the general home for embedding a
+# math:LorentzianManifold's radial chart's infinity as a finite boundary. The
+# metric and its rescaling stay math-side — a spacetime's Penrose diagram is a
+# downstream physics reading of this math object.
+# =========================================================================== #
+
+math:Compactification
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Compactification"@x-gmeow-english ;
+    skos:definition "A compactification: a structured record embedding an unbounded space in a bounded (compact) one as a dense subset, so the points the original space runs off toward are adjoined as a boundary at infinity. It names FOUR roles — the original unbounded space through math:originalSpace, the embedding/map through math:compactifyingMap, the resulting bounded space through math:compactifiedSpace, and the boundary added at infinity through math:boundaryAtInfinity. It is NOT any one construction — not the one-point (Alexandroff) versus Stone–Čech distinction per se — but the general structured record every such construction instantiates; a compactification missing any of the four roles is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:ConformalCompactification
+    a owl:Class ;
+    rdfs:subClassOf math:Compactification ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Conformal Compactification"@x-gmeow-english ;
+    skos:definition "A conformal (Penrose-style) compactification: the specialization whose math:compactifyingMap is angle-preserving (conformal), carrying a math:conformalFactor Ω that rescales the metric so the points at infinity sit at a finite conformal boundary. A subclass of math:Compactification; it additionally names its math:conformalFactor — a conformal compactification missing it is ill-formed (math:UnderspecifiedCompactification). This is the correct general home for embedding a math:LorentzianManifold's radial chart's infinity as a finite boundary: the conformal factor sends the unbounded metric distance to a finite rescaled one while preserving the causal (angle) structure the Lorentzian metric carries. The metric and its rescaling stay math-side; a spacetime's Penrose diagram is a downstream physics reading of this math object."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:BoundaryAtInfinity
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Boundary at Infinity"@x-gmeow-english ;
+    skos:definition "The boundary a compactification adjoins at infinity: the ideal points — the conformal boundary — the original unbounded space approaches but never reaches, made a first-class object rather than an informal edge. Named by a math:Compactification through math:boundaryAtInfinity. For a math:ConformalCompactification it is where the math:conformalFactor vanishes; for the radial half-line r ∈ [0, ∞) it is the single ideal point r = +∞."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedCompactification
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Compactification"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Compactification does not name all four of its roles — its original space (math:originalSpace), its compactifying map (math:compactifyingMap), its compactified space (math:compactifiedSpace), and its boundary at infinity (math:boundaryAtInfinity) — or when a math:ConformalCompactification additionally omits its math:conformalFactor. A compactification that does not say what it embeds, by which map, into what, and with which boundary at infinity is ill-formed. Mirrors math:UnderspecifiedManifold and math:UnderspecifiedChart."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:originalSpace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "original space"@x-gmeow-english ;
+    skos:definition "Relates a math:Compactification to the original unbounded space it embeds — the space whose points at infinity the compactification adjoins as a boundary. Domain math:Compactification, range a math:TopologicalSpace or math:Manifold (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compactifyingMap
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compactifying map"@x-gmeow-english ;
+    skos:definition "Relates a math:Compactification to the embedding taking its original space into the compactified one — a math:Function (a math:CoordinateMap when it coordinatizes), angle-preserving for a math:ConformalCompactification. Domain math:Compactification, range math:Function (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:compactifiedSpace
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "compactified space"@x-gmeow-english ;
+    skos:definition "Relates a math:Compactification to the resulting bounded (compact) space — the image the embedding lands in together with the adjoined boundary at infinity. Domain math:Compactification, range a math:TopologicalSpace (a math:Interval for a compactified half-line) (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:boundaryAtInfinity
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "boundary at infinity"@x-gmeow-english ;
+    skos:definition "Relates a math:Compactification to the math:BoundaryAtInfinity it adjoins — the ideal points at infinity the original space approaches but never reaches. Domain math:Compactification, range math:BoundaryAtInfinity (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:conformalFactor
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "conformal factor"@x-gmeow-english ;
+    skos:definition "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an owl:ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
 # =========================================================================== #
 # Linear algebra, learning, and representation (LINEAR-ALGEBRA-AND-LEARNING
 # charter)
@@ -6019,6 +6099,15 @@ math:Chart rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:coordinateMap ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:targetCoordinateSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
+math:Compactification rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:originalSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:compactifyingMap ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:compactifiedSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:boundaryAtInfinity ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BoundaryAtInfinity ] .
+
+math:ConformalCompactification rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:conformalFactor ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
 math:OrthogonalComplement rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:definedByInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
@@ -7860,6 +7949,11 @@ math:LogicLoweringDeclaredConstraint
 <https://blackcatinformatics.ca/math/Interval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/upperInclusion> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/EndpointInclusion> ] .
 <https://blackcatinformatics.ca/math/Function> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/domain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Set> ] .
 <https://blackcatinformatics.ca/math/Function> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/codomain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Set> ] .
+<https://blackcatinformatics.ca/math/Compactification> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/originalSpace> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Compactification> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/compactifyingMap> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Compactification> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/compactifiedSpace> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Compactification> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/boundaryAtInfinity> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/BoundaryAtInfinity> ] .
+<https://blackcatinformatics.ca/math/ConformalCompactification> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/conformalFactor> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/AlgebraicStructure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/underlyingSet> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Set> ] .
 <https://blackcatinformatics.ca/math/Measure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/measureOn> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/MeasurableSpace> ] .
 <https://blackcatinformatics.ca/math/Measure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/totalMass> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .

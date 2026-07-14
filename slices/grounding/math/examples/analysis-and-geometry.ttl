@@ -135,3 +135,53 @@ ex:causalComplement a math:Complement ;
     math:complementSemantics math:setTheoreticComplement .
 
 ex:lightcone a math:Set .
+
+# --- A conformal compactification of a radial half-line --------------------- #
+# The unbounded radial half-line r ∈ [0, ∞) conformally compactified to the
+# bounded coordinate interval ρ ∈ [0, 1] by the angle-preserving map ρ = r/(1+r),
+# whose conformal factor Ω = 1/(1+r) rescales the metric so the infinite metric
+# distance becomes finite. A single boundary point at ρ = 1 is adjoined — the
+# ideal point r = +∞ the half-line approaches but never reaches. All four roles
+# (original space, compactifying map, compactified space, boundary at infinity)
+# plus the conformal factor are named, so this conforms to the derived
+# math:CompactificationShape. Pure math: the geometry a Lorentzian-radial case
+# reuses downstream, authored here neutrally.
+ex:radialCompactification a math:ConformalCompactification ;
+    rdfs:label "Conformal compactification of the radial half-line [0, ∞)"@x-gmeow-english ;
+    math:originalSpace ex:radialHalfLine ;
+    math:compactifyingMap ex:radialCompactifyingMap ;
+    math:compactifiedSpace ex:compactifiedRadialInterval ;
+    math:boundaryAtInfinity ex:radialIdealBoundary ;
+    math:conformalFactor ex:radialConformalFactor .
+
+# The original unbounded space: the radial half-line as a topological space.
+ex:radialHalfLine a math:TopologicalSpace ;
+    rdfs:label "The unbounded radial half-line r ∈ [0, ∞)"@x-gmeow-english .
+
+# The compactifying map ρ = r/(1+r): a coordinate map from the half-line onto the
+# bounded interval, so it declares its domain and codomain.
+ex:radialCompactifyingMap a math:CoordinateMap ;
+    rdfs:label "The compactifying map ρ = r/(1+r)"@x-gmeow-english ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:compactifiedRadialInterval .
+
+# The resulting bounded space: the closed unit interval [0, 1], its upper endpoint
+# closed because the boundary point at infinity is adjoined as a member.
+ex:compactifiedRadialInterval a math:Interval ;
+    rdfs:label "The compactified radial interval [0, 1]"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:closedEndpoint .
+
+# The boundary at infinity: the single ideal point ρ = 1 (r = +∞).
+ex:radialIdealBoundary a math:BoundaryAtInfinity ;
+    rdfs:label "The ideal point at infinity ρ = 1 (r = +∞)"@x-gmeow-english .
+
+# The conformal factor Ω = 1/(1+r): a positive rescaling function on the half-line.
+ex:radialConformalFactor a math:Function ;
+    rdfs:label "The conformal factor Ω = 1/(1+r)"@x-gmeow-english ;
+    math:domain ex:radialHalfLine ;
+    math:codomain ex:positiveReals .
+
+ex:positiveReals a math:Set .
