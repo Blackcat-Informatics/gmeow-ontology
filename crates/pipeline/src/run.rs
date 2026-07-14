@@ -355,24 +355,6 @@ pub fn full_spec() -> PipelineSpec {
         "research-objects",
         &["stage-mappings"],
     ));
-    // json-schema + pydantic read the shape union, which folds in the
-    // stage-compile-logic-derived generated/shapes/validation-shapes.ttl (a pipeline
-    // PRODUCT, not an authored source). They consume stage-compile-logic so the
-    // scheduler orders them AFTER the producer (the on-disk shape union is fresh) and
-    // keys their cache on its output digest — the validation-shapes.ttl freshness
-    // rule. Without the edge they ran as independent leaves whose cache key read a
-    // stale pre-pass validation-shapes.ttl (the stale-disk-fold class). Both match
-    // the registry consumes() and the module.ttl dataflowConsumes.
-    stages.push(st(
-        "stage-export-json-schema",
-        "json_schema",
-        &["stage-compile-logic"],
-    ));
-    stages.push(st(
-        "stage-export-pydantic",
-        "pydantic",
-        &["stage-compile-logic"],
-    ));
 
     // ── source-reading validation leaf: enforces the typed result-shape
     //    composition contract across competency files (emits no bundle artifact). ──
