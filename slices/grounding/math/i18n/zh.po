@@ -257,8 +257,8 @@ msgid "extended real line (ℝ̄)"
 msgstr "扩展实数轴（ℝ̄）"
 
 msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|skos:definition"
-msgid "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: the real number system with its two poles adjoined. It reuses the number-system machinery rather than a parallel one — it relates the reals as a subsystem (math:realNumbers math:subsystemOf math:ExtendedRealLine) and adjoins the two extended-real points math:PositiveInfinity and math:NegativeInfinity as its members (each math:inNumberSystem math:ExtendedRealLine). As a math:NumberSystem it IS the set of its points, so it is the codomain a signed divergent field — an extended-real-valued function whose value may run off to either pole — ranges over. Distinct from ℂ: ℝ̄ compactifies the ordered line with two signed ends, it does not close it algebraically; a value in a signed-extended-real slot is a finite real, +∞, or −∞ (math:MalformedExtendedReal otherwise)."
-msgstr "带符号扩展实数轴 ℝ̄ = ℝ ∪ {−∞, +∞}：将其两个极点邻接到实数系统而成。它复用既有的数系机制而非另建平行机制——它将实数关联为一个子系统（math:realNumbers math:subsystemOf math:ExtendedRealLine），并将两个扩展实数点 math:PositiveInfinity 与 math:NegativeInfinity 作为其成员邻接（各自 math:inNumberSystem math:ExtendedRealLine）。作为一个 math:NumberSystem，它就是其各点构成的集合，因此它是带符号发散场——其取值可能奔向任一极点的扩展实值函数——所遍历的陪域。与 ℂ 不同：ℝ̄ 以两个带符号的端点对有序直线作紧化，而非在代数上将其闭合；带符号扩展实数槽中的值是有限实数、+∞ 或 −∞（否则即为 math:MalformedExtendedReal）。"
+msgid "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: the real number system with its two poles adjoined. A math:NumberSystem individual, sibling to math:realNumbers and math:complexNumbers, not a class — it reuses the number-system machinery rather than a parallel one, relating the reals as a subsystem (math:realNumbers math:subsystemOf math:ExtendedRealLine) and adjoining the two extended-real points math:PositiveInfinity and math:NegativeInfinity as its members (each math:inNumberSystem math:ExtendedRealLine). Because math:NumberSystem is a subclass of math:Set, the system IS the set of its points, so it can be the codomain a signed divergent field — an extended-real-valued function whose value may run off to either pole — ranges over. Distinct from ℂ: ℝ̄ compactifies the ordered line with two signed ends, it does not close it algebraically; a value in a signed-extended-real slot is a finite real, +∞, or −∞ (math:MalformedExtendedReal otherwise)."
+msgstr "带符号扩展实数轴 ℝ̄ = ℝ ∪ {−∞, +∞}：将其两个极点邻接到实数系统而成。它是一个 math:NumberSystem 个体，与 math:realNumbers 和 math:complexNumbers 同辈，而非一个类——它复用既有的数系机制而非另建平行机制，将实数关联为一个子系统（math:realNumbers math:subsystemOf math:ExtendedRealLine），并将两个扩展实数点 math:PositiveInfinity 与 math:NegativeInfinity 作为其成员邻接（各自 math:inNumberSystem math:ExtendedRealLine）。由于 math:NumberSystem 是 math:Set 的子类，该系统就是其各点构成的集合，因此它可以作为带符号发散场——其取值可能奔向任一极点的扩展实值函数——所遍历的陪域。与 ℂ 不同：ℝ̄ 以两个带符号的端点对有序直线作紧化，而非在代数上将其闭合；带符号扩展实数槽中的值是有限实数、+∞ 或 −∞（否则即为 math:MalformedExtendedReal）。"
 
 msgctxt "https://blackcatinformatics.ca/math/FrequentistResult|rdfs:label"
 msgid "Frequentist Result"
@@ -630,7 +630,7 @@ msgstr "将一个 math:PValue 关联到其多重性调整所依据的比较族�
 
 msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|rdfs:label"
 msgid "−∞"
-msgstr "−∞"
+msgstr "负无穷大（−∞）"
 
 msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|skos:definition"
 msgid "Negative infinity as an extended-real value: the negative pole of the signed extended real line math:ExtendedRealLine, the dual of math:PositiveInfinity. It is the extended-real point that lets an unbounded-below quantity — a limit diverging downward, the infimum of a set with no lower bound — be declared without a finite literal. It is NOT a finite number (it lives nowhere in ℝ); NOT an error, exception, or missing value; and NOT the undefined/indeterminate result that math:PositiveInfinity + math:NegativeInfinity or 0 · ∞ would give — an extended real is a definite point on ℝ̄, never a NaN. A signed-extended-real slot (math:extendedRealValue) holds either a finite number, math:PositiveInfinity, or this individual."
