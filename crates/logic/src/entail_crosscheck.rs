@@ -17,18 +17,14 @@
 //! independent anti-regression oracle confirming native derives every standard
 //! OWL-RL subsumption (`native ⊇ oracle`). It does NOT run a consistency
 //! comparison: purrdf's OWL-RL `materialize` is a positive-only forward closure
-//! that cannot witness an inconsistency, and the OWL-Direct **tableau** that can
-//! ([`crate::entail_oracle::consistency`]) is — though sound and
-//! conformance-tested — NP-hard, so it cannot be swept on-gate per-world across
-//! the whole bundle (the same inherent OWL-Direct cost that kept the retired
-//! external consistency oracle off-gate, independent of implementation). Native's
-//! own consistency verdict remains gated on-gate by `reason-verify`
-//! (`ReasoningResult::is_consistent`); the independent tableau consistency oracle
-//! is now wired into the OFF-GATE `gmeow-dev reason-consistency-crosscheck` /
-//! `make maint-reason-consistency-crosscheck` lane (see
-//! [`crate::consistency_crosscheck`]) — a per-world structured-verdict differential
-//! acting as a native-soundness anti-regression tripwire, never an on-gate
-//! whole-bundle sweep.
+//! that cannot witness an inconsistency, and the OWL-Direct **tableau** that could
+//! is NP-hard, so it cannot be swept on-gate per-world across the whole bundle.
+//! Native's own consistency verdict remains gated on-gate by `reason-verify`
+//! (`ReasoningResult::is_consistent`). An independent OWL-Direct tableau
+//! consistency oracle was evaluated as a separate off-gate arm and RETIRED: run
+//! against the committed bundle it proved empirically intractable at bundle scale
+//! — per-world OWL-Direct consistency does not complete — so no independent
+//! consistency differential is carried here or elsewhere.
 //!
 //! # World alignment (the load-bearing modelling choice)
 //!
@@ -97,13 +93,10 @@ const RDFS_RESOURCE: &str = "http://www.w3.org/2000/01/rdf-schema#Resource";
 
 /// Enumerate the distinct named-graph worlds present in `bundle`.
 ///
-/// The world-partitioned chase and the entail oracle both reason per world, so
-/// both cross-check arms (subsumption here and the off-gate consistency
-/// differential in [`crate::consistency_crosscheck`]) start from this same
-/// enumeration: load the bundle into a [`crate::store::WorldStore`] and read its
-/// named graphs. Default-graph triples are dropped from the chase, so they never
-/// appear as worlds. This is the one piece the two arms share — never the gate
-/// itself.
+/// The world-partitioned chase and the entail oracle both reason per world, so the
+/// subsumption cross-check starts from this enumeration: load the bundle into a
+/// [`crate::store::WorldStore`] and read its named graphs. Default-graph triples
+/// are dropped from the chase, so they never appear as worlds.
 ///
 /// # Errors
 ///
@@ -284,17 +277,15 @@ pub fn run_entail_crosscheck(
     let oracle_subs = oracle_subsumptions(bundle, &worlds);
     let subsumption_rows = compare_subsumption(&native_subs, &oracle_subs);
 
-    // No consistency comparison runs on this fast gate. An INDEPENDENT consistency
-    // oracle requires the OWL-Direct tableau ([`entail_oracle::consistency`]):
-    // purrdf's OWL-RL `materialize` is a positive-only closure that cannot witness an
-    // inconsistency, and the tableau — sound and conformance-tested but NP-hard —
-    // cannot be swept on-gate per-world across the whole bundle (the same inherent
-    // OWL-Direct cost that kept the retired external consistency oracle off-gate,
-    // independent of implementation). Native's own consistency verdict (`reason_all`'s
-    // `is_consistent`) remains gated on-gate by `reason-verify`; the independent
-    // tableau oracle is wired into the OFF-GATE `gmeow-dev reason-consistency-crosscheck`
-    // / `make maint-reason-consistency-crosscheck` lane (see
-    // [`crate::consistency_crosscheck`]), not this on-gate sweep.
+    // No consistency comparison runs here. An INDEPENDENT consistency oracle would
+    // require the OWL-Direct tableau: purrdf's OWL-RL `materialize` is a
+    // positive-only closure that cannot witness an inconsistency, and the tableau —
+    // sound and conformance-tested but NP-hard — cannot be swept per-world across
+    // the whole bundle. Native's own consistency verdict (`reason_all`'s
+    // `is_consistent`) remains gated on-gate by `reason-verify`. An independent
+    // OWL-Direct tableau consistency oracle was evaluated and RETIRED as empirically
+    // intractable at bundle scale (per-world OWL-Direct consistency does not
+    // complete), so no independent consistency differential runs.
     let gap_rows = dl_gap_rows(&[]);
 
     let ledger = build_ledger(subsumption_rows, Vec::new(), gap_rows, Vec::new());
@@ -487,9 +478,8 @@ mod tests {
         // (a sound POSITIVE forward closure with no clash detection), so it neither
         // derives :X ⊑ owl:Nothing nor runs a consistency comparison: the asserted
         // :X⊑:Y and :X⊑:Z survive as ordinary Agree subsumptions and the verdict
-        // passes. (The tableau-depth class-unsatisfiability check lives in — and is
-        // exercised by —
-        // `entail_oracle::consistency_detects_disjointness_class_unsatisfiability`.)
+        // passes. (Tableau-depth class-unsatisfiability is off this OWL-RL
+        // subsumption gate entirely; no independent consistency oracle is carried.)
         let ds = world_dataset(&[
             ("X", RDF_TYPE, OWL_CLASS),
             ("Y", RDF_TYPE, OWL_CLASS),
