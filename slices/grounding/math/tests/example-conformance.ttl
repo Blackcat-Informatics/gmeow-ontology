@@ -119,6 +119,27 @@ ex:ecFunctionMissingCodomain a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:codomain on a math:Function (sh:minCount 1 on math:FunctionFramingShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedFunction)." .
 
+# === Rule 7b: a closed-form function names its body and its formal argument == #
+
+ex:ecClosedFormFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/closed-form-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:ClosedFormFunction f(x) = 2·x + 1 declaring its math:domain and math:codomain (ℝ → ℝ), its math:formalArgument x, and its math:definingExpression body AST satisfies the closed-form gate (the exact-one math:definingExpression and math:formalArgument restrictions) and the inherited function-framing gate, and validates with no findings." .
+
+ex:ecClosedFormMissingBody a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/closed-form-missing-defining-expression.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:definingExpression on a math:ClosedFormFunction (sh:minCount 1, derived from the exact-one math:definingExpression restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnboundClosedForm). It names its domain, codomain, and formal argument, so the missing body is the single isolated violation." .
+
+# === Rule 7c: an arithmetic operator carries its full signature ============= #
+
+ex:ecOperatorMissingCodomain a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/operator-missing-codomain.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:operatorCodomain on a math:ArithmeticOperation individual (sh:minCount 1, derived from the exact-one math:operatorCodomain restriction on the class), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedOperator). It names its math:operatorDomain, so the missing codomain is the single isolated violation." .
+
 # === Rule 8: an algebraic structure declares carrier, operation, and axioms = #
 
 ex:ecStructureComplete a gmeow:ExampleConformance ;

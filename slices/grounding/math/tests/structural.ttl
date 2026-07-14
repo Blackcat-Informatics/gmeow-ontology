@@ -70,6 +70,18 @@ ASK {
 }""" ;
     gmeow:saRationale "Each of the eight bedrock hard-rule failures MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
 
+# --- 2a2. The closed-form-algebra failure classes are typed (MUST) ---
+ex:saClosedFormFailuresTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:UnframedOperator  rdfs:subClassOf math:MathConformanceFailure .
+    math:UnboundClosedForm rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "The two closed-form-algebra failures — math:UnframedOperator (an arithmetic operator missing its signature) and math:UnboundClosedForm (a closed form missing its body or formal argument) — MUST each be a subclass of math:MathConformanceFailure, so each violation is a typed, queryable object like every other math: hard-rule failure." .
+
 # --- 2b. The flagship-manifest failure class subclasses math:MathConformanceFailure (MUST) ---
 ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
@@ -133,7 +145,7 @@ ASK {
 }""" ;
     gmeow:saRationale "The endpoint-inclusion vocabulary MUST be the two open owl:NamedIndividuals math:closedEndpoint (included, square bracket) and math:openEndpoint (excluded, round bracket), each typed math:EndpointInclusion — an open value vocabulary mirroring math:ConvergenceMode and math:LimitOutcome, never sealed by an owl:oneOf enumeration (the FILTER NOT EXISTS forbids it). A missing inclusion individual, or an owl:oneOf that closes the class, fails this assertion." .
 
-# --- 3. The seven arithmetic operators exist as math:ArithmeticOperation (MUST) ---
+# --- 3. The eight arithmetic operators exist as math:ArithmeticOperation (MUST) ---
 ex:saArithmeticOperators a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
@@ -146,8 +158,61 @@ ASK {
     math:Exponentiation a math:ArithmeticOperation .
     math:Root           a math:ArithmeticOperation .
     math:Logarithm      a math:ArithmeticOperation .
+    math:Negation       a math:ArithmeticOperation .
 }""" ;
-    gmeow:saRationale "Addition, multiplication, exponentiation, and their inverses MUST exist as math:ArithmeticOperation individuals." .
+    gmeow:saRationale "Addition, multiplication, exponentiation, and their inverses, together with the unary additive-inverse operator math:Negation, MUST exist as math:ArithmeticOperation individuals." .
+
+# --- 3b. Every math:ArithmeticOperation individual carries its signature (MUST) ---
+ex:saOperatorSignatures a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    ?op a math:ArithmeticOperation .
+    FILTER( NOT EXISTS { ?op math:operatorDomain ?d ; math:operatorCodomain ?c } )
+}""" ;
+    gmeow:saRationale "No math:ArithmeticOperation individual may lack its signature: every one MUST carry both a math:operatorDomain and a math:operatorCodomain (each a math:NumberSystem), so an operator that fills a math:operator slot always says what number system it computes over. Because the required-exactly-one restriction targets the math:ArithmeticOperation CLASS, ALL eight operators are framed — an operator missing either half of its signature is math:UnframedOperator, and this MUST-NOT cell would find it." .
+
+# --- 3c. math:ClosedFormFunction is a math:Function (MUST) ---
+ex:saClosedFormIsFunction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ClosedFormFunction rdfs:subClassOf math:Function .
+}""" ;
+    gmeow:saRationale "A math:ClosedFormFunction MUST be a subclass of math:Function, so it inherits the domain/codomain framing obligation (an unframed one is math:UnframedFunction) and every consumer that reasons over functions sees a closed form as a function." .
+
+# --- 3d. math:ClosedFormFunction requires a body and a formal argument (MUST) ---
+ex:saClosedFormRequiredRoles a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:ClosedFormFunction rdfs:subClassOf [ owl:onProperty math:definingExpression ; owl:minQualifiedCardinality 1 ] .
+    math:ClosedFormFunction rdfs:subClassOf [ owl:onProperty math:formalArgument ; owl:minQualifiedCardinality 1 ] .
+}""" ;
+    gmeow:saRationale "A math:ClosedFormFunction MUST carry a required (min-qualified-one) owl:Restriction on EACH of math:definingExpression and math:formalArgument, so a closed form always says what it computes (its body AST) and over which variable it abstracts (its formal argument); a closed form dropping either is math:UnboundClosedForm. Its math:functionParameter is deliberately unconstrained (0..n)." .
+
+# --- 3e. Every variable leaf of a closed form resolves to its argument or a parameter (MUST) ---
+ex:saClosedFormLeafLinkage a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModuleAndExamples ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+ASK {
+    ?cf a math:ClosedFormFunction .
+    FILTER NOT EXISTS {
+        ?cf math:definingExpression/(math:argumentSlot/math:slotExpression)* ?leaf .
+        ?leaf a math:VariableExpression ;
+              math:variableOccurrence/math:declaredVariable ?decl .
+        FILTER NOT EXISTS { ?cf math:formalArgument ?decl }
+        FILTER NOT EXISTS { ?cf math:functionParameter ?decl }
+    }
+}""" ;
+    gmeow:saRationale "Over the worked example, every math:VariableExpression leaf reachable from a math:ClosedFormFunction's math:definingExpression (following math:argumentSlot/math:slotExpression to arbitrary AST depth) MUST resolve, via math:variableOccurrence/math:declaredVariable, to a declaration that is EITHER the function's math:formalArgument OR one of its math:functionParameters — no leaf refers to a variable the closed form does not abstract over or tune by. This is authored as a structural cell over the authored fixture because the general runtime gate is a transitive AST traversal that exceeds the guarded fragment (the runtime residue is recorded as structural-only)." .
 
 # --- 4. No math: property asserts an EL-forbidden OWL characteristic (MUST-NOT) ---
 ex:saNoForbiddenCharacteristics a gmeow:StructuralAssertion ;

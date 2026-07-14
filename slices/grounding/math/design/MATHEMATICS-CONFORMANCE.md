@@ -57,6 +57,8 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A truth-valued expression lowered to `logic:` declares denotation kind and lowering preservation | SHACL Core | `math:UndeclaredLogicLowering` |
 | A theorem/lemma/… role is asserted under a theory context (not as unconditional truth) | SHACL-SPARQL | `math:UnscopedStatementRole` |
 | A `FormalVerificationResult` is grounded as an observation with a vantage | SHACL Core | `math:UngroundedVerificationResult` |
+| Every `math:ArithmeticOperation` carries its signature — a `math:operatorDomain` and a `math:operatorCodomain`, each a `math:NumberSystem` (the required-exactly-one restriction targets the class, so all eight operators are framed) | SHACL Core (OWL-axiom tier) | `math:UnframedOperator` |
+| A `math:ClosedFormFunction` names both its body (`math:definingExpression`) and its formal argument (`math:formalArgument`); its `math:functionParameter`s are unconstrained (0..n), and its `math:domain`/`math:codomain` come from the inherited `math:Function` gate | SHACL Core (OWL-axiom tier) | `math:UnboundClosedForm` |
 
 ### Numbers-and-sets rules
 

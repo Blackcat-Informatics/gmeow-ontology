@@ -168,6 +168,54 @@ occurrences (`math:bindsOccurrence`), not glyphs, so `∑ᵢ (xᵢ + ∑ᵢ yᵢ
 shadows the outer — has two distinct declarations and each occurrence resolves to exactly one,
 making α-equivalence a graph isomorphism over declarations rather than a string comparison.
 
+### Number literals, operator signatures, and closed-form functions
+
+The AST leaves and operators carry enough structure to state a *parameterized closed-form
+function* — a curve such as `T(x) = A·x⁻ᵖ − B·(1−x)⁻q + C` — natively and exactly, as a general
+facility supporting **any** curve rather than a hardwired one.
+
+A **numeric-literal leaf** is a `math:NumberLiteral`: the expression node that denotes a specific
+`math:Number` — the `1` in `(1 − x)`, the constant `2` in `2·x`, an exponent. It carries its value
+through `math:literalValue`, which points at a well-formed `math:Number` situated in a number system
+(the grounding is [`MATHEMATICS-NUMBERS-AND-SETS.md`](MATHEMATICS-NUMBERS-AND-SETS.md)). A
+`math:NumberLiteral` is *not* a bare RDF literal — because it is a `math:MathematicalExpression`, it
+can fill a `math:slotExpression`, which a raw literal cannot — and it is *not* a
+`math:MathematicalConstant` such as π: a constant is a named exact number object, while a
+`NumberLiteral` is a syntactic leaf of a formula that *names* the number it denotes.
+
+The arithmetic operators gain a **signature over number systems**. `math:Negation` is minted as the
+unary additive-inverse operator (`−x`), so `x⁻ᵖ` is `Exponentiation(x, Negation(p))` — a unary
+minus, distinct from the binary `math:Subtraction`. Every `math:ArithmeticOperation` now names the
+number system its operands are drawn from through `math:operatorDomain` and the system its result
+lies in through `math:operatorCodomain`, each a `math:NumberSystem`. An operator is not a bare glyph:
+addition and its field siblings are framed `ℝ → ℝ`, an even root or a real logarithm lands in `ℂ`
+(`ℝ → ℂ`, stated honestly rather than pretending the result stays real), and `math:Negation` ranges
+over the signed extended real line `ℝ̄ → ℝ̄` so `−(+∞) = −∞` is data, not an undefined edge. The
+signature is **required on every operator** — an operator missing either half is a
+`math:UnframedOperator` — so the operator filling a `math:operator` slot always says what system it
+computes over.
+
+A **closed-form function** is a `math:ClosedFormFunction`, a subclass of `math:Function` (so it
+inherits the obligation to declare its `math:domain` and `math:codomain`, an unframed one being
+`math:UnframedFunction`). It gives a curve by an explicit `math:definingExpression` — the body AST —
+in one formal argument, and it separates that argument from its fitted parameters: the abstraction
+variable `x` is named through `math:formalArgument` and each tunable parameter (`A`, `B`, `C`, `p`,
+`q`) through `math:functionParameter`. So in `T(x)` the variable the function is *of* and the
+parameters it is *tuned by* are distinct declarations, never conflated. A closed form missing its
+body or its formal argument is `math:UnboundClosedForm`; its `math:functionParameter`s are `0..n`
+and unconstrained. Both the argument and the parameters enter the body as `math:VariableExpression`
+leaves resolving, through `math:variableOccurrence`/`math:declaredVariable`, to the function's
+`math:formalArgument` or one of its `math:functionParameter`s — the leaf-to-declaration linkage that
+keeps the body honest. Because that linkage is a transitive traversal over arbitrary AST depth, it
+exceeds the guarded fragment of the declarative gate and is checked structurally over the authored
+worked example rather than by a general runtime constraint.
+
+This is the general algebra: `math:Addition`, `math:Multiplication`, `math:Negation`,
+`math:Exponentiation` and the rest compose over `math:NumberLiteral` leaves and
+`math:VariableExpression` leaves into a `math:ClosedFormFunction`'s `math:definingExpression`,
+stating any parameterized closed form exactly. A concrete curve such as `T(x)` is authored as an
+instance of this facility, not as a bespoke class.
+
 ### Denotation and lowering into `logic:`
 
 The expression AST is **not** a second logic. `logic:` already owns a typed, full first-order IR —
