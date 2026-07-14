@@ -18,7 +18,6 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-#[cfg(test)]
 use purrdf::RdfDatasetBuilder;
 #[cfg(test)]
 use purrdf::gts_compose::emit_gts;
@@ -2563,6 +2562,102 @@ fn parse_example(
         .map_err(|e| stage_err(&format!("example parse {logical_path}: {e}")))
 }
 
+/// Lift ONLY the chase-invented witness-derivation subgraph out of a `graph/diagnostics`
+/// projection and route each lifted quad into `into` (the reasoning graph). A Skolem null
+/// the reasoned closure already carries as an object can then be decomposed into its firing
+/// rule + existential ordinal + frontier binding. Content-addressed skolem IRIs are lifted
+/// 1:1 (never normalized), so a playground query can pin an exact null. Only the
+/// `gmeow:InventedWitness` typings and their minting head-quad reifiers cross over —
+/// `graph/diagnostics` findings stay out. `owned_quads()` iterates deterministically, so the
+/// lifted set is byte-stable; an empty diagnostics graph / empty witness set adds nothing.
+pub(crate) fn lift_witness_subgraph(
+    diag: &purrdf::RdfDataset,
+    into: &RdfTerm,
+    builder: &mut RdfDatasetBuilder,
+) {
+    use std::collections::BTreeSet;
+    const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    const RDF_OBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
+    let invented_witness = format!("{GMEOW_NS}InventedWitness");
+    // (1) The witness IRI set W: every subject typed `gmeow:InventedWitness`.
+    let mut witnesses: BTreeSet<String> = BTreeSet::new();
+    for q in diag.owned_quads() {
+        if q.predicate == RDF_TYPE
+            && let RdfTerm::Iri(s) = &q.subject
+            && let RdfTerm::Iri(o) = &q.object
+            && *o == invented_witness
+        {
+            witnesses.insert(s.clone());
+        }
+    }
+    if witnesses.is_empty() {
+        return;
+    }
+    // (3) The reifier IRI set R: every subject `r` with `(r, rdf:object, w)`, w ∈ W.
+    let mut reifiers: BTreeSet<String> = BTreeSet::new();
+    for q in diag.owned_quads() {
+        if q.predicate == RDF_OBJECT
+            && let RdfTerm::Iri(r) = &q.subject
+            && let RdfTerm::Iri(o) = &q.object
+            && witnesses.contains(o)
+        {
+            reifiers.insert(r.clone());
+        }
+    }
+    // (2) + (4) Every quad whose subject ∈ W ∪ R, routed into `into`.
+    for q in diag.owned_quads() {
+        if let RdfTerm::Iri(s) = &q.subject
+            && (witnesses.contains(s) || reifiers.contains(s))
+        {
+            let mut routed = q.clone();
+            routed.graph_name = Some(into.clone());
+            builder.push_owned_quad(&routed);
+        }
+    }
+}
+
+/// Build the offline SPARQL-playground TriG asset from a committed GTS bundle's OWN named
+/// graphs — the production surface `gmeow-dev export-docs` ships. It projects the bundle's
+/// `graph/documentation` (routed back into the documentation graph), its reasoned
+/// `graph/reasoning` closure (routed into the reasoning graph), and the chase-invented-null
+/// witness subgraph lifted out of `graph/diagnostics` into the reasoning graph (findings stay
+/// out). Deterministic; an empty diagnostics/witness set adds nothing.
+pub fn playground_trig_from_bundle(
+    bundle: &purrdf::RdfDataset,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let mut pg = RdfDatasetBuilder::new();
+    // The documentation graph, routed back into its named graph.
+    let docs_iri = RdfTerm::Iri(GRAPH_DOCUMENTATION.to_owned());
+    for q in bundle
+        .project_named_graph(GRAPH_DOCUMENTATION)
+        .owned_quads()
+    {
+        let mut routed = q.clone();
+        routed.graph_name = Some(docs_iri.clone());
+        pg.push_owned_quad(&routed);
+    }
+    // The reasoned closure, routed into the reasoning graph.
+    let reasoning_iri = RdfTerm::Iri(gmeow_logic::result_rdf::GRAPH_REASONING.to_owned());
+    for q in bundle
+        .project_named_graph(gmeow_logic::result_rdf::GRAPH_REASONING)
+        .owned_quads()
+    {
+        let mut routed = q.clone();
+        routed.graph_name = Some(reasoning_iri.clone());
+        pg.push_owned_quad(&routed);
+    }
+    // The chase-invented witness-derivation subgraph, lifted from `graph/diagnostics` into
+    // the reasoning graph so the "explain a witness" affordance can decompose an exact null.
+    let diag_graph = bundle.project_named_graph(GRAPH_DIAGNOSTICS);
+    lift_witness_subgraph(&diag_graph, &reasoning_iri, &mut pg);
+
+    let pg_ds = pg
+        .freeze()
+        .map_err(|e| stage_err(&format!("freeze playground dataset: {e}")))?;
+    serialize_dataset(&pg_ds, "application/trig", SerializeGraph::Dataset)
+        .map_err(|e| stage_err(&format!("serialize playground TriG: {e}")))
+}
+
 /// Serialize `documentation graph ∪ reasoned closure` to TriG — the self-contained
 /// asset the offline SPARQL playground queries and the export `DESCRIBE` reads.
 #[cfg(test)]
@@ -2586,6 +2681,14 @@ fn build_playground_trig(
         routed.graph_name = Some(reasoning_iri.clone());
         pg.push_owned_quad(&routed);
     }
+    // The chase-invented witness-derivation subgraph, lifted out of `graph/diagnostics`
+    // and routed into the reasoning graph — so a Skolem null the closure already carries
+    // as an object can be decomposed into its firing rule + existential ordinal + frontier
+    // binding. Content-addressed skolem IRIs are lifted 1:1 (never normalized), so a
+    // playground query can pin an exact null. Only the `gmeow:InventedWitness` typings and
+    // their minting head-quad reifiers are lifted; findings stay out of the playground.
+    let diag_graph = carrier.project_named_graph(GRAPH_DIAGNOSTICS);
+    lift_witness_subgraph(&diag_graph, &reasoning_iri, &mut pg);
     let pg_ds = pg
         .freeze()
         .map_err(|e| stage_err(&format!("freeze playground dataset: {e}")))?;
@@ -6135,6 +6238,290 @@ mod native_assembly_tests {
             text.as_bytes(),
             again.as_slice(),
             "the native authored assembly must be byte-deterministic"
+        );
+    }
+}
+
+/// The playground lift of the chase-invented witness-derivation subgraph
+/// ([`build_playground_trig`]): the `gmeow:InventedWitness` typings + their minting
+/// reifiers must cross from `graph/diagnostics` into `graph/reasoning` with their
+/// content-addressed Skolem IRIs preserved 1:1 (never collapsed), while `graph/diagnostics`
+/// findings stay OUT of the playground.
+#[cfg(test)]
+mod playground_witness_lift {
+    use super::*;
+
+    const GRAPH_REASONING: &str = gmeow_logic::result_rdf::GRAPH_REASONING;
+    const SKOLEM_A: &str = "https://blackcatinformatics.ca/gmeow/skolem/aaaaaa";
+    const SKOLEM_B: &str = "https://blackcatinformatics.ca/gmeow/skolem/bbbbbb";
+
+    // A carrier carrying (in `graph/diagnostics`) two distinct invented nulls, each with
+    // its existential ordinal + minting head-quad reifier, plus a finding that must NOT be
+    // lifted into the playground.
+    const CARRIER_TRIG: &str = "\
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/w/> .
+@prefix skolem: <https://blackcatinformatics.ca/gmeow/skolem/> .
+GRAPH <https://blackcatinformatics.ca/gmeow/graph/diagnostics> {
+  ex:r1 rdf:subject ex:x1 ; rdf:predicate ex:p ; rdf:object skolem:aaaaaa ; gmeow:viaRule ex:rule1 .
+  skolem:aaaaaa a gmeow:InventedWitness ; gmeow:existentialOrdinal \"0\"^^xsd:nonNegativeInteger .
+  ex:r2 rdf:subject ex:x2 ; rdf:predicate ex:p ; rdf:object skolem:bbbbbb ; gmeow:viaRule ex:rule1 .
+  skolem:bbbbbb a gmeow:InventedWitness ; gmeow:existentialOrdinal \"1\"^^xsd:nonNegativeInteger .
+  ex:finding1 a gmeow:Finding ; gmeow:findingCode \"X001\" .
+}
+";
+    // A trivial closure that references the first null as an object (the shape the reason
+    // stage commits): the witness must land in the SAME graph as the closure that uses it.
+    const CLOSURE_TTL: &str = "\
+@prefix ex: <https://example.org/w/> .
+@prefix skolem: <https://blackcatinformatics.ca/gmeow/skolem/> .
+ex:x1 ex:p skolem:aaaaaa .
+";
+
+    #[test]
+    fn witness_subgraph_survives_into_reasoning_graph() {
+        let carrier =
+            parse_dataset(CARRIER_TRIG.as_bytes(), "application/trig", None).expect("carrier");
+        let closure = parse_dataset(CLOSURE_TTL.as_bytes(), "text/turtle", None).expect("closure");
+
+        let trig = build_playground_trig(&carrier, &closure).expect("playground");
+        let pg = parse_dataset(&trig, "application/trig", None).expect("parse playground");
+        let reasoning = pg.project_named_graph(GRAPH_REASONING);
+
+        // Collect the reasoning-graph triples as `(subject_iri, predicate, object)` — the
+        // subject IRI is compared BYTE-IDENTICAL, so a collapse to `<skolem>` would fail.
+        let mut triples: Vec<(String, String, RdfTerm)> = Vec::new();
+        for q in reasoning.owned_quads() {
+            if let RdfTerm::Iri(s) = &q.subject {
+                triples.push((s.clone(), q.predicate.clone(), q.object.clone()));
+            }
+        }
+        let has = |s: &str, p: &str, o_iri: &str| {
+            triples.iter().any(|(qs, qp, qo)| {
+                qs == s && qp == p && matches!(qo, RdfTerm::Iri(i) if i == o_iri)
+            })
+        };
+        let has_lit = |s: &str, p: &str| triples.iter().any(|(qs, qp, _)| qs == s && qp == p);
+
+        const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        const VIA_RULE: &str = "https://blackcatinformatics.ca/gmeow/viaRule";
+        const EX_ORD: &str = "https://blackcatinformatics.ca/gmeow/existentialOrdinal";
+        const INVENTED: &str = "https://blackcatinformatics.ca/gmeow/InventedWitness";
+
+        // Both distinct nulls survive, typed + ordinal-carrying, at their exact Skolem IRIs.
+        assert!(
+            has(SKOLEM_A, RDF_TYPE, INVENTED),
+            "aaaaaa typed InventedWitness"
+        );
+        assert!(
+            has(SKOLEM_B, RDF_TYPE, INVENTED),
+            "bbbbbb typed InventedWitness"
+        );
+        assert!(has_lit(SKOLEM_A, EX_ORD), "aaaaaa existentialOrdinal");
+        assert!(has_lit(SKOLEM_B, EX_ORD), "bbbbbb existentialOrdinal");
+        assert_ne!(
+            SKOLEM_A, SKOLEM_B,
+            "the two nulls are distinct (no collision)"
+        );
+
+        // Both reifiers survive with their firing rule (the frontier/predicate too).
+        assert!(
+            has(
+                "https://example.org/w/r1",
+                VIA_RULE,
+                "https://example.org/w/rule1"
+            ),
+            "reifier r1 viaRule survives"
+        );
+        assert!(
+            has(
+                "https://example.org/w/r2",
+                VIA_RULE,
+                "https://example.org/w/rule1"
+            ),
+            "reifier r2 viaRule survives"
+        );
+        assert!(
+            has(
+                "https://example.org/w/r1",
+                "http://www.w3.org/1999/02/22-rdf-syntax-ns#object",
+                SKOLEM_A
+            ),
+            "reifier r1 rdf:object is the exact Skolem null"
+        );
+
+        // The finding is NOT lifted — findings stay out of the playground.
+        assert!(
+            !triples
+                .iter()
+                .any(|(s, _, _)| s == "https://example.org/w/finding1"),
+            "graph/diagnostics findings must not leak into the playground"
+        );
+        assert!(
+            !has_lit("https://example.org/w/finding1", "any"),
+            "no finding subject present"
+        );
+
+        // Determinism: byte-stable across runs.
+        let again = build_playground_trig(&carrier, &closure).expect("playground again");
+        assert_eq!(
+            trig, again,
+            "playground witness lift must be byte-deterministic"
+        );
+    }
+}
+
+/// The PRODUCTION playground builder `playground_trig_from_bundle` — the surface
+/// `gmeow-dev export-docs` ships — must project the committed bundle's OWN named graphs:
+/// `graph/documentation` + `graph/reasoning` carried 1:1, the chase-invented-null witness
+/// subgraph lifted from `graph/diagnostics` into the reasoning graph, and NO finding leaking.
+#[cfg(test)]
+mod playground_from_bundle {
+    use super::*;
+
+    const GRAPH_REASONING: &str = gmeow_logic::result_rdf::GRAPH_REASONING;
+    const SKOLEM_A: &str = "https://blackcatinformatics.ca/gmeow/skolem/aaaaaa";
+
+    // A bundle-shaped dataset: a documentation-graph triple, a reasoning-graph closure triple,
+    // and a `graph/diagnostics` witness projection (an invented null + its minting reifier +
+    // a finding that must NOT be lifted). Named-graph-preserving TriG stands in for the folded
+    // GTS bundle `dataset_from_gts_graph` yields in production.
+    const BUNDLE_TRIG: &str = "\
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/w/> .
+@prefix skolem: <https://blackcatinformatics.ca/gmeow/skolem/> .
+GRAPH <https://blackcatinformatics.ca/gmeow/graph/documentation> {
+  ex:TermA a gmeow:Class ; rdfs:label \"Term A\" .
+}
+GRAPH <https://blackcatinformatics.ca/gmeow/graph/reasoning> {
+  ex:x1 ex:p skolem:aaaaaa .
+}
+GRAPH <https://blackcatinformatics.ca/gmeow/graph/diagnostics> {
+  ex:r1 rdf:subject ex:x1 ; rdf:predicate ex:p ; rdf:object skolem:aaaaaa ; gmeow:viaRule ex:rule1 .
+  skolem:aaaaaa a gmeow:InventedWitness ; gmeow:existentialOrdinal \"0\"^^xsd:nonNegativeInteger .
+  ex:finding1 a gmeow:Finding ; gmeow:findingCode \"X001\" .
+}
+";
+
+    #[test]
+    fn bundle_projection_carries_docs_reasoning_and_witness_only() {
+        let bundle = parse_dataset(BUNDLE_TRIG.as_bytes(), "application/trig", None)
+            .expect("parse synthetic bundle");
+        let trig = playground_trig_from_bundle(&bundle).expect("playground from bundle");
+        let pg = parse_dataset(&trig, "application/trig", None).expect("parse playground trig");
+
+        const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        const RDF_OBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
+        const VIA_RULE: &str = "https://blackcatinformatics.ca/gmeow/viaRule";
+        const EX_ORD: &str = "https://blackcatinformatics.ca/gmeow/existentialOrdinal";
+        const INVENTED: &str = "https://blackcatinformatics.ca/gmeow/InventedWitness";
+
+        // The documentation triple survives in the documentation graph.
+        let docs = pg.project_named_graph(GRAPH_DOCUMENTATION);
+        assert!(
+            docs.owned_quads().any(|q| matches!(&q.subject, RdfTerm::Iri(s) if s == "https://example.org/w/TermA")
+                && q.predicate == RDF_TYPE
+                && matches!(&q.object, RdfTerm::Iri(o) if o == "https://blackcatinformatics.ca/gmeow/Class")),
+            "documentation-graph triple must be carried 1:1"
+        );
+
+        // The reasoning graph carries BOTH the closure triple and the lifted witness subgraph.
+        let reasoning = pg.project_named_graph(GRAPH_REASONING);
+        let triples: Vec<(String, String, RdfTerm)> = reasoning
+            .owned_quads()
+            .filter_map(|q| match &q.subject {
+                RdfTerm::Iri(s) => Some((s.clone(), q.predicate.clone(), q.object.clone())),
+                _ => None,
+            })
+            .collect();
+        let has = |s: &str, p: &str, o_iri: &str| {
+            triples.iter().any(|(qs, qp, qo)| {
+                qs == s && qp == p && matches!(qo, RdfTerm::Iri(i) if i == o_iri)
+            })
+        };
+        let has_lit = |s: &str, p: &str| triples.iter().any(|(qs, qp, _)| qs == s && qp == p);
+
+        // Closure triple present.
+        assert!(
+            has(
+                "https://example.org/w/x1",
+                "https://example.org/w/p",
+                SKOLEM_A
+            ),
+            "reasoned closure triple must be carried into the reasoning graph"
+        );
+        // Witness survives 1:1, typed + ordinal-carrying, at its exact Skolem IRI.
+        assert!(
+            has(SKOLEM_A, RDF_TYPE, INVENTED),
+            "aaaaaa typed InventedWitness"
+        );
+        assert!(
+            has_lit(SKOLEM_A, EX_ORD),
+            "aaaaaa existentialOrdinal survives"
+        );
+        // The reifier survives with its firing rule and the exact null as its object.
+        assert!(
+            has(
+                "https://example.org/w/r1",
+                VIA_RULE,
+                "https://example.org/w/rule1"
+            ),
+            "reifier r1 viaRule survives"
+        );
+        assert!(
+            has("https://example.org/w/r1", RDF_OBJECT, SKOLEM_A),
+            "reifier r1 rdf:object is the exact Skolem null"
+        );
+        // NO finding leaks anywhere in the playground.
+        for g in [GRAPH_DOCUMENTATION, GRAPH_REASONING, GRAPH_DIAGNOSTICS] {
+            let quads = pg.project_named_graph(g);
+            assert!(
+                !quads.owned_quads().any(|q| matches!(&q.subject, RdfTerm::Iri(s) if s == "https://example.org/w/finding1")),
+                "graph/diagnostics findings must never leak into the playground (graph {g})"
+            );
+        }
+
+        // Determinism: byte-stable across runs.
+        let again = playground_trig_from_bundle(&bundle).expect("playground from bundle again");
+        assert_eq!(
+            trig, again,
+            "playground-from-bundle must be byte-deterministic"
+        );
+    }
+
+    #[test]
+    fn empty_diagnostics_lifts_no_witness() {
+        // A bundle with no `graph/diagnostics` witness projection adds nothing beyond the
+        // documentation + reasoning graphs — the empty witness set is a no-op, not an error.
+        const NO_DIAG: &str = "\
+@prefix ex: <https://example.org/w/> .
+GRAPH <https://blackcatinformatics.ca/gmeow/graph/documentation> {
+  ex:TermA ex:p ex:o .
+}
+GRAPH <https://blackcatinformatics.ca/gmeow/graph/reasoning> {
+  ex:x1 ex:p ex:y1 .
+}
+";
+        let bundle =
+            parse_dataset(NO_DIAG.as_bytes(), "application/trig", None).expect("parse bundle");
+        let trig = playground_trig_from_bundle(&bundle).expect("playground from bundle");
+        let pg = parse_dataset(&trig, "application/trig", None).expect("parse playground trig");
+        let reasoning = pg.project_named_graph(GRAPH_REASONING);
+        assert!(
+            !reasoning
+                .owned_quads()
+                .any(|q| matches!(&q.object, RdfTerm::Iri(o) if o.contains("InventedWitness"))),
+            "no witness may appear when diagnostics carries none"
+        );
+        assert_eq!(
+            reasoning.owned_quads().count(),
+            1,
+            "only the closure triple survives"
         );
     }
 }
