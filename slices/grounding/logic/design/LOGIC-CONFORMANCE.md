@@ -359,53 +359,6 @@ The ledger is the mechanism by which the two correctness axes are kept honest ov
 reasoners evolve and community consensus forms, the external correctness corpus grows, the ledger
 shrinks, and the conformance guarantee strengthens.
 
-### The off-gate OWL-Direct consistency differential
-
-Two native↔`purrdf-entail` cross-check arms feed the divergence ledger, and they sit on opposite
-tractability sides. The **subsumption** arm runs OWL-RL `materialize` (PTIME) on-gate under the
-*native ⊇ oracle* discipline. The **consistency** arm described here runs the independent OWL-Direct
-ALCOIQ tableau, which is NP-hard, and is a distinct verification capability rather than a restatement
-of native's own verdict.
-
-**Feasibility — per-world, never per-corpus.** A per-corpus check that merges every named graph into
-one tableau instance is infeasible and rejected on the merits, not as a scope cut: it is one enormous
-NP-hard OWL-Direct instance *and* it is semantically wrong for the world-scoped chase, because
-collapsing the worlds invents cross-world clashes neither engine derives in isolation — the exact
-artifact the subsumption arm's per-world design already avoids. The feasible design is the per-world
-isolated differential: both engines reason over the *same* single-world `project_named_graph`
-projection, faithful to the native chase, which itself treats each named graph in isolation. A
-per-world native verdict is not derivable from one whole-bundle native run — the native
-`gaps`/coverage surface does not decompose after the fact — so each world is re-reasoned natively.
-That is why this arm cannot reuse a single caller-side chase the way the subsumption arm reads its
-native side off one supplied closure.
-
-**Value vs native — a soundness tripwire, not a superset gate.** Native's structured DL verdict is
-the on-gate consistency authority; the OWL-Direct tableau is an *independent* decision procedure. The
-load-bearing fact is that native is, by the *incomplete-never-wrong* doctrine, a sound **subset** on
-coverage: it deliberately withholds out-of-fragment constructs (`owl:oneOf`, `owl:cardinality`,
-`owl:InverseFunctionalProperty`, `owl:disjointUnionOf`) rather than guess. So this is **not** a
-*native ⊇ oracle* gate like the subsumption arm. It is a native-**soundness** anti-regression
-tripwire: it fires on exactly one condition — native *decided* a world or class consistent while the
-sound oracle proves it inconsistent or empty (the sole failing case). A world native withheld is
-recorded as a non-failing **oracle-supplement** — informational coverage enrichment, not a defect —
-and native deciding inconsistent where the oracle's fragment is consistent is native's richer
-calculus, likewise non-failing. Comparing the *structured* verdicts (native's
-`consistent`/`unsatisfiable_classes` against the oracle's `(flag, unsat_classes)`), never a boolean
-fold, is what preserves this signal: a naive fold conflating native's cannot-decide with
-"inconsistent" would annihilate the oracle's value on precisely the inputs where it adds any. The
-consequence is that the correct, consistent bundle yields zero failing rows and the lane exits 0; it
-reddens only on a genuine native soundness regression.
-
-**Placement — off-gate, budgeted, grounded.** Because the OWL-Direct tableau is NP-hard and
-uninterruptible, this arm cannot ride the fast on-gate path; it runs off-gate as a `maint-` lane
-(`gmeow-dev reason-consistency-crosscheck` / `make maint-reason-consistency-crosscheck`), a sibling
-of the off-gate external-corpora lanes. A per-world time budget bounds the intractability: a world
-that exceeds it is recorded as a non-failing **oracle-undecided** row (loud and logged, never a
-silent skip), so NP-hardness can neither redden nor hang the gate — the oracle simply supplies no
-verdict there, and no divergence is possible without one. Every divergence — soundness miss,
-native-richer, supplement, or undecided — grounds as a `gmeow:Finding` through the same divergence
-ledger, so the off-gate arm dogfoods the identical public surface as the on-gate one.
-
 ## Tests as ontology data
 
 A slice that introduces `logic:` terms does not stand apart from its own conformance checks. Each

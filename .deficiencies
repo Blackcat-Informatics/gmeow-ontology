@@ -95,7 +95,7 @@ now 387/404). The remaining honest boundaries, recorded verbatim:
   bridge, not a shortfall.
 
 ────────────────────────────────────────────────────────────────────────────
-2026-07-13 — issue #1358 / PR #1521 — off-gate OWL-Direct consistency differential
+2026-07-13 — off-gate OWL-Direct consistency differential
 
 - GREEN-PATH PRODUCTION-SURFACE RUN NOT DEMONSTRATED IN STAGE 1. The acceptance
   criterion "`gmeow-dev reason-consistency-crosscheck` exits 0 on the committed
@@ -126,3 +126,27 @@ now 387/404). The remaining honest boundaries, recorded verbatim:
   exit. Bounded to one live at a time (sequential), but finished-not-joined
   thread memory accumulates across a full sweep. Acceptable for a one-shot maint
   lane; a hazard if ever looped.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-13 — off-gate OWL-Direct consistency differential RETIRED/REMOVED
+
+The independent off-gate OWL-Direct consistency differential (the `native ↔
+purrdf-entail` tableau consistency arm, its `gmeow-dev
+reason-consistency-crosscheck` command, and the `make
+maint-reason-consistency-crosscheck` lane) was RETIRED and REMOVED. Running it
+against the committed bundle proved it empirically intractable at bundle scale,
+in two independent ways that make it unusable as a lane:
+
+- An uncatchable stack overflow inside the per-world OWL-Direct tableau aborts
+  the whole lane (it cannot be trapped and recovered — it takes the process
+  down), and once that was worked around the sweep spiralled on uninterruptible
+  leaked worker threads that accumulate and burn CPU without the whole-bundle
+  sweep ever completing (16+ minutes with no completion, multiple concurrent
+  NP-hard workers in flight).
+
+What remains and is UNAFFECTED:
+
+- Native's own consistency verdict stays on-gate via `reason-verify`
+  (`ReasoningResult::is_consistent`) — the on-gate consistency authority.
+- The independent OWL-RL SUBSUMPTION cross-check (`gmeow-dev reason-crosscheck`
+  / `make reason-crosscheck`) is a DIFFERENT arm and is fully preserved on-gate.
