@@ -65,6 +65,12 @@ pub struct ReasonArtifacts {
     /// Production existential-chase termination evidence on the shared Finding
     /// substrate; this is the authority for both graph/diagnostics and run nodes.
     pub chase_report: gmeow_errors::Report,
+    /// The decomposable derivation of every chase-invented null (Skolem witness)
+    /// this run minted, sorted+deduped by content-addressed witness IRI. Empty
+    /// when the program has no existential obligation. Projected into
+    /// `graph/diagnostics` (via [`reason_dataset`]) so the offline `gmeow explain`
+    /// CLI can explain an invented individual.
+    pub witness_derivations: Vec<gmeow_logic::reason::WitnessDerivation>,
 }
 
 /// Reason over a composed dataset (N-Quads bytes) and return the three artifacts plus
@@ -115,6 +121,20 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
         })
     })?;
     let result = certified.result;
+    let witness_derivations = certified.witness_derivations;
+    // Resolve every chase-invented null to its minting head quad p(x, n) so the
+    // per-world certificate finding can cite the null-minting reifiers it derives
+    // from, and so `reason_dataset` can project the same skeletons into
+    // graph/diagnostics. World-scoped: each null is attributed to the certificate
+    // whose world its head quad was derived in (both are bare-IRI world keys).
+    let witness_projections = resolve_witness_projections(&witness_derivations, &result)?;
+    let mut world_reifiers: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for projection in &witness_projections {
+        world_reifiers
+            .entry(projection.world.clone())
+            .or_default()
+            .push(projection.r_head.clone());
+    }
     let mut chase_report = gmeow_errors::Report::new("chase");
     // `stage-reason` declares graph/diagnostics as an unconditional attachment.
     // RDF has no representation for an empty named graph, so carry the run's
@@ -133,7 +153,20 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
         .with_tool("reason"),
     );
     for certificate in certified.chase_certificates {
-        chase_report.add_finding(certificate.to_finding());
+        let world = certificate.world.clone();
+        let mut finding = certificate.to_finding();
+        // A weakly-acyclic certificate's verdict derives from the existential edges
+        // that minted this world's nulls: cite each null-minting head-quad reifier
+        // via gmeow:findingDerivedFromQuad (sorted+deduped for byte-stability).
+        if finding.code == "chase.certificate.weakly-acyclic"
+            && let Some(reifiers) = world_reifiers.get(&world)
+        {
+            let mut derived = reifiers.clone();
+            derived.sort();
+            derived.dedup();
+            finding = finding.with_derived_from_quads(derived);
+        }
+        chase_report.add_finding(finding);
     }
     chase_report.normalize();
     // Non-merge (the regenerate path): the closure is told-vs-inferred only.
@@ -161,7 +194,112 @@ pub fn reason_over_dataset(edb: &RdfDataset) -> Result<ReasonArtifacts, gmeow_er
         perf_ledger: perf,
         result,
         chase_report,
+        witness_derivations,
     })
+}
+
+/// One chase-invented null (Skolem witness) resolved against the reasoned head quad
+/// `p(x, n)` whose OBJECT is that null — the existential edge that minted it.
+struct WitnessProjection {
+    /// The invented null IRI `n` (bare, content-addressed).
+    witness: String,
+    /// The head-quad subject `x` (bare IRI).
+    subject: String,
+    /// The head-quad predicate `p` (bare IRI).
+    predicate: String,
+    /// The content-addressed firing rule IRI that invented the null.
+    rule_iri: String,
+    /// The existential head-variable ordinal (distinct ∃-vars ⇒ distinct nulls).
+    ordinal: usize,
+    /// The head-quad world (the certificate-association key; a bare-IRI world key).
+    world: String,
+    /// The standard-RDF-reification node IRI for `⟨x p n⟩` (the null-minting reifier).
+    r_head: String,
+}
+
+/// Resolve each chase-invented null to the reasoned head quad `p(x, n)` whose OBJECT
+/// is that null. Hard-fails (fail-closed) when a witness has no such existential edge
+/// (an unexplained invented individual) or is the object of more than one reasoned
+/// axiom (an existential null must have exactly one minting head quad). Returns the
+/// projections sorted by null IRI so any emitted fold is byte-stable across runs (the
+/// null IRIs are content-addressed).
+fn resolve_witness_projections(
+    witnesses: &[gmeow_logic::reason::WitnessDerivation],
+    result: &ReasoningResult,
+) -> Result<Vec<WitnessProjection>, gmeow_errors::Diag> {
+    let mut projections = Vec::with_capacity(witnesses.len());
+    for witness in witnesses {
+        let object_display = format!("<{}>", witness.witness);
+        let mut heads = result
+            .inferred()
+            .iter()
+            .filter(|axiom| axiom.object == object_display);
+        let head = heads.next().ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-reason".to_string(),
+                message: format!(
+                    "chase-invented null <{}> has no reasoned head quad p(x, null): \
+                     the existential edge that minted it must be in the closure",
+                    witness.witness
+                ),
+            })
+        })?;
+        if heads.next().is_some() {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-reason".to_string(),
+                message: format!(
+                    "chase-invented null <{}> is the object of more than one reasoned \
+                     axiom: an existential null must have exactly one minting head quad",
+                    witness.witness
+                ),
+            }));
+        }
+        let r_head =
+            gmeow_logic::reason::reifier_iri(&head.subject, &head.predicate, &object_display);
+        projections.push(WitnessProjection {
+            witness: witness.witness.clone(),
+            subject: head.subject.clone(),
+            predicate: head.predicate.clone(),
+            rule_iri: witness.rule_iri.clone(),
+            ordinal: witness.ordinal,
+            world: head.world.clone(),
+            r_head,
+        });
+    }
+    projections.sort_by(|a, b| a.witness.cmp(&b.witness));
+    Ok(projections)
+}
+
+/// Serialize the resolved witness projections as N-Triples for the
+/// `graph/diagnostics` fold: standard RDF reification of each minting head quad
+/// `p(x, n)` (`rdf:subject`/`rdf:predicate`/`rdf:object` + the reused
+/// `gmeow:viaRule`) plus the `gmeow:InventedWitness` typing and the
+/// `gmeow:existentialOrdinal` of the null. Queryable with NO new vocabulary. Empty
+/// string when there are no witnesses.
+fn witness_projection_ntriples(projections: &[WitnessProjection]) -> String {
+    const RDF: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+    const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
+    let mut out = String::new();
+    for projection in projections {
+        use std::fmt::Write as _;
+        let _ = write!(
+            out,
+            "<{r}> <{RDF}subject> <{s}> .\n\
+             <{r}> <{RDF}predicate> <{p}> .\n\
+             <{r}> <{RDF}object> <{n}> .\n\
+             <{r}> <{GMEOW}viaRule> <{rule}> .\n\
+             <{n}> <{RDF}type> <{GMEOW}InventedWitness> .\n\
+             <{n}> <{GMEOW}existentialOrdinal> \"{ord}\"^^<{XSD_NNI}> .\n",
+            r = projection.r_head,
+            s = projection.subject,
+            p = projection.predicate,
+            n = projection.witness,
+            rule = projection.rule_iri,
+            ord = projection.ordinal,
+        );
+    }
+    out
 }
 
 /// Parse the closure Turtle into the default graph and FOLD the deterministic
@@ -173,6 +311,7 @@ fn reason_dataset(
     closure_ttl: &str,
     result: &ReasoningResult,
     chase_report: &gmeow_errors::Report,
+    witnesses: &[gmeow_logic::reason::WitnessDerivation],
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let closure_ds =
         purrdf::parse_dataset(closure_ttl.as_bytes(), "text/turtle", None).map_err(|e| {
@@ -207,6 +346,20 @@ fn reason_dataset(
         crate::stages::carrier::GRAPH_DIAGNOSTICS,
     )?;
     builder.push_dataset(diagnostics.as_ref());
+    // Chase-invented nulls (Skolem witnesses): project each minting head quad
+    // p(x, n) as standard RDF reification + type the null gmeow:InventedWitness,
+    // routed into graph/diagnostics so the offline `gmeow explain` CLI can decompose
+    // an invented individual. Byte-stable: content-addressed null IRIs, sorted.
+    let projections = resolve_witness_projections(witnesses, result)?;
+    let witness_nt = witness_projection_ntriples(&projections);
+    if !witness_nt.is_empty() {
+        let witness_ds = crate::stages::carrier::parse_into_graph(
+            witness_nt.as_bytes(),
+            "application/n-triples",
+            crate::stages::carrier::GRAPH_DIAGNOSTICS,
+        )?;
+        builder.push_dataset(witness_ds.as_ref());
+    }
     builder.freeze().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("freeze reason dual-carriage dataset: {e}"),
@@ -310,7 +463,12 @@ impl Stage for ReasonStage {
         // typed five-axis result rides BOTH as the `graph/reasoning` named graph (the
         // repo-free RDF projection) AND as the typed `PipelineHandle::Reasoning` handle
         // pinned to that graph (C7) — dual carriage.
-        let dataset = reason_dataset(&reasoned.closure, &reasoned.result, &reasoned.chase_report)?;
+        let dataset = reason_dataset(
+            &reasoned.closure,
+            &reasoned.result,
+            &reasoned.chase_report,
+            &reasoned.witness_derivations,
+        )?;
         let nodes = crate::stages::diag_render::finding_nodes(&reasoned.chase_report, self.id());
         let diag_blob = serde_json::to_vec(&nodes).map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -425,8 +583,13 @@ mod tests {
             "production certificate evidence must be non-vacuous: {finding:?}"
         );
 
-        let dataset = reason_dataset(&reasoned.closure, &reasoned.result, &reasoned.chase_report)
-            .expect("certificate diagnostics dataset");
+        let dataset = reason_dataset(
+            &reasoned.closure,
+            &reasoned.result,
+            &reasoned.chase_report,
+            &reasoned.witness_derivations,
+        )
+        .expect("certificate diagnostics dataset");
         let diagnostics = dataset.project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
         assert!(diagnostics.owned_quads().any(|quad| {
             quad.predicate == "https://blackcatinformatics.ca/gmeow/findingCode"
@@ -446,6 +609,99 @@ mod tests {
     }
 
     #[test]
+    fn invented_witness_skeletons_land_in_diagnostics_and_certificate_cites_them() {
+        // A `C ⊑ ∃p.D` obligation on an individual `x:R` mints exactly one chase
+        // witness null. The stage projects its minting head quad p(x, null) into
+        // graph/diagnostics as standard RDF reification + types the null a
+        // gmeow:InventedWitness, and the weakly-acyclic certificate finding cites
+        // the null-minting reifier through gmeow:findingDerivedFromQuad.
+        const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        const RDF_OBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
+        const INVENTED_WITNESS: &str = "https://blackcatinformatics.ca/gmeow/InventedWitness";
+        const EXISTENTIAL_ORDINAL: &str = "https://blackcatinformatics.ca/gmeow/existentialOrdinal";
+        const VIA_RULE: &str = "https://blackcatinformatics.ca/gmeow/viaRule";
+
+        let nq = br#"
+<http://example.org/R> <http://www.w3.org/2002/07/owl#onProperty> <http://example.org/p> <http://gmeow.example/w> .
+<http://example.org/R> <http://www.w3.org/2002/07/owl#someValuesFrom> <http://example.org/D> <http://gmeow.example/w> .
+<http://example.org/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/R> <http://gmeow.example/w> .
+"#;
+        let reasoned = reason_artifacts(nq).expect("production existential reason");
+        assert!(
+            !reasoned.witness_derivations.is_empty(),
+            "the existential obligation must mint at least one witness"
+        );
+        let dataset = reason_dataset(
+            &reasoned.closure,
+            &reasoned.result,
+            &reasoned.chase_report,
+            &reasoned.witness_derivations,
+        )
+        .expect("witness diagnostics dataset");
+        let diagnostics = dataset.project_named_graph(crate::stages::carrier::GRAPH_DIAGNOSTICS);
+        let quads: Vec<_> = diagnostics.owned_quads().collect();
+
+        let iri = |term: &RdfTerm| match term {
+            RdfTerm::Iri(iri) => Some(iri.clone()),
+            _ => None,
+        };
+
+        // (1) ≥1 subject typed gmeow:InventedWitness.
+        let witness = quads
+            .iter()
+            .find(|quad| {
+                quad.predicate == RDF_TYPE
+                    && matches!(&quad.object, RdfTerm::Iri(iri) if iri == INVENTED_WITNESS)
+            })
+            .and_then(|quad| iri(&quad.subject))
+            .expect("a gmeow:InventedWitness null is projected into graph/diagnostics");
+
+        // (2) that witness carries gmeow:existentialOrdinal.
+        assert!(
+            quads.iter().any(|quad| {
+                iri(&quad.subject).as_deref() == Some(witness.as_str())
+                    && quad.predicate == EXISTENTIAL_ORDINAL
+            }),
+            "the invented witness must carry its gmeow:existentialOrdinal"
+        );
+
+        // (3) a reifier whose rdf:object IS the null AND that carries gmeow:viaRule.
+        let reifier = quads
+            .iter()
+            .find(|quad| {
+                quad.predicate == RDF_OBJECT
+                    && matches!(&quad.object, RdfTerm::Iri(iri) if iri == &witness)
+            })
+            .and_then(|quad| iri(&quad.subject))
+            .expect("a head-quad reifier with rdf:object = <null> is present");
+        assert!(
+            quads.iter().any(|quad| {
+                iri(&quad.subject).as_deref() == Some(reifier.as_str())
+                    && quad.predicate == VIA_RULE
+            }),
+            "the null-minting reifier must carry gmeow:viaRule"
+        );
+
+        // (4) the certificate finding rehydrated via the offline reader carries a
+        // non-empty derived_from_quads (the null-minting reifier it cites).
+        let index = crate::diagnostics_reader::read_findings(&dataset)
+            .expect("rehydrate the diagnostics graph");
+        let certificate = index
+            .findings
+            .values()
+            .find(|finding| finding.code == "chase.certificate.weakly-acyclic")
+            .expect("the weakly-acyclic certificate finding rehydrates");
+        assert!(
+            !certificate.derived_from_quads.is_empty(),
+            "the certificate must cite its null-minting reifiers via findingDerivedFromQuad: {certificate:?}"
+        );
+        assert!(
+            certificate.derived_from_quads.contains(&reifier),
+            "the certificate must cite the head-quad reifier whose object is the null"
+        );
+    }
+
+    #[test]
     fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
         // The dual-carriage dataset folds the graph/reasoning projection as a named
         // graph and the typed handle pins to it (the digest invariant must hold).
@@ -454,8 +710,13 @@ mod tests {
 <http://example.org/B> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/C> <http://gmeow.example/w> .
 "#;
         let reasoned = reason_artifacts(nq).expect("reason");
-        let dataset = reason_dataset(&reasoned.closure, &reasoned.result, &reasoned.chase_report)
-            .expect("dual dataset");
+        let dataset = reason_dataset(
+            &reasoned.closure,
+            &reasoned.result,
+            &reasoned.chase_report,
+            &reasoned.witness_derivations,
+        )
+        .expect("dual dataset");
         let mut bundle = bundle_from_artifacts_over(
             dataset,
             BTreeMap::new(),
@@ -497,8 +758,13 @@ mod tests {
 <http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://example.org/B> <http://gmeow.example/w> .
 "#;
         let reasoned = reason_artifacts(nq).expect("reason");
-        let dataset = reason_dataset(&reasoned.closure, &reasoned.result, &reasoned.chase_report)
-            .expect("dual dataset");
+        let dataset = reason_dataset(
+            &reasoned.closure,
+            &reasoned.result,
+            &reasoned.chase_report,
+            &reasoned.witness_derivations,
+        )
+        .expect("dual dataset");
         let mut bundle = bundle_from_artifacts_over(
             dataset,
             BTreeMap::new(),

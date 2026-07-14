@@ -252,6 +252,24 @@ pub fn read_findings(dataset: &Arc<RdfDataset>) -> Result<FindingIndex, Diag> {
         }
     }
 
+    // Q3b — the SEPARATE reasoned-quad-reifier provenance edges
+    // (`gmeow:findingDerivedFromQuad`): the null-minting head-quad reifiers a
+    // chase certificate's verdict derives from. Kept DISTINCT from the
+    // `gmeow:findingAntecedent` finding-DAG edges (Q3) — this edge points at a
+    // reasoned quad's reifier, not at another finding — and rehydrated
+    // sorted+deduped so the index is byte-deterministic.
+    let derived = select(
+        &diag,
+        &format!("SELECT ?s ?q WHERE {{ ?s <{GMEOW_NS}findingDerivedFromQuad> ?q }}"),
+    )?;
+    for row in &derived.rows {
+        if let (Some(s), Some(q)) = (cell_iri(&derived, row, "s"), cell_iri(&derived, row, "q"))
+            && let Some(finding) = findings.get_mut(&s)
+        {
+            finding.derived_from_quads.push(q);
+        }
+    }
+
     // Q4 — advisory suggestion strings.
     let sugs = select(
         &diag,
