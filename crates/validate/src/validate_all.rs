@@ -846,6 +846,29 @@ impl ValidationRun {
 ///
 /// # Errors
 /// Returns `Err` if the GTS bundle cannot be read or the reasoning run fails.
+/// The PUBLIC deep-semantic entry over a GTS bundle — the reasoned-verdict pass
+/// `gmeow verify` shares with the dev bundle-only pass.
+///
+/// It is a thin, single-line delegation to [`deep_semantic_findings`] (the dev
+/// bundle pass), so both surfaces run the EXACT same path: reason over the bundle,
+/// build the [`gmeow_logic::explain::explanations_for_result`] derivation
+/// skeletons, and fold the shared `logic:ReasoningResult` verdict into `report`
+/// via [`fold_reasoning_result`]. That means the report gains the same reasoned
+/// `validate.deep.*` findings the enrichment pass attaches `derived_from_quads` to
+/// (Task 5), and it INHERITS the same hard-fail discipline: a verdict that cannot
+/// be joined to its explain-skeleton derivation (an internal invariant violation)
+/// propagates as `Err`, never a graceful advisory — the caller must treat it as a
+/// `Severity::Error` failure, not swallow it. There is no reimplementation of the
+/// fold here.
+///
+/// # Errors
+/// Returns `Err` if the GTS bundle cannot be read, the native reasoning run fails,
+/// the declared contradiction contract cannot be resolved, or a reasoning verdict
+/// cannot be joined to its explain-skeleton derivation.
+pub fn bundle_deep_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors::Result<()> {
+    deep_semantic_findings(gts_bytes, report)
+}
+
 fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors::Result<()> {
     let bundle = purrdf::import_gts_events(gts_bytes).map_err(|e| {
         Diag::of_kind(crate::error::Dataset {
