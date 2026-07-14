@@ -83,6 +83,30 @@ fn advisory_codes(report: &SliceReport) -> Vec<String> {
     report.advisories.iter().map(|f| f.code.clone()).collect()
 }
 
+/// The exact set of `gmeow:dim*` local names named by the report's
+/// `doc-maturity.missing-dimension` advisories (each message embeds exactly one
+/// `gmeow:dim*` token — the structured [`gmeow_slice_quality::score::Finding`] the
+/// axis producer emits, not the rendered report text).
+fn missing_doc_maturity_dimensions(report: &SliceReport) -> std::collections::BTreeSet<String> {
+    report
+        .advisories
+        .iter()
+        .filter(|f| f.code == "slice-quality.doc-maturity.missing-dimension")
+        .map(|f| {
+            f.message
+                .split_whitespace()
+                .find_map(|tok| tok.strip_prefix("gmeow:"))
+                .unwrap_or_else(|| {
+                    panic!(
+                        "missing-dimension advisory names a gmeow:dim* token: {}",
+                        f.message
+                    )
+                })
+                .to_owned()
+        })
+        .collect()
+}
+
 // ── AC1: the wheel's zero-config external-slice scoring path ────────────────────
 
 #[test]
@@ -156,19 +180,50 @@ fn ac1_scores_external_slice_against_embedded_bundle() {
         "DocMaturity is measured strictly in (0,1): {}",
         doc.score
     );
-    let missing_dims: Vec<&String> = report
-        .advisories
-        .iter()
-        .filter(|f| f.code == "slice-quality.doc-maturity.missing-dimension")
-        .map(|f| &f.message)
-        .collect();
-    assert!(
-        !missing_dims.is_empty(),
-        "DocMaturity names ≥1 specific missing FULL-anchor dimension: {codes:?}"
+    // Pin the EXACT off-repo DocMaturity oracle for this fixture: the axis score is
+    // the slice's bounded FULL-anchor coverage fraction (9 of the 12 FULL dimensions
+    // covered), consumed verbatim from `crates/docs` (no partial-credit smoothing —
+    // exact equality is the right idiom for a ratio the producer computes as
+    // `covered.len() as f64 / full_intent.len() as f64` = 9.0/12.0, exactly
+    // representable in f64). A drift here means a cross-slice dependency silently
+    // changed which FULL dimensions this off-repo fixture earns.
+    assert_eq!(
+        doc.score, 0.75,
+        "DocMaturity's exact fraction for the fixture is pinned at 9/12 FULL dimensions"
     );
-    assert!(
-        missing_dims.iter().any(|m| m.contains("dimRealizedState")),
-        "the omitted realized-state table is named as a missing dimension: {missing_dims:?}"
+    let missing_dims = missing_doc_maturity_dimensions(&report);
+    let expected_missing: std::collections::BTreeSet<String> =
+        ["dimExample", "dimRealizedState", "dimScopeNote"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+    assert_eq!(
+        missing_dims, expected_missing,
+        "the EXACT set of missing FULL-anchor dimensions is pinned: {codes:?}"
+    );
+    // The complementary covered set (FULL intent minus the pinned misses) — no
+    // covered dimension is ever named as missing.
+    let expected_covered = [
+        "dimDefinition",
+        "dimLabel",
+        "dimUsageAdvice",
+        "dimAlignment",
+        "dimFixturePair",
+        "dimCompetencyRationale",
+        "dimWorkedInstance",
+        "dimLossLedgerRow",
+        "dimLinkageCoverage",
+    ];
+    for dim in expected_covered {
+        assert!(
+            !missing_dims.contains(dim),
+            "{dim} is covered by the fixture and must never be named missing: {missing_dims:?}"
+        );
+    }
+    assert_eq!(
+        expected_covered.len() + expected_missing.len(),
+        12,
+        "covered + missing accounts for exactly the 12-dimension FULL anchor intent"
     );
 
     // (d) translation: partial fr + absent cmn ⇒ measured < 1.0.
