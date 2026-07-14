@@ -8,7 +8,7 @@
 //! one `gmeow:AxisFloorCommitment` per committed `(slice, axis)` measured-score
 //! floor, one `gmeow:SliceTierFloor` per committed per-slice roll-up tier floor. The
 //! slice-quality gate reads them straight out of the ontology (via
-//! [`gmeow_slice_quality::load_repo_rubric`]); these two TSVs are their **lossy
+//! [`gmeow_slice_quality::load_repo_floors`]); these two TSVs are their **lossy
 //! projection** for humans and external tooling, never a second source of truth.
 //!
 //! * `generated/governance/slice-quality-axis-floors.tsv` — one
@@ -32,7 +32,7 @@ use std::path::{Path, PathBuf};
 use gmeow_logic_compile::ir::PreservationKind;
 use gmeow_logic_compile::loss_ledger::LossLedger;
 use gmeow_logic_compile::projections::ProjectionResult;
-use gmeow_slice_quality::model::Rubric;
+use gmeow_slice_quality::model::GovernanceFloors;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
 
@@ -73,8 +73,8 @@ fn fmt_floor(floor: f64) -> String {
 /// Render the per-axis floor TSV: the `gmeow:AxisFloorCommitment` set projected to
 /// `<slice-iri>\t<axis-local>\t<floor>` rows, sorted by `(slice-iri, axis-local)`.
 #[must_use]
-pub fn render_axis_floors(rubric: &Rubric) -> String {
-    let mut rows: Vec<(String, String, f64)> = rubric
+pub fn render_axis_floors(floors: &GovernanceFloors) -> String {
+    let mut rows: Vec<(String, String, f64)> = floors
         .commitments
         .iter()
         .map(|c| (c.slice.clone(), local(&c.axis).to_owned(), c.floor))
@@ -90,8 +90,8 @@ pub fn render_axis_floors(rubric: &Rubric) -> String {
 /// Render the per-slice roll-up tier floor TSV: the `gmeow:SliceTierFloor` set
 /// projected to `<slice-iri>\t<tier-local>` rows, sorted by slice-iri.
 #[must_use]
-pub fn render_tier_floors(rubric: &Rubric) -> String {
-    let mut rows: Vec<(String, String)> = rubric
+pub fn render_tier_floors(floors: &GovernanceFloors) -> String {
+    let mut rows: Vec<(String, String)> = floors
         .tier_floors
         .iter()
         .map(|tf| (tf.slice.clone(), local(&tf.tier).to_owned()))
@@ -172,15 +172,15 @@ impl Stage for GovernanceFloorsStage {
         Ok(vec![root.join(RUBRIC_MODULE)])
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
-        let rubric = gmeow_slice_quality::load_repo_rubric(input.root)?;
+        let floors = gmeow_slice_quality::load_repo_floors(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(
             AXIS_FLOORS_PATH.to_string(),
-            render_axis_floors(&rubric).into_bytes(),
+            render_axis_floors(&floors).into_bytes(),
         );
         artifacts.insert(
             TIER_FLOORS_PATH.to_string(),
-            render_tier_floors(&rubric).into_bytes(),
+            render_tier_floors(&floors).into_bytes(),
         );
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
@@ -214,15 +214,15 @@ mod tests {
     #[test]
     fn axis_floors_project_deterministically_from_the_ontology() {
         let root = repo_root();
-        let rubric = gmeow_slice_quality::load_repo_rubric(&root).expect("load rubric");
-        let a = render_axis_floors(&rubric);
-        let b = render_axis_floors(&rubric);
+        let floors = gmeow_slice_quality::load_repo_floors(&root).expect("load floors");
+        let a = render_axis_floors(&floors);
+        let b = render_axis_floors(&floors);
         assert_eq!(a, b, "axis-floor projection must be deterministic");
 
         let data_rows: Vec<&str> = a.lines().filter(|l| !l.starts_with('#')).collect();
         assert_eq!(
             data_rows.len(),
-            rubric.commitments.len(),
+            floors.commitments.len(),
             "one data row per gmeow:AxisFloorCommitment"
         );
         // The migration spot-check: the accounts slice's axisGmn1Coverage floor
@@ -242,12 +242,12 @@ mod tests {
     #[test]
     fn tier_floors_project_deterministically_from_the_ontology() {
         let root = repo_root();
-        let rubric = gmeow_slice_quality::load_repo_rubric(&root).expect("load rubric");
-        let out = render_tier_floors(&rubric);
+        let floors = gmeow_slice_quality::load_repo_floors(&root).expect("load floors");
+        let out = render_tier_floors(&floors);
         let data_rows: Vec<&str> = out.lines().filter(|l| !l.starts_with('#')).collect();
         assert_eq!(
             data_rows.len(),
-            rubric.tier_floors.len(),
+            floors.tier_floors.len(),
             "one data row per gmeow:SliceTierFloor"
         );
         for row in &data_rows {
@@ -269,10 +269,10 @@ mod tests {
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).expect("read bundle");
         let projection = crate::stages::superset::project_bundle(&gts).expect("project bundle");
 
-        let rubric = gmeow_slice_quality::load_repo_rubric(&root).expect("load rubric");
+        let floors = gmeow_slice_quality::load_repo_floors(&root).expect("load floors");
         for (path, fresh) in [
-            (AXIS_FLOORS_PATH, render_axis_floors(&rubric)),
-            (TIER_FLOORS_PATH, render_tier_floors(&rubric)),
+            (AXIS_FLOORS_PATH, render_axis_floors(&floors)),
+            (TIER_FLOORS_PATH, render_tier_floors(&floors)),
         ] {
             let reconstructed = projection.files.get(path).unwrap_or_else(|| {
                 panic!("{path} must reconstruct from gmeow.gts as a blob member")
