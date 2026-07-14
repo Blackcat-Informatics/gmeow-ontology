@@ -98,11 +98,102 @@ pub enum ConclusionShape {
     },
 }
 
+/// The closed taxonomy backing every `gmeow:gapShape` wire token — the 1:1 image of
+/// the ontology's closed `gmeow:GapShape` value class, and the SINGLE authority any
+/// producer of a `gap_shape` string (native reduction, vendoring, or a hand-written
+/// case fixture) must go through. No other code may mint a `gap_shape` literal.
+///
+/// Four variants are reasoner-FRAGMENT gaps — a conclusion shape the native DL
+/// fragment cannot soundly refute at all ([`GapShape`] mirrors exactly these four,
+/// see [`GapShape::as_capability_shape`]). The fifth, [`CapabilityGapShape::VendoringMultiGoal`],
+/// is NOT a fragment gap: `dl_entails` decides a conjunctive multi-triple conclusion
+/// perfectly well (as *n* independent refutations); it is only the frozen,
+/// single-`input.nq` vendoring format that cannot freeze a conjunction as one EDB.
+/// Conflating the two — labelling a vendoring-format limit as a reasoner gap — was a
+/// prior bug this enum forecloses: see [`CapabilityGapShape::is_reasoner_fragment_gap`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CapabilityGapShape {
+    /// A role / property assertion (a bare `a P b`, `rdfs:subPropertyOf`,
+    /// domain/range, …). Role negation is not EL-expressible, so it cannot be refuted.
+    /// Reasoner-fragment gap.
+    RoleAssertion,
+    /// A blank-node (existential) subject or object, which needs Skolem-witness
+    /// semantics outside the ground-refutation fragment. Reasoner-fragment gap.
+    ExistentialWitness,
+    /// The native DL engine reported a coverage gap on the reduced EDB — it cannot
+    /// honestly decide the reduction (distinct from a shape it refused up front).
+    /// Reasoner-fragment gap.
+    NativeCoverage,
+    /// A malformed conclusion triple (e.g. a literal where a class IRI is required).
+    /// Reasoner-fragment gap.
+    Malformed,
+    /// A conjunctive multi-triple conclusion. NOT a reasoner-fragment gap — `dl_entails`
+    /// decides it (as *n* independent refutations, see [`VendorReduction::MultiGoal`]) —
+    /// it is a VENDORING-FORMAT limit: a conjunctive conclusion cannot be frozen as one
+    /// single-EDB `input.nq`, so the vendoring lane records it as a gap even though the
+    /// reasoner itself has no trouble with it.
+    VendoringMultiGoal,
+}
+
+impl CapabilityGapShape {
+    /// Every variant, in wire-token order, for exhaustive validation / enumeration
+    /// (e.g. rendering the valid-token set in a hard-fail diagnostic).
+    pub const ALL: [CapabilityGapShape; 5] = [
+        CapabilityGapShape::RoleAssertion,
+        CapabilityGapShape::ExistentialWitness,
+        CapabilityGapShape::NativeCoverage,
+        CapabilityGapShape::Malformed,
+        CapabilityGapShape::VendoringMultiGoal,
+    ];
+
+    /// The stable enumerated wire token for this gap shape (the `gmeow:gapShape` value).
+    #[must_use]
+    pub fn as_token(&self) -> &'static str {
+        match self {
+            CapabilityGapShape::RoleAssertion => "role-assertion",
+            CapabilityGapShape::ExistentialWitness => "existential-witness",
+            CapabilityGapShape::NativeCoverage => "native-coverage",
+            CapabilityGapShape::Malformed => "malformed",
+            CapabilityGapShape::VendoringMultiGoal => "vendoring-multi-goal",
+        }
+    }
+
+    /// Parse a wire token back into its [`CapabilityGapShape`] (the exhaustive inverse
+    /// of [`Self::as_token`]), or `None` if `s` is not one of the closed taxonomy's
+    /// tokens. The validation gate every ingested `gap_shape` string must pass.
+    #[must_use]
+    pub fn from_token(s: &str) -> Option<Self> {
+        match s {
+            "role-assertion" => Some(CapabilityGapShape::RoleAssertion),
+            "existential-witness" => Some(CapabilityGapShape::ExistentialWitness),
+            "native-coverage" => Some(CapabilityGapShape::NativeCoverage),
+            "malformed" => Some(CapabilityGapShape::Malformed),
+            "vendoring-multi-goal" => Some(CapabilityGapShape::VendoringMultiGoal),
+            _ => None,
+        }
+    }
+
+    /// `true` iff this shape is a genuine reasoner-fragment gap (a conclusion shape
+    /// the native DL fragment cannot soundly refute at all) rather than a
+    /// vendoring-format limit. `false` only for [`CapabilityGapShape::VendoringMultiGoal`].
+    #[must_use]
+    pub fn is_reasoner_fragment_gap(&self) -> bool {
+        !matches!(self, CapabilityGapShape::VendoringMultiGoal)
+    }
+}
+
 /// The structured reason a conclusion falls outside the soundly-refutable fragment.
 ///
 /// The token ([`GapShape::as_token`]) is the enumerated `gmeow:gapShape` value the
 /// conformance reifier records — so "which conclusion shapes can the native reasoner
 /// grade, and which it honestly cannot" is queryable data, not a free-text string.
+///
+/// This enum classifies only reasoner-FRAGMENT gaps (see [`classify`] /
+/// [`classify_conclusion`]) — it deliberately has no `VendoringMultiGoal` variant,
+/// because a conjunctive multi-triple conclusion is NOT a fragment gap (`dl_entails`
+/// decides it fine); only the single-EDB vendoring format cannot freeze it. Every
+/// wire token, including the vendoring-only one, is minted through
+/// [`CapabilityGapShape`] — see [`Self::as_capability_shape`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GapShape {
     /// A role / property assertion (a bare `a P b`, `rdfs:subPropertyOf`,
@@ -119,15 +210,24 @@ pub enum GapShape {
 }
 
 impl GapShape {
-    /// The stable enumerated wire token for this gap shape.
+    /// The corresponding [`CapabilityGapShape`] — the single authority this enum
+    /// delegates its wire token to (see [`Self::as_token`]).
+    #[must_use]
+    pub fn as_capability_shape(&self) -> CapabilityGapShape {
+        match self {
+            GapShape::RoleAssertion => CapabilityGapShape::RoleAssertion,
+            GapShape::ExistentialWitness => CapabilityGapShape::ExistentialWitness,
+            GapShape::NativeCoverage => CapabilityGapShape::NativeCoverage,
+            GapShape::Malformed => CapabilityGapShape::Malformed,
+        }
+    }
+
+    /// The stable enumerated wire token for this gap shape, delegated through
+    /// [`CapabilityGapShape`] (the single `gmeow:gapShape` token authority) so this
+    /// and every other producer stay byte-identical by construction.
     #[must_use]
     pub fn as_token(&self) -> &'static str {
-        match self {
-            GapShape::RoleAssertion => "role-assertion",
-            GapShape::ExistentialWitness => "existential-witness",
-            GapShape::NativeCoverage => "native-coverage",
-            GapShape::Malformed => "malformed",
-        }
+        self.as_capability_shape().as_token()
     }
 }
 

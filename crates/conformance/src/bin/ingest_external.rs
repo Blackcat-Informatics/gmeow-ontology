@@ -998,7 +998,7 @@ fn lower_entailment_entry(
             world_iri,
             input_nq: premise_nq,
             quad_count: premise_qc,
-            gap_shape: "multi-triple",
+            gap_shape: gmeow_logic::entail::CapabilityGapShape::VendoringMultiGoal.as_token(),
             premise_xml,
         },
         Ok(gmeow_logic::entail::VendorReduction::Single(negation)) => {

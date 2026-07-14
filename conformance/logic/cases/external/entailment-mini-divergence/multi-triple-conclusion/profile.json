@@ -1,5 +1,5 @@
 {
-  "gap_shape": "multi-triple",
+  "gap_shape": "vendoring-multi-goal",
   "mode": "native",
   "native_verdict": "incomplete",
   "verdict_mode": "consistency",

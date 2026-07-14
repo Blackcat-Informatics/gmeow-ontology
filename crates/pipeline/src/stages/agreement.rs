@@ -170,9 +170,9 @@ pub(crate) fn render_agreement_matrix(
     // ── Capability gaps by shape (the reified gmeow:gapShape breakdown) ──────────────
     // The shipped, drift-gated consumer of the structured capability-gap data: for every
     // divergence case the native reasoner honestly could not grade, its `gmeow:gapShape`
-    // token (multi-triple / role-assertion / existential-witness / native-coverage /
-    // malformed) is tallied here across all corpora. A non-empty section proves the
-    // gap-shape data flowed; the byte gate pins it.
+    // token (vendoring-multi-goal / role-assertion / existential-witness /
+    // native-coverage / malformed) is tallied here across all corpora. A non-empty
+    // section proves the gap-shape data flowed; the byte gate pins it.
     let mut gap_shape_totals: BTreeMap<String, usize> = BTreeMap::new();
     for r in records.values() {
         for (shape, n) in &r.gap_shapes {
@@ -366,7 +366,7 @@ mod tests {
         let json = r#"{
           "entailment-mini": { "lane": "a", "cases": 4, "agree": 4, "corpus_only": 0, "dl_gap": 0 },
           "entailment-mini-divergence": { "lane": "divergence", "cases": 2, "agree": 0, "corpus_only": 0, "dl_gap": 2,
-            "gap_shapes": { "multi-triple": 1, "role-assertion": 1 } },
+            "gap_shapes": { "vendoring-multi-goal": 1, "role-assertion": 1 } },
           "other-divergence": { "lane": "divergence", "cases": 1, "agree": 0, "corpus_only": 0, "dl_gap": 1,
             "gap_shapes": { "role-assertion": 3 } }
         }"#;
@@ -374,7 +374,7 @@ mod tests {
         assert!(md.contains("## Capability gaps (by shape)"), "{md}");
         // role-assertion aggregates across both divergence corpora: 1 + 3 = 4.
         assert!(md.contains("| role-assertion | 4 |"), "{md}");
-        assert!(md.contains("| multi-triple | 1 |"), "{md}");
+        assert!(md.contains("| vendoring-multi-goal | 1 |"), "{md}");
     }
 
     #[test]

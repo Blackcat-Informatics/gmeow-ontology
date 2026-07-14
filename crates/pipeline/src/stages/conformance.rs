@@ -98,6 +98,17 @@ fn gap_shapes_for_corpus(corpus_dir: &Path) -> Result<BTreeMap<String, usize>, g
         let value: serde_json::Value = serde_json::from_str(&text)
             .map_err(|e| stage_err(&format!("parse {}: {e}", profile_path.display())))?;
         if let Some(shape) = value.get("gap_shape").and_then(|v| v.as_str()) {
+            if gmeow_logic::entail::CapabilityGapShape::from_token(shape).is_none() {
+                let valid: Vec<&str> = gmeow_logic::entail::CapabilityGapShape::ALL
+                    .iter()
+                    .map(gmeow_logic::entail::CapabilityGapShape::as_token)
+                    .collect();
+                return Err(stage_err(&format!(
+                    "{} carries an unrecognized gap_shape token {shape:?} — not one of the closed \
+                     gmeow:gapShape taxonomy ({valid:?})",
+                    profile_path.display()
+                )));
+            }
             *counts.entry(shape.to_owned()).or_insert(0) += 1;
         }
     }
