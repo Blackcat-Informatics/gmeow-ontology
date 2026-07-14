@@ -134,8 +134,13 @@ jobs:
 
       # 25s per-test budget gate: hard-fail if any test on this shard's slice
       # of the ci profile exceeded the always-on budget. Runs against the exact
-      # junit.xml the nextest step above produced for this shard.
+      # junit.xml the nextest step above produced for this shard. The gate is
+      # advisory on contended developer boxes but HARD here; enforcement is made
+      # explicit (belt-and-suspenders over the platform-set CI var) so this clean,
+      # dedicated runner is the authoritative arbiter of the wall-clock budget.
       - name: Test duration budget gate (25s)
+        env:
+          GMEOW_TEST_BUDGET_ENFORCE: "1"
         run: cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 
       - name: Doctests
