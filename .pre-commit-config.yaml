@@ -63,7 +63,7 @@ repos:
     rev: v2.3.0
     hooks:
       - id: codespell
-        exclude: '^(crates/rdf/tests/corpus/w3c/)'
+        exclude: '^(crates/rdf/tests/corpus/w3c/|generated/briefs/)'
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1

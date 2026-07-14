@@ -382,6 +382,7 @@ __all__ = [
     "GraphBoxRoleEnum",
     "GrooveProfile",
     "GrooveProfileKindEnum",
+    "GroundingAttributeEnum",
     "GroupOperatorEnum",
     "HarmonicFunctionEnum",
     "Hazard",
