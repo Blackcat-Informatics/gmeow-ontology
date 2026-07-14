@@ -1159,6 +1159,87 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
     0
 }
 
+/// Render one `gmeow:ProjectionCeilingCommitment` TTL line in the exact on-disk
+/// format the gate reads and the human pastes into `module.ttl`: subject
+/// `gmeow:pcc-<sliceLocal>-<vocabPrefix>` (where `<sliceLocal>` is the last path
+/// segment of the slice IRI), the full slice IRI in angle brackets, the
+/// `gmeow:projVocab-<vocabPrefix>` vocabulary reference, and the measured residue —
+/// the inverse-polarity mirror of [`format_floor_line`].
+fn format_ceiling_line(slice_iri: &str, vocab_prefix: &str, count: u64) -> String {
+    let slice_local = axis_local_name(slice_iri);
+    format!(
+        "gmeow:pcc-{slice_local}-{vocab_prefix} a gmeow:ProjectionCeilingCommitment ; rdfs:label \"projection-ceiling commitment — {slice_local} / {vocab_prefix}\"@x-gmeow-english ; skos:definition \"The committed lower-only ungrounded-residue ceiling for the {vocab_prefix} projection vocabulary on the {slice_local} slice; the gate reds if the slice's measured residue rises above it.\"@x-gmeow-english ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ; gmeow:graphBoxRole gmeow:boxABox ; gmeow:ceilingSlice <{slice_iri}> ; gmeow:ceilingVocabulary gmeow:projVocab-{vocab_prefix} ; gmeow:ceilingCount {count} ."
+    )
+}
+
+/// `gmeow-dev slice-quality-seed-ceilings` — emit `gmeow:ProjectionCeilingCommitment`
+/// TTL at the CURRENT measured ungrounded residue for every (slice, guarded
+/// projection-vocabulary) pair with nonzero residue, so a human can grandfather the
+/// existing residue and paste it into
+/// `slices/core/slice-quality-rubric/module.ttl`.
+///
+/// Reads the guarded vocabulary registry off the loaded rubric
+/// (`rubric.floors.vocabularies` — the ontology-resident set Task 2 seeded) and
+/// measures every discovered slice against it through
+/// `gmeow_slice_quality::measure_repo_residues`, the SAME shared counter the ratchet
+/// gate reads — seed and gate can never diverge on what "measured" means.
+///
+/// EMIT-ONLY, GRANDFATHER-ONCE: this seeds the ceiling ABox at whatever residue is
+/// live the moment it is run. Re-running it to "refresh" a ceiling whose measured
+/// residue has since RISEN is a banned auto-calibration — the correct response to a
+/// risen residue is the gate reading, never a re-seed that raises the ceiling to
+/// match. Lowering a ceiling later, after a genuine measured migration grounds
+/// constructs out of the residue, is always a deliberate hand-edit of the
+/// individual, never a seeder re-run. The command writes TTL to stdout only; the
+/// human commits it.
+pub fn slice_quality_seed_ceilings() -> i32 {
+    let root = project_root();
+    let rubric = match repo_rubric(&root) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
+    };
+
+    // The guarded set must be loaded (Task 2's ontology-resident registry) — an
+    // empty set here means the registry failed to load, never a legitimate "guard
+    // nothing" state (.goals no-optionality).
+    let vocabularies = rubric.floors.vocabularies;
+    if vocabularies.is_empty() {
+        return fail(
+            "slice-quality-seed-ceilings: no gmeow:ProjectionVocabulary individuals loaded from the rubric — the guarded projection-vocabulary registry must be loaded before ceilings can be seeded",
+        );
+    }
+
+    // The SAME shared counter the ratchet gate reads — seed and gate can never
+    // diverge on what "measured" means.
+    let residues = match gmeow_slice_quality::measure_repo_residues(&root, &vocabularies) {
+        Ok(r) => r,
+        Err(e) => return fail(format!("slice-quality-seed-ceilings: {e}")),
+    };
+
+    // Sort deterministically by the emitted individual's IRI (not merely by the
+    // BTreeMap's (slice IRI, vocab prefix) key order, which can diverge from
+    // sorting by slice LOCAL name once two slices' full IRIs and local names order
+    // differently).
+    let mut entries: Vec<(String, String)> = residues
+        .into_iter()
+        .map(|((slice_iri, vocab_prefix), count)| {
+            let pcc_iri = format!("gmeow:pcc-{}-{vocab_prefix}", axis_local_name(&slice_iri));
+            (
+                pcc_iri,
+                format_ceiling_line(&slice_iri, &vocab_prefix, count),
+            )
+        })
+        .collect();
+    entries.sort_by(|a, b| a.0.cmp(&b.0));
+
+    // A short comment header (no issue/PR numbers) — then only the TTL lines.
+    println!("# seeded gmeow:ProjectionCeilingCommitment individuals — paste into {RUBRIC_MODULE}");
+    for (_, line) in &entries {
+        println!("{line}");
+    }
+    0
+}
+
 #[cfg(test)]
 mod min_tier_tests {
     use super::*;
