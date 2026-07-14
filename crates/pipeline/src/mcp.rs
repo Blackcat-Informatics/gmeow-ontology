@@ -5321,6 +5321,89 @@ mod tests {
         assert!(policy.contains(TXN_WORLD));
     }
 
+    /// T3 (issue 1312 dogfood): the proof-carrying diagnostics tool surface
+    /// (`explain_quad`, `verify_graph`, `coherence_certificate`, `store_conjecture` /
+    /// `refute_conjecture`) must be REPRESENTED in the canonical action theory the engine
+    /// actually parses, not merely documented. This asserts against the projected N-Quads
+    /// `action_policy_nquads()` returns — the SAME IRI→IRI-only quads
+    /// [`txn_world_nquads`] feeds the executional-entailment engine — so a schema that
+    /// only exists as a dropped label/comment would fail here.
+    #[test]
+    fn action_policy_covers_the_proof_carrying_read_and_conjecture_write_tools() {
+        const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/";
+        const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        const LOGIC_ACTION_SCHEMA: &str = "https://blackcatinformatics.ca/logic/ActionSchema";
+        const LOGIC_MCP_ACTION_SCHEMA: &str =
+            "https://blackcatinformatics.ca/logic/McpActionSchema";
+        const LOGIC_CAPABILITY: &str = "https://blackcatinformatics.ca/logic/capability";
+        const LOGIC_COMPENSATION: &str = "https://blackcatinformatics.ca/logic/compensation";
+        const LOGIC_EFFECT: &str = "https://blackcatinformatics.ca/logic/effect";
+
+        let policy = action_policy_nquads();
+
+        // The three new READ tools: each a plain logic:ActionSchema (mirroring ex:recall)
+        // typed + capability-gated, and each carrying NO logic:compensation / logic:effect
+        // (a read changes no state).
+        for local in ["explainQuad", "verifyGraph", "coherenceCertificate"] {
+            let subject = format!("{EX}{local}");
+            let type_line =
+                format!("<{subject}> <{RDF_TYPE}> <{LOGIC_ACTION_SCHEMA}> <{TXN_WORLD}> .");
+            let capability_line = format!(
+                "<{subject}> <{LOGIC_CAPABILITY}> <{EX}memoryReadCapability> <{TXN_WORLD}> ."
+            );
+            assert!(
+                policy.contains(&type_line),
+                "{local} must be typed logic:ActionSchema: missing {type_line:?} in:\n{policy}"
+            );
+            assert!(
+                policy.contains(&capability_line),
+                "{local} must carry logic:capability ex:memoryReadCapability: missing \
+                 {capability_line:?}"
+            );
+            assert!(
+                !policy.contains(&format!("<{subject}> <{LOGIC_COMPENSATION}>")),
+                "{local} is a read and must carry NO logic:compensation"
+            );
+            assert!(
+                !policy.contains(&format!("<{subject}> <{LOGIC_EFFECT}>")),
+                "{local} is a read and must carry NO logic:effect"
+            );
+        }
+
+        // The store_conjecture / refute_conjecture pair: ALREADY modeled by
+        // ex:persistConjecture / ex:withdrawConjecture (no duplicate schema minted for the
+        // MCP tool names) — confirm the store⇄refute compensation pairing survives the
+        // projection filter.
+        let persist_type = format!(
+            "<{EX}persistConjecture> <{RDF_TYPE}> <{LOGIC_MCP_ACTION_SCHEMA}> <{TXN_WORLD}> ."
+        );
+        let persist_compensation = format!(
+            "<{EX}persistConjecture> <{LOGIC_COMPENSATION}> <{EX}withdrawConjecture> <{TXN_WORLD}> ."
+        );
+        let withdraw_type = format!(
+            "<{EX}withdrawConjecture> <{RDF_TYPE}> <{LOGIC_MCP_ACTION_SCHEMA}> <{TXN_WORLD}> ."
+        );
+        let withdraw_compensation = format!(
+            "<{EX}withdrawConjecture> <{LOGIC_COMPENSATION}> <{EX}persistConjecture> <{TXN_WORLD}> ."
+        );
+        assert!(
+            policy.contains(&persist_type),
+            "persistConjecture (store_conjecture) must be typed logic:McpActionSchema"
+        );
+        assert!(
+            policy.contains(&persist_compensation),
+            "persistConjecture's compensation must be withdrawConjecture"
+        );
+        assert!(
+            policy.contains(&withdraw_type),
+            "withdrawConjecture (refute_conjecture) must be typed logic:McpActionSchema"
+        );
+        assert!(
+            policy.contains(&withdraw_compensation),
+            "withdrawConjecture's compensation must be persistConjecture"
+        );
+    }
+
     #[test]
     fn dry_run_must_be_a_boolean() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
