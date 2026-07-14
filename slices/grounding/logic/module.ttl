@@ -3732,6 +3732,12 @@ logic:unsupportedConstruct
     rdfs:label "unsupported construct"@x-gmeow-english ;
     skos:definition "Names a construct the lowering could not carry at all, carried on a logic:ReasoningResult's preservation field — MULTI-valued. A query whose constructs intersect this set is loss-affected (a derived diagnostic, never a stored field). Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
 
+logic:projectionLoss
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "projection loss"@x-gmeow-english ;
+    skos:definition "Names a loss-ledger code carried on a logic:CoherenceCertificate / logic:CoherenceCheckAttestation payload — MULTI-valued. Distinct from logic:unsupportedConstruct (which names the undecided DL construct): logic:projectionLoss records the ledger code of a lossy projection (Principle 17) that co-held when the coherence artifact was issued. Domain logic:CoherenceCertificate or logic:CoherenceCheckAttestation (stated in prose)."@x-gmeow-english .
+
 logic:contractHash
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
