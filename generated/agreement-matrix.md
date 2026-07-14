@@ -42,7 +42,8 @@ both are documented, intended, and excluded from the headline agreement rate abo
 ## Capability gaps (by shape)
 
 The structured `gmeow:gapShape` of every divergence case the native reasoner honestly
-declined to grade (an out-of-fragment conclusion shape), tallied across all corpora.
+declined to grade (an out-of-fragment conclusion shape), tallied across corpora carrying
+structured gap shapes.
 
 | gap shape | count |
 |---|---|

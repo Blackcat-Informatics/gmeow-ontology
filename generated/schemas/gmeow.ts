@@ -1772,6 +1772,14 @@ export enum GTSProfileEnum {
     gtsProfileOpaque = "gtsProfileOpaque",
 }
 
+export enum GapShapeEnum {
+    GapShapeExistentialWitness = "GapShapeExistentialWitness",
+    GapShapeMalformed = "GapShapeMalformed",
+    GapShapeNativeCoverage = "GapShapeNativeCoverage",
+    GapShapeRoleAssertion = "GapShapeRoleAssertion",
+    GapShapeVendoringMultiGoal = "GapShapeVendoringMultiGoal",
+}
+
 export enum GateVerdictEnum {
     gateCollected = "gateCollected",
     gateFatal = "gateFatal",
@@ -4589,6 +4597,12 @@ export interface CalendarSystem extends Entity {
 export interface CalibrationStatus {
 }
 
+export interface CapabilityGap {
+    capabilityGapCase?: string[],
+    capabilityGapCorpus?: string[],
+    gapShape?: string[],
+}
+
 export interface Capacity extends Measurement {
     capacityOf?: Location,
 }
@@ -5659,6 +5673,10 @@ export interface GTSSegment extends Manifestation {
     gtsSegmentIndex?: number,
     gtsSegmentOf?: GTSDocument,
     usesTransformCodec?: TransformCodec[],
+}
+
+export interface GapShape {
+    isReasonerFragmentGap?: string[],
 }
 
 export interface GateVerdict {

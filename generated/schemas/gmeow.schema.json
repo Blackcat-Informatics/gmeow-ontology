@@ -11094,6 +11094,16 @@
       ],
       "type": "object"
     },
+    "GapShapeEnum": {
+      "enum": [
+        "gmeow:GapShapeExistentialWitness",
+        "gmeow:GapShapeMalformed",
+        "gmeow:GapShapeNativeCoverage",
+        "gmeow:GapShapeRoleAssertion",
+        "gmeow:GapShapeVendoringMultiGoal"
+      ],
+      "type": "string"
+    },
     "GateVerdictEnum": {
       "enum": [
         "gmeow:gateCollected",
