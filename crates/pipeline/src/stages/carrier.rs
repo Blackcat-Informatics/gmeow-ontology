@@ -1972,10 +1972,15 @@ fn build_docs_archive(
     // serial critical path). Results are collected then sorted by member path, so the
     // archive is byte-identical regardless of completion order.
     let langs = gmeow_docs::available_languages(&translations);
+    // The purrdf graph diagrams (thousands of per-term / per-slice SVGs) are
+    // language-invariant and dominate the render cost — render them ONCE and share the
+    // identical bytes across every language tree, rather than re-rendering per locale.
+    let diagrams = gmeow_docs::render_purrdf_diagrams(model);
     let mut members: Vec<(String, Vec<u8>)> = langs
         .par_iter()
         .flat_map_iter(|lang| {
-            let site = gmeow_docs::render_site_lang_exec(model, lang, exec);
+            let site =
+                gmeow_docs::render_site_lang_exec_with_diagrams(model, lang, exec, &diagrams);
             let prefix = translations.internal_tag(lang);
             site.files
                 .into_iter()

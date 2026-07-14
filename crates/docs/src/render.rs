@@ -355,6 +355,58 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
 /// PyO3 preview) produces the complete base site without them. See [`render_site_lang`]
 /// for the model-only convenience.
 pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDocsData) -> Site {
+    // The language-invariant purrdf graph diagrams are the dominant render cost;
+    // render them once here (a multi-language archive shares a single render — see
+    // [`render_site_lang_exec_with_diagrams`] and the pipeline's `build_docs_archive`).
+    let diagrams = render_purrdf_diagrams(model);
+    render_site_lang_exec_with_diagrams(model, lang, exec, &diagrams)
+}
+
+/// The language-invariant purrdf-backed graph diagrams: the slice-dependency graph,
+/// the per-slice local dependency views, and the per-term neighbourhoods. Their node
+/// labels are IRI local names and their edges are structural IRIs — none of which the
+/// localizer rewrites — so they are byte-identical across every language tree.
+/// Rendering these thousands of purrdf graphs is the dominant snapshot-render cost, so
+/// a multi-language archive renders them ONCE via this function and shares the result
+/// (see [`render_site_lang_exec_with_diagrams`]). The language-DEPENDENT diagrams
+/// (`concerns.svg`, whose bars carry translated concern labels) and the cheap
+/// hand-emitted `coverage-heatmap.svg` / `pipeline.svg` are rendered per language.
+pub fn render_purrdf_diagrams(model: &DocsModel) -> BTreeMap<String, Vec<u8>> {
+    let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+    files.insert(
+        "diagrams/slices.svg".to_string(),
+        svg::slice_dependency_svg(model).into_bytes(),
+    );
+    for slice in &model.slices {
+        files.insert(
+            format!("diagrams/slices/{}.svg", slice_slug(slice)),
+            svg::slice_local_svg(model, &slice.iri).into_bytes(),
+        );
+    }
+    // Per-term neighbourhood diagrams — only for terms that actually have a
+    // neighbourhood, gated on the same predicate as the page embed so the two never
+    // disagree (no dangling image paths).
+    for term in &model.terms {
+        if svg::term_has_neighbourhood(term) {
+            files.insert(
+                format!("diagrams/terms/{}.svg", term_slug(term)),
+                svg::term_neighbourhood_svg(term).into_bytes(),
+            );
+        }
+    }
+    files
+}
+
+/// [`render_site_lang_exec`] with the language-invariant purrdf graph diagrams
+/// supplied pre-rendered, so a multi-language render produces those thousands of
+/// graphs ONCE and splices the identical bytes into every language tree. `diagrams`
+/// MUST be [`render_purrdf_diagrams`] of the same `model`.
+pub fn render_site_lang_exec_with_diagrams(
+    model: &DocsModel,
+    lang: &str,
+    exec: &ExecutableDocsData,
+    diagrams: &BTreeMap<String, Vec<u8>>,
+) -> Site {
     // The executable surfaces (playground, export links, wasm engine, query asset) are
     // language-INDEPENDENT: their RDF/JS/wasm are identical across locales. Emitting
     // them in every translated tree would triple the bundled asset. They therefore
@@ -413,24 +465,26 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
         );
     }
 
-    // Diagram SVGs are DEFERRED pending purrdf's SVG graph library: the
-    // hand-rolled renderers carry a latent cross-process ordering non-determinism,
-    // so each diagram is emitted as a deterministic placeholder for now. AUTHORIZED
-    // DEFERRAL (paudley) — restore the `svg::*_svg` calls when the purrdf SVG lib
-    // lands (tracked in the docs-SVG revisit issue). The emitted file set and every
-    // page embed are unchanged, so no image link dangles.
-    files.insert(
-        "diagrams/slices.svg".to_string(),
-        svg::deferred_diagram_svg("Slice dependency graph").into_bytes(),
-    );
+    // Diagram SVGs. The node-link graph diagrams (slice dependency graph, per-slice
+    // local dependencies, per-term neighbourhoods) are rendered by gmeow's shipped
+    // RDF-graph renderer (`purrdf::viz`) and supplied pre-rendered via `diagrams`
+    // (they are language-invariant, so a multi-language archive renders them once);
+    // the chart diagrams (concern bar chart, coverage heatmap) and the
+    // capability-coloured pipeline DAG stay hand-emitted here, as those are not
+    // node-link graphs. `concerns.svg` in particular is language-DEPENDENT (its bars
+    // carry translated concern labels), so it must render per language. Every emitted
+    // path also has a page embed, so no image link dangles.
+    for (path, bytes) in diagrams {
+        files.insert(path.clone(), bytes.clone());
+    }
     files.insert(
         "diagrams/concerns.svg".to_string(),
-        svg::deferred_diagram_svg("Concerns by term count").into_bytes(),
+        svg::concern_overview_svg(model).into_bytes(),
     );
     // The per-slice documentation-coverage heatmap embedded on the health page.
     files.insert(
         "diagrams/coverage-heatmap.svg".to_string(),
-        svg::deferred_diagram_svg("Documentation coverage by slice").into_bytes(),
+        svg::coverage_heatmap_svg(model).into_bytes(),
     );
     // The dogfooded build-pipeline DAG, embedded on `Page::PipelineDag` (emitted
     // only when a pipeline was discovered, so the page's embed never dangles).
@@ -439,25 +493,6 @@ pub fn render_site_lang_exec(model: &DocsModel, lang: &str, exec: &ExecutableDoc
             "diagrams/pipeline.svg".to_string(),
             svg::pipeline_dag_svg(model).into_bytes(),
         );
-    }
-    for slice in &model.slices {
-        files.insert(
-            format!("diagrams/slices/{}.svg", slice_slug(slice)),
-            svg::deferred_diagram_svg(&format!("Dependencies for slice {}", slice_slug(slice)))
-                .into_bytes(),
-        );
-    }
-    // Per-term neighbourhood diagrams — only for terms that actually have a
-    // neighbourhood, gated on the same predicate as the page embed below so the
-    // two never disagree (no dangling image paths).
-    for term in &model.terms {
-        if svg::term_has_neighbourhood(term) {
-            files.insert(
-                format!("diagrams/terms/{}.svg", term_slug(term)),
-                svg::deferred_diagram_svg(&format!("Neighborhood for term {}", term_slug(term)))
-                    .into_bytes(),
-            );
-        }
     }
 
     // Shared color-coded badge SVGs (deduped; one per distinct (family, value)).

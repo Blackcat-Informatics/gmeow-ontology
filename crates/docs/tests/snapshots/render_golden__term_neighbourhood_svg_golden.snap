@@ -1,16 +1,167 @@
 ---
 source: crates/docs/tests/render_golden.rs
-expression: head
+expression: "svg::term_neighbourhood_svg(term)"
 ---
-<svg xmlns="http://www.w3.org/2000/svg" width="868" height="164" viewBox="0 0 868 164" role="img" aria-label="Term neighbourhood">
-  <title>Term neighbourhood</title>
-  <rect width="868" height="164" fill="#ffffff" />
-  <g>
-    <rect x="324" y="53" width="220" height="40" rx="6" fill="#dfe9ff" stroke="#33425b" stroke-width="1" />
-    <text x="434" y="77" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#1b2436">assessedEntity</text>
-  </g>
-  <g>
-    <rect x="24" y="24" width="220" height="40" rx="6" fill="#eef2f8" stroke="#33425b" stroke-width="1" />
-    <text x="134" y="48" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#1b2436">observedFeature</text>
-  </g>
-  <g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 650" width="100%" role="img" aria-labelledby="purrdf-title purrdf-desc" data-purrdf-schema="purrdf-viz-export-1">
+<title id="purrdf-title">Neighbourhood for term assessedEntity</title>
+<desc id="purrdf-desc">Compact resource graph mode RDF 1.2 visualization with 7 terms, 3 structural statements, 3 assertions, and 0 statement-layer relations.</desc>
+<defs>
+<marker id="arrow-assertion" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#147d8a"/></marker>
+<marker id="arrow-role" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+<marker id="arrow-reifies" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b65c00"/></marker>
+<marker id="arrow-annotation" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#257942"/></marker>
+<marker id="arrow-quote" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6f4ba8"/></marker>
+<marker id="arrow-edge-assertion-2a2ba54c6be141ea" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(188,73%,31%)"/></marker>
+<marker id="arrow-edge-assertion-3da4934c60b428ad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(186,76%,31%)"/></marker>
+<marker id="arrow-edge-assertion-d418342547249da1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(186,76%,31%)"/></marker>
+<clipPath id="clip-svg-edge-assertion-2a2ba54c6be141ea-badge-0-label"><rect x="164" y="302" width="109" height="18"/></clipPath>
+<clipPath id="clip-svg-edge-assertion-2a2ba54c6be141ea-label"><rect x="170" y="272" width="96" height="26"/></clipPath>
+<clipPath id="clip-svg-edge-assertion-3da4934c60b428ad-badge-0-label"><rect x="258" y="358" width="109" height="18"/></clipPath>
+<clipPath id="clip-svg-edge-assertion-3da4934c60b428ad-label"><rect x="284" y="328" width="56" height="26"/></clipPath>
+<clipPath id="clip-svg-edge-assertion-d418342547249da1-badge-0-label"><rect x="190" y="66" width="109" height="18"/></clipPath>
+<clipPath id="clip-svg-edge-assertion-d418342547249da1-label"><rect x="212" y="36" width="64" height="26"/></clipPath>
+<clipPath id="clip-svg-legend-anchor-label"><rect x="104" y="502" width="184" height="42"/></clipPath>
+<clipPath id="clip-svg-legend-annotation-label"><rect x="104" y="566" width="184" height="42"/></clipPath>
+<clipPath id="clip-svg-legend-assertion-label"><rect x="104" y="438" width="184" height="42"/></clipPath>
+<clipPath id="clip-svg-legend-quoted-label"><rect x="376" y="438" width="184" height="42"/></clipPath>
+<clipPath id="clip-svg-legend-reifies-label"><rect x="376" y="502" width="184" height="42"/></clipPath>
+<clipPath id="clip-svg-node-term-35a6fc312dbf7031-label"><rect x="52" y="178" width="112" height="18"/></clipPath>
+<clipPath id="clip-svg-node-term-490ab83279eb7e52-label"><rect x="346" y="86" width="136" height="18"/></clipPath>
+<clipPath id="clip-svg-node-term-62447f33b930ac71-label"><rect x="354" y="178" width="120" height="18"/></clipPath>
+<clipPath id="clip-svg-node-term-d78e3bbcb3e3a458-label"><rect x="372" y="270" width="84" height="18"/></clipPath>
+<style>
+.canvas{fill:#f6f8fb}
+text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:0;fill:#17202a}
+.node-shape{stroke-width:2;fill:#fff;stroke:#176b78}
+.node.blank .node-shape{stroke:#64748b;stroke-dasharray:7 4;fill:#f8fafc}
+.node.literal .node-shape{stroke:#8a5a00;fill:#fff7e6}
+.node.statement .node-shape{stroke:#6f4ba8;stroke-width:2.5;fill:#f7f3ff;stroke-dasharray:8 4}
+.statement-inner{fill:none;stroke:#b6a1d2;stroke-width:1}
+.node.reifier .node-shape{stroke:#b65c00;fill:#fff8ed;stroke-width:3}
+.node.focus .node-shape{stroke:#a53a3a;stroke-width:4}
+.node-label{font-size:14px;font-weight:700}
+.node-port{fill:#fff;stroke:#334155;stroke-width:1.5}
+.edge-path,.legend-line{fill:none;stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.edge-label-leader{fill:none;stroke:#8392a5;stroke-width:1;stroke-dasharray:2 3}
+.edge.assertion .edge-path,.legend-line.assertion{stroke:#147d8a}
+.edge.role .edge-path,.legend-line.role{stroke:#64748b;stroke-width:1.8}
+.edge.reifies .edge-path,.legend-line.reifies{stroke:#b65c00;stroke-width:2.8;stroke-dasharray:10 4}
+.edge.annotation .edge-path,.legend-line.annotation{stroke:#257942;stroke-width:2.3}
+.edge.quoted .edge-path{stroke:#6f4ba8;stroke-width:1.7;stroke-dasharray:3 5}
+.edge-label-box{fill:#fff;stroke:#aeb9c7;stroke-width:1}
+.edge.assertion .edge-label-box{fill:#eef9fa;stroke:#66a8b0}
+.edge.role .edge-label-box{fill:#f7f8fa;stroke:#aeb7c2}
+.edge.reifies .edge-label-box{fill:#fff6e9;stroke:#d18a3d}
+.edge.annotation .edge-label-box{fill:#edf8f1;stroke:#69a67c}
+.edge.quoted .edge-label-box{fill:#f7f2fd;stroke:#9d82c1}
+.edge-label{font-size:12px;font-weight:650}
+.statement-anchor .anchor-shape{fill:#e5f4f5;stroke:#147d8a;stroke-width:2.5}
+.anchor-label{fill:#173f48;font-size:12px;font-weight:700}
+.badge-shape{fill:#eef2f6;stroke:#94a3b8;stroke-width:1}
+.graph .badge-shape{fill:#e7f5ef;stroke:#277a5a}
+.quoted .badge-shape{fill:#f1ebfa;stroke:#6f4ba8}
+.reifier .badge-shape,.reifier-count .badge-shape{fill:#fff0dc;stroke:#b65c00}
+.dialect .badge-shape,.focus .badge-shape{fill:#fdecec;stroke:#a53a3a}
+.direction .badge-shape{fill:#e8f0ff;stroke:#315d9b}
+.badge-label{font-size:10px;font-weight:650}
+.table-cell-shape{stroke:#c4ceda;stroke-width:1;fill:#fff}
+.table-cell.header .table-cell-shape{fill:#173f48;stroke:#173f48}
+.table-cell.header .table-label{fill:#fff;font-weight:700}
+.table-cell.even .table-cell-shape{fill:#f0f4f8}
+.table-label{font-size:12px}
+.legend-entry-shape{fill:#fff;stroke:#c4ceda;stroke-width:1}
+.legend-label{font-size:11px}
+.legend-symbol.assertion{fill:#e5f4f5;stroke:#147d8a;stroke-width:2}
+.legend-symbol.quoted{fill:#f7f3ff;stroke:#6f4ba8;stroke-width:2;stroke-dasharray:5 3}
+</style>
+</defs>
+<rect class="canvas" x="0" y="0" width="720" height="650"/>
+<g id="svg-edge-assertion-2a2ba54c6be141ea-group" class="edge assertion" data-scene-id="edge-assertion-2a2ba54c6be141ea">
+<title>asserted subClassOf</title><desc>assessedEntity —subClassOf→ observedFeature. Asserted in graph:default.</desc>
+<path id="svg-edge-assertion-2a2ba54c6be141ea-path" class="edge-path" d="M 180 176 H 252 Q 259 176 259 183 Q 259 190 266 190 H 338" marker-end="url(#arrow-edge-assertion-2a2ba54c6be141ea)" style="stroke:hsl(188,73%,31%)"/>
+<path class="edge-label-leader" d="M 218 285 L 259 190"/>
+<rect class="edge-label-box" x="170" y="272" width="96" height="26" rx="4"/>
+<text id="svg-edge-assertion-2a2ba54c6be141ea-label" class="edge-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-edge-assertion-2a2ba54c6be141ea-label)"><title>subClassOf</title><tspan x="218" y="290">subClassOf</tspan></text>
+<g id="svg-edge-assertion-2a2ba54c6be141ea-badge-0" class="edge-badge graph">
+<rect class="badge-shape" x="164" y="302" width="109" height="18" rx="4"/>
+<text id="svg-edge-assertion-2a2ba54c6be141ea-badge-0-label" class="badge-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-edge-assertion-2a2ba54c6be141ea-badge-0-label)"><title>default graph</title><tspan x="218" y="316">default graph</tspan></text>
+</g>
+</g>
+<g id="svg-edge-assertion-3da4934c60b428ad-group" class="edge assertion" data-scene-id="edge-assertion-3da4934c60b428ad">
+<title>asserted range</title><desc>assessedEntity —range→ Entity. Asserted in graph:default.</desc>
+<path id="svg-edge-assertion-3da4934c60b428ad-path" class="edge-path" d="M 180 190 H 260 Q 268 190 268 198 V 274 Q 268 282 276 282 H 356" marker-end="url(#arrow-edge-assertion-3da4934c60b428ad)" style="stroke:hsl(186,76%,31%)"/>
+<path class="edge-label-leader" d="M 312 341 L 312 282"/>
+<rect class="edge-label-box" x="284" y="328" width="56" height="26" rx="4"/>
+<text id="svg-edge-assertion-3da4934c60b428ad-label" class="edge-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-edge-assertion-3da4934c60b428ad-label)"><title>range</title><tspan x="312" y="346">range</tspan></text>
+<g id="svg-edge-assertion-3da4934c60b428ad-badge-0" class="edge-badge graph">
+<rect class="badge-shape" x="258" y="358" width="109" height="18" rx="4"/>
+<text id="svg-edge-assertion-3da4934c60b428ad-badge-0-label" class="badge-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-edge-assertion-3da4934c60b428ad-badge-0-label)"><title>default graph</title><tspan x="312" y="372">default graph</tspan></text>
+</g>
+</g>
+<g id="svg-edge-assertion-d418342547249da1-group" class="edge assertion" data-scene-id="edge-assertion-d418342547249da1">
+<title>asserted domain</title><desc>assessedEntity —domain→ QualityAssessment. Asserted in graph:default.</desc>
+<path id="svg-edge-assertion-d418342547249da1-path" class="edge-path" d="M 180 204 H 231 Q 239 204 239 196 V 106 Q 239 98 247 98 H 330" marker-end="url(#arrow-edge-assertion-d418342547249da1)" style="stroke:hsl(186,76%,31%)"/>
+<path class="edge-label-leader" d="M 244 49 L 244 98"/>
+<rect class="edge-label-box" x="212" y="36" width="64" height="26" rx="4"/>
+<text id="svg-edge-assertion-d418342547249da1-label" class="edge-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-edge-assertion-d418342547249da1-label)"><title>domain</title><tspan x="244" y="54">domain</tspan></text>
+<g id="svg-edge-assertion-d418342547249da1-badge-0" class="edge-badge graph">
+<rect class="badge-shape" x="190" y="66" width="109" height="18" rx="4"/>
+<text id="svg-edge-assertion-d418342547249da1-badge-0-label" class="badge-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-edge-assertion-d418342547249da1-badge-0-label)"><title>default graph</title><tspan x="244" y="80">default graph</tspan></text>
+</g>
+</g>
+<g id="svg-node-term-35a6fc312dbf7031-group" class="node iri" data-scene-id="node-term-35a6fc312dbf7031">
+<title>IRI resource</title><desc>IRI resource: assessedEntity.</desc>
+<rect id="svg-node-term-35a6fc312dbf7031-shape" class="node-shape" x="36" y="166" width="144" height="48" rx="6"/>
+<text id="svg-node-term-35a6fc312dbf7031-label" class="node-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-node-term-35a6fc312dbf7031-label)"><title>https://blackcatinformatics.ca/gmeow/assessedEntity</title><tspan x="108" y="192">assessedEntity</tspan></text>
+<circle id="svg-node-term-35a6fc312dbf7031-port-in" class="node-port" cx="36" cy="190" r="3"/>
+<circle id="svg-node-term-35a6fc312dbf7031-port-out" class="node-port" cx="180" cy="190" r="3"/>
+</g>
+<g id="svg-node-term-490ab83279eb7e52-group" class="node iri" data-scene-id="node-term-490ab83279eb7e52">
+<title>IRI resource</title><desc>IRI resource: QualityAssessment.</desc>
+<rect id="svg-node-term-490ab83279eb7e52-shape" class="node-shape" x="330" y="74" width="168" height="48" rx="6"/>
+<text id="svg-node-term-490ab83279eb7e52-label" class="node-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-node-term-490ab83279eb7e52-label)"><title>https://blackcatinformatics.ca/gmeow/QualityAssessment</title><tspan x="414" y="100">QualityAssessment</tspan></text>
+<circle id="svg-node-term-490ab83279eb7e52-port-in" class="node-port" cx="330" cy="98" r="3"/>
+<circle id="svg-node-term-490ab83279eb7e52-port-out" class="node-port" cx="498" cy="98" r="3"/>
+</g>
+<g id="svg-node-term-62447f33b930ac71-group" class="node iri" data-scene-id="node-term-62447f33b930ac71">
+<title>IRI resource</title><desc>IRI resource: observedFeature.</desc>
+<rect id="svg-node-term-62447f33b930ac71-shape" class="node-shape" x="338" y="166" width="152" height="48" rx="6"/>
+<text id="svg-node-term-62447f33b930ac71-label" class="node-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-node-term-62447f33b930ac71-label)"><title>https://blackcatinformatics.ca/gmeow/observedFeature</title><tspan x="414" y="192">observedFeature</tspan></text>
+<circle id="svg-node-term-62447f33b930ac71-port-in" class="node-port" cx="338" cy="190" r="3"/>
+<circle id="svg-node-term-62447f33b930ac71-port-out" class="node-port" cx="490" cy="190" r="3"/>
+</g>
+<g id="svg-node-term-d78e3bbcb3e3a458-group" class="node iri" data-scene-id="node-term-d78e3bbcb3e3a458">
+<title>IRI resource</title><desc>IRI resource: Entity.</desc>
+<rect id="svg-node-term-d78e3bbcb3e3a458-shape" class="node-shape" x="356" y="258" width="116" height="48" rx="6"/>
+<text id="svg-node-term-d78e3bbcb3e3a458-label" class="node-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-node-term-d78e3bbcb3e3a458-label)"><title>https://blackcatinformatics.ca/gmeow/Entity</title><tspan x="414" y="284">Entity</tspan></text>
+<circle id="svg-node-term-d78e3bbcb3e3a458-port-in" class="node-port" cx="356" cy="282" r="3"/>
+<circle id="svg-node-term-d78e3bbcb3e3a458-port-out" class="node-port" cx="472" cy="282" r="3"/>
+</g>
+<g id="svg-legend" class="legend">
+<g id="svg-legend-assertion" class="legend-entry legend-assertion">
+<rect class="legend-entry-shape" x="36" y="432" width="260" height="54" rx="4"/>
+<path class="legend-line assertion" d="M 48 459 H 92" marker-end="url(#arrow-assertion)"/>
+<text id="svg-legend-assertion-label" class="legend-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-legend-assertion-label)"><title>asserted RDF statement</title><tspan x="196" y="464">asserted RDF statement</tspan></text>
+</g>
+<g id="svg-legend-quoted" class="legend-entry legend-quoted">
+<rect class="legend-entry-shape" x="308" y="432" width="260" height="54" rx="4"/>
+<rect class="legend-symbol quoted" x="320" y="448" width="44" height="22" rx="4"/>
+<text id="svg-legend-quoted-label" class="legend-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-legend-quoted-label)"><title>triple term that is not asserted</title><tspan x="468" y="455">triple term that is not</tspan><tspan x="468" y="473">asserted</tspan></text>
+</g>
+<g id="svg-legend-anchor" class="legend-entry legend-anchor">
+<rect class="legend-entry-shape" x="36" y="496" width="260" height="54" rx="4"/>
+<rect class="legend-symbol assertion" x="48" y="512" width="44" height="22" rx="4"/>
+<text id="svg-legend-anchor-label" class="legend-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-legend-anchor-label)"><title>addressable asserted statement</title><tspan x="196" y="519">addressable asserted</tspan><tspan x="196" y="537">statement</tspan></text>
+</g>
+<g id="svg-legend-reifies" class="legend-entry legend-reifies">
+<rect class="legend-entry-shape" x="308" y="496" width="260" height="54" rx="4"/>
+<path class="legend-line reifies" d="M 320 523 H 364" marker-end="url(#arrow-reifies)"/>
+<text id="svg-legend-reifies-label" class="legend-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-legend-reifies-label)"><title>reifier-to-statement relation</title><tspan x="468" y="519">reifier-to-statement</tspan><tspan x="468" y="537">relation</tspan></text>
+</g>
+<g id="svg-legend-annotation" class="legend-entry legend-annotation">
+<rect class="legend-entry-shape" x="36" y="560" width="260" height="54" rx="4"/>
+<path class="legend-line annotation" d="M 48 587 H 92" marker-end="url(#arrow-annotation)"/>
+<text id="svg-legend-annotation-label" class="legend-label" text-anchor="middle" unicode-bidi="isolate" clip-path="url(#clip-svg-legend-annotation-label)"><title>ordinary relation from a reifier</title><tspan x="196" y="583">ordinary relation from</tspan><tspan x="196" y="601">a reifier</tspan></text>
+</g>
+</g>
+</svg>
