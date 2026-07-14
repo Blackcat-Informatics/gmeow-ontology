@@ -2493,6 +2493,11 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
   <https://blackcatinformatics.ca/gmeow/existenceEntity> . {0,1} ;
 }
 
+# targetSubjectsOf <https://blackcatinformatics.ca/gmeow/existentialOrdinal> (associate via ShapeMap)
+<https://blackcatinformatics.ca/gmeow/existentialOrdinal-domain-shape> {
+  <https://blackcatinformatics.ca/gmeow/existentialOrdinal> . {0,1} ;
+}
+
 # targetSubjectsOf <https://blackcatinformatics.ca/gmeow/experiencer> (associate via ShapeMap)
 <https://blackcatinformatics.ca/gmeow/experiencer-domain-shape> {
   <https://blackcatinformatics.ca/gmeow/experiencer> . {0,1} ;

@@ -6719,7 +6719,7 @@ type InterpersonalRelationship {
 type InventedWitness {
   id: String
   iri: String
-  existentialOrdinal: [Int!]
+  existentialOrdinal: Int
 }
 
 type InvitationStatus {

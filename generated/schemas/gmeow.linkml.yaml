@@ -8171,7 +8171,7 @@ slots:
     range: integer
     domain: InventedWitness
     minimum_value: 0
-    multivalued: true
+    multivalued: false
   experiencer:
     slot_uri: https://blackcatinformatics.ca/gmeow/experiencer
     title: experiencer

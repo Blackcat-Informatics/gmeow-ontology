@@ -2223,6 +2223,10 @@
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/existenceEntity> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/existenceEntity> ; sh:maxCount 1 ] .
 
+<https://blackcatinformatics.ca/gmeow/existentialOrdinal-domain-shape> a sh:NodeShape ;
+    sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/existentialOrdinal> ;
+    sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/existentialOrdinal> ; sh:maxCount 1 ] .
+
 <https://blackcatinformatics.ca/gmeow/experiencer-domain-shape> a sh:NodeShape ;
     sh:targetSubjectsOf <https://blackcatinformatics.ca/gmeow/experiencer> ;
     sh:property [ sh:path <https://blackcatinformatics.ca/gmeow/experiencer> ; sh:maxCount 1 ] .

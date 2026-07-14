@@ -5999,7 +5999,7 @@ export interface InterpersonalRelationship {
 }
 
 export interface InventedWitness {
-    existentialOrdinal?: number[],
+    existentialOrdinal?: number,
 }
 
 export interface InvitationStatus {
