@@ -65,6 +65,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | A `math:Number` declares the number system it belongs to | SHACL Core | `math:UnsituatedNumber` |
 | A `math:ApproximateValue` names the exact number it approximates and its error | SHACL Core | `math:ExactApproximateConflation` |
 | A named constant is an exact individual, not a decimal literal | SHACL Core | `math:ConstantAsDecimalLiteral` |
+| A signed-extended-real slot holds a finite number (either sign), `math:PositiveInfinity`, or `math:NegativeInfinity` | SHACL Core | `math:MalformedExtendedReal` |
 | An intensional set's member condition denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyMemberCondition` |
 | A complement names its ambient space and its complement-semantics | SHACL Core | `math:UnqualifiedComplement` |
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |

@@ -24,6 +24,34 @@ ASK {
 }""" ;
     gmeow:saRationale "The five nested number systems MUST form the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ as rdfs:subClassOf edges, so a value in an inner system is entailed to be a value of every outer one." .
 
+# --- 1b. math:NegativeInfinity is a bare NamedIndividual mirroring +∞ (MUST) ---
+ex:saNegativeInfinityBare a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    math:NegativeInfinity a owl:NamedIndividual .
+    FILTER NOT EXISTS { math:NegativeInfinity a owl:Class . }
+    FILTER NOT EXISTS { math:NegativeInfinity gmeow:graphBoxRole ?role . }
+}""" ;
+    gmeow:saRationale "math:NegativeInfinity MUST mirror math:PositiveInfinity's shape EXACTLY: a bare owl:NamedIndividual (never typed as an owl:Class) that carries no gmeow:graphBoxRole. Both poles are extended-real points, not T-Box terms, so they stay bare — the negative pole is minted the same way the positive one already is." .
+
+# --- 1c. math:ExtendedRealLine adjoins both poles and the reals (MUST) ---
+ex:saExtendedRealLineAdjoins a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:ExtendedRealLine a owl:NamedIndividual , math:NumberSystem .
+    math:PositiveInfinity math:inNumberSystem math:ExtendedRealLine .
+    math:NegativeInfinity math:inNumberSystem math:ExtendedRealLine .
+    math:realNumbers math:subsystemOf math:ExtendedRealLine .
+}""" ;
+    gmeow:saRationale "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞} MUST be grounded through the existing number-system machinery, not a parallel one: math:ExtendedRealLine is a math:NumberSystem individual (sibling to math:realNumbers and math:complexNumbers, not a punned class), it adjoins BOTH poles as members through math:inNumberSystem, and it relates the reals as a subsystem through math:subsystemOf. A pole adjoined to only one end, or grounded by an invented predicate, fails this assertion." .
+
 # --- 2. Every bedrock failure class subclasses math:MathConformanceFailure (MUST) ---
 ex:saFailureHierarchy a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;

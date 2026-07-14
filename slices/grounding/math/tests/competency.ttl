@@ -47,6 +47,32 @@ ex:rowNegFive a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "system" ; gmeow:cellValueIri math:integers ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "exact" ; gmeow:cellValueLiteral "true" ] .
 
+# === Q1b — the two poles of the signed extended real line and the system they adjoin === #
+# Like the topological-defining-law question below, this one carries NO gmeow:cqDataFile:
+# the poles and math:ExtendedRealLine live in the ontology (module.ttl), so the query runs
+# over the merged asserted store directly. The answer is exactly the two pole → system pairs.
+ex:cqSignedExtendedReals a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/signed-extended-reals.rq" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "The signed extended real line ℝ̄ reuses the number-system machinery: each pole is situated in it through math:inNumberSystem, exactly as any number situates in ℕ/ℤ/ℚ/ℝ/ℂ. Over the merged ontology the answer is exactly the two pairs {math:NegativeInfinity → math:ExtendedRealLine, math:PositiveInfinity → math:ExtendedRealLine} — the two signed ends adjoined to the reals — confirming the poles are grounded, not free-floating individuals." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqSignedExtendedRealsShape ;
+    gmeow:cqExpectRow ex:rowPoleNeg , ex:rowPolePos .
+
+ex:cqSignedExtendedRealsShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "pole" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "system" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowPoleNeg a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pole" ; gmeow:cellValueIri math:NegativeInfinity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "system" ; gmeow:cellValueIri math:ExtendedRealLine ] .
+
+ex:rowPolePos a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "pole" ; gmeow:cellValueIri math:PositiveInfinity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "system" ; gmeow:cellValueIri math:ExtendedRealLine ] .
+
 # === Q2 — set extent and condition ========================================= #
 
 ex:cqSetExtentAndCondition a gmeow:CompetencyQuestion ;

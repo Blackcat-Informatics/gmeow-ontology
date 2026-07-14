@@ -252,6 +252,14 @@ msgctxt "https://blackcatinformatics.ca/math/ExperimentalDesign|skos:definition"
 msgid "An experimental design: the first-class record of how a study's units were structured and assigned — a completely randomized, block, factorial, crossover, or split-plot design. A subclass of math:MathematicalObject; together with the math:RandomizationScheme it names, it records how units were assigned to conditions, so the design is queryable structure rather than a phrase in a methods section. Naming the design as an object is what lets an analysis's validity conditions be checked against the assignment that actually produced the data."
 msgstr "一个实验设计：关于一项研究的单元如何被结构化与分配的头等记录——一个完全随机、区组、析因、交叉或裂区设计。它是 math:MathematicalObject 的子类；连同它所命名的 math:RandomizationScheme，它记录了单元如何被分配到各方，使设计成为可查询的结构而非方法一节中的一句话。将设计命名为对象，正是让一次分析的有效性条件得以对照真正产出数据的那次分配加以核验。"
 
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|rdfs:label"
+msgid "extended real line (ℝ̄)"
+msgstr "扩展实数轴（ℝ̄）"
+
+msgctxt "https://blackcatinformatics.ca/math/ExtendedRealLine|skos:definition"
+msgid "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: the real number system with its two poles adjoined. It reuses the number-system machinery rather than a parallel one — it relates the reals as a subsystem (math:realNumbers math:subsystemOf math:ExtendedRealLine) and adjoins the two extended-real points math:PositiveInfinity and math:NegativeInfinity as its members (each math:inNumberSystem math:ExtendedRealLine). As a math:NumberSystem it IS the set of its points, so it is the codomain a signed divergent field — an extended-real-valued function whose value may run off to either pole — ranges over. Distinct from ℂ: ℝ̄ compactifies the ordered line with two signed ends, it does not close it algebraically; a value in a signed-extended-real slot is a finite real, +∞, or −∞ (math:MalformedExtendedReal otherwise)."
+msgstr "带符号扩展实数轴 ℝ̄ = ℝ ∪ {−∞, +∞}：将其两个极点邻接到实数系统而成。它复用既有的数系机制而非另建平行机制——它将实数关联为一个子系统（math:realNumbers math:subsystemOf math:ExtendedRealLine），并将两个扩展实数点 math:PositiveInfinity 与 math:NegativeInfinity 作为其成员邻接（各自 math:inNumberSystem math:ExtendedRealLine）。作为一个 math:NumberSystem，它就是其各点构成的集合，因此它是带符号发散场——其取值可能奔向任一极点的扩展实值函数——所遍历的陪域。与 ℂ 不同：ℝ̄ 以两个带符号的端点对有序直线作紧化，而非在代数上将其闭合；带符号扩展实数槽中的值是有限实数、+∞ 或 −∞（否则即为 math:MalformedExtendedReal）。"
+
 msgctxt "https://blackcatinformatics.ca/math/FrequentistResult|rdfs:label"
 msgid "Frequentist Result"
 msgstr "频率派结果"
@@ -467,6 +475,14 @@ msgstr "多重比较族"
 msgctxt "https://blackcatinformatics.ca/math/multipleComparisonFamily|skos:definition"
 msgid "Relates a math:PValue to the family of comparisons its multiplicity adjustment is taken over — the set of tests within which its error rate is controlled. Domain math:PValue, range the comparison-family object (stated in prose). The family scopes the adjustment: a correction is only meaningful relative to the family of comparisons it controls the error rate across."
 msgstr "将一个 math:PValue 关联到其多重性调整所依据的比较族——其错误率在其中被控制的检验集合。定义域为 math:PValue，值域为比较族对象（在文字中说明）。族为调整框定范围：一个校正只有相对于它控制错误率所跨的比较族才有意义。"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|rdfs:label"
+msgid "−∞"
+msgstr "−∞"
+
+msgctxt "https://blackcatinformatics.ca/math/NegativeInfinity|skos:definition"
+msgid "Negative infinity as an extended-real value: the negative pole of the signed extended real line math:ExtendedRealLine, the dual of math:PositiveInfinity. It is the extended-real point that lets an unbounded-below quantity — a limit diverging downward, the infimum of a set with no lower bound — be declared without a finite literal. It is NOT a finite number (it lives nowhere in ℝ); NOT an error, exception, or missing value; and NOT the undefined/indeterminate result that math:PositiveInfinity + math:NegativeInfinity or 0 · ∞ would give — an extended real is a definite point on ℝ̄, never a NaN. A signed-extended-real slot (math:extendedRealValue) holds either a finite number, math:PositiveInfinity, or this individual."
+msgstr "负无穷大作为一个扩展实数值：带符号扩展实数轴 math:ExtendedRealLine 的负极，是 math:PositiveInfinity 的对偶。它是这样一个扩展实数点：使一个无下界的量——向下发散的极限、无下界集合的下确界——无需有限字面量即可声明。它不是有限数（它不位于 ℝ 中的任何位置）；不是错误、异常或缺失值；也不是 math:PositiveInfinity + math:NegativeInfinity 或 0 · ∞ 所给出的未定义/不确定结果——扩展实数是 ℝ̄ 上的一个确定点，绝非 NaN。带符号扩展实数槽（math:extendedRealValue）中容纳的要么是有限数、要么是 math:PositiveInfinity，要么是这个个体。"
 
 msgctxt "https://blackcatinformatics.ca/math/nullDistribution|rdfs:label"
 msgid "null distribution"
