@@ -146,6 +146,51 @@ ASK {
 }""" ;
     gmeow:saRationale "A per-slice tier floor is a raise-only ratchet cell pairing one slice with one minimum roll-up tier, so gmeow:floorSlice and gmeow:floorTier are functional with their committed ranges — a floor naming two slices or two tiers would make the committed rung ill-defined over the lattice order." .
 
+# --- 8d. A ProjectionCeilingCommitment carries exactly one slice, vocabulary, and count (MUST)
+ex:saProjectionCeilingCommitmentWellFormed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:ProjectionCeilingCommitment a owl:Class .
+    gmeow:ceilingSlice      a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:Slice .
+    gmeow:ceilingVocabulary a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range gmeow:ProjectionVocabulary .
+    gmeow:ceilingCount      a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:nonNegativeInteger .
+}""" ;
+    gmeow:saRationale "A projection-ceiling commitment is a lower-only ratchet cell pairing exactly one slice, one guarded projection vocabulary, and one measured residue ceiling, so gmeow:ceilingSlice, gmeow:ceilingVocabulary, and gmeow:ceilingCount are all functional with their committed ranges — a commitment with two slices, two vocabularies, or two counts would make the monotone lower-only bar ill-defined." .
+
+# --- 8e. A ProjectionVocabulary names its join key and its recognition strategy (MUST)
+ex:saProjectionVocabularyWellFormed a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:ProjectionVocabulary a owl:Class .
+    gmeow:vocabularyPrefix    a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:string .
+    gmeow:vocabularyCountKind a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:string .
+}""" ;
+    gmeow:saRationale "A guarded projection vocabulary is looked up by exactly one short CURIE prefix and dispatches its residue-recognition strategy on exactly one closed-set count-kind literal, so gmeow:vocabularyPrefix and gmeow:vocabularyCountKind are functional — two prefixes would break the join key a ceiling commitment resolves against, and two count-kinds would leave the shared counter's dispatch ambiguous." .
+
+# --- 8f. No ProjectionCeilingCommitment double-binds its slice, vocabulary, or count (MUST-NOT)
+ex:saProjectionCeilingNotDoubleSliced a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    { ?pcc a gmeow:ProjectionCeilingCommitment ; gmeow:ceilingSlice ?s1 ; gmeow:ceilingSlice ?s2 . FILTER (?s1 != ?s2) }
+    UNION
+    { ?pcc a gmeow:ProjectionCeilingCommitment ; gmeow:ceilingVocabulary ?v1 ; gmeow:ceilingVocabulary ?v2 . FILTER (?v1 != ?v2) }
+    UNION
+    { ?pcc a gmeow:ProjectionCeilingCommitment ; gmeow:ceilingCount ?c1 ; gmeow:ceilingCount ?c2 . FILTER (?c1 != ?c2) }
+}""" ;
+    gmeow:saRationale "A ceiling commitment is a single ratchet cell for one (slice, vocabulary) pair, so no individual may bind two distinct slices, two distinct vocabularies, or two distinct counts — a double-bound cell would leave the gate reading an arbitrary one of the pairings and the lower-only bar undefined for the other." .
+
 # --- 8. The advice weight never enters the roll-up: it is not the meet (MUST-NOT)
 ex:saWeightNotTierRank a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
