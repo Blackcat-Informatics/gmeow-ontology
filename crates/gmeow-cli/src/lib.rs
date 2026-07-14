@@ -256,6 +256,17 @@ pub enum Commands {
         #[command(subcommand)]
         command: ConjectureCommands,
     },
+    /// Decide whether a premise RDF graph ENTAILS a conclusion (`A ⊨ C`), natively,
+    /// by refutation over the DL consistency calculus. Prints `entailed`,
+    /// `not-entailed`, or an honest `gap:<shape>` when the conclusion is outside the
+    /// soundly-refutable fragment. Syntax is inferred from each file's extension
+    /// (`.ttl`, `.nt`, `.nq`, `.rdf`/`.owl`/`.xml`, `.trig`).
+    Entails {
+        /// The premise RDF graph `A`.
+        premise: PathBuf,
+        /// The conclusion RDF graph `C`.
+        conclusion: PathBuf,
+    },
 }
 
 /// The `gmeow conjecture` nested subcommands (native `gmeow_pipeline` engine).
@@ -485,5 +496,9 @@ pub fn run() -> i32 {
                 max_answers,
             ),
         },
+        Commands::Entails {
+            premise,
+            conclusion,
+        } => commands::entails(reporter, &premise, &conclusion),
     }
 }
