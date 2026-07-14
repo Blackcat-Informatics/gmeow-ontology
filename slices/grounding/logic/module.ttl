@@ -3732,6 +3732,14 @@ logic:unsupportedConstruct
     rdfs:label "unsupported construct"@x-gmeow-english ;
     skos:definition "Names a construct the lowering could not carry at all, carried on a logic:ReasoningResult's preservation field — MULTI-valued. A query whose constructs intersect this set is loss-affected (a derived diagnostic, never a stored field). Domain logic:ReasoningResult (stated in prose)."@x-gmeow-english .
 
+logic:projectionLoss
+    a owl:DatatypeProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( logic:CoherenceCertificate logic:CoherenceCheckAttestation ) ] ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "projection loss"@x-gmeow-english ;
+    skos:definition "Names a loss-ledger code carried on a logic:CoherenceCertificate / logic:CoherenceCheckAttestation payload — MULTI-valued. Distinct from logic:unsupportedConstruct (which names the undecided DL construct): logic:projectionLoss records the ledger code of a lossy projection (Principle 17) that co-held when the coherence artifact was issued."@x-gmeow-english .
+
 logic:contractHash
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -5591,6 +5599,15 @@ logic:conjectureLifecycleState
     rdfs:label "conjecture lifecycle state"@x-gmeow-english ;
     skos:definition "Relates a logic:Conjecture to its current EPISTEMIC logic:ConjectureLifecycleState (open / corroborated / refuted-in-standpoint / withdrawn). Single-valued and REQUIRED. Orthogonal to logic:candidateLifecycle (the GOVERNANCE state inherited from the candidate spine): a conjecture may be governance-accepted yet epistemically open, so the two are never collapsed (Principle 9). Domain logic:Conjecture, range logic:ConjectureLifecycleState."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox .
+
+logic:withdrawalReason
+    a owl:DatatypeProperty ;
+    rdfs:domain logic:Conjecture ;
+    rdfs:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "withdrawal reason"@x-gmeow-english ;
+    skos:definition "The author's free-text rationale recorded when a logic:Conjecture is retired to logic:ConjectureWithdrawn — the human note explaining WHY testing stopped, carried on the compensating author-withdrawal segment appended to the append-only conjecture library. Distinct from a found counterexample (which a refutation names through logic:conjectureRefutationWitness): a withdrawal is a deliberate authoring decision to stop testing, so this reason is a reviewer-asserted datum (the withdrawal carries logic:verdictProvenance logic:VerdictReviewerAsserted), NEVER engine-produced. Optional and single-valued; present exactly when a withdrawal names a reason. Domain logic:Conjecture, range xsd:string."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 logic:ContradictionWitness
     a owl:Class ;

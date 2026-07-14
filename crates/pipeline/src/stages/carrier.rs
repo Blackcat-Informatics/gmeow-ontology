@@ -594,7 +594,7 @@ pub(crate) fn build_self_description_dataset_with_quality(
         let imports_ds = parse_dataset(&imports, "text/turtle", None)
             .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
         let edb = purrdf::RdfDataset::union(&[base.as_ref(), imports_ds.as_ref()]);
-        run_verify_attestation(root, &edb)?
+        run_verify_attestation(&edb)?
     };
     let provenance_nt = build_provenance_projection(root)?;
     // graph/quality-assessment — every slice scored against the ontology-resident rubric,
@@ -873,7 +873,7 @@ fn assemble_carrier(
     // assembled — and fold the derived verdicts into graph/diagnostics, so the shipped
     // gmeow.gts carries the ontology's entailment and the SHACL up-set shape agrees. The
     // rule + wiring are read from the authored stage-source-load base graph, never re-typed.
-    if let Some(source_bytes) = upstream
+    let composed_final = if let Some(source_bytes) = upstream
         .get("stage-source-load")
         .and_then(|p| p.artifact(crate::stages::source_load::BASE_GRAPH_PATH))
         && let Some(gate) = crate::stages::gate_verdict::GateProgram::from_source(source_bytes)
@@ -883,16 +883,104 @@ fn assemble_carrier(
         let verdict_nq = gate
             .derived_verdict_nquads(&composed_nq, GRAPH_DIAGNOSTICS)
             .map_err(|e| stage_err(&format!("derive gate verdicts over the bundle: {e}")))?;
-        if !verdict_nq.is_empty() {
+        if verdict_nq.is_empty() {
+            composed
+        } else {
             let verdicts = parse_dataset(verdict_nq.as_bytes(), "application/n-quads", None)
                 .map_err(|e| stage_err(&format!("parse derived gate verdicts: {e}")))?;
-            return Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&[
+            std::sync::Arc::new(purrdf::RdfDataset::union(&[
                 composed.as_ref(),
                 verdicts.as_ref(),
-            ])));
+            ]))
         }
+    } else {
+        composed
+    };
+
+    // Fold the SCOPED COHERENCE CERTIFICATE into the terminal bundle (graph/attestations),
+    // so EVERY gmeow.gts carries a budget-free, proof-carrying coherence attestation the
+    // consumer reads directly — never recomputed per call (R6). The certificate is
+    // computed ONCE here, over the fully-composed carrier, reusing stage-reason's single
+    // reasoning pass (no second reason) and the ONE `build_coherence_outcome` construction
+    // the release lane also uses.
+    fold_coherence_certificate(composed_final, upstream)
+}
+
+/// The INJECTED issue timestamp the terminal coherence certificate carries. The
+/// regenerate pipeline never samples a clock (the bundle must be byte-stable run to run —
+/// the parity gate), so the certificate's `logic:checkIssuedAt` is pinned to the Unix
+/// epoch, the SAME reproducible-build sentinel the packed-archive members zero their mtime
+/// to. It is an injected constant, not a degraded fallback: a build-time coherence proof
+/// over content-addressed bytes has no meaningful wall-clock instant.
+const COHERENCE_ISSUED_AT: &str = "1970-01-01T00:00:00Z";
+
+/// Fold the scoped coherence certificate over the fully-composed carrier into its
+/// `graph/attestations` named graph, reusing `stage-reason`'s single reasoning pass.
+///
+/// The certificate's bundle identity is the content digest of the composed carrier BEFORE
+/// the certificate graph is added (the certificate cannot hash the bytes it becomes part
+/// of — the same pre-fold-hash discipline the release lane uses). The
+/// [`crate::stages::release::build_coherence_outcome`] construction is shared, fed the
+/// reused reasoning result and this carrier's identity. A REFUSED outcome (a forbidden
+/// integrity violation) HARD-FAILS: an incoherent bundle must never ship a coherence
+/// artifact (no-optionality / fail-closed). A certificate or the strictly-weaker
+/// attestation folds as `graph/attestations` — always present, so the consumer read tool
+/// never needs a recompute path.
+fn fold_coherence_certificate(
+    composed: std::sync::Arc<purrdf::RdfDataset>,
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<std::sync::Arc<purrdf::RdfDataset>, gmeow_errors::Diag> {
+    // Reuse stage-reason's single reasoning pass (the typed Reasoning handle), never a
+    // second reason over the carrier — the razor (PIPELINE_SPINE §3.2): reason once.
+    let reason = upstream
+        .get("stage-reason")
+        .ok_or_else(|| stage_err("missing stage-reason product for the coherence certificate"))?;
+    let reason_entry = reason
+        .bundle()
+        .handle(gmeow_logic::result_rdf::GRAPH_REASONING)
+        .ok_or_else(|| stage_err("stage-reason product carries no Reasoning handle"))?;
+    let crate::bundle::PipelineHandle::Reasoning(result) = &reason_entry.payload else {
+        return Err(stage_err(
+            "stage-reason handle for graph/reasoning is not the Reasoning arm",
+        ));
+    };
+
+    // Bundle identity = digest of the composed carrier's canonical N-Quads, pinned with the
+    // SAME digest primitive as the axiom-set hashes (so the certificate's bundle_hash and
+    // axiom_hashes are computed under one deterministic primitive).
+    let composed_nq = purrdf::canonical_flat_nquads(composed.as_ref()).map_err(|e| {
+        stage_err(&format!(
+            "serialize composed carrier for the coherence certificate: {e}"
+        ))
+    })?;
+    let bundle_hash = purrdf::gts::writer::digest_string(composed_nq.as_bytes());
+
+    let outcome = crate::stages::release::build_coherence_outcome(
+        composed.as_ref(),
+        result.as_ref(),
+        bundle_hash,
+        COHERENCE_ISSUED_AT,
+    )?;
+    if outcome.is_refused() {
+        return Err(stage_err(
+            "coherence certificate: the assembled bundle carries a forbidden integrity \
+             violation; an incoherent bundle must not ship a coherence artifact",
+        ));
     }
-    Ok(composed)
+    let nquads = outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS);
+    // A non-refused outcome always serializes (a certificate or the weaker attestation);
+    // an empty projection here would mean the gate above failed to catch a refusal.
+    if nquads.is_empty() {
+        return Err(stage_err(
+            "coherence certificate: a non-refused outcome projected no quads (internal invariant)",
+        ));
+    }
+    let cert = parse_dataset(nquads.as_bytes(), "application/n-quads", None)
+        .map_err(|e| stage_err(&format!("parse coherence certificate quads: {e}")))?;
+    Ok(std::sync::Arc::new(purrdf::RdfDataset::union(&[
+        composed.as_ref(),
+        cert.as_ref(),
+    ])))
 }
 
 /// Every remaining RDF `generated/` file (committed-path → bytes) that rides as an
@@ -3566,23 +3654,13 @@ fn expand_curie(
 /// Run the native verify lane over `edb` and build the attestation graph as
 /// N-Quads. Mirrors `gts_gen.build_verify_attestation_graph` exactly (the same
 /// `gmeow:QualityAssessment` vocabulary, one per query).
-fn run_verify_attestation(
-    root: &Path,
-    edb: &purrdf::RdfDataset,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let query_paths = verify_query_paths(root)?;
-    let pairs: Vec<(String, String)> = query_paths
-        .iter()
-        .map(|(name, path)| {
-            std::fs::read_to_string(path)
-                .map(|sparql| (name.clone(), sparql))
-                .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Io {
-                        message: e.to_string(),
-                    })
-                })
-        })
-        .collect::<Result<_, _>>()?;
+///
+/// The query set is compile-time-embedded (`gmeow_logic::verify::
+/// embedded_verify_queries`) rather than walked off disk: `queries/verify/` and
+/// `slices/**/queries/verify/` are baked into the `gmeow-logic` binary by its
+/// `build.rs`, sorted by stem.
+fn run_verify_attestation(edb: &purrdf::RdfDataset) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let pairs = gmeow_logic::verify::embedded_verify_queries();
 
     let report = gmeow_logic::verify::verify(edb, &pairs)
         .map_err(|e| stage_err(&format!("native verify: {e}")))?;
@@ -3597,59 +3675,14 @@ fn run_verify_attestation(
         }
     }
 
-    let attestation = emit_verify_attestation(&query_paths, &failed);
+    let attestation = emit_verify_attestation(&pairs, &failed);
     turtle_to_nquads(attestation.as_bytes())
-}
-
-/// Sorted `(repo_relative_name, path)` for every verify query (core + slice).
-fn verify_query_paths(
-    root: &Path,
-) -> Result<Vec<(String, std::path::PathBuf)>, gmeow_errors::Diag> {
-    let mut out: Vec<(String, std::path::PathBuf)> = Vec::new();
-    // Core: sorted queries/verify/*.rq.
-    let core = root.join("queries").join("verify");
-    let mut core_files: Vec<std::path::PathBuf> = Vec::new();
-    if core.is_dir() {
-        for entry in std::fs::read_dir(&core)? {
-            let path = entry?.path();
-            if path.extension().is_some_and(|x| x == "rq") {
-                core_files.push(path);
-            }
-        }
-    }
-    core_files.sort();
-    for path in core_files {
-        out.push((rel_name(root, &path), path));
-    }
-    // Slice verify queries: slices/<group>/<name>/queries/verify/*.rq.
-    let mut slice_files: Vec<std::path::PathBuf> = Vec::new();
-    let slices = root.join("slices");
-    if slices.is_dir() {
-        for group in sorted_dirs(&slices)? {
-            for slice in sorted_dirs(&group)? {
-                let vdir = slice.join("queries").join("verify");
-                if vdir.is_dir() {
-                    for entry in std::fs::read_dir(&vdir)? {
-                        let path = entry?.path();
-                        if path.extension().is_some_and(|x| x == "rq") {
-                            slice_files.push(path);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    slice_files.sort();
-    for path in slice_files {
-        out.push((rel_name(root, &path), path));
-    }
-    Ok(out)
 }
 
 /// Emit the verify-attestation Turtle (pure, deterministic). One
 /// `gmeow:QualityAssessment` per query; mirrors `build_verify_attestation_graph`.
 fn emit_verify_attestation(
-    query_paths: &[(String, std::path::PathBuf)],
+    query_paths: &[(String, String)],
     failed: &std::collections::BTreeSet<String>,
 ) -> String {
     use std::fmt::Write;
@@ -3684,7 +3717,7 @@ fn emit_verify_attestation(
     .unwrap();
     writeln!(body).unwrap();
 
-    for (name, _path) in query_paths {
+    for (name, _sparql) in query_paths {
         let stem = query_stem(name);
         let passed = !failed.contains(stem);
         writeln!(body, "<{GMEOW_NS}verify-attestation/{stem}>").unwrap();
@@ -3954,25 +3987,6 @@ fn union_turtle_datasets(sources: &[Vec<u8>]) -> Result<purrdf::RdfDataset, gmeo
         .collect::<Result<_, _>>()?;
     let refs: Vec<&purrdf::RdfDataset> = owned.iter().map(AsRef::as_ref).collect();
     Ok(purrdf::RdfDataset::union(&refs))
-}
-
-fn sorted_dirs(dir: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-    let mut out: Vec<std::path::PathBuf> = Vec::new();
-    for entry in std::fs::read_dir(dir)? {
-        let path = entry?.path();
-        if path.is_dir() {
-            out.push(path);
-        }
-    }
-    out.sort();
-    Ok(out)
-}
-
-fn rel_name(root: &Path, path: &Path) -> String {
-    path.strip_prefix(root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .into_owned()
 }
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
@@ -6940,5 +6954,85 @@ mod quality_assessment_tests {
             Some(QUALITY_ASSESSMENT_PATH),
             "the fanout IRI must invert back to the committed path (bijection)"
         );
+    }
+}
+
+#[cfg(test)]
+mod coherence_certificate_tests {
+    use super::*;
+    use crate::bundle::{PipelineHandle, bundle_from_artifacts_over};
+    use gmeow_logic::result_rdf::{GRAPH_REASONING, project_reasoning_result};
+    use purrdf::RdfTerm;
+    use std::sync::Arc;
+
+    /// Wrap a reasoned result as a `stage-reason` product carrying the typed Reasoning
+    /// handle pinned to `graph/reasoning` — the SAME shape `stage-reason` emits, which
+    /// `fold_coherence_certificate` reuses instead of reasoning a second time.
+    fn reason_product(result: &gmeow_logic::result::ReasoningResult) -> StageProduct {
+        let reasoning_nt = project_reasoning_result(result);
+        let reasoning_ds =
+            parse_dataset(reasoning_nt.as_bytes(), "application/n-triples", None).unwrap();
+        let mut b = RdfDatasetBuilder::new();
+        let g = RdfTerm::Iri(GRAPH_REASONING.to_owned());
+        for q in reasoning_ds.owned_quads() {
+            let mut routed = q.clone();
+            routed.graph_name = Some(g.clone());
+            b.push_owned_quad(&routed);
+        }
+        let dataset = b.freeze().unwrap();
+        let mut bundle =
+            bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
+        let pinned = bundle.graph_digest(GRAPH_REASONING);
+        bundle
+            .pin_handle(
+                GRAPH_REASONING,
+                PipelineHandle::Reasoning(Arc::new(result.clone())),
+                pinned,
+            )
+            .unwrap();
+        StageProduct::from_bundle("stage-reason", Arc::new(bundle))
+    }
+
+    /// `fold_coherence_certificate` folds a `graph/attestations` coherence artifact over the
+    /// composed carrier, REUSING `stage-reason`'s single reasoning pass (never re-reasoning),
+    /// so every terminal gmeow.gts carries the certificate the consumer read tool surfaces.
+    #[test]
+    fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
+        // A tiny consistent EDB → a real reasoned result (no forbidden violation).
+        let edb = concat!(
+            "<http://example.org/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> ",
+            "<http://example.org/B> <http://gmeow.example/w> .\n"
+        );
+        let reasoned = crate::stages::reason::reason_artifacts(edb.as_bytes()).expect("reason");
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert("stage-reason".to_string(), reason_product(&reasoned.result));
+
+        let composed = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
+        let folded = fold_coherence_certificate(composed, &upstream).expect("fold certificate");
+
+        let attestations = folded.project_named_graph(crate::stages::release::GRAPH_ATTESTATIONS);
+        let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        let coherence_typed = attestations.owned_quads().any(|q| {
+            q.predicate == rdf_type
+                && matches!(&q.object, RdfTerm::Iri(o) if o.contains("Coherence"))
+        });
+        assert!(
+            coherence_typed,
+            "the fold must attach a typed logic:Coherence* artifact to graph/attestations"
+        );
+        // The certificate pins a real bundle identity + per-graph axiom digest (the tamper
+        // surface), so the read tool can surface non-trivial hashes.
+        let has_bundle_hash = attestations.owned_quads().any(|q| {
+            q.predicate == "https://blackcatinformatics.ca/logic/bundleHash"
+                && matches!(&q.object, RdfTerm::Literal(l) if !l.lexical_form.is_empty())
+        });
+        assert!(has_bundle_hash, "the folded certificate pins a bundle hash");
+
+        // Deterministic: re-folding the same carrier + result is byte-identical.
+        let composed2 = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
+        let folded2 = fold_coherence_certificate(composed2, &upstream).expect("fold again");
+        let nq1 = purrdf::canonical_flat_nquads(folded.as_ref()).unwrap();
+        let nq2 = purrdf::canonical_flat_nquads(folded2.as_ref()).unwrap();
+        assert_eq!(nq1, nq2, "the folded certificate is deterministic");
     }
 }

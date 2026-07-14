@@ -83,7 +83,7 @@ use purrdf::{RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
 
 use crate::query_ir::Budget;
 use crate::reason::InferredAxiom;
-use crate::reason::{reason_all, reason_program};
+use crate::reason::reason_all;
 use crate::relational_core::lower_formulas;
 use crate::result::{
     CompletenessStatus, ContradictionWitness, EvaluationStatus, InformationState, InputStatus,
@@ -339,7 +339,7 @@ pub fn conjecture_test(
             (
                 adjusted.result,
                 true,
-                Some((adjusted.status, adjusted.consumed_steps)),
+                (adjusted.status, adjusted.consumed_steps),
             )
         }
         None => {
@@ -352,7 +352,14 @@ pub fn conjecture_test(
             // never evaluated, so its "added nothing" is vacuous, not a proof.
             let lowering = lower_formulas(&p_phi);
             let evaluable = !lowering.rules.is_empty() || !lowering.nary_head_rules.is_empty();
-            (reason_program(&p_phi, &base_edb)?, evaluable, None)
+            // The candidate program is evaluated through the GOVERNED forward chase
+            // ([`reason_program_budgeted`]): `budget.max_steps` cuts the semi-naive fixpoint
+            // mid-flight and reports a real `BudgetStatus` + committed step count, so a
+            // step-exhausted rule-program candidate is chase-bounded exactly like the ground
+            // path — never a full run relabeled after the fact.
+            let (result, status, consumed) =
+                crate::reason::reason_program_budgeted(&p_phi, &base_edb, budget.max_steps)?;
+            (result, evaluable, (status, consumed))
         }
     };
 
@@ -360,10 +367,11 @@ pub fn conjecture_test(
     let answer_ceiling_tripped = budget
         .max_answers
         .is_some_and(|n| derived_closure_size > n as u64);
-    let step_ceiling_tripped = match inline_budget {
-        Some((status, _)) => status == crate::seam::BudgetStatus::Exhausted,
-        None => budget.max_steps.is_some_and(|n| derived_closure_size > n),
-    };
+    // The step ceiling is now decided SOLELY by the forward-chase governor's status on both
+    // routes (ground-fact incremental session and rule-program forward chase): the chase was
+    // genuinely cut mid-flight, never inferred post-hoc from `derived_closure_size` after a
+    // full run.
+    let step_ceiling_tripped = inline_budget.0 == crate::seam::BudgetStatus::Exhausted;
     let budget_tripped = answer_ceiling_tripped || step_ceiling_tripped;
 
     // (4) The Belnap inputs — two INDEPENDENT legs (φ and ¬φ).
@@ -380,13 +388,19 @@ pub fn conjecture_test(
     let has_proof = semantics_available && redundant;
     let conclusive = with_phi.is_conclusive() && !budget_tripped;
 
-    // (4a) The base-consistency guard, now leg-aware. A base inconsistent SPECIFICALLY about
-    //      the candidate (it entails φ AND refutes φ) is a genuine within-standpoint glut and
-    //      is testable → falls through to a `Both` verdict. A base inconsistent for reasons
-    //      UNRELATED to the candidate (it does not entail φ, or does not genuinely refute it)
-    //      cannot host a meaningful test — ex falso would make every proposition both entailed
-    //      and refuted — so it stays a hard error.
-    if !base.is_consistent() && !(has_proof && has_counterproof) {
+    // (4a) The base-consistency guard, now leg-aware AND budget-aware. A base inconsistent
+    //      SPECIFICALLY about the candidate (it entails φ AND refutes φ) is a genuine
+    //      within-standpoint glut and is testable → falls through to a `Both` verdict. A base
+    //      inconsistent for reasons UNRELATED to the candidate (it does not entail φ, or does
+    //      not genuinely refute it) cannot host a meaningful test — ex falso would make every
+    //      proposition both entailed and refuted — so it stays a hard error, BUT ONLY when the
+    //      chase ran to a genuine conclusion (`!budget_tripped`). When the budget cut the `φ`
+    //      chase short, `has_proof`/`has_counterproof` are artifacts of truncation, not a
+    //      decided absence of the glut relation — a truncated leg could still have gone on to
+    //      find both. Treating that as ex falso would surface a hard `Err` for what is really an
+    //      honest non-conclusion, so a tripped budget always falls through to the
+    //      budget-exhausted `Undetermined` classification below instead.
+    if !budget_tripped && !base.is_consistent() && !(has_proof && has_counterproof) {
         return Err(gmeow_errors::Diag::of_kind(crate::error::Reason {
             detail: format!(
                 "conjecture_test: the scenario KB in world <{scenario_world}> is ALREADY \
@@ -453,8 +467,9 @@ pub fn conjecture_test(
     provenance.context.standpoint = Some(standpoint.to_owned());
     provenance.consumed_budget.allowance =
         budget.max_steps.or(budget.max_answers.map(|n| n as u64));
-    provenance.consumed_budget.consumed =
-        inline_budget.map_or(derived_closure_size, |(_, consumed)| consumed);
+    // The consumed budget is the forward-chase governor's real committed-step count on both
+    // routes — never the post-hoc `derived_closure_size` fiction.
+    provenance.consumed_budget.consumed = inline_budget.1;
     if budget_tripped {
         provenance.consumed_budget.limit = Some(crate::result::BudgetLimit::Inference);
     }

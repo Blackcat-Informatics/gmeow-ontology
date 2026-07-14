@@ -81,10 +81,24 @@ pub(crate) struct TypedChaseResult {
 }
 
 // Structured native materialization.
+///
+/// `max_steps` is the forward-chase step budget threaded straight into
+/// [`crate::physical::materialize_native`]: `None` is the unbudgeted path (byte-identical
+/// to the pre-governor engine — every world runs to full fixpoint, `BudgetStatus::Ok`);
+/// `Some(n)` CUTS the semi-naive fixpoint mid-flight at the deterministic
+/// FactKey-sorted commit boundary once `n` derivations have been committed, returning the
+/// sound PARTIAL closure with `BudgetStatus::Exhausted`. The returned [`BudgetStatus`] is
+/// how a governed reasoning caller learns the chase was cut (never inferred post-hoc from a
+/// size comparison).
 pub(crate) fn native_forward_eval_rules_with_frontier(
     facts: &crate::facts::TypedFactSet,
     eval_rules: Vec<crate::rule_ir::EvalRule>,
-) -> gmeow_errors::Result<(TypedChaseResult, crate::query_ir::CompletionFrontier)> {
+    max_steps: Option<u64>,
+) -> gmeow_errors::Result<(
+    TypedChaseResult,
+    crate::query_ir::CompletionFrontier,
+    crate::seam::BudgetStatus,
+)> {
     let interner = facts.interner();
     let store = crate::store::WorldStore::new();
     for fact in facts.facts() {
@@ -109,11 +123,11 @@ pub(crate) fn native_forward_eval_rules_with_frontier(
             "native structured-rule chase does not decide a non-stratifiable program".to_owned(),
         ));
     };
-    let (rows, frontier) =
-        match crate::physical::materialize_native(&store, executable.as_ref(), None)? {
+    let (rows, frontier, status) =
+        match crate::physical::materialize_native(&store, executable.as_ref(), max_steps)? {
             crate::physical::NativeOutcome::Decided(budgeted) => {
                 let frontier = budgeted.frontier();
-                (budgeted.rows, frontier)
+                (budgeted.rows, frontier, budgeted.status)
             }
             crate::physical::NativeOutcome::Unsupported(kind) => {
                 return Err(oracle_err(format!(
@@ -159,7 +173,7 @@ pub(crate) fn native_forward_eval_rules_with_frontier(
             )
         })
         .collect();
-    Ok((TypedChaseResult { rows: typed }, frontier))
+    Ok((TypedChaseResult { rows: typed }, frontier, status))
 }
 
 /// Decode the named world carried by a typed fact.

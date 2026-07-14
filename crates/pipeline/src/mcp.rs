@@ -24,12 +24,19 @@ use std::sync::{Arc, Mutex, OnceLock};
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
+use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
 use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
+use gmeow_logic::explain::{self, LazyExplanationIndex, Row, reifier_from_row};
+use gmeow_logic::provenance::{reifier_from_strings, term_display};
 use gmeow_logic::query_ir::Budget;
+use gmeow_logic::reason::reason_all_budgeted;
+use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, ReasoningResult};
 use gmeow_logic::result_rdf::{
     ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
+    project_conjecture_withdrawal, project_reasoning_result,
 };
 use gmeow_logic::transaction::execute::{CommitMode, TxReceipt, execute_transaction};
+use gmeow_logic::verify::{embedded_verify_queries, verify_with_reasoning_result};
 use gmeow_logic_compile::frontend::parse_logic_str;
 use gmeow_logic_compile::ir::{Formula, LOGIC_NAMESPACE, Term as IrTerm};
 use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
@@ -38,7 +45,7 @@ use purrdf::gts::examples::agent_memory::{
 };
 use purrdf::gts::model::{Term as GtsTerm, TermKind as GtsTermKind};
 use purrdf::gts::writer::Writer as GtsWriter;
-use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
+use purrdf::{RdfDatasetBuilder, RdfQuad, RdfTerm, TermValue};
 use sha2::{Digest, Sha256};
 
 use crate::stages::export::{self, ConsumerResolution, FoldView, Term};
@@ -75,6 +82,92 @@ const VALIDATE_LOCAL_ORIGIN: &str = "mcp:validate_local";
 /// A larger payload is a HARD FAIL with a finding-style error — never silently
 /// truncated (a truncated RDF graph would mis-parse and mislead).
 const MAX_VALIDATE_DATA_BYTES: usize = 8 * 1024 * 1024;
+
+/// The pre-reasoning hard ceiling on the `verify_graph` overlay size (quad count).
+/// An overlay larger than this is REFUSED before any reasoning runs, so an
+/// agent-supplied external annex can never push the governed forward closure past a
+/// bounded starting EDB. 100_000 quads is a generous local-graph bound — far above
+/// any hand-authored annex — yet keeps the `bundle ∪ overlay` EDB, and thus the
+/// budgeted chase over it, bounded. Exceeding it is a HARD FAIL (the bounded agent
+/// path), never a silently truncated graph.
+const MAX_VERIFY_OVERLAY_QUADS: usize = 100_000;
+
+/// The pre-*read* hard ceiling on the `verify_graph` overlay file size (raw bytes on
+/// disk), checked via [`std::fs::metadata`] BEFORE the file is ever `fs::read` into
+/// memory. [`MAX_VERIFY_OVERLAY_QUADS`] alone bounds the PARSED quad count, but that
+/// check only runs AFTER the whole file has already been loaded and parsed — so an
+/// agent-supplied overlay path pointing at a huge file (or a file with a single
+/// enormous literal that parses to very few quads) could exhaust memory before the
+/// quad ceiling ever gets a chance to refuse it. 16 MiB is generous — the existing
+/// 100,000-quad ceiling, serialized as short synthetic IRIs/literals, tops out around
+/// ~4 MiB, and no hand-authored local annex plausibly approaches this — yet it bounds
+/// the raw bytes read into memory to a fixed, small multiple of that. Exceeding it is
+/// a HARD FAIL BEFORE the read (the bounded agent path), never a truncated read.
+const MAX_VERIFY_OVERLAY_BYTES: u64 = 16 * 1024 * 1024;
+
+/// The forward-chase derivation-step budget every agent-facing reasoning tool
+/// (`verify_graph`, `explain_quad`, `conjecture_test`, `store_conjecture`) runs under when
+/// the caller OMITS `max_steps`. R4 forbids exposing an unbudgeted
+/// Turing-complete evaluation to an agent loop, so an omitted `max_steps` is never `None`
+/// (unbounded) on these paths — see [`governed_budget`].
+///
+/// Deliberately SMALL, not just finite: [`reason_all_budgeted`] only skips the expensive DL
+/// consistency post-pass while the governor actually CUTS the chase
+/// ([`gmeow_logic::reason::reason_all_budgeted`]'s `BudgetExhausted` branch); once
+/// `max_steps` reaches the true closure size the run instead COMPLETES and pays the full DL
+/// consistency scan — on the shipped bundle that is the same ~500 s whole-graph cost the
+/// off-gate `whole_bundle_coherence_gate_*` suite measures, an unusable default latency for
+/// an interactive agent call. 64 mirrors the value the sibling `explain_quad_*_heavy_offgate`
+/// tests already use for this exact reason ("a small governor budget already derives
+/// IRI-object quads... a larger budget explodes the closure without adding coverage") and is
+/// empirically well below the shipped bundle's true closure size (measured: `max_steps: 100`
+/// still exhausts the budget in ~15 s; `max_steps: 500` reaches the true closure and falls
+/// into the ~500 s DL post-pass).
+const DEFAULT_MAX_STEPS: u64 = 64;
+
+/// The hard ceiling no agent-supplied `max_steps` may exceed, on the same tools as
+/// [`DEFAULT_MAX_STEPS`]. Tied to [`MAX_VERIFY_OVERLAY_QUADS`] — the pre-reasoning overlay
+/// EDB quad ceiling already governing `verify_graph` — so the post-EDB forward-chase step
+/// budget rides the same order of magnitude as the bounded starting EDB it chases over. A
+/// caller-supplied value above this is CLAMPED down, never honored past the ceiling. Unlike
+/// the small [`DEFAULT_MAX_STEPS`], this ceiling is reached only by an agent's OWN explicit,
+/// informed request for a deeper (possibly slow, but always finite) evaluation — never by an
+/// omitted argument.
+const HARD_MAX_STEPS: u64 = MAX_VERIFY_OVERLAY_QUADS as u64;
+
+/// The answer-binding cap every agent-facing reasoning tool runs under when the caller
+/// OMITS `max_answers`; see [`DEFAULT_MAX_STEPS`]. Matches its scale: both bound the same
+/// "generous but small" no-args default.
+const DEFAULT_MAX_ANSWERS: usize = 64;
+
+/// The hard ceiling no agent-supplied `max_answers` may exceed, on the same tools as
+/// [`DEFAULT_MAX_ANSWERS`]. Matches [`MAX_VERIFY_OVERLAY_QUADS`] in order of magnitude —
+/// the same "generous but bounded" scale as every other agent-facing ceiling in this file.
+const HARD_MAX_ANSWERS: usize = MAX_VERIFY_OVERLAY_QUADS;
+
+/// Build a governed [`Budget`] for an agent-facing MCP tool call — the ONLY way any
+/// `tool_*` wrapper in this file may construct a `Budget` (R4: never expose an
+/// unbudgeted Turing-complete evaluation to an agent loop).
+///
+/// * An omitted (`None`) user value falls back to the finite default
+///   ([`DEFAULT_MAX_STEPS`] / [`DEFAULT_MAX_ANSWERS`]).
+/// * A supplied user value is CLAMPED to the hard ceiling ([`HARD_MAX_STEPS`] /
+///   [`HARD_MAX_ANSWERS`]) — the caller may only LOWER the bound, never raise it past the
+///   server-side cap.
+///
+/// Both returned fields are therefore always `Some`: this helper can never produce the
+/// unbounded `Budget { max_answers: None, max_steps: None }` an omitted-args call used to
+/// build.
+fn governed_budget(max_steps: Option<u64>, max_answers: Option<usize>) -> Budget {
+    let max_steps = max_steps.unwrap_or(DEFAULT_MAX_STEPS).min(HARD_MAX_STEPS);
+    let max_answers = max_answers
+        .unwrap_or(DEFAULT_MAX_ANSWERS)
+        .min(HARD_MAX_ANSWERS);
+    Budget {
+        max_answers: Some(max_answers),
+        max_steps: Some(max_steps),
+    }
+}
 
 /// SELECT the counter-example conformance fixtures from the documentation graph: the
 /// fixture IRI, its authored violation code, the full Turtle body, its label, the
@@ -1217,6 +1310,313 @@ impl McpView {
         sparql_result_to_json(result)
     }
 
+    /// Run the native reasoned-graph verify over the bundle canon UNIONED with a
+    /// READ-ONLY external overlay loaded from `overlay_path`, returning the
+    /// proof-carrying JSON envelope under `"ok"`. See [`Self::run_verify_graph`] for
+    /// the read-only / external-annex contract and the completeness-gate judgment.
+    fn verify_graph_json(&self, overlay_path: &str, budget: &Budget) -> String {
+        match self.run_verify_graph(overlay_path, budget) {
+            Ok(value) => value.to_string(),
+            Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
+        }
+    }
+
+    /// Reason-and-verify `bundle ∪ overlay`, where `overlay` is the user's LOCAL
+    /// lower-tier graph file, loaded as a READ-ONLY external annex, then return a
+    /// PROOF-CARRYING judgment: the completeness-gated coherence class, the two
+    /// completeness/evaluation axes, the reasoned-graph verify findings, the cited
+    /// IRIs, and the grounded `logic:ReasoningResult` N-Quads.
+    ///
+    /// CONTRACT (enforced here, not just documented) — the SAME overlay discipline as
+    /// [`Self::run_local_query`]:
+    /// * the overlay is loaded into its own transient dataset from `overlay_path`;
+    ///   the signed canon (`self.dataset`) is pushed VERBATIM and is NEVER mutated;
+    /// * every overlay quad is dual-copied — one into the default graph (so the DL
+    ///   calculus and the flat verify queries read `bundle ∪ overlay`) and one
+    ///   re-homed under the external-provenance graph [`EXTERNAL_OVERLAY_GRAPH`] — but
+    ///   the whole union is transient and DROPPED after the call: never persisted,
+    ///   never folded into `gmeow.gts`, never written back to the canon or the overlay;
+    /// * the forward closure runs THROUGH [`reason_all_budgeted`] (the mid-chase step
+    ///   governor), never the unbudgeted [`gmeow_logic::reason::reason_all`], so an
+    ///   agent-influenced union can never run an unbounded Turing-complete closure;
+    /// * an overlay whose file size exceeds [`MAX_VERIFY_OVERLAY_BYTES`] is a HARD FAIL
+    ///   BEFORE it is even `fs::read` into memory — a stat, not a read, refuses an
+    ///   oversized file (or a file with one enormous literal) before the bytes ever
+    ///   land in the process;
+    /// * an overlay exceeding [`MAX_VERIFY_OVERLAY_QUADS`] is a HARD FAIL BEFORE any
+    ///   reasoning (the bounded agent path), never a truncated graph.
+    ///
+    /// # Completeness-gate judgment (`class_local_name`)
+    ///
+    /// The class is `completeness_class`'s T2 completeness-gate trichotomy — itself a
+    /// thin wrapper over [`CoherenceOutcome::class_local_name_for`], the SAME gate
+    /// the bundle-level coherence certifier (`certificate.rs`) uses, so this tool and
+    /// [`Self::run_explain_quad`] can never diverge:
+    /// * a witnessed DL contradiction (the forbidden glut under the default
+    ///   forbid-glut policy) REFUTES coherence — but only a CONCLUSIVE check flatly
+    ///   `Refused`s; a budget-cut check that ran into it can only attest;
+    /// * else a CONCLUSIVE ([`ReasoningResult::is_conclusive`]) violation-free closure
+    ///   with a NAMED certified fragment `CoherenceCertificate`s;
+    /// * else (a budget-cut / non-conclusive closure, or a conclusive one naming no
+    ///   certified fragment) the strongest honest claim is the strictly-weaker
+    ///   `CoherenceCheckAttestation` — NEVER a certificate.
+    ///
+    /// # The `coherent` boolean agrees with `class_local_name` by construction
+    ///
+    /// `coherent` is `!completeness_refused(&result) && report.ok()` — the SAME
+    /// `CoherenceOutcome` gate that decides `class_local_name`, ANDed with the
+    /// bad-example verify findings. It is NEVER `report.ok()` alone: a conclusive DL
+    /// glut that happens not to trip any bad-example verify query would otherwise
+    /// leave `report.ok()` true while `class_local_name` reads `"Refused"` — a
+    /// self-contradictory envelope. Routing both fields through one shared outcome
+    /// makes `coherent:true` alongside `class_local_name:"Refused"` unrepresentable.
+    ///
+    /// [`ReasoningResult::is_conclusive`]: gmeow_logic::result::ReasoningResult::is_conclusive
+    fn run_verify_graph(&self, overlay_path: &str, budget: &Budget) -> gmeow_errors::Result<Value> {
+        let path = Path::new(overlay_path);
+        // Media from the file extension (ttl/nt/nq/trig/rdf/…); an unknown extension
+        // HARD-FAILS in `parse_dataset` (no silent fallback), exactly as query_local.
+        let media = path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(str::to_ascii_lowercase)
+            .unwrap_or_else(|| "text/turtle".to_string());
+
+        // Pre-READ hard bound: stat (not read) the file and refuse an oversized
+        // overlay BEFORE it is ever loaded into memory. Statting is O(1) — it never
+        // touches the file's contents — so a huge file (or one enormous literal) is
+        // refused without the multi-megabyte `fs::read` + parse the quad ceiling below
+        // would otherwise require to even measure it.
+        let overlay_bytes = fs::metadata(path)
+            .with_ctx(|| format!("stat overlay {overlay_path}"))?
+            .len();
+        if overlay_bytes > MAX_VERIFY_OVERLAY_BYTES {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "verify_graph: overlay {overlay_path} is {overlay_bytes} bytes, \
+                     exceeding the {MAX_VERIFY_OVERLAY_BYTES}-byte ceiling BEFORE any read; \
+                     split the annex and verify the parts (no silent truncation)"
+                ),
+            }));
+        }
+
+        let bytes = fs::read(path).with_ctx(|| format!("read overlay {overlay_path}"))?;
+        let overlay = purrdf::parse_dataset(&bytes, &media, None)
+            .with_ctx(|| format!("parse overlay {overlay_path}"))?;
+
+        // Pre-reasoning hard bound: refuse an oversized overlay before reasoning.
+        let overlay_quads = overlay.quad_count();
+        if overlay_quads > MAX_VERIFY_OVERLAY_QUADS {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "verify_graph: overlay {overlay_path} carries {overlay_quads} quads, \
+                     exceeding the {MAX_VERIFY_OVERLAY_QUADS} quad ceiling; split the annex \
+                     and verify the parts (no silent truncation)"
+                ),
+            }));
+        }
+
+        // Build the transient union EXACTLY as run_local_query: canon verbatim, then
+        // each overlay quad dual-copied (default graph + external-provenance graph).
+        let mut builder = purrdf::RdfDatasetBuilder::new();
+        builder.push_dataset(self.dataset.as_ref());
+        let external = purrdf::RdfTerm::Iri(EXTERNAL_OVERLAY_GRAPH.to_string());
+        for quad in overlay.owned_quads() {
+            let mut in_default = quad.clone();
+            in_default.graph_name = None;
+            builder.push_owned_quad(&in_default);
+            let mut tagged = quad;
+            tagged.graph_name = Some(external.clone());
+            builder.push_owned_quad(&tagged);
+        }
+        let union = builder.freeze()?;
+
+        // GOVERNED closure — reason_all_budgeted CUTS the forward chase mid-flight; a
+        // budget-cut returns a non-conclusive BudgetExhausted/Incomplete/Undetermined
+        // verdict (never a wrong `supported`/`both`). NEVER reason_all.
+        let result = reason_all_budgeted(&union, budget)?;
+        let report = verify_with_reasoning_result(&union, &result, &embedded_verify_queries())?;
+
+        // The T2 completeness-gate trichotomy over `result` (see the method docs),
+        // read entirely through `completeness_class` — the SAME
+        // `CoherenceOutcome::class_local_name_for` gate `run_explain_quad` reads, so
+        // the two tool paths can never diverge on whether a witnessed DL glut
+        // (forbidden under the default forbid-glut policy) refutes coherence. No
+        // per-caller downgrade is bolted on here: the gate itself already returns
+        // `"Refused"` for a CONCLUSIVE closure that witnesses one, and the
+        // strictly-weaker `CoherenceCheckAttestation` for a budget-cut closure that
+        // ran into one (it discloses what it found without refuting wholesale).
+        let class_local_name = completeness_class(&result);
+
+        // `coherent` MUST be derived from the SAME `completeness_refused` gate that
+        // decided `class_local_name`, combined with the bad-example verify findings —
+        // never from `report.ok()` alone. A conclusive DL glut that happens to trip
+        // no bad-example verify query still leaves `report.ok()` true, but the shared
+        // gate REFUSES it; without this combination `coherent:true` could render
+        // alongside `class_local_name:"Refused"`, a self-contradictory envelope
+        // `coherent` is true only when BOTH the shared outcome
+        // permits it (non-refuting) AND no bad-example finding fired.
+        let coherent = !completeness_refused(&result) && report.ok();
+
+        // cited_iris: the DerivationRef cited-IRI surface when the verdict carries a
+        // proof/counterproof, unioned with each finding's structured
+        // `Finding::cited_iris` (the genuine `TermValue::Iri` bindings the offending
+        // SPARQL solution rows carry — see `verify_with_reasoning_result`). NEVER
+        // scraped from the rendered `message`/`detail` prose: an agent-controlled
+        // overlay literal such as `"see <urn:fake>"` renders inside quotes and must
+        // not be mistaken for a citation, which a text-scrape over angle brackets
+        // cannot reliably tell apart from a genuine `<iri>` term. Sorted,
+        // deduplicated via the BTreeSet.
+        let mut cited_iris: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        if let Some(proof) = &result.provenance.proof {
+            cited_iris.extend(proof.cited_iris.iter().cloned());
+        }
+        if let Some(counterproof) = &result.provenance.counterproof {
+            cited_iris.extend(counterproof.cited_iris.iter().cloned());
+        }
+        for finding in &report.findings {
+            cited_iris.extend(finding.cited_iris.iter().cloned());
+        }
+
+        let findings: Vec<Value> = report
+            .findings
+            .iter()
+            .map(|f| {
+                json!({
+                    "code": f.code,
+                    "severity": f.severity.as_str(),
+                    "message": f.message,
+                    "detail": f.detail,
+                })
+            })
+            .collect();
+
+        // The grounded RDF judgment: the ReasoningResult node projected to N-Triples
+        // (a subset of N-Quads) so an agent can reason over the verdict itself — its
+        // completeness/evaluation axes and consumed budget ride the node.
+        let judgment_nquads = project_reasoning_result(&result);
+
+        Ok(json!({
+            "ok": true,
+            "class_local_name": class_local_name,
+            "completeness": result.completeness.wire(),
+            "evaluation": result.evaluation.wire(),
+            "error_count": report.error_count(),
+            "coherent": coherent,
+            "findings": findings,
+            "cited_iris": cited_iris.into_iter().collect::<Vec<_>>(),
+            "judgment_nquads": judgment_nquads,
+        }))
+    }
+
+    /// Run [`Self::run_explain_quad`] and render its proof-carrying envelope; an
+    /// error (bad object surface, quad-not-in-closure, cross-world ambiguity, or a
+    /// faithfulness violation) becomes the `{ok:false, error}` failure envelope,
+    /// EXACTLY like [`Self::verify_graph_json`].
+    fn explain_quad_json(
+        &self,
+        subject: &str,
+        predicate: &str,
+        obj_n3: &str,
+        graph: &str,
+        budget: &Budget,
+    ) -> String {
+        match self.run_explain_quad(subject, predicate, obj_n3, graph, budget) {
+            Ok(value) => value.to_string(),
+            Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
+        }
+    }
+
+    /// Read the bundle's carried SCOPED COHERENCE CERTIFICATE as a budget-free,
+    /// proof-carrying envelope (R6) and render it. BUDGET-FREE and REASON-FREE: the
+    /// certificate was computed ONCE at pipeline time and folded into `graph/attestations`;
+    /// this reads it straight off the bundled dataset (`self.dataset`) — it NEVER
+    /// re-reasons. A bundle carrying no coherence artifact is a HARD FAIL rendered as the
+    /// `{ok:false, error}` envelope (there is no silent recompute fallback), EXACTLY like
+    /// [`Self::verify_graph_json`].
+    fn coherence_certificate_json(&self) -> String {
+        match coherence_certificate_envelope(self.dataset.as_ref()) {
+            Ok(value) => value.to_string(),
+            Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
+        }
+    }
+
+    /// Reconstruct the FAITHFUL cited-IRI derivation skeleton for ONE arbitrary quad
+    /// `(subject, predicate, obj_n3)` in world `graph`, over the bundle's governed
+    /// forward closure. DISTINCT from [`Self::explain_finding_json`], which walks the
+    /// pre-computed `graph/diagnostics` projection: this tool reconstructs the proof
+    /// directly from the reasoner's premise-provenance, for any quad the closure
+    /// entails (not only a published finding).
+    ///
+    /// CONTRACT (enforced here, not just documented):
+    /// * the closure runs THROUGH [`reason_all_budgeted`] (the mid-chase step
+    ///   governor), never the unbudgeted [`gmeow_logic::reason::reason_all`], so the
+    ///   agent-driven target can never trigger an unbounded Turing-complete chase;
+    /// * the target is located by its content-addressed reifier, WORLD-DISAMBIGUATED
+    ///   by `graph` — a reifier shared across worlds that `graph` does not resolve to
+    ///   exactly one row is a HARD FAIL (never an arbitrary pick), and a reifier no
+    ///   row carries is a HARD FAIL `quad not in closure` (never an empty-but-ok proof);
+    /// * only the SINGLE requested target is reconstructed
+    ///   ([`LazyExplanationIndex::explain_one`], never `explain_all`), so the agent
+    ///   never offloads whole-closure proof reconstruction onto the tool;
+    /// * every cited IRI is re-checked against the full proof trace
+    ///   ([`explain::assert_faithful`]) — a fabricated citation cannot escape.
+    fn run_explain_quad(
+        &self,
+        subject: &str,
+        predicate: &str,
+        obj_n3: &str,
+        graph: &str,
+        budget: &Budget,
+    ) -> gmeow_errors::Result<Value> {
+        // The target's content-addressed reifier over the SAME canonical N3 object
+        // surface `explain::Row` carries (`term_display`), so it joins the row set.
+        let target_reifier = reifier_from_strings(subject, predicate, obj_n3);
+
+        // GOVERNED closure over the whole bundle — reason_all_budgeted CUTS the chase
+        // mid-flight on a budget breach (a non-conclusive verdict), NEVER reason_all.
+        let result = reason_all_budgeted(self.dataset.as_ref(), budget)?;
+
+        // The ONE row builder shared with `explanations_for_result`; this tool indexes
+        // it and explains exactly one target (not the whole-closure `explain_all`).
+        let rows = explain::rows_for_result(&result)?;
+        let target_index = locate_explain_target(&rows, &target_reifier, graph)?;
+
+        let explanation = LazyExplanationIndex::new(&rows).explain_one(target_index)?;
+        // A fabricated cited IRI must never escape — re-verify against the full trace.
+        explain::assert_faithful(&explanation, &rows)?;
+
+        let step_skeleton: Vec<Value> = explanation
+            .step_skeleton
+            .iter()
+            .map(|step| {
+                json!({
+                    "derivation_id": step.derivation_id,
+                    "rule_iri": step.rule_iri,
+                    "subject_iri": step.subject_iri,
+                    "predicate_iri": step.predicate_iri,
+                    "obj_n3": step.obj_n3,
+                    "graph_iri": step.graph_iri,
+                    "is_asserted": step.is_asserted,
+                    "depth": step.depth,
+                    "source_step_ids": step.source_step_ids,
+                    "term_iris": step.term_iris,
+                })
+            })
+            .collect();
+
+        Ok(json!({
+            "ok": true,
+            "faithful": true,
+            "markdown": explain::render_markdown(&explanation),
+            "cited_iris": explanation.cited_iris.iter().cloned().collect::<Vec<_>>(),
+            "step_skeleton": step_skeleton,
+            "world_iri": explanation.world_iri,
+            "completeness": completeness_class(&result),
+            "judgment_nquads": project_reasoning_result(&result),
+        }))
+    }
+
     /// Explain a diagnostic witness over the bundle's `graph/diagnostics` named
     /// graph, addressed by its fingerprint IRI (a finding) or its anchor IRI (a
     /// cluster). Rehydrates the [`FindingIndex`] through the SAME native SPARQL
@@ -1592,6 +1992,78 @@ impl McpServer {
                 &[("path", "string"), ("query", "string")],
             ),
             tool(
+                "verify_graph",
+                "Reason over the bundle UNIONED with a READ-ONLY local overlay graph file \
+                 (path), then run the native reasoned-graph verify (the bad-example negative \
+                 tests + non-entailment obligations) and return a PROOF-CARRYING judgment. \
+                 The overlay is loaded as an EXTERNAL, read-only annex exactly like \
+                 query_local: its triples join the reasoning default world (bundle \u{222a} \
+                 overlay, also isolable via GRAPH <urn:gmeow:mcp:overlay:external>) but are \
+                 NEVER merged into the signed gmeow: canon and NEVER written back to disk; the \
+                 whole union is transient and discarded after the call. The forward closure \
+                 runs under a mid-chase step governor: max_steps bounds the derivation budget \
+                 and max_answers the answer cap. The response carries class_local_name \
+                 (CoherenceCertificate for a conclusive coherent closure, \
+                 CoherenceCheckAttestation for a budget-cut closure, Refused for a witnessed \
+                 forbidden contradiction), the completeness/evaluation axes, the verify \
+                 findings, the cited IRIs, and judgment_nquads (the grounded \
+                 logic:ReasoningResult). An overlay exceeding the size ceiling or an unknown \
+                 file extension is a hard error. Accepts Turtle / TriG / N-Triples / N-Quads / \
+                 RDF-XML by file extension.",
+                &[
+                    ("path", "string"),
+                    ("max_steps", "integer"),
+                    ("max_answers", "integer"),
+                ],
+            ),
+            tool(
+                "explain_quad",
+                "Reconstruct the FAITHFUL cited-IRI derivation skeleton for ONE arbitrary quad \
+                 the bundle's reasoned closure entails: the target `(subject, predicate, \
+                 object_value)` in named graph `graph`. Reasons over the bundle under the \
+                 mid-chase step governor (max_steps bounds the derivation budget), locates the \
+                 target by its content-addressed reifier WORLD-DISAMBIGUATED by `graph`, then \
+                 reconstructs and re-verifies ONLY that quad's proof tree. Returns the DFS \
+                 step_skeleton (target first, each step carrying its rule, derivation id, \
+                 (S,P,O), world, asserted flag, depth, antecedent step ids, and cited term \
+                 IRIs), the complete cited_iris set, a Markdown rendering, the world_iri, the \
+                 completeness class (CoherenceCertificate for a conclusive closure, \
+                 CoherenceCheckAttestation for a budget-cut one), and judgment_nquads (the \
+                 grounded logic:ReasoningResult). `object_kind` is `iri` or `literal` (inferred \
+                 from object_value when omitted); `object_datatype` types a literal object. This \
+                 is DISTINCT from explain_finding: explain_finding addresses a PUBLISHED \
+                 diagnostic by its fingerprint/anchor IRI over the graph/diagnostics projection, \
+                 while explain_quad proves an arbitrary entailed quad from the reasoner's premise \
+                 provenance. A quad the closure does not entail, or a reifier shared across \
+                 worlds that `graph` does not resolve, is a hard error (never an empty-but-ok \
+                 proof).",
+                &[
+                    ("subject", "string"),
+                    ("predicate", "string"),
+                    ("object_value", "string"),
+                    ("object_kind", "string"),
+                    ("object_datatype", "string"),
+                    ("graph", "string"),
+                    ("max_steps", "integer"),
+                ],
+            ),
+            tool(
+                "coherence_certificate",
+                "Read the bundle's SCOPED COHERENCE CERTIFICATE — a budget-free, \
+                 proof-carrying coherence attestation computed ONCE at pipeline time over the \
+                 whole assembled bundle and folded into graph/attestations. This tool reads it \
+                 straight off the bundled dataset: it takes NO inputs, runs NO reasoning, and \
+                 never recomputes. The response carries class_local_name (CoherenceCertificate \
+                 for a conclusive, fragment-scoped, violation-free closure; the strictly-weaker \
+                 CoherenceCheckAttestation otherwise — an attestation is NEVER reported as a \
+                 certificate), issues_certificate, is_refused, the pinned bundle_hash and \
+                 per-graph axiom_hashes (the tamper surface), contract_hash, engine, \
+                 certified_fragment, the completeness/evaluation axes, contradiction_policy, \
+                 projection_losses, and forbidden_violations. A bundle carrying no coherence \
+                 artifact is a hard error (never a silent recompute).",
+                &[],
+            ),
+            tool(
                 "validate_local",
                 "Validate an inline RDF graph against the bundled GMEOW shapes and disciplines \
                  (the same core as `gmeow validate`), then CLOSE THE LOOP: every finding is \
@@ -1634,7 +2106,26 @@ impl McpServer {
             ),
             tool(
                 "conjecture_test",
-                "Test a candidate logic: formula against a KB and, TR-gated on the \
+                "Test — a PURE hypothetical evaluation of a candidate logic: formula against a \
+                 KB: compute and return the engine verdict, but NEVER TR-commit and NEVER \
+                 append to the conjecture library. formula is a Turtle logic: document naming \
+                 one candidate; kb is a Turtle KB; standpoint is the required reified scope \
+                 (P9); math_conjecture optionally names the math:Conjecture twin. max_steps / \
+                 max_answers optionally bound the isolated scenario evaluation (a \
+                 derived-closure-size ceiling: exceeding it stamps BudgetExhausted → lifecycle \
+                 open). For the committing counterpart, see store_conjecture.",
+                &[
+                    ("formula", "string"),
+                    ("kb", "string"),
+                    ("standpoint", "string"),
+                    ("math_conjecture", "string"),
+                    ("max_steps", "integer"),
+                    ("max_answers", "integer"),
+                ],
+            ),
+            tool(
+                "store_conjecture",
+                "Store — evaluate a candidate logic: formula against a KB and, TR-gated on the \
                  persistConjecture schema (the executional-entailment verdict gates the \
                  commit), APPEND the engine verdict to the append-only conjecture library. \
                  formula is a Turtle logic: document naming one candidate; kb is a Turtle KB; \
@@ -1642,7 +2133,8 @@ impl McpServer {
                  names the math:Conjecture twin. max_steps / max_answers optionally bound the \
                  isolated scenario evaluation (a derived-closure-size ceiling: exceeding it \
                  stamps BudgetExhausted → lifecycle open). Pass dry_run=true for a \
-                 non-committing sandbox run (verdict only, nothing written).",
+                 non-committing sandbox run (verdict only, nothing written) — a \
+                 hypothetical-commit witness.",
                 &[
                     ("formula", "string"),
                     ("kb", "string"),
@@ -1651,6 +2143,25 @@ impl McpServer {
                     ("dry_run", "boolean"),
                     ("max_steps", "integer"),
                     ("max_answers", "integer"),
+                ],
+            ),
+            tool(
+                "refute_conjecture",
+                "Author-withdraw a stored conjecture — the store_conjecture compensation (P10, \
+                 as revise_belief compensates store_claim), executed as a Transaction-Logic \
+                 transaction on the withdrawConjecture schema. It APPENDS a compensating \
+                 author-withdrawn segment to the append-only conjecture library, flipping the \
+                 node's effective logic:conjectureLifecycleState to logic:ConjectureWithdrawn \
+                 (recorded, never deleted — prior segments stay intact). conjecture_id is the \
+                 stored logic:Conjecture node IRI; reason is an optional author note. The TR \
+                 precondition — the conjecture is still in the library and NOT already \
+                 withdrawn — is decided from the live library state by segment order, so an \
+                 unknown id or an already-withdrawn node is rejected before any write. Pass \
+                 dry_run=true for a non-committing sandbox run (verdict only, nothing written).",
+                &[
+                    ("conjecture_id", "string"),
+                    ("reason", "string"),
+                    ("dry_run", "boolean"),
                 ],
             ),
             tool(
@@ -1774,10 +2285,15 @@ impl McpServer {
             "query_docs" => self.tool_query_docs(args),
             "docs_search" => self.tool_docs_search(args),
             "query_local" => self.tool_query_local(args),
+            "verify_graph" => self.tool_verify_graph(args),
+            "explain_quad" => self.tool_explain_quad(args),
+            "coherence_certificate" => self.tool_coherence_certificate(args),
             "validate_local" => self.tool_validate_local(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
             "conjecture_test" => self.tool_conjecture_test(args),
+            "store_conjecture" => self.tool_store_conjecture(args),
+            "refute_conjecture" => self.tool_refute_conjecture(args),
             "recall" => self.tool_recall(args),
             "revise_belief" => self.tool_revise_belief(args),
             "counter_examples" => self.tool_counter_examples(args),
@@ -1998,6 +2514,59 @@ impl McpServer {
         let path = required_str(args, "path")?;
         let query = required_str(args, "query")?;
         Ok(self.view.query_local_json(path, query))
+    }
+
+    /// Reason-and-verify the bundle UNIONED with a READ-ONLY local overlay graph file,
+    /// returning the proof-carrying judgment envelope. A thin wrapper over
+    /// [`McpView::run_verify_graph`]: it reads the `path` and the `max_steps` /
+    /// `max_answers` budget off the args and delegates the whole overlay/union/govern/
+    /// verify/judge discipline to the view core (one implementation).
+    fn tool_verify_graph(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let path = required_str(args, "path")?;
+        let max_steps = optional_step_count(args, "max_steps")?;
+        let max_answers = optional_limit(args, "max_answers")?;
+        // R4: NEVER build an unbudgeted `Budget{None,None}` from omitted
+        // agent args — `governed_budget` defaults+clamps to a finite server-side ceiling.
+        let budget = governed_budget(max_steps, max_answers);
+        Ok(self.view.verify_graph_json(path, &budget))
+    }
+
+    /// Reconstruct the FAITHFUL cited-IRI derivation skeleton for one quad in the
+    /// bundle's governed closure, returning the proof-carrying envelope. A thin
+    /// wrapper over [`McpView::run_explain_quad`]: it validates the required quad
+    /// components, builds the canonical N3 object surface (Step B) from the structured
+    /// `object_value` / `object_kind` / `object_datatype` args, reads the `max_steps`
+    /// governor, and delegates the reason/locate/explain/faithfulness discipline to
+    /// the view core (one implementation).
+    ///
+    /// This is the CONSUMER quad-explainer — distinct from `explain_finding`, which
+    /// addresses a published diagnostic by its fingerprint/anchor IRI.
+    fn tool_explain_quad(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let subject = required_str(args, "subject")?;
+        let predicate = required_str(args, "predicate")?;
+        let object_value = required_str(args, "object_value")?;
+        let graph = required_str(args, "graph")?;
+        // `object_kind` is optional: an explicit `iri`/`literal` overrides, else it is
+        // inferred from the object surface. `object_datatype` types a literal only.
+        let object_kind = optional_str(args, "object_kind");
+        let object_datatype = optional_str(args, "object_datatype");
+        let obj_n3 = object_term_n3(object_value, object_kind, object_datatype)?;
+
+        let max_steps = optional_step_count(args, "max_steps")?;
+        // R4: `explain_quad` never exposes `max_answers`, but
+        // `governed_budget` still stamps a finite default there — no field of the
+        // constructed `Budget` is ever `None` on an agent-facing path.
+        let budget = governed_budget(max_steps, None);
+        Ok(self
+            .view
+            .explain_quad_json(subject, predicate, &obj_n3, graph, &budget))
+    }
+
+    /// Surface the bundle's carried coherence certificate/attestation (R6). A thin,
+    /// INPUT-FREE wrapper over [`McpView::coherence_certificate_json`]: the certificate is
+    /// read straight off the bundled dataset (disk-free, reason-free), never recomputed.
+    fn tool_coherence_certificate(&self, _args: &Value) -> gmeow_errors::Result<String> {
+        Ok(self.view.coherence_certificate_json())
     }
 
     /// Validate an inline RDF `data` graph (in `format`) against the bundle's own
@@ -2252,9 +2821,10 @@ impl McpServer {
         Ok(response)
     }
 
-    /// The production consumer that closes the conjecture-and-refutation path: test a
-    /// candidate `logic:` formula against a KB, project the engine verdict, and — TR-gated on
-    /// the `persistConjecture` schema — APPEND it to the append-only conjecture library.
+    /// `conjecture_test` — the issue's "test" leg: a PURE hypothetical evaluation of a
+    /// candidate `logic:` formula against a KB. Computes and returns the projected engine
+    /// verdict; NEVER TR-commits and NEVER appends to the conjecture library. For the
+    /// committing counterpart ("store"), see [`Self::tool_store_conjecture`].
     ///
     /// `formula` is a Turtle `logic:` document naming the candidate (exactly one top-level
     /// `logic:Formula`, or exactly one ground `logic:` axiom lifted to a binary atom); `kb`
@@ -2262,9 +2832,70 @@ impl McpServer {
     /// scope (Principle 9); `math_conjecture` optionally names the `math:Conjecture` twin so
     /// the statement is bridged to the runtime `logic:Conjecture` node via
     /// `math:conjectureUnderTest` (on every verdict) and a refutation's counterexample is
-    /// re-exposed via `math:hasCounterexample`; `dry_run=true` computes and returns the verdict
-    /// but WRITES NOTHING.
+    /// re-exposed via `math:hasCounterexample`.
     fn tool_conjecture_test(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let formula_src = required_str(args, "formula")?;
+        let kb_src = required_str(args, "kb")?;
+        let standpoint = required_str(args, "standpoint")?;
+        let math_conjecture = optional_str(args, "math_conjecture");
+        let max_steps = optional_step_count(args, "max_steps")?;
+        let max_answers = optional_limit(args, "max_answers")?;
+        // R4: NEVER build an unbudgeted `Budget{None,None}` from omitted
+        // agent args — `governed_budget` defaults+clamps to a finite server-side ceiling.
+        // The CLI's `gmeow conjecture test` shares `run_conjecture_test_pure` but calls it
+        // directly with its own (possibly unbounded) args — this governance is scoped to
+        // the agent-facing MCP wrapper.
+        let budget = governed_budget(max_steps, max_answers);
+
+        // The parse → test → project path is the SHARED evaluation core (also behind
+        // `store_conjecture` and the CLI). This tool never TR-gates and never appends — it is
+        // a thin wrapper rendering the pure verdict as the JSON response.
+        let out = run_conjecture_test_pure(&ConjectureRunPureInput {
+            formula_ttl: formula_src,
+            kb_ttl: kb_src,
+            standpoint,
+            math_conjecture,
+            max_steps: budget.max_steps,
+            max_answers: budget.max_answers,
+        })?;
+
+        let witness_json = out.witness.as_ref().map(|w| {
+            json!({
+                "individual": w.individual,
+                "world": w.world,
+                "premises": w.premises,
+            })
+        });
+        let verdict_json = json!({
+            "information": out.information,
+            "evaluation": out.evaluation,
+            "completeness": out.completeness,
+            "lifecycle": out.lifecycle,
+            "discharge": out.discharge,
+        });
+
+        Ok(json!({
+            "ok": true,
+            "verdict": verdict_json,
+            "witness": witness_json,
+            "conjecture": out.node_iri,
+            // T1: the same grounded-judgment key/shape `verify_graph`/`explain_quad` carry —
+            // here the embedded `logic:ReasoningResult` the engine's verdict was read from,
+            // wrapped in the content-addressed `logic:Conjecture` node.
+            "judgment_nquads": out.verdict_nt,
+        })
+        .to_string())
+    }
+
+    /// `store_conjecture` — the issue's "store" leg: test a candidate `logic:` formula against
+    /// a KB, project the engine verdict, and — TR-gated on the `persistConjecture` schema —
+    /// APPEND it to the append-only conjecture library. Runs the SAME evaluation as
+    /// `conjecture_test`; the difference is entirely in the tail (TR-gate + persist).
+    ///
+    /// `formula` / `kb` / `standpoint` / `math_conjecture` are as `conjecture_test`;
+    /// `dry_run=true` computes and returns the verdict (via a hypothetical TR commit) but
+    /// WRITES NOTHING.
+    fn tool_store_conjecture(&self, args: &Value) -> gmeow_errors::Result<String> {
         let formula_src = required_str(args, "formula")?;
         let kb_src = required_str(args, "kb")?;
         let standpoint = required_str(args, "standpoint")?;
@@ -2272,17 +2903,24 @@ impl McpServer {
         let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
         let max_steps = optional_step_count(args, "max_steps")?;
         let max_answers = optional_limit(args, "max_answers")?;
+        // R4: NEVER build an unbudgeted `Budget{None,None}` from omitted
+        // agent args — `governed_budget` defaults+clamps to a finite server-side ceiling.
+        // The CLI's `gmeow conjecture test` shares `run_conjecture_test` but calls it
+        // directly with its own (possibly unbounded) args — this governance is scoped to
+        // the agent-facing MCP wrapper.
+        let budget = governed_budget(max_steps, max_answers);
 
-        // The parse → test → project → TR-gate → persist path is the SHARED core; the tool is a
-        // thin wrapper rendering its outcome as the JSON response.
+        // The parse → test → project → TR-gate → persist path is the SHARED persisting core
+        // (also behind the CLI `gmeow conjecture test`); the tool is a thin wrapper rendering
+        // its outcome as the JSON response.
         let out = run_conjecture_test(&ConjectureRunInput {
             formula_ttl: formula_src,
             kb_ttl: kb_src,
             standpoint,
             math_conjecture,
             dry_run,
-            max_steps,
-            max_answers,
+            max_steps: budget.max_steps,
+            max_answers: budget.max_answers,
         })?;
 
         // The five-field verdict summary + witness, rendered for every response path.
@@ -2301,6 +2939,10 @@ impl McpServer {
             "discharge": out.discharge,
         });
 
+        // T1: the verdict — and its grounded `judgment_nquads` projection — was ALREADY
+        // computed by `evaluate_conjecture` before the TR gate ran, so it is available (and
+        // carried) on every path below, including precondition-unmet: the engine's judgment
+        // about the candidate is real regardless of whether the persist itself succeeded.
         if let Some(reason) = &out.precondition_unmet {
             return Ok(json!({
                 "ok": false,
@@ -2308,6 +2950,7 @@ impl McpServer {
                 "verdict": verdict_json,
                 "witness": witness_json,
                 "transaction": txn_json(&out.receipt),
+                "judgment_nquads": out.verdict_nt,
             })
             .to_string());
         }
@@ -2319,6 +2962,7 @@ impl McpServer {
                 "witness": witness_json,
                 "conjecture": out.node_iri,
                 "transaction": txn_json(&out.receipt),
+                "judgment_nquads": out.verdict_nt,
             })
             .to_string());
         }
@@ -2329,8 +2973,123 @@ impl McpServer {
             "witness": witness_json,
             "conjecture": out.node_iri,
             "transaction": txn_json(&out.receipt),
+            "judgment_nquads": out.verdict_nt,
         })
         .to_string())
+    }
+
+    /// `refute_conjecture` — the compensating author-WITHDRAWAL counterpart of
+    /// `store_conjecture` (P10, exactly as `revise_belief` compensates `store_claim`). It
+    /// appends one compensating "author-withdrawn" segment to the append-only conjecture
+    /// library, flipping the target node's EFFECTIVE `logic:conjectureLifecycleState` to
+    /// `logic:ConjectureWithdrawn` — recorded, never deleted; the prior segments stay intact.
+    ///
+    /// The write is a REAL TR gate on the `withdrawConjecture` schema, whose precondition —
+    /// the conjecture is still in the library and NOT already withdrawn — is DERIVED from the
+    /// live library state read back by SEGMENT ORDER ([`read_conjecture_library`], R3): the
+    /// `conjectureInLibrary` situation obtains iff the node exists and its effective state is
+    /// not yet `Withdrawn`. An unknown id or an already-withdrawn node yields an empty start
+    /// state, so the executional-entailment run FAILS the commit and the tool returns
+    /// `ok:false` before writing. `dry_run=true` witnesses the hypothetical commit and appends
+    /// nothing.
+    fn tool_refute_conjecture(&self, args: &Value) -> gmeow_errors::Result<String> {
+        let conjecture_id = required_str(args, "conjecture_id")?;
+        let reason = optional_str(args, "reason").unwrap_or("");
+        let dry_run = optional_bool_checked(args, "dry_run")?.unwrap_or(false);
+        let path = conjecture_path()?;
+
+        // The read (library's EFFECTIVE state, by segment order) → precondition-check → (on a
+        // real commit) library-append → audit-append sequence runs ENTIRELY inside ONE held
+        // exclusive lock (`with_conjecture_lock`): without it, two concurrent
+        // `refute_conjecture` calls against the same id could both read "not yet withdrawn",
+        // both pass the precondition, and both commit a withdrawal segment (lost-update). The
+        // lock forces the second caller to observe the FIRST caller's already-committed
+        // `ConjectureWithdrawn` state before it decides anything.
+        with_conjecture_lock(&path, || {
+            // Read the library's EFFECTIVE state by segment order (last-writer-wins). The node
+            // is withdrawable iff it is a stored conjecture whose effective state is not already
+            // Withdrawn — the `del(conjectureInLibrary)` of a prior withdrawal retired it.
+            let library = read_conjecture_library(&path)?;
+            let effective = library.get(conjecture_id).copied();
+            let exists = effective.is_some();
+            let in_library = matches!(
+                effective,
+                Some(state) if state != ConjectureLifecycleState::Withdrawn
+            );
+
+            // The precondition `conjectureInLibrary` obtains iff the node is present and not yet
+            // withdrawn — the engine's executional entailment over THIS derived start state is
+            // the commit gate (an absent situation fails the run; no synthetic boolean).
+            let mut obtains: Vec<&str> = Vec::new();
+            if in_library {
+                obtains.push(MCP_CONJECTURE_IN_LIBRARY);
+            }
+            let receipt = execute_memory_txn(MCP_WITHDRAW_CONJECTURE_SCHEMA, &obtains, dry_run)?;
+            // T1: the compensating withdrawal's OWN grounded RDF projection — content-addressed
+            // on (conjecture_id, reason), pure and side-effect-free — computed once here so BOTH
+            // the hypothetical (dry-run) and committed success paths can carry it under the SAME
+            // `judgment_nquads` key the read tools and the other two conjecture tools use. The
+            // precondition-unmet path below deliberately does NOT carry it: no withdrawal was
+            // validly grounded (unknown id, or already withdrawn), so emitting this body there
+            // would fabricate a judgment about a state change that never obtained.
+            let nt_body = project_conjecture_withdrawal(conjecture_id, reason);
+            match &receipt {
+                TxReceipt::CommittedFailure { .. } | TxReceipt::HypotheticalFailure { .. } => {
+                    let detail = if !exists {
+                        format!("unknown conjecture id: {conjecture_id}")
+                    } else {
+                        format!("conjecture already withdrawn: {conjecture_id}")
+                    };
+                    return Ok(json!({
+                        "ok": false,
+                        "error": format!("withdrawConjecture precondition unmet: {detail}"),
+                        "transaction": txn_json(&receipt),
+                    })
+                    .to_string());
+                }
+                // Sandbox run: the compensating verdict is witnessed, nothing is appended.
+                TxReceipt::HypotheticalSuccess { .. } => {
+                    return Ok(json!({
+                        "ok": true,
+                        "dry_run": true,
+                        "conjecture": conjecture_id,
+                        "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+                        "transaction": txn_json(&receipt),
+                        "judgment_nquads": nt_body,
+                    })
+                    .to_string());
+                }
+                TxReceipt::CommittedSuccess { .. } => {}
+            }
+
+            // Committed: APPEND the compensating author-withdrawal segment (the target node
+            // re-marked `ConjectureWithdrawn`, author reason, reviewer-asserted provenance)
+            // TOGETHER with its cold-auditable trajectory segment (keyed to a content-addressed
+            // call id) as ONE atomic file replace — so a failure building or committing either
+            // segment can never leave the withdrawal applied without its audit record, or vice
+            // versa. The library is still append-only overall: no PRIOR segment's bytes are
+            // touched, only new bytes are added.
+            let withdrawal_segment = build_conjecture_verdict_segment(&nt_body)?;
+            let call_id = format!(
+                "urn:gmeow:conjecture-call:{}",
+                sha256_hex(format!("withdraw\u{1}{conjecture_id}\u{1}{reason}").as_bytes())
+            );
+            let audit_segment = build_audit_segment(
+                &call_id,
+                MCP_WITHDRAW_CONJECTURE_SCHEMA,
+                &[MCP_CONJECTURE_IN_LIBRARY],
+                "1970-01-01T00:00:00Z",
+            );
+            append_conjecture_segments(&path, &[withdrawal_segment, audit_segment])?;
+            Ok(json!({
+                "ok": true,
+                "conjecture": conjecture_id,
+                "lifecycle": ConjectureLifecycleState::Withdrawn.wire(),
+                "transaction": txn_json(&receipt),
+                "judgment_nquads": nt_body,
+            })
+            .to_string())
+        })
     }
 
     fn tool_validate(&self) -> gmeow_errors::Result<String> {
@@ -2482,18 +3241,47 @@ impl McpView {
 }
 
 // --------------------------------------------------------------------------- //
-// The shared conjecture-test core (one implementation, two surfaces).
+// The shared conjecture-test core (one evaluation implementation, three surfaces).
 //
-// Both the private MCP tool `tool_conjecture_test` and the public
-// `gmeow conjecture test` CLI subcommand call [`run_conjecture_test`]: the
-// SINGLE parse → test → project → TR-gate → persist path. Neither surface
-// re-implements it; the MCP wrapper renders the returned summary as JSON, the
-// CLI renders it as human-readable text.
+// [`evaluate_conjecture`] is the SINGLE parse → test → project path: it parses the candidate
+// document and KB, re-homes the KB into the isolated scenario world, runs the native engine,
+// and projects the verdict to deterministic N-Triples. Nothing calls the engine or the
+// projector a second time.
+//
+// Two public entries sit on top of it, matching the issue's test / store decomposition:
+//   - [`run_conjecture_test_pure`] — the "test" leg: evaluate only, NEVER TR-gate, NEVER
+//     persist. Behind the MCP `conjecture_test` tool.
+//   - [`run_conjecture_test`] — the "store" leg: evaluate, then TR-gate on the
+//     `persistConjecture` schema and, on a committed precondition-met run, APPEND the verdict
+//     to the append-only conjecture library. Behind the MCP `store_conjecture` tool AND the
+//     public `gmeow conjecture test` CLI subcommand (unchanged CLI behavior).
+// Neither surface re-implements the evaluation; each renders its own outcome (JSON / text).
 // --------------------------------------------------------------------------- //
 
-/// The inputs to one conjecture test: the candidate `logic:` Turtle document, the KB Turtle
-/// it is tested against, the REQUIRED reified standpoint scope (Principle 9), an optional
-/// `math:Conjecture` twin, and whether the run is a sandbox (`dry_run`, writes nothing).
+/// The inputs shared by both evaluation entries: the candidate `logic:` Turtle document, the
+/// KB Turtle it is tested against, the REQUIRED reified standpoint scope (Principle 9), an
+/// optional `math:Conjecture` twin, and the optional derived-closure budget.
+pub struct ConjectureRunPureInput<'a> {
+    /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
+    pub formula_ttl: &'a str,
+    /// The KB the candidate is tested against, as Turtle.
+    pub kb_ttl: &'a str,
+    /// The required reified standpoint scope IRI (Principle 9).
+    pub standpoint: &'a str,
+    /// Optionally, the `math:Conjecture` twin IRI so a refutation's counterexample is
+    /// re-exposed via `math:hasCounterexample`.
+    pub math_conjecture: Option<&'a str>,
+    /// Optional post-hoc derived-closure-size ceiling on the isolated scenario evaluation: when
+    /// the derived (non-EDB) closure exceeds this many steps the run is stamped `BudgetExhausted`
+    /// → lifecycle Open → discharge Unknown. `None` = unbounded.
+    pub max_steps: Option<u64>,
+    /// Optional post-hoc derived-closure-size ceiling in answer bindings; see
+    /// [`max_steps`](Self::max_steps). `None` = unbounded.
+    pub max_answers: Option<usize>,
+}
+
+/// The inputs to one PERSISTING conjecture test: [`ConjectureRunPureInput`]'s fields plus
+/// whether the run is a sandbox (`dry_run`, writes nothing).
 pub struct ConjectureRunInput<'a> {
     /// The candidate document: a Turtle `logic:` doc naming exactly one candidate formula.
     pub formula_ttl: &'a str,
@@ -2506,16 +3294,15 @@ pub struct ConjectureRunInput<'a> {
     pub math_conjecture: Option<&'a str>,
     /// When true, compute and return the verdict but WRITE NOTHING to the library.
     pub dry_run: bool,
-    /// Optional post-hoc derived-closure-size ceiling on the isolated scenario evaluation: when
-    /// the derived (non-EDB) closure exceeds this many steps the run is stamped `BudgetExhausted`
-    /// → lifecycle Open → discharge Unknown. `None` = unbounded.
+    /// Optional post-hoc derived-closure-size ceiling; see
+    /// [`ConjectureRunPureInput::max_steps`]. `None` = unbounded.
     pub max_steps: Option<u64>,
-    /// Optional post-hoc derived-closure-size ceiling in answer bindings; see
-    /// [`max_steps`](Self::max_steps). `None` = unbounded.
+    /// Optional post-hoc derived-closure-size ceiling; see
+    /// [`ConjectureRunPureInput::max_answers`]. `None` = unbounded.
     pub max_answers: Option<usize>,
 }
 
-/// A refutation's contradiction witness, flattened for both response surfaces.
+/// A refutation's contradiction witness, flattened for every response surface.
 pub struct ConjectureRunWitness {
     /// The individual forced into a clash.
     pub individual: String,
@@ -2523,6 +3310,28 @@ pub struct ConjectureRunWitness {
     pub world: String,
     /// The premise triples that witness the clash, each rendered `"s p o"`.
     pub premises: Vec<String>,
+}
+
+/// The outcome of a [`run_conjecture_test_pure`] call: the projected verdict facets, the
+/// refutation witness (when refuted), the content-addressed node IRI, and the projected
+/// N-Triples body. Nothing is ever committed or persisted on this path.
+pub struct ConjecturePureOutput {
+    /// The epistemic lifecycle wire value (`open` | `corroborated` | `refuted-in-standpoint`).
+    pub lifecycle: String,
+    /// The Belnap information-state wire value.
+    pub information: String,
+    /// The evaluation-axis wire value.
+    pub evaluation: String,
+    /// The completeness-axis wire value.
+    pub completeness: String,
+    /// The discharge carrier local name (`ObligationDischarged` | `ObligationUnknown`).
+    pub discharge: String,
+    /// The refutation witness, present exactly when refuted.
+    pub witness: Option<ConjectureRunWitness>,
+    /// The content-addressed `(formula × standpoint × KB-world)` conjecture node IRI.
+    pub node_iri: String,
+    /// The deterministic N-Triples body [`project_conjecture_verdict`] emitted.
+    pub verdict_nt: String,
 }
 
 /// The outcome of a [`run_conjecture_test`] call: the projected verdict facets, the refutation
@@ -2557,34 +3366,39 @@ pub struct ConjectureRunOutput {
     pub receipt: TxReceipt,
 }
 
-/// Run one conjecture test end-to-end: parse the candidate document and KB, re-home the KB
-/// into the isolated scenario world, run the native engine, project the verdict to
-/// deterministic N-Triples, TR-gate the write on the `persistConjecture` schema, and — on a
-/// committed, precondition-met run — APPEND the verdict segment plus a cold-auditable
-/// trajectory segment to the append-only conjecture library.
-///
-/// This is the single shared core behind both the MCP `conjecture_test` tool and the
-/// `gmeow conjecture test` CLI subcommand. It never mutates the caller's KB (isolation is
-/// inherent) and, on a `dry_run` or a precondition-unmet run, writes nothing.
+/// The shared evaluation core's result: everything computed by parsing, testing, and
+/// projecting one conjecture verdict, before either public entry decides what to do with it.
+struct ConjectureEvaluation {
+    lifecycle: String,
+    information: String,
+    evaluation: String,
+    completeness: String,
+    discharge: String,
+    witness: Option<ConjectureRunWitness>,
+    node_iri: String,
+    verdict_nt: String,
+    /// The candidate's content-addressing key, needed by the persisting tail's audit call id.
+    content_key: String,
+}
+
+/// Parse the candidate document and KB, re-home the KB into the isolated scenario world, run
+/// the native engine, and project the verdict to deterministic N-Triples. The SINGLE
+/// evaluation path shared by [`run_conjecture_test_pure`] and [`run_conjecture_test`] — neither
+/// TR-gates nor writes anything; that is each caller's own tail.
 ///
 /// # Errors
 ///
 /// Returns an error if the candidate document does not name exactly one candidate formula, if
-/// the KB does not parse, if the native engine fails (see [`conjecture_test`]), or if the TR
-/// transaction or the library append fails.
-pub fn run_conjecture_test(
-    input: &ConjectureRunInput,
-) -> gmeow_errors::Result<ConjectureRunOutput> {
-    let ConjectureRunInput {
-        formula_ttl,
-        kb_ttl,
-        standpoint,
-        math_conjecture,
-        dry_run,
-        max_steps,
-        max_answers,
-    } = *input;
-
+/// the KB does not parse, if the native engine fails (see [`conjecture_test`]), or if a
+/// refutation names a compound candidate with no soundly-derivable forbidden predicate.
+fn evaluate_conjecture(
+    formula_ttl: &str,
+    kb_ttl: &str,
+    standpoint: &str,
+    math_conjecture: Option<&str>,
+    max_steps: Option<u64>,
+    max_answers: Option<usize>,
+) -> gmeow_errors::Result<ConjectureEvaluation> {
     // (1) Parse the candidate document and extract exactly one candidate formula.
     let candidate = parse_candidate_formula(formula_ttl)?;
 
@@ -2667,8 +3481,105 @@ pub fn run_conjecture_test(
     let completeness = verdict.completeness.wire().to_string();
     let discharge = answer.discharge.local_name().to_string();
 
+    Ok(ConjectureEvaluation {
+        lifecycle,
+        information,
+        evaluation,
+        completeness,
+        discharge,
+        witness,
+        node_iri,
+        verdict_nt,
+        content_key,
+    })
+}
+
+/// Run one conjecture test PURELY — the issue's "test" leg: evaluate the candidate against the
+/// KB and project the verdict, but NEVER TR-gate and NEVER append to the conjecture library.
+/// Behind the MCP `conjecture_test` tool. For the committing counterpart ("store"), see
+/// [`run_conjecture_test`].
+///
+/// # Errors
+///
+/// See [`evaluate_conjecture`].
+pub fn run_conjecture_test_pure(
+    input: &ConjectureRunPureInput,
+) -> gmeow_errors::Result<ConjecturePureOutput> {
+    let ConjectureRunPureInput {
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        max_steps,
+        max_answers,
+    } = *input;
+    let eval = evaluate_conjecture(
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        max_steps,
+        max_answers,
+    )?;
+    Ok(ConjecturePureOutput {
+        lifecycle: eval.lifecycle,
+        information: eval.information,
+        evaluation: eval.evaluation,
+        completeness: eval.completeness,
+        discharge: eval.discharge,
+        witness: eval.witness,
+        node_iri: eval.node_iri,
+        verdict_nt: eval.verdict_nt,
+    })
+}
+
+/// Run one conjecture test end-to-end — the issue's "store" leg: evaluate the candidate
+/// against the KB (see [`evaluate_conjecture`]), TR-gate the write on the `persistConjecture`
+/// schema, and — on a committed, precondition-met run — APPEND the verdict segment plus a
+/// cold-auditable trajectory segment to the append-only conjecture library.
+///
+/// This is the shared persisting core behind both the MCP `store_conjecture` tool and the
+/// `gmeow conjecture test` CLI subcommand. It never mutates the caller's KB (isolation is
+/// inherent) and, on a `dry_run` or a precondition-unmet run, writes nothing.
+///
+/// # Errors
+///
+/// Returns an error if [`evaluate_conjecture`] fails, or if the TR transaction or the library
+/// append fails.
+pub fn run_conjecture_test(
+    input: &ConjectureRunInput,
+) -> gmeow_errors::Result<ConjectureRunOutput> {
+    let ConjectureRunInput {
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        dry_run,
+        max_steps,
+        max_answers,
+    } = *input;
+
+    let ConjectureEvaluation {
+        lifecycle,
+        information,
+        evaluation,
+        completeness,
+        discharge,
+        witness,
+        node_iri,
+        verdict_nt,
+        content_key,
+    } = evaluate_conjecture(
+        formula_ttl,
+        kb_ttl,
+        standpoint,
+        math_conjecture,
+        max_steps,
+        max_answers,
+    )?;
+
     // (5) TR-gate the write on the persistConjecture schema. The precondition — a verdict has
-    //     been presented — obtains once the engine returns a verdict (step 3).
+    //     been presented — obtains once the engine returns a verdict (evaluation above).
     let obtains = [MCP_CONJECTURE_VERDICT_PRESENTED];
     let receipt = execute_memory_txn(MCP_PERSIST_CONJECTURE_SCHEMA, &obtains, dry_run)?;
 
@@ -2697,21 +3608,25 @@ pub fn run_conjecture_test(
         TxReceipt::CommittedSuccess { .. } => {}
     }
 
-    // (6) Committed: APPEND the verdict segment to the append-only library, then record a
-    //     cold-auditable trajectory segment keyed to a content-addressed call id.
+    // (6) Committed: APPEND the verdict segment plus its cold-auditable trajectory segment
+    //     (keyed to a content-addressed call id) to the append-only library — TOGETHER, as ONE
+    //     atomic file replace under ONE held lock, so a failure building or committing either
+    //     segment can never leave the library holding the verdict without its audit record.
     let path = conjecture_path()?;
-    write_conjecture_segment(&path, &out.verdict_nt)?;
+    let verdict_segment = build_conjecture_verdict_segment(&out.verdict_nt)?;
     let call_id = format!(
         "urn:gmeow:conjecture-call:{}",
         sha256_hex(format!("{}\u{1}{content_key}", out.node_iri).as_bytes())
     );
-    write_audit_segment(
-        &path,
+    let audit_segment = build_audit_segment(
         &call_id,
         MCP_PERSIST_CONJECTURE_SCHEMA,
         &obtains,
         "1970-01-01T00:00:00Z",
-    )?;
+    );
+    with_conjecture_lock(&path, || {
+        append_conjecture_segments(&path, &[verdict_segment, audit_segment])
+    })?;
     out.committed = true;
     Ok(out)
 }
@@ -2885,7 +3800,26 @@ fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
         .filter_map(|(prop, _)| {
             let required_by_name = matches!(
                 *prop,
-                "term" | "text" | "claim_id" | "path" | "target_iri" | "data" | "format" | "query"
+                "term"
+                    | "text"
+                    | "claim_id"
+                    | "conjecture_id"
+                    | "path"
+                    | "target_iri"
+                    | "data"
+                    | "format"
+                    | "query"
+                    | "subject"
+                    | "predicate"
+                    | "object_value"
+                    | "graph"
+                    // G11: `conjecture_test` / `store_conjecture` enforce these three via
+                    // `required_str` at call time (see `tool_conjecture_test` /
+                    // `tool_store_conjecture`) — the advertised schema must match, or a client
+                    // sees an OPTIONAL arg it then gets a runtime error for omitting.
+                    | "formula"
+                    | "kb"
+                    | "standpoint"
             );
             // Carve-outs: an arg whose shared name is required everywhere else is
             // OPTIONAL for a specific tool, so marking it required THERE would advertise
@@ -3019,6 +3953,465 @@ fn ambiguous_term_err(term: &str, candidates: &[String]) -> gmeow_errors::Diag {
     })
 }
 
+/// The proof-carrying completeness class of a governed reasoning `result`, shared by
+/// [`McpView::run_verify_graph`] and [`McpView::run_explain_quad`].
+///
+/// This is a thin wrapper over [`CoherenceOutcome::class_local_name_for`] — the SAME
+/// completeness-gate trichotomy the bundle-level coherence certifier
+/// (`certificate.rs`) uses to mint a real `logic:CoherenceCertificate`, under the
+/// default classical policy ([`ContradictionPolicy::DEFAULT`], gaps and gluts both
+/// forbidden — the conservative default a tool surface with no contract-specific
+/// policy in hand must use). It requires BOTH:
+/// * a CONCLUSIVE closure (a completed run OR a complete-for-fragment answer,
+///   [`ReasoningResult::is_conclusive`]) — otherwise the strictly-weaker
+///   `CoherenceCheckAttestation` claim is the strongest honest one, never a
+///   certificate; AND
+/// * no forbidden violation (a witnessed DL glut under the forbid-glut default) —
+///   an inconsistent-but-conclusive closure is REFUSED (`"Refused"`), never labeled
+///   `CoherenceCertificate`, on EITHER caller's path (no ad-hoc per-caller downgrade:
+///   `run_verify_graph` no longer bolts one on separately — see its own docs).
+///
+/// The gate is never re-derived inline here (GREENFIELD/no-duplicate-logic) — the
+/// one gate lives in `certificate.rs`, so the two tool paths can never diverge on
+/// whether a genuine certificate is warranted.
+fn completeness_class(result: &ReasoningResult) -> &'static str {
+    CoherenceOutcome::class_local_name_for(result, ContradictionPolicy::DEFAULT)
+}
+
+/// `true` iff [`completeness_class`] would answer `"Refused"` for `result` — the
+/// SAME gate, under the SAME default policy, exposed as a boolean for
+/// [`McpView::run_verify_graph`]'s `coherent` field. Deriving `coherent` from this
+/// (rather than from an independent signal such as "did any bad-example verify
+/// query match") is what guarantees `coherent` and `class_local_name` can never
+/// disagree: a conclusive DL glut that trips no bad-example query still REFUSES via
+/// this gate, so `coherent` is forced `false` in lockstep with `class_local_name`
+/// being `"Refused"` — never `coherent:true` alongside `class:Refused`.
+fn completeness_refused(result: &ReasoningResult) -> bool {
+    CoherenceOutcome::is_refused_for(result, ContradictionPolicy::DEFAULT)
+}
+
+/// Read the SCOPED COHERENCE CERTIFICATE carried in the bundle's `graph/attestations`
+/// named graph and map it to the proof-carrying read envelope (R6).
+///
+/// This is BUDGET-FREE and REASON-FREE: the certificate was computed ONCE at pipeline
+/// time (`crate::stages::carrier`, over the whole assembled carrier) and folded into the
+/// bundle; this reads it straight off the loaded dataset — it NEVER re-reasons. The class
+/// (`logic:CoherenceCertificate` vs the strictly-weaker `logic:CoherenceCheckAttestation`)
+/// is read from the carried `rdf:type`, so an attestation is NEVER silently reported as a
+/// certificate. The completeness/evaluation axes are recovered from the linked
+/// `logic:ReasoningResult` node's `logic:resultCompleteness` / `logic:resultEvaluation`
+/// status individuals.
+///
+/// # Errors
+/// HARD-FAILS if the bundle carries no coherence artifact in `graph/attestations` (there
+/// is NO silent recompute fallback — after the terminal fold every gmeow.gts carries one),
+/// or if it carries more than one distinct coherence subject (an ambiguous bundle).
+fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<Value> {
+    use purrdf::RdfTerm;
+
+    let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+    let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let cert_type = format!("{LOGIC_NAMESPACE}CoherenceCertificate");
+    let att_type = format!("{LOGIC_NAMESPACE}CoherenceCheckAttestation");
+
+    let iri_of = |term: &RdfTerm| -> Option<String> {
+        match term {
+            RdfTerm::Iri(iri) => Some(iri.clone()),
+            _ => None,
+        }
+    };
+    let literal_of = |term: &RdfTerm| -> Option<String> {
+        match term {
+            RdfTerm::Literal(lit) => Some(lit.lexical_form.clone()),
+            _ => None,
+        }
+    };
+    let in_graph = |g: &Option<RdfTerm>| matches!(g, Some(RdfTerm::Iri(iri)) if iri == graph);
+
+    // 1. Locate THE coherence subject and its class local name (Certificate vs the
+    //    strictly-weaker Attestation). A Refused outcome emits nothing, so a carried
+    //    subject is always one of the two issued artifacts.
+    let mut carried: Option<(String, &'static str)> = None;
+    for q in dataset.owned_quads() {
+        if !in_graph(&q.graph_name) || q.predicate != rdf_type {
+            continue;
+        }
+        let (Some(subject), Some(obj)) = (iri_of(&q.subject), iri_of(&q.object)) else {
+            continue;
+        };
+        let class_local = if obj == cert_type {
+            "CoherenceCertificate"
+        } else if obj == att_type {
+            "CoherenceCheckAttestation"
+        } else {
+            continue;
+        };
+        match &carried {
+            Some((existing, _)) if *existing != subject => {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "coherence_certificate: the bundle carries more than one distinct \
+                         coherence subject in {graph} ({existing} and {subject}); an ambiguous \
+                         coherence artifact set is a hard failure"
+                    ),
+                }));
+            }
+            // The SAME subject typed BOTH logic:CoherenceCertificate and
+            // logic:CoherenceCheckAttestation is ambiguous — a hard fail, never a
+            // silent first-wins pick of whichever `rdf:type` triple the dataset's
+            // quad order happened to surface first.
+            Some((_, existing_class)) if *existing_class != class_local => {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "coherence_certificate: coherence subject {subject} is typed BOTH \
+                         logic:CoherenceCertificate and logic:CoherenceCheckAttestation in \
+                         {graph}; an ambiguously-typed coherence artifact is a hard failure"
+                    ),
+                }));
+            }
+            Some(_) => {}
+            None => carried = Some((subject, class_local)),
+        }
+    }
+    let Some((subject, class_local)) = carried else {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "coherence_certificate: the bundle carries no coherence certificate or \
+                 attestation in {graph} (no logic:CoherenceCertificate / \
+                 logic:CoherenceCheckAttestation subject); the bundle is missing its \
+                 pipeline-time coherence proof — refusing to recompute"
+            ),
+        }));
+    };
+
+    // 2. Gather the scoped payload off the subject's quads.
+    let p = |local: &str| format!("{LOGIC_NAMESPACE}{local}");
+    let (
+        pred_bundle,
+        pred_axiom,
+        pred_contract,
+        pred_engine,
+        pred_fragment,
+        pred_policy,
+        pred_loss,
+        pred_forbidden,
+        pred_summarizes,
+    ) = (
+        p("bundleHash"),
+        p("axiomHash"),
+        p("contractHash"),
+        p("engine"),
+        p("certifiedFragment"),
+        p("contradictionPolicy"),
+        p("projectionLoss"),
+        p("forbiddenViolationWitness"),
+        p("summarizesResult"),
+    );
+    let mut bundle_hash: Option<String> = None;
+    let mut contract_hash: Option<String> = None;
+    let mut engine: Option<String> = None;
+    let mut certified_fragment: Option<String> = None;
+    let mut contradiction_policy: Option<String> = None;
+    let mut result_node: Option<String> = None;
+    let mut axiom_hashes: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut projection_losses: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
+    let mut forbidden_violations: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
+    for q in dataset.owned_quads() {
+        if !in_graph(&q.graph_name) || iri_of(&q.subject).as_deref() != Some(subject.as_str()) {
+            continue;
+        }
+        let pred = q.predicate.as_str();
+        if pred == pred_bundle {
+            bundle_hash = literal_of(&q.object);
+        } else if pred == pred_axiom {
+            if let Some(v) = literal_of(&q.object) {
+                axiom_hashes.insert(v);
+            }
+        } else if pred == pred_contract {
+            contract_hash = literal_of(&q.object);
+        } else if pred == pred_engine {
+            engine = literal_of(&q.object);
+        } else if pred == pred_fragment {
+            certified_fragment = literal_of(&q.object);
+        } else if pred == pred_policy {
+            contradiction_policy = iri_of(&q.object);
+        } else if pred == pred_loss {
+            if let Some(v) = literal_of(&q.object) {
+                projection_losses.insert(v);
+            }
+        } else if pred == pred_forbidden {
+            if let Some(v) = iri_of(&q.object) {
+                forbidden_violations.insert(v);
+            }
+        } else if pred == pred_summarizes {
+            result_node = iri_of(&q.object);
+        }
+    }
+
+    // 3. Recover the two completeness-gate axes off the linked logic:ReasoningResult node.
+    let pred_completeness = p("resultCompleteness");
+    let pred_evaluation = p("resultEvaluation");
+    let mut completeness: Option<String> = None;
+    let mut evaluation: Option<String> = None;
+    if let Some(node) = &result_node {
+        for q in dataset.owned_quads() {
+            if !in_graph(&q.graph_name) || iri_of(&q.subject).as_deref() != Some(node.as_str()) {
+                continue;
+            }
+            if q.predicate == pred_completeness {
+                completeness = iri_of(&q.object)
+                    .and_then(|iri| iri.strip_prefix(LOGIC_NAMESPACE).map(str::to_owned))
+                    .and_then(|local| CompletenessStatus::from_local(&local))
+                    .map(|s| s.wire().to_owned());
+            } else if q.predicate == pred_evaluation {
+                evaluation = iri_of(&q.object)
+                    .and_then(|iri| iri.strip_prefix(LOGIC_NAMESPACE).map(str::to_owned))
+                    .and_then(|local| EvaluationStatus::from_local(&local))
+                    .map(|s| s.wire().to_owned());
+            }
+        }
+    }
+
+    // 4. STRICT VALIDATION — every field [`CoherenceOutcome::to_nquads`]
+    //    (`crates/logic/src/certificate.rs`) writes UNCONDITIONALLY on every issued
+    //    certificate/attestation subject is REQUIRED here, with the exact cardinality
+    //    the producer guarantees. A carried subject missing one of these is a CORRUPT
+    //    artifact, not a partial one — returning `ok:true` with a null/empty field would
+    //    silently launder that corruption past the caller (no-silent-degradation, `.goals`).
+    //    Each hard-fail names the missing predicate so the caller can act on it.
+    let missing = |field: &str| -> gmeow_errors::Diag {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "coherence_certificate: coherence subject {subject} carries no logic:{field} \
+                 (malformed coherence artifact)"
+            ),
+        })
+    };
+    // bundle_hash / axiom_hashes are the load-bearing tamper surface. `axiomHash` rides
+    // per-axiom-bearing-graph (`per_graph_axiom_hashes`), which hashes EVERY named graph in
+    // the dataset the certificate was computed over — a real bundle always has at least one,
+    // so an empty set here is corruption, not a legitimately-empty producer output.
+    let Some(bundle_hash) = bundle_hash.filter(|v| !v.is_empty()) else {
+        return Err(missing("bundleHash"));
+    };
+    if axiom_hashes.is_empty() {
+        return Err(missing("axiomHash"));
+    }
+    let Some(contract_hash) = contract_hash.filter(|v| !v.is_empty()) else {
+        return Err(missing("contractHash"));
+    };
+    let Some(engine) = engine.filter(|v| !v.is_empty()) else {
+        return Err(missing("engine"));
+    };
+    let Some(contradiction_policy) = contradiction_policy else {
+        return Err(missing("contradictionPolicy"));
+    };
+    // logic:summarizesResult is written unconditionally (M2, single-valued) and is the
+    // only path to the two completeness-gate axes below; its absence is corruption.
+    if result_node.is_none() {
+        return Err(missing("summarizesResult"));
+    }
+    // logic:certifiedFragment is the ONE conditionally-required field: the completeness
+    // gate (`certificate.rs::classify`) downgrades any fragment-less conclusive check to
+    // an attestation, so a producer NEVER emits a `CoherenceCertificate` subject without
+    // one — require it only for that class, exactly matching producer cardinality.
+    if class_local == "CoherenceCertificate"
+        && certified_fragment.as_deref().is_none_or(str::is_empty)
+    {
+        return Err(missing("certifiedFragment"));
+    }
+    // The two completeness-gate axes ride the linked result node unconditionally
+    // (`resultEvaluation` / `resultCompleteness`) — required alongside it.
+    let Some(completeness) = completeness else {
+        return Err(missing("resultCompleteness"));
+    };
+    let Some(evaluation) = evaluation else {
+        return Err(missing("resultEvaluation"));
+    };
+
+    Ok(json!({
+        "ok": true,
+        "issues_certificate": class_local == "CoherenceCertificate",
+        "is_refused": false,
+        "class_local_name": class_local,
+        "bundle_hash": bundle_hash,
+        "axiom_hashes": axiom_hashes.into_iter().collect::<Vec<_>>(),
+        "contract_hash": contract_hash,
+        "engine": engine,
+        "certified_fragment": certified_fragment,
+        "completeness": completeness,
+        "evaluation": evaluation,
+        "contradiction_policy": contradiction_policy,
+        "projection_losses": projection_losses.into_iter().collect::<Vec<_>>(),
+        "forbidden_violations": forbidden_violations.into_iter().collect::<Vec<_>>(),
+    }))
+}
+
+/// Build the canonical N3 object surface for `explain_quad` — the EXACT byte form a
+/// [`Row`]'s `obj` carries ([`term_display`] of the object [`TermValue`]) — so the
+/// target reifier joins the reasoner's row set. Reuses the SAME serializer the row
+/// builder feeds off (`gmeow_logic::provenance::term_display`); it never hand-rolls a
+/// second quoting/escaping surface (a mismatch would forge a false "not in closure").
+///
+/// `kind` is `iri` or `literal`; when the caller omits it, it is inferred from the
+/// object surface ([`infer_object_kind`]). `datatype` types a literal only — pairing
+/// it with an `iri` object is a contradictory request and a HARD FAIL, as is any
+/// `kind` other than `iri`/`literal`.
+fn object_term_n3(
+    value: &str,
+    kind: Option<&str>,
+    datatype: Option<&str>,
+) -> gmeow_errors::Result<String> {
+    let kind = kind.unwrap_or_else(|| infer_object_kind(value));
+    let term = match kind {
+        "iri" => {
+            if datatype.is_some() {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message:
+                        "explain_quad: object_datatype is only valid for object_kind=literal, \
+                              not an IRI object"
+                            .to_owned(),
+                }));
+            }
+            TermValue::iri(value)
+        }
+        "literal" => match datatype {
+            Some(dt) => TermValue::typed_literal(value, dt),
+            None => TermValue::simple_literal(value),
+        },
+        other => {
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!(
+                    "explain_quad: object_kind must be `iri` or `literal`, got `{other}`"
+                ),
+            }));
+        }
+    };
+    Ok(term_display(&term))
+}
+
+/// Infer whether a bare `object_value` is an IRI or a literal when the caller omits
+/// `object_kind`. An absolute IRI carries a URI scheme (`ALPHA *( ALPHA / DIGIT / "+"
+/// / "-" / "." ) ":"`) and no ASCII whitespace and is not a quoted literal; anything
+/// else is a literal lexical form. The inference is only a convenience default — a
+/// mis-inference cannot corrupt a result: a wrong reifier simply fails to join the
+/// closure and HARD-FAILS as "not in closure", never a fabricated proof.
+fn infer_object_kind(value: &str) -> &'static str {
+    if is_absolute_iri_shape(value) {
+        "iri"
+    } else {
+        "literal"
+    }
+}
+
+/// `true` iff `value` has the shape of an absolute IRI: a non-empty
+/// `ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )` scheme followed by `:`, with no ASCII
+/// whitespace and no leading `"` (which would mark a literal).
+fn is_absolute_iri_shape(value: &str) -> bool {
+    if value.starts_with('"') || value.chars().any(|c| c.is_ascii_whitespace()) {
+        return false;
+    }
+    let Some(colon) = value.find(':') else {
+        return false;
+    };
+    if colon == 0 {
+        return false;
+    }
+    let mut scheme = value[..colon].chars();
+    let first = scheme.next().expect("colon>0 guarantees a scheme char");
+    first.is_ascii_alphabetic()
+        && scheme.all(|c| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.'))
+}
+
+/// Locate the single row in `rows` whose reifier is `target_reifier` in world
+/// `graph`, WORLD-DISAMBIGUATING the join (R1). The reifier alone is not a unique key:
+/// the same `(S, P, O)` in two worlds shares a reifier, so the intended world must be
+/// supplied.
+///
+/// * No row (in any world) carries the reifier → HARD FAIL `quad not in closure`.
+/// * `graph` resolves to exactly one row → that row.
+/// * `graph` resolves to no row but the reifier lives in exactly one OTHER world →
+///   HARD FAIL `quad not in closure` naming that world (the caller asked the wrong one).
+/// * The reifier spans MORE THAN ONE world and `graph` does not resolve it to exactly
+///   one row → HARD FAIL ambiguity (never an arbitrary pick).
+///
+/// When `graph` resolves to several rows but the reifier lives in ONLY that world, the
+/// engine's `(graph, reifier)` identity is last-wins; this returns that same last row
+/// so the reconstructed root matches the index's resolution deterministically.
+fn locate_explain_target(
+    rows: &[Row],
+    target_reifier: &str,
+    graph: &str,
+) -> gmeow_errors::Result<usize> {
+    let matches: Vec<usize> = rows
+        .iter()
+        .enumerate()
+        .filter(|(_, row)| reifier_from_row(row) == target_reifier)
+        .map(|(index, _)| index)
+        .collect();
+    if matches.is_empty() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "explain_quad: quad not in closure — reifier <{target_reifier}> matches no \
+                 derived or asserted quad in the reasoned bundle (check the (subject, predicate, \
+                 object) surface and the max_steps budget)"
+            ),
+        }));
+    }
+    // The distinct worlds the reifier appears in (sorted, for a deterministic message).
+    let worlds: BTreeSet<&str> = matches
+        .iter()
+        .map(|&index| rows[index].graph.as_str())
+        .collect();
+    // The requested world's matching rows, in input order (last = the engine identity).
+    let in_world: Vec<usize> = matches
+        .iter()
+        .copied()
+        .filter(|&index| rows[index].graph == graph)
+        .collect();
+
+    let ambiguity = || {
+        gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "explain_quad: ambiguous quad — reifier <{target_reifier}> matches quads in {} \
+                 distinct worlds ({}); the supplied graph <{graph}> does not resolve it to \
+                 exactly one row. Re-issue with graph set to the intended world.",
+                worlds.len(),
+                worlds.iter().copied().collect::<Vec<_>>().join(", ")
+            ),
+        })
+    };
+
+    match in_world.len() {
+        1 => Ok(in_world[0]),
+        0 => {
+            if worlds.len() > 1 {
+                Err(ambiguity())
+            } else {
+                let other = worlds.iter().next().copied().unwrap_or_default();
+                Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "explain_quad: quad not in closure — reifier <{target_reifier}> matches a \
+                         quad in world <{other}>, not the supplied graph <{graph}>"
+                    ),
+                }))
+            }
+        }
+        // The requested world carries the reifier on several rows. If the reifier ALSO
+        // spans other worlds it is genuinely ambiguous; otherwise the engine identity is
+        // last-wins, so we deterministically explain that last row.
+        _ => {
+            if worlds.len() > 1 {
+                Err(ambiguity())
+            } else {
+                Ok(*in_world.last().expect("len > 1 has a last"))
+            }
+        }
+    }
+}
+
 fn required_str<'a>(args: &'a Value, key: &str) -> gmeow_errors::Result<&'a str> {
     optional_str(args, key).ok_or_else(|| {
         gmeow_errors::Diag::of_kind(crate::error::Mcp {
@@ -3145,6 +4538,15 @@ const MCP_PERSIST_CONJECTURE_SCHEMA: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/persistConjecture";
 const MCP_CONJECTURE_VERDICT_PRESENTED: &str =
     "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/conjectureVerdictPresented";
+
+/// The `withdrawConjecture` action schema + its precondition situation, defined by
+/// `mcp-action-policy.ttl`. The compensating author-withdrawal counterpart of
+/// `persistConjecture` (P10, `logic:compensation`): the precondition — the conjecture is
+/// still in the library (not already withdrawn) — gates the compensating append.
+const MCP_WITHDRAW_CONJECTURE_SCHEMA: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/withdrawConjecture";
+const MCP_CONJECTURE_IN_LIBRARY: &str =
+    "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/conjectureInLibrary";
 
 /// The single, fixed ISOLATED scenario world every conjecture test reasons in. The KB the
 /// caller supplies is re-homed into this world (so the world-scoped DL calculus joins the
@@ -3302,6 +4704,26 @@ fn write_audit_segment(
     obtains: &[&str],
     at_time: &str,
 ) -> gmeow_errors::Result<()> {
+    let segment = build_audit_segment(call_id, schema_iri, obtains, at_time);
+    let mut file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(memory_path)?;
+    file.write_all(&segment)?;
+    Ok(())
+}
+
+/// Build one trajectory-audit context segment's serialized bytes — the PURE, side-effect-free
+/// half of [`write_audit_segment`], factored out so the conjecture-library commit path can
+/// build the verdict segment AND its audit segment in memory and commit both together via
+/// [`append_conjecture_segments`] (one atomic replace), rather than two separate appends where
+/// the second can fail after the first has already landed.
+fn build_audit_segment(
+    call_id: &str,
+    schema_iri: &str,
+    obtains: &[&str],
+    at_time: &str,
+) -> Vec<u8> {
     let anchor = format!("{call_id}#turn");
     let start = format!("{call_id}#start");
 
@@ -3340,14 +4762,7 @@ fn write_audit_segment(
     let mut writer = GtsWriter::new("ai-package");
     writer.add_terms(&terms);
     writer.add_quads(&quads);
-    let segment = writer.to_bytes();
-
-    let mut file = fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(memory_path)?;
-    file.write_all(&segment)?;
-    Ok(())
+    writer.to_bytes()
 }
 
 // ── Conjecture-library persistence (append-only GTS ai-package, TR-gated) ─────
@@ -3472,12 +4887,14 @@ fn intern_nt_term(
     id
 }
 
-/// Append one conjecture-verdict segment (the `project_conjecture_verdict` N-Triples body) to
-/// the append-only library at `path`, as a GTS `ai-package` segment. The body is parsed into
-/// `(subject, predicate, object)` triples, interned as GTS terms (IRIs, blank nodes, and
-/// typed literals with their datatype), and written via [`GtsWriter`]. Prior segment bytes
-/// are NEVER mutated — the file is opened `create + append`, mirroring [`write_audit_segment`].
-fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
+/// Build one conjecture-verdict segment (the `project_conjecture_verdict` N-Triples body) as
+/// a GTS `ai-package` segment's serialized bytes — the PURE, side-effect-free half of the old
+/// `write_conjecture_segment`. The body is parsed into `(subject, predicate, object)` triples,
+/// interned as GTS terms (IRIs, blank nodes, and typed literals with their datatype), and
+/// written via [`GtsWriter`]. Building the bytes is separated from appending them so a caller
+/// can assemble MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory
+/// and commit them together as one atomic file replace — see [`append_conjecture_segments`].
+fn build_conjecture_verdict_segment(nt_body: &str) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
     let mut seen: HashMap<String, usize> = HashMap::new();
@@ -3514,20 +4931,231 @@ fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<
     let mut writer = GtsWriter::new("ai-package");
     writer.add_terms(&terms);
     writer.add_quads(&quads);
-    let segment = writer.to_bytes();
+    Ok(writer.to_bytes())
+}
 
-    if let Some(parent) = path
+/// The sidecar advisory-lock path for the conjecture library at `library_path`: the library
+/// path with a literal `.lock` suffix appended (e.g. `conjectures.gts` → `conjectures.gts.lock`).
+/// The lock file's own bytes are never read; it exists solely as a stable `flock`/`LockFileEx`
+/// target that survives the library file being replaced out from under it by
+/// [`append_conjecture_segments`]'s atomic rename (an `flock` on the DATA file itself would be
+/// silently dropped by a rename-replace, since the lock is bound to the inode, not the path).
+fn conjecture_lock_path(library_path: &Path) -> PathBuf {
+    let mut os = library_path.as_os_str().to_owned();
+    os.push(".lock");
+    PathBuf::from(os)
+}
+
+/// Acquire ONE exclusive, cross-process advisory lock on `library_path`'s sidecar `.lock` file
+/// for the duration of `f`, serializing every conjecture-library operation — reads, precondition
+/// checks, and appends alike — against every other process/thread doing the same. Callers that
+/// must read-then-decide-then-write (e.g. `refute_conjecture`'s "is this id still in the library
+/// and not yet withdrawn?" precondition) run the ENTIRE read → check → append sequence inside
+/// `f`, so two concurrent callers can no longer both observe the pre-write state and both commit
+/// (the lost-update / double-write race). The lock is released when the guard
+/// file handle drops at the end of this call, regardless of whether `f` succeeded.
+fn with_conjecture_lock<T>(
+    library_path: &Path,
+    f: impl FnOnce() -> gmeow_errors::Result<T>,
+) -> gmeow_errors::Result<T> {
+    if let Some(parent) = library_path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
     {
         fs::create_dir_all(parent)?;
     }
-    let mut file = fs::OpenOptions::new()
+    let lock_path = conjecture_lock_path(library_path);
+    let lock_file = fs::OpenOptions::new()
         .create(true)
-        .append(true)
-        .open(path)?;
-    file.write_all(&segment)?;
+        .truncate(false)
+        .write(true)
+        .open(&lock_path)?;
+    // Blocking exclusive lock (`flock(LOCK_EX)` / `LockFileEx` exclusive) — a concurrent
+    // holder blocks here rather than racing past a TOCTOU window.
+    lock_file.lock()?;
+    let result = f();
+    let _ = lock_file.unlock();
+    result
+}
+
+/// Atomically commit `segments` (each an already-serialized GTS `ai-package` segment, in order)
+/// to the conjecture library at `path`, ALL-OR-NOTHING: the new file contents — the library's
+/// current bytes (if any) followed by every segment in `segments`, in order — are assembled
+/// ENTIRELY in memory, then committed via a same-directory temp file + `fsync` + atomic rename.
+/// A rename either lands the WHOLE new file or leaves the PRIOR file completely untouched — so
+/// if anything fails partway (e.g. the audit segment's bytes can't be built, or the temp write
+/// fails), the library is never left holding some but not all of `segments` (closing the "audit
+/// append fails, library append is left applied" failure mode). The caller MUST
+/// already hold the conjecture-library lock (see [`with_conjecture_lock`]) — this function does
+/// not lock by itself, so it can be called once per commit even when it writes >1 segment.
+fn append_conjecture_segments(path: &Path, segments: &[Vec<u8>]) -> gmeow_errors::Result<()> {
+    let mut bytes = match fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => Vec::new(),
+        Err(e) => return Err(e.into()),
+    };
+    for segment in segments {
+        bytes.extend_from_slice(segment);
+    }
+
+    let dir = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .map_or_else(|| PathBuf::from("."), PathBuf::from);
+    let mut tmp = tempfile::Builder::new()
+        .prefix(".conjectures-")
+        .suffix(".tmp")
+        .tempfile_in(&dir)?;
+    tmp.write_all(&bytes)?;
+    tmp.as_file().sync_all()?;
+    tmp.persist(path)?;
     Ok(())
+}
+
+/// A per-segment collector for [`read_conjecture_library`]: it captures each GTS segment's
+/// term table and quads IN FILE (append) ORDER, so a `logic:conjectureLifecycleState`
+/// supersession can be resolved as last-writer-wins by SEGMENT ORDER.
+///
+/// Order is the ONLY sound disambiguator here (R3). The unioned dataset a plain
+/// `import_gts_events` yields carries EVERY state a node ever held at once — after a store
+/// then a refute, one node holds both its engine verdict (`Open`/`Corroborated`/`Refuted…`)
+/// AND `ConjectureWithdrawn` — and `gmeow:atTime` cannot break the tie either, because every
+/// audit segment stamps the SAME fixed determinism epoch. The streaming reader
+/// (`read_to_sink` with `allow_segments = true`) is the one path that preserves per-segment
+/// identity: each appended `GtsWriter` blob reads back as its own segment, delivered in
+/// append order, so folding the lifecycle assertions in that order makes the LAST one win.
+#[derive(Default)]
+struct ConjectureSegments {
+    /// One row per segment, indexed by segment order.
+    segments: Vec<ConjectureSegmentRows>,
+    /// The first reader diagnostic, if any — any diagnostic is a HARD read failure (no
+    /// silent partial read of a corrupt library).
+    diagnostic: Option<String>,
+}
+
+/// One segment's captured rows: its segment-local term table and its `(s, p, o)` quads.
+#[derive(Default)]
+struct ConjectureSegmentRows {
+    /// Segment-local term id → interned term (ids are dense from 0 within a segment).
+    terms: Vec<Option<GtsTerm>>,
+    /// `(subject, predicate, object)` segment-local term ids (the graph slot is dropped —
+    /// the conjecture library writes only default-graph triples).
+    quads: Vec<(usize, usize, usize)>,
+}
+
+impl ConjectureSegments {
+    /// The rows for `index`, growing the segment vector so an out-of-order or sparse
+    /// segment index still lands in its own slot.
+    fn seg(&mut self, index: usize) -> &mut ConjectureSegmentRows {
+        if index >= self.segments.len() {
+            self.segments
+                .resize_with(index + 1, ConjectureSegmentRows::default);
+        }
+        &mut self.segments[index]
+    }
+}
+
+impl purrdf::gts::reader::StreamingSink for ConjectureSegments {
+    fn term(&mut self, segment_index: usize, term_id: usize, term: &GtsTerm) {
+        let rows = self.seg(segment_index);
+        if term_id >= rows.terms.len() {
+            rows.terms.resize(term_id + 1, None);
+        }
+        rows.terms[term_id] = Some(term.clone());
+    }
+
+    fn quad(&mut self, segment_index: usize, quad: purrdf::gts::model::Quad) {
+        let (subject, predicate, object, _graph) = quad;
+        self.seg(segment_index)
+            .quads
+            .push((subject, predicate, object));
+    }
+
+    fn diagnostic(&mut self, diagnostic: &purrdf::gts::model::Diagnostic) {
+        if self.diagnostic.is_none() {
+            self.diagnostic = Some(format!("{}: {}", diagnostic.code, diagnostic.detail));
+        }
+    }
+}
+
+/// Read the append-only conjecture library at `path`, resolving each stored
+/// `logic:Conjecture` node's **EFFECTIVE** `logic:conjectureLifecycleState` by SEGMENT
+/// ORDER (last writer wins — see [`ConjectureSegments`] for why order, not the union or
+/// `gmeow:atTime`, is the only sound key). A node typed `logic:Conjecture` in any segment is
+/// in the library; its effective state is the object of the LAST lifecycle assertion for it
+/// in append order. A missing library file is an EMPTY library (a first-ever refute of an
+/// unknown id), not an error; any reader diagnostic or a torn trailing item is a HARD FAIL.
+fn read_conjecture_library(
+    path: &Path,
+) -> gmeow_errors::Result<BTreeMap<String, ConjectureLifecycleState>> {
+    let bytes = match fs::read(path) {
+        Ok(bytes) => bytes,
+        Err(e) if e.kind() == io::ErrorKind::NotFound => return Ok(BTreeMap::new()),
+        Err(e) => return Err(e.into()),
+    };
+
+    let mut sink = ConjectureSegments::default();
+    let result = purrdf::gts::reader::read_to_sink(&bytes, true, None, &mut sink);
+    if let Some(diag) = sink.diagnostic.take() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("conjecture library read diagnostic: {diag}"),
+        }));
+    }
+    if let Some(first) = result.diagnostics.first() {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "conjecture library read diagnostic: {}: {}",
+                first.code, first.detail
+            ),
+        }));
+    }
+    if let Some(offset) = result.torn {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!("conjecture library has a torn trailing item at byte {offset}"),
+        }));
+    }
+
+    let conjecture_iri = format!("{LOGIC_NAMESPACE}Conjecture");
+    let lifecycle_iri = format!("{LOGIC_NAMESPACE}conjectureLifecycleState");
+
+    let mut is_conjecture: BTreeSet<String> = BTreeSet::new();
+    let mut effective: BTreeMap<String, ConjectureLifecycleState> = BTreeMap::new();
+
+    // Fold the segments in FILE ORDER — a later segment's lifecycle assertion for a node
+    // supersedes an earlier one, so `insert` (last-writer-wins) IS the supersession rule.
+    for seg in &sink.segments {
+        let resolve_iri = |id: usize| -> Option<&str> {
+            seg.terms
+                .get(id)?
+                .as_ref()
+                .filter(|term| term.kind == GtsTermKind::Iri)
+                .and_then(|term| term.value.as_deref())
+        };
+        for &(subject, predicate, object) in &seg.quads {
+            let (Some(subj), Some(pred)) = (resolve_iri(subject), resolve_iri(predicate)) else {
+                continue;
+            };
+            if pred == RDF_TYPE {
+                if resolve_iri(object) == Some(conjecture_iri.as_str()) {
+                    is_conjecture.insert(subj.to_owned());
+                }
+            } else if pred == lifecycle_iri
+                && let Some(obj) = resolve_iri(object)
+                && let Some(local) = obj.strip_prefix(LOGIC_NAMESPACE)
+                && let Some(state) = ConjectureLifecycleState::from_local(local)
+            {
+                effective.insert(subj.to_owned(), state);
+            }
+        }
+    }
+
+    // A node is in the library iff it was typed `logic:Conjecture`; every such node carries a
+    // lifecycle state (REQUIRED by logic:ConjectureShape), so the intersection is exactly the
+    // library's conjecture set paired with its effective, segment-order-resolved state.
+    Ok(effective
+        .into_iter()
+        .filter(|(node, _)| is_conjecture.contains(node))
+        .collect())
 }
 
 /// Parse the candidate `logic:` document and extract exactly ONE candidate [`Formula`]: the
@@ -3642,6 +5270,19 @@ mod tests {
     use super::*;
     use std::ffi::OsString;
     use std::sync::{Mutex, OnceLock};
+
+    /// Append one hand-built conjecture-verdict segment to the append-only library at `path`,
+    /// as a GTS `ai-package` segment, via the SAME locked/atomic commit path production code
+    /// uses ([`with_conjecture_lock`] + [`append_conjecture_segments`]). Test-only: it seeds a
+    /// library file with a single segment so segment-order-resolution tests
+    /// ([`read_conjecture_library`]) can be driven without going through a full `store_conjecture`
+    /// engine run. Production call sites build BOTH the verdict segment and its audit segment
+    /// and commit them together via [`append_conjecture_segments`] directly (one atomic replace
+    /// covering both), rather than through this single-segment helper.
+    fn write_conjecture_segment(path: &Path, nt_body: &str) -> gmeow_errors::Result<()> {
+        let segment = build_conjecture_verdict_segment(nt_body)?;
+        with_conjecture_lock(path, || append_conjecture_segments(path, &[segment]))
+    }
 
     static ENV_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
 
@@ -3775,6 +5416,67 @@ mod tests {
         assert!(dev_tools.contains("\"constitution\""));
         assert!(dev_tools.contains("\"slice_quality\""));
         assert!(dev.resources_result().to_string().contains("constitution"));
+    }
+
+    #[test]
+    fn conjecture_tool_schemas_advertise_their_enforced_required_args() {
+        // `conjecture_test` / `store_conjecture` enforce `formula`,
+        // `kb`, `standpoint` via `required_str` at call time (see `tool_conjecture_test` /
+        // `tool_store_conjecture`); `refute_conjecture` enforces only `conjecture_id`. The
+        // advertised `inputSchema.required` array must list EXACTLY what the tool body
+        // enforces — otherwise a client sees an arg marked OPTIONAL and only discovers it is
+        // mandatory from a runtime error (the dishonest-schema gap this test closes).
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+        let tools_result = server.tools_result();
+        let tools = tools_result["tools"].as_array().expect("tools array");
+
+        let required_of = |name: &str| -> BTreeSet<String> {
+            let tool = tools
+                .iter()
+                .find(|t| t["name"] == name)
+                .unwrap_or_else(|| panic!("tool {name} must be advertised"));
+            tool["inputSchema"]["required"]
+                .as_array()
+                .unwrap_or_else(|| panic!("{name} must advertise a required array"))
+                .iter()
+                .map(|v| {
+                    v.as_str()
+                        .expect("required entries are strings")
+                        .to_string()
+                })
+                .collect()
+        };
+
+        for name in ["conjecture_test", "store_conjecture"] {
+            let required = required_of(name);
+            for arg in ["formula", "kb", "standpoint"] {
+                assert!(
+                    required.contains(arg),
+                    "{name} enforces `{arg}` via required_str at call time but does not \
+                     advertise it as required: {required:?}"
+                );
+            }
+        }
+
+        let refute_required = required_of("refute_conjecture");
+        assert!(
+            refute_required.contains("conjecture_id"),
+            "refute_conjecture enforces `conjecture_id` via required_str but does not advertise \
+             it as required: {refute_required:?}"
+        );
+        // `reason` / `dry_run` are read with `optional_str` / `optional_bool_checked` at the
+        // call site, so advertising them as required would be dishonest the other way.
+        assert!(
+            !refute_required.contains("reason"),
+            "refute_conjecture's `reason` is optional at call time; must not be advertised as \
+             required: {refute_required:?}"
+        );
+        assert!(
+            !refute_required.contains("dry_run"),
+            "refute_conjecture's `dry_run` is optional at call time; must not be advertised as \
+             required: {refute_required:?}"
+        );
     }
 
     #[test]
@@ -4006,6 +5708,89 @@ mod tests {
         assert!(policy.contains(MCP_STORE_CLAIM_SCHEMA));
         assert!(policy.contains(MCP_REVISE_BELIEF_SCHEMA));
         assert!(policy.contains(TXN_WORLD));
+    }
+
+    /// Dogfood the proof-carrying diagnostics tool surface
+    /// (`explain_quad`, `verify_graph`, `coherence_certificate`, `store_conjecture` /
+    /// `refute_conjecture`) must be REPRESENTED in the canonical action theory the engine
+    /// actually parses, not merely documented. This asserts against the projected N-Quads
+    /// `action_policy_nquads()` returns — the SAME IRI→IRI-only quads
+    /// [`txn_world_nquads`] feeds the executional-entailment engine — so a schema that
+    /// only exists as a dropped label/comment would fail here.
+    #[test]
+    fn action_policy_covers_the_proof_carrying_read_and_conjecture_write_tools() {
+        const EX: &str = "https://blackcatinformatics.ca/gmeow/examples/agentic/mcp-policy/";
+        const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+        const LOGIC_ACTION_SCHEMA: &str = "https://blackcatinformatics.ca/logic/ActionSchema";
+        const LOGIC_MCP_ACTION_SCHEMA: &str =
+            "https://blackcatinformatics.ca/logic/McpActionSchema";
+        const LOGIC_CAPABILITY: &str = "https://blackcatinformatics.ca/logic/capability";
+        const LOGIC_COMPENSATION: &str = "https://blackcatinformatics.ca/logic/compensation";
+        const LOGIC_EFFECT: &str = "https://blackcatinformatics.ca/logic/effect";
+
+        let policy = action_policy_nquads();
+
+        // The three new READ tools: each a plain logic:ActionSchema (mirroring ex:recall)
+        // typed + capability-gated, and each carrying NO logic:compensation / logic:effect
+        // (a read changes no state).
+        for local in ["explainQuad", "verifyGraph", "coherenceCertificate"] {
+            let subject = format!("{EX}{local}");
+            let type_line =
+                format!("<{subject}> <{RDF_TYPE}> <{LOGIC_ACTION_SCHEMA}> <{TXN_WORLD}> .");
+            let capability_line = format!(
+                "<{subject}> <{LOGIC_CAPABILITY}> <{EX}memoryReadCapability> <{TXN_WORLD}> ."
+            );
+            assert!(
+                policy.contains(&type_line),
+                "{local} must be typed logic:ActionSchema: missing {type_line:?} in:\n{policy}"
+            );
+            assert!(
+                policy.contains(&capability_line),
+                "{local} must carry logic:capability ex:memoryReadCapability: missing \
+                 {capability_line:?}"
+            );
+            assert!(
+                !policy.contains(&format!("<{subject}> <{LOGIC_COMPENSATION}>")),
+                "{local} is a read and must carry NO logic:compensation"
+            );
+            assert!(
+                !policy.contains(&format!("<{subject}> <{LOGIC_EFFECT}>")),
+                "{local} is a read and must carry NO logic:effect"
+            );
+        }
+
+        // The store_conjecture / refute_conjecture pair: ALREADY modeled by
+        // ex:persistConjecture / ex:withdrawConjecture (no duplicate schema minted for the
+        // MCP tool names) — confirm the store⇄refute compensation pairing survives the
+        // projection filter.
+        let persist_type = format!(
+            "<{EX}persistConjecture> <{RDF_TYPE}> <{LOGIC_MCP_ACTION_SCHEMA}> <{TXN_WORLD}> ."
+        );
+        let persist_compensation = format!(
+            "<{EX}persistConjecture> <{LOGIC_COMPENSATION}> <{EX}withdrawConjecture> <{TXN_WORLD}> ."
+        );
+        let withdraw_type = format!(
+            "<{EX}withdrawConjecture> <{RDF_TYPE}> <{LOGIC_MCP_ACTION_SCHEMA}> <{TXN_WORLD}> ."
+        );
+        let withdraw_compensation = format!(
+            "<{EX}withdrawConjecture> <{LOGIC_COMPENSATION}> <{EX}persistConjecture> <{TXN_WORLD}> ."
+        );
+        assert!(
+            policy.contains(&persist_type),
+            "persistConjecture (store_conjecture) must be typed logic:McpActionSchema"
+        );
+        assert!(
+            policy.contains(&persist_compensation),
+            "persistConjecture's compensation must be withdrawConjecture"
+        );
+        assert!(
+            policy.contains(&withdraw_type),
+            "withdrawConjecture (refute_conjecture) must be typed logic:McpActionSchema"
+        );
+        assert!(
+            policy.contains(&withdraw_compensation),
+            "withdrawConjecture's compensation must be persistConjecture"
+        );
     }
 
     #[test]
@@ -4452,6 +6237,797 @@ mod tests {
         drop(overlay_dir);
     }
 
+    /// verify_graph fires the matching `verify.<stem>` finding on a known bad-example
+    /// overlay: a doxastic state whose asserted `gmeow:credence` is out of `[0,1]` — the
+    /// exact violation `queries/verify/credence-out-of-range.rq` is a negative test for.
+    /// The overlay joins the reasoning default world and the flat verify query matches it,
+    /// so the response `findings` carries `verify.credence-out-of-range`.
+    #[test]
+    fn verify_graph_fires_on_a_bad_example_overlay_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("bad-credence.ttl");
+        // A credence out of [0,1] is the credence-out-of-range bad example. `5` is
+        // numeric and > 1, so the negative test returns an offending row.
+        let overlay_ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <urn:ex:bad-credence-state> gmeow:credence 5 .\n";
+        fs::write(&overlay_path, overlay_ttl).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        // A tiny step budget: the credence negative test fires from the ASSERTED union
+        // graph regardless of closure depth, so the budget keeps the test fast.
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 8})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        let codes: Vec<String> = out["findings"]
+            .as_array()
+            .expect("findings array")
+            .iter()
+            .map(|f| f["code"].as_str().unwrap_or_default().to_owned())
+            .collect();
+        assert!(
+            codes.iter().any(|c| c == "verify.credence-out-of-range"),
+            "the credence bad example must fire verify.credence-out-of-range: {out}"
+        );
+        assert!(
+            out["error_count"].as_u64().unwrap_or(0) >= 1,
+            "the violation must count as an error finding: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// Proof faithfulness: `cited_iris` must be derived ONLY from structured RDF
+    /// binding terms, never scraped from rendered finding prose — an
+    /// agent-controlled overlay literal carrying angle-bracket text must not be
+    /// accepted as a genuine citation. The overlay's `gmeow:credence` value is the
+    /// STRING literal `"see <urn:fake>"` (non-numeric, so `credence-out-of-range`
+    /// fires) attached to the real subject `<urn:ex:forge-cited-iris-state>`. A
+    /// text-scrape over the rendered `detail` (`credence="see <urn:fake>",
+    /// state=<urn:ex:...>`) would forge `urn:fake` into `cited_iris`; the
+    /// structured-term derivation must not, while the genuinely-cited subject IRI
+    /// must still appear.
+    #[test]
+    fn verify_graph_cited_iris_excludes_forged_literal_text_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("forge-cited-iris.ttl");
+        // `!isNumeric("see <urn:fake>")` is true, so this is a credence-out-of-range
+        // bad example exactly like the sibling test above — but the credence VALUE
+        // is a string literal carrying forged-looking angle-bracket text.
+        let overlay_ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <urn:ex:forge-cited-iris-state> gmeow:credence \"see <urn:fake>\" .\n";
+        fs::write(&overlay_path, overlay_ttl).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 8})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        let codes: Vec<String> = out["findings"]
+            .as_array()
+            .expect("findings array")
+            .iter()
+            .map(|f| f["code"].as_str().unwrap_or_default().to_owned())
+            .collect();
+        assert!(
+            codes.iter().any(|c| c == "verify.credence-out-of-range"),
+            "the forged-literal overlay must fire verify.credence-out-of-range: {out}"
+        );
+        let cited: Vec<String> = out["cited_iris"]
+            .as_array()
+            .expect("cited_iris array")
+            .iter()
+            .map(|v| v.as_str().unwrap_or_default().to_owned())
+            .collect();
+        assert!(
+            !cited.iter().any(|c| c.contains("urn:fake")),
+            "a literal's angle-bracket text must never forge a citation: {out}"
+        );
+        assert!(
+            cited.iter().any(|c| c == "urn:ex:forge-cited-iris-state"),
+            "the finding's genuinely-cited subject IRI must still appear: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// Overlay isolation: verify_graph builds a TRANSIENT union and drops it — the signed
+    /// canon `McpView::dataset` is never mutated. After the call the canon Arc is the SAME
+    /// allocation with the SAME quad count, and the overlay file is byte-unchanged (the
+    /// external annex is read-only and never merged into or written back from the canon).
+    #[test]
+    fn verify_graph_leaves_the_canon_dataset_untouched_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        let overlay_ttl = "<urn:ex:probe-s> <urn:ex:probe-p> <urn:ex:probe-o> .\n";
+        fs::write(&overlay_path, overlay_ttl).unwrap();
+        let overlay_before = fs::read(&overlay_path).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let before_ptr = Arc::as_ptr(&server.view.dataset);
+        let before_count = server.view.dataset.quad_count();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 4})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+
+        // Canon Arc identity + quad count are unchanged — the union was transient.
+        assert!(
+            std::ptr::eq(Arc::as_ptr(&server.view.dataset), before_ptr),
+            "the signed canon Arc must not be swapped by verify_graph"
+        );
+        assert_eq!(
+            server.view.dataset.quad_count(),
+            before_count,
+            "the signed canon quad count must be unchanged (overlay never merged)"
+        );
+        // The overlay probe triple never leaks into the canon graphs.
+        let leaked = server.view.dataset.quads().any(|q| {
+            matches!(
+                server.view.dataset.resolve(q.s),
+                purrdf::prelude::TermRef::Iri(iri) if iri == "urn:ex:probe-s"
+            )
+        });
+        assert!(
+            !leaked,
+            "overlay triple must not appear in the signed canon"
+        );
+        // Read-only: the overlay file is byte-for-byte unchanged.
+        assert_eq!(fs::read(&overlay_path).unwrap(), overlay_before);
+        drop(overlay_dir);
+    }
+
+    /// A budget-cut closure yields the strictly-weaker ATTESTATION, never a certificate:
+    /// a `max_steps` of 1 cuts the forward chase over the large bundle union mid-flight,
+    /// so `reason_all_budgeted` returns a non-conclusive BudgetExhausted / Incomplete
+    /// verdict. The completeness gate then MUST render `CoherenceCheckAttestation` with a
+    /// non-conclusive completeness axis — a certificate is impossible on an incomplete search.
+    #[test]
+    fn verify_graph_budget_cut_yields_attestation_never_certificate_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        assert_eq!(
+            out["class_local_name"], "CoherenceCheckAttestation",
+            "a budget-cut closure must attest, never certify: {out}"
+        );
+        assert_ne!(
+            out["class_local_name"], "CoherenceCertificate",
+            "a budget-cut closure must NEVER render a certificate: {out}"
+        );
+        // The completeness axis is non-conclusive (the mid-chase cut → Incomplete), and the
+        // computation axis records the budget exhaustion.
+        assert_eq!(out["completeness"], "incomplete", "{out}");
+        assert_eq!(out["evaluation"], "budget-exhausted", "{out}");
+        drop(overlay_dir);
+    }
+
+    /// R4: OMITTING `max_steps`/`max_answers` entirely must NEVER run an
+    /// unbounded Turing-complete chase — `governed_budget` stamps the finite
+    /// `DEFAULT_MAX_STEPS` server-side ceiling on every agent-facing call, never `None`.
+    /// The real bundle's full DL closure is far larger than `DEFAULT_MAX_STEPS` (the sibling
+    /// `verify_graph_budget_cut_yields_attestation_never_certificate_heavy_offgate` above
+    /// already shows even `max_steps: 1` cuts it), so a call that omits the args entirely
+    /// must land on the SAME governed, non-conclusive `CoherenceCheckAttestation` —
+    /// `budget-exhausted` / `incomplete` — never a conclusive certificate an unbounded chase
+    /// would be needed to produce.
+    #[test]
+    fn verify_graph_omitted_max_steps_is_governed_not_unbounded_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        // The exact agent-omission shape R4 forbids treating as unbounded: no `max_steps`,
+        // no `max_answers` key at all in the call args.
+        let out = text_payload(server.call_tool_result("verify_graph", &json!({"path": path_str})));
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        assert_eq!(
+            out["class_local_name"], "CoherenceCheckAttestation",
+            "an omitted-max_steps call over the large bundle union must still be GOVERNED \
+             (budget-cut) by the default server-side ceiling, never a conclusive certificate \
+             that only an unbounded chase could produce: {out}"
+        );
+        assert_ne!(
+            out["class_local_name"], "CoherenceCertificate",
+            "an omitted-max_steps call must NEVER run to an unbounded conclusive closure: {out}"
+        );
+        assert_eq!(
+            out["completeness"], "incomplete",
+            "the default ceiling must cut the real bundle's closure: {out}"
+        );
+        assert_eq!(
+            out["evaluation"], "budget-exhausted",
+            "the omitted max_steps must resolve to the finite DEFAULT_MAX_STEPS, never \
+             None/unbounded: {out}"
+        );
+
+        // The grounded judgment's own carried budget usage confirms the finite ceiling: the
+        // consumed step count is bounded by (and the declared allowance matches) the SAME
+        // DEFAULT_MAX_STEPS `governed_budget` stamps — never absent (which would mean
+        // unbounded).
+        let judgment = out["judgment_nquads"]
+            .as_str()
+            .expect("judgment_nquads string");
+        let parsed = gmeow_logic::result_rdf::parse_reasoning_graph(judgment)
+            .expect("judgment_nquads parses as a reasoning-result graph");
+        assert_eq!(
+            parsed.provenance.consumed_budget.allowance,
+            Some(DEFAULT_MAX_STEPS),
+            "the grounded judgment must declare the DEFAULT_MAX_STEPS allowance, never an \
+             absent (unbounded) allowance: {judgment}"
+        );
+        assert!(
+            parsed.provenance.consumed_budget.consumed <= DEFAULT_MAX_STEPS,
+            "consumed steps must never exceed the declared default allowance: {judgment}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// An overlay exceeding `MAX_VERIFY_OVERLAY_QUADS` is a HARD FAIL — the bounded agent
+    /// path — refused BEFORE any reasoning runs, never a silently truncated graph.
+    #[test]
+    fn verify_graph_rejects_an_oversized_overlay() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("oversized.ttl");
+        // One distinct triple over the ceiling — the smallest overlay that trips it.
+        let mut body = String::with_capacity((MAX_VERIFY_OVERLAY_QUADS + 1) * 40);
+        for i in 0..=MAX_VERIFY_OVERLAY_QUADS {
+            body.push_str(&format!("<urn:ex:s{i}> <urn:ex:p> <urn:ex:o{i}> .\n"));
+        }
+        fs::write(&overlay_path, &body).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(
+            out["ok"], false,
+            "an oversized overlay must hard-fail: {out}"
+        );
+        assert!(
+            out["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("exceeding"),
+            "the error must name the ceiling breach: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// The R4 byte gate: an overlay FILE exceeding `MAX_VERIFY_OVERLAY_BYTES` is
+    /// refused via `fs::metadata` (a stat) BEFORE it is ever `fs::read` into memory or
+    /// handed to the parser — so a huge file can never exhaust memory before the
+    /// post-parse `MAX_VERIFY_OVERLAY_QUADS` ceiling gets a chance to run. The filler
+    /// here is a single deliberately-oversized comment line, NOT well-formed RDF that
+    /// would parse into many quads: if the byte gate did not run before the read/parse
+    /// (i.e. this fix regressed), the file would still parse successfully (as an
+    /// empty, all-comment document) and `verify_graph` would return `ok:true` instead
+    /// of hard-failing on the byte ceiling, so this test would catch the regression
+    /// either way — and it must never OOM proving it.
+    #[test]
+    fn verify_graph_rejects_an_overlay_over_the_byte_ceiling_before_read() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("oversized-bytes.ttl");
+        // One byte over the ceiling — the smallest overlay that trips it. A single
+        // `#`-prefixed line is cheap to build (one allocation, no per-quad
+        // formatting) and never parses into any quads.
+        let filler = vec![b'#'; (MAX_VERIFY_OVERLAY_BYTES + 1) as usize];
+        fs::write(&overlay_path, &filler).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(
+            out["ok"], false,
+            "an overlay over the byte ceiling must hard-fail: {out}"
+        );
+        let error = out["error"].as_str().unwrap_or_default();
+        assert!(
+            error.contains(&MAX_VERIFY_OVERLAY_BYTES.to_string()) && error.contains("byte"),
+            "the error must name the byte limit: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// A normal, well-under-ceiling overlay still succeeds through both the byte gate
+    /// and the quad gate — the byte cap must never reject a legitimate small annex.
+    #[test]
+    fn verify_graph_accepts_a_normal_small_overlay() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("small.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(
+            out["ok"], true,
+            "a normal small overlay must succeed: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// The grounded RDF judgment: `judgment_nquads` carries the `logic:ReasoningResult`
+    /// node and round-trips through the shared reasoning-graph parser, so an agent can
+    /// reason over the verdict itself. Its evaluation axis matches the JSON envelope's.
+    #[test]
+    fn verify_graph_judgment_nquads_grounds_the_reasoning_result_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("probe.ttl");
+        fs::write(&overlay_path, "<urn:ex:s> <urn:ex:p> <urn:ex:o> .\n").unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 1})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        let judgment = out["judgment_nquads"]
+            .as_str()
+            .expect("judgment_nquads string");
+        assert!(
+            judgment.contains("<https://blackcatinformatics.ca/logic/ReasoningResult>"),
+            "the judgment must ground a logic:ReasoningResult node: {judgment}"
+        );
+        // It parses back through the shared reasoning-graph reader (round-trip honesty),
+        // and its evaluation axis matches the envelope's.
+        let parsed = gmeow_logic::result_rdf::parse_reasoning_graph(judgment)
+            .expect("judgment_nquads parses as a reasoning-result graph");
+        assert_eq!(
+            parsed.evaluation.wire(),
+            out["evaluation"].as_str().unwrap(),
+            "the grounded judgment's evaluation axis must match the envelope: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    // ── explain_quad ──────────────────────────────────────────────────────────
+
+    /// A synthetic explain row for the fast disambiguation / N3 unit tests.
+    fn synthetic_row(graph: &str, subject: &str, predicate: &str, obj: &str) -> Row {
+        Row {
+            graph: graph.to_owned(),
+            subject: subject.to_owned(),
+            predicate: predicate.to_owned(),
+            obj: obj.to_owned(),
+            derivation_id: "urn:ex:deriv".to_owned(),
+            rule_iri: "urn:ex:rule".to_owned(),
+            source_quad_ids: Vec::new(),
+        }
+    }
+
+    /// FAST (on-gate) unit test of the world-disambiguation helper on synthetic rows:
+    /// a reifier shared across two worlds resolves to exactly the row in the supplied
+    /// graph; a non-resolving graph over that multi-world reifier is an ambiguity HARD
+    /// FAIL (never an arbitrary pick); a reifier no row carries is `not in closure`.
+    #[test]
+    fn explain_quad_disambiguation_resolves_by_graph_and_hard_fails_across_worlds() {
+        let (world_a, world_b) = ("urn:ex:world-a", "urn:ex:world-b");
+        let (s, p, o) = ("urn:ex:s", "urn:ex:p", "<urn:ex:o>");
+        let rows = vec![
+            synthetic_row(world_a, s, p, o),
+            synthetic_row(world_b, s, p, o),
+        ];
+        let reifier = reifier_from_row(&rows[0]);
+        assert_eq!(
+            reifier,
+            reifier_from_row(&rows[1]),
+            "identical (S,P,O) shares a reifier across worlds"
+        );
+
+        // The supplied graph disambiguates to exactly one row.
+        assert_eq!(locate_explain_target(&rows, &reifier, world_a).unwrap(), 0);
+        assert_eq!(locate_explain_target(&rows, &reifier, world_b).unwrap(), 1);
+
+        // A non-resolving graph over a multi-world reifier → ambiguity hard fail.
+        let ambiguous = locate_explain_target(&rows, &reifier, "urn:ex:world-c").unwrap_err();
+        assert!(
+            ambiguous.to_string().contains("ambiguous"),
+            "a cross-world reifier without a resolving graph must be ambiguous: {ambiguous}"
+        );
+
+        // A reifier no row carries → not in closure (never an arbitrary pick).
+        let missing = locate_explain_target(
+            &rows,
+            "https://blackcatinformatics.ca/gmeow/reifier/deadbeef",
+            world_a,
+        )
+        .unwrap_err();
+        assert!(
+            missing.to_string().contains("not in closure"),
+            "an unknown reifier must be `not in closure`: {missing}"
+        );
+    }
+
+    /// FAST (on-gate): a single-world reifier queried in the WRONG world is
+    /// `not in closure`, and the error names the world the quad actually lives in.
+    #[test]
+    fn explain_quad_wrong_single_world_is_not_in_closure() {
+        let rows = vec![synthetic_row(
+            "urn:ex:world-a",
+            "urn:ex:s",
+            "urn:ex:p",
+            "<urn:ex:o>",
+        )];
+        let reifier = reifier_from_row(&rows[0]);
+        let err = locate_explain_target(&rows, &reifier, "urn:ex:other-world").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("not in closure"), "{msg}");
+        assert!(
+            msg.contains("urn:ex:world-a"),
+            "names the actual world: {msg}"
+        );
+    }
+
+    /// FAST (on-gate): the canonical object N3 surface `explain_quad` builds is
+    /// byte-identical to what a `Row.obj` carries (`term_display`), across IRI, plain
+    /// literal, and typed literal; a bad `object_kind` and an `object_datatype` on an
+    /// IRI object are HARD FAILS; and the omitted-kind inference is deterministic.
+    #[test]
+    fn explain_quad_object_n3_is_the_canonical_row_surface() {
+        // IRI object → `<iri>` (explicit and inferred).
+        assert_eq!(
+            object_term_n3("urn:ex:o", Some("iri"), None).unwrap(),
+            "<urn:ex:o>"
+        );
+        assert_eq!(
+            object_term_n3("urn:ex:o", None, None).unwrap(),
+            "<urn:ex:o>"
+        );
+        // Plain literal → `"lex"` (xsd:string elided, exactly like term_display).
+        assert_eq!(
+            object_term_n3("hello", Some("literal"), None).unwrap(),
+            "\"hello\""
+        );
+        // A bare non-IRI value with whitespace is inferred as a literal.
+        assert_eq!(
+            object_term_n3("just text", None, None).unwrap(),
+            "\"just text\""
+        );
+        // Typed literal → `"lex"^^<dt>`.
+        assert_eq!(
+            object_term_n3(
+                "5",
+                Some("literal"),
+                Some("http://www.w3.org/2001/XMLSchema#integer")
+            )
+            .unwrap(),
+            "\"5\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+        // The N3 surface must MATCH what a Row built from the same TermValue carries.
+        let iri_display = term_display(&TermValue::iri("urn:ex:o"));
+        assert_eq!(
+            object_term_n3("urn:ex:o", Some("iri"), None).unwrap(),
+            iri_display
+        );
+
+        // A non-iri/literal kind is a hard error.
+        assert!(object_term_n3("x", Some("bnode"), None).is_err());
+        // A datatype on an IRI object is a contradictory request — hard error.
+        assert!(object_term_n3("urn:ex:o", Some("iri"), Some("http://x")).is_err());
+    }
+
+    /// Reason the shipped bundle under `max_steps` and return the premise-closed
+    /// explain rows — the SAME row set `run_explain_quad` reconstructs a target from.
+    fn reasoned_rows(server: &McpServer, max_steps: u64) -> Vec<Row> {
+        let budget = Budget {
+            max_answers: None,
+            max_steps: Some(max_steps),
+        };
+        let result = reason_all_budgeted(server.view.dataset.as_ref(), &budget)
+            .expect("the shipped bundle reasons under the governor");
+        explain::rows_for_result(&result).expect("rows build from the reasoning result")
+    }
+
+    /// The first row satisfying `pred` whose `(graph, reifier)` identity is UNIQUE in
+    /// `rows`, so `explain_quad` resolves to exactly that row (never a duplicate).
+    fn find_unique_row(rows: &[Row], pred: impl Fn(&Row) -> bool) -> Option<&Row> {
+        let mut counts: HashMap<(String, String), usize> = HashMap::new();
+        for row in rows {
+            *counts
+                .entry((row.graph.clone(), reifier_from_row(row)))
+                .or_default() += 1;
+        }
+        rows.iter()
+            .find(|row| pred(row) && counts[&(row.graph.clone(), reifier_from_row(row))] == 1)
+    }
+
+    /// HEAVY (off-gate): a DERIVED quad in the reasoned bundle closure explains to a
+    /// non-empty skeleton (target first, `is_asserted:false`, firing rule preserved),
+    /// a non-empty cited-IRI set that includes the target's reifier, and `faithful:true`.
+    #[test]
+    fn explain_quad_explains_a_derived_quad_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // A small governor budget already derives IRI-object quads (subsumption /
+        // typing) while the mid-chase cut keeps the whole-bundle reason bounded — a
+        // larger budget explodes the closure without adding coverage.
+        let max_steps = 64u64;
+        let rows = reasoned_rows(&server, max_steps);
+        let derived = find_unique_row(&rows, |row| {
+            row.rule_iri != gmeow_logic::provenance::ASSERT_RULE_IRI
+                && row.obj.starts_with('<')
+                && row.obj.ends_with('>')
+        })
+        .expect("the reasoned bundle must derive at least one unique IRI-object quad");
+        let object_value = derived.obj[1..derived.obj.len() - 1].to_owned();
+
+        let out = text_payload(server.call_tool_result(
+            "explain_quad",
+            &json!({
+                "subject": derived.subject,
+                "predicate": derived.predicate,
+                "object_value": object_value,
+                "object_kind": "iri",
+                "graph": derived.graph,
+                "max_steps": max_steps,
+            }),
+        ));
+        assert_eq!(out["ok"], true, "explain_quad must succeed: {out}");
+        assert_eq!(out["faithful"], true, "the proof must be faithful: {out}");
+        let steps = out["step_skeleton"]
+            .as_array()
+            .expect("step_skeleton array");
+        assert!(
+            !steps.is_empty(),
+            "a derived quad has a non-empty skeleton: {out}"
+        );
+        assert_eq!(
+            steps[0]["is_asserted"], false,
+            "the target step is derived: {out}"
+        );
+        assert_eq!(
+            steps[0]["rule_iri"].as_str().unwrap(),
+            derived.rule_iri,
+            "the target step preserves the firing rule: {out}"
+        );
+        let cited = out["cited_iris"].as_array().expect("cited_iris array");
+        assert!(!cited.is_empty(), "cited_iris must be non-empty: {out}");
+        let reifier = reifier_from_row(derived);
+        assert!(
+            cited.iter().any(|c| c.as_str() == Some(reifier.as_str())),
+            "the target reifier must be cited (the reifier matches the request): {out}"
+        );
+        assert_eq!(
+            steps[0]["obj_n3"].as_str().unwrap(),
+            derived.obj,
+            "the target step's object N3 matches the row surface: {out}"
+        );
+    }
+
+    /// HEAVY (off-gate): an ASSERTED (EDB) quad explains to a SINGLE step with
+    /// `is_asserted:true` and `rule_iri` = the assert-rule IRI.
+    #[test]
+    fn explain_quad_explains_an_asserted_quad_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        // Asserted rows are present regardless of chase depth, so a tiny budget suffices.
+        let max_steps = 8u64;
+        let rows = reasoned_rows(&server, max_steps);
+        let asserted = find_unique_row(&rows, |row| {
+            row.rule_iri == gmeow_logic::provenance::ASSERT_RULE_IRI
+                && row.obj.starts_with('<')
+                && row.obj.ends_with('>')
+        })
+        .expect("the reasoned bundle must carry a unique asserted IRI-object quad");
+        let object_value = asserted.obj[1..asserted.obj.len() - 1].to_owned();
+
+        let out = text_payload(server.call_tool_result(
+            "explain_quad",
+            &json!({
+                "subject": asserted.subject,
+                "predicate": asserted.predicate,
+                "object_value": object_value,
+                "object_kind": "iri",
+                "graph": asserted.graph,
+                "max_steps": max_steps,
+            }),
+        ));
+        assert_eq!(out["ok"], true, "explain_quad must succeed: {out}");
+        assert_eq!(out["faithful"], true, "the proof must be faithful: {out}");
+        let steps = out["step_skeleton"]
+            .as_array()
+            .expect("step_skeleton array");
+        assert_eq!(
+            steps.len(),
+            1,
+            "an asserted quad is a single leaf step: {out}"
+        );
+        assert_eq!(steps[0]["is_asserted"], true, "the leaf is asserted: {out}");
+        assert_eq!(
+            steps[0]["rule_iri"].as_str().unwrap(),
+            gmeow_logic::provenance::ASSERT_RULE_IRI,
+            "the asserted leaf carries the assert-rule IRI: {out}"
+        );
+    }
+
+    /// HEAVY (off-gate): a quad the closure does not entail is a HARD FAIL
+    /// (`ok:false` + `not in closure`), NEVER an empty-but-ok proof.
+    #[test]
+    fn explain_quad_hard_fails_on_a_quad_not_in_closure_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let out = text_payload(server.call_tool_result(
+            "explain_quad",
+            &json!({
+                "subject": "urn:ex:not-a-real-bundle-subject",
+                "predicate": "urn:ex:not-a-real-bundle-predicate",
+                "object_value": "urn:ex:not-a-real-bundle-object",
+                "object_kind": "iri",
+                "graph": "urn:ex:not-a-real-world",
+                "max_steps": 8,
+            }),
+        ));
+        assert_eq!(out["ok"], false, "a bogus quad must hard-fail: {out}");
+        assert!(
+            out["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("not in closure"),
+            "the error must say the quad is not in the closure: {out}"
+        );
+    }
+
+    /// HEAVY (off-gate): `judgment_nquads` grounds the `logic:ReasoningResult` node
+    /// and round-trips through the shared reasoning-graph reader.
+    #[test]
+    fn explain_quad_judgment_nquads_grounds_the_reasoning_result_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let max_steps = 8u64;
+        let rows = reasoned_rows(&server, max_steps);
+        let asserted = find_unique_row(&rows, |row| {
+            row.rule_iri == gmeow_logic::provenance::ASSERT_RULE_IRI
+                && row.obj.starts_with('<')
+                && row.obj.ends_with('>')
+        })
+        .expect("the reasoned bundle must carry a unique asserted IRI-object quad");
+        let object_value = asserted.obj[1..asserted.obj.len() - 1].to_owned();
+
+        let out = text_payload(server.call_tool_result(
+            "explain_quad",
+            &json!({
+                "subject": asserted.subject,
+                "predicate": asserted.predicate,
+                "object_value": object_value,
+                "object_kind": "iri",
+                "graph": asserted.graph,
+                "max_steps": max_steps,
+            }),
+        ));
+        assert_eq!(out["ok"], true, "explain_quad must succeed: {out}");
+        let judgment = out["judgment_nquads"]
+            .as_str()
+            .expect("judgment_nquads string");
+        assert!(
+            judgment.contains("<https://blackcatinformatics.ca/logic/ReasoningResult>"),
+            "the judgment must ground a logic:ReasoningResult node: {judgment}"
+        );
+        let parsed = gmeow_logic::result_rdf::parse_reasoning_graph(judgment)
+            .expect("judgment_nquads parses as a reasoning-result graph");
+        // The grounded judgment carries a defined completeness axis (round-trip honesty).
+        assert!(
+            !parsed.completeness.wire().is_empty(),
+            "the grounded judgment must carry a completeness axis: {judgment}"
+        );
+    }
+
     /// Full MCP protocol conformance over the real JSON-RPC dispatch: the
     /// handshake, the discovery surfaces, a read tool call and a TR-write tool call
     /// with `dry_run=true` (asserting the write stays hypothetical), and that EVERY
@@ -4562,6 +7138,14 @@ mod tests {
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
                 "standpoint": "http://ex/standpoint/probe",
+            }),
+        );
+        call_args.insert(
+            "store_conjecture",
+            json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/probe",
                 "dry_run": true,
             }),
         );
@@ -4569,6 +7153,10 @@ mod tests {
         call_args.insert(
             "revise_belief",
             json!({"claim_id": "urn:gmeow:assertion:none", "dry_run": true}),
+        );
+        call_args.insert(
+            "refute_conjecture",
+            json!({"conjecture_id": "urn:gmeow:conjecture:none", "dry_run": true}),
         );
         // Documentation-surface tools: real terms that carry live data in the shipped
         // bundle (gmeow:Activity documents fixtures, gmeow:Entity grounds
@@ -4778,6 +7366,158 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// SELECT a REAL well-formed conformance fixture from the SHIPPED bundle's
+    /// `gmeow:graph/documentation` projection whose `gmeow:docFixtureText` body
+    /// ACTUALLY validates clean under Tier-1 (no `Error`-severity finding) — the
+    /// honest correspondence anchor for "a claim consistent with the bundled
+    /// axioms", mirroring [`select_reproducing_counter_example`]'s reproduction
+    /// discipline: never hand-authored, always a REAL fixture the engine itself
+    /// agrees is clean. Returns `(fixture_iri, text)`. Panics with the candidate
+    /// count if NONE reproduces (a real blocker, not a soft skip).
+    fn select_reproducing_wellformed_example(server: &McpServer) -> (String, String) {
+        let rows = server
+            .view
+            .docs_select_rows(WELLFORMED_FIXTURE_QUERY)
+            .expect("query well-formed fixtures from graph/documentation");
+        let mut by_fixture: BTreeMap<String, String> = BTreeMap::new();
+        for row in &rows {
+            if let (Some(f), Some(text)) = (row.get("f"), row.get("text")) {
+                by_fixture.entry(f.clone()).or_insert_with(|| text.clone());
+            }
+        }
+        assert!(
+            !by_fixture.is_empty(),
+            "the shipped bundle carries NO bound well-formed conformance fixtures"
+        );
+        for (iri, text) in &by_fixture {
+            let report = gmeow_validate::data_validate::run_tier1(
+                text.as_bytes(),
+                "turtle",
+                server.view.gts_bytes(),
+                MCP_NAMESPACE,
+                VALIDATE_LOCAL_ORIGIN,
+            )
+            .expect("tier-1 validate the fixture body");
+            if report.ok() {
+                return (iri.clone(), text.clone());
+            }
+        }
+        panic!(
+            "no bound well-formed fixture actually validated clean under Tier-1 — {} \
+             candidates checked, none reproduced a clean Tier-1 pass",
+            by_fixture.len()
+        );
+    }
+
+    /// ACCEPTANCE (R5, half 1): drive the REAL `validate_local` tool over a REAL
+    /// well-formed fixture from the shipped bundle — a claim CONSISTENT with the
+    /// bundled axioms — and assert the production surface reports it clean: `ok:
+    /// true`, and every finding present (if any non-error advisory survives) still
+    /// carries the full teaching surface (`help_uri`, and `entails`/
+    /// `wellformed_exemplar` when the finding names a documented term). Never
+    /// idealized: a clean claim MAY still carry Warning/Note/Info findings (the
+    /// tool only hard-rejects on `Error` severity), so this asserts on `ok`, not
+    /// on an empty findings array.
+    #[test]
+    fn validate_local_accepts_a_consistent_claim() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (fixture_iri, text) = select_reproducing_wellformed_example(&server);
+        eprintln!("validate_local clean-claim test selected fixture={fixture_iri}");
+
+        let enriched = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+        );
+        assert_eq!(
+            enriched["ok"], true,
+            "a claim consistent with the bundled axioms must validate clean: {enriched}"
+        );
+        assert_eq!(enriched["tool"].as_str(), Some("validate"));
+        let findings = enriched["findings"].as_array().expect("findings array");
+        // `ok: true` tolerates non-Error survivors; whichever DO appear must still
+        // carry the full enrichment surface (never a bare code+message).
+        for f in findings {
+            assert!(
+                f["help_uri"].as_str().is_some_and(|u| !u.is_empty()),
+                "every surfaced finding carries a non-empty rule catalog help_uri: {f}"
+            );
+            assert!(
+                f["finding_iri"].is_string(),
+                "every finding has a stable IRI: {f}"
+            );
+        }
+    }
+
+    /// ACCEPTANCE (R5, half 2): drive the REAL `validate_local` tool over a REAL
+    /// counter-example fixture from the shipped bundle — a claim that VIOLATES a
+    /// bundled SHACL shape / modelling discipline — and assert the production
+    /// surface REJECTS it: the tool surfaces the violating finding code at `Error`
+    /// severity (proven against the raw Tier-1 `Report`, since the enriched
+    /// envelope does not carry severity), and the enriched envelope is `ok: false`
+    /// (never a silent clean pass on inconsistent input).
+    #[test]
+    fn validate_local_rejects_an_inconsistent_claim() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (fixture_iri, code, text) = select_reproducing_counter_example(&server);
+        eprintln!(
+            "validate_local inconsistent-claim test selected fixture={fixture_iri} code={code}"
+        );
+
+        // The raw Tier-1 report (the `gmeow validate` core) proves the specific
+        // finding code fires at `Error` severity — the hard-reject signal
+        // `EnrichedFinding` does not itself carry.
+        let tier1 = gmeow_validate::data_validate::run_tier1(
+            text.as_bytes(),
+            "turtle",
+            server.view.gts_bytes(),
+            MCP_NAMESPACE,
+            VALIDATE_LOCAL_ORIGIN,
+        )
+        .expect("tier-1 validate the violating fixture");
+        let tier1_finding = tier1
+            .findings
+            .iter()
+            .find(|f| f.code == code)
+            .unwrap_or_else(|| panic!("tier-1 report must reproduce code {code}: {tier1:?}"));
+        assert_eq!(
+            tier1_finding.severity,
+            gmeow_errors::Severity::Error,
+            "the chosen counter-example must violate at Error severity (a hard reject, not \
+             an advisory): {tier1_finding:?}"
+        );
+        assert!(
+            !tier1.ok(),
+            "a report carrying an Error-severity finding must not be ok(): {tier1:?}"
+        );
+
+        // Drive the REAL production tool over the SAME violating claim.
+        let enriched = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+        );
+        assert_eq!(
+            enriched["ok"], false,
+            "a claim violating a bundled axiom must be rejected, not validated clean: {enriched}"
+        );
+        let findings = enriched["findings"].as_array().expect("findings array");
+        assert!(
+            findings
+                .iter()
+                .any(|f| f["code"].as_str() == Some(code.as_str())),
+            "the rejecting tool must surface the specific violation code {code}: {enriched}"
+        );
     }
 
     /// Compile a hand-authored draft-2020-12 schema and assert `instance` CONFORMS,
@@ -5237,7 +7977,73 @@ mod tests {
     }
 
     #[test]
-    fn conjecture_test_refutes_and_persists_with_witness() {
+    fn conjecture_test_is_pure_and_writes_nothing() {
+        // R3a: the "test" leg (`conjecture_test`) is a PURE hypothetical evaluation. Driving it
+        // with a candidate that, under the OLD single-tool surface, would have persisted a
+        // refutation must still return the full verdict envelope while leaving the library file
+        // byte-unchanged (here: absent) — no TR gate, no append, ever.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        assert!(!path.exists(), "library must not exist before the call");
+        let resp = text_payload(server.call_tool_result(
+            "conjecture_test",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(resp["ok"], true, "the pure test must succeed: {resp}");
+        assert_eq!(resp["verdict"]["lifecycle"], "refuted-in-standpoint");
+        assert_eq!(resp["witness"]["individual"], "http://ex/a");
+        let node = resp["conjecture"].as_str().expect("node iri").to_string();
+        assert!(!node.is_empty());
+        // No persist/transaction section at all on this surface.
+        assert!(
+            resp.get("transaction").is_none(),
+            "conjecture_test must never render a transaction section: {resp}"
+        );
+        assert!(
+            resp.get("committed").is_none(),
+            "conjecture_test must never render a committed flag: {resp}"
+        );
+
+        // T1 (G7): the grounded judgment travels on the SAME `judgment_nquads` key
+        // `verify_graph`/`explain_quad` carry — even on this pure, nothing-persisted path —
+        // and round-trips through the shared reader as a real `logic:Conjecture` node
+        // embedding a non-empty `logic:ReasoningResult`.
+        let judgment = resp["judgment_nquads"]
+            .as_str()
+            .expect("conjecture_test must carry a judgment_nquads string");
+        assert!(
+            !judgment.trim().is_empty(),
+            "judgment_nquads must not be empty"
+        );
+        let record = gmeow_logic::result_rdf::parse_conjecture_verdict(judgment)
+            .expect("judgment_nquads must parse as a conjecture-verdict graph");
+        assert_eq!(
+            record.lifecycle,
+            ConjectureLifecycleState::RefutedInStandpoint
+        );
+        assert!(
+            !project_reasoning_result(&record.verdict).trim().is_empty(),
+            "the embedded logic:ReasoningResult body must be non-empty"
+        );
+
+        // The library file is BYTE-UNCHANGED (still absent): no TR gate, no append.
+        assert!(
+            !path.exists(),
+            "a pure conjecture_test call must write nothing to the library"
+        );
+    }
+
+    #[test]
+    fn store_conjecture_refutes_and_persists_with_witness() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let (_env, _cg) = ConjEnvGuard::set();
         let (_mem, _mp) = temp_memory();
@@ -5250,7 +8056,7 @@ mod tests {
             "library must not exist before the first persist"
         );
         let resp = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
@@ -5287,8 +8093,8 @@ mod tests {
     }
 
     #[test]
-    fn conjecture_test_bridges_math_twin_via_conjecture_under_test() {
-        // Driving the real MCP `conjecture_test` tool (the shared conjecture-test core) with a
+    fn store_conjecture_bridges_math_twin_via_conjecture_under_test() {
+        // Driving the real MCP `store_conjecture` tool (the shared conjecture-test core) with a
         // `math_conjecture` must persist the always-present structural twin bridge
         // `<math> math:conjectureUnderTest <logic:Conjecture-node>` (domain math:Conjecture,
         // range logic:Conjecture) — readable back out of the append-only GTS library.
@@ -5301,7 +8107,7 @@ mod tests {
 
         let math_iri = "https://blackcatinformatics.ca/math/conjecture/goldbach";
         let resp = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
@@ -5326,7 +8132,9 @@ mod tests {
     }
 
     #[test]
-    fn conjecture_test_dry_run_writes_nothing() {
+    fn store_conjecture_dry_run_writes_nothing() {
+        // The `dry_run` witness on `store_conjecture` is a HYPOTHETICAL commit: the verdict and
+        // TR receipt are computed exactly as a real commit would be, but nothing is appended.
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let (_env, _cg) = ConjEnvGuard::set();
         let (_mem, _mp) = temp_memory();
@@ -5335,7 +8143,7 @@ mod tests {
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
 
         let resp = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
@@ -5352,6 +8160,504 @@ mod tests {
         assert!(
             !path.exists() || fs::metadata(&path).unwrap().len() == 0,
             "a dry run must write nothing to the library"
+        );
+
+        // T1 (G7): `store_conjecture`'s dry-run path STILL carries the grounded judgment under
+        // the SAME `judgment_nquads` key the read tools and `conjecture_test` use — a
+        // hypothetical persist is not a hypothetical verdict; the engine really ran.
+        let judgment = resp["judgment_nquads"]
+            .as_str()
+            .expect("store_conjecture dry-run must carry a judgment_nquads string");
+        assert!(
+            !judgment.trim().is_empty(),
+            "judgment_nquads must not be empty"
+        );
+        let record = gmeow_logic::result_rdf::parse_conjecture_verdict(judgment)
+            .expect("judgment_nquads must parse as a conjecture-verdict graph");
+        assert_eq!(
+            record.lifecycle,
+            ConjectureLifecycleState::RefutedInStandpoint
+        );
+        assert!(
+            !project_reasoning_result(&record.verdict).trim().is_empty(),
+            "the embedded logic:ReasoningResult body must be non-empty"
+        );
+
+        // A second, committing call on the SAME candidate now appends for real: the dry run
+        // above left the library byte-unchanged, so this is the library's FIRST segment.
+        let committed = text_payload(server.call_tool_result(
+            "store_conjecture",
+            &json!({
+                "formula": forall_horn_candidate("B"),
+                "kb": refuting_kb("B"),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(committed["ok"], true);
+        assert!(path.exists() && fs::metadata(&path).unwrap().len() > 0);
+        // The committed path carries judgment_nquads too.
+        assert!(
+            committed["judgment_nquads"]
+                .as_str()
+                .is_some_and(|s| !s.trim().is_empty()),
+            "the committed store_conjecture response must also carry judgment_nquads: {committed}"
+        );
+    }
+
+    /// Store a real conjecture through the shipped `store_conjecture` tool and return its
+    /// content-addressed node IRI (the shared setup for the refute tests below).
+    fn store_one_conjecture(server: &McpServer, cls: &str) -> String {
+        let resp = text_payload(server.call_tool_result(
+            "store_conjecture",
+            &json!({
+                "formula": forall_horn_candidate(cls),
+                "kb": open_kb(cls),
+                "standpoint": "http://ex/standpoint/alice",
+            }),
+        ));
+        assert_eq!(resp["ok"], true, "store must succeed: {resp}");
+        assert_eq!(resp["verdict"]["lifecycle"], "open");
+        resp["conjecture"].as_str().expect("node iri").to_string()
+    }
+
+    #[test]
+    fn refute_conjecture_withdraws_and_appends_author_segment() {
+        // store_conjecture then refute_conjecture its node IRI: the library gains a NEW
+        // append-only segment marking that node ConjectureWithdrawn with the author reason;
+        // the reader's EFFECTIVE lifecycle is now Withdrawn; the PRIOR segment bytes are
+        // byte-for-byte intact (append-only, never mutated).
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let node = store_one_conjecture(&server, "B");
+        // Before withdrawal the effective state is the engine verdict (Open), never Withdrawn.
+        let before = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            before.get(&node).copied(),
+            Some(ConjectureLifecycleState::Open)
+        );
+        let prior = fs::read(&path).expect("library bytes before refute");
+
+        let resp = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "author retired this line of inquiry"}),
+        ));
+        assert_eq!(resp["ok"], true, "the withdrawal must commit: {resp}");
+        assert_eq!(resp["conjecture"], node);
+        assert_eq!(resp["lifecycle"], "withdrawn");
+        assert_eq!(resp["transaction"]["committed"], true);
+        assert_eq!(resp["transaction"]["succeeded"], true);
+        // T1 (G7): the compensating withdrawal carries its own grounded RDF projection under
+        // the SAME `judgment_nquads` key — the target node re-marked ConjectureWithdrawn.
+        assert!(
+            resp["judgment_nquads"]
+                .as_str()
+                .is_some_and(|s| s.contains("ConjectureWithdrawn")),
+            "refute_conjecture must carry judgment_nquads naming ConjectureWithdrawn: {resp}"
+        );
+
+        // The EFFECTIVE lifecycle (segment order) is now Withdrawn.
+        let after = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            after.get(&node).copied(),
+            Some(ConjectureLifecycleState::Withdrawn),
+            "the effective lifecycle after refute must be Withdrawn"
+        );
+
+        // Append-only: the file GREW and the prior bytes are an untouched prefix.
+        let now = fs::read(&path).expect("library bytes after refute");
+        assert!(
+            now.len() > prior.len(),
+            "the withdrawal must append new bytes"
+        );
+        assert_eq!(
+            &now[..prior.len()],
+            &prior[..],
+            "prior segment bytes must be byte-for-byte intact (append-only)"
+        );
+
+        // The author reason literal round-trips out of the unioned library.
+        let dataset = read_conjectures(&path);
+        assert!(
+            dataset.owned_quads().any(|q| {
+                q.subject == RdfTerm::iri(node.clone())
+                    && q.predicate == format!("{LOGIC_NS}withdrawalReason")
+                    && matches!(
+                        q.object,
+                        RdfTerm::Literal(ref lit)
+                            if lit.lexical_form == "author retired this line of inquiry"
+                    )
+            }),
+            "the author withdrawal reason must be recoverable from the library"
+        );
+        // The withdrawal is reviewer-asserted, never engine-produced.
+        assert!(
+            dataset.owned_quads().any(|q| {
+                q.subject == RdfTerm::iri(node.clone())
+                    && q.predicate == format!("{LOGIC_NS}verdictProvenance")
+                    && q.object == RdfTerm::iri(format!("{LOGIC_NS}VerdictReviewerAsserted"))
+            }),
+            "the withdrawal must carry VerdictReviewerAsserted provenance"
+        );
+    }
+
+    #[test]
+    fn refute_conjecture_second_withdraw_rejected_by_segment_order() {
+        // store -> withdraw -> withdraw again the SAME node: the second refute is rejected as
+        // precondition-unmet because the EFFECTIVE state is already Withdrawn, decided by
+        // SEGMENT ORDER (the last lifecycle assertion), not by the union or gmeow:atTime. The
+        // rejected call appends NOTHING (the library stays byte-for-byte identical).
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let node = store_one_conjecture(&server, "B");
+        let first = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "first withdrawal"}),
+        ));
+        assert_eq!(
+            first["ok"], true,
+            "the first withdrawal must commit: {first}"
+        );
+        let after_first = fs::read(&path).expect("library bytes after first withdrawal");
+
+        let second = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "second withdrawal"}),
+        ));
+        assert_eq!(
+            second["ok"], false,
+            "a second withdrawal must be rejected: {second}"
+        );
+        assert_eq!(second["transaction"]["committed"], true);
+        assert_eq!(second["transaction"]["succeeded"], false);
+        assert!(
+            second["error"]
+                .as_str()
+                .is_some_and(|e| e.contains("already withdrawn")),
+            "the rejection must name the already-withdrawn precondition: {second}"
+        );
+        // The rejected call wrote nothing.
+        let after_second = fs::read(&path).expect("library bytes after rejected withdrawal");
+        assert_eq!(
+            after_first, after_second,
+            "a rejected withdrawal must append nothing to the library"
+        );
+    }
+
+    #[test]
+    fn refute_conjecture_unknown_id_rejected() {
+        // An unknown conjecture_id (nothing stored) fails the TR gate (empty start state) and
+        // returns ok:false before any write — the library file is never created.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        assert!(!path.exists(), "library must not exist before the call");
+        let resp = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": "https://blackcatinformatics.ca/gmeow/graph/conjecture/ghost"}),
+        ));
+        assert_eq!(resp["ok"], false, "an unknown id must be rejected: {resp}");
+        assert!(
+            resp["error"]
+                .as_str()
+                .is_some_and(|e| e.contains("unknown conjecture id")),
+            "the rejection must name the unknown id: {resp}"
+        );
+        assert!(
+            !path.exists(),
+            "a rejected withdrawal of an unknown id must write nothing"
+        );
+    }
+
+    #[test]
+    fn refute_conjecture_dry_run_writes_nothing() {
+        // dry_run=true witnesses the hypothetical commit (lifecycle withdrawn, committed:false)
+        // but appends NOTHING — the library file stays byte-unchanged.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let node = store_one_conjecture(&server, "B");
+        let before = fs::read(&path).expect("library bytes before dry run");
+
+        let resp = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "sandbox", "dry_run": true}),
+        ));
+        assert_eq!(resp["ok"], true, "the dry run must succeed: {resp}");
+        assert_eq!(resp["dry_run"], true);
+        assert_eq!(resp["lifecycle"], "withdrawn");
+        assert_eq!(resp["transaction"]["committed"], false);
+        // T1 (G7): the hypothetical withdrawal still carries judgment_nquads — the RDF
+        // projection is pure and side-effect-free, so witnessing it costs nothing written.
+        assert!(
+            resp["judgment_nquads"]
+                .as_str()
+                .is_some_and(|s| s.contains("ConjectureWithdrawn")),
+            "refute_conjecture dry-run must carry judgment_nquads naming ConjectureWithdrawn: \
+             {resp}"
+        );
+
+        // Nothing appended: bytes unchanged AND the effective lifecycle is still Open.
+        let after = fs::read(&path).expect("library bytes after dry run");
+        assert_eq!(before, after, "a dry run must write nothing to the library");
+        let library = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            library.get(&node).copied(),
+            Some(ConjectureLifecycleState::Open),
+            "a dry run must not change the effective lifecycle"
+        );
+    }
+
+    #[test]
+    fn store_conjecture_and_refute_round_trip_keep_library_and_audit_consistent() {
+        // store_conjecture and refute_conjecture must each land their
+        // library segment AND their audit segment TOGETHER — never one without the other. Drive
+        // the real `call_tool_result` surface for both tools and, after EACH commit, assert the
+        // library dataset carries BOTH the verdict/withdrawal triples AND the matching
+        // `logic:instantiatesSchema` audit marker for that same call — round-tripping cleanly.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let node = store_one_conjecture(&server, "B");
+        let after_store = read_conjectures(&path);
+        assert!(
+            conjecture_nodes(&after_store).contains(&node),
+            "the store's library segment must be present after the commit"
+        );
+        assert!(
+            after_store.owned_quads().any(|q| {
+                q.predicate == LOGIC_INSTANTIATES_SCHEMA
+                    && q.object == RdfTerm::iri(MCP_PERSIST_CONJECTURE_SCHEMA)
+            }),
+            "the store's audit segment must be present in the SAME commit as its library \
+             segment (no library-without-audit gap): {after_store:?}"
+        );
+
+        let refute = text_payload(server.call_tool_result(
+            "refute_conjecture",
+            &json!({"conjecture_id": node, "reason": "round-trip proof"}),
+        ));
+        assert_eq!(refute["ok"], true, "the withdrawal must commit: {refute}");
+
+        let after_refute = read_conjectures(&path);
+        let library = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            library.get(&node).copied(),
+            Some(ConjectureLifecycleState::Withdrawn),
+            "the round-trip's effective state must be Withdrawn"
+        );
+        assert!(
+            after_refute.owned_quads().any(|q| {
+                q.predicate == LOGIC_INSTANTIATES_SCHEMA
+                    && q.object == RdfTerm::iri(MCP_WITHDRAW_CONJECTURE_SCHEMA)
+            }),
+            "the refute's audit segment must be present in the SAME commit as its withdrawal \
+             segment: {after_refute:?}"
+        );
+        // The store's audit marker is STILL there too — append-only, nothing overwritten.
+        assert!(
+            after_refute.owned_quads().any(|q| {
+                q.predicate == LOGIC_INSTANTIATES_SCHEMA
+                    && q.object == RdfTerm::iri(MCP_PERSIST_CONJECTURE_SCHEMA)
+            }),
+            "the store's audit marker must survive the later refute commit"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn conjecture_persist_is_all_or_nothing_on_a_failed_commit() {
+        // forcing the atomic-replace write to fail PARTWAY (the temp file
+        // for the combined library+audit bytes can't even be created) must leave the library
+        // BYTE-UNCHANGED — never holding the library segment without its audit segment (or vice
+        // versa), because both are assembled in memory and committed via ONE rename. This
+        // simulates the "audit append fails after the library append already landed" half of the
+        // gap: with the fix, there is no such partial state to observe.
+        use std::os::unix::fs::PermissionsExt;
+
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_conjecture();
+
+        // Seed the library with one already-committed segment (as if a prior store succeeded).
+        let seed_node = "https://blackcatinformatics.ca/gmeow/graph/conjecture/seed";
+        let seed_nt = format!(
+            "<{seed_node}> <{RDF_TYPE_IRI}> <{LOGIC_NS}Conjecture> .\n\
+             <{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureOpen> .\n"
+        );
+        write_conjecture_segment(&path, &seed_nt).unwrap();
+        let before = fs::read(&path).expect("seeded library bytes");
+        assert!(!before.is_empty());
+
+        // Make the library's directory read-only: the existing `.lock` sidecar can still be
+        // opened (it already exists), but `append_conjecture_segments` can no longer create the
+        // same-directory temp file its atomic rename depends on — an I/O failure squarely inside
+        // the combined library+audit commit, after both segments' bytes are already built.
+        let dir = path
+            .parent()
+            .expect("library has a parent dir")
+            .to_path_buf();
+        let original_mode = fs::metadata(&dir).unwrap().permissions().mode();
+        fs::set_permissions(&dir, fs::Permissions::from_mode(0o555)).expect("chmod read-only");
+
+        let outcome = (|| -> gmeow_errors::Result<()> {
+            let lib_segment = build_conjecture_verdict_segment(&format!(
+                "<{seed_node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}ConjectureWithdrawn> .\n"
+            ))?;
+            let audit_segment = build_audit_segment(
+                "urn:gmeow:conjecture-call:simulated-failure",
+                MCP_WITHDRAW_CONJECTURE_SCHEMA,
+                &[MCP_CONJECTURE_IN_LIBRARY],
+                "1970-01-01T00:00:00Z",
+            );
+            with_conjecture_lock(&path, || {
+                append_conjecture_segments(&path, &[lib_segment, audit_segment])
+            })
+        })();
+
+        // Restore permissions unconditionally before asserting, so the tempdir can still clean
+        // itself up even if an assertion below panics.
+        fs::set_permissions(&dir, fs::Permissions::from_mode(original_mode))
+            .expect("chmod restore");
+
+        assert!(
+            outcome.is_err(),
+            "the forced I/O failure must surface as an error, not a silent partial write"
+        );
+        let after = fs::read(&path).expect("library bytes after the failed commit");
+        assert_eq!(
+            before, after,
+            "a failed combined library+audit commit must leave the library BYTE-UNCHANGED \
+             (all-or-nothing) — never holding one segment without the other"
+        );
+        let library = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            library.get(seed_node).copied(),
+            Some(ConjectureLifecycleState::Open),
+            "the seed's state must still be Open — the failed withdrawal must not have applied"
+        );
+    }
+
+    #[test]
+    fn conjecture_lock_serializes_concurrent_writers() {
+        // `with_conjecture_lock` must provide REAL mutual exclusion, not
+        // just an in-process convention a second caller could sidestep — so this test opens the
+        // SAME sidecar `.lock` file from two INDEPENDENT `std::fs::File` descriptors (one per
+        // thread), mirroring how two separate OS processes would each open it themselves. Since
+        // `flock` locks are scoped to the OPEN FILE DESCRIPTION (not the process), two distinct
+        // descriptors contending on the same path exercise the identical kernel mechanism that
+        // serializes real cross-process `store_conjecture` / `refute_conjecture` callers.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_conjecture();
+
+        let (started_tx, started_rx) = std::sync::mpsc::channel::<()>();
+        let (release_tx, release_rx) = std::sync::mpsc::channel::<()>();
+        let holder_path = path.clone();
+        let holder = std::thread::spawn(move || {
+            with_conjecture_lock(&holder_path, || {
+                started_tx.send(()).expect("signal lock acquired");
+                release_rx.recv().expect("wait for release signal");
+                Ok(())
+            })
+            .expect("holder must acquire and release cleanly")
+        });
+        started_rx
+            .recv_timeout(std::time::Duration::from_secs(5))
+            .expect("the holder thread must acquire the lock");
+
+        let waiter_done = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let waiter_done_writer = waiter_done.clone();
+        let waiter_path = path.clone();
+        let waiter = std::thread::spawn(move || {
+            with_conjecture_lock(&waiter_path, || {
+                waiter_done_writer.store(true, std::sync::atomic::Ordering::SeqCst);
+                Ok(())
+            })
+            .expect("waiter must eventually acquire and release cleanly")
+        });
+
+        // While the holder still owns the lock, the waiter's OWN, independently-opened file
+        // descriptor must be blocked — proving this is a real `flock`, not an in-process no-op.
+        std::thread::sleep(std::time::Duration::from_millis(250));
+        assert!(
+            !waiter_done.load(std::sync::atomic::Ordering::SeqCst),
+            "a second, independently-opened lock attempt must still be blocked while the first \
+             holder is inside its critical section"
+        );
+
+        release_tx.send(()).expect("release the holder");
+        holder.join().expect("holder thread must not panic");
+        waiter.join().expect("waiter thread must not panic");
+        assert!(
+            waiter_done.load(std::sync::atomic::Ordering::SeqCst),
+            "the second lock attempt must complete once the first holder releases"
+        );
+    }
+
+    #[test]
+    fn read_conjecture_library_resolves_effective_state_by_segment_order() {
+        // The reader resolves the effective lifecycle purely by SEGMENT ORDER (last writer
+        // wins) — NOT by the union (which would carry both states at once) and NOT by
+        // gmeow:atTime (every segment shares the fixed determinism epoch). Two nodes are
+        // written with OPPOSITE last-writer states to prove position alone decides: the state
+        // that "sounds terminal" (Withdrawn) does NOT win unless it is written LAST.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_dir, path) = temp_conjecture();
+
+        let base = "https://blackcatinformatics.ca/gmeow/graph/conjecture/";
+        let reopened = format!("{base}reopened");
+        let retired = format!("{base}retired");
+        let ty = format!("<{reopened}> <{RDF_TYPE_IRI}> <{LOGIC_NS}Conjecture> .\n");
+        let ty2 = format!("<{retired}> <{RDF_TYPE_IRI}> <{LOGIC_NS}Conjecture> .\n");
+        let lc = |node: &str, state: &str| {
+            format!("<{node}> <{LOGIC_NS}conjectureLifecycleState> <{LOGIC_NS}{state}> .\n")
+        };
+
+        // `reopened`: Withdrawn FIRST, then Open — Open is last, so Open must win.
+        write_conjecture_segment(
+            &path,
+            &format!("{ty}{}", lc(&reopened, "ConjectureWithdrawn")),
+        )
+        .unwrap();
+        // `retired`: Open FIRST, then Withdrawn — Withdrawn is last, so Withdrawn must win.
+        write_conjecture_segment(&path, &format!("{ty2}{}", lc(&retired, "ConjectureOpen")))
+            .unwrap();
+        write_conjecture_segment(&path, &lc(&reopened, "ConjectureOpen")).unwrap();
+        write_conjecture_segment(&path, &lc(&retired, "ConjectureWithdrawn")).unwrap();
+
+        let library = read_conjecture_library(&path).unwrap();
+        assert_eq!(
+            library.get(&reopened).copied(),
+            Some(ConjectureLifecycleState::Open),
+            "the LAST segment (Open) must win even though a prior segment said Withdrawn"
+        );
+        assert_eq!(
+            library.get(&retired).copied(),
+            Some(ConjectureLifecycleState::Withdrawn),
+            "the LAST segment (Withdrawn) must win over the prior Open"
         );
     }
 
@@ -5446,7 +8752,9 @@ mod tests {
     fn conjecture_test_budget_bound_forces_open_via_the_mcp_surface() {
         // GAP G1: the `max_steps` / `max_answers` bound is reachable from the SHIPPED MCP
         // surface (not just the logic-crate unit test). A run whose derived closure exceeds the
-        // ceiling is truncated → evaluation budget-exhausted → lifecycle open → discharge Unknown.
+        // ceiling is truncated → evaluation budget-exhausted → lifecycle open → discharge
+        // Unknown. This is a PURE assertion on `conjecture_test`: no persist tail exists on
+        // this surface at all, so the library stays absent throughout.
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let (_env, _cg) = ConjEnvGuard::set();
         let (_mem, _mp) = temp_memory();
@@ -5461,7 +8769,6 @@ mod tests {
                 "formula": forall_horn_candidate("C"),
                 "kb": multi_trigger_kb("C"),
                 "standpoint": "http://ex/standpoint/alice",
-                "dry_run": true,
             }),
         ));
         assert_eq!(unbounded["ok"], true);
@@ -5477,7 +8784,6 @@ mod tests {
                 "formula": forall_horn_candidate("C"),
                 "kb": multi_trigger_kb("C"),
                 "standpoint": "http://ex/standpoint/alice",
-                "dry_run": true,
                 "max_steps": 1,
             }),
         ));
@@ -5505,7 +8811,6 @@ mod tests {
                 "formula": forall_horn_candidate("C"),
                 "kb": multi_trigger_kb("C"),
                 "standpoint": "http://ex/standpoint/alice",
-                "dry_run": true,
                 "max_answers": 1,
             }),
         ));
@@ -5513,14 +8818,61 @@ mod tests {
             bounded_answers["verdict"]["evaluation"], "budget-exhausted",
             "max_answers must impose the same ceiling: {bounded_answers}"
         );
+        // `conjecture_test` is PURE: none of these calls ever touch the library.
         assert!(
-            !path.exists() || fs::metadata(&path).unwrap().len() == 0,
-            "these dry runs must write nothing"
+            !path.exists(),
+            "conjecture_test calls must write nothing to the library"
         );
     }
 
     #[test]
-    fn conjecture_persists_are_append_only() {
+    fn store_conjecture_budget_bound_forces_open_and_still_persists() {
+        // R3b acceptance: a budget-exhausted `store_conjecture` (committing) must still yield
+        // the non-conclusive verdict — lifecycle open, discharge Unknown — via the governor,
+        // NEVER a false discharge, even though the run commits and appends to the library.
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let (_env, _cg) = ConjEnvGuard::set();
+        let (_mem, _mp) = temp_memory();
+        let (_dir, path) = temp_conjecture();
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        assert!(!path.exists());
+        let bounded = text_payload(server.call_tool_result(
+            "store_conjecture",
+            &json!({
+                "formula": forall_horn_candidate("C"),
+                "kb": multi_trigger_kb("C"),
+                "standpoint": "http://ex/standpoint/alice",
+                "max_steps": 1,
+            }),
+        ));
+        assert_eq!(
+            bounded["ok"], true,
+            "a budget-exhausted commit must still compute+persist a verdict: {bounded}"
+        );
+        assert_eq!(bounded["verdict"]["evaluation"], "budget-exhausted");
+        assert_eq!(
+            bounded["verdict"]["lifecycle"], "open",
+            "never a false discharge: budget-exhausted must stay Open: {bounded}"
+        );
+        assert_eq!(bounded["verdict"]["discharge"], "ObligationUnknown");
+        assert_eq!(bounded["transaction"]["committed"], true);
+
+        // The non-conclusive verdict is still a real, committed, append-only segment.
+        assert!(
+            path.exists() && fs::metadata(&path).unwrap().len() > 0,
+            "a committed budget-exhausted run must still append its Open verdict"
+        );
+        let node = bounded["conjecture"]
+            .as_str()
+            .expect("node iri")
+            .to_string();
+        assert!(conjecture_nodes(read_conjectures(&path).as_ref()).contains(&node));
+    }
+
+    #[test]
+    fn store_conjecture_persists_are_append_only() {
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
         let (_env, _cg) = ConjEnvGuard::set();
         let (_mem, _mp) = temp_memory();
@@ -5529,7 +8881,7 @@ mod tests {
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
 
         text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": refuting_kb("B"),
@@ -5542,7 +8894,7 @@ mod tests {
 
         // A DISTINCT conjecture (different head class) appends a second segment.
         text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("C"),
                 "kb": open_kb("C"),
@@ -5564,7 +8916,7 @@ mod tests {
     }
 
     #[test]
-    fn conjecture_library_is_isolated_from_the_base_kb() {
+    fn store_conjecture_library_is_isolated_from_the_base_kb() {
         // R2: the caller's KB text is unchanged by the call, and the library is a DISTINCT
         // file the reasoner never folds into its base graph.
         let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
@@ -5577,7 +8929,7 @@ mod tests {
         let kb = refuting_kb("B");
         let kb_before = kb.clone();
         text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("B"),
                 "kb": kb,
@@ -5585,7 +8937,7 @@ mod tests {
             }),
         ));
         // The KB argument the tool was given is an owned String — the tool cannot mutate the
-        // caller's copy. (Isolation is inherent: conjecture_test borrows and copies the KB.)
+        // caller's copy. (Isolation is inherent: store_conjecture borrows and copies the KB.)
         assert_eq!(kb_before, refuting_kb("B"));
         // The conjecture library is a distinct file, NOT the memory store, and never the base
         // reasoning graph (reason reads graph_dataset(), never conjecture_path()).
@@ -5610,7 +8962,7 @@ mod tests {
         let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
 
         let a = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("C"),
                 "kb": open_kb("C"),
@@ -5618,7 +8970,7 @@ mod tests {
             }),
         ));
         let b = text_payload(server.call_tool_result(
-            "conjecture_test",
+            "store_conjecture",
             &json!({
                 "formula": forall_horn_candidate("C"),
                 "kb": open_kb("C"),
@@ -5647,7 +8999,7 @@ mod tests {
         // Two refuted (B, D disjoint) and two open (C, E unrelated).
         for cls in ["B", "D"] {
             let r = text_payload(server.call_tool_result(
-                "conjecture_test",
+                "store_conjecture",
                 &json!({
                     "formula": forall_horn_candidate(cls),
                     "kb": refuting_kb(cls),
@@ -5658,7 +9010,7 @@ mod tests {
         }
         for cls in ["C", "E"] {
             let r = text_payload(server.call_tool_result(
-                "conjecture_test",
+                "store_conjecture",
                 &json!({
                     "formula": forall_horn_candidate(cls),
                     "kb": open_kb(cls),
@@ -6421,5 +9773,652 @@ mod tests {
         let again =
             text_payload(server.call_tool_result("docs_search", &json!({"query": "entity"})));
         assert_eq!(hit, again, "docs_search output is deterministic");
+    }
+
+    // ── coherence_certificate (R6) ─────────────────────────────────────────────────
+
+    /// A consistent native [`ReasoningResult`], with the given evaluation/completeness
+    /// axes and optional certified fragment — the minimum a coherence outcome reads.
+    fn coherence_result(
+        evaluation: EvaluationStatus,
+        completeness: CompletenessStatus,
+        fragment: Option<&str>,
+    ) -> ReasoningResult {
+        use gmeow_logic::result::{
+            InformationState, InputStatus, PreservationClaim, ResultPayload, ResultProvenance,
+        };
+        let mut provenance = ResultProvenance::native("contract:abc", "world:default");
+        provenance.certified_fragment = fragment.map(str::to_owned);
+        ReasoningResult {
+            input: InputStatus::Valid,
+            evaluation,
+            completeness,
+            preservation: PreservationClaim::exact(),
+            information: InformationState::Supported,
+            provenance,
+            payload: ResultPayload::Empty,
+            row_schema: None,
+        }
+    }
+
+    /// Parse a `graph/attestations` N-Quads document into a dataset the read helper reads.
+    fn dataset_of(nquads: &str) -> Arc<purrdf::RdfDataset> {
+        purrdf::parse_dataset(nquads.as_bytes(), "application/n-quads", None)
+            .expect("parse coherence N-Quads")
+    }
+
+    /// Build the lightest `McpView` that can drive the REAL production entry point
+    /// ([`McpView::coherence_certificate_json`], the exact method
+    /// `tool_coherence_certificate` calls) over hand-crafted `graph/attestations`
+    /// N-Quads — without paying for a full `emit_gts`/`SnapshotBuilder` round trip
+    /// (reserved for the `_heavy_offgate` whole-bundle test). `McpView::from_dataset`
+    /// only needs the ontology header for `export::fold_meta`; the raw `gts` bytes it
+    /// also stores are unused by `coherence_certificate_json`, so an empty `Arc<[u8]>`
+    /// is honest (never a fabricated placeholder read by the surface under test).
+    fn view_of(nquads: &str) -> McpView {
+        let header = "<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n";
+        let doc = format!("{header}{nquads}");
+        McpView::from_dataset(dataset_of(&doc), Arc::from(Vec::<u8>::new()))
+            .expect("construct McpView over the crafted certificate fixture")
+    }
+
+    /// Simulate a producer that failed to write exactly ONE required predicate: strip
+    /// every N-Quads line mentioning the bracket-delimited `logic:<local>` predicate
+    /// IRI, leaving every other quad (including the subject's `rdf:type`) intact. The
+    /// bracket delimiters make the match exact — no risk of one predicate's local name
+    /// being a substring of another's.
+    fn strip_predicate(nquads: &str, local: &str) -> String {
+        let token = format!("<{LOGIC_NAMESPACE}{local}>");
+        let mut out = nquads
+            .lines()
+            .filter(|line| !line.contains(&token))
+            .collect::<Vec<_>>()
+            .join("\n");
+        out.push('\n');
+        out
+    }
+
+    /// The carrier folds a CONCLUSIVE, fragment-scoped, violation-free closure as a real
+    /// `logic:CoherenceCertificate`; the read tool surfaces `issues_certificate:true`, the
+    /// certificate class, and the pinned bundle_hash / per-graph axiom_hashes VERBATIM (the
+    /// tamper surface) — proving the digests are exactly `per_graph_axiom_hashes` and not
+    /// fabricated.
+    #[test]
+    fn coherence_certificate_surfaces_a_certificate_with_the_pinned_digests() {
+        use gmeow_logic::certificate::{
+            CoherenceOutcome, ContradictionPolicy, per_graph_axiom_hashes,
+        };
+        use purrdf::gts::writer::digest_string;
+
+        // A small axiom-bearing dataset whose per-graph digests the certificate pins.
+        let axioms = dataset_of(
+            "<https://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://e/B> <https://e/w> .\n",
+        );
+        let axiom_hashes = per_graph_axiom_hashes(axioms.as_ref(), digest_string);
+        assert!(!axiom_hashes.is_empty(), "the fixture pins ≥1 axiom digest");
+        let bundle_hash = digest_string(b"bundle-identity-bytes");
+
+        let result = coherence_result(
+            EvaluationStatus::Completed,
+            CompletenessStatus::Unknown,
+            Some("fragment:test"),
+        );
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &result,
+            bundle_hash.clone(),
+            axiom_hashes.clone(),
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        assert!(outcome.issues_certificate(), "the fixture must certify");
+
+        let dataset = dataset_of(&outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS));
+        let env = coherence_certificate_envelope(dataset.as_ref()).expect("certificate present");
+
+        assert_eq!(env["ok"], true);
+        assert_eq!(env["issues_certificate"], true);
+        assert_eq!(env["is_refused"], false);
+        assert_eq!(env["class_local_name"], "CoherenceCertificate");
+        // The surfaced bundle_hash / axiom_hashes are the pipeline-pinned digests, VERBATIM.
+        assert_eq!(env["bundle_hash"], bundle_hash);
+        assert!(
+            env["bundle_hash"].as_str().is_some_and(|s| !s.is_empty()),
+            "bundle_hash is non-empty: {env}"
+        );
+        let surfaced: Vec<String> = env["axiom_hashes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_str().unwrap().to_owned())
+            .collect();
+        assert_eq!(
+            surfaced,
+            axiom_hashes.into_iter().collect::<Vec<_>>(),
+            "axiom_hashes are the per_graph_axiom_hashes digests, not fabricated: {env}"
+        );
+        assert!(
+            surfaced.iter().all(|h| h.contains(':') && h.len() > 8),
+            "axiom digests are non-trivial content addresses: {surfaced:?}"
+        );
+        // The two completeness-gate axes round-trip off the linked result node.
+        assert_eq!(env["evaluation"], "completed");
+        assert_eq!(env["completeness"], "unknown");
+        assert_eq!(env["contract_hash"], "contract:abc");
+    }
+
+    /// R6 regression: a bounded/incomplete closure yields the strictly-weaker
+    /// `logic:CoherenceCheckAttestation`; the read tool must report
+    /// `issues_certificate:false` and `class_local_name:CoherenceCheckAttestation` — a
+    /// regression must NEVER silently upgrade an attestation to a certificate.
+    #[test]
+    fn coherence_certificate_maps_an_attestation_never_a_certificate() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+        let result = coherence_result(
+            EvaluationStatus::BudgetExhausted,
+            CompletenessStatus::Incomplete,
+            None,
+        );
+        assert!(!result.is_conclusive());
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &result,
+            "blake3:bundle".to_owned(),
+            ["blake3:axioms".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        assert!(!outcome.issues_certificate());
+
+        let dataset = dataset_of(&outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS));
+        let env = coherence_certificate_envelope(dataset.as_ref()).expect("attestation present");
+        assert_eq!(env["ok"], true);
+        assert_eq!(
+            env["issues_certificate"], false,
+            "an attestation is NOT a certificate: {env}"
+        );
+        assert_eq!(env["class_local_name"], "CoherenceCheckAttestation");
+        assert_eq!(env["evaluation"], "budget-exhausted");
+        assert_eq!(env["completeness"], "incomplete");
+    }
+
+    /// HARD-FAIL: a bundle carrying no coherence artifact in `graph/attestations` is an
+    /// error — there is NO silent recompute fallback.
+    #[test]
+    fn coherence_certificate_hard_fails_on_a_bundle_without_a_certificate() {
+        let stripped = dataset_of("<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n");
+        let err = coherence_certificate_envelope(stripped.as_ref())
+            .expect_err("a bundle with no coherence artifact must hard-fail");
+        assert!(
+            err.to_string()
+                .contains("no coherence certificate or attestation"),
+            "the hard fail names the missing artifact: {err}"
+        );
+    }
+
+    /// A bundle carrying more than one distinct coherence subject is ambiguous and a hard
+    /// failure (no silent first-wins).
+    #[test]
+    fn coherence_certificate_hard_fails_on_an_ambiguous_bundle() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let a = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("frag:a"),
+            ),
+            "blake3:bundle-a".to_owned(),
+            ["blake3:axioms-a".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        let b = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("frag:b"),
+            ),
+            "blake3:bundle-b".to_owned(),
+            ["blake3:axioms-b".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        let both = format!("{}{}", a.to_nquads(graph), b.to_nquads(graph));
+        let err = coherence_certificate_envelope(dataset_of(&both).as_ref())
+            .expect_err("two coherence subjects must hard-fail");
+        assert!(
+            err.to_string()
+                .contains("more than one distinct coherence subject"),
+            "the hard fail names the ambiguity: {err}"
+        );
+    }
+
+    /// A SINGLE coherence subject typed BOTH
+    /// `logic:CoherenceCertificate` and `logic:CoherenceCheckAttestation` is an
+    /// ambiguous, malformed artifact and must hard-fail — REGRESSION GUARD for the
+    /// exact gap this test closes: the ambiguity check used to compare only the
+    /// SUBJECT IRI (`existing != subject`), so two `rdf:type` triples on the SAME
+    /// subject fell through to the silent `Some(_) => {}` no-op arm and first-wins
+    /// picked whichever `rdf:type` the dataset's quad iteration order surfaced first.
+    /// Drives the REAL production entry point (`McpView::coherence_certificate_json`).
+    #[test]
+    fn coherence_certificate_json_hard_fails_on_a_dual_typed_subject() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("fragment:dual"),
+            ),
+            "blake3:bundle-dual".to_owned(),
+            ["blake3:axioms-dual".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        let nquads = outcome.to_nquads(graph);
+
+        // Splice in a SECOND `rdf:type` triple on the SAME subject, typing it the
+        // strictly-weaker Attestation class too — the malformed dual-typed artifact.
+        let subject_line = nquads
+            .lines()
+            .find(|l| l.contains("22-rdf-syntax-ns#type") && l.contains("CoherenceCertificate"))
+            .expect("the fixture carries the certificate's rdf:type triple");
+        let subject = subject_line
+            .split_whitespace()
+            .next()
+            .expect("rdf:type triple has a subject");
+        let dual_typed = format!(
+            "{nquads}{subject} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> \
+             <{LOGIC_NAMESPACE}CoherenceCheckAttestation> <{graph}> .\n"
+        );
+
+        let view = view_of(&dual_typed);
+        let out: Value = serde_json::from_str(&view.coherence_certificate_json())
+            .expect("coherence_certificate_json returns valid JSON");
+        assert_eq!(
+            out["ok"], false,
+            "a dual-typed subject must hard-fail, never first-win a class: {out}"
+        );
+        let error = out["error"].as_str().unwrap_or_default();
+        assert!(
+            error.contains("typed BOTH"),
+            "the hard fail names the ambiguous dual typing: {error}"
+        );
+    }
+
+    /// Every producer-REQUIRED field the tool extracts must
+    /// be present with the producer's exact cardinality — a bundle missing ANY of them
+    /// is a CORRUPT artifact and must hard-fail (`ok:false`) naming the missing
+    /// predicate, never `ok:true` with a null/empty field silently laundering the gap
+    /// (no-silent-degradation, `.goals`). Drives the REAL production entry point
+    /// (`McpView::coherence_certificate_json`, the exact method
+    /// `tool_coherence_certificate` calls) over a battery of certificates each missing
+    /// exactly one predicate [`CoherenceOutcome::to_nquads`] otherwise always writes.
+    #[test]
+    fn coherence_certificate_json_hard_fails_on_each_missing_required_field() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("fragment:required"),
+            ),
+            "blake3:bundle-required".to_owned(),
+            ["blake3:axioms-required".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        assert!(
+            outcome.issues_certificate(),
+            "the fixture must be a real certificate (so certifiedFragment is exercised too)"
+        );
+        let full = outcome.to_nquads(graph);
+
+        // Every predicate the producer writes UNCONDITIONALLY on a CoherenceCertificate
+        // subject (bundleHash/axiomHash/contractHash/engine/contradictionPolicy/
+        // summarizesResult/certifiedFragment) plus the two axes carried on the linked
+        // result node (resultCompleteness/resultEvaluation) — one case per field.
+        let required_predicates = [
+            "bundleHash",
+            "axiomHash",
+            "contractHash",
+            "engine",
+            "contradictionPolicy",
+            "summarizesResult",
+            "certifiedFragment",
+            "resultCompleteness",
+            "resultEvaluation",
+        ];
+        for predicate in required_predicates {
+            let stripped = strip_predicate(&full, predicate);
+            let view = view_of(&stripped);
+            let out: Value = serde_json::from_str(&view.coherence_certificate_json())
+                .expect("coherence_certificate_json returns valid JSON");
+            assert_eq!(
+                out["ok"], false,
+                "stripping logic:{predicate} must hard-fail, not ok:true with a null field: {out}"
+            );
+            let error = out["error"].as_str().unwrap_or_default();
+            assert!(
+                error.contains(predicate),
+                "the hard fail for a missing logic:{predicate} must name it: {error}"
+            );
+        }
+    }
+
+    /// Drive the REAL `coherence_certificate` tool through `call_tool_result` over a bundle
+    /// that carries the certificate in `graph/attestations` — the same disk-free, reason-free
+    /// read path the shipped consumer surface uses.
+    ///
+    /// Fast (a minimal synthetic snapshot — just the ontology header plus the certificate's
+    /// own quads, built via `SnapshotBuilder`/`emit_gts`, NOT the real committed `gmeow.gts` —
+    /// the same tiny-snapshot construction `verify_graph_inconsistent_but_conclusive_never_certifies`
+    /// uses): on-gate, not `_heavy_offgate`. Measured at ~0.01-0.03 s standalone and under full
+    /// contention with the genuinely-heavy `*_heavy_offgate` siblings, nowhere near the 25 s
+    /// policy cliff, because — unlike those siblings — this test never touches the real
+    /// committed bundle.
+    #[test]
+    fn coherence_certificate_tool_reads_the_carried_bundle() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+        use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("fragment:test"),
+            ),
+            "blake3:carried-bundle".to_owned(),
+            ["blake3:axioms-carried".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+
+        // A minimal snapshot: the required ontology header (the importer hard-fails
+        // without it) plus the certificate's graph/attestations named graph, emitted as a
+        // real gmeow.gts bundle.
+        let doc = format!(
+            "<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
+             {}",
+            outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS)
+        );
+        let dataset = dataset_of(&doc);
+        let mut builder = SnapshotBuilder::new();
+        builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit tiny cert-carrying snapshot");
+
+        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+        let out = text_payload(server.call_tool_result("coherence_certificate", &json!({})));
+        assert_eq!(
+            out["ok"], true,
+            "the tool reads the carried certificate: {out}"
+        );
+        assert_eq!(out["class_local_name"], "CoherenceCertificate");
+        assert_eq!(out["issues_certificate"], true);
+        assert_eq!(out["bundle_hash"], "blake3:carried-bundle");
+        assert_eq!(
+            out["axiom_hashes"],
+            json!(["blake3:axioms-carried"]),
+            "the per-graph axiom digests ride the read envelope: {out}"
+        );
+        // Deterministic: the read is a pure projection of the carried quads.
+        let again = text_payload(server.call_tool_result("coherence_certificate", &json!({})));
+        assert_eq!(out, again, "the certificate read is deterministic");
+    }
+
+    /// An INCONSISTENT-but-CONCLUSIVE closure must never
+    /// surface as `CoherenceCertificate` on the tool surface — `completeness_class`
+    /// used to return `CoherenceCertificate` for ANY `is_conclusive()` result, with no
+    /// check for a named certified fragment or for the absence of a forbidden
+    /// violation, and `run_explain_quad` (unlike `run_verify_graph`, which bolted on
+    /// its own ad-hoc `Refused` downgrade) had NO protection at all.
+    ///
+    /// Drives the REAL `verify_graph` tool (`call_tool_result`, not internals) with a
+    /// tiny canon plus an overlay that is GENUINELY inconsistent — `A ⊑ B`, `A ⊑ C`,
+    /// `B disjointWith C`, `x : A` forces `x` into `owl:Nothing` (the exact fixture
+    /// `reason_all_single_chase_yields_inconsistent_and_nonempty_closure` proves
+    /// derives `InformationState::Both` in one completed chase, i.e. CONCLUSIVE, not
+    /// budget-cut) — and asserts the response's `class_local_name` is NEVER
+    /// `CoherenceCertificate`. `class_local_name` is `completeness_class`'s output
+    /// (folded through `CoherenceOutcome::class_local_name_for`, the SAME gate
+    /// `run_explain_quad` now reads through), so this proves the shared gate, not a
+    /// per-tool special case.
+    ///
+    /// Fast (a tiny synthetic canon + a 4-quad overlay, not the real corpus): on-gate,
+    /// not `_heavy_offgate`.
+    #[test]
+    fn verify_graph_inconsistent_but_conclusive_never_certifies() {
+        use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+
+        // A minimal canon: just the required ontology header (the importer hard-fails
+        // without it) — the SAME pattern `coherence_certificate_tool_reads_the_carried_
+        // bundle_heavy_offgate` uses.
+        let doc = "<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n";
+        let dataset = dataset_of(doc);
+        let mut builder = SnapshotBuilder::new();
+        builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit tiny header-only canon");
+
+        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+
+        // The overlay: a genuine DL contradiction — A ⊑ B, A ⊑ C, B disjointWith C,
+        // x : A forces x into owl:Nothing. Un-graphed triples reason under the single
+        // default world, and the whole tiny canon+overlay union closes well under the
+        // governed step ceiling — CONCLUSIVE, never budget-cut.
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("contradiction.ttl");
+        fs::write(
+            &overlay_path,
+            "<http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/B> .\n\
+             <http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/C> .\n\
+             <http://gmeowtest.example/B> <http://www.w3.org/2002/07/owl#disjointWith> <http://gmeowtest.example/C> .\n\
+             <http://gmeowtest.example/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/A> .\n",
+        )
+        .unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 64})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+
+        // The closure genuinely completed (conclusive), not a budget-cut — so the
+        // downgrade below is caused by the witnessed glut, not by non-conclusiveness.
+        assert_eq!(
+            out["evaluation"], "completed",
+            "the fixture's tiny closure must be CONCLUSIVE (not budget-cut) for this to be a \
+             faithful proof: {out}"
+        );
+
+        // The falsifiable assertion: an inconsistent-but-conclusive closure must NEVER
+        // render `CoherenceCertificate` — the shared `CoherenceOutcome` gate downgrades
+        // it to the flat refusal instead.
+        assert_ne!(
+            out["class_local_name"], "CoherenceCertificate",
+            "an inconsistent-but-conclusive closure must never be labeled a \
+             CoherenceCertificate: {out}"
+        );
+        assert_eq!(
+            out["class_local_name"], "Refused",
+            "a witnessed forbidden violation in a CONCLUSIVE closure is a flat refusal, per \
+             the SAME CoherenceOutcome gate the bundle-level coherence certifier uses: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// `verify_graph`'s `coherent` field MUST agree with
+    /// `class_local_name` — both MUST be derived from the SAME `CoherenceOutcome`
+    /// gate, never from two independent signals.
+    ///
+    /// The overlay carries a genuine DL glut via plain PAIRWISE `owl:disjointWith`
+    /// (A ⊑ B, A ⊑ C, B disjointWith C, x : A forces x into owl:Nothing) —
+    /// DELIBERATELY not an `owl:AllDisjointClasses` set, so the ONE bad-example
+    /// verify query that could independently catch a disjoint-axis violation
+    /// (`class-in-two-disjoint-axes.rq`, which matches only `owl:AllDisjointClasses`
+    /// membership) does NOT fire: `report.ok()` is true. Before the G4 fix,
+    /// `coherent` was read straight from `report.ok()`, so this exact fixture would
+    /// render the self-contradictory `coherent:true` alongside
+    /// `class_local_name:"Refused"`. The fix routes `coherent` through the SAME
+    /// shared `completeness_refused` gate that decides `class_local_name`, so the
+    /// two fields can never disagree.
+    ///
+    /// Fast (a tiny synthetic canon + a 4-quad overlay, not the real corpus): on-gate,
+    /// not `_heavy_offgate`.
+    #[test]
+    fn verify_graph_coherent_never_disagrees_with_refused_class() {
+        use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+
+        // The header-only canon PLUS the `axis-not-disjoint.rq` bad-example query's
+        // own required orthogonality matrix (an `owl:AllDisjointClasses` set naming
+        // the seven fixed identity axes) — otherwise that unrelated bad-example
+        // query fires on ANY header-only canon (it demands the matrix exist at all),
+        // which would make `report.ok()` false for a reason having nothing to do
+        // with this test's glut and defeat the falsifiability of the assertion below.
+        let doc = "<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
+             _:axdisj <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#AllDisjointClasses> .\n\
+             _:axdisj <http://www.w3.org/2002/07/owl#members> _:axlist0 .\n\
+             _:axlist0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/GenderIdentity> .\n\
+             _:axlist0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist1 .\n\
+             _:axlist1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/GenderExpression> .\n\
+             _:axlist1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist2 .\n\
+             _:axlist2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/SexAssignedAtBirth> .\n\
+             _:axlist2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist3 .\n\
+             _:axlist3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/SexualOrientation> .\n\
+             _:axlist3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist4 .\n\
+             _:axlist4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/RomanticOrientation> .\n\
+             _:axlist4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist5 .\n\
+             _:axlist5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/PronounSet> .\n\
+             _:axlist5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> _:axlist6 .\n\
+             _:axlist6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#first> <https://blackcatinformatics.ca/gmeow/Honorific> .\n\
+             _:axlist6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest> <http://www.w3.org/1999/02/22-rdf-syntax-ns#nil> .\n";
+        let dataset = dataset_of(doc);
+        let mut builder = SnapshotBuilder::new();
+        builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit tiny header-only canon");
+
+        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+
+        // The glut: same shape as `verify_graph_inconsistent_but_conclusive_never_
+        // certifies`, but PAIRWISE `owl:disjointWith` on classes NOT named in the
+        // orthogonality matrix above — so neither `axis-not-disjoint.rq` (satisfied
+        // by the matrix) nor `class-in-two-disjoint-axes.rq` (requires
+        // `owl:AllDisjointClasses` membership, which g4B/g4C never join) can match.
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("glut-no-bad-example-match.ttl");
+        fs::write(
+            &overlay_path,
+            "<http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4B> .\n\
+             <http://gmeowtest.example/g4A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/g4C> .\n\
+             <http://gmeowtest.example/g4B> <http://www.w3.org/2002/07/owl#disjointWith> <http://gmeowtest.example/g4C> .\n\
+             <http://gmeowtest.example/g4x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/g4A> .\n",
+        )
+        .unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 64})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        assert_eq!(
+            out["evaluation"], "completed",
+            "the fixture's tiny closure must be CONCLUSIVE (not budget-cut) for this to be a \
+             faithful proof: {out}"
+        );
+
+        // The class label refutes coherence via the DL glut...
+        assert_eq!(
+            out["class_local_name"], "Refused",
+            "a witnessed forbidden violation in a CONCLUSIVE closure is a flat refusal: {out}"
+        );
+        // ...and `coherent` MUST agree — never `coherent:true` alongside
+        // `class_local_name:"Refused"`, even though no bad-example verify query
+        // fired on this fixture's pairwise `owl:disjointWith` shape.
+        assert_eq!(
+            out["coherent"], false,
+            "coherent must be false whenever class_local_name is Refused, regardless of \
+             whether any bad-example verify query matched: {out}"
+        );
+        drop(overlay_dir);
     }
 }
