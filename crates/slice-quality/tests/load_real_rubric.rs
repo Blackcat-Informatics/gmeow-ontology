@@ -19,10 +19,18 @@ fn repo_root() -> PathBuf {
         .expect("repo root resolves")
 }
 
+/// Load the whole committed rubric from the canonical rubric module — the test-side
+/// reconstruction of the retired `load_repo_rubric` from the crate's public
+/// primitives (`dataset_from_paths` + `rubric::load_rubric`).
+fn load_repo_rubric() -> gmeow_errors::Result<gmeow_slice_quality::model::Rubric> {
+    let module = repo_root().join("slices/core/slice-quality-rubric/module.ttl");
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module])?;
+    gmeow_slice_quality::rubric::load_rubric(&ds)
+}
+
 #[test]
 fn loads_the_real_rubric_structure() {
-    let rubric = gmeow_slice_quality::load_repo_rubric(&repo_root())
-        .expect("the committed rubric slice must load");
+    let rubric = load_repo_rubric().expect("the committed rubric slice must load");
 
     // Five-rung tier ladder, contiguous ranks 0..=4.
     assert_eq!(rubric.standard.tiers.len(), 5, "five tier rungs");
@@ -127,7 +135,7 @@ fn loads_the_real_rubric_structure() {
 
 #[test]
 fn every_axis_producer_is_unique() {
-    let rubric = gmeow_slice_quality::load_repo_rubric(&repo_root()).unwrap();
+    let rubric = load_repo_rubric().unwrap();
     let mut producers: Vec<&str> = rubric
         .standard
         .axes

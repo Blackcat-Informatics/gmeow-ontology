@@ -138,41 +138,33 @@ fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// Score `slice_dir` against the repo's rubric.
+/// Score `slice_dir` against an already-loaded measurement standard (the floor-free
+/// projection of the rubric; the sweep path reuses one) in the given scoring
+/// environment.
 ///
 /// Every rubric axis binds a measurement primitive; an axis whose producer the
-/// kernel does not implement is a hard error (never a silent skip).
+/// kernel does not implement is a hard error (never a silent skip). `env` decides
+/// where the two repo-anchored axes (`gmn1_coverage`, `DocMaturity`) source their
+/// wide-scope inputs: [`ScoringEnv::Repo`] reads the surrounding checkout (the
+/// in-repo sweep/CLI/MCP path), [`ScoringEnv::Bundle`] carries them in an embedded
+/// wheel (the consumer path — no repo around the slice).
 ///
 /// # Errors
-/// Returns a message if the rubric or the slice graph cannot be loaded, or if the
+/// Returns a message if the standard or the slice graph cannot be loaded, or if the
 /// rubric names a producer with no implemented primitive.
-pub fn score_slice(repo_root: &Path, slice_dir: &Path) -> gmeow_errors::Result<SliceReport> {
-    let rubric = crate::load_repo_rubric(repo_root)?;
-    score_slice_with_standard(slice_dir, &rubric.standard)
-}
-
-/// Score `slice_dir` against an already-loaded measurement standard (the floor-free
-/// projection of the rubric; the sweep path reuses one).
-///
-/// # Errors
-/// As [`score_slice`].
 pub fn score_slice_with_standard(
     slice_dir: &Path,
     standard: &MeasurementStandard,
+    env: ScoringEnv,
 ) -> gmeow_errors::Result<SliceReport> {
     let slice_iri = slice_iri_of(slice_dir)?;
     let paths = slice_ttl_paths(slice_dir);
     let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
     let ds = crate::dataset_from_paths(&path_refs)?;
-    // This in-repo scoring worker always sources the two repo-anchored axes from
-    // the surrounding checkout — byte-identical to the pre-seam behaviour. A later
-    // task threads a real `env` through for the embedded-bundle path.
-    let ctx = ScoreContext::new(
-        slice_iri.clone(),
-        slice_dir.to_path_buf(),
-        &ds,
-        ScoringEnv::Repo,
-    );
+    // The scoring environment decides where the two repo-anchored axes source their
+    // wide-scope inputs; every in-repo caller passes `ScoringEnv::Repo` (byte-identical
+    // to the pre-seam behaviour), the consumer wheel passes `ScoringEnv::Bundle`.
+    let ctx = ScoreContext::new(slice_iri.clone(), slice_dir.to_path_buf(), &ds, env);
 
     let mut scores: Vec<(&Axis, f64)> = Vec::with_capacity(standard.axes.len());
     // Each entry is (axis_iri, axis_weight, advice_kind, finding). `advice_kind`
