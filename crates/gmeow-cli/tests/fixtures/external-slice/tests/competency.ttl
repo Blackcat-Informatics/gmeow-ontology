@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# One declarative competency question carrying an inline query and a rationale,
+# exercising gmeow:FixtureExternalWidget. Enough that the documentation model
+# discovers a competency-with-rationale (so dimCompetencyRationale / dimTestReach
+# are present for that term) while the companion Gadget term stays uncovered.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <http://example.org/fixture-external-slice/tests/> .
+
+ex:cqFixtureWidget a gmeow:CompetencyQuestion ;
+    gmeow:cqRationale "GMEOW must expose the grounded fixture widget class so the external-slice quality engine can reach it from a competency lane." ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+SELECT ?widget WHERE { ?widget a gmeow:FixtureExternalWidget . }""" ;
+    gmeow:cqExpectRow ex:rowFixtureWidget .
+
+ex:rowFixtureWidget a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "widget" ;
+        gmeow:cellValueIri gmeow:FixtureExternalWidget ] .
