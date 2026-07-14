@@ -6690,6 +6690,158 @@ mod tests {
         }
     }
 
+    /// SELECT a REAL well-formed conformance fixture from the SHIPPED bundle's
+    /// `gmeow:graph/documentation` projection whose `gmeow:docFixtureText` body
+    /// ACTUALLY validates clean under Tier-1 (no `Error`-severity finding) — the
+    /// honest correspondence anchor for "a claim consistent with the bundled
+    /// axioms", mirroring [`select_reproducing_counter_example`]'s reproduction
+    /// discipline: never hand-authored, always a REAL fixture the engine itself
+    /// agrees is clean. Returns `(fixture_iri, text)`. Panics with the candidate
+    /// count if NONE reproduces (a real blocker, not a soft skip).
+    fn select_reproducing_wellformed_example(server: &McpServer) -> (String, String) {
+        let rows = server
+            .view
+            .docs_select_rows(WELLFORMED_FIXTURE_QUERY)
+            .expect("query well-formed fixtures from graph/documentation");
+        let mut by_fixture: BTreeMap<String, String> = BTreeMap::new();
+        for row in &rows {
+            if let (Some(f), Some(text)) = (row.get("f"), row.get("text")) {
+                by_fixture.entry(f.clone()).or_insert_with(|| text.clone());
+            }
+        }
+        assert!(
+            !by_fixture.is_empty(),
+            "the shipped bundle carries NO bound well-formed conformance fixtures"
+        );
+        for (iri, text) in &by_fixture {
+            let report = gmeow_validate::data_validate::run_tier1(
+                text.as_bytes(),
+                "turtle",
+                server.view.gts_bytes(),
+                MCP_NAMESPACE,
+                VALIDATE_LOCAL_ORIGIN,
+            )
+            .expect("tier-1 validate the fixture body");
+            if report.ok() {
+                return (iri.clone(), text.clone());
+            }
+        }
+        panic!(
+            "no bound well-formed fixture actually validated clean under Tier-1 — {} \
+             candidates checked, none reproduced a clean Tier-1 pass",
+            by_fixture.len()
+        );
+    }
+
+    /// ACCEPTANCE (R5, half 1): drive the REAL `validate_local` tool over a REAL
+    /// well-formed fixture from the shipped bundle — a claim CONSISTENT with the
+    /// bundled axioms — and assert the production surface reports it clean: `ok:
+    /// true`, and every finding present (if any non-error advisory survives) still
+    /// carries the full teaching surface (`help_uri`, and `entails`/
+    /// `wellformed_exemplar` when the finding names a documented term). Never
+    /// idealized: a clean claim MAY still carry Warning/Note/Info findings (the
+    /// tool only hard-rejects on `Error` severity), so this asserts on `ok`, not
+    /// on an empty findings array.
+    #[test]
+    fn validate_local_accepts_a_consistent_claim() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (fixture_iri, text) = select_reproducing_wellformed_example(&server);
+        eprintln!("validate_local clean-claim test selected fixture={fixture_iri}");
+
+        let enriched = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+        );
+        assert_eq!(
+            enriched["ok"], true,
+            "a claim consistent with the bundled axioms must validate clean: {enriched}"
+        );
+        assert_eq!(enriched["tool"].as_str(), Some("validate"));
+        let findings = enriched["findings"].as_array().expect("findings array");
+        // `ok: true` tolerates non-Error survivors; whichever DO appear must still
+        // carry the full enrichment surface (never a bare code+message).
+        for f in findings {
+            assert!(
+                f["help_uri"].as_str().is_some_and(|u| !u.is_empty()),
+                "every surfaced finding carries a non-empty rule catalog help_uri: {f}"
+            );
+            assert!(
+                f["finding_iri"].is_string(),
+                "every finding has a stable IRI: {f}"
+            );
+        }
+    }
+
+    /// ACCEPTANCE (R5, half 2): drive the REAL `validate_local` tool over a REAL
+    /// counter-example fixture from the shipped bundle — a claim that VIOLATES a
+    /// bundled SHACL shape / modelling discipline — and assert the production
+    /// surface REJECTS it: the tool surfaces the violating finding code at `Error`
+    /// severity (proven against the raw Tier-1 `Report`, since the enriched
+    /// envelope does not carry severity), and the enriched envelope is `ok: false`
+    /// (never a silent clean pass on inconsistent input).
+    #[test]
+    fn validate_local_rejects_an_inconsistent_claim() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let server = consumer_server();
+        let (fixture_iri, code, text) = select_reproducing_counter_example(&server);
+        eprintln!(
+            "validate_local inconsistent-claim test selected fixture={fixture_iri} code={code}"
+        );
+
+        // The raw Tier-1 report (the `gmeow validate` core) proves the specific
+        // finding code fires at `Error` severity — the hard-reject signal
+        // `EnrichedFinding` does not itself carry.
+        let tier1 = gmeow_validate::data_validate::run_tier1(
+            text.as_bytes(),
+            "turtle",
+            server.view.gts_bytes(),
+            MCP_NAMESPACE,
+            VALIDATE_LOCAL_ORIGIN,
+        )
+        .expect("tier-1 validate the violating fixture");
+        let tier1_finding = tier1
+            .findings
+            .iter()
+            .find(|f| f.code == code)
+            .unwrap_or_else(|| panic!("tier-1 report must reproduce code {code}: {tier1:?}"));
+        assert_eq!(
+            tier1_finding.severity,
+            gmeow_errors::Severity::Error,
+            "the chosen counter-example must violate at Error severity (a hard reject, not \
+             an advisory): {tier1_finding:?}"
+        );
+        assert!(
+            !tier1.ok(),
+            "a report carrying an Error-severity finding must not be ok(): {tier1:?}"
+        );
+
+        // Drive the REAL production tool over the SAME violating claim.
+        let enriched = text_payload(
+            server.call_tool_result("validate_local", &json!({"data": text, "format": "turtle"})),
+        );
+        assert_eq!(
+            enriched["ok"], false,
+            "a claim violating a bundled axiom must be rejected, not validated clean: {enriched}"
+        );
+        let findings = enriched["findings"].as_array().expect("findings array");
+        assert!(
+            findings
+                .iter()
+                .any(|f| f["code"].as_str() == Some(code.as_str())),
+            "the rejecting tool must surface the specific violation code {code}: {enriched}"
+        );
+    }
+
     /// Compile a hand-authored draft-2020-12 schema and assert `instance` CONFORMS,
     /// surfacing every validation error verbatim on failure (a real payload the
     /// schema rejects is a schema bug to FIX, never to weaken).
