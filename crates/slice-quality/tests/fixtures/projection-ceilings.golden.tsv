@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# FROZEN grandfathered per-(slice, vocabulary) ungrounded-residue ceilings. These
+# are the historically committed <slice-iri>\t<vocab-prefix>\t<count:u64> rows
+# exactly as they stood when the projection-vocabulary ratchet's
+# gmeow:ProjectionCeilingCommitment individuals were seeded into
+# slices/core/slice-quality-rubric/module.ttl. This golden is permanent and
+# self-contained: the value-preservation test asserts every row here is
+# reproduced integer-exactly by a loaded ProjectionCeilingCommitment, so it
+# guards the seed independently of the generated governance TSV.
+https://blackcatinformatics.ca/gmeow/slices/affect	bfo	7
+https://blackcatinformatics.ca/gmeow/slices/agentic	sh	5
+https://blackcatinformatics.ca/gmeow/slices/ai	sh	17
+https://blackcatinformatics.ca/gmeow/slices/concepts	sh	7
+https://blackcatinformatics.ca/gmeow/slices/diagnostics	sh	7
+https://blackcatinformatics.ca/gmeow/slices/documentation	sh	6
+https://blackcatinformatics.ca/gmeow/slices/epistemics	bfo	1
+https://blackcatinformatics.ca/gmeow/slices/epistemics	sh	44
+https://blackcatinformatics.ca/gmeow/slices/gender	bfo	5
+https://blackcatinformatics.ca/gmeow/slices/graphrag	sh	9
+https://blackcatinformatics.ca/gmeow/slices/gts	sh	9
+https://blackcatinformatics.ca/gmeow/slices/inhabitation	sh	4
+https://blackcatinformatics.ca/gmeow/slices/kernel	bfo	10
+https://blackcatinformatics.ca/gmeow/slices/kernel	gufo	13
+https://blackcatinformatics.ca/gmeow/slices/kernel	sh	4
+https://blackcatinformatics.ca/gmeow/slices/lang	sh	98
+https://blackcatinformatics.ca/gmeow/slices/learning	sh	4
+https://blackcatinformatics.ca/gmeow/slices/mentation	bfo	1
+https://blackcatinformatics.ca/gmeow/slices/model-serving	sh	10
+https://blackcatinformatics.ca/gmeow/slices/music	fno	3
+https://blackcatinformatics.ca/gmeow/slices/music	sh	196
+https://blackcatinformatics.ca/gmeow/slices/notation	sh	8
+https://blackcatinformatics.ca/gmeow/slices/observations	bfo	4
+https://blackcatinformatics.ca/gmeow/slices/pipeline	sh	7
+https://blackcatinformatics.ca/gmeow/slices/places	bfo	9
+https://blackcatinformatics.ca/gmeow/slices/procedures	bfo	2
+https://blackcatinformatics.ca/gmeow/slices/rights	sh	46
+https://blackcatinformatics.ca/gmeow/slices/sensory-environment	bfo	4
+https://blackcatinformatics.ca/gmeow/slices/sexuality	bfo	3
+https://blackcatinformatics.ca/gmeow/slices/standpoint	bfo	2
+https://blackcatinformatics.ca/gmeow/slices/standpoint	dul	2
+https://blackcatinformatics.ca/gmeow/slices/standpoint	sh	5
+https://blackcatinformatics.ca/gmeow/slices/temporal	sh	11

@@ -21,6 +21,7 @@ Every design decision, code modification, and schema change is governed by the t
   * **Citations**: Authored in [metadata/references.ttl](./metadata/references.ttl) -> compiled to [generated/references/](./generated/references/). Follow [docs/CITATIONS.md](./docs/CITATIONS.md) when adding external sources, standards, issues, PRs, or review-thread citations.
 * **RDF 1.2 / RDF\*-first (Principles 2 & 3)**: Statement-level metadata (provenance, confidence, temporal scope) is authored as native RDF 1.2 / RDF\* in the statement DSL. The logical core stays OWL 2 DL.
 * **Co-equal & Non-privileged (Principles 9 & 10)**: There is no `primaryName`, `preferredGender`, or single-winner preference. A contested fact is represented as coexisting standpoint-indexed claims. A superseded label/deadname is suppressed using `gmeow:displayable false` rather than deleted.
+* **Projections stay projections (Principle 17)**: OWL, SHACL, gUFO, BFO, DOLCE, and the alignment stack (SSSOM, EDOAL, FnO) are generated lossy projections of `logic:`, never a second authoring surface. A `make check` ratchet gate caps hand-authored ungrounded growth in those vocabularies per slice — see [`docs/PROJECTION-VOCABULARY-RATCHET.md`](./docs/PROJECTION-VOCABULARY-RATCHET.md).
 
 ---
 

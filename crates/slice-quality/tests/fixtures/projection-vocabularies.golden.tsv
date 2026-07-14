@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# FROZEN guarded projection-vocabulary registry. These are the historically
+# committed <prefix>\t<namespaces-comma-joined>\t<count-kind-local>\t
+# <default-ceiling:u64>\t<preservation-local> rows exactly as they stood when
+# the gmeow:ProjectionVocabulary individuals were authored into
+# slices/core/slice-quality-rubric/module.ttl. This golden is permanent and
+# self-contained: the value-preservation test asserts every row here is
+# reproduced exactly by a loaded ProjectionVocabulary, so it guards the
+# guarded set independently of the generated governance TSV.
+bfo	http://purl.obolibrary.org/obo/	countKindTypedAxiom	0	SoundUnderApproximation
+datalog	https://blackcatinformatics.ca/gmeow/projection-surface/datalog	countKindNonRdfSurface	0	SoundUnderApproximation
+dul	http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#	countKindTypedAxiom	0	SoundUnderApproximation
+edoal	http://ns.inria.org/edoal/1.0/#	countKindTypedAxiom	0	SoundUnderApproximation
+fno	https://w3id.org/function/ontology#	countKindTypedAxiom	0	SoundUnderApproximation
+gufo	http://purl.org/nemo/gufo#	countKindTypedAxiom	0	SoundUnderApproximation
+n3	https://blackcatinformatics.ca/gmeow/projection-surface/n3	countKindNonRdfSurface	0	SoundUnderApproximation
+prolog	https://blackcatinformatics.ca/gmeow/projection-surface/prolog	countKindNonRdfSurface	0	SoundUnderApproximation
+sh	http://www.w3.org/ns/shacl#	countKindShape	0	SoundUnderApproximation
+sssom	https://w3id.org/sssom/	countKindTypedAxiom	0	SoundUnderApproximation
