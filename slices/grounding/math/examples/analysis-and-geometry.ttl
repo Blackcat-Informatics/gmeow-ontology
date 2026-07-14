@@ -186,13 +186,17 @@ ex:radialConformalFactor a math:Function ;
 
 ex:positiveReals a math:Set .
 
-# --- A worked piecewise function — pieces, monotonicity, and a plateau bound - #
-# f(r) = { a strictly-decreasing core on [0, 1);  a near-zero plateau on [1, +∞) }.
+# --- A worked piecewise function — pieces, explicit forms, and a plateau bound #
+# f(r) = { (1 − r)² on [0, 1);  a near-zero plateau on [1, +∞) }.
 # The case-split is DATA: two math:FunctionPiece parts, each over a fully-formed
 # math:Interval, one carrying math:hasMonotonicity math:strictlyDecreasing and one
-# a small math:hasBound over its math:boundOnInterval. Well-formed against the
-# piecewise gate (≥ 1 math:hasPiece, exactly-one math:pieceDomain), the inherited
-# function frame (math:domain/math:codomain), and the interval endpoint gate.
+# a small math:hasBound over its math:boundOnInterval. Each piece additionally names
+# WHAT it computes through math:pieceExpression — a structured expression AST over the
+# committed algebra (the per-piece explicit-form path): the core branch's exact form
+# (1 − r)² and the tail branch's constant plateau, authored below. Well-formed against
+# the piecewise gate (≥ 1 math:hasPiece, exactly-one math:pieceDomain, at-most-one
+# math:pieceExpression), the inherited function frame (math:domain/math:codomain), and
+# the interval endpoint gate.
 ex:radialDecayProfile a math:PiecewiseFunction ;
     rdfs:label "A piecewise radial profile: a strictly-decreasing core and a near-zero plateau"@x-gmeow-english ;
     math:domain ex:radialDecayDomain ;
@@ -200,14 +204,16 @@ ex:radialDecayProfile a math:PiecewiseFunction ;
     math:hasPiece ex:coreDropPiece , ex:tailPlateauPiece .
 
 ex:coreDropPiece a math:FunctionPiece ;
-    rdfs:label "Core piece over [0, 1): strictly decreasing"@x-gmeow-english ;
+    rdfs:label "Core piece over [0, 1): strictly decreasing, f(r) = (1 − r)²"@x-gmeow-english ;
     math:pieceDomain ex:coreDomain ;
+    math:pieceExpression ex:coreBranchExpr ;
     math:hasMonotonicity math:strictlyDecreasing ;
     math:hasAnalyticProperty math:convexity .
 
 ex:tailPlateauPiece a math:FunctionPiece ;
-    rdfs:label "Tail piece over [1, +∞): near-zero plateau"@x-gmeow-english ;
+    rdfs:label "Tail piece over [1, +∞): near-zero plateau, f(r) = 0.0001"@x-gmeow-english ;
     math:pieceDomain ex:tailDomain ;
+    math:pieceExpression ex:tailBranchExpr ;
     math:hasBound "0.0001"^^xsd:double ;
     math:boundOnInterval ex:tailDomain ;
     math:hasAnalyticProperty math:boundedness .
@@ -228,3 +234,74 @@ ex:tailDomain a math:Interval ;
 
 ex:radialDecayDomain a math:Set ;
     rdfs:label "The non-negative real half-line [0, +∞) the profile is defined on"@x-gmeow-english .
+
+# --- The per-piece explicit forms carried through math:pieceExpression ------- #
+# Each math:FunctionPiece above now names not only WHERE it applies (math:pieceDomain)
+# but WHAT it computes there (math:pieceExpression), as a structured expression AST over
+# the committed algebra — nothing rebuilt (math:ApplicationExpression, math:operator,
+# indexed math:argumentSlot, math:VariableExpression, math:NumberLiteral). The radius r
+# is a single math:FreeVariableDeclaration the core branch's leaf resolves to.
+ex:radialArgument a math:FreeVariableDeclaration ;
+    rdfs:label "r — the radial argument of the piecewise profile"@x-gmeow-english .
+
+# Core branch (1 − r)² = Exponentiation( Subtraction(1, r), 2 ). Exponentiation and
+# Subtraction are non-commutative, so operand order is load-bearing: the base 1 − r is
+# slot 0 and the exponent 2 is slot 1; inside the base, the literal 1 is slot 0 (the
+# minuend) and r is slot 1 (giving 1 − r, not r − 1).
+ex:coreBranchExpr a math:ApplicationExpression ;
+    rdfs:label "(1 − r)²"@x-gmeow-english ;
+    math:operator math:Exponentiation ;
+    math:argumentSlot ex:corePowSlot0 , ex:corePowSlot1 .
+
+ex:corePowSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:coreOneMinusR .
+ex:corePowSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:coreExponentTwo .
+
+ex:coreOneMinusR a math:ApplicationExpression ;
+    rdfs:label "1 − r"@x-gmeow-english ;
+    math:operator math:Subtraction ;
+    math:argumentSlot ex:coreSubSlot0 , ex:coreSubSlot1 .
+
+ex:coreSubSlot0 a math:ArgumentSlot ;
+    math:slotIndex 0 ;
+    math:slotExpression ex:coreOneLiteral .
+ex:coreSubSlot1 a math:ArgumentSlot ;
+    math:slotIndex 1 ;
+    math:slotExpression ex:coreRadiusExpr .
+
+# The radius leaf r: an occurrence resolving to the radial-argument declaration.
+ex:coreRadiusExpr a math:VariableExpression ;
+    rdfs:label "r (in 1 − r)"@x-gmeow-english ;
+    math:variableOccurrence ex:coreRadiusOcc .
+ex:coreRadiusOcc a math:VariableOccurrence ;
+    math:declaredVariable ex:radialArgument ;
+    math:occursInScope ex:coreOneMinusR .
+
+# The literal 1 (the minuend) and the exponent 2 — numeric-literal leaves, each denoting
+# an exact real number situated in ℝ.
+ex:coreOneLiteral a math:NumberLiteral ;
+    rdfs:label "1"@x-gmeow-english ;
+    math:literalValue ex:coreOneNumber .
+ex:coreOneNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
+
+ex:coreExponentTwo a math:NumberLiteral ;
+    rdfs:label "2"@x-gmeow-english ;
+    math:literalValue ex:coreTwoNumber .
+ex:coreTwoNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
+
+# Tail branch: the constant near-zero plateau f(r) = 0.0001 — a bare numeric-literal
+# leaf (a math:NumberLiteral IS a math:MathematicalExpression, so it can stand as a
+# math:pieceExpression on its own), the symbolic twin of the piece's math:hasBound.
+ex:tailBranchExpr a math:NumberLiteral ;
+    rdfs:label "0.0001"@x-gmeow-english ;
+    math:literalValue ex:tailPlateauNumber .
+ex:tailPlateauNumber a math:RealNumber ;
+    math:inNumberSystem math:realNumbers ;
+    math:isExact true .
