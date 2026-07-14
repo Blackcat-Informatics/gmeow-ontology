@@ -14,6 +14,9 @@
     .sev-error { background: #b42318; }
     .sev-warning { background: #b54708; }
     .sev-note, .sev-info { background: #175cd3; }
+    .suggestions { margin: 0.25rem 0 0 0; padding-left: 1.2rem; color: #4b5563; font-size: 0.9rem; }
+    .help { color: #175cd3; font-size: 0.85rem; margin-left: 0.4rem; text-decoration: none; }
+    .help:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -22,7 +25,7 @@
   <table>
     <thead><tr><th>Severity</th><th>Code</th><th>Message</th><th>Location</th></tr></thead>
     <tbody>
-<tr><td><span class="sev sev-info">info</span></td><td>shacl.clean</td><td>SHACL validation passed: no findings</td><td></td></tr>
+<tr><td><span class="sev sev-info">info</span></td><td>shacl.clean</td><td>SHACL validation passed: no findings<a class="help" href="https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-">ℹ help</a></td><td></td></tr>
     </tbody>
   </table>
 </body>

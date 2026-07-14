@@ -8,6 +8,13 @@
       "tool": "shacl"
     }
   ],
+  "rules": [
+    {
+      "id": "shacl.clean",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-",
+      "default_severity": "info"
+    }
+  ],
   "metadata": {
     "category": "shacl",
     "shaclConforms": true,
