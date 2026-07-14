@@ -1,13 +1,24 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Canonical-turtle projection of a packet.
+//! Canonical-turtle projection of a packet — the CANONICAL, byte-reconstructible,
+//! parity-critical surface.
 //!
-//! The packet individual and its grounding-coverage cells are written to a turtle
-//! body with **stable, minted cell IRIs** (never blank nodes, whose labels are not
-//! byte-stable) and then normalized through `purrdf::turtle_normalize::canonical_turtle`
-//! — the SAME serializer the pipeline superset gate folds with — so `file == fold`
-//! holds and the bytes are stable across identical assemblies.
+//! A formal context is naturally SPARSE, so this projection materializes ONLY the
+//! present (object, attribute) incidences of the grounding cross-table — the fr/zh
+//! translations and external mappings that actually exist. English is always present
+//! (its margin IS `gmeow:packetTermCount`) and every absent incidence is the derivable
+//! complement, both summarized by the packet's per-attribute counts
+//! (`gmeow:packetFrPresent` / `packetFrAbsent`, `packetZhPresent` / `packetZhAbsent`,
+//! `packetExternalMapped` / `packetExternalAbsent`) rather than materialized as a cell
+//! apiece. Exemplars are carried by reference through `gmeow:packetExemplar`.
+//!
+//! The packet individual and its materialized grounding-coverage cells are written to a
+//! turtle body with **stable, minted cell IRIs** (never blank nodes, whose labels are
+//! not byte-stable) and then normalized through
+//! `purrdf::turtle_normalize::canonical_turtle` — the SAME serializer the pipeline
+//! superset gate folds with — so `file == fold` holds and the bytes are stable across
+//! identical assemblies.
 
 use crate::model::{AuthoringPacket, GroundingCell};
 use crate::ns;
@@ -45,7 +56,6 @@ fn cell_block(cell: &GroundingCell) -> String {
         "a gmeow:GroundingCoverage".to_string(),
         format!("gmeow:groundingTerm <{}>", cell.term),
         format!("gmeow:groundingAttribute <{}>", cell.attribute.iri()),
-        format!("gmeow:groundingPresent {}", cell.present),
     ];
     if let Some(p) = &cell.predicate {
         po.push(format!("gmeow:groundingPredicate {}", lit(p)));
@@ -97,6 +107,16 @@ impl AuthoringPacket {
             "gmeow:exemplarShortfall {}",
             self.exemplar_shortfall
         ));
+        // Per-attribute margins of the sparse cross-table: the present incidences below
+        // plus these counts recover the full (dense) grounding profile, so absence is
+        // an explicit recorded fact without a cell per absent incidence.
+        let m = &self.margins;
+        po.push(format!("gmeow:packetFrPresent {}", m.fr_present));
+        po.push(format!("gmeow:packetFrAbsent {}", m.fr_absent));
+        po.push(format!("gmeow:packetZhPresent {}", m.zh_present));
+        po.push(format!("gmeow:packetZhAbsent {}", m.zh_absent));
+        po.push(format!("gmeow:packetExternalMapped {}", m.external_mapped));
+        po.push(format!("gmeow:packetExternalAbsent {}", m.external_absent));
         if !self.terms.is_empty() {
             let list = self
                 .terms
@@ -115,9 +135,13 @@ impl AuthoringPacket {
                 .join(" , ");
             po.push(format!("gmeow:packetExemplar {list}"));
         }
-        if !self.grounding.is_empty() {
-            let list = self
-                .grounding
+        let materialized: Vec<&GroundingCell> = self
+            .grounding
+            .iter()
+            .filter(|c| c.is_materialized())
+            .collect();
+        if !materialized.is_empty() {
+            let list = materialized
                 .iter()
                 .map(|c| format!("<{}>", c.cell_iri))
                 .collect::<Vec<_>>()
@@ -135,7 +159,7 @@ impl AuthoringPacket {
             self.packet_iri,
             po.join(" ;\n  ")
         ));
-        for cell in &self.grounding {
+        for cell in &materialized {
             body.push_str(&cell_block(cell));
         }
 

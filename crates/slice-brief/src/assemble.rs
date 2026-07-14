@@ -21,7 +21,7 @@ use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use crate::error;
 use crate::model::{
     Annotation, AuthoringPacket, ClosureEntry, CoveredTerm, GroundingAttribute, GroundingCell,
-    ObjTerm, Triple,
+    GroundingMargins, ObjTerm, Triple,
 };
 use crate::{digest, ns};
 
@@ -347,8 +347,18 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
             ))
     });
 
-    // 7. DIGEST over the semantic body only.
-    let digest = digest::packet_digest(&slice_iri, inputs.axis, batch_index, &terms, &grounding);
+    // 7. PER-ATTRIBUTE MARGINS (the sparse cross-table's present/absent counts) and
+    //    the DIGEST over the same semantic body the sparse turtle emits.
+    let margins = GroundingMargins::from_cells(&grounding);
+    let digest = digest::packet_digest(
+        &slice_iri,
+        inputs.axis,
+        batch_index,
+        &terms,
+        &exemplars,
+        &margins,
+        &grounding,
+    );
 
     Ok(AuthoringPacket {
         packet_iri,
@@ -358,6 +368,7 @@ pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPa
         digest,
         term_count: terms.len(),
         exemplar_shortfall,
+        margins,
         terms,
         exemplars,
         grounding,

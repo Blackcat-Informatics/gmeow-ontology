@@ -10,7 +10,7 @@
 
 use sha2::{Digest, Sha256};
 
-use crate::model::{CoveredTerm, GroundingCell, ObjTerm};
+use crate::model::{CoveredTerm, GroundingCell, GroundingMargins, ObjTerm};
 
 /// Hex sha256 of `body`.
 fn hex(body: &str) -> String {
@@ -119,15 +119,21 @@ pub struct TermDigestInput<'a> {
     pub closure: &'a [crate::model::ClosureEntry],
 }
 
-/// The packet digest: hex sha256 over the packet identity + the ordered per-term
-/// content digests + the ordered grounding cells. Excludes the packet IRI itself
-/// (derived from identity) and every volatile field.
+/// The packet digest: hex sha256 over the packet identity, the per-attribute margins,
+/// the ordered per-term content digests, the ordered exemplar references, and the
+/// ordered MATERIALIZED (present, non-English, non-exemplar) grounding cells — the SAME
+/// semantic body [`crate::turtle`] emits. It excludes the packet IRI itself (derived
+/// from identity), the always-present English cells, every absent
+/// (derivable-complement) cell, and every volatile field, so `byte == digest` holds for
+/// the sparse projection.
 #[must_use]
 pub fn packet_digest(
     source_slice: &str,
     axis: Option<&str>,
     batch: u32,
     terms: &[CoveredTerm],
+    exemplars: &[String],
+    margins: &GroundingMargins,
     grounding: &[GroundingCell],
 ) -> String {
     let mut body = String::new();
@@ -138,6 +144,15 @@ pub fn packet_digest(
     body.push_str(axis.unwrap_or(""));
     body.push('\n');
     body.push_str(&format!("BATCH\t{batch}\n"));
+    body.push_str(&format!(
+        "MARGINS\t{}\t{}\t{}\t{}\t{}\t{}\n",
+        margins.fr_present,
+        margins.fr_absent,
+        margins.zh_present,
+        margins.zh_absent,
+        margins.external_mapped,
+        margins.external_absent,
+    ));
     for t in terms {
         body.push_str("TERM\t");
         body.push_str(&t.iri);
@@ -145,13 +160,16 @@ pub fn packet_digest(
         body.push_str(&t.content_digest);
         body.push('\n');
     }
-    for c in grounding {
+    for e in exemplars {
+        body.push_str("EXEMPLAR\t");
+        body.push_str(e);
+        body.push('\n');
+    }
+    for c in grounding.iter().filter(|c| c.is_materialized()) {
         body.push_str("CELL\t");
         body.push_str(&c.term);
         body.push('\t');
         body.push_str(c.attribute.tag());
-        body.push('\t');
-        body.push_str(if c.present { "1" } else { "0" });
         body.push('\t');
         body.push_str(c.predicate.as_deref().unwrap_or(""));
         body.push('\t');
