@@ -1356,6 +1356,40 @@ gmeow:eqMathErfDlmf a gmeow:TermEquivalence ;
     gmeow:comment "math:errorFunction is treated in DLMF chapter 7. Link-only locator, so skos:relatedMatch; curl-validated HTTP 200." ;
     gmeow:sssomFile "gmeow-dlmf.sssom.tsv" .
 
+# --- Compactification / conformal geometry classes → Wikidata -------------- #
+#
+# QIDs curl-validated against the live Wikidata entity labels/descriptions.
+
+gmeow:eqMathCompactification a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:Compactification ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q546145 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "compactification" ;
+    gmeow:comment "math:Compactification is the structured four-role record of embedding an unbounded space in a bounded one; wd:Q546145 (compactification) is the same concept — 'embedding a topological space into a compact space as a dense subset'. closeMatch, not identity: the GMEOW term is a structured record naming its four roles, a close but non-invertible counterpart of the bare Wikidata concept." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathConformalCompactification a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ConformalCompactification ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q864015 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:objectLabel "Penrose diagram" ;
+    gmeow:comment "math:ConformalCompactification is the general Penrose-style conformal compactification carrying a conformal factor; wd:Q864015 (Penrose diagram) is the two-dimensional diagram OF such a compactification of spacetime, capturing its causal relations — a related but non-identical concept (a diagram/reading, not the compactification map itself), and Wikidata has no dedicated 'conformal compactification' entity, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathBoundaryAtInfinity a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:BoundaryAtInfinity ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1191139 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:objectLabel "point at infinity" ;
+    gmeow:comment "math:BoundaryAtInfinity is the boundary — the set of ideal points — a compactification adjoins at infinity; wd:Q1191139 (point at infinity) is the 'limiting point in some geometric spaces' such a boundary collects. closeMatch, not identity: the GMEOW term is the boundary set of ideal points, a close but non-invertible (set-versus-point) counterpart of the individual point-at-infinity concept." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 # --- Geometry/topology classes → Lean mathlib (structural, by reference) --- #
 #
 # mathlib4 is Apache-2.0 but not RDF-projectable, so a mathlib declaration is a

@@ -169,6 +169,7 @@ satisfaction of the law against a model.
 | A `math:Chart` names its domain, coordinate map, and target coordinate space | SHACL Core | `math:UnderspecifiedChart` |
 | A chart's target space (and a tangent space) has the same dimension as its manifold | SHACL-SPARQL | `math:DimensionMismatch` |
 | A `math:MetricSignature`'s `p + q` equals the manifold's dimension, and its `(p, q)` split agrees with the structure kind (Riemannian ⇒ `q = 0`; Lorentzian ⇒ exactly one timelike) | SHACL-SPARQL | `math:DimensionMismatch` |
+| A `math:Compactification` names all four roles (original space, compactifying map, compactified space, boundary at infinity); a `math:ConformalCompactification` additionally names its conformal factor | SHACL Core | `math:UnderspecifiedCompactification` |
 | **A `math:Complement` names its ambient space and its complement-semantics** | SHACL Core | `math:UnqualifiedComplement` |
 
 The named-complement rule is the charter's distinguished gate: it generalizes the

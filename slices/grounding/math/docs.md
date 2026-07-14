@@ -182,6 +182,13 @@ binder AST its operators consume, using the canonical reserved names (no near-sy
   structured `math:MetricSignature` (p, q). The **Lorentzian** metric is the math object a physics slice
   needs for spacetime, and it stays here on the math side of the boundary — spacetime, worldlines, and
   the SR/GR regimes are physics.
+- **Conformal geometry and compactification** — `math:Compactification` (the structured record naming
+  four roles: `math:originalSpace`, `math:compactifyingMap`, `math:compactifiedSpace`, and
+  `math:boundaryAtInfinity`), its conformal (Penrose-style) specialization
+  `math:ConformalCompactification` (additionally carrying a `math:conformalFactor` Ω), and
+  `math:BoundaryAtInfinity` (the ideal points at infinity). The conformal case is the general home for
+  embedding a `math:LorentzianManifold`'s radial infinity as a finite boundary; the metric and its
+  rescaling stay math-side.
 
 The distinguished hard rule is the **named complement**: a `math:Complement` names its `math:ambientSpace`
 and its `math:complementSemantics` (set-theoretic, orthogonal, complex-linear, topological, or
@@ -199,6 +206,7 @@ homogeneity.
 | A manifold declares its dimension and structure kind | `math:ManifoldShape` | `math:UnderspecifiedManifold` |
 | A chart names its domain, coordinate map, and target space | `math:ChartShape` | `math:UnderspecifiedChart` |
 | A chart's/tangent space's dimension matches its manifold | `math:ChartDimensionShape` / `math:TangentSpaceDimensionShape` (SHACL-SPARQL) | `math:DimensionMismatch` |
+| A compactification names all four roles (+ a conformal one its conformal factor) | `math:CompactificationShape` / `math:ConformalCompactificationShape` | `math:UnderspecifiedCompactification` |
 | A complement names its ambient space and complement-semantics | `math:ComplementShape` | `math:UnqualifiedComplement` |
 | An argument slot has exactly one index and expression; slot indexes are unique | `math:ArgumentSlotShape` / `math:SlotIndexUniquenessShape` | `math:MalformedArgumentSlot` |
 | A variable occurrence resolves to a declaration | `math:VariableOccurrenceShape` | `math:UnscopedVariableOccurrence` |

@@ -1003,3 +1003,75 @@ msgstr "变量角色"
 msgctxt "https://blackcatinformatics.ca/math/VariableRole|skos:definition"
 msgid "A variable role: the analytical part a math:StatisticalVariable plays in a model — outcome, predictor, covariate, weight, stratum, cluster, or offset. A subclass of math:MathematicalObject naming the role a variable holds rather than an intrinsic property of the column, so the same measured variable can be an outcome in one model and a predictor in another without changing the data. A variable's role is a first-class object so a model's structure is queryable, never read off a naming convention."
 msgstr "一个变量角色：一个 math:StatisticalVariable 在一个模型中所扮演的分析性部分——结局、预测因子、协变量、权重、层、整群或偏置。它是 math:MathematicalObject 的子类，命名一个变量所持的角色而非该列的一个内在属性，因而同一个被测变量在一个模型中可为结局、在另一个模型中可为预测因子而不改变数据。一个变量的角色是一个头等对象，使一个模型的结构可被查询，绝不从一个命名约定上读取。"
+
+msgctxt "https://blackcatinformatics.ca/math/Compactification|rdfs:label"
+msgid "Compactification"
+msgstr "紧化"
+
+msgctxt "https://blackcatinformatics.ca/math/Compactification|skos:definition"
+msgid "A compactification: a structured record embedding an unbounded space in a bounded (compact) one as a dense subset, so the points the original space runs off toward are adjoined as a boundary at infinity. It names FOUR roles — the original unbounded space through math:originalSpace, the embedding/map through math:compactifyingMap, the resulting bounded space through math:compactifiedSpace, and the boundary added at infinity through math:boundaryAtInfinity. It is NOT any one construction — not the one-point (Alexandroff) versus Stone–Čech distinction per se — but the general structured record every such construction instantiates; a compactification missing any of the four roles is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "一个紧化：一个结构化记录，将一个无界空间作为稠密子集嵌入一个有界（紧）空间，使得原空间所奔向的那些点作为无穷远边界被添加进来。它命名四个角色——通过 math:originalSpace 命名原无界空间，通过 math:compactifyingMap 命名嵌入/映射，通过 math:compactifiedSpace 命名所得的有界空间，通过 math:boundaryAtInfinity 命名在无穷远处添加的边界。它并非任何一种特定构造——并非单点（Alexandroff）与 Stone–Čech 之别本身——而是每一种此类构造所例示的一般结构化记录；缺少四个角色中任一个的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/ConformalCompactification|rdfs:label"
+msgid "Conformal Compactification"
+msgstr "共形紧化"
+
+msgctxt "https://blackcatinformatics.ca/math/ConformalCompactification|skos:definition"
+msgid "A conformal (Penrose-style) compactification: the specialization whose math:compactifyingMap is angle-preserving (conformal), carrying a math:conformalFactor Ω that rescales the metric so the points at infinity sit at a finite conformal boundary. A subclass of math:Compactification; it additionally names its math:conformalFactor — a conformal compactification missing it is ill-formed (math:UnderspecifiedCompactification). This is the correct general home for embedding a math:LorentzianManifold's radial chart's infinity as a finite boundary: the conformal factor sends the unbounded metric distance to a finite rescaled one while preserving the causal (angle) structure the Lorentzian metric carries. The metric and its rescaling stay math-side; a spacetime's Penrose diagram is a downstream physics reading of this math object."
+msgstr "一个共形（Penrose 式）紧化：其 math:compactifyingMap 保角（共形）的特化，携带一个 math:conformalFactor Ω，对度量重新标度，使无穷远处的点位于一个有限的共形边界上。它是 math:Compactification 的子类；它额外命名其 math:conformalFactor——缺少它的共形紧化是病态的（math:UnderspecifiedCompactification）。这是将一个 math:LorentzianManifold 的径向图的无穷远作为有限边界来嵌入的正确一般归属：共形因子将无界的度量距离送到一个有限的重标度距离，同时保留洛伦兹度量所携带的因果（角度）结构。度量及其重标度留在数学一侧；一个时空的 Penrose 图是对这一数学对象的下游物理解读。"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryAtInfinity|rdfs:label"
+msgid "Boundary at Infinity"
+msgstr "无穷远边界"
+
+msgctxt "https://blackcatinformatics.ca/math/BoundaryAtInfinity|skos:definition"
+msgid "The boundary a compactification adjoins at infinity: the ideal points — the conformal boundary — the original unbounded space approaches but never reaches, made a first-class object rather than an informal edge. Named by a math:Compactification through math:boundaryAtInfinity. For a math:ConformalCompactification it is where the math:conformalFactor vanishes; for the radial half-line r ∈ [0, ∞) it is the single ideal point r = +∞."
+msgstr "一个紧化在无穷远处所添加的边界：理想点——共形边界——原无界空间趋近却永不到达者，被作为头等对象而非非正式的边缘。由一个 math:Compactification 通过 math:boundaryAtInfinity 命名。对一个 math:ConformalCompactification 而言，它是 math:conformalFactor 消失之处；对径向半直线 r ∈ [0, ∞) 而言，它是唯一的理想点 r = +∞。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedCompactification|rdfs:label"
+msgid "Underspecified Compactification"
+msgstr "欠规范紧化"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedCompactification|skos:definition"
+msgid "The failure raised when a math:Compactification does not name all four of its roles — its original space (math:originalSpace), its compactifying map (math:compactifyingMap), its compactified space (math:compactifiedSpace), and its boundary at infinity (math:boundaryAtInfinity) — or when a math:ConformalCompactification additionally omits its math:conformalFactor. A compactification that does not say what it embeds, by which map, into what, and with which boundary at infinity is ill-formed. Mirrors math:UnderspecifiedManifold and math:UnderspecifiedChart."
+msgstr "当一个 math:Compactification 未命名其四个角色的全部——其原空间（math:originalSpace）、其紧化映射（math:compactifyingMap）、其紧化空间（math:compactifiedSpace）与其无穷远边界（math:boundaryAtInfinity）——或当一个 math:ConformalCompactification 额外遗漏其 math:conformalFactor 时所引发的失败。一个不说明它嵌入什么、由何映射、嵌入何处、以及以何无穷远边界的紧化是病态的。它对应 math:UnderspecifiedManifold 与 math:UnderspecifiedChart。"
+
+msgctxt "https://blackcatinformatics.ca/math/originalSpace|rdfs:label"
+msgid "original space"
+msgstr "原空间"
+
+msgctxt "https://blackcatinformatics.ca/math/originalSpace|skos:definition"
+msgid "Relates a math:Compactification to the original unbounded space it embeds — the space whose points at infinity the compactification adjoins as a boundary. Domain math:Compactification, range a math:TopologicalSpace or math:Manifold (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:Compactification 关联到它所嵌入的原无界空间——其无穷远处的点被紧化作为边界所添加的那个空间。定义域 math:Compactification，值域为一个 math:TopologicalSpace 或 math:Manifold（以散文说明）。每个紧化恰命名一个；缺少它的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifyingMap|rdfs:label"
+msgid "compactifying map"
+msgstr "紧化映射"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifyingMap|skos:definition"
+msgid "Relates a math:Compactification to the embedding taking its original space into the compactified one — a math:Function (a math:CoordinateMap when it coordinatizes), angle-preserving for a math:ConformalCompactification. Domain math:Compactification, range math:Function (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:Compactification 关联到把其原空间带入紧化空间的嵌入——一个 math:Function（当它给出坐标时为一个 math:CoordinateMap），对一个 math:ConformalCompactification 而言保角。定义域 math:Compactification，值域 math:Function（以散文说明）。每个紧化恰命名一个；缺少它的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifiedSpace|rdfs:label"
+msgid "compactified space"
+msgstr "紧化空间"
+
+msgctxt "https://blackcatinformatics.ca/math/compactifiedSpace|skos:definition"
+msgid "Relates a math:Compactification to the resulting bounded (compact) space — the image the embedding lands in together with the adjoined boundary at infinity. Domain math:Compactification, range a math:TopologicalSpace (a math:Interval for a compactified half-line) (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:Compactification 关联到所得的有界（紧）空间——嵌入所落入的像连同所添加的无穷远边界。定义域 math:Compactification，值域为一个 math:TopologicalSpace（对紧化后的半直线为一个 math:Interval）（以散文说明）。每个紧化恰命名一个；缺少它的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/boundaryAtInfinity|rdfs:label"
+msgid "boundary at infinity"
+msgstr "无穷远边界"
+
+msgctxt "https://blackcatinformatics.ca/math/boundaryAtInfinity|skos:definition"
+msgid "Relates a math:Compactification to the math:BoundaryAtInfinity it adjoins — the ideal points at infinity the original space approaches but never reaches. Domain math:Compactification, range math:BoundaryAtInfinity (stated in prose). Every compactification names exactly one; a compactification without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:Compactification 关联到它所添加的 math:BoundaryAtInfinity——原空间趋近却永不到达的无穷远理想点。定义域 math:Compactification，值域 math:BoundaryAtInfinity（以散文说明）。每个紧化恰命名一个；缺少它的紧化是病态的（math:UnderspecifiedCompactification）。"
+
+msgctxt "https://blackcatinformatics.ca/math/conformalFactor|rdfs:label"
+msgid "conformal factor"
+msgstr "共形因子"
+
+msgctxt "https://blackcatinformatics.ca/math/conformalFactor|skos:definition"
+msgid "Relates a math:ConformalCompactification to its conformal rescaling factor Ω — a positive function that multiplies the metric so the unbounded metric distance becomes finite at the boundary while angles are preserved. Domain math:ConformalCompactification, range a positive math:Function or math:Quantity (an individual, never a bare literal — hence an owl:ObjectProperty, not a datatype property) (stated in prose). Every conformal compactification names exactly one; one without it is ill-formed (math:UnderspecifiedCompactification)."
+msgstr "将一个 math:ConformalCompactification 关联到其共形重标度因子 Ω——一个正函数，对度量作乘法，使无界的度量距离在边界处变为有限，同时保留角度。定义域 math:ConformalCompactification，值域为一个正的 math:Function 或 math:Quantity（一个个体，绝非裸字面量——因而是一个 owl:ObjectProperty 而非数据类型属性）（以散文说明）。每个共形紧化恰命名一个；缺少它的一个是病态的（math:UnderspecifiedCompactification）。"

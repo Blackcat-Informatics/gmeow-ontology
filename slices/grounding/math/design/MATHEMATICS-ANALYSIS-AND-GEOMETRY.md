@@ -152,6 +152,49 @@ boundary.
 > [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md)). The orthogonal-complement case is
 > realized in [`MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md`](MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md).
 
+### Conformal geometry and compactification
+
+Core classes: `math:Compactification`, `math:ConformalCompactification`, and `math:BoundaryAtInfinity`.
+
+Core properties: `math:originalSpace`, `math:compactifyingMap`, `math:compactifiedSpace`,
+`math:boundaryAtInfinity`, and `math:conformalFactor`.
+
+A `math:Compactification` embeds an **unbounded** space in a **bounded** (compact) one as a dense
+subset, adjoining the points the original space runs off toward as a boundary at infinity. It is not
+tied to any single construction — not the one-point (Alexandroff) versus Stone–Čech distinction *per
+se* — but the general **structured record** every such construction instantiates, and it names **four
+distinct roles**: the original unbounded space (`math:originalSpace`, a `math:TopologicalSpace` or
+`math:Manifold`), the embedding (`math:compactifyingMap`, a `math:Function`/`math:CoordinateMap`), the
+resulting bounded space (`math:compactifiedSpace`), and the boundary added at infinity
+(`math:boundaryAtInfinity`, a `math:BoundaryAtInfinity`). A compactification missing any of the four is
+ill-formed (`math:UnderspecifiedCompactification`) — a compactification that does not say what it
+embeds, by which map, into what, and with which boundary is not a compactification.
+
+A `math:BoundaryAtInfinity` is the **ideal points** — the conformal boundary — the original space
+approaches but never reaches, made a first-class object rather than an informal "edge": for the radial
+half-line *r* ∈ [0, ∞) it is the single ideal point *r* = +∞.
+
+A `math:ConformalCompactification` is the **conformal (Penrose-style)** specialization: its
+`math:compactifyingMap` is angle-preserving, carrying a `math:conformalFactor` Ω that rescales the
+metric so the points at infinity sit at a **finite** conformal boundary. A subclass of
+`math:Compactification`, it additionally names its `math:conformalFactor` (a positive
+function/quantity — an individual, never a bare literal, so the property is an `owl:ObjectProperty`),
+and one that omits it is ill-formed. This is the correct general home for embedding a
+`math:LorentzianManifold`'s **radial chart's infinity as a finite boundary**: the conformal factor
+sends the unbounded metric distance to a finite rescaled one while preserving the causal (angle)
+structure the Lorentzian metric carries. The metric and its rescaling stay **math-side** — a
+spacetime's Penrose diagram is a downstream physics reading of this math object, exactly as the
+Lorentzian metric above is the math object a physics slice builds spacetime frames on.
+
+> **Hard rule — the four compactification roles.** A `math:Compactification` names its
+> `math:originalSpace`, its `math:compactifyingMap`, its `math:compactifiedSpace`, and its
+> `math:boundaryAtInfinity`; a `math:ConformalCompactification` additionally names its
+> `math:conformalFactor`. "The compactification of X" without all four roles (or a conformal one
+> without its rescaling factor) is ill-formed — the gate forbids it
+> (`math:UnderspecifiedCompactification`,
+> [`MATHEMATICS-CONFORMANCE.md`](MATHEMATICS-CONFORMANCE.md)), mirroring `math:UnderspecifiedManifold`
+> and `math:UnderspecifiedChart`.
+
 ## The math/physics boundary
 
 Manifolds, charts, tensor fields, and Lorentzian metrics are **mathematics** and stay in this slice.
@@ -196,3 +239,5 @@ target space; and a complement names its ambient space and complement-semantics.
 3. What are the open sets (or basis) of this space, and is the map continuous/compact/connected?
 4. What is this manifold's dimension and structure kind, and what charts cover it?
 5. For this complement, what is the ambient space and the complement-semantics?
+6. For this compactification, what are its original space, compactifying map, compactified space,
+   boundary at infinity, and (if conformal) conformal factor?

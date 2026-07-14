@@ -614,6 +614,35 @@ ex:rowEvenComplement a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "ambientSpace" ; gmeow:cellValueIri exf:naturalsSet ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "semantics" ; gmeow:cellValueIri math:setTheoreticComplement ] .
 
+# === Q22 — compactification: its four roles and its conformal factor ======== #
+
+ex:cqCompactificationRoles a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/compactification-roles.rq" ;
+    gmeow:cqDataFile "tests/fixtures/analysis-geometry.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A conformal compactification reports its original space, compactifying map, compactified space, boundary at infinity, and conformal factor; over the fixture the answer is exactly {radialCompactification → radialHalfLine, radialCompactifyingMap, compactifiedRadialInterval, radialIdealBoundary, radialConformalFactor}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqCompactificationShape ;
+    gmeow:cqExpectRow ex:rowRadialCompactification .
+
+ex:cqCompactificationShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "compactification" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "originalSpace" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "compactifyingMap" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "compactifiedSpace" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "boundary" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "conformalFactor" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowRadialCompactification a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "compactification" ; gmeow:cellValueIri exf:radialCompactification ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "originalSpace" ; gmeow:cellValueIri exf:radialHalfLine ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "compactifyingMap" ; gmeow:cellValueIri exf:radialCompactifyingMap ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "compactifiedSpace" ; gmeow:cellValueIri exf:compactifiedRadialInterval ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "boundary" ; gmeow:cellValueIri exf:radialIdealBoundary ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "conformalFactor" ; gmeow:cellValueIri exf:radialConformalFactor ] .
+
 # === Q — every grounded topological property with its defining law/boundary === #
 # Unlike the fixture-backed questions above, this one carries NO gmeow:cqDataFile:
 # the math:definingLaw backing edges live in the ontology (module.ttl), so the query
