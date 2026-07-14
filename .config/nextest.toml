@@ -375,7 +375,6 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
     | (package(gmeow-pipeline) & test(/mcp::tests::verify_graph_.*_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/mcp::tests::explain_quad_.*_heavy_offgate/))
-    | (package(gmeow-pipeline) & test(/mcp::tests::coherence_certificate_.*_heavy_offgate/))
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
     | (package(gmeow-pipeline) & test(/stages::export::tests::export_produces_structurally_valid_artifacts/))

@@ -10114,9 +10114,17 @@ mod tests {
 
     /// Drive the REAL `coherence_certificate` tool through `call_tool_result` over a bundle
     /// that carries the certificate in `graph/attestations` — the same disk-free, reason-free
-    /// read path the shipped consumer surface uses. Whole-bundle emit/import is slow → off-gate.
+    /// read path the shipped consumer surface uses.
+    ///
+    /// Fast (a minimal synthetic snapshot — just the ontology header plus the certificate's
+    /// own quads, built via `SnapshotBuilder`/`emit_gts`, NOT the real committed `gmeow.gts` —
+    /// the same tiny-snapshot construction `verify_graph_inconsistent_but_conclusive_never_certifies`
+    /// uses): on-gate, not `_heavy_offgate`. Measured at ~0.01-0.03 s standalone and under full
+    /// contention with the genuinely-heavy `*_heavy_offgate` siblings, nowhere near the 25 s
+    /// policy cliff, because — unlike those siblings — this test never touches the real
+    /// committed bundle.
     #[test]
-    fn coherence_certificate_tool_reads_the_carried_bundle_heavy_offgate() {
+    fn coherence_certificate_tool_reads_the_carried_bundle() {
         use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
         use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
 
