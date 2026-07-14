@@ -2341,6 +2341,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } } } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/AnalyticPropertyBackedConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/AnalyticProperty> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/AnalyticProperty> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:AnalyticProperty must resolve to a real first-order logic:Formula or an honest logic:expressivenessBoundary through math:definingLaw; an analytic-property claim backed by no law and no boundary is ill-formed (math:UnbackedAnalyticProperty)." ;
+        sh:select """SELECT $this WHERE { FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/definingLaw> ?c0 . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/ArgumentSlotIndexUniquenessConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/SlotIndexUniquenessShape> ;
@@ -2383,6 +2394,17 @@
         sh:severity sh:Violation ;
         sh:message "A math:RootSystem with the E8 fingerprint (math:rootCount 240, math:rootSystemRank 8) must declare a math:weylGroup of math:groupOrder 696729600 — the order of W(E8); a different order corrupts the flagship invariant and is rejected." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/rootCount> '240'^^<http://www.w3.org/2001/XMLSchema#integer> . $this <https://blackcatinformatics.ca/math/rootSystemRank> '8'^^<http://www.w3.org/2001/XMLSchema#integer> . $this <https://blackcatinformatics.ca/math/weylGroup> ?w . ?w <https://blackcatinformatics.ca/math/groupOrder> ?o . FILTER ( ?o != '696729600'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ExtendedRealValueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/extendedRealValue> ;
+    sh:targetObjectsOf <https://blackcatinformatics.ca/math/extendedRealValue> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "The object of math:extendedRealValue must be a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity; a non-literal value (an IRI or blank node) that is neither pole is not a point of the extended real line ℝ̄ (math:MalformedExtendedReal)." ;
+        sh:select """SELECT $this WHERE { ?s <https://blackcatinformatics.ca/math/extendedRealValue> $this . FILTER ( ( !isLiteral($this) ) && ( $this NOT IN (<https://blackcatinformatics.ca/math/PositiveInfinity>, <https://blackcatinformatics.ca/math/NegativeInfinity>) ) ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/FlagshipScenarioFailureClassConstraintProceduralConstraintShape>
@@ -2429,6 +2451,17 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/hasEntry> ?entry . ?entry <https://blackcatinformatics.ca/math/atRow> ?row . ?entry <https://blackcatinformatics.ca/math/atColumn> ?col . ?entry <https://blackcatinformatics.ca/math/entryValue> ?val . ?val <https://blackcatinformatics.ca/math/numerator> ?vnum . ?val <https://blackcatinformatics.ca/math/denominator> ?vden . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/hasEntry> ?mate . ?mate <https://blackcatinformatics.ca/math/atRow> ?col . ?mate <https://blackcatinformatics.ca/math/atColumn> ?row . ?mate <https://blackcatinformatics.ca/math/entryValue> ?mval . ?mval <https://blackcatinformatics.ca/math/numerator> ?vnum . ?mval <https://blackcatinformatics.ca/math/denominator> ?vden . } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/LimitResultOutcomeValueConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/LimitResult> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/LimitResult> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:LimitResult's math:limitResultValue must agree with its math:limitOutcome: a finite numeric literal for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and no value for math:divergesWithoutLimit; a value that disagrees with the declared outcome is ill-formed (math:UnderspecifiedLimitResult)." ;
+        sh:select """SELECT $this WHERE { { $this <https://blackcatinformatics.ca/math/limitOutcome> <https://blackcatinformatics.ca/math/convergesFinitely> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/limitResultValue> ?vf . FILTER ( isLiteral(?vf) ) } } UNION { $this <https://blackcatinformatics.ca/math/limitOutcome> <https://blackcatinformatics.ca/math/divergesToPositiveInfinity> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/limitResultValue> ?vp . FILTER ( ?vp IN (<https://blackcatinformatics.ca/math/PositiveInfinity>) ) } } UNION { $this <https://blackcatinformatics.ca/math/limitOutcome> <https://blackcatinformatics.ca/math/divergesToNegativeInfinity> . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/math/limitResultValue> ?vn . FILTER ( ?vn IN (<https://blackcatinformatics.ca/math/NegativeInfinity>) ) } } UNION { $this <https://blackcatinformatics.ca/math/limitOutcome> <https://blackcatinformatics.ca/math/divergesWithoutLimit> . $this <https://blackcatinformatics.ca/math/limitResultValue> ?vk . } }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/LogicLoweringDeclaredConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/LogicLoweringShape> ;
@@ -2449,6 +2482,17 @@
         sh:severity sh:Violation ;
         sh:message "A math:lorentzianStructure manifold's math:MetricSignature does not have exactly one timelike direction (math:signaturePositive = 1 or math:signatureNegative = 1) (math:DimensionMismatch)." ;
         sh:select """SELECT $this WHERE { ?mt <https://blackcatinformatics.ca/math/metricSignature> $this . ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt . ?m <https://blackcatinformatics.ca/math/manifoldStructureKind> <https://blackcatinformatics.ca/math/lorentzianStructure> . $this <https://blackcatinformatics.ca/math/signaturePositive> ?p . $this <https://blackcatinformatics.ca/math/signatureNegative> ?q . FILTER ( ( ?p != '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) && ( ?q != '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/MeasureResultNonNegativeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/MeasureEvaluation> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/MeasureEvaluation> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:MeasureEvaluation's math:measureResult must be a finite non-negative number or math:PositiveInfinity; a measure is non-negative, so the negative pole math:NegativeInfinity is not a mass (math:MalformedExtendedReal or math:UnderspecifiedMeasureEvaluation)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/measureResult> <https://blackcatinformatics.ca/math/NegativeInfinity> . }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/MetricSignatureDimensionConstraintProceduralConstraintShape>
