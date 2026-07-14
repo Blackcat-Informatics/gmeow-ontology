@@ -29,7 +29,7 @@ use gmeow_logic::explain::{self, LazyExplanationIndex, Row, reifier_from_row};
 use gmeow_logic::provenance::{reifier_from_strings, term_display};
 use gmeow_logic::query_ir::Budget;
 use gmeow_logic::reason::reason_all_budgeted;
-use gmeow_logic::result::ReasoningResult;
+use gmeow_logic::result::{CompletenessStatus, EvaluationStatus, ReasoningResult};
 use gmeow_logic::result_rdf::{
     ConjectureVerdictInput, conjecture_node_iri, project_conjecture_verdict,
     project_conjecture_withdrawal, project_reasoning_result,
@@ -1406,6 +1406,20 @@ impl McpView {
         }
     }
 
+    /// Read the bundle's carried SCOPED COHERENCE CERTIFICATE as a budget-free,
+    /// proof-carrying envelope (R6) and render it. BUDGET-FREE and REASON-FREE: the
+    /// certificate was computed ONCE at pipeline time and folded into `graph/attestations`;
+    /// this reads it straight off the bundled dataset (`self.dataset`) — it NEVER
+    /// re-reasons. A bundle carrying no coherence artifact is a HARD FAIL rendered as the
+    /// `{ok:false, error}` envelope (there is no silent recompute fallback), EXACTLY like
+    /// [`Self::verify_graph_json`].
+    fn coherence_certificate_json(&self) -> String {
+        match coherence_certificate_envelope(self.dataset.as_ref()) {
+            Ok(value) => value.to_string(),
+            Err(err) => json!({"ok": false, "error": err.to_string()}).to_string(),
+        }
+    }
+
     /// Reconstruct the FAITHFUL cited-IRI derivation skeleton for ONE arbitrary quad
     /// `(subject, predicate, obj_n3)` in world `graph`, over the bundle's governed
     /// forward closure. DISTINCT from [`Self::explain_finding_json`], which walks the
@@ -1913,6 +1927,22 @@ impl McpServer {
                 ],
             ),
             tool(
+                "coherence_certificate",
+                "Read the bundle's SCOPED COHERENCE CERTIFICATE — a budget-free, \
+                 proof-carrying coherence attestation computed ONCE at pipeline time over the \
+                 whole assembled bundle and folded into graph/attestations. This tool reads it \
+                 straight off the bundled dataset: it takes NO inputs, runs NO reasoning, and \
+                 never recomputes. The response carries class_local_name (CoherenceCertificate \
+                 for a conclusive, fragment-scoped, violation-free closure; the strictly-weaker \
+                 CoherenceCheckAttestation otherwise — an attestation is NEVER reported as a \
+                 certificate), issues_certificate, is_refused, the pinned bundle_hash and \
+                 per-graph axiom_hashes (the tamper surface), contract_hash, engine, \
+                 certified_fragment, the completeness/evaluation axes, contradiction_policy, \
+                 projection_losses, and forbidden_violations. A bundle carrying no coherence \
+                 artifact is a hard error (never a silent recompute).",
+                &[],
+            ),
+            tool(
                 "validate_local",
                 "Validate an inline RDF graph against the bundled GMEOW shapes and disciplines \
                  (the same core as `gmeow validate`), then CLOSE THE LOOP: every finding is \
@@ -2136,6 +2166,7 @@ impl McpServer {
             "query_local" => self.tool_query_local(args),
             "verify_graph" => self.tool_verify_graph(args),
             "explain_quad" => self.tool_explain_quad(args),
+            "coherence_certificate" => self.tool_coherence_certificate(args),
             "validate_local" => self.tool_validate_local(args),
             "explain_finding" => self.tool_explain_finding(args),
             "store_claim" => self.tool_store_claim(args),
@@ -2409,6 +2440,13 @@ impl McpServer {
         Ok(self
             .view
             .explain_quad_json(subject, predicate, &obj_n3, graph, &budget))
+    }
+
+    /// Surface the bundle's carried coherence certificate/attestation (R6). A thin,
+    /// INPUT-FREE wrapper over [`McpView::coherence_certificate_json`]: the certificate is
+    /// read straight off the bundled dataset (disk-free, reason-free), never recomputed.
+    fn tool_coherence_certificate(&self, _args: &Value) -> gmeow_errors::Result<String> {
+        Ok(self.view.coherence_certificate_json())
     }
 
     /// Validate an inline RDF `data` graph (in `format`) against the bundle's own
@@ -3774,6 +3812,206 @@ fn completeness_class(result: &ReasoningResult) -> &'static str {
     } else {
         "CoherenceCheckAttestation"
     }
+}
+
+/// Read the SCOPED COHERENCE CERTIFICATE carried in the bundle's `graph/attestations`
+/// named graph and map it to the proof-carrying read envelope (R6).
+///
+/// This is BUDGET-FREE and REASON-FREE: the certificate was computed ONCE at pipeline
+/// time (`crate::stages::carrier`, over the whole assembled carrier) and folded into the
+/// bundle; this reads it straight off the loaded dataset — it NEVER re-reasons. The class
+/// (`logic:CoherenceCertificate` vs the strictly-weaker `logic:CoherenceCheckAttestation`)
+/// is read from the carried `rdf:type`, so an attestation is NEVER silently reported as a
+/// certificate. The completeness/evaluation axes are recovered from the linked
+/// `logic:ReasoningResult` node's `logic:resultCompleteness` / `logic:resultEvaluation`
+/// status individuals.
+///
+/// # Errors
+/// HARD-FAILS if the bundle carries no coherence artifact in `graph/attestations` (there
+/// is NO silent recompute fallback — after the terminal fold every gmeow.gts carries one),
+/// or if it carries more than one distinct coherence subject (an ambiguous bundle).
+fn coherence_certificate_envelope(dataset: &purrdf::RdfDataset) -> gmeow_errors::Result<Value> {
+    use purrdf::RdfTerm;
+
+    let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+    let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let cert_type = format!("{LOGIC_NAMESPACE}CoherenceCertificate");
+    let att_type = format!("{LOGIC_NAMESPACE}CoherenceCheckAttestation");
+
+    let iri_of = |term: &RdfTerm| -> Option<String> {
+        match term {
+            RdfTerm::Iri(iri) => Some(iri.clone()),
+            _ => None,
+        }
+    };
+    let literal_of = |term: &RdfTerm| -> Option<String> {
+        match term {
+            RdfTerm::Literal(lit) => Some(lit.lexical_form.clone()),
+            _ => None,
+        }
+    };
+    let in_graph = |g: &Option<RdfTerm>| matches!(g, Some(RdfTerm::Iri(iri)) if iri == graph);
+
+    // 1. Locate THE coherence subject and its class local name (Certificate vs the
+    //    strictly-weaker Attestation). A Refused outcome emits nothing, so a carried
+    //    subject is always one of the two issued artifacts.
+    let mut carried: Option<(String, &'static str)> = None;
+    for q in dataset.owned_quads() {
+        if !in_graph(&q.graph_name) || q.predicate != rdf_type {
+            continue;
+        }
+        let (Some(subject), Some(obj)) = (iri_of(&q.subject), iri_of(&q.object)) else {
+            continue;
+        };
+        let class_local = if obj == cert_type {
+            "CoherenceCertificate"
+        } else if obj == att_type {
+            "CoherenceCheckAttestation"
+        } else {
+            continue;
+        };
+        match &carried {
+            Some((existing, _)) if *existing != subject => {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                    message: format!(
+                        "coherence_certificate: the bundle carries more than one distinct \
+                         coherence subject in {graph} ({existing} and {subject}); an ambiguous \
+                         coherence artifact set is a hard failure"
+                    ),
+                }));
+            }
+            Some(_) => {}
+            None => carried = Some((subject, class_local)),
+        }
+    }
+    let Some((subject, class_local)) = carried else {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "coherence_certificate: the bundle carries no coherence certificate or \
+                 attestation in {graph} (no logic:CoherenceCertificate / \
+                 logic:CoherenceCheckAttestation subject); the bundle is missing its \
+                 pipeline-time coherence proof — refusing to recompute"
+            ),
+        }));
+    };
+
+    // 2. Gather the scoped payload off the subject's quads.
+    let p = |local: &str| format!("{LOGIC_NAMESPACE}{local}");
+    let (
+        pred_bundle,
+        pred_axiom,
+        pred_contract,
+        pred_engine,
+        pred_fragment,
+        pred_policy,
+        pred_loss,
+        pred_forbidden,
+        pred_summarizes,
+    ) = (
+        p("bundleHash"),
+        p("axiomHash"),
+        p("contractHash"),
+        p("engine"),
+        p("certifiedFragment"),
+        p("contradictionPolicy"),
+        p("projectionLoss"),
+        p("forbiddenViolationWitness"),
+        p("summarizesResult"),
+    );
+    let mut bundle_hash: Option<String> = None;
+    let mut contract_hash: Option<String> = None;
+    let mut engine: Option<String> = None;
+    let mut certified_fragment: Option<String> = None;
+    let mut contradiction_policy: Option<String> = None;
+    let mut result_node: Option<String> = None;
+    let mut axiom_hashes: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut projection_losses: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
+    let mut forbidden_violations: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
+    for q in dataset.owned_quads() {
+        if !in_graph(&q.graph_name) || iri_of(&q.subject).as_deref() != Some(subject.as_str()) {
+            continue;
+        }
+        let pred = q.predicate.as_str();
+        if pred == pred_bundle {
+            bundle_hash = literal_of(&q.object);
+        } else if pred == pred_axiom {
+            if let Some(v) = literal_of(&q.object) {
+                axiom_hashes.insert(v);
+            }
+        } else if pred == pred_contract {
+            contract_hash = literal_of(&q.object);
+        } else if pred == pred_engine {
+            engine = literal_of(&q.object);
+        } else if pred == pred_fragment {
+            certified_fragment = literal_of(&q.object);
+        } else if pred == pred_policy {
+            contradiction_policy = iri_of(&q.object);
+        } else if pred == pred_loss {
+            if let Some(v) = literal_of(&q.object) {
+                projection_losses.insert(v);
+            }
+        } else if pred == pred_forbidden {
+            if let Some(v) = iri_of(&q.object) {
+                forbidden_violations.insert(v);
+            }
+        } else if pred == pred_summarizes {
+            result_node = iri_of(&q.object);
+        }
+    }
+
+    // 3. Recover the two completeness-gate axes off the linked logic:ReasoningResult node.
+    let pred_completeness = p("resultCompleteness");
+    let pred_evaluation = p("resultEvaluation");
+    let mut completeness: Option<String> = None;
+    let mut evaluation: Option<String> = None;
+    if let Some(node) = &result_node {
+        for q in dataset.owned_quads() {
+            if !in_graph(&q.graph_name) || iri_of(&q.subject).as_deref() != Some(node.as_str()) {
+                continue;
+            }
+            if q.predicate == pred_completeness {
+                completeness = iri_of(&q.object)
+                    .and_then(|iri| iri.strip_prefix(LOGIC_NAMESPACE).map(str::to_owned))
+                    .and_then(|local| CompletenessStatus::from_local(&local))
+                    .map(|s| s.wire().to_owned());
+            } else if q.predicate == pred_evaluation {
+                evaluation = iri_of(&q.object)
+                    .and_then(|iri| iri.strip_prefix(LOGIC_NAMESPACE).map(str::to_owned))
+                    .and_then(|local| EvaluationStatus::from_local(&local))
+                    .map(|s| s.wire().to_owned());
+            }
+        }
+    }
+
+    // bundle_hash / axiom_hashes are the load-bearing tamper surface — a bundle that
+    // carries a typed coherence subject but no bundle identity is corrupt, not partial.
+    let Some(bundle_hash) = bundle_hash else {
+        return Err(gmeow_errors::Diag::of_kind(crate::error::Mcp {
+            message: format!(
+                "coherence_certificate: coherence subject {subject} carries no \
+                 logic:bundleHash (corrupt coherence artifact)"
+            ),
+        }));
+    };
+
+    Ok(json!({
+        "ok": true,
+        "issues_certificate": class_local == "CoherenceCertificate",
+        "is_refused": false,
+        "class_local_name": class_local,
+        "bundle_hash": bundle_hash,
+        "axiom_hashes": axiom_hashes.into_iter().collect::<Vec<_>>(),
+        "contract_hash": contract_hash,
+        "engine": engine,
+        "certified_fragment": certified_fragment,
+        "completeness": completeness,
+        "evaluation": evaluation,
+        "contradiction_policy": contradiction_policy,
+        "projection_losses": projection_losses.into_iter().collect::<Vec<_>>(),
+        "forbidden_violations": forbidden_violations.into_iter().collect::<Vec<_>>(),
+    }))
 }
 
 /// Build the canonical N3 object surface for `explain_quad` — the EXACT byte form a
@@ -8447,5 +8685,275 @@ mod tests {
         let again =
             text_payload(server.call_tool_result("docs_search", &json!({"query": "entity"})));
         assert_eq!(hit, again, "docs_search output is deterministic");
+    }
+
+    // ── coherence_certificate (R6) ─────────────────────────────────────────────────
+
+    /// A consistent native [`ReasoningResult`], with the given evaluation/completeness
+    /// axes and optional certified fragment — the minimum a coherence outcome reads.
+    fn coherence_result(
+        evaluation: EvaluationStatus,
+        completeness: CompletenessStatus,
+        fragment: Option<&str>,
+    ) -> ReasoningResult {
+        use gmeow_logic::result::{
+            InformationState, InputStatus, PreservationClaim, ResultPayload, ResultProvenance,
+        };
+        let mut provenance = ResultProvenance::native("contract:abc", "world:default");
+        provenance.certified_fragment = fragment.map(str::to_owned);
+        ReasoningResult {
+            input: InputStatus::Valid,
+            evaluation,
+            completeness,
+            preservation: PreservationClaim::exact(),
+            information: InformationState::Supported,
+            provenance,
+            payload: ResultPayload::Empty,
+            row_schema: None,
+        }
+    }
+
+    /// Parse a `graph/attestations` N-Quads document into a dataset the read helper reads.
+    fn dataset_of(nquads: &str) -> Arc<purrdf::RdfDataset> {
+        purrdf::parse_dataset(nquads.as_bytes(), "application/n-quads", None)
+            .expect("parse coherence N-Quads")
+    }
+
+    /// The carrier folds a CONCLUSIVE, fragment-scoped, violation-free closure as a real
+    /// `logic:CoherenceCertificate`; the read tool surfaces `issues_certificate:true`, the
+    /// certificate class, and the pinned bundle_hash / per-graph axiom_hashes VERBATIM (the
+    /// tamper surface) — proving the digests are exactly `per_graph_axiom_hashes` and not
+    /// fabricated.
+    #[test]
+    fn coherence_certificate_surfaces_a_certificate_with_the_pinned_digests() {
+        use gmeow_logic::certificate::{
+            CoherenceOutcome, ContradictionPolicy, per_graph_axiom_hashes,
+        };
+        use purrdf::gts::writer::digest_string;
+
+        // A small axiom-bearing dataset whose per-graph digests the certificate pins.
+        let axioms = dataset_of(
+            "<https://e/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://e/B> <https://e/w> .\n",
+        );
+        let axiom_hashes = per_graph_axiom_hashes(axioms.as_ref(), digest_string);
+        assert!(!axiom_hashes.is_empty(), "the fixture pins ≥1 axiom digest");
+        let bundle_hash = digest_string(b"bundle-identity-bytes");
+
+        let result = coherence_result(
+            EvaluationStatus::Completed,
+            CompletenessStatus::Unknown,
+            Some("fragment:test"),
+        );
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &result,
+            bundle_hash.clone(),
+            axiom_hashes.clone(),
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        assert!(outcome.issues_certificate(), "the fixture must certify");
+
+        let dataset = dataset_of(&outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS));
+        let env = coherence_certificate_envelope(dataset.as_ref()).expect("certificate present");
+
+        assert_eq!(env["ok"], true);
+        assert_eq!(env["issues_certificate"], true);
+        assert_eq!(env["is_refused"], false);
+        assert_eq!(env["class_local_name"], "CoherenceCertificate");
+        // The surfaced bundle_hash / axiom_hashes are the pipeline-pinned digests, VERBATIM.
+        assert_eq!(env["bundle_hash"], bundle_hash);
+        assert!(
+            env["bundle_hash"].as_str().is_some_and(|s| !s.is_empty()),
+            "bundle_hash is non-empty: {env}"
+        );
+        let surfaced: Vec<String> = env["axiom_hashes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_str().unwrap().to_owned())
+            .collect();
+        assert_eq!(
+            surfaced,
+            axiom_hashes.into_iter().collect::<Vec<_>>(),
+            "axiom_hashes are the per_graph_axiom_hashes digests, not fabricated: {env}"
+        );
+        assert!(
+            surfaced.iter().all(|h| h.contains(':') && h.len() > 8),
+            "axiom digests are non-trivial content addresses: {surfaced:?}"
+        );
+        // The two completeness-gate axes round-trip off the linked result node.
+        assert_eq!(env["evaluation"], "completed");
+        assert_eq!(env["completeness"], "unknown");
+        assert_eq!(env["contract_hash"], "contract:abc");
+    }
+
+    /// R6 regression: a bounded/incomplete closure yields the strictly-weaker
+    /// `logic:CoherenceCheckAttestation`; the read tool must report
+    /// `issues_certificate:false` and `class_local_name:CoherenceCheckAttestation` — a
+    /// regression must NEVER silently upgrade an attestation to a certificate.
+    #[test]
+    fn coherence_certificate_maps_an_attestation_never_a_certificate() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+        let result = coherence_result(
+            EvaluationStatus::BudgetExhausted,
+            CompletenessStatus::Incomplete,
+            None,
+        );
+        assert!(!result.is_conclusive());
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &result,
+            "blake3:bundle".to_owned(),
+            ["blake3:axioms".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        assert!(!outcome.issues_certificate());
+
+        let dataset = dataset_of(&outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS));
+        let env = coherence_certificate_envelope(dataset.as_ref()).expect("attestation present");
+        assert_eq!(env["ok"], true);
+        assert_eq!(
+            env["issues_certificate"], false,
+            "an attestation is NOT a certificate: {env}"
+        );
+        assert_eq!(env["class_local_name"], "CoherenceCheckAttestation");
+        assert_eq!(env["evaluation"], "budget-exhausted");
+        assert_eq!(env["completeness"], "incomplete");
+    }
+
+    /// HARD-FAIL: a bundle carrying no coherence artifact in `graph/attestations` is an
+    /// error — there is NO silent recompute fallback.
+    #[test]
+    fn coherence_certificate_hard_fails_on_a_bundle_without_a_certificate() {
+        let stripped = dataset_of("<https://e/s> <https://e/p> <https://e/o> <https://e/g> .\n");
+        let err = coherence_certificate_envelope(stripped.as_ref())
+            .expect_err("a bundle with no coherence artifact must hard-fail");
+        assert!(
+            err.to_string()
+                .contains("no coherence certificate or attestation"),
+            "the hard fail names the missing artifact: {err}"
+        );
+    }
+
+    /// A bundle carrying more than one distinct coherence subject is ambiguous and a hard
+    /// failure (no silent first-wins).
+    #[test]
+    fn coherence_certificate_hard_fails_on_an_ambiguous_bundle() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+
+        let graph = crate::stages::release::GRAPH_ATTESTATIONS;
+        let a = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("frag:a"),
+            ),
+            "blake3:bundle-a".to_owned(),
+            ["blake3:axioms-a".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        let b = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("frag:b"),
+            ),
+            "blake3:bundle-b".to_owned(),
+            ["blake3:axioms-b".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+        let both = format!("{}{}", a.to_nquads(graph), b.to_nquads(graph));
+        let err = coherence_certificate_envelope(dataset_of(&both).as_ref())
+            .expect_err("two coherence subjects must hard-fail");
+        assert!(
+            err.to_string()
+                .contains("more than one distinct coherence subject"),
+            "the hard fail names the ambiguity: {err}"
+        );
+    }
+
+    /// Drive the REAL `coherence_certificate` tool through `call_tool_result` over a bundle
+    /// that carries the certificate in `graph/attestations` — the same disk-free, reason-free
+    /// read path the shipped consumer surface uses. Whole-bundle emit/import is slow → off-gate.
+    #[test]
+    fn coherence_certificate_tool_reads_the_carried_bundle_heavy_offgate() {
+        use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
+        use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+
+        let outcome = CoherenceOutcome::from_reasoning_result(
+            &coherence_result(
+                EvaluationStatus::Completed,
+                CompletenessStatus::Unknown,
+                Some("fragment:test"),
+            ),
+            "blake3:carried-bundle".to_owned(),
+            ["blake3:axioms-carried".to_owned()],
+            ContradictionPolicy::ForbidGapAndGlut,
+            "1970-01-01T00:00:00Z",
+            std::collections::BTreeSet::new(),
+        )
+        .unwrap();
+
+        // A minimal snapshot: the required ontology header (the importer hard-fails
+        // without it) plus the certificate's graph/attestations named graph, emitted as a
+        // real gmeow.gts bundle.
+        let doc = format!(
+            "<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n\
+             {}",
+            outcome.to_nquads(crate::stages::release::GRAPH_ATTESTATIONS)
+        );
+        let dataset = dataset_of(&doc);
+        let mut builder = SnapshotBuilder::new();
+        builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit tiny cert-carrying snapshot");
+
+        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+        let out = text_payload(server.call_tool_result("coherence_certificate", &json!({})));
+        assert_eq!(
+            out["ok"], true,
+            "the tool reads the carried certificate: {out}"
+        );
+        assert_eq!(out["class_local_name"], "CoherenceCertificate");
+        assert_eq!(out["issues_certificate"], true);
+        assert_eq!(out["bundle_hash"], "blake3:carried-bundle");
+        assert_eq!(
+            out["axiom_hashes"],
+            json!(["blake3:axioms-carried"]),
+            "the per-graph axiom digests ride the read envelope: {out}"
+        );
+        // Deterministic: the read is a pure projection of the carried quads.
+        let again = text_payload(server.call_tool_result("coherence_certificate", &json!({})));
+        assert_eq!(out, again, "the certificate read is deterministic");
     }
 }

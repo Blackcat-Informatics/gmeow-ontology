@@ -321,6 +321,22 @@ impl CoherenceOutcome {
             &format!("{LOGIC_NAMESPACE}consumedBudget"),
             &format!("\"{}\"", nq_escape(&budget_text(&payload.consumed_budget))),
         );
+        // The two completeness-gate axes ride the result node as their `module.ttl`
+        // status individuals (the SAME `logic:resultEvaluation` / `logic:resultCompleteness`
+        // predicates + individuals the `graph/reasoning` projection uses), so the full
+        // payload — including the axes that DECIDE certificate-vs-attestation — is
+        // faithfully recoverable from the carried quads, not merely folded into the
+        // content-addressed subject id.
+        triple(
+            &result_subject,
+            &format!("{LOGIC_NAMESPACE}resultEvaluation"),
+            &format!("<{}>", payload.evaluation.iri()),
+        );
+        triple(
+            &result_subject,
+            &format!("{LOGIC_NAMESPACE}resultCompleteness"),
+            &format!("<{}>", payload.completeness.iri()),
+        );
 
         // The scoped identity payload.
         triple(
@@ -886,6 +902,15 @@ mod tests {
         // The certificate links to the logic:ReasoningResult it summarizes (M2).
         assert!(nquads.contains("<https://blackcatinformatics.ca/logic/summarizesResult>"));
         assert!(nquads.contains("<https://blackcatinformatics.ca/logic/ReasoningResult>"));
+        // The two completeness-gate axes ride the result node as status individuals, so
+        // the full payload (including the axes that decide certificate-vs-attestation) is
+        // faithfully recoverable from the carried quads.
+        assert!(nquads.contains(
+            "<https://blackcatinformatics.ca/logic/resultEvaluation> <https://blackcatinformatics.ca/logic/EvaluationCompleted>"
+        ));
+        assert!(nquads.contains(
+            "<https://blackcatinformatics.ca/logic/resultCompleteness> <https://blackcatinformatics.ca/logic/CompleteForFragment>"
+        ));
         for line in nquads.lines() {
             assert!(
                 line.ends_with(&format!("<{graph}> .")),
