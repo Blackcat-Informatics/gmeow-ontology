@@ -174,10 +174,13 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
     // canonical shape set), and a migrated slice's surface is the whole generated
     // validation/constraint/procedural projection, so the per-cell whole-surface SHACL
     // runs dominate the file's wall time. The cells are independent, so fan them across
-    // a bounded set of SHARE-NOTHING worker threads: each worker parses its OWN module
-    // dataset and shape set (the purrdf SPARQL layer carries interior-mutable caches
-    // that must never be shared across threads), pays that setup once per WORKER (not
-    // once per cell), and the results are aggregated in the spec's authored order.
+    // a bounded set of worker threads. The parsed shape set and module dataset are
+    // built ONCE and shared by reference: both are frozen, `Sync` values (the purrdf
+    // SPARQL layer's caches live in thread-local engine state, not in `Shapes` /
+    // `RdfDataset`, whose lazy indexes are `OnceLock`-guarded), so re-parsing the
+    // whole generated surface once per worker would only multiply setup cost —
+    // measured as the dominant term on a many-core box, where a migrated slice's
+    // ~0.7 MB three-file surface was re-parsed by every one of N workers.
     let shape_paths = paths::shapes_files(&slice_dir);
     let shapes_ttl = shape_paths
         .iter()
@@ -191,12 +194,12 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
         .collect::<Result<Vec<_>>>()?
         .join("\n");
     // Surface a malformed shape set / module ONCE, as a typed diagnostic, before fanning out.
-    parse_shapes(&shapes_ttl).map_err(|e| {
+    let shapes = parse_shapes(&shapes_ttl).map_err(|e| {
         Diag::of_kind(ShapeValidation {
             detail: format!("parsing slice shapes: {e}"),
         })
     })?;
-    native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
+    let module = native_query::dataset_from_file(&paths::module_file(&slice_dir)).map_err(|e| {
         Diag::of_kind(DatasetRead {
             detail: format!("building module dataset: {e}"),
         })
@@ -211,16 +214,13 @@ pub fn run_conformance_file(path: &Path) -> Result<()> {
         for w in 0..workers {
             let cells = &cells;
             let slice_dir = &slice_dir;
-            let shapes_ttl = &shapes_ttl;
+            let shapes = &shapes;
+            let module = &module;
             handles.push(scope.spawn(move || {
-                let shapes =
-                    parse_shapes(shapes_ttl).expect("slice shapes reparse (already parsed once)");
-                let module = native_query::dataset_from_file(&paths::module_file(slice_dir))
-                    .expect("module dataset reparse (already parsed once)");
                 let mut out = Vec::new();
                 for (i, ec) in cells.iter().enumerate() {
                     if i % workers == w {
-                        out.push((i, run_conformance_cell(ec, slice_dir, &module, &shapes)));
+                        out.push((i, run_conformance_cell(ec, slice_dir, module, shapes)));
                     }
                 }
                 out

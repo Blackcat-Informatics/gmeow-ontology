@@ -24,6 +24,7 @@
 #![allow(dead_code)]
 
 use gmeow_errors::Diag;
+use purrdf::dataset_view::{DatasetView, GraphMatch};
 use purrdf::{BlankScope, RdfDataset, TermId, TermRef, TermValue, canonicalize, parse_dataset};
 use std::sync::Arc;
 
@@ -352,11 +353,21 @@ pub(crate) fn is_empty(ds: &RdfDataset) -> bool {
 
 /// `graph.value(subject, predicate)` — the first object of
 /// `(subject, predicate, *)` in the default graph, or `None`.
+///
+/// This and the pattern helpers below route through the dataset's INDEXED
+/// [`DatasetView::quads_for_pattern`] (lazy permutation indexes + binary search)
+/// rather than a full `ds.quads()` scan: the frontend calls these once per
+/// class/record over the whole merged authored ontology, so a linear scan per call
+/// is O(calls × total quads) and dominated the compile-stage wall time. Iteration
+/// order is unchanged — the frozen quad table and every permutation run are sorted
+/// on the same id axes, so for a fixed bound prefix the remaining axes iterate
+/// ascending exactly as the sequential SPOG scan does (the projection bytes stay
+/// deterministic and identical).
 pub(crate) fn value(ds: &RdfDataset, subject: &Subject, predicate: &Iri) -> Option<Node> {
     let s_id = subject_id(ds, subject)?;
     let p_id = predicate_id(ds, predicate)?;
-    ds.quads()
-        .find(|q| q.g.is_none() && q.s == s_id && q.p == p_id)
+    ds.quads_for_pattern(Some(s_id), Some(p_id), None, GraphMatch::Default)
+        .next()
         .map(|q| node_of(ds, q.o))
 }
 
@@ -365,8 +376,7 @@ pub(crate) fn objects(ds: &RdfDataset, subject: &Subject, predicate: &Iri) -> Ve
     let (Some(s_id), Some(p_id)) = (subject_id(ds, subject), predicate_id(ds, predicate)) else {
         return Vec::new();
     };
-    ds.quads()
-        .filter(|q| q.g.is_none() && q.s == s_id && q.p == p_id)
+    ds.quads_for_pattern(Some(s_id), Some(p_id), None, GraphMatch::Default)
         .map(|q| node_of(ds, q.o))
         .collect()
 }
@@ -376,8 +386,7 @@ pub(crate) fn subjects_with(ds: &RdfDataset, predicate: &Iri, object: &Node) -> 
     let (Some(p_id), Some(o_id)) = (predicate_id(ds, predicate), object_id(ds, object)) else {
         return Vec::new();
     };
-    ds.quads()
-        .filter(|q| q.g.is_none() && q.p == p_id && q.o == o_id)
+    ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Default)
         .map(|q| subject_of(ds, q.s))
         .collect()
 }
@@ -391,8 +400,9 @@ pub(crate) fn contains(ds: &RdfDataset, subject: &Subject, predicate: &Iri, obje
     ) else {
         return false;
     };
-    ds.quads()
-        .any(|q| q.g.is_none() && q.s == s_id && q.p == p_id && q.o == o_id)
+    ds.quads_for_pattern(Some(s_id), Some(p_id), Some(o_id), GraphMatch::Default)
+        .next()
+        .is_some()
 }
 
 /// Whether any triple in the default graph has predicate `predicate`.
@@ -400,7 +410,9 @@ pub(crate) fn has_predicate(ds: &RdfDataset, predicate: &Iri) -> bool {
     let Some(p_id) = predicate_id(ds, predicate) else {
         return false;
     };
-    ds.quads().any(|q| q.g.is_none() && q.p == p_id)
+    ds.quads_for_pattern(None, Some(p_id), None, GraphMatch::Default)
+        .next()
+        .is_some()
 }
 
 /// Whether any triple in the default graph has predicate `predicate` and object `object`.
@@ -408,8 +420,9 @@ pub(crate) fn has_predicate_object(ds: &RdfDataset, predicate: &Iri, object: &No
     let (Some(p_id), Some(o_id)) = (predicate_id(ds, predicate), object_id(ds, object)) else {
         return false;
     };
-    ds.quads()
-        .any(|q| q.g.is_none() && q.p == p_id && q.o == o_id)
+    ds.quads_for_pattern(None, Some(p_id), Some(o_id), GraphMatch::Default)
+        .next()
+        .is_some()
 }
 
 // --------------------------------------------------------------------------- //

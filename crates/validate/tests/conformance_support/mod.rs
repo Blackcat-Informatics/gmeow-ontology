@@ -287,6 +287,83 @@ fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
     flatten_to_default_graph(&dataset)
 }
 
+/// Validate a dataset against a shape corpus with the FOCUS NODES sharded across
+/// a bounded set of worker threads.
+///
+/// The whole-ontology-union tests validate an ~80k-quad graph against the entire
+/// shape corpus (hundreds of node shapes, including every `sh:sparql` constraint —
+/// each a per-focus whole-graph query), and the engine's shape/focus loops are
+/// serial, so one validation run is tens of seconds of single-core work — past
+/// the CI per-test budget on a few-core runner. The unit of independent work is
+/// the (shape, focus) pair, and one hot shape can own most of the wall time
+/// (measured: `gmeow:InternalLanguageTagShape` alone is ~14 s of a ~22 s
+/// per-shape total over this corpus), so sharding must split WITHIN a shape:
+/// every worker runs the SAME full corpus over the SAME projected dataset but
+/// keeps only its round-robin residue of the focus stream via the engine's
+/// focus filter. The partition is exact and deterministic — the engine resolves
+/// each shape's focus set identically for every worker (deduplicated, then
+/// canonically sorted; see `resolve_focus_nodes` in purrdf-shapes engine.rs), so
+/// counting filter calls reproduces the same (shape, focus) sequence in each
+/// worker and every pair is validated exactly once across the pool. Workers
+/// duplicate only target resolution (measured ~0.1 s of a ~12 s run). The merged
+/// results are re-sorted with the engine's own deterministic report key, which
+/// is TOTAL (it ends in message + severity), so the report is byte-identical to
+/// the serial engine's. No assertion surface changes: every shape still runs
+/// against the whole graph.
+pub fn validate_dataset_sharded(dataset: &RdfDataset, shapes: &Shapes) -> ValidationReport {
+    use purrdf::shapes::engine::{project_dataset, validate_projected_dataset_with_focus_filter};
+
+    let projected =
+        project_dataset(dataset).expect("SHACL projection of the merged dataset must freeze");
+    let workers = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1);
+    let mut results: Vec<purrdf::shapes::report::ValidationResult> = std::thread::scope(|scope| {
+        let mut handles = Vec::with_capacity(workers);
+        for w in 0..workers {
+            let projected = Arc::clone(&projected);
+            handles.push(scope.spawn(move || {
+                let mut calls = 0usize;
+                validate_projected_dataset_with_focus_filter(projected, shapes, |_, _| {
+                    let mine = calls % workers == w;
+                    calls += 1;
+                    mine
+                })
+                .expect("native SHACL validation must succeed")
+                .results
+            }));
+        }
+        handles
+            .into_iter()
+            .flat_map(|h| h.join().expect("focus-shard validation worker joins"))
+            .collect()
+    });
+    // The engine's own TOTAL deterministic report key (`validate_with` in
+    // purrdf-shapes engine.rs): (focus, component, source shape, path, value,
+    // message, severity) — so the merged order equals the serial order exactly.
+    results.sort_by_cached_key(|r| {
+        (
+            r.focus_node.to_string(),
+            r.source_constraint_component.to_string(),
+            r.source_shape.to_string(),
+            r.result_path
+                .as_ref()
+                .map(ToString::to_string)
+                .unwrap_or_default(),
+            r.value
+                .as_ref()
+                .map(ToString::to_string)
+                .unwrap_or_default(),
+            r.message.clone().unwrap_or_default(),
+            r.severity.clone(),
+        )
+    });
+    ValidationReport {
+        conforms: results.is_empty(),
+        results,
+    }
+}
+
 /// Validate `base_ontology + fixture_nt` against `whole_shapes()`.
 ///
 /// Use this variant when the fixture triples rely on class/property declarations
@@ -296,7 +373,7 @@ pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
     let fixture = nt_to_dataset(fixture_nt);
     merged.extend(flat_rdf_quads_from_dataset(&fixture));
     let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
-    validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
+    validate_dataset_sharded(&dataset, whole_shapes())
 }
 
 /// Parsed SHACL shape model for the LIVE production shape union.
@@ -324,7 +401,7 @@ pub fn validate_with_ontology_shape_union(fixture_nt: &str) -> ValidationReport 
     let fixture = nt_to_dataset(fixture_nt);
     merged.extend(flat_rdf_quads_from_dataset(&fixture));
     let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
-    validate_dataset(&dataset, production_shapes()).expect("native SHACL validation must succeed")
+    validate_dataset_sharded(&dataset, production_shapes())
 }
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
