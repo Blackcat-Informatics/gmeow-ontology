@@ -88,6 +88,10 @@ pub const VALIDATE_DEEP_INCOMPLETE: &str = "validate.deep.incomplete";
 pub const VALIDATE_DEEP_CONSISTENT: &str = "validate.deep.consistent";
 /// `crates/validate/src/data_validate.rs` — garbled declared contract policy.
 pub const VALIDATE_DEEP_CONTRACT_INVALID: &str = "validate.deep.contract-invalid";
+/// `crates/validate/src/validate_all.rs` — a reasoning verdict named a clash quad
+/// whose explain-skeleton derivation could not be built or located. An internal
+/// invariant violation that HARD-FAILS the deep pass (never a graceful advisory).
+pub const VALIDATE_DEEP_DERIVATION_UNRESOLVED: &str = "validate.deep.derivation-unresolved";
 /// `crates/validate/src/data_validate.rs` — Tier-2 pass unavailable (graceful
 /// degradation note).
 pub const VALIDATE_DEEP_UNAVAILABLE: &str = "validate.deep.unavailable";
@@ -153,6 +157,18 @@ pub const STATEMENT_INVARIANT: &str = "statement.invariant";
 /// `crates/validate/src/statement.rs` — the RDF-1.2 ↔ OWL round-trip is lossy.
 pub const STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP: &str = "statement-compile.lossless-round-trip";
 
+// ── Bundle ontology completeness (`gmeow verify`) ────────────────────────────
+
+/// `crates/gmeow-cli/src/commands.rs` — a documented bundle term (class/property)
+/// carries no `rdfs:label`. A completeness gap surfaced by `gmeow verify`; a
+/// non-blocking Warning (a bundle that passes verify today carries zero missing
+/// labels, so this never changes a clean bundle's exit code).
+pub const ONTOLOGY_MISSING_LABEL: &str = "ontology.missing-label";
+/// `crates/gmeow-cli/src/commands.rs` — a documented bundle term (class/property)
+/// carries no `skos:definition`. A completeness gap surfaced by `gmeow verify`; a
+/// non-blocking Warning, for the same reason as [`ONTOLOGY_MISSING_LABEL`].
+pub const ONTOLOGY_MISSING_DEFINITION: &str = "ontology.missing-definition";
+
 // ── Input well-formedness ────────────────────────────────────────────────────
 
 /// `crates/validate/src/validate_all.rs` — an example file failed to parse.
@@ -203,6 +219,7 @@ pub const ALL_CODES: &[&str] = &[
     VALIDATE_DEEP_INCOMPLETE,
     VALIDATE_DEEP_CONSISTENT,
     VALIDATE_DEEP_CONTRACT_INVALID,
+    VALIDATE_DEEP_DERIVATION_UNRESOLVED,
     VALIDATE_DEEP_UNAVAILABLE,
     CONSTITUTION_HONOR_SYSTEM,
     CONSTITUTION_ORPHANED_ENFORCEMENT,
@@ -224,6 +241,8 @@ pub const ALL_CODES: &[&str] = &[
     WIKIDATA_NAMESPACE_MISUSE,
     STATEMENT_INVARIANT,
     STATEMENT_COMPILE_LOSSLESS_ROUND_TRIP,
+    ONTOLOGY_MISSING_LABEL,
+    ONTOLOGY_MISSING_DEFINITION,
     EXAMPLE_PARSE,
 ];
 

@@ -6147,12 +6147,15 @@ type Finding {
   crossNodeGlutWith: [Finding!]
   findingAnchor: [String!]
   findingAntecedent: [Finding!]
+  findingAvoidWhen: [String!]
   findingCategory: [String!]
   findingCluster: [FindingCluster!]
   findingCode: String
+  findingDerivedFromQuad: [String!]
   findingGateVerdict: [GateVerdict!]
   findingHasAntecedent: [Finding!]
   findingHelpUri: [String!]
+  findingHowToUse: [String!]
   findingLocation: [String!]
   findingMessage: String
   findingRemediation: [String!]
@@ -6162,6 +6165,7 @@ type Finding {
   findingSuggestion: [String!]
   findingTool: [String!]
   findingTraces: [Finding!]
+  findingUseWhen: [String!]
 }
 
 type FindingCluster {

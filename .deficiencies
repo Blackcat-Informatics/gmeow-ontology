@@ -225,6 +225,48 @@ reason/verify/validate are green. The following are recorded honestly:
    standard 5-limit Yaman values; the citation grounds the index placement in the
    classical authorities. Not a deferral — strengthened, not skipped.
 
+================================================================================
+2026-07-14 — issue #1310 (proof-carrying findings: finding-attached remediation +
+explanation-backed feedback), stage 2
+================================================================================
+
+All three parts (P1 rule-authored remediation, P2 explain-skeleton derivation, P3
+per-term guidance join), verify true-parity, and the projected DSL vocabulary were
+DEMONSTRATED-IN-PRODUCTION by the completion-adversary driving the real gmeow CLI on
+GTS bundle input (human/SARIF/JSON) and inspecting the shipped gmeow.gts — PASS, no
+open findings. All 5727 Rust tests pass; make regenerate is idempotent. Two gap-
+analysis MEDIUM gaps were fixed on the production surface (guidance normalize
+determinism; 24 stale "DSL-authored" → "registry-authored" comments). The following
+is recorded honestly:
+
+1. gmeow-test-budget gate (25s/test) NOT locally green — ENVIRONMENTAL, delegated
+   to CI's clean runner (human-signed-off exception). SAME recurring artifact as
+   issue #1517's entry above.
+   - Evidence it is load, not this branch: over the three make-check/rust-gate runs
+     the over-budget SET was UNSTABLE (3, then 4, then 3 tests; one run included an
+     untouched gmeow-pipeline mcp::startup test), and the offenders are whole-bundle
+     load/serialize tests (cli::describe_names_a_known_term, cli::describe_json_
+     format_is_valid_card_json, pipeline::yaml_ld::dist_jsonld_roundtrips_through_
+     carrier) measured at 11-16 s IN ISOLATION but inflated to 26-31 s under the
+     shared 32-core box's load average ~15-17. None was introduced by #1310 (the
+     branch's pre-merge diff contains none of those test names; bundle_smoke.rs
+     changes touched only verify_* assertion strings). dist_jsonld already carries
+     an engine-group serialize override in .config/nextest.toml and STILL breached
+     locally under load — engine-grouping cannot yield a green gate at load ~16.
+   - Why not fixed here: the affected tests are cross-cutting and unrelated to
+     #1310's diagnostics scope; the bundle growth driving them over the cliff is
+     overwhelmingly main's 18 merged commits, and the 25 s budget gate was itself
+     freshly hardened on main (a708f69). Moving unrelated tests off-gate or into a
+     serialize group inside a feature PR would modify shared CI infra + AGENTS.md
+     for tests outside this issue and could mask a genuine main-side budget-vs-
+     bundle-growth tension that is the maintainer's to decide. CI (dedicated
+     runner) is the authoritative budget evaluator.
+   - Human decision (2026-07-14): when presented with the four resolution options
+     (off-gate the offenders / engine-group serialize / escalate-don't-touch-infra /
+     retry-when-idle), the maintainer interrupted with "Ignore" — i.e. do NOT modify
+     the gate config, treat it as the environmental flake it is, and proceed. No
+     .config/nextest.toml or AGENTS.md change was made.
+
 ────────────────────────────────────────────────────────────────────────────
 2026-07-13 — consistency-oracle retirement, stage-2 exit gate
 

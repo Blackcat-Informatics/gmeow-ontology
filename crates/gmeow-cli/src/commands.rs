@@ -179,22 +179,48 @@ pub fn info(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
 
 // ── verify / verify-release-bundle ───────────────────────────────────────────
 
-/// `gmeow verify` — shell the external `gts verify` binary for the OpenPGP
-/// signature check, then print the source-free "Bundled Ontology Checks" table.
+/// `gmeow verify` — the native OpenPGP signature check, the blob-DAG integrity
+/// law, and the source-free ontology-completeness checks, all folded into ONE
+/// unified proof-carrying report that renders identically to `gmeow validate`
+/// on `--format human|sarif|json` (every finding carrying its remediation "how
+/// to fix" and per-term usage guidance). None of those legs reason, so plain
+/// `verify` is fast even over the full shipped bundle.
+///
+/// The reasoned deep-semantic pass is **`--deep`-gated**, mirroring `validate
+/// --deep`: only under `deep` does verify additionally run the Tier-2 native
+/// semantic pass and emit real `validate.deep.*` reasoned-quad verdicts (the
+/// witnesses the explain-skeleton derivation attaches to).
 pub fn verify(
     reporter: &dyn Reporter,
     file: Option<&Path>,
     trusted_key: Option<&Path>,
     allow_unsigned: bool,
+    format: &str,
+    deep: bool,
 ) -> i32 {
+    let output = format.to_lowercase();
+    if !matches!(output.as_str(), "human" | "sarif" | "json") {
+        return fail(
+            reporter,
+            "gmeow-cli.verify.unknown-format",
+            format!("unknown --format {output:?}: expected human, sarif, or json"),
+        );
+    }
     let bytes = match gts_bytes(reporter, file) {
         Ok(b) => b,
         Err(code) => return code,
     };
 
+    // The single unified report every leg folds into, and the artifact under
+    // inspection is its OWN `documented_terms` subject (the F3 contract:
+    // `subject = bundle`).
+    let mut report = gmeow_errors::Report::new("verify");
+
     // 1. Signature/trust check via the native `purrdf::gts::verify` primitive,
-    // in-process — no external `gts` binary, no PATH/`GMEOW_GTS_BIN` lookup, no
-    // temp-file staging (the wrapper takes the bundle bytes directly).
+    // in-process — no external `gts` binary. Every signature/trust finding
+    // (resolved key/fingerprint, missing signature, untrusted signer, …) folds
+    // into the unified report so it renders enriched on every channel; the
+    // hard-fail boolean still governs the exit code (a bad signature must fail).
     let config = gmeow_validate::validate_all::SignatureConfig {
         require_signatures: !allow_unsigned,
         trusted_key: trusted_key.map(|p| p.to_string_lossy().into_owned()),
@@ -212,18 +238,14 @@ pub fn verify(
             }
         };
     let sig_ok = !sig_hard_fail;
-    // Surface every signature/trust finding (resolved key/fingerprint, missing
-    // signature, untrusted signer, …) through the shared reporter channel instead
-    // of silently dropping them behind a boolean.
-    let mut sig_report = gmeow_errors::Report::new("gmeow-cli.verify");
     for finding in sig_findings {
-        sig_report.add_finding(finding);
+        report.add_finding(finding);
     }
-    reporter.report(&sig_report);
 
     // 2. Blob-DAG integrity over the folded snapshot (the reusable law from
     // `Bundle::integrity_report`): no dangling content-addressed reference, no
-    // orphan blob, no hash-integrity mismatch.
+    // orphan blob, no hash-integrity mismatch. A hard-fail gate (never silently
+    // accepted).
     let integrity_report = match gmeow_pipeline::bundle_blobs::Bundle::from_snapshot(&bytes)
         .and_then(|bundle| bundle.integrity_report())
     {
@@ -238,52 +260,147 @@ pub fn verify(
     };
     let integrity_ok = integrity_report.is_clean();
 
-    // 3. Source-free ontology checks over the folded snapshot.
-    let checks = match gmeow_pipeline::cli_ops::confirmations::bundle_term_summaries(&bytes) {
-        Ok(terms) => terms,
+    // 3. Source-free ontology-completeness findings over the folded snapshot: one
+    // rule-coded, ledger-identified `Finding` per missing label / definition per
+    // documented term, each carrying the term IRI as its `documented_terms` join
+    // key so the per-term guidance lights up on verify too.
+    if let Err(e) = append_ontology_findings(&bytes, &mut report) {
+        return fail(
+            reporter,
+            "gmeow-cli.verify.ontology-checks",
+            format!("bundled ontology checks failed: {e}"),
+        );
+    }
+
+    // 4. The reasoned deep-semantic pass over the bundle, `--deep`-gated (TRUE
+    // parity with `validate --deep`): plain `verify` never reasons. When `deep`
+    // is set, this calls the SAME public entry the dev bundle pass runs, so
+    // verify emits real `validate.deep.*` reasoned-quad verdicts (the witnesses
+    // the derivation attaches to). Honors the Task-5 hard-fail: a verdict that
+    // cannot be joined to its explain-skeleton derivation propagates as `Err`
+    // and is a `Severity::Error` failure here, never swallowed.
+    if deep && let Err(e) = gmeow_validate::validate_all::bundle_deep_findings(&bytes, &mut report)
+    {
+        return fail(
+            reporter,
+            "gmeow-cli.verify.deep",
+            format!("deep semantic pass failed: {e}"),
+        );
+    }
+
+    // 5. The single proof-carrying enrichment pass over the unified report:
+    // rule identity + registry-authored remediation + per-term usage guidance +
+    // derivation, so verify renders every enrichment identically to validate. The
+    // bundle IS both the rule-catalog graph and the `documented_terms` subject.
+    let bundle_ds = match purrdf::import_gts_events(&bytes) {
+        Ok(b) => b,
         Err(e) => {
             return fail(
                 reporter,
-                "gmeow-cli.verify.ontology-checks",
-                format!("bundled ontology checks failed: {e}"),
+                "gmeow-cli.verify.fold",
+                format!("cannot fold snapshot for enrichment: {e}"),
             );
         }
     };
-    let missing_label = checks.iter().filter(|(_, l, _)| l.is_empty()).count();
-    let missing_def = checks.iter().filter(|(_, _, d)| d.is_empty()).count();
+    let subject = bundle_ds.dataset.as_ref();
+    gmeow_validate::enrich::enrich_findings(&mut report, subject, subject);
 
-    println!("Bundled Ontology Checks");
-    let mut ok = sig_ok;
-    let mut row = |name: &str, passed: bool, detail: String| {
-        ok = ok && passed;
-        println!(
-            "  {name}: {} ({detail})",
-            if passed { "pass" } else { "fail" }
-        );
-    };
-    row(
-        "term catalog",
-        !checks.is_empty(),
-        format!("{} terms", checks.len()),
-    );
-    row(
-        "labels",
-        missing_label == 0,
-        format!("{missing_label} missing"),
-    );
-    row(
-        "definitions",
-        missing_def == 0,
-        format!("{missing_def} missing"),
-    );
-    row("signatures", sig_ok, "native gts verify".to_owned());
-    row("blob integrity", integrity_ok, integrity_report.summary());
+    // 6. Render the unified report on the chosen channel, then compute the exit
+    // code from the unified report's error_count PLUS the signature and integrity
+    // hard-fails (do not regress the existing verify failure semantics).
+    match output.as_str() {
+        "sarif" => match gmeow_errors::render::to_sarif(&report) {
+            Ok(s) => println!("{s}"),
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.verify.render-sarif",
+                    format!("cannot render SARIF: {e}"),
+                );
+            }
+        },
+        "json" => match gmeow_errors::render::to_json(&report) {
+            Ok(s) => println!("{s}"),
+            Err(e) => {
+                return fail(
+                    reporter,
+                    "gmeow-cli.verify.render-json",
+                    format!("cannot render JSON: {e}"),
+                );
+            }
+        },
+        _ => {
+            let text = gmeow_errors::render::to_text(&report);
+            if !text.is_empty() {
+                println!("{text}");
+            }
+        }
+    }
 
-    if !ok {
+    let verify_failed = !sig_ok || !integrity_ok || report.error_count() > 0;
+    if verify_failed {
         return fail(reporter, "gmeow-cli.verify.failed", "verification failed");
     }
-    println!("verification passed");
+    if output == "human" {
+        println!("verification passed");
+    }
     0
+}
+
+/// Fold one rule-coded, ledger-identified [`Finding`] per ontology-completeness
+/// gap — a missing `rdfs:label` or `skos:definition` on a documented class/property
+/// — into `report`, routing each through a [`DiagLedger`] so it carries a stable
+/// `finding_iri`/anchor identity and its term IRI as `documented_terms` (the Task-4
+/// documented-term guidance join key). Non-blocking Warnings: a bundle that passes
+/// `gmeow verify` today has none, so the exit contract is preserved.
+fn append_ontology_findings(bytes: &[u8], report: &mut gmeow_errors::Report) -> Result<(), Diag> {
+    use gmeow_errors::model::Location;
+    use gmeow_errors::{DiagLedger, StageId, code::register_code};
+
+    let terms = gmeow_pipeline::cli_ops::confirmations::bundle_term_summaries(bytes)?;
+    let stage = StageId::new("verify.ontology");
+    let grade = Grade::new(
+        Severity::Warning,
+        FindingCategory::PolicyWarning,
+        Standpoint::Perspectival,
+    );
+    let mut ledger = DiagLedger::new();
+    for term in &terms {
+        // The term IRI anchors the finding (a non-trivial source context) and is
+        // its `documented_terms` join key.
+        let anchor = || Location {
+            logical: Some(term.iri.clone()),
+            ..Location::default()
+        };
+        if term.label.is_empty() {
+            ledger.attach(
+                Diag::new(
+                    register_code(gmeow_validate::codes::ONTOLOGY_MISSING_LABEL),
+                    grade,
+                    format!("term {} carries no rdfs:label", term.curie),
+                )
+                .with_documented_term(term.iri.clone())
+                .with_location(anchor()),
+                stage.clone(),
+            );
+        }
+        if term.definition.is_empty() {
+            ledger.attach(
+                Diag::new(
+                    register_code(gmeow_validate::codes::ONTOLOGY_MISSING_DEFINITION),
+                    grade,
+                    format!("term {} carries no skos:definition", term.curie),
+                )
+                .with_documented_term(term.iri.clone())
+                .with_location(anchor()),
+                stage.clone(),
+            );
+        }
+    }
+    for finding in ledger.findings("verify") {
+        report.add_finding(finding);
+    }
+    Ok(())
 }
 
 /// `gmeow verify-release-bundle` — native COSE + attestation-walk verification.

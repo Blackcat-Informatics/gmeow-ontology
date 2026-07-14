@@ -33,7 +33,7 @@ use crate::rule_catalog::{help_uri_for, remediation_for};
 /// this ledger never leaves this pass).
 const STAGE: &str = "stage-validate";
 
-/// Attach the DSL-authored rule-level remediation onto each finding whose code the
+/// Attach the registry-authored rule-level remediation onto each finding whose code the
 /// catalogue carries guidance for, THROUGH the annotate-by-fingerprint seam.
 ///
 /// Each finding is interned into a transient [`DiagLedger`] under its
