@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for math:ExtendedRealShape: a signed-extended-real slot holding a
+# non-numeric string instead of a finite number or one of the two poles. The object of
+# math:extendedRealValue satisfies none of the three sh:or arms, so validation MUST emit
+# shacl.OrConstraintComponent (and no other finding). A pole written as text is not a
+# point of ℝ̄ (math:MalformedExtendedReal).
+# Bound by tests/example-conformance.ttl (ex:ecExtendedRealMalformed).
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix ex:   <http://example.org/math/> .
+
+ex:brokenReach math:extendedRealValue "minus infinity" .

@@ -32,6 +32,15 @@ ex:goldenRatio a math:MathematicalConstant ;
     math:inNumberSystem math:realNumbers ;
     math:isExact true .
 
+# A signed-extended-real slot on the extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: a quantity that
+# diverges downward, declared with the negative pole math:NegativeInfinity rather than a
+# finite literal. math:ExtendedRealLine adjoins both poles to the reals through the same
+# number-system machinery the finite tower uses.
+ex:unboundedBelowReach a math:Quantity ;
+    rdfs:label "an unbounded-below reach (→ −∞)"@x-gmeow-english ;
+    math:hasDimension math:dimensionless ;
+    math:extendedRealValue math:NegativeInfinity .
+
 # A finite set given extensionally, with a cardinality.
 ex:smallPrimes a math:FiniteSet ;
     rdfs:label "{2, 3, 5, 7}"@x-gmeow-english ;

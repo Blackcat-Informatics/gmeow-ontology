@@ -134,6 +134,16 @@ gmeow:eqMathComplexNumbers a gmeow:TermEquivalence ;
     gmeow:comment "math:complexNumbers is the system ℂ; wd:Q11567 (complex number) names the number-type concept. closeMatch: the system individual and the number-type concept are close counterparts, not invertibly the same object." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
+gmeow:eqMathExtendedRealLine a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:ExtendedRealLine ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject wd:Q1416516 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:objectLabel "extended real number line" ;
+    gmeow:comment "math:ExtendedRealLine is the signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}; wd:Q1416516 (extended real number line) names the same two-point compactification concept. closeMatch, not identity: the GMEOW term is a system individual carrying the adjunction machinery (its poles and subsystem edges), a close but non-invertible counterpart of the bare Wikidata concept — the same rung the finite number systems take." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 # --- Algebraic-structure classes → Wikidata (concept identity) ------------- #
 # Each math: structure class denotes the same concept as its Wikidata item — a
 # clean 1:1 identity (the class IS the concept "group", "ring", …), so

@@ -112,7 +112,7 @@ math:NumberSystem
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Number System"@x-gmeow-english ;
-    skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ. A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
+    skos:definition "A number system: the domain a number is situated in — ℕ, ℤ, ℚ, ℝ, or ℂ. A subclass of math:Set — a number system IS the set of its numbers, so it can serve as the math:domain or math:codomain of a function (the complex plane ℂ is the domain of the gamma function). Its instances are the five named systems math:naturalNumbers, math:integers, math:rationalNumbers, math:realNumbers, and math:complexNumbers, ordered by math:subsystemOf into the containment tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, together with the signed extended real line math:ExtendedRealLine, which adjoins the two poles math:PositiveInfinity and math:NegativeInfinity to ℝ through the same machinery (math:realNumbers is its subsystem). A math:Number points at one through math:inNumberSystem."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Number-system individuals (the containment tower) ---------------------- #
@@ -142,8 +142,8 @@ math:realNumbers
     a owl:NamedIndividual , math:NumberSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "real numbers (ℝ)"@x-gmeow-english ;
-    skos:definition "The system of real numbers ℝ — the continuous number line. math:subsystemOf math:complexNumbers."@x-gmeow-english ;
-    math:subsystemOf math:complexNumbers .
+    skos:definition "The system of real numbers ℝ — the continuous number line. math:subsystemOf math:complexNumbers, and math:subsystemOf math:ExtendedRealLine (the reals are the finite core of the signed extended real line ℝ̄)."@x-gmeow-english ;
+    math:subsystemOf math:complexNumbers , math:ExtendedRealLine .
 
 math:complexNumbers
     a owl:NamedIndividual , math:NumberSystem ;
@@ -504,6 +504,14 @@ math:UnframedFunction
     skos:definition "The failure raised when a math:Function does not declare both its math:domain and its math:codomain. A function without its frame is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:MalformedExtendedReal
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Malformed Extended Real"@x-gmeow-english ;
+    skos:definition "The failure raised when a signed-extended-real slot (a value of math:extendedRealValue) holds something that is not a point of the extended real line ℝ̄ — a non-numeric literal, or an IRI that is neither math:PositiveInfinity nor math:NegativeInfinity. A value on ℝ̄ is a finite numeric literal of either sign, math:PositiveInfinity, or math:NegativeInfinity; anything else is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 # =========================================================================== #
 # Properties
 # =========================================================================== #
@@ -557,6 +565,13 @@ math:quantityValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "quantity value"@x-gmeow-english ;
     skos:definition "The concrete numeric literal a value carries — the floating-point or decimal expansion of a math:ApproximateValue, or the finite count of a cardinality. Domain math:ApproximateValue or math:Cardinality, range a numeric literal (stated in prose). A math:MathematicalConstant never carries this directly; its decimal belongs to a distinct math:ApproximateValue."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:extendedRealValue
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "extended-real value"@x-gmeow-english ;
+    skos:definition "The signed-extended-real value in an extended-real slot — a value on the extended real line ℝ̄ that may be finite or run off to either pole. Range a finite numeric literal, math:PositiveInfinity, or math:NegativeInfinity (stated in prose). Like math:totalMass, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Unlike math:totalMass (a non-negative mass), an extended-real value carries a sign, so its finite branch admits negatives. A slot holding anything else is a math:MalformedExtendedReal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Set properties --------------------------------------------------------- #
@@ -1452,7 +1467,21 @@ math:PositiveInfinity
     a owl:NamedIndividual ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "+∞"@x-gmeow-english ;
-    skos:definition "Positive infinity as an extended-real value: the total mass of a σ-finite but non-finite measure such as a math:LebesgueMeasure on the line or a math:CountingMeasure on an infinite set. A math:totalMass is either a finite non-negative number or this individual; it is the extended-real point that makes an infinite measure declarable without a finite literal."@x-gmeow-english .
+    skos:definition "Positive infinity as an extended-real value: the total mass of a σ-finite but non-finite measure such as a math:LebesgueMeasure on the line or a math:CountingMeasure on an infinite set. A math:totalMass is either a finite non-negative number or this individual; it is the extended-real point that makes an infinite measure declarable without a finite literal. The positive pole of the signed extended real line math:ExtendedRealLine, adjoined to ℝ through math:inNumberSystem and dual to math:NegativeInfinity."@x-gmeow-english ;
+    math:inNumberSystem math:ExtendedRealLine .
+
+math:NegativeInfinity
+    a owl:NamedIndividual ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "−∞"@x-gmeow-english ;
+    skos:definition "Negative infinity as an extended-real value: the negative pole of the signed extended real line math:ExtendedRealLine, the dual of math:PositiveInfinity. It is the extended-real point that lets an unbounded-below quantity — a limit diverging downward, the infimum of a set with no lower bound — be declared without a finite literal. It is NOT a finite number (it lives nowhere in ℝ); NOT an error, exception, or missing value; and NOT the undefined/indeterminate result that math:PositiveInfinity + math:NegativeInfinity or 0 · ∞ would give — an extended real is a definite point on ℝ̄, never a NaN. A signed-extended-real slot (math:extendedRealValue) holds either a finite number, math:PositiveInfinity, or this individual."@x-gmeow-english ;
+    math:inNumberSystem math:ExtendedRealLine .
+
+math:ExtendedRealLine
+    a owl:NamedIndividual , math:NumberSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "extended real line (ℝ̄)"@x-gmeow-english ;
+    skos:definition "The signed extended real line ℝ̄ = ℝ ∪ {−∞, +∞}: the real number system with its two poles adjoined. A math:NumberSystem individual, sibling to math:realNumbers and math:complexNumbers, not a class — it reuses the number-system machinery rather than a parallel one, relating the reals as a subsystem (math:realNumbers math:subsystemOf math:ExtendedRealLine) and adjoining the two extended-real points math:PositiveInfinity and math:NegativeInfinity as its members (each math:inNumberSystem math:ExtendedRealLine). Because math:NumberSystem is a subclass of math:Set, the system IS the set of its points, so it can be the codomain a signed divergent field — an extended-real-valued function whose value may run off to either pole — ranges over. Distinct from ℂ: ℝ̄ compactifies the ordered line with two signed ends, it does not close it algebraically; a value in a signed-extended-real slot is a finite real, +∞, or −∞ (math:MalformedExtendedReal otherwise)."@x-gmeow-english .
 
 # --- Dimension — the cross-cutting invariant -------------------------------- #
 

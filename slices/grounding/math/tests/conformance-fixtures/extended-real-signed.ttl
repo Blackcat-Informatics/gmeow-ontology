@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Well-formed: signed-extended-real slots on the extended real line ℝ̄. One slot holds
+# the negative pole math:NegativeInfinity (a limit diverging downward), one holds a
+# finite negative real. Both objects of math:extendedRealValue conform to
+# math:ExtendedRealShape. Bound by ex:ecExtendedRealSigned.
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/math/> .
+
+# An unbounded-below limit declared with the negative pole — no finite literal needed.
+ex:divergingDownward math:extendedRealValue math:NegativeInfinity .
+
+# A finite negative real in the same signed-extended-real slot.
+ex:finiteReach math:extendedRealValue "-3.5"^^xsd:double .

@@ -30,8 +30,12 @@ Core classes: `math:Number`, `math:NaturalNumber`, `math:Integer`, `math:Rationa
 `math:RealNumber`, `math:ComplexNumber`, `math:AlgebraicNumber`, `math:TranscendentalNumber`,
 `math:MathematicalConstant`, and `math:ApproximateValue`.
 
+Core system individuals: the tower `math:naturalNumbers` ⊂ `math:integers` ⊂ `math:rationalNumbers`
+⊂ `math:realNumbers` ⊂ `math:complexNumbers`, and — the reals with two signed poles adjoined —
+`math:ExtendedRealLine`.
+
 Core properties: `math:inNumberSystem`, `math:isExact`, `math:approximates`,
-`math:approximationError`, and `math:numericDatatype`.
+`math:approximationError`, `math:numericDatatype`, and `math:extendedRealValue`.
 
 A `math:Number` declares its number system (`math:inNumberSystem`: ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ, with the
 algebraic/transcendental distinction inside ℝ/ℂ) and whether it is **exact** or an
@@ -42,6 +46,18 @@ the canonical RDF datatypes `xsd:double`/`xsd:float` (IEEE-754), carried by `mat
 ([`MATHEMATICS-REFERENCES.md`](MATHEMATICS-REFERENCES.md) — the `xsd` FP datatypes are subsumed, not
 re-minted).
 
+**Signed extended reals.** Some quantities run off the finite line: a limit diverging downward, an
+infimum of a set with no lower bound, a σ-finite measure's infinite mass. The **signed extended real
+line** `math:ExtendedRealLine` names ℝ̄ = ℝ ∪ {−∞, +∞} and adjoins two poles — `math:PositiveInfinity`
+(already the codomain of `math:totalMass`) and its dual `math:NegativeInfinity` (the glyph "−∞") — to
+the reals. It is **grounded through the same number-system machinery**, not a parallel one:
+`math:realNumbers math:subsystemOf math:ExtendedRealLine`, and each pole is a member through
+`math:inNumberSystem math:ExtendedRealLine`. A pole is a *definite point* on ℝ̄, never a finite number,
+an error, or an undefined/NaN result (that ±∞ ∓ ±∞ or 0·∞ would give). A **signed-extended-real slot**
+carries `math:extendedRealValue` — an `rdf:Property` (like `math:totalMass`) whose range honestly spans
+both a finite numeric literal *and* a pole individual — and its value is a finite real of either sign,
+`math:PositiveInfinity`, or `math:NegativeInfinity`; anything else is a `math:MalformedExtendedReal`.
+
 > **Hard rules.**
 >
 > - A `math:Number` declares its number system; an unsituated number is ill-formed.
@@ -49,6 +65,9 @@ re-minted).
 >   what it approximates and its error, and is never conflated with the exact value.
 > - A named constant (π, e, γ) is an exact `math:MathematicalConstant` individual with a Wikidata
 >   QID and, where applicable, an OEIS/DLMF link — never a decimal literal.
+> - A signed-extended-real slot (`math:extendedRealValue`) holds a finite number of either sign,
+>   `math:PositiveInfinity`, or `math:NegativeInfinity`; a pole written as text or any other node is
+>   a `math:MalformedExtendedReal`.
 
 ## Arithmetic
 
