@@ -2398,6 +2398,8 @@ class Math_RationalValue(ConfiguredBaseModel):
     annotation: Annotation | None = Field(default=None, alias="@annotation")
     id: str | None = Field(default=None, alias="@id")
     type_: str | list[str] | None = Field(default=None, alias="@type")
+    denominator: int = Field(description="The integer denominator q of a math:RationalValue p/q. Domain math:RationalValue, range xsd:integer (stated in prose; SHACL forbids the value 0). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — a rational value has exactly one denominator. A zero denominator is ill-formed (math:ZeroDenominator).", alias="math:denominator")
+    numerator: int = Field(description="The integer numerator p of a math:RationalValue p/q. Domain math:RationalValue, range xsd:integer (stated in prose). Single-valued (documented in prose, not an OWL characteristic — the math profile is EL-clean) — a rational value has exactly one numerator. Carried as an exact integer, never a decimal.", alias="math:numerator")
 
 
 class Math_ResidualInterpretationClaim(ConfiguredBaseModel):

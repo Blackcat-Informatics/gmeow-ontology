@@ -2708,6 +2708,192 @@ fn derive_complement_has_value_lowers_to_not_has_value() {
 }
 
 #[test]
+fn derive_pinned_forbidden_pattern_record_lowers_to_not_has_value_on_the_class_shape() {
+    // FAMILY 7: a `logic:ForbiddenPatternConstraint` with a PINNED `logic:forbiddenValue` is the
+    // decidable, validation-only authoring form of the value-complement pattern. It must lower to
+    // the exact component the legacy shapes carried — `sh:not [ sh:hasValue v ]` on the forbidden
+    // path of the `{C}-shape` — merged with the class's other conditions on that path.
+    let ds = shape_dataset(
+        "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         g:Cell a owl:Class ; rdfs:subClassOf \
+         [ a owl:Restriction ; owl:onProperty g:denom ; \
+           owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] .\n\
+         g:cellDenomNonZero a logic:ForbiddenPatternConstraint ;\n\
+           logic:onClass g:Cell ;\n\
+           logic:forbiddenPredicate g:denom ;\n\
+           logic:forbiddenValue \"0\"^^xsd:integer ;\n\
+           logic:formalizes g:Cell .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let cell_shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("/Cell")))
+        .expect("a g:Cell class shape must derive");
+    let denom = cell_shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("/denom"))
+        .expect("a g:denom property shape must derive");
+    assert!(
+        denom.components.iter().any(|c| matches!(c,
+            ConstraintComponent::Not(inner)
+                if matches!(inner.as_ref(),
+                    ConstraintComponent::HasValue(ShapeValue::Literal { lexical, .. })
+                        if lexical == "0"))),
+        "expected sh:not [ sh:hasValue 0 ] on the g:denom path: {cell_shape:?}"
+    );
+    // The pinned-value component MERGES with the restriction-derived cardinality on the same
+    // path (one property shape per path, never a colliding second shape).
+    assert_eq!(denom.max_count, Some(1), "same-path conditions must merge");
+}
+
+#[test]
+fn derive_unpinned_and_iri_pinned_forbidden_pattern_records_derive_no_component() {
+    // The UNPINNED form ("C must not carry P at all") has no per-value SHACL-Core lowering
+    // here, and the IRI-pinned form is the class-negation idiom whose declarative home is
+    // the node-level sh:not [ sh:class … ] — neither derives a property component; their
+    // canonical constraint expansions carry them procedurally.
+    let ds = shape_dataset(
+        "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         g:cellNoLegacy a logic:ForbiddenPatternConstraint ;\n\
+           logic:onClass g:Cell ;\n\
+           logic:forbiddenPredicate g:legacyCode ;\n\
+           logic:formalizes g:Cell .\n\
+         g:cellNotOther a logic:ForbiddenPatternConstraint ;\n\
+           logic:onClass g:Cell ;\n\
+           logic:forbiddenPredicate rdf:type ;\n\
+           logic:forbiddenValue g:OtherKind ;\n\
+           logic:formalizes g:Cell .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    assert!(
+        shapes.is_empty(),
+        "unpinned / IRI-pinned forbidden patterns must derive no declarative shape: {shapes:?}"
+    );
+}
+
+#[test]
+fn derive_value_range_record_lowers_to_min_and_max_inclusive_on_the_class_shape() {
+    // FAMILY 8: a `logic:ValueRangeConstraint` is the decidable, validation-only authoring
+    // form of a bounded numeric range (the OWL faceted-datatype filler is undecidable for the
+    // native reasoner once a literal is asserted on the path). It must lower to the exact
+    // components the legacy facet carried — `sh:minInclusive`/`sh:maxInclusive` on the value
+    // path of the `{C}-shape`.
+    let ds = shape_dataset(
+        "@prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+         g:unitInterval a logic:ValueRangeConstraint ;\n\
+           logic:onClass g:Probability ;\n\
+           logic:valuePath g:magnitude ;\n\
+           logic:minInclusiveBound 0 ;\n\
+           logic:maxInclusiveBound 1 ;\n\
+           logic:formalizes g:Probability .",
+    );
+    let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
+    let shape = shapes
+        .iter()
+        .find(|s| matches!(&s.target, ShapeTarget::Class(c) if c.ends_with("/Probability")))
+        .expect("a g:Probability class shape must derive");
+    let prop = shape
+        .properties
+        .iter()
+        .find(|p| p.path.ends_with("/magnitude"))
+        .expect("a g:magnitude property shape must derive");
+    assert!(
+        prop.components.iter().any(|c| matches!(c,
+            ConstraintComponent::NumericRange {
+                min: Some(lo),
+                max: Some(hi),
+                min_inclusive: true,
+                max_inclusive: true,
+            } if *lo == 0.0 && *hi == 1.0)),
+        "expected sh:minInclusive 0 / sh:maxInclusive 1 on g:magnitude: {shape:?}"
+    );
+}
+
+#[test]
+fn value_range_record_expands_to_one_constraint_and_leaks_no_axiom() {
+    // The record expands to exactly one canonical logic:Constraint whose integrity is the
+    // guarded range formula, and its structural triples never enter `prog.axioms` — a
+    // validates-but-does-not-entail obligation is never a reasoning-core axiom.
+    let (prog, diags) = parse(
+        "ex:unitInterval a logic:ValueRangeConstraint ;\n\
+           logic:onClass ex:Probability ;\n\
+           logic:valuePath ex:magnitude ;\n\
+           logic:minInclusiveBound 0 ;\n\
+           logic:maxInclusiveBound 1 ;\n\
+           logic:formalizes ex:Probability .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+    assert_eq!(
+        prog.constraints.len(),
+        1,
+        "exactly one canonical constraint must expand"
+    );
+    let c = &prog.constraints[0];
+    assert!(
+        matches!(&c.target, ShapeTarget::Class(cl) if cl.ends_with("/Probability")),
+        "the range constraint must target the guarded class: {:?}",
+        c.target
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.subject.ends_with("/unitInterval")),
+        "no record triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+#[test]
+fn value_range_record_without_any_bound_is_a_malformed_record() {
+    // A range record naming no bound constrains nothing — fail-soft like the other sugar
+    // readers: a MALFORMED_CONSTRAINT diagnostic, never a silent no-op constraint.
+    let (prog, diags) = parse(
+        "ex:noBounds a logic:ValueRangeConstraint ;\n\
+           logic:onClass ex:Probability ;\n\
+           logic:valuePath ex:magnitude ;\n\
+           logic:formalizes ex:Probability .",
+    );
+    assert!(prog.constraints.is_empty(), "no constraint may expand");
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.message.contains("minInclusiveBound")),
+        "a missing-bound record must diagnose: {diags:?}"
+    );
+}
+
+#[test]
+fn pinned_forbidden_pattern_record_contributes_nothing_to_the_reasoned_axiom_set() {
+    // The record is a validation descriptor: it expands to exactly one canonical
+    // logic:Constraint and its structural triples MUST NOT leak into `prog.axioms`
+    // (the reasoned axiom set) — a validates-but-does-not-entail obligation never
+    // becomes a reasoning-core axiom.
+    let (prog, diags) = parse(
+        "ex:cellDenomNonZero a logic:ForbiddenPatternConstraint ;\n\
+           logic:onClass ex:Cell ;\n\
+           logic:forbiddenPredicate ex:denom ;\n\
+           logic:forbiddenValue \"0\"^^xsd:integer ;\n\
+           logic:formalizes ex:Cell .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+    assert_eq!(
+        prog.constraints.len(),
+        1,
+        "exactly one canonical constraint must expand"
+    );
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.subject.ends_with("/cellDenomNonZero")),
+        "no record triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+#[test]
 fn derive_value_keyed_general_class_inclusion() {
     // `[ owl:onProperty mode ; owl:hasValue modeAbduction ] rdfs:subClassOf
     //  [ owl:onProperty explanandum ; owl:minCardinality 1 ]` → a ValueKeyed(mode, modeAbduction)

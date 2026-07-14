@@ -272,6 +272,8 @@ fn is_constraint_structural_predicate(prop_local: &str) -> bool {
             | "roleA" | "roleB" | "crossMode"
             // P7 forbidden-pattern.
             | "forbiddenPredicate" | "forbiddenValue"
+            // P8 value-range (inclusive numeric bounds over a path).
+            | "minInclusiveBound" | "maxInclusiveBound"
             // Aggregate-comparison satellite.
             | "aggFunction" | "aggDistinct" | "aggPath" | "aggComparator" | "aggCompareTo"
             // Comparison constraint (two focus-property values compared).
@@ -304,6 +306,7 @@ fn is_constraint_sugar_class(local: &str) -> bool {
             | "PathValueTypeConstraint"
             | "CrossNodeConstraint"
             | "ForbiddenPatternConstraint"
+            | "ValueRangeConstraint"
             | "AggregateConstraint"
             | "ComparisonConstraint"
             | "PathNodeKindConstraint"
@@ -2390,6 +2393,121 @@ pub fn derive_validation_shapes(
         .push(pc);
     }
 
+    // ── FAMILY 7 — pinned-value forbidden-pattern records (Class(C) target) ────────────────
+    // An authored `logic:ForbiddenPatternConstraint` carrying `logic:onClass C`,
+    // `logic:forbiddenPredicate P`, and a PINNED `logic:forbiddenValue v` is the canonical
+    // validates-but-does-not-entail record for "an instance of C must never carry P = v".
+    // It is the decidable authoring form of the value-complement pattern: the OWL rendering
+    // (`owl:allValuesFrom [ owl:complementOf [ owl:hasValue v ] ]`) is outside the native
+    // reasoner's decidable fragment, so it must never sit in the reasoning core as an axiom.
+    // The record lowers declaratively to the exact SHACL-Core component the legacy shapes
+    // carried — `sh:not [ sh:hasValue v ]` on path P of the `{C}-shape` — merging with the
+    // class's other property conditions on that path. It is a validation descriptor, not an
+    // OWL axiom being re-read, so the per-property `OpenWorldClosure` opt-out (which governs
+    // the validation READING of reasoning axioms) does not apply, and its triples never enter
+    // `prog.axioms` (`is_constraint_structural_predicate` / `is_constraint_sugar_class`).
+    // LITERAL pins only: an IRI pin is the class-negation idiom (`logic:forbiddenPredicate
+    // rdf:type`), whose declarative home is the node-level `sh:not [ sh:class … ]` the
+    // disjointness family already derives — lowering it here would mint a redundant
+    // `rdf:type`-path property shape that leaks into the schema projections. The IRI-pinned
+    // and UNPINNED forms keep their procedural projection only.
+    let forbidden_ty = Node::iri(logic_iri("ForbiddenPatternConstraint"));
+    let p_sugar_onclass = nn(&logic_iri("onClass"));
+    let p_forbidden_pred = nn(&logic_iri("forbiddenPredicate"));
+    let p_forbidden_value = nn(&logic_iri("forbiddenValue"));
+    for record in subjects_with(store, &nn(RDF_TYPE), &forbidden_ty) {
+        let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
+            continue;
+        };
+        // Only an authoring-namespace class owns a derived shape (the same dogfooding
+        // boundary every other family enforces).
+        if !is_authoring_ns(&class_iri) {
+            continue;
+        }
+        let Some(Node::Iri(on)) = value(store, &record, &p_forbidden_pred) else {
+            continue;
+        };
+        let sv = match value(store, &record, &p_forbidden_value) {
+            Some(Node::Lit {
+                lexical,
+                datatype,
+                lang,
+            }) => ShapeValue::Literal {
+                lexical,
+                datatype,
+                lang,
+            },
+            // IRI-pinned, unpinned, or malformed — no per-value SHACL-Core form here; the
+            // record's canonical logic:Constraint expansion carries it procedurally.
+            _ => continue,
+        };
+        let pc = PropertyConstraintIr::new(
+            &on,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::Not(Box::new(
+                ConstraintComponent::HasValue(sv),
+            ))],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
+    }
+
+    // ── FAMILY 8 — value-range records (Class(C) target) ───────────────────────────────────
+    // An authored `logic:ValueRangeConstraint` (`logic:onClass C`, `logic:valuePath P`, and an
+    // inclusive `logic:minInclusiveBound` and/or `logic:maxInclusiveBound` literal) is the
+    // canonical validates-but-does-not-entail record for a bounded numeric range on a path.
+    // Like FAMILY 7 it is the decidable authoring form of an out-of-fragment OWL pattern: a
+    // faceted-datatype `owl:allValuesFrom` filler is undecidable for the native reasoner as
+    // soon as any literal is asserted on the constrained path (no datatype value-space
+    // reasoning), so the range must never sit in the reasoning core. It lowers declaratively
+    // to the exact components the legacy facet carried — `sh:minInclusive`/`sh:maxInclusive`
+    // on path P of the `{C}-shape` — merging with the class's other conditions on that path.
+    // A validation descriptor, never a re-read OWL axiom, so the `OpenWorldClosure` opt-out
+    // does not apply and its triples never enter `prog.axioms`.
+    let range_ty = Node::iri(logic_iri("ValueRangeConstraint"));
+    let p_valuepath = nn(&logic_iri("valuePath"));
+    let p_min_bound = nn(&logic_iri("minInclusiveBound"));
+    let p_max_bound = nn(&logic_iri("maxInclusiveBound"));
+    for record in subjects_with(store, &nn(RDF_TYPE), &range_ty) {
+        let Some(Node::Iri(class_iri)) = value(store, &record, &p_sugar_onclass) else {
+            continue;
+        };
+        if !is_authoring_ns(&class_iri) {
+            continue;
+        }
+        let Some(Node::Iri(on)) = value(store, &record, &p_valuepath) else {
+            continue;
+        };
+        let bound_of = |p: &Iri| -> Option<f64> {
+            match value(store, &record, p) {
+                Some(Node::Lit { lexical, .. }) => lexical.trim().parse::<f64>().ok(),
+                _ => None,
+            }
+        };
+        let (lo, hi) = (bound_of(&p_min_bound), bound_of(&p_max_bound));
+        if lo.is_none() && hi.is_none() {
+            continue;
+        }
+        let pc = PropertyConstraintIr::new(
+            &on,
+            None,
+            None,
+            None,
+            vec![ConstraintComponent::NumericRange {
+                min: lo,
+                max: hi,
+                min_inclusive: true,
+                max_inclusive: true,
+            }],
+        )?;
+        entry_for(&mut acc, ShapeTarget::Class(class_iri))
+            .2
+            .push(pc);
+    }
+
     // ── Build one shape per target ────────────────────────────────────────────────────────
     // Dedup by structural (`PartialEq`) identity so a duplicate axiom never double-counts; the IR
     // constructors then sort node_components + properties into canonical content-key order, so
@@ -4211,7 +4329,64 @@ fn read_acyclic(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<Cons
     )
 }
 
-/// Read every compact constraint-sugar record (P1–P5, P7, and the aggregate P6) into
+/// P8 — value range: a target class + a value path + an inclusive lower and/or upper LITERAL
+/// bound every value on the path must satisfy. Expands to
+/// `∀ this, v . C(this) ∧ P(this, v) → v ≥ min ∧ v ≤ max` (one conjunct per authored bound) —
+/// the exact formula shape the hand-authored range constraints carry (guard = class atom ∧
+/// path atom, consequent = `logic:termGreaterEqual` / `logic:termLessEqual` filter atoms).
+/// This is the DECIDABLE, validation-only home of a bounded numeric range: the OWL rendering
+/// (a faceted-datatype `owl:allValuesFrom` filler) is undecidable for the native reasoner the
+/// moment a literal is asserted on the constrained path, so it must never sit in the reasoning
+/// core. The declarative twin (`sh:minInclusive`/`sh:maxInclusive` on the target class shape)
+/// is lowered by [`derive_validation_shapes`].
+fn read_value_range(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ConstraintIr> {
+    let class = sugar_target_class(store, node)?;
+    let path = value(store, node, &nn(&logic_iri("valuePath")))
+        .map(|t| term_str(&t))
+        .ok_or_else(|| sugar_err("logic:ValueRangeConstraint requires logic:valuePath"))?;
+    let bound = |local: &str| -> gmeow_errors::Result<Option<Term>> {
+        match value(store, node, &nn(&logic_iri(local))) {
+            None => Ok(None),
+            Some(Node::Lit {
+                lexical, datatype, ..
+            }) => Ok(Some(Term::literal(lexical, datatype)?)),
+            Some(_) => Err(sugar_err(format!(
+                "logic:{local} must be a literal (an inclusive numeric bound)"
+            ))),
+        }
+    };
+    let mut cmps: Vec<Formula> = Vec::with_capacity(2);
+    if let Some(min) = bound("minInclusiveBound")? {
+        cmps.push(f_atom2(&logic_iri("termGreaterEqual"), t_var("v"), min)?);
+    }
+    if let Some(max) = bound("maxInclusiveBound")? {
+        cmps.push(f_atom2(&logic_iri("termLessEqual"), t_var("v"), max)?);
+    }
+    let consequent = match cmps.len() {
+        0 => {
+            return Err(sugar_err(
+                "logic:ValueRangeConstraint requires logic:minInclusiveBound and/or \
+                 logic:maxInclusiveBound",
+            ));
+        }
+        1 => cmps.pop().expect("one bound"),
+        _ => Formula::And(cmps),
+    };
+    let guard = Formula::And(vec![
+        f_guard_class(&class)?,
+        f_atom2(&path, t_var("this"), t_var("v"))?,
+    ]);
+    finalize_sugar(
+        store,
+        node,
+        Formula::Forall {
+            vars: vec!["this".to_owned(), "v".to_owned()],
+            body: Box::new(Formula::Implies(Box::new(guard), Box::new(consequent))),
+        },
+    )
+}
+
+/// Read every compact constraint-sugar record (P1–P5, P7, P8, and the aggregate P6) into
 /// [`ConstraintIr`]s. Fail-soft like the other extractors: a malformed record emits a
 /// `MALFORMED_CONSTRAINT` warning and is skipped, never silently dropped. A sugar-free source
 /// yields an empty vector (append-only, so the canonical key stays byte-identical).
@@ -4220,7 +4395,7 @@ fn extract_sugar_constraints(
     diagnostics: &mut Vec<Diagnostic>,
 ) -> Vec<ConstraintIr> {
     type Reader = fn(&RdfDataset, &Subject) -> gmeow_errors::Result<ConstraintIr>;
-    let readers: [(&str, Reader); 15] = [
+    let readers: [(&str, Reader); 16] = [
         ("ChoiceGroupConstraint", read_choice_group),
         ("GuardedImplicationConstraint", read_guarded_implication),
         (
@@ -4230,6 +4405,7 @@ fn extract_sugar_constraints(
         ("PathValueTypeConstraint", read_path_value_type),
         ("CrossNodeConstraint", read_cross_node),
         ("ForbiddenPatternConstraint", read_forbidden_pattern),
+        ("ValueRangeConstraint", read_value_range),
         ("AggregateConstraint", read_aggregate_constraint),
         ("ComparisonConstraint", read_comparison),
         ("PathNodeKindConstraint", read_path_node_kind),
