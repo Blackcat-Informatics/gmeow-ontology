@@ -13,8 +13,8 @@ use purrdf::RdfDataset;
 
 use crate::graph::{all_iris, g, id, instances_of, label_of, one_iri, one_lit};
 use crate::model::{
-    Axis, AxisFloorCommitment, ContextScope, Exemption, Rubric, SliceTierFloorCommitment,
-    Threshold, Tier,
+    Axis, AxisFloorCommitment, ContextScope, Exemption, GovernanceFloors, MeasurementStandard,
+    Rubric, SliceTierFloorCommitment, Threshold, Tier,
 };
 
 /// Wrap a structural-rubric-defect message as a typed diagnostic on the substrate,
@@ -317,11 +317,12 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
         tier_floors.into_iter().map(|(_, c)| c).collect();
 
     Ok(Rubric {
-        tiers,
-        axes,
-        exemptions,
-        commitments,
-        tier_floors,
+        standard: MeasurementStandard { tiers, axes },
+        floors: GovernanceFloors {
+            exemptions,
+            commitments,
+            tier_floors,
+        },
     })
 }
 
@@ -366,8 +367,11 @@ gmeow:exFoo a gmeow:AxisExemption ;
         // Control: the same fixture with a valid axis_iri loads cleanly, proving the
         // negative test isolates the axis check (not a malformed fixture).
         let rubric = load(&rubric_ttl("gmeow:axisFoo")).expect("valid rubric loads");
-        assert_eq!(rubric.exemptions.len(), 1);
-        assert_eq!(rubric.exemptions[0].axis_iri, format!("{GMEOW_NS}axisFoo"));
+        assert_eq!(rubric.floors.exemptions.len(), 1);
+        assert_eq!(
+            rubric.floors.exemptions[0].axis_iri,
+            format!("{GMEOW_NS}axisFoo")
+        );
     }
 
     #[test]
@@ -502,8 +506,8 @@ gmeow:thrFoo a gmeow:AxisThreshold ;
     gmeow:floorValue 0.9954337899543378 ."#,
         ))
         .expect("valid floor commitment loads");
-        assert_eq!(rubric.commitments.len(), 1);
-        let c = &rubric.commitments[0];
+        assert_eq!(rubric.floors.commitments.len(), 1);
+        let c = &rubric.floors.commitments[0];
         assert_eq!(c.slice, format!("{GMEOW_NS}sliceFoo"));
         assert_eq!(c.axis, format!("{GMEOW_NS}axisFoo"));
         assert!((c.floor - 0.995_433_789_954_337_8).abs() < f64::EPSILON);
@@ -518,8 +522,8 @@ gmeow:thrFoo a gmeow:AxisThreshold ;
     gmeow:floorTier gmeow:tierRegistered ."#,
         ))
         .expect("valid tier floor loads");
-        assert_eq!(rubric.tier_floors.len(), 1);
-        let f = &rubric.tier_floors[0];
+        assert_eq!(rubric.floors.tier_floors.len(), 1);
+        let f = &rubric.floors.tier_floors[0];
         assert_eq!(f.slice, format!("{GMEOW_NS}sliceFoo"));
         assert_eq!(f.tier, format!("{GMEOW_NS}tierRegistered"));
     }
@@ -655,7 +659,7 @@ gmeow:floorFooB a gmeow:AxisFloorCommitment ;
     gmeow:floorValue 0.9 ."#,
         ))
         .expect("distinct (slice, axis) commitments load cleanly");
-        assert_eq!(rubric.commitments.len(), 2);
+        assert_eq!(rubric.floors.commitments.len(), 2);
     }
 
     #[test]

@@ -13,8 +13,9 @@ use std::path::Path;
 
 use gmeow_cli_core::{ConsoleMode, DiagnosticsConfig};
 use gmeow_errors::Report;
-use gmeow_slice_quality::model::{Rubric, SliceAssessment, Tier};
-use gmeow_slice_quality::report::{SliceReport, score_slice};
+use gmeow_slice_quality::ScoringEnv;
+use gmeow_slice_quality::model::{MeasurementStandard, Rubric, SliceAssessment, Tier};
+use gmeow_slice_quality::report::{SliceReport, score_slice_with_standard};
 
 use crate::dev_common::{emit_error, fail, note, project_root};
 use crate::dev_feedback::{diagnostics_env, write_artifacts};
@@ -118,7 +119,13 @@ pub fn slice_quality(
     // MCP tool), so a relative `slices/<group>/<name>` is not accidentally read
     // against the caller's CWD. An absolute path is left untouched by `join`.
     let dir = root.join(dir);
-    match score_slice(&root, &dir) {
+    // Load the floor-free measurement standard from the repo rubric, then score the one
+    // slice against it in repo mode (byte-identical to the retired repo-coupled path).
+    let standard = match repo_rubric(&root) {
+        Ok(r) => r.standard,
+        Err(e) => return fail(format!("slice-quality: {e}")),
+    };
+    match score_slice_with_standard(&dir, &standard, ScoringEnv::Repo) {
         Ok(report) => {
             match render(&report, format) {
                 Ok(text) => print!("{text}"),
@@ -135,7 +142,7 @@ pub fn slice_quality(
             let Some(required) = min_tier else {
                 return 0; // advisory — the command never gates without --min-tier
             };
-            let required = match resolve_min_tier(&report.rubric, required) {
+            let required = match resolve_min_tier(&report.standard, required) {
                 Ok(t) => t,
                 Err(e) => return fail(e),
             };
@@ -169,17 +176,20 @@ fn tier_gate_passes(measured: &Tier, required: Option<&Tier>) -> bool {
 /// tier's human label (`Grounded`) or its IRI local name (`tierGrounded`),
 /// case-insensitively. Returns a clear error naming the available rungs on an
 /// unknown tier — a HARD FAIL, never a silently-ignored gate request.
-fn resolve_min_tier<'a>(rubric: &'a Rubric, name: &str) -> gmeow_errors::Result<&'a Tier> {
+fn resolve_min_tier<'a>(
+    standard: &'a MeasurementStandard,
+    name: &str,
+) -> gmeow_errors::Result<&'a Tier> {
     let local_of =
         |iri: &str| -> String { iri.rsplit(['/', '#']).next().unwrap_or(iri).to_owned() };
-    if let Some(t) = rubric
+    if let Some(t) = standard
         .tiers
         .iter()
         .find(|t| t.label.eq_ignore_ascii_case(name) || local_of(&t.iri).eq_ignore_ascii_case(name))
     {
         return Ok(t);
     }
-    let mut rungs: Vec<&Tier> = rubric.tiers.iter().collect();
+    let mut rungs: Vec<&Tier> = standard.tiers.iter().collect();
     rungs.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
     let known: Vec<String> = rungs.iter().map(|t| t.label.clone()).collect();
     Err(sqe(format!(
@@ -201,7 +211,7 @@ fn resolve_min_tier<'a>(rubric: &'a Rubric, name: &str) -> gmeow_errors::Result<
 /// the shipped graph never diverge.
 fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &DiagnosticsConfig) -> i32 {
     let dirs = gmeow_slice_quality::discover_slice_dirs(&root.join("slices"));
-    let rubric = match gmeow_slice_quality::load_repo_rubric(root) {
+    let rubric = match repo_rubric(root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality: {e}")),
     };
@@ -209,7 +219,7 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     // is a clear error before any slice is scored. Gating the sweep (fail if ANY
     // slice is below) is the more useful choice than conflicting with --all.
     let required = match min_tier {
-        Some(name) => match resolve_min_tier(&rubric, name) {
+        Some(name) => match resolve_min_tier(&rubric.standard, name) {
             Ok(t) => Some(t.clone()),
             Err(e) => return fail(e),
         },
@@ -333,6 +343,22 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
 /// against its merge-base version. The governance TSVs are no longer read.
 const RUBRIC_MODULE: &str = "slices/core/slice-quality-rubric/module.ttl";
 
+/// Load the whole rubric (the floor-free measurement `standard` scoring reads plus the
+/// governance `floors` the ratchet gate reads) from the canonical [`RUBRIC_MODULE`]
+/// under `root`. The engine no longer exposes a conflated repo-rubric loader; this gate
+/// is a legitimate consumer of BOTH halves (it scores AND ratchets in one pass), so it
+/// reconstructs the whole from the same on-disk file — byte-identical to the retired
+/// `load_repo_rubric`.
+///
+/// # Errors
+/// Returns a diagnostic if the rubric module cannot be read/parsed or is structurally
+/// incomplete (the same hard-fail conditions the engine loader enforced).
+fn repo_rubric(root: &Path) -> gmeow_errors::Result<Rubric> {
+    let module = root.join(RUBRIC_MODULE);
+    let ds = gmeow_slice_quality::dataset_from_paths(&[&module])?;
+    gmeow_slice_quality::rubric::load_rubric(&ds)
+}
+
 /// The generated per-axis floor projection path named in a per-axis floor failure
 /// message — the lossy TSV view of the ontology-resident commitments, kept only as
 /// a human pointer in the diagnostic (the canonical source is [`RUBRIC_MODULE`]).
@@ -365,7 +391,7 @@ fn is_grounding_slice(slice_dir: &Path) -> bool {
 /// floor. Undeclared slices are advisory and never fail. Exit 1 on any failure.
 pub fn slice_quality_gate() -> i32 {
     let root = project_root();
-    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
+    let rubric = match repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
     };
@@ -530,6 +556,7 @@ pub fn slice_quality_gate() -> i32 {
     // floor commitments, so every working floor reads as an addition (allowed) — the
     // value-preservation golden test guards the migrated values instead.
     let live_axes: std::collections::BTreeSet<String> = rubric
+        .standard
         .axes
         .iter()
         .map(|a| axis_local_name(&a.iri).to_owned())
@@ -626,9 +653,16 @@ pub fn slice_quality_gate() -> i32 {
     // coherence morphism actually examines (reported so the guard's reach is visible
     // even when it holds silently).
     let coherence_checked = rubric
+        .floors
         .tier_floors
         .iter()
-        .filter(|tf| rubric.commitments.iter().any(|c| c.slice == tf.slice))
+        .filter(|tf| {
+            rubric
+                .floors
+                .commitments
+                .iter()
+                .any(|c| c.slice == tf.slice)
+        })
         .count();
 
     if failures > 0 || axis_failures > 0 || mono_failures > 0 || coherence_failures > 0 {
@@ -784,7 +818,7 @@ fn axis_floors_from_rubric(
 ) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), f64>> {
     let mut axes_by_local: std::collections::BTreeMap<String, String> =
         std::collections::BTreeMap::new();
-    for axis in &rubric.axes {
+    for axis in &rubric.standard.axes {
         let local = axis_local_name(&axis.iri).to_owned();
         if let Some(prior) = axes_by_local.insert(local.clone(), axis.iri.clone()) {
             return Err(sqe(format!(
@@ -797,7 +831,7 @@ fn axis_floors_from_rubric(
     }
 
     let mut out = std::collections::BTreeMap::new();
-    for c in &rubric.commitments {
+    for c in &rubric.floors.commitments {
         out.insert(
             (c.slice.clone(), axis_local_name(&c.axis).to_owned()),
             c.floor,
@@ -863,8 +897,8 @@ fn tier_floors_from_rubric(
 ) -> gmeow_errors::Result<std::collections::BTreeMap<String, gmeow_slice_quality::gate::TierFloor>>
 {
     let mut out = std::collections::BTreeMap::new();
-    for tf in &rubric.tier_floors {
-        let Some(tier) = rubric.tier(&tf.tier) else {
+    for tf in &rubric.floors.tier_floors {
+        let Some(tier) = rubric.standard.tier(&tf.tier) else {
             return Err(sqe(format!(
                 "tier floor for slice {} names tier {} that resolves to no gmeow:QualityTier in the rubric ladder",
                 tf.slice, tf.tier
@@ -1064,7 +1098,7 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
     };
 
     let root = project_root();
-    let rubric = match gmeow_slice_quality::load_repo_rubric(&root) {
+    let rubric = match repo_rubric(&root) {
         Ok(r) => r,
         Err(e) => return fail(format!("slice-quality-seed-floors: {e}")),
     };
@@ -1072,6 +1106,7 @@ pub fn slice_quality_seed_floors(axis: Option<&str>, all_axes: bool) -> i32 {
     // A `--axis` that names no rubric axis is a HARD FAIL, never silent empty output.
     if let SeedSelector::One(name) = selector {
         let known: Vec<String> = rubric
+            .standard
             .axes
             .iter()
             .map(|a| axis_local_name(&a.iri).to_owned())
@@ -1129,13 +1164,13 @@ mod min_tier_tests {
     use super::*;
 
     /// A five-rung ladder mirroring the shipped rubric (Registered..Maximal).
-    fn ladder() -> Rubric {
+    fn ladder() -> MeasurementStandard {
         let rung = |local: &str, label: &str, rank: i64| Tier {
             iri: format!("{}{local}", gmeow_slice_quality::model::GMEOW),
             label: label.to_owned(),
             rank,
         };
-        Rubric {
+        MeasurementStandard {
             tiers: vec![
                 rung("tierRegistered", "Registered", 0),
                 rung("tierGrounded", "Grounded", 1),
@@ -1144,13 +1179,10 @@ mod min_tier_tests {
                 rung("tierMaximal", "Maximal", 4),
             ],
             axes: vec![],
-            exemptions: vec![],
-            commitments: vec![],
-            tier_floors: vec![],
         }
     }
 
-    fn tier(r: &Rubric, label: &str) -> Tier {
+    fn tier(r: &MeasurementStandard, label: &str) -> Tier {
         resolve_min_tier(r, label).unwrap().clone()
     }
 
@@ -1362,21 +1394,25 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
         // guard is now defense-in-depth behind that load-time validation, so this test
         // builds a `Rubric` struct literal directly (bypassing the loader) to still
         // exercise the guard itself.
-        use gmeow_slice_quality::model::SliceTierFloorCommitment;
+        use gmeow_slice_quality::model::{GovernanceFloors, SliceTierFloorCommitment};
 
         let rubric = Rubric {
-            tiers: vec![Tier {
-                iri: format!("{NS}tierRegistered"),
-                label: "Registered".to_owned(),
-                rank: 0,
-            }],
-            axes: Vec::new(),
-            exemptions: Vec::new(),
-            commitments: Vec::new(),
-            tier_floors: vec![SliceTierFloorCommitment {
-                slice: format!("{NS}sliceX"),
-                tier: format!("{NS}tierBogus"),
-            }],
+            standard: MeasurementStandard {
+                tiers: vec![Tier {
+                    iri: format!("{NS}tierRegistered"),
+                    label: "Registered".to_owned(),
+                    rank: 0,
+                }],
+                axes: Vec::new(),
+            },
+            floors: GovernanceFloors {
+                exemptions: Vec::new(),
+                commitments: Vec::new(),
+                tier_floors: vec![SliceTierFloorCommitment {
+                    slice: format!("{NS}sliceX"),
+                    tier: format!("{NS}tierBogus"),
+                }],
+            },
         };
         let err = tier_floors_from_rubric(&rubric).unwrap_err();
         assert!(err.message().contains("tierBogus"), "names the tier: {err}");
