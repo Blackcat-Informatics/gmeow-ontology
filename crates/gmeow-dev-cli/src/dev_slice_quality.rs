@@ -1044,7 +1044,7 @@ fn measure_base_residues(
         }
         let rel_dir = dir
             .strip_prefix(root)
-            .unwrap_or(&dir)
+            .map_err(|e| sqe(format!("failed to strip prefix {root:?} from {dir:?}: {e}")))?
             .to_string_lossy()
             .replace('\\', "/");
         let entries = git_ls_tree(root, base, &rel_dir)?;
