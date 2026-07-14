@@ -189,12 +189,12 @@ pub struct GovernanceFloors {
     /// The committed per-slice roll-up tier floors, sorted by IRI.
     pub tier_floors: Vec<SliceTierFloorCommitment>,
     /// The guarded projection-vocabulary set the ratchet gate counts residue
-    /// against — `gmeow:ProjectionVocabulary` individuals, sorted by prefix. Loaded
-    /// by a later change; empty until the ontology-resident loader lands.
+    /// against — `gmeow:ProjectionVocabulary` individuals, sorted by prefix,
+    /// loaded from `module.ttl` by the ontology-resident rubric loader.
     pub vocabularies: Vec<ProjectionVocabulary>,
     /// The committed per-(slice, vocabulary) residue ceilings —
-    /// `gmeow:ProjectionCeilingCommitment` individuals, sorted by IRI. Loaded by a
-    /// later change; empty until the ontology-resident loader lands.
+    /// `gmeow:ProjectionCeilingCommitment` individuals, sorted by IRI, loaded
+    /// from `module.ttl` by the ontology-resident rubric loader.
     pub ceilings: Vec<ProjectionCeilingCommitment>,
 }
 
