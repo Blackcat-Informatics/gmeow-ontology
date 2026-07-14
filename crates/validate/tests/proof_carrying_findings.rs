@@ -179,7 +179,7 @@ fn p1_remediation_reaches_text_and_json() {
     let shacl = find_code(&report, SHACL_MINCOUNT_CODE);
     assert!(
         !shacl.remediation.is_empty(),
-        "the SHACL finding must carry a DSL-authored remediation: {shacl:?}"
+        "the SHACL finding must carry a registry-authored remediation: {shacl:?}"
     );
     let remediation = &shacl.remediation[0];
     assert!(!remediation.text.is_empty());

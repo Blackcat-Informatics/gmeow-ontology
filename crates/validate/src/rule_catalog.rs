@@ -76,7 +76,7 @@ pub struct RuleSeed {
     /// than a single literal code. Family entries anchor one catalog entry for the
     /// whole family; the generator renders them as a pattern.
     pub family: bool,
-    /// The DSL-authored rule-level remediation prose ([`remediation_for`]), or `None`
+    /// The registry-authored rule-level remediation prose ([`remediation_for`]), or `None`
     /// for a code on the honest-absence allowlist. The constraint-catalog generator
     /// projects it as `gmeow:ruleRemediation`.
     pub remediation: Option<&'static str>,
@@ -379,7 +379,7 @@ pub fn help_uri_for(code: &str) -> String {
     format!("{CATALOG_BASE_URI}#{}", slugify(code))
 }
 
-/// The DSL-authored rule-level remediation prose — the standing "how to fix a
+/// The registry-authored rule-level remediation prose — the standing "how to fix a
 /// violation of this rule" guidance, keyed by a static [`codes`] const or a dynamic
 /// family base. It is the SINGLE source of the fix guidance rendered on both the
 /// rule registry (`gmeow:ruleRemediation`, via [`rule_for`]) and, through the
@@ -712,7 +712,7 @@ pub fn catalog_anchor_uri(code: &str) -> String {
 pub fn rule_for(code: &str, default_severity: Severity) -> Rule {
     let mut rule = Rule::new(code, default_severity);
     rule.help_uri = Some(catalog_anchor_uri(code));
-    // Thread the DSL-authored rule-level remediation onto the built Rule so the
+    // Thread the registry-authored rule-level remediation onto the built Rule so the
     // renderers surface `gmeow:ruleRemediation`. Honest absence for allowlisted codes.
     if let Some(remediation) = remediation_for(code) {
         rule = rule.with_remediation(remediation);

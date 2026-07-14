@@ -38,7 +38,7 @@ impl DiagNode {
         // this replaces dropped both, keeping only `.text`).
         finding.suggestions = self.advice.iter().map(|a| a.text.clone()).collect();
         finding.advice = self.advice.clone();
-        // The DSL-authored remediations — the "how to fix" payload for SARIF fixes
+        // The registry-authored remediations — the "how to fix" payload for SARIF fixes
         // and the CLI/HTML remediation line.
         finding.remediation = self.remediation.clone();
         // Per-term usage guidance (howToUse/useWhen/avoidWhen), joined from the

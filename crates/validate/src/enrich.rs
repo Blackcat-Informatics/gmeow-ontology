@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 //! The single proof-carrying enrichment entry point over a consumer diagnostic
-//! [`Report`] — attaches rule identity (catalog help URIs), DSL-authored
+//! [`Report`] — attaches rule identity (catalog help URIs), registry-authored
 //! remediation, and per-term usage guidance to every finding.
 //!
 //! Both the CLI validate/verify path
@@ -17,7 +17,7 @@ use purrdf::RdfDataset;
 use crate::rule_catalog::catalog_anchor_uri;
 
 /// The single proof-carrying enrichment pass over a consumer diagnostic report:
-/// attaches rule identity (help URIs), DSL-authored remediation, and per-term
+/// attaches rule identity (help URIs), registry-authored remediation, and per-term
 /// usage guidance to every finding. Reused by the CLI validate/verify path and the
 /// pipeline validate stage so the two surfaces cannot drift. Honest absence: a
 /// code/term with no authored remediation/guidance carries none.

@@ -208,7 +208,7 @@ pub struct DiagNode {
     pub source_ctx: SourceContext,
     pub attributions: Vec<DiagnosticAttribution>,
     pub advice: Vec<Advice>,
-    /// DSL-authored remediations — the "how to fix" payload projected as
+    /// registry-authored remediations — the "how to fix" payload projected as
     /// `gmeow:findingRemediation`. Not part of the identity fingerprint (like
     /// [`advice`](DiagNode::advice)), so a later annotation pass can append one to
     /// an interned node without changing its content address.

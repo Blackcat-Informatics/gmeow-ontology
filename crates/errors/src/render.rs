@@ -429,7 +429,7 @@ pub fn to_gmeow_rdf_in_graph(report: &Report, graph_iri: &str) -> String {
                 );
             }
         }
-        // The DSL-authored remediation payload (gmeow:findingRemediation) — the
+        // The registry-authored remediation payload (gmeow:findingRemediation) — the
         // "how to fix" prose, projected verbatim, never fabricated.
         for remediation in &finding.remediation {
             triple(
@@ -652,7 +652,7 @@ fn finding_text_lines(finding: &Finding, rules: &BTreeMap<&str, &Rule>, out: &mu
     for suggestion in &finding.suggestions {
         out.push(format!("  ↳ suggestion: {suggestion}"));
     }
-    // DSL-authored remediations — the "how to fix" payload (never fabricated).
+    // registry-authored remediations — the "how to fix" payload (never fabricated).
     for remediation in &finding.remediation {
         out.push(format!("  ↳ how to fix: {}", remediation.text));
         if let Some(uri) = &remediation.help_uri {
@@ -928,7 +928,7 @@ pub fn to_html(report: &Report) -> String {
             }
             msg_cell.push_str("</ul>");
         }
-        // DSL-authored remediations (the "how to fix" payload, never fabricated).
+        // registry-authored remediations (the "how to fix" payload, never fabricated).
         for remediation in &finding.remediation {
             msg_cell.push_str(&format!(
                 "<p class=\"remediation\">how to fix: {}</p>",
@@ -1253,7 +1253,7 @@ fn sarif_result(finding: &Finding) -> Value {
         result["properties"] = serde_json::Value::Object(props);
     }
 
-    // DSL-authored remediations become SARIF `fixes`: one fix per remediation,
+    // registry-authored remediations become SARIF `fixes`: one fix per remediation,
     // its `description.text` the remediation prose, with `artifactChanges` present
     // ONLY when the remediation carries a concrete mechanical edit (an honest
     // absence otherwise — most rules are prose-only). Any artifact URI is routed
@@ -1265,7 +1265,7 @@ fn sarif_result(finding: &Finding) -> Value {
     result
 }
 
-/// Render one DSL-authored [`Remediation`](crate::diag::Remediation) as a SARIF
+/// Render one registry-authored [`Remediation`](crate::diag::Remediation) as a SARIF
 /// `fix`. The `description.text` is the remediation prose; `artifactChanges` is
 /// emitted ONLY when the remediation carries a mechanical
 /// [`ArtifactChange`](crate::diag::ArtifactChange) whose artifact URI passes the
