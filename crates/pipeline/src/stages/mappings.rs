@@ -321,6 +321,14 @@ pub fn compile_mappings(root: &Path) -> Result<CompiledMappings, gmeow_errors::D
     // Blob-free (a pure structural judgment), folded exactly like the docs-format corpus.
     crate::stages::governance_floors::fold_governance_floors_loss(&mut ledger, &mut loss);
 
+    // Projection-ceilings projection loss (P17): the two projection-vocabulary ratchet
+    // TSVs are a sound under-approximation of the ontology-resident
+    // gmeow:ProjectionCeilingCommitment / gmeow:ProjectionVocabulary individuals — every
+    // emitted row is entailed, and the dropped reifier identity + annotation coat are
+    // recorded as residue, never silently dropped. Blob-free, folded exactly like the
+    // governance-floors corpus.
+    crate::stages::projection_ceilings::fold_projection_ceilings_loss(&mut ledger, &mut loss);
+
     // Standpoint projections — the seven fixed `standpoint-*.rq` queries (template-coded;
     // no DSL input).
     let standpoint = emit_standpoint_sets(root, &vocab).map_err(|e| {
