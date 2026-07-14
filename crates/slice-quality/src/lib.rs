@@ -36,6 +36,7 @@ pub use model::{
     Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, GovernanceFloors,
     MeasurementStandard, Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
 };
+pub use score::ScoringEnv;
 
 /// The repo-wide slice-quality sweep products, scored in one pass over the discovered
 /// slice set: the RDF assessment graph and the diagnostics report that backs JSON/SARIF/HTML
