@@ -134,5 +134,5 @@ ex:latentMeaningClaim a math:ResidualInterpretationClaim ;
 
 ex:sentimentAxis a math:EmbeddingDimension ;
     math:latentDimensionOf ex:latent .
-ex:topologyAnalystFrame a gmeow:Standpoint .
+ex:topologyAnalystFrame a gmeow:Standpoint , gmeow:Entity .
 ex:sentimentMeaningFormula a logic:MetaLevelFormula .

@@ -906,6 +906,49 @@ fn target_via_owner(ds: &RdfDataset, subject: TermId) -> Option<ShapeTarget> {
     None
 }
 
+/// Try to read a node-level `sh:or` list as the covered property-alternatives disjunction: every
+/// list member must be a blank property shape carrying EXACTLY `sh:path <IRI>` and
+/// `sh:minCount 1` (presentation predicates absorbed). Returns `Ok(Some(paths))` (two or more,
+/// unsorted — the IR normalizes) on the exact form, `Ok(None)` for any other `sh:or` (which the
+/// caller records as residue), and `Err` only on a malformed RDF list.
+fn parse_or_properties(
+    ds: &RdfDataset,
+    head: TermId,
+    shape: &str,
+) -> gmeow_errors::Result<Option<Vec<String>>> {
+    let ctx = format!("read_shacl_shape: <{shape}> sh:or");
+    let members = parse_rdf_list(ds, head, &ctx)?;
+    if members.len() < 2 {
+        return Ok(None);
+    }
+    let mut paths = Vec::with_capacity(members.len());
+    for m in members {
+        let mut path: Option<String> = None;
+        let mut min_one = false;
+        for (pred, obj) in quads_of(ds, m) {
+            match shacl_local(&pred) {
+                Some("path") => match ds.resolve(obj) {
+                    TermRef::Iri(p) => path = Some(p.to_owned()),
+                    _ => return Ok(None),
+                },
+                Some("minCount") => {
+                    if obj_u32(ds, obj, &ctx)? != 1 {
+                        return Ok(None);
+                    }
+                    min_one = true;
+                }
+                _ if is_presentation(&pred) => {}
+                _ => return Ok(None),
+            }
+        }
+        match (path, min_one) {
+            (Some(p), true) => paths.push(p),
+            _ => return Ok(None),
+        }
+    }
+    Ok(Some(paths))
+}
+
 /// Parse ONE `sh:NodeShape` subject out of an already-parsed RDF dataset into a
 /// [`ShapeRead`] — the covered fragment plus its residue list.
 ///
@@ -1006,6 +1049,17 @@ pub fn read_shacl_shape(
                     properties.push(p);
                 }
             }
+            // A NODE-level `sh:or` whose every branch is exactly `[ sh:path <P> ; sh:minCount 1 ]`
+            // is the covered property-alternatives disjunction
+            // ([`ConstraintComponent::OrProperties`], the projection of a class-level
+            // `owl:unionOf` over bare property existentials). Any other `sh:or` (value branches,
+            // extra branch constraints) stays genuinely-uncovered residue, exactly as before.
+            Some("or") => match parse_or_properties(graph, obj, node_shape_iri)? {
+                Some(paths) => node_acc
+                    .comps
+                    .push(ConstraintComponent::OrProperties(paths)),
+                None => route_unhandled(pred, &mut unsupported),
+            },
             _ => {
                 if !node_acc.feed(graph, &pred, obj, node_shape_iri, &mut unsupported)? {
                     route_unhandled(pred, &mut unsupported);
@@ -1271,7 +1325,8 @@ fn property_component_witness(
             | ConstraintComponent::QualifiedValueShape { .. }
             | ConstraintComponent::Not(_)
             | ConstraintComponent::Or(_)
-            | ConstraintComponent::Xone(_) => return None,
+            | ConstraintComponent::Xone(_)
+            | ConstraintComponent::OrProperties(_) => return None,
         }
     };
     let focus = mint(idx);
@@ -1297,6 +1352,11 @@ fn node_component_witness(
         ConstraintComponent::Class(c) => format!("node:sh:class:{c}"),
         ConstraintComponent::Datatype(d) => format!("node:sh:datatype:{d}"),
         ConstraintComponent::NodeKindShacl(k) => format!("node:sh:nodeKind:{}", k.as_str()),
+        // A bare target instance carrying NONE of the alternative paths violates the node-level
+        // property-alternatives `sh:or` — the focus itself is the discriminating near-miss.
+        ConstraintComponent::OrProperties(paths) => {
+            format!("node:sh:or-properties:{}", paths.join("|"))
+        }
         ConstraintComponent::NumericRange { .. }
         | ConstraintComponent::PrecisionRange { .. }
         | ConstraintComponent::In(_)
@@ -1915,6 +1975,76 @@ mod tests {
             read.unsupported.iter().any(|u| u.contains("shacl#target")),
             "the unparsable sh:target must be residue: {:?}",
             read.unsupported
+        );
+    }
+
+    #[test]
+    fn node_level_or_over_min_one_property_branches_reads_as_or_properties() {
+        // The exact `sh:or ( [ sh:path P ; sh:minCount 1 ] … )` form is COVERED — it reads into
+        // an OrProperties node component (and round-trips the emitter), never residue.
+        let ttl = format!(
+            "{HEADER}<https://ex/S> a sh:NodeShape ;\n    \
+             sh:targetClass <https://ex/C> ;\n    \
+             sh:or ( [ sh:path <https://ex/frame> ; sh:minCount 1 ] \
+                     [ sh:path <https://ex/model> ; sh:minCount 1 ] ) .\n"
+        );
+        let read = read_shacl_shape(&parse_ttl(&ttl), "https://ex/S").expect("read ok");
+        assert!(read.unsupported.is_empty(), "{:?}", read.unsupported);
+        assert!(
+            read.ir.node_components.iter().any(|c| matches!(
+                c,
+                ConstraintComponent::OrProperties(paths)
+                    if paths == &vec![
+                        "https://ex/frame".to_owned(),
+                        "https://ex/model".to_owned()
+                    ]
+            )),
+            "{:?}",
+            read.ir.node_components
+        );
+        // Round-trip: emit the read IR and compare with a directly-built projected twin.
+        let projected = ValidationShapeIr::new(
+            "https://ex/C-shape",
+            ShapeTarget::Class("https://ex/C".into()),
+            vec![],
+            None,
+        )
+        .unwrap()
+        .with_node_components(vec![ConstraintComponent::OrProperties(vec![
+            "https://ex/model".into(),
+            "https://ex/frame".into(),
+        ])])
+        .unwrap();
+        let verdict = oracle(&read, &projected);
+        assert!(verdict.equivalent, "{}", verdict.reason);
+    }
+
+    #[test]
+    fn node_level_or_with_value_branches_stays_residue() {
+        // A branch carrying anything beyond `sh:path` + `sh:minCount 1` (here sh:class) is NOT
+        // the covered property-alternatives form — the whole sh:or stays residue as before.
+        let ttl = format!(
+            "{HEADER}<https://ex/S> a sh:NodeShape ;\n    \
+             sh:targetClass <https://ex/C> ;\n    \
+             sh:or ( [ sh:path <https://ex/frame> ; sh:minCount 1 ] \
+                     [ sh:path <https://ex/dom> ; sh:minCount 1 ; sh:class <https://ex/PS> ] ) .\n"
+        );
+        let read = read_shacl_shape(&parse_ttl(&ttl), "https://ex/S").expect("read ok");
+        assert!(
+            read.unsupported
+                .iter()
+                .any(|u| u == "http://www.w3.org/ns/shacl#or"),
+            "{:?}",
+            read.unsupported
+        );
+        assert!(
+            !read
+                .ir
+                .node_components
+                .iter()
+                .any(|c| matches!(c, ConstraintComponent::OrProperties(_))),
+            "{:?}",
+            read.ir.node_components
         );
     }
 

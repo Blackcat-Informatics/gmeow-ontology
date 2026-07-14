@@ -520,6 +520,48 @@ pub fn schema_fragments_from_generated(
     Ok(schema_fragments_from_json(&schema, &openapi, terms))
 }
 
+/// Fold the per-term JSON Schema / OpenAPI fragment digest off THIS run's
+/// `stage-export-json-schema` product — the in-pipeline reader
+/// ([`DocsRenderStage`]'s run path). The committed `generated/schemas/*.json`
+/// files are the PREVIOUS run's projection until the post-phase-1 fanout rewrites
+/// them, so a disk read here would lag every schema change by one regenerate (the
+/// stale-disk-fold class); the product bytes are the single fresh source (the same
+/// bytes the carrier folds into the packed `schemas-archive`). Hard-fails when
+/// either artifact is absent from the upstream product or fails to parse as JSON
+/// (no-optionality: never a stale on-disk fallback, never an empty digest).
+pub(crate) fn schema_fragments_from_upstream(
+    upstream: &BTreeMap<String, StageProduct>,
+    terms: &[gmeow_docs::model::DocTerm],
+) -> Result<gmeow_docs::model::SchemaFragmentDigest, gmeow_errors::Diag> {
+    let read_json = |rel: &str| -> Result<serde_json::Value, gmeow_errors::Diag> {
+        let bytes = upstream
+            .get("stage-export-json-schema")
+            .and_then(|p| p.artifact(rel))
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-docs-render".to_string(),
+                    message: format!(
+                        "stage-export-json-schema produced no {rel} product for the \
+                         schema-fragment digest; refusing to fall back to a stale on-disk \
+                         read (the stale-disk-fold class, fail-closed)"
+                    ),
+                })
+            })?;
+        serde_json::from_slice(bytes).map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                stage: "stage-docs-render".to_string(),
+                message: format!(
+                    "parse the stage-export-json-schema {rel} product for the \
+                     schema-fragment digest: {e}"
+                ),
+            })
+        })
+    };
+    let schema = read_json(crate::stages::json_schema::JSON_SCHEMA_PATH)?;
+    let openapi = read_json(crate::stages::json_schema::OPENAPI_PATH)?;
+    Ok(schema_fragments_from_json(&schema, &openapi, terms))
+}
+
 /// The pure per-term join both schema-fragment readers share: for each documented
 /// CLASS, look its emitter def key
 /// ([`Namespaces::def_key`](purrdf::shapes::json_schema::Namespaces::def_key)) up
@@ -581,7 +623,10 @@ pub(crate) fn schema_fragments_from_json(
 /// `gmeow:doc*` diagnostics projection never fabricate a "no diagnostics" claim;
 /// the term-loss digest is required (hard-fails on a missing `stage-mappings`
 /// upstream product) so the per-term "how this term degrades under projection"
-/// surface never fabricates a "carried exactly" claim. The per-term
+/// surface never fabricates a "carried exactly" claim; the schema-fragment digest
+/// is required (hard-fails on a missing `stage-export-json-schema` upstream
+/// product) so the model reads THIS run's schema bytes, never the previous run's
+/// committed `generated/schemas/*.json` (the stale-disk-fold class). The per-term
 /// content-address provenance is read from the committed manifest (self-healing
 /// on a term-adding build; see `gmeow_docs::model::DocsModel::discover`).
 pub fn render_docs_graph(
@@ -602,6 +647,14 @@ pub fn render_docs_graph(
     model.attach_diagnostics(diagnostics);
     let term_loss = term_loss_digest_from_upstream(upstream, &model.shapes, &model.terms)?;
     model.attach_term_loss(term_loss);
+    // The per-term JSON Schema / OpenAPI fragment join, read off THIS run's
+    // stage-export-json-schema product (hard-fails on a missing artifact) — never the
+    // committed generated/schemas/*.json, which are the previous run's bytes until
+    // the fanout flushes (the stale-disk-fold class). The standalone `make docs`
+    // sibling reader (`schema_fragments_from_generated`) stays disk-sourced because
+    // it runs post-pipeline against the fanout-refreshed committed files.
+    let schema_fragments = schema_fragments_from_upstream(upstream, &model.terms)?;
+    model.attach_schema_fragments(schema_fragments);
     // The per-term entailment DAG, parsed from `stage-reason`'s already-materialized
     // `reasoning-explanations` proof skeletons (reason-once — this READS the same
     // upstream product, never a second reasoning pass) and joined against every
@@ -749,13 +802,17 @@ impl DocsRenderStage {
     /// the root and consumes `stage-reason` so the projected documentation graph
     /// carries the per-term native-reasoner status (`gmeow:docReasoningStatus`),
     /// `stage-validate` + `stage-compile-logic` so it carries the diagnostics→term
-    /// join digest (the term page's "Diagnostics you might hit" surface), and
+    /// join digest (the term page's "Diagnostics you might hit" surface),
     /// `stage-mappings` so it carries the dynamic per-term projection-loss join
-    /// digest (the term page's "how this term degrades under projection" surface).
+    /// digest (the term page's "how this term degrades under projection" surface),
+    /// and `stage-export-json-schema` so the model's per-term JSON-Schema/OpenAPI
+    /// fragment digest reads THIS run's schema product rather than the previous
+    /// run's committed `generated/schemas/*.json` (the stale-disk-fold class).
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-compile-logic".to_string(),
+                "stage-export-json-schema".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-mappings".to_string(),
                 "stage-reason".to_string(),
@@ -790,6 +847,10 @@ impl Stage for DocsRenderStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
+        // v8: the per-term JSON-Schema/OpenAPI fragment digest is attached from THIS
+        // run's consumed stage-export-json-schema product (schema_fragments_from_
+        // upstream) instead of lagging one regenerate behind on the committed
+        // generated/schemas/*.json disk read (the stale-disk-fold class).
         // v7: the diagnostics→term digest now joins on each finding's purpose-built
         // `documented_terms` attribution (a SHACL violation's constrained `sh:path`
         // property) as the primary leg, so the per-term "Diagnostics you might hit"
@@ -947,6 +1008,23 @@ mod tests {
         upstream.insert(
             "stage-reason".to_string(),
             StageProduct::from_artifacts("stage-reason", reason_artifacts),
+        );
+        // The per-term schema-fragment digest is attached from THIS run's
+        // stage-export-json-schema product (a missing artifact must hard-fail, see
+        // `schema_fragments_from_upstream`); provide valid-but-empty JSON documents
+        // so the join resolves to zero fragments (an honest absence).
+        let mut schema_artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        schema_artifacts.insert(
+            crate::stages::json_schema::JSON_SCHEMA_PATH.to_string(),
+            b"{}".to_vec(),
+        );
+        schema_artifacts.insert(
+            crate::stages::json_schema::OPENAPI_PATH.to_string(),
+            b"{}".to_vec(),
+        );
+        upstream.insert(
+            "stage-export-json-schema".to_string(),
+            StageProduct::from_artifacts("stage-export-json-schema", schema_artifacts),
         );
         upstream
     }
@@ -1510,15 +1588,6 @@ mod tests {
                 upstream: &empty,
             })
             .expect("real source-load");
-        let mut with_source: BTreeMap<String, StageProduct> = BTreeMap::new();
-        with_source.insert("stage-source-load".to_string(), source_load.product);
-
-        let validate = crate::stages::validate::ValidateStage::new()
-            .run(StageInput {
-                root: &root,
-                upstream: &with_source,
-            })
-            .expect("real validate");
 
         let compile = crate::stages::compile_logic::CompileLogicStage::new()
             .run(StageInput {
@@ -1526,6 +1595,48 @@ mod tests {
                 upstream: &empty,
             })
             .expect("real compile-logic");
+
+        // The validate stage enforces the FRESH shape union: its upstream must carry
+        // the four generated-shape producers (compile-logic + the three shape export
+        // leaves), never a disk read of generated/shapes (the stale-disk-fold class).
+        let frame = crate::stages::frame_shapes::FrameShapesStage
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real frame-shapes");
+        let constraint = crate::stages::constraint_shapes::ConstraintShapesStage
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real constraint-shapes");
+        let result_shapes = crate::stages::result_shapes::ResultShapesStage
+            .run(StageInput {
+                root: &root,
+                upstream: &empty,
+            })
+            .expect("real result-shapes");
+
+        let mut with_source: BTreeMap<String, StageProduct> = BTreeMap::new();
+        with_source.insert("stage-source-load".to_string(), source_load.product);
+        with_source.insert("stage-compile-logic".to_string(), compile.product.clone());
+        with_source.insert("stage-export-frame-shapes".to_string(), frame.product);
+        with_source.insert(
+            "stage-export-constraint-shapes".to_string(),
+            constraint.product,
+        );
+        with_source.insert(
+            "stage-export-result-shapes".to_string(),
+            result_shapes.product,
+        );
+
+        let validate = crate::stages::validate::ValidateStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &with_source,
+            })
+            .expect("real validate");
 
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         upstream.insert("stage-validate".to_string(), validate.product);
