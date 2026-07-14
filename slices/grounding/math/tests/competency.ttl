@@ -476,6 +476,34 @@ ex:rowGeometricSeries a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "convergesTo" ; gmeow:cellValueIri exf:seriesLimit ] ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "mode" ; gmeow:cellValueIri math:absoluteConvergence ] .
 
+# === Q18b — a limit's structured result: outcome and value ================== #
+
+ex:cqLimitResultOutcomeValue a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/grounding/math/queries/competency/limit-result-outcome-and-value.rq" ;
+    gmeow:cqDataFile "tests/fixtures/analysis-geometry.ttl" ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqRationale "A limit carrying a structured math:LimitResult reports its math:limitOutcome and the math:limitResultValue that outcome runs to; over the fixture the answer is exactly the two pole-divergent limits {coolingLimit → diverges to −∞ (math:divergesToNegativeInfinity), math:NegativeInfinity; gammaBlowupLimit → diverges to +∞ (math:divergesToPositiveInfinity), math:PositiveInfinity}." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqResultShape ex:cqLimitResultShape ;
+    gmeow:cqExpectRow ex:rowCoolingLimit , ex:rowGammaBlowupLimit .
+
+ex:cqLimitResultShape a logic:ResultShape ;
+    logic:declaresColumn
+        [ logic:columnVariable "limit" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "outcome" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "value" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ;
+    logic:shapeCardinality logic:RowsExact .
+
+ex:rowCoolingLimit a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "limit" ; gmeow:cellValueIri exf:coolingLimit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri math:divergesToNegativeInfinity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri math:NegativeInfinity ] .
+
+ex:rowGammaBlowupLimit a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "limit" ; gmeow:cellValueIri exf:gammaBlowupLimit ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "outcome" ; gmeow:cellValueIri math:divergesToPositiveInfinity ] ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "value" ; gmeow:cellValueIri math:PositiveInfinity ] .
+
 # === Q19 — topological space: open sets and connectedness ================== #
 
 ex:cqSpaceOpenSets a gmeow:CompetencyQuestion ;

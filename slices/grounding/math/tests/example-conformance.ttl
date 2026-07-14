@@ -396,6 +396,18 @@ ex:ecSequenceMissingConvergence a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example declares math:domain and math:codomain (so math:FunctionFramingShape is satisfied and math:UnframedFunction does not fire) but omits math:hasConvergence on a math:Sequence (sh:minCount 1 on math:SequenceShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedConvergence)." .
 
+# Calculus: a structured limit result names its outcome and an agreeing value.
+ex:ecLimitResultFramed a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/limit-result-framed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "Two well-formed math:LimitResult individuals — a math:divergesToPositiveInfinity result carrying math:PositiveInfinity, and a math:convergesFinitely result carrying a finite xsd:double — each name their math:limitOutcome and a math:limitResultValue that agrees with it, satisfying math:LimitResultShape and math:LimitResultOutcomeValueConstraint, and validate with no findings." .
+
+ex:ecLimitResultMissingOutcome a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/limit-result-missing-outcome.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits math:limitOutcome on a math:LimitResult (sh:minCount 1 on math:LimitResultShape, derived from the exact-one math:limitOutcome restriction), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedLimitResult). It carries no math:limitResultValue, so the outcome↔value agreement stays vacuously satisfied and the missing outcome is isolated." .
+
 # Topology: continuity declared, not assumed.
 ex:ecContinuousMapDeclared a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/continuous-map-declared.ttl" ;

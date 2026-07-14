@@ -380,6 +380,86 @@ msgctxt "https://blackcatinformatics.ca/math/lessAlternative|skos:definition"
 msgid "A one-sided 'less' alternative: the extremity is measured in the lower tail (the parameter falls below its null value)."
 msgstr "一个单侧“小于”备择：极端性在下尾中度量（参数落于其零值之下）。"
 
+msgctxt "https://blackcatinformatics.ca/math/LimitResult|rdfs:label"
+msgid "Limit Result"
+msgstr "极限结果"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitResult|skos:definition"
+msgid "The structured result of a math:Limit — what the limit evaluates to: its outcome through math:limitOutcome (one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit) and, for a finite convergent limit, its value through math:limitResultValue. It is NOT the limit expression itself (the math:Limit binding lim_{x→a} f(x), which names math:limitOf and math:limitPoint) — it is the evaluated result that limit runs to. A convergent result carries a finite value; a result diverging to a pole names that pole (math:PositiveInfinity or math:NegativeInfinity) as its value; a result diverging without a limit (an oscillating or otherwise non-existent limit) carries no value at all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is one whose value disagrees with the declared outcome."
+msgstr "一个 math:Limit 的结构化结果——即该极限所求得的值：通过 math:limitOutcome 给出其结局（math:convergesFinitely、math:divergesToPositiveInfinity、math:divergesToNegativeInfinity 或 math:divergesWithoutLimit 之一），并且对于有限收敛的极限，通过 math:limitResultValue 给出其值。它不是极限表达式本身（那绑定 lim_{x→a} f(x) 的 math:Limit，用 math:limitOf 与 math:limitPoint 命名）——它是该极限所奔向的求值结果。收敛结果携带一个有限值；发散到某极点的结果以该极点（math:PositiveInfinity 或 math:NegativeInfinity）为其值命名；无极限地发散的结果（振荡的或其他不存在的极限）则完全不携带任何值。缺少其结局的结果是病态的（math:UnderspecifiedLimitResult），其值与所声明结局相抵触的结果亦然。"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitOutcome|rdfs:label"
+msgid "Limit Outcome"
+msgstr "极限结局"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitOutcome|skos:definition"
+msgid "The outcome a math:Limit runs to, carried by a math:LimitResult through math:limitOutcome: one of math:convergesFinitely (the limit exists and is finite), math:divergesToPositiveInfinity (x → a drives f off to +∞), math:divergesToNegativeInfinity (off to −∞), or math:divergesWithoutLimit (no limit exists — the value oscillates or otherwise fails to settle). The outcome is what distinguishes a convergent limit from divergence to either pole or an absent limit, and is required on every math:LimitResult."
+msgstr "一个 math:Limit 所奔向的结局，由 math:LimitResult 通过 math:limitOutcome 携带：math:convergesFinitely（极限存在且有限）、math:divergesToPositiveInfinity（x → a 将 f 推向 +∞）、math:divergesToNegativeInfinity（推向 −∞）或 math:divergesWithoutLimit（不存在极限——取值振荡或以其他方式无法稳定）之一。结局正是区分收敛极限与向任一极点的发散或缺失极限的关键，并在每个 math:LimitResult 上都是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesFinitely|rdfs:label"
+msgid "converges finitely"
+msgstr "有限收敛"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesFinitely|skos:definition"
+msgid "The convergent outcome: the limit exists and is a finite value, carried by the math:LimitResult through math:limitResultValue as a finite numeric literal. The case lim_{x→a} f(x) = L for a finite L."
+msgstr "收敛结局：极限存在且为一有限值，由 math:LimitResult 通过 math:limitResultValue 以有限数值字面量携带。即 lim_{x→a} f(x) = L 且 L 有限的情形。"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToPositiveInfinity|rdfs:label"
+msgid "diverges to +∞"
+msgstr "发散到 +∞"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToPositiveInfinity|skos:definition"
+msgid "The outcome of a limit that grows without bound: f runs off to the positive pole, so the math:LimitResult carries math:PositiveInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = +∞ — a definite point on the extended real line ℝ̄, never a finite literal."
+msgstr "无界增长的极限的结局：f 奔向正极点，故 math:LimitResult 以 math:PositiveInfinity 作为其 math:limitResultValue。即 lim_{x→a} f(x) = +∞ 的情形——扩展实数轴 ℝ̄ 上的一个确定点，绝非有限字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToNegativeInfinity|rdfs:label"
+msgid "diverges to −∞"
+msgstr "发散到 −∞"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToNegativeInfinity|skos:definition"
+msgid "The outcome of a limit that decreases without bound: f runs off to the negative pole, so the math:LimitResult carries math:NegativeInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = −∞ — the dual of math:divergesToPositiveInfinity, a definite point on ℝ̄."
+msgstr "无界减小的极限的结局：f 奔向负极点，故 math:LimitResult 以 math:NegativeInfinity 作为其 math:limitResultValue。即 lim_{x→a} f(x) = −∞ 的情形——math:divergesToPositiveInfinity 的对偶，ℝ̄ 上的一个确定点。"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesWithoutLimit|rdfs:label"
+msgid "diverges without a limit"
+msgstr "无极限地发散"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesWithoutLimit|skos:definition"
+msgid "The outcome of a limit that does not exist: f neither settles to a finite value nor runs to a single pole — it oscillates (as sin(1/x) at 0) or otherwise fails to converge. The math:LimitResult carries NO math:limitResultValue, because there is no point of ℝ̄ to name; asserting a value here is ill-formed (math:UnderspecifiedLimitResult)."
+msgstr "不存在的极限的结局：f 既不稳定到一个有限值，也不奔向单一极点——它振荡（如 sin(1/x) 在 0 处）或以其他方式不收敛。math:LimitResult 不携带任何 math:limitResultValue，因为没有 ℝ̄ 上的点可供命名；在此断言一个值是病态的（math:UnderspecifiedLimitResult）。"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLimitResult|rdfs:label"
+msgid "has limit result"
+msgstr "具有极限结果"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLimitResult|skos:definition"
+msgid "Relates a math:Limit to the math:LimitResult recording what it evaluates to — its outcome and, for a finite convergent limit, its value. Domain math:Limit, range math:LimitResult (stated in prose). Optional: a math:Limit may name only its expression, point, and mode and leave the evaluated result unstated; where the result is stated, it is a math:LimitResult, never a bare literal, so the outcome is explicit."
+msgstr "将一个 math:Limit 关联到记录其求值结果的 math:LimitResult——其结局以及（对于有限收敛的极限）其值。定义域 math:Limit，值域 math:LimitResult（以散文说明）。可选：一个 math:Limit 可以只命名其表达式、点与模式，而不声明求值结果；一旦声明结果，它就是一个 math:LimitResult，绝非裸字面量，从而使结局显式化。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOutcome|rdfs:label"
+msgid "limit outcome"
+msgstr "极限结局"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOutcome|skos:definition"
+msgid "Relates a math:LimitResult to its math:LimitOutcome — math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit. Domain math:LimitResult, range math:LimitOutcome (stated in prose). The outcome is required; a result without a declared outcome is ill-formed (math:UnderspecifiedLimitResult)."
+msgstr "将一个 math:LimitResult 关联到其 math:LimitOutcome——math:convergesFinitely、math:divergesToPositiveInfinity、math:divergesToNegativeInfinity 或 math:divergesWithoutLimit。定义域 math:LimitResult，值域 math:LimitOutcome（以散文说明）。结局是必需的；没有声明结局的结果是病态的（math:UnderspecifiedLimitResult）。"
+
+msgctxt "https://blackcatinformatics.ca/math/limitResultValue|rdfs:label"
+msgid "limit result value"
+msgstr "极限结果值"
+
+msgctxt "https://blackcatinformatics.ca/math/limitResultValue|skos:definition"
+msgid "The value a convergent or pole-divergent math:LimitResult evaluates to — a finite numeric literal for a math:convergesFinitely outcome, or the extended-real pole math:PositiveInfinity / math:NegativeInfinity for a math:divergesToPositiveInfinity / math:divergesToNegativeInfinity outcome. Domain math:LimitResult, range a finite numeric literal or a pole individual (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Optional and absent on a math:divergesWithoutLimit result, which has no point of ℝ̄ to name; present and in agreement with the outcome otherwise (math:UnderspecifiedLimitResult)."
+msgstr "一个收敛或向极点发散的 math:LimitResult 所求得的值——对于 math:convergesFinitely 结局是一个有限数值字面量，对于 math:divergesToPositiveInfinity / math:divergesToNegativeInfinity 结局则是扩展实数极点 math:PositiveInfinity / math:NegativeInfinity。定义域 math:LimitResult，值域为一个有限数值字面量或一个极点个体（以散文说明）。与 math:totalMass 和 math:extendedRealValue 一样，它是一个 rdf:Property，而非 owl:ObjectProperty 或 owl:DatatypeProperty，正是因为其值域同时涵盖一个数据类型字面量（有限值）与一个个体（极点）：这两种 DL 属性类型都不能同时容纳二者，因此诚实的 RDF 上位属性承载了扩展实数值域而不产生 DL 矛盾。在 math:divergesWithoutLimit 结果上它是可选且缺席的，因为没有 ℝ̄ 上的点可供命名；否则它存在并与结局相符（math:UnderspecifiedLimitResult）。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|rdfs:label"
+msgid "Underspecified Limit Result"
+msgstr "欠定极限结果"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|skos:definition"
+msgid "The failure raised when a math:LimitResult does not name its math:limitOutcome, or carries a math:limitResultValue that disagrees with the declared outcome — a finite (non-pole) value is expected for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and NO value for math:divergesWithoutLimit. A structured limit result must say which of convergence or the three modes of divergence it is, and its value must agree with that outcome; anything else is ill-formed."
+msgstr "当一个 math:LimitResult 不命名其 math:limitOutcome，或携带与所声明结局相抵触的 math:limitResultValue 时引发的失败——math:convergesFinitely 期望一个有限（非极点）值，math:divergesToPositiveInfinity 期望 math:PositiveInfinity，math:divergesToNegativeInfinity 期望 math:NegativeInfinity，而 math:divergesWithoutLimit 期望没有任何值。一个结构化的极限结果必须说明它是收敛还是三种发散模式中的哪一种，且其值必须与该结局相符；其余一切皆为病态。"
+
 msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|rdfs:label"
 msgid "Measurement Scale"
 msgstr "测量尺度"

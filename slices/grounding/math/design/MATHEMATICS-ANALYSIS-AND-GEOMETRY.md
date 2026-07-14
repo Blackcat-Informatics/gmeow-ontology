@@ -28,12 +28,13 @@ error hides, so this charter hard-fails on it.
 
 ## Calculus and analysis
 
-Core classes: `math:Limit`, `math:Derivative`, `math:PartialDerivative`, `math:DifferentialOperator`,
-`math:Integral` (from the measure charter), `math:Series`, `math:Sequence`, `math:Convergence`, and
-`math:SpecialFunction`.
+Core classes: `math:Limit`, `math:LimitResult`, `math:LimitOutcome`, `math:Derivative`,
+`math:PartialDerivative`, `math:DifferentialOperator`, `math:Integral` (from the measure charter),
+`math:Series`, `math:Sequence`, `math:Convergence`, and `math:SpecialFunction`.
 
-Core properties: `math:limitOf`, `math:limitPoint`, `math:derivativeOf`, `math:withRespectToVariable`,
-`math:derivativeOrder`, `math:seriesTerm`, `math:convergesTo`, and `math:convergenceMode`.
+Core properties: `math:limitOf`, `math:limitPoint`, `math:hasLimitResult`, `math:limitOutcome`,
+`math:limitResultValue`, `math:derivativeOf`, `math:withRespectToVariable`, `math:derivativeOrder`,
+`math:seriesTerm`, `math:convergesTo`, and `math:convergenceMode`.
 
 Every operator here is a **binder over the expression AST**: `d/dx`, `∂`, `∫`, `∑`, and `lim` are
 `math:BindingExpression`s binding the variable of differentiation, integration, or summation
@@ -41,7 +42,23 @@ Every operator here is a **binder over the expression AST**: `d/dx`, `∂`, `∫
 differentiates, with respect to which variable, at which order; a `math:Limit` names its expression,
 its limit point, and — where it matters — the direction/mode; a `math:Series` and `math:Sequence`
 carry `math:Convergence` with its mode (pointwise, uniform, in-measure, …). Special functions align
-to **DLMF** by equation ID and to OpenMath `calculus1`/`transc1`. This is where a grounding layer
+to **DLMF** by equation ID and to OpenMath `calculus1`/`transc1`.
+
+Where a limit's **evaluated result** matters — not just the limit expression, but *what it runs to* —
+a `math:Limit` carries a structured `math:LimitResult` through `math:hasLimitResult`. The result is a
+first-class object, never a bare literal: it names its `math:limitOutcome` (one of the four
+`math:LimitOutcome` individuals `math:convergesFinitely`, `math:divergesToPositiveInfinity`,
+`math:divergesToNegativeInfinity`, `math:divergesWithoutLimit`) and, where the outcome has one, its
+`math:limitResultValue`. The value **agrees with the outcome** by construction: a convergent result
+carries a finite literal; a result diverging to a pole carries `math:PositiveInfinity` or
+`math:NegativeInfinity` (the same signed extended-real points a `math:totalMass` or an
+`math:extendedRealValue` ranges over, which is why `math:limitResultValue` is an honest `rdf:Property`
+spanning literal and pole); a result diverging without a limit — an oscillating `sin(1/x)` at `0` —
+carries no value at all, because there is no point of `ℝ̄` to name. The result is **optional** on a
+limit (a limit may still carry only its expression, point, and mode), but once stated it says which of
+convergence or the three modes of divergence the limit is, so `lim = ∞` is never a silent overload of a
+finite value. A result missing its outcome, or carrying a value that disagrees with it, is ill-formed
+(`math:UnderspecifiedLimitResult`). This is where a grounding layer
 becomes analysis: derivatives are maps of function spaces
 ([`MATHEMATICS-NUMBERS-AND-SETS.md`](MATHEMATICS-NUMBERS-AND-SETS.md)), and integration is the measure
 charter's operator.

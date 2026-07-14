@@ -11,6 +11,7 @@
 @prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix ex:   <http://example.org/math/> .
 
 # --- A chart on a Lorentzian manifold (the charter's worked example) -------- #
@@ -77,6 +78,40 @@ ex:worldlineLimit a math:Limit ;
     math:limitOf ex:worldlineExpr ;
     math:limitPoint ex:originPoint ;
     math:limitMode math:limitTwoSided .
+
+# --- Structured limit results ----------------------------------------------- #
+# A limit that runs off to the positive pole: the result names the divergent
+# outcome and carries math:PositiveInfinity as its value (a point on ℝ̄, never a
+# finite literal). The Lorentz factor γ = 1/√(1 − v²/c²) → +∞ as v → c.
+ex:lorentzFactorLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:lorentzFactorExpr ;
+    math:limitPoint ex:lightSpeed ;
+    math:limitMode math:limitFromLeft ;
+    math:hasLimitResult ex:lorentzFactorResult .
+
+ex:lorentzFactorResult a math:LimitResult ;
+    math:limitOutcome math:divergesToPositiveInfinity ;
+    math:limitResultValue math:PositiveInfinity .
+
+ex:lorentzFactorExpr a math:MathematicalExpression .
+ex:lightSpeed a math:MathematicalObject .
+
+# A convergent limit: the result names math:convergesFinitely and carries a finite
+# numeric literal. The proper-time integrand → 1 as v → 0 (the Newtonian limit).
+ex:properTimeRateLimit a math:Limit ;
+    math:operator math:limitBinder ;
+    math:limitOf ex:properTimeRateExpr ;
+    math:limitPoint ex:restVelocity ;
+    math:limitMode math:limitTwoSided ;
+    math:hasLimitResult ex:properTimeRateResult .
+
+ex:properTimeRateResult a math:LimitResult ;
+    math:limitOutcome math:convergesFinitely ;
+    math:limitResultValue "1.0"^^xsd:double .
+
+ex:properTimeRateExpr a math:MathematicalExpression .
+ex:restVelocity a math:MathematicalObject .
 
 # --- An absolutely convergent series ---------------------------------------- #
 

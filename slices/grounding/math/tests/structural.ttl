@@ -391,12 +391,13 @@ ASK {
     math:UnderspecifiedDerivative        rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedLimit             rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedConvergence       rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedLimitResult       rdfs:subClassOf math:MathConformanceFailure .
     math:UndeclaredTopologicalProperty   rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedManifold          rdfs:subClassOf math:MathConformanceFailure .
     math:UnderspecifiedChart             rdfs:subClassOf math:MathConformanceFailure .
     math:DimensionMismatch               rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each analysis-and-geometry hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — a malformed argument slot or binder, a silent logic: lowering, an unscoped occurrence, an underspecified derivative/limit/convergence/manifold/chart, an assumed topological property, or a dimension mismatch — is a typed, queryable object." .
+    gmeow:saRationale "Each analysis-and-geometry hard-rule failure MUST be a subclass of math:MathConformanceFailure, so a violation — a malformed argument slot or binder, a silent logic: lowering, an unscoped occurrence, an underspecified derivative/limit/limit-result/convergence/manifold/chart, an assumed topological property, or a dimension mismatch — is a typed, queryable object." .
 
 # --- 20. Every topological property's math:definingLaw resolves to a law or boundary (MUST) ---
 ex:saTopologicalLawBacking a gmeow:StructuralAssertion ;
@@ -412,6 +413,34 @@ ASK {
   }
 }""" ;
     gmeow:saRationale "Every concept carrying math:definingLaw MUST resolve to a real first-order logic:Formula (math:continuityLaw, math:connectednessLaw, math:t0SeparationLaw … math:normalitySeparationLaw) or a recorded logic:expressivenessBoundary boundary (math:compactnessBoundary) — turning 'backed by a law' from prose into an open, machine-checked, type-checked invariant. The ASK is OPEN (it hand-enumerates no concept: it finds NO math:definingLaw edge whose target is neither a logic:Formula NOR carries logic:expressivenessBoundary) and TYPE-CHECKED (a dangling or mistyped backing edge — one pointing at a bare type — fails it). A new grounded property joins the audit simply by carrying math:definingLaw, with no list to maintain." .
+
+# --- 20b. math:hasLimitResult wires a limit to its structured result (MUST) --- #
+ex:saLimitResultWiring a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:hasLimitResult a owl:ObjectProperty .
+    math:Limit rdfs:subClassOf [ owl:onProperty math:hasLimitResult ; owl:onClass math:LimitResult ] .
+}""" ;
+    gmeow:saRationale "The evaluated result of a limit MUST be reachable as a structured object: math:hasLimitResult is an owl:ObjectProperty and math:Limit carries an owl:Restriction on it whose owl:onClass is math:LimitResult, so a limit's result is a first-class math:LimitResult (never a bare literal) and the max-one cardinality bites. A result modelled as a plain value, or a link that did not target math:LimitResult, fails this assertion." .
+
+# --- 20c. The four limit outcomes are typed math:LimitOutcome individuals (MUST) --- #
+ex:saLimitOutcomeVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:convergesFinitely         a owl:NamedIndividual , math:LimitOutcome .
+    math:divergesToPositiveInfinity a owl:NamedIndividual , math:LimitOutcome .
+    math:divergesToNegativeInfinity a owl:NamedIndividual , math:LimitOutcome .
+    math:divergesWithoutLimit       a owl:NamedIndividual , math:LimitOutcome .
+    FILTER NOT EXISTS { math:LimitOutcome owl:oneOf ?enum . }
+}""" ;
+    gmeow:saRationale "The limit-outcome vocabulary MUST be the four open owl:NamedIndividuals math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, and math:divergesWithoutLimit, each typed math:LimitOutcome — an open value vocabulary mirroring math:ConvergenceMode, never sealed by an owl:oneOf enumeration (the FILTER NOT EXISTS forbids it), so a finer outcome can be added without reclassifying a closed set. A missing outcome individual, or an owl:oneOf that closes the class, fails this assertion." .
 
 # --- Linear algebra & learning: subsumption and framing invariants (MUST) --- #
 ex:saLinearAlgebraSubsumption a gmeow:StructuralAssertion ;

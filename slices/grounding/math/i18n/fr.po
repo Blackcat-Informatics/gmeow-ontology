@@ -380,6 +380,86 @@ msgctxt "https://blackcatinformatics.ca/math/lessAlternative|skos:definition"
 msgid "A one-sided 'less' alternative: the extremity is measured in the lower tail (the parameter falls below its null value)."
 msgstr "Une alternative unilatérale « inférieure » : l'extrémité est mesurée dans la queue inférieure (le paramètre tombe sous sa valeur nulle)."
 
+msgctxt "https://blackcatinformatics.ca/math/LimitResult|rdfs:label"
+msgid "Limit Result"
+msgstr "Résultat de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitResult|skos:definition"
+msgid "The structured result of a math:Limit — what the limit evaluates to: its outcome through math:limitOutcome (one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit) and, for a finite convergent limit, its value through math:limitResultValue. It is NOT the limit expression itself (the math:Limit binding lim_{x→a} f(x), which names math:limitOf and math:limitPoint) — it is the evaluated result that limit runs to. A convergent result carries a finite value; a result diverging to a pole names that pole (math:PositiveInfinity or math:NegativeInfinity) as its value; a result diverging without a limit (an oscillating or otherwise non-existent limit) carries no value at all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is one whose value disagrees with the declared outcome."
+msgstr "Le résultat structuré d'une math:Limit — ce vers quoi la limite s'évalue : son issue via math:limitOutcome (l'une de math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity ou math:divergesWithoutLimit) et, pour une limite convergente finie, sa valeur via math:limitResultValue. Ce n'est PAS l'expression de limite elle-même (la math:Limit liant lim_{x→a} f(x), qui nomme math:limitOf et math:limitPoint) — c'est le résultat évalué vers lequel cette limite tend. Un résultat convergent porte une valeur finie ; un résultat divergeant vers un pôle nomme ce pôle (math:PositiveInfinity ou math:NegativeInfinity) comme valeur ; un résultat divergeant sans limite (une limite oscillante ou autrement inexistante) ne porte aucune valeur. Un résultat sans son issue est mal formé (math:UnderspecifiedLimitResult), tout comme un résultat dont la valeur contredit l'issue déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/LimitOutcome|rdfs:label"
+msgid "Limit Outcome"
+msgstr "Issue de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/LimitOutcome|skos:definition"
+msgid "The outcome a math:Limit runs to, carried by a math:LimitResult through math:limitOutcome: one of math:convergesFinitely (the limit exists and is finite), math:divergesToPositiveInfinity (x → a drives f off to +∞), math:divergesToNegativeInfinity (off to −∞), or math:divergesWithoutLimit (no limit exists — the value oscillates or otherwise fails to settle). The outcome is what distinguishes a convergent limit from divergence to either pole or an absent limit, and is required on every math:LimitResult."
+msgstr "L'issue vers laquelle une math:Limit tend, portée par une math:LimitResult via math:limitOutcome : l'une de math:convergesFinitely (la limite existe et est finie), math:divergesToPositiveInfinity (x → a pousse f vers +∞), math:divergesToNegativeInfinity (vers −∞) ou math:divergesWithoutLimit (aucune limite n'existe — la valeur oscille ou ne se stabilise pas). L'issue est ce qui distingue une limite convergente d'une divergence vers l'un ou l'autre pôle ou d'une limite absente, et elle est requise sur chaque math:LimitResult."
+
+msgctxt "https://blackcatinformatics.ca/math/convergesFinitely|rdfs:label"
+msgid "converges finitely"
+msgstr "converge finiment"
+
+msgctxt "https://blackcatinformatics.ca/math/convergesFinitely|skos:definition"
+msgid "The convergent outcome: the limit exists and is a finite value, carried by the math:LimitResult through math:limitResultValue as a finite numeric literal. The case lim_{x→a} f(x) = L for a finite L."
+msgstr "L'issue convergente : la limite existe et est une valeur finie, portée par la math:LimitResult via math:limitResultValue sous la forme d'un littéral numérique fini. Le cas lim_{x→a} f(x) = L pour un L fini."
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToPositiveInfinity|rdfs:label"
+msgid "diverges to +∞"
+msgstr "diverge vers +∞"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToPositiveInfinity|skos:definition"
+msgid "The outcome of a limit that grows without bound: f runs off to the positive pole, so the math:LimitResult carries math:PositiveInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = +∞ — a definite point on the extended real line ℝ̄, never a finite literal."
+msgstr "L'issue d'une limite qui croît sans borne : f s'échappe vers le pôle positif, de sorte que la math:LimitResult porte math:PositiveInfinity comme math:limitResultValue. Le cas lim_{x→a} f(x) = +∞ — un point défini sur la droite réelle achevée ℝ̄, jamais un littéral fini."
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToNegativeInfinity|rdfs:label"
+msgid "diverges to −∞"
+msgstr "diverge vers −∞"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesToNegativeInfinity|skos:definition"
+msgid "The outcome of a limit that decreases without bound: f runs off to the negative pole, so the math:LimitResult carries math:NegativeInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = −∞ — the dual of math:divergesToPositiveInfinity, a definite point on ℝ̄."
+msgstr "L'issue d'une limite qui décroît sans borne : f s'échappe vers le pôle négatif, de sorte que la math:LimitResult porte math:NegativeInfinity comme math:limitResultValue. Le cas lim_{x→a} f(x) = −∞ — le dual de math:divergesToPositiveInfinity, un point défini sur ℝ̄."
+
+msgctxt "https://blackcatinformatics.ca/math/divergesWithoutLimit|rdfs:label"
+msgid "diverges without a limit"
+msgstr "diverge sans limite"
+
+msgctxt "https://blackcatinformatics.ca/math/divergesWithoutLimit|skos:definition"
+msgid "The outcome of a limit that does not exist: f neither settles to a finite value nor runs to a single pole — it oscillates (as sin(1/x) at 0) or otherwise fails to converge. The math:LimitResult carries NO math:limitResultValue, because there is no point of ℝ̄ to name; asserting a value here is ill-formed (math:UnderspecifiedLimitResult)."
+msgstr "L'issue d'une limite qui n'existe pas : f ne se stabilise ni vers une valeur finie ni vers un pôle unique — elle oscille (comme sin(1/x) en 0) ou ne converge pas autrement. La math:LimitResult ne porte AUCUNE math:limitResultValue, car il n'y a aucun point de ℝ̄ à nommer ; y affirmer une valeur est mal formé (math:UnderspecifiedLimitResult)."
+
+msgctxt "https://blackcatinformatics.ca/math/hasLimitResult|rdfs:label"
+msgid "has limit result"
+msgstr "a pour résultat de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/hasLimitResult|skos:definition"
+msgid "Relates a math:Limit to the math:LimitResult recording what it evaluates to — its outcome and, for a finite convergent limit, its value. Domain math:Limit, range math:LimitResult (stated in prose). Optional: a math:Limit may name only its expression, point, and mode and leave the evaluated result unstated; where the result is stated, it is a math:LimitResult, never a bare literal, so the outcome is explicit."
+msgstr "Relie une math:Limit à la math:LimitResult consignant ce vers quoi elle s'évalue — son issue et, pour une limite convergente finie, sa valeur. Domaine math:Limit, portée math:LimitResult (précisé en prose). Facultatif : une math:Limit peut ne nommer que son expression, son point et son mode et laisser le résultat évalué non déclaré ; lorsque le résultat est déclaré, c'est une math:LimitResult, jamais un simple littéral, de sorte que l'issue soit explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/limitOutcome|rdfs:label"
+msgid "limit outcome"
+msgstr "issue de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/limitOutcome|skos:definition"
+msgid "Relates a math:LimitResult to its math:LimitOutcome — math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit. Domain math:LimitResult, range math:LimitOutcome (stated in prose). The outcome is required; a result without a declared outcome is ill-formed (math:UnderspecifiedLimitResult)."
+msgstr "Relie une math:LimitResult à son math:LimitOutcome — math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity ou math:divergesWithoutLimit. Domaine math:LimitResult, portée math:LimitOutcome (précisé en prose). L'issue est requise ; un résultat sans issue déclarée est mal formé (math:UnderspecifiedLimitResult)."
+
+msgctxt "https://blackcatinformatics.ca/math/limitResultValue|rdfs:label"
+msgid "limit result value"
+msgstr "valeur du résultat de limite"
+
+msgctxt "https://blackcatinformatics.ca/math/limitResultValue|skos:definition"
+msgid "The value a convergent or pole-divergent math:LimitResult evaluates to — a finite numeric literal for a math:convergesFinitely outcome, or the extended-real pole math:PositiveInfinity / math:NegativeInfinity for a math:divergesToPositiveInfinity / math:divergesToNegativeInfinity outcome. Domain math:LimitResult, range a finite numeric literal or a pole individual (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Optional and absent on a math:divergesWithoutLimit result, which has no point of ℝ̄ to name; present and in agreement with the outcome otherwise (math:UnderspecifiedLimitResult)."
+msgstr "La valeur vers laquelle s'évalue une math:LimitResult convergente ou divergeant vers un pôle — un littéral numérique fini pour une issue math:convergesFinitely, ou le pôle réel étendu math:PositiveInfinity / math:NegativeInfinity pour une issue math:divergesToPositiveInfinity / math:divergesToNegativeInfinity. Domaine math:LimitResult, portée un littéral numérique fini ou un individu pôle (précisé en prose). Comme math:totalMass et math:extendedRealValue, c'est une rdf:Property, non une owl:ObjectProperty ni une owl:DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (la valeur finie) et un individu (un pôle) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Facultative et absente sur un résultat math:divergesWithoutLimit, qui n'a aucun point de ℝ̄ à nommer ; présente et en accord avec l'issue sinon (math:UnderspecifiedLimitResult)."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|rdfs:label"
+msgid "Underspecified Limit Result"
+msgstr "Résultat de limite sous-spécifié"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|skos:definition"
+msgid "The failure raised when a math:LimitResult does not name its math:limitOutcome, or carries a math:limitResultValue that disagrees with the declared outcome — a finite (non-pole) value is expected for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and NO value for math:divergesWithoutLimit. A structured limit result must say which of convergence or the three modes of divergence it is, and its value must agree with that outcome; anything else is ill-formed."
+msgstr "L'échec levé lorsqu'une math:LimitResult ne nomme pas son math:limitOutcome, ou porte une math:limitResultValue qui contredit l'issue déclarée — une valeur finie (non-pôle) est attendue pour math:convergesFinitely, math:PositiveInfinity pour math:divergesToPositiveInfinity, math:NegativeInfinity pour math:divergesToNegativeInfinity, et AUCUNE valeur pour math:divergesWithoutLimit. Un résultat de limite structuré doit dire lequel, de la convergence ou des trois modes de divergence, il est, et sa valeur doit s'accorder avec cette issue ; tout le reste est mal formé."
+
 msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|rdfs:label"
 msgid "Measurement Scale"
 msgstr "Échelle de mesure"
