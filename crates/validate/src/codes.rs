@@ -81,6 +81,10 @@ pub const VALIDATE_DEEP_INCOMPLETE: &str = "validate.deep.incomplete";
 pub const VALIDATE_DEEP_CONSISTENT: &str = "validate.deep.consistent";
 /// `crates/validate/src/data_validate.rs` — garbled declared contract policy.
 pub const VALIDATE_DEEP_CONTRACT_INVALID: &str = "validate.deep.contract-invalid";
+/// `crates/validate/src/validate_all.rs` — a reasoning verdict named a clash quad
+/// whose explain-skeleton derivation could not be built or located. An internal
+/// invariant violation that HARD-FAILS the deep pass (never a graceful advisory).
+pub const VALIDATE_DEEP_DERIVATION_UNRESOLVED: &str = "validate.deep.derivation-unresolved";
 /// `crates/validate/src/data_validate.rs` — Tier-2 pass unavailable (graceful
 /// degradation note).
 pub const VALIDATE_DEEP_UNAVAILABLE: &str = "validate.deep.unavailable";
@@ -195,6 +199,7 @@ pub const ALL_CODES: &[&str] = &[
     VALIDATE_DEEP_INCOMPLETE,
     VALIDATE_DEEP_CONSISTENT,
     VALIDATE_DEEP_CONTRACT_INVALID,
+    VALIDATE_DEEP_DERIVATION_UNRESOLVED,
     VALIDATE_DEEP_UNAVAILABLE,
     CONSTITUTION_HONOR_SYSTEM,
     CONSTITUTION_ORPHANED_ENFORCEMENT,

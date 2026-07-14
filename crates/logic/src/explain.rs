@@ -43,7 +43,7 @@ use foldhash::fast::FixedState;
 use gmeow_errors::dag::{DagError, DagNode, walk};
 use hashbrown::HashTable;
 
-use crate::provenance::{ASSERT_RULE_IRI, reifier_from_strings};
+use crate::provenance::{ASSERT_RULE_IRI, mint_derivation_id, reifier_from_strings};
 
 // ── Input row ────────────────────────────────────────────────────────────────
 
@@ -488,6 +488,146 @@ fn explain_with_index(
         step_skeleton: steps,
         cited_iris,
     })
+}
+
+// ── Reasoning-result bridge ────────────────────────────────────────────────────
+
+/// Build the faithful cited-IRI derivation skeletons for every derived (and
+/// asserted) quad in a reasoning result.
+///
+/// Each [`InferredAxiom`](crate::reason::InferredAxiom) is mapped to one explain
+/// [`Row`]: the world becomes the row `graph`; the axiom's `(subject, predicate,
+/// object)` its `(S, P, O)` (the `object` is already the `term_display`/N3 surface
+/// the reasoner carries, so it is used verbatim — never re-encoded); and the firing
+/// rule its `rule_iri` (an asserted EDB row carries
+/// [`crate::provenance::ASSERT_RULE_IRI`]). An asserted row lists its OWN reifier as
+/// its single source — the self-reference [`reconstruct_tree`] filters out, so it
+/// stays a leaf; a derived row lists the reifiers of its immediate premises. The
+/// per-row `derivation_id` is the content-addressed
+/// [`crate::provenance::mint_derivation_id`] over that rule and those sources.
+///
+/// # Premise object surface
+///
+/// The two production reasoning paths record a premise's object in DIFFERENT
+/// surfaces: the EL/chase path carries the `term_display` N3 form (`<iri>`), while
+/// the finite DL post-pass carries a BARE resource IRI. A row's own `object` is
+/// always the N3 form, so a premise reifier only joins its antecedent row once the
+/// premise object is normalized to that N3 surface — [`premise_object_n3`] wraps a
+/// bare IRI in `<...>` and leaves an already-N3 IRI, a literal, or a blank untouched.
+/// Without it a DL-clash premise (a bare `owl:Nothing`, disjoint class, …) would
+/// reify to a different IRI than its antecedent quad and fail to resolve.
+///
+/// # Premise closure
+///
+/// A result's `inferred()` closure is NOT self-contained: the default-world DL path
+/// echoes only DERIVED axioms, not the asserted EDB facts a derived axiom's premises
+/// cite. The row set is therefore CLOSED under premises — every premise not already
+/// present as a row (in its axiom's world) is materialized as an asserted leaf row (an
+/// input fact, which it always is: the omitted rows are exactly the EDB). Without this
+/// closure the derivation tree would cite an antecedent reifier with no backing row —
+/// a spurious [`ExplainError::UnresolvedReifier`] on a perfectly sound verdict.
+///
+/// Returns OWNED [`Explanation`]s (the [`Row`] buffer is built and consumed
+/// internally) so a caller need not hold the borrow — sidestepping the
+/// [`LazyExplanationIndex`] borrow-lifetime problem entirely.
+///
+/// # Errors
+///
+/// Propagates any [`ExplainError`] from reconstructing a quad's derivation tree —
+/// an unresolved antecedent reifier ([`ExplainError::UnresolvedReifier`]) or a cycle
+/// in the proof trace ([`ExplainError::Cycle`]). When the reasoner has already
+/// produced a real verdict, either is an INTERNAL INVARIANT VIOLATION, and the
+/// verdict-folding callers HARD-FAIL on it rather than degrading to an advisory.
+pub fn explanations_for_result(
+    result: &crate::result::ReasoningResult,
+) -> Result<Vec<Explanation>, ExplainError> {
+    let assert_rule = ASSERT_RULE_IRI.to_owned();
+    let mut rows: Vec<Row> = Vec::with_capacity(result.inferred().len());
+    // The `(world, reifier)` identities already carried by a row, so a premise is
+    // synthesized into a leaf row at most once and never shadows a genuine one.
+    let mut present: BTreeSet<(String, String)> = BTreeSet::new();
+
+    // 1. One row per inferred axiom (derived or asserted-EDB echo).
+    for axiom in result.inferred() {
+        let self_reifier = reifier_from_strings(&axiom.subject, &axiom.predicate, &axiom.object);
+        let rule_iri = axiom
+            .rule_name
+            .clone()
+            .unwrap_or_else(|| assert_rule.clone());
+        // Asserted facts are leaves: they carry their own reifier as the sole source
+        // (filtered out during reconstruction). A derived quad cites the reifiers of
+        // its immediate premises (object normalized to the row N3 surface).
+        let source_quad_ids: Vec<String> = if axiom.is_edb {
+            vec![self_reifier.clone()]
+        } else {
+            axiom
+                .premises
+                .iter()
+                .map(|(s, p, o)| reifier_from_strings(s, p, &premise_object_n3(o)))
+                .collect()
+        };
+        let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
+        let derivation_id = mint_derivation_id(&rule_iri, &source_refs);
+        present.insert((axiom.world.clone(), self_reifier));
+        rows.push(Row {
+            graph: axiom.world.clone(),
+            subject: axiom.subject.clone(),
+            predicate: axiom.predicate.clone(),
+            obj: axiom.object.clone(),
+            derivation_id,
+            rule_iri,
+            source_quad_ids,
+        });
+    }
+
+    // 2. Close the row set under premises: any premise NOT already present as a row
+    //    in its axiom's world is an omitted asserted (EDB) fact — materialize it as an
+    //    asserted leaf so the derivation tree resolves. Collected first (immutable
+    //    borrow of `rows`), then appended.
+    let mut synthesized: Vec<Row> = Vec::new();
+    for axiom in result.inferred() {
+        if axiom.is_edb {
+            continue;
+        }
+        for (s, p, o) in &axiom.premises {
+            let obj = premise_object_n3(o).into_owned();
+            let reifier = reifier_from_strings(s, p, &obj);
+            let key = (axiom.world.clone(), reifier.clone());
+            if !present.insert(key) {
+                continue;
+            }
+            let source_quad_ids = vec![reifier];
+            let source_refs: Vec<&str> = source_quad_ids.iter().map(String::as_str).collect();
+            let derivation_id = mint_derivation_id(&assert_rule, &source_refs);
+            synthesized.push(Row {
+                graph: axiom.world.clone(),
+                subject: s.clone(),
+                predicate: p.clone(),
+                obj,
+                derivation_id,
+                rule_iri: assert_rule.clone(),
+                source_quad_ids,
+            });
+        }
+    }
+    rows.extend(synthesized);
+
+    LazyExplanationIndex::new(&rows).explain_all()
+}
+
+/// Normalize a reasoning premise's object to the canonical N3 surface a [`Row`]'s
+/// `obj` (and hence [`reifier_from_row`]) uses, so a premise reifier joins its
+/// antecedent quad regardless of which production path recorded the premise.
+///
+/// A bare resource IRI (the finite DL post-pass surface) is wrapped in `<...>`; an
+/// already-N3 IRI (`<...>`, the EL/chase surface), a literal (`"..."`), or a blank
+/// node (`_:...`) is used verbatim.
+fn premise_object_n3(object: &str) -> std::borrow::Cow<'_, str> {
+    if object.starts_with('<') || object.starts_with('"') || object.starts_with("_:") {
+        std::borrow::Cow::Borrowed(object)
+    } else {
+        std::borrow::Cow::Owned(format!("<{object}>"))
+    }
 }
 
 /// Render a full Markdown explanation file for `expl`.
