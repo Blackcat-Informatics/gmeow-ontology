@@ -280,7 +280,7 @@ class Expression(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Expression", "curie": "gmeow:Expression", "definitionDigest": "blake3:7d823c5f1d327023592906c82ab42d6a994fcd1763f9ae36f73bae444c1bf245", "iri": "https://blackcatinformatics.ca/gmeow/Expression"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/Expression", "curie": "gmeow:Expression", "definitionDigest": "blake3:6e6e65fcf9abe0ebe8a472b8bfcbf499288b2409239d9c01ba81b9d69a47bd09", "iri": "https://blackcatinformatics.ca/gmeow/Expression"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")

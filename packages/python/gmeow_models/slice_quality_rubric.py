@@ -40,3 +40,16 @@ class QualityTierEnum(StrEnum):
     tierLinked = "gmeow:tierLinked"
     tierMaximal = "gmeow:tierMaximal"
     tierRegistered = "gmeow:tierRegistered"
+
+
+class SliceQualityDimensionEnum(StrEnum):
+    qualityDimensionCounterExampleDepth = "gmeow:qualityDimensionCounterExampleDepth"
+    qualityDimensionDocumentation = "gmeow:qualityDimensionDocumentation"
+    qualityDimensionGrounding = "gmeow:qualityDimensionGrounding"
+    qualityDimensionInferentialDensity = "gmeow:qualityDimensionInferentialDensity"
+    qualityDimensionLinkage = "gmeow:qualityDimensionLinkage"
+    qualityDimensionProjection = "gmeow:qualityDimensionProjection"
+    qualityDimensionProseQuality = "gmeow:qualityDimensionProseQuality"
+    qualityDimensionProvenanceHonesty = "gmeow:qualityDimensionProvenanceHonesty"
+    qualityDimensionTesting = "gmeow:qualityDimensionTesting"
+    qualityDimensionTranslationCoverage = "gmeow:qualityDimensionTranslationCoverage"
