@@ -846,6 +846,29 @@ impl ValidationRun {
 ///
 /// # Errors
 /// Returns `Err` if the GTS bundle cannot be read or the reasoning run fails.
+/// The PUBLIC deep-semantic entry over a GTS bundle — the reasoned-verdict pass
+/// `gmeow verify` shares with the dev bundle-only pass.
+///
+/// It is a thin, single-line delegation to [`deep_semantic_findings`] (the dev
+/// bundle pass), so both surfaces run the EXACT same path: reason over the bundle,
+/// build the [`gmeow_logic::explain::explanations_for_result`] derivation
+/// skeletons, and fold the shared `logic:ReasoningResult` verdict into `report`
+/// via [`fold_reasoning_result`]. That means the report gains the same reasoned
+/// `validate.deep.*` findings the enrichment pass attaches `derived_from_quads` to
+/// (Task 5), and it INHERITS the same hard-fail discipline: a verdict that cannot
+/// be joined to its explain-skeleton derivation (an internal invariant violation)
+/// propagates as `Err`, never a graceful advisory — the caller must treat it as a
+/// `Severity::Error` failure, not swallow it. There is no reimplementation of the
+/// fold here.
+///
+/// # Errors
+/// Returns `Err` if the GTS bundle cannot be read, the native reasoning run fails,
+/// the declared contradiction contract cannot be resolved, or a reasoning verdict
+/// cannot be joined to its explain-skeleton derivation.
+pub fn bundle_deep_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors::Result<()> {
+    deep_semantic_findings(gts_bytes, report)
+}
+
 fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors::Result<()> {
     let bundle = purrdf::import_gts_events(gts_bytes).map_err(|e| {
         Diag::of_kind(crate::error::Dataset {
@@ -869,7 +892,23 @@ fn deep_semantic_findings(gts_bytes: &[u8], report: &mut Report) -> gmeow_errors
                 detail: format!("validate --deep: contract resolution failed: {e}"),
             })
         })?;
-    fold_reasoning_result(&result, policy, report);
+    // Build the faithful cited-quad-reifier derivation skeletons for the SAME
+    // result; a build failure AFTER a real verdict is an internal invariant
+    // violation and HARD-FAILS the dev bundle pass (propagated as Err), never
+    // downgraded to an advisory note.
+    let explanations = gmeow_logic::explain::explanations_for_result(&result).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!(
+                "validate --deep: explanation-skeleton build failed after a real verdict \
+                 (internal invariant): {e}"
+            ),
+        })
+    })?;
+    fold_reasoning_result(&result, policy, &explanations, report).map_err(|e| {
+        Diag::of_kind(crate::error::Engine {
+            detail: format!("validate --deep: {}", e.message),
+        })
+    })?;
 
     // Build the scoped coherence certificate from the SAME reasoning result, under
     // the SAME resolved policy and bundle hash, and attach it to the report metadata
@@ -936,6 +975,68 @@ fn attach_coherence_certificate(
     );
 }
 
+/// `owl:Nothing` — the class every contradiction/unsatisfiability clash quad forces
+/// its witness into. The clash quad the explain skeleton is attached from is exactly
+/// `type(individual, owl:Nothing)` (a contradiction) or `subClassOf(class,
+/// owl:Nothing)` (an unsatisfiable class), so a witness's derivation is located by
+/// the explanation whose target quad has the witness as subject, the witness world,
+/// and `owl:Nothing` as object.
+const OWL_NOTHING: &str = "http://www.w3.org/2002/07/owl#Nothing";
+
+/// An internal-invariant violation raised while folding a reasoning verdict: a
+/// contradiction / permitted-conflict / unsatisfiability witness named a
+/// `(subject, world)` quad that is NOT present among the reasoning result's derived
+/// (or asserted) quads — no explain skeleton could be located for it.
+///
+/// This is NOT graceful degradation: the verdict referenced a quad absent from the
+/// result it was read off, which can only be an engine/fold contract violation. The
+/// callers HARD-FAIL on it (a `Severity::Error` finding on the CLI path, a propagated
+/// `Err` on the dev-bundle path), never a `Severity::Note`.
+#[derive(Debug, Clone)]
+pub(crate) struct WitnessDerivationMissing {
+    /// The invariant-violation detail, naming the unlocatable witness.
+    pub message: String,
+}
+
+/// Locate the explain-skeleton cited-IRI derivation for one clash witness.
+///
+/// Returns the sorted, deduped UNION of the `cited_iris` of every explanation whose
+/// target quad concerns `(witness_name, witness_world)` — i.e. whose target step's
+/// `subject_iri` is the witness, whose `world_iri` is the witness world, and whose
+/// target object is `owl:Nothing` (the clash quad). Returns `None` when NO such
+/// explanation exists — the absent-witness invariant violation the fold hard-fails on.
+fn derived_quads_for_witness(
+    explanations: &[gmeow_logic::explain::Explanation],
+    witness_name: &str,
+    witness_world: &str,
+) -> Option<Vec<String>> {
+    let mut cited: BTreeSet<String> = BTreeSet::new();
+    let mut matched = false;
+    for expl in explanations {
+        if expl.world_iri != witness_world {
+            continue;
+        }
+        let Some(target) = expl.step_skeleton.first() else {
+            continue;
+        };
+        if target.subject_iri != witness_name {
+            continue;
+        }
+        // The clash quad forces the witness into owl:Nothing; match its N3 object
+        // IRI so an unrelated quad about the same subject is never over-cited.
+        let object_iri = target
+            .obj_n3
+            .strip_prefix('<')
+            .and_then(|s| s.strip_suffix('>'));
+        if object_iri != Some(OWL_NOTHING) {
+            continue;
+        }
+        matched = true;
+        cited.extend(expl.cited_iris.iter().cloned());
+    }
+    matched.then(|| cited.into_iter().collect())
+}
+
 /// Fold a shared `logic:ReasoningResult` verdict into `report` as the deep-pass
 /// finding projection. The SINGLE fold both the dev bundle-only pass
 /// ([`deep_semantic_findings`]) and the consumer user-data-merge pass
@@ -947,11 +1048,24 @@ fn attach_coherence_certificate(
 /// (`preservation.unsupported_constructs`). A consistent, fully-covered run adds one
 /// informational note. These findings are a projection of the single shared model,
 /// not a re-derivation.
+///
+/// Each INCONSISTENT / PERMITTED_CONFLICT / UNSATISFIABLE verdict finding also gains
+/// the explain-skeleton cited-quad-reifier derivation of its clash quad, attached via
+/// [`gmeow_errors::Finding::with_derived_from_quads`] (a SEPARATE edge from
+/// `antecedents`/`root_cause`, which stay untouched). `explanations` is the owned
+/// [`gmeow_logic::explain::explanations_for_result`] skeleton for the SAME `result`.
+///
+/// # Errors
+///
+/// Returns [`WitnessDerivationMissing`] when a witness names a `(subject, world)`
+/// clash quad that is absent from `explanations` — an internal invariant violation
+/// the callers HARD-FAIL on (never a graceful advisory).
 pub(crate) fn fold_reasoning_result(
     result: &gmeow_logic::result::ReasoningResult,
     policy: ContradictionPolicy,
+    explanations: &[gmeow_logic::explain::Explanation],
     report: &mut Report,
-) {
+) -> Result<(), WitnessDerivationMissing> {
     if !result.is_consistent() {
         // A within-world glut is a permitted, DISCLOSED conflict when the governing
         // contract admits gluts, and a FORBIDDEN integrity violation otherwise. A
@@ -960,6 +1074,19 @@ pub(crate) fn fold_reasoning_result(
         // forbidden one is the failing logic:FindingContradictionWitness.
         let permitted = policy.glut_permitted();
         for witness in &result.provenance.contradiction_witnesses {
+            // Locate the explain-skeleton derivation of this witness's clash quad
+            // BEFORE minting the finding; an unlocatable witness is a hard-fail
+            // invariant violation, never a silently-underived verdict.
+            let derived_from_quads =
+                derived_quads_for_witness(explanations, &witness.individual, &witness.world)
+                    .ok_or_else(|| WitnessDerivationMissing {
+                        message: format!(
+                            "contradiction witness (individual {}, world {}) names a quad absent \
+                     from the reasoning result's derivations — no explain skeleton could \
+                     be located",
+                            witness.individual, witness.world
+                        ),
+                    })?;
             let finding = if permitted {
                 Finding::new(
                     Severity::Warning,
@@ -986,11 +1113,28 @@ pub(crate) fn fold_reasoning_result(
                 )
                 .with_category(FindingCategory::ContradictionWitness)
             };
-            report.add_finding(finding.with_tool("validate"));
+            report.add_finding(
+                finding
+                    .with_tool("validate")
+                    .with_derived_from_quads(derived_from_quads),
+            );
         }
     }
 
     for unsat in gmeow_logic::reason::dl::unsatisfiable_from_inferred(result.inferred()) {
+        // The unsatisfiable class is the subject of a `subClassOf(class, owl:Nothing)`
+        // clash quad; attach its explain-skeleton derivation, hard-failing if the
+        // verdict named a quad the result does not carry.
+        let derived_from_quads =
+            derived_quads_for_witness(explanations, &unsat.class, &unsat.world).ok_or_else(
+                || WitnessDerivationMissing {
+                    message: format!(
+                        "unsatisfiable class {} (world {}) names a quad absent from the \
+                         reasoning result's derivations — no explain skeleton could be located",
+                        unsat.class, unsat.world
+                    ),
+                },
+            )?;
         report.add_finding(
             Finding::new(
                 Severity::Warning,
@@ -1001,7 +1145,8 @@ pub(crate) fn fold_reasoning_result(
                 ),
             )
             .with_tool("validate")
-            .with_category(FindingCategory::ModelingDisciplineViolation),
+            .with_category(FindingCategory::ModelingDisciplineViolation)
+            .with_derived_from_quads(derived_from_quads),
         );
     }
 
@@ -1083,6 +1228,8 @@ pub(crate) fn fold_reasoning_result(
             .with_tool("validate"),
         );
     }
+
+    Ok(())
 }
 
 /// Run `closure` and, if timings are enabled, record how long it took.
@@ -2108,14 +2255,18 @@ ex:x rdf:type ex:A .
         let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
         let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
         assert!(!result.is_consistent(), "the fixture must produce a glut");
+        let explanations = gmeow_logic::explain::explanations_for_result(&result)
+            .expect("explain skeletons must build for a real verdict");
 
         // FORBIDDEN (classical): an Error categorized ContradictionWitness; gate fails.
         let mut forbidden = Report::new("validate");
         fold_reasoning_result(
             &result,
             ContradictionPolicy::ForbidGapAndGlut,
+            &explanations,
             &mut forbidden,
-        );
+        )
+        .expect("fold must locate every witness derivation");
         let f = forbidden
             .findings
             .iter()
@@ -2128,7 +2279,13 @@ ex:x rdf:type ex:A .
         // PERMITTED (glut-admitting): a Warning categorized PermittedEpistemicConflict;
         // the gate stays green — the load-bearing acceptance criterion (c).
         let mut permitted = Report::new("validate");
-        fold_reasoning_result(&result, ContradictionPolicy::ForbidGap, &mut permitted);
+        fold_reasoning_result(
+            &result,
+            ContradictionPolicy::ForbidGap,
+            &explanations,
+            &mut permitted,
+        )
+        .expect("fold must locate every witness derivation");
         assert!(
             !permitted
                 .findings
@@ -2149,6 +2306,109 @@ ex:x rdf:type ex:A .
         assert!(
             permitted.ok(),
             "a permitted, disclosed contradiction must NOT fail the gate"
+        );
+    }
+
+    /// The inconsistent bundle every derivation-attach test reasons over: `x : A`,
+    /// `A ⊑ B`, `A ⊑ C`, `B ⊐⊏ C` forces `x` into `owl:Nothing`.
+    const INCONSISTENT_TTL: &str = "\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix ex: <http://gmeow.example/> .
+ex:A rdfs:subClassOf ex:B .
+ex:A rdfs:subClassOf ex:C .
+ex:B owl:disjointWith ex:C .
+ex:x rdf:type ex:A .
+";
+
+    /// A forbidden contradiction finding carries the explain-skeleton
+    /// cited-quad-reifier derivation (`derived_from_quads`) of its clash quad, and
+    /// leaves the finding-fingerprint edges (`antecedents`/`root_cause`) untouched —
+    /// the namespace guard: the two edges are NEVER conflated.
+    #[test]
+    fn deep_inconsistent_finding_carries_derivation_not_antecedents() {
+        let bytes = gts_bytes_from_turtle(INCONSISTENT_TTL);
+        let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
+        let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
+        assert!(!result.is_consistent(), "the fixture must produce a glut");
+        let explanations = gmeow_logic::explain::explanations_for_result(&result)
+            .expect("explain skeletons must build for a real verdict");
+
+        let mut report = Report::new("validate");
+        fold_reasoning_result(
+            &result,
+            ContradictionPolicy::ForbidGapAndGlut,
+            &explanations,
+            &mut report,
+        )
+        .expect("fold must locate every witness derivation");
+
+        let finding = report
+            .findings
+            .iter()
+            .find(|f| f.code == "validate.deep.inconsistent")
+            .expect("a forbidden glut must emit a deep.inconsistent error");
+
+        assert!(
+            !finding.derived_from_quads.is_empty(),
+            "the reasoned-quad verdict must carry its explain-skeleton derivation"
+        );
+        // The cited-IRI skeleton names the clash quad's own reifier and its world —
+        // the load-bearing logic-world coordinates of the derivation.
+        assert!(
+            finding
+                .derived_from_quads
+                .iter()
+                .any(|iri| iri.starts_with("https://blackcatinformatics.ca/gmeow/reifier/")),
+            "derived_from_quads must cite at least one logic-world quad reifier; got {:?}",
+            finding.derived_from_quads
+        );
+        assert!(
+            finding
+                .derived_from_quads
+                .contains(&"https://blackcatinformatics.ca/gmeow/graph/rl-default".to_owned()),
+            "the derivation is cited within its world; got {:?}",
+            finding.derived_from_quads
+        );
+        // Namespace guard: the finding-fingerprint edges stay empty — a quad reifier
+        // must NEVER be written into antecedents/root_cause.
+        assert!(
+            finding.antecedents.is_empty(),
+            "antecedents (finding-fingerprint IRIs) must stay empty"
+        );
+        assert!(
+            finding.root_cause.is_none(),
+            "root_cause (finding-fingerprint IRI) must stay unset"
+        );
+    }
+
+    /// The absent-witness invariant: a verdict names a witness whose clash quad has
+    /// no locatable explain skeleton → `fold_reasoning_result` HARD-FAILS with
+    /// [`WitnessDerivationMissing`], never a silent (or advisory-Note) attach. Here
+    /// the real inconsistent result is folded with an EMPTY explanation set, so no
+    /// witness can be located — the same shape as a verdict referencing a quad the
+    /// result does not carry.
+    #[test]
+    fn fold_hard_fails_when_witness_derivation_absent() {
+        let bytes = gts_bytes_from_turtle(INCONSISTENT_TTL);
+        let bundle = purrdf::import_gts_events(&bytes).expect("gts read");
+        let result = gmeow_logic::reason::reason_all(bundle.dataset.as_ref()).expect("reason");
+        assert!(!result.is_consistent(), "the fixture must produce a glut");
+
+        let mut report = Report::new("validate");
+        let err = fold_reasoning_result(
+            &result,
+            ContradictionPolicy::ForbidGapAndGlut,
+            &[],
+            &mut report,
+        )
+        .expect_err("an unlocatable witness derivation must HARD-FAIL the fold");
+        assert!(
+            err.message.contains("contradiction witness")
+                && err.message.contains("no explain skeleton"),
+            "the invariant violation must name the unlocatable witness; got {:?}",
+            err.message
         );
     }
 
@@ -2551,7 +2811,13 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         );
 
         let mut report = Report::new("validate");
-        fold_reasoning_result(&result, ContradictionPolicy::ForbidGapAndGlut, &mut report);
+        fold_reasoning_result(
+            &result,
+            ContradictionPolicy::ForbidGapAndGlut,
+            &[],
+            &mut report,
+        )
+        .expect("synthetic empty-payload result folds without witnesses");
 
         let incomplete_findings: Vec<_> = report
             .findings
@@ -2600,7 +2866,13 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         );
 
         let mut report = Report::new("validate");
-        fold_reasoning_result(&result, ContradictionPolicy::ForbidGapAndGlut, &mut report);
+        fold_reasoning_result(
+            &result,
+            ContradictionPolicy::ForbidGapAndGlut,
+            &[],
+            &mut report,
+        )
+        .expect("synthetic empty-payload result folds without witnesses");
 
         let incomplete = report
             .findings
@@ -2631,7 +2903,13 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         );
 
         let mut report = Report::new("validate");
-        fold_reasoning_result(&result, ContradictionPolicy::ForbidGapAndGlut, &mut report);
+        fold_reasoning_result(
+            &result,
+            ContradictionPolicy::ForbidGapAndGlut,
+            &[],
+            &mut report,
+        )
+        .expect("synthetic empty-payload result folds without witnesses");
 
         assert!(
             !report
@@ -2667,7 +2945,13 @@ ex:governingContract rdf:type logic:ReasoningContract ;
         );
 
         let mut report = Report::new("validate");
-        fold_reasoning_result(&result, ContradictionPolicy::ForbidGapAndGlut, &mut report);
+        fold_reasoning_result(
+            &result,
+            ContradictionPolicy::ForbidGapAndGlut,
+            &[],
+            &mut report,
+        )
+        .expect("synthetic empty-payload result folds without witnesses");
 
         let projection_loss_findings: Vec<_> = report
             .findings

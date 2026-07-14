@@ -44,8 +44,9 @@ pub type Result<T, E = diag::Diag> = std::result::Result<T, E>;
 pub use code::{Code, CodeRegistry, UnknownCode, intern_code, register_code, seed_codes};
 pub use dag::{DagError, DagNode, walk};
 pub use diag::{
-    Advice, Diag, DiagInner, DiagKind, DiagRef, DiagSink, Focus, Label, PipelineLocus, ResultExt,
-    ResultIterExt, Slot, SourceContext, StageId, TermRole,
+    Advice, Diag, DiagInner, DiagKind, DiagRef, DiagSink, Focus, Guidance, GuidanceModality,
+    GuidanceSource, Label, PipelineLocus, ResultExt, ResultIterExt, Slot, SourceContext, StageId,
+    TermRole,
 };
 pub use grade::{
     Belnap, Blocking, BoundedLattice, GateVerdict, Grade, GradeMerge, Standpoint, gate,

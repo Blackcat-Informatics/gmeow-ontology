@@ -95,9 +95,7 @@ pub fn compile_mappings(
 /// # Errors
 ///
 /// - The snapshot cannot be folded into the carrier dataset.
-pub fn bundle_term_summaries(
-    gts_bytes: &[u8],
-) -> Result<Vec<(String, String, String)>, gmeow_errors::Diag> {
+pub fn bundle_term_summaries(gts_bytes: &[u8]) -> Result<Vec<TermSummary>, gmeow_errors::Diag> {
     let dataset = purrdf::gts::flattened_dataset_from_bytes(gts_bytes).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "bundle-checks".to_string(),
@@ -109,8 +107,30 @@ pub fn bundle_term_summaries(
     Ok(terms
         .into_iter()
         .filter(|t| t.category == "class" || t.category == "property")
-        .map(|t| (t.curie, t.label, t.definition))
+        .map(|t| TermSummary {
+            iri: t.iri,
+            curie: t.curie,
+            label: t.label,
+            definition: t.definition,
+        })
         .collect())
+}
+
+/// One documented bundle term's completeness summary — its full IRI (the identity
+/// anchor a `gmeow verify` ontology finding carries as its `documented_terms`
+/// join key), its CURIE (the human-facing name in the finding message), and its
+/// `rdfs:label` / `skos:definition` (empty when absent — the "missing" signal the
+/// verify completeness checks key on).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TermSummary {
+    /// The term's full IRI — the `documented_terms` join key.
+    pub iri: String,
+    /// The term's CURIE — the human-facing name in a finding message.
+    pub curie: String,
+    /// The term's `rdfs:label` (empty when absent).
+    pub label: String,
+    /// The term's `skos:definition` (empty when absent).
+    pub definition: String,
 }
 
 /// Render every flat consumer export view from a folded GTS snapshot and write each to

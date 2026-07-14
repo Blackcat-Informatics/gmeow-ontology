@@ -38,9 +38,35 @@ impl DiagNode {
         // this replaces dropped both, keeping only `.text`).
         finding.suggestions = self.advice.iter().map(|a| a.text.clone()).collect();
         finding.advice = self.advice.clone();
-        // The DSL-authored remediations — the "how to fix" payload for SARIF fixes
+        // The registry-authored remediations — the "how to fix" payload for SARIF fixes
         // and the CLI/HTML remediation line.
         finding.remediation = self.remediation.clone();
+        // Per-term usage guidance (howToUse/useWhen/avoidWhen), joined from the
+        // bundle documentation graph — never fabricated, honest absence when the
+        // witness's terms author none.
+        finding.guidance = self.guidance.clone();
+        // The explain-skeleton quad-derivation edges — a SEPARATE edge from the
+        // finding-fingerprint antecedents projected just below.
+        finding.derived_from_quads = self.derived_from_quads.clone();
+        // Project guidance claims and quad-derivation citations as related labels
+        // too, so the LSP's `DiagnosticRelatedInformation` surfaces the usage
+        // guidance and reasoned-quad provenance alongside the primary message —
+        // the same related_labels surface a witness Label rides (the loop below),
+        // anchored at the finding's own primary location (an honest reuse: these
+        // claims concern the finding as a whole, not a distinct secondary span).
+        let primary_location = finding.primary_location().cloned().unwrap_or_default();
+        for guidance in &finding.guidance {
+            finding.related_labels.push(RelatedLabel {
+                location: primary_location.clone(),
+                message: format!("{}: {}", guidance.modality.label(), guidance.text),
+            });
+        }
+        for quad_iri in &finding.derived_from_quads {
+            finding.related_labels.push(RelatedLabel {
+                location: primary_location.clone(),
+                message: format!("derived via reasoned quad {quad_iri}"),
+            });
+        }
         // The canonical fingerprint IRI: the SAME IRI downstream findings' antecedent
         // edges point at, so the projected diagnostic graph's subject and
         // antecedent-object IRIs close (the join the Task-2 meta-rules match on).
