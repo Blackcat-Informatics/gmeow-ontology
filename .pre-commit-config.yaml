@@ -49,7 +49,12 @@ repos:
         # The quality-assessment N-Triples fold is likewise a generated
         # projection of gmeow.gts (the QualityAssessment graph riding the
         # carrier) and is large by nature.
-        exclude: '^(generated/schemas/.*|generated/catalog/.*|generated/logic/gmeow\.correspondence-laws\.nt|generated/quality/.*|ontology-docs/.*|crates/sparql-conformance/tests/goldens/.*|crates/docs/assets/purrdf/.*)$'
+        # The authoring-packet briefs N-Triples fold is likewise a generated
+        # projection of gmeow.gts (the per-slice gmeow:AuthoringPacket corpus
+        # riding the carrier): one packet per slice batch, with a
+        # grounding-coverage cell per present cross-lingual/cross-ontology
+        # incidence across every slice — large by nature.
+        exclude: '^(generated/schemas/.*|generated/catalog/.*|generated/briefs/.*|generated/logic/gmeow\.correspondence-laws\.nt|generated/quality/.*|ontology-docs/.*|crates/sparql-conformance/tests/goldens/.*|crates/docs/assets/purrdf/.*)$'
       - id: mixed-line-ending
         args: ["--fix=lf"]
         exclude: *keep-verbatim

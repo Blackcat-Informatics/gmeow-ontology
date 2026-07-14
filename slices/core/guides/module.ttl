@@ -123,7 +123,7 @@ gmeow:AuthoringPacket
     skos:example "ex:packetGroundingLogicBatch0 a gmeow:AuthoringPacket ; gmeow:packetSourceSlice <…/slices/logic> ; gmeow:packetBatch 0 ; gmeow:packetCoversTerm logic:Rule , logic:ConfInconsistent ."@x-gmeow-english ;
     gmeow:avoidWhen "Do not author packet individuals by hand or treat a packet as a source of truth: a packet is a derived projection, regenerated from the slices and the bundle. Do not read fr/zh labels 'through' a term-equivalence record — translations are JOINed from the per-slice .po catalogs, never carried on the equivalence. Do not silently omit a missing translation or a short exemplar set; record the absence explicitly."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Produced by the slice-brief projection into generated/briefs/<group>/<name>.ttl and on demand by `gmeow slice brief <dir>`. Partition a slice's terms with --axis / --batch, then read each covered term's definition, axioms, neighbours, exemplars, and grounding coverage. Query the grounding-coverage incidence to find terms missing fr/zh or an external mapping before authoring or review."@x-gmeow-english ;
+    gmeow:howToUse "Produced by the slice-brief projection into generated/briefs/<group>/<name>.ttl and on demand by `gmeow slice brief <dir>`. Partition a slice's terms with --axis / --batch, then read each covered term's definition, axioms, neighbours, exemplars, and grounding coverage. The RDF projection is sparse: it materializes only the present fr/zh/external incidences and summarizes coverage in the per-attribute margins (gmeow:packetFrPresent / packetFrAbsent, packetZhPresent / packetZhAbsent, packetExternalMapped / packetExternalAbsent) — read those counts to see how much grounding is missing, or the on-demand JSON / text view for the explicit per-term absences."@x-gmeow-english ;
     gmeow:useWhen "Use to give an author or reviewer everything needed to author or review one subdomain batch (~25 terms) of a slice in one place, and to drive downstream glossary-coverage and candidate-review tooling that reasons over which terms are grounded in which language or external ontology."@x-gmeow-english .
 
 gmeow:GroundingCoverage
@@ -132,11 +132,11 @@ gmeow:GroundingCoverage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Grounding Coverage"@x-gmeow-english ;
     rdfs:subClassOf logic:AbstractIndividual ;
-    skos:definition "One incidence cell of an authoring packet's grounding cross-table: it records, for a single covered term and a single grounding attribute (English, French, Chinese, external-mapped, or exemplar), whether that grounding is present, and carries the grounded value when present. Modelled as a formal-context incidence relation (term × attribute → present) so downstream tooling can derive the concept lattice of terms sharing a grounding profile; an absent grounding is a recorded cell with gmeow:groundingPresent false, never a silent gap."@x-gmeow-english ;
-    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingTerm logic:Rule ; gmeow:groundingAttribute gmeow:groundingFr ; gmeow:groundingPredicate \"rdfs:label\" ; gmeow:groundingPresent true ; gmeow:groundingValue \"Règle\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not collapse the cross-table into one opaque per-term summary blob, and do not drop absent cells: the value of the incidence is that both presence and absence are first-class, queryable facts."@x-gmeow-english ;
+    skos:definition "One PRESENT incidence cell of an authoring packet's grounding cross-table: it records, for a single covered term and a single grounding attribute (French, Chinese, or external-mapped), that the grounding is present, and carries the grounded value. Modelled as a formal-context incidence relation (term × attribute) so downstream tooling can derive the concept lattice of terms sharing a grounding profile. A formal context is naturally sparse: only present incidences are materialized; absence is the derivable complement, recorded by the packet's per-attribute absent counts (gmeow:packetFrAbsent, gmeow:packetZhAbsent, gmeow:packetExternalAbsent) — the standard sparse formal-context encoding. English is always present, so its margin is gmeow:packetTermCount and no English cell is materialized."@x-gmeow-english ;
+    skos:example "[] a gmeow:GroundingCoverage ; gmeow:groundingTerm logic:Rule ; gmeow:groundingAttribute gmeow:groundingFr ; gmeow:groundingPredicate \"rdfs:label\" ; gmeow:groundingValue \"Règle\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not collapse the cross-table into one opaque per-term summary blob. Do not materialize a cell per absent incidence (a dense encoding): record absence via the packet's per-attribute absent counts, the derivable complement of the present incidences."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Attach one cell per (covered term, grounding attribute) to a gmeow:AuthoringPacket via gmeow:packetGrounding. For a language attribute, carry the annotation predicate and the JOINed translation; for the external-mapped attribute, carry the mapped entity, its English label, the alignment predicate and confidence."@x-gmeow-english ;
+    gmeow:howToUse "Attach one cell per PRESENT (covered term, grounding attribute) incidence to a gmeow:AuthoringPacket via gmeow:packetGrounding. For a language attribute, carry the annotation predicate and the JOINed translation; for the external-mapped attribute, carry the mapped entity, its English label, the alignment predicate and confidence. To find missing grounding, read the packet's per-attribute absent counts, not a materialized absent cell."@x-gmeow-english ;
     gmeow:useWhen "Use to state, per term and per grounding axis, whether the term is grounded and with what value — the primitive a glossary-coverage lint or authoring dashboard queries."@x-gmeow-english .
 
 gmeow:GroundingAttribute
@@ -254,7 +254,61 @@ gmeow:packetTermCount
     rdfs:range xsd:integer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "packet term count"@x-gmeow-english ;
-    skos:definition "The number of terms this packet covers — the header count that makes the brief an actionable worklist; the per-attribute presence and absence counts are derivable from the grounding-coverage cells."@x-gmeow-english ;
+    skos:definition "The number of terms this packet covers — the header count that makes the brief an actionable worklist. It IS the English grounding margin (English is always present, so no English cell is materialized), and each other attribute's present + absent count recovers that column's full incidence set."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetFrPresent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet French present"@x-gmeow-english ;
+    skos:definition "The number of covered terms with a PRESENT French translation in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetFrAbsent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet French absent"@x-gmeow-english ;
+    skos:definition "The number of covered terms with an ABSENT French translation in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetZhPresent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet Chinese present"@x-gmeow-english ;
+    skos:definition "The number of covered terms with a PRESENT Chinese translation in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetZhAbsent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet Chinese absent"@x-gmeow-english ;
+    skos:definition "The number of covered terms with an ABSENT Chinese translation in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetExternalMapped
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet external mapped"@x-gmeow-english ;
+    skos:definition "The number of covered terms with a PRESENT external mapping in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packetExternalAbsent
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:AuthoringPacket ;
+    rdfs:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "packet external absent"@x-gmeow-english ;
+    skos:definition "The number of covered terms with an ABSENT external mapping in this packet — the per-attribute margin of the sparse grounding cross-table; absent counts make missing grounding an explicit recorded fact without materializing a cell per absent incidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:exemplarShortfall
@@ -282,15 +336,6 @@ gmeow:groundingAttribute
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "grounding attribute"@x-gmeow-english ;
     skos:definition "The grounding axis a cell measures — the attribute (column) of the formal-context incidence, drawn from the gmeow:GroundingAttribute value vocabulary."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
-gmeow:groundingPresent
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:GroundingCoverage ;
-    rdfs:range xsd:boolean ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
-    rdfs:label "grounding present"@x-gmeow-english ;
-    skos:definition "Whether the grounding named by a cell's attribute is present for its term. False is the explicit absent record — a missing translation or unmapped term is stated, never left as a silent gap."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:groundingPredicate

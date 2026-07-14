@@ -45,12 +45,29 @@ fn fr_translation_joins_as_present_cell() {
         .expect("a groundingFr rdfs:label cell for logic:Rule");
     assert!(cell.present, "logic:Rule fr label must be present");
     assert_eq!(cell.value.as_deref(), Some("Règle"));
+
+    // The present fr incidence IS materialized in the sparse canonical turtle.
+    let turtle = packet.to_turtle();
+    assert!(
+        turtle.contains(&cell.cell_iri),
+        "the present fr cell is materialized in the sparse turtle"
+    );
+    assert!(
+        turtle.contains("Règle"),
+        "the present fr label value is carried in the sparse turtle"
+    );
+    assert!(
+        turtle.contains("gmeow:packetFrPresent"),
+        "the packet carries the per-attribute French present margin"
+    );
 }
 
 #[test]
-fn missing_zh_is_an_explicit_absent_cell() {
-    // The first sorted batch of the slice covers terms the zh catalog does not
-    // reach, so their zh cells are recorded present=false (never silently dropped).
+fn missing_zh_is_a_sparse_absent_count_not_a_materialized_cell() {
+    // The first sorted batch of the slice covers terms the zh catalog does not reach.
+    // In the sparse encoding their absence is NOT a materialized cell — it is recorded
+    // only by the packet's per-attribute absent count (packetZhAbsent) in the canonical
+    // turtle, while the on-demand JSON view still expands the explicit per-term absence.
     let dir = logic_slice_dir();
     let tiers = empty_tiers();
     let inputs = BriefInputs {
@@ -62,16 +79,52 @@ fn missing_zh_is_an_explicit_absent_cell() {
     };
     let packet = assemble_packet(&inputs).expect("assemble batch-0 packet");
 
+    // The absent incidence is retained in FULL detail on the struct...
     let absent = packet
         .grounding
         .iter()
         .find(|c| c.attribute == GroundingAttribute::Zh && !c.present)
-        .expect("at least one explicit-absent groundingZh cell");
+        .expect("at least one explicit-absent groundingZh incidence in full detail");
     assert!(
         absent.predicate.is_some(),
-        "an absent language cell still names its annotation predicate"
+        "an absent language incidence still names its annotation predicate"
     );
-    assert!(absent.value.is_none(), "an absent cell carries no value");
+    assert!(
+        absent.value.is_none(),
+        "an absent incidence carries no value"
+    );
+
+    // (i) ...but the canonical turtle does NOT materialize the absent cell — it records
+    // the absence only as a per-attribute count, and drops the per-cell present flag.
+    let turtle = packet.to_turtle();
+    assert!(
+        !turtle.contains(&absent.cell_iri),
+        "an absent zh incidence is NOT materialized as a cell in the sparse turtle"
+    );
+    assert!(
+        !turtle.contains("groundingPresent"),
+        "the per-cell present flag is dropped entirely in the sparse encoding"
+    );
+    assert!(
+        packet.margins.zh_absent > 0,
+        "the packet records the absent-zh margin as a count"
+    );
+    assert!(
+        turtle.contains("gmeow:packetZhAbsent"),
+        "the sparse turtle carries the packetZhAbsent count"
+    );
+
+    // (ii) The on-demand JSON view keeps the explicit per-term absence (full detail),
+    // so absence is never a silent degrade.
+    let json = packet.to_json();
+    assert!(
+        json.contains(&absent.cell_iri),
+        "the JSON view expands the explicit absent zh incidence"
+    );
+    assert!(
+        json.contains("\"present\": false"),
+        "the JSON view records the absence explicitly as present=false"
+    );
 }
 
 #[test]

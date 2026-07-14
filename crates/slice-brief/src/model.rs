@@ -27,6 +27,68 @@ pub enum GroundingAttribute {
     Exemplar,
 }
 
+impl GroundingCell {
+    /// True if this cell is materialized as an incidence in the SPARSE turtle
+    /// projection: a PRESENT French/Chinese translation or external mapping. English
+    /// is always present (its margin is the packet term count) and exemplars are
+    /// carried by `gmeow:packetExemplar`, so neither is materialized as a cell; an
+    /// absent (`present == false`) incidence is the derivable complement, recorded
+    /// only by the packet's per-attribute absent counts. This is the SINGLE filter
+    /// both [`crate::turtle`] and [`crate::digest`] apply, so the emitted body and its
+    /// content address stay in lockstep.
+    #[must_use]
+    pub fn is_materialized(&self) -> bool {
+        self.present
+            && matches!(
+                self.attribute,
+                GroundingAttribute::Fr
+                    | GroundingAttribute::Zh
+                    | GroundingAttribute::ExternalMapped
+            )
+    }
+}
+
+/// The per-attribute margins of the sparse grounding cross-table: the present and
+/// absent incidence counts for each non-English, non-exemplar column. Present +
+/// absent recovers the column's full incidence set, so absence is an explicit
+/// recorded fact without materializing a cell per absent incidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct GroundingMargins {
+    /// Covered incidences with a present French translation.
+    pub fr_present: usize,
+    /// Covered incidences with an absent French translation.
+    pub fr_absent: usize,
+    /// Covered incidences with a present Chinese translation.
+    pub zh_present: usize,
+    /// Covered incidences with an absent Chinese translation.
+    pub zh_absent: usize,
+    /// Covered terms with a present external mapping.
+    pub external_mapped: usize,
+    /// Covered terms with no external mapping.
+    pub external_absent: usize,
+}
+
+impl GroundingMargins {
+    /// Fold the full (dense) grounding cell set into its per-attribute margins.
+    /// English and exemplar cells are not margins of the sparse table and are ignored.
+    #[must_use]
+    pub fn from_cells(cells: &[GroundingCell]) -> Self {
+        let mut m = GroundingMargins::default();
+        for c in cells {
+            match c.attribute {
+                GroundingAttribute::Fr if c.present => m.fr_present += 1,
+                GroundingAttribute::Fr => m.fr_absent += 1,
+                GroundingAttribute::Zh if c.present => m.zh_present += 1,
+                GroundingAttribute::Zh => m.zh_absent += 1,
+                GroundingAttribute::ExternalMapped if c.present => m.external_mapped += 1,
+                GroundingAttribute::ExternalMapped => m.external_absent += 1,
+                GroundingAttribute::En | GroundingAttribute::Exemplar => {}
+            }
+        }
+        m
+    }
+}
+
 impl GroundingAttribute {
     /// The full attribute-individual IRI this column serializes to.
     #[must_use]
@@ -184,6 +246,8 @@ pub struct AuthoringPacket {
     pub term_count: usize,
     /// The number of exemplar coats the packet fell short of its target by.
     pub exemplar_shortfall: usize,
+    /// The per-attribute present/absent margins of the sparse grounding cross-table.
+    pub margins: GroundingMargins,
     /// The covered terms, ascending by IRI.
     pub terms: Vec<CoveredTerm>,
     /// The same-slice exemplar term IRIs, ordered (tier desc, IRI asc).
