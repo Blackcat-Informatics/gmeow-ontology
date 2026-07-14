@@ -117,8 +117,8 @@ impl Stage for SliceBriefStage {
             if manifest.is_file() {
                 files.push(manifest);
             }
-            collect_ext(&slice_dir.join("mappings"), "ttl", &mut files);
-            collect_ext(&slice_dir.join("i18n"), "po", &mut files);
+            collect_ext(&slice_dir.join("mappings"), "ttl", &mut files)?;
+            collect_ext(&slice_dir.join("i18n"), "po", &mut files)?;
         }
         files.sort();
         files.dedup();
@@ -185,7 +185,7 @@ fn slice_plan(slice_dir: &Path) -> Result<SlicePlan, gmeow_errors::Diag> {
     // Match `assemble_packet`'s dataset: slice graph PLUS the alignment linkage under
     // `mappings/` (`slice_ttl_paths` omits the latter).
     let mut paths = gmeow_slice_quality::report::slice_ttl_paths(slice_dir);
-    collect_ext(&slice_dir.join("mappings"), "ttl", &mut paths);
+    collect_ext(&slice_dir.join("mappings"), "ttl", &mut paths)?;
     paths.sort();
     paths.dedup();
     let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
@@ -239,18 +239,46 @@ fn defined_terms(ds: &RdfDataset, slice_iri: &str) -> Vec<String> {
 }
 
 /// Recursively collect existing files with extension `ext` under `dir` into `out`.
-fn collect_ext(dir: &Path, ext: &str, out: &mut Vec<PathBuf>) {
-    let Ok(rd) = std::fs::read_dir(dir) else {
-        return;
+/// A directory that does not exist is a legitimate "absent" input (`Ok`, nothing
+/// collected); any OTHER `read_dir`/entry/file-type error (permission denied, I/O
+/// error, not-a-directory, symlink loop, ...) is a HARD FAIL — propagated, never
+/// laundered into a silent "no mappings / no translations" result.
+///
+/// # Errors
+/// Propagates any `read_dir`/entry/`file_type` error other than
+/// [`std::io::ErrorKind::NotFound`].
+fn collect_ext(dir: &Path, ext: &str, out: &mut Vec<PathBuf>) -> Result<(), gmeow_errors::Diag> {
+    let rd = match std::fs::read_dir(dir) {
+        Ok(rd) => rd,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => {
+            return Err(stage_err(&format!(
+                "{}: read_dir failed: {e}",
+                dir.display()
+            )));
+        }
     };
-    for entry in rd.flatten() {
+    for entry in rd {
+        let entry = entry.map_err(|e| {
+            stage_err(&format!(
+                "{}: directory entry read failed: {e}",
+                dir.display()
+            ))
+        })?;
+        let file_type = entry.file_type().map_err(|e| {
+            stage_err(&format!(
+                "{}: file_type failed: {e}",
+                entry.path().display()
+            ))
+        })?;
         let p = entry.path();
-        if p.is_dir() {
-            collect_ext(&p, ext, out);
+        if file_type.is_dir() {
+            collect_ext(&p, ext, out)?;
         } else if p.extension().is_some_and(|x| x == ext) {
             out.push(p);
         }
     }
+    Ok(())
 }
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
@@ -328,5 +356,53 @@ mod tests {
             .join("..")
             .canonicalize()
             .unwrap()
+    }
+
+    /// A missing directory is a legitimate "absent" input to [`collect_ext`]:
+    /// `Ok(())`, nothing collected — never an error.
+    #[test]
+    fn collect_ext_absent_directory_is_ok_and_empty() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let dir = temp.path().join("does-not-exist");
+        assert!(!dir.exists(), "precondition: {dir:?} must not exist");
+
+        let mut out = Vec::new();
+        let result = collect_ext(&dir, "ttl", &mut out);
+
+        assert!(
+            result.is_ok(),
+            "a NotFound read_dir must be treated as absent (Ok), got {result:?}"
+        );
+        assert!(
+            out.is_empty(),
+            "an absent directory must collect zero paths, got {out:?}"
+        );
+    }
+
+    /// A `read_dir` failure that is NOT `NotFound` (here: the parent path
+    /// component is a plain file, so the OS refuses with `NotADirectory`/`ENOTDIR`)
+    /// MUST propagate as an `Err` from [`collect_ext`], never be laundered into
+    /// "no mappings / no translations here". Deterministic — does not depend on
+    /// running as non-root (unlike a permission-bits test, which root would bypass).
+    #[test]
+    fn collect_ext_non_directory_parent_errors() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let marker_file = temp.path().join("marker");
+        std::fs::write(&marker_file, b"not a directory").expect("write marker file");
+
+        // `marker_file` is a plain file, so `marker_file/mappings` cannot be a
+        // directory: `read_dir` must fail with something other than `NotFound`.
+        let bogus_dir = marker_file.join("mappings");
+        let mut out = Vec::new();
+        let result = collect_ext(&bogus_dir, "ttl", &mut out);
+
+        assert!(
+            result.is_err(),
+            "a non-NotFound read_dir error must propagate as Err, got {result:?}"
+        );
+        assert!(
+            out.is_empty(),
+            "no paths must be collected on the error path, got {out:?}"
+        );
     }
 }
