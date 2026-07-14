@@ -36,6 +36,13 @@ pub const DISCIPLINE_FRAME_COMPLETENESS: &str = "discipline/frame-completeness";
 
 /// `crates/validate/src/validate_all.rs` — non-conforming-with-no-results guard.
 pub const SHACL_NONCONFORMING: &str = "shacl.nonconforming";
+/// `crates/pipeline/src/stages/validate.rs` — a conforming run's informational
+/// success record (emitted so the stage's attach delta is never empty). Declared
+/// here so `remediation_for` resolves it to an honest `None` instead of inheriting
+/// the `shacl.` family's "repair the data" fix prose — a "validation passed" record
+/// is not a constraint violation. Deliberately NOT a `STATIC_RULES` row: a success
+/// sentinel is not an enforced constraint, so it never enters the constraint catalog.
+pub const SHACL_CLEAN: &str = "shacl.clean";
 /// Family base for `format!("shacl.{ConstraintComponentLocalName}")`
 /// (`crates/validate/src/findings.rs`).
 pub const SHACL_FAMILY: &str = "shacl.";
@@ -180,6 +187,7 @@ pub const ALL_CODES: &[&str] = &[
     DISCIPLINE_COEQUAL_ORTHOGONALITY,
     DISCIPLINE_FRAME_COMPLETENESS,
     SHACL_NONCONFORMING,
+    SHACL_CLEAN,
     SIGNATURE_VERIFY,
     SIGNATURE_INVALID,
     SIGNATURE_MISSING,
