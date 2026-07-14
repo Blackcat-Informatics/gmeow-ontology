@@ -215,21 +215,25 @@ fn enumerate_shape(ds: &RdfDataset, mode: CountMode) -> Vec<Construct> {
             node_ids.extend(subjects_of(ds, SH_PATH));
             node_ids.extend(subjects_of(ds, SH_SPARQL));
             node_ids.extend(subjects_of(ds, SH_RULE));
+            // Dedup on the interned `TermId` itself — one dataset resolves each
+            // distinct term to exactly one `TermId`, so this is equivalent to the
+            // former dedup-by-formatted-key but skips formatting every candidate
+            // just to throw most of the strings away.
+            node_ids.sort();
+            node_ids.dedup();
 
-            let mut seen: BTreeSet<String> = BTreeSet::new();
-            let mut out = Vec::new();
-            for tid in node_ids {
-                let key = term_key(ds, tid);
-                if !seen.insert(key.clone()) {
-                    continue;
-                }
-                let grounded = resolvable_grounding(ds, tid);
-                out.push(Construct {
-                    key,
-                    grounded,
-                    is_bridge: false,
-                });
-            }
+            let mut out: Vec<Construct> = node_ids
+                .into_iter()
+                .map(|tid| {
+                    let key = term_key(ds, tid);
+                    let grounded = resolvable_grounding(ds, tid);
+                    Construct {
+                        key,
+                        grounded,
+                        is_bridge: false,
+                    }
+                })
+                .collect();
             out.sort_by(|a, b| a.key.cmp(&b.key));
             out
         }
@@ -247,7 +251,7 @@ fn enumerate_typed_axiom(
     if mode == CountMode::Historical {
         return Vec::new();
     }
-    let mut seen: BTreeSet<String> = BTreeSet::new();
+    let mut seen: BTreeSet<(TermId, TermId, TermId)> = BTreeSet::new();
     let mut out = Vec::new();
     for q in ds.quads_for_pattern(None, None, None, GraphMatch::Any) {
         let p_iri = match ds.resolve(q.p) {
@@ -268,15 +272,18 @@ fn enumerate_typed_axiom(
         if !matches_vocab {
             continue;
         }
+        // Dedup on the (s, p, o) `TermId` triple BEFORE formatting the string key —
+        // most candidate quads are duplicates across graphs/surfaces, so this skips
+        // formatting the ones we're about to discard anyway.
+        if !seen.insert((q.s, q.p, q.o)) {
+            continue;
+        }
         let key = format!(
             "{}|{}|{}",
             term_key(ds, q.s),
             term_key(ds, q.p),
             term_key(ds, q.o)
         );
-        if !seen.insert(key.clone()) {
-            continue;
-        }
         let grounded = resolvable_grounding(ds, q.s);
         // A by-reference bridge: the predicate is one of the vocab's declared
         // alignment predicates AND the object is an IRI in an EXTERNAL namespace
