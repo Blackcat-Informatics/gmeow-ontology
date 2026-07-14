@@ -10346,3 +10346,68 @@ logic:carriesTerminationCertificate
     rdfs:label "carries termination certificate"@x-gmeow-english ;
     skos:definition "Relates a logic:ChaseAcceptanceWitness to the weak-acyclicity termination-certificate evidence (xsd:string, the ChaseAdmission::WeaklyAcyclic evidence summary) that admits its chase. Domain logic:ChaseAcceptanceWitness (stated in prose). A chase acceptance record with no certificate reports a closure that may never terminate."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+# --------------------------------------------------------------------------- #
+# The self-describing existential-chase demonstrator.
+#
+# A minimal, genuine existential axiom that is TRUE of GMEOW's own reasoning:
+# the native existential chase's OWN defining law — an existential obligation
+# entails a Skolem witness. logic:ExistentialChaseDemonstrand ⊑
+# ∃logic:demonstratesChaseWitness.logic:ChaseWitnessLeaf is a narrow C ⊑ ∃p.D
+# obligation; the two seeded demonstrand individuals inhabit C with NO asserted
+# p-edge, so the native chase MUST invent one fresh Skolem witness (a
+# gmeow:InventedWitness) per instance to discharge it — dogfooding the chase.
+# D is a plain LEAF: not existential, disjointness-free, and never reaching C,
+# so each invented null is inert (no Skolem ancestor-blocking cycle, no global
+# inconsistency, weakly-acyclic and terminating).
+# --------------------------------------------------------------------------- #
+
+logic:ExistentialChaseDemonstrand
+    a owl:Class ;
+    rdfs:subClassOf [ a owl:Restriction ; owl:onProperty logic:demonstratesChaseWitness ; owl:someValuesFrom logic:ChaseWitnessLeaf ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Existential Chase Demonstrand"@x-gmeow-english ;
+    skos:definition "A narrow, self-describing existential obligation: a class each of whose instances carries the C ⊑ ∃p.D obligation `ExistentialChaseDemonstrand ⊑ ∃demonstratesChaseWitness.ChaseWitnessLeaf`, which the native existential chase MUST discharge by inventing a fresh Skolem witness (a gmeow:InventedWitness) for every instance that asserts no logic:demonstratesChaseWitness edge. It is deliberately narrow — ONLY the two seeded demonstrand individuals inhabit it — so the demonstration dogfoods the chase without cascading global inference over a widely-instantiated class. This is the native chase's own defining law made concrete and on-topic: an existential obligation entails a Skolem witness, and running the chase over this class is the minimal proof that GMEOW's own existential materializer actually fires."@x-gmeow-english ;
+    skos:example "logic:existentialChaseDemonstrandAlpha a logic:ExistentialChaseDemonstrand ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid widening it (its whole point is that ONLY the two seeded demonstrand individuals inhabit it, so the invented nulls drive no cascading inference) and avoid adding an owl:disjointWith or a functional/cardinality axiom to it or its logic:ChaseWitnessLeaf — a demonstrand whose invented null is forced into a contradiction stops demonstrating the chase and starts breaking it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Seed at least two named individuals of this class with NO asserted logic:demonstratesChaseWitness edge and run the native existential chase; observe that it invents one distinct gmeow:InventedWitness (Skolem null) per instance to satisfy the ∃demonstratesChaseWitness.ChaseWitnessLeaf obligation, each recorded in the reasoned graph and its diagnostics projection."@x-gmeow-english ;
+    gmeow:useWhen "Use as the minimal, self-describing demonstrator of the native existential chase — the on-topic C ⊑ ∃p.D obligation whose discharge mints the Skolem witnesses that dogfood GMEOW's own existential reasoning."@x-gmeow-english .
+
+logic:demonstratesChaseWitness
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "demonstrates chase witness"@x-gmeow-english ;
+    skos:definition "Relates a logic:ExistentialChaseDemonstrand to the logic:ChaseWitnessLeaf witness that discharges its existential obligation — the `p` in the demonstrator's C ⊑ ∃p.D law. Domain logic:ExistentialChaseDemonstrand, range logic:ChaseWitnessLeaf (stated in prose). When a demonstrand instance asserts no such edge, the native existential chase invents a fresh Skolem witness (a gmeow:InventedWitness) and materializes the demonstratesChaseWitness edge to it; the property is the object-property head `p` whose someValuesFrom obligation makes the chase fire — an object property, never a datatype property, so its value is an invented individual, not a literal."@x-gmeow-english ;
+    skos:example "logic:existentialChaseDemonstrandAlpha logic:demonstratesChaseWitness <https://blackcatinformatics.ca/gmeow/skolem/9f2c> ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it by hand on a demonstrand (leaving it UNasserted is exactly what forces the chase to invent the witness) and avoid pointing it at an ordinary domain individual instead of a logic:ChaseWitnessLeaf — it is the existential head whose obligation the chase discharges."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Leave it UNasserted on the seeded demonstrand individuals and let the native existential chase materialize it against a freshly invented Skolem witness; read the reasoned edge to walk from a demonstrand to the gmeow:InventedWitness the chase minted for it."@x-gmeow-english ;
+    gmeow:useWhen "Use as the existential head property of the demonstrator's C ⊑ ∃p.D law — the edge the native chase materializes to a chase-invented Skolem witness."@x-gmeow-english .
+
+logic:ChaseWitnessLeaf
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Chase Witness Leaf"@x-gmeow-english ;
+    skos:definition "The narrow, plain leaf class the invented Skolem witness of a logic:ExistentialChaseDemonstrand inhabits — the `D` in the demonstrator's C ⊑ ∃p.D law. It is deliberately a LEAF: it carries no existential obligation of its own, no owl:disjointWith, and no functional or cardinality axiom, and it does NOT reach logic:ExistentialChaseDemonstrand, so a chase-invented null typed into it triggers no further inference, no Skolem ancestor-blocking cycle, and no global inconsistency. Its whole role is to be the harmless target type the ∃demonstratesChaseWitness.ChaseWitnessLeaf obligation is satisfied against, keeping the demonstrator weakly-acyclic and terminating."@x-gmeow-english ;
+    skos:example "<https://blackcatinformatics.ca/gmeow/skolem/9f2c> a logic:ChaseWitnessLeaf ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid giving it any existential obligation, owl:disjointWith, or functional/cardinality axiom, and avoid letting it reach logic:ExistentialChaseDemonstrand — a self-referential or disjointness-bearing witness leaf turns the demonstrator's invented null into a provenance cycle or a global inconsistency."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Use it only as the plain target type of the demonstrator's existential obligation; keep it a sink — no subclass axioms, no disjointness — so the chase-invented witness typed into it stays inert."@x-gmeow-english ;
+    gmeow:useWhen "Use as the harmless leaf type a chase-invented Skolem witness inhabits when the native existential chase discharges the demonstrator's C ⊑ ∃p.D obligation."@x-gmeow-english .
+
+logic:existentialChaseDemonstrandAlpha
+    a owl:NamedIndividual ,
+        logic:ExistentialChaseDemonstrand ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "existential chase demonstrand alpha"@x-gmeow-english ;
+    skos:definition "The first seeded demonstrand of the native existential chase: a logic:ExistentialChaseDemonstrand asserted with NO logic:demonstratesChaseWitness edge, so the chase must invent a fresh Skolem witness (a gmeow:InventedWitness) to satisfy its ∃demonstratesChaseWitness.ChaseWitnessLeaf obligation. Paired with logic:existentialChaseDemonstrandBeta so the chase mints two DISTINCT nulls, one per instance, in the same world."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+logic:existentialChaseDemonstrandBeta
+    a owl:NamedIndividual ,
+        logic:ExistentialChaseDemonstrand ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "existential chase demonstrand beta"@x-gmeow-english ;
+    skos:definition "The second seeded demonstrand of the native existential chase: a logic:ExistentialChaseDemonstrand asserted with NO logic:demonstratesChaseWitness edge, so the chase must invent a fresh Skolem witness (a gmeow:InventedWitness) to satisfy its ∃demonstratesChaseWitness.ChaseWitnessLeaf obligation. Paired with logic:existentialChaseDemonstrandAlpha so the chase mints two DISTINCT nulls, one per instance, in the same world."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
