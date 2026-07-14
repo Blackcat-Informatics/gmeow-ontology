@@ -352,3 +352,37 @@ object-form members + the pydantic unwrap that answers it). Reconciling purrdf's
 sh:in object-form inside the JSON Schema against the bare pydantic closed record is a
 separate sh:in-path question, not a value_vocab correctness defect, and is out of
 scope for a dependency-bump PR.
+
+================================================================================
+2026-07-14 — #1342 (chase certificates + explain(chase-invented nulls))
+================================================================================
+
+Weaker-than-ideal annotation. The two new diagnostics terms gmeow:InventedWitness
+and gmeow:existentialOrdinal carry the REQUIRED rdfs:label + skos:definition +
+rdfs:isDefinedBy (Principle 8) and the slice's howToUse/useWhen/avoidWhen/graphBoxRole
+convention, but NOT the optional gmeow:competencyRationale or an example/fixture pair —
+so the docs coverage ratchet (missing-competency-rationale / missing-fixture-pair)
+ticked up by 2. This matches the sibling provenance terms (gmeow:findingAntecedent,
+gmeow:findingDerivedFromQuad) which also carry no competency rationale, so it is a
+convention-consistent gap, not a regression — but it is a real, un-filled quality
+annotation, recorded here rather than softened.
+
+Demonstrator removed (design reversal, NOT a descope). The stage-1 plan authored a
+self-describing existential-chase demonstrator in slices/grounding/logic/module.ttl
+because the pre-#1340 analysis said production emitted no generating existential.
+Integrating current main (which carries #1340) showed the production chase ALREADY
+fires non-vacuously over the imported foundational existentials (7843 chase-invented
+nulls; a real weakly-acyclic certificate). The demonstrator was therefore redundant
+AND its logic:ExistentialChaseDemonstrand class projected inconsistently across the
+schema fanout (a pydantic model with no JSON-Schema def), so it was removed. Every
+acceptance criterion is now demonstrated on GENUINE production existentials — stronger
+than a synthetic demonstrator — but this reverses the explicit user choice of a
+logic-slice demonstrator and is flagged for review; a demonstrator can be re-added
+with an authored SHACL shape if one is still wanted for pedagogy.
+
+Worked around a pipeline cache gap (pre-existing, out of scope). make regenerate did
+not invalidate the stage-export-json-schema output on a slices/**/module.ttl edit, so
+generated/schemas/gmeow.schema.json was served stale across regenerations until the
+pipeline cache was cleared (rm -rf generated/.pipeline-cache) and regenerated. This is
+a pre-existing cache-invalidation gap in the json_schema stage independent of this
+feature; noted for a follow-up look, not fixed here.
