@@ -284,3 +284,71 @@ is recorded honestly:
   surface touching the removed arm and confirmed green (subsumption-oracle tests
   6/6, `reason-verify` exit 0, `reason-crosscheck` exit 0 with 0 oracle-only /
   0 dl-gap) with no real (non-timeout) failure.
+
+## 2026-07-14 — issue #1529 (purrdf 0.6.0 bump)
+### G4: value_vocab bare-CURIE enum vs sh:in object-form enum — VERIFIED NOT A REACHABLE DEFECT
+
+Producer: `crates/pipeline/src/stages/value_vocab.rs`. `enrich_value_vocab_enums`
+emits each open value vocabulary as a standalone bare-string enum `$def`
+(`value_vocab.rs:254`: `json!({ "type": "string", "enum": v.members.clone() })`,
+members = sorted BARE CURIEs from `derive_value_vocabs`/`compact_iri`,
+`value_vocab.rs:145`) and REPOINTS every value-vocabulary-ranged property — which
+purrdf compiles as a node-reference `$def` `{"type":"object","properties":{"@id":…}}`
+(`is_node_reference`, `value_vocab.rs:193`) — at that bare-string enum
+(`repoint_to_enum`, `value_vocab.rs:215`). So the enum'd field IS an object property
+(a node reference), which was the exact configuration flagged as a potential bug.
+
+Instance form actually observed (the DECIDING evidence). The closed-record instance
+schema is the generated pydantic model, and it types a value-vocabulary-ranged field
+as a BARE `StrEnum`, NOT an `{"@id":…}` node object:
+
+  packages/python/gmeow_models/accessibility.py:18-25  AccessibilityFacetEnum(StrEnum) whose members are bare CURIEs (facetVisual = "gmeow:facetVisual", …)
+  packages/python/gmeow_models/accessibility.py:62     assertionFacet: list[AccessibilityFacetEnum] | None   (VALUE-VOCAB object property → BARE StrEnum string)
+  packages/python/gmeow_models/accessibility.py:64     assertionSubject: list[Entity] | None                 (NON-value-vocab object property → the Entity model, i.e. an {"@id":…} node)
+
+The contrast on lines 62 vs 64 is the whole finding: a value-vocabulary-ranged
+object property is DELIBERATELY projected as a bare CURIE string in the closed
+record (the vocabulary IS the StrEnum), whereas an ordinary object property keeps
+the `{"@id":…}` node form. The packed JSON Schema agrees term-for-term:
+generated/schemas/gmeow.schema.json:111-121 (AccessibilityFacetEnum = bare-string
+enum) is referenced by :39-51 (gmeow:assertionFacet → anyOf[$ref …Enum, array]),
+while the non-value-vocab :65-107 (gmeow:assertionSubject) keeps the object
+`{"@id":…}` node shape. A pydantic-produced closed record — `model_dump(by_alias=True)`
+→ `{"gmeow:assertionFacet": ["gmeow:facetVisual"], "gmeow:assertionSubject": [{"@id": …}]}`
+— validates CLEANLY against schema.json: the bare-string facet matches the bare
+enum, the subject matches the node-reference `$def`. The bare enum matches its own
+instance form exactly, so no closed-world validation can fail.
+
+Why the two encodings differ in schema.json (and why it is not value_vocab's defect).
+The sh:in object-form members (`{"@id": "math:twoSidedAlternative"}`,
+gmeow.schema.json:49854-49903 on math:alternativeSidedness) are purrdf 0.6.0's RAW
+SHACL-shape-compiler output; the value_vocab enums are injected by the pipeline
+AFTER purrdf compilation, in the bare form that matches the pydantic StrEnum
+contract. The bump's own branch reconciles the pydantic surface by UNWRAPPING the
+object-form sh:in members back to bare StrEnum values (commit 1290b4e52; see
+packages/python/gmeow_models/math.py:19-25 Math_PValueAlternativeSidednessEnum whose
+members are bare CURIEs "math:twoSidedAlternative"). That unwrap proves the intended
+closed-record instance form is BARE for BOTH families — so value_vocab's bare
+encoding is the CONSISTENT one; it is purrdf's object-form sh:in members left
+inside the JSON Schema (not value_vocab) that are the outlier vs the pydantic-authoritative
+bare closed record. Changing value_vocab to emit object form would INTRODUCE the very
+failure feared here: a bare, pydantic-produced closed record
+(`["gmeow:facetVisual"]`) would then fail an `{"@id":…}` enum.
+
+Reachability. No in-repo consumer feeds an object-form JSON-LD instance against a
+value_vocab bare enum. `crates/validate/src/instance.rs` (`validate_instance`, the
+`gmeow validate --schema` engine) is a generic user-supplied-instance validator, not
+an instance projector; the only in-repo schema.json instance check
+(crates/pipeline/src/stages/yaml_ld.rs `annotation_fragment_validates_against_json_schema`)
+validates an `@annotation` fragment, never a value-vocab field. The closed-record
+instance projector IS the pydantic model, whose value-vocab fields are bare by
+construction. So an object-form-vs-bare-enum mismatch on a value_vocab field is
+UNREACHABLE in the closed-record universe.
+
+Pre-existing / out of scope. `value_vocab.rs` is UNCHANGED by this branch
+(`git log main..HEAD -- crates/pipeline/src/stages/value_vocab.rs` is empty); the
+bare encoding predates the bump. The bump only changed the sh:in path (purrdf 0.6.0
+object-form members + the pydantic unwrap that answers it). Reconciling purrdf's raw
+sh:in object-form inside the JSON Schema against the bare pydantic closed record is a
+separate sh:in-path question, not a value_vocab correctness defect, and is out of
+scope for a dependency-bump PR.
