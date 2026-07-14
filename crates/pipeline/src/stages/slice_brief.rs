@@ -12,10 +12,12 @@
 //!
 //! 1. computes a per-term **exemplar tier** = ANNOTATION COMPLETENESS — the count of the
 //!    six authoring coat predicates present on the term (`rdfs:label`, `skos:definition`,
-//!    `skos:example`, `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse`). This is a
-//!    deterministic, source-only reading (no scoring infra, no bundle) that the library
-//!    injects as the exemplar authority (dependency inversion — the library never picks a
-//!    scoring authority);
+//!    `skos:example`, `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse`) via the SINGLE
+//!    canonical library tiering [`gmeow_slice_brief::completeness_tiers`], shared with the
+//!    `gmeow slice brief` CLI so an in-repo slice's CLI brief and its committed projection
+//!    tier terms identically. It is a deterministic, source-only reading (no scoring infra,
+//!    no bundle) that the library injects as the exemplar authority (dependency inversion —
+//!    the library never picks a scoring authority);
 //! 2. partitions the slice's sorted defined terms into `~25`-term batches and calls
 //!    [`gmeow_slice_brief::assemble_packet`] for each batch `0..N`; and
 //! 3. parses every packet's canonical turtle and UNIONs them all into ONE dataset rooted
@@ -53,16 +55,6 @@ const EXEMPLAR_TARGET: usize = 3;
 
 /// The `rdfs:isDefinedBy` IRI (the slice-membership predicate).
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
-/// The six authoring coat predicates whose presence count is the per-term exemplar tier
-/// (annotation completeness). Fully-qualified so the reading is source-only and stable.
-const COAT_PREDICATES: [&str; 6] = [
-    "http://www.w3.org/2000/01/rdf-schema#label",
-    "http://www.w3.org/2004/02/skos/core#definition",
-    "http://www.w3.org/2004/02/skos/core#example",
-    "https://blackcatinformatics.ca/gmeow/useWhen",
-    "https://blackcatinformatics.ca/gmeow/avoidWhen",
-    "https://blackcatinformatics.ca/gmeow/howToUse",
-];
 
 /// The `slice_brief` pipeline stage — a leaf compute node. It consumes no upstream
 /// product (it reads the authored slice sources directly) and attaches the single
@@ -179,10 +171,11 @@ struct SlicePlan {
 }
 
 /// Load one slice's graph the SAME way [`assemble_packet`] does (module + examples +
-/// tests + mappings), find its defined terms, and compute each term's exemplar tier =
-/// the count of the six authoring coat predicates present on it (annotation completeness).
-/// The defined-term set and its ordering match `assemble`'s internal partition, so the
-/// batch count derived here lines up with `assemble_packet`'s partition exactly.
+/// tests + mappings), find its defined terms (for the batch enumeration), and take each
+/// term's exemplar tier from the SINGLE canonical library tiering
+/// [`gmeow_slice_brief::completeness_tiers`] (annotation completeness). The defined-term
+/// set and its ordering match `assemble`'s internal partition, so the batch count derived
+/// here lines up with `assemble_packet`'s partition exactly.
 ///
 /// # Errors
 /// Hard-fails if the slice graph cannot be read, or the `manifest.ttl` declares no
@@ -213,22 +206,10 @@ fn slice_plan(slice_dir: &Path) -> Result<SlicePlan, gmeow_errors::Diag> {
 
     let terms = defined_terms(&ds, &slice_iri);
 
-    // Per-term exemplar tier = annotation completeness (source-only coat-predicate count).
-    let pred_ids: Vec<Option<purrdf::TermId>> =
-        COAT_PREDICATES.iter().map(|p| graph::id(&ds, p)).collect();
-    let mut tiers: BTreeMap<String, i64> = BTreeMap::new();
-    for term in &terms {
-        let Some(tid) = graph::id(&ds, term) else {
-            continue;
-        };
-        let mut count = 0i64;
-        for pid in pred_ids.iter().flatten() {
-            if graph::has_any(&ds, tid, *pid) {
-                count += 1;
-            }
-        }
-        tiers.insert(term.clone(), count);
-    }
+    // Per-term exemplar tier = annotation completeness — computed by the SINGLE
+    // canonical library tiering so this pipeline projection and the `gmeow slice
+    // brief` CLI tier terms identically.
+    let tiers = gmeow_slice_brief::completeness_tiers(slice_dir)?;
 
     Ok(SlicePlan {
         term_count: terms.len(),
