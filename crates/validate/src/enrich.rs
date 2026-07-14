@@ -26,7 +26,7 @@ use crate::rule_catalog::catalog_anchor_uri;
 /// nodes (the rule-governing-term key) and/or authored per-term guidance prose;
 /// `subject` is the graph the finding's own `documented_terms` are drawn from. Both
 /// are scanned for guidance so a term authored in either resolves (see
-/// [`crate::guidance::term_guidance`]).
+/// [`crate::guidance::GuidanceIndex::term_guidance`]).
 pub fn enrich_findings(report: &mut Report, bundle: &RdfDataset, subject: &RdfDataset) {
     crate::rule_catalog::populate_rules(report);
     crate::remediation::attach_remediations(report);
@@ -37,9 +37,9 @@ pub fn enrich_findings(report: &mut Report, bundle: &RdfDataset, subject: &RdfDa
 /// finding, from BOTH honest keys:
 ///
 /// * the finding's rule's governing term(s)
-///   ([`crate::guidance::governing_terms`]), resolved from `bundle`'s
-///   constraint-catalog `gmeow:ValidationRule` nodes and stamped with the rule's
-///   own catalog help URI ([`catalog_anchor_uri`]); and
+///   ([`crate::guidance::GuidanceIndex::governing_terms`]), resolved from
+///   `bundle`'s constraint-catalog `gmeow:ValidationRule` nodes and stamped
+///   with the rule's own catalog help URI ([`catalog_anchor_uri`]); and
 /// * the finding's own `documented_terms` — no natural rule-code → help-URI
 ///   mapping exists for a bare documented term, so those claims carry no help URI
 ///   (honest absence, never fabricated).
@@ -48,26 +48,26 @@ pub fn enrich_findings(report: &mut Report, bundle: &RdfDataset, subject: &RdfDa
 /// once (per-finding dedup; the ledger merge separately dedups identical guidance
 /// ACROSS findings). Honest absence: a finding whose rule has no governing term
 /// and whose documented terms author no guidance gets an empty `guidance` vec.
+///
+/// Builds the [`crate::guidance::GuidanceIndex`] ONCE for the whole report (a
+/// single pass over `bundle` and `subject`), then does an O(1) lookup per
+/// finding — replacing the old per-finding full-bundle scans that made this
+/// pass O(findings × bundle).
 fn attach_guidance(report: &mut Report, bundle: &RdfDataset, subject: &RdfDataset) {
     let graphs = [bundle, subject];
+    let index = crate::guidance::GuidanceIndex::build(&graphs);
     for finding in &mut report.findings {
         let mut claims = Vec::new();
 
-        for term in crate::guidance::governing_terms(bundle, &finding.code) {
-            claims.extend(crate::guidance::term_guidance(
-                &graphs,
-                &term,
+        for term in index.governing_terms(&finding.code) {
+            claims.extend(index.term_guidance(
+                term,
                 GuidanceSource::RuleGoverningTerm,
                 Some(catalog_anchor_uri(&finding.code)),
             ));
         }
         for term in &finding.documented_terms {
-            claims.extend(crate::guidance::term_guidance(
-                &graphs,
-                term,
-                GuidanceSource::DocumentedTerm,
-                None,
-            ));
+            claims.extend(index.term_guidance(term, GuidanceSource::DocumentedTerm, None));
         }
 
         claims.sort_by(|a, b| {
