@@ -5998,6 +5998,10 @@ export interface InterpersonalRelationship {
     relationshipParty?: Agent[],
 }
 
+export interface InventedWitness {
+    existentialOrdinal?: number[],
+}
+
 export interface InvitationStatus {
 }
 

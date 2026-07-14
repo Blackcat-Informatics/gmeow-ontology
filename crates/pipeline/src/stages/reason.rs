@@ -16,7 +16,7 @@
 //! [`ENGINE_RESOURCE`], so the scheduler serializes it against any stage competing
 //! for the reasoning engine (this is the sole resource-bearing build stage).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use gmeow_logic::reason::artifacts::{
@@ -230,30 +230,45 @@ fn resolve_witness_projections(
     let mut projections = Vec::with_capacity(witnesses.len());
     for witness in witnesses {
         let object_display = format!("<{}>", witness.witness);
-        let mut heads = result
+        // The bound frontier IRIs (the Skolem-function arguments) — the subject of the
+        // minting head quad p(x, null) is one of these.
+        let frontier_iris: BTreeSet<&str> = witness
+            .frontier
+            .iter()
+            .filter_map(|term| match term {
+                purrdf::TermValue::Iri(iri) => Some(iri.as_str()),
+                _ => None,
+            })
+            .collect();
+        // A null is the OBJECT of its minting head quad AND of every edge the closure
+        // entails from it (a superproperty of the existential property, say), so it can
+        // be the object of MORE THAN ONE reasoned axiom — that is normal, not an error.
+        // Choose the minting head quad deterministically: prefer the edge FROM a frontier
+        // binding (the Skolem argument), with a stable (predicate, subject) tiebreak.
+        let mut candidates: Vec<&_> = result
             .inferred()
             .iter()
-            .filter(|axiom| axiom.object == object_display);
-        let head = heads.next().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-reason".to_string(),
-                message: format!(
-                    "chase-invented null <{}> has no reasoned head quad p(x, null): \
-                     the existential edge that minted it must be in the closure",
-                    witness.witness
-                ),
-            })
-        })?;
-        if heads.next().is_some() {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                stage: "stage-reason".to_string(),
-                message: format!(
-                    "chase-invented null <{}> is the object of more than one reasoned \
-                     axiom: an existential null must have exactly one minting head quad",
-                    witness.witness
-                ),
-            }));
-        }
+            .filter(|axiom| axiom.object == object_display)
+            .collect();
+        candidates.sort_by(|a, b| {
+            (a.predicate.as_str(), a.subject.as_str())
+                .cmp(&(b.predicate.as_str(), b.subject.as_str()))
+        });
+        let head = candidates
+            .iter()
+            .copied()
+            .find(|axiom| frontier_iris.contains(axiom.subject.as_str()))
+            .or_else(|| candidates.first().copied())
+            .ok_or_else(|| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-reason".to_string(),
+                    message: format!(
+                        "chase-invented null <{}> has no reasoned head quad p(x, null): \
+                         the existential edge that minted it must be in the closure",
+                        witness.witness
+                    ),
+                })
+            })?;
         let r_head =
             gmeow_logic::reason::reifier_iri(&head.subject, &head.predicate, &object_display);
         projections.push(WitnessProjection {

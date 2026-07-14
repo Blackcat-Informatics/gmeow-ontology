@@ -2292,6 +2292,11 @@ classes:
     slots:
     - relationshipInterval
     - relationshipParty
+  InventedWitness:
+    class_uri: https://blackcatinformatics.ca/gmeow/InventedWitness
+    title: Invented Witness
+    slots:
+    - existentialOrdinal
   InvitationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/InvitationStatus
     title: Invitation Status
@@ -8159,6 +8164,13 @@ slots:
     title: existence interval
     range: TimeInterval
     domain: Entity
+    multivalued: true
+  existentialOrdinal:
+    slot_uri: https://blackcatinformatics.ca/gmeow/existentialOrdinal
+    title: existential ordinal
+    range: integer
+    domain: InventedWitness
+    minimum_value: 0
     multivalued: true
   experiencer:
     slot_uri: https://blackcatinformatics.ca/gmeow/experiencer
