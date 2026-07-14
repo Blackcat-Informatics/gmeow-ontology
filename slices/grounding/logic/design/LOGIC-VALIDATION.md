@@ -152,9 +152,20 @@ provide.
 The validation shapes are not hand-authored: they are **derived** from the constraint-bearing
 axioms slices already carry — `rdfs:domain`/`rdfs:range`, cardinality, `owl:Functional`/
 `InverseFunctionalProperty`, `owl:someValuesFrom`/`allValuesFrom`/`hasValue`, qualified
-cardinality, `owl:disjointWith`/`complementOf`/`oneOf`/`AllDisjointClasses`, and the value-set
-and facet restrictions. There is no parallel hand-authored shape vocabulary; the only authored
-signal is the closure/reading annotation described below.
+cardinality, `owl:disjointWith`/`oneOf`/`AllDisjointClasses`, and the value-set and facet
+restrictions. Two validates-but-does-not-entail conditions have NO slice-authorable OWL
+antecedent, because their OWL renderings are outside the native reasoner's decidable
+fragment, and are authored as constraint-sugar records the derive lowers onto the target
+class shape instead: a literal-pinned **forbidden value** ("class C must never carry
+P = v" — the value-complement pattern) is a `logic:ForbiddenPatternConstraint` with a
+literal `logic:forbiddenValue`, lowered to `sh:not [ sh:hasValue v ]` (the IRI-pinned form
+is the class-negation idiom, carried node-level as `sh:not [ sh:class … ]` by the
+disjointness family, and keeps its procedural projection only); and a bounded **numeric
+range** (a faceted-datatype filler is undecidable natively the moment a literal is asserted
+on the constrained path) is a `logic:ValueRangeConstraint` with inclusive literal bounds,
+lowered to `sh:minInclusive`/`sh:maxInclusive`. There is no parallel hand-authored shape
+vocabulary; the only other authored signal is the closure/reading annotation described
+below.
 
 **Dataset-derive, not typed-IR lift.** The derivation reads the **merged authored dataset**
 directly (the root ontology plus every slice module, closed under the same fold the pipeline

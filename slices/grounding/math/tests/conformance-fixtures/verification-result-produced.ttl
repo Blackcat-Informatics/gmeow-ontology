@@ -28,4 +28,4 @@ mprod:qedObservation a gmeow:Observation ;
     gmeow:observedFeature mprod:pythagorasProof ;
     gmeow:observationResult mprod:qedResult ;
     gmeow:vantage mprod:proofChecker .
-mprod:proofChecker a gmeow:Standpoint .
+mprod:proofChecker a gmeow:Standpoint , gmeow:Entity .

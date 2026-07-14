@@ -588,6 +588,17 @@ pub struct Finding {
     /// non-reasoned findings.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub derived_from_quads: Vec<String>,
+    /// The IRI-typed RDF terms this finding's evidence genuinely binds — e.g. the
+    /// subject/predicate/object of an offending SPARQL solution row on the reasoned
+    /// graph. The structured, faithful twin of [`DerivationRef::cited_iris`]
+    /// (`crate::result` in `gmeow-logic`): a consumer that needs "which IRIs does
+    /// this finding cite" reads THIS field, never the rendered `message`/`detail`
+    /// prose. Populated only from `TermValue::Iri` bindings (never from a literal's
+    /// lexical form), so agent-controlled overlay data cannot forge a citation by
+    /// embedding angle-bracket text inside a string literal. Empty for findings
+    /// that cite no evidence terms (never fabricated).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cited_iris: Vec<String>,
 }
 
 impl Finding {
@@ -618,6 +629,7 @@ impl Finding {
             documented_terms: Vec::new(),
             guidance: Vec::new(),
             derived_from_quads: Vec::new(),
+            cited_iris: Vec::new(),
         }
     }
 
@@ -733,6 +745,10 @@ impl Finding {
         // them so the projected graph is deterministic regardless of attach order.
         self.derived_from_quads.sort();
         self.derived_from_quads.dedup();
+        // The structured evidence-term citation surface: sort+dedup so the
+        // projected byte sequence is deterministic regardless of binding order.
+        self.cited_iris.sort();
+        self.cited_iris.dedup();
         // Per-term guidance claims can reach a finding via the ledger merge path,
         // which appends them in diagnostic arrival order — so sort+dedup them on the
         // same `(modality, term_iri, text)` identity the enrich join uses, keeping the
