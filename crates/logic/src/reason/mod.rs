@@ -56,6 +56,11 @@ impl ChaseCertificate {
     }
 }
 
+/// The decomposable derivation of one chase-invented null, re-exported so a
+/// consumer of [`CertifiedReasoning`] can explain an invented individual without
+/// re-running the chase.
+pub use crate::physical::WitnessDerivation;
+
 /// The single production reasoning run and the existential termination evidence
 /// generated while constructing its result.
 #[derive(Debug, Clone, PartialEq)]
@@ -64,6 +69,12 @@ pub struct CertifiedReasoning {
     pub result: ReasoningResult,
     /// Deterministic, deduplicated world-scoped chase certificates.
     pub chase_certificates: Vec<ChaseCertificate>,
+    /// The decomposable derivation of every invented null the chase minted,
+    /// sorted and deduplicated by content-addressed witness IRI. Empty when the
+    /// production program has no existential obligation. Each carries the firing
+    /// rule, existential ordinal, and frontier binding — the recipe an
+    /// `explain(witness)` consumer decomposes.
+    pub witness_derivations: Vec<WitnessDerivation>,
 }
 
 /// Wrap a reasoning-driver condition message as a typed diagnostic on the shared
@@ -200,12 +211,14 @@ pub fn reason_all(edb: &RdfDataset) -> gmeow_errors::Result<ReasoningResult> {
 /// failures as [`reason_all`].
 pub fn reason_all_certified(edb: &RdfDataset) -> gmeow_errors::Result<CertifiedReasoning> {
     let mut inferred = run_reasoning_rules(edb, dl::structured_dl_rules())?;
-    let chase_certificates = dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
+    let (chase_certificates, witness_derivations) =
+        dl::augment_inferred_with_dl_certificates(&mut inferred, edb)?;
     inferred.sort();
     let verdict = dl::verdict_from_inferred(&inferred, edb)?;
     Ok(CertifiedReasoning {
         result: typed_result(inferred, &verdict),
         chase_certificates,
+        witness_derivations,
     })
 }
 
