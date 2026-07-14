@@ -4940,9 +4940,9 @@ mod ustar_tests {
     // ── docs-book / docs-print blob wiring (fresh-build, no committed-bundle dep) ──
 
     /// A small, deterministic docs model (one slice, three terms, one competency, one
-    /// linkage) — the SAME shape the `docs-print` integration suite uses, kept small so
-    /// the book render and the PDF compile stay well under the per-test budget (the
-    /// full-catalog render/compile belongs to the regenerate gate, not a unit test).
+    /// linkage) — the SAME shape the `docs-print` integration suite uses. It stays
+    /// small so unit tests isolate the renderer; full-catalog render/compile belongs
+    /// to the regenerate gate.
     fn small_docs_model() -> gmeow_docs::model::DocsModel {
         use gmeow_docs::model::{
             DocCompetency, DocLinkage, DocSlice, DocTerm, DocTermCategory, DocsModel,

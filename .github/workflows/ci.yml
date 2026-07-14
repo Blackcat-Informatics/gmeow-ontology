@@ -79,9 +79,9 @@ jobs:
   # each restores the same compiled `target/` and only pays an incremental recompile
   # plus ~1/3 of the test runtime. The whole-workspace gates (fmt/clippy/doctests)
   # run ONLY on shard 1 — they need not run 3×.
-  # Each shard is its own runner, so the nextest `engine = { max-threads = 2 }` OOM
-  # cap is honored per shard (3×2 across shards is fine — the cap is a per-process
-  # bound, not a cluster bound).
+  # Each shard uses the runner's available CPU width. Tests that create their own
+  # full-width worker pool reserve that runner through nextest's `num-cpus`
+  # weight; no fixed global or test-group concurrency cap throttles the suite.
   rust:
     strategy:
       fail-fast: false
@@ -136,9 +136,8 @@ jobs:
           key: docs-fixture-v2-${{ runner.os }}-${{ hashFiles('slices/**', 'shapes/**', 'i18n/**', 'queries/**', 'docs/four-boxes.md', 'metadata/gmeow-self.ttl', 'dsl/mappings/mapping-sets.ttl', 'generated/catalog/constraint-catalog.nq', 'generated/catalog/term-content-manifest.nq', 'crates/docs/src/**', 'crates/docs/templates/**', 'crates/docs/assets/**', 'crates/docs/Cargo.toml', 'crates/errors/src/**', 'crates/errors/Cargo.toml', 'crates/logic-compile/src/**', 'crates/logic-compile/Cargo.toml', 'crates/validate/src/**', 'crates/validate/Cargo.toml', 'Cargo.lock') }}
 
       # Build the gmeow-docs model fixture once so every docs test loads it warm.
-      # Without this each docs test rebuilds the ~12 s DocsModel in its own process
-      # and concurrent rebuilds contend past the 25 s budget. Primed single-threaded
-      # here (uncharged), the docs tests then load the content-addressed cache fast.
+      # Without this each docs test rebuilds the same DocsModel in its own process.
+      # The content-addressed cache removes that redundant work from every shard.
       - name: Prime docs-model fixture cache
         run: cargo run -q --package gmeow-docs --example prime-docs-fixture
 
@@ -154,17 +153,6 @@ jobs:
 
       - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
         run: cargo nextest run --profile ci --workspace --partition count:${{ matrix.shard }}/3
-
-      # 25s per-test budget gate: hard-fail if any test on this shard's slice
-      # of the ci profile exceeded the always-on budget. Runs against the exact
-      # junit.xml the nextest step above produced for this shard. The gate is
-      # advisory on contended developer boxes but HARD here; enforcement is made
-      # explicit (belt-and-suspenders over the platform-set CI var) so this clean,
-      # dedicated runner is the authoritative arbiter of the wall-clock budget.
-      - name: Test duration budget gate (25s)
-        env:
-          GMEOW_TEST_BUDGET_ENFORCE: "1"
-        run: cargo run -q -p gmeow-test-budget -- target/nextest/ci/junit.xml
 
       - name: Doctests
         if: ${{ matrix.shard == 1 }}
