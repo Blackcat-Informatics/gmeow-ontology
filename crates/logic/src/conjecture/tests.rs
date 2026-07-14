@@ -660,3 +660,74 @@ fn lifecycle_and_discharge_local_names_round_trip() {
         "ObligationDischarged"
     );
 }
+
+// ── Rule-program candidate: the GOVERNED forward chase cuts it mid-flight ──────
+
+#[test]
+fn rule_program_candidate_step_budget_cuts_the_forward_chase_not_a_post_hoc_ceiling() {
+    // A KB with a subclass chain gives the forward DL closure several committed derivations
+    // (A⊑C, A⊑D, B⊑D, x:B, x:C, x:D). A NON-TRIVIAL formula candidate (a ∀-Horn implication)
+    // takes the program path, which is now evaluated through the SAME forward-chase governor
+    // as the ground path (`reason_program_budgeted`). A tiny max_steps must cut the chase
+    // mid-flight and surface the non-conclusive budget-exhausted Open/Unknown lifecycle —
+    // reported through the real governor status, never a post-hoc `derived_closure_size`
+    // comparison after a full run.
+    let store = kb(&[
+        (A_CLS, SUBCLASS, B_CLS),
+        (B_CLS, SUBCLASS, C_CLS),
+        (C_CLS, SUBCLASS, D_CLS),
+        (IND_X, TYPE, A_CLS),
+    ]);
+    // A formula (not a ground atom) → the rule-program branch of conjecture_test.
+    let candidate = forall_horn(KNOWS, ALICE, TRUSTS, BOB);
+    let budget = Budget {
+        max_answers: None,
+        max_steps: Some(1),
+    };
+    let ans = conjecture_test(&store, SCN, &candidate, STANDPOINT, &[], &budget)
+        .expect("governed rule-program conjecture test");
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::BudgetExhausted,
+        "the forward chase was cut mid-flight by the step governor"
+    );
+    assert_eq!(ans.verdict.information, InformationState::Undetermined);
+    assert_eq!(ans.lifecycle, ConjectureLifecycleState::Open);
+    assert_eq!(ans.discharge, ConjectureDischarge::Unknown);
+    // The consumed budget is the governor's REAL committed-derivation count (≤ ceiling),
+    // never the derived-closure-size fiction the deleted post-hoc ceiling used.
+    assert!(
+        ans.verdict.provenance.consumed_budget.consumed <= 1,
+        "consumed steps ({}) must respect the max_steps ceiling",
+        ans.verdict.provenance.consumed_budget.consumed
+    );
+}
+
+#[test]
+fn rule_program_candidate_with_ample_step_budget_completes_normally() {
+    // The SAME formula candidate over a KB with no subclass chain has a trivially-small
+    // forward closure, so a generous ceiling never trips the governor: the run completes and
+    // the ∀-Horn's fired consequence corroborates it (identical to the ungoverned path).
+    let store = kb(&[(SAM_P, KNOWS, ALICE)]);
+    let candidate = forall_horn(KNOWS, ALICE, TRUSTS, BOB);
+    let ans = conjecture_test(
+        &store,
+        SCN,
+        &candidate,
+        STANDPOINT,
+        &[],
+        &Budget {
+            max_answers: None,
+            max_steps: Some(1_000_000),
+        },
+    )
+    .expect("governed rule-program conjecture test with an ample budget");
+
+    assert_eq!(
+        ans.verdict.evaluation,
+        EvaluationStatus::Completed,
+        "an ample ceiling never trips the governor"
+    );
+    assert_ne!(ans.verdict.information, InformationState::Undetermined);
+}
