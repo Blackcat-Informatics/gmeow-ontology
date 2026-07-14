@@ -552,9 +552,9 @@ pub fn slice_quality_gate() -> i32 {
     // values runs later, after the FOURTH (coherence) check, so every diagnostic
     // this gate can emit is grouped by check rather than by where its inputs happen
     // to be computed.
-    let vocabularies = rubric.floors.vocabularies.clone();
+    let vocabularies = &rubric.floors.vocabularies;
     let working_ceilings = ceilings_from_rubric(&rubric);
-    let working_residues = match gmeow_slice_quality::measure_repo_residues(&root, &vocabularies) {
+    let working_residues = match gmeow_slice_quality::measure_repo_residues(&root, vocabularies) {
         Ok(m) => m,
         Err(e) => return fail(format!("slice-quality-gate: {e}")),
     };
@@ -664,7 +664,7 @@ pub fn slice_quality_gate() -> i32 {
                         .collect();
                     if !new_keys.is_empty() {
                         let base_res =
-                            match measure_base_residues(&root, &base, &vocabularies, &new_keys) {
+                            match measure_base_residues(&root, &base, vocabularies, &new_keys) {
                                 Ok(r) => r,
                                 Err(e) => return fail(format!("slice-quality-gate: {e}")),
                             };
