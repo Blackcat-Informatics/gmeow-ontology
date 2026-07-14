@@ -405,7 +405,7 @@ fn ordered_pair(a: &str, b: &str) -> (String, String) {
 /// Hard-fails if any of the slice's Turtle sources cannot be read or parsed.
 fn load_slice_dataset(slice_dir: &Path) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
     let mut paths = gmeow_slice_quality::report::slice_ttl_paths(slice_dir);
-    collect_ttl(&slice_dir.join("mappings"), &mut paths);
+    collect_ttl(&slice_dir.join("mappings"), &mut paths)?;
     paths.sort();
     paths.dedup();
     let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
@@ -676,17 +676,106 @@ fn term_render(ds: &RdfDataset, id: purrdf::TermId) -> String {
     }
 }
 
-/// Recursively collect existing `.ttl` files under `dir` into `out`.
-fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(rd) = std::fs::read_dir(dir) else {
-        return;
+/// Recursively collect existing `.ttl` files under `dir` into `out`. A directory
+/// that does not exist is a legitimate "absent" input (`Ok`, nothing collected);
+/// any OTHER `read_dir`/entry/file-type error (permission denied, I/O error,
+/// not-a-directory, symlink loop, ...) is a HARD FAIL — propagated, never
+/// swallowed into a silent "no translations" result.
+///
+/// # Errors
+/// Propagates any `read_dir`/entry/`file_type` error other than
+/// [`std::io::ErrorKind::NotFound`].
+fn collect_ttl(dir: &Path, out: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
+    let rd = match std::fs::read_dir(dir) {
+        Ok(rd) => rd,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => {
+            return Err(gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("{}: read_dir failed: {e}", dir.display()),
+            }));
+        }
     };
-    for entry in rd.flatten() {
+    for entry in rd {
+        let entry = entry.map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("{}: directory entry read failed: {e}", dir.display()),
+            })
+        })?;
+        let file_type = entry.file_type().map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("{}: file_type failed: {e}", entry.path().display()),
+            })
+        })?;
         let p = entry.path();
-        if p.is_dir() {
-            collect_ttl(&p, out);
+        if file_type.is_dir() {
+            collect_ttl(&p, out)?;
         } else if p.extension().is_some_and(|x| x == "ttl") {
             out.push(p);
         }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod collect_ttl_tests {
+    use super::collect_ttl;
+    use std::path::PathBuf;
+
+    /// A deterministic (non-random) scratch path under the process temp dir,
+    /// namespaced by test name so parallel tests never collide.
+    fn scratch_path(test_name: &str) -> PathBuf {
+        std::env::temp_dir().join(format!("gmeow-slice-brief-collect_ttl-{test_name}"))
+    }
+
+    /// A missing directory is a legitimate "absent" input: `Ok(())`, nothing
+    /// collected — never an error, and never silently treated as anything but
+    /// empty.
+    #[test]
+    fn absent_directory_is_ok_and_empty() {
+        let dir = scratch_path("absent_directory_is_ok_and_empty");
+        // Idempotent: make sure no leftover state from a prior aborted run exists.
+        let _ = std::fs::remove_dir_all(&dir);
+        assert!(!dir.exists(), "precondition: {dir:?} must not exist");
+
+        let mut out = Vec::new();
+        let result = collect_ttl(&dir, &mut out);
+
+        assert!(
+            result.is_ok(),
+            "a NotFound read_dir must be treated as absent (Ok), got {result:?}"
+        );
+        assert!(
+            out.is_empty(),
+            "an absent directory must collect zero paths, got {out:?}"
+        );
+    }
+
+    /// A `read_dir` failure that is NOT `NotFound` (here: the parent path
+    /// component is a plain file, so the OS refuses with `NotADirectory`/`ENOTDIR`)
+    /// MUST propagate as an `Err`, never be laundered into "no .ttl files here".
+    /// This is deterministic and does not depend on running as non-root (unlike a
+    /// permission-bits test, which root would bypass).
+    #[test]
+    fn unreadable_non_directory_parent_errors() {
+        let marker_file = scratch_path("unreadable_non_directory_parent_errors");
+        let _ = std::fs::remove_file(&marker_file);
+        std::fs::write(&marker_file, b"not a directory").expect("write marker file");
+
+        // `marker_file` is a plain file, so `marker_file/mappings` cannot be a
+        // directory: `read_dir` must fail with something other than `NotFound`.
+        let bogus_dir = marker_file.join("mappings");
+        let mut out = Vec::new();
+        let result = collect_ttl(&bogus_dir, &mut out);
+
+        assert!(
+            result.is_err(),
+            "a non-NotFound read_dir error must propagate as Err, got {result:?}"
+        );
+        assert!(
+            out.is_empty(),
+            "no paths must be collected on the error path, got {out:?}"
+        );
+
+        let _ = std::fs::remove_file(&marker_file);
     }
 }
