@@ -197,6 +197,10 @@ fn build_table() -> BTreeMap<&'static str, StageAttach> {
         &mut t,
         "stage-snapshot",
         &[
+            // The scoped coherence certificate / attestation folded over the composed
+            // carrier (R6): a budget-free, proof-carrying coherence artifact the consumer
+            // read tool surfaces directly.
+            "https://blackcatinformatics.ca/gmeow/graph/attestations",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/briefs/authoring-packets.nt",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/constraint-catalog.nq",
             "https://blackcatinformatics.ca/gmeow/graph/fanout/catalog/term-content-manifest.nq",

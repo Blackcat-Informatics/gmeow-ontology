@@ -517,8 +517,10 @@ pub fn mint_reifier(s: &TermValue, p: &str, o: &TermValue) -> gmeow_errors::Resu
 /// ```
 ///
 /// Used by the explanation engine ([`crate::explain`]), whose rows carry the
-/// object already as an N3 string (it never re-parses the object term).
-pub(crate) fn reifier_from_strings(subject: &str, predicate: &str, obj_n3: &str) -> String {
+/// object already as an N3 string (it never re-parses the object term), and by the
+/// `explain_quad` consumer surface, which computes a target quad's reifier from the
+/// SAME canonical N3 object [`term_display`] produces for a [`crate::explain::Row`].
+pub fn reifier_from_strings(subject: &str, predicate: &str, obj_n3: &str) -> String {
     let canonical = format!("<{}> <{}> {}", subject, predicate, obj_n3);
     let digest = sha1_hex(&canonical);
     format!("{}{}", REIFIER_PREFIX, digest)

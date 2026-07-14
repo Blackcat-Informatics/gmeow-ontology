@@ -325,6 +325,17 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
                 .join(" ");
             vec![format!("sh:xone ( {items} )")]
         }
+        // A node-level property-alternatives disjunction (a class-level `rdfs:subClassOf
+        // [ owl:unionOf ( [ owl:onProperty P ; owl:someValuesFrom owl:Thing ] … ) ]` axiom):
+        // each branch is a whole property shape requiring its path with `sh:minCount 1`.
+        ConstraintComponent::OrProperties(paths) => {
+            let items = paths
+                .iter()
+                .map(|p| format!("[ sh:path {} ; sh:minCount 1 ]", iri_term(p)))
+                .collect::<Vec<_>>()
+                .join(" ");
+            vec![format!("sh:or ( {items} )")]
+        }
     }
 }
 
@@ -485,6 +496,8 @@ fn shacl_component_residue(path: &str, c: &ConstraintComponent, out: &mut Vec<St
         }
         // Faithful in SHACL Core — no residue. Listed explicitly (not a `_` arm) so a NEW
         // component variant forces a faithful-or-residue decision at compile time.
+        // `OrProperties` is the node-level `sh:or` over `[ sh:path P ; sh:minCount 1 ]`
+        // branches — plain SHACL Core, fully faithful.
         ConstraintComponent::NumericRange { .. }
         | ConstraintComponent::PrecisionRange { .. }
         | ConstraintComponent::Datatype(_)
@@ -495,7 +508,8 @@ fn shacl_component_residue(path: &str, c: &ConstraintComponent, out: &mut Vec<St
         | ConstraintComponent::MaxLength(_)
         | ConstraintComponent::LanguageIn(_)
         | ConstraintComponent::DateTimeRange { .. }
-        | ConstraintComponent::HasValue(_) => {}
+        | ConstraintComponent::HasValue(_)
+        | ConstraintComponent::OrProperties(_) => {}
     }
 }
 
@@ -673,6 +687,7 @@ fn shex_value_expr(p: &PropertyConstraintIr) -> String {
             // no negation, so `Not` is carried in the ledger; `HasValue` was handled above.
             ConstraintComponent::DateTimeRange { .. }
             | ConstraintComponent::DateTimePattern(_)
+            | ConstraintComponent::OrProperties(_)
             | ConstraintComponent::LanguageIn(_)
             | ConstraintComponent::TerminologyBinding { .. }
             | ConstraintComponent::In(_)
@@ -833,6 +848,14 @@ pub fn shex_residue(shape: &ValidationShapeIr) -> Vec<String> {
                 ConstraintComponent::Xone(_) => residue.push(format!(
                     "exclusive disjunction (sh:xone) on {} has no ShEx Core form; carried in the \
                      canonical logic: layer",
+                    p.path
+                )),
+                // A node-level property-alternatives disjunction never rides a property shape;
+                // when a whole shape carries node-level components the ShEx projection already
+                // flags them wholesale above. Flagged defensively at the wrapper level here.
+                ConstraintComponent::OrProperties(_) => residue.push(format!(
+                    "property-alternatives disjunction (sh:or over sh:path branches) on {} is \
+                     carried whole in the canonical logic: layer",
                     p.path
                 )),
                 // ShEx-faithful, or already carried by the shacl_residue base — no *additional*
@@ -3092,6 +3115,25 @@ mod procedural_tests {
             "{b}"
         );
         assert!(b.contains("SELECT $this WHERE"), "{b}");
+    }
+
+    #[test]
+    fn p1_at_least_one_sugar_projects_a_missing_all_alternatives_guard() {
+        let b = project_sugar(
+            "ex:c1c a logic:ChoiceGroupConstraint ;\n\
+             logic:onClass ex:Widget ;\n\
+             logic:choicePredicate ex:hasA , ex:hasB ;\n\
+             logic:choiceMode \"at-least-one\" ;\n\
+             logic:formalizes ex:Widget .",
+        );
+        // at-least-one → the violation is EVERY alternative absent: both predicates appear
+        // under the negative (missing) side of the lowering.
+        assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
+        assert!(
+            b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
+            "{b}"
+        );
+        assert!(b.contains("NOT EXISTS"), "{b}");
     }
 
     #[test]

@@ -511,3 +511,40 @@ fn shape_equivalence_reports_not_equiv_and_exits_nonzero_when_divergent() {
         .stdout(predicate::str::contains("[NOT-EQUIV"));
     std::fs::remove_dir_all(&root).ok();
 }
+
+/// `shape-migrate`'s namespace guard must accept every authoring namespace
+/// (`gmeow_logic_compile::frontend::AUTHORING_NAMESPACES`), not just `gmeow:`: a legacy shape
+/// targeting a `math:` class is eligible for injection and must NOT be skipped as
+/// non-dogfooded. Regression for the injector consuming the single exported authority instead
+/// of a stale local mirror of it.
+#[test]
+fn shape_migrate_does_not_skip_a_math_namespace_target_class() {
+    let root = tempdir();
+    // The shared projected surface (irrelevant `gmeow:Foo` shape) — `OracleCtx::load` requires
+    // all three generated shape-union members to exist.
+    write_shape_fixture(&root, "sh:minCount 1 ; sh:maxCount 1");
+    let slice_dir = root.join("slices").join("demo-math");
+    std::fs::create_dir_all(&slice_dir).expect("mk slices/demo-math");
+    std::fs::write(
+        slice_dir.join("shapes.ttl"),
+        "@prefix math: <https://blackcatinformatics.ca/math/> .\n\
+         @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+         math:PointShape a sh:NodeShape ;\n\
+             sh:targetClass math:Point ;\n\
+             sh:property [ sh:path math:coordinate ; sh:minCount 1 ] .\n",
+    )
+    .expect("write legacy math shape");
+    Command::cargo_bin("gmeow-dev")
+        .expect("gmeow-dev binary")
+        .env("GMEOW_ROOT", &root)
+        .args(["shape-migrate", "--path", "slices/demo-math"])
+        .assert()
+        .stdout(
+            predicate::str::contains("[SKIP non-dogfooded-namespace]")
+                .not()
+                .and(predicate::str::contains(
+                    "https://blackcatinformatics.ca/math/PointShape",
+                )),
+        );
+    std::fs::remove_dir_all(&root).ok();
+}

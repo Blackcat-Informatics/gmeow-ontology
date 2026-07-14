@@ -248,7 +248,10 @@ pub fn proof_ingest() -> ProofIngest {
     t.push_str("    gmeow:observedFeature p:pythagorasProof ;\n");
     t.push_str("    gmeow:observationResult p:qedResult ;\n");
     t.push_str("    gmeow:vantage p:proofChecker .\n");
-    t.push_str("p:proofChecker a gmeow:Standpoint .\n");
+    // The vantage is asserted BOTH a Standpoint and a gmeow:Entity: the canonical
+    // gmeow:Observation validation shape checks `sh:class gmeow:Entity` on the raw graph
+    // (no subclass inference), so the producer states the type its output must validate under.
+    t.push_str("p:proofChecker a gmeow:Standpoint , gmeow:Entity .\n");
 
     ProofIngest {
         verification_result,
