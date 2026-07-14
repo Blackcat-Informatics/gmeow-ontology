@@ -1405,8 +1405,14 @@ impl McpView {
         };
 
         // cited_iris: the DerivationRef cited-IRI surface when the verdict carries a
-        // proof/counterproof, unioned with the IRIs the findings reference (extracted
-        // from each finding's message + detail). Sorted, deduplicated via the BTreeSet.
+        // proof/counterproof, unioned with each finding's structured
+        // `Finding::cited_iris` (the genuine `TermValue::Iri` bindings the offending
+        // SPARQL solution rows carry — see `verify_with_reasoning_result`). NEVER
+        // scraped from the rendered `message`/`detail` prose: an agent-controlled
+        // overlay literal such as `"see <urn:fake>"` renders inside quotes and must
+        // not be mistaken for a citation, which a text-scrape over angle brackets
+        // cannot reliably tell apart from a genuine `<iri>` term. Sorted,
+        // deduplicated via the BTreeSet.
         let mut cited_iris: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
         if let Some(proof) = &result.provenance.proof {
             cited_iris.extend(proof.cited_iris.iter().cloned());
@@ -1415,10 +1421,7 @@ impl McpView {
             cited_iris.extend(counterproof.cited_iris.iter().cloned());
         }
         for finding in &report.findings {
-            collect_bracketed_iris(&finding.message, &mut cited_iris);
-            if let Some(detail) = &finding.detail {
-                collect_bracketed_iris(detail, &mut cited_iris);
-            }
+            cited_iris.extend(finding.cited_iris.iter().cloned());
         }
 
         let findings: Vec<Value> = report
@@ -3688,37 +3691,6 @@ impl ExpandHome for PathBuf {
     }
 }
 
-/// Collect the angle-bracketed IRIs (`<iri>`) appearing in `text` into `out`. The
-/// reasoned-graph verify findings render their offending bindings as N3 terms
-/// (`var=<iri>`, `"lit"`, …), so the IRIs a finding references are recoverable as the
-/// `<…>`-delimited spans that carry a scheme separator — the cited-IRI surface a
-/// reasoned-graph verify finding exposes when it carries no structured DerivationRef.
-fn collect_bracketed_iris(text: &str, out: &mut std::collections::BTreeSet<String>) {
-    let bytes = text.as_bytes();
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'<' {
-            // Skip the RDF-1.2 triple-term opener `<<`; the inner `<iri>` spans are
-            // caught on the following iterations.
-            if i + 1 < bytes.len() && bytes[i + 1] == b'<' {
-                i += 1;
-                continue;
-            }
-            if let Some(rel) = text[i + 1..].find('>') {
-                let inner = &text[i + 1..i + 1 + rel];
-                // A genuine IRI carries a scheme separator; never record an empty `<>`
-                // or a stray bracket.
-                if !inner.is_empty() && inner.contains(':') {
-                    out.insert(inner.to_owned());
-                }
-                i = i + 1 + rel + 1;
-                continue;
-            }
-        }
-        i += 1;
-    }
-}
-
 fn tool(name: &str, description: &str, properties: &[(&str, &str)]) -> Value {
     let required: Vec<&str> = properties
         .iter()
@@ -5967,6 +5939,68 @@ mod tests {
         assert!(
             out["error_count"].as_u64().unwrap_or(0) >= 1,
             "the violation must count as an error finding: {out}"
+        );
+        drop(overlay_dir);
+    }
+
+    /// Proof faithfulness: `cited_iris` must be derived ONLY from structured RDF
+    /// binding terms, never scraped from rendered finding prose — an
+    /// agent-controlled overlay literal carrying angle-bracket text must not be
+    /// accepted as a genuine citation. The overlay's `gmeow:credence` value is the
+    /// STRING literal `"see <urn:fake>"` (non-numeric, so `credence-out-of-range`
+    /// fires) attached to the real subject `<urn:ex:forge-cited-iris-state>`. A
+    /// text-scrape over the rendered `detail` (`credence="see <urn:fake>",
+    /// state=<urn:ex:...>`) would forge `urn:fake` into `cited_iris`; the
+    /// structured-term derivation must not, while the genuinely-cited subject IRI
+    /// must still appear.
+    #[test]
+    fn verify_graph_cited_iris_excludes_forged_literal_text_heavy_offgate() {
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+        let bytes = snapshot();
+        let server = McpServer::from_snapshot(&bytes, None, McpMode::Consumer).unwrap();
+
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("forge-cited-iris.ttl");
+        // `!isNumeric("see <urn:fake>")` is true, so this is a credence-out-of-range
+        // bad example exactly like the sibling test above — but the credence VALUE
+        // is a string literal carrying forged-looking angle-bracket text.
+        let overlay_ttl = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             <urn:ex:forge-cited-iris-state> gmeow:credence \"see <urn:fake>\" .\n";
+        fs::write(&overlay_path, overlay_ttl).unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 8})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+        let codes: Vec<String> = out["findings"]
+            .as_array()
+            .expect("findings array")
+            .iter()
+            .map(|f| f["code"].as_str().unwrap_or_default().to_owned())
+            .collect();
+        assert!(
+            codes.iter().any(|c| c == "verify.credence-out-of-range"),
+            "the forged-literal overlay must fire verify.credence-out-of-range: {out}"
+        );
+        let cited: Vec<String> = out["cited_iris"]
+            .as_array()
+            .expect("cited_iris array")
+            .iter()
+            .map(|v| v.as_str().unwrap_or_default().to_owned())
+            .collect();
+        assert!(
+            !cited.iter().any(|c| c.contains("urn:fake")),
+            "a literal's angle-bracket text must never forge a citation: {out}"
+        );
+        assert!(
+            cited.iter().any(|c| c == "urn:ex:forge-cited-iris-state"),
+            "the finding's genuinely-cited subject IRI must still appear: {out}"
         );
         drop(overlay_dir);
     }

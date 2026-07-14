@@ -230,6 +230,13 @@ pub fn verify_with_reasoning_result(
         };
 
         let mut rows: Vec<String> = Vec::new();
+        // The structured evidence-term citation surface: ONLY genuine
+        // `TermValue::Iri` bindings, never a literal's lexical form — so an
+        // agent-controlled overlay literal like `"see <urn:fake>"` can never be
+        // mistaken for a citation (unlike a text-scrape over the rendered
+        // `detail` string below, which cannot distinguish a bare IRI term from
+        // angle-bracket text inside a quoted literal).
+        let mut cited_iris: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
         for sol in &result_rows {
             let mut binding: Vec<String> = Vec::new();
             for (var, cell) in variables.iter().zip(sol.iter()) {
@@ -237,6 +244,9 @@ pub fn verify_with_reasoning_result(
                 // `QuerySolution::iter()` which only yields bound (var, term) pairs.
                 if let Some(term) = cell {
                     binding.push(format!("{}={}", var, term_display(term)));
+                    if let purrdf::TermValue::Iri(iri) = term {
+                        cited_iris.insert(iri.clone());
+                    }
                 }
             }
             // Sort the per-row bindings so the joined detail is independent of the
@@ -263,6 +273,7 @@ pub fn verify_with_reasoning_result(
         )
         .with_tool("verify");
         finding.detail = Some(rows.join("; "));
+        finding.cited_iris = cited_iris.into_iter().collect();
         finding.tags = vec!["reasoned-graph".to_owned(), "negative-test".to_owned()];
         // Graph-located findings still need a physicalLocation for SARIF
         // code-scanning upload: anchor on the query's repo-relative path.
