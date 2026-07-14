@@ -480,3 +480,34 @@ HONEST SKIP LOG (nothing below is papered over; several WILL fail CI by design):
   needs a native Rust producer + a single enforceable hard-rule failure; positive-
   capability scenes have neither). The scenes carry the full non-flagship test
   surface (conformance + competency + structural) instead.
+
+================================================================================
+Issue #1544 — stage 2 gap remediation
+Date: 2026-07-14
+
+Three genuine gaps found (none in the stage-1 signed-off set) and FULLY fixed in
+source this stage — no weaker proxies, no re-defers:
+- [HIGH] ex:saClosedFormLeafLinkage was a hollow gate (gmeow:must + existential
+  ASK passed when any one closed-form function was clean); flipped to
+  gmeow:mustNot matching any unbound defining-expression leaf (2d479ce).
+- [MEDIUM] piecewise-pieces.rq scoped to its fixture namespace via
+  FILTER(STRSTARTS(STR(?function),"http://example.org/math/")) (98372b2ed).
+- [LOW] math:pieceExpression given a worked instance ((1−r)² and constant 0.0001
+  on the two pieces of ex:radialDecayProfile in examples/analysis-and-geometry.ttl)
+  (ecc5fff58).
+
+Honest stage-2 notes:
+- Verification this stage was STATIC/read-only per explicit maintainer directive
+  ("ignore all CI gates and local testing; analysis read-only, run no commands").
+  Full gate verification (make regenerate + make check) is deferred to stage 3.
+- Gap 3 edited an examples/ file (projection universe), so the gmeow.gts bundle,
+  schema, pydantic models, and docs goldens now drift further from source — stage
+  3 owns the single make regenerate + golden re-bless. Not run here.
+- All stage-1 signed-off exceptions are UNCHANGED and still stand: the ~11
+  cross-slice conformance regressions from the slicetest harness union,
+  example_sweep isolation for the 3 new examples, docs insta goldens, and the
+  fragment boundaries (non-numeric-literal extended-real; finite-negative measure;
+  midpoint-vs-λ-chord convexity; leaf-linkage as a structural cell — its
+  correctness was Gap 1, now fixed; unregistered FlagshipScenario). Repo-wide
+  sh:/owl:-removal + harness-scope refinement remain tracked to #1551; ratchet gate
+  to #1546. These WILL fail CI by design (papering over is forbidden).
