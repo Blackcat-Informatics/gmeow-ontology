@@ -33,8 +33,8 @@ use purrdf::RdfDataset;
 use rayon::prelude::*;
 
 pub use model::{
-    Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, Rubric, SliceAssessment,
-    SliceTierFloorCommitment, Threshold, Tier,
+    Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, GovernanceFloors,
+    MeasurementStandard, Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
 };
 
 /// The repo-wide slice-quality sweep products, scored in one pass over the discovered
@@ -264,7 +264,7 @@ fn score_slices_with_rubric_timed(
     doc_maturity::prime_repo_facts(repo_root);
     let score = |dir: &PathBuf| {
         let started = std::time::Instant::now();
-        let result = report::score_slice_with_rubric(dir, rubric.clone());
+        let result = report::score_slice_with_standard(dir, &rubric.standard);
         let slice = dir
             .strip_prefix(repo_root)
             .unwrap_or(dir)

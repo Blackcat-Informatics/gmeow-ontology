@@ -61,6 +61,7 @@ fn every_pre_migration_axis_floor_is_reproduced_bit_exactly() {
             .to_bits();
 
         let found = rubric
+            .floors
             .commitments
             .iter()
             .find(|c| c.slice == slice && local_name(&c.axis) == axis_local)
@@ -92,6 +93,7 @@ fn every_pre_migration_tier_floor_is_reproduced() {
         );
         let (slice, tier_local) = (cols[0], cols[1]);
         let found = rubric
+            .floors
             .tier_floors
             .iter()
             .find(|f| f.slice == slice)
