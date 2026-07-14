@@ -594,7 +594,7 @@ pub(crate) fn build_self_description_dataset_with_quality(
         let imports_ds = parse_dataset(&imports, "text/turtle", None)
             .map_err(|e| stage_err(&format!("verify imports parse: {e}")))?;
         let edb = purrdf::RdfDataset::union(&[base.as_ref(), imports_ds.as_ref()]);
-        run_verify_attestation(root, &edb)?
+        run_verify_attestation(&edb)?
     };
     let provenance_nt = build_provenance_projection(root)?;
     // graph/quality-assessment — every slice scored against the ontology-resident rubric,
@@ -3566,23 +3566,13 @@ fn expand_curie(
 /// Run the native verify lane over `edb` and build the attestation graph as
 /// N-Quads. Mirrors `gts_gen.build_verify_attestation_graph` exactly (the same
 /// `gmeow:QualityAssessment` vocabulary, one per query).
-fn run_verify_attestation(
-    root: &Path,
-    edb: &purrdf::RdfDataset,
-) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let query_paths = verify_query_paths(root)?;
-    let pairs: Vec<(String, String)> = query_paths
-        .iter()
-        .map(|(name, path)| {
-            std::fs::read_to_string(path)
-                .map(|sparql| (name.clone(), sparql))
-                .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Io {
-                        message: e.to_string(),
-                    })
-                })
-        })
-        .collect::<Result<_, _>>()?;
+///
+/// The query set is compile-time-embedded (`gmeow_logic::verify::
+/// embedded_verify_queries`) rather than walked off disk: `queries/verify/` and
+/// `slices/**/queries/verify/` are baked into the `gmeow-logic` binary by its
+/// `build.rs`, sorted by stem.
+fn run_verify_attestation(edb: &purrdf::RdfDataset) -> Result<Vec<u8>, gmeow_errors::Diag> {
+    let pairs = gmeow_logic::verify::embedded_verify_queries();
 
     let report = gmeow_logic::verify::verify(edb, &pairs)
         .map_err(|e| stage_err(&format!("native verify: {e}")))?;
@@ -3597,59 +3587,14 @@ fn run_verify_attestation(
         }
     }
 
-    let attestation = emit_verify_attestation(&query_paths, &failed);
+    let attestation = emit_verify_attestation(&pairs, &failed);
     turtle_to_nquads(attestation.as_bytes())
-}
-
-/// Sorted `(repo_relative_name, path)` for every verify query (core + slice).
-fn verify_query_paths(
-    root: &Path,
-) -> Result<Vec<(String, std::path::PathBuf)>, gmeow_errors::Diag> {
-    let mut out: Vec<(String, std::path::PathBuf)> = Vec::new();
-    // Core: sorted queries/verify/*.rq.
-    let core = root.join("queries").join("verify");
-    let mut core_files: Vec<std::path::PathBuf> = Vec::new();
-    if core.is_dir() {
-        for entry in std::fs::read_dir(&core)? {
-            let path = entry?.path();
-            if path.extension().is_some_and(|x| x == "rq") {
-                core_files.push(path);
-            }
-        }
-    }
-    core_files.sort();
-    for path in core_files {
-        out.push((rel_name(root, &path), path));
-    }
-    // Slice verify queries: slices/<group>/<name>/queries/verify/*.rq.
-    let mut slice_files: Vec<std::path::PathBuf> = Vec::new();
-    let slices = root.join("slices");
-    if slices.is_dir() {
-        for group in sorted_dirs(&slices)? {
-            for slice in sorted_dirs(&group)? {
-                let vdir = slice.join("queries").join("verify");
-                if vdir.is_dir() {
-                    for entry in std::fs::read_dir(&vdir)? {
-                        let path = entry?.path();
-                        if path.extension().is_some_and(|x| x == "rq") {
-                            slice_files.push(path);
-                        }
-                    }
-                }
-            }
-        }
-    }
-    slice_files.sort();
-    for path in slice_files {
-        out.push((rel_name(root, &path), path));
-    }
-    Ok(out)
 }
 
 /// Emit the verify-attestation Turtle (pure, deterministic). One
 /// `gmeow:QualityAssessment` per query; mirrors `build_verify_attestation_graph`.
 fn emit_verify_attestation(
-    query_paths: &[(String, std::path::PathBuf)],
+    query_paths: &[(String, String)],
     failed: &std::collections::BTreeSet<String>,
 ) -> String {
     use std::fmt::Write;
@@ -3684,7 +3629,7 @@ fn emit_verify_attestation(
     .unwrap();
     writeln!(body).unwrap();
 
-    for (name, _path) in query_paths {
+    for (name, _sparql) in query_paths {
         let stem = query_stem(name);
         let passed = !failed.contains(stem);
         writeln!(body, "<{GMEOW_NS}verify-attestation/{stem}>").unwrap();
@@ -3954,25 +3899,6 @@ fn union_turtle_datasets(sources: &[Vec<u8>]) -> Result<purrdf::RdfDataset, gmeo
         .collect::<Result<_, _>>()?;
     let refs: Vec<&purrdf::RdfDataset> = owned.iter().map(AsRef::as_ref).collect();
     Ok(purrdf::RdfDataset::union(&refs))
-}
-
-fn sorted_dirs(dir: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
-    let mut out: Vec<std::path::PathBuf> = Vec::new();
-    for entry in std::fs::read_dir(dir)? {
-        let path = entry?.path();
-        if path.is_dir() {
-            out.push(path);
-        }
-    }
-    out.sort();
-    Ok(out)
-}
-
-fn rel_name(root: &Path, path: &Path) -> String {
-    path.strip_prefix(root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .into_owned()
 }
 
 fn stage_err(message: &str) -> gmeow_errors::Diag {
