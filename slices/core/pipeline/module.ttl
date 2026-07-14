@@ -407,6 +407,27 @@ gmeow:pipeline-dataflow-reason-compile-logic
         <https://blackcatinformatics.ca/gmeow/graph/logic> ,
         <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
 
+# stage-validate reads the validation-shape byte artifacts of stage-compile-logic's
+# product (generated/shapes/validation-shapes.ttl + procedural-constraints.ttl —
+# fresh union members, never a stale disk read). The edge is narrowed to the SAME
+# object-level graphs as the reasoner's: the program-level digest standing in for
+# those projected artifacts, which keeps the validator's graph/diagnostics
+# attachment a genuine delta (the compile-logic product carries a graph of the same
+# name); the OPT constraint sources are declared as the validator's raw input files
+# for byte-level cache soundness.
+gmeow:pipeline-dataflow-validate-compile-logic
+    a gmeow:BuildDataFlow ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow: compile-logic → validate"@x-gmeow-english ;
+    skos:definition "The typed dataflow edge from gmeow:stage-compile-logic to gmeow:stage-validate: the validator reads the compile-logic product's projected validation-shape byte artifacts (the fresh generated/shapes union members), keyed by the same object-level logic, relational-core, and correspondence named graphs the reasoner's edge names — the program-level digest those projections are functions of. The narrowing keeps the validator's graph/diagnostics attachment a genuine delta over its inputs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:buildFlowFrom gmeow:stage-compile-logic ;
+    gmeow:buildFlowTo gmeow:stage-validate ;
+    gmeow:flowEntity
+        <https://blackcatinformatics.ca/gmeow/graph/correspondence> ,
+        <https://blackcatinformatics.ca/gmeow/graph/logic> ,
+        <https://blackcatinformatics.ca/gmeow/graph/relational-core> .
+
 # =========================================================================== #
 # The canonical build DAG (gmeow:pipeline-build) — dogfooded as data.         #
 #                                                                             #
@@ -437,7 +458,9 @@ gmeow:pipeline-build
     logic:planGoal gmeow:goalShippableBundle ;
     logic:planSuccessMode logic:StrongPlanSuccess ;
     logic:executedUnderContract logic:DagWorkflowContract ;
-    logic:planFlowEdge gmeow:pipeline-dataflow-reason-compile-logic ;
+    logic:planFlowEdge
+        gmeow:pipeline-dataflow-reason-compile-logic ,
+        gmeow:pipeline-dataflow-validate-compile-logic ;
     gmeow:hasStage
         gmeow:stage-source-load ,
         gmeow:stage-statements ,
@@ -568,12 +591,17 @@ gmeow:stage-validate
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "validate"@x-gmeow-english ;
-    skos:definition "Run the Rust SHACL validator over the loaded authored validation graph and emit deterministic diagnostics projections (JSON, SARIF, HTML, and gmeow:Finding RDF) for the snapshot and generated diagnostics artifacts."@x-gmeow-english ;
+    skos:definition "Run the Rust SHACL validator over the loaded authored validation graph and emit deterministic diagnostics projections (JSON, SARIF, HTML, and gmeow:Finding RDF) for the snapshot and generated diagnostics artifacts. The enforced shape union is FRESH: its generated/shapes/*.ttl members are read off THIS run's producer products — gmeow:stage-compile-logic (validation-shapes.ttl + procedural-constraints.ttl) and the three shape export leaves (result/frame/constraint-shapes.ttl) — never off the previous run's committed files (the stale-disk-fold class); only the authored shapes/*.ttl and slices/*/*/shapes.ttl half is read from disk."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "validate" ;
-    gmeow:dataflowConsumes gmeow:stage-source-load .
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-result-shapes ,
+        gmeow:stage-source-load .
 
 gmeow:stage-conformance
     a gmeow:PipelineStage ;
@@ -589,12 +617,13 @@ gmeow:stage-docs-render
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "docs render"@x-gmeow-english ;
-    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus), gmeow:stage-validate + gmeow:stage-compile-logic so the model carries the diagnostics-to-term join digest driving the per-term 'Diagnostics you might hit' surface, and gmeow:stage-mappings so the model carries the dynamic per-term projection-loss join digest driving the per-term 'how this term degrades under projection' surface."@x-gmeow-english ;
+    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle. Consumes gmeow:stage-reason so the projected documentation graph carries the per-term native-reasoner status (gmeow:docReasoningStatus), gmeow:stage-validate + gmeow:stage-compile-logic so the model carries the diagnostics-to-term join digest driving the per-term 'Diagnostics you might hit' surface, gmeow:stage-mappings so the model carries the dynamic per-term projection-loss join digest driving the per-term 'how this term degrades under projection' surface, and gmeow:stage-export-json-schema so the model's per-term JSON-Schema/OpenAPI fragment digest reads THIS run's schema product in memory rather than lagging one regenerate behind on the committed generated/schemas/*.json (the stale-disk-fold class)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "docs_render" ;
     gmeow:dataflowConsumes gmeow:stage-compile-logic ,
+        gmeow:stage-export-json-schema ,
         gmeow:stage-gts-compose ,
         gmeow:stage-mappings ,
         gmeow:stage-reason ,
@@ -657,22 +686,32 @@ gmeow:stage-export-json-schema
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: json schema"@x-gmeow-english ;
-    skos:definition "Compile the hand-authored SHACL shape union into a closed-world JSON Schema (draft 2020-12) and an OpenAPI 3.1 document via the native emitter (crates/shacl), retiring the LinkML-derived JSON Schema. A source-reading leaf: it reads the shape files directly and consumes no upstream product, so the snapshot stage folds its fresh output into the schemas-archive blob."@x-gmeow-english ;
+    skos:definition "Compile the SHACL shape union into a closed-world JSON Schema (draft 2020-12) and an OpenAPI 3.1 document via the native emitter (crates/shacl), retiring the LinkML-derived JSON Schema. A fresh-union leaf: it reads the AUTHORED shape files (shapes/*.ttl, slices/*/*/shapes.ttl) from disk and consumes the four generated-shape producers — gmeow:stage-compile-logic (validation-shapes.ttl + procedural-constraints.ttl), gmeow:stage-export-result-shapes, gmeow:stage-export-frame-shapes, and gmeow:stage-export-constraint-shapes — so the union's generated/shapes/*.ttl members are THIS run's product bytes, never the previous run's committed files (the stale-disk-fold class). The snapshot stage folds its fresh output into the schemas-archive blob."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "json_schema" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-result-shapes ;
     gmeow:producesFormat "json-schema" .
 
 gmeow:stage-export-pydantic
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: pydantic models"@x-gmeow-english ;
-    skos:definition "Render the Pydantic v2 model package (gmeow_models/<slice>.py) — a functional documentation surface — from the same SHACL shape compilation the JSON-Schema leaf runs, joined with the documentation model for docstrings, so a model's model_json_schema() agrees with the packed JSON Schema by construction. A source-reading leaf: it reads the shape files and the documentation sources directly and consumes no upstream product; the sink folds its fresh output into the models-python blob and the package tree ships as the gmeow-ontology wheel source."@x-gmeow-english ;
+    skos:definition "Render the Pydantic v2 model package (gmeow_models/<slice>.py) — a functional documentation surface — from the same SHACL shape compilation the JSON-Schema leaf runs, joined with the documentation model for docstrings, so a model's model_json_schema() agrees with the packed JSON Schema by construction. A fresh-union leaf: it reads the AUTHORED shape files and the documentation sources from disk and consumes the same four generated-shape producers as the JSON-Schema leaf — gmeow:stage-compile-logic, gmeow:stage-export-result-shapes, gmeow:stage-export-frame-shapes, and gmeow:stage-export-constraint-shapes — so the union's generated/shapes/*.ttl members are THIS run's product bytes, never the previous run's committed files (the stale-disk-fold class). The sink folds its fresh output into the models-python blob and the package tree ships as the gmeow-ontology wheel source."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     logic:precondition gmeow:stageInputsAvailable ;
     logic:capability gmeow:stageExecutorCapability ;
     gmeow:stageImpl "pydantic" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-compile-logic ,
+        gmeow:stage-export-constraint-shapes ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-result-shapes ;
     gmeow:producesFormat "pydantic" .
 
 gmeow:stage-export-schemas

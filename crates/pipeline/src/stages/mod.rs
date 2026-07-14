@@ -84,6 +84,11 @@ pub mod schemas;
 // Shared identifier / text helpers lifted out of `schemas` so the LinkML/TS/GraphQL
 // renderer and the Pydantic package emitter share ONE copy of each rule.
 pub(crate) mod schema_ident;
+// The FRESH shape-union loader: the registry union with the produced
+// `generated/shapes/*.ttl` members sourced from THIS run's consumed products instead
+// of disk (the stale-disk-fold class fix; ONE semantics shared by json-schema,
+// pydantic, and validate).
+pub mod shape_union_fresh;
 pub mod source_load;
 pub mod statements;
 // Shared value-vocabulary enum enrichment for the SHACL→JSON-Schema/Pydantic surfaces.
@@ -139,8 +144,8 @@ pub fn register_default(registry: &mut StageRegistry) {
         "result_shape_composition",
         Arc::new(result_shape_composition::ResultShapeCompositionStage),
     );
-    registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage));
-    registry.register("pydantic", Arc::new(pydantic::PydanticStage));
+    registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage::new()));
+    registry.register("pydantic", Arc::new(pydantic::PydanticStage::new()));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));
