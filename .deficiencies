@@ -461,3 +461,74 @@ STANDING EXCEPTION (the only one carried out of stage 2):
 - term_loss = None off-repo (D3) — unchanged: correct-by-construction lower bound on
   the LossLedgerRow/LossJudgmentSound dims for a genuinely-lossy foreign slice,
   documented in axis_external. Acceptable boundary; no action.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-14 — #1342 stage-2 exit gate (supersedes the earlier #1342 block above)
+
+Stage-2 gap remediation ran a gap-analyzer + a binding completion-adversary
+(entry AND exit gate), with every acceptance criterion DEMONSTRATED-IN-PRODUCTION
+on the shipped gmeow.gts bundle, the built gmeow CLI (explain), and the exported
+playground. The three items recorded in the earlier #1342 block are now RESOLVED in
+THIS PR — that earlier block is stale and is superseded here (append-only; the prior
+text is left intact per the write-only discipline):
+
+- json-schema/pydantic cache gap FIXED (corrected root cause). The earlier note
+  ("noted for a follow-up look, not fixed here") is void. The true cause was NOT a
+  missing module.ttl input: stage-export-json-schema and stage-export-pydantic read
+  the shape union, which folds in the stage-compile-logic-DERIVED validation-shapes.ttl
+  (a pipeline product), yet ran as independent phase-1 leaves whose cache key was
+  computed from the STALE pre-pass copy — a stale-disk-fold. Fixed by giving both
+  leaves a stage-compile-logic dataflowConsumes edge (the validation-shapes.ttl
+  freshness rule the carrier/gts-sink already follow) in all three coordinated sites
+  (Rust consumes / full_spec / module.ttl). A back-to-back regenerate now writes 0
+  files (was 12); dag_dogfood proves the 3-place agreement.
+
+- Demonstrator RE-ADDED (reverses the earlier removal, per maintainer ruling). The
+  self-describing existential-chase demonstrator is restored to
+  slices/grounding/logic/module.ttl; its named-class someValuesFrom filler derives a
+  sh:targetClass node shape, so logic:ExistentialChaseDemonstrand now projects
+  consistently (validation-shapes + JSON-Schema $def + Pydantic model + bundle), and
+  its two seeded individuals mint real chase nulls.
+
+- Annotation gap RESOLVED. gmeow:InventedWitness + gmeow:existentialOrdinal now carry
+  skos:scopeNote and a diagnostics competency question (rationale + test-reach).
+
+STANDING NOTES (recorded, not softened):
+
+- Fixture-pair replaced by a derive-from-logic enforcement (weaker proxy first, then
+  corrected on maintainer ruling). A first Gap B pass added a hand-authored
+  gmeow:InventedWitnessShape (sh:maxCount 1) to back a slice-scoped conformance
+  fixture. The merged origin/main's slice-quality axisShapeMigration axis treats an
+  ungrounded hand-authored shape as migration debt and pushed the diagnostics slice
+  below its 0.333 floor (make check HARD-fail). The slice conformance harness validates
+  fixtures against the slice's own shapes.ttl while it exists, so a derived shape
+  cannot back a slice-scoped fixture here — the fixture pair was removed. Per maintainer
+  ruling the invariant was RE-GROUNDED the derive-from-logic way: gmeow:existentialOrdinal
+  is declared owl:FunctionalProperty, so the projector DERIVES existentialOrdinal-domain-
+  shape (sh:maxCount 1) and enforces "single-valued per InventedWitness" GLOBALLY over
+  every shipped witness (make validate passes; no witness carries two ordinals) with no
+  hand-authored shape. The docs-coverage fixture-pair dimension for the two terms is
+  therefore NOT earned (report-only ratchet) — the derived global shape is a stronger
+  enforcement than a two-fixture slice test.
+
+- Coverage ratchet ROSE net this stage. Re-adding the demonstrator added
+  logic:ExistentialChaseDemonstrand / ChaseWitnessLeaf / demonstratesChaseWitness,
+  which carry all HARD-gate Principle-8 annotations but not the soft rich dimensions
+  (competency-rationale / fixture-pair / prose-quality / translation / worked-instance),
+  outweighing the enriched witness terms. Sanctioned "drifts-with-slice-content" drift
+  per the ratchet docstring — recorded, NOT chased (no-calibration rule).
+
+- Large committed reasoned-closure artifacts (INHERITED from #1340, not from #1342).
+  generated/logic/inferred-closure.rdf12.ttl (~53 MB) and reasoning-explanations.rdf12.ttl
+  (~54 MB) exceed GitHub's 50 MB soft-warning (hard block 100 MB), inherent to ~7845
+  chase-invented nulls over the imported foundational existentials. The demonstrator
+  adds only 2 nulls. Flagged for a maintainer decision on artifact policy (LFS / not
+  committing reasoned closures); no action this stage.
+
+- gemini "HIGH" inline PR comment (reason.rs:282, angle-bracket double-wrap) dismissed
+  as a FALSE POSITIVE with a traced rebuttal on the PR thread (InferredAxiom subject/
+  predicate are bare, only the object is N3-wrapped; reifier_from_strings expects bare
+  inputs). No code change.
+
+origin/main integrated INTO the branch (merge, not rebase); make regenerate run once;
+full make check GREEN (exit 0) on the merged result. Ready for /stage3.
