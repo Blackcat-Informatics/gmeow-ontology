@@ -185,3 +185,46 @@ ex:radialConformalFactor a math:Function ;
     math:codomain ex:positiveReals .
 
 ex:positiveReals a math:Set .
+
+# --- A worked piecewise function — pieces, monotonicity, and a plateau bound - #
+# f(r) = { a strictly-decreasing core on [0, 1);  a near-zero plateau on [1, +∞) }.
+# The case-split is DATA: two math:FunctionPiece parts, each over a fully-formed
+# math:Interval, one carrying math:hasMonotonicity math:strictlyDecreasing and one
+# a small math:hasBound over its math:boundOnInterval. Well-formed against the
+# piecewise gate (≥ 1 math:hasPiece, exactly-one math:pieceDomain), the inherited
+# function frame (math:domain/math:codomain), and the interval endpoint gate.
+ex:radialDecayProfile a math:PiecewiseFunction ;
+    rdfs:label "A piecewise radial profile: a strictly-decreasing core and a near-zero plateau"@x-gmeow-english ;
+    math:domain ex:radialDecayDomain ;
+    math:codomain ex:positiveReals ;
+    math:hasPiece ex:coreDropPiece , ex:tailPlateauPiece .
+
+ex:coreDropPiece a math:FunctionPiece ;
+    rdfs:label "Core piece over [0, 1): strictly decreasing"@x-gmeow-english ;
+    math:pieceDomain ex:coreDomain ;
+    math:hasMonotonicity math:strictlyDecreasing ;
+    math:hasAnalyticProperty math:convexity .
+
+ex:tailPlateauPiece a math:FunctionPiece ;
+    rdfs:label "Tail piece over [1, +∞): near-zero plateau"@x-gmeow-english ;
+    math:pieceDomain ex:tailDomain ;
+    math:hasBound "0.0001"^^xsd:double ;
+    math:boundOnInterval ex:tailDomain ;
+    math:hasAnalyticProperty math:boundedness .
+
+ex:coreDomain a math:Interval ;
+    rdfs:label "The half-open core interval [0, 1)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:tailDomain a math:Interval ;
+    rdfs:label "The unbounded tail interval [1, +∞)"@x-gmeow-english ;
+    math:lowerEndpoint "1.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+ex:radialDecayDomain a math:Set ;
+    rdfs:label "The non-negative real half-line [0, +∞) the profile is defined on"@x-gmeow-english .

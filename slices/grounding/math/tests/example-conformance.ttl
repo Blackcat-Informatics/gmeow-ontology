@@ -119,6 +119,19 @@ ex:ecFunctionMissingCodomain a gmeow:ExampleConformance ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:codomain on a math:Function (sh:minCount 1 on math:FunctionFramingShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnframedFunction)." .
 
+# === Rule 7a: a piecewise function declares at least one piece ============== #
+
+ex:ecPiecewiseComplete a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/piecewise-complete.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:PiecewiseFunction declaring its math:domain/math:codomain and two math:hasPiece parts, each naming exactly one math:pieceDomain (a fully-formed math:Interval) and carrying qualitative analytic behaviour (math:hasMonotonicity math:strictlyDecreasing; math:hasBound over math:boundOnInterval), satisfies the piecewise gate, the inherited function frame, and the interval gate, validating with no findings." .
+
+ex:ecPiecewiseNoPieces a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/piecewise-no-pieces.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a math:PiecewiseFunction naming its math:domain and math:codomain but declaring no math:hasPiece (sh:minCount 1). A piecewise function is defined by its pieces; one with none is ill-formed, so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UnderspecifiedPiecewiseFunction)." .
+
 # === Rule 7b: a closed-form function names its body and its formal argument == #
 
 ex:ecClosedFormFramed a gmeow:ExampleConformance ;
@@ -466,6 +479,18 @@ ex:ecMapContinuityAssumed a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example omits math:isContinuous on a math:ContinuousMap (sh:minCount 1 on math:ContinuousMapShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding (math:UndeclaredTopologicalProperty)." .
+
+# Analysis: an analytic property is backed by a real law or an honest boundary.
+ex:ecAnalyticPropertyBacked a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/analytic-property-backed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "A math:AnalyticProperty resolving through math:definingLaw to the real first-order logic:Formula math:convexityLaw satisfies math:AnalyticPropertyBackedConstraint, so validation reports no findings; a function bears it through math:hasAnalyticProperty." .
+
+ex:ecAnalyticPropertyUnbacked a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/analytic-property-unbacked.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.SPARQLConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example is a bare math:AnalyticProperty carrying no math:definingLaw — backed by neither a real first-order logic:Formula nor an honest logic:expressivenessBoundary. The class-guarded existence math:AnalyticPropertyBackedConstraint lowers to a sh:sparql constraint, so validation MUST emit shacl.SPARQLConstraintComponent and NO other finding (math:UnbackedAnalyticProperty)." .
 
 # Topology: connectedness declared, not assumed.
 ex:ecConnectedSpaceDeclared a gmeow:ExampleConformance ;

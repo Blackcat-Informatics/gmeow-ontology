@@ -155,6 +155,20 @@ function — a derivative, [`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-
 have a referent. A relation is a subset of a Cartesian product; a function is a relation with the
 functional property declared. The external anchor is OpenMath `fns1`/`relation1`.
 
+A `math:PiecewiseFunction` is the case-split generalization of the single-form `math:ClosedFormFunction`:
+a `math:Function` given not by one expression but by a family of `math:FunctionPiece` parts, named through
+`math:hasPiece` (≥ 1 — a piecewise function with no piece says nothing about what it computes and is
+ill-formed, `math:UnderspecifiedPiecewiseFunction`). Each `math:FunctionPiece` names **exactly one**
+sub-domain through `math:pieceDomain` (a fully-formed `math:Interval`, so the half-open cell `[0, 1)` is
+distinguished from `[0, 1]`) and, where the piece has an explicit closed form, its behaviour through
+`math:pieceExpression`. A piece may instead carry **qualitative** analytic behaviour — a
+`math:hasMonotonicity` (one of the open `math:MonotonicityKind` vocabulary) or a `math:hasBound` over a
+`math:boundOnInterval` — so the classic split `f(x) = {x² for x < 0; e⁻ˣ for x ≥ 0}` is data (two pieces
+over two intervals), never prose. Because a piecewise function is still a `math:Function`, it inherits the
+domain/codomain frame gate; the piece machinery adds only the missing-piece and exactly-one-piece-domain
+obligations. The qualitative analytic properties a piece carries are backed by real first-order laws in
+[`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md).
+
 ## A worked example — an exact rational and its approximation
 
 ```ttl

@@ -1054,3 +1054,51 @@ ASK {
     }
 }""" ;
     gmeow:saRationale "Each of the statistics-layer hard-rule failures MUST be a subclass of math:MathConformanceFailure, so every violation — an estimate naming neither estimand/parameter nor estimator (math:UnderspecifiedEstimate), a p-value missing its test/null/distribution/tail frame (math:IllFramedPValue), an incomplete confidence interval (math:IncompleteConfidenceInterval), an incomplete credible interval (math:IncompleteCredibleInterval), a confidence/credible interval conflation (math:IntervalKindConflation), an unframed effect size (math:UnframedEffectSize), a diagnostic anchored to neither its fitted model nor its method (math:UnanchoredDiagnostic), a variable whose values encode absence with no declared missingness mechanism (math:ImplicitMissingness), and a node conflating the statistical and topological senses of calibration (math:CalibrationSenseConflation) — is a typed, queryable object. The first eight are the statistics CONFORMANCE rows; math:CalibrationSenseConflation is added because a calibration diagnostic is a statistical model diagnostic, so its sense-conflation is a statistics failure. The ASK is a for-all over a VALUES list (it finds NO enumerated failure that fails to subclass the parent), mirroring math:saProbabilityFailureHierarchy — a new statistics failure joins the audit by being added to the list." .
+
+# --- Task 7: piecewise ladder and analytic law-backing invariants ----------- #
+
+# --- Every MonotonicityKind and AnalyticProperty individual resolves via
+#     math:definingLaw to a logic:Formula or a boundary (never a bare type) (MUST) ---
+ex:saAnalyticLawBacking a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    FILTER NOT EXISTS {
+        ?ind a ?cls .
+        FILTER( ?cls IN (math:MonotonicityKind, math:AnalyticProperty) )
+        FILTER NOT EXISTS {
+            ?ind math:definingLaw ?law .
+            { ?law a logic:Formula } UNION { ?law logic:expressivenessBoundary ?bnd }
+        }
+    }
+}""" ;
+    gmeow:saRationale "Every math:MonotonicityKind individual (math:strictlyIncreasing, math:strictlyDecreasing, math:nonIncreasing, math:nonDecreasing, math:constant) and every math:AnalyticProperty individual (math:nonAffinity, math:convexity, math:boundedness, math:smoothness) MUST resolve through math:definingLaw to a real first-order logic:Formula (math:strictMonotonicityLaw … math:constantMapLaw, math:nonAffinityLaw, math:convexityLaw, math:boundednessLaw) or an honest recorded logic:expressivenessBoundary (math:smoothnessBoundary) — never a bare type with no backing. The ASK is a for-all over the two vocabulary classes (it finds NO such individual that lacks a resolving math:definingLaw edge), so a monotonicity or analytic kind minted without a backing law fails it; a new kind joins the audit by carrying math:definingLaw. The complement of the open math:saTopologicalLawBacking edge-audit: this cell checks PRESENCE of the backing on the vocabulary individuals, that one checks every present edge resolves." .
+
+# --- math:smoothnessBoundary is an honest second-order boundary (MUST) ---
+ex:saSmoothnessBoundarySecondOrder a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    math:smoothnessBoundary logic:expressivenessBoundary logic:SecondOrder .
+    math:smoothnessBoundary logic:preservationKind logic:Unsupported .
+}""" ;
+    gmeow:saRationale "Smoothness (C^∞ / real-analyticity) quantifies over the infinite family of all derivatives and is not first-order axiomatizable, so it MUST be carried as an honest recorded boundary exactly like math:compactnessBoundary — math:smoothnessBoundary carries logic:expressivenessBoundary logic:SecondOrder and logic:preservationKind logic:Unsupported, reusing the loss-ledger vocabulary verbatim, never faked as a first-order logic:Formula. This pins the explicit-expressiveness-boundary arm as data." .
+
+# --- The piecewise ladder is grounded in math:Function (MUST) ---
+ex:saPiecewiseGrounded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:PiecewiseFunction rdfs:subClassOf math:Function .
+    math:FunctionPiece a owl:Class .
+    math:UnderspecifiedPiecewiseFunction rdfs:subClassOf math:MathConformanceFailure .
+    math:UnbackedAnalyticProperty rdfs:subClassOf math:MathConformanceFailure .
+}""" ;
+    gmeow:saRationale "A math:PiecewiseFunction MUST be a math:Function (rdfs:subClassOf), so it inherits the domain/codomain frame gate and is never a parallel function ladder; math:FunctionPiece is an owl:Class. The two Task-7 hard-rule failures — math:UnderspecifiedPiecewiseFunction (a piecewise function with no piece) and math:UnbackedAnalyticProperty (an analytic-property claim with no defining law or boundary) — MUST each subclass math:MathConformanceFailure, so each violation is a typed, queryable object like every other math: failure." .
