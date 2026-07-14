@@ -133,8 +133,8 @@
 #     the WHOLE fanned-out dist/gmeow.jsonld, re-serializes it through the
 #     JSON-LD-star carrier, re-parses that, and canonicalizes BOTH datasets —
 #     irreducibly O(bundle size), the same whole-committed-bundle class as
-#     fanout_parity / end_to_end above. The math shape-migration grounding (#1449:
-#     the retired shapes.ttl's canonical OWL antecedents + logic: records and their
+#     fanout_parity / end_to_end above. The math shape-migration grounding (the
+#     retired shapes.ttl's canonical OWL antecedents + logic: records and their
 #     projections) grew the bundle and nudged it past budget on bundle-size alone,
 #     not fixture cost. No coverage class leaves the gate: the SAME parse/serialize
 #     round-trip machinery runs on-gate over the committed
@@ -185,7 +185,7 @@
 #     above. The lang: total-prose-lift + GMN-graft surface plus the conjecture-
 #     library logic:/math: term growth grew the bundle and nudged these
 #     siblings over the same 25 s cliff on bundle-size alone, not fixture cost;
-#     the math shape-migration grounding (#1449) then tipped the two remaining
+#     the math shape-migration grounding then tipped the two remaining
 #     describe-over-the-whole-bundle members (`describe_json_format_is_valid_card_json`
 #     at 25.2 s, `bundle_smoke::describe_names_a_known_term` at 25.5-25.9 s under
 #     contention) over the same cliff, so the whole class is carved out rather
