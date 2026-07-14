@@ -27618,31 +27618,6 @@
                 "@type": {
                   "anyOf": [
                     {
-                      "const": "math:AnalyticProperty"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:AnalyticProperty"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:AnalyticProperty"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
                       "const": "math:ApplicationExpression"
                     },
                     {
@@ -27710,31 +27685,6 @@
             },
             "then": {
               "$ref": "#/$defs/math:ArgumentSlot"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "math:ArithmeticOperation"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:ArithmeticOperation"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:ArithmeticOperation"
             }
           },
           {
@@ -27868,31 +27818,6 @@
                 "@type": {
                   "anyOf": [
                     {
-                      "const": "math:ClosedFormFunction"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:ClosedFormFunction"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:ClosedFormFunction"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
                       "const": "math:CompactSpace"
                     },
                     {
@@ -27910,31 +27835,6 @@
             },
             "then": {
               "$ref": "#/$defs/math:CompactSpace"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "math:Compactification"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:Compactification"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:Compactification"
             }
           },
           {
@@ -28035,31 +27935,6 @@
             },
             "then": {
               "$ref": "#/$defs/math:ConfidenceInterval"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "math:ConformalCompactification"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:ConformalCompactification"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:ConformalCompactification"
             }
           },
           {
@@ -28468,31 +28343,6 @@
                 "@type": {
                   "anyOf": [
                     {
-                      "const": "math:FlagshipScenario"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:FlagshipScenario"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:FlagshipScenario"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
                       "const": "math:FormalVerificationResult"
                     },
                     {
@@ -28560,31 +28410,6 @@
             },
             "then": {
               "$ref": "#/$defs/math:Function"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "math:FunctionPiece"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:FunctionPiece"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:FunctionPiece"
             }
           },
           {
@@ -28743,31 +28568,6 @@
                 "@type": {
                   "anyOf": [
                     {
-                      "const": "math:Interval"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:Interval"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:Interval"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
                       "const": "math:LieGroup"
                     },
                     {
@@ -28810,31 +28610,6 @@
             },
             "then": {
               "$ref": "#/$defs/math:Limit"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "math:LimitResult"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:LimitResult"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:LimitResult"
             }
           },
           {
@@ -28935,31 +28710,6 @@
             },
             "then": {
               "$ref": "#/$defs/math:Measure"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "math:MeasureEvaluation"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:MeasureEvaluation"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:MeasureEvaluation"
             }
           },
           {
@@ -29210,31 +28960,6 @@
             },
             "then": {
               "$ref": "#/$defs/math:PersistenceLifetime"
-            }
-          },
-          {
-            "if": {
-              "properties": {
-                "@type": {
-                  "anyOf": [
-                    {
-                      "const": "math:PiecewiseFunction"
-                    },
-                    {
-                      "contains": {
-                        "const": "math:PiecewiseFunction"
-                      },
-                      "type": "array"
-                    }
-                  ]
-                }
-              },
-              "required": [
-                "@type"
-              ]
-            },
-            "then": {
-              "$ref": "#/$defs/math:PiecewiseFunction"
             }
           },
           {
@@ -45350,9 +45075,29 @@
           },
           "math:satisfiesAxiom": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -45360,51 +45105,60 @@
           },
           "math:structureOperation": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:underlyingSet": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
+                "$ref": "#/$defs/math:Set"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           }
         },
         "required": [
-          "math:satisfiesAxiom"
+          "math:satisfiesAxiom",
+          "math:structureOperation",
+          "math:underlyingSet"
         ],
-        "type": "object"
-      },
-      "math:AnalyticProperty": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          }
-        },
         "type": "object"
       },
       "math:ApplicationExpression": {
@@ -45428,7 +45182,17 @@
               }
             ]
           },
-          "math:operator": {}
+          "math:operator": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:operator"
@@ -45458,10 +45222,19 @@
           },
           "math:approximates": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
+                "$ref": "#/$defs/math:Number"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           },
@@ -45477,6 +45250,7 @@
           }
         },
         "required": [
+          "math:approximates",
           "math:approximationError"
         ],
         "type": "object"
@@ -45502,7 +45276,17 @@
               }
             ]
           },
-          "math:slotExpression": {},
+          "math:slotExpression": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
           "math:slotIndex": {
             "anyOf": [
               {
@@ -45520,55 +45304,14 @@
                 ],
                 "type": "object"
               }
-            ]
+            ],
+            "minimum": 0.0
           }
         },
         "required": [
           "math:slotExpression",
           "math:slotIndex"
         ],
-        "type": "object"
-      },
-      "math:ArithmeticOperation": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "math:operatorCodomain": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          },
-          "math:operatorDomain": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          }
-        },
         "type": "object"
       },
       "math:AutomorphismGroup": {
@@ -45594,9 +45337,29 @@
           },
           "math:automorphismGroupOf": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -45679,15 +45442,45 @@
           },
           "math:argumentSlot": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
             ]
           },
-          "math:boundVariable": {}
+          "math:boundVariable": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:argumentSlot",
@@ -45764,57 +45557,45 @@
               }
             ]
           },
-          "math:chartDomain": {},
-          "math:coordinateMap": {},
-          "math:targetCoordinateSpace": {}
+          "math:chartDomain": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:coordinateMap": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:targetCoordinateSpace": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:chartDomain",
           "math:coordinateMap",
           "math:targetCoordinateSpace"
         ],
-        "type": "object"
-      },
-      "math:ClosedFormFunction": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "math:definingExpression": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          },
-          "math:formalArgument": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          }
-        },
         "type": "object"
       },
       "math:CompactSpace": {
@@ -45863,47 +45644,6 @@
         ],
         "type": "object"
       },
-      "math:Compactification": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "math:boundaryAtInfinity": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          },
-          "math:compactifiedSpace": {},
-          "math:compactifyingMap": {},
-          "math:originalSpace": {}
-        },
-        "required": [
-          "math:compactifiedSpace",
-          "math:compactifyingMap",
-          "math:originalSpace"
-        ],
-        "type": "object"
-      },
       "math:Complement": {
         "properties": {
           "@annotation": {
@@ -45925,19 +45665,33 @@
               }
             ]
           },
-          "math:ambientSpace": {},
-          "math:complementSemantics": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+          "math:ambientSpace": {
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
+          "math:complementSemantics": {
+            "$comment": "external class https://blackcatinformatics.ca/math/ComplementSemantics",
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
-          "math:ambientSpace"
+          "math:ambientSpace",
+          "math:complementSemantics"
         ],
         "type": "object"
       },
@@ -45964,9 +45718,29 @@
           },
           "math:independentGiven": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46001,9 +45775,29 @@
           },
           "math:conditionalOn": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46016,6 +45810,30 @@
         "type": "object"
       },
       "math:ConfidenceInterval": {
+        "allOf": [
+          {
+            "not": {
+              "properties": {
+                "@type": {
+                  "anyOf": [
+                    {
+                      "const": "math:CredibleInterval"
+                    },
+                    {
+                      "contains": {
+                        "const": "math:CredibleInterval"
+                      },
+                      "type": "array"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "@type"
+              ]
+            }
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -46038,16 +45856,46 @@
           },
           "math:confidenceLevel": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:hasIntervalBound": {
-            "items": {},
+            "items": {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
             "minItems": 2,
             "type": "array"
           }
@@ -46055,34 +45903,6 @@
         "required": [
           "math:confidenceLevel",
           "math:hasIntervalBound"
-        ],
-        "type": "object"
-      },
-      "math:ConformalCompactification": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "math:conformalFactor": {}
-        },
-        "required": [
-          "math:conformalFactor"
         ],
         "type": "object"
       },
@@ -46200,19 +46020,42 @@
             ]
           },
           "math:convergenceMode": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ConvergenceMode",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:convergesTo": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46220,6 +46063,7 @@
           }
         },
         "required": [
+          "math:convergenceMode",
           "math:convergesTo"
         ],
         "type": "object"
@@ -46247,9 +46091,29 @@
           },
           "math:credibleMass": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46257,9 +46121,29 @@
           },
           "math:hasPosterior": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46293,7 +46177,17 @@
               }
             ]
           },
-          "math:derivativeOf": {},
+          "math:derivativeOf": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
           "math:derivativeOrder": {
             "anyOf": [
               {
@@ -46311,9 +46205,20 @@
                 ],
                 "type": "object"
               }
-            ]
+            ],
+            "minimum": 1.0
           },
-          "math:withRespectToVariable": {}
+          "math:withRespectToVariable": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:derivativeOf",
@@ -46345,14 +46250,52 @@
           },
           "math:baseDimensionExponent": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/math:DimensionExponent"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/math:DimensionExponent"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "math:baseDimensionExponent"
+        ],
         "type": "object"
       },
       "math:DimensionExponent": {
@@ -46377,6 +46320,7 @@
             ]
           },
           "math:exponentDenominator": {
+            "$comment": "a sh:not constraint on property math:exponentDenominator was dropped (no lossless value-schema projection)",
             "anyOf": [
               {
                 "type": "integer"
@@ -46415,18 +46359,22 @@
             ]
           },
           "math:exponentOfDimension": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/BaseDimension",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
           "math:exponentDenominator",
-          "math:exponentNumerator"
+          "math:exponentNumerator",
+          "math:exponentOfDimension"
         ],
         "type": "object"
       },
@@ -46452,7 +46400,17 @@
             ]
           },
           "math:homogeneousOperand": {
-            "items": {},
+            "items": {
+              "properties": {
+                "@id": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "@id"
+              ],
+              "type": "object"
+            },
             "minItems": 2,
             "type": "array"
           }
@@ -46485,14 +46443,40 @@
           },
           "math:distributionFamily": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "external class https://blackcatinformatics.ca/math/DistributionFamily",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/DistributionFamily",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "math:distributionFamily"
+        ],
         "type": "object"
       },
       "math:EffectSize": {
@@ -46539,8 +46523,103 @@
                 "type": "array"
               }
             ]
+          },
+          "gmeow:hasReferenceFrame": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:effectSizeContrast": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
+          },
+          "math:effectSizeScale": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
           }
         },
+        "required": [
+          "gmeow:hasReferenceFrame",
+          "math:effectSizeContrast",
+          "math:effectSizeScale"
+        ],
         "type": "object"
       },
       "math:Embedding": {
@@ -46566,9 +46645,29 @@
           },
           "math:embeddingFunction": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46576,9 +46675,29 @@
           },
           "math:embeddingModel": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46586,9 +46705,29 @@
           },
           "math:embeddingSource": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46596,9 +46735,29 @@
           },
           "math:targetSpace": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -46686,6 +46845,82 @@
             }
           }
         ],
+        "anyOf": [
+          {
+            "properties": {
+              "@annotation": {
+                "$ref": "#/$defs/Annotation"
+              },
+              "@id": {
+                "type": "string"
+              },
+              "@type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                ]
+              },
+              "math:estimatedParameter": {
+                "anyOf": [
+                  {},
+                  {
+                    "items": {},
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "math:estimatedParameter"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "@annotation": {
+                "$ref": "#/$defs/Annotation"
+              },
+              "@id": {
+                "type": "string"
+              },
+              "@type": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                ]
+              },
+              "math:estimatesEstimand": {
+                "anyOf": [
+                  {},
+                  {
+                    "items": {},
+                    "minItems": 1,
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "math:estimatesEstimand"
+            ],
+            "type": "object"
+          }
+        ],
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -46705,8 +46940,41 @@
                 "type": "array"
               }
             ]
+          },
+          "math:estimator": {
+            "anyOf": [
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ]
           }
         },
+        "required": [
+          "math:estimator"
+        ],
         "type": "object"
       },
       "math:Filtration": {
@@ -46813,31 +47081,16 @@
             "type": "object"
           },
           "math:stageStructure": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/TopologicalSpace",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+            "$comment": "external class https://blackcatinformatics.ca/math/TopologicalSpace",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
@@ -46869,48 +47122,85 @@
           },
           "math:fittedToData": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "external class https://blackcatinformatics.ca/math/DatasetMatrix",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/DatasetMatrix",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:modelFormula": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "type": "object"
-      },
-      "math:FlagshipScenario": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/math:ModelFormula"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
               },
               {
                 "items": {
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/math:ModelFormula"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "math:fittedToData",
+          "math:modelFormula"
+        ],
         "type": "object"
       },
       "math:FormalVerificationResult": {
@@ -47054,65 +47344,45 @@
           },
           "math:codomain": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
+                "$ref": "#/$defs/math:Set"
+              },
+              {
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           },
           "math:domain": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "type": "object"
-      },
-      "math:FunctionPiece": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
+                "$ref": "#/$defs/math:Set"
               },
               {
-                "items": {
-                  "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
                 },
-                "type": "array"
-              }
-            ]
-          },
-          "math:pieceDomain": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          },
-          "math:pieceExpression": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           }
         },
+        "required": [
+          "math:codomain",
+          "math:domain"
+        ],
         "type": "object"
       },
       "math:GramMatrix": {
@@ -47137,24 +47407,34 @@
             ]
           },
           "math:inBasis": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/Basis",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:representsForm": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/SymmetricBilinearForm",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
+        "required": [
+          "math:inBasis",
+          "math:representsForm"
+        ],
         "type": "object"
       },
       "math:HomomorphicEncryptionScheme": {
@@ -47180,18 +47460,61 @@
           },
           "math:homomorphicOver": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:noiseModel": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -47199,16 +47522,41 @@
           },
           "math:securityAssumption": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "external class https://blackcatinformatics.ca/math/LatticeHardnessAssumption",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/LatticeHardnessAssumption",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
         "required": [
-          "math:noiseModel"
+          "math:homomorphicOver",
+          "math:noiseModel",
+          "math:securityAssumption"
         ],
         "type": "object"
       },
@@ -47235,9 +47583,29 @@
           },
           "math:preservationLaw": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -47245,16 +47613,40 @@
           },
           "math:preservedOperation": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/math/Operation",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
         "required": [
-          "math:preservationLaw"
+          "math:preservationLaw",
+          "math:preservedOperation"
         ],
         "type": "object"
       },
@@ -47353,9 +47745,29 @@
           },
           "logic:instantiatesPlan": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -47363,9 +47775,29 @@
           },
           "logic:instantiatesSchema": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -47373,18 +47805,61 @@
           },
           "math:ingestCorrespondence": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "$comment": "external class https://blackcatinformatics.ca/logic/Correspondence",
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:parseSource": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -47394,6 +47869,7 @@
         "required": [
           "logic:instantiatesPlan",
           "logic:instantiatesSchema",
+          "math:ingestCorrespondence",
           "math:parseSource"
         ],
         "type": "object"
@@ -47420,75 +47896,51 @@
             ]
           },
           "math:integrand": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/MeasurableFunction",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
-          "math:integrationDomain": {},
+          "math:integrationDomain": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          },
           "math:withRespectTo": {
             "anyOf": [
-              {},
               {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "required": [
-          "math:integrationDomain"
-        ],
-        "type": "object"
-      },
-      "math:Interval": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
+                "$ref": "#/$defs/math:Measure"
               },
               {
-                "items": {
-                  "type": "string"
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
                 },
-                "type": "array"
-              }
-            ]
-          },
-          "math:lowerEndpoint": {},
-          "math:lowerInclusion": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          },
-          "math:upperEndpoint": {},
-          "math:upperInclusion": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
               }
             ]
           }
         },
         "required": [
-          "math:lowerEndpoint",
-          "math:upperEndpoint"
+          "math:integrand",
+          "math:integrationDomain",
+          "math:withRespectTo"
         ],
         "type": "object"
       },
@@ -47515,14 +47967,52 @@
           },
           "math:hasRootSystem": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/math:RootSystem"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/math:RootSystem"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "math:hasRootSystem"
+        ],
         "type": "object"
       },
       "math:Limit": {
@@ -47546,56 +48036,33 @@
               }
             ]
           },
-          "math:hasLimitResult": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+          "math:limitOf": {
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
-          "math:limitOf": {},
-          "math:limitPoint": {}
+          "math:limitPoint": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:limitOf",
           "math:limitPoint"
         ],
-        "type": "object"
-      },
-      "math:LimitResult": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "math:limitOutcome": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          },
-          "math:limitResultValue": {}
-        },
         "type": "object"
       },
       "math:LogOddsValue": {
@@ -47684,20 +48151,25 @@
                 ],
                 "type": "object"
               }
-            ]
+            ],
+            "minimum": 0.0
           },
           "math:manifoldStructureKind": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ManifoldStructureKind",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
         "required": [
-          "math:manifoldDimension"
+          "math:manifoldDimension",
+          "math:manifoldStructureKind"
         ],
         "type": "object"
       },
@@ -47725,6 +48197,23 @@
           "math:isExact": {
             "anyOf": [
               {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "properties": {
+                      "@type": {
+                        "type": "string"
+                      },
+                      "@value": {}
+                    },
+                    "required": [
+                      "@value"
+                    ],
+                    "type": "object"
+                  }
+                ],
                 "const": {
                   "@type": "xsd:boolean",
                   "@value": "true"
@@ -47732,11 +48221,29 @@
               },
               {
                 "items": {
+                  "anyOf": [
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "properties": {
+                        "@type": {
+                          "type": "string"
+                        },
+                        "@value": {}
+                      },
+                      "required": [
+                        "@value"
+                      ],
+                      "type": "object"
+                    }
+                  ],
                   "const": {
                     "@type": "xsd:boolean",
                     "@value": "true"
                   }
                 },
+                "minItems": 1,
                 "type": "array"
               }
             ]
@@ -47752,6 +48259,9 @@
             ]
           }
         },
+        "required": [
+          "math:isExact"
+        ],
         "type": "object"
       },
       "math:Measure": {
@@ -47776,64 +48286,22 @@
             ]
           },
           "math:measureOn": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/MeasurableSpace",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:totalMass": {}
         },
         "required": [
+          "math:measureOn",
           "math:totalMass"
-        ],
-        "type": "object"
-      },
-      "math:MeasureEvaluation": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "math:evaluatedMeasure": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          },
-          "math:measureResult": {},
-          "math:measuredSubset": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "required": [
-          "math:measureResult"
         ],
         "type": "object"
       },
@@ -47885,9 +48353,29 @@
           },
           "math:diagnosticFor": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -47895,9 +48383,29 @@
           },
           "math:diagnosticMethod": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -47933,14 +48441,52 @@
           },
           "math:argumentSlot": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/math:ArgumentSlot"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/math:ArgumentSlot"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "math:argumentSlot"
+        ],
         "type": "object"
       },
       "math:Norm": {
@@ -47964,7 +48510,17 @@
               }
             ]
           },
-          "math:inducedByForm": {}
+          "math:inducedByForm": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:inducedByForm"
@@ -47993,15 +48549,21 @@
             ]
           },
           "math:inNumberSystem": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/NumberSystem",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
+        "required": [
+          "math:inNumberSystem"
+        ],
         "type": "object"
       },
       "math:OddsValue": {
@@ -48073,7 +48635,17 @@
               }
             ]
           },
-          "math:definedByInnerProduct": {}
+          "math:definedByInnerProduct": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:definedByInnerProduct"
@@ -48127,28 +48699,71 @@
           },
           "math:analysisInput": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:centeringPolicy": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/CenteringPolicy",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:covarianceOperator": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48156,9 +48771,29 @@
           },
           "math:eigensolver": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48166,9 +48801,29 @@
           },
           "math:explainedVarianceRatio": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48176,9 +48831,29 @@
           },
           "math:loadingVector": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48186,9 +48861,29 @@
           },
           "math:principalComponent": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48196,28 +48891,71 @@
           },
           "math:residualSubspace": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:scalingPolicy": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ScalingPolicy",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:scoreVector": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48226,12 +48964,14 @@
         },
         "required": [
           "math:analysisInput",
+          "math:centeringPolicy",
           "math:covarianceOperator",
           "math:eigensolver",
           "math:explainedVarianceRatio",
           "math:loadingVector",
           "math:principalComponent",
           "math:residualSubspace",
+          "math:scalingPolicy",
           "math:scoreVector"
         ],
         "type": "object"
@@ -48312,6 +49052,7 @@
         "type": "object"
       },
       "math:PersistenceLifetime": {
+        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -48328,112 +49069,6 @@
                 "items": {
                   "type": "string"
                 },
-                "type": "array"
-              }
-            ]
-          },
-          "math:bornAt": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "math:diesAt": {
-            "properties": {
-              "@id": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "@id"
-            ],
-            "type": "object"
-          },
-          "math:overFiltration": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/math:Filtration"
-              },
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              }
-            ]
-          },
-          "math:persistenceFeature": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/HomologyGroup",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              }
-            ]
-          }
-        },
-        "required": [
-          "math:bornAt",
-          "math:diesAt",
-          "math:overFiltration",
-          "math:persistenceFeature"
-        ],
-        "type": "object"
-      },
-      "math:PiecewiseFunction": {
-        "properties": {
-          "@annotation": {
-            "$ref": "#/$defs/Annotation"
-          },
-          "@id": {
-            "type": "string"
-          },
-          "@type": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              }
-            ]
-          },
-          "math:hasPiece": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
                 "type": "array"
               }
             ]
@@ -48511,23 +49146,10 @@
             ]
           },
           "math:totalMass": {
-            "anyOf": [
-              {
-                "const": {
-                  "@type": "xsd:integer",
-                  "@value": "1"
-                }
-              },
-              {
-                "items": {
-                  "const": {
-                    "@type": "xsd:integer",
-                    "@value": "1"
-                  }
-                },
-                "type": "array"
-              }
-            ]
+            "const": {
+              "@type": "xsd:integer",
+              "@value": "1"
+            }
           }
         },
         "type": "object"
@@ -48555,32 +49177,100 @@
           },
           "math:eventSigmaAlgebra": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:probabilityMeasure": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:sampleSpace": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "math:eventSigmaAlgebra",
+          "math:probabilityMeasure",
+          "math:sampleSpace"
+        ],
         "type": "object"
       },
       "math:ProbabilityValue": {
@@ -48678,90 +49368,24 @@
             ]
           },
           "math:hasDimension": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
-              }
-            ]
-          }
-        },
-        "type": "object"
-      },
-      "math:RandomVariable": {
-        "anyOf": [
-          {
+            "$comment": "external class https://blackcatinformatics.ca/math/Dimension",
             "properties": {
-              "@annotation": {
-                "$ref": "#/$defs/Annotation"
-              },
               "@id": {
                 "type": "string"
-              },
-              "@type": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  }
-                ]
-              },
-              "math:hasDistribution": {
-                "anyOf": [
-                  {},
-                  {
-                    "items": {},
-                    "minItems": 1,
-                    "type": "array"
-                  }
-                ]
               }
             },
             "required": [
-              "math:hasDistribution"
+              "@id"
             ],
             "type": "object"
-          },
-          {
-            "properties": {
-              "@annotation": {
-                "$ref": "#/$defs/Annotation"
-              },
-              "@id": {
-                "type": "string"
-              },
-              "@type": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "items": {
-                      "type": "string"
-                    },
-                    "type": "array"
-                  }
-                ]
-              },
-              "math:randomVariableDomain": {
-                "anyOf": [
-                  {},
-                  {
-                    "items": {},
-                    "type": "array"
-                  }
-                ]
-              }
-            },
-            "type": "object"
           }
+        },
+        "required": [
+          "math:hasDimension"
         ],
+        "type": "object"
+      },
+      "math:RandomVariable": {
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -48784,9 +49408,29 @@
           },
           "math:randomVariableCodomain": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48794,9 +49438,29 @@
           },
           "math:randomVariableDomain": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48810,7 +49474,6 @@
         "type": "object"
       },
       "math:RationalValue": {
-        "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
         "properties": {
           "@annotation": {
             "$ref": "#/$defs/Annotation"
@@ -48830,8 +49493,51 @@
                 "type": "array"
               }
             ]
+          },
+          "math:denominator": {
+            "$comment": "a sh:not constraint on property math:denominator was dropped (no lossless value-schema projection)",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "math:numerator": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "properties": {
+                  "@type": {
+                    "type": "string"
+                  },
+                  "@value": {}
+                },
+                "required": [
+                  "@value"
+                ],
+                "type": "object"
+              }
+            ]
           }
         },
+        "required": [
+          "math:denominator",
+          "math:numerator"
+        ],
         "type": "object"
       },
       "math:ResidualInterpretationClaim": {
@@ -48857,9 +49563,29 @@
           },
           "gmeow:observationResult": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48867,9 +49593,29 @@
           },
           "gmeow:observedFeature": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48877,9 +49623,29 @@
           },
           "gmeow:vantage": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48916,9 +49682,29 @@
           },
           "math:satisfiesDistributivity": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -48978,14 +49764,52 @@
           },
           "math:hasConvergence": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/math:Convergence"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/math:Convergence"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           }
         },
+        "required": [
+          "math:hasConvergence"
+        ],
         "type": "object"
       },
       "math:Series": {
@@ -49011,18 +49835,73 @@
           },
           "math:hasConvergence": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/math:Convergence"
+                  },
+                  {
+                    "properties": {
+                      "@id": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "@id"
+                    ],
+                    "type": "object"
+                  }
+                ]
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/math:Convergence"
+                    },
+                    {
+                      "properties": {
+                        "@id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "@id"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "minItems": 1,
                 "type": "array"
               }
             ]
           },
           "math:seriesTerm": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -49030,6 +49909,7 @@
           }
         },
         "required": [
+          "math:hasConvergence",
           "math:seriesTerm"
         ],
         "type": "object"
@@ -49163,31 +50043,16 @@
             ]
           },
           "math:credenceDerivationKind": {
-            "anyOf": [
-              {
-                "$comment": "external class https://blackcatinformatics.ca/math/CredenceDerivationKind",
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
-              },
-              {
-                "properties": {
-                  "@id": {
-                    "type": "string"
-                  }
-                },
-                "required": [
-                  "@id"
-                ],
-                "type": "object"
+            "$comment": "external class https://blackcatinformatics.ca/math/CredenceDerivationKind",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           },
           "math:stabilityGuarantee": {
             "anyOf": [
@@ -49288,9 +50153,29 @@
           },
           "math:computationNode": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -49325,9 +50210,29 @@
           },
           "math:roleInTheory": {
             "anyOf": [
-              {},
               {
-                "items": {},
+                "properties": {
+                  "@id": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "@id"
+                ],
+                "type": "object"
+              },
+              {
+                "items": {
+                  "properties": {
+                    "@id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "@id"
+                  ],
+                  "type": "object"
+                },
                 "minItems": 1,
                 "type": "array"
               }
@@ -49360,7 +50265,17 @@
               }
             ]
           },
-          "math:declaredVariable": {}
+          "math:declaredVariable": {
+            "properties": {
+              "@id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
+          }
         },
         "required": [
           "math:declaredVariable"
@@ -49389,15 +50304,21 @@
             ]
           },
           "math:inParameterSpace": {
-            "anyOf": [
-              {},
-              {
-                "items": {},
-                "type": "array"
+            "$comment": "external class https://blackcatinformatics.ca/math/ParameterSpace",
+            "properties": {
+              "@id": {
+                "type": "string"
               }
-            ]
+            },
+            "required": [
+              "@id"
+            ],
+            "type": "object"
           }
         },
+        "required": [
+          "math:inParameterSpace"
+        ],
         "type": "object"
       },
       "test_all_datatypes.en.v1-at0000": {

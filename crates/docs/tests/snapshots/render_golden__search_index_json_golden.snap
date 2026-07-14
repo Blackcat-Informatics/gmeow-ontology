@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/render_golden.rs
-assertion_line: 423
 expression: summary
 ---
 {
@@ -30,5 +29,5 @@ expression: summary
     ],
     "url": "terms/zerodenominator/index.html"
   },
-  "record_count": 4939
+  "record_count": 4944
 }

@@ -287,6 +287,83 @@ fn nt_to_dataset(nt: &str) -> Arc<RdfDataset> {
     flatten_to_default_graph(&dataset)
 }
 
+/// Validate a dataset against a shape corpus with the FOCUS NODES sharded across
+/// a bounded set of worker threads.
+///
+/// The whole-ontology-union tests validate an ~80k-quad graph against the entire
+/// shape corpus (hundreds of node shapes, including every `sh:sparql` constraint —
+/// each a per-focus whole-graph query), and the engine's shape/focus loops are
+/// serial, so one validation run is tens of seconds of single-core work — past
+/// the CI per-test budget on a few-core runner. The unit of independent work is
+/// the (shape, focus) pair, and one hot shape can own most of the wall time
+/// (measured: `gmeow:InternalLanguageTagShape` alone is ~14 s of a ~22 s
+/// per-shape total over this corpus), so sharding must split WITHIN a shape:
+/// every worker runs the SAME full corpus over the SAME projected dataset but
+/// keeps only its round-robin residue of the focus stream via the engine's
+/// focus filter. The partition is exact and deterministic — the engine resolves
+/// each shape's focus set identically for every worker (deduplicated, then
+/// canonically sorted; see `resolve_focus_nodes` in purrdf-shapes engine.rs), so
+/// counting filter calls reproduces the same (shape, focus) sequence in each
+/// worker and every pair is validated exactly once across the pool. Workers
+/// duplicate only target resolution (measured ~0.1 s of a ~12 s run). The merged
+/// results are re-sorted with the engine's own deterministic report key, which
+/// is TOTAL (it ends in message + severity), so the report is byte-identical to
+/// the serial engine's. No assertion surface changes: every shape still runs
+/// against the whole graph.
+pub fn validate_dataset_sharded(dataset: &RdfDataset, shapes: &Shapes) -> ValidationReport {
+    use purrdf::shapes::engine::{project_dataset, validate_projected_dataset_with_focus_filter};
+
+    let projected =
+        project_dataset(dataset).expect("SHACL projection of the merged dataset must freeze");
+    let workers = std::thread::available_parallelism()
+        .map(std::num::NonZeroUsize::get)
+        .unwrap_or(1);
+    let mut results: Vec<purrdf::shapes::report::ValidationResult> = std::thread::scope(|scope| {
+        let mut handles = Vec::with_capacity(workers);
+        for w in 0..workers {
+            let projected = Arc::clone(&projected);
+            handles.push(scope.spawn(move || {
+                let mut calls = 0usize;
+                validate_projected_dataset_with_focus_filter(projected, shapes, |_, _| {
+                    let mine = calls % workers == w;
+                    calls += 1;
+                    mine
+                })
+                .expect("native SHACL validation must succeed")
+                .results
+            }));
+        }
+        handles
+            .into_iter()
+            .flat_map(|h| h.join().expect("focus-shard validation worker joins"))
+            .collect()
+    });
+    // The engine's own TOTAL deterministic report key (`validate_with` in
+    // purrdf-shapes engine.rs): (focus, component, source shape, path, value,
+    // message, severity) — so the merged order equals the serial order exactly.
+    results.sort_by_cached_key(|r| {
+        (
+            r.focus_node.to_string(),
+            r.source_constraint_component.to_string(),
+            r.source_shape.to_string(),
+            r.result_path
+                .as_ref()
+                .map(ToString::to_string)
+                .unwrap_or_default(),
+            r.value
+                .as_ref()
+                .map(ToString::to_string)
+                .unwrap_or_default(),
+            r.message.clone().unwrap_or_default(),
+            r.severity.clone(),
+        )
+    });
+    ValidationReport {
+        conforms: results.is_empty(),
+        results,
+    }
+}
+
 /// Validate `base_ontology + fixture_nt` against `whole_shapes()`.
 ///
 /// Use this variant when the fixture triples rely on class/property declarations
@@ -296,7 +373,7 @@ pub fn validate_with_ontology(fixture_nt: &str) -> ValidationReport {
     let fixture = nt_to_dataset(fixture_nt);
     merged.extend(flat_rdf_quads_from_dataset(&fixture));
     let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
-    validate_dataset(&dataset, whole_shapes()).expect("native SHACL validation must succeed")
+    validate_dataset_sharded(&dataset, whole_shapes())
 }
 
 /// Parsed SHACL shape model for the LIVE production shape union.
@@ -324,7 +401,7 @@ pub fn validate_with_ontology_shape_union(fixture_nt: &str) -> ValidationReport 
     let fixture = nt_to_dataset(fixture_nt);
     merged.extend(flat_rdf_quads_from_dataset(&fixture));
     let dataset = flat_dataset_from_quads(&merged).expect("merged dataset must freeze");
-    validate_dataset(&dataset, production_shapes()).expect("native SHACL validation must succeed")
+    validate_dataset_sharded(&dataset, production_shapes())
 }
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
@@ -2077,3 +2154,146 @@ const OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
 const OWL_INTERSECTION_OF: &str = "http://www.w3.org/2002/07/owl#intersectionOf";
 #[cfg(test)]
 const OWL_RESTRICTION: &str = "http://www.w3.org/2002/07/owl#Restriction";
+
+// ── Sharded-vs-serial validation parity ────────────────────────────────────
+//
+// `validate_dataset_sharded` (above) restripes the engine's own focus-node
+// resolution across worker threads and re-sorts the merged results with the
+// engine's own TOTAL report key, on the claim that the merged report is
+// byte-identical to what the serial engine (`purrdf::shapes::engine::
+// validate_dataset`) produces. That claim was verified by construction, not
+// by a test, so nothing guards it against future purrdf engine sort-key or
+// focus-filter drift silently reordering or dropping findings. This fixture
+// is engineered to make such drift visible: 10 focus nodes (>= 8, so
+// round-robin actually distributes across more than one worker whenever the
+// test host has more than one core) split across two node shapes, with
+// several PASSING foci (no findings at all — partition coverage for a clean
+// residue, not just a findings-bearing one) interleaved with several FAILING
+// foci that trip a violation, a warning, or both, so a merge-order bug would
+// show up as a reordered or missing result rather than merely a wrong count.
+
+/// Two node shapes, each with more than one property shape, so several
+/// distinct (shape, focus) pairs can fire per focus node.
+#[cfg(test)]
+const SHARD_PARITY_SHAPES_TTL: &str = "\
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <https://example.org/shard-parity#> .
+
+ex:PersonShape a sh:NodeShape ;
+    sh:targetClass ex:Person ;
+    sh:property [
+        sh:path ex:name ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message \"name required\" ;
+    ] ;
+    sh:property [
+        sh:path ex:email ;
+        sh:minCount 1 ;
+        sh:severity sh:Warning ;
+        sh:message \"email recommended\" ;
+    ] .
+
+ex:OrgShape a sh:NodeShape ;
+    sh:targetClass ex:Org ;
+    sh:property [
+        sh:path ex:founder ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message \"founder required\" ;
+    ] .
+";
+
+/// 10 focus nodes (6 `ex:Person`, 4 `ex:Org`): p1/p5/o1/o3 are fully clean
+/// (no findings at all); p2/p3/p4/p6/o2/o4 interleave violation-only,
+/// warning-only, and both-severities findings across the two shapes.
+#[cfg(test)]
+const SHARD_PARITY_DATA_TTL: &str = "\
+@prefix ex: <https://example.org/shard-parity#> .
+
+ex:p1 a ex:Person ; ex:name \"Alice\" ; ex:email \"alice@example.org\" .
+ex:p2 a ex:Person ; ex:name \"Bob\" .
+ex:p3 a ex:Person ; ex:email \"carol@example.org\" .
+ex:p4 a ex:Person .
+ex:p5 a ex:Person ; ex:name \"Erin\" ; ex:email \"erin@example.org\" .
+ex:p6 a ex:Person ; ex:email \"frank@example.org\" .
+
+ex:o1 a ex:Org ; ex:founder ex:p1 .
+ex:o2 a ex:Org .
+ex:o3 a ex:Org ; ex:founder ex:p5 .
+ex:o4 a ex:Org .
+";
+
+/// A comparable projection of every field `validate_dataset_sharded`'s report
+/// key sorts on, PLUS the message (excluded from the sort key but still part
+/// of the result) — `ValidationResult` itself derives neither `PartialEq` nor
+/// `Ord`, so structural comparison goes through this tuple instead.
+#[cfg(test)]
+fn shard_parity_key(
+    r: &purrdf::shapes::report::ValidationResult,
+) -> (
+    String,
+    Option<String>,
+    Option<String>,
+    String,
+    String,
+    String,
+    Option<String>,
+) {
+    (
+        r.focus_node.to_string(),
+        r.result_path.as_ref().map(ToString::to_string),
+        r.value.as_ref().map(ToString::to_string),
+        r.source_constraint_component.to_string(),
+        r.source_shape.to_string(),
+        format!("{:?}", r.severity),
+        r.message.clone(),
+    )
+}
+
+#[test]
+fn sharded_validation_matches_serial_byte_for_byte() {
+    let shapes =
+        parse_shapes(SHARD_PARITY_SHAPES_TTL).expect("shard-parity SHACL shapes must parse");
+    let dataset = nt_to_dataset(&ttl_str_to_nt(SHARD_PARITY_DATA_TTL));
+
+    let serial =
+        validate_dataset(&dataset, &shapes).expect("serial native SHACL validation must succeed");
+    let sharded = validate_dataset_sharded(&dataset, &shapes);
+
+    // Sanity: the fixture must actually exercise interleaved findings across
+    // several focus/shape combinations, not merely conform trivially.
+    assert!(
+        serial.results.len() >= 4,
+        "fixture must produce several findings to exercise merge order; got {:?}",
+        serial.results
+    );
+    // And at least one focus node (of the 10) must have no findings at all —
+    // partition coverage for a clean residue.
+    let flagged: BTreeSet<String> = serial
+        .results
+        .iter()
+        .map(|r| r.focus_node.to_string())
+        .collect();
+    let clean_foci = ["p1", "p5", "o1", "o3"];
+    for local in clean_foci {
+        assert!(
+            !flagged.iter().any(|f| f.ends_with(local)),
+            "{local} is engineered to be clean but has a finding: {:?}",
+            serial.results
+        );
+    }
+
+    assert_eq!(
+        serial.conforms, sharded.conforms,
+        "sharded and serial reports must agree on `conforms`"
+    );
+    let serial_keys: Vec<_> = serial.results.iter().map(shard_parity_key).collect();
+    let sharded_keys: Vec<_> = sharded.results.iter().map(shard_parity_key).collect();
+    assert_eq!(
+        serial_keys, sharded_keys,
+        "sharded validation must be byte-identical (same findings, same order) to serial \
+         validation:\nserial={:#?}\nsharded={:#?}",
+        serial.results, sharded.results
+    );
+}
