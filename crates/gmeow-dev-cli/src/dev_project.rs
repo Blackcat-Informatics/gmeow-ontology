@@ -68,18 +68,22 @@ pub fn describe(term: &str, gts: Option<&Path>, lang: Option<&str>) -> i32 {
 /// `gmeow.gts` bundle: its `playground_trig` is `documentation graph ∪ reasoned closure
 /// ∪ the chase-invented-null witness subgraph`, so the shipped SPARQL playground page
 /// carries the reasoned data and can decompose an invented individual. A missing or
-/// unreadable committed bundle is a hard fail (no-optionality); the error string is
-/// surfaced through the caller's console rail.
-fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocsData, String> {
+/// unreadable committed bundle is a hard fail (no-optionality): the `Err` carries the
+/// console exit code the caller returns.
+fn playground_exec_from_bundle(root: &Path) -> Result<gmeow_docs::ExecutableDocsData, i32> {
     let gts_path = root.join(crate::dev_common::GTS_SNAPSHOT_REL);
-    let bytes = std::fs::read(&gts_path)
-        .map_err(|e| format!("cannot read committed bundle {}: {e}", gts_path.display()))?;
+    let bytes = std::fs::read(&gts_path).map_err(|e| {
+        fail(format!(
+            "cannot read committed bundle {}: {e}",
+            gts_path.display()
+        ))
+    })?;
     let graph = purrdf::gts::read_all_segments(&bytes)
-        .map_err(|e| format!("cannot read GTS segments from bundle: {e}"))?;
+        .map_err(|e| fail(format!("cannot read GTS segments from bundle: {e}")))?;
     let dataset = purrdf::gts::dataset_from_gts_graph(&graph)
-        .map_err(|e| format!("cannot fold GTS dataset from bundle: {e}"))?;
+        .map_err(|e| fail(format!("cannot fold GTS dataset from bundle: {e}")))?;
     let playground_trig = gmeow_pipeline::stages::carrier::playground_trig_from_bundle(&dataset)
-        .map_err(|e| format!("cannot build playground TriG from bundle: {e}"))?;
+        .map_err(|e| fail(format!("cannot build playground TriG from bundle: {e}")))?;
     Ok(gmeow_docs::ExecutableDocsData {
         playground_trig,
         ..Default::default()
@@ -135,7 +139,7 @@ pub fn export_docs(
     let exec = if matches!(format, ExportFormat::Site | ExportFormat::All) {
         match playground_exec_from_bundle(&root) {
             Ok(exec) => exec,
-            Err(msg) => return fail(msg),
+            Err(code) => return code,
         }
     } else {
         gmeow_docs::ExecutableDocsData::default()

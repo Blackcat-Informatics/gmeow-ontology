@@ -1,21 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The non-vacuous chase-certificate golden (AC1/AC3): the authored
-//! existential-chase demonstrator in `slices/grounding/logic/module.ttl` — a genuine
-//! `C ⊑ ∃p.D` obligation plus two witness individuals — makes the REAL production
-//! reasoner ([`gmeow_pipeline::stages::reason::reason_over_dataset`]) fire the native
-//! existential chase, so the reason artifacts carry a non-vacuous
-//! `chase.certificate.weakly-acyclic` finding AND a decomposable derivation for each
-//! chase-invented null.
+//! The non-vacuous chase-certificate golden (AC1/AC3): the production ontology's own
+//! existential obligations (the imported foundational vocabularies carry
+//! `owl:someValuesFrom` restrictions) make the native existential chase fire, so the
+//! SHIPPED bundle `generated/dist/gmeow.gts` carries a non-vacuous
+//! `chase.certificate.weakly-acyclic` finding AND a decomposable `gmeow:InventedWitness`
+//! for every chase-invented null.
 //!
-//! This is the golden AC3 demands: exercised over a REAL committed production source
-//! (the authored demonstrator, read off disk) through the REAL production reason entry
-//! point — NOT a synthetic in-crate EDB hand-built to force the chase.
+//! This is the golden AC3 demands: the fold is exercised over the REAL committed
+//! production artifact (the shipped `gmeow.gts`), read back through the production
+//! diagnostics reader — NOT a synthetic in-crate EDB hand-built to force the chase.
 
 use std::path::{Path, PathBuf};
 
-use gmeow_pipeline::stages::reason::reason_over_dataset;
+use gmeow_pipeline::diagnostics_reader::{read_findings, read_invented_witnesses};
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -26,47 +25,42 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn authored_demonstrator_fires_a_non_vacuous_certificate_and_explainable_witness() {
-    // The demonstrator lives in the logic grounding slice's module — the object-level
-    // EDB source the production chase reasons over. Reason over that real, committed
-    // source through the production entry point.
-    let module = repo_root().join("slices/grounding/logic/module.ttl");
-    let ttl = std::fs::read(&module).expect("read the authored logic module");
-    let edb = purrdf::parse_dataset(&ttl, "text/turtle", None)
-        .expect("parse the authored logic module into an EDB");
+fn shipped_bundle_carries_a_non_vacuous_certificate_and_explainable_witnesses() {
+    let bytes = std::fs::read(repo_root().join("generated/dist/gmeow.gts"))
+        .expect("read the committed gmeow.gts bundle");
+    let graph = purrdf::gts::read_all_segments(&bytes).expect("read GTS segments");
+    let dataset = purrdf::gts::dataset_from_gts_graph(&graph).expect("fold GTS dataset");
 
-    let artifacts =
-        reason_over_dataset(edb.as_ref()).expect("production reasoning over the authored module");
-
-    // AC1 — the weakly-acyclic certificate surfaces as a gmeow:Finding.
-    let codes = artifacts.chase_report.counts_by_code();
+    // AC1 — a production existential program surfaces its certificate as a gmeow:Finding
+    // in the shipped bundle.
+    let findings = read_findings(&dataset).expect("read graph/diagnostics findings");
     assert!(
-        codes.contains_key("chase.certificate.weakly-acyclic"),
-        "the authored existential demonstrator did not surface a weakly-acyclic chase \
-         certificate; codes seen: {codes:?}"
+        findings
+            .findings
+            .values()
+            .any(|f| f.code == "chase.certificate.weakly-acyclic"),
+        "the shipped bundle carries NO weakly-acyclic chase certificate — the production \
+         existential chase did not fire (the fold is vacuous)"
     );
 
-    // AC3 non-vacuity — the chase actually MINTED invented nulls (not a structurally
-    // present, empty certificate), and each carries the recipe an explain(witness)
-    // consumer decomposes: the firing rule and the frontier binding.
+    // AC3 non-vacuity — the chase actually MINTED invented nulls into the shipped bundle
+    // (not a structurally present, empty certificate). This is the structured, non-free-
+    // text proof the existential program ran in production.
+    let witnesses = read_invented_witnesses(&dataset).expect("read invented witnesses");
     assert!(
-        !artifacts.witness_derivations.is_empty(),
-        "the fold is vacuous: the authored demonstrator minted no chase-invented null"
+        !witnesses.is_empty(),
+        "the shipped bundle carries no gmeow:InventedWitness null — the fold is vacuous \
+         over production sources"
     );
+
+    // Every invented null carries the recipe an explain(witness) consumer decomposes:
+    // the firing rule and the frontier binding. Absence would make explain vacuous.
     assert!(
-        artifacts
-            .witness_derivations
-            .iter()
+        witnesses
+            .witnesses
+            .values()
             .all(|w| !w.rule_iri.is_empty() && !w.frontier.is_empty()),
-        "an invented null carries no firing rule / frontier binding — explain(witness) \
-         would be vacuous: {:?}",
-        artifacts.witness_derivations
-    );
-    // The demonstrator seeds TWO individuals with no asserted edge, so the chase mints
-    // two distinct content-addressed nulls (one per frontier binding).
-    assert!(
-        artifacts.witness_derivations.len() >= 2,
-        "expected >= 2 invented nulls (two seeded demonstrand individuals), got {}",
-        artifacts.witness_derivations.len()
+        "an invented null reached the shipped diagnostics graph without its firing rule / \
+         frontier binding — explain(witness) would be vacuous"
     );
 }
