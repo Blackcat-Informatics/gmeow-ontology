@@ -162,6 +162,7 @@ satisfaction of the law against a model.
 | A `math:Derivative` names what it differentiates, its variable, and its order | SHACL Core | `math:UnderspecifiedDerivative` |
 | A `math:Limit` names its expression and its limit point (mode optional) | SHACL Core | `math:UnderspecifiedLimit` |
 | A `math:Series`/`math:Sequence` carries a `math:Convergence` naming what it converges to and the mode | SHACL Core | `math:UnderspecifiedConvergence` |
+| A `math:LimitResult` names its `math:limitOutcome`, and its `math:limitResultValue` agrees with that outcome (a finite value for `math:convergesFinitely`; `math:PositiveInfinity`/`math:NegativeInfinity` for the divergent poles; none for `math:divergesWithoutLimit`) | SHACL Core (missing outcome); SHACL-SPARQL (`math:LimitResultOutcomeValueConstraint`, the outcome↔value agreement) | `math:UnderspecifiedLimitResult` |
 | Continuity/connectedness/separation(T0–T4) are declared, not assumed — each backed by a first-order `logic:Formula` law; compactness backed by a `logic:SecondOrder` boundary record | SHACL Core (backed by `math:continuityLaw`/`math:connectednessLaw`/the separation laws; `math:compactnessBoundary`) | `math:UndeclaredTopologicalProperty` |
 | A `math:Manifold` declares its dimension and its structure kind | SHACL Core | `math:UnderspecifiedManifold` |
 | A `math:Chart` names its domain, coordinate map, and target coordinate space | SHACL Core | `math:UnderspecifiedChart` |

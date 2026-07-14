@@ -1121,6 +1121,46 @@ gmeow:eqMathLimitWd a gmeow:TermEquivalence ;
     gmeow:comment "math:Limit is a limit binding expression; wd:Q33540 (limit of a function) is the analysis concept it most directly realizes. closeMatch — the GMEOW class also covers limits of sequences." ;
     gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
 
+gmeow:eqMathLimitResultWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:LimitResult ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q33540 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "limit of a function" ;
+    gmeow:comment "math:LimitResult is the structured evaluated result of a limit — its outcome and value — not the limit concept itself; wd:Q33540 (limit of a function) is the concept it records the outcome of, a related resource rather than its identity (math:Limit already closeMatches Q33540), so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathConvergesFinitelyWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:convergesFinitely ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q1211057 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "convergent series" ;
+    gmeow:comment "math:convergesFinitely is the outcome of a limit that exists and is finite; wd:Q1211057 (convergent series, 'infinite series that produces a finite sum') is the nearest catalogued analysis concept — a convergent series is exactly one whose partial-sum sequence converges finitely — but it is series-specific rather than the general limit outcome, so skos:relatedMatch, not identity." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDivergesToPositiveInfinityWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:divergesToPositiveInfinity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q2592421 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "divergence" ;
+    gmeow:comment "math:divergesToPositiveInfinity is the outcome of a limit running off to +∞; wd:Q2592421 (divergence, 'lack of convergence of a series or integral') is the general non-convergence property it is one signed case of, a related resource rather than its identity (Q2592421 does not distinguish the two poles), so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
+gmeow:eqMathDivergesToNegativeInfinityWd a gmeow:TermEquivalence ;
+    gmeow:alignSubject math:divergesToNegativeInfinity ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject wd:Q2592421 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:objectLabel "divergence" ;
+    gmeow:comment "math:divergesToNegativeInfinity is the outcome of a limit running off to −∞, the dual of math:divergesToPositiveInfinity; wd:Q2592421 (divergence, 'lack of convergence of a series or integral') is the general non-convergence property it is one signed case of, a related resource rather than its identity, so skos:relatedMatch." ;
+    gmeow:sssomFile "gmeow-wikidata.sssom.tsv" .
+
 gmeow:eqMathSeriesWd a gmeow:TermEquivalence ;
     gmeow:alignSubject math:Series ;
     gmeow:alignPredicate skos:exactMatch ;

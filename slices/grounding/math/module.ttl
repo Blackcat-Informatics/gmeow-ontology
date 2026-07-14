@@ -2258,6 +2258,20 @@ math:ConvergenceMode
     skos:definition "The mode in which a sequence or series converges: one of math:pointwiseConvergence, math:uniformConvergence, math:absoluteConvergence, math:conditionalConvergence, math:inMeasureConvergence, math:almostEverywhereConvergence, math:inLpNormConvergence, or math:inDistributionConvergence. The mode is what distinguishes weak from strong convergence and is required on every math:Convergence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+math:LimitResult
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Limit Result"@x-gmeow-english ;
+    skos:definition "The structured result of a math:Limit — what the limit evaluates to: its outcome through math:limitOutcome (one of math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit) and, for a finite convergent limit, its value through math:limitResultValue. It is NOT the limit expression itself (the math:Limit binding lim_{x→a} f(x), which names math:limitOf and math:limitPoint) — it is the evaluated result that limit runs to. A convergent result carries a finite value; a result diverging to a pole names that pole (math:PositiveInfinity or math:NegativeInfinity) as its value; a result diverging without a limit (an oscillating or otherwise non-existent limit) carries no value at all. A result missing its outcome is ill-formed (math:UnderspecifiedLimitResult), as is one whose value disagrees with the declared outcome."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:LimitOutcome
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Limit Outcome"@x-gmeow-english ;
+    skos:definition "The outcome a math:Limit runs to, carried by a math:LimitResult through math:limitOutcome: one of math:convergesFinitely (the limit exists and is finite), math:divergesToPositiveInfinity (x → a drives f off to +∞), math:divergesToNegativeInfinity (off to −∞), or math:divergesWithoutLimit (no limit exists — the value oscillates or otherwise fails to settle). The outcome is what distinguishes a convergent limit from divergence to either pole or an absent limit, and is required on every math:LimitResult."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 math:SpecialFunction
     a owl:Class ;
     rdfs:subClassOf math:Function ;
@@ -2336,6 +2350,32 @@ math:inDistributionConvergence
     rdfs:label "in distribution"@x-gmeow-english ;
     skos:definition "Convergence in distribution (weak convergence of measures): the distribution functions converge at every continuity point. The probabilistic mode underlying the central limit theorem; shared with the probability charter."@x-gmeow-english .
 
+# --- Limit-outcome individuals (the outcome vocabulary of a LimitResult) ----- #
+
+math:convergesFinitely
+    a owl:NamedIndividual , math:LimitOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "converges finitely"@x-gmeow-english ;
+    skos:definition "The convergent outcome: the limit exists and is a finite value, carried by the math:LimitResult through math:limitResultValue as a finite numeric literal. The case lim_{x→a} f(x) = L for a finite L."@x-gmeow-english .
+
+math:divergesToPositiveInfinity
+    a owl:NamedIndividual , math:LimitOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "diverges to +∞"@x-gmeow-english ;
+    skos:definition "The outcome of a limit that grows without bound: f runs off to the positive pole, so the math:LimitResult carries math:PositiveInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = +∞ — a definite point on the extended real line ℝ̄, never a finite literal."@x-gmeow-english .
+
+math:divergesToNegativeInfinity
+    a owl:NamedIndividual , math:LimitOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "diverges to −∞"@x-gmeow-english ;
+    skos:definition "The outcome of a limit that decreases without bound: f runs off to the negative pole, so the math:LimitResult carries math:NegativeInfinity as its math:limitResultValue. The case lim_{x→a} f(x) = −∞ — the dual of math:divergesToPositiveInfinity, a definite point on ℝ̄."@x-gmeow-english .
+
+math:divergesWithoutLimit
+    a owl:NamedIndividual , math:LimitOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "diverges without a limit"@x-gmeow-english ;
+    skos:definition "The outcome of a limit that does not exist: f neither settles to a finite value nor runs to a single pole — it oscillates (as sin(1/x) at 0) or otherwise fails to converge. The math:LimitResult carries NO math:limitResultValue, because there is no point of ℝ̄ to name; asserting a value here is ill-formed (math:UnderspecifiedLimitResult)."@x-gmeow-english .
+
 # --- Special-function individuals (DLMF/OpenMath anchored in mappings) ------- #
 
 math:gammaFunction
@@ -2402,6 +2442,14 @@ math:UnderspecifiedConvergence
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Convergence"@x-gmeow-english ;
     skos:definition "The failure raised when a math:Series or math:Sequence carries a math:Convergence that does not name what it converges to (math:convergesTo) and the mode (math:convergenceMode). 'It converges' is meaningless without the mode; a convergence without a mode is ill-formed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedLimitResult
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Limit Result"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:LimitResult does not name its math:limitOutcome, or carries a math:limitResultValue that disagrees with the declared outcome — a finite (non-pole) value is expected for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and NO value for math:divergesWithoutLimit. A structured limit result must say which of convergence or the three modes of divergence it is, and its value must agree with that outcome; anything else is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Calculus properties ---------------------------------------------------- #
@@ -2474,6 +2522,27 @@ math:convergenceMode
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "convergence mode"@x-gmeow-english ;
     skos:definition "Relates a math:Convergence to its math:ConvergenceMode — pointwise, uniform, absolute, conditional, in-measure, almost-everywhere, in-Lᵖ-norm, or in-distribution. Domain math:Convergence, range math:ConvergenceMode (stated in prose). The mode is required; convergence without a declared mode is ill-formed (math:UnderspecifiedConvergence)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:hasLimitResult
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "has limit result"@x-gmeow-english ;
+    skos:definition "Relates a math:Limit to the math:LimitResult recording what it evaluates to — its outcome and, for a finite convergent limit, its value. Domain math:Limit, range math:LimitResult (stated in prose). Optional: a math:Limit may name only its expression, point, and mode and leave the evaluated result unstated; where the result is stated, it is a math:LimitResult, never a bare literal, so the outcome is explicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:limitOutcome
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "limit outcome"@x-gmeow-english ;
+    skos:definition "Relates a math:LimitResult to its math:LimitOutcome — math:convergesFinitely, math:divergesToPositiveInfinity, math:divergesToNegativeInfinity, or math:divergesWithoutLimit. Domain math:LimitResult, range math:LimitOutcome (stated in prose). The outcome is required; a result without a declared outcome is ill-formed (math:UnderspecifiedLimitResult)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:limitResultValue
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "limit result value"@x-gmeow-english ;
+    skos:definition "The value a convergent or pole-divergent math:LimitResult evaluates to — a finite numeric literal for a math:convergesFinitely outcome, or the extended-real pole math:PositiveInfinity / math:NegativeInfinity for a math:divergesToPositiveInfinity / math:divergesToNegativeInfinity outcome. Domain math:LimitResult, range a finite numeric literal or a pole individual (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite value) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Optional and absent on a math:divergesWithoutLimit result, which has no point of ℝ̄ to name; present and in agreement with the outcome otherwise (math:UnderspecifiedLimitResult)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # =========================================================================== #
@@ -5842,7 +5911,12 @@ math:Derivative rdfs:subClassOf
 
 math:Limit rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:limitOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:limitPoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:limitPoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasLimitResult ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LimitResult ] .
+
+math:LimitResult rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:limitOutcome ; owl:maxQualifiedCardinality 1 ; owl:onClass math:LimitOutcome ] ,
+    [ a owl:Restriction ; owl:onProperty math:limitResultValue ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
 
 math:Convergence rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:convergesTo ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
@@ -7731,6 +7805,7 @@ math:LogicLoweringDeclaredConstraint
 <https://blackcatinformatics.ca/math/Limit> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/limitOf> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/Limit> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/limitPoint> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/Convergence> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/convergenceMode> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/ConvergenceMode> ] .
+<https://blackcatinformatics.ca/math/LimitResult> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/limitOutcome> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/LimitOutcome> ] .
 <https://blackcatinformatics.ca/math/ContinuousMap> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/isContinuous> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#boolean> ] .
 <https://blackcatinformatics.ca/math/CompactSpace> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/isCompact> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#boolean> ] .
 <https://blackcatinformatics.ca/math/ConnectedSpace> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/isConnected> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#boolean> ] .
@@ -7938,6 +8013,86 @@ math:erPole a logic:Formula ; logic:relation logic:termIn ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
                    [ logic:termIndex 1 ; logic:termIri math:PositiveInfinity ] ,
                    [ logic:termIndex 2 ; logic:termIri math:NegativeInfinity ] .
+
+# A math:LimitResult's math:limitResultValue must AGREE with its math:limitOutcome:
+# a math:convergesFinitely result carries a finite (literal) value; a
+# math:divergesToPositiveInfinity result's value is the pole math:PositiveInfinity and a
+# math:divergesToNegativeInfinity result's value is math:NegativeInfinity; a
+# math:divergesWithoutLimit result carries NO value at all. A conjunction of four
+# outcome-guarded implications over the result node — a raw formula, since no single
+# sugar fits the literal-vs-pole-vs-absent case analysis. Each pole branch is an
+# existential (logic:exists) requiring the value to be present and equal to the pole
+# (the singleton logic:termIn membership committed by math:erPole above), the finite
+# branch requires the value to be a literal (logic:termIsLiteral, as math:erLiteral),
+# and the no-limit branch forbids any value (logic:not over an existential, as
+# math:cdNot). The max-one math:limitResultValue cardinality makes "the value is P"
+# and "some value is P" coincide, so the existential is exact.
+math:LimitResultOutcomeValueConstraint
+    a logic:Constraint ;
+    rdfs:label "Limit-result outcome/value agreement constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "A closed-world integrity constraint: a math:LimitResult's math:limitResultValue agrees with its math:limitOutcome — a finite (literal) value for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and no value at all for math:divergesWithoutLimit."@x-gmeow-english ;
+    logic:formalizes math:LimitResult ;
+    logic:message "A math:LimitResult's math:limitResultValue must agree with its math:limitOutcome: a finite numeric literal for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and no value for math:divergesWithoutLimit; a value that disagrees with the declared outcome is ill-formed (math:UnderspecifiedLimitResult)." ;
+    logic:integrity math:lrvForall .
+math:lrvForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:lrvImpl .
+math:lrvImpl a logic:Formula ; logic:antecedent math:lrvGuard ; logic:consequent math:lrvCases .
+math:lrvGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:LimitResult ] .
+math:lrvCases a logic:Formula ; logic:and math:lrvFinite , math:lrvPosInf , math:lrvNegInf , math:lrvNoLimit .
+
+# convergesFinitely ⟹ ∃ v ( limitResultValue(this, v) ∧ v is a literal )
+math:lrvFinite a logic:Formula ; logic:antecedent math:lrvFiniteGuard ; logic:consequent math:lrvFiniteExists .
+math:lrvFiniteGuard a logic:Formula ; logic:relation math:limitOutcome ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:convergesFinitely ] .
+math:lrvFiniteExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "vf" ] ;
+    logic:exists math:lrvFiniteBody .
+math:lrvFiniteBody a logic:Formula ; logic:and math:lrvFiniteVal , math:lrvFiniteLit .
+math:lrvFiniteVal a logic:Formula ; logic:relation math:limitResultValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vf" ] .
+math:lrvFiniteLit a logic:Formula ; logic:relation logic:termIsLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vf" ] .
+
+# divergesToPositiveInfinity ⟹ ∃ v ( limitResultValue(this, v) ∧ v ∈ { math:PositiveInfinity } )
+math:lrvPosInf a logic:Formula ; logic:antecedent math:lrvPosGuard ; logic:consequent math:lrvPosExists .
+math:lrvPosGuard a logic:Formula ; logic:relation math:limitOutcome ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:divergesToPositiveInfinity ] .
+math:lrvPosExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "vp" ] ;
+    logic:exists math:lrvPosBody .
+math:lrvPosBody a logic:Formula ; logic:and math:lrvPosVal , math:lrvPosIn .
+math:lrvPosVal a logic:Formula ; logic:relation math:limitResultValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vp" ] .
+math:lrvPosIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vp" ] , [ logic:termIndex 1 ; logic:termIri math:PositiveInfinity ] .
+
+# divergesToNegativeInfinity ⟹ ∃ v ( limitResultValue(this, v) ∧ v ∈ { math:NegativeInfinity } )
+math:lrvNegInf a logic:Formula ; logic:antecedent math:lrvNegGuard ; logic:consequent math:lrvNegExists .
+math:lrvNegGuard a logic:Formula ; logic:relation math:limitOutcome ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:divergesToNegativeInfinity ] .
+math:lrvNegExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "vn" ] ;
+    logic:exists math:lrvNegBody .
+math:lrvNegBody a logic:Formula ; logic:and math:lrvNegVal , math:lrvNegIn .
+math:lrvNegVal a logic:Formula ; logic:relation math:limitResultValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vn" ] .
+math:lrvNegIn a logic:Formula ; logic:relation logic:termIn ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "vn" ] , [ logic:termIndex 1 ; logic:termIri math:NegativeInfinity ] .
+
+# divergesWithoutLimit ⟹ ¬ ∃ v limitResultValue(this, v)
+math:lrvNoLimit a logic:Formula ; logic:antecedent math:lrvNoGuard ; logic:consequent math:lrvNoNot .
+math:lrvNoGuard a logic:Formula ; logic:relation math:limitOutcome ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:divergesWithoutLimit ] .
+math:lrvNoNot a logic:Formula ; logic:not math:lrvNoExists .
+math:lrvNoExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "vk" ] ;
+    logic:exists math:lrvNoVal .
+math:lrvNoVal a logic:Formula ; logic:relation math:limitResultValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "vk" ] .
 
 # A math:RootSystem carrying the E8 fingerprint (240 roots in rank 8) must declare
 # a math:weylGroup whose math:groupOrder is 696,729,600 — the order of W(E8); a
