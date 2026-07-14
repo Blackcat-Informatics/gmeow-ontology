@@ -1807,12 +1807,15 @@ classes:
     - crossNodeGlutWith
     - findingAnchor
     - findingAntecedent
+    - findingAvoidWhen
     - findingCategory
     - findingCluster
     - findingCode
+    - findingDerivedFromQuad
     - findingGateVerdict
     - findingHasAntecedent
     - findingHelpUri
+    - findingHowToUse
     - findingLocation
     - findingMessage
     - findingRemediation
@@ -1822,6 +1825,7 @@ classes:
     - findingSuggestion
     - findingTool
     - findingTraces
+    - findingUseWhen
   FindingCluster:
     class_uri: https://blackcatinformatics.ca/gmeow/FindingCluster
     title: Finding Cluster
@@ -8349,6 +8353,12 @@ slots:
     range: Finding
     domain: Finding
     multivalued: true
+  findingAvoidWhen:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingAvoidWhen
+    title: finding avoid when
+    range: string
+    domain: Finding
+    multivalued: true
   findingCategory:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingCategory
     title: finding category
@@ -8367,6 +8377,12 @@ slots:
     range: string
     domain: Finding
     multivalued: false
+  findingDerivedFromQuad:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingDerivedFromQuad
+    title: finding derived from quad
+    range: uriorcurie
+    domain: Finding
+    multivalued: true
   findingGateVerdict:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingGateVerdict
     title: finding gate verdict
@@ -8383,6 +8399,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingHelpUri
     title: finding help URI
     range: uri
+    domain: Finding
+    multivalued: true
+  findingHowToUse:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingHowToUse
+    title: finding how to use
+    range: string
     domain: Finding
     multivalued: true
   findingLocation:
@@ -8437,6 +8459,12 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/findingTraces
     title: finding traces
     range: Finding
+    domain: Finding
+    multivalued: true
+  findingUseWhen:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingUseWhen
+    title: finding use when
+    range: string
     domain: Finding
     multivalued: true
   fingerprint:

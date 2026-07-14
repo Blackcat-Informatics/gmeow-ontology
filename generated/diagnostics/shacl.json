@@ -42,6 +42,29 @@
       "standpoint": "perspectival",
       "documented_terms": [
         "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ],
+      "guidance": [
+        {
+          "modality": "HowToUse",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Prefer the most specific frame subproperty and let gmeow:hasReferenceFrame follow; generic consumers query the spine.",
+          "standpoint": "advisory"
+        },
+        {
+          "modality": "UseWhen",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Use as the universal spine relating any entity or value to the reference frame it is expressed in (Principle 11).",
+          "standpoint": "advisory"
+        },
+        {
+          "modality": "AvoidWhen",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Avoid asserting it directly when a typed subproperty exists (gmeow:coordinateFrame, gmeow:poseFrame, gmeow:networkAddressFrame, gmeow:inReferenceAssembly) — assert the specific one and read this by inheritance.",
+          "standpoint": "advisory"
+        }
       ]
     },
     {
@@ -85,6 +108,29 @@
       "standpoint": "perspectival",
       "documented_terms": [
         "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ],
+      "guidance": [
+        {
+          "modality": "HowToUse",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Prefer the most specific frame subproperty and let gmeow:hasReferenceFrame follow; generic consumers query the spine.",
+          "standpoint": "advisory"
+        },
+        {
+          "modality": "UseWhen",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Use as the universal spine relating any entity or value to the reference frame it is expressed in (Principle 11).",
+          "standpoint": "advisory"
+        },
+        {
+          "modality": "AvoidWhen",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Avoid asserting it directly when a typed subproperty exists (gmeow:coordinateFrame, gmeow:poseFrame, gmeow:networkAddressFrame, gmeow:inReferenceAssembly) — assert the specific one and read this by inheritance.",
+          "standpoint": "advisory"
+        }
       ]
     },
     {
@@ -128,6 +174,29 @@
       "standpoint": "perspectival",
       "documented_terms": [
         "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ],
+      "guidance": [
+        {
+          "modality": "HowToUse",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Prefer the most specific frame subproperty and let gmeow:hasReferenceFrame follow; generic consumers query the spine.",
+          "standpoint": "advisory"
+        },
+        {
+          "modality": "UseWhen",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Use as the universal spine relating any entity or value to the reference frame it is expressed in (Principle 11).",
+          "standpoint": "advisory"
+        },
+        {
+          "modality": "AvoidWhen",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Avoid asserting it directly when a typed subproperty exists (gmeow:coordinateFrame, gmeow:poseFrame, gmeow:networkAddressFrame, gmeow:inReferenceAssembly) — assert the specific one and read this by inheritance.",
+          "standpoint": "advisory"
+        }
       ]
     },
     {
@@ -171,6 +240,29 @@
       "standpoint": "perspectival",
       "documented_terms": [
         "https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+      ],
+      "guidance": [
+        {
+          "modality": "HowToUse",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Prefer the most specific frame subproperty and let gmeow:hasReferenceFrame follow; generic consumers query the spine.",
+          "standpoint": "advisory"
+        },
+        {
+          "modality": "UseWhen",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Use as the universal spine relating any entity or value to the reference frame it is expressed in (Principle 11).",
+          "standpoint": "advisory"
+        },
+        {
+          "modality": "AvoidWhen",
+          "source": "DocumentedTerm",
+          "term_iri": "https://blackcatinformatics.ca/gmeow/hasReferenceFrame",
+          "text": "Avoid asserting it directly when a typed subproperty exists (gmeow:coordinateFrame, gmeow:poseFrame, gmeow:networkAddressFrame, gmeow:inReferenceAssembly) — assert the specific one and read this by inheritance.",
+          "standpoint": "advisory"
+        }
       ]
     },
     {
@@ -412,6 +504,20 @@
       "detail": "source shape: https://blackcatinformatics.ca/gmeow/ProfileOpenValueUseConstraintProceduralConstraintShape",
       "category": "data-shape-violation",
       "standpoint": "perspectival"
+    }
+  ],
+  "rules": [
+    {
+      "id": "shacl.MinCountConstraintComponent",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-",
+      "remediation": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
+      "default_severity": "warning"
+    },
+    {
+      "id": "shacl.SPARQLConstraintComponent",
+      "help_uri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-",
+      "remediation": "Repair the data so it satisfies the violated SHACL constraint shape; the finding's focus node and result path name the offending value.",
+      "default_severity": "warning"
     }
   ],
   "metadata": {

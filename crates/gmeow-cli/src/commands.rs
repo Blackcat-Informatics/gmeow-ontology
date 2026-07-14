@@ -180,17 +180,23 @@ pub fn info(reporter: &dyn Reporter, file: Option<&Path>) -> i32 {
 // ── verify / verify-release-bundle ───────────────────────────────────────────
 
 /// `gmeow verify` — the native OpenPGP signature check, the blob-DAG integrity
-/// law, the reasoned deep-semantic pass, and the source-free ontology-completeness
-/// checks, all folded into ONE unified proof-carrying report that renders
-/// identically to `gmeow validate` on `--format human|sarif|json` (every finding
-/// carrying its remediation "how to fix", per-term usage guidance, and — for the
-/// reasoned `validate.deep.*` verdicts — its explain-skeleton derivation).
+/// law, and the source-free ontology-completeness checks, all folded into ONE
+/// unified proof-carrying report that renders identically to `gmeow validate`
+/// on `--format human|sarif|json` (every finding carrying its remediation "how
+/// to fix" and per-term usage guidance). None of those legs reason, so plain
+/// `verify` is fast even over the full shipped bundle.
+///
+/// The reasoned deep-semantic pass is **`--deep`-gated**, mirroring `validate
+/// --deep`: only under `deep` does verify additionally run the Tier-2 native
+/// semantic pass and emit real `validate.deep.*` reasoned-quad verdicts (the
+/// witnesses the explain-skeleton derivation attaches to).
 pub fn verify(
     reporter: &dyn Reporter,
     file: Option<&Path>,
     trusted_key: Option<&Path>,
     allow_unsigned: bool,
     format: &str,
+    deep: bool,
 ) -> i32 {
     let output = format.to_lowercase();
     if !matches!(output.as_str(), "human" | "sarif" | "json") {
@@ -266,13 +272,15 @@ pub fn verify(
         );
     }
 
-    // 4. The reasoned deep-semantic pass over the bundle — the SAME public entry
-    // the dev bundle pass runs, so verify emits real `validate.deep.*`
-    // reasoned-quad verdicts (the witnesses the derivation attaches to). Honors
-    // the Task-5 hard-fail: a verdict that cannot be joined to its explain-skeleton
-    // derivation propagates as `Err` and is a `Severity::Error` failure here, never
-    // swallowed.
-    if let Err(e) = gmeow_validate::validate_all::bundle_deep_findings(&bytes, &mut report) {
+    // 4. The reasoned deep-semantic pass over the bundle, `--deep`-gated (TRUE
+    // parity with `validate --deep`): plain `verify` never reasons. When `deep`
+    // is set, this calls the SAME public entry the dev bundle pass runs, so
+    // verify emits real `validate.deep.*` reasoned-quad verdicts (the witnesses
+    // the derivation attaches to). Honors the Task-5 hard-fail: a verdict that
+    // cannot be joined to its explain-skeleton derivation propagates as `Err`
+    // and is a `Severity::Error` failure here, never swallowed.
+    if deep && let Err(e) = gmeow_validate::validate_all::bundle_deep_findings(&bytes, &mut report)
+    {
         return fail(
             reporter,
             "gmeow-cli.verify.deep",

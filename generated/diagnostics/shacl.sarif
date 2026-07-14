@@ -60,7 +60,16 @@
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
-            "gmeow.category": "data-shape-violation"
+            "gmeow.avoidWhen": [
+              "Avoid asserting it directly when a typed subproperty exists (gmeow:coordinateFrame, gmeow:poseFrame, gmeow:networkAddressFrame, gmeow:inReferenceAssembly) — assert the specific one and read this by inheritance."
+            ],
+            "gmeow.category": "data-shape-violation",
+            "gmeow.howToUse": [
+              "Prefer the most specific frame subproperty and let gmeow:hasReferenceFrame follow; generic consumers query the spine."
+            ],
+            "gmeow.useWhen": [
+              "Use as the universal spine relating any entity or value to the reference frame it is expressed in (Principle 11)."
+            ]
           },
           "relatedLocations": [
             {
@@ -123,7 +132,16 @@
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
-            "gmeow.category": "data-shape-violation"
+            "gmeow.avoidWhen": [
+              "Avoid asserting it directly when a typed subproperty exists (gmeow:coordinateFrame, gmeow:poseFrame, gmeow:networkAddressFrame, gmeow:inReferenceAssembly) — assert the specific one and read this by inheritance."
+            ],
+            "gmeow.category": "data-shape-violation",
+            "gmeow.howToUse": [
+              "Prefer the most specific frame subproperty and let gmeow:hasReferenceFrame follow; generic consumers query the spine."
+            ],
+            "gmeow.useWhen": [
+              "Use as the universal spine relating any entity or value to the reference frame it is expressed in (Principle 11)."
+            ]
           },
           "relatedLocations": [
             {
@@ -186,7 +204,16 @@
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
-            "gmeow.category": "data-shape-violation"
+            "gmeow.avoidWhen": [
+              "Avoid asserting it directly when a typed subproperty exists (gmeow:coordinateFrame, gmeow:poseFrame, gmeow:networkAddressFrame, gmeow:inReferenceAssembly) — assert the specific one and read this by inheritance."
+            ],
+            "gmeow.category": "data-shape-violation",
+            "gmeow.howToUse": [
+              "Prefer the most specific frame subproperty and let gmeow:hasReferenceFrame follow; generic consumers query the spine."
+            ],
+            "gmeow.useWhen": [
+              "Use as the universal spine relating any entity or value to the reference frame it is expressed in (Principle 11)."
+            ]
           },
           "relatedLocations": [
             {
@@ -249,7 +276,16 @@
           },
           "properties": {
             "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape",
-            "gmeow.category": "data-shape-violation"
+            "gmeow.avoidWhen": [
+              "Avoid asserting it directly when a typed subproperty exists (gmeow:coordinateFrame, gmeow:poseFrame, gmeow:networkAddressFrame, gmeow:inReferenceAssembly) — assert the specific one and read this by inheritance."
+            ],
+            "gmeow.category": "data-shape-violation",
+            "gmeow.howToUse": [
+              "Prefer the most specific frame subproperty and let gmeow:hasReferenceFrame follow; generic consumers query the spine."
+            ],
+            "gmeow.useWhen": [
+              "Use as the universal spine relating any entity or value to the reference frame it is expressed in (Principle 11)."
+            ]
           },
           "relatedLocations": [
             {
@@ -658,12 +694,14 @@
               "defaultConfiguration": {
                 "level": "warning"
               },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-",
               "id": "shacl.MinCountConstraintComponent"
             },
             {
               "defaultConfiguration": {
                 "level": "warning"
               },
+              "helpUri": "https://blackcatinformatics.ca/gmeow/docs/enforced-constraints#shacl-",
               "id": "shacl.SPARQLConstraintComponent"
             }
           ]

@@ -105,6 +105,10 @@ pub enum Commands {
         /// Output for the unified report: `human`, `sarif`, or `json`.
         #[arg(long = "format", short = 'f', default_value = "human")]
         format: String,
+        /// Opt-in Tier-2 native semantic pass (reasoning) over the bundle,
+        /// mirroring `validate --deep`. Plain `verify` never reasons.
+        #[arg(long = "deep")]
+        deep: bool,
     },
     /// Consumer verification of a signed release bundle.
     #[command(name = "verify-release-bundle")]
@@ -386,12 +390,14 @@ pub fn run() -> i32 {
             trusted_key,
             allow_unsigned,
             format,
+            deep,
         } => commands::verify(
             reporter,
             file.as_deref(),
             trusted_key.as_deref(),
             allow_unsigned,
             &format,
+            deep,
         ),
         Commands::VerifyReleaseBundle { bundle, public_key } => {
             commands::verify_release_bundle(reporter, &bundle, public_key.as_deref())
