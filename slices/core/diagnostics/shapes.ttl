@@ -116,3 +116,25 @@ gmeow:CrossNodeGlutWitnessShape
         sh:severity sh:Violation ;
         sh:message "A gmeow:CrossNodeGlutWitness must carry exactly two gmeow:glutWitnessOf links (one per conflicting finding)." ;
     ] .
+
+# =========================================================================== #
+# The invented-witness single-ordinal invariant: gmeow:existentialOrdinal's own
+# definition states it is "Single-valued per gmeow:InventedWitness" — one
+# firing-rule head position per Skolem witness. sh:maxCount 1 ONLY (no
+# sh:minCount): an InventedWitness whose ordinal has not yet been asserted is
+# never a violation on its own, only a SECOND, conflicting ordinal is.
+# =========================================================================== #
+
+gmeow:InventedWitnessShape
+    a sh:NodeShape ;
+    rdfs:label "Invented witness single-ordinal shape"@x-gmeow-english ;
+    skos:definition "SHACL structural integrity for gmeow:InventedWitness: gmeow:existentialOrdinal is single-valued per witness (at most one xsd:nonNegativeInteger), enforcing the term's own documented invariant — a Skolem witness discharges exactly one existential head-variable position of its firing rule, never two at once. sh:maxCount 1 only, deliberately no sh:minCount, so an ordinal not yet asserted is never itself a violation."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    sh:targetClass gmeow:InventedWitness ;
+    sh:property [
+        sh:path gmeow:existentialOrdinal ;
+        sh:datatype xsd:nonNegativeInteger ;
+        sh:maxCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "A gmeow:InventedWitness carries at most one gmeow:existentialOrdinal — it is single-valued per witness." ;
+    ] .

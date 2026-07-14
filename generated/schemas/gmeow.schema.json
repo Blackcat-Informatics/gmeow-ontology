@@ -14316,6 +14316,49 @@
       },
       "type": "object"
     },
+    "InventedWitness": {
+      "properties": {
+        "@annotation": {
+          "$ref": "#/$defs/Annotation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ]
+        },
+        "gmeow:existentialOrdinal": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
     "InvitationStatusEnum": {
       "enum": [
         "gmeow:invitationStatusAccepted",
@@ -23762,6 +23805,31 @@
           },
           "then": {
             "$ref": "#/$defs/InterpersonalRelationship"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "@type": {
+                "anyOf": [
+                  {
+                    "const": "gmeow:InventedWitness"
+                  },
+                  {
+                    "contains": {
+                      "const": "gmeow:InventedWitness"
+                    },
+                    "type": "array"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "@type"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/InventedWitness"
           }
         },
         {
