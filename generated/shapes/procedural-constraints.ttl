@@ -1439,7 +1439,7 @@
     sh:target [ a sh:SPARQLTarget ; sh:select """SELECT ?this WHERE { ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass . ?this a ?openClass . }""" ] ;
     sh:sparql [
         a sh:SPARQLConstraint ;
-        sh:severity sh:Warning ;
+        sh:severity sh:Violation ;
         sh:message "Open value individuals must be referenced by at least one profile descriptor — extensibility-by-construction guard." ;
         sh:select """SELECT $this WHERE { ?profile <https://blackcatinformatics.ca/gmeow/profileOpenValue> ?openClass . $this a ?openClass . FILTER NOT EXISTS { ?profile <https://blackcatinformatics.ca/gmeow/profileDescriptor> ?descriptor . ?subj ?descriptor $this . } }""" ;
     ] .

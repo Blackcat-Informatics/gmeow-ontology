@@ -760,6 +760,7 @@ __all__ = [
     "SignatureSchemeEnum",
     "SiteTypeEnum",
     "SkillProficiency",
+    "SliceQualityDimensionEnum",
     "SmartContract",
     "SoftwareAgent",
     "SoftwareProduct",

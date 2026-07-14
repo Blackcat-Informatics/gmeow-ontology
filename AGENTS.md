@@ -270,12 +270,24 @@ targeted SIMD, sealed traits, deterministic output, and Cargo profile changes.
 #### The 25 s per-test budget
 
 **Every test on the always-on gate must complete under 25 s of real wall time.**
-The policy is *enforced*, not advisory: `make rust-test` / `make rust-gate` (and the
-CI rust shards) run `cargo nextest run --profile ci` and then
+`make rust-test` / `make rust-gate` (and the CI rust shards) run
+`cargo nextest run --profile ci` and then
 `cargo run -p gmeow-test-budget -- target/nextest/ci/junit.xml`, which parses the
-JUnit report and **hard-fails if any test exceeds the budget**
-(`crates/test-budget`, std-only, no Python). Override the threshold with
-`GMEOW_TEST_BUDGET_SECS` only for local experiments — never to weaken the gate.
+JUnit report and reports any test over budget (`crates/test-budget`, std-only, no
+Python). Override the threshold with `GMEOW_TEST_BUDGET_SECS` only for local
+experiments — never to weaken the gate.
+
+**Enforcement is environment-aware, because wall-clock is only trustworthy on a
+dedicated runner.** In CI the gate **hard-fails (exit 1)** on any over-budget test
+— CI is the authoritative timing environment. On a developer box (many concurrent
+worktrees push load far above core count, inflating every heavy test) the gate is
+**advisory**: it still prints the offenders as a warning, but returns success, so
+contention can't emit false reds that block a local `make check`. This is not a
+weakened gate — it measures the right thing in the right place. Enforcement keys on
+the platform-guaranteed `CI` variable and is made explicit by the CI step setting
+`GMEOW_TEST_BUDGET_ENFORCE=1`; that variable (`1`/`true`/`on` vs `0`/`false`/`off`)
+overrides the autodetect in both directions for a local strict check
+(`GMEOW_TEST_BUDGET_ENFORCE=1 make rust-gate`) or a CI soft run.
 
 The nextest `slow-timeout` (`.config/nextest.toml`) stays at the 120 s terminate
 cliff purely as a runaway/hang backstop; the 25 s **policy** is the JUnit gate.

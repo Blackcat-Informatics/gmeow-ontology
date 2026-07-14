@@ -138,7 +138,7 @@ gmeow:determinacyCrisp a gmeow:Determinacy .
         "have at least one coordinate axis",
     ])
 )]
-#[case::profile_open_value_guard_warns_on_orphan(
+#[case::profile_open_value_guard_violates_on_orphan(
     Case::inline(
         "\
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -153,7 +153,8 @@ gmeow:profileReferenceFrame gmeow:profileOpenValue gmeow:FrameRealm .
 ex:customRealm a gmeow:FrameRealm .
 "
     )
-    .warnings(&["Open value individuals must be referenced by at least one profile descriptor"])
+    .fails()
+    .violations(&["Open value individuals must be referenced by at least one profile descriptor"])
 )]
 #[case::wellformed_proximity_fixture_conforms(Case::file("shapes", "proximity-wellformed"))]
 // Malformed fixtures assert against the UNION of violations + warnings (the

@@ -1009,6 +1009,10 @@ export enum CelestialReferenceOriginEnum {
 export enum CitationActEnum {
     ipaChartCitation = "ipaChartCitation",
     leipzigCitation = "leipzigCitation",
+    shruti22DivisionCitation = "shruti22DivisionCitation",
+    shruti22PlacementCitation = "shruti22PlacementCitation",
+    shruti22RatioCitation = "shruti22RatioCitation",
+    yamanRagaCitation = "yamanRagaCitation",
 }
 
 export enum CitationIntentEnum {
@@ -1228,6 +1232,10 @@ export enum CoverageDepthEnum {
 export enum CreativeWorkEnum {
     ipaChartWork = "ipaChartWork",
     leipzigWork = "leipzigWork",
+    workNatyashastra = "workNatyashastra",
+    workRagasOfNorthernIndianMusic = "workRagasOfNorthernIndianMusic",
+    workRagsOfNorthIndianMusic = "workRagsOfNorthIndianMusic",
+    workSangitaratnakara = "workSangitaratnakara",
 }
 
 export enum CreativeWorkTypeEnum {
@@ -2925,6 +2933,7 @@ export enum PitchCollectionEnum {
     pitchCollectionRastJinsC = "pitchCollectionRastJinsC",
     pitchCollectionRastJinsHighC = "pitchCollectionRastJinsHighC",
     pitchCollectionRastMaqam = "pitchCollectionRastMaqam",
+    pitchCollectionShruti22 = "pitchCollectionShruti22",
     pitchCollectionWustaJinsG = "pitchCollectionWustaJinsG",
     pitchCollectionYamanRaga = "pitchCollectionYamanRaga",
 }
@@ -2967,6 +2976,28 @@ export enum PitchCollectionMembershipEnum {
     membershipRastJinsCTonic = "membershipRastJinsCTonic",
     membershipRastThirdArabic = "membershipRastThirdArabic",
     membershipRastThirdTurkish = "membershipRastThirdTurkish",
+    membershipShruti00 = "membershipShruti00",
+    membershipShruti01 = "membershipShruti01",
+    membershipShruti02 = "membershipShruti02",
+    membershipShruti03 = "membershipShruti03",
+    membershipShruti04 = "membershipShruti04",
+    membershipShruti05 = "membershipShruti05",
+    membershipShruti06 = "membershipShruti06",
+    membershipShruti07 = "membershipShruti07",
+    membershipShruti08 = "membershipShruti08",
+    membershipShruti09 = "membershipShruti09",
+    membershipShruti10 = "membershipShruti10",
+    membershipShruti11 = "membershipShruti11",
+    membershipShruti12 = "membershipShruti12",
+    membershipShruti13 = "membershipShruti13",
+    membershipShruti14 = "membershipShruti14",
+    membershipShruti15 = "membershipShruti15",
+    membershipShruti16 = "membershipShruti16",
+    membershipShruti17 = "membershipShruti17",
+    membershipShruti18 = "membershipShruti18",
+    membershipShruti19 = "membershipShruti19",
+    membershipShruti20 = "membershipShruti20",
+    membershipShruti21 = "membershipShruti21",
     membershipWustaJinsGA = "membershipWustaJinsGA",
     membershipWustaJinsGBHalfFlat = "membershipWustaJinsGBHalfFlat",
     membershipWustaJinsGC = "membershipWustaJinsGC",
@@ -3043,6 +3074,28 @@ export enum PitchValueEnum {
     pitchValueC4Fixture = "pitchValueC4Fixture",
     pitchValueG4Fixture = "pitchValueG4Fixture",
     pitchValueJI7Over4 = "pitchValueJI7Over4",
+    pitchValueShruti00 = "pitchValueShruti00",
+    pitchValueShruti01 = "pitchValueShruti01",
+    pitchValueShruti02 = "pitchValueShruti02",
+    pitchValueShruti03 = "pitchValueShruti03",
+    pitchValueShruti04 = "pitchValueShruti04",
+    pitchValueShruti05 = "pitchValueShruti05",
+    pitchValueShruti06 = "pitchValueShruti06",
+    pitchValueShruti07 = "pitchValueShruti07",
+    pitchValueShruti08 = "pitchValueShruti08",
+    pitchValueShruti09 = "pitchValueShruti09",
+    pitchValueShruti10 = "pitchValueShruti10",
+    pitchValueShruti11 = "pitchValueShruti11",
+    pitchValueShruti12 = "pitchValueShruti12",
+    pitchValueShruti13 = "pitchValueShruti13",
+    pitchValueShruti14 = "pitchValueShruti14",
+    pitchValueShruti15 = "pitchValueShruti15",
+    pitchValueShruti16 = "pitchValueShruti16",
+    pitchValueShruti17 = "pitchValueShruti17",
+    pitchValueShruti18 = "pitchValueShruti18",
+    pitchValueShruti19 = "pitchValueShruti19",
+    pitchValueShruti20 = "pitchValueShruti20",
+    pitchValueShruti21 = "pitchValueShruti21",
 }
 
 export enum PlaceTypeEnum {
@@ -3245,22 +3298,12 @@ export enum QualityAxisEnum {
 
 export enum QualityDimensionEnum {
     qualityDimensionCompleteness = "qualityDimensionCompleteness",
-    qualityDimensionCounterExampleDepth = "qualityDimensionCounterExampleDepth",
-    qualityDimensionDocumentation = "qualityDimensionDocumentation",
-    qualityDimensionGrounding = "qualityDimensionGrounding",
-    qualityDimensionInferentialDensity = "qualityDimensionInferentialDensity",
     qualityDimensionLineage = "qualityDimensionLineage",
-    qualityDimensionLinkage = "qualityDimensionLinkage",
     qualityDimensionLogicalConsistency = "qualityDimensionLogicalConsistency",
     qualityDimensionPositionalAccuracy = "qualityDimensionPositionalAccuracy",
-    qualityDimensionProjection = "qualityDimensionProjection",
-    qualityDimensionProseQuality = "qualityDimensionProseQuality",
-    qualityDimensionProvenanceHonesty = "qualityDimensionProvenanceHonesty",
     qualityDimensionTemporalAccuracy = "qualityDimensionTemporalAccuracy",
-    qualityDimensionTesting = "qualityDimensionTesting",
     qualityDimensionThematicAccuracy = "qualityDimensionThematicAccuracy",
     qualityDimensionTopologicalConsistency = "qualityDimensionTopologicalConsistency",
-    qualityDimensionTranslationCoverage = "qualityDimensionTranslationCoverage",
 }
 
 export enum QualityTierEnum {
@@ -3685,6 +3728,19 @@ export enum SiteTypeEnum {
     siteTypeRegistered = "siteTypeRegistered",
 }
 
+export enum SliceQualityDimensionEnum {
+    qualityDimensionCounterExampleDepth = "qualityDimensionCounterExampleDepth",
+    qualityDimensionDocumentation = "qualityDimensionDocumentation",
+    qualityDimensionGrounding = "qualityDimensionGrounding",
+    qualityDimensionInferentialDensity = "qualityDimensionInferentialDensity",
+    qualityDimensionLinkage = "qualityDimensionLinkage",
+    qualityDimensionProjection = "qualityDimensionProjection",
+    qualityDimensionProseQuality = "qualityDimensionProseQuality",
+    qualityDimensionProvenanceHonesty = "qualityDimensionProvenanceHonesty",
+    qualityDimensionTesting = "qualityDimensionTesting",
+    qualityDimensionTranslationCoverage = "qualityDimensionTranslationCoverage",
+}
+
 export enum SliceTierFloorEnum {
     stf_lang = "stf-lang",
     stf_logic = "stf-logic",
@@ -3971,6 +4027,7 @@ export enum TuningSystemEnum {
     tuningSystemPelog = "tuningSystemPelog",
     tuningSystemPythagorean = "tuningSystemPythagorean",
     tuningSystemQuarterCommaMeantone = "tuningSystemQuarterCommaMeantone",
+    tuningSystemShruti22 = "tuningSystemShruti22",
     tuningSystemSlendro = "tuningSystemSlendro",
 }
 
@@ -7524,6 +7581,9 @@ export interface SkillProficiency {
     skillProficiencyLevel?: ProficiencyLevel,
     skillProficiencyOf?: Skill,
     skillProficiencyScale?: ProficiencyScale,
+}
+
+export interface SliceQualityDimension extends QualityDimension {
 }
 
 export interface SliceTierFloor {
