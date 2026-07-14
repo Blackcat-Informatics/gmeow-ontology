@@ -111,8 +111,9 @@ Idiom cheatsheet:
 
 ## Prove parity, then retire
 
-1. `make regenerate` **twice** (SHACL/cardinality edits leave
-   `gmeow.{openapi,schema}.json` stale after one pass), then `make check-generated`.
+1. `make regenerate` **once** (the JSON-Schema/OpenAPI, Pydantic, and SHACL-diagnostics
+   stages consume the generated shape surfaces as in-memory products, so a shape edit
+   reaches `gmeow.{openapi,schema}.json` in a single pass), then `make check-generated`.
 2. Confirm the slice's `tests/example-conformance.ttl` + `tests/counter-examples/*.ttl`
    still pass/fail identically against the projected union (each migrated constraint needs
    a ≥1-pass / ≥1-fail witness pair).
@@ -121,3 +122,8 @@ Idiom cheatsheet:
 4. Re-run `make check` — the `slice-quality.projection.ungrounded-shape` advisory clears for
    each block once it carries `logic:formalizes` (or is retired), and the Shape Migration axis
    score rises toward the vacuous `1.0` it reaches once the slice's `shapes.ttl` is gone.
+
+The set of slices still shipping a hand-authored `shapes.ttl` is pinned shrink-only by a repo
+test (`PINNED_HAND_AUTHORED_SHAPES_TTL` in `crates/validate/src/repo_static.rs`): retiring one
+here is always welcome, but a new hand-authored `shapes.ttl` in a slice absent from that pin
+fails the gate outright.

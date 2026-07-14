@@ -1250,8 +1250,10 @@ pub fn run_native_forward(
 ) -> gmeow_errors::Result<NativeForwardRun> {
     let facts = crate::reason::build_edb_facts(edb)?;
     let eval_rules = crate::lower::lower_eval_rules(program)?;
-    let (chase, frontier) =
-        crate::oracle::native_forward_eval_rules_with_frontier(&facts, eval_rules.clone())?;
+    // Cost profiling drives the UNBUDGETED chase (`None`): the full closure is required for
+    // the cost vector, so the governor never cuts and the status is always `Ok` (ignored).
+    let (chase, frontier, _status) =
+        crate::oracle::native_forward_eval_rules_with_frontier(&facts, eval_rules.clone(), None)?;
     let strata = crate::certify::predicate_strata(&eval_rules);
     let cost = CostVector::from_chase(&chase, &strata)?;
     Ok(NativeForwardRun {
