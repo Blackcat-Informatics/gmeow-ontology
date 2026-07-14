@@ -21,6 +21,7 @@ use gmeow_logic_compile::projections::correspondence_soundness::{Mapping, lint_d
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef};
 use regex::Regex;
 
+use crate::counting;
 use crate::graph::{self, all_lits, g, id, instances_of, one_iri, one_lit};
 use crate::score::{AxisScore, ScoreContext, ScoringEnv, advisory};
 
@@ -860,12 +861,6 @@ fn projection_axis(ctx: &ScoreContext) -> AxisScore {
 
 // ── Axis: Shape migration (authored shapes → logic: projection) ─────────────
 
-/// The SHACL shape types and the `logic:formalizes` back-reference the blanket
-/// projection-purity gate keys on.
-const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
-const SH_PROPERTYSHAPE: &str = "http://www.w3.org/ns/shacl#PropertyShape";
-const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
-
 /// Shape migration: the fraction of a slice's hand-authored `shapes.ttl`
 /// `sh:NodeShape` / `sh:PropertyShape` blocks that are GROUNDED — carry a
 /// `logic:formalizes` back-reference (the same criterion the blanket
@@ -880,6 +875,14 @@ const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes"
 /// deleted; a genuine ValidationOnly residue (exactly-N cardinality, node-level `sh:or`, a
 /// cross-node `sh:sparql`) instead carries `logic:formalizes` naming its canonical `logic:` source
 /// (`docs/SLICE_GUIDE.md` §grounding a shape).
+///
+/// This reads through the shared [`crate::counting`] enumerator at
+/// [`crate::counting::CountMode::Historical`] — the SAME primitive the projection-vocabulary
+/// ratchet gate calls at full-residue scope — so "what is a shape" and "what counts as
+/// grounded" are decided in exactly one place. `Historical` mode pins every divergence
+/// dimension to this axis's pre-existing behaviour (typed shapes only, presence-only
+/// grounding, no bridge subtraction), so the measured score here is bit-identical to
+/// before the refactor.
 fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
     let shapes_path = ctx.slice_dir.join("shapes.ttl");
     if !shapes_path.is_file() {
@@ -892,27 +895,25 @@ fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
         // A malformed shapes.ttl surfaces as a validation error on another gate, not here.
         return AxisScore::clean(1.0);
     };
-    let mut authored: Vec<String> = instances_of(&ds, SH_NODESHAPE);
-    authored.extend(instances_of(&ds, SH_PROPERTYSHAPE));
-    authored.sort();
-    authored.dedup();
-    if authored.is_empty() {
+    let constructs = counting::enumerate(
+        &ds,
+        &counting::shacl_vocab(),
+        counting::CountMode::Historical,
+    );
+    if constructs.is_empty() {
         return AxisScore::clean(1.0);
     }
-    let formalizes = id(&ds, LOGIC_FORMALIZES);
     let mut findings = Vec::new();
     let mut grounded = 0usize;
-    for shape in &authored {
-        let backed = formalizes
-            .zip(id(&ds, shape))
-            .is_some_and(|(p, s)| graph::has_any(&ds, s, p));
-        if backed {
+    for shape in &constructs {
+        if shape.grounded {
             grounded += 1;
         } else {
+            let iri = &shape.key;
             findings.push(advisory(
                 "slice-quality.projection.ungrounded-shape",
                 format!(
-                    "hand-authored validation shape <{shape}> carries no logic:formalizes: migrate \
+                    "hand-authored validation shape <{iri}> carries no logic:formalizes: migrate \
                      its obligation into module.ttl (owl:FunctionalProperty / owl:someValuesFrom — \
                      never owl:cardinality) so the projector reproduces it and the block is deleted, \
                      or back a genuine ValidationOnly residue with logic:formalizes (SLICE_GUIDE.md)."
@@ -921,7 +922,7 @@ fn shape_migration_axis(ctx: &ScoreContext) -> AxisScore {
         }
     }
     #[allow(clippy::cast_precision_loss)]
-    let score = grounded as f64 / authored.len() as f64;
+    let score = grounded as f64 / constructs.len() as f64;
     AxisScore { score, findings }
 }
 

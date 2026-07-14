@@ -1412,6 +1412,7 @@ gmeow:afc2 a gmeow:AxisFloorCommitment ;
                     slice: format!("{NS}sliceX"),
                     tier: format!("{NS}tierBogus"),
                 }],
+                ..Default::default()
             },
         };
         let err = tier_floors_from_rubric(&rubric).unwrap_err();

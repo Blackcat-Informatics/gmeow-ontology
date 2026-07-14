@@ -14,6 +14,7 @@
 //! ([`lattice`]). This crate is bound by both the dev CLI and the pipeline MCP.
 
 pub mod axes;
+pub mod counting;
 pub mod doc_maturity;
 pub mod error;
 pub mod gate;
@@ -34,8 +35,9 @@ use purrdf::RdfDataset;
 use rayon::prelude::*;
 
 pub use model::{
-    Axis, AxisFloorCommitment, AxisGrade, ContextScope, Exemption, GovernanceFloors,
-    MeasurementStandard, Rubric, SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
+    Axis, AxisFloorCommitment, AxisGrade, ContextScope, CountKind, Exemption, GovernanceFloors,
+    MeasurementStandard, ProjectionCeilingCommitment, ProjectionVocabulary, Rubric,
+    SliceAssessment, SliceTierFloorCommitment, Threshold, Tier,
 };
 pub use score::ScoringEnv;
 
