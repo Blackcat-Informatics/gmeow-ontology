@@ -302,13 +302,7 @@ stay in the normal gate, even when they were first discovered during
 is justified by an inline comment there. Adding a new off-gate exception requires
 a comment in that filter AND a one-line entry here.
 
-Default off-gate groups (reevaluated 2026-06-29; `gmeow-pipeline`
-`stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier` added 2026-07-13 —
-~15 s standalone, 25–27 s under full-parallelism contention; it round-trips the
-WHOLE fanned-out `dist/gmeow.jsonld` through the JSON-LD-star carrier with double
-canonicalization, irreducibly O(bundle size); the same round-trip machinery stays
-on-gate over the committed `generated/statements/gmeow.rdf12.ttl`, and the dist
-full-graph twin stays on `maint-heavy`; `gmeow-cli`
+Default off-gate groups (reevaluated 2026-06-29; `gmeow-cli`
 `cli::describe_json_format_is_valid_card_json` and
 `bundle_smoke::describe_names_a_known_term` joined their already-carved
 describe-over-the-whole-bundle class 2026-07-13 for the same bundle-size

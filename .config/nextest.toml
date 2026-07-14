@@ -128,19 +128,6 @@
 #     same module (up_project_lifts_consumer_vocab_to_gmeow,
 #     harvest_reasoned_types_needs_world_colocation), and both bundle-scale tests
 #     stay on-gate on `maint-heavy`.
-#   - gmeow-pipeline stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier:
-#     ~15 s standalone but 25.3-26.5 s under full-parallelism contention. It parses
-#     the WHOLE fanned-out dist/gmeow.jsonld, re-serializes it through the
-#     JSON-LD-star carrier, re-parses that, and canonicalizes BOTH datasets —
-#     irreducibly O(bundle size), the same whole-committed-bundle class as
-#     fanout_parity / end_to_end above. The math shape-migration grounding (the
-#     retired shapes.ttl's canonical OWL antecedents + logic: records and their
-#     projections) grew the bundle and nudged it past budget on bundle-size alone,
-#     not fixture cost. No coverage class leaves the gate: the SAME parse/serialize
-#     round-trip machinery runs on-gate over the committed
-#     generated/statements/gmeow.rdf12.ttl artifact (committed_rdf12_statements
-#     round-trip test in the same module), and the dist full-graph twin stays
-#     on-gate on `maint-heavy`.
 #   - gmeow-docs extract_roundtrip::rendered_tree_is_disk_faithful: 32.6 s. It
 #     drives the real `render::write_site` over the WHOLE (primed) documentation
 #     site — writing every page to disk and reading each back to prove the on-disk
@@ -375,7 +362,6 @@ default-filter = '''
     | (package(gmeow-pipeline) & test(/stages::carrier::ustar_tests::build_docs_archive_packs_the_rendered_site/))
     | (package(gmeow-pipeline) & test(/stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle/))
     | (package(gmeow-pipeline) & test(/mcp::tests::json_rpc_protocol_conformance_round_trip/))
-    | (package(gmeow-pipeline) & test(/stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier/))
     | (package(gmeow-pipeline) & test(/stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows/))
     | (package(gmeow-pipeline) & binary(product_routing) & test(compiler_products_are_first_class_dag_artifacts))
     | (package(gmeow-pipeline) & test(/stages::export::tests::export_produces_structurally_valid_artifacts/))
@@ -512,7 +498,10 @@ slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" 
 # stages::export::tests::export_produces_structurally_valid_artifacts,
 # stages::governance_floors::tests::generated_axis_floors_are_byte_reconstructible_from_the_bundle,
 # and
-# stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier (whole-bundle export/serialize),
+# stages::yaml_ld::tests::dist_jsonld_roundtrips_through_carrier (ON-gate: it parses the
+# built dist/gmeow.jsonld once and asserts the re-serialization is a byte-fixed-point —
+# ~7 s standalone after dropping the second parse + double canonicalization — but it still
+# holds the whole 290 MB artifact in memory, so it stays serialized here),
 # and stages::mappings::tests::projection_report_unions_logic_and_correspondence_rows (whole
 # projection-report union). The product-routing and projection-report sweeps are off-gated via
 # `default-filter` after both exceeded 25 s in the failing CI shard; this override serializes them on
