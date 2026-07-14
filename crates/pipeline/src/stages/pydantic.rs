@@ -1047,17 +1047,28 @@ fn ref_to_name(reference: &str, defkey_to_class: &BTreeMap<String, String>) -> S
 /// numeric/boolean scalars stay bare. A `StrEnum` member is the identifying
 /// string, so unwrap an object member to its inner `@id`/`@value` — never the
 /// serialized object (that is how a bumped `sh:in` enum used to yield a member
-/// like `"{\"@id\":\"gmeow:...\"}"`). Bare strings and scalars pass through
-/// unchanged (our value-vocabulary enums stay bare CURIEs).
-fn enum_member_value(v: &Value) -> String {
+/// like `"{\"@id\":\"gmeow:...\"}"`). Bare strings and numeric/boolean scalars
+/// pass through unchanged (our value-vocabulary enums stay bare CURIEs). An
+/// object with neither a string `@id` nor a string `@value`, or a `null`/array
+/// member, is not a shape purrdf's value-schema convention produces — it is a
+/// HARD FAIL (never silently re-serialized back into a StrEnum value).
+fn enum_member_value(v: &Value) -> Result<String, gmeow_errors::Diag> {
     match v {
-        Value::String(s) => s.clone(),
+        Value::String(s) => Ok(s.clone()),
+        Value::Number(_) | Value::Bool(_) => Ok(v.to_string()),
         Value::Object(map) => match (map.get("@id"), map.get("@value")) {
-            (Some(Value::String(id)), _) => id.clone(),
-            (_, Some(Value::String(lexical))) => lexical.clone(),
-            _ => v.to_string(),
+            (Some(Value::String(id)), _) => Ok(id.clone()),
+            (_, Some(Value::String(lexical))) => Ok(lexical.clone()),
+            _ => Err(err(format!(
+                "enum member {v} is an object with neither a string \"@id\" nor a string \
+                 \"@value\" — not a shape purrdf's value-schema convention produces; refusing to \
+                 silently serialize it into a StrEnum value"
+            ))),
         },
-        other => other.to_string(),
+        Value::Null | Value::Array(_) => Err(err(format!(
+            "enum member {v} is null or a nested array — not a valid StrEnum member; refusing to \
+             silently serialize it into a StrEnum value"
+        ))),
     }
 }
 
@@ -1077,11 +1088,13 @@ fn register_enum(
     if ctx.enums.contains_key(&name) {
         return Ok(name);
     }
-    let mut values: Vec<String> = obj
-        .get("enum")
-        .and_then(Value::as_array)
-        .map(|a| a.iter().map(enum_member_value).collect())
-        .unwrap_or_default();
+    let mut values: Vec<String> = match obj.get("enum").and_then(Value::as_array) {
+        Some(a) => a
+            .iter()
+            .map(enum_member_value)
+            .collect::<Result<Vec<_>, _>>()?,
+        None => Vec::new(),
+    };
     values.sort();
     values.dedup();
 
@@ -2511,24 +2524,39 @@ mod tests {
         assert_eq!(
             enum_member_value(
                 &json!({ "@id": "gmeow:openehr/bloodpressure/terminology/local/at0010" })
-            ),
+            )
+            .unwrap(),
             "gmeow:openehr/bloodpressure/terminology/local/at0010"
         );
         // Typed / lang literal object → its @value lexical.
         assert_eq!(
-            enum_member_value(&json!({ "@value": "mmHg", "@type": "xsd:string" })),
+            enum_member_value(&json!({ "@value": "mmHg", "@type": "xsd:string" })).unwrap(),
             "mmHg"
         );
         assert_eq!(
-            enum_member_value(&json!({ "@value": "haut", "@language": "fr" })),
+            enum_member_value(&json!({ "@value": "haut", "@language": "fr" })).unwrap(),
             "haut"
         );
         // Bare string / scalar members (our value-vocabulary enums) pass through.
         assert_eq!(
-            enum_member_value(&json!("math:twoSidedAlternative")),
+            enum_member_value(&json!("math:twoSidedAlternative")).unwrap(),
             "math:twoSidedAlternative"
         );
-        assert_eq!(enum_member_value(&json!(1)), "1");
-        assert_eq!(enum_member_value(&json!(true)), "true");
+        assert_eq!(enum_member_value(&json!(1)).unwrap(), "1");
+        assert_eq!(enum_member_value(&json!(true)).unwrap(), "true");
+    }
+
+    /// An object with neither a string `@id` nor a string `@value`, or a
+    /// `null`/array member, is not a shape purrdf's value-schema convention
+    /// produces — `enum_member_value` must hard-fail rather than silently
+    /// serialize it into a StrEnum value (that is exactly the bug the
+    /// unwrapping above fixes; a fallthrough re-introduces it for any shape
+    /// that slips through the recognized cases).
+    #[test]
+    fn enum_member_value_hard_fails_on_unrecognized_shapes() {
+        assert!(enum_member_value(&json!({ "foo": "bar" })).is_err());
+        assert!(enum_member_value(&json!({ "@id": 5 })).is_err());
+        assert!(enum_member_value(&json!(null)).is_err());
+        assert!(enum_member_value(&json!(["x"])).is_err());
     }
 }
