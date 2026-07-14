@@ -51631,7 +51631,6 @@
       "type": "object"
     },
     "math:RationalValue": {
-      "$comment": "a node-level sh:sparql constraint was dropped (no JSON Schema equivalent)",
       "properties": {
         "@annotation": {
           "$ref": "#/$defs/Annotation"
@@ -51651,8 +51650,51 @@
               "type": "array"
             }
           ]
+        },
+        "math:denominator": {
+          "$comment": "a sh:not constraint on property math:denominator was dropped (no lossless value-schema projection)",
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
+        },
+        "math:numerator": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "properties": {
+                "@type": {
+                  "type": "string"
+                },
+                "@value": {}
+              },
+              "required": [
+                "@value"
+              ],
+              "type": "object"
+            }
+          ]
         }
       },
+      "required": [
+        "math:denominator",
+        "math:numerator"
+      ],
       "type": "object"
     },
     "math:ResidualInterpretationClaim": {

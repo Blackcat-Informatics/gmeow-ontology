@@ -2288,17 +2288,6 @@
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/logic/termLiteralDatatype> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?c0 . } }""" ;
     ] .
 
-<https://blackcatinformatics.ca/logic/RationalValueNonZeroDenominatorConstraintProceduralConstraintShape>
-    a sh:NodeShape ;
-    logic:formalizes <https://blackcatinformatics.ca/math/RationalValue> ;
-    sh:targetClass <https://blackcatinformatics.ca/math/RationalValue> ;
-    sh:sparql [
-        a sh:SPARQLConstraint ;
-        sh:severity sh:Violation ;
-        sh:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." ;
-        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/denominator> '0'^^<http://www.w3.org/2001/XMLSchema#integer> . }""" ;
-    ] .
-
 <https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/logic/SatisfiedByBackedByEvaluationShape> ;
@@ -2341,6 +2330,17 @@
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . } } UNION { $this <https://blackcatinformatics.ca/logic/termVariable> ?v3 . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termIri> ?v0 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termLiteral> ?v1 . } FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/termSequenceMarker> ?v2 . } } } }""" ;
     ] .
 
+<https://blackcatinformatics.ca/math/ArgumentSlotIndexNonNegativeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/ArgumentSlot> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/ArgumentSlot> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:ArgumentSlot's math:slotIndex must be a non-negative integer (zero-based operand position); a negative index is ill-formed (math:MalformedArgumentSlot)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/slotIndex> ?v . FILTER ( ?v < '0'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
+    ] .
+
 <https://blackcatinformatics.ca/math/ArgumentSlotIndexUniquenessConstraintProceduralConstraintShape>
     a sh:NodeShape ;
     logic:formalizes <https://blackcatinformatics.ca/math/SlotIndexUniquenessShape> ;
@@ -2375,6 +2375,17 @@
         sh:severity sh:Violation ;
         sh:message "A math:ProbabilityValue that carries a logic:confidence must declare a logic:probabilityModel — the mapping from confidence to probability; a probability derived from a confidence score with no declared mapping erodes the probability/confidence boundary and is ill-formed (math:ConfidenceAsProbability)." ;
         sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/logic/confidence> ?t . FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/logic/probabilityModel> ?c0 . } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/DerivativeOrderPositiveConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/Derivative> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Derivative> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Derivative's math:derivativeOrder must be a positive integer (a zeroth derivative is the function itself, not a derivative record); an order below one is ill-formed (math:UnderspecifiedDerivative)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/derivativeOrder> ?v . FILTER ( ?v < '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/DimensionExponentDenominatorNonZeroConstraintProceduralConstraintShape>
@@ -2493,6 +2504,17 @@
         sh:severity sh:Violation ;
         sh:message "A math:lorentzianStructure manifold's math:MetricSignature does not have exactly one timelike direction (math:signaturePositive = 1 or math:signatureNegative = 1) (math:DimensionMismatch)." ;
         sh:select """SELECT $this WHERE { ?mt <https://blackcatinformatics.ca/math/metricSignature> $this . ?m <https://blackcatinformatics.ca/math/metricTensor> ?mt . ?m <https://blackcatinformatics.ca/math/manifoldStructureKind> <https://blackcatinformatics.ca/math/lorentzianStructure> . $this <https://blackcatinformatics.ca/math/signaturePositive> ?p . $this <https://blackcatinformatics.ca/math/signatureNegative> ?q . FILTER ( ( ?p != '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) && ( ?q != '1'^^<http://www.w3.org/2001/XMLSchema#integer> ) ) }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/ManifoldDimensionNonNegativeConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/Manifold> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/Manifold> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:Manifold's math:manifoldDimension must be a non-negative integer; a negative dimension names no manifold (math:UnderspecifiedManifold)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/manifoldDimension> ?v . FILTER ( ?v < '0'^^<http://www.w3.org/2001/XMLSchema#integer> ) }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/MeasureTotalMassValueConstraintProceduralConstraintShape>
@@ -2637,6 +2659,17 @@
         sh:severity sh:Violation ;
         sh:message "A math:RandomVariable must carry a probability context — a math:hasDistribution, or a math:randomVariableDomain that is itself a math:ProbabilitySpace; a variable with neither is unscoped (math:UnscopedRandomVariable)." ;
         sh:select """SELECT $this WHERE { FILTER NOT EXISTS { { $this <https://blackcatinformatics.ca/math/hasDistribution> ?d . } UNION { $this <https://blackcatinformatics.ca/math/randomVariableDomain> ?dom . ?dom a <https://blackcatinformatics.ca/math/ProbabilitySpace> . } } }""" ;
+    ] .
+
+<https://blackcatinformatics.ca/math/RationalValueDenominatorNonZeroConstraintProceduralConstraintShape>
+    a sh:NodeShape ;
+    logic:formalizes <https://blackcatinformatics.ca/math/RationalValue> ;
+    sh:targetClass <https://blackcatinformatics.ca/math/RationalValue> ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:severity sh:Violation ;
+        sh:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." ;
+        sh:select """SELECT $this WHERE { $this <https://blackcatinformatics.ca/math/denominator> '0'^^<http://www.w3.org/2001/XMLSchema#integer> . }""" ;
     ] .
 
 <https://blackcatinformatics.ca/math/RiemannianSignatureConstraintProceduralConstraintShape>

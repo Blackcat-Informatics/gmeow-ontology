@@ -5842,7 +5842,7 @@ math:DimensionalExpression rdfs:subClassOf
     gmeow:enforcesFailureClass math:MalformedDimension .
 
 math:ArgumentSlot rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:slotIndex ; owl:allValuesFrom [ a rdfs:Datatype ; owl:onDatatype xsd:integer ; owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ] ,
+    [ a owl:Restriction ; owl:onProperty math:slotIndex ; owl:allValuesFrom xsd:integer ] ,
     [ a owl:Restriction ; owl:onProperty math:slotIndex ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
     [ a owl:Restriction ; owl:onProperty math:slotExpression ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
     gmeow:enforcesFailureClass math:MalformedArgumentSlot .
@@ -5861,7 +5861,7 @@ math:VariableOccurrence rdfs:subClassOf
     gmeow:enforcesFailureClass math:UnscopedVariableOccurrence .
 
 math:Derivative rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:derivativeOrder ; owl:allValuesFrom [ a rdfs:Datatype ; owl:onDatatype xsd:integer ; owl:withRestrictions ( [ xsd:minInclusive 1 ] ) ] ] ,
+    [ a owl:Restriction ; owl:onProperty math:derivativeOrder ; owl:allValuesFrom xsd:integer ] ,
     [ a owl:Restriction ; owl:onProperty math:derivativeOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:withRespectToVariable ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:derivativeOrder ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ;
@@ -5901,7 +5901,7 @@ math:ConnectedSpace rdfs:subClassOf
 
 math:Manifold rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:manifoldStructureKind ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:manifoldDimension ; owl:allValuesFrom [ a rdfs:Datatype ; owl:onDatatype xsd:integer ; owl:withRestrictions ( [ xsd:minInclusive 0 ] ) ] ] ,
+    [ a owl:Restriction ; owl:onProperty math:manifoldDimension ; owl:allValuesFrom xsd:integer ] ,
     [ a owl:Restriction ; owl:onProperty math:manifoldDimension ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
     [ a owl:Restriction ; owl:onProperty math:manifoldStructureKind ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ManifoldStructureKind ] ;
     gmeow:enforcesFailureClass math:UnderspecifiedManifold .
@@ -7784,7 +7784,7 @@ math:LogicLoweringDeclaredConstraint
     gmeow:enforcesFailureClass math:UndeclaredLogicLowering ;
     logic:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:denotationKind and its math:logicLoweringPreservation; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)." .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/math/Number> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/inNumberSystem> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/NumberSystem> ] .
 <https://blackcatinformatics.ca/math/ApproximateValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/approximates> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Number> ] .
@@ -7911,7 +7911,10 @@ math:SetExtentDisjointConstraint
 
 # A math:DimensionExponent's math:exponentDenominator must be non-zero: a zero
 # denominator is not a rational power (a forbidden pinned-value pattern — the
-# focus must not carry math:exponentDenominator 0).
+# focus must not carry math:exponentDenominator 0). The pinned value also lowers
+# declaratively onto the projected math:DimensionExponent class shape as
+# sh:not [ sh:hasValue 0 ] on the path (shacl.NotConstraintComponent) — the
+# decidable, validation-only home of the retired OWL value-complement antecedent.
 math:DimensionExponentDenominatorNonZeroConstraint
     a logic:ForbiddenPatternConstraint ;
     logic:onClass math:DimensionExponent ;
@@ -7919,6 +7922,58 @@ math:DimensionExponentDenominatorNonZeroConstraint
     logic:forbiddenValue "0"^^xsd:integer ;
     logic:formalizes math:DimensionExponent ;
     logic:message "A math:DimensionExponent must declare a non-zero integer math:exponentDenominator; a zero denominator is not a rational power (math:MalformedDimension)." .
+
+# A math:RationalValue's math:denominator must be non-zero: p/0 is undefined
+# (math:ZeroDenominator). The exact twin of the dimension-exponent record above,
+# on the object-layer exact-rational carrier: the pinned value lowers
+# declaratively onto the projected math:RationalValue class shape as
+# sh:not [ sh:hasValue 0 ] on the path (shacl.NotConstraintComponent), and the
+# expanded constraint's sh:SPARQLConstraint selects any rational carrying
+# math:denominator 0.
+math:RationalValueDenominatorNonZeroConstraint
+    a logic:ForbiddenPatternConstraint ;
+    logic:onClass math:RationalValue ;
+    logic:forbiddenPredicate math:denominator ;
+    logic:forbiddenValue "0"^^xsd:integer ;
+    logic:formalizes math:RationalValue ;
+    logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." .
+
+# The three lower-bounded integer paths, as validation-only value-range records
+# (never OWL faceted-datatype antecedents: the native reasoner carries no datatype
+# value-space reasoning, so a facet is undecidable in the reasoning core the moment a
+# literal is asserted on the constrained path — e.g. the example producers assert
+# math:slotIndex throughout the bundle). Each lowers declaratively onto its class's
+# projected shape as sh:minInclusive (the exact component the legacy facet carried);
+# the sh:datatype / cardinality siblings stay as ordinary decidable OWL restrictions.
+
+# An argument slot's position is zero-based: a negative math:slotIndex is not a
+# position in an operand list.
+math:ArgumentSlotIndexNonNegativeConstraint
+    a logic:ValueRangeConstraint ;
+    logic:onClass math:ArgumentSlot ;
+    logic:valuePath math:slotIndex ;
+    logic:minInclusiveBound 0 ;
+    logic:formalizes math:ArgumentSlot ;
+    logic:message "A math:ArgumentSlot's math:slotIndex must be a non-negative integer (zero-based operand position); a negative index is ill-formed (math:MalformedArgumentSlot)." .
+
+# A derivative's order is at least one: a zeroth derivative is the function itself,
+# never a math:Derivative record.
+math:DerivativeOrderPositiveConstraint
+    a logic:ValueRangeConstraint ;
+    logic:onClass math:Derivative ;
+    logic:valuePath math:derivativeOrder ;
+    logic:minInclusiveBound 1 ;
+    logic:formalizes math:Derivative ;
+    logic:message "A math:Derivative's math:derivativeOrder must be a positive integer (a zeroth derivative is the function itself, not a derivative record); an order below one is ill-formed (math:UnderspecifiedDerivative)." .
+
+# A manifold's dimension is non-negative: a negative dimension names no manifold.
+math:ManifoldDimensionNonNegativeConstraint
+    a logic:ValueRangeConstraint ;
+    logic:onClass math:Manifold ;
+    logic:valuePath math:manifoldDimension ;
+    logic:minInclusiveBound 0 ;
+    logic:formalizes math:Manifold ;
+    logic:message "A math:Manifold's math:manifoldDimension must be a non-negative integer; a negative dimension names no manifold (math:UnderspecifiedManifold)." .
 
 # A math:Homomorphism's math:preservationLaw must be a resource denoting a logic:
 # formula (a blank node or IRI), not an opaque literal string (a path node-kind
@@ -8108,7 +8163,7 @@ math:gmM6 a logic:Formula ; logic:relation math:denominator ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mval" ] , [ logic:termIndex 1 ; logic:termVariable "vden" ] .
 
 # =========================================================================== #
-# Procedural constraint (#1194) authored as a raw logic:Formula integrity tree,
+# Procedural constraint authored as a raw logic:Formula integrity tree,
 # projected to a sh:SPARQLConstraint keyed (via logic:formalizes) onto the same
 # math:MetricSignature source-term the hand-authored SHACL enforced. The p + q
 # vs manifold-dimension count uses the logic:termSum arithmetic BIND.
@@ -8152,7 +8207,7 @@ math:msA7 a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "md" ] .
 
 # =========================================================================== #
-# Procedural constraints (#1194) — geometry dimension-consistency and formal-
+# Procedural constraints — geometry dimension-consistency and formal-
 # verification obligations (formerly hand-authored SHACL blocks in the slice's
 # retired legacy shapes.ttl), authored as raw logic:Formula integrity trees
 # (Principle 17). These are the canonical logic: records; their SHACL twins are
@@ -8527,7 +8582,7 @@ math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/WeightTensor> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/inParameterSpace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
 # =========================================================================== #
-# Task-4 grounding (#1449) — the canonical OWL antecedents and logic: records  #
+# Shape-grounding appendix — the canonical OWL antecedents and logic: records   #
 # that retire the last twenty legacy shapes.ttl blocks. Every axiom below is a #
 # closed-world ValidationOnly reading projected to                             #
 # generated/shapes/validation-shapes.ttl; every record projects its exact      #
@@ -8537,13 +8592,6 @@ math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
 
 # --- Probability layer ------------------------------------------------------ #
 
-# Rule P1 (retires math:ProbabilityValueRangeShape's facet): any concrete
-# gmeow:quantityValue of a math:ProbabilityValue lies in the closed unit interval
-# [0, 1] — a faceted-range antecedent (no owl:onDatatype: the bound constrains the
-# magnitude whatever numeric datatype carries it, exactly as the legacy facet did).
-math:ProbabilityValue rdfs:subClassOf [ a owl:Restriction ; owl:onProperty gmeow:quantityValue ;
-    owl:allValuesFrom [ owl:withRestrictions ( [ xsd:minInclusive 0 ] [ xsd:maxInclusive 1 ] ) ] ] .
-
 # Rule P3 (retires math:ProbabilityValueFramedShape): a probability value names its
 # reference frame OR its probability model — the either-of-these-properties existence
 # obligation, authored as the union of two bare existential restrictions and projected
@@ -8552,33 +8600,30 @@ math:ProbabilityValue rdfs:subClassOf [ owl:unionOf (
     [ a owl:Restriction ; owl:onProperty gmeow:hasReferenceFrame ; owl:someValuesFrom owl:Thing ]
     [ a owl:Restriction ; owl:onProperty logic:probabilityModel ; owl:someValuesFrom owl:Thing ] ) ] .
 
-# The typed-failure twin of Rule P1: the record carrying math:ProbabilityOutOfBounds for
-# the retired range shape (the class annotation on math:ProbabilityValue is owned by the
-# scale-conflation gate, so the finer failure identity rides this exact record).
+# Rule P1 (retires math:ProbabilityValueRangeShape): any concrete gmeow:quantityValue
+# of a math:ProbabilityValue lies in the closed unit interval [0, 1], carrying
+# math:ProbabilityOutOfBounds (the class annotation on math:ProbabilityValue is owned
+# by the scale-conflation gate, so the finer failure identity rides this exact
+# record). A validation-only value-range record, never an OWL faceted-datatype
+# antecedent: the native reasoner carries no datatype value-space reasoning, so a
+# facet on the corpus-wide gmeow:quantityValue (quality scores assert it throughout
+# the bundle) would be an undecidable axiom in the reasoning core. The record lowers
+# declaratively onto the projected class shape as sh:minInclusive 0 /
+# sh:maxInclusive 1 (the exact components the legacy facet carried) and expands to
+# the canonical range constraint ∀this,v. PV(this) ∧ quantityValue(this,v) → 0 ≤ v ≤ 1.
 math:ProbabilityValueRangeConstraint
-    a logic:Constraint ;
+    a logic:ValueRangeConstraint ;
     rdfs:label "Probability-value range constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "The canonical grounding of the retired math:ProbabilityValueRangeShape: any concrete gmeow:quantityValue a math:ProbabilityValue carries lies in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)."@x-gmeow-english ;
+    logic:onClass math:ProbabilityValue ;
+    logic:valuePath gmeow:quantityValue ;
+    logic:minInclusiveBound 0 ;
+    logic:maxInclusiveBound 1 ;
     logic:formalizes math:ProbabilityValueRangeShape ;
     gmeow:enforcesFailureClass math:ProbabilityOutOfBounds ;
-    logic:message "A math:ProbabilityValue's gmeow:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." ;
-    logic:integrity math:pvrForall .
-math:pvrForall a logic:Formula ;
-    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
-    logic:forall math:pvrImpl .
-math:pvrImpl a logic:Formula ; logic:antecedent math:pvrGuard ; logic:consequent math:pvrInUnit .
-math:pvrGuard a logic:Formula ; logic:and math:pvrType , math:pvrValue .
-math:pvrType a logic:Formula ; logic:relation rdf:type ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:ProbabilityValue ] .
-math:pvrValue a logic:Formula ; logic:relation gmeow:quantityValue ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
-math:pvrInUnit a logic:Formula ; logic:and math:pvrGe , math:pvrLe .
-math:pvrGe a logic:Formula ; logic:relation logic:termGreaterEqual ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] .
-math:pvrLe a logic:Formula ; logic:relation logic:termLessEqual ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "1" ; logic:termLiteralDatatype xsd:integer ] .
+    logic:message "A math:ProbabilityValue's gmeow:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." .
 
 # The typed-failure twin of Rule P3: at-least-one of the frame/model alternatives,
 # carrying math:UnframedProbabilityValue for the retired framing shape.
@@ -8870,23 +8915,24 @@ math:mtmInfinite a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri math:PositiveInfinity ] .
 
 # A dimension-exponent cell (retires math:DimensionExponentShape's residue): the base
-# dimension is UNIVERSALLY a math:BaseDimension (never a derived one — sh:class), and
-# the denominator is never the integer zero (sh:not [ sh:hasValue 0 ]).
+# dimension is UNIVERSALLY a math:BaseDimension (never a derived one — sh:class). The
+# non-zero-denominator residue (sh:not [ sh:hasValue 0 ]) is NOT an OWL axiom — a value
+# complement is outside the native reasoner's decidable fragment — it is the canonical
+# math:DimensionExponentDenominatorNonZeroConstraint record, which the shape derive
+# lowers onto this class's projected shape.
 math:DimensionExponent rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:exponentOfDimension ;
     owl:allValuesFrom math:BaseDimension ] .
-math:DimensionExponent rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:exponentDenominator ;
-    owl:allValuesFrom [ owl:complementOf [ owl:hasValue "0"^^xsd:integer ] ] ] .
 [ a logic:ClosureEntry ; logic:onClass math:DimensionExponent ; logic:closureKey "https://blackcatinformatics.ca/math/exponentOfDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # An exact rational carrier has a non-zero denominator (retires
-# math:RationalValueShape's residue): p/0 is undefined.
-math:RationalValue rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:denominator ;
-    owl:allValuesFrom [ owl:complementOf [ owl:hasValue "0"^^xsd:integer ] ] ] .
+# math:RationalValueShape's residue): p/0 is undefined. Same architecture as the
+# dimension-exponent cell above: the canonical carrier is the
+# math:RationalValueDenominatorNonZeroConstraint record, never an OWL value complement.
 
 # --- Persistence lifetimes ---------------------------------------------------- #
 
 # A persistence lifetime declares both endpoints exactly once (retires
-# math:PersistenceLifetimeShape): the max-qualified exact-one siblings (the #1194
+# math:PersistenceLifetimeShape): the max-qualified exact-one siblings (the
 # reasoner-safe form) bound each endpoint above, the diesAt universal carrier +
 # class-scoped closure requires the death endpoint, and the named-death record carries
 # the IRI-valued-death tightening (math:diesAt stays a bare rdf:Property by design —
