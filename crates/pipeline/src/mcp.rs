@@ -24,6 +24,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 use serde_json::{Value, json};
 
 use gmeow_errors::ResultExt;
+use gmeow_logic::certificate::{CoherenceOutcome, ContradictionPolicy};
 use gmeow_logic::conjecture::{ConjectureLifecycleState, conjecture_test};
 use gmeow_logic::explain::{self, LazyExplanationIndex, Row, reifier_from_row};
 use gmeow_logic::provenance::{reifier_from_strings, term_display};
@@ -1330,17 +1331,18 @@ impl McpView {
     ///
     /// # Completeness-gate judgment (`class_local_name`)
     ///
-    /// The class is the T2 completeness-gate trichotomy read straight off the DL
-    /// verdict `result` (the SAME predicates [`crate::McpView`]'s coherence certifier
-    /// reads via `certificate.rs`, so the two never diverge):
-    /// * a witnessed DL contradiction (`!result.is_consistent()`, the forbidden glut
-    ///   under the default forbid-glut policy) REFUTES coherence — but only a
-    ///   CONCLUSIVE check flatly `Refused`s; a budget-cut check that ran into it can
-    ///   only attest;
+    /// The class is `completeness_class`'s T2 completeness-gate trichotomy — itself a
+    /// thin wrapper over [`CoherenceOutcome::class_local_name_for`], the SAME gate
+    /// the bundle-level coherence certifier (`certificate.rs`) uses, so this tool and
+    /// [`Self::run_explain_quad`] can never diverge:
+    /// * a witnessed DL contradiction (the forbidden glut under the default
+    ///   forbid-glut policy) REFUTES coherence — but only a CONCLUSIVE check flatly
+    ///   `Refused`s; a budget-cut check that ran into it can only attest;
     /// * else a CONCLUSIVE ([`ReasoningResult::is_conclusive`]) violation-free closure
-    ///   `CoherenceCertificate`s;
-    /// * else (a budget-cut / non-conclusive closure) the strongest honest claim is
-    ///   the strictly-weaker `CoherenceCheckAttestation` — NEVER a certificate.
+    ///   with a NAMED certified fragment `CoherenceCertificate`s;
+    /// * else (a budget-cut / non-conclusive closure, or a conclusive one naming no
+    ///   certified fragment) the strongest honest claim is the strictly-weaker
+    ///   `CoherenceCheckAttestation` — NEVER a certificate.
     ///
     /// [`ReasoningResult::is_conclusive`]: gmeow_logic::result::ReasoningResult::is_conclusive
     fn run_verify_graph(&self, overlay_path: &str, budget: &Budget) -> gmeow_errors::Result<Value> {
@@ -1389,20 +1391,16 @@ impl McpView {
         let result = reason_all_budgeted(&union, budget)?;
         let report = verify_with_reasoning_result(&union, &result, &embedded_verify_queries())?;
 
-        // The T2 completeness-gate trichotomy over `result` (see the method docs). The
-        // class strings are the `module.ttl` class local names certificate.rs mints
-        // (`CoherenceCertificate` / `CoherenceCheckAttestation`) plus the
-        // `CoherenceOutcome::Refused` variant name — reused, never per-tool-invented.
-        // A witnessed DL glut refutes coherence when the search was CONCLUSIVE (only
-        // then can it flatly `Refused`); otherwise the strongest honest claim is the
-        // shared completeness gate — a certificate for a conclusive closure, the
-        // strictly-weaker attestation for a budget-cut one. The completeness leg is
-        // the ONE helper `run_explain_quad` also reads, so the two never diverge.
-        let class_local_name = if !result.is_consistent() && result.is_conclusive() {
-            "Refused"
-        } else {
-            completeness_class(&result)
-        };
+        // The T2 completeness-gate trichotomy over `result` (see the method docs),
+        // read entirely through `completeness_class` — the SAME
+        // `CoherenceOutcome::class_local_name_for` gate `run_explain_quad` reads, so
+        // the two tool paths can never diverge on whether a witnessed DL glut
+        // (forbidden under the default forbid-glut policy) refutes coherence. No
+        // per-caller downgrade is bolted on here: the gate itself already returns
+        // `"Refused"` for a CONCLUSIVE closure that witnesses one, and the
+        // strictly-weaker `CoherenceCheckAttestation` for a budget-cut closure that
+        // ran into one (it discloses what it found without refuting wholesale).
+        let class_local_name = completeness_class(&result);
 
         // cited_iris: the DerivationRef cited-IRI surface when the verdict carries a
         // proof/counterproof, unioned with each finding's structured
@@ -3844,21 +3842,28 @@ fn ambiguous_term_err(term: &str, candidates: &[String]) -> gmeow_errors::Diag {
 }
 
 /// The proof-carrying completeness class of a governed reasoning `result`, shared by
-/// [`McpView::run_verify_graph`] and [`McpView::run_explain_quad`]: a CONCLUSIVE
-/// closure (a completed run OR a complete-for-fragment answer,
-/// [`ReasoningResult::is_conclusive`]) earns the strong `CoherenceCertificate` class;
-/// a budget-cut / non-conclusive closure can only make the strictly-weaker
-/// `CoherenceCheckAttestation` claim — never a certificate. `run_verify_graph`
-/// further downgrades a *conclusive* certificate to `Refused` when the closure
-/// witnesses a forbidden glut (the coherence leg an explanation has no analogue of).
-/// The class strings are the `module.ttl` local names `certificate.rs` mints, reused
-/// here so the tool surface never invents a per-tool vocabulary.
+/// [`McpView::run_verify_graph`] and [`McpView::run_explain_quad`].
+///
+/// This is a thin wrapper over [`CoherenceOutcome::class_local_name_for`] — the SAME
+/// completeness-gate trichotomy the bundle-level coherence certifier
+/// (`certificate.rs`) uses to mint a real `logic:CoherenceCertificate`, under the
+/// default classical policy ([`ContradictionPolicy::DEFAULT`], gaps and gluts both
+/// forbidden — the conservative default a tool surface with no contract-specific
+/// policy in hand must use). It requires BOTH:
+/// * a CONCLUSIVE closure (a completed run OR a complete-for-fragment answer,
+///   [`ReasoningResult::is_conclusive`]) — otherwise the strictly-weaker
+///   `CoherenceCheckAttestation` claim is the strongest honest one, never a
+///   certificate; AND
+/// * no forbidden violation (a witnessed DL glut under the forbid-glut default) —
+///   an inconsistent-but-conclusive closure is REFUSED (`"Refused"`), never labeled
+///   `CoherenceCertificate`, on EITHER caller's path (no ad-hoc per-caller downgrade:
+///   `run_verify_graph` no longer bolts one on separately — see its own docs).
+///
+/// The gate is never re-derived inline here (GREENFIELD/no-duplicate-logic) — the
+/// one gate lives in `certificate.rs`, so the two tool paths can never diverge on
+/// whether a genuine certificate is warranted.
 fn completeness_class(result: &ReasoningResult) -> &'static str {
-    if result.is_conclusive() {
-        "CoherenceCertificate"
-    } else {
-        "CoherenceCheckAttestation"
-    }
+    CoherenceOutcome::class_local_name_for(result, ContradictionPolicy::DEFAULT)
 }
 
 /// Read the SCOPED COHERENCE CERTIFICATE carried in the bundle's `graph/attestations`
@@ -9370,5 +9375,105 @@ mod tests {
         // Deterministic: the read is a pure projection of the carried quads.
         let again = text_payload(server.call_tool_result("coherence_certificate", &json!({})));
         assert_eq!(out, again, "the certificate read is deterministic");
+    }
+
+    /// G3 (HIGH, CodeRabbit): an INCONSISTENT-but-CONCLUSIVE closure must never
+    /// surface as `CoherenceCertificate` on the tool surface — `completeness_class`
+    /// used to return `CoherenceCertificate` for ANY `is_conclusive()` result, with no
+    /// check for a named certified fragment or for the absence of a forbidden
+    /// violation, and `run_explain_quad` (unlike `run_verify_graph`, which bolted on
+    /// its own ad-hoc `Refused` downgrade) had NO protection at all.
+    ///
+    /// Drives the REAL `verify_graph` tool (`call_tool_result`, not internals) with a
+    /// tiny canon plus an overlay that is GENUINELY inconsistent — `A ⊑ B`, `A ⊑ C`,
+    /// `B disjointWith C`, `x : A` forces `x` into `owl:Nothing` (the exact fixture
+    /// `reason_all_single_chase_yields_inconsistent_and_nonempty_closure` proves
+    /// derives `InformationState::Both` in one completed chase, i.e. CONCLUSIVE, not
+    /// budget-cut) — and asserts the response's `class_local_name` is NEVER
+    /// `CoherenceCertificate`. `class_local_name` is `completeness_class`'s output
+    /// (folded through `CoherenceOutcome::class_local_name_for`, the SAME gate
+    /// `run_explain_quad` now reads through), so this proves the shared gate, not a
+    /// per-tool special case.
+    ///
+    /// Fast (a tiny synthetic canon + a 4-quad overlay, not the real corpus): on-gate,
+    /// not `_heavy_offgate`.
+    #[test]
+    fn verify_graph_inconsistent_but_conclusive_never_certifies() {
+        use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, SnapshotBuilder, emit_gts};
+
+        let _guard = ENV_LOCK.get_or_init(|| Mutex::new(())).lock().unwrap();
+        let _env = EnvRestore::capture(&["GMEOW_LANG", "GMEOW_MEMORY_PATH", "HOME", "USERPROFILE"]);
+        unsafe {
+            // SAFETY: tests mutate process env single-threaded under ENV_LOCK.
+            env::remove_var("GMEOW_LANG");
+        }
+
+        // A minimal canon: just the required ontology header (the importer hard-fails
+        // without it) — the SAME pattern `coherence_certificate_tool_reads_the_carried_
+        // bundle_heavy_offgate` uses.
+        let doc = "<https://blackcatinformatics.ca/gmeow> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology> .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://purl.org/dc/terms/title> \"GMEOW\" .\n\
+             <https://blackcatinformatics.ca/gmeow> <http://www.w3.org/2002/07/owl#versionInfo> \"test\" .\n";
+        let dataset = dataset_of(doc);
+        let mut builder = SnapshotBuilder::new();
+        builder.add_dataset(dataset.as_ref()).expect("add_dataset");
+        let gts = emit_gts(
+            &builder,
+            "dist",
+            None,
+            Vec::new(),
+            Vec::new(),
+            None,
+            None,
+            None,
+            DEFAULT_RSYNCABLE_THRESHOLD,
+        )
+        .expect("emit tiny header-only canon");
+
+        let server = McpServer::from_snapshot(&gts, None, McpMode::Consumer).unwrap();
+
+        // The overlay: a genuine DL contradiction — A ⊑ B, A ⊑ C, B disjointWith C,
+        // x : A forces x into owl:Nothing. Un-graphed triples reason under the single
+        // default world, and the whole tiny canon+overlay union closes well under the
+        // governed step ceiling — CONCLUSIVE, never budget-cut.
+        let overlay_dir = tempfile::tempdir().expect("overlay tempdir");
+        let overlay_path = overlay_dir.path().join("contradiction.ttl");
+        fs::write(
+            &overlay_path,
+            "<http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/B> .\n\
+             <http://gmeowtest.example/A> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://gmeowtest.example/C> .\n\
+             <http://gmeowtest.example/B> <http://www.w3.org/2002/07/owl#disjointWith> <http://gmeowtest.example/C> .\n\
+             <http://gmeowtest.example/x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://gmeowtest.example/A> .\n",
+        )
+        .unwrap();
+        let path_str = overlay_path.to_str().unwrap();
+
+        let out = text_payload(
+            server.call_tool_result("verify_graph", &json!({"path": path_str, "max_steps": 64})),
+        );
+        assert_eq!(out["ok"], true, "verify_graph must succeed: {out}");
+
+        // The closure genuinely completed (conclusive), not a budget-cut — so the
+        // downgrade below is caused by the witnessed glut, not by non-conclusiveness.
+        assert_eq!(
+            out["evaluation"], "completed",
+            "the fixture's tiny closure must be CONCLUSIVE (not budget-cut) for this to be a \
+             faithful proof: {out}"
+        );
+
+        // The falsifiable assertion: an inconsistent-but-conclusive closure must NEVER
+        // render `CoherenceCertificate` — the shared `CoherenceOutcome` gate downgrades
+        // it to the flat refusal instead.
+        assert_ne!(
+            out["class_local_name"], "CoherenceCertificate",
+            "an inconsistent-but-conclusive closure must never be labeled a \
+             CoherenceCertificate: {out}"
+        );
+        assert_eq!(
+            out["class_local_name"], "Refused",
+            "a witnessed forbidden violation in a CONCLUSIVE closure is a flat refusal, per \
+             the SAME CoherenceOutcome gate the bundle-level coherence certifier uses: {out}"
+        );
+        drop(overlay_dir);
     }
 }
