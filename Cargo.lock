@@ -1839,6 +1839,7 @@ dependencies = [
  "gmeow-logic",
  "gmeow-logic-compile",
  "gmeow-math",
+ "gmeow-slice-brief",
  "gmeow-slice-quality",
  "gmeow-validate",
  "insta",
