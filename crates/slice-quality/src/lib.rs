@@ -420,6 +420,51 @@ pub fn measure_repo_residues(
     Ok(out)
 }
 
+/// Resolve `slice_dir`'s `gmeow:Slice` IRI from its `manifest.ttl` — a thin `pub`
+/// wrapper over [`report::slice_iri_of`] so a consumer crate (the `gmeow-dev` CLI's
+/// ratchet-gate driver, reconstructing which discovered slice a merge-base surface
+/// set belongs to) can resolve the same slice IRI [`measure_repo_residues`] does,
+/// without a second re-implementation of manifest resolution.
+///
+/// # Errors
+/// As [`report::slice_iri_of`]: a message if the manifest cannot be read or
+/// declares no `gmeow:Slice`.
+pub fn slice_iri_of_dir(slice_dir: &Path) -> gmeow_errors::Result<String> {
+    report::slice_iri_of(slice_dir)
+}
+
+/// Measure `vocab`'s ungrounded [`counting::residue`] over an ALREADY-READ set of
+/// TTL texts, merged into one dataset — the base-reconstruction counterpart to
+/// [`measure_repo_residues`] (which reads surfaces off disk). This is the SAME
+/// counter ([`counting::residue`]) fed base-commit bytes instead of working-tree
+/// files, so the gate's grandfather check (ratchet invariant 3) can never diverge
+/// from what "measured" means on the working tree.
+///
+/// # Errors
+/// HARD-FAILS (never falls back to residue 0) if any text fails to parse as
+/// Turtle, or if merging the parsed datasets fails — this is the gate path, so a
+/// broken base surface must stop the sweep, never silently score as clean.
+pub fn residue_over_texts(
+    texts: &[String],
+    vocab: &ProjectionVocabulary,
+) -> gmeow_errors::Result<u64> {
+    let mut builder = purrdf::RdfDatasetBuilder::new();
+    for text in texts {
+        let ds = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).map_err(|e| {
+            gmeow_errors::Diag::of_kind(error::Io {
+                detail: format!("residue_over_texts: Turtle parse failed: {e}"),
+            })
+        })?;
+        builder.push_dataset(&ds);
+    }
+    let ds = builder.freeze().map_err(|e| {
+        gmeow_errors::Diag::of_kind(error::Io {
+            detail: format!("residue_over_texts: dataset freeze failed: {e}"),
+        })
+    })?;
+    Ok(counting::residue(&ds, vocab))
+}
+
 // -----------------------------------------------------------------------------
 // The consumer-wheel scoring entry point.
 // -----------------------------------------------------------------------------
