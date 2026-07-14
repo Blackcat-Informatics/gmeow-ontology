@@ -46,7 +46,7 @@ declined to grade (an out-of-fragment conclusion shape), tallied across all corp
 
 | gap shape | count |
 |---|---|
-| multi-triple | 1 |
 | role-assertion | 1 |
+| vendoring-multi-goal | 1 |
 
 7 agreement-expected corpus(es), 3 documented-divergence corpus(es).
