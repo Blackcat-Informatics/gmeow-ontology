@@ -350,6 +350,77 @@ pub fn assessment_nquads(repo_root: &Path) -> gmeow_errors::Result<String> {
 }
 
 // -----------------------------------------------------------------------------
+// The projection-vocabulary ratchet's shared residue-measurement helpers.
+// -----------------------------------------------------------------------------
+
+/// The ratchet-counted AUTHORING surface for one slice — the exact `.ttl` set
+/// [`counting::residue`] measures a slice's guarded projection-vocabulary constructs
+/// over: `module.ttl`, `shapes.ttl`, and every existing `mappings/*.ttl`, sorted.
+///
+/// This is DELIBERATELY NARROWER than [`report::slice_ttl_paths`] (which also walks
+/// `examples/` and `tests/`): a demonstrator under `examples/` or a fixture under
+/// `tests/` is not a second source of truth for hand-authored projection constructs
+/// (the same "projection universe excludes conformance fixtures" doctrine the slice
+/// producers already honor) — it is authored TO demonstrate or exercise a construct,
+/// not TO author a new one. Counting them would let editing a fixture silently move
+/// the ratchet (either inflating a slice's committed residue with non-authoring
+/// artifacts, or letting a fixture's removal shrink a ceiling nobody actually paid
+/// down), so only the slice's real authoring surface is scanned.
+#[must_use]
+pub fn ratchet_surface_paths(slice_dir: &Path) -> Vec<PathBuf> {
+    let mut paths = vec![slice_dir.join("module.ttl"), slice_dir.join("shapes.ttl")];
+    if let Ok(rd) = std::fs::read_dir(slice_dir.join("mappings")) {
+        for entry in rd.flatten() {
+            let p = entry.path();
+            if p.extension().is_some_and(|x| x == "ttl") {
+                paths.push(p);
+            }
+        }
+    }
+    paths.retain(|p| p.is_file());
+    paths.sort();
+    paths
+}
+
+/// Measure the ungrounded [`counting::residue`] of every guarded `vocab` for every
+/// discovered slice, over each slice's [`ratchet_surface_paths`] merged into one
+/// dataset. This is the SINGLE measurement authority the projection-ceiling seed
+/// (`gmeow-dev slice-quality-seed-ceilings`) and the ratchet gate both call — seed
+/// and gate can never diverge on what "measured" means, because both count through
+/// this one function over the one shared [`counting::residue`] primitive.
+///
+/// Keyed `(slice IRI, vocab prefix)`; a ZERO residue is DELIBERATELY OMITTED — the
+/// gate treats a missing key as that vocab's `default_ceiling` (0), so the returned
+/// map holds only the non-trivial ratchet cells worth seeding or gating. Iterating
+/// [`discover_slice_dirs`] in its already-sorted order and returning a `BTreeMap`
+/// makes the result fully deterministic.
+///
+/// # Errors
+/// HARD-FAILS (propagates, never a silent fallback to residue 0) if a slice's
+/// `manifest.ttl` cannot be resolved to a `gmeow:Slice` IRI, or if any of its
+/// ratchet surfaces is unreadable or fails to parse — this is the gate path, so a
+/// broken slice must stop the sweep, never silently score as clean.
+pub fn measure_repo_residues(
+    repo_root: &Path,
+    vocabularies: &[ProjectionVocabulary],
+) -> gmeow_errors::Result<std::collections::BTreeMap<(String, String), u64>> {
+    let mut out = std::collections::BTreeMap::new();
+    for dir in discover_slice_dirs(&repo_root.join("slices")) {
+        let slice_iri = report::slice_iri_of(&dir)?;
+        let paths = ratchet_surface_paths(&dir);
+        let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
+        let ds = dataset_from_paths(&path_refs)?;
+        for vocab in vocabularies {
+            let residue = counting::residue(&ds, vocab);
+            if residue > 0 {
+                out.insert((slice_iri.clone(), vocab.prefix.clone()), residue);
+            }
+        }
+    }
+    Ok(out)
+}
+
+// -----------------------------------------------------------------------------
 // The consumer-wheel scoring entry point.
 // -----------------------------------------------------------------------------
 

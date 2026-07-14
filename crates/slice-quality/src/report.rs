@@ -96,7 +96,12 @@ pub struct SliceReport {
 }
 
 /// Discover a slice's ontology IRI from its `manifest.ttl` (`a gmeow:Slice`).
-fn slice_iri_of(slice_dir: &Path) -> gmeow_errors::Result<String> {
+///
+/// `pub(crate)` so [`crate::measure_repo_residues`] (the projection-ceiling seed's
+/// and gate's shared residue-measurement helper) resolves the same slice IRI this
+/// module's own scoring path does — one resolution authority, never a second
+/// re-implementation that could silently diverge on IRI choice.
+pub(crate) fn slice_iri_of(slice_dir: &Path) -> gmeow_errors::Result<String> {
     let manifest = slice_dir.join("manifest.ttl");
     let ds = crate::dataset_from_paths(&[&manifest])?;
     instances_of(&ds, &graph::g("Slice"))
