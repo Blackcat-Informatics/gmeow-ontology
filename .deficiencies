@@ -192,3 +192,21 @@ reason/verify/validate are green. The following are recorded honestly:
    rather than left as an uncited judgment. The just-intonation ratios are the
    standard 5-limit Yaman values; the citation grounds the index placement in the
    classical authorities. Not a deferral — strengthened, not skipped.
+
+────────────────────────────────────────────────────────────────────────────
+2026-07-13 — consistency-oracle retirement, stage-2 exit gate
+
+- LOCAL `make check` TRIPS ONLY THE ENVIRONMENTAL 25s-WALL-CLOCK BUDGET GATE.
+  Every functional test passes (0 failures across 5702 tests). The sole non-green
+  is `gmeow-test-budget.over-budget`: 32 bundle-loading tests (gmeow-pipeline
+  mcp/cli/docs — all UNRELATED to the removed arm) exceeded the 25s always-on
+  budget while the shared 32-core box was at load average 16–30 (a concurrent
+  NP-hard measurement run + regenerate + check). This branch's diff is a PURE
+  DELETION (−1221 lines), which cannot slow other tests; the bundle growth that
+  pushes these loaders over the cliff came from integrating main, not from this
+  change. This is the same CI-delegated environmental gate already recorded above
+  for a prior branch; CI's dedicated clean runner is the authoritative budget
+  evaluator. The completion-adversary exit gate independently exercised every
+  surface touching the removed arm and confirmed green (subsumption-oracle tests
+  6/6, `reason-verify` exit 0, `reason-crosscheck` exit 0 with 0 oracle-only /
+  0 dl-gap) with no real (non-timeout) failure.
