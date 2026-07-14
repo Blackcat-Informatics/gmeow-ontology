@@ -1673,6 +1673,7 @@ enum ExpressionLanguageEnum {
 }
 
 enum FanoutExtractionEnum {
+  fanout_briefs_authoring_packets
   fanout_catalog_constraint_catalog
   fanout_catalog_term_content_manifest
   fanout_diagnostics_logic_compile
@@ -1970,6 +1971,14 @@ enum GrooveProfileKindEnum {
   grooveProfileKindMeasured
   grooveProfileKindPositionOffsets
   grooveProfileKindSwingRatio
+}
+
+enum GroundingAttributeEnum {
+  groundingEn
+  groundingExemplar
+  groundingExternalMapped
+  groundingFr
+  groundingZh
 }
 
 enum GroupOperatorEnum {
@@ -2904,6 +2913,7 @@ enum PipelineStageEnum {
   stage_mappings
   stage_math_producers
   stage_reason
+  stage_slice_brief
   stage_snapshot
   stage_source_load
   stage_statements
@@ -4575,6 +4585,26 @@ type AuthorIdentity {
   iri: String
   authorIdentityString: String
   canonicalizedIdentity: [Agent!]
+}
+
+type AuthoringPacket {
+  id: String
+  iri: String
+  exemplarShortfall: [Int!]
+  packetAxis: [String!]
+  packetBatch: [Int!]
+  packetCoversTerm: [String!]
+  packetDigest: [String!]
+  packetExemplar: [String!]
+  packetExternalAbsent: [Int!]
+  packetExternalMapped: [Int!]
+  packetFrAbsent: [Int!]
+  packetFrPresent: [Int!]
+  packetGrounding: [GroundingCoverage!]
+  packetSourceSlice: [String!]
+  packetTermCount: [Int!]
+  packetZhAbsent: [Int!]
+  packetZhPresent: [Int!]
 }
 
 type AuthorityLevel {
@@ -6426,6 +6456,26 @@ type GrooveProfile {
 type GrooveProfileKind {
   id: String
   iri: String
+}
+
+type GroundingAttribute {
+  id: String
+  iri: String
+}
+
+type GroundingCoverage {
+  id: String
+  iri: String
+  groundingAlignPredicate: [String!]
+  groundingAttribute: [GroundingAttribute!]
+  groundingConfidence: [Float!]
+  groundingConflict: [Boolean!]
+  groundingConflictWith: [String!]
+  groundingExternalEntity: [String!]
+  groundingExternalLabel: [String!]
+  groundingPredicate: [String!]
+  groundingTerm: [String!]
+  groundingValue: [String!]
 }
 
 type Group {

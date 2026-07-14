@@ -12547,6 +12547,16 @@
       ],
       "type": "string"
     },
+    "GroundingAttributeEnum": {
+      "enum": [
+        "gmeow:groundingEn",
+        "gmeow:groundingExemplar",
+        "gmeow:groundingExternalMapped",
+        "gmeow:groundingFr",
+        "gmeow:groundingZh"
+      ],
+      "type": "string"
+    },
     "GroupOperatorEnum": {
       "enum": [
         "gmeow:operatorAll",

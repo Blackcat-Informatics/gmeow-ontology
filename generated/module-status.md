@@ -42,7 +42,7 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | genealogy | extension | extensions | 3 | 8 | 13 | 0 | 1 | - | full |
 | graphrag | extension | extensions | 5 | 10 | 18 | 0 | 2 | - | full |
 | gts | core | core | 5 | 8 | 10 | 0 | 1 | 18/18 | full |
-| guides | core | core | 1 | 2 | 9 | 0 | 1 | 0/11 | full |
+| guides | core | core | 1 | 5 | 34 | 0 | 1 | 2/39 | full |
 | images | extension | extensions | 4 | 8 | 20 | 0 | 1 | - | full |
 | imagination | core | core | 1 | 1 | 4 | 0 | 2 | 5/5 | full |
 | inference | core | core | 6 | 16 | 35 | 0 | 6 | 0/51 | full |
@@ -89,4 +89,4 @@ from the module, documentation status from the guide. STUB guides are the Tier-2
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 6 | 13 | 0 | 1 | 19/19 | full |
 
-**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 1466/2286 core class/property terms.
+**81 slices** · documentation: 81 full guides, 0 stubs remaining; advisory coverage: 1468/2314 core class/property terms.
