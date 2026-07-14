@@ -28,6 +28,22 @@ use crate::{digest, ns};
 /// The interim partition chunk size (`~25` terms per batch).
 const CHUNK: usize = 25;
 
+/// The six authoring "coat" predicates whose per-term presence count IS the
+/// completeness tier (annotation completeness): `rdfs:label`, `skos:definition`,
+/// `skos:example`, `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse`. Fully
+/// qualified so the reading is source-only and stable. This is the SINGLE canonical
+/// tiering — both the pipeline stage and the `gmeow slice brief` CLI derive their
+/// injected exemplar tiers from [`completeness_tiers`], so an in-repo slice's CLI
+/// brief and its committed projection tier identically.
+const COAT_PREDICATES: [&str; 6] = [
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    "http://www.w3.org/2004/02/skos/core#definition",
+    "http://www.w3.org/2004/02/skos/core#example",
+    "https://blackcatinformatics.ca/gmeow/useWhen",
+    "https://blackcatinformatics.ca/gmeow/avoidWhen",
+    "https://blackcatinformatics.ca/gmeow/howToUse",
+];
+
 /// The injected inputs to a single packet assembly. Exemplar tiers are injected by
 /// the caller (dependency inversion), so the library never picks a scoring
 /// authority: the pipeline passes tiers from the in-pipeline `gmeow:QualityAssessment`
@@ -55,27 +71,11 @@ pub struct BriefInputs<'a> {
 pub fn assemble_packet(inputs: &BriefInputs) -> gmeow_errors::Result<AuthoringPacket> {
     let slice_dir = inputs.slice_dir;
 
-    // The slice graph (module + examples + tests) PLUS the alignment linkage under
-    // `mappings/` the external-grounding JOIN needs — `slice_ttl_paths` omits the
-    // latter, so it is gathered explicitly here.
-    let mut paths = gmeow_slice_quality::report::slice_ttl_paths(slice_dir);
-    collect_ttl(&slice_dir.join("mappings"), &mut paths);
-    paths.sort();
-    paths.dedup();
-    let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
-    let ds = dataset_from_paths(&path_refs)?;
-
-    // Slice identity comes from `manifest.ttl`, which is NOT part of the slice graph.
-    let manifest = slice_dir.join("manifest.ttl");
-    let mds = dataset_from_paths(&[manifest.as_path()])?;
-    let slice_iri = graph::instances_of(&mds, &graph::g("Slice"))
-        .into_iter()
-        .next()
-        .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(error::Partition {
-                detail: format!("{} declares no gmeow:Slice", manifest.display()),
-            })
-        })?;
+    // The slice authoring dataset (module + examples + tests + mappings) and the
+    // slice identity — loaded through the SHARED helpers so `completeness_tiers`
+    // and this assembly read byte-identical inputs.
+    let ds = load_slice_dataset(slice_dir)?;
+    let slice_iri = slice_identity(slice_dir)?;
 
     // 1. PARTITION.
     let terms_all = defined_terms(&ds, &slice_iri);
@@ -381,6 +381,79 @@ fn ordered_pair(a: &str, b: &str) -> (String, String) {
     } else {
         (b.to_string(), a.to_string())
     }
+}
+
+/// Load the slice's authoring dataset exactly the way [`assemble_packet`] reads it:
+/// the slice graph (module + examples + tests, via `slice_ttl_paths`) PLUS the
+/// alignment linkage under `mappings/` the external-grounding JOIN needs
+/// (`slice_ttl_paths` omits the latter, so it is gathered explicitly). This is the
+/// SINGLE dataset-loading path both the packet assembly and [`completeness_tiers`]
+/// go through, so their inputs are byte-identical.
+///
+/// # Errors
+/// Hard-fails if any of the slice's Turtle sources cannot be read or parsed.
+fn load_slice_dataset(slice_dir: &Path) -> gmeow_errors::Result<std::sync::Arc<RdfDataset>> {
+    let mut paths = gmeow_slice_quality::report::slice_ttl_paths(slice_dir);
+    collect_ttl(&slice_dir.join("mappings"), &mut paths);
+    paths.sort();
+    paths.dedup();
+    let path_refs: Vec<&Path> = paths.iter().map(PathBuf::as_path).collect();
+    dataset_from_paths(&path_refs)
+}
+
+/// The slice's identity IRI — the sole `gmeow:Slice` individual declared by
+/// `manifest.ttl` (which is NOT part of the slice graph). Shared by the packet
+/// assembly and [`completeness_tiers`] so both agree on the slice IRI.
+///
+/// # Errors
+/// Hard-fails if `manifest.ttl` cannot be read or declares no `gmeow:Slice`.
+fn slice_identity(slice_dir: &Path) -> gmeow_errors::Result<String> {
+    let manifest = slice_dir.join("manifest.ttl");
+    let mds = dataset_from_paths(&[manifest.as_path()])?;
+    graph::instances_of(&mds, &graph::g("Slice"))
+        .into_iter()
+        .next()
+        .ok_or_else(|| {
+            gmeow_errors::Diag::of_kind(error::Partition {
+                detail: format!("{} declares no gmeow:Slice", manifest.display()),
+            })
+        })
+}
+
+/// The SINGLE canonical per-term completeness tiering, shared by the pipeline stage
+/// and the `gmeow slice brief` CLI. Loads the slice's authoring dataset the same way
+/// [`assemble_packet`] does, enumerates the slice's defined terms, and maps each term
+/// IRI to its **completeness count** — the number of the six authoring coat
+/// predicates ([`COAT_PREDICATES`]: `rdfs:label`, `skos:definition`, `skos:example`,
+/// `gmeow:useWhen`, `gmeow:avoidWhen`, `gmeow:howToUse`) present on the term. This is
+/// a deterministic, source-only reading (no scoring infra, no bundle) intended to be
+/// injected as [`BriefInputs::exemplar_tiers`], so an in-repo slice's CLI brief and
+/// its committed pipeline projection tier terms identically.
+///
+/// # Errors
+/// Hard-fails if the slice graph cannot be read, or `manifest.ttl` declares no
+/// `gmeow:Slice` (a malformed slice — never a silent skip).
+pub fn completeness_tiers(slice_dir: &Path) -> gmeow_errors::Result<BTreeMap<String, i64>> {
+    let ds = load_slice_dataset(slice_dir)?;
+    let slice_iri = slice_identity(slice_dir)?;
+    let terms = defined_terms(&ds, &slice_iri);
+
+    let pred_ids: Vec<Option<purrdf::TermId>> =
+        COAT_PREDICATES.iter().map(|p| graph::id(&ds, p)).collect();
+    let mut tiers: BTreeMap<String, i64> = BTreeMap::new();
+    for term in &terms {
+        let Some(tid) = graph::id(&ds, term) else {
+            continue;
+        };
+        let mut count = 0i64;
+        for pid in pred_ids.iter().flatten() {
+            if graph::has_any(&ds, tid, *pid) {
+                count += 1;
+            }
+        }
+        tiers.insert(term.clone(), count);
+    }
+    Ok(tiers)
 }
 
 /// Every IRI subject the slice defines (`rdfs:isDefinedBy` the slice IRI, excluding
