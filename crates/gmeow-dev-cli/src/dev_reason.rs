@@ -145,51 +145,6 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     }
 }
 
-/// Discover the `(name, sparql)` verify SELECT queries in the working tree:
-/// `queries/verify/*.rq` plus each slice's `queries/verify/*.rq`.
-fn discover_verify_queries(root: &Path) -> Vec<(String, String)> {
-    let mut files: Vec<PathBuf> = Vec::new();
-    collect_rq(&root.join("queries").join("verify"), &mut files);
-    collect_slice_verify(&root.join("slices"), &mut files);
-    files.sort();
-    files
-        .into_iter()
-        .filter_map(|p| {
-            let name = p.to_string_lossy().into_owned();
-            std::fs::read_to_string(&p).ok().map(|text| (name, text))
-        })
-        .collect()
-}
-
-/// Collect `*.rq` directly under `dir`.
-fn collect_rq(dir: &Path, out: &mut Vec<PathBuf>) {
-    if let Ok(entries) = std::fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.extension().and_then(|e| e.to_str()) == Some("rq") {
-                out.push(path);
-            }
-        }
-    }
-}
-
-/// Collect `queries/verify/*.rq` under every slice directory below `slices`.
-fn collect_slice_verify(slices: &Path, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(slices) else {
-        return;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            let verify = path.join("queries").join("verify");
-            if verify.is_dir() {
-                collect_rq(&verify, out);
-            }
-            collect_slice_verify(&path, out);
-        }
-    }
-}
-
 /// `gmeow-dev verify [--mode --fresh …]` — reasoned-graph negative tests. By
 /// default the queries run against the shipped closure + verdict already folded
 /// into the snapshot (contract-hash-checked, no second chase); `--fresh`
@@ -206,7 +161,7 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
         Ok(d) => d,
         Err(code) => return code,
     };
-    let queries = discover_verify_queries(&root);
+    let queries = gmeow_logic::verify::embedded_verify_queries();
     let report = if fresh {
         match verify_reasoned(dataset.as_ref(), &queries) {
             Ok(r) => r,
@@ -309,7 +264,7 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
         Err(code) => return code,
     };
     let snapshot_ms = elapsed_ms(snapshot_started);
-    let queries = discover_verify_queries(&root);
+    let queries = gmeow_logic::verify::embedded_verify_queries();
     let (evaluation, result_phase) = if fresh {
         (
             evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
@@ -497,7 +452,7 @@ pub fn reason_gate(timings_json: Option<&Path>) -> i32 {
         Err(code) => return code,
     };
     let snapshot_ms = elapsed_ms(snapshot_started);
-    let queries = discover_verify_queries(&root);
+    let queries = gmeow_logic::verify::embedded_verify_queries();
     let evaluation = match evaluate_reason_verify_once(dataset.as_ref(), &queries, |edb| {
         reason_all(edb).map_err(|e| error::reasoning(format!("native reason gate failed: {e}")))
     }) {
