@@ -1889,14 +1889,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gmeow-test-budget"
-version = "0.1.0"
-dependencies = [
- "gmeow-cli-core",
- "gmeow-errors",
-]
-
-[[package]]
 name = "gmeow-validate"
 version = "0.1.0"
 dependencies = [
