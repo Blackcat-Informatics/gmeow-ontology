@@ -121,6 +121,20 @@ pub fn load_repo_floors(repo_root: &Path) -> gmeow_errors::Result<GovernanceFloo
     Ok(repo_rubric(repo_root)?.floors)
 }
 
+/// Load the governance data the PROJECTION-VOCABULARY RATCHET reads — the guarded
+/// [`GovernanceFloors::vocabularies`] registry and the committed
+/// [`GovernanceFloors::ceilings`] — from the canonical rubric slice under `repo_root`.
+/// This is the ceiling ratchet's counterpart to [`load_repo_floors`]; both project the
+/// same segregated [`GovernanceFloors`] the gate reads, named for their consumer so a
+/// call site declares which half of the ratchet it drives. Scoring never reads these.
+///
+/// # Errors
+/// Returns a message if the rubric module cannot be read or is structurally
+/// incomplete (the same hard-fail conditions as loading the whole rubric).
+pub fn load_repo_ceilings(repo_root: &Path) -> gmeow_errors::Result<GovernanceFloors> {
+    Ok(repo_rubric(repo_root)?.floors)
+}
+
 /// Load ONLY the floor-free measurement standard (tier ladder + axes) from the
 /// canonical rubric slice under `repo_root` — the scoring half of the segregated
 /// rubric ([`MeasurementStandard`]). The ratchet gate never reads this; scoring
