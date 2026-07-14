@@ -167,3 +167,20 @@ reason/verify/validate are green. The following are recorded honestly:
    rather than left as an uncited judgment. The just-intonation ratios are the
    standard 5-limit Yaman values; the citation grounds the index placement in the
    classical authorities. Not a deferral — strengthened, not skipped.
+
+## 2026-07-14 — math shape-grounding packet (branch paudley/1449-math-shape-migration)
+
+- PUNTED (explicit user approval): the math slice's annotation coats (~691 uncoated
+  terms × 8 fields) and fr/zh translations (~1,383 untranslated literals × 2 languages)
+  were deliberately excluded from this PR ("Everything but the translations, we'll punt
+  those for now"; "shapes work and axis floors work (modulo lang+coats)"). The math
+  slice therefore remains at quality tier Registered: translation coverage measures
+  0.41 (floor kept at 0.333 by deliberate curation decision — the sanctioned coat
+  authoring will expand the localizable denominator and a 0.41 pin would manufacture a
+  guaranteed future gate red) and information coverage ~0.60. Ownership: the slice
+  authoring factory design (briefs, fuzzy-gated two-stage translations, distinctiveness
+  guard) and the continuous uplift lane's per-batch process.
+- WEAKER MECHANISM (recorded honestly): the axisProseQuality floor was ratcheted to
+  0.5775, a conservative truncation of the measured 0.577598, not the exact measured
+  value — the report surfaces only rounded scores and an exact-value pin would risk a
+  hairline EPSILON red; the truncation is provably ≤ measured and raise-only.
