@@ -74,6 +74,34 @@ pub(crate) struct TallyRecord {
     pub(crate) agree: usize,
     pub(crate) corpus_only: usize,
     pub(crate) dl_gap: usize,
+    /// The structured capability-gap shapes recorded in the corpus's divergence-case
+    /// `profile.json` (`gmeow:gapShape` tokens → counts), sorted. Present only when the
+    /// corpus carries structured gaps (a divergence corpus), so non-gap corpora keep
+    /// their tally bytes unchanged. This is the shipped, drift-gated consumer of the
+    /// reified gap-shape data: the agreement matrix renders a per-shape breakdown from it.
+    #[serde(default, skip_serializing_if = "std::collections::BTreeMap::is_empty")]
+    pub(crate) gap_shapes: std::collections::BTreeMap<String, usize>,
+}
+
+/// Read the structured `gmeow:gapShape` tally from a corpus directory's divergence
+/// cases: for every `<case>/profile.json` carrying a `gap_shape` string, count it.
+/// A metadata read (like the corpus lane), NOT a re-grade of the cases.
+fn gap_shapes_for_corpus(corpus_dir: &Path) -> Result<BTreeMap<String, usize>, gmeow_errors::Diag> {
+    let mut counts: BTreeMap<String, usize> = BTreeMap::new();
+    for case_dir in sorted_dirs(corpus_dir)? {
+        let profile_path = case_dir.join("profile.json");
+        if !profile_path.is_file() {
+            continue;
+        }
+        let text = std::fs::read_to_string(&profile_path)
+            .map_err(|e| stage_err(&format!("read {}: {e}", profile_path.display())))?;
+        let value: serde_json::Value = serde_json::from_str(&text)
+            .map_err(|e| stage_err(&format!("parse {}: {e}", profile_path.display())))?;
+        if let Some(shape) = value.get("gap_shape").and_then(|v| v.as_str()) {
+            *counts.entry(shape.to_owned()).or_insert(0) += 1;
+        }
+    }
+    Ok(counts)
 }
 
 /// The committed external-corpus root: one `<corpus>/<case>/` subtree per vendored
@@ -174,10 +202,10 @@ pub(crate) fn agreement_tallies_json(
             corpus_only,
             dl_gap,
         } = agreement_tally(corpus, comparisons);
-        let meta = gmeow_conformance::vendored::load_corpus_meta(
-            &external.join(corpus).join("corpus.json"),
-        )
-        .map_err(|e| stage_err(&format!("load corpus.json lane for {corpus}: {e}")))?;
+        let corpus_dir = external.join(corpus);
+        let meta = gmeow_conformance::vendored::load_corpus_meta(&corpus_dir.join("corpus.json"))
+            .map_err(|e| stage_err(&format!("load corpus.json lane for {corpus}: {e}")))?;
+        let gap_shapes = gap_shapes_for_corpus(&corpus_dir)?;
         records.insert(
             corpus.clone(),
             TallyRecord {
@@ -186,6 +214,7 @@ pub(crate) fn agreement_tallies_json(
                 agree,
                 corpus_only,
                 dl_gap,
+                gap_shapes,
             },
         );
     }

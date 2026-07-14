@@ -166,6 +166,41 @@ pub(crate) fn render_agreement_matrix(
         }
     }
     lines.push(String::new());
+
+    // ── Capability gaps by shape (the reified gmeow:gapShape breakdown) ──────────────
+    // The shipped, drift-gated consumer of the structured capability-gap data: for every
+    // divergence case the native reasoner honestly could not grade, its `gmeow:gapShape`
+    // token (multi-triple / role-assertion / existential-witness / native-coverage /
+    // malformed) is tallied here across all corpora. A non-empty section proves the
+    // gap-shape data flowed; the byte gate pins it.
+    let mut gap_shape_totals: BTreeMap<String, usize> = BTreeMap::new();
+    for r in records.values() {
+        for (shape, n) in &r.gap_shapes {
+            *gap_shape_totals.entry(shape.clone()).or_insert(0) += n;
+        }
+    }
+    lines.push("## Capability gaps (by shape)".to_string());
+    lines.push(String::new());
+    lines.push(
+        "The structured `gmeow:gapShape` of every divergence case the native reasoner honestly"
+            .to_string(),
+    );
+    lines.push(
+        "declined to grade (an out-of-fragment conclusion shape), tallied across all corpora."
+            .to_string(),
+    );
+    lines.push(String::new());
+    if gap_shape_totals.is_empty() {
+        lines.push("_(none in the committed corpus)_".to_string());
+    } else {
+        lines.push("| gap shape | count |".to_string());
+        lines.push("|---|---|".to_string());
+        for (shape, n) in &gap_shape_totals {
+            lines.push(format!("| {shape} | {n} |"));
+        }
+    }
+    lines.push(String::new());
+
     lines.push(format!(
         "{} agreement-expected corpus(es), {} documented-divergence corpus(es).",
         agree_expected.len(),
@@ -321,6 +356,37 @@ mod tests {
         assert!(
             tail.contains("| w3c-owl2-el-divergence | 2 | 0 | 2 | 0 |"),
             "divergence corpus row missing: {tail}"
+        );
+    }
+
+    #[test]
+    fn gap_shape_breakdown_renders_and_aggregates_across_corpora() {
+        // Two divergence corpora carrying structured gap shapes; the breakdown section
+        // aggregates them by shape, sorted, with integer counts.
+        let json = r#"{
+          "entailment-mini": { "lane": "a", "cases": 4, "agree": 4, "corpus_only": 0, "dl_gap": 0 },
+          "entailment-mini-divergence": { "lane": "divergence", "cases": 2, "agree": 0, "corpus_only": 0, "dl_gap": 2,
+            "gap_shapes": { "multi-triple": 1, "role-assertion": 1 } },
+          "other-divergence": { "lane": "divergence", "cases": 1, "agree": 0, "corpus_only": 0, "dl_gap": 1,
+            "gap_shapes": { "role-assertion": 3 } }
+        }"#;
+        let md = matrix(json.as_bytes());
+        assert!(md.contains("## Capability gaps (by shape)"), "{md}");
+        // role-assertion aggregates across both divergence corpora: 1 + 3 = 4.
+        assert!(md.contains("| role-assertion | 4 |"), "{md}");
+        assert!(md.contains("| multi-triple | 1 |"), "{md}");
+    }
+
+    #[test]
+    fn no_gap_shapes_renders_none_in_the_breakdown() {
+        let json = r#"{ "tptp-mini": { "lane": "a", "cases": 2, "agree": 2, "corpus_only": 0, "dl_gap": 0 } }"#;
+        let md = matrix(json.as_bytes());
+        let (_, tail) = md
+            .split_once("## Capability gaps (by shape)")
+            .expect("gap-shape section present");
+        assert!(
+            tail.contains("_(none in the committed corpus)_"),
+            "empty gap-shape breakdown renders none: {tail}"
         );
     }
 
