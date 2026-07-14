@@ -24,14 +24,20 @@
 //!     `C owl:disjointWith D`;
 //!   * a ground unary atom `C(a)` → `a rdf:type C`;
 //!   * a ground binary atom `r(a,b)` → the role triple `a r b`.
-//! * A **conjecture** is negated by refutation:
-//!   * a ground unary `C(a)` → assert a counter-model `a ∈ C̄` with `C owl:disjointWith C̄`
-//!     (`C̄` a fresh class); the ontology is inconsistent iff the premises entail `C(a)`;
-//!   * a subclass `∀X.(C(X) → D(X))` → its negation `∃X.(C(X) ∧ ¬D(X))`, witnessed by one
-//!     fresh individual `w`: `w ∈ C`, `w ∈ D̄`, `D owl:disjointWith D̄`.
+//! * A **conjecture** is negated by refutation through the SHARED conclusion-shape
+//!   negation calculus ([`gmeow_logic::entail`]) — the same waist the RDF-conclusion
+//!   entailment path uses, so the reduction and its soundness convention live in ONE
+//!   place:
+//!   * a ground unary `C(a)` → [`ConclusionShape::GroundType`] → assert a counter-model
+//!     `a ∈ C̄` with `C owl:disjointWith C̄`; the ontology is inconsistent iff the
+//!     premises entail `C(a)`;
+//!   * a subclass `∀X.(C(X) → D(X))` → [`ConclusionShape::SubClassOf`] → its negation
+//!     `∃X.(C(X) ∧ ¬D(X))`, witnessed by one fresh individual `w`.
 //!
-//! Every fresh symbol carries a `-COMPLEMENT` / `-WITNESS` suffix (a `-` no TPTP
-//! word contains), so it is deterministic and cannot collide with a problem symbol.
+//! Fresh symbols are minted by the shared [`gmeow_logic::entail::Minter`] in a
+//! reserved namespace with a content-addressed suffix, and the minter HARD-FAILS if
+//! the problem vocabulary already contains a reserved IRI — sound for arbitrary IRIs
+//! (a plain string suffix is not).
 //!
 //! ## The fragment boundary is a gap, never a wrong answer
 //!
@@ -41,6 +47,9 @@
 //! records a DlGap ledger row. A gap is an honest "our engine cannot express
 //! this", categorically distinct from the oracle's `incomplete`.
 
+use std::collections::BTreeSet;
+
+use gmeow_logic::entail::{self, ConclusionShape, Minter};
 use gmeow_logic_compile::ir::{Formula, Term};
 
 use crate::external::lower::premise_ds_to_world_nquads;
@@ -94,6 +103,17 @@ pub fn lower_problem(
     formulas: &[AnnotatedFormula],
     world_iri: &str,
 ) -> Result<LoweredProblem, LoweringGap> {
+    // Build the sound fresh-symbol minter over the whole problem vocabulary, so a
+    // minted complement/witness can never collide with a problem symbol (the minter
+    // hard-fails on a reserved-namespace collision).
+    let mut vocab: BTreeSet<String> = BTreeSet::new();
+    for af in formulas {
+        collect_formula_iris(&af.formula, &mut vocab);
+    }
+    let minter = Minter::new(&vocab).map_err(|e| LoweringGap {
+        reason: format!("entailment minter rejected the problem vocabulary: {e}"),
+    })?;
+
     let mut triples: Vec<(String, String, String)> = Vec::new();
     for af in formulas {
         match af.role {
@@ -101,7 +121,7 @@ pub fn lower_problem(
                 lower_assertion(&af.formula, &mut triples)?;
             }
             TptpRole::Conjecture => {
-                lower_negated_conjecture(&af.formula, &mut triples)?;
+                lower_negated_conjecture(&af.formula, &minter, &mut triples)?;
             }
         }
     }
@@ -305,33 +325,41 @@ fn classify_literal(lit: &Formula, var: &str) -> Result<(bool, String), Lowering
     }
 }
 
-/// Negate a conjecture by refutation, asserting a counter-model as EDB triples.
+/// Negate a conjecture by refutation via the SHARED conclusion-shape calculus.
+///
+/// Recognizes the conjecture into a [`ConclusionShape`], then delegates the actual
+/// counter-model minting to [`gmeow_logic::entail::negate`] — the one waist the
+/// RDF-conclusion entailment path also uses, so the sound reserved-namespace minting
+/// lives in a single place.
 fn lower_negated_conjecture(
     f: &Formula,
+    minter: &Minter,
     out: &mut Vec<(String, String, String)>,
 ) -> Result<(), LoweringGap> {
-    match f {
-        // Ground unary `C(a)`: refute by `a ∈ C̄`, `C ⊥ C̄`.
+    let shape = match f {
+        // Ground unary `C(a)` → ground membership conclusion.
         Formula::Atom { relation, args } => {
             let c = iri_of(relation)?;
             match args.as_slice() {
-                [Term::Iri(a)] => {
-                    let c_bar = complement_of(&c);
-                    out.push((c.clone(), OWL_DISJOINTWITH.to_string(), c_bar.clone()));
-                    out.push((a.clone(), RDF_TYPE.to_string(), c_bar));
-                    Ok(())
+                [Term::Iri(a)] => ConclusionShape::GroundType {
+                    subject: a.clone(),
+                    class: c,
+                },
+                [Term::Iri(_), Term::Iri(_)] => {
+                    return Err(gap(
+                        "binary-predicate conjecture — negating a role atom is not \
+                         EL-expressible (no role negation)"
+                            .into(),
+                    ));
                 }
-                [Term::Iri(_), Term::Iri(_)] => Err(gap(
-                    "binary-predicate conjecture — negating a role atom is not \
-                     EL-expressible (no role negation)"
-                        .into(),
-                )),
-                _ => Err(gap(format!(
-                    "non-ground conjecture atom on `{c}` is not refutable in the EL fragment"
-                ))),
+                _ => {
+                    return Err(gap(format!(
+                        "non-ground conjecture atom on `{c}` is not refutable in the EL fragment"
+                    )));
+                }
             }
         }
-        // Subclass `∀X.(C(X) → D(X))`: refute by a fresh witness `w ∈ C`, `w ∈ D̄`, `D ⊥ D̄`.
+        // Subclass `∀X.(C(X) → D(X))` → subsumption conclusion.
         Formula::Forall { vars, body } => {
             let [var] = vars.as_slice() else {
                 return Err(gap(
@@ -348,19 +376,18 @@ fn lower_negated_conjecture(
             };
             let c = unary_class_over(ante, var)?;
             let d = unary_class_over(cons, var)?;
-            let d_bar = complement_of(&d);
-            let witness = witness_of(&c);
-            out.push((witness.clone(), RDF_TYPE.to_string(), c));
-            out.push((d.clone(), OWL_DISJOINTWITH.to_string(), d_bar.clone()));
-            out.push((witness, RDF_TYPE.to_string(), d_bar));
-            Ok(())
+            ConclusionShape::SubClassOf { sub: c, sup: d }
         }
-        _ => Err(gap(format!(
-            "conjecture shape {} is not refutable in the EL fragment (expected a ground \
-             unary atom or a single-variable subclass)",
-            shape_name(f)
-        ))),
-    }
+        _ => {
+            return Err(gap(format!(
+                "conjecture shape {} is not refutable in the EL fragment (expected a ground \
+                 unary atom or a single-variable subclass)",
+                shape_name(f)
+            )));
+        }
+    };
+    out.extend(entail::negate(&shape, minter));
+    Ok(())
 }
 
 // ---------------------------------------------------------------------------
@@ -400,17 +427,35 @@ fn unary_class_over(f: &Formula, var: &str) -> Result<String, LoweringGap> {
     }
 }
 
-/// The fresh complement class IRI for `class` (disjoint, single-purpose). The
-/// `-COMPLEMENT` suffix contains a `-`, which no TPTP symbol word does, so it can
-/// never collide with a problem class.
-fn complement_of(class: &str) -> String {
-    format!("{class}-COMPLEMENT")
-}
-
-/// The fresh witness individual IRI for refuting a subclass whose antecedent is
-/// `class`. `-WITNESS` cannot collide with a problem symbol.
-fn witness_of(class: &str) -> String {
-    format!("{class}-WITNESS")
+/// Collect every IRI mentioned in a formula (relations and ground arguments) into
+/// `out` — the problem vocabulary the shared minter checks for reserved-namespace
+/// collisions.
+fn collect_formula_iris(f: &Formula, out: &mut BTreeSet<String>) {
+    match f {
+        Formula::Atom { relation, args } => {
+            if let Term::Iri(i) = relation {
+                out.insert(i.clone());
+            }
+            for a in args {
+                if let Term::Iri(i) = a {
+                    out.insert(i.clone());
+                }
+            }
+        }
+        Formula::Not(inner) => collect_formula_iris(inner, out),
+        Formula::And(xs) | Formula::Or(xs) => {
+            for x in xs {
+                collect_formula_iris(x, out);
+            }
+        }
+        Formula::Implies(a, b) | Formula::Iff(a, b) => {
+            collect_formula_iris(a, out);
+            collect_formula_iris(b, out);
+        }
+        Formula::Forall { body, .. } | Formula::Exists { body, .. } => {
+            collect_formula_iris(body, out);
+        }
+    }
 }
 
 /// A short human name for a formula's top shape (for gap messages).
