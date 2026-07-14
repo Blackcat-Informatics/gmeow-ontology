@@ -65,9 +65,10 @@ ASK {
     math:StringOnlyMemberCondition rdfs:subClassOf math:MathConformanceFailure .
     math:UnqualifiedComplement     rdfs:subClassOf math:MathConformanceFailure .
     math:AmbiguousSetExtent        rdfs:subClassOf math:MathConformanceFailure .
+    math:UnderspecifiedInterval    rdfs:subClassOf math:MathConformanceFailure .
     math:UnframedFunction          rdfs:subClassOf math:MathConformanceFailure .
 }""" ;
-    gmeow:saRationale "Each of the seven bedrock hard-rule failures MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
+    gmeow:saRationale "Each of the eight bedrock hard-rule failures MUST be a subclass of math:MathConformanceFailure, so a violation is a typed, queryable object." .
 
 # --- 2b. The flagship-manifest failure class subclasses math:MathConformanceFailure (MUST) ---
 ex:saFlagshipFailureTyped a gmeow:StructuralAssertion ;
@@ -103,6 +104,34 @@ ASK {
     FILTER(isLiteral(?ex) && isIRI(?cq) && isLiteral(?prod) && isLiteral(?ce) && isIRI(?fc))
 }""" ;
     gmeow:saRationale "This layer's five flagship acceptance scenarios MUST each be present as a gmeow:FlagshipScenario binding its worked example, competency question, native producer, counter-example, and a real math:MathConformanceFailure subclass. If any of the five is absent or missing a link, the acceptance bar is not met and this assertion fails — the depth bar is a contract, not prose." .
+
+# --- 2d. math:Interval requires both endpoints and both endpoint inclusions (MUST) --- #
+ex:saIntervalInclusionRequired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    math:Interval rdfs:subClassOf [ owl:onProperty math:lowerEndpoint ; owl:minQualifiedCardinality 1 ] .
+    math:Interval rdfs:subClassOf [ owl:onProperty math:upperEndpoint ; owl:minQualifiedCardinality 1 ] .
+    math:Interval rdfs:subClassOf [ owl:onProperty math:lowerInclusion ; owl:minQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] .
+    math:Interval rdfs:subClassOf [ owl:onProperty math:upperInclusion ; owl:minQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] .
+}""" ;
+    gmeow:saRationale "A math:Interval MUST carry a required (min-qualified-one) owl:Restriction on EACH of math:lowerEndpoint, math:upperEndpoint, math:lowerInclusion, and math:upperInclusion, with the two inclusion restrictions pinned to owl:onClass math:EndpointInclusion — so endpoint inclusion is never silently omitted and which of [0, 1], [0, 1), or (0, 1) is meant is always data (a missing endpoint or inclusion is math:UnderspecifiedInterval). An interval that dropped an inclusion restriction, leaving the bracket a matter of convention, fails this assertion." .
+
+# --- 2e. The two endpoint inclusions are typed math:EndpointInclusion individuals (MUST) --- #
+ex:saEndpointInclusionVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX math: <https://blackcatinformatics.ca/math/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    math:closedEndpoint a owl:NamedIndividual , math:EndpointInclusion .
+    math:openEndpoint   a owl:NamedIndividual , math:EndpointInclusion .
+    FILTER NOT EXISTS { math:EndpointInclusion owl:oneOf ?enum . }
+}""" ;
+    gmeow:saRationale "The endpoint-inclusion vocabulary MUST be the two open owl:NamedIndividuals math:closedEndpoint (included, square bracket) and math:openEndpoint (excluded, round bracket), each typed math:EndpointInclusion — an open value vocabulary mirroring math:ConvergenceMode and math:LimitOutcome, never sealed by an owl:oneOf enumeration (the FILTER NOT EXISTS forbids it). A missing inclusion individual, or an owl:oneOf that closes the class, fails this assertion." .
 
 # --- 3. The seven arithmetic operators exist as math:ArithmeticOperation (MUST) ---
 ex:saArithmeticOperators a gmeow:StructuralAssertion ;

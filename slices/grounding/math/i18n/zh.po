@@ -460,6 +460,78 @@ msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|skos:defi
 msgid "The failure raised when a math:LimitResult does not name its math:limitOutcome, or carries a math:limitResultValue that disagrees with the declared outcome — a finite (non-pole) value is expected for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and NO value for math:divergesWithoutLimit. A structured limit result must say which of convergence or the three modes of divergence it is, and its value must agree with that outcome; anything else is ill-formed."
 msgstr "当一个 math:LimitResult 不命名其 math:limitOutcome，或携带与所声明结局相抵触的 math:limitResultValue 时引发的失败——math:convergesFinitely 期望一个有限（非极点）值，math:divergesToPositiveInfinity 期望 math:PositiveInfinity，math:divergesToNegativeInfinity 期望 math:NegativeInfinity，而 math:divergesWithoutLimit 期望没有任何值。一个结构化的极限结果必须说明它是收敛还是三种发散模式中的哪一种，且其值必须与该结局相符；其余一切皆为病态。"
 
+msgctxt "https://blackcatinformatics.ca/math/Interval|rdfs:label"
+msgid "Interval"
+msgstr "区间"
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|skos:definition"
+msgid "An ordered real interval: the intensional set { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } of the points of the extended real line between two ordered endpoints. It names BOTH its endpoints — the lower through math:lowerEndpoint and the upper through math:upperEndpoint — and BOTH its endpoint inclusions — whether each end is included (a closed, square-bracket end) or excluded (an open, round-bracket end) — through math:lowerInclusion and math:upperInclusion. A bounded end names a finite numeric literal; an unbounded end names a pole (math:PositiveInfinity or math:NegativeInfinity) as its endpoint, and such an infinite end is always open (∞ is a limit point of ℝ̄, never a member). The inclusion is NEVER silently omitted: [0, 1) is the half-open unit interval and (0, 1) is the open one, and which is meant is data, not convention — an interval missing an endpoint or an inclusion is ill-formed (math:UnderspecifiedInterval). It is NOT the statistics math:ConfidenceInterval, which is a frequentist estimator carrying a coverage level and a point estimate, not an ordered subset of the line; a math:Interval is the pure order-theoretic set, the external anchor being the OpenMath interval1 content dictionary."
+msgstr "一个有序实区间：扩展实数轴上介于两个有序端点之间的点所构成的内涵集合 { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }。它命名其两个端点——下端点通过 math:lowerEndpoint，上端点通过 math:upperEndpoint——并命名其两个端点包含性——每一端是被包含（闭端，方括号）还是被排除（开端，圆括号）——通过 math:lowerInclusion 与 math:upperInclusion。有界端命名一个有限数值字面量；无界端以极点（math:PositiveInfinity 或 math:NegativeInfinity）为其端点，且这样的无穷端总是开的（∞ 是 ℝ̄ 的极限点，绝非成员）。包含性绝不被静默省略：[0, 1) 是半开单位区间而 (0, 1) 是开区间，究竟指哪一个是数据，而非约定——缺少端点或包含性的区间是病态的（math:UnderspecifiedInterval）。它不是统计学的 math:ConfidenceInterval，后者是携带覆盖水平与点估计的频率派估计量，而非直线的有序子集；math:Interval 是纯序论意义上的集合，其外部锚点是 OpenMath interval1 内容词典。"
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|rdfs:label"
+msgid "Endpoint Inclusion"
+msgstr "端点包含性"
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|skos:definition"
+msgid "Whether an endpoint of a math:Interval is included in or excluded from the interval, carried by each end through math:lowerInclusion and math:upperInclusion: one of math:closedEndpoint (the endpoint is a member — the square bracket of [a, …) or (…, b]) or math:openEndpoint (the endpoint is excluded — the round bracket of (a, …) or (…, b)). The inclusion is what distinguishes [0, 1] from [0, 1) from (0, 1), and is required on both ends of every math:Interval."
+msgstr "一个 math:Interval 的端点是被包含在区间中还是被排除在外，由每一端通过 math:lowerInclusion 与 math:upperInclusion 携带：math:closedEndpoint（端点是成员——[a, …) 或 (…, b] 的方括号）或 math:openEndpoint（端点被排除——(a, …) 或 (…, b) 的圆括号）之一。包含性正是区分 [0, 1]、[0, 1) 与 (0, 1) 的关键，并在每个 math:Interval 的两端都是必需的。"
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|rdfs:label"
+msgid "closed (included)"
+msgstr "闭（包含）"
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|skos:definition"
+msgid "A closed endpoint: the endpoint is a member of the interval — the square bracket of [a, …) or (…, b]. The case where lower ≤ x (or x ≤ upper) admits equality; only a finite endpoint can be closed, since an infinite pole is never a member of ℝ̄."
+msgstr "闭端点：端点是区间的成员——[a, …) 或 (…, b] 的方括号。lower ≤ x（或 x ≤ upper）容许相等的情形；只有有限端点才能是闭的，因为无穷极点绝非 ℝ̄ 的成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|rdfs:label"
+msgid "open (excluded)"
+msgstr "开（排除）"
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|skos:definition"
+msgid "An open endpoint: the endpoint is excluded from the interval — the round bracket of (a, …) or (…, b). The case where lower < x (or x < upper) is strict. An unbounded end at a pole (math:PositiveInfinity or math:NegativeInfinity) is always open, because the pole is a limit point of the extended real line, never a member."
+msgstr "开端点：端点被排除在区间之外——(a, …) 或 (…, b) 的圆括号。lower < x（或 x < upper）严格成立的情形。位于极点（math:PositiveInfinity 或 math:NegativeInfinity）的无界端总是开的，因为极点是扩展实数轴的极限点，绝非成员。"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|rdfs:label"
+msgid "lower endpoint"
+msgstr "下端点"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|skos:definition"
+msgid "The lower endpoint of a math:Interval — the left end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded lower end) or the pole math:NegativeInfinity (an unbounded-below end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "一个 math:Interval 的下端点——{ x ∈ ℝ̄ | lower ⋚ x ⋚ upper } 的左端。定义域 math:Interval，值域为一个有限数值字面量（有界下端）或极点 math:NegativeInfinity（下方无界的端）（以散文说明）。与 math:totalMass 和 math:extendedRealValue 一样，它是一个 rdf:Property，而非 owl:ObjectProperty 或 owl:DatatypeProperty，正是因为其值域同时涵盖一个数据类型字面量（有限端点）与一个个体（极点）：这两种 DL 属性类型都不能同时容纳二者，因此诚实的 RDF 上位属性承载了扩展实数值域而不产生 DL 矛盾。每个 math:Interval 恰好命名一个；没有它的区间是病态的（math:UnderspecifiedInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|rdfs:label"
+msgid "upper endpoint"
+msgstr "上端点"
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|skos:definition"
+msgid "The upper endpoint of a math:Interval — the right end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded upper end) or the pole math:PositiveInfinity (an unbounded-above end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "一个 math:Interval 的上端点——{ x ∈ ℝ̄ | lower ⋚ x ⋚ upper } 的右端。定义域 math:Interval，值域为一个有限数值字面量（有界上端）或极点 math:PositiveInfinity（上方无界的端）（以散文说明）。与 math:totalMass 和 math:extendedRealValue 一样，它是一个 rdf:Property，而非 owl:ObjectProperty 或 owl:DatatypeProperty，正是因为其值域同时涵盖一个数据类型字面量（有限端点）与一个个体（极点）：这两种 DL 属性类型都不能同时容纳二者，因此诚实的 RDF 上位属性承载了扩展实数值域而不产生 DL 矛盾。每个 math:Interval 恰好命名一个；没有它的区间是病态的（math:UnderspecifiedInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|rdfs:label"
+msgid "lower inclusion"
+msgstr "下端包含性"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|skos:definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its lower end — math:closedEndpoint (the lower endpoint is a member, the square bracket of [a, …) or math:openEndpoint (the lower endpoint is excluded, the round bracket of (a, …). Domain math:Interval, range math:EndpointInclusion (stated in prose). The lower inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "将一个 math:Interval 关联到其下端的 math:EndpointInclusion——math:closedEndpoint（下端点是成员，[a, …) 的方括号）或 math:openEndpoint（下端点被排除，(a, …) 的圆括号）。定义域 math:Interval，值域 math:EndpointInclusion（以散文说明）。下端包含性是必需的，绝不被静默省略；没有它的区间是病态的（math:UnderspecifiedInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|rdfs:label"
+msgid "upper inclusion"
+msgstr "上端包含性"
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|skos:definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its upper end — math:closedEndpoint (the upper endpoint is a member, the square bracket of …, b]) or math:openEndpoint (the upper endpoint is excluded, the round bracket of …, b). Domain math:Interval, range math:EndpointInclusion (stated in prose). The upper inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "将一个 math:Interval 关联到其上端的 math:EndpointInclusion——math:closedEndpoint（上端点是成员，…, b] 的方括号）或 math:openEndpoint（上端点被排除，…, b) 的圆括号）。定义域 math:Interval，值域 math:EndpointInclusion（以散文说明）。上端包含性是必需的，绝不被静默省略；没有它的区间是病态的（math:UnderspecifiedInterval）。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedInterval|rdfs:label"
+msgid "Underspecified Interval"
+msgstr "欠定区间"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedInterval|skos:definition"
+msgid "The failure raised when a math:Interval does not name both of its endpoints (math:lowerEndpoint and math:upperEndpoint) and both of its endpoint inclusions (math:lowerInclusion and math:upperInclusion). An ordered interval is { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }; without both endpoints and both inclusions, whether [0, 1], [0, 1), or (0, 1) is meant is undetermined. Endpoint inclusion is never silently omitted, so an interval missing an endpoint or an inclusion is ill-formed."
+msgstr "当一个 math:Interval 未同时命名其两个端点（math:lowerEndpoint 与 math:upperEndpoint）和两个端点包含性（math:lowerInclusion 与 math:upperInclusion）时引发的失败。有序区间是 { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }；若缺少两个端点与两个包含性，究竟指 [0, 1]、[0, 1) 还是 (0, 1) 便无从确定。端点包含性绝不被静默省略，因此缺少端点或包含性的区间是病态的。"
+
 msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|rdfs:label"
 msgid "Measurement Scale"
 msgstr "测量尺度"

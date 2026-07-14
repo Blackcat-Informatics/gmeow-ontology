@@ -93,3 +93,18 @@ ex:totalEnergyExpr a math:DimensionalExpression ;
 ex:sampleMassQ a math:Quantity ;
     math:hasDimension math:massDimension ;
     gmeow:unit <http://qudt.org/vocab/unit/KiloGM> .
+
+# Q11 — two ordered intervals, each naming both endpoints and both endpoint
+# inclusions. A half-open bounded interval [0, 1) (lower closed, upper open) and an
+# unbounded interval (0, +∞) whose upper endpoint is the pole math:PositiveInfinity
+# (always open, a pole is never a member of ℝ̄).
+ex:halfOpenUnit a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+ex:positiveReals a math:Interval ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .

@@ -460,6 +460,78 @@ msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedLimitResult|skos:defi
 msgid "The failure raised when a math:LimitResult does not name its math:limitOutcome, or carries a math:limitResultValue that disagrees with the declared outcome — a finite (non-pole) value is expected for math:convergesFinitely, math:PositiveInfinity for math:divergesToPositiveInfinity, math:NegativeInfinity for math:divergesToNegativeInfinity, and NO value for math:divergesWithoutLimit. A structured limit result must say which of convergence or the three modes of divergence it is, and its value must agree with that outcome; anything else is ill-formed."
 msgstr "L'échec levé lorsqu'une math:LimitResult ne nomme pas son math:limitOutcome, ou porte une math:limitResultValue qui contredit l'issue déclarée — une valeur finie (non-pôle) est attendue pour math:convergesFinitely, math:PositiveInfinity pour math:divergesToPositiveInfinity, math:NegativeInfinity pour math:divergesToNegativeInfinity, et AUCUNE valeur pour math:divergesWithoutLimit. Un résultat de limite structuré doit dire lequel, de la convergence ou des trois modes de divergence, il est, et sa valeur doit s'accorder avec cette issue ; tout le reste est mal formé."
 
+msgctxt "https://blackcatinformatics.ca/math/Interval|rdfs:label"
+msgid "Interval"
+msgstr "Intervalle"
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|skos:definition"
+msgid "An ordered real interval: the intensional set { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } of the points of the extended real line between two ordered endpoints. It names BOTH its endpoints — the lower through math:lowerEndpoint and the upper through math:upperEndpoint — and BOTH its endpoint inclusions — whether each end is included (a closed, square-bracket end) or excluded (an open, round-bracket end) — through math:lowerInclusion and math:upperInclusion. A bounded end names a finite numeric literal; an unbounded end names a pole (math:PositiveInfinity or math:NegativeInfinity) as its endpoint, and such an infinite end is always open (∞ is a limit point of ℝ̄, never a member). The inclusion is NEVER silently omitted: [0, 1) is the half-open unit interval and (0, 1) is the open one, and which is meant is data, not convention — an interval missing an endpoint or an inclusion is ill-formed (math:UnderspecifiedInterval). It is NOT the statistics math:ConfidenceInterval, which is a frequentist estimator carrying a coverage level and a point estimate, not an ordered subset of the line; a math:Interval is the pure order-theoretic set, the external anchor being the OpenMath interval1 content dictionary."
+msgstr "Un intervalle réel ordonné : l'ensemble intensionnel { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } des points de la droite réelle achevée compris entre deux extrémités ordonnées. Il nomme SES DEUX extrémités — l'inférieure via math:lowerEndpoint et la supérieure via math:upperEndpoint — et SES DEUX inclusions d'extrémité — selon que chaque bout est inclus (une extrémité fermée, crochet droit) ou exclu (une extrémité ouverte, parenthèse ronde) — via math:lowerInclusion et math:upperInclusion. Un bout borné nomme un littéral numérique fini ; un bout non borné nomme un pôle (math:PositiveInfinity ou math:NegativeInfinity) comme extrémité, et un tel bout infini est toujours ouvert (∞ est un point limite de ℝ̄, jamais un membre). L'inclusion n'est JAMAIS omise en silence : [0, 1) est l'intervalle unité semi-ouvert et (0, 1) est l'ouvert, et lequel est visé est une donnée, non une convention — un intervalle auquel manque une extrémité ou une inclusion est mal formé (math:UnderspecifiedInterval). Ce n'est PAS le math:ConfidenceInterval des statistiques, qui est un estimateur fréquentiste portant un niveau de couverture et une estimation ponctuelle, non un sous-ensemble ordonné de la droite ; un math:Interval est l'ensemble purement ordinal, l'ancre externe étant le dictionnaire de contenu OpenMath interval1."
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|rdfs:label"
+msgid "Endpoint Inclusion"
+msgstr "Inclusion d'extrémité"
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|skos:definition"
+msgid "Whether an endpoint of a math:Interval is included in or excluded from the interval, carried by each end through math:lowerInclusion and math:upperInclusion: one of math:closedEndpoint (the endpoint is a member — the square bracket of [a, …) or (…, b]) or math:openEndpoint (the endpoint is excluded — the round bracket of (a, …) or (…, b)). The inclusion is what distinguishes [0, 1] from [0, 1) from (0, 1), and is required on both ends of every math:Interval."
+msgstr "Le fait qu'une extrémité d'un math:Interval soit incluse dans l'intervalle ou en soit exclue, porté par chaque bout via math:lowerInclusion et math:upperInclusion : l'une de math:closedEndpoint (l'extrémité est un membre — le crochet droit de [a, …) ou (…, b]) ou math:openEndpoint (l'extrémité est exclue — la parenthèse ronde de (a, …) ou (…, b)). L'inclusion est ce qui distingue [0, 1] de [0, 1) de (0, 1), et elle est requise sur les deux bouts de tout math:Interval."
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|rdfs:label"
+msgid "closed (included)"
+msgstr "fermée (incluse)"
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|skos:definition"
+msgid "A closed endpoint: the endpoint is a member of the interval — the square bracket of [a, …) or (…, b]. The case where lower ≤ x (or x ≤ upper) admits equality; only a finite endpoint can be closed, since an infinite pole is never a member of ℝ̄."
+msgstr "Une extrémité fermée : l'extrémité est un membre de l'intervalle — le crochet droit de [a, …) ou (…, b]. Le cas où lower ≤ x (ou x ≤ upper) admet l'égalité ; seule une extrémité finie peut être fermée, car un pôle infini n'est jamais un membre de ℝ̄."
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|rdfs:label"
+msgid "open (excluded)"
+msgstr "ouverte (exclue)"
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|skos:definition"
+msgid "An open endpoint: the endpoint is excluded from the interval — the round bracket of (a, …) or (…, b). The case where lower < x (or x < upper) is strict. An unbounded end at a pole (math:PositiveInfinity or math:NegativeInfinity) is always open, because the pole is a limit point of the extended real line, never a member."
+msgstr "Une extrémité ouverte : l'extrémité est exclue de l'intervalle — la parenthèse ronde de (a, …) ou (…, b). Le cas où lower < x (ou x < upper) est strict. Un bout non borné à un pôle (math:PositiveInfinity ou math:NegativeInfinity) est toujours ouvert, car le pôle est un point limite de la droite réelle achevée, jamais un membre."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|rdfs:label"
+msgid "lower endpoint"
+msgstr "extrémité inférieure"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|skos:definition"
+msgid "The lower endpoint of a math:Interval — the left end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded lower end) or the pole math:NegativeInfinity (an unbounded-below end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "L'extrémité inférieure d'un math:Interval — le bout gauche de { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domaine math:Interval, portée un littéral numérique fini (un bout inférieur borné) ou le pôle math:NegativeInfinity (un bout non borné inférieurement) (précisé en prose). Comme math:totalMass et math:extendedRealValue, c'est une rdf:Property, non une owl:ObjectProperty ni une owl:DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (l'extrémité finie) et un individu (un pôle) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Chaque math:Interval en nomme exactement une ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|rdfs:label"
+msgid "upper endpoint"
+msgstr "extrémité supérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|skos:definition"
+msgid "The upper endpoint of a math:Interval — the right end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded upper end) or the pole math:PositiveInfinity (an unbounded-above end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "L'extrémité supérieure d'un math:Interval — le bout droit de { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domaine math:Interval, portée un littéral numérique fini (un bout supérieur borné) ou le pôle math:PositiveInfinity (un bout non borné supérieurement) (précisé en prose). Comme math:totalMass et math:extendedRealValue, c'est une rdf:Property, non une owl:ObjectProperty ni une owl:DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (l'extrémité finie) et un individu (un pôle) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Chaque math:Interval en nomme exactement une ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|rdfs:label"
+msgid "lower inclusion"
+msgstr "inclusion inférieure"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|skos:definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its lower end — math:closedEndpoint (the lower endpoint is a member, the square bracket of [a, …) or math:openEndpoint (the lower endpoint is excluded, the round bracket of (a, …). Domain math:Interval, range math:EndpointInclusion (stated in prose). The lower inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "Relie un math:Interval à la math:EndpointInclusion de son bout inférieur — math:closedEndpoint (l'extrémité inférieure est un membre, le crochet droit de [a, …) ou math:openEndpoint (l'extrémité inférieure est exclue, la parenthèse ronde de (a, …). Domaine math:Interval, portée math:EndpointInclusion (précisé en prose). L'inclusion inférieure est requise et jamais omise en silence ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|rdfs:label"
+msgid "upper inclusion"
+msgstr "inclusion supérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|skos:definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its upper end — math:closedEndpoint (the upper endpoint is a member, the square bracket of …, b]) or math:openEndpoint (the upper endpoint is excluded, the round bracket of …, b). Domain math:Interval, range math:EndpointInclusion (stated in prose). The upper inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "Relie un math:Interval à la math:EndpointInclusion de son bout supérieur — math:closedEndpoint (l'extrémité supérieure est un membre, le crochet droit de …, b]) ou math:openEndpoint (l'extrémité supérieure est exclue, la parenthèse ronde de …, b). Domaine math:Interval, portée math:EndpointInclusion (précisé en prose). L'inclusion supérieure est requise et jamais omise en silence ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedInterval|rdfs:label"
+msgid "Underspecified Interval"
+msgstr "Intervalle sous-spécifié"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedInterval|skos:definition"
+msgid "The failure raised when a math:Interval does not name both of its endpoints (math:lowerEndpoint and math:upperEndpoint) and both of its endpoint inclusions (math:lowerInclusion and math:upperInclusion). An ordered interval is { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }; without both endpoints and both inclusions, whether [0, 1], [0, 1), or (0, 1) is meant is undetermined. Endpoint inclusion is never silently omitted, so an interval missing an endpoint or an inclusion is ill-formed."
+msgstr "L'échec levé lorsqu'un math:Interval ne nomme pas ses deux extrémités (math:lowerEndpoint et math:upperEndpoint) et ses deux inclusions d'extrémité (math:lowerInclusion et math:upperInclusion). Un intervalle ordonné est { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } ; sans les deux extrémités et les deux inclusions, lequel de [0, 1], [0, 1) ou (0, 1) est visé est indéterminé. L'inclusion d'extrémité n'est jamais omise en silence, de sorte qu'un intervalle auquel manque une extrémité ou une inclusion est mal formé."
+
 msgctxt "https://blackcatinformatics.ca/math/MeasurementScale|rdfs:label"
 msgid "Measurement Scale"
 msgstr "Échelle de mesure"

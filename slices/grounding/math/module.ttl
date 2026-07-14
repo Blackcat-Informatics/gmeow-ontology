@@ -378,6 +378,34 @@ math:continuum
     rdfs:label "𝔠"@x-gmeow-english ;
     skos:definition "The cardinality 𝔠 of the continuum — the cardinality of ℝ, equal to 2^ℵ₀."@x-gmeow-english .
 
+# --- Ordered intervals and endpoint inclusion ------------------------------- #
+
+math:Interval
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Interval"@x-gmeow-english ;
+    skos:definition "An ordered real interval: the intensional set { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } of the points of the extended real line between two ordered endpoints. It names BOTH its endpoints — the lower through math:lowerEndpoint and the upper through math:upperEndpoint — and BOTH its endpoint inclusions — whether each end is included (a closed, square-bracket end) or excluded (an open, round-bracket end) — through math:lowerInclusion and math:upperInclusion. A bounded end names a finite numeric literal; an unbounded end names a pole (math:PositiveInfinity or math:NegativeInfinity) as its endpoint, and such an infinite end is always open (∞ is a limit point of ℝ̄, never a member). The inclusion is NEVER silently omitted: [0, 1) is the half-open unit interval and (0, 1) is the open one, and which is meant is data, not convention — an interval missing an endpoint or an inclusion is ill-formed (math:UnderspecifiedInterval). It is NOT the statistics math:ConfidenceInterval, which is a frequentist estimator carrying a coverage level and a point estimate, not an ordered subset of the line; a math:Interval is the pure order-theoretic set, the external anchor being the OpenMath interval1 content dictionary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:EndpointInclusion
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Endpoint Inclusion"@x-gmeow-english ;
+    skos:definition "Whether an endpoint of a math:Interval is included in or excluded from the interval, carried by each end through math:lowerInclusion and math:upperInclusion: one of math:closedEndpoint (the endpoint is a member — the square bracket of [a, …) or (…, b]) or math:openEndpoint (the endpoint is excluded — the round bracket of (a, …) or (…, b)). The inclusion is what distinguishes [0, 1] from [0, 1) from (0, 1), and is required on both ends of every math:Interval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:closedEndpoint
+    a owl:NamedIndividual , math:EndpointInclusion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "closed (included)"@x-gmeow-english ;
+    skos:definition "A closed endpoint: the endpoint is a member of the interval — the square bracket of [a, …) or (…, b]. The case where lower ≤ x (or x ≤ upper) admits equality; only a finite endpoint can be closed, since an infinite pole is never a member of ℝ̄."@x-gmeow-english .
+
+math:openEndpoint
+    a owl:NamedIndividual , math:EndpointInclusion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "open (excluded)"@x-gmeow-english ;
+    skos:definition "An open endpoint: the endpoint is excluded from the interval — the round bracket of (a, …) or (…, b). The case where lower < x (or x < upper) is strict. An unbounded end at a pole (math:PositiveInfinity or math:NegativeInfinity) is always open, because the pole is a limit point of the extended real line, never a member."@x-gmeow-english .
+
 # =========================================================================== #
 # Relations and functions
 # =========================================================================== #
@@ -494,6 +522,14 @@ math:AmbiguousSetExtent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Ambiguous Set Extent"@x-gmeow-english ;
     skos:definition "The failure raised when a set is given both extensionally (math:hasElement) and intensionally (math:memberCondition) without a declared equality. A set is extensional or intensional, not silently both."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+math:UnderspecifiedInterval
+    a owl:Class ;
+    rdfs:subClassOf math:MathConformanceFailure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Underspecified Interval"@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Interval does not name both of its endpoints (math:lowerEndpoint and math:upperEndpoint) and both of its endpoint inclusions (math:lowerInclusion and math:upperInclusion). An ordered interval is { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }; without both endpoints and both inclusions, whether [0, 1], [0, 1), or (0, 1) is meant is undetermined. Endpoint inclusion is never silently omitted, so an interval missing an endpoint or an inclusion is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:UnframedFunction
@@ -660,6 +696,36 @@ math:hasCardinality
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has cardinality"@x-gmeow-english ;
     skos:definition "Names the size of a set. Domain math:Set, range math:Cardinality (stated in prose). A finite set names math:cardinalityFinite and may additionally carry its exact count as a math:quantityValue."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# --- Interval properties ---------------------------------------------------- #
+
+math:lowerEndpoint
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "lower endpoint"@x-gmeow-english ;
+    skos:definition "The lower endpoint of a math:Interval — the left end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded lower end) or the pole math:NegativeInfinity (an unbounded-below end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:upperEndpoint
+    a rdf:Property ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "upper endpoint"@x-gmeow-english ;
+    skos:definition "The upper endpoint of a math:Interval — the right end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded upper end) or the pole math:PositiveInfinity (an unbounded-above end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an owl:ObjectProperty or owl:DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:lowerInclusion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "lower inclusion"@x-gmeow-english ;
+    skos:definition "Relates a math:Interval to the math:EndpointInclusion of its lower end — math:closedEndpoint (the lower endpoint is a member, the square bracket of [a, …) or math:openEndpoint (the lower endpoint is excluded, the round bracket of (a, …). Domain math:Interval, range math:EndpointInclusion (stated in prose). The lower inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+math:upperInclusion
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "upper inclusion"@x-gmeow-english ;
+    skos:definition "Relates a math:Interval to the math:EndpointInclusion of its upper end — math:closedEndpoint (the upper endpoint is a member, the square bracket of …, b]) or math:openEndpoint (the upper endpoint is excluded, the round bracket of …, b). Domain math:Interval, range math:EndpointInclusion (stated in prose). The upper inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Function properties ---------------------------------------------------- #
@@ -5830,6 +5896,12 @@ math:Complement rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:ambientSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:complementSemantics ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ComplementSemantics ] .
 
+math:Interval rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:lowerEndpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:upperEndpoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:lowerInclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] ,
+    [ a owl:Restriction ; owl:onProperty math:upperInclusion ; owl:maxQualifiedCardinality 1 ; owl:onClass math:EndpointInclusion ] .
+
 math:Function rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:domain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Set ] ,
     [ a owl:Restriction ; owl:onProperty math:codomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Set ] .
@@ -7782,6 +7854,10 @@ math:LogicLoweringDeclaredConstraint
 <https://blackcatinformatics.ca/math/SetBuilderExpression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/memberCondition> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/Complement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/ambientSpace> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/Complement> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/complementSemantics> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/ComplementSemantics> ] .
+<https://blackcatinformatics.ca/math/Interval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/lowerEndpoint> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Interval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/upperEndpoint> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Interval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/lowerInclusion> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/EndpointInclusion> ] .
+<https://blackcatinformatics.ca/math/Interval> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/upperInclusion> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/EndpointInclusion> ] .
 <https://blackcatinformatics.ca/math/Function> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/domain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Set> ] .
 <https://blackcatinformatics.ca/math/Function> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/codomain> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Set> ] .
 <https://blackcatinformatics.ca/math/AlgebraicStructure> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/underlyingSet> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Set> ] .

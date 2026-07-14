@@ -69,6 +69,7 @@ subclasses), so a violation is itself a typed, queryable object, not a log line.
 | An intensional set's member condition denotes a `logic:` formula, not a string | SHACL Core | `math:StringOnlyMemberCondition` |
 | A complement names its ambient space and its complement-semantics | SHACL Core | `math:UnqualifiedComplement` |
 | A set is extensional or intensional, not silently both | SHACL-SPARQL | `math:AmbiguousSetExtent` |
+| A `math:Interval` names both endpoints and both endpoint inclusions (inclusion is never silently omitted) | SHACL Core | `math:UnderspecifiedInterval` |
 | A `math:Function` declares its domain and codomain | SHACL Core | `math:UnframedFunction` |
 
 ### Algebra rules

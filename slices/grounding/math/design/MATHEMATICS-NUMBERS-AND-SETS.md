@@ -86,11 +86,12 @@ associativity, identity, inverse), so `+` over ℤ knows it is the operation of 
 ## Sets and their construction
 
 Core classes: `math:Set` (from the object layer), `math:FiniteSet`, `math:SetBuilderExpression`,
-`math:Membership`, `math:SetOperation`, `math:PowerSet`, `math:CartesianProduct`, and
-`math:Cardinality`.
+`math:Membership`, `math:SetOperation`, `math:PowerSet`, `math:CartesianProduct`,
+`math:Cardinality`, `math:Interval`, and `math:EndpointInclusion`.
 
 Core properties: `math:hasElement`/`math:hasMember`, `math:memberCondition`, `math:subsetOf`,
-`math:setOperationOn`, and `math:hasCardinality`.
+`math:setOperationOn`, `math:hasCardinality`, `math:lowerEndpoint`, `math:upperEndpoint`,
+`math:lowerInclusion`, and `math:upperInclusion`.
 
 A set is either **extensional** (a `math:FiniteSet` enumerating its elements via `math:hasElement`)
 or **intensional** (a `math:SetBuilderExpression` whose `math:memberCondition` is a `logic:`
@@ -104,6 +105,31 @@ anchor is OpenMath `set1`.
 > denotation seam), never as an opaque string. A "complement" names its ambient set — an unqualified
 > complement is ill-formed (the same discipline the geometry charter applies to subspace
 > complements, [`MATHEMATICS-ANALYSIS-AND-GEOMETRY.md`](MATHEMATICS-ANALYSIS-AND-GEOMETRY.md)).
+
+A distinguished intensional set is the **ordered interval** `math:Interval`: the set
+`{ x ∈ ℝ̄ | lower ⋚ x ⋚ upper }` of the points of the extended real line between two ordered
+endpoints. Where a `math:SetBuilderExpression` names an arbitrary `logic:` condition, an interval is
+the special case whose condition is fixed by its two endpoints and their order — so it names them
+directly rather than through a formula: the lower end through `math:lowerEndpoint`, the upper through
+`math:upperEndpoint`. Because an endpoint may be a finite real **or** an unbounded end, an endpoint is
+a signed extended-real slot — a finite numeric literal for a bounded end, or a pole
+(`math:PositiveInfinity`/`math:NegativeInfinity`) for an unbounded one — which is why `math:lowerEndpoint`
+and `math:upperEndpoint` are honest `rdf:Property`s spanning literal and pole, exactly as `math:totalMass`
+and `math:extendedRealValue` are.
+
+Crucially, an interval names **both** its endpoint inclusions — whether each end is closed (a member,
+the square bracket) or open (excluded, the round bracket) — through `math:lowerInclusion` and
+`math:upperInclusion`, each a `math:EndpointInclusion` (`math:closedEndpoint` or `math:openEndpoint`,
+an open value vocabulary, never sealed by `owl:oneOf`). The inclusion is what distinguishes `[0, 1]`
+from `[0, 1)` from `(0, 1)`, and an unbounded end at a pole is always open (a pole is a limit point of
+`ℝ̄`, never a member). This is `math:Interval` the pure order-theoretic set — **not** the statistics
+`math:ConfidenceInterval` estimator, which carries a coverage level and a point estimate, not an
+ordered subset of the line ([`MATHEMATICS-STATISTICS.md`](MATHEMATICS-STATISTICS.md)). The external
+anchor is OpenMath `interval1`.
+
+> **Hard rule.** An interval names both endpoints **and** both endpoint inclusions — inclusion is
+> never silently omitted, so which of `[0, 1]`, `[0, 1)`, or `(0, 1)` is meant is always data. An
+> interval missing an endpoint or an inclusion is ill-formed (`math:UnderspecifiedInterval`).
 
 ## Relations and functions
 

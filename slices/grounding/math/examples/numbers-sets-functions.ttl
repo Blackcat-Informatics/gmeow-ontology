@@ -84,3 +84,24 @@ ex:negateThenSquare a math:Function ;
 ex:integerSet a math:Set ;
     rdfs:label "ℤ"@x-gmeow-english ;
     math:hasCardinality math:alephNull .
+
+# Two ordered real intervals, each naming both endpoints AND both endpoint
+# inclusions. The half-open unit interval [0, 1): its lower endpoint 0 is closed
+# (included, square bracket) and its upper endpoint 1 is open (excluded, round
+# bracket).
+ex:halfOpenUnit a math:Interval ;
+    rdfs:label "[0, 1)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint "1.0"^^xsd:double ;
+    math:lowerInclusion math:closedEndpoint ;
+    math:upperInclusion math:openEndpoint .
+
+# The unbounded interval (0, +∞): its lower endpoint 0 is open (excluded) and its
+# upper end runs off to the positive pole math:PositiveInfinity, which — being a
+# limit point of ℝ̄, never a member — is always open.
+ex:positiveReals a math:Interval ;
+    rdfs:label "(0, +∞)"@x-gmeow-english ;
+    math:lowerEndpoint "0.0"^^xsd:double ;
+    math:upperEndpoint math:PositiveInfinity ;
+    math:lowerInclusion math:openEndpoint ;
+    math:upperInclusion math:openEndpoint .
