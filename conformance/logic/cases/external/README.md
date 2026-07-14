@@ -205,12 +205,18 @@ cargo run -p gmeow-conformance --bin ingest-external -- --vendor-entailment \
   conformance/logic/cases/external/entailment-mini
 ```
 
-A conclusion outside the soundly-refutable single-EDB fragment — a **multi-triple**
-conjunction (`A ⊨ {t₁…tₙ}` needs `n` independent refutations, not one EDB), or a
-**role assertion** (role negation is not EL-expressible) — is an honest structured
-gap vendored to `entailment-mini-divergence/` with its `gmeow:gapShape` token in
-`profile.json` (the data the pipeline reifies as `gmeow:CapabilityGap`). The
-`entailment_mini_gate` test pins the non-gap coverage floor and the exact gap set.
+A conclusion outside the soundly-refutable single-EDB fragment — a **role assertion**
+(role negation is not EL-expressible) — is an honest structured *reasoner-fragment*
+gap vendored to `entailment-mini-divergence/` with its `gmeow:gapShape` token
+(`role-assertion`) in `profile.json` (the data the pipeline reifies as
+`gmeow:CapabilityGap`). A **multi-triple** conjunction (`A ⊨ {t₁…tₙ}`) is different in
+kind: `dl_entails` decides it perfectly well, as `n` independent refutations — it is
+only the frozen, single-EDB `input.nq` vendoring format that cannot freeze a
+conjunctive conclusion as one case, so it is vendored with the
+`vendoring-multi-goal` token (a vendoring-FORMAT limit, not a reasoner gap;
+[`gmeow_logic::entail::CapabilityGapShape::is_reasoner_fragment_gap`] returns `false`
+for it). The `entailment_mini_gate` test pins the non-gap coverage floor and the
+exact gap set.
 
 The upstream W3C OWL 2 / RDFCore entailment suites express their premises and
 conclusions as **reference documents** (not inline), so they are graded live only

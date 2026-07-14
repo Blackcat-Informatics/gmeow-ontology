@@ -64,7 +64,7 @@ const ENTAILMENT_COVERAGE_FLOOR: usize = 4;
 /// fragment, each an honest structured gap.
 fn divergence_gaps() -> BTreeMap<&'static str, &'static str> {
     BTreeMap::from([
-        ("multi-triple-conclusion", "multi-triple"),
+        ("multi-triple-conclusion", "vendoring-multi-goal"),
         ("role-conclusion", "role-assertion"),
     ])
 }
