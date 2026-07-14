@@ -800,3 +800,443 @@ msgstr "engagement de plancher d'axe — math / axisReasonerDerived"
 msgctxt "https://blackcatinformatics.ca/gmeow/afc-math-axisReasonerDerived|skos:definition"
 msgid "The committed raise-only measured-score floor for the axisReasonerDerived quality axis on the math slice; the gate reds if the slice's measured score falls below it."
 msgstr "Le plancher de score mesuré engagé, à hausse seule, pour l'axe de qualité axisReasonerDerived sur la slice math ; la barrière passe au rouge si le score mesuré de la slice descend sous ce plancher."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|rdfs:label"
+msgid "Projection Vocabulary"
+msgstr "Vocabulaire de projection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionVocabulary|skos:definition"
+msgid "A guarded, logic:-subsumable lossy-projection surface the projection-vocabulary ratchet caps. Per Principle 17, OWL, SHACL, gUFO, BFO, DOLCE, and the alignment stack (SSSOM, EDOAL, FnO) are generated lossy projections of logic:; each such surface is named here once, ontology-resident and data-driven, rather than hardcoded in Rust. It carries the vocabulary's namespace(s), the logic: core it is subsumed by, how its hand-authored constructs are recognized (gmeow:vocabularyCountKind), the default ceiling a slice with no explicit commitment is held to, its loss-ledger preservation judgment, and the by-reference alignment predicates the ratchet exempts. It is NOT a gmeow:ProjectionCeilingCommitment (that is the per-(slice,vocabulary) ratchet cell) and NOT a gmeow:Slice: it is the guarded vocab itself, the dogfooded guard list the gate's shared counter iterates."
+msgstr "Une surface de projection avec perte, subsumable par logic: et surveillée, que le cliquet de vocabulaire de projection plafonne. Selon le Principe 17, OWL, SHACL, gUFO, BFO, DOLCE et la pile d'alignement (SSSOM, EDOAL, FnO) sont des projections avec perte générées de logic: ; chacune de ces surfaces est nommée ici une seule fois, résidant dans l'ontologie et pilotée par les données, plutôt que codée en dur dans Rust. Elle porte le ou les espaces de noms du vocabulaire, le noyau logic: dont elle est subsumée, la manière dont ses constructions rédigées à la main sont reconnues (gmeow:vocabularyCountKind), le plafond par défaut auquel est tenue une slice sans engagement explicite, son jugement de préservation du registre de perte, et les prédicats d'alignement par référence que le cliquet exempte. Ce n'est PAS un gmeow:ProjectionCeilingCommitment (qui est la cellule de cliquet par (slice, vocabulaire)) et PAS une gmeow:Slice : c'est le vocabulaire surveillé lui-même, la liste de garde dogfoodée que le compteur partagé de la barrière parcourt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionCeilingCommitment|rdfs:label"
+msgid "Projection Ceiling Commitment"
+msgstr "Engagement de plafond de projection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionCeilingCommitment|skos:definition"
+msgid "A reified per-slice, per-vocabulary committed residue ceiling — the maximum ungrounded-residue count a named gmeow:ProjectionVocabulary may measure for a named slice, enforced by the make-check gate as a LOWER-ONLY monotonic ratchet (the value may fall but never rise), the exact inverse polarity of gmeow:AxisFloorCommitment. It pairs one gmeow:ceilingSlice, one gmeow:ceilingVocabulary, and one gmeow:ceilingCount into a single ratchet cell. It is NOT a gmeow:AxisFloorCommitment (that is a raise-only score floor, not a count) and NOT a measured count (that is computed live by the shared residue counter): it is the committed maximum a slice's measured residue for a vocabulary may never exceed, lowered only after a genuine measured migration grounds constructs out of the residue."
+msgstr "Un plafond de résidu engagé, réifié par slice et par vocabulaire — le nombre maximal de résidu non ancré qu'un gmeow:ProjectionVocabulary nommé peut mesurer pour une slice nommée, imposé par la barrière make-check comme un cliquet monotone À BAISSE SEULE (la valeur peut descendre mais jamais monter), l'exacte polarité inverse de gmeow:AxisFloorCommitment. Il associe un gmeow:ceilingSlice, un gmeow:ceilingVocabulary et un gmeow:ceilingCount en une seule cellule de cliquet. Ce n'est PAS un gmeow:AxisFloorCommitment (qui est un plancher de score à hausse seule, non un décompte) et PAS un décompte mesuré (celui-ci est calculé en direct par le compteur de résidu partagé) : c'est le maximum engagé que le résidu mesuré d'une slice pour un vocabulaire ne peut jamais dépasser, abaissé uniquement après qu'une véritable migration mesurée ait retiré des constructions du résidu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefix|rdfs:label"
+msgid "vocabulary prefix"
+msgstr "préfixe de vocabulaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPrefix|skos:definition"
+msgid "The short CURIE prefix of a guarded projection vocabulary (e.g. \"sh\", \"gufo\", \"bfo\") — the join key gmeow:ceilingVocabulary uses to bind a ceiling commitment to its vocabulary. It is NOT the namespace IRI (that is gmeow:vocabularyNamespace) and NOT a display label: it is the stable short key the counter and the ceiling ABox both key on."
+msgstr "Le court préfixe CURIE d'un vocabulaire de projection surveillé (par ex. « sh », « gufo », « bfo ») — la clé de jointure qu'utilise gmeow:ceilingVocabulary pour lier un engagement de plafond à son vocabulaire. Ce n'est PAS l'IRI d'espace de noms (c'est gmeow:vocabularyNamespace) et PAS une étiquette d'affichage : c'est la clé courte stable sur laquelle s'indexent à la fois le compteur et l'ABox des plafonds."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyNamespace|rdfs:label"
+msgid "vocabulary namespace"
+msgstr "espace de noms de vocabulaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyNamespace|skos:definition"
+msgid "One IRI namespace under which a guarded vocabulary's hand-authored constructs are recognized — NON-functional, because a vocabulary may be authored under aliased namespaces (DOLCE's canonical dul: namespace is one such alias set). A candidate triple's predicate or object IRI counts toward the vocabulary if it starts with ANY asserted gmeow:vocabularyNamespace. It is NOT the short prefix (that is gmeow:vocabularyPrefix): it is the full IRI stem the counter matches against."
+msgstr "Un espace de noms IRI sous lequel les constructions rédigées à la main d'un vocabulaire surveillé sont reconnues — NON fonctionnelle, car un vocabulaire peut être rédigé sous des espaces de noms alias (l'espace de noms canonique dul: de DOLCE en est un tel jeu d'alias). L'IRI du prédicat ou de l'objet d'un triplet candidat compte pour le vocabulaire s'il commence par N'IMPORTE LEQUEL des gmeow:vocabularyNamespace affirmés. Ce n'est PAS le préfixe court (c'est gmeow:vocabularyPrefix) : c'est le radical IRI complet auquel le compteur compare."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy|rdfs:label"
+msgid "vocabulary subsumed by"
+msgstr "vocabulaire subsumé par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedBy|skos:definition"
+msgid "The logic: core slice that subsumes a guarded projection vocabulary — the Principle 17 witness that the vocabulary is a generated lossy projection of logic:, not an independent authoring surface. Every guarded vocabulary points here at the logic slice. It is NOT a gmeow:vocabularyPreservation judgment (that names the preservation polarity) and NOT the vocabulary's own namespace: it is the canonical source the vocabulary is a projection OF."
+msgstr "La slice noyau logic: qui subsume un vocabulaire de projection surveillé — le témoin du Principe 17 attestant que le vocabulaire est une projection avec perte générée de logic:, et non une surface de rédaction indépendante. Chaque vocabulaire surveillé pointe ici vers la slice logic. Ce n'est PAS un jugement gmeow:vocabularyPreservation (qui nomme la polarité de préservation) et PAS l'espace de noms propre du vocabulaire : c'est la source canonique DONT le vocabulaire est une projection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKind|rdfs:label"
+msgid "vocabulary count kind"
+msgstr "genre de décompte de vocabulaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyCountKind|skos:definition"
+msgid "How a guarded vocabulary's hand-authored constructs are recognized in a slice's TTL surface — the exact literal \"countKindShape\" (SHACL, counted by structural role), \"countKindTypedAxiom\" (a typed-axiom projection such as gUFO/BFO/DOLCE/FnO/EDOAL/SSSOM, counted by namespace-matched triples), or \"countKindNonRdfSurface\" (Datalog/Prolog/N3, structurally 0 in TTL — documentary-only, never enforced). These three literals are the closed set the shared counter's Rust dispatch resolves against; an unrecognized literal is a hard fail, not a silent skip."
+msgstr "La manière dont les constructions rédigées à la main d'un vocabulaire surveillé sont reconnues dans la surface TTL d'une slice — le littéral exact « countKindShape » (SHACL, décompté par rôle structurel), « countKindTypedAxiom » (une projection à axiome typé telle que gUFO/BFO/DOLCE/FnO/EDOAL/SSSOM, décomptée par triplets appariés à l'espace de noms), ou « countKindNonRdfSurface » (Datalog/Prolog/N3, structurellement 0 en TTL — documentaire seulement, jamais imposé). Ces trois littéraux forment l'ensemble fermé sur lequel se résout le dispatch Rust du compteur partagé ; un littéral non reconnu est un échec dur, non une omission silencieuse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling|rdfs:label"
+msgid "vocabulary default ceiling"
+msgstr "plafond par défaut de vocabulaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyDefaultCeiling|skos:definition"
+msgid "The effective residue ceiling for any slice that carries no explicit gmeow:ProjectionCeilingCommitment against this vocabulary — 0 for every guarded vocabulary, so a slice's FIRST ungrounded use of a previously-absent vocabulary reds the gate rather than silently passing. It is NOT a per-slice gmeow:ceilingCount (that overrides this default when an explicit commitment exists): it is the vacuous-case floor that closes the net-new-vocab loophole without materializing hundreds of explicit zero-ceiling individuals."
+msgstr "Le plafond de résidu effectif pour toute slice ne portant aucun gmeow:ProjectionCeilingCommitment explicite contre ce vocabulaire — 0 pour chaque vocabulaire surveillé, de sorte que le PREMIER usage non ancré d'un vocabulaire jusque-là absent fasse passer la barrière au rouge plutôt que de la laisser passer en silence. Ce n'est PAS un gmeow:ceilingCount par slice (qui prime sur ce défaut lorsqu'un engagement explicite existe) : c'est le plancher du cas vide qui referme l'échappatoire du vocabulaire tout neuf sans matérialiser des centaines d'individus explicites à plafond zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservation|rdfs:label"
+msgid "vocabulary preservation"
+msgstr "préservation de vocabulaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyPreservation|skos:definition"
+msgid "The loss-ledger preservation judgment a guarded vocabulary's projection from logic: carries — for every currently-guarded vocabulary, logic:SoundUnderApproximation (the projection never overclaims a derivation, but may miss canonical answers logic: itself would derive). It is NOT gmeow:vocabularySubsumedBy (that names the logic: core the vocabulary projects FROM): it names the polarity of guarantee the projection itself makes, joining the ratchet's ontology-resident vocab registry to the same loss-ledger vocabulary every other GMEOW projection uses."
+msgstr "Le jugement de préservation du registre de perte que porte la projection depuis logic: d'un vocabulaire surveillé — pour chaque vocabulaire actuellement surveillé, logic:SoundUnderApproximation (la projection ne surclaime jamais une dérivation, mais peut manquer des réponses canoniques que logic: lui-même dériverait). Ce n'est PAS gmeow:vocabularySubsumedBy (qui nomme le noyau logic: DEPUIS lequel le vocabulaire projette) : il nomme la polarité de garantie que la projection fait elle-même, reliant le registre de vocabulaires résidant dans l'ontologie du cliquet au même vocabulaire de registre de perte qu'utilise chaque autre projection GMEOW."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyAlignmentPredicate|rdfs:label"
+msgid "vocabulary alignment predicate"
+msgstr "prédicat d'alignement de vocabulaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vocabularyAlignmentPredicate|skos:definition"
+msgid "One by-reference alignment/bridge predicate IRI this vocabulary exempts from its residue when a matching triple's object resolves to an EXTERNAL (non-gmeow:) namespace — NON-functional, since a vocabulary typically exempts several bridge predicates (rdf:type, rdfs:subClassOf, owl:equivalentClass, rdfs:seeAlso, and the SKOS mapping predicates). Per Principle 5, foundational alignment by reference is \"MORE is always BETTER\" and must never be punished as a second source of truth; an INTERNAL gmeow-to-gmeow triple under the same predicate is NOT exempted (it stays in the residue as a genuine second source of truth). It is NOT gmeow:vocabularyNamespace (which selects candidate triples) but a filter over which of those candidates the counter then subtracts."
+msgstr "Une IRI de prédicat d'alignement/passerelle par référence que ce vocabulaire exempte de son résidu lorsque l'objet d'un triplet correspondant se résout vers un espace de noms EXTERNE (hors gmeow:) — NON fonctionnelle, car un vocabulaire exempte typiquement plusieurs prédicats passerelles (rdf:type, rdfs:subClassOf, owl:equivalentClass, rdfs:seeAlso, et les prédicats de correspondance SKOS). Selon le Principe 5, l'alignement fondationnel par référence relève du principe « PLUS c'est toujours MIEUX » et ne doit jamais être pénalisé comme une seconde source de vérité ; un triplet INTERNE gmeow-à-gmeow sous le même prédicat n'est PAS exempté (il demeure dans le résidu en tant que véritable seconde source de vérité). Ce n'est PAS gmeow:vocabularyNamespace (qui sélectionne les triplets candidats) mais un filtre sur lesquels de ces candidats le compteur soustrait ensuite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSlice|rdfs:label"
+msgid "ceiling slice"
+msgstr "slice de plafond"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingSlice|skos:definition"
+msgid "The slice a projection-ceiling commitment is committed against — the named slice whose measured ungrounded residue for gmeow:ceilingVocabulary the ceiling guards. It is NOT the vocabulary (that is gmeow:ceilingVocabulary) and NOT the count (that is gmeow:ceilingCount): it is the subject slice the ratchet cell pins, the direct counterpart of gmeow:floorSlice."
+msgstr "La slice contre laquelle un engagement de plafond de projection est pris — la slice nommée dont le plafond garde le résidu non ancré mesuré pour gmeow:ceilingVocabulary. Ce n'est PAS le vocabulaire (c'est gmeow:ceilingVocabulary) et PAS le décompte (c'est gmeow:ceilingCount) : c'est la slice sujette que la cellule de cliquet épingle, la contrepartie directe de gmeow:floorSlice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabulary|rdfs:label"
+msgid "ceiling vocabulary"
+msgstr "vocabulaire de plafond"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingVocabulary|skos:definition"
+msgid "The guarded projection vocabulary a ceiling commitment caps — the named gmeow:ProjectionVocabulary whose measured ungrounded residue for the committed slice must hold at or below gmeow:ceilingCount. It is NOT the slice (that is gmeow:ceilingSlice) and NOT the ceiling integer (that is gmeow:ceilingCount): it names which guarded surface the ceiling applies to."
+msgstr "Le vocabulaire de projection surveillé qu'un engagement de plafond plafonne — le gmeow:ProjectionVocabulary nommé dont le résidu non ancré mesuré pour la slice engagée doit se tenir à ou sous gmeow:ceilingCount. Ce n'est PAS la slice (c'est gmeow:ceilingSlice) et PAS l'entier du plafond (c'est gmeow:ceilingCount) : il nomme la surface surveillée à laquelle le plafond s'applique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCount|rdfs:label"
+msgid "ceiling count"
+msgstr "décompte de plafond"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ceilingCount|skos:definition"
+msgid "The committed maximum ungrounded-residue count (a non-negative integer) a per-(slice,vocabulary) ceiling commitment pins — the value the slice's measured residue for that vocabulary may fall below but never exceed, and which may itself only fall (or be removed) across a base-vs-working comparison, never rise. It is NOT a gmeow:floorValue (that is a raise-only decimal score floor) and NOT the live measured count (that is computed by the shared counter): it is the lower-only, integer-exact regression ceiling for one slice's one vocabulary."
+msgstr "Le nombre maximal engagé de résidu non ancré (un entier non négatif) qu'épingle un engagement de plafond par (slice, vocabulaire) — la valeur sous laquelle le résidu mesuré de la slice pour ce vocabulaire peut descendre mais jamais dépasser, et qui elle-même ne peut que descendre (ou être retirée) d'une comparaison base-contre-travail à l'autre, jamais monter. Ce n'est PAS une gmeow:floorValue (qui est un plancher de score décimal à hausse seule) et PAS le décompte mesuré en direct (celui-ci est calculé par le compteur partagé) : c'est le plafond de régression à baisse seule, exact en entier, pour un vocabulaire d'une slice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-sh|rdfs:label"
+msgid "projection vocabulary — SHACL (sh)"
+msgstr "vocabulaire de projection — SHACL (sh)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-sh|skos:definition"
+msgid "The SHACL vocabulary (sh:) guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: validation obligations (Principle 17). Its hand-authored constructs are counted by STRUCTURAL ROLE (gmeow:vocabularyCountKind \"countKindShape\": typed sh:NodeShape/sh:PropertyShape plus subjects of sh:path/sh:sparql/sh:rule), so an anonymous nested sh:property block in module.ttl is caught, not only a typed top-level shape in shapes.ttl. It carries no by-reference alignment predicate: a SHACL construct either carries a RESOLVABLE logic:formalizes/logic:grounds back-ref (grounded, excluded from the residue) or is counted in full."
+msgstr "Le vocabulaire SHACL (sh:) surveillé par le cliquet de vocabulaire de projection — une projection avec perte générée des obligations de validation de logic: (Principe 17). Ses constructions rédigées à la main sont décomptées par RÔLE STRUCTUREL (gmeow:vocabularyCountKind « countKindShape » : sh:NodeShape/sh:PropertyShape typés plus les sujets de sh:path/sh:sparql/sh:rule), de sorte qu'un bloc sh:property anonyme imbriqué dans module.ttl est saisi, et non seulement une forme typée de premier niveau dans shapes.ttl. Il ne porte aucun prédicat d'alignement par référence : une construction SHACL porte soit une rétro-référence RÉSOLVABLE logic:formalizes/logic:grounds (ancrée, exclue du résidu), soit elle est décomptée intégralement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-gufo|rdfs:label"
+msgid "projection vocabulary — gUFO"
+msgstr "vocabulaire de projection — gUFO"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-gufo|skos:definition"
+msgid "The gUFO upper-ontology vocabulary guarded by the projection-vocabulary ratchet — a generated lossy down-projection of the logic: UFO+ foundation (Principle 17; logic: terms are authored standalone, carrying no gUFO parentage, precisely because gUFO is a projection of logic:, not its ground). Its hand-authored constructs are counted by TYPED AXIOM (gmeow:vocabularyCountKind \"countKindTypedAxiom\": distinct triples whose predicate or object IRI falls in gufo:'s namespace). Its declared gmeow:vocabularyAlignmentPredicate set exempts genuine by-reference foundational bridging (Principle 5, \"MORE is always BETTER\") to an EXTERNAL gufo: object from the residue; an internal gmeow-to-gmeow triple under the same predicate stays in the residue as a genuine second source of truth."
+msgstr "Le vocabulaire de l'ontologie supérieure gUFO surveillé par le cliquet de vocabulaire de projection — une projection descendante avec perte générée du fondement logic: UFO+ (Principe 17 ; les termes logic: sont rédigés de façon autonome, sans filiation gUFO, précisément parce que gUFO est une projection de logic:, non son fondement). Ses constructions rédigées à la main sont décomptées par AXIOME TYPÉ (gmeow:vocabularyCountKind « countKindTypedAxiom » : triplets distincts dont l'IRI du prédicat ou de l'objet tombe dans l'espace de noms de gufo:). Son ensemble déclaré de gmeow:vocabularyAlignmentPredicate exempte du résidu le véritable pontage fondationnel par référence (Principe 5, « PLUS c'est toujours MIEUX ») vers un objet gufo: EXTERNE ; un triplet interne gmeow-à-gmeow sous le même prédicat demeure dans le résidu en tant que véritable seconde source de vérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-bfo|rdfs:label"
+msgid "projection vocabulary — BFO"
+msgstr "vocabulaire de projection — BFO"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-bfo|skos:definition"
+msgid "The Basic Formal Ontology (BFO) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of the logic: foundation (Principle 17), adopted by reference as a top-level alignment target rather than vendored (Principle 5). Its hand-authored constructs are counted by TYPED AXIOM (gmeow:vocabularyCountKind \"countKindTypedAxiom\": distinct triples whose predicate or object IRI falls in bfo:'s OBO namespace). Its declared gmeow:vocabularyAlignmentPredicate set exempts genuine by-reference foundational bridging to an EXTERNAL bfo: object from the residue; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."
+msgstr "Le vocabulaire Basic Formal Ontology (BFO) surveillé par le cliquet de vocabulaire de projection — une projection avec perte générée du fondement logic: (Principe 17), adoptée par référence comme cible d'alignement de premier niveau plutôt que vendorisée (Principe 5). Ses constructions rédigées à la main sont décomptées par AXIOME TYPÉ (gmeow:vocabularyCountKind « countKindTypedAxiom » : triplets distincts dont l'IRI du prédicat ou de l'objet tombe dans l'espace de noms OBO de bfo:). Son ensemble déclaré de gmeow:vocabularyAlignmentPredicate exempte du résidu le véritable pontage fondationnel par référence vers un objet bfo: EXTERNE ; un triplet interne gmeow-à-gmeow sous le même prédicat demeure dans le résidu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-dul|rdfs:label"
+msgid "projection vocabulary — DOLCE (dul)"
+msgstr "vocabulaire de projection — DOLCE (dul)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-dul|skos:definition"
+msgid "The DOLCE Ultra-Lite (dul:) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of the logic: foundation (Principle 17), adopted by reference as a top-level alignment target rather than vendored (Principle 5). Its hand-authored constructs are counted by TYPED AXIOM (gmeow:vocabularyCountKind \"countKindTypedAxiom\": distinct triples whose predicate or object IRI falls in ANY of its asserted gmeow:vocabularyNamespace values — a Vec because DOLCE may be authored under aliased namespaces). Its declared gmeow:vocabularyAlignmentPredicate set exempts genuine by-reference foundational bridging to an EXTERNAL dul: object from the residue; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."
+msgstr "Le vocabulaire DOLCE Ultra-Lite (dul:) surveillé par le cliquet de vocabulaire de projection — une projection avec perte générée du fondement logic: (Principe 17), adoptée par référence comme cible d'alignement de premier niveau plutôt que vendorisée (Principe 5). Ses constructions rédigées à la main sont décomptées par AXIOME TYPÉ (gmeow:vocabularyCountKind « countKindTypedAxiom » : triplets distincts dont l'IRI du prédicat ou de l'objet tombe dans N'IMPORTE LAQUELLE de ses valeurs gmeow:vocabularyNamespace affirmées — un Vec car DOLCE peut être rédigée sous des espaces de noms alias). Son ensemble déclaré de gmeow:vocabularyAlignmentPredicate exempte du résidu le véritable pontage fondationnel par référence vers un objet dul: EXTERNE ; un triplet interne gmeow-à-gmeow sous le même prédicat demeure dans le résidu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-fno|rdfs:label"
+msgid "projection vocabulary — Function Ontology (fno)"
+msgstr "vocabulaire de projection — Function Ontology (fno)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-fno|skos:definition"
+msgid "The Function Ontology (fno:) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), part of the alignment stack alongside EDOAL and SSSOM. Its hand-authored constructs are counted by TYPED AXIOM (gmeow:vocabularyCountKind \"countKindTypedAxiom\": distinct triples whose predicate or object IRI falls in fno:'s namespace). The intentional carve-out path dsl/mappings/transforms.fno.ttl is the one hand-authored FnO catalog the shared counter still scans and measures like any other slice-owned surface — it is not a scanning exemption, only an authoring one. Its declared gmeow:vocabularyAlignmentPredicate set exempts genuine by-reference bridging to an EXTERNAL fno: object from the residue."
+msgstr "Le vocabulaire Function Ontology (fno:) surveillé par le cliquet de vocabulaire de projection — une projection avec perte générée de logic: (Principe 17), faisant partie de la pile d'alignement aux côtés d'EDOAL et de SSSOM. Ses constructions rédigées à la main sont décomptées par AXIOME TYPÉ (gmeow:vocabularyCountKind « countKindTypedAxiom » : triplets distincts dont l'IRI du prédicat ou de l'objet tombe dans l'espace de noms de fno:). Le chemin de dérogation intentionnel dsl/mappings/transforms.fno.ttl est l'unique catalogue FnO rédigé à la main que le compteur partagé continue de scruter et de mesurer comme toute autre surface propre à une slice — ce n'est pas une dérogation de scrutation, seulement une dérogation de rédaction. Son ensemble déclaré de gmeow:vocabularyAlignmentPredicate exempte du résidu le véritable pontage par référence vers un objet fno: EXTERNE."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-edoal|rdfs:label"
+msgid "projection vocabulary — EDOAL"
+msgstr "vocabulaire de projection — EDOAL"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-edoal|skos:definition"
+msgid "The Expressive and Declarative Ontology Alignment Language (edoal:) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), part of the alignment stack alongside FnO and SSSOM. Its hand-authored constructs are counted by TYPED AXIOM (gmeow:vocabularyCountKind \"countKindTypedAxiom\": distinct triples whose predicate or object IRI falls in edoal:'s namespace). Its declared gmeow:vocabularyAlignmentPredicate set exempts genuine by-reference bridging to an EXTERNAL edoal: object from the residue; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."
+msgstr "Le vocabulaire Expressive and Declarative Ontology Alignment Language (edoal:) surveillé par le cliquet de vocabulaire de projection — une projection avec perte générée de logic: (Principe 17), faisant partie de la pile d'alignement aux côtés de FnO et de SSSOM. Ses constructions rédigées à la main sont décomptées par AXIOME TYPÉ (gmeow:vocabularyCountKind « countKindTypedAxiom » : triplets distincts dont l'IRI du prédicat ou de l'objet tombe dans l'espace de noms d'edoal:). Son ensemble déclaré de gmeow:vocabularyAlignmentPredicate exempte du résidu le véritable pontage par référence vers un objet edoal: EXTERNE ; un triplet interne gmeow-à-gmeow sous le même prédicat demeure dans le résidu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-sssom|rdfs:label"
+msgid "projection vocabulary — SSSOM"
+msgstr "vocabulaire de projection — SSSOM"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-sssom|skos:definition"
+msgid "The Simple Standard for Sharing Ontological Mappings (sssom:) vocabulary guarded by the projection-vocabulary ratchet — a generated lossy projection of logic: (Principle 17), part of the alignment stack alongside FnO and EDOAL. Its hand-authored constructs are counted by TYPED AXIOM (gmeow:vocabularyCountKind \"countKindTypedAxiom\": distinct triples whose predicate or object IRI falls in sssom:'s namespace). Its declared gmeow:vocabularyAlignmentPredicate set exempts genuine by-reference bridging to an EXTERNAL sssom: object from the residue; an internal gmeow-to-gmeow triple under the same predicate stays in the residue."
+msgstr "Le vocabulaire Simple Standard for Sharing Ontological Mappings (sssom:) surveillé par le cliquet de vocabulaire de projection — une projection avec perte générée de logic: (Principe 17), faisant partie de la pile d'alignement aux côtés de FnO et d'EDOAL. Ses constructions rédigées à la main sont décomptées par AXIOME TYPÉ (gmeow:vocabularyCountKind « countKindTypedAxiom » : triplets distincts dont l'IRI du prédicat ou de l'objet tombe dans l'espace de noms de sssom:). Son ensemble déclaré de gmeow:vocabularyAlignmentPredicate exempte du résidu le véritable pontage par référence vers un objet sssom: EXTERNE ; un triplet interne gmeow-à-gmeow sous le même prédicat demeure dans le résidu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-datalog|rdfs:label"
+msgid "projection vocabulary — Datalog (documentary-only)"
+msgstr "vocabulaire de projection — Datalog (documentaire seulement)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-datalog|skos:definition"
+msgid "The Datalog projection-surface registry entry — DOCUMENTARY-ONLY, never an enforceable gate. Per Principle 17, Datalog is one of the generated lossy projections logic: enumerates, but Datalog rule/fact syntax is NOT RDF: it cannot be hand-authored as triples inside a TTL slice, so no Datalog construct can ever appear as a real triple predicate or object here. Its gmeow:vocabularyCountKind is \"countKindNonRdfSurface\", which the shared counter resolves to an always-empty enumeration, making its residue structurally 0 by construction rather than by an unenforced policy. gmeow:vocabularyNamespace is a stable documentary marker IRI under the gmeow: authority — not a dereferenceable external vocabulary namespace and never matched against any real triple — chosen precisely because it can never collide with an authored predicate or object. No counter-example fixture claims this vocabulary reds."
+msgstr "L'entrée du registre de surface de projection Datalog — DOCUMENTAIRE SEULEMENT, jamais une barrière imposable. Selon le Principe 17, Datalog est l'une des projections avec perte générées qu'énumère logic:, mais la syntaxe de règles/faits Datalog N'EST PAS du RDF : elle ne peut pas être rédigée à la main sous forme de triplets à l'intérieur d'une slice TTL, si bien qu'aucune construction Datalog ne peut jamais apparaître ici comme un véritable prédicat ou objet de triplet. Son gmeow:vocabularyCountKind vaut « countKindNonRdfSurface », que le compteur partagé résout en une énumération toujours vide, rendant son résidu structurellement à 0 par construction plutôt que par une politique non imposée. gmeow:vocabularyNamespace est une IRI de marqueur documentaire stable sous l'autorité gmeow: — non un espace de noms de vocabulaire externe déréférençable et jamais apparié à un véritable triplet — choisie précisément parce qu'elle ne peut jamais entrer en collision avec un prédicat ou objet rédigé. Aucun montage contre-exemple ne prétend faire passer ce vocabulaire au rouge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-prolog|rdfs:label"
+msgid "projection vocabulary — Prolog (documentary-only)"
+msgstr "vocabulaire de projection — Prolog (documentaire seulement)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-prolog|skos:definition"
+msgid "The Prolog projection-surface registry entry — DOCUMENTARY-ONLY, never an enforceable gate. Per Principle 17, Prolog is one of the generated lossy projections logic: enumerates, but Prolog clause syntax is NOT RDF: it cannot be hand-authored as triples inside a TTL slice, so no Prolog construct can ever appear as a real triple predicate or object here. Its gmeow:vocabularyCountKind is \"countKindNonRdfSurface\", which the shared counter resolves to an always-empty enumeration, making its residue structurally 0 by construction rather than by an unenforced policy. gmeow:vocabularyNamespace is a stable documentary marker IRI under the gmeow: authority — not a dereferenceable external vocabulary namespace and never matched against any real triple — chosen precisely because it can never collide with an authored predicate or object. No counter-example fixture claims this vocabulary reds."
+msgstr "L'entrée du registre de surface de projection Prolog — DOCUMENTAIRE SEULEMENT, jamais une barrière imposable. Selon le Principe 17, Prolog est l'une des projections avec perte générées qu'énumère logic:, mais la syntaxe de clauses Prolog N'EST PAS du RDF : elle ne peut pas être rédigée à la main sous forme de triplets à l'intérieur d'une slice TTL, si bien qu'aucune construction Prolog ne peut jamais apparaître ici comme un véritable prédicat ou objet de triplet. Son gmeow:vocabularyCountKind vaut « countKindNonRdfSurface », que le compteur partagé résout en une énumération toujours vide, rendant son résidu structurellement à 0 par construction plutôt que par une politique non imposée. gmeow:vocabularyNamespace est une IRI de marqueur documentaire stable sous l'autorité gmeow: — non un espace de noms de vocabulaire externe déréférençable et jamais apparié à un véritable triplet — choisie précisément parce qu'elle ne peut jamais entrer en collision avec un prédicat ou objet rédigé. Aucun montage contre-exemple ne prétend faire passer ce vocabulaire au rouge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-n3|rdfs:label"
+msgid "projection vocabulary — Notation3 (documentary-only)"
+msgstr "vocabulaire de projection — Notation3 (documentaire seulement)"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-n3|skos:definition"
+msgid "The Notation3 (N3) projection-surface registry entry — DOCUMENTARY-ONLY, never an enforceable gate. Per Principle 17, N3 is one of the generated lossy projections logic: enumerates, but N3's log:-rule surface (formulae, {}-quoted graphs, N3 built-ins) is NOT plain RDF triples: it cannot be hand-authored inside a TTL slice's triple surface, so no N3-rule construct can ever appear as a real triple predicate or object here. Its gmeow:vocabularyCountKind is \"countKindNonRdfSurface\", which the shared counter resolves to an always-empty enumeration, making its residue structurally 0 by construction rather than by an unenforced policy. gmeow:vocabularyNamespace is a stable documentary marker IRI under the gmeow: authority — not a dereferenceable external vocabulary namespace and never matched against any real triple — chosen precisely because it can never collide with an authored predicate or object. No counter-example fixture claims this vocabulary reds."
+msgstr "L'entrée du registre de surface de projection Notation3 (N3) — DOCUMENTAIRE SEULEMENT, jamais une barrière imposable. Selon le Principe 17, N3 est l'une des projections avec perte générées qu'énumère logic:, mais la surface de règles log: de N3 (formules, graphes cités entre {}, primitives N3) N'EST PAS constituée de simples triplets RDF : elle ne peut pas être rédigée à la main dans la surface de triplets d'une slice TTL, si bien qu'aucune construction de règle N3 ne peut jamais apparaître ici comme un véritable prédicat ou objet de triplet. Son gmeow:vocabularyCountKind vaut « countKindNonRdfSurface », que le compteur partagé résout en une énumération toujours vide, rendant son résidu structurellement à 0 par construction plutôt que par une politique non imposée. gmeow:vocabularyNamespace est une IRI de marqueur documentaire stable sous l'autorité gmeow: — non un espace de noms de vocabulaire externe déréférençable et jamais apparié à un véritable triplet — choisie précisément parce qu'elle ne peut jamais entrer en collision avec un prédicat ou objet rédigé. Aucun montage contre-exemple ne prétend faire passer ce vocabulaire au rouge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-affect-bfo|rdfs:label"
+msgid "projection-ceiling commitment — affect / bfo"
+msgstr "engagement de plafond de projection — affect / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-affect-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the affect slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice affect ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-agentic-sh|rdfs:label"
+msgid "projection-ceiling commitment — agentic / sh"
+msgstr "engagement de plafond de projection — agentic / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-agentic-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the agentic slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice agentic ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-ai-sh|rdfs:label"
+msgid "projection-ceiling commitment — ai / sh"
+msgstr "engagement de plafond de projection — ai / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-ai-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the ai slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice ai ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-concepts-sh|rdfs:label"
+msgid "projection-ceiling commitment — concepts / sh"
+msgstr "engagement de plafond de projection — concepts / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-concepts-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the concepts slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice concepts ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-diagnostics-sh|rdfs:label"
+msgid "projection-ceiling commitment — diagnostics / sh"
+msgstr "engagement de plafond de projection — diagnostics / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-diagnostics-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the diagnostics slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice diagnostics ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-documentation-sh|rdfs:label"
+msgid "projection-ceiling commitment — documentation / sh"
+msgstr "engagement de plafond de projection — documentation / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-documentation-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the documentation slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice documentation ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-epistemics-bfo|rdfs:label"
+msgid "projection-ceiling commitment — epistemics / bfo"
+msgstr "engagement de plafond de projection — epistemics / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-epistemics-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the epistemics slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice epistemics ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-epistemics-sh|rdfs:label"
+msgid "projection-ceiling commitment — epistemics / sh"
+msgstr "engagement de plafond de projection — epistemics / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-epistemics-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the epistemics slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice epistemics ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-gender-bfo|rdfs:label"
+msgid "projection-ceiling commitment — gender / bfo"
+msgstr "engagement de plafond de projection — gender / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-gender-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the gender slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice gender ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-graphrag-sh|rdfs:label"
+msgid "projection-ceiling commitment — graphrag / sh"
+msgstr "engagement de plafond de projection — graphrag / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-graphrag-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the graphrag slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice graphrag ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-gts-sh|rdfs:label"
+msgid "projection-ceiling commitment — gts / sh"
+msgstr "engagement de plafond de projection — gts / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-gts-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the gts slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice gts ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-inhabitation-sh|rdfs:label"
+msgid "projection-ceiling commitment — inhabitation / sh"
+msgstr "engagement de plafond de projection — inhabitation / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-inhabitation-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the inhabitation slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice inhabitation ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-kernel-bfo|rdfs:label"
+msgid "projection-ceiling commitment — kernel / bfo"
+msgstr "engagement de plafond de projection — kernel / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-kernel-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the kernel slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice kernel ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-kernel-gufo|rdfs:label"
+msgid "projection-ceiling commitment — kernel / gufo"
+msgstr "engagement de plafond de projection — kernel / gufo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-kernel-gufo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the gufo projection vocabulary on the kernel slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection gufo sur la slice kernel ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-kernel-sh|rdfs:label"
+msgid "projection-ceiling commitment — kernel / sh"
+msgstr "engagement de plafond de projection — kernel / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-kernel-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the kernel slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice kernel ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-lang-sh|rdfs:label"
+msgid "projection-ceiling commitment — lang / sh"
+msgstr "engagement de plafond de projection — lang / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-lang-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the lang slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice lang ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-learning-sh|rdfs:label"
+msgid "projection-ceiling commitment — learning / sh"
+msgstr "engagement de plafond de projection — learning / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-learning-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the learning slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice learning ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-mentation-bfo|rdfs:label"
+msgid "projection-ceiling commitment — mentation / bfo"
+msgstr "engagement de plafond de projection — mentation / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-mentation-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the mentation slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice mentation ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-model-serving-sh|rdfs:label"
+msgid "projection-ceiling commitment — model-serving / sh"
+msgstr "engagement de plafond de projection — model-serving / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-model-serving-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the model-serving slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice model-serving ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-music-fno|rdfs:label"
+msgid "projection-ceiling commitment — music / fno"
+msgstr "engagement de plafond de projection — music / fno"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-music-fno|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the fno projection vocabulary on the music slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection fno sur la slice music ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-music-sh|rdfs:label"
+msgid "projection-ceiling commitment — music / sh"
+msgstr "engagement de plafond de projection — music / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-music-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the music slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice music ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-notation-sh|rdfs:label"
+msgid "projection-ceiling commitment — notation / sh"
+msgstr "engagement de plafond de projection — notation / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-notation-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the notation slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice notation ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-observations-bfo|rdfs:label"
+msgid "projection-ceiling commitment — observations / bfo"
+msgstr "engagement de plafond de projection — observations / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-observations-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the observations slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice observations ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-pipeline-sh|rdfs:label"
+msgid "projection-ceiling commitment — pipeline / sh"
+msgstr "engagement de plafond de projection — pipeline / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-pipeline-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the pipeline slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice pipeline ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-places-bfo|rdfs:label"
+msgid "projection-ceiling commitment — places / bfo"
+msgstr "engagement de plafond de projection — places / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-places-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the places slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice places ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-procedures-bfo|rdfs:label"
+msgid "projection-ceiling commitment — procedures / bfo"
+msgstr "engagement de plafond de projection — procedures / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-procedures-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the procedures slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice procedures ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-rights-sh|rdfs:label"
+msgid "projection-ceiling commitment — rights / sh"
+msgstr "engagement de plafond de projection — rights / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-rights-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the rights slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice rights ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-bfo|rdfs:label"
+msgid "projection-ceiling commitment — sensory-environment / bfo"
+msgstr "engagement de plafond de projection — sensory-environment / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the sensory-environment slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice sensory-environment ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-sexuality-bfo|rdfs:label"
+msgid "projection-ceiling commitment — sexuality / bfo"
+msgstr "engagement de plafond de projection — sexuality / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-sexuality-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the sexuality slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice sexuality ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-bfo|rdfs:label"
+msgid "projection-ceiling commitment — standpoint / bfo"
+msgstr "engagement de plafond de projection — standpoint / bfo"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-bfo|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the standpoint slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice standpoint ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-dul|rdfs:label"
+msgid "projection-ceiling commitment — standpoint / dul"
+msgstr "engagement de plafond de projection — standpoint / dul"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-dul|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the dul projection vocabulary on the standpoint slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection dul sur la slice standpoint ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-sh|rdfs:label"
+msgid "projection-ceiling commitment — standpoint / sh"
+msgstr "engagement de plafond de projection — standpoint / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the standpoint slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice standpoint ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-temporal-sh|rdfs:label"
+msgid "projection-ceiling commitment — temporal / sh"
+msgstr "engagement de plafond de projection — temporal / sh"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pcc-temporal-sh|skos:definition"
+msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the temporal slice; the gate reds if the slice's measured residue rises above it."
+msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice temporal ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
