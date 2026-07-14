@@ -75,6 +75,7 @@ fn fmt_floor(floor: f64) -> String {
 #[must_use]
 pub fn render_axis_floors(rubric: &Rubric) -> String {
     let mut rows: Vec<(String, String, f64)> = rubric
+        .floors
         .commitments
         .iter()
         .map(|c| (c.slice.clone(), local(&c.axis).to_owned(), c.floor))
@@ -92,6 +93,7 @@ pub fn render_axis_floors(rubric: &Rubric) -> String {
 #[must_use]
 pub fn render_tier_floors(rubric: &Rubric) -> String {
     let mut rows: Vec<(String, String)> = rubric
+        .floors
         .tier_floors
         .iter()
         .map(|tf| (tf.slice.clone(), local(&tf.tier).to_owned()))
@@ -222,7 +224,7 @@ mod tests {
         let data_rows: Vec<&str> = a.lines().filter(|l| !l.starts_with('#')).collect();
         assert_eq!(
             data_rows.len(),
-            rubric.commitments.len(),
+            rubric.floors.commitments.len(),
             "one data row per gmeow:AxisFloorCommitment"
         );
         // The migration spot-check: the accounts slice's axisGmn1Coverage floor
@@ -247,7 +249,7 @@ mod tests {
         let data_rows: Vec<&str> = out.lines().filter(|l| !l.starts_with('#')).collect();
         assert_eq!(
             data_rows.len(),
-            rubric.tier_floors.len(),
+            rubric.floors.tier_floors.len(),
             "one data row per gmeow:SliceTierFloor"
         );
         for row in &data_rows {
