@@ -208,7 +208,7 @@ math:ApplicationExpression
     rdfs:subClassOf math:MathematicalExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Application Expression"@x-gmeow-english ;
-    skos:definition "The application of an operator to operands: the expression node an arithmetic operation lowers to. Its single operator is named through math:operator; the indexed argument-slot machinery that fixes operand order belongs to the mathematical-core surface this bedrock builds on, and is deliberately not minted here."@x-gmeow-english ;
+    skos:definition "The application of an operator to operands: the expression node an arithmetic operation lowers to. It applies exactly one math:operator — zero operators leave the application undefined and two or more make it ambiguous which operator is applied (math:ApplicationOperatorCardinality); the sibling binder AST (math:BindingExpression) is not a subclass, so the obligation targets only true applications, never the binders. The indexed argument-slot machinery that fixes operand order belongs to the mathematical-core surface this bedrock builds on, and is deliberately not minted here."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:operator
@@ -813,7 +813,7 @@ math:Ring
     rdfs:subClassOf math:AlgebraicStructure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Ring"@x-gmeow-english ;
-    skos:definition "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."@x-gmeow-english ;
+    skos:definition "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:CommutativeRing
@@ -1003,7 +1003,7 @@ math:AutomorphismGroup
     rdfs:subClassOf math:Group ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Automorphism Group"@x-gmeow-english ;
-    skos:definition "The group of all automorphisms of a structure under composition — the symmetries of that structure. A subclass of math:Group: a symmetry group IS an automorphism group, the identity that makes E8's math:WeylGroup and every symmetry expressible with the same machinery as det and a homomorphic-encryption scheme."@x-gmeow-english ;
+    skos:definition "The group of all automorphisms of a structure under composition — the symmetries of that structure. A subclass of math:Group: a symmetry group IS an automorphism group, the identity that makes E8's math:WeylGroup and every symmetry expressible with the same machinery as det and a homomorphic-encryption scheme. Every automorphism group is the symmetry group OF some structure, so it declares that structure through math:automorphismGroupOf (a math:WeylGroup anchors to its root system — E8's Weyl group is the symmetry of the E8 root system); a free-floating automorphism group is ill-formed (math:UnanchoredAutomorphismGroup)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Quotient
@@ -1093,7 +1093,7 @@ math:LieGroup
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Lie Group"@x-gmeow-english ;
-    skos:definition "A group that is also a smooth manifold, with smooth group operations (its group-ness stated in prose to keep the profile clean). It carries a math:RootSystem through math:hasRootSystem and a math:LieAlgebra as its infinitesimal structure. E8 is the 248-dimensional exceptional simple Lie group."@x-gmeow-english ;
+    skos:definition "A group that is also a smooth manifold, with smooth group operations (its group-ness stated in prose to keep the profile clean). It carries a math:RootSystem through math:hasRootSystem and a math:LieAlgebra as its infinitesimal structure. The root system is what makes a semisimple Lie group expressible, so a Lie group without one is ill-formed (math:IncompleteLieStructure). E8 is the 248-dimensional exceptional simple Lie group."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LieAlgebra
@@ -1107,7 +1107,7 @@ math:RootSystem
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Root System"@x-gmeow-english ;
-    skos:definition "A finite configuration of vectors (roots) in a Euclidean space satisfying the root-system axioms — the combinatorial heart of a semisimple Lie group. It declares its math:rootSystemRank, a math:CartanMatrix, a math:DynkinDiagram, and a math:WeylGroup (the symmetry group of the roots), and may carry its math:hasSimpleRoot base and math:rootCount. E8's root system has 240 roots in rank 8."@x-gmeow-english ;
+    skos:definition "A finite configuration of vectors (roots) in a Euclidean space satisfying the root-system axioms — the combinatorial heart of a semisimple Lie group. It declares its math:rootSystemRank, a math:CartanMatrix, a math:DynkinDiagram, and a math:WeylGroup (the symmetry group of the roots), and may carry its math:hasSimpleRoot base and math:rootCount. The Cartan matrix, Weyl group, and rank are what make E8's symmetry an automorphism group; a root system missing them is ill-formed (math:IncompleteLieStructure). E8's root system has 240 roots in rank 8, and a root system carrying that E8 fingerprint MUST declare a math:weylGroup whose math:groupOrder is 696,729,600 — the true order of W(E8) — so the flagship's numbers are a validatable invariant: a corrupted Weyl order on data claiming to be E8 is rejected by value, not trusted (math:WrongE8WeylOrder)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:SimpleRoot
@@ -1492,7 +1492,7 @@ math:DimensionalExpression
     rdfs:subClassOf math:MathematicalExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Dimensional Expression"@x-gmeow-english ;
-    skos:definition "An expression whose operands must be dimensionally homogeneous — an addition, a subtraction, an equation, or a comparison, where every operand must share one dimension. Names its operands through math:homogeneousOperand (at least two). The homogeneity gate collects the dimensions of the operands and raises math:DimensionalInhomogeneity if they are not all equal. This is the first-class carrier of the homogeneity invariant; the full expression grammar (indexed argument slots) belongs to the mathematical-core surface this bedrock builds on, which will refine this class."@x-gmeow-english ;
+    skos:definition "An expression whose operands must be dimensionally homogeneous — an addition, a subtraction, an equation, or a comparison, where every operand must share one dimension. Names its operands through math:homogeneousOperand (at least two — dimensional homogeneity is vacuous for zero or one operand, math:MalformedDimension). The homogeneity gate collects the dimensions of the operands and raises math:DimensionalInhomogeneity if they are not all equal. This is the first-class carrier of the homogeneity invariant; the full expression grammar (indexed argument slots) belongs to the mathematical-core surface this bedrock builds on, which will refine this class."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Quantity
@@ -1506,7 +1506,7 @@ math:DimensionExponent
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Dimension Exponent"@x-gmeow-english ;
-    skos:definition "One (base dimension, exact-rational power) cell of a derived dimension's product form: it names the math:BaseDimension it raises (math:exponentOfDimension) and the power, as an exact rational, through math:exponentNumerator over math:exponentDenominator (denominator non-zero). The cells named by a math:DerivedDimension's math:baseDimensionExponent edges together give its exponent vector over the seven base dimensions. Rational, not decimal, so equality of dimensions is exact."@x-gmeow-english ;
+    skos:definition "One (base dimension, exact-rational power) cell of a derived dimension's product form: it names the math:BaseDimension it raises (math:exponentOfDimension) and the power, as an exact rational, through math:exponentNumerator over math:exponentDenominator (denominator non-zero). The raised dimension is a base dimension only, never a derived one, so the exponent vector is well-defined and acyclic; a zero denominator is not a rational power and is rejected here (math:MalformedDimension), not silently dropped downstream. The cells named by a math:DerivedDimension's math:baseDimensionExponent edges together give its exponent vector over the seven base dimensions. Rational, not decimal, so equality of dimensions is exact."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # --- Base-dimension individuals (the ℚ⁷ generators) ------------------------- #
@@ -3625,7 +3625,7 @@ math:GramMatrix
     rdfs:subClassOf math:SymmetricMatrix ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Gram Matrix"@x-gmeow-english ;
-    skos:definition "A Gram matrix G: the math:SymmetricMatrix of a math:SymmetricBilinearForm in a math:Basis, Gᵢⱼ = B(eᵢ, eⱼ). A subclass of math:SymmetricMatrix that names the form it represents through math:representsForm and the basis it is taken in through math:inBasis. When the form is positive-definite the Gram matrix is positive-definite and the quadratic form xᵀGx is a squared norm; the affect-intensity norm √(xᵀGx) is grounded on such a Gram matrix of exact math:RationalValue entries."@x-gmeow-english ;
+    skos:definition "A Gram matrix G: the math:SymmetricMatrix of a math:SymmetricBilinearForm in a math:Basis, Gᵢⱼ = B(eᵢ, eⱼ). A subclass of math:SymmetricMatrix that names the form it represents through math:representsForm and the basis it is taken in through math:inBasis. A Gram matrix is the matrix of a symmetric form, and its symmetry is checked entry-wise — every math:MatrixEntry at (row, column) has a transpose entry at (column, row) carrying the same math:entryValue; a missing or mismatched transpose entry is ill-formed (math:AsymmetricGramMatrix). When the form is positive-definite the Gram matrix is positive-definite and the quadratic form xᵀGx is a squared norm; the affect-intensity norm √(xᵀGx) is grounded on such a Gram matrix of exact math:RationalValue entries."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Vector
@@ -4125,7 +4125,8 @@ math:Filtration
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Filtration"@x-gmeow-english ;
     skos:definition "A filtration (Kε): a monotone family of substructures of an ambient object indexed by a real-valued threshold ε, such that a smaller threshold's structure is contained in a larger one's — for thresholds ε₁ ≤ ε₂ the stage at ε₁ satisfies Kε₁ math:subsetOf Kε₂ (the containment is the EXISTING transitive math:subsetOf, not a new order relation). A subclass of math:MathematicalObject. It names the object it filters through math:filtrationAmbient, the index quantity kind through math:filtrationIndexKind (the dimension the threshold ε ranges over — a distance/scale/density), and its stages through math:hasFiltrationStage, each a math:FiltrationStage pairing a threshold with the substructure present at it. The nesting law that ε₁ ≤ ε₂ entails containment is authored as the first-order logic:Formula math:filtrationMonotonicityLaw; the SHACL gate enforces only the structural presence of stages (a filtration naming no stage, or a stage missing its threshold or structure, is ill-formed, math:UnderspecifiedFiltration). The persistence of a feature across a filtration is a math:PersistenceLifetime."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnderspecifiedFiltration .
 
 math:FiltrationStage
     a owl:Class ;
@@ -4133,7 +4134,8 @@ math:FiltrationStage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Filtration Stage"@x-gmeow-english ;
     skos:definition "One stage of a math:Filtration: a (threshold, substructure) cell naming the real-valued threshold ε it sits at through math:filtrationThreshold (a gmeow:Quantity) and the substructure present at that threshold through math:stageStructure (a math:TopologicalSpace — the sub-space Kε of the ambient object at ε). A subclass of math:MathematicalObject; a filtration names its stages through math:hasFiltrationStage. Stages are ordered by their thresholds, and the monotonicity law math:filtrationMonotonicityLaw requires the structure at a lower threshold to be a math:subsetOf the structure at a higher one. A stage missing its threshold or its structure is ill-formed (math:UnderspecifiedFiltration)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnderspecifiedFiltration .
 
 math:PersistenceLifetime
     a owl:Class ;
@@ -4141,7 +4143,8 @@ math:PersistenceLifetime
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Persistence Lifetime"@x-gmeow-english ;
     skos:definition "The birth–death interval of a single topological feature across a math:Filtration: the range of thresholds over which one math:HomologyGroup generator (a hole of some dimension) exists. A subclass of math:MathematicalObject. It names the filtration it is read over through math:overFiltration, the feature it tracks through math:persistenceFeature (a math:HomologyGroup generator), the threshold at which the feature appears through math:bornAt (a gmeow:Quantity), and the threshold at which it disappears through math:diesAt. Its persistence value is death − birth; a long-lived feature is signal, a short-lived one is noise. An ESSENTIAL feature never dies within the filtration, so its math:diesAt is the individual math:PositiveInfinity rather than a finite threshold — exactly as math:totalMass ranges over a finite value or math:PositiveInfinity, which is why math:diesAt is a bare rdf:Property. A lifetime missing its birth or death is ill-formed (math:UnderspecifiedPersistenceLifetime)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnderspecifiedPersistenceLifetime .
 
 math:CredenceDerivationKind
     a owl:Class ;
@@ -4214,7 +4217,8 @@ math:StabilityCalibrationRecord
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Stability Calibration Record"@x-gmeow-english ;
     skos:definition "The derivation record that warrants a credence: it ties the persistence evidence, the derivation kind, and the stability guarantee to the logic:confidence a latent-meaning claim carries. A subclass of math:MathematicalObject naming its evidence through math:calibrationEvidence (a math:PersistenceLifetime), the kind of credence it produces through math:credenceDerivationKind (typically math:persistenceDerivedCredence), and the theorem underwriting the calibration through math:stabilityGuarantee (math:bottleneckStabilityTheorem — the bottleneck bound that a small perturbation of the underlying function moves the persistence, and hence the credence, by a bounded amount). The credence itself lands on the held claim, a math:ResidualInterpretationClaim carrying logic:confidence (never logic:probability); the claim references the record through gmeow:wasDerivedFrom, so a consumer can trace a confidence back to the filtration, the birth/death thresholds, and the guarantee that calibrated it. A record missing its evidence, derivation kind, or guarantee is ill-formed (math:UngroundedStabilityCalibration)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UngroundedStabilityCalibration .
 
 math:hasFiltrationStage
     a owl:ObjectProperty ;
@@ -4566,7 +4570,7 @@ math:IngestRun
     rdfs:subClassOf gmeow:Activity ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Ingest Run"@x-gmeow-english ;
-    skos:definition "A bridge run: the executed occurrence of the up-projection (put) leg of a logic:Correspondence that lifts an external artifact into the grounding layers, splitting mathematical/structural content into math: and computation into logic:. A subclass of gmeow:Activity — the process half of the process / result / claim separation — abstracting the three concrete bridges (math:RIngestRun, math:ONNXIngestRun, math:ProofIngestRun). It retains its source as a math:parseSource witness (the in-band mnemomorphic complement, marked logic:loadBearing, that discharges put after get equals identity), carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan, and ties each produced math: object back through gmeow:wasGeneratedBy. A run that retains a source but lifts no structured math: codomain and enumerates no residue is ill-formed (math:UnliftableIngest)."@x-gmeow-english ;
+    skos:definition "A bridge run: the executed occurrence of the up-projection (put) leg of a logic:Correspondence that lifts an external artifact into the grounding layers, splitting mathematical/structural content into math: and computation into logic:. A subclass of gmeow:Activity — the process half of the process / result / claim separation — abstracting the three concrete bridges (math:RIngestRun, math:ONNXIngestRun, math:ProofIngestRun). It retains its source as a math:parseSource witness (the in-band mnemomorphic complement, marked logic:loadBearing, that discharges put after get equals identity), carries the process-layer in-band witness through logic:instantiatesSchema and logic:instantiatesPlan, carries its lift's law-spine on a logic:Correspondence through math:ingestCorrespondence (where its rung, preservation, and loss are recorded), and ties each produced math: object back through gmeow:wasGeneratedBy. A bridge run without its retained source and schema/plan witness cannot support the lawful put leg and is ill-formed (math:UngroundedIngestRun); a run that retains a source but lifts no structured math: codomain and enumerates no residue is ill-formed (math:UnliftableIngest)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:RIngestRun
@@ -4646,7 +4650,7 @@ math:Distribution
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Distribution"@x-gmeow-english ;
-    skos:definition "A probability distribution: a law assigning probabilities over outcomes, named by its family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized. A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct from the math:ProbabilityMeasure it induces."@x-gmeow-english ;
+    skos:definition "A probability distribution: a law assigning probabilities over outcomes, named by its family through math:distributionFamily (normal, binomial, Poisson, …) and parameterized. A distribution missing its family is underspecified (math:MissingDistributionParameterization). Parametricity is detected by the presence of supplied parameters, never by a marker class: a distribution that supplies a math:hasDistributionParameter also names its math:distributionParameterization (the explicit convention fixing which parametric form of its family is meant), and fills each math:DistributionParameterRole that parameterization requires exactly once (math:DistributionParameterRoleCardinality), while a non-parametric distribution (no supplied parameters) is not rejected. A subclass of math:MathematicalObject; an R rnorm/dbinom/… call lifts to this object with its family and parameterization, distinct from the math:ProbabilityMeasure it induces."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:Estimate
@@ -4654,13 +4658,14 @@ math:Estimate
     rdfs:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Estimate"@x-gmeow-english ;
-    skos:definition "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim. The R broom tidy triple lifts model coefficients onto these objects."@x-gmeow-english ;
+    skos:definition "An estimate: a produced value that estimates an estimand (math:estimatesEstimand) and, where relevant, a model parameter (math:estimatedParameter), carrying its value (math:estimateValue) and the estimator that produced it (math:estimator). A subclass of math:MathematicalObject and the structured result object of the process / result / claim separation — neither the analysis activity nor the held claim, and never a bare number: it fixes both WHAT it estimates (its estimand and/or its estimated parameter) and HOW (the estimator that produced it), and one naming neither its target quantity nor a model parameter, or naming no estimator, is underspecified (math:UnderspecifiedEstimate). The R broom tidy triple lifts model coefficients onto these objects."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Use to record a produced value that estimates an estimand — the structured result object carrying its value, its estimand, and the estimator that produced it."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use it for the estimation activity (an math:InferenceRun) nor for the held claim about the value; an estimate that names no math:estimator is a math:UnderspecifiedEstimate."@x-gmeow-english ;
     gmeow:howToUse "Mint one per estimated value; link its target through math:estimatesEstimand, its producer through math:estimator, and its magnitude through math:estimateValue."@x-gmeow-english ;
     skos:example "exf:betaHat a math:Estimate ; math:estimatesEstimand exf:ateEstimand ; math:estimator exf:olsEstimator ; math:estimateValue exf:betaValue ."@x-gmeow-english ;
-    skos:scopeNote "The produced result value, distinct from the math:Estimand it targets (the sought quantity), the math:Estimator that produces it (the procedure), and the math:InferenceRun that computes it (the activity)."@x-gmeow-english .
+    skos:scopeNote "The produced result value, distinct from the math:Estimand it targets (the sought quantity), the math:Estimator that produces it (the procedure), and the math:InferenceRun that computes it (the activity)."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:UnderspecifiedEstimate .
 
 math:Residual
     a owl:Class ;
@@ -5270,7 +5275,8 @@ math:FormalVerificationResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Formal Verification Result"@x-gmeow-english ;
     skos:definition "A formal verification result: the structured RESULT OBJECT of checking a math:Proof — the QED verdict a proof assistant returns. A subclass of math:MathematicalObject, NOT a gmeow:Observation: it is the result object of the process / result / claim separation, and the held verdict is a separate gmeow:Observation naming the checker as gmeow:vantage, the result through gmeow:observationResult, and the run through gmeow:wasGeneratedBy. None is typed as another; a result object roled as the claim is ill-formed (math:ResultRoleConflation), and a result not grounded by such an observation is ill-formed (math:UngroundedVerificationResult)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UngroundedVerificationResult .
 
 math:dependsOnAxiom
     a owl:ObjectProperty ;
@@ -5708,11 +5714,17 @@ math:UnwiredFlagshipScenario
 # =========================================================================== #
 
 math:Number rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NumberSystem ] .
+    [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:inNumberSystem ; owl:maxQualifiedCardinality 1 ; owl:onClass math:NumberSystem ] ;
+    gmeow:enforcesFailureClass math:UnsituatedNumber .
 
 math:ApproximateValue rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:approximates ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:approximates ; owl:allValuesFrom math:Number ] ,
+    [ a owl:Restriction ; owl:onProperty math:approximates ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:approximates ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Number ] ,
-    [ a owl:Restriction ; owl:onProperty math:approximationError ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:approximationError ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:ExactApproximateConflation .
 
 # math:isExact must be true, and math:totalMass must be 1 (math:ProbabilityMeasure), are
 # VALUE-EQUALITY constraints authored with owl:hasValue: the frontend term model now carries
@@ -5722,132 +5734,191 @@ math:ApproximateValue rdfs:subClassOf
 # (onClass owl:Thing, which also catches the constant-as-decimal counter-example) is
 # authored alongside.
 math:MathematicalConstant rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:isExact ; owl:minQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ,
     [ a owl:Restriction ; owl:onProperty math:isExact ; owl:hasValue true ] ,
-    [ a owl:Restriction ; owl:onProperty math:quantityValue ; owl:maxQualifiedCardinality 0 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:quantityValue ; owl:maxQualifiedCardinality 0 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:ConstantAsDecimalLiteral .
 
 math:SetBuilderExpression rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:memberCondition ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:memberCondition ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:StringOnlyMemberCondition .
 
 math:Complement rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:complementSemantics ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:ambientSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:complementSemantics ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ComplementSemantics ] .
+    [ a owl:Restriction ; owl:onProperty math:complementSemantics ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ComplementSemantics ] ;
+    gmeow:enforcesFailureClass math:UnqualifiedComplement .
 
 math:Function rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:domain ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:codomain ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:domain ; owl:allValuesFrom math:Set ] ,
+    [ a owl:Restriction ; owl:onProperty math:codomain ; owl:allValuesFrom math:Set ] ,
+    [ a owl:Restriction ; owl:onProperty math:domain ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:codomain ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:domain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Set ] ,
-    [ a owl:Restriction ; owl:onProperty math:codomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Set ] .
+    [ a owl:Restriction ; owl:onProperty math:codomain ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Set ] ;
+    gmeow:enforcesFailureClass math:UnframedFunction .
 
 math:AlgebraicStructure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:underlyingSet ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:underlyingSet ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Set ] ,
     [ a owl:Restriction ; owl:onProperty math:structureOperation ; owl:minQualifiedCardinality 1 ; owl:onClass math:Operation ] ,
-    [ a owl:Restriction ; owl:onProperty math:satisfiesAxiom ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:satisfiesAxiom ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:IncompleteAlgebraicStructure .
 
 math:Homomorphism rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:preservedOperation ; owl:minQualifiedCardinality 1 ; owl:onClass math:Operation ] ,
-    [ a owl:Restriction ; owl:onProperty math:preservationLaw ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:preservationLaw ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedHomomorphism .
 
 math:LieGroup rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:hasRootSystem ; owl:minQualifiedCardinality 1 ; owl:onClass math:RootSystem ] .
+    [ a owl:Restriction ; owl:onProperty math:hasRootSystem ; owl:minQualifiedCardinality 1 ; owl:onClass math:RootSystem ] ;
+    gmeow:enforcesFailureClass math:IncompleteLieStructure .
 
 math:RootSystem rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:cartanMatrix ; owl:minQualifiedCardinality 1 ; owl:onClass math:CartanMatrix ] ,
     [ a owl:Restriction ; owl:onProperty math:weylGroup ; owl:minQualifiedCardinality 1 ; owl:onClass math:WeylGroup ] ,
-    [ a owl:Restriction ; owl:onProperty math:rootSystemRank ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:rootSystemRank ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:IncompleteLieStructure .
 
 math:AutomorphismGroup rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:automorphismGroupOf ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:automorphismGroupOf ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnanchoredAutomorphismGroup .
 
 math:HomomorphicEncryptionScheme rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:homomorphicOver ; owl:minQualifiedCardinality 1 ; owl:onClass math:Operation ] ,
     [ a owl:Restriction ; owl:onProperty math:securityAssumption ; owl:minQualifiedCardinality 1 ; owl:onClass math:LatticeHardnessAssumption ] ,
-    [ a owl:Restriction ; owl:onProperty math:noiseModel ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:noiseModel ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedEncryptionScheme .
 
 math:Ring rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:satisfiesDistributivity ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:satisfiesDistributivity ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:NonDistributiveRing .
 
 math:Measure rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:measureOn ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:measureOn ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MeasurableSpace ] ,
-    [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:IncompleteMeasure .
 
 # A probability measure is exactly a measure of total mass one — a typed value-equality
 # obligation on the inherited math:totalMass, derived to sh:hasValue 1.
 math:ProbabilityMeasure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:hasValue 1 ] .
+    [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:totalMass ; owl:hasValue 1 ] ;
+    gmeow:enforcesFailureClass math:ProbabilityMeasureMassViolation .
 
 math:Integral rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:withRespectTo ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:withRespectTo ; owl:allValuesFrom math:Measure ] ,
+    [ a owl:Restriction ; owl:onProperty math:integrand ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:withRespectTo ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:integrand ; owl:maxQualifiedCardinality 1 ; owl:onClass math:MeasurableFunction ] ,
     [ a owl:Restriction ; owl:onProperty math:integrationDomain ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:withRespectTo ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Measure ] .
+    [ a owl:Restriction ; owl:onProperty math:withRespectTo ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Measure ] ;
+    gmeow:enforcesFailureClass math:IncompleteIntegral .
 
 math:Quantity rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:hasDimension ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Dimension ] .
+    [ a owl:Restriction ; owl:onProperty math:hasDimension ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasDimension ; owl:allValuesFrom math:Dimension ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasDimension ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:hasDimension ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Dimension ] ;
+    gmeow:enforcesFailureClass math:UndimensionedQuantity .
 
 math:DerivedDimension rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:baseDimensionExponent ; owl:minQualifiedCardinality 1 ; owl:onClass math:DimensionExponent ] .
+    [ a owl:Restriction ; owl:onProperty math:baseDimensionExponent ; owl:minQualifiedCardinality 1 ; owl:onClass math:DimensionExponent ] ;
+    gmeow:enforcesFailureClass math:MalformedDimension .
 
 math:DimensionExponent rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:exponentOfDimension ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:exponentOfDimension ; owl:maxQualifiedCardinality 1 ; owl:onClass math:BaseDimension ] ,
     [ a owl:Restriction ; owl:onProperty math:exponentNumerator ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty math:exponentDenominator ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] .
+    [ a owl:Restriction ; owl:onProperty math:exponentDenominator ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ;
+    gmeow:enforcesFailureClass math:MalformedDimension .
 
 math:DimensionalExpression rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:homogeneousOperand ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:homogeneousOperand ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:MalformedDimension .
 
 math:ArgumentSlot rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:slotIndex ; owl:allValuesFrom xsd:integer ] ,
     [ a owl:Restriction ; owl:onProperty math:slotIndex ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty math:slotExpression ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:slotExpression ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:MalformedArgumentSlot .
 
 math:ApplicationExpression rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:operator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:operator ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:ApplicationOperatorCardinality .
 
 math:BindingExpression rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:boundVariable ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:argumentSlot ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:argumentSlot ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:MalformedBindingExpression .
 
 math:VariableOccurrence rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:declaredVariable ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:declaredVariable ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnscopedVariableOccurrence .
 
 math:Derivative rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:derivativeOrder ; owl:allValuesFrom xsd:integer ] ,
     [ a owl:Restriction ; owl:onProperty math:derivativeOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:withRespectToVariable ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:derivativeOrder ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] .
+    [ a owl:Restriction ; owl:onProperty math:derivativeOrder ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedDerivative .
 
 math:Limit rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:limitOf ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:limitPoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:limitPoint ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedLimit .
 
 math:Convergence rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:convergenceMode ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:convergesTo ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:convergenceMode ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ConvergenceMode ] .
+    [ a owl:Restriction ; owl:onProperty math:convergenceMode ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ConvergenceMode ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedConvergence .
 
 math:Series rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:seriesTerm ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:hasConvergence ; owl:minQualifiedCardinality 1 ; owl:onClass math:Convergence ] .
+    [ a owl:Restriction ; owl:onProperty math:hasConvergence ; owl:minQualifiedCardinality 1 ; owl:onClass math:Convergence ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedConvergence .
 
 math:Sequence rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:hasConvergence ; owl:minQualifiedCardinality 1 ; owl:onClass math:Convergence ] .
+    [ a owl:Restriction ; owl:onProperty math:hasConvergence ; owl:minQualifiedCardinality 1 ; owl:onClass math:Convergence ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedConvergence .
 
 math:ContinuousMap rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:isContinuous ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] .
+    [ a owl:Restriction ; owl:onProperty math:isContinuous ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ;
+    gmeow:enforcesFailureClass math:UndeclaredTopologicalProperty .
 
 math:CompactSpace rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:isCompact ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] .
+    [ a owl:Restriction ; owl:onProperty math:isCompact ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ;
+    gmeow:enforcesFailureClass math:UndeclaredTopologicalProperty .
 
 math:ConnectedSpace rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:isConnected ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] .
+    [ a owl:Restriction ; owl:onProperty math:isConnected ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:boolean ] ;
+    gmeow:enforcesFailureClass math:UndeclaredTopologicalProperty .
 
 math:Manifold rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:manifoldStructureKind ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:manifoldDimension ; owl:allValuesFrom xsd:integer ] ,
     [ a owl:Restriction ; owl:onProperty math:manifoldDimension ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty math:manifoldStructureKind ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ManifoldStructureKind ] .
+    [ a owl:Restriction ; owl:onProperty math:manifoldStructureKind ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ManifoldStructureKind ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedManifold .
 
 math:Chart rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:chartDomain ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:coordinateMap ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:targetCoordinateSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:targetCoordinateSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedChart .
 
 math:OrthogonalComplement rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:definedByInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:definedByInnerProduct ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnqualifiedOrthogonalComplement .
 
 math:PCAAnalysis rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:centeringPolicy ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:scalingPolicy ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:analysisInput ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:centeringPolicy ; owl:maxQualifiedCardinality 1 ; owl:onClass math:CenteringPolicy ] ,
     [ a owl:Restriction ; owl:onProperty math:scalingPolicy ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ScalingPolicy ] ,
@@ -5857,57 +5928,84 @@ math:PCAAnalysis rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:loadingVector ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:scoreVector ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:explainedVarianceRatio ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:residualSubspace ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:residualSubspace ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:IncompletePCAAnalysis .
 
 math:ResidualInterpretationClaim rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:vantage ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:ResidualMeaningAsProperty .
 
 math:Embedding rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:embeddingSource ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:targetSpace ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:embeddingFunction ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:embeddingModel ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:embeddingModel ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UnderspecifiedEmbedding .
 
 math:TensorComputationGraph rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:computationNode ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:computationNode ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:MalformedTensorComputationGraph .
 
 math:WeightTensor rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:inParameterSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ParameterSpace ] .
+    [ a owl:Restriction ; owl:onProperty math:inParameterSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:inParameterSpace ; owl:maxQualifiedCardinality 1 ; owl:onClass math:ParameterSpace ] ;
+    gmeow:enforcesFailureClass math:UnframedWeightTensor .
 
 math:RationalValue rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:numerator ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ,
-    [ a owl:Restriction ; owl:onProperty math:denominator ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] .
+    [ a owl:Restriction ; owl:onProperty math:denominator ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:integer ] ;
+    gmeow:enforcesFailureClass math:ZeroDenominator .
 
 math:Norm rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:inducedByForm ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:inducedByForm ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:NonPositiveDefiniteNorm .
 
 math:GramMatrix rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:representsForm ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:inBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty math:representsForm ; owl:maxQualifiedCardinality 1 ; owl:onClass math:SymmetricBilinearForm ] ,
-    [ a owl:Restriction ; owl:onProperty math:inBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Basis ] .
+    [ a owl:Restriction ; owl:onProperty math:inBasis ; owl:maxQualifiedCardinality 1 ; owl:onClass math:Basis ] ;
+    gmeow:enforcesFailureClass math:AsymmetricGramMatrix .
 
 math:ModelFormula rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:argumentSlot ; owl:minQualifiedCardinality 1 ; owl:onClass math:ArgumentSlot ] .
+    [ a owl:Restriction ; owl:onProperty math:argumentSlot ; owl:minQualifiedCardinality 1 ; owl:onClass math:ArgumentSlot ] ;
+    gmeow:enforcesFailureClass math:UnframedFunction .
 
 math:FittedModel rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:fittedToData ; owl:minQualifiedCardinality 1 ; owl:onClass math:DatasetMatrix ] ,
-    [ a owl:Restriction ; owl:onProperty math:modelFormula ; owl:minQualifiedCardinality 1 ; owl:onClass math:ModelFormula ] .
+    [ a owl:Restriction ; owl:onProperty math:modelFormula ; owl:minQualifiedCardinality 1 ; owl:onClass math:ModelFormula ] ;
+    gmeow:enforcesFailureClass math:UnfittedModel .
 
 math:IngestRun rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:parseSource ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty logic:instantiatesSchema ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
     [ a owl:Restriction ; owl:onProperty logic:instantiatesPlan ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:ingestCorrespondence ; owl:minQualifiedCardinality 1 ; owl:onClass logic:Correspondence ] .
+    [ a owl:Restriction ; owl:onProperty math:ingestCorrespondence ; owl:minQualifiedCardinality 1 ; owl:onClass logic:Correspondence ] ;
+    gmeow:enforcesFailureClass math:UngroundedIngestRun .
 
 math:Theorem rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:roleInTheory ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+    [ a owl:Restriction ; owl:onProperty math:roleInTheory ; owl:minQualifiedCardinality 1 ; owl:onClass owl:Thing ] ;
+    gmeow:enforcesFailureClass math:UngroundedTheoremClaim .
 
-math:FlagshipScenario rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:demonstratedByExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty math:demonstratedByCompetency ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
-    [ a owl:Restriction ; owl:onProperty math:guardedByCounterExample ; owl:maxQualifiedCardinality 1 ; owl:onDataRange xsd:string ] ,
-    [ a owl:Restriction ; owl:onProperty math:enforcesFailureClass ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+# A filtration stage pairs exactly one threshold with exactly one structure; a
+# confidence interval carries its lower AND upper endpoint (min two bounds); a
+# stability calibration record names exactly one derivation kind and exactly one
+# guarantee. The class-scoped exact-one bounds are authored as max-qualified
+# owl:Thing restrictions (the reasoner-safe class-scoped form — never a global
+# owl:FunctionalProperty claim, which the math: profile forbids).
+math:FiltrationStage rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:filtrationThreshold ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:stageStructure ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+math:StabilityCalibrationRecord rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:credenceDerivationKind ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] ,
+    [ a owl:Restriction ; owl:onProperty math:stabilityGuarantee ; owl:maxQualifiedCardinality 1 ; owl:onClass owl:Thing ] .
+
+math:ConfidenceInterval rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty math:hasIntervalBound ; owl:minQualifiedCardinality 2 ; owl:onClass owl:Thing ] .
 
 # =========================================================================== #
 # PROBABILITY LAYER — Kolmogorov spine, distributions, dependency models,      #
@@ -5955,7 +6053,8 @@ math:ProbabilityEvent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Probability Event"@x-gmeow-english ;
     skos:definition "A probability event: a measurable subset of a sample space — a MEASURABLE SET OF OUTCOMES, in the measure-theoretic sense, situated in a space through math:eventInSpace and assigned a framed probability through math:probabilityOfEvent. A subclass of math:Set. It is held owl:disjointWith logic:Event because a logic:Event is an occurrent (something that happens in time) whereas a probability event is a set of outcomes: a rain occurrence and the rain event-set in a forecast space are never conflated. Membership of an event in the space's algebra is math:eventInSpace against the space's math:eventSigmaAlgebra; there is NO separate EventSet class — the σ-algebra is the sole event algebra."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:ProbabilityEventOccurrentConflation .
 
 math:BorelSigmaAlgebra
     a owl:Class ;
@@ -6034,7 +6133,8 @@ math:ProbabilityValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Probability Value"@x-gmeow-english ;
     skos:definition "A probability value: a quantity/result object that is ALWAYS in the closed unit interval [0, 1], carrying its magnitude and naming its probability frame or model. A subclass of gmeow:Quantity (a probability is math:dimensionless). Where exact, it is carried as a math:RationalValue with math:isExact true (the exact/approximate split — 1/3, not 0.333); where empirical it may be an approximate value. The [0, 1] bound is a genuine hard fail enforced by SHACL and a native numeric check (math:ProbabilityOutOfBounds); odds and log-odds are NOT probabilities and are their own kinds (math:OddsValue, math:LogOddsValue), held disjoint from this class so a consumer seeing a math:ProbabilityValue may correctly assume a closed unit interval."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:ProbabilityScaleConflation .
 
 math:OddsValue
     a owl:Class ;
@@ -6075,7 +6175,8 @@ math:RandomVariable
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Random Variable"@x-gmeow-english ;
     skos:definition "A random variable: a measurable map from a probability space's sample space into a measurable codomain, with a declared domain (math:randomVariableDomain) and codomain (math:randomVariableCodomain) and a probability-space or distribution context (math:hasDistribution). A subclass of math:MathematicalObject. Its dimensional constraints are CARRIED, not assumed — a random variable over height and its distribution's location parameter share height units — so a mis-dimensioned parameter is a caught error. A random variable without its domain, codomain, and a space or distribution context is ill-formed (math:UnscopedRandomVariable)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnscopedRandomVariable .
 
 math:DistributionFamily
     a owl:Class ;
@@ -6284,7 +6385,8 @@ math:ConditionalProbability
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Conditional Probability"@x-gmeow-english ;
     skos:definition "A conditional probability P(A | B): a probability object naming BOTH the event it is about and the conditioning event or context it is conditioned on (math:conditionalOn). A subclass of math:MathematicalObject. A conditional with an unnamed conditioning context is ill-formed (math:UnconditionedAssertion) — the conditioning context is never left implicit."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnconditionedAssertion .
 
 math:IndependenceAssertion
     a owl:Class ;
@@ -6300,7 +6402,8 @@ math:ConditionalIndependenceAssertion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Conditional Independence Assertion"@x-gmeow-english ;
     skos:definition "A conditional-independence assertion A ⫫ B | C: an independence assertion that additionally names the conditioning set it is relative to (math:independentGiven). A subclass of math:IndependenceAssertion. Like marginal independence it is a standpoint-scoped modeler's claim naming its model; distinct from marginal independence (a different, weaker-or-stronger relation), and distinct again from 'not modeled'. A conditional-independence assertion that fails to name its conditioning set is ill-formed (math:UnconditionedAssertion)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:enforcesFailureClass math:UnconditionedAssertion .
 
 math:conditionalOn
     a owl:ObjectProperty ;
@@ -6569,10 +6672,12 @@ math:CalibrationDiagnostic owl:disjointWith math:StabilityCalibrationRecord .
 math:ProbabilitySpace rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty math:sampleSpace ; owl:minQualifiedCardinality 1 ; owl:onClass math:SampleSpace ] ,
     [ a owl:Restriction ; owl:onProperty math:eventSigmaAlgebra ; owl:minQualifiedCardinality 1 ; owl:onClass math:SigmaAlgebra ] ,
-    [ a owl:Restriction ; owl:onProperty math:probabilityMeasure ; owl:minQualifiedCardinality 1 ; owl:onClass math:ProbabilityMeasure ] .
+    [ a owl:Restriction ; owl:onProperty math:probabilityMeasure ; owl:minQualifiedCardinality 1 ; owl:onClass math:ProbabilityMeasure ] ;
+    gmeow:enforcesFailureClass math:IncompleteProbabilitySpace .
 
 math:Distribution rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty math:distributionFamily ; owl:minQualifiedCardinality 1 ; owl:onClass math:DistributionFamily ] .
+    [ a owl:Restriction ; owl:onProperty math:distributionFamily ; owl:minQualifiedCardinality 1 ; owl:onClass math:DistributionFamily ] ;
+    gmeow:enforcesFailureClass math:MissingDistributionParameterization .
 
 # --- Probability conformance-failure classes -------------------------------- #
 
@@ -7159,7 +7264,8 @@ math:ConfidenceInterval
     gmeow:avoidWhen "Do not read it as the posterior probability that the parameter lies in the interval; that is a credible interval, and reading a confidence interval that way is the core misuse."@x-gmeow-english ;
     gmeow:howToUse "Name its bounds through math:hasIntervalBound and its coverage through math:confidenceLevel; missing either is math:IncompleteConfidenceInterval."@x-gmeow-english ;
     skos:example "exf:ci95 a math:ConfidenceInterval ; math:confidenceLevel exf:p95 ; math:hasIntervalBound exf:lo , exf:hi ."@x-gmeow-english ;
-    skos:scopeNote "Procedure coverage under repeated sampling, held disjoint through paradigm parents from math:CredibleInterval (posterior mass); conflating them is math:IntervalKindConflation."@x-gmeow-english .
+    skos:scopeNote "Procedure coverage under repeated sampling, held disjoint through paradigm parents from math:CredibleInterval (posterior mass); conflating them is math:IntervalKindConflation."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:IncompleteConfidenceInterval .
 
 math:ConfidenceRegion
     a owl:Class ;
@@ -7187,7 +7293,8 @@ math:CredibleInterval
     gmeow:avoidWhen "Do not read its mass as a procedure coverage or mint one with no posterior; a credible interval naming no posterior or no mass is ill-formed."@x-gmeow-english ;
     gmeow:howToUse "Name its posterior through math:hasPosterior, its bounds through math:hasIntervalBound, and its mass through math:credibleMass; missing the posterior or mass is math:IncompleteCredibleInterval."@x-gmeow-english ;
     skos:example "exf:cri95 a math:CredibleInterval ; math:credibleMass exf:m95 ; math:hasIntervalBound exf:lo , exf:hi ."@x-gmeow-english ;
-    skos:scopeNote "Posterior mass over a parameter, held disjoint through paradigm parents from math:ConfidenceInterval (procedure coverage); conflating them is math:IntervalKindConflation."@x-gmeow-english .
+    skos:scopeNote "Posterior mass over a parameter, held disjoint through paradigm parents from math:ConfidenceInterval (procedure coverage); conflating them is math:IntervalKindConflation."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:IncompleteCredibleInterval .
 
 math:CredibleRegion
     a owl:Class ;
@@ -7269,7 +7376,8 @@ math:EffectSize
     gmeow:avoidWhen "Do not report an effect size as a bare number; missing its contrast, scale, or reference frame it is uninterpretable."@x-gmeow-english ;
     gmeow:howToUse "Identify its math:effectSizeContrast (the shared math:StatisticalContrast), its math:effectSizeScale, and its gmeow:hasReferenceFrame; missing any is math:UnframedEffectSize."@x-gmeow-english ;
     skos:example "exf:cohensD a math:EffectSize ; math:effectSizeContrast exf:treatVsControl ; math:effectSizeScale exf:sdScale ."@x-gmeow-english ;
-    skos:scopeNote "The magnitude of an effect, distinct from a math:PValue (its distinguishability from zero) and from the math:StatisticalContrast whose size it measures."@x-gmeow-english .
+    skos:scopeNote "The magnitude of an effect, distinct from a math:PValue (its distinguishability from zero) and from the math:StatisticalContrast whose size it measures."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:UnframedEffectSize .
 
 math:Prediction
     a owl:Class ;
@@ -7466,7 +7574,8 @@ math:ModelDiagnostic
     gmeow:avoidWhen "Do not leave a check buried in a plot caption; a diagnostic anchored to neither its fit nor its method is math:UnanchoredDiagnostic."@x-gmeow-english ;
     gmeow:howToUse "Name the math:FittedModel it evaluates through math:diagnosticFor and the method it applies through math:diagnosticMethod."@x-gmeow-english ;
     skos:example "exf:qqPlot a math:ModelDiagnostic ; math:diagnosticFor exf:olsFit ; math:diagnosticMethod exf:qqAssessment ."@x-gmeow-english ;
-    skos:scopeNote "An evaluation of one fit, distinct from a math:ModelComparison (weighing several fits) and from the math:ModelAssumption it may check."@x-gmeow-english .
+    skos:scopeNote "An evaluation of one fit, distinct from a math:ModelComparison (weighing several fits) and from the math:ModelAssumption it may check."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:UnanchoredDiagnostic .
 
 math:ModelComparison
     a owl:Class ;
@@ -7518,7 +7627,8 @@ math:CalibrationDiagnostic
     gmeow:avoidWhen "Do not use it for the topological calibration of a credence against a stability bound; that is math:StabilityCalibrationRecord, and typing a node both is a sense conflation."@x-gmeow-english ;
     gmeow:howToUse "As a math:ModelDiagnostic, name the math:FittedModel whose probabilities it checks through math:diagnosticFor and its method through math:diagnosticMethod, a reliability curve or expected-calibration-error binning."@x-gmeow-english ;
     skos:example "exf:reliability a math:CalibrationDiagnostic ; math:diagnosticFor exf:logitFit ; math:diagnosticMethod exf:eceBinning ."@x-gmeow-english ;
-    skos:scopeNote "The statistical calibration sense (probabilities against frequencies), held disjoint from math:StabilityCalibrationRecord (a credence against a stability bound); crossing them is math:CalibrationSenseConflation."@x-gmeow-english .
+    skos:scopeNote "The statistical calibration sense (probabilities against frequencies), held disjoint from math:StabilityCalibrationRecord (a credence against a stability bound); crossing them is math:CalibrationSenseConflation."@x-gmeow-english ;
+    gmeow:enforcesFailureClass math:CalibrationSenseConflation .
 
 # --- Design and integrity (⊑ math:MathematicalObject) ----------------------- #
 
@@ -7656,7 +7766,8 @@ math:NormPositiveDefiniteConstraint
     logic:valuePath math:inducedByForm ;
     logic:valuePredicate math:definiteness ;
     logic:valueObject math:positiveDefinite ;
-    logic:formalizes math:Norm ;
+    logic:formalizes math:NormPositiveDefiniteShape ;
+    gmeow:enforcesFailureClass math:NonPositiveDefiniteNorm ;
     logic:message "A math:Norm's math:inducedByForm must be positive-definite (math:definiteness math:positiveDefinite); a norm resting on a non-positive-definite form is ill-formed (math:NonPositiveDefiniteNorm)." .
 
 # math:LogicLoweringShape — any expression lowered to a logic:Formula through
@@ -7670,9 +7781,10 @@ math:LogicLoweringDeclaredConstraint
     logic:trigger math:compilesToLogicFormula ;
     logic:requires math:denotationKind , math:logicLoweringPreservation ;
     logic:formalizes math:LogicLoweringShape ;
+    gmeow:enforcesFailureClass math:UndeclaredLogicLowering ;
     logic:message "An expression lowered to a logic:Formula through math:compilesToLogicFormula must declare its math:denotationKind and its math:logicLoweringPreservation; silent promotion to a logical assertion is forbidden (math:UndeclaredLogicLowering)." .
 
-# exact-one minCount restoration (issue #1194): min-qualified sibling restrictions
+# exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
 <https://blackcatinformatics.ca/math/Number> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/inNumberSystem> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/NumberSystem> ] .
 <https://blackcatinformatics.ca/math/ApproximateValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/approximates> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Number> ] .
@@ -7719,10 +7831,6 @@ math:LogicLoweringDeclaredConstraint
 <https://blackcatinformatics.ca/math/Norm> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/inducedByForm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 <https://blackcatinformatics.ca/math/GramMatrix> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/representsForm> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/SymmetricBilinearForm> ] .
 <https://blackcatinformatics.ca/math/GramMatrix> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/inBasis> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <https://blackcatinformatics.ca/math/Basis> ] .
-<https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/demonstratedByExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/demonstratedByCompetency> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
-<https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/guardedByCounterExample> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onDataRange> <http://www.w3.org/2001/XMLSchema#string> ] .
-<https://blackcatinformatics.ca/math/FlagshipScenario> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Restriction> ; <http://www.w3.org/2002/07/owl#onProperty> <https://blackcatinformatics.ca/math/enforcesFailureClass> ; <http://www.w3.org/2002/07/owl#minQualifiedCardinality> "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; <http://www.w3.org/2002/07/owl#onClass> <http://www.w3.org/2002/07/owl#Thing> ] .
 
 # A math:SetBuilderExpression's math:memberCondition must be a resource denoting a
 # logic: formula (a blank node or IRI), not an opaque literal string (a path node-kind
@@ -7743,6 +7851,7 @@ math:ArgumentSlotIndexUniquenessConstraint
     logic:siblingPredicate math:argumentSlot ;
     logic:sharedPredicate math:slotIndex ;
     logic:formalizes math:SlotIndexUniquenessShape ;
+    gmeow:enforcesFailureClass math:MalformedArgumentSlot ;
     logic:message "No two distinct math:argumentSlot cells of the same parent may share the same math:slotIndex; a duplicate index makes operand order ambiguous." .
 
 # A math:FormalVerificationResult must be grounded in an observation that names it through
@@ -7755,16 +7864,37 @@ math:FormalVerificationResultGroundingConstraint
     logic:formalizes math:FormalVerificationResult ;
     logic:message "A math:FormalVerificationResult must be the gmeow:observationResult of some observation; an ungrounded verification result is ill-formed." .
 
-# A math:FlagshipScenario's math:enforcesFailureClass must name a class that transitively
-# rdfs:subClassOf the conformance-failure root — a transitive reachability constraint.
+# The math: slice's THIN failure-range gate for gmeow:FlagshipScenario (the canonical
+# grounding of the retired math:FlagshipScenarioShape): a scenario whose
+# gmeow:enforcesFailureClass names a math:-namespaced class must name a
+# math:MathConformanceFailure subclass (rdfs:subClassOf+, checked by value). The gate is
+# NAMESPACE-SCOPED because every grounding slice contributes its own failure-range gate
+# over the SAME shared gmeow:FlagshipScenario class: an unscoped gate would demand every
+# scenario's failure class reach EVERY slice's root at once — mutually unsatisfiable on
+# the union graph — so each slice validates exactly the failure classes it owns.
 math:FlagshipScenarioFailureClassConstraint
-    a logic:TransitiveReachabilityConstraint ;
-    logic:onClass math:FlagshipScenario ;
-    logic:viaPredicate math:enforcesFailureClass ;
-    logic:pathPredicate rdfs:subClassOf ;
-    logic:reachTarget math:MathConformanceFailure ;
-    logic:formalizes math:FlagshipScenario ;
-    logic:message "A math:FlagshipScenario's math:enforcesFailureClass must transitively rdfs:subClassOf math:MathConformanceFailure; a scenario that enforces a non-failure class is ill-formed." .
+    a logic:Constraint ;
+    rdfs:label "Flagship scenario failure-range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The math: slice's thin failure-range gate: a gmeow:FlagshipScenario whose gmeow:enforcesFailureClass names a math:-namespaced class must name a math:MathConformanceFailure subclass (transitively, by rdfs:subClassOf). Namespace-scoped so the three grounding slices' failure-range gates coexist over the one shared gmeow:FlagshipScenario class; a scenario enforcing a math: class that is not a conformance failure is unwired (math:UnwiredFlagshipScenario)."@x-gmeow-english ;
+    logic:formalizes math:FlagshipScenarioShape ;
+    gmeow:enforcesFailureClass math:UnwiredFlagshipScenario ;
+    logic:message "A gmeow:FlagshipScenario's gmeow:enforcesFailureClass naming a math: class must name a math:MathConformanceFailure subclass — the typed failure its counter-example raises; naming a math: class that is not a conformance failure leaves the scenario unwired (math:UnwiredFlagshipScenario)." ;
+    logic:integrity math:fsrForall .
+math:fsrForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] ;
+    logic:forall math:fsrImpl .
+math:fsrImpl a logic:Formula ; logic:antecedent math:fsrGuard ; logic:consequent math:fsrReach .
+math:fsrGuard a logic:Formula ; logic:and math:fsrType , math:fsrEdge , math:fsrNs .
+math:fsrType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:FlagshipScenario ] .
+math:fsrEdge a logic:Formula ; logic:relation gmeow:enforcesFailureClass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "failure" ] .
+math:fsrNs a logic:Formula ; logic:relation logic:termStrStarts ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termLiteral "https://blackcatinformatics.ca/math/" ] .
+math:fsrReach a logic:Formula ; logic:relation logic:transitiveReach ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "failure" ] , [ logic:termIndex 1 ; logic:termIri rdfs:subClassOf ] , [ logic:termIndex 2 ; logic:termIri math:MathConformanceFailure ] .
 
 # A math:Set is given extensionally (math:hasElement) or intensionally
 # (math:memberCondition), not silently both without a declared equality: a node
@@ -7775,12 +7905,16 @@ math:SetExtentDisjointConstraint
     logic:onClass math:Set ;
     logic:choicePredicate math:hasElement , math:memberCondition ;
     logic:choiceMode "at-most-one" ;
-    logic:formalizes math:Set ;
+    logic:formalizes math:SetExtentShape ;
+    gmeow:enforcesFailureClass math:AmbiguousSetExtent ;
     logic:message "A math:Set must be extensional or intensional, not both: a node carrying both math:hasElement and math:memberCondition without a declared equality has an ambiguous extent (math:AmbiguousSetExtent)." .
 
 # A math:DimensionExponent's math:exponentDenominator must be non-zero: a zero
 # denominator is not a rational power (a forbidden pinned-value pattern — the
-# focus must not carry math:exponentDenominator 0).
+# focus must not carry math:exponentDenominator 0). The pinned value also lowers
+# declaratively onto the projected math:DimensionExponent class shape as
+# sh:not [ sh:hasValue 0 ] on the path (shacl.NotConstraintComponent) — the
+# decidable, validation-only home of the retired OWL value-complement antecedent.
 math:DimensionExponentDenominatorNonZeroConstraint
     a logic:ForbiddenPatternConstraint ;
     logic:onClass math:DimensionExponent ;
@@ -7788,6 +7922,58 @@ math:DimensionExponentDenominatorNonZeroConstraint
     logic:forbiddenValue "0"^^xsd:integer ;
     logic:formalizes math:DimensionExponent ;
     logic:message "A math:DimensionExponent must declare a non-zero integer math:exponentDenominator; a zero denominator is not a rational power (math:MalformedDimension)." .
+
+# A math:RationalValue's math:denominator must be non-zero: p/0 is undefined
+# (math:ZeroDenominator). The exact twin of the dimension-exponent record above,
+# on the object-layer exact-rational carrier: the pinned value lowers
+# declaratively onto the projected math:RationalValue class shape as
+# sh:not [ sh:hasValue 0 ] on the path (shacl.NotConstraintComponent), and the
+# expanded constraint's sh:SPARQLConstraint selects any rational carrying
+# math:denominator 0.
+math:RationalValueDenominatorNonZeroConstraint
+    a logic:ForbiddenPatternConstraint ;
+    logic:onClass math:RationalValue ;
+    logic:forbiddenPredicate math:denominator ;
+    logic:forbiddenValue "0"^^xsd:integer ;
+    logic:formalizes math:RationalValue ;
+    logic:message "A math:RationalValue must declare a non-zero math:denominator; a zero denominator is not a rational value (math:ZeroDenominator)." .
+
+# The three lower-bounded integer paths, as validation-only value-range records
+# (never OWL faceted-datatype antecedents: the native reasoner carries no datatype
+# value-space reasoning, so a facet is undecidable in the reasoning core the moment a
+# literal is asserted on the constrained path — e.g. the example producers assert
+# math:slotIndex throughout the bundle). Each lowers declaratively onto its class's
+# projected shape as sh:minInclusive (the exact component the legacy facet carried);
+# the sh:datatype / cardinality siblings stay as ordinary decidable OWL restrictions.
+
+# An argument slot's position is zero-based: a negative math:slotIndex is not a
+# position in an operand list.
+math:ArgumentSlotIndexNonNegativeConstraint
+    a logic:ValueRangeConstraint ;
+    logic:onClass math:ArgumentSlot ;
+    logic:valuePath math:slotIndex ;
+    logic:minInclusiveBound 0 ;
+    logic:formalizes math:ArgumentSlot ;
+    logic:message "A math:ArgumentSlot's math:slotIndex must be a non-negative integer (zero-based operand position); a negative index is ill-formed (math:MalformedArgumentSlot)." .
+
+# A derivative's order is at least one: a zeroth derivative is the function itself,
+# never a math:Derivative record.
+math:DerivativeOrderPositiveConstraint
+    a logic:ValueRangeConstraint ;
+    logic:onClass math:Derivative ;
+    logic:valuePath math:derivativeOrder ;
+    logic:minInclusiveBound 1 ;
+    logic:formalizes math:Derivative ;
+    logic:message "A math:Derivative's math:derivativeOrder must be a positive integer (a zeroth derivative is the function itself, not a derivative record); an order below one is ill-formed (math:UnderspecifiedDerivative)." .
+
+# A manifold's dimension is non-negative: a negative dimension names no manifold.
+math:ManifoldDimensionNonNegativeConstraint
+    a logic:ValueRangeConstraint ;
+    logic:onClass math:Manifold ;
+    logic:valuePath math:manifoldDimension ;
+    logic:minInclusiveBound 0 ;
+    logic:formalizes math:Manifold ;
+    logic:message "A math:Manifold's math:manifoldDimension must be a non-negative integer; a negative dimension names no manifold (math:UnderspecifiedManifold)." .
 
 # A math:Homomorphism's math:preservationLaw must be a resource denoting a logic:
 # formula (a blank node or IRI), not an opaque literal string (a path node-kind
@@ -7797,7 +7983,8 @@ math:PreservationLawNodeKindConstraint
     logic:onClass math:Homomorphism ;
     logic:valuePath math:preservationLaw ;
     logic:nodeKind "BlankNodeOrIRI" ;
-    logic:formalizes math:Homomorphism ;
+    logic:formalizes math:PreservationLawShape ;
+    gmeow:enforcesFailureClass math:StringOnlyPreservationLaw ;
     logic:message "A math:Homomorphism must name its math:preservationLaw as a resource denoting a logic: formula, not an opaque literal string (math:StringOnlyPreservationLaw)." .
 
 # =========================================================================== #
@@ -7818,7 +8005,8 @@ math:TheoremWarrantConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:Theorem must be warranted by an in-graph math:Proof that math:provesStatement it, or by a declared math:externalWarrant; a theorem with neither is an ungrounded truth-bit claim."@x-gmeow-english ;
-    logic:formalizes math:Theorem ;
+    logic:formalizes math:TheoremGroundingShape ;
+    gmeow:enforcesFailureClass math:UngroundedTheoremClaim ;
     logic:message "A math:Theorem must be warranted by either an in-graph math:Proof (some resource math:provesStatement it) or a declared math:externalWarrant; a theorem asserted with neither is an unwarranted truth-bit claim (math:UngroundedTheoremClaim)." ;
     logic:integrity math:twForall .
 math:twForall a logic:Formula ;
@@ -7848,7 +8036,8 @@ math:ChartDimensionMatchConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:Chart's target coordinate space dimension equals its manifold's dimension."@x-gmeow-english ;
-    logic:formalizes math:Chart ;
+    logic:formalizes math:ChartDimensionShape ;
+    gmeow:enforcesFailureClass math:DimensionMismatch ;
     logic:message "A math:Chart's target coordinate space dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
     logic:integrity math:cdForall .
 math:cdForall a logic:Formula ;
@@ -7886,7 +8075,8 @@ math:E8WeylOrderConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:RootSystem with the E8 fingerprint (240 roots, rank 8) declares a math:weylGroup of math:groupOrder 696729600."@x-gmeow-english ;
-    logic:formalizes math:RootSystem ;
+    logic:formalizes math:E8WeylOrderShape ;
+    gmeow:enforcesFailureClass math:WrongE8WeylOrder ;
     logic:message "A math:RootSystem with the E8 fingerprint (math:rootCount 240, math:rootSystemRank 8) must declare a math:weylGroup of math:groupOrder 696729600 — the order of W(E8); a different order corrupts the flagship invariant and is rejected." ;
     logic:integrity math:e8Forall .
 math:e8Forall a logic:Formula ;
@@ -7922,7 +8112,8 @@ math:GramMatrixSymmetryConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:GramMatrix is symmetric — every entry at (row, column) has a transpose entry at (column, row) with the same math:entryValue."@x-gmeow-english ;
-    logic:formalizes math:GramMatrix ;
+    logic:formalizes math:GramMatrixShape ;
+    gmeow:enforcesFailureClass math:AsymmetricGramMatrix ;
     logic:message "A math:GramMatrix must be symmetric: every math:MatrixEntry at (row, column) needs a transpose entry at (column, row) with the same math:entryValue; a missing or mismatched transpose entry is ill-formed (math:AsymmetricGramMatrix)." ;
     logic:integrity math:gmForall .
 math:gmForall a logic:Formula ;
@@ -7972,7 +8163,7 @@ math:gmM6 a logic:Formula ; logic:relation math:denominator ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "mval" ] , [ logic:termIndex 1 ; logic:termVariable "vden" ] .
 
 # =========================================================================== #
-# Procedural constraint (#1194) authored as a raw logic:Formula integrity tree,
+# Procedural constraint authored as a raw logic:Formula integrity tree,
 # projected to a sh:SPARQLConstraint keyed (via logic:formalizes) onto the same
 # math:MetricSignature source-term the hand-authored SHACL enforced. The p + q
 # vs manifold-dimension count uses the logic:termSum arithmetic BIND.
@@ -7984,7 +8175,8 @@ math:MetricSignatureDimensionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:MetricSignature's math:signaturePositive p and math:signatureNegative q must sum to its manifold's math:manifoldDimension. A signature that miscounts the dimension is a silent-error class the charter forbids (math:DimensionMismatch)."@x-gmeow-english ;
-    logic:formalizes math:MetricSignature ;
+    logic:formalizes math:MetricSignatureDimensionShape ;
+    gmeow:enforcesFailureClass math:DimensionMismatch ;
     logic:severity "Violation" ;
     logic:message "A math:MetricSignature's math:signaturePositive plus math:signatureNegative does not equal its manifold's math:manifoldDimension (math:DimensionMismatch)." ;
     logic:integrity math:msDimForall .
@@ -8015,10 +8207,11 @@ math:msA7 a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "s" ] , [ logic:termIndex 1 ; logic:termVariable "md" ] .
 
 # =========================================================================== #
-# Procedural constraints (#1194) — geometry dimension-consistency and formal-
-# verification grounding shapes from slices/grounding/math/shapes.ttl, authored
-# as raw logic:Formula integrity trees (Principle 17). The authored SHACL shapes
-# stay; these are the canonical logic: projection.
+# Procedural constraints — geometry dimension-consistency and formal-
+# verification obligations (formerly hand-authored SHACL blocks in the slice's
+# retired legacy shapes.ttl), authored as raw logic:Formula integrity trees
+# (Principle 17). These are the canonical logic: records; their SHACL twins are
+# projected to generated/shapes/procedural-constraints.ttl.
 # =========================================================================== #
 
 # A math:TangentSpace's math:spaceDimension must equal its manifold's
@@ -8030,7 +8223,8 @@ math:TangentSpaceDimensionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:TangentSpace's math:spaceDimension equals its manifold's math:manifoldDimension. A tangent space of the wrong dimension is ill-formed (math:DimensionMismatch)."@x-gmeow-english ;
-    logic:formalizes math:TangentSpace ;
+    logic:formalizes math:TangentSpaceDimensionShape ;
+    gmeow:enforcesFailureClass math:DimensionMismatch ;
     logic:severity "Violation" ;
     logic:message "A math:TangentSpace's dimension does not equal its manifold's dimension (math:DimensionMismatch)." ;
     logic:integrity math:tsdForall .
@@ -8064,7 +8258,8 @@ math:LorentzianSignatureConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:lorentzianStructure manifold's math:MetricSignature has exactly one timelike direction — math:signaturePositive = 1 or math:signatureNegative = 1. A Lorentzian signature having neither is ill-formed (math:DimensionMismatch)."@x-gmeow-english ;
-    logic:formalizes math:MetricSignature ;
+    logic:formalizes math:MetricSignatureDimensionShape ;
+    gmeow:enforcesFailureClass math:DimensionMismatch ;
     logic:severity "Violation" ;
     logic:message "A math:lorentzianStructure manifold's math:MetricSignature does not have exactly one timelike direction (math:signaturePositive = 1 or math:signatureNegative = 1) (math:DimensionMismatch)." ;
     logic:integrity math:lorForall .
@@ -8105,7 +8300,8 @@ math:RiemannianSignatureConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:riemannianStructure manifold's math:MetricSignature is positive-definite — math:signatureNegative = 0. A Riemannian signature with a non-zero negative count is ill-formed (math:DimensionMismatch)."@x-gmeow-english ;
-    logic:formalizes math:MetricSignature ;
+    logic:formalizes math:MetricSignatureDimensionShape ;
+    gmeow:enforcesFailureClass math:DimensionMismatch ;
     logic:severity "Violation" ;
     logic:message "A math:riemannianStructure manifold's math:MetricSignature is not positive-definite (math:signatureNegative = 0) (math:DimensionMismatch)." ;
     logic:integrity math:rieForall .
@@ -8142,7 +8338,8 @@ math:FormalVerificationResultVantageGroundingConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: a math:FormalVerificationResult is grounded by a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage. A verification result stated as unconditional truth rather than a vantage-held verdict is ill-formed (math:UngroundedVerificationResult)."@x-gmeow-english ;
-    logic:formalizes math:FormalVerificationResult ;
+    logic:formalizes math:FormalVerificationResultShape ;
+    gmeow:enforcesFailureClass math:UngroundedVerificationResult ;
     logic:severity "Violation" ;
     logic:message "A math:FormalVerificationResult must be grounded by a gmeow:Observation that names it through gmeow:observationResult and carries a gmeow:vantage; an unheld result is ill-formed (math:UngroundedVerificationResult)." ;
     logic:integrity math:fvrForall .
@@ -8160,3 +8357,627 @@ math:fvrA1 a logic:Formula ; logic:relation gmeow:observationResult ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 math:fvrA2 a logic:Formula ; logic:relation gmeow:vantage ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "obs" ] , [ logic:termIndex 1 ; logic:termVariable "vantage" ] .
+
+# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+<https://blackcatinformatics.ca/math/AlgebraicStructure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/satisfiesAxiom> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/AlgebraicStructure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/structureOperation> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Operation> ] .
+<https://blackcatinformatics.ca/math/AlgebraicStructure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/underlyingSet> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Set> ] .
+<https://blackcatinformatics.ca/math/ApplicationExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/operator> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ArgumentSlot> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/slotExpression> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ArgumentSlot> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/slotIndex> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/math/AutomorphismGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/automorphismGroupOf> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/BindingExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/argumentSlot> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/BindingExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/boundVariable> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/CalibrationDiagnostic> owl:disjointWith <https://blackcatinformatics.ca/math/StabilityCalibrationRecord> .
+<https://blackcatinformatics.ca/math/Chart> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/chartDomain> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Chart> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/coordinateMap> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Chart> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/targetCoordinateSpace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/CompactSpace> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/isCompact> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
+<https://blackcatinformatics.ca/math/Complement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/ambientSpace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Complement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/complementSemantics> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/ComplementSemantics> ] .
+<https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/independentGiven> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ConditionalProbability> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/conditionalOn> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ConfidenceInterval> owl:disjointWith <https://blackcatinformatics.ca/math/CredibleInterval> .
+<https://blackcatinformatics.ca/math/ConfidenceInterval> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/confidenceLevel> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ConfidenceInterval> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/hasIntervalBound> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ConnectedSpace> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/isConnected> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
+<https://blackcatinformatics.ca/math/ContinuousMap> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/isContinuous> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#boolean> ] .
+<https://blackcatinformatics.ca/math/Convergence> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/convergenceMode> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/ConvergenceMode> ] .
+<https://blackcatinformatics.ca/math/Convergence> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/convergesTo> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/CredibleInterval> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/credibleMass> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/CredibleInterval> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/hasPosterior> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Derivative> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/derivativeOf> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Derivative> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/derivativeOrder> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/math/Derivative> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/withRespectToVariable> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/DerivedDimension> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/baseDimensionExponent> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/DimensionExponent> ] .
+<https://blackcatinformatics.ca/math/DimensionExponent> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/exponentDenominator> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/math/DimensionExponent> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/exponentNumerator> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/math/DimensionalExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/homogeneousOperand> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Distribution> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/distributionFamily> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/DistributionFamily> ] .
+<https://blackcatinformatics.ca/math/EffectSize> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/hasReferenceFrame> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/EffectSize> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/effectSizeContrast> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/EffectSize> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/effectSizeScale> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Embedding> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/embeddingFunction> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Embedding> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/embeddingModel> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Embedding> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/embeddingSource> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Embedding> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/targetSpace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Estimate> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/estimator> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Filtration> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/hasFiltrationStage> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/FiltrationStage> ] .
+<https://blackcatinformatics.ca/math/FiltrationStage> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/filtrationThreshold> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/FiltrationStage> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/stageStructure> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/TopologicalSpace> ] .
+<https://blackcatinformatics.ca/math/FittedModel> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/fittedToData> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/DatasetMatrix> ] .
+<https://blackcatinformatics.ca/math/FittedModel> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/modelFormula> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/ModelFormula> ] .
+<https://blackcatinformatics.ca/math/GramMatrix> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/inBasis> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Basis> ] .
+<https://blackcatinformatics.ca/math/GramMatrix> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/representsForm> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/SymmetricBilinearForm> ] .
+<https://blackcatinformatics.ca/math/HomomorphicEncryptionScheme> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/homomorphicOver> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Operation> ] .
+<https://blackcatinformatics.ca/math/HomomorphicEncryptionScheme> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/noiseModel> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/HomomorphicEncryptionScheme> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/securityAssumption> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/LatticeHardnessAssumption> ] .
+<https://blackcatinformatics.ca/math/Homomorphism> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/preservationLaw> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Homomorphism> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/preservedOperation> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Operation> ] .
+<https://blackcatinformatics.ca/math/IngestRun> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/logic/instantiatesPlan> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/IngestRun> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/logic/instantiatesSchema> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/IngestRun> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/ingestCorrespondence> ; owl:allValuesFrom <https://blackcatinformatics.ca/logic/Correspondence> ] .
+<https://blackcatinformatics.ca/math/IngestRun> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/parseSource> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Integral> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/integrand> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/MeasurableFunction> ] .
+<https://blackcatinformatics.ca/math/Integral> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/integrationDomain> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/LieGroup> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/hasRootSystem> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/RootSystem> ] .
+<https://blackcatinformatics.ca/math/Limit> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/limitOf> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Limit> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/limitPoint> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Manifold> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/manifoldDimension> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/math/Manifold> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/manifoldStructureKind> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/ManifoldStructureKind> ] .
+<https://blackcatinformatics.ca/math/Measure> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/measureOn> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/MeasurableSpace> ] .
+<https://blackcatinformatics.ca/math/ModelDiagnostic> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/diagnosticFor> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ModelDiagnostic> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/diagnosticMethod> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ModelFormula> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/argumentSlot> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/ArgumentSlot> ] .
+<https://blackcatinformatics.ca/math/Norm> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/inducedByForm> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Number> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/inNumberSystem> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/NumberSystem> ] .
+<https://blackcatinformatics.ca/math/OrthogonalComplement> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/definedByInnerProduct> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/analysisInput> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/centeringPolicy> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/CenteringPolicy> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/covarianceOperator> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/eigensolver> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/explainedVarianceRatio> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/loadingVector> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/principalComponent> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/residualSubspace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/scalingPolicy> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/ScalingPolicy> ] .
+<https://blackcatinformatics.ca/math/PCAAnalysis> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/scoreVector> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PersistenceLifetime> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/bornAt> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/PersistenceLifetime> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/overFiltration> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Filtration> ] .
+<https://blackcatinformatics.ca/math/PersistenceLifetime> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/persistenceFeature> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/HomologyGroup> ] .
+<https://blackcatinformatics.ca/math/ProbabilityEvent> owl:disjointWith <https://blackcatinformatics.ca/logic/Event> .
+<https://blackcatinformatics.ca/math/ProbabilitySpace> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/eventSigmaAlgebra> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ProbabilitySpace> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/probabilityMeasure> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ProbabilitySpace> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/sampleSpace> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ProbabilityValue> owl:disjointWith <https://blackcatinformatics.ca/math/LogOddsValue> .
+<https://blackcatinformatics.ca/math/ProbabilityValue> owl:disjointWith <https://blackcatinformatics.ca/math/OddsValue> .
+<https://blackcatinformatics.ca/math/RandomVariable> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/randomVariableCodomain> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/RandomVariable> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/randomVariableDomain> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/RationalValue> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/denominator> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/math/RationalValue> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/numerator> ; owl:allValuesFrom <http://www.w3.org/2001/XMLSchema#integer> ] .
+<https://blackcatinformatics.ca/math/ResidualInterpretationClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observationResult> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ResidualInterpretationClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/observedFeature> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/ResidualInterpretationClaim> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/gmeow/vantage> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Ring> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/satisfiesDistributivity> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/RootSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/cartanMatrix> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/CartanMatrix> ] .
+<https://blackcatinformatics.ca/math/RootSystem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/weylGroup> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/WeylGroup> ] .
+<https://blackcatinformatics.ca/math/Sequence> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/hasConvergence> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Convergence> ] .
+<https://blackcatinformatics.ca/math/Series> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/hasConvergence> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Convergence> ] .
+<https://blackcatinformatics.ca/math/Series> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/seriesTerm> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/SetBuilderExpression> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/memberCondition> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/StabilityCalibrationRecord> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/calibrationEvidence> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/PersistenceLifetime> ] .
+<https://blackcatinformatics.ca/math/StabilityCalibrationRecord> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/credenceDerivationKind> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/CredenceDerivationKind> ] .
+<https://blackcatinformatics.ca/math/StabilityCalibrationRecord> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/stabilityGuarantee> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/Theorem> ] .
+<https://blackcatinformatics.ca/math/TensorComputationGraph> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/computationNode> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/Theorem> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/roleInTheory> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/VariableOccurrence> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/declaredVariable> ; owl:allValuesFrom <http://www.w3.org/2002/07/owl#Thing> ] .
+<https://blackcatinformatics.ca/math/WeightTensor> rdfs:subClassOf [ a owl:Restriction ; owl:onProperty <https://blackcatinformatics.ca/math/inParameterSpace> ; owl:allValuesFrom <https://blackcatinformatics.ca/math/ParameterSpace> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/AlgebraicStructure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/satisfiesAxiom" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/AlgebraicStructure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/structureOperation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/AlgebraicStructure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/underlyingSet" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ApplicationExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/operator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ArgumentSlot> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/slotExpression" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ArgumentSlot> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/slotIndex" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/AutomorphismGroup> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/automorphismGroupOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/BindingExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/argumentSlot" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/BindingExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/boundVariable" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Chart> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/chartDomain" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Chart> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/coordinateMap" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Chart> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/targetCoordinateSpace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/CompactSpace> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/isCompact" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Complement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/ambientSpace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Complement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/complementSemantics" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ConditionalIndependenceAssertion> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/independentGiven" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ConditionalProbability> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/conditionalOn" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ConfidenceInterval> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/confidenceLevel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ConfidenceInterval> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasIntervalBound" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ConnectedSpace> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/isConnected" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ContinuousMap> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/isContinuous" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Convergence> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/convergenceMode" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Convergence> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/convergesTo" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/CredibleInterval> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/credibleMass" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/CredibleInterval> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasPosterior" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Derivative> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/derivativeOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Derivative> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/derivativeOrder" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Derivative> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/withRespectToVariable" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/DerivedDimension> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/baseDimensionExponent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/DimensionExponent> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/exponentDenominator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/DimensionExponent> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/exponentNumerator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/DimensionalExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/homogeneousOperand" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Distribution> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/distributionFamily" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/EffectSize> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/EffectSize> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/effectSizeContrast" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/EffectSize> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/effectSizeScale" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Embedding> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/embeddingFunction" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Embedding> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/embeddingModel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Embedding> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/embeddingSource" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Embedding> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/targetSpace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Estimate> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/estimator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Filtration> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasFiltrationStage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FiltrationStage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/filtrationThreshold" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FiltrationStage> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/stageStructure" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FittedModel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/fittedToData" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/FittedModel> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/modelFormula" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/GramMatrix> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/inBasis" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/GramMatrix> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/representsForm" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/HomomorphicEncryptionScheme> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/homomorphicOver" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/HomomorphicEncryptionScheme> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/noiseModel" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/HomomorphicEncryptionScheme> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/securityAssumption" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Homomorphism> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/preservationLaw" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Homomorphism> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/preservedOperation" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/IngestRun> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/logic/instantiatesPlan" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/IngestRun> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/logic/instantiatesSchema" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/IngestRun> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/ingestCorrespondence" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/IngestRun> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/parseSource" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Integral> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/integrand" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Integral> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/integrationDomain" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/LieGroup> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasRootSystem" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Limit> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/limitOf" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Limit> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/limitPoint" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Manifold> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/manifoldDimension" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Manifold> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/manifoldStructureKind" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Measure> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/measureOn" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ModelDiagnostic> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/diagnosticFor" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ModelDiagnostic> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/diagnosticMethod" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ModelFormula> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/argumentSlot" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Norm> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/inducedByForm" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Number> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/inNumberSystem" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/OrthogonalComplement> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/definedByInnerProduct" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/analysisInput" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/centeringPolicy" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/covarianceOperator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/eigensolver" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/explainedVarianceRatio" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/loadingVector" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/principalComponent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/residualSubspace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/scalingPolicy" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PCAAnalysis> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/scoreVector" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PersistenceLifetime> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/bornAt" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PersistenceLifetime> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/overFiltration" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/PersistenceLifetime> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/persistenceFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ProbabilitySpace> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/eventSigmaAlgebra" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ProbabilitySpace> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/probabilityMeasure" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ProbabilitySpace> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/sampleSpace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/RandomVariable> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/randomVariableCodomain" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/RandomVariable> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/randomVariableDomain" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/RationalValue> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/denominator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/RationalValue> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/numerator" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ResidualInterpretationClaim> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observationResult" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ResidualInterpretationClaim> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/observedFeature" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/ResidualInterpretationClaim> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/vantage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Ring> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/satisfiesDistributivity" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/RootSystem> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/cartanMatrix" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/RootSystem> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/weylGroup" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Sequence> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasConvergence" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Series> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/hasConvergence" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Series> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/seriesTerm" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/SetBuilderExpression> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/memberCondition" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/StabilityCalibrationRecord> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/calibrationEvidence" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/StabilityCalibrationRecord> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/credenceDerivationKind" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/StabilityCalibrationRecord> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/stabilityGuarantee" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/TensorComputationGraph> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/computationNode" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/Theorem> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/roleInTheory" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/VariableOccurrence> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/declaredVariable" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+[ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/math/WeightTensor> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/math/inParameterSpace" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
+
+# =========================================================================== #
+# Shape-grounding appendix — the canonical OWL antecedents and logic: records   #
+# that retire the last twenty legacy shapes.ttl blocks. Every axiom below is a #
+# closed-world ValidationOnly reading projected to                             #
+# generated/shapes/validation-shapes.ttl; every record projects its exact      #
+# procedural twin to generated/shapes/procedural-constraints.ttl and names the #
+# retired legacy shape through logic:formalizes (equivalence-before-deletion). #
+# =========================================================================== #
+
+# --- Probability layer ------------------------------------------------------ #
+
+# Rule P3 (retires math:ProbabilityValueFramedShape): a probability value names its
+# reference frame OR its probability model — the either-of-these-properties existence
+# obligation, authored as the union of two bare existential restrictions and projected
+# to the node-level sh:or over required paths.
+math:ProbabilityValue rdfs:subClassOf [ owl:unionOf (
+    [ a owl:Restriction ; owl:onProperty gmeow:hasReferenceFrame ; owl:someValuesFrom owl:Thing ]
+    [ a owl:Restriction ; owl:onProperty logic:probabilityModel ; owl:someValuesFrom owl:Thing ] ) ] .
+
+# Rule P1 (retires math:ProbabilityValueRangeShape): any concrete gmeow:quantityValue
+# of a math:ProbabilityValue lies in the closed unit interval [0, 1], carrying
+# math:ProbabilityOutOfBounds (the class annotation on math:ProbabilityValue is owned
+# by the scale-conflation gate, so the finer failure identity rides this exact
+# record). A validation-only value-range record, never an OWL faceted-datatype
+# antecedent: the native reasoner carries no datatype value-space reasoning, so a
+# facet on the corpus-wide gmeow:quantityValue (quality scores assert it throughout
+# the bundle) would be an undecidable axiom in the reasoning core. The record lowers
+# declaratively onto the projected class shape as sh:minInclusive 0 /
+# sh:maxInclusive 1 (the exact components the legacy facet carried) and expands to
+# the canonical range constraint ∀this,v. PV(this) ∧ quantityValue(this,v) → 0 ≤ v ≤ 1.
+math:ProbabilityValueRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:label "Probability-value range constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:ProbabilityValueRangeShape: any concrete gmeow:quantityValue a math:ProbabilityValue carries lies in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)."@x-gmeow-english ;
+    logic:onClass math:ProbabilityValue ;
+    logic:valuePath gmeow:quantityValue ;
+    logic:minInclusiveBound 0 ;
+    logic:maxInclusiveBound 1 ;
+    logic:formalizes math:ProbabilityValueRangeShape ;
+    gmeow:enforcesFailureClass math:ProbabilityOutOfBounds ;
+    logic:message "A math:ProbabilityValue's gmeow:quantityValue must lie in the closed unit interval [0, 1]; a magnitude outside it is ill-formed or a mis-typed odds/log-odds (math:ProbabilityOutOfBounds)." .
+
+# The typed-failure twin of Rule P3: at-least-one of the frame/model alternatives,
+# carrying math:UnframedProbabilityValue for the retired framing shape.
+math:ProbabilityValueFramedConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:label "Probability-value framing constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:ProbabilityValueFramedShape: a math:ProbabilityValue names its probability frame (gmeow:hasReferenceFrame) or its probability model (logic:probabilityModel) — at least one alternative present. A probability value is a framed quantity object, never a bare literal (math:UnframedProbabilityValue)."@x-gmeow-english ;
+    logic:onClass math:ProbabilityValue ;
+    logic:choicePredicate gmeow:hasReferenceFrame , logic:probabilityModel ;
+    logic:choiceMode "at-least-one" ;
+    logic:formalizes math:ProbabilityValueFramedShape ;
+    gmeow:enforcesFailureClass math:UnframedProbabilityValue ;
+    logic:message "A math:ProbabilityValue must name its probability frame (gmeow:hasReferenceFrame) or its probability model (logic:probabilityModel); a probability that names neither is an unframed bare literal (math:UnframedProbabilityValue)." .
+
+# Rule P10 (retires math:ConfidenceAsProbabilityConstraint the shape): a probability
+# value carrying a logic:confidence declares the logic:probabilityModel that turns a
+# confidence into a probability — the guarded-implication form.
+math:ConfidenceAsProbabilityDeclaredConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Confidence-as-probability declared-mapping constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:ConfidenceAsProbabilityConstraint shape: a math:ProbabilityValue that carries a logic:confidence must declare a logic:probabilityModel — the mapping from confidence to probability. The logic: probability/confidence boundary is enforced, not eroded (math:ConfidenceAsProbability)."@x-gmeow-english ;
+    logic:onClass math:ProbabilityValue ;
+    logic:trigger logic:confidence ;
+    logic:requires logic:probabilityModel ;
+    logic:formalizes math:ConfidenceAsProbabilityConstraint ;
+    gmeow:enforcesFailureClass math:ConfidenceAsProbability ;
+    logic:message "A math:ProbabilityValue that carries a logic:confidence must declare a logic:probabilityModel — the mapping from confidence to probability; a probability derived from a confidence score with no declared mapping erodes the probability/confidence boundary and is ill-formed (math:ConfidenceAsProbability)." .
+
+# Rule P6b (retires math:DistributionParameterizationShape): a distribution that
+# SUPPLIES parameters names its parameterization; a non-parametric distribution (no
+# supplied parameters) is not rejected — the trigger keys parametricity by presence.
+math:DistributionParameterizationDeclaredConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Distribution parameterization-declared constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:DistributionParameterizationShape: any math:Distribution that supplies a math:hasDistributionParameter also names its math:distributionParameterization — the explicit convention fixing which parametric form of its family those parameters fill (math:MissingDistributionParameterization)."@x-gmeow-english ;
+    logic:onClass math:Distribution ;
+    logic:trigger math:hasDistributionParameter ;
+    logic:requires math:distributionParameterization ;
+    logic:formalizes math:DistributionParameterizationShape ;
+    gmeow:enforcesFailureClass math:MissingDistributionParameterization ;
+    logic:message "A math:Distribution that supplies a math:hasDistributionParameter must name its math:distributionParameterization — the explicit convention fixing which parametric form of its family is meant; a supplied parameter with a silent default parameterization is ill-formed (math:MissingDistributionParameterization)." .
+
+# Rule P7 (retires math:ParameterRoleCardinalityConstraint the shape) — two exact halves
+# of "each required role is supplied exactly once": a required role with NO supplying
+# parameter (unfilled), and a required role supplied by TWO DISTINCT parameters
+# (overfilled). Together they reject any cardinality other than one.
+math:ParameterRoleUnfilledConstraint
+    a logic:Constraint ;
+    rdfs:label "Distribution parameter-role unfilled constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "One half of the canonical grounding of the retired math:ParameterRoleCardinalityConstraint shape: every math:DistributionParameterRole the distribution's math:distributionParameterization requires is supplied by AT LEAST one math:hasDistributionParameter -> math:parameterRole parameter; a required role left unfilled is ill-formed (math:DistributionParameterRoleCardinality)."@x-gmeow-english ;
+    logic:formalizes math:ParameterRoleCardinalityConstraint ;
+    gmeow:enforcesFailureClass math:DistributionParameterRoleCardinality ;
+    logic:message "A math:Distribution must supply each math:DistributionParameterRole its math:distributionParameterization requires through math:hasDistributionParameter -> math:parameterRole; a required role supplied zero times is ill-formed (math:DistributionParameterRoleCardinality)." ;
+    logic:integrity math:pruForall .
+math:pruForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:pruImpl .
+math:pruImpl a logic:Formula ; logic:antecedent math:pruGuard ; logic:consequent math:pruNot .
+math:pruGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:Distribution ] .
+math:pruNot a logic:Formula ; logic:not math:pruExists .
+math:pruExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pz" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] ;
+    logic:exists math:pruBody .
+math:pruBody a logic:Formula ; logic:and math:pruA1 , math:pruA2 , math:pruNoSupply .
+math:pruA1 a logic:Formula ; logic:relation math:distributionParameterization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pz" ] .
+math:pruA2 a logic:Formula ; logic:relation math:requiresParameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pz" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:pruNoSupply a logic:Formula ; logic:not math:pruSupplied .
+math:pruSupplied a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "param" ] ;
+    logic:exists math:pruSupplyBody .
+math:pruSupplyBody a logic:Formula ; logic:and math:pruS1 , math:pruS2 .
+math:pruS1 a logic:Formula ; logic:relation math:hasDistributionParameter ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "param" ] .
+math:pruS2 a logic:Formula ; logic:relation math:parameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "param" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+
+math:ParameterRoleOverfilledConstraint
+    a logic:Constraint ;
+    rdfs:label "Distribution parameter-role overfilled constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The other half of the canonical grounding of the retired math:ParameterRoleCardinalityConstraint shape: no math:DistributionParameterRole the distribution's math:distributionParameterization requires is supplied by TWO DISTINCT parameters; a role filled twice is ill-formed (math:DistributionParameterRoleCardinality)."@x-gmeow-english ;
+    logic:formalizes math:ParameterRoleCardinalityConstraint ;
+    gmeow:enforcesFailureClass math:DistributionParameterRoleCardinality ;
+    logic:message "A math:Distribution must not supply a required math:DistributionParameterRole through two distinct math:hasDistributionParameter parameters; a role filled twice is ill-formed (math:DistributionParameterRoleCardinality)." ;
+    logic:integrity math:proForall .
+math:proForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:proImpl .
+math:proImpl a logic:Formula ; logic:antecedent math:proGuard ; logic:consequent math:proNot .
+math:proGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:Distribution ] .
+math:proNot a logic:Formula ; logic:not math:proExists .
+math:proExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "pz" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] ,
+                             [ logic:termIndex 2 ; logic:termVariable "p1" ] , [ logic:termIndex 3 ; logic:termVariable "p2" ] ;
+    logic:exists math:proBody .
+math:proBody a logic:Formula ; logic:and math:proA1 , math:proA2 , math:proA3 , math:proA4 , math:proA5 , math:proA6 , math:proA7 .
+math:proA1 a logic:Formula ; logic:relation math:distributionParameterization ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "pz" ] .
+math:proA2 a logic:Formula ; logic:relation math:requiresParameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "pz" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:proA3 a logic:Formula ; logic:relation math:hasDistributionParameter ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p1" ] .
+math:proA4 a logic:Formula ; logic:relation math:parameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p1" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:proA5 a logic:Formula ; logic:relation math:hasDistributionParameter ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "p2" ] .
+math:proA6 a logic:Formula ; logic:relation math:parameterRole ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p2" ] , [ logic:termIndex 1 ; logic:termVariable "role" ] .
+math:proA7 a logic:Formula ; logic:relation logic:termDistinct ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "p1" ] , [ logic:termIndex 1 ; logic:termVariable "p2" ] .
+
+# --- Statistical inference --------------------------------------------------- #
+
+# The p-value frame vocabulary (retires math:IllFramedPValueShape and
+# math:AlternativeSidednessValueShape): the class-level failure annotation, the
+# closed sidedness value set (owl:oneOf, projected to sh:in), and the raw frame gate.
+math:PValue gmeow:enforcesFailureClass math:IllFramedPValue .
+math:PValue rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:alternativeSidedness ;
+    owl:allValuesFrom [ owl:oneOf ( math:oneSidedAlternative math:twoSidedAlternative math:greaterAlternative math:lessAlternative math:exactTail math:midPTail ) ] ] .
+
+math:PValueFrameConstraint
+    a logic:Constraint ;
+    rdfs:label "P-value frame constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:IllFramedPValueShape: a math:PValue carries the whole frame that makes P(T >= t | H0) well-defined — a test (a math:testStatistic and/or the math:HypothesisTest whose math:pValue it is), a math:nullHypothesis, a math:nullDistribution, and a tail-or-sidedness (math:tailDefinition or math:alternativeSidedness). A p-value missing any arm is ambiguous and ill-formed (math:IllFramedPValue)."@x-gmeow-english ;
+    logic:formalizes math:IllFramedPValueShape ;
+    gmeow:enforcesFailureClass math:IllFramedPValue ;
+    logic:message "A math:PValue must carry its test (a math:testStatistic or the math:HypothesisTest whose math:pValue it is), its math:nullHypothesis, its math:nullDistribution, and a math:tailDefinition or math:alternativeSidedness; a p-value missing any of these is ambiguous and ill-formed (math:IllFramedPValue)." ;
+    logic:integrity math:pvfForall .
+math:pvfForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:pvfImpl .
+math:pvfImpl a logic:Formula ; logic:antecedent math:pvfGuard ; logic:consequent math:pvfFrame .
+math:pvfGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:PValue ] .
+math:pvfFrame a logic:Formula ; logic:and math:pvfTestArm , math:pvfNullHyp , math:pvfNullDist , math:pvfTailArm .
+math:pvfTestArm a logic:Formula ; logic:or math:pvfStat , math:pvfTest .
+math:pvfStat a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ts" ] ;
+    logic:exists math:pvfStatAtom .
+math:pvfStatAtom a logic:Formula ; logic:relation math:testStatistic ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ts" ] .
+math:pvfTest a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "t" ] ;
+    logic:exists math:pvfTestBody .
+math:pvfTestBody a logic:Formula ; logic:and math:pvfTestType , math:pvfTestEdge .
+math:pvfTestType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termIri math:HypothesisTest ] .
+math:pvfTestEdge a logic:Formula ; logic:relation math:pValue ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "t" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
+math:pvfNullHyp a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "nh" ] ;
+    logic:exists math:pvfNullHypAtom .
+math:pvfNullHypAtom a logic:Formula ; logic:relation math:nullHypothesis ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "nh" ] .
+math:pvfNullDist a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "nd" ] ;
+    logic:exists math:pvfNullDistAtom .
+math:pvfNullDistAtom a logic:Formula ; logic:relation math:nullDistribution ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "nd" ] .
+math:pvfTailArm a logic:Formula ; logic:or math:pvfTail , math:pvfSide .
+math:pvfTail a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "td" ] ;
+    logic:exists math:pvfTailAtom .
+math:pvfTailAtom a logic:Formula ; logic:relation math:tailDefinition ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "td" ] .
+math:pvfSide a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "sd" ] ;
+    logic:exists math:pvfSideAtom .
+math:pvfSideAtom a logic:Formula ; logic:relation math:alternativeSidedness ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sd" ] .
+
+# Missingness is modelled, never implied (retires math:ImplicitMissingnessShape).
+math:MissingnessMechanismDeclaredConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:label "Missingness mechanism-declared constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:ImplicitMissingnessShape: a math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) must name the math:MissingnessMechanism (MCAR/MAR/MNAR) an analysis depending on it rests on (math:ImplicitMissingness)."@x-gmeow-english ;
+    logic:onClass math:StatisticalVariable ;
+    logic:trigger math:hasMissingnessIndicator ;
+    logic:requires math:missingnessMechanism ;
+    logic:formalizes math:ImplicitMissingnessShape ;
+    gmeow:enforcesFailureClass math:ImplicitMissingness ;
+    logic:message "A math:StatisticalVariable whose values encode absence (it carries a math:MissingnessIndicator through math:hasMissingnessIndicator) must declare the math:MissingnessMechanism an analysis depending on it rests on, through math:missingnessMechanism; a variable that depends on missing data but names no MCAR/MAR/MNAR mechanism assumes one implicitly and is ill-formed (math:ImplicitMissingness)." .
+
+# A confidence interval is never also a credible interval (retires
+# math:IntervalKindConflationShape — the declarative sh:not pair already rides the
+# projected math:ConfidenceInterval class shape via the paradigm-parent disjointness;
+# this record carries the finer typed failure identity, math:IntervalKindConflation).
+math:IntervalKindConflationConstraint
+    a logic:ForbiddenPatternConstraint ;
+    rdfs:label "Interval-kind conflation constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:IntervalKindConflationShape: a math:ConfidenceInterval is NOT also typed math:CredibleInterval — frequentist coverage and Bayesian posterior mass are different result kinds held disjoint through their paradigm parents; typing one node as both conflates them (math:IntervalKindConflation)."@x-gmeow-english ;
+    logic:onClass math:ConfidenceInterval ;
+    logic:forbiddenPredicate rdf:type ;
+    logic:forbiddenValue math:CredibleInterval ;
+    logic:formalizes math:IntervalKindConflationShape ;
+    gmeow:enforcesFailureClass math:IntervalKindConflation ;
+    logic:message "A math:ConfidenceInterval must not also be a math:CredibleInterval — frequentist coverage and Bayesian posterior mass are different result kinds held disjoint through their paradigm parents; typing one node as both conflates them (math:IntervalKindConflation)." .
+
+# An estimate fixes WHAT it estimates (retires the sh:or arm of
+# math:UnderspecifiedEstimateShape): the estimand and/or the estimated parameter —
+# the either-of-these-properties existence obligation.
+math:Estimate rdfs:subClassOf [ owl:unionOf (
+    [ a owl:Restriction ; owl:onProperty math:estimatesEstimand ; owl:someValuesFrom owl:Thing ]
+    [ a owl:Restriction ; owl:onProperty math:estimatedParameter ; owl:someValuesFrom owl:Thing ] ) ] .
+
+# A random variable carries a probability context (retires the sh:or arm of
+# math:RandomVariableScopedShape): a distribution, or a domain that is itself a
+# probability space — the qualified branch makes this a procedural record.
+math:RandomVariableContextConstraint
+    a logic:Constraint ;
+    rdfs:label "Random-variable probability-context constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:RandomVariableScopedShape's context arm: a math:RandomVariable carries a probability context — a math:hasDistribution, or a math:randomVariableDomain that is itself a math:ProbabilitySpace; a variable with neither is unscoped (math:UnscopedRandomVariable)."@x-gmeow-english ;
+    logic:formalizes math:RandomVariableScopedShape ;
+    gmeow:enforcesFailureClass math:UnscopedRandomVariable ;
+    logic:message "A math:RandomVariable must carry a probability context — a math:hasDistribution, or a math:randomVariableDomain that is itself a math:ProbabilitySpace; a variable with neither is unscoped (math:UnscopedRandomVariable)." ;
+    logic:integrity math:rvcForall .
+math:rvcForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+    logic:forall math:rvcImpl .
+math:rvcImpl a logic:Formula ; logic:antecedent math:rvcGuard ; logic:consequent math:rvcContext .
+math:rvcGuard a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:RandomVariable ] .
+math:rvcContext a logic:Formula ; logic:or math:rvcDist , math:rvcSpace .
+math:rvcDist a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "d" ] ;
+    logic:exists math:rvcDistAtom .
+math:rvcDistAtom a logic:Formula ; logic:relation math:hasDistribution ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
+math:rvcSpace a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "dom" ] ;
+    logic:exists math:rvcSpaceBody .
+math:rvcSpaceBody a logic:Formula ; logic:and math:rvcDomAtom , math:rvcDomType .
+math:rvcDomAtom a logic:Formula ; logic:relation math:randomVariableDomain ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dom" ] .
+math:rvcDomType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "dom" ] , [ logic:termIndex 1 ; logic:termIri math:ProbabilitySpace ] .
+
+# --- Measure and dimension ---------------------------------------------------- #
+
+# A measure's total mass is a non-negative number or math:PositiveInfinity (retires the
+# value-disjunction arm of math:MeasureShape — the extended-real branch is procedural).
+math:MeasureTotalMassValueConstraint
+    a logic:Constraint ;
+    rdfs:label "Measure total-mass value constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:MeasureShape's value disjunction: a math:Measure's math:totalMass is a non-negative numeric literal OR the extended-real individual math:PositiveInfinity; any other value is ill-formed (math:IncompleteMeasure)."@x-gmeow-english ;
+    logic:formalizes math:MeasureShape ;
+    gmeow:enforcesFailureClass math:IncompleteMeasure ;
+    logic:message "A math:Measure's math:totalMass must be a non-negative numeric literal or math:PositiveInfinity; a measure whose total mass is neither is ill-formed (math:IncompleteMeasure)." ;
+    logic:integrity math:mtmForall .
+math:mtmForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall math:mtmImpl .
+math:mtmImpl a logic:Formula ; logic:antecedent math:mtmGuard ; logic:consequent math:mtmValue .
+math:mtmGuard a logic:Formula ; logic:and math:mtmType , math:mtmMass .
+math:mtmType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:Measure ] .
+math:mtmMass a logic:Formula ; logic:relation math:totalMass ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+math:mtmValue a logic:Formula ; logic:or math:mtmFinite , math:mtmInfinite .
+math:mtmFinite a logic:Formula ; logic:and math:mtmLit , math:mtmNonNeg .
+math:mtmLit a logic:Formula ; logic:relation logic:termIsLiteral ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] .
+math:mtmNonNeg a logic:Formula ; logic:relation logic:termGreaterEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] .
+math:mtmInfinite a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] , [ logic:termIndex 1 ; logic:termIri math:PositiveInfinity ] .
+
+# A dimension-exponent cell (retires math:DimensionExponentShape's residue): the base
+# dimension is UNIVERSALLY a math:BaseDimension (never a derived one — sh:class). The
+# non-zero-denominator residue (sh:not [ sh:hasValue 0 ]) is NOT an OWL axiom — a value
+# complement is outside the native reasoner's decidable fragment — it is the canonical
+# math:DimensionExponentDenominatorNonZeroConstraint record, which the shape derive
+# lowers onto this class's projected shape.
+math:DimensionExponent rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:exponentOfDimension ;
+    owl:allValuesFrom math:BaseDimension ] .
+[ a logic:ClosureEntry ; logic:onClass math:DimensionExponent ; logic:closureKey "https://blackcatinformatics.ca/math/exponentOfDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# An exact rational carrier has a non-zero denominator (retires
+# math:RationalValueShape's residue): p/0 is undefined. Same architecture as the
+# dimension-exponent cell above: the canonical carrier is the
+# math:RationalValueDenominatorNonZeroConstraint record, never an OWL value complement.
+
+# --- Persistence lifetimes ---------------------------------------------------- #
+
+# A persistence lifetime declares both endpoints exactly once (retires
+# math:PersistenceLifetimeShape): the max-qualified exact-one siblings (the
+# reasoner-safe form) bound each endpoint above, the diesAt universal carrier +
+# class-scoped closure requires the death endpoint, and the named-death record carries
+# the IRI-valued-death tightening (math:diesAt stays a bare rdf:Property by design —
+# its range spans a finite quantity individual and math:PositiveInfinity).
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:diesAt ;
+    owl:allValuesFrom owl:Thing ] .
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:diesAt ;
+    owl:maxQualifiedCardinality "1"^^xsd:integer ; owl:onClass owl:Thing ] .
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:bornAt ;
+    owl:maxQualifiedCardinality "1"^^xsd:integer ; owl:onClass owl:Thing ] .
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:overFiltration ;
+    owl:maxQualifiedCardinality "1"^^xsd:integer ; owl:onClass owl:Thing ] .
+math:PersistenceLifetime rdfs:subClassOf [ a owl:Restriction ; owl:onProperty math:persistenceFeature ;
+    owl:maxQualifiedCardinality "1"^^xsd:integer ; owl:onClass owl:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass math:PersistenceLifetime ; logic:closureKey "https://blackcatinformatics.ca/math/diesAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+math:PersistenceDeathNamedConstraint
+    a logic:Constraint ;
+    rdfs:label "Persistence-lifetime named-death constraint"@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    skos:definition "The canonical grounding of the retired math:PersistenceLifetimeShape's death node-kind: a math:PersistenceLifetime's math:diesAt names an IRI individual — the finite gmeow:Quantity death threshold or math:PositiveInfinity — never a blank node or a bare literal (math:UnderspecifiedPersistenceLifetime)."@x-gmeow-english ;
+    logic:formalizes math:PersistenceLifetimeShape ;
+    gmeow:enforcesFailureClass math:UnderspecifiedPersistenceLifetime ;
+    logic:message "A math:PersistenceLifetime's math:diesAt must name an IRI individual — the finite gmeow:Quantity death threshold, or math:PositiveInfinity for an essential feature; a blank or literal death is ill-formed (math:UnderspecifiedPersistenceLifetime)." ;
+    logic:integrity math:pdnForall .
+math:pdnForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] ;
+    logic:forall math:pdnImpl .
+math:pdnImpl a logic:Formula ; logic:antecedent math:pdnGuard ; logic:consequent math:pdnIri .
+math:pdnGuard a logic:Formula ; logic:and math:pdnType , math:pdnDies .
+math:pdnType a logic:Formula ; logic:relation rdf:type ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri math:PersistenceLifetime ] .
+math:pdnDies a logic:Formula ; logic:relation math:diesAt ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "v" ] .
+math:pdnIri a logic:Formula ; logic:relation logic:termIsIri ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "v" ] .
+
+# --- Binder AST: the math->logic: lowering seam ------------------------------- #
+
+# The lowering declares its denotation and preservation (retires
+# math:LogicLoweringShape's declarative arm): the anonymous-restriction domains give
+# every subject of math:compilesToLogicFormula its two required companions, read
+# closed-world under the explicit opt-in below (the procedural twin,
+# math:LogicLoweringDeclaredConstraint, already carries the typed failure identity).
+math:compilesToLogicFormula rdfs:domain [ a owl:Restriction ; owl:onProperty math:denotationKind ; owl:minCardinality "1"^^xsd:integer ] .
+math:compilesToLogicFormula rdfs:domain [ a owl:Restriction ; owl:onProperty math:logicLoweringPreservation ; owl:minCardinality "1"^^xsd:integer ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/math/compilesToLogicFormula" ; logic:closureValue logic:ClosedWorldClosure ] .

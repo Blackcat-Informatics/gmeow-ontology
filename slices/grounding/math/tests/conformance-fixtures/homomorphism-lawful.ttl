@@ -13,4 +13,6 @@ ex:lawfulHom a math:GroupHomomorphism ;
     math:preservationLaw ex:homLaw .
 
 ex:op a math:Operation .
-ex:homLaw a logic:Formula .
+ex:homLaw a logic:Formula ;
+    logic:relation ex:preservesOperationRelation ;
+    logic:argument [ logic:termIndex 0 ; logic:termIri ex:lawfulHom ] , [ logic:termIndex 1 ; logic:termIri ex:op ] .

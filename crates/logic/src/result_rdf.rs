@@ -1316,6 +1316,48 @@ pub fn project_conjecture_verdict(input: &ConjectureVerdictInput) -> String {
     out
 }
 
+/// Project an AUTHOR-driven conjecture WITHDRAWAL onto an EXISTING library node.
+///
+/// The compensating counterpart of [`project_conjecture_verdict`] (P10): where the verdict
+/// projection MINTS a fresh content-addressed node from an ENGINE verdict — and hardcodes
+/// `logic:verdictProvenance logic:VerdictEngineProduced` — this emits a small compensating
+/// segment against a `logic:Conjecture` node IRI that ALREADY exists in the append-only
+/// library. It flips the effective epistemic state to `logic:ConjectureWithdrawn`, records
+/// the author's withdrawal `reason` (when non-empty), and marks the case
+/// `logic:VerdictReviewerAsserted` — a withdrawal is an author action, NEVER engine-produced
+/// (module.ttl's `logic:ConjectureWithdrawn`). The node is NOT re-typed (it is already
+/// `rdf:type logic:Conjecture` from its store segment) and NO timestamp is carried: the
+/// conjecture node graph stays timeless, exactly as [`project_conjecture_verdict`] emits it,
+/// and the deterministic time rides the trajectory-audit segment written alongside. The body
+/// is the CLOSED, sorted N-Triples subset the library segment writer parses.
+pub fn project_conjecture_withdrawal(node_iri: &str, reason: &str) -> String {
+    let mut sink = Sink::default();
+    let subject = Node::iri(node_iri.to_owned());
+    sink.push(
+        subject.clone(),
+        logic("conjectureLifecycleState"),
+        Node::iri(logic("ConjectureWithdrawn")),
+    );
+    sink.push(
+        subject.clone(),
+        logic("verdictProvenance"),
+        Node::iri(logic("VerdictReviewerAsserted")),
+    );
+    if !reason.is_empty() {
+        sink.push(
+            subject,
+            logic("withdrawalReason"),
+            Node::string(reason.to_owned()),
+        );
+    }
+    let mut out = String::new();
+    for line in sink.render_lines() {
+        out.push_str(&line);
+        out.push('\n');
+    }
+    out
+}
+
 /// The content-address digest a promotion / obligation candidate node is keyed on: the
 /// SAME `(content_key × standpoint × KB-world)` identity coordinates as the conjecture node
 /// (Principle 9 — one candidate per formula-in-a-standpoint-in-a-world), so the leg target
