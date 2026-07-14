@@ -202,7 +202,7 @@ class InventedWitness(ConfiguredBaseModel):
 
     model_config = ConfigDict(
         extra="allow",
-        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/InventedWitness", "curie": "gmeow:InventedWitness", "definitionDigest": "blake3:2d58cd9bd2ad582f61d6940fd0b0f3d8e68cf6af591bf83394fb839e931eef84", "iri": "https://blackcatinformatics.ca/gmeow/InventedWitness"},
+        json_schema_extra={"$id": "https://blackcatinformatics.ca/gmeow/InventedWitness", "curie": "gmeow:InventedWitness", "definitionDigest": "blake3:253f4a9564c8d27f237201bf217bbbe7cfa09dde27612fdf60ddc0a9cd02db32", "iri": "https://blackcatinformatics.ca/gmeow/InventedWitness"},
     )
 
     annotation: Annotation | None = Field(default=None, alias="@annotation")
