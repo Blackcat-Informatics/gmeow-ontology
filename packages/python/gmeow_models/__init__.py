@@ -413,7 +413,6 @@ __all__ = [
     "Intention",
     "IntentionTenure",
     "InterpersonalRelationship",
-    "InventedWitness",
     "InvitationStatusEnum",
     "Invoice",
     "InvoiceStatusEnum",
