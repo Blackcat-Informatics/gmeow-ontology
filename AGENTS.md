@@ -698,7 +698,39 @@ tests/                   # Cross-slice tests (slice-local tests live IN slices)
 
 Slice rules (Principles 15–16): core slices interlink freely and reason as one union; **extension slices depend only on core** (the dependency DAG gate rejects extension→extension edges); every slice names its consumer in the manifest; every term is *declared* in exactly one slice. To add a slice, copy any core slice's anatomy — there is nothing else to learn. The generated `generated/module-status.md` matrix tracks tier, dependencies, and documentation status per slice.
 
-## 5. PR Lifecycle: Integrate, Review, Push
+## 5. Work Sizing: Decompose, Never Defer
+
+A work item is well-formed only if it is **completable as a reasonable unit** — one
+branch that lands via a single squash-merge with `make check` green. An issue that no
+single PR can ever close is not an "epic," it is a planning defect: unbounded,
+unownable, and self-perpetuating.
+
+When a proposed unit is too large to land that way, **decompose it into blocking and
+dependent sub-issues before writing code:**
+
+* each child is itself a reasonable unit (one landable PR);
+* the children form an explicit dependency DAG — every child names what **blocks** it
+  and what it **blocks** (`Blocked by: #N` / `Blocks: #N`), so the build order is
+  derivable;
+* the original becomes a **tracking epic** (label `epic`) whose body lists its children
+  and carries no code of its own; it closes only when every child has closed;
+* every requirement of the original maps to exactly one child — nothing is dropped.
+
+**Decomposition is not deferral.** The `.baseline` rule — *no deferrals, no follow-ups,
+work is NOW* — bans silently dropping or postponing a requirement **inside the unit you
+are landing**. It does **not** license cramming an oversized problem into one
+unreviewable, monolithic PR (the failure mode that collapses under its own review
+surface). The distinction is sharp:
+
+* **Deferral (banned):** a requirement inside the unit you are landing is left
+  unimplemented, stubbed, or tagged "future work."
+* **Decomposition (required):** an oversized unit is split so every requirement lands in
+  a tracked, blocking/dependent child — each *now*, in dependency order, none dropped.
+
+"Work is NOW" means the decomposition happens now and each unblocked child is built now —
+never that a hard problem is forced through a single monolithic PR.
+
+## 6. PR Lifecycle: Integrate, Review, Push
 
 When a PR is open and feedback arrives, follow this cycle strictly.
 

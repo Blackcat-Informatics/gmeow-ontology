@@ -22,7 +22,7 @@ and the no-debug-symbol policy intact.
 ## Working discipline
 
 * **Never work in the top-level checkout.** It is shared by 30+ developers and a daemon resets it to clean `main` every ~30s — uncommitted work there is wiped, and a stray branch/edit there has a huge blast radius. Always work in a git worktree (`.worktrees/<slug>/`) and write files under that worktree path.
-* **Workflow = merge `origin/main` INTO your branch (never rebase); land via squash-merge (`ghprsq`).** See [AGENTS.md](./AGENTS.md) § 5.
+* **Workflow = merge `origin/main` INTO your branch (never rebase); land via squash-merge (`ghprsq`).** See [AGENTS.md](./AGENTS.md) § 6.
 * **Deal-breakers — never:** `git checkout --theirs/--ours .`, `git merge -X theirs/ours`, `--no-verify`, skipping/mocking the component under test, or batch-resolving conflicts "to save time" (resolve each one individually).
 * **GPG / signing is off-limits** — never run `gpg`/`gpgconf` or touch the agent or keys; if a step needs signing, ask the user to run it.
 * **No time/effort estimates** — reason in dependency order and relative risk.
