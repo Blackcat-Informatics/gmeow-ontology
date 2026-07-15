@@ -19914,6 +19914,9 @@ enums:
       fanout-logic-relational-core:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-relational-core
         title: fanout logic relational core
+      fanout-logic-shape-grounding-ledger:
+        meaning: https://blackcatinformatics.ca/gmeow/fanout-logic-shape-grounding-ledger
+        title: fanout logic shape grounding ledger
       fanout-profiles:
         meaning: https://blackcatinformatics.ca/gmeow/fanout-profiles
         title: fanout profiles

@@ -62,9 +62,9 @@ const CONSTRAINT_REL: &str = "generated/shapes/constraint-shapes.ttl";
 /// Canonical procedural-constraint projection. Residue is grounded only through an exact
 /// `logic:formalizes <legacy-shape-IRI>` link in this or the constraint surface.
 const PROCEDURAL_REL: &str = "generated/shapes/procedural-constraints.ttl";
-const LOGIC_FORMALIZES: &str = "https://blackcatinformatics.ca/logic/formalizes";
-const GMEOW_ENFORCES_FAILURE_CLASS: &str =
-    "https://blackcatinformatics.ca/gmeow/enforcesFailureClass";
+/// Re-exported from the shared shape-grounding module (one authority for the record
+/// vocabulary across the migration oracle and the pipeline's grounding ledger).
+const LOGIC_FORMALIZES: &str = gmeow_validate::shape_grounding::LOGIC_FORMALIZES;
 
 /// The verdict for one legacy shape.
 enum Verdict {
@@ -195,40 +195,28 @@ fn shapes_by_target(
 /// residue is a cross-node `sh:sparql` on a class in this set has that residue grounded by a
 /// canonical `logic:` constraint.
 fn formalized_shape_iris(ds: &RdfDataset) -> std::collections::BTreeSet<String> {
-    let mut out = std::collections::BTreeSet::new();
-    let Some(formalizes) = ds.term_id_by_value(&TermValue::iri(LOGIC_FORMALIZES)) else {
-        return out;
-    };
-    for q in ds.quads_for_pattern(None, Some(formalizes), None, GraphMatch::Any) {
-        if let TermRef::Iri(iri) = ds.resolve(q.o) {
-            out.insert(iri.to_owned());
-        }
-    }
-    out
+    gmeow_validate::shape_grounding::formalizes_records(ds)
+        .into_values()
+        .flatten()
+        .collect()
 }
 
-/// Failure classes carried by each exact `logic:formalizes` replacement. This keeps typed
-/// conformance diagnostics part of the migration proof even though they do not alter which data
-/// graph conforms.
+/// Failure classes carried by each exact `logic:formalizes` replacement, keyed by the
+/// FORMALIZED (legacy) IRI. This keeps typed conformance diagnostics part of the migration
+/// proof even though they do not alter which data graph conforms. Derived from the shared
+/// shape-grounding record scan (one implementation with the pipeline's grounding ledger).
 fn collect_formalized_failure_classes(
     ds: &RdfDataset,
 ) -> BTreeMap<String, std::collections::BTreeSet<String>> {
+    let records = gmeow_validate::shape_grounding::formalizes_records(ds);
+    let by_record = gmeow_validate::shape_grounding::record_failure_classes(ds);
     let mut out: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
-    let (Some(formalizes), Some(enforces)) = (
-        ds.term_id_by_value(&TermValue::iri(LOGIC_FORMALIZES)),
-        ds.term_id_by_value(&TermValue::iri(GMEOW_ENFORCES_FAILURE_CLASS)),
-    ) else {
-        return out;
-    };
-    for q in ds.quads_for_pattern(None, Some(formalizes), None, GraphMatch::Any) {
-        let TermRef::Iri(legacy) = ds.resolve(q.o) else {
-            continue;
-        };
-        for fc in ds.quads_for_pattern(Some(q.s), Some(enforces), None, GraphMatch::Any) {
-            if let TermRef::Iri(failure) = ds.resolve(fc.o) {
-                out.entry(legacy.to_owned())
+    for (record, legacies) in records {
+        if let Some(failures) = by_record.get(&record) {
+            for legacy in legacies {
+                out.entry(legacy)
                     .or_default()
-                    .insert(failure.to_owned());
+                    .extend(failures.iter().cloned());
             }
         }
     }

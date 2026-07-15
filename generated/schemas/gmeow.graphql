@@ -1693,6 +1693,7 @@ enum FanoutExtractionEnum {
   fanout_logic_correspondence_laws
   fanout_logic_projection_report
   fanout_logic_relational_core
+  fanout_logic_shape_grounding_ledger
   fanout_profiles
   fanout_projections_core_prefixes
   fanout_projections_functions_fno

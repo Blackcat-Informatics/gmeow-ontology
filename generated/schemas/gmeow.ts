@@ -1693,6 +1693,7 @@ export enum FanoutExtractionEnum {
     fanout_logic_correspondence_laws = "fanout-logic-correspondence-laws",
     fanout_logic_projection_report = "fanout-logic-projection-report",
     fanout_logic_relational_core = "fanout-logic-relational-core",
+    fanout_logic_shape_grounding_ledger = "fanout-logic-shape-grounding-ledger",
     fanout_profiles = "fanout-profiles",
     fanout_projections_core_prefixes = "fanout-projections-core-prefixes",
     fanout_projections_functions_fno = "fanout-projections-functions-fno",

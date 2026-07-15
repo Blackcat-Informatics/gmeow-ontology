@@ -440,6 +440,10 @@ pub(crate) fn is_rdf_fanout_class(path: &str) -> bool {
         // side-tables do not separate cleanly under a per-file fold, so they ride a
         // dedicated reifier-preserving path (below), not the generic fanout.
         || path == "generated/logic/projection-report.ttl"
+        // The shape-grounding certificate ledger: the per-record preservation judgments
+        // re-derived each regenerate over the projected constraint surfaces (the
+        // per-record sibling of the projection-report loss ledger; no RDF-star).
+        || path == "generated/logic/shape-grounding-ledger.ttl"
         || path == "generated/logic/gmeow.relational-core.nt"
         || path == "generated/logic/gmeow.correspondence.nt"
         // The correspondence-laws projection: the on-disk fold of the bundle's
