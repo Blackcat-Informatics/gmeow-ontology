@@ -21,7 +21,7 @@ pub mod perf_ledger;
 pub mod rl;
 pub(crate) mod rl_rules;
 
-pub use dl::{DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
+pub use dl::{DlGap, DlVerdict, InconsistencyWitness, UnsatClass, dl_consistency};
 pub use el::{ElClosure, InferredAxiom, el_closure};
 pub use ledger::{
     DivergenceKind, DivergenceLedger, ExternalComparison, LedgerRow, LedgerVerdict, build_ledger,

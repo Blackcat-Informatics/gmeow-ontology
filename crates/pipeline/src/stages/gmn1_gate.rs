@@ -377,7 +377,7 @@ pub fn check_gmn1_shipped_projections(
         if doc.text.as_bytes() != bytes.as_slice() {
             return Err(stage_err(&format!(
                 "shipped GMN-1 projection {path} is stale — its bytes differ from the current \
-                 projection of its source (run `make regenerate`)"
+                 projection of its source (run `make sync`)"
             )));
         }
         // The production classifier over the shipped artifact (its full document, whose text

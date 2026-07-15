@@ -17,7 +17,7 @@
 //! | `logic_compile_check` (ignored)   | `test_logic_cli::…_compile_check_*`     |
 //!
 //! The whole-pipeline / whole-gate commands (`logic compile --check`, `feedback`,
-//! `regenerate`) duplicate dedicated repository gates, so they ride an explicit
+//! synchronization) duplicate dedicated repository gates, so they ride an explicit
 //! `#[ignore]` maintainer lane behind `GMEOW_DEV_CLI_HEAVY=1`; focused CLI behavior
 //! stays on the default lane.
 

@@ -53,7 +53,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     let graph = dataset.project_named_graph(gmeow_logic::result_rdf::GRAPH_REASONING);
     if graph.quad_count() == 0 {
         return Err(error::reasoning(
-            "the snapshot carries no graph/reasoning verdict; run `make regenerate` \
+            "the snapshot carries no graph/reasoning verdict; run `make sync` \
              (or re-reason with --fresh)",
         ));
     }
@@ -72,7 +72,7 @@ fn shipped_reasoning_result(dataset: &purrdf::RdfDataset) -> gmeow_errors::Resul
     if result.provenance.contract_hash != current {
         return Err(error::reasoning(format!(
             "the shipped graph/reasoning verdict was minted under reasoning contract \
-             {shipped} but this binary implements {current}; run `make regenerate` to \
+             {shipped} but this binary implements {current}; run `make sync` to \
              re-mint the bundle (or re-reason with --fresh)",
             shipped = result.provenance.contract_hash,
         )));

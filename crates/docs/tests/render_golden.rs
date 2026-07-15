@@ -698,7 +698,7 @@ fn llms_surfaces_advertise_the_offline_snippet_corpus() {
     let model = common::cached_model();
     let note = gmeow_docs::render::SNIPPETS_CORPUS_NOTE;
     assert!(
-        note.contains("gmeow-dev export-docs --format snippets"),
+        note.contains("gmeow-dev sync --mode update --outputs docs"),
         "the shared corpus note names the snippets-export affordance"
     );
     assert!(

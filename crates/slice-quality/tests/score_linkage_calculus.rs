@@ -79,6 +79,7 @@ impl Drop for Fixture {
 }
 
 const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+     @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
      @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
      @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
      @prefix schema: <https://schema.org/> .\n\
@@ -184,6 +185,31 @@ fn identity_hand_authored_term_equivalence_is_a_migration_target() {
     assert!(
         mixed_r.score > hand_r.score,
         "a partly-calculus slice outscores a fully-hand-authored one"
+    );
+}
+
+#[test]
+fn identity_grounding_frontend_cell_is_already_calculus_routed() {
+    // Grounding correspondences are authored as dual-typed TermEquivalence frontend
+    // cells. The compiler turns this marker + its three mandatory judgments into the
+    // typed correspondence IR, so the authored surface is adoption rather than debt.
+    let mappings = format!(
+        "{PREFIXES}\n\
+         gmeow:eqGrounding a gmeow:TermEquivalence, logic:GroundingCorrespondence ;\n\
+            gmeow:alignSubject gmeow:Thing ; gmeow:alignPredicate skos:exactMatch ;\n\
+            gmeow:alignObject schema:Thing ;\n\
+            logic:morphismClass logic:WellBehavedLens ;\n\
+            logic:morphismKind logic:InstitutionMorphism ;\n\
+            logic:preservationKind logic:SoundUnderApproximation .\n"
+    );
+    let f = Fixture::new("grounding", &mappings);
+    let r = f.score();
+    assert_eq!(r.score, 1.0, "the grounding frontend is calculus-routed");
+    assert!(
+        !r.codes
+            .iter()
+            .any(|code| code == "slice-quality.linkage.uncalculated-correspondence"),
+        "an explicitly routed grounding cell is not legacy debt"
     );
 }
 

@@ -4,7 +4,7 @@ Refer to [AGENTS.md](./AGENTS.md) in the project root for the canonical tech sta
 
 The regeneration pipeline is governed by [`docs/PIPELINE_SPINE.md`](./docs/PIPELINE_SPINE.md) — the in-memory carrier spine, the single `gmeow.gts` terminal, and the post-pipeline fanout. It is canonical for any work touching `crates/pipeline` or any artifact under `generated/`: every such artifact must be a projection of `gmeow.gts`.
 
-"make regenerate" is VERY expensive - you make ONLY run it if required or as part of stage3.
+"make sync" is VERY expensive - you make ONLY run it if required or as part of stage3.
 "make check" is VERY expensive - run it ONLY when you have to - ideally once in each stage.
 
 Rust optimization and advanced-language-feature work is governed by
@@ -19,7 +19,7 @@ and the no-debug-symbol policy intact.
 
 * **GREENFIELD, no backwards-compat** — when replacing an element, remove the inferior one; lossy compatibility lives only in generated projections, never in the canonical core.
 * **RUST-FIRST, Python-surface** — core work is Rust. **Adding ANY Python (code, tests, fixtures, orchestration) requires explicit authorization; if you think you may be writing Python, you are probably doing the wrong thing.**
-* **No optionality / hard-fail** — no feature-gates, optional deps, or degraded fallbacks; a missing required thing is a HARD FAIL: stop and report, never paper over it.
+* **No-optionality forbids silent capability degradation; it does not forbid explicit feature selection.** For a selected operation and profile, every declared input, capability, invariant, and output is mandatory. Explicit profiles, sinks, output formats, and DAG branches are permitted when they are first-class, deterministic, cache-keyed, and fully validated. Once selected, their stages and outputs are required. A missing cache causes recomputation; a missing dependency or implementation is a HARD FAIL, never permission to use a weaker parser, omit output, retain stale bytes, or otherwise degrade semantics. Rust `Option<T>` and conditional DAG edges are not themselves violations.
 * **Data flows slices → `gmeow.gts` + the `gmeow` CLI** (the shippable deliverables). Maximise information flow, ontological use, and dogfooding.
 
 ## Working discipline
@@ -32,8 +32,8 @@ and the no-debug-symbol policy intact.
 
 ## Regenerate & gates
 
-* Regenerate with `make regenerate`. The target delegates one **single, idempotent pass** to `gmeow-dev regenerate`; the Rust command owns its worker scheduling and memory-aware cap, while Make neither infers nor injects a job count. There is no separate "diagnostics fold," and a second run produces no changes. Run it once, never in a loop.
-* `generated/dist/gmeow.gts` is `merge=ours` (`.gitattributes`), so a `git merge` leaves it holding the branch's pre-merge bytes; `make regenerate` rewrites it from the merged sources, so run it once after integrating `main`. A stale bundle is **not** silently accepted — its drift is caught by the superset/fold gate (the `crates/pipeline` superset check + `tests/full_parity.rs`), which compares the bundle semantically because it is CBOR and cannot be byte-diffed by `check-generated`.
+* Synchronize with `make sync`. The target delegates one **single, idempotent pass** to `gmeow-dev sync`; local runs default to update mode and all outputs, while CI defaults to strict read-only checking. The Rust command uses every available CPU unless `--jobs N` is explicitly supplied. A clean whole-run manifest skips a fixed-point run; an input miss executes the pipeline once. Use `make sync SYNC_VERBOSE=1` to stream live DAG stages during a miss. There is no separate diagnostics or docs pipeline.
+* `generated/dist/gmeow.gts` is `merge=ours` (`.gitattributes`), so a `git merge` leaves it holding the branch's pre-merge bytes; `make sync` rewrites it from the merged sources, so run it once after integrating `main`. A stale bundle is **not** silently accepted — its drift is caught by the superset/fold gate (the `crates/pipeline` superset check + `tests/full_parity.rs`), which compares the bundle semantically because it is CBOR and cannot use a byte-only comparison.
 * Verify with the full `make check` — `make validate` / `make reason` alone are not sufficient. CI builds the PR **merged into `main`**, so integrate current `main` before final verification.
 
 ## Canonical sources & forward direction
@@ -52,8 +52,8 @@ and the no-debug-symbol policy intact.
 * Run lint: `make lint`
 * Validate Turtle & SHACL: `make validate`
 * Validate bundled GTS snapshot: `make validate-gts`
-* Regenerate generated artifacts: `make regenerate`
-* Check generated artifacts: `make check-generated`
+* Regenerate generated artifacts: `make sync`
+* Check generated artifacts: `make sync SYNC_MODE=check SYNC_OUTPUTS=generated`
 * Run native reasoning: `make reason`
 * Run native verification: `make verify`
 * Run native reasoning + verification together: `make reason-verify`
@@ -67,7 +67,7 @@ and the no-debug-symbol policy intact.
 
 ## Generated and Release Outputs
 
-* Regenerate docs: `make docs`
+* Regenerate docs: `make sync SYNC_OUTPUTS=docs`
 * Build dist serializations: `make build`
 * Run release build: `make release`
 * Sign a release GTS: `make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts`
