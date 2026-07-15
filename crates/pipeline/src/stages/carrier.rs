@@ -5785,7 +5785,7 @@ mod logic_graph_golden_tests {
     #[test]
     fn graph_correspondence_fold_byte_golden() {
         let corr_nt = gmeow_logic_compile::projections::correspondence::project_correspondence(
-            &gmeow_logic_compile::projections::correspondence::affine_triangle_worked_example(),
+            &crate::stages::compile_logic::affine_worked_example_program(),
         );
 
         let build = || {

@@ -958,6 +958,12 @@ fn preservation_from_iri(iri: &str) -> Option<PreservationKind> {
 /// alignment surface MUST be `skos:relatedMatch` (NEVER `skos:exactMatch`, NEVER
 /// `owl:equivalentClass`), and the lane declares its `SoundUnderApproximation`
 /// preservation polarity in the loss ledger.
+///
+/// TEST-ONLY (`#[cfg(test)]`): the production correspondence lane no longer constructs
+/// this Rust literal — it reads the authored `affine-correspondence.ttl` cell via
+/// `parse_correspondence` (honest dogfooding). This literal survives ONLY as the fidelity
+/// oracle the round-trip test asserts the authored cell re-derives to, byte-for-byte.
+#[cfg(test)]
 pub fn affine_triangle_worked_example() -> CorrespondenceProgram {
     use crate::ir::{
         CorrespondenceLaw, CorrespondenceRelation, Determinacy, DischargeVerdict, LawClaimIr,
