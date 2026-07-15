@@ -100,6 +100,15 @@ define_diag_kind! {
     message = "{}", detail;
 }
 
+define_diag_kind! {
+    /// Unified synchronization could not acquire its worktree boundary or
+    /// reconcile one of its owned output trees.
+    pub struct SyncFailed { detail: String }
+    code = "gmeow-dev-cli.sync.failed";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "{}", detail;
+}
+
 /// The single conversion seam: fold any `Display` error (a `String`, a foreign
 /// `Error`, or a `Diag`) into a typed developer-CLI [`Diag`]. One constructor per
 /// kind keeps each call site a terse `.map_err(error::rdf)?`.
@@ -123,6 +132,7 @@ ctor!(feedback, FeedbackBundleFailed);
 ctor!(crosscheck, CrosscheckFailed);
 ctor!(refresh, TargetRefreshFailed);
 ctor!(vendored_corpus, VendoredCorpusDescriptorInvalid);
+ctor!(sync, SyncFailed);
 
 /// The complete developer-CLI diagnostic-code catalog, in registration order.
 /// (Consumed by the collision test; the running CLI reaches its kinds directly.)
@@ -138,6 +148,7 @@ pub const GMEOW_DEV_CLI_DIAG_CODES: &[&str] = &[
     CrosscheckFailed::CODE,
     TargetRefreshFailed::CODE,
     VendoredCorpusDescriptorInvalid::CODE,
+    SyncFailed::CODE,
 ];
 
 /// Eagerly intern every developer-CLI diagnostic code (idempotent). Reachable for
@@ -155,6 +166,7 @@ pub fn register_all() -> Vec<Code> {
         CrosscheckFailed::register(),
         TargetRefreshFailed::register(),
         VendoredCorpusDescriptorInvalid::register(),
+        SyncFailed::register(),
     ]
 }
 

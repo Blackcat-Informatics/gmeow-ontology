@@ -20,7 +20,7 @@ Two entry points:
 
 ```bash
 gmeow export all my-dataset.ttl            # arbitrary user data → dist/research-objects/
-gmeow regenerate research-objects          # the flagship worked example (drift-gated)
+gmeow-dev sync --mode update --outputs generated research-objects          # the flagship worked example (drift-gated)
 ```
 
 The input must contain a **dataset descriptor**: a `gmeow:Dataset` node with

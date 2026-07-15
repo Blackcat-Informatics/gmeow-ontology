@@ -196,12 +196,12 @@ jobs:
   # (nightly toolchain + rust-cache) and running a disjoint slice of the gmeow-dev
   # gates. GitHub Actions has no native step-reuse, so the toolchain setup is
   # repeated per job; the rust-cache keeps the compile incremental. Grouping
-  # balances wall-time, isolating the long poles (validate, check-generated ~178s)
+  # balances wall-time, isolating the long poles (validate and strict sync)
   # into separate jobs.
   #
   # Every original gate lands in exactly one job:
   #   ontology-validate  : validate
-  #   ontology-generated : maint-crosscheck, check-generated, constitution-check
+  #   ontology-generated : maint-crosscheck, sync, constitution-check
   #   ontology-reason    : verify --mode native, acceptance, coverage
   #   ontology-misc      : mappings, wikidata, lint-alignment, audit, compliance-report
   ontology-validate:
@@ -218,22 +218,6 @@ jobs:
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Cache generator stamps
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .stamps/generators
-          key: generator-stamps-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
-          restore-keys: |
-            generator-stamps-${{ runner.os }}-
-
-      - name: Cache ontology-docs build outputs
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/ontology-docs
-          key: ontology-docs-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
-          restore-keys: |
-            ontology-docs-${{ runner.os }}-
 
       # Persist the content-addressed `.cache/validate` across runs. Every
       # validate phase (merged-SHACL, the per-example SHACL passes, the DSL passes)
@@ -269,27 +253,22 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Cache generator stamps
+      # Cache only the whole-run proof, never cumulative stage snapshots. The
+      # manifest re-hashes canonical inputs and witnesses every committed output
+      # before it can skip the pipeline, so a stale restore is a safe miss.
+      - name: Cache strict-sync manifest
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: .stamps/generators
-          key: generator-stamps-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          path: .cache/gmeow-sync/manifests
+          key: sync-manifest-v3-${{ runner.os }}-${{ hashFiles('*.md', 'Cargo.toml', 'Cargo.lock', 'Makefile', 'rust-toolchain.toml', '.cargo/**', 'crates/**', 'slices/**', 'dsl/**', 'imports/**', 'metadata/**', 'shapes/**', 'queries/**', 'evals/**', 'bench/**', 'docs/**', 'i18n/**', 'ontology/**', 'governance/**', 'conformance/**', 'coverage/**', 'tests/**', 'validations/**') }}
           restore-keys: |
-            generator-stamps-${{ runner.os }}-
-
-      - name: Cache ontology-docs build outputs
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/ontology-docs
-          key: ontology-docs-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
-          restore-keys: |
-            ontology-docs-${{ runner.os }}-
+            sync-manifest-v3-${{ runner.os }}-
 
       - name: Engine cross-check (rdflib ≡ purrdf on every query)
         run: make maint-crosscheck
 
       - name: Full-registry drift gate (statements run natively via gmeow-rdf)
-        run: make check-generated
+        run: make sync SYNC_MODE=check SYNC_OUTPUTS=generated
 
       - name: Constitution check (every principle has live enforcement)
         run: make constitution-check
@@ -308,22 +287,6 @@ jobs:
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Cache generator stamps
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .stamps/generators
-          key: generator-stamps-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
-          restore-keys: |
-            generator-stamps-${{ runner.os }}-
-
-      - name: Cache ontology-docs build outputs
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/ontology-docs
-          key: ontology-docs-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
-          restore-keys: |
-            ontology-docs-${{ runner.os }}-
 
       - name: Reasoned-graph negative tests (native verify, Docker-free)
         run: make verify
@@ -351,22 +314,6 @@ jobs:
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Cache generator stamps
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .stamps/generators
-          key: generator-stamps-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
-          restore-keys: |
-            generator-stamps-${{ runner.os }}-
-
-      - name: Cache ontology-docs build outputs
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/ontology-docs
-          key: ontology-docs-${{ runner.os }}-${{ hashFiles('crates/**', 'Cargo.lock', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
-          restore-keys: |
-            ontology-docs-${{ runner.os }}-
 
       - name: Mappings → axioms + linksets, QID syntax
         run: make mappings
@@ -462,7 +409,7 @@ jobs:
   # replacement is the native in-process `purrdf::entail` cross-check, which runs
   # ON-GATE inside the required reason lane rather than as a separate job. The
   # required gate stays Docker-free and Java-free. Statements now run natively via
-  # the gmeow-rdf codec inside the `ontology` job's `check-generated` — there is no
+  # the gmeow-rdf codec inside the generated-artifact job's strict sync — there is no
   # separate statements lane.
   quality:
     needs: [lint, rust, wasm, ontology-validate, ontology-generated, ontology-reason, ontology-misc]

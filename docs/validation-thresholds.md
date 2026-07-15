@@ -108,7 +108,7 @@ available for diagnosis).
 **Decision: KEEP the `.cache/validate` layer.** The Rust validation cache is keyed
 on validation sources, SHACL shapes, and toolchain versions, avoiding repeated
 SHACL work over unchanged inputs. The pipeline-stage report is separately
-content-addressed by the DAG and compared through `check-generated`.
+content-addressed by the DAG and compared through strict `sync`.
 
 ## CI build cost
 
