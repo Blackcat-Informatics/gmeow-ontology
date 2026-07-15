@@ -139,7 +139,7 @@ fn main() {
     println!(
         "cost-partition\tATTRIBUTION\tprojection_bytes={}\tconstraint_bytes={}\t\
          projection_share_pct={:.3}\tnon_procedural_constraint_bytes={}\t\
-         procedural_constraint_bytes={}\tprocedural_share_pct={:.1}",
+         procedural_only_standalone_bytes={}\tprocedural_to_full_ratio_pct={:.1}",
         p_ontology_only.bytes,
         v_projected_ontology_only.bytes,
         100.0 * (p_ontology_only.bytes as f64)
