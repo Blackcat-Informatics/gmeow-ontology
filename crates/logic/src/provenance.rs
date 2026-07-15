@@ -479,6 +479,28 @@ fn render_term(term: &TermValue, style: TermRenderStyle) -> String {
     rendered
 }
 
+fn validate_triple_term_predicates(term: &TermValue) -> gmeow_errors::Result<()> {
+    let mut pending = vec![term];
+    while let Some(term) = pending.pop() {
+        if let TermValue::Triple { s, p, o } = term {
+            if !matches!(p.as_ref(), TermValue::Iri(_)) {
+                let predicate_kind = match p.as_ref() {
+                    TermValue::Iri(_) => unreachable!("IRI predicates pass the validation guard"),
+                    TermValue::Blank { .. } => "blank node",
+                    TermValue::Literal { .. } => "literal",
+                    TermValue::Triple { .. } => "triple term",
+                };
+                return Err(provenance_err(format!(
+                    "RDF 1.2 triple-term predicate must be an IRI, got {predicate_kind}"
+                )));
+            }
+            pending.push(o);
+            pending.push(s);
+        }
+    }
+    Ok(())
+}
+
 /// Serialize a native [`TermValue`] to rdflib `.n3()` form.
 ///
 /// - `Iri(iri)` → `<iri>`
@@ -488,8 +510,9 @@ fn render_term(term: &TermValue, style: TermRenderStyle) -> String {
 ///
 /// # Errors
 ///
-/// The result remains fallible for API compatibility with provenance callers.
+/// Returns an error when any nested triple term carries a non-IRI predicate.
 pub fn term_n3(term: &TermValue) -> gmeow_errors::Result<String> {
+    validate_triple_term_predicates(term)?;
     Ok(render_term(term, TermRenderStyle::N3))
 }
 
@@ -891,6 +914,40 @@ mod tests {
 
         // Box's recursive destructor is outside the renderer contract under test.
         std::mem::forget(nested);
+    }
+
+    #[test]
+    fn term_n3_rejects_non_iri_predicates_at_every_nesting_depth() {
+        let invalid = TermValue::Triple {
+            s: Box::new(TermValue::iri("http://example.org/s")),
+            p: Box::new(TermValue::simple_literal("not-an-iri")),
+            o: Box::new(TermValue::iri("http://example.org/o")),
+        };
+        assert!(
+            term_n3(&invalid).is_err(),
+            "direct non-IRI predicate must fail closed"
+        );
+        let nested = TermValue::Triple {
+            s: Box::new(TermValue::iri("http://example.org/outer-s")),
+            p: Box::new(TermValue::iri("http://example.org/outer-p")),
+            o: Box::new(invalid),
+        };
+
+        let error = term_n3(&nested).expect_err("nested non-IRI predicate must fail closed");
+        assert!(
+            error
+                .to_string()
+                .contains("RDF 1.2 triple-term predicate must be an IRI")
+        );
+        assert!(
+            mint_reifier(
+                &TermValue::iri("http://example.org/holder"),
+                "http://example.org/mentions",
+                &nested,
+            )
+            .is_err(),
+            "invalid triple terms must not mint provenance identities"
+        );
     }
 
     #[test]
