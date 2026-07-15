@@ -34,7 +34,10 @@ use gmeow_logic_compile::ir::{
     ShapeValue, ValidationShapeIr,
 };
 use gmeow_logic_compile::projections::lift::{certify, lift};
-use gmeow_validate::shape_oracle::{OracleVerdict, ShapeRead, oracle, read_shacl_shape};
+use gmeow_validate::shape_oracle::{
+    OracleVerdict, RAW_SPARQL_TARGET_RESIDUE, ShapeRead, TARGETLESS_SELECT, oracle,
+    read_shacl_shape, semantic_cross_check, semantic_witness_plan, shape_subgraph_ttl,
+};
 use purrdf::{DatasetView, GraphMatch, RdfDataset, TermRef, TermValue, parse_dataset};
 
 use crate::dev_common::{fail, project_root};
@@ -42,6 +45,12 @@ use crate::dev_common::{fail, project_root};
 const SH_NODESHAPE: &str = "http://www.w3.org/ns/shacl#NodeShape";
 const SH_SPARQL: &str = "http://www.w3.org/ns/shacl#sparql";
 const SH_OR: &str = "http://www.w3.org/ns/shacl#or";
+/// `sh:node` / `sh:xone` — structural, machine-readable residue constructs. Their grounded
+/// clearance is stricter than the `sh:sparql`/`sh:or` trust anchor: the exact `logic:formalizes`
+/// record must ALSO survive the semantic witness cross-check (near-misses generated FROM the
+/// construct, focus-flag agreement required on the projected constraint surface).
+const SH_NODE: &str = "http://www.w3.org/ns/shacl#node";
+const SH_XONE: &str = "http://www.w3.org/ns/shacl#xone";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// The projected validation-shape surface, relative to the repo root.
 const PROJECTED_REL: &str = "generated/shapes/validation-shapes.ttl";
@@ -64,6 +73,11 @@ enum Verdict {
     /// reproduced by a projected `logic:`-backed constraint shape on the same target — grounded and
     /// deletable.
     EquivGroundedResidue,
+    /// Grounded through the SEMANTIC discipline for structural residue (`sh:node` / `sh:xone` /
+    /// a raw `sh:SPARQLTarget`): the exact `logic:formalizes` record is present, the typed
+    /// failure class matches, AND the record's projected constraint surface reproduced the
+    /// construct's semantics under the witness cross-check — grounded and deletable.
+    EquivGroundedResidueSemantic,
     /// Covered fragment equivalent but residue-bearing with residue that is NOT (yet) grounded as a
     /// canonical `logic:` constraint — NOT deletable.
     EquivResidue(Vec<String>),
@@ -74,10 +88,14 @@ enum Verdict {
 }
 
 impl Verdict {
-    /// A covered-fragment match with no residue, OR with only `sh:sparql` residue reproduced by a
-    /// projected constraint shape, clears a legacy block for deletion.
+    /// A covered-fragment match with no residue, OR with residue grounded by an exact
+    /// `logic:formalizes` record (the `sh:sparql`/`sh:or` trust anchor, or the semantic
+    /// witness-cross-checked discipline), clears a legacy block for deletion.
     fn is_grounded(&self) -> bool {
-        matches!(self, Verdict::Equiv | Verdict::EquivGroundedResidue)
+        matches!(
+            self,
+            Verdict::Equiv | Verdict::EquivGroundedResidue | Verdict::EquivGroundedResidueSemantic
+        )
     }
 
     fn label(&self) -> String {
@@ -85,6 +103,9 @@ impl Verdict {
             Verdict::Equiv => "EQUIV".to_owned(),
             Verdict::EquivGroundedResidue => {
                 "EQUIV-GROUNDED-RESIDUE(sh:sparql→constraint)".to_owned()
+            }
+            Verdict::EquivGroundedResidueSemantic => {
+                "EQUIV-GROUNDED-RESIDUE(record+witness-cross-check)".to_owned()
             }
             Verdict::EquivResidue(residue) => format!("EQUIV-RESIDUE({})", residue.join(", ")),
             Verdict::NotEquiv(reason) => format!("NOT-EQUIV({reason})"),
@@ -229,17 +250,61 @@ fn parse_ttl_file(path: &Path) -> Result<std::sync::Arc<RdfDataset>, i32> {
     })
 }
 
-/// Recursively collect every `shapes.ttl` file under `dir`.
+/// Whether an authored `.ttl` file DECLARES at least one `sh:NodeShape` (an actual
+/// `?s rdf:type sh:NodeShape` quad — a mention inside a comment or a prose literal never
+/// counts). A cheap `NodeShape` text pre-filter (the local name is prefix-independent) bounds
+/// the parses to the handful of shape-bearing files. A file that PASSES the pre-filter but
+/// fails to parse is INCLUDED so the scan surfaces the parse error instead of skipping it in
+/// silence (hard-fail, never paper over).
+fn declares_node_shape(path: &Path) -> bool {
+    let Ok(text) = std::fs::read_to_string(path) else {
+        // An unreadable candidate is included so the scan reports the read error.
+        return true;
+    };
+    if !text.contains("NodeShape") {
+        return false;
+    }
+    let Ok(ds) = parse_dataset(text.as_bytes(), "text/turtle", None) else {
+        return true;
+    };
+    let (Some(ty), Some(ns)) = (
+        ds.term_id_by_value(&TermValue::iri(RDF_TYPE)),
+        ds.term_id_by_value(&TermValue::iri(SH_NODESHAPE)),
+    ) else {
+        return false;
+    };
+    ds.quads_for_pattern(None, Some(ty), Some(ns), GraphMatch::Any)
+        .next()
+        .is_some()
+}
+
+/// Recursively collect every AUTHORED `.ttl` file under `dir` that declares at least one
+/// `sh:NodeShape` — the legacy-shape scan universe. Generated projections (`generated/`),
+/// build artifacts (`target/`), and hidden directories (`.git`, `.worktrees`, …) are never
+/// authored surfaces and are excluded. A `dir` that is itself a single `.ttl` file scopes the
+/// scan to exactly that file.
 fn collect_legacy_shape_files(dir: &Path, out: &mut Vec<PathBuf>) {
+    if dir.is_file() {
+        if dir.extension().and_then(|e| e.to_str()) == Some("ttl") && declares_node_shape(dir) {
+            out.push(dir.to_path_buf());
+        }
+        return;
+    }
     let Ok(entries) = std::fs::read_dir(dir) else {
         return;
     };
     let mut entries: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
     entries.sort();
     for path in entries {
+        let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
         if path.is_dir() {
+            if name == "generated" || name == "target" || name.starts_with('.') {
+                continue;
+            }
             collect_legacy_shape_files(&path, out);
-        } else if path.file_name().and_then(|n| n.to_str()) == Some("shapes.ttl") {
+        } else if path.extension().and_then(|e| e.to_str()) == Some("ttl")
+            && declares_node_shape(&path)
+        {
             out.push(path);
         }
     }
@@ -255,7 +320,14 @@ fn target_label(target: &ShapeTarget) -> String {
             format!("valueKeyed {predicate}={value}")
         }
         ShapeTarget::DirectClass(c) => format!("directClass {c}"),
-        ShapeTarget::Sparql(select) => format!("sparql {select}"),
+        ShapeTarget::Sparql(select) if select == TARGETLESS_SELECT => "targetless".to_owned(),
+        ShapeTarget::Sparql(select) => {
+            // One line, bounded width: the raw select is a multi-line body.
+            let flat: String = select.split_whitespace().collect::<Vec<_>>().join(" ");
+            let compact: String = flat.chars().take(72).collect();
+            let ellipsis = if flat.chars().count() > 72 { "…" } else { "" };
+            format!("sparql {compact}{ellipsis}")
+        }
     }
 }
 
@@ -270,20 +342,26 @@ struct OracleCtx {
     formalized_shapes: std::collections::BTreeSet<String>,
     formalized_failure_classes: BTreeMap<String, std::collections::BTreeSet<String>>,
     object_properties: std::collections::BTreeSet<String>,
+    /// The parsed constraint/procedural projection surfaces themselves, retained so the
+    /// semantic clearance path can extract a `logic:formalizes` record's shape subgraph and run
+    /// it as a REAL SHACL validator in the witness cross-check.
+    constraint_surfaces: Vec<std::sync::Arc<RdfDataset>>,
 }
 
 impl OracleCtx {
-    /// Load the context from the committed generated surfaces under `root`, mapping any read/parse
-    /// failure to the dev exit code.
-    fn load(root: &Path, tool: &str) -> Result<Self, i32> {
-        let projected_ds = parse_ttl_file(&root.join(PROJECTED_REL))?;
+    /// Build the context from already-parsed surfaces: the projected validation-shape dataset
+    /// and the constraint/procedural projection datasets. This is the SINGLE construction path —
+    /// [`Self::load`] wraps it with file I/O and the tests drive it with in-memory datasets, so
+    /// both exercise the same verdict machinery. `Err` carries the projected-surface read errors.
+    fn from_surfaces(
+        projected_ds: &RdfDataset,
+        constraint_surfaces: Vec<std::sync::Arc<RdfDataset>>,
+        object_properties: std::collections::BTreeSet<String>,
+    ) -> Result<Self, Vec<String>> {
         let mut proj_errors = Vec::new();
-        let projected = shapes_by_target(&projected_ds, &mut proj_errors);
-        for e in &proj_errors {
-            eprintln!("{tool}: projected shape read error: {e}");
-        }
+        let projected = shapes_by_target(projected_ds, &mut proj_errors);
         if !proj_errors.is_empty() {
-            return Err(1);
+            return Err(proj_errors);
         }
 
         // Functional-property max-counts ride a SEPARATE projected shape targeted at the property's
@@ -306,16 +384,14 @@ impl OracleCtx {
             }
         }
 
-        // The projected FOL-constraint surface: which target classes have a `logic:`-backed
-        // constraint shape (so a legacy shape's `sh:sparql` cross-node residue on that class is
-        // grounded).
+        // The projected FOL-constraint surface: which legacy shapes have a `logic:`-backed
+        // constraint shape (so a legacy shape's `sh:sparql` cross-node residue is grounded).
         let mut formalized_shapes = std::collections::BTreeSet::new();
         let mut formalized_failure_classes: BTreeMap<String, std::collections::BTreeSet<String>> =
             BTreeMap::new();
-        for rel in [CONSTRAINT_REL, PROCEDURAL_REL] {
-            let ds = parse_ttl_file(&root.join(rel))?;
-            formalized_shapes.extend(formalized_shape_iris(&ds));
-            for (legacy, failures) in collect_formalized_failure_classes(&ds) {
+        for ds in &constraint_surfaces {
+            formalized_shapes.extend(formalized_shape_iris(ds));
+            for (legacy, failures) in collect_formalized_failure_classes(ds) {
                 formalized_failure_classes
                     .entry(legacy)
                     .or_default()
@@ -328,30 +404,145 @@ impl OracleCtx {
             functional_max,
             formalized_shapes,
             formalized_failure_classes,
-            object_properties: object_property_iris(root),
+            object_properties,
+            constraint_surfaces,
         })
     }
 
-    /// The equivalence verdict for one legacy shape `read` (identified by `iri`, focus `target`)
-    /// against the projected surface — the single per-shape judgment shared by the report and the
-    /// prune phase.
-    fn verdict(&self, iri: &str, target: &ShapeTarget, read: &ShapeRead) -> Verdict {
+    /// Load the context from the committed generated surfaces under `root`, mapping any read/parse
+    /// failure to the dev exit code.
+    fn load(root: &Path, tool: &str) -> Result<Self, i32> {
+        let projected_ds = parse_ttl_file(&root.join(PROJECTED_REL))?;
+        let mut constraint_surfaces = Vec::new();
+        for rel in [CONSTRAINT_REL, PROCEDURAL_REL] {
+            constraint_surfaces.push(parse_ttl_file(&root.join(rel))?);
+        }
+        Self::from_surfaces(
+            &projected_ds,
+            constraint_surfaces,
+            object_property_iris(root),
+        )
+        .map_err(|errors| {
+            for e in &errors {
+                eprintln!("{tool}: projected shape read error: {e}");
+            }
+            1
+        })
+    }
+
+    /// The semantic witness agreement for one structurally-residue-bearing legacy shape: extract
+    /// the shape's own subgraph and its exact `logic:formalizes` record subgraph(s), generate the
+    /// witness plan FROM the legacy constructs, and require focus-flag agreement on both sides.
+    /// `include_covered` widens the plan to the covered property fragment for a shape with NO
+    /// declarative projected peer (a raw-SPARQL-target block), whose record must reproduce the
+    /// covered enforcement too.
+    fn semantic_agreement(
+        &self,
+        iri: &str,
+        read: &ShapeRead,
+        legacy_ds: &RdfDataset,
+        include_covered: bool,
+    ) -> gmeow_errors::Result<()> {
+        let legacy_ttl = shape_subgraph_ttl(legacy_ds, &[iri.to_owned()], "l");
+        let mut record_ttl = String::new();
+        for (i, ds) in self.constraint_surfaces.iter().enumerate() {
+            let Some(formalizes) = ds.term_id_by_value(&TermValue::iri(LOGIC_FORMALIZES)) else {
+                continue;
+            };
+            let Some(legacy_id) = ds.term_id_by_value(&TermValue::iri(iri)) else {
+                continue;
+            };
+            let roots: Vec<String> = ds
+                .quads_for_pattern(None, Some(formalizes), Some(legacy_id), GraphMatch::Any)
+                .filter_map(|q| match ds.resolve(q.s) {
+                    TermRef::Iri(s) => Some(s.to_owned()),
+                    _ => None,
+                })
+                .collect();
+            if !roots.is_empty() {
+                record_ttl.push_str(&shape_subgraph_ttl(ds, &roots, &format!("r{i}")));
+            }
+        }
+        if record_ttl.is_empty() {
+            return Err(crate::error::clearance(format!(
+                "semantic clearance: no logic:formalizes <{iri}> record subject found on the \
+                 projected constraint surfaces"
+            )));
+        }
+        let plan = semantic_witness_plan(legacy_ds, iri, read).map_err(crate::error::clearance)?;
+        let mut witnesses = plan.conforming;
+        witnesses.extend(plan.residue);
+        if include_covered {
+            witnesses.extend(plan.covered);
+        }
+        semantic_cross_check(&legacy_ttl, &record_ttl, &witnesses).map_err(crate::error::clearance)
+    }
+
+    /// The verdict for one legacy shape across ALL its focus selectors: a multi-target shape
+    /// (SHACL unions the focus sets of multi-valued `sh:targetClass` / `sh:targetSubjectsOf`)
+    /// applies the SAME constraint payload under every target, so the block-level judgment is
+    /// the WORST per-target verdict — every target's obligation must be reproduced before the
+    /// block is deletable.
+    fn verdict_all(&self, iri: &str, read: &ShapeRead, legacy_ds: &RdfDataset) -> Verdict {
+        let mut worst = self.verdict(iri, &read.ir.target, read, legacy_ds);
+        for t in &read.extra_targets {
+            let mut retargeted = read.clone();
+            retargeted.ir.target = t.clone();
+            let v = self.verdict(iri, t, &retargeted, legacy_ds);
+            if verdict_rank(&v) > verdict_rank(&worst) {
+                worst = v;
+            }
+        }
+        worst
+    }
+
+    /// The equivalence verdict for one legacy shape `read` (identified by `iri`, focus `target`,
+    /// authored in `legacy_ds`) against the projected surface — the single per-shape judgment
+    /// shared by the report and the prune phase.
+    fn verdict(
+        &self,
+        iri: &str,
+        target: &ShapeTarget,
+        read: &ShapeRead,
+        legacy_ds: &RdfDataset,
+    ) -> Verdict {
         // Strip a redundant `sh:nodeKind sh:IRI` on an `owl:ObjectProperty` path: in GMEOW's
         // IRI-named-individual convention an object-property value IS an IRI, so the node-kind is
         // definitionally satisfied — not an enforcement the projection must reproduce.
         let stripped = ShapeRead {
             ir: strip_redundant_iri_nodekind(&read.ir, &self.object_properties),
             unsupported: read.unsupported.clone(),
+            extra_targets: read.extra_targets.clone(),
         };
         let read = &stripped;
         // A residue that is ONLY `sh:sparql` / `sh:or` constructs is grounded when an EXACT
         // `logic:formalizes <legacy-shape-IRI>` record projects it onto the canonical
         // constraint/procedural surface (`sh:or` joined `sh:sparql` here for the disjunctive
-        // obligations — a value-branch `sh:or` a record replicates procedurally).
+        // obligations — a value-branch `sh:or` a record replicates procedurally). This trust
+        // anchor is UNCHANGED for the existing paths.
         let sparql_only_residue_grounded = |unsupported: &[String]| {
             !unsupported.is_empty()
                 && unsupported.iter().all(|p| p == SH_SPARQL || p == SH_OR)
                 && self.formalized_shapes.contains(iri)
+        };
+        // The SEMANTIC clearance for STRUCTURAL residue (`sh:node` / `sh:xone` / a raw
+        // `sh:SPARQLTarget`): the record trust anchor alone is NOT enough, because these
+        // constructs are machine-readable — so their semantics are VERIFIED, not trusted. The
+        // exact `logic:formalizes` record must exist AND its projected constraint surface must
+        // reproduce the construct's judgments under the witness cross-check (near-misses
+        // generated FROM the legacy construct; focus-flag agreement required on both sides). A
+        // record whose lowered constraint does not reproduce the residue semantics NEVER clears.
+        let structural = |p: &str| p == SH_NODE || p == SH_XONE || p == RAW_SPARQL_TARGET_RESIDUE;
+        let semantic_residue_grounded = |unsupported: &[String], include_covered: bool| {
+            !unsupported.is_empty()
+                && unsupported
+                    .iter()
+                    .all(|p| p == SH_SPARQL || p == SH_OR || structural(p))
+                && unsupported.iter().any(|p| structural(p))
+                && self.formalized_shapes.contains(iri)
+                && self
+                    .semantic_agreement(iri, read, legacy_ds, include_covered)
+                    .is_ok()
         };
         let formalized_failure_matches = || match &read.ir.failure_class {
             None => true,
@@ -420,6 +611,35 @@ impl OracleCtx {
                     // peer. An exact logic:formalizes link proves that the canonical constraint
                     // projects the legacy shape's only enforcement residue.
                     Verdict::EquivGroundedResidue
+                }
+                None if semantic_residue_grounded(&read.unsupported, true)
+                    && formalized_failure_matches() =>
+                {
+                    // Structural residue with no declarative peer (a raw-SPARQL-target block, or
+                    // sh:node/sh:xone on a target the projector carries no aggregate shape for):
+                    // the record exists, the failure identity matches, AND the witness
+                    // cross-check proved the record reproduces the construct's semantics — the
+                    // covered property fragment included (`include_covered`), because no peer
+                    // carries it.
+                    Verdict::EquivGroundedResidueSemantic
+                }
+                None if matches!(target, ShapeTarget::Sparql(s) if s == TARGETLESS_SELECT)
+                    && read.ir.properties.is_empty()
+                    && read.ir.node_components.is_empty()
+                    && read.ir.failure_class.is_none()
+                    && read.unsupported.is_empty() =>
+                {
+                    // A truly targetless documentation-only marker block: SHACL gives it an
+                    // EMPTY focus set, so it enforces nothing — trivially reproduced by the
+                    // (empty) projection and deletable as-is.
+                    Verdict::Equiv
+                }
+                None if matches!(target, ShapeTarget::Sparql(_)) => {
+                    // A raw-SPARQL-target block is WHOLE-SHAPE residue by construction (its
+                    // focus selection has no OWL/RDFS antecedent, so no declarative peer can
+                    // exist): not yet grounded, but the honest verdict is its residue, not a
+                    // missing peer.
+                    Verdict::EquivResidue(read.unsupported.clone())
                 }
                 None => Verdict::NoProjectedPeer,
             },
@@ -550,12 +770,17 @@ impl OracleCtx {
                     // at least everything the covered legacy fragment does (the Galois soundness
                     // direction — a stricter aggregate peer, whose extra bounds were proven by
                     // the sibling blocks that contributed them, is admissible), and any residue
-                    // must be exactly the sh:sparql / sh:or constructs the exact record projects.
+                    // must be exactly the sh:sparql / sh:or constructs the exact record projects,
+                    // or structural residue the record reproduced under the witness cross-check.
                     return if v.legacy_subsumed_by_projected
                         && (v.unsupported.is_empty()
                             || sparql_only_residue_grounded(&v.unsupported))
                     {
                         Verdict::EquivGroundedResidue
+                    } else if v.legacy_subsumed_by_projected
+                        && semantic_residue_grounded(&v.unsupported, false)
+                    {
+                        Verdict::EquivGroundedResidueSemantic
                     } else if !v.legacy_subsumed_by_projected {
                         Verdict::NotEquiv(format!(
                             "record-formalized shape's covered fragment is not subsumed by the \
@@ -577,6 +802,14 @@ impl OracleCtx {
                     && formalized_failure_matches()
                 {
                     Verdict::EquivGroundedResidue
+                } else if grounded
+                    && semantic_residue_grounded(&v.unsupported, false)
+                    && formalized_failure_matches()
+                {
+                    // Structural residue beside a projected declarative peer: the peer carries
+                    // the covered fragment (proven by the oracle above), so the witness
+                    // cross-check verifies the RESIDUE constructs only against the record.
+                    Verdict::EquivGroundedResidueSemantic
                 } else if grounded {
                     Verdict::EquivResidue(v.unsupported.clone())
                 } else {
@@ -584,6 +817,19 @@ impl OracleCtx {
                 }
             }
         }
+    }
+}
+
+/// The severity order of a verdict, worst-highest, for the multi-target fold: a block clears
+/// only on its WEAKEST target's judgment.
+fn verdict_rank(v: &Verdict) -> u8 {
+    match v {
+        Verdict::Equiv => 0,
+        Verdict::EquivGroundedResidue => 1,
+        Verdict::EquivGroundedResidueSemantic => 2,
+        Verdict::EquivResidue(_) => 3,
+        Verdict::NoProjectedPeer => 4,
+        Verdict::NotEquiv(_) => 5,
     }
 }
 
@@ -635,7 +881,7 @@ pub fn shape_equivalence(path: Option<&Path>) -> i32 {
         for (iri, read) in &legacy {
             let target = &read.ir.target;
             total += 1;
-            let verdict = ctx.verdict(iri, target, read);
+            let verdict = ctx.verdict_all(iri, read, &ds);
             if !verdict.is_grounded() {
                 ungrounded += 1;
             }
@@ -1397,6 +1643,27 @@ fn local_name(iri: &str) -> &str {
     iri.rsplit(['/', '#']).next().unwrap_or(iri)
 }
 
+/// Splice the given `[start, end)` statement spans out of `text`, longest-offset-first (so
+/// earlier spans stay valid), consuming each block's trailing newline run up to one blank line
+/// and collapsing the run of blank lines the block leaves behind.
+fn splice_out_spans(text: &mut String, mut spans: Vec<(usize, usize)>) {
+    spans.sort_by_key(|s| std::cmp::Reverse(s.0));
+    for (mut s, mut e) in spans {
+        // Consume the trailing newline and one following blank line for tidy output.
+        while e < text.len() && (text.as_bytes()[e] == b'\n' || text.as_bytes()[e] == b'\r') {
+            e += 1;
+            if text[..e].ends_with("\n\n") {
+                break;
+            }
+        }
+        // Consume a run of immediately-preceding blank lines the block leaves behind.
+        while s >= 2 && text[..s].ends_with("\n\n") {
+            s -= 1;
+        }
+        text.replace_range(s..e, "");
+    }
+}
+
 /// `gmeow-dev shape-migrate [--path <dir>] [--apply]` — the INJECT phase of the automated shape
 /// migration. For every hand-authored `Class`-target `sh:NodeShape` in scope it lifts the OWL/RDFS
 /// antecedent (`crate::projections::lift`), classifies GROUNDABLE (empty residue — the projector
@@ -1476,7 +1743,7 @@ pub fn shape_migrate(path: Option<&Path>, apply: bool) -> i32 {
                 continue;
             }
             // A shape the projector already reproduces needs no injection.
-            if ctx.verdict(iri, target, read).is_grounded() {
+            if ctx.verdict_all(iri, read, &ds).is_grounded() {
                 println!("  [ALREADY-GROUNDED] {}", short_iri(iri));
                 continue;
             }
@@ -1631,9 +1898,8 @@ pub fn shape_prune(path: Option<&Path>, apply: bool) -> i32 {
         // Collect the IRIs of blocks proven redundant in THIS file.
         let mut to_delete: Vec<String> = Vec::new();
         for (iri, read) in &legacy {
-            let target = &read.ir.target;
-            let v = ctx.verdict(iri, target, read);
-            if matches!(v, Verdict::Equiv | Verdict::EquivGroundedResidue) {
+            let v = ctx.verdict_all(iri, read, &ds);
+            if v.is_grounded() {
                 to_delete.push(iri.clone());
                 deletable += 1;
             } else {
@@ -1656,27 +1922,11 @@ pub fn shape_prune(path: Option<&Path>, apply: bool) -> i32 {
                     continue;
                 }
             };
-            // Delete longest-offset-first so earlier spans stay valid as we splice.
-            let mut spans: Vec<(usize, usize)> = to_delete
+            let spans: Vec<(usize, usize)> = to_delete
                 .iter()
                 .filter_map(|iri| subject_span(&text, local_name(iri)))
                 .collect();
-            spans.sort_by_key(|s| std::cmp::Reverse(s.0));
-            for (mut s, mut e) in spans {
-                // Consume the trailing newline and one following blank line for tidy output.
-                while e < text.len() && (text.as_bytes()[e] == b'\n' || text.as_bytes()[e] == b'\r')
-                {
-                    e += 1;
-                    if text[..e].ends_with("\n\n") {
-                        break;
-                    }
-                }
-                // Consume a run of immediately-preceding blank lines the block leaves behind.
-                while s >= 2 && text[..s].ends_with("\n\n") {
-                    s -= 1;
-                }
-                text.replace_range(s..e, "");
-            }
+            splice_out_spans(&mut text, spans);
             if let Err(err) = std::fs::write(file, &text) {
                 eprintln!("shape-migrate: cannot write {}: {err}", rel(&root, file));
                 had_error = true;
@@ -1823,6 +2073,7 @@ mod tests {
         let read = ShapeRead {
             ir: legacy_ir,
             unsupported: vec![],
+            extra_targets: vec![],
         };
         let mut projected = BTreeMap::new();
         projected.insert(
@@ -1832,6 +2083,7 @@ mod tests {
                 ShapeRead {
                     ir: proj_ir,
                     unsupported: vec![],
+                    extra_targets: vec![],
                 },
             ),
         );
@@ -1841,9 +2093,11 @@ mod tests {
             formalized_shapes: std::collections::BTreeSet::new(),
             formalized_failure_classes: BTreeMap::new(),
             object_properties: std::collections::BTreeSet::new(),
+            constraint_surfaces: Vec::new(),
         };
+        let ds = parse_dataset(b"", "text/turtle", None).expect("empty dataset parses");
         // WITHOUT the record: the differing failure class blocks deletion.
-        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read, &ds);
         assert!(
             matches!(v, Verdict::NotEquiv(ref r) if r.contains("failure class")),
             "{}",
@@ -1856,14 +2110,14 @@ mod tests {
             "https://example.test/LawShape".to_owned(),
             std::iter::once("https://example.test/FineFailure".to_owned()).collect(),
         );
-        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read, &ds);
         assert!(matches!(v, Verdict::EquivGroundedResidue), "{}", v.label());
         // A record carrying the WRONG failure class never clears the block.
         ctx.formalized_failure_classes.insert(
             "https://example.test/LawShape".to_owned(),
             std::iter::once("https://example.test/OtherFailure".to_owned()).collect(),
         );
-        let v = ctx.verdict("https://example.test/LawShape", &target, &read);
+        let v = ctx.verdict("https://example.test/LawShape", &target, &read, &ds);
         assert!(
             matches!(v, Verdict::NotEquiv(_)),
             "a wrong-class record must not clear deletion: {}",
@@ -1927,6 +2181,471 @@ mod tests {
             "the un-projectable existence must be named as residue: {:?}",
             emit.residue
         );
+    }
+
+    /// The workspace root (this crate's manifest sits two levels below it).
+    fn repo_root() -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+    }
+
+    fn parse_ttl(ttl: &str) -> std::sync::Arc<RdfDataset> {
+        parse_dataset(ttl.as_bytes(), "text/turtle", None).expect("test turtle must parse")
+    }
+
+    /// Build the oracle context through the SAME construction path the CLI uses
+    /// ([`OracleCtx::from_surfaces`]): a projected validation surface plus the
+    /// constraint/procedural record surfaces, all as parsed Turtle.
+    fn ctx_from(projected_ttl: &str, surfaces: &[&str]) -> OracleCtx {
+        let projected = parse_ttl(projected_ttl);
+        let surfaces = surfaces.iter().map(|s| parse_ttl(s)).collect();
+        OracleCtx::from_surfaces(&projected, surfaces, std::collections::BTreeSet::new())
+            .expect("test surfaces must index cleanly")
+    }
+
+    // ── Scanner ────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn scanner_discovers_root_shape_files_and_skips_generated() {
+        // The real repo: the root shapes/ directory is in the universe now.
+        let mut files = Vec::new();
+        collect_legacy_shape_files(&repo_root().join("shapes"), &mut files);
+        assert!(
+            files.iter().any(|p| p.ends_with("gmeow-shapes.ttl")),
+            "{files:?}"
+        );
+
+        // A synthetic tree: an authored declarer is found; a generated/ declarer and a
+        // non-declaring .ttl are not.
+        let tmp = std::env::temp_dir().join(format!("gmeow-shape-scan-{}", std::process::id()));
+        let declarer = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             <https://ex/S> a sh:NodeShape ; sh:targetClass <https://ex/C> .\n";
+        std::fs::create_dir_all(tmp.join("generated")).expect("mkdir");
+        std::fs::write(tmp.join("a.ttl"), declarer).expect("write");
+        std::fs::write(tmp.join("generated/b.ttl"), declarer).expect("write");
+        std::fs::write(
+            tmp.join("c.ttl"),
+            "# NodeShape mentioned in a comment only\n<https://ex/x> <https://ex/p> <https://ex/y> .\n",
+        )
+        .expect("write");
+        let mut found = Vec::new();
+        collect_legacy_shape_files(&tmp, &mut found);
+        let _ = std::fs::remove_dir_all(&tmp);
+        assert_eq!(found, vec![tmp.join("a.ttl")], "{found:?}");
+    }
+
+    #[test]
+    fn scanner_universe_over_slices_is_unchanged() {
+        // The generalized rule must reproduce the previous name-based universe over slices/ up
+        // to the files that CONTRIBUTE shapes: every per-slice shapes.ttl that declares at least
+        // one sh:NodeShape, and NOTHING else (module.ttl files mention NodeShape only in prose,
+        // never as a declaration; a fully-migrated tombstone shapes.ttl declares none and
+        // contributed ZERO shapes to the old scan's output too).
+        let slices = repo_root().join("slices");
+        let mut new_scan = Vec::new();
+        collect_legacy_shape_files(&slices, &mut new_scan);
+        fn old_rule(dir: &Path, out: &mut Vec<PathBuf>) {
+            let Ok(entries) = std::fs::read_dir(dir) else {
+                return;
+            };
+            let mut entries: Vec<PathBuf> =
+                entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
+            entries.sort();
+            for path in entries {
+                if path.is_dir() {
+                    old_rule(&path, out);
+                } else if path.file_name().and_then(|n| n.to_str()) == Some("shapes.ttl") {
+                    out.push(path);
+                }
+            }
+        }
+        let mut named = Vec::new();
+        old_rule(&slices, &mut named);
+        assert!(!new_scan.is_empty());
+        // Every scanned file is a per-slice shapes.ttl (nothing NEW joined the universe) …
+        for f in &new_scan {
+            assert!(
+                named.contains(f),
+                "a non-shapes.ttl slice file joined the universe: {}",
+                f.display()
+            );
+        }
+        // … and the only named files missing from the scan are declaration-free tombstones.
+        for f in &named {
+            if !new_scan.contains(f) {
+                assert!(
+                    !declares_node_shape(f),
+                    "{} declares sh:NodeShape but was not scanned",
+                    f.display()
+                );
+            }
+        }
+    }
+
+    // ── Semantic clearance matrix: sh:xone beside a projected declarative peer ──
+
+    const XONE_LEGACY_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        <https://ex/ParamShape> a sh:NodeShape ;\n\
+        \x20\x20sh:targetClass <https://ex/Param> ;\n\
+        \x20\x20sh:property [ sh:path <https://ex/name> ; sh:minCount 1 ; sh:maxCount 1 ] ;\n\
+        \x20\x20sh:xone (\n\
+        \x20\x20\x20\x20[ sh:property [ sh:path <https://ex/value> ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:Literal ] ]\n\
+        \x20\x20\x20\x20[ sh:property [ sh:path <https://ex/entity> ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ] ]\n\
+        \x20\x20) .\n";
+
+    /// The projected declarative peer reproducing the covered fragment.
+    const XONE_PEER_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        <https://ex/Param-shape> a sh:NodeShape ;\n\
+        \x20\x20sh:targetClass <https://ex/Param> ;\n\
+        \x20\x20sh:property [ sh:path <https://ex/name> ; sh:minCount 1 ; sh:maxCount 1 ] .\n";
+
+    /// The faithful record: flags a focus with NEITHER alternative and a focus with BOTH.
+    const XONE_RECORD_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/ParamXoneConstraint> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/ParamShape> ;\n\
+        \x20\x20sh:targetClass <https://ex/Param> ;\n\
+        \x20\x20sh:sparql [\n\
+        \x20\x20\x20\x20a sh:SPARQLConstraint ;\n\
+        \x20\x20\x20\x20sh:message \"exactly one of value/entity\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE {\n\
+            { FILTER NOT EXISTS { $this <https://ex/value> ?v } FILTER NOT EXISTS { $this <https://ex/entity> ?e } }\n\
+            UNION\n\
+            { $this <https://ex/value> ?v2 . $this <https://ex/entity> ?e2 . }\n\
+        }\"\"\" ;\n\
+        \x20\x20] .\n";
+
+    /// The WRONG-SEMANTICS record: an at-least-one lowering of the exactly-one obligation.
+    const XONE_OR_LOWERED_RECORD_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/ParamXoneConstraint> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/ParamShape> ;\n\
+        \x20\x20sh:targetClass <https://ex/Param> ;\n\
+        \x20\x20sh:sparql [\n\
+        \x20\x20\x20\x20a sh:SPARQLConstraint ;\n\
+        \x20\x20\x20\x20sh:message \"at least one of value/entity\" ;\n\
+        \x20\x20\x20\x20sh:select \"\"\"SELECT $this WHERE {\n\
+            FILTER NOT EXISTS { $this <https://ex/value> ?v }\n\
+            FILTER NOT EXISTS { $this <https://ex/entity> ?e }\n\
+        }\"\"\" ;\n\
+        \x20\x20] .\n";
+
+    #[test]
+    fn xone_clearance_matrix() {
+        let ds = parse_ttl(XONE_LEGACY_TTL);
+        let read = read_shacl_shape(&ds, "https://ex/ParamShape").expect("legacy reads");
+        assert!(
+            read.unsupported.iter().any(|u| u == SH_XONE),
+            "{:?}",
+            read.unsupported
+        );
+
+        // Correct grounding: record + failure identity + witness agreement → cleared.
+        let ctx = ctx_from(XONE_PEER_TTL, &[XONE_RECORD_TTL]);
+        let v = ctx.verdict_all("https://ex/ParamShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivGroundedResidueSemantic),
+            "the faithful record must clear: {}",
+            v.label()
+        );
+
+        // Missing record → the residue stays ungrounded.
+        let ctx = ctx_from(XONE_PEER_TTL, &[]);
+        let v = ctx.verdict_all("https://ex/ParamShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivResidue(_)),
+            "no record must not clear: {}",
+            v.label()
+        );
+
+        // Wrong-semantics record (an or-lowering): the witness cross-check MUST deny clearance.
+        let ctx = ctx_from(XONE_PEER_TTL, &[XONE_OR_LOWERED_RECORD_TTL]);
+        let v = ctx.verdict_all("https://ex/ParamShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivResidue(_)),
+            "an or-lowered record must NOT clear: {}",
+            v.label()
+        );
+    }
+
+    #[test]
+    fn xone_clearance_rejects_a_mismatched_failure_class() {
+        // The same fixture pair with a typed failure class on the legacy shape and its peer;
+        // the record carries a DIFFERENT class, so the failure identity blocks clearance.
+        let failure = "gmeow:enforcesFailureClass";
+        let legacy = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n{}",
+            XONE_LEGACY_TTL.replace(
+                "sh:targetClass <https://ex/Param> ;",
+                &format!("sh:targetClass <https://ex/Param> ;\n  {failure} <https://ex/F> ;")
+            )
+        );
+        let peer = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n{}",
+            XONE_PEER_TTL.replace(
+                "sh:targetClass <https://ex/Param> ;",
+                &format!("sh:targetClass <https://ex/Param> ;\n  {failure} <https://ex/F> ;")
+            )
+        );
+        let wrong_class_record = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n{}",
+            XONE_RECORD_TTL.replace(
+                "sh:targetClass <https://ex/Param> ;",
+                &format!("sh:targetClass <https://ex/Param> ;\n  {failure} <https://ex/G> ;")
+            )
+        );
+        let right_class_record = format!(
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n{}",
+            XONE_RECORD_TTL.replace(
+                "sh:targetClass <https://ex/Param> ;",
+                &format!("sh:targetClass <https://ex/Param> ;\n  {failure} <https://ex/F> ;")
+            )
+        );
+        let ds = parse_ttl(&legacy);
+        let read = read_shacl_shape(&ds, "https://ex/ParamShape").expect("legacy reads");
+
+        let ctx = ctx_from(&peer, &[&right_class_record]);
+        let v = ctx.verdict_all("https://ex/ParamShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivGroundedResidueSemantic),
+            "the matching failure class clears: {}",
+            v.label()
+        );
+
+        let ctx = ctx_from(&peer, &[&wrong_class_record]);
+        let v = ctx.verdict_all("https://ex/ParamShape", &read, &ds);
+        assert!(
+            !v.is_grounded(),
+            "a mismatched failure class must NOT clear: {}",
+            v.label()
+        );
+    }
+
+    // ── Semantic clearance matrix: a raw-SPARQL-target block (meta-shape style) ──
+
+    const META_LEGACY_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+        <https://ex/MetaShape> a sh:NodeShape ;\n\
+        \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"\n\
+            SELECT ?this WHERE {\n\
+                ?this a <http://www.w3.org/2002/07/owl#Class> .\n\
+                FILTER(STRSTARTS(STR(?this), \"https://example.test/ns/\"))\n\
+            }\n\
+        \"\"\" ] ;\n\
+        \x20\x20sh:property [ sh:path rdfs:label ; sh:minCount 1 ] ;\n\
+        \x20\x20sh:property [ sh:path <https://ex/role> ; sh:minCount 1 ; sh:nodeKind sh:IRI ] .\n";
+
+    /// The faithful record: the SAME focus selection plus the SAME structural constraints,
+    /// carried on the projected constraint surface with the exact formalizes back-reference.
+    const META_RECORD_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/MetaConstraint> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/MetaShape> ;\n\
+        \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"\n\
+            SELECT ?this WHERE {\n\
+                ?this a <http://www.w3.org/2002/07/owl#Class> .\n\
+                FILTER(STRSTARTS(STR(?this), \"https://example.test/ns/\"))\n\
+            }\n\
+        \"\"\" ] ;\n\
+        \x20\x20sh:property [ sh:path rdfs:label ; sh:minCount 1 ] ;\n\
+        \x20\x20sh:property [ sh:path <https://ex/role> ; sh:minCount 1 ; sh:nodeKind sh:IRI ] .\n";
+
+    /// The WRONG-SEMANTICS record: it silently drops the role obligation.
+    const META_WEAK_RECORD_TTL: &str = "\
+        @prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        <https://ex/MetaConstraint> a sh:NodeShape ;\n\
+        \x20\x20logic:formalizes <https://ex/MetaShape> ;\n\
+        \x20\x20sh:target [ a sh:SPARQLTarget ; sh:select \"\"\"\n\
+            SELECT ?this WHERE {\n\
+                ?this a <http://www.w3.org/2002/07/owl#Class> .\n\
+                FILTER(STRSTARTS(STR(?this), \"https://example.test/ns/\"))\n\
+            }\n\
+        \"\"\" ] ;\n\
+        \x20\x20sh:property [ sh:path rdfs:label ; sh:minCount 1 ] .\n";
+
+    #[test]
+    fn sparql_target_clearance_matrix() {
+        let ds = parse_ttl(META_LEGACY_TTL);
+        let read = read_shacl_shape(&ds, "https://ex/MetaShape").expect("legacy reads");
+        assert!(
+            matches!(read.ir.target, ShapeTarget::Sparql(_)),
+            "{:?}",
+            read.ir.target
+        );
+        assert!(
+            read.unsupported
+                .iter()
+                .any(|u| u == RAW_SPARQL_TARGET_RESIDUE),
+            "{:?}",
+            read.unsupported
+        );
+
+        // Correct grounding: the record reproduces the structural constraints on the same focus
+        // selection → cleared (the covered witnesses are part of the plan: no declarative peer
+        // exists for a raw SPARQL target).
+        let ctx = ctx_from("", &[META_RECORD_TTL]);
+        let v = ctx.verdict_all("https://ex/MetaShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivGroundedResidueSemantic),
+            "the faithful record must clear: {}",
+            v.label()
+        );
+
+        // Missing record → whole-shape residue, not cleared.
+        let ctx = ctx_from("", &[]);
+        let v = ctx.verdict_all("https://ex/MetaShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivResidue(_)),
+            "no record must not clear: {}",
+            v.label()
+        );
+
+        // Wrong-semantics record (drops an obligation) → the structural witness cross-check
+        // MUST deny clearance.
+        let ctx = ctx_from("", &[META_WEAK_RECORD_TTL]);
+        let v = ctx.verdict_all("https://ex/MetaShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivResidue(_)),
+            "a record that drops an obligation must NOT clear: {}",
+            v.label()
+        );
+    }
+
+    #[test]
+    fn sparql_target_clearance_rejects_a_mismatched_failure_class() {
+        let legacy = META_LEGACY_TTL.replace(
+            "<https://ex/MetaShape> a sh:NodeShape ;",
+            "<https://ex/MetaShape> a sh:NodeShape ;\n  \
+             <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://ex/F> ;",
+        );
+        let wrong_record = META_RECORD_TTL.replace(
+            "<https://ex/MetaConstraint> a sh:NodeShape ;",
+            "<https://ex/MetaConstraint> a sh:NodeShape ;\n  \
+             <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://ex/G> ;",
+        );
+        let right_record = META_RECORD_TTL.replace(
+            "<https://ex/MetaConstraint> a sh:NodeShape ;",
+            "<https://ex/MetaConstraint> a sh:NodeShape ;\n  \
+             <https://blackcatinformatics.ca/gmeow/enforcesFailureClass> <https://ex/F> ;",
+        );
+        let ds = parse_ttl(&legacy);
+        let read = read_shacl_shape(&ds, "https://ex/MetaShape").expect("legacy reads");
+
+        let ctx = ctx_from("", &[&right_record]);
+        let v = ctx.verdict_all("https://ex/MetaShape", &read, &ds);
+        assert!(
+            matches!(v, Verdict::EquivGroundedResidueSemantic),
+            "the matching failure class clears: {}",
+            v.label()
+        );
+
+        let ctx = ctx_from("", &[&wrong_record]);
+        let v = ctx.verdict_all("https://ex/MetaShape", &read, &ds);
+        assert!(
+            !v.is_grounded(),
+            "a mismatched failure class must NOT clear: {}",
+            v.label()
+        );
+    }
+
+    // ── Targetless documentation marker ────────────────────────────────────────
+
+    #[test]
+    fn targetless_doc_marker_reads_and_verdicts_equiv() {
+        let ttl = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             <https://ex/DocMarker> a sh:NodeShape ;\n\
+             \x20\x20rdfs:label \"doc-only marker\" ;\n\
+             \x20\x20rdfs:comment \"asserts and enforces nothing\" .\n";
+        let ds = parse_ttl(ttl);
+        let read = read_shacl_shape(&ds, "https://ex/DocMarker").expect("targetless doc reads");
+        let ctx = ctx_from("", &[]);
+        let v = ctx.verdict_all("https://ex/DocMarker", &read, &ds);
+        assert!(
+            matches!(v, Verdict::Equiv),
+            "a no-op doc marker enforces nothing and is trivially grounded: {}",
+            v.label()
+        );
+    }
+
+    // ── Prune-splicer proof against the REAL shapes/gmeow-shapes.ttl ──────────
+
+    /// The real repo-wide shapes file plus its parsed `sh:NodeShape` IRIs.
+    fn real_gmeow_shapes() -> (String, Vec<String>) {
+        let path = repo_root().join("shapes/gmeow-shapes.ttl");
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("cannot read {}: {e}", path.display()));
+        let ds = parse_dataset(text.as_bytes(), "text/turtle", None)
+            .expect("the committed shapes file must parse");
+        let iris = node_shape_iris(&ds);
+        (text, iris)
+    }
+
+    #[test]
+    fn splicer_resolves_every_real_block_subject_count_exact() {
+        let (text, iris) = real_gmeow_shapes();
+        assert_eq!(iris.len(), 173, "the census of the committed file");
+        let mut spans: Vec<(usize, usize)> = Vec::new();
+        for iri in &iris {
+            let span = subject_span(&text, local_name(iri))
+                .unwrap_or_else(|| panic!("subject_span failed for {iri}"));
+            spans.push(span);
+        }
+        spans.sort_unstable();
+        spans.dedup();
+        assert_eq!(spans.len(), 173, "every block resolves to its OWN span");
+        for w in spans.windows(2) {
+            assert!(
+                w[0].1 <= w[1].0,
+                "block spans must never overlap: {:?} vs {:?}",
+                w[0],
+                w[1]
+            );
+        }
+    }
+
+    #[test]
+    fn splicing_every_real_block_leaves_valid_turtle_with_zero_shapes() {
+        let (text, iris) = real_gmeow_shapes();
+        let mut pruned = text.clone();
+        let spans: Vec<(usize, usize)> = iris
+            .iter()
+            .map(|iri| subject_span(&pruned, local_name(iri)).expect("span resolves"))
+            .collect();
+        splice_out_spans(&mut pruned, spans);
+        let ds = parse_dataset(pruned.as_bytes(), "text/turtle", None)
+            .expect("the fully-pruned file must stay valid Turtle");
+        assert!(
+            node_shape_iris(&ds).is_empty(),
+            "every block must be gone after the full prune"
+        );
+    }
+
+    #[test]
+    fn splicing_each_real_block_individually_round_trips() {
+        let (text, iris) = real_gmeow_shapes();
+        for iri in &iris {
+            let mut copy = text.clone();
+            let span = subject_span(&copy, local_name(iri)).expect("span resolves");
+            splice_out_spans(&mut copy, vec![span]);
+            let ds = parse_dataset(copy.as_bytes(), "text/turtle", None)
+                .unwrap_or_else(|e| panic!("pruning {iri} broke the Turtle: {e}"));
+            let remaining = node_shape_iris(&ds);
+            assert_eq!(
+                remaining.len(),
+                172,
+                "pruning {iri} must remove exactly one block"
+            );
+            assert!(!remaining.contains(iri), "{iri} must be the removed block");
+        }
     }
 
     #[test]
