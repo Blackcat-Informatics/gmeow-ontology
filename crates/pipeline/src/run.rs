@@ -235,6 +235,13 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-gts-compose",
                 "stage-mappings",
                 "stage-reason",
+                // THIS run's fresh term-content-manifest product: the docs model's
+                // per-term content-address provenance (definition digest + first-seen
+                // version + computed changelog) reads it in-memory, never the previous
+                // run's committed generated/catalog/term-content-manifest.nq, which
+                // lags one regenerate behind on a definition-digest change (the same
+                // stale-disk-fold class).
+                "stage-term-manifest",
                 "stage-validate",
             ],
         ),
