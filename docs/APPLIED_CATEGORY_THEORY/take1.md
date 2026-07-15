@@ -789,7 +789,7 @@ construction): the existing `dsl/mappings/` becomes a **frontend syntax** into
 `logic:Correspondence` first. A one-shot transpiler compiles each `gmeow:TermEquivalence` /
 `gmeow:ProjectionMapping` cell into a correspondence; the new pipeline must regenerate the
 committed SSSOM/EDOAL/FnO/CONSTRUCT **byte- or graph-isomorphically** (the existing
-`check-generated mappings` golden set is the oracle); only then are the old DSL, emitters, and
+the strict `sync` mappings golden set is the oracle); only then are the old DSL, emitters, and
 `projection_lint`/`alignment_lint` deleted. Real files touched: `slices/grounding/logic/module.ttl`
 (or a new `slices/core/correspondence/` slice — see open question below);
 `crates/logic-compile/src/{ir.rs, projections/mod.rs, report.rs}`;

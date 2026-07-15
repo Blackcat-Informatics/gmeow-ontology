@@ -3,18 +3,18 @@
 
 //! The purrdf ingestion boundary.
 //!
-//! An [`RdfDiagnostic`] carries a severity, a code, a message, an optional
-//! location, and a list of *losses* — the constructs a lowering could not carry
-//! exactly. This module projects that structure into the substrate: the
-//! diagnostic becomes a [`Diag`], its [`RdfLocation`] becomes a [`Location`]
-//! (every GTS wire coordinate preserved), and each loss becomes a
-//! `ProjectionLoss`-graded **child witness** attached to the ledger, so the loss
-//! ledger is a DAG of witnesses — not flat text. This subsumes the bespoke
+//! An [`RdfDiagnostic`] carries severity, code, message, and optional location;
+//! conversion losses live in PurRDF's unified [`LossLedger`]. This module projects
+//! both structures into the substrate: the diagnostic becomes a [`Diag`], its
+//! [`RdfLocation`] becomes a [`Location`] (every GTS wire coordinate preserved),
+//! and each loss becomes a `ProjectionLoss`-graded **child witness** attached to
+//! the diagnostic ledger, so the loss evidence is a DAG of witnesses — not flat
+//! text. This subsumes the bespoke
 //! `finding_from_rdf`/`location_from_rdf` helpers that previously lived in
 //! `gmeow-validate` (the orphan-rule detour is gone now that both the RDF types'
 //! consumer and the diagnostics model live in one leaf crate).
 
-use purrdf::{RdfDiagnostic, RdfLocation, RdfSeverity};
+use purrdf::{LossLedger, RdfDiagnostic, RdfLocation, RdfSeverity};
 
 use crate::code::register_code;
 use crate::diag::{Diag, StageId};
@@ -82,16 +82,26 @@ impl Location {
 }
 
 impl Diag {
-    /// Project a purrdf [`RdfDiagnostic`] into a [`Diag`]. Each loss is attached to
-    /// `ledger` as a `ProjectionLoss`-graded child witness (which never gates), and
-    /// the returned parent diagnostic carries the children as DAG antecedents. The
-    /// parent itself is returned unattached — the caller attaches it (typically
-    /// making its antecedents already resident).
+    /// Project a purrdf [`RdfDiagnostic`] without conversion losses into a [`Diag`].
+    /// The parent itself is returned unattached — the caller attaches it.
     pub fn from_rdf(diagnostic: &RdfDiagnostic, ledger: &mut DiagLedger, stage: StageId) -> Diag {
+        Self::from_rdf_with_losses(diagnostic, &LossLedger::new(), ledger, stage)
+    }
+
+    /// Project a purrdf [`RdfDiagnostic`] and its unified [`LossLedger`] into a
+    /// [`Diag`]. Each loss is attached to `ledger` as a non-gating
+    /// `ProjectionLoss` child witness, and the returned parent carries those
+    /// children as DAG antecedents.
+    pub fn from_rdf_with_losses(
+        diagnostic: &RdfDiagnostic,
+        losses: &LossLedger,
+        ledger: &mut DiagLedger,
+        stage: StageId,
+    ) -> Diag {
         // Losses become ProjectionLoss child witnesses, attached first so the
         // parent's antecedent handles are already resident.
-        let mut antecedents = Vec::with_capacity(diagnostic.losses.len());
-        for loss in &diagnostic.losses {
+        let mut antecedents = Vec::with_capacity(losses.entries().len());
+        for loss in losses.entries() {
             let mut child = Diag::new(
                 register_code(&loss.code),
                 Grade::new(
@@ -99,7 +109,7 @@ impl Diag {
                     FindingCategory::ProjectionLoss,
                     Standpoint::Perspectival,
                 ),
-                loss.message.clone(),
+                loss.note.to_string(),
             );
             if let Some(location) = &loss.location {
                 child = child.with_location(Location::from_rdf(location));
@@ -127,29 +137,38 @@ impl Diag {
 
 #[cfg(test)]
 mod tests {
+    use std::borrow::Cow;
+
     use super::*;
     use crate::grade::{GateVerdict, gate};
-    use purrdf::diagnostic::RdfLoss;
+    use purrdf::LossEntry;
 
     fn diagnostic_with_dropped_lang_tag() -> RdfDiagnostic {
-        let mut d = RdfDiagnostic::new(
+        RdfDiagnostic::new(
             RdfSeverity::Warning,
             "lang.projection",
             "language tag dropped",
-        );
-        d.losses.push(RdfLoss {
-            code: "loss.dropped-language-tag".to_owned(),
-            message: "the @en language tag was dropped by the target codec".to_owned(),
+        )
+    }
+
+    fn losses_with_dropped_lang_tag() -> LossLedger {
+        let mut losses = LossLedger::new();
+        losses.record(LossEntry {
+            code: Cow::Borrowed("dropped-language-tag"),
+            from: Cow::Borrowed("rdf-1.2-dataset"),
+            to: Cow::Borrowed("fixture-codec"),
+            note: Cow::Borrowed("the @en language tag was dropped by the target codec"),
             location: None,
         });
-        d
+        losses
     }
 
     #[test]
     fn losses_become_non_gating_projection_loss_children() {
         let mut ledger = DiagLedger::new();
-        let parent = Diag::from_rdf(
+        let parent = Diag::from_rdf_with_losses(
             &diagnostic_with_dropped_lang_tag(),
+            &losses_with_dropped_lang_tag(),
             &mut ledger,
             StageId::new("ingest"),
         );
@@ -182,11 +201,12 @@ mod tests {
         // fingerprint), its stage resolves deterministically to the lexicographic
         // minimum, and its frames are not doubled.
         let d = diagnostic_with_dropped_lang_tag();
+        let losses = losses_with_dropped_lang_tag();
         let mut ledger = DiagLedger::new();
-        let p_a = Diag::from_rdf(&d, &mut ledger, StageId::new("stage-a"));
+        let p_a = Diag::from_rdf_with_losses(&d, &losses, &mut ledger, StageId::new("stage-a"));
         ledger.attach(p_a, StageId::new("stage-a"));
         let before = ledger.emit_sorted().len();
-        let p_b = Diag::from_rdf(&d, &mut ledger, StageId::new("stage-b"));
+        let p_b = Diag::from_rdf_with_losses(&d, &losses, &mut ledger, StageId::new("stage-b"));
         ledger.attach(p_b, StageId::new("stage-b"));
         let after = ledger.emit_sorted().len();
         // Identical content across stages hash-conses — no growth, no doubled frames.

@@ -1,5 +1,5 @@
 # RDF 1.2 / RDF* — GMEOW's canonical statement-level model, the lead serialization.
-# Generated natively by `gmeow regenerate` (statements) from dsl/statements/.
+# Generated natively by `gmeow-dev sync --mode update --outputs generated` (statements) from dsl/statements/.
 # DO NOT EDIT — author in dsl/statements/.
 <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> <https://blackcatinformatics.ca/gmeow/validUntil> "2026-12-31T22:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 <https://blackcatinformatics.ca/gmeow/examples/ai/claim-east-wing-close> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( <https://blackcatinformatics.ca/gmeow/examples/ai/east-wing> <https://blackcatinformatics.ca/gmeow/validUntil> "2026-12-31T22:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> )>> ;

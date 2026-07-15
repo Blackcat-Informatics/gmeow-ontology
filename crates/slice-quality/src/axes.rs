@@ -734,9 +734,10 @@ fn dc_hand_authored(ds: &RdfDataset) -> Vec<LegacyRecord> {
 ///
 /// * **Calculus-routed** (numerator): the `logic:Correspondence` lens individuals
 ///   ([`extract_correspondences`]); complete identity-strength
-///   `logic:GroundingCorrespondence` frontend cells; and the `gmeow:ProjectionMapping`
-///   cells whose binding is a lawful FACT rename (mnemomorphic `=` — the cells the mappings
-///   stage lifts to a discharged `logic:SectionLaw`).
+///   `logic:GroundingCorrespondence` frontend cells admitted by the shared fail-closed
+///   grounding validator; and the `gmeow:ProjectionMapping` cells whose binding is a lawful
+///   FACT rename (mnemomorphic `=` — the cells the mappings stage lifts to a discharged
+///   `logic:SectionLaw`).
 /// * **Hand-authored** (the migration targets): identity-strength `gmeow:TermEquivalence` rows
 ///   and `dc:` alignments the dumb-down calculus should derive ([`lint_dc_refinement`]).
 ///

@@ -753,7 +753,9 @@ fn sssom_header(
         lines.push(format!("# mapping_set_version: {version}"));
         lines.push(format!("# license: {}", meta.license));
     }
-    lines.push("# mapping_tool: gmeow regenerate (mappings)".to_owned());
+    lines.push(
+        "# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)".to_owned(),
+    );
     lines.push(format!("# mapping_tool_version: {version}"));
     lines.push(format!("# mapping_date: {release_date}"));
     if let Some(meta) = meta
@@ -903,7 +905,7 @@ mod tests {
 # mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/demo
 # mapping_set_version: 0.1.0
 # license: https://creativecommons.org/licenses/by/4.0/
-# mapping_tool: gmeow regenerate (mappings)
+# mapping_tool: gmeow-dev sync --mode update --outputs generated (mappings)
 # mapping_tool_version: 0.1.0
 # mapping_date: 2026-06-03
 # comment: \"Demo set with wrap\"
