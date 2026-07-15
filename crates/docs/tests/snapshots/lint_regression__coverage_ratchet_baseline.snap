@@ -1,6 +1,5 @@
 ---
 source: crates/docs/tests/lint_regression.rs
-assertion_line: 192
 expression: coverage
 ---
 {
@@ -16,5 +15,5 @@ expression: coverage
   "docs/missing-test-reach": 4244,
   "docs/missing-translation-coverage": 4660,
   "docs/missing-usage-advice": 3109,
-  "docs/missing-worked-instance": 4196
+  "docs/missing-worked-instance": 4192
 }
